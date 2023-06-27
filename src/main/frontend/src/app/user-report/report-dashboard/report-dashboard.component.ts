@@ -89,9 +89,13 @@ export class ReportDashboardComponent implements OnInit {
   timesheetSummaryColumns:any[] = ['Employee Id','Full Name','Department','Date','Day Type','Status','Total Working Hour','Team Name','Project Name','Client Name','From Date','To Date','Created On','Updated On','Updated By'];
   employeeColumns:any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager','Team Name','Project Name','Client Name', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Experience'];
 
-
+  // Column Filter
   filters:any = {};
   isSearchEnabled:boolean = false;
+  leaveSummaryTableColumns:any[] =['blank','employeementId','employeeName','departmentName','fromDate','toDate','fromDateDayType','toDateDayType','status'];
+  timesheetSummaryTableColumns:any[] =['blank','employeementId','employeeName','departmentName','email','managerName','mobileNo','pendingEodCount','legend'];
+  eodSegregationTableColumns:any[]=['blank','employeementId','employeeName','departmentName','email','managerName','mobileNo','date','dayType','totalWorkingHours'];
+
   resignedColumns:any[] = ['blank','employeementId','name','departmentName','dateOfResign','dateOfRelieving','managerName'];
 
   constructor(

@@ -211,6 +211,12 @@ public class HolidayService {
 
 	public ServiceResponse getAllHolidays() {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setFeatureName("get_AllHoliday");
+		apiLogInfo.setApiUrl("/api/getAllHolidays");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("getAllHolidays size : "+holidayRepository.findAll().size());
 		try {
 			List<Object[]> list = holidayRepository.getAllHolidaysList();
 
@@ -219,6 +225,8 @@ public class HolidayService {
 			if (list.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Holiday list is empty.");
+				apiLogInfo.setApiResponse("Holiday list is empty.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			} else {
 				list.forEach((object) -> {
 
@@ -239,14 +247,19 @@ public class HolidayService {
 				});      
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
-			}
+				apiLogInfo.setApiResponse("dtoList size : "+dtoList.size());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -254,7 +267,6 @@ public class HolidayService {
 		ServiceResponse response = new ServiceResponse();
 		
 		LogDTO apiLogInfo = new LogDTO();
-		//apiLogInfo.setSubFeatureName("delete_holiday");
 		apiLogInfo.setApiUrl("/api/getAllHolidayByEmpWorkLocation");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
@@ -307,15 +319,12 @@ public class HolidayService {
 
 	public ServiceResponse checkOccasionIfAlreadyExist(HolidayDTO holidayDTO) {
 		ServiceResponse response = new ServiceResponse();
-		
 		LogDTO apiLogInfo = new LogDTO();
-		//apiLogInfo.setSubFeatureName("delete_holiday");
 		apiLogInfo.setApiUrl("/api/checkOccasionIfAlreadyExist");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("occasion : " + holidayDTO.getOccasion());
-		
-		
+				
 		  try {
 			  Holiday checkOccasion = holidayRepository.findByOccasion(holidayDTO.getOccasion());
 			  
@@ -344,6 +353,11 @@ public class HolidayService {
 
 	public ServiceResponse getHolidayWeekOffSize(HolidayDTO holidayDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getHolidayWeekOffSize");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("getHolidayWeekOffSize : "+holidayRepository.getHolidayWeekOffSize(holidayDTO.getFromDate(), holidayDTO.getToDate()));
 		try {
 		List<Object[]> list = holidayRepository.getHolidayWeekOffSize(holidayDTO.getFromDate(), holidayDTO.getToDate());
 		List<HolidayDTO> dtoList = new ArrayList<HolidayDTO>();
@@ -353,6 +367,8 @@ public class HolidayService {
 		if (list.isEmpty()) {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("No Holidays found");
+			apiLogInfo.setApiResponse("No Holidays found");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 		}
 		 else {
 
@@ -369,21 +385,33 @@ public class HolidayService {
 					});
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);				
+				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("dtoList size : "+dtoList.size());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 		 }	
 			}
 		catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());		
 			
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
 	public ServiceResponse reconsileHolidayTimesheet(HolidayDTO holidayDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/reconsileHolidayTimesheet");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("");
+		
 		try {
 			
 			LocalDate holidayDate = LocalDate.parse(holidayDTO.getDateOfHoliday());
@@ -433,9 +461,13 @@ public class HolidayService {
 								if(dbResponse != null) {
 									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 									response.setServiceResponse("Timesheet Added successfully");
+									apiLogInfo.setApiResponse("Timesheet Added successfully.");
+									apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 								}else {
 									response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 									response.setServiceResponse("Unable to add Timesheet");
+									apiLogInfo.setApiResponse("Unable to add Timesheet");
+									apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 								}
 							}
 						}
@@ -443,14 +475,20 @@ public class HolidayService {
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Employee List is empty");
+					apiLogInfo.setApiResponse("Employee List is empty");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 			}
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	

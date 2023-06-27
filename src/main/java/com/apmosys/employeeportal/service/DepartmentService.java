@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import javax.mail.event.StoreListener;
 import javax.servlet.http.HttpServletRequest;
 
 import org.json.JSONObject;
@@ -137,7 +138,7 @@ public class DepartmentService {
 		apiLogInfo.setApiUrl("/api/createDepartmentByList");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("deptId : " +departmentDTO.getDeptId()+"departmentName : " +departmentDTO.getName()+ "hodId : " +departmentDTO.getHodId()+ "createdBy : " +departmentDTO.getCreatedBy());
+		logBuilder.append("deptId : " +departmentDTO.getDeptId()+", departmentName : " +departmentDTO.getName()+ ", hodId : " +departmentDTO.getHodId()+ ", createdBy : " +departmentDTO.getCreatedBy());
 		try {
 			Department newDepartment = new Department();
 			newDepartment.setDeptId(departmentDTO.getDeptId());
@@ -179,13 +180,22 @@ public class DepartmentService {
 
 	public ServiceResponse getAllDepartments() {
 		ServiceResponse response = new ServiceResponse();
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("get_AllDepartment");
+		apiLogInfo.setApiUrl("/api/createDepartmentByList");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("getAllDepartment size : "+departmentRepository.getAllDepartments().size());
 		
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
 		try {
 			List<Object[]> allDepartmentList = departmentRepository.getAllDepartments();
 			if (allDepartmentList.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Department List is Empty.");
+				apiLogInfo.setApiResponse("Department List is Empty.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			} else {
 				List<DepartmentDTO> dtoList = new ArrayList<DepartmentDTO>();
 				for (Object[] object : allDepartmentList) {
@@ -203,14 +213,20 @@ public class DepartmentService {
 				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("dtoList Size : "+dtoList.size());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -222,7 +238,7 @@ public class DepartmentService {
 		apiLogInfo.setApiUrl("/api/updateDepartment");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("deptId : " + departmentDTO.getDeptId());
+		logBuilder.append("deptId : " + departmentDTO.getDeptId()+", departmentName : "+departmentDTO.getDeptName());
 		try {
 			Optional<Department> departmentObject = departmentRepository.findById(departmentDTO.getDeptId());
 			if (departmentObject.isPresent()) {
@@ -275,7 +291,6 @@ public class DepartmentService {
 	@Transactional
 	public ServiceResponse deleteDepartment(DepartmentDTO departmentDTO) {
 		ServiceResponse response = new ServiceResponse();
-		
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("delete_department");
 		apiLogInfo.setApiUrl("/api/deleteDepartment");
@@ -396,7 +411,6 @@ public class DepartmentService {
 		ServiceResponse response = new ServiceResponse();
 		
 		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("delete_department");
 		apiLogInfo.setApiUrl("/api/changeDepartmentJobRoleMapping");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
@@ -568,6 +582,12 @@ public class DepartmentService {
 	
 	public ServiceResponse syncDeleteDepartmentWithPoPortal(DepartmentDTO departmentDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/syncDeleteDepartmentWithPoPortal");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("deptId : " + departmentDTO.getDeptId()+", departmentName : "+departmentDTO.getName()+", isDeptUsedInPoPortal : "+departmentDTO.getIsDeptUsedInPoPortal());
+		
 		try {
 			
 			//Sync Deleted Dept with PoPortal
@@ -592,6 +612,8 @@ public class DepartmentService {
 					if(json.getInt("httpStatusCode") == 200) {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse("Department Deleted & Synced with PoPortal");
+						apiLogInfo.setApiResponse("Department Deleted & Synced with PoPortal");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 					}
 					
 				}catch(InternalServerError e) {
@@ -599,22 +621,30 @@ public class DepartmentService {
 					
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse(json.get("message"));
+					apiLogInfo.setApiResponse("message");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					
 				}catch(HttpClientErrorException e) {
                     JSONObject json = new JSONObject(e.getResponseBodyAsString());
 					
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse(json.get("message"));
+					apiLogInfo.setApiResponse("message");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Department not found.");
+				apiLogInfo.setApiResponse("Department not found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 			
 		}catch(Exception e){
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
 		return response;
@@ -622,6 +652,11 @@ public class DepartmentService {
 	
 	public ServiceResponse checkDepartmentName(DepartmentDTO departmentDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/checkDepartmentName");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("departmentName : "+departmentDTO.getName());
 		try {
 			
 			Department deptObj = departmentRepository.findByName(departmentDTO.getName());
@@ -630,10 +665,14 @@ public class DepartmentService {
 				if((departmentDTO.getDeptId() != null) && !departmentDTO.getDeptId().equals(deptObj.getDeptId())) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Department with same name already exists !!");
+					apiLogInfo.setApiResponse("Department with same name already exists !!");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 				if(departmentDTO.getDeptId() == null) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Department with same name already exists !!");
+					apiLogInfo.setApiResponse("Department with same name already exists !!");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 			}
 			
@@ -641,13 +680,22 @@ public class DepartmentService {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse getAllDepartmentInfo() {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getAllDepartmentInfo");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("getAllDepartmentInfo size : "+departmentRepository.getDepartmentInfo().size());
 		try {
 			
 			List<Object[]> departmentObj = departmentRepository.getDepartmentInfo();
@@ -665,17 +713,25 @@ public class DepartmentService {
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("dtoList size : "+dtoList.size());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Department Info not found.");
+				apiLogInfo.setApiResponse("Department Info not found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 			
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
