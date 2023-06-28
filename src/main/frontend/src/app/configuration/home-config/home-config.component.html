@@ -154,7 +154,8 @@
         </div>
         <div class="row mt-3">
             <div class="col-md-12">
-                <div cdkDropList class="photo-order-list" (cdkDropListDropped)="drop($event)">
+                <small *ngIf="eventImages.length === 0" class="text-secondary text-center">No Event Photos to display...</small>
+                <div *ngIf="eventImages.length !== 0" cdkDropList class="photo-order-list" (cdkDropListDropped)="drop($event)">
                     <div class="photo-order-box" *ngFor="let image of eventImages; let i = index" cdkDrag>
                         <div class="w-100 d-flex justify-content-between">
                             <h5>{{i+1}} - {{image.eventName}}</h5>
@@ -169,7 +170,7 @@
         </div>
         <div class="row mt-3">
             <div class="col-md-12">
-                <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdatePhotoOrder(alert_message)">Update</button>
+                <button type="submit" class="btn btn-primary btn-sm mx-1" [disabled]="eventImages.length === 0" (click)="onUpdatePhotoOrder(alert_message)">Update</button>
             </div>
         </div>
     </div>
