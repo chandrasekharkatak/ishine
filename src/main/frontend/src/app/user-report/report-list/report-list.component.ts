@@ -394,7 +394,7 @@ export class ReportListComponent implements OnInit {
 
         this.allTimesheetApplicationsList.forEach(timesheet => {
           timesheet.employeementId = "A-".concat(timesheet.employeementId);
-          timesheet.description = timesheet.description.replaceAll('<br>', '')
+          timesheet.description = timesheet.description?.replaceAll('<br>', '')
           timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
           timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
@@ -425,7 +425,7 @@ export class ReportListComponent implements OnInit {
           }
           this.allTimesheetApplicationsList.forEach(timesheet => {
             timesheet.employeementId = "A-".concat(timesheet.employeementId);
-            timesheet.description = timesheet.description.replaceAll('<br>', '')
+            timesheet.description = timesheet.description?.replaceAll('<br>', '')
             timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
             timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
             timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;

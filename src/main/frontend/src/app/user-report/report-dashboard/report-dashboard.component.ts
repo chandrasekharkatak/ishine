@@ -85,14 +85,18 @@ export class ReportDashboardComponent implements OnInit {
 
   filterData:any = new FilterData();
   queryList:any[] = [];
+
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+
+
   leaveSummaryColumns:any[] = ['Employee Id', 'Full Name', 'Leave Type','Department','Team Name','Project Name','Client Name', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
   timesheetSummaryColumns:any[] = ['Employee Id','Full Name','Department','Date','Day Type','Status','Total Working Hour','Team Name','Project Name','Client Name','From Date','To Date','Created On','Updated On','Updated By'];
+  
   employeeColumns:any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager','Team Name','Project Name','Client Name', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Experience'];
   employeeSummaryColumns:any[] = ['blank','employeementId','name','departmentName','email','managerName','dateOfJoining','mobileNo','employmentstatus','totalExperience','gender','age'];
   workLocationSummaryColumns:any[]=['blank','employeementId','employeeName','projectName','clientName','teamName','clientLocation','date'];
   LeaveTrendAnalysisGraphColumns:any[]=['blank','employeementId','employeeName','departmentName','fromDate','toDate','fromDateDayType','toDateDayType','status'];
-  filters:any = {};
-  isSearchEnabled:boolean = false;
   leaveSummaryTableColumns:any[] =['blank','employeementId','employeeName','departmentName','fromDate','toDate','fromDateDayType','toDateDayType','status'];
   timesheetSummaryTableColumns:any[] =['blank','employeementId','employeeName','departmentName','email','managerName','mobileNo','pendingEodCount','legend'];
   eodSegregationTableColumns:any[]=['blank','employeementId','employeeName','departmentName','email','managerName','mobileNo','date','dayType','totalWorkingHours'];

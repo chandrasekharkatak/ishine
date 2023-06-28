@@ -29,26 +29,38 @@ export class SortPipe implements PipeTransform {
           return 0;
         }
       } else if (sortFieldType == "date") {
-        const timeA = moment(a[sortField], "DD-MM-YYYY");
-        const timeB = moment(b[sortField], "DD-MM-YYYY");
-
-        if (timeA.isBefore(timeB)) {
+        if(!a[sortField]){
           return -1 * multiplier;
-        } else if (timeA.isAfter(timeB)) {
+        }else if(!b[sortField]){
           return 1 * multiplier;
-        } else {
-          return 0;
+        }else{
+          const timeA = moment(a[sortField], "DD-MM-YYYY");
+          const timeB = moment(b[sortField], "DD-MM-YYYY");
+  
+          if (timeA.isBefore(timeB)) {
+            return -1 * multiplier;
+          } else if (timeA.isAfter(timeB)) {
+            return 1 * multiplier;
+          } else {
+            return 0;
+          }
         }
       } else if (sortFieldType == "datetime") {
-        const timeA = moment(a[sortField], "DD-MM-YYYY HH:mm:ss");
-        const timeB = moment(b[sortField], "DD-MM-YYYY HH:mm:ss");
-
-        if (timeA.isBefore(timeB)) {
+        if(!a[sortField]){
           return -1 * multiplier;
-        } else if (timeA.isAfter(timeB)) {
+        }else if(!b[sortField]){
           return 1 * multiplier;
-        } else {
-          return 0;
+        }else{
+          const timeA = moment(a[sortField], "DD-MM-YYYY HH:mm:ss");
+          const timeB = moment(b[sortField], "DD-MM-YYYY HH:mm:ss");
+  
+          if (timeA.isBefore(timeB)) {
+            return -1 * multiplier;
+          } else if (timeA.isAfter(timeB)) {
+            return 1 * multiplier;
+          } else {
+            return 0;
+          }
         }
       } else if (sortFieldType == "empId") {
         // For Employment ID Sorting

@@ -216,7 +216,7 @@
                     <th scope="col" class="info-label wide-col" mat-sort-header="toDateDayType|string">To Date Day Type</th>
                     <th scope="col" class="info-label wide-col" mat-sort-header="status|string">Status</th>
                 </tr>
-                <tr app-column-filter-bar *ngIf="isEmployeeDashboard && isSearchEnabled" [columnList]="LeaveTrendAnalysisGraphColumns" (onSearch)="onSearch($event);page=1" ></tr>
+                <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="leaveSummaryTableColumns" (onSearch)="onSearch($event);page=1" ></tr>
             </thead>
             <tbody>
                 <tr *ngIf="modalSummaryList.length == 0|| (modalSummaryList | colFilter:filters:false).length == 0">

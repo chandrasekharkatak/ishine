@@ -69,8 +69,9 @@ export class HomeConfigComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  consentNotificationResponseColumns:any[] = ['blank', 'employeementId', 'name', 'notificationMessage', 'consentDate'];
-  eventTableColumns:any[] = ['imageName','eventName','createdByName','createdOn'];
+  consentNotificationResponseColumns:any[] = ['blank', 'employeementId', 'name','consentDate'];
+  notificationsColumns:any[] = ['blank', 'notificationMessage','notificationType','isActive','createdByName','createdOn','updatedByName','updatedOn'];
+  eventTableColumns:any[] = ['eventName','eventCaption','imageName','createdByName','createdOn'];
   notificationObj: NotificationMessage = new NotificationMessage();
 
   //Angular Editor
@@ -312,6 +313,11 @@ export class HomeConfigComponent implements OnInit {
   }
 
   onUploadImages(template: TemplateRef<any>){
+    if(this.eventName) this.eventName = this.eventName.trim();
+    if(this.eventCaption) this.eventCaption = this.eventCaption.trim();
+    if(this.isExternalLink == "true" && this.externalLink){
+      this.externalLink = this.externalLink.trim();
+    }
 
     if(!this.validationService.validateNullUndefinedEmptyString(this.eventName)){
       this.alertMessage = "Please enter Event Name !!"

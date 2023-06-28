@@ -165,7 +165,7 @@ export class EmployeeConfigComponent implements OnInit {
 
   auditFilter:any = {};
   isAuditSearchEnabled:boolean = false;
-  employeeAuditColumns:any[] = ['blank', 'date', 'field', 'value', 'bucketName', 'blank'];
+  employeeAuditColumns:any[] = ['blank', 'date', 'field', 'value', 'bucketName', 'updatedByName'];
 
 
   queryList: any[] = [];

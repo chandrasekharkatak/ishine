@@ -91,19 +91,19 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-              <div class="selector-toggle" (click)="toggleSearch()">
-                <a href="javascript:void(0)">
-                    <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-                </a>
-            </div>
+                <div class="selector-toggle" (click)="toggleSearch()">
+                    <a href="javascript:void(0)">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                    </a>
+                </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'eventInfo'" [tableTHeadId]="'eventInfoTHead'"
                     [tableTHeadTrId]="'eventInfoTHeadTr'">
                     <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)">
                         <thead class="thead-light">
                           <tr>
                             <th scope="col" class="info-label" mat-sort-header="eventName|string">Event Name</th>
-                            <th scope="col" class="info-label" mat-sort-header="imageName|string">caption</th>
+                            <th scope="col" class="info-label" mat-sort-header="eventCaption|string">caption</th>
                             <th scope="col" class="info-label" mat-sort-header="eventName|string">Image Name</th>
                             <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
                             <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
@@ -112,10 +112,10 @@
                           <tr app-column-filter-bar *ngIf="isTable && isSearchEnabled" [columnList]="eventTableColumns" (onSearch)="onSearch($event);page=1" ></tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="eventImages.length == 0|| (eventImages| colFilter:filters:false).length == 0">
+                            <tr *ngIf="eventImages.length == 0 || (eventImages| colFilter:filters:false).length == 0">
                                 <th colspan="6" class="text-center info-label">No Event Photos to display...</th>
                             </tr>
-                          <tr *ngFor="let image of eventImages | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                          <tr *ngFor="let image of eventImages | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                             <td>{{image.eventName}}</td>
                             <td>{{image.eventCaption}}</td>
                             <td>{{image.imageName}}</td>
@@ -247,6 +247,12 @@
         </div>
         <div class="row">
             <div class="col-md-12">
+                <div class="selector-toggle" (click)="toggleSearch()">
+                    <a href="javascript:void(0)">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                    </a>
+                </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'notificationInfo'" [tableTHeadId]="'notificationInfoTHead'"
                     [tableTHeadTrId]="'notificationInfoTHeadTr'">
                     <table class="table table-responsive" id="notificationInfo" matSort (matSortChange)="sortData($event)">
@@ -262,12 +268,13 @@
                             <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">updated On</th>
                             <th scope="col" class="info-label">Actions</th>
                           </tr>
+                          <tr app-column-filter-bar *ngIf="isNotificationTable && isSearchEnabled" [columnList]="notificationsColumns" (onSearch)="onSearch($event);page=1" ></tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="allNotification.length == 0">
+                            <tr *ngIf="allNotification.length == 0 || (allNotification| colFilter:filters:false).length == 0">
                                 <th colspan="6" class="text-center info-label">No Notification to display...</th>
                             </tr>
-                          <tr *ngFor="let notification of allNotification | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                          <tr *ngFor="let notification of allNotification | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                             <th class="info-label">{{20*(page-1)+i+1}}</th>
                             <td [innerHTML]="notification.notificationMessage"></td>
                             <td>{{notification.notificationType == 'consentNotification' ? 'Consent Notification' : notification.notificationType == 'releaseNotes' ? 'Release Notes' : 'Notification'}}</td>
