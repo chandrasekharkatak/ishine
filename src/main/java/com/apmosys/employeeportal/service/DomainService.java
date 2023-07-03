@@ -227,6 +227,7 @@ public class DomainService {
 	public ServiceResponse updateDomain(DomainDTO domainDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo=new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
 		apiLogInfo.setSubFeatureName("update_domain");
 		apiLogInfo.setApiUrl("/api/updateDomain");
 		StringBuilder logBuilder = new StringBuilder();
@@ -356,6 +357,7 @@ public class DomainService {
 	public ServiceResponse deleteDomain(DomainDTO domainDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo=new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
 		apiLogInfo.setSubFeatureName("delete_domain");
 		apiLogInfo.setApiUrl("/api/deleteDomain");
 		StringBuilder logBuilder = new StringBuilder();
@@ -434,6 +436,7 @@ public class DomainService {
 	public ServiceResponse checkDomainName(DomainDTO domainDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo=new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
 		apiLogInfo.setApiUrl("/api/checkDomainName");
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("domainName : "+domainDTO.getDomainName());
@@ -466,6 +469,7 @@ public class DomainService {
 	public ServiceResponse getDomainSpecialization(DomainDTO domainDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo=new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
 		apiLogInfo.setApiUrl("/api/getDomainSpecialization");
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("domainName : "+domainDTO.getDomainName());
@@ -512,6 +516,7 @@ public class DomainService {
 	public ServiceResponse getDomainSpecializationByEmpId(DomainDTO domainDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo=new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
 		apiLogInfo.setApiUrl("/api/getDomainSpecializationByEmpId");
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("domainId : "+domainDTO.getDomainId());
