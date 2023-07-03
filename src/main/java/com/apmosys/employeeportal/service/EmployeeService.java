@@ -1454,6 +1454,8 @@ public class EmployeeService {
 						draftEmployee.setTotalExperience(dbResponse.getTotalExperience());
 						draftEmployee.setUpdatedOn(dbResponse.getUpdatedOn());
 						draftEmployee.setDesignationId(dbResponse.getDesignationId());
+						draftEmployee.setDateOfResign(dbResponse.getDateOfResign());
+						draftEmployee.setDateOfRelieving(dbResponse.getDateOfRelieving());
 						
 						draftEmployee.setReportingManagerId(dbResponse.getReportingManagerId());
 						if(dbResponse.getReportingManagerId() == null){

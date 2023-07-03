@@ -155,6 +155,14 @@ public class DraftEmployeeService {
 			employee.setApprovalsTo(employeedto.getApprovalsTo());
 			employee.setDesignationId(employeedto.getDesignationId());
 			employee.setProbationPeriod(employeedto.getProbationPeriod());
+			if(employee.getEmploymentstatus().equals("Resigned") || employee.getEmploymentstatus().equals("InActive") )  {
+				employee.setDateOfResign(employeedto.getDateOfResign() != null
+						? stringToDateTimeParser.getDate(employeedto.getDateOfResign(), "yyyy-MM-dd")
+						: null);
+				employee.setDateOfRelieving(employeedto.getDateOfRelieving());
+			}
+			
+			
 			DraftEmployee dbResponse = draftEmployeeRepository.save(employee);
 
 			Optional.ofNullable(employeedto.getPreviousEmploymentList()).ifPresent((previousEmployerList) -> {
@@ -326,7 +334,11 @@ public class DraftEmployeeService {
 					empDTO.setSpouse(object[58] != null ? (object[58].toString()) : null);
 					empDTO.setTotalExperience(object[59] != null ? Float.parseFloat(object[59].toString()) : null);
 					empDTO.setReportingManagerName(object[60] != null ? object[60].toString() : null);
-					empDTO.setProbationPeriod(object[61] != null ? Short.parseShort(object[61].toString()) : null );//					if (object[42] != null) {
+					empDTO.setProbationPeriod(object[61] != null ? Short.parseShort(object[61].toString()) : null );
+					empDTO.setDateOfResign(object[62] != null ? format.format(format.parse(object[62].toString())) : null);
+                    empDTO.setDateOfRelieving(object[63] != null ? format.format(format.parse(object[63].toString())) : null);
+                    
+//					if (object[42] != null) {
 //
 //						File actualFile = new File(
 //								Paths.get(imageFileLocation + File.separator + object[42].toString()).toString());
@@ -884,6 +896,9 @@ public class DraftEmployeeService {
 					empDTO.setCreatedOn(object[62] != null ? object[62].toString() : null);
                     empDTO.setProbationPeriod(object[63] != null ? Short.parseShort(object[63].toString()): null);
                     empDTO.setTotalExperience(object[64] !=null ? Float.parseFloat(object[64].toString()): null);
+                    empDTO.setDateOfResign(object[65] != null ? format.format(format.parse(object[65].toString())) : null);
+                    empDTO.setDateOfRelieving(object[66] != null ? format.format(format.parse(object[66].toString())) : null);
+                    
 //					if (object[42] != null) {
 //
 //						File actualFile = new File(

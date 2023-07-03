@@ -123,4 +123,10 @@ public class DraftEmployee {
 	private String approvalsTo;
 	
 	private Long designationId;
+	
+	@JsonFormat(pattern = "dd/MM/yyyy")
+	private LocalDate dateOfResign;
+	
+	@JsonFormat(pattern = "dd/MM/yyyy")
+	private String dateOfRelieving;
 }
