@@ -208,6 +208,7 @@
                                   [multiple]="false"
                                   [(ngModel)]="newteamMember.empId"
                                   [disabled]="!teamObj.departmentList || teamObj.departmentList.length == 0"
+                                  (selectionChange)="newteamMember.employeeRole = ''"
                                   >
                                   <mat-option [value]="employee.empId" *ngFor="let employee of addMemberSelect.filteredSource" [disabled]="employee.isSelected">
                                     {{employee.name}}
