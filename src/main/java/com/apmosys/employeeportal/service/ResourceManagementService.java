@@ -686,7 +686,7 @@ public class ResourceManagementService {
         apiLogInfo.setApiUrl("/api/getTeamListByProjectName");
         apiLogInfo.setLogLevel("INFO");
         StringBuilder logBuilder = new StringBuilder();
-        logBuilder.append("ProjectId : " + resourceManagementDTO.getProjectId()+ " ,ProjectName :" + resourceManagementDTO.getName() + " ,Id : " + resourceManagementDTO.getId() + " ,TeamList size :" + resourceManagementDTO.getTeamList().size() );
+        logBuilder.append("ProjectId : " + resourceManagementDTO.getProjectId()+ " ,ProjectName :" + resourceManagementDTO.getName() + " ,Id : " + resourceManagementDTO.getId());
 
 		try {
 			

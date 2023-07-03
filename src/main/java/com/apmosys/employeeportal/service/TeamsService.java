@@ -619,8 +619,7 @@ public class TeamsService {
 		apiLogInfo.setApiUrl("/api/updateTeam");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("TeamId :" + teamDTO.getTeamId() + " ,TeamName :" + teamDTO.getTeamName()
-		 + " ,TeamMemberList :" + teamDTO.getTeamMemberList().size());
+		logBuilder.append("TeamId :" + teamDTO.getTeamId() + " ,TeamName :" + teamDTO.getTeamName());
 
 		try {
 			List<EmployeeTeamMapDTO> allTeamMemberList = teamDTO.getAllTeamMemberList();

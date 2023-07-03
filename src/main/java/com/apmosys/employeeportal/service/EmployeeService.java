@@ -2074,7 +2074,6 @@ public class EmployeeService {
 		ServiceResponse response = new ServiceResponse();
 		
 		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("create_employee");
 		apiLogInfo.setApiUrl("/api/getAllEmployeesByRole");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
@@ -2125,7 +2124,7 @@ public class EmployeeService {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse(employeeDTOList);
 						
-						apiLogInfo.setApiResponse("employeeDTOList : " +employeeDTOList);			
+						apiLogInfo.setApiResponse(employeeDTOList.size() + " employee's found.");			
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 					}, () -> {
