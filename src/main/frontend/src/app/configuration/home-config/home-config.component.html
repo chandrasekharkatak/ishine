@@ -29,7 +29,7 @@
             <div class="row">
                 <div class="col-md-4 mb-2">
                     <label class="info-label mb-0">Caption</label>
-                    <textarea class="form-control" id="eventCaption" rows="3" [(ngModel)]="eventCaption"></textarea>
+                    <textarea class="form-control" id="eventCaption" rows="5" maxlength="500" [(ngModel)]="eventCaption"></textarea>
                 </div>
             </div>
             <div class="row">
@@ -49,7 +49,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>External Link</label>
-                            <input type="text" class="form-control" maxlength="50" autocomplete="none" [(ngModel)]="externalLink">
+                            <input type="text" class="form-control" maxlength="250" autocomplete="none" [(ngModel)]="externalLink">
                         </div>
                     </div>
                 </div>
@@ -104,7 +104,6 @@
                           <tr>
                             <th scope="col" class="info-label" mat-sort-header="eventName|string">Event Name</th>
                             <th scope="col" class="info-label" mat-sort-header="eventCaption|string">caption</th>
-                            <th scope="col" class="info-label" mat-sort-header="eventName|string">Image Name</th>
                             <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
                             <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
                             <th scope="col" class="info-label">Actions</th>
@@ -118,7 +117,6 @@
                           <tr *ngFor="let image of eventImages | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                             <td>{{image.eventName}}</td>
                             <td>{{image.eventCaption}}</td>
-                            <td>{{image.imageName}}</td>
                             <td>{{image.createdByName}}</td>
                             <td>{{image.createdOn}}</td>
                             <td>

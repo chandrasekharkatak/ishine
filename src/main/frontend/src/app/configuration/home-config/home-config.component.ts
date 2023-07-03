@@ -282,6 +282,7 @@ export class HomeConfigComponent implements OnInit {
   
 
   onImageSelect(event:any,template: TemplateRef<any>){
+    const extensionRE = /(?:\.([^.]+))?$/;
     let isSizeInRange:boolean = false;
 
     //Bits in  10mb : 10485760
@@ -302,7 +303,7 @@ export class HomeConfigComponent implements OnInit {
     if (uploadedFiles.length != 0) {
       for (let i = 0; i < uploadedFiles.length; i++) {
         let image = uploadedFiles[i];
-        let imageName = image.name;
+        let imageName = "EventPhoto_"+moment(new Date()).format("DD-MM-YYYY-hh-mm-ss")+"."+extensionRE.exec(image.name)[1];
 
         let imgObj = {image : image,imageName : imageName}
         this.files.push(imgObj);
@@ -323,7 +324,8 @@ export class HomeConfigComponent implements OnInit {
       this.alertMessage = "Please enter Event Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }else if(!this.validationService.validateViewsOnOrganisation(this.eventName)){
+    }
+    else if(!this.validationService.validateViewsOnOrganisation(this.eventName)){
       this.alertMessage = `Please enter Valid Event Name, Alphabets, Numbers, space & Allowed special characters are +-()'"?.,&!`
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -331,7 +333,7 @@ export class HomeConfigComponent implements OnInit {
 
     if(this.validationService.validateNullUndefinedEmptyString(this.eventCaption)){
       if(!this.validationService.validateViewsOnOrganisation(this.eventCaption)){
-        this.alertMessage = `Please enter Valid Caption, Please enter Valid Caption, Alphabets, Numbers, space & Allowed special characters are +-()'"?.,&!`;
+        this.alertMessage = `Please enter Valid Caption, Alphabets, Numbers, space & Allowed special characters are +-()'"?.,&!`;
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
