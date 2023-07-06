@@ -37,6 +37,10 @@ export class ImageService {
     return this.http.post(`${this.baseUrl}`+`api/updatePhotoOrder`,eventPhotoObj);
   }
 
+  updatePhotoDetails(eventPhotoObj:EventPhoto){
+    return this.http.post(`${this.baseUrl}`+`api/updatePhotoDetails`,eventPhotoObj);
+  }
+
   /* Document Upload */
   uploadEmployeeDocument(formData:FormData){
     return this.http.post(`${this.baseUrl}`+`api/uploadEmployeeDocument`,formData);

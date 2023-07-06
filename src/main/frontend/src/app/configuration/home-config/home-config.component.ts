@@ -279,6 +279,69 @@ export class HomeConfigComponent implements OnInit {
       }
     });
   }
+
+  onUpdateEventDetails(template: TemplateRef<any>){
+    this.cancelRequest();
+
+    if(this.imageObj.eventName) this.imageObj.eventName = this.imageObj.eventName.trim();
+    if(this.imageObj.eventCaption) this.imageObj.eventCaption = this.imageObj.eventCaption.trim();
+    if(this.imageObj.isExternalLink == "true" && this.imageObj.externalLink){
+      this.imageObj.externalLink = this.imageObj.externalLink.trim();
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(this.imageObj.eventName)){
+      this.alertMessage = "Please enter Event Name !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    else if(!this.validationService.validateViewsOnOrganisation(this.imageObj.eventName)){
+      this.alertMessage = `Please enter Valid Event Name, Alphabets, Numbers, space & Allowed special characters are +-()'"?.,&!`
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(this.validationService.validateNullUndefinedEmptyString(this.imageObj.eventCaption)){
+      if(!this.validationService.validateViewsOnOrganisation(this.imageObj.eventCaption)){
+        this.alertMessage = `Please enter Valid Caption, Alphabets, Numbers, space & Allowed special characters are +-()'"?.,&!`;
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(this.imageObj.isExternalLink)){
+      this.alertMessage = "Please select Add External Link !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(this.imageObj.isExternalLink == "true"){
+      if(!this.validationService.validateNullUndefinedEmptyString(this.imageObj.externalLink)){
+        this.alertMessage = "Please enter external Link !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }else if(!this.isValidHttpUrl(this.imageObj.externalLink)){
+        this.alertMessage = "Please enter valid external Link !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+
+    let updatedPhotoDetails = new EventPhoto();
+    updatedPhotoDetails = Object.assign({}, this.imageObj);
+    updatedPhotoDetails.updatedBy = this.currentUser.empId;
+
+    console.log("onUpdateEventDetails : ", updatedPhotoDetails);
+    
+    this.imageService.updatePhotoDetails(updatedPhotoDetails).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == 'Success') {
+        this.openAlertMod(template, response.serviceResponse);
+        this.reset();
+        this.showTable();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
   
 
   onImageSelect(event:any,template: TemplateRef<any>){
@@ -368,9 +431,9 @@ export class HomeConfigComponent implements OnInit {
       formData.append(`image`, file.image, file.imageName);
     });
     formData.append("eventName", this.eventName);
-    formData.append("eventCaption", this.eventCaption);
+    formData.append("eventCaption", (this.eventCaption == null) ? "" : this.eventCaption);
     formData.append("isExternalLink", this.isExternalLink);
-    formData.append("externalLink", this.externalLink);
+    formData.append("externalLink", (this.externalLink == null) ? "" : this.externalLink);
     formData.append("uploadedBy", this.currentUser.empId);
     formData.append("employeementId", this.currentUser.employeementId);
     formData.append("empId", this.currentUser.empId);
@@ -612,8 +675,10 @@ export class HomeConfigComponent implements OnInit {
     setTimeout(()=>{this.loadPreviewImage(imageObj);}, 1000);
   }
 
-  openOrderPhotosModal(template: TemplateRef<any>) {
+  openUpdateEventPhotoDetails(template: TemplateRef<any>, imageObj: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    console.log(imageObj);
+    this.imageObj = imageObj;
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {

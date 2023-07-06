@@ -121,6 +121,7 @@
                             <td>{{image.createdOn}}</td>
                             <td>
                                 <button class="btn btn-sm btn-outline-primary" type="submit" (click)="openPreviewEventPhoto(preview_template,image)"><em>Preview</em></button>&nbsp;
+                                <button class="btn btn-sm btn-outline-primary" type="submit" (click)="openUpdateEventPhotoDetails(update_template,image)"><em class="fa fa-edit"></em>&nbsp;Details</button>&nbsp;
                                 <button *ngIf="userMapping.delete_event_photos" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteEventPhoto(delete_template,image)"><em class="fa fa-trash"></em></button>
                             </td>
                           </tr>
@@ -317,7 +318,7 @@
 
 <ng-template #preview_template>
     <div class="modal-header">
-        <p class="modal-title">{{imageObj.imageName}} - {{imageObj.eventName}}</p>
+        <p class="modal-title">{{imageObj.eventName}}</p>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
             <span aria-hidden="true">&times;</span>
           </button>
@@ -329,6 +330,60 @@
               </div>
         </div>
         <img id="photoPreview" alt="Photo Preview">
+    </div>
+</ng-template>
+
+<ng-template #update_template>
+    <div class="modal-header">
+        <p class="modal-title"><b>Update Event Details</b>  - {{imageObj.eventName}}</p>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+    </div>
+    <div class="modal-body">
+        <div class="row">
+            <div class="col-md-6 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Event Name</label>
+                        <input type="text" class="form-control" maxlength="50" autocomplete="none" [(ngModel)]="imageObj.eventName">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-2">
+                <label class="info-label mb-0">Caption</label>
+                <textarea class="form-control" id="eventCaption" rows="5" maxlength="500" [(ngModel)]="imageObj.eventCaption"></textarea>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Add External Link</label>
+                        <select class="form-control" aria-hidden="true" [(ngModel)]="imageObj.isExternalLink">
+                            <option selected="selected" value="" disabled>Select</option>
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="imageObj.isExternalLink == 'true'" class="col-md-6 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>External Link</label>
+                        <input type="text" class="form-control" maxlength="250" autocomplete="none" [(ngModel)]="imageObj.externalLink">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateEventDetails(alert_message)">Update</button>
+            </div>
+        </div>
     </div>
 </ng-template>
 

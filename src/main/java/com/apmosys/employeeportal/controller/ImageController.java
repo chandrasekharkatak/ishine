@@ -78,6 +78,13 @@ public class ImageController {
 		return response;
 	}
 	
+	@RequestMapping(value="/updatePhotoDetails" , method = RequestMethod.POST)
+	public ServiceResponse updatePhotoDetails(@RequestBody EventPhotoDTO eventPhotoDTO) {		
+		
+		ServiceResponse response =	imageService.updatePhotoDetails(eventPhotoDTO);		
+		return response;
+	}
+	
 	// Documents
 	
 	@RequestMapping(value="/uploadEmployeeDocument" , method = RequestMethod.POST)

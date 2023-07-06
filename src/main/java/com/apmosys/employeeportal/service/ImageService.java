@@ -587,6 +587,72 @@ public class ImageService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+	
+	public ServiceResponse updatePhotoDetails(EventPhotoDTO eventPhotoDTO) {
+		ServiceResponse response = new ServiceResponse();
+		List<File> savedFiles = new ArrayList<File>();
+		String errorMsg = "";
+
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Update Photo Details");
+		apiLogInfo.setApiUrl("/api/updatePhotoDetails");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Updated Event Caption : "+  eventPhotoDTO.getEventCaption() + ", Is External link  : " + eventPhotoDTO.getIsExternalLink() +
+				", External Link : " + eventPhotoDTO.getExternalLink() + ", Updated By : " + eventPhotoDTO.getUpdatedBy());
+
+		try {
+
+			EventPhoto existingPhoto =  eventPhotosRepository.findByEventPhotoId(eventPhotoDTO.getEventPhotoId());
+
+			if(existingPhoto != null) {
+				existingPhoto.setEventCaption(eventPhotoDTO.getEventCaption());
+				existingPhoto.setIsExternalLink(eventPhotoDTO.getIsExternalLink());
+				existingPhoto.setExternalLink(eventPhotoDTO.getExternalLink());
+				
+				CommonProperties commonProp = new CommonProperties();
+				commonProp.setCreatedBy(existingPhoto.getCommonProperty().getCreatedBy());
+				commonProp.setCreatedOn(existingPhoto.getCommonProperty().getCreatedOn());
+				commonProp.setUpdatedBy(eventPhotoDTO.getUpdatedBy());
+				commonProp.setUpdatedOn(LocalDateTime.now());
+				existingPhoto.setCommonProperty(commonProp);
+				
+				EventPhoto UpdatedPhoto =  eventPhotosRepository.save(existingPhoto);		
+				
+				if(UpdatedPhoto != null) {
+					
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Event photo details updated successfully.");
+
+					apiLogInfo.setApiResponse("Event photo details updated successfully.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Failed to update event photo details.");
+
+					apiLogInfo.setApiResponse("Failed to update event photo details.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				}
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("event photo not found.");
+
+				apiLogInfo.setApiResponse("event photo not found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+
 
 	
 	
