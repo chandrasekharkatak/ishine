@@ -3638,7 +3638,6 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 		apiLogInfo.setApiUrl("/api/reconsileCasualBalance");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("leaveBalanceLogRepository size : "+leaveBalanceLogRepository.findAll().size());
 		try {
 			
 			List<Employee> allEmployee = employeeRepository.findAll();
@@ -3721,4 +3720,83 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 		return response;
 	}
 
+	
+	public ServiceResponse addMaternityLeaves() {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/addMaternityLeaves");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		
+		final Float MATERNITY_LEAVES = 180F;
+		
+		try {
+			
+			List<Employee> allEmployee = employeeRepository.findAll();
+			
+			List<EmployeeDTO> json = new ArrayList<>();
+			
+			if(!allEmployee.isEmpty()) {
+				allEmployee.forEach((object) -> {
+					
+					if("female".equals(object.getGender())){
+						EmployeeLeavesMap empLeaveMap = employeeLeavesMapRepository
+								.findByEmpIdAndLeaveTypeMasterId(object.getEmpId(), (short) 5);
+						
+						if(empLeaveMap != null) {
+							empLeaveMap.setBalance(MATERNITY_LEAVES);
+							EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(empLeaveMap);		
+							
+							if(dbResponse != null) {
+								LeaveBalanceLog log = new LeaveBalanceLog();
+
+								log.setBalance(MATERNITY_LEAVES);
+								log.setEmpId(object.getEmpId());
+								log.setLeaveTypeMasterId((short) 5);
+								log.setMessage(LeaveLogMessage.autoAddLeave.replace("0.0",
+										Float.toString(MATERNITY_LEAVES)));
+								log.setUpdateBalanceBy("-" + MATERNITY_LEAVES);
+
+//								LeaveBalanceLog logResponse = leaveBalanceLogRepository.save(log);
+								
+								if(log != null) {
+									
+									EmployeeDTO newObj = new EmployeeDTO();
+									newObj.setEmpId(object.getEmpId());
+									newObj.setEmployeementId(object.getEmployeementId());
+									newObj.setName(object.getName());
+									newObj.setRemarks(log.getMessage());
+
+									
+									json.add(newObj);
+									
+									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+									response.setServiceResponse("Maternity Leave Added Successfully.");
+								}else {
+									response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+									response.setServiceResponse("Unable to Add Maternity Leave.");
+								}
+							}
+						}
+					}
+				});
+			}
+			
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse1(json);
+			apiLogInfo.setApiResponse("json");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
+			response.setServiceError(e.getMessage());
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
 }

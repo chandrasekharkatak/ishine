@@ -55,6 +55,8 @@ import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.Log;
+import com.apmosys.employeeportal.model.Newsletter;
+import com.apmosys.employeeportal.model.NewsletterReadResponse;
 import com.apmosys.employeeportal.model.Notification;
 import com.apmosys.employeeportal.model.PolicyReadResponse;
 import com.apmosys.employeeportal.model.PreviousEmployment;
@@ -74,6 +76,8 @@ import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.repository.LogsRepository;
+import com.apmosys.employeeportal.repository.NewsletterReadResponseRepository;
+import com.apmosys.employeeportal.repository.NewsletterRepository;
 import com.apmosys.employeeportal.repository.NotificationRepository;
 import com.apmosys.employeeportal.repository.PolicyReadResponseRepository;
 import com.apmosys.employeeportal.repository.PreviousEmploymentRepository;
@@ -186,6 +190,13 @@ public class EmployeeService {
 	
 	@Autowired
 	UserSessionRepository userSessionRepository;
+	
+	@Autowired
+	private NewsletterRepository newsletterRepository;
+	
+	@Autowired
+	private NewsletterReadResponseRepository newsletterReadResponseRepository;
+	
 
 //	@Transactional
 //	public ServiceResponse createEmployee(EmployeeDTO employeedto) {
@@ -2808,6 +2819,25 @@ public class EmployeeService {
 						}
 					}
 				}
+				
+				
+				//Check if all Newsletter is read
+				List<Newsletter> allNewsletters = newsletterRepository.findAll();
+
+				if (!allNewsletters.isEmpty()) {
+					for (Newsletter object : allNewsletters) {
+						NewsletterReadResponse readResponse = newsletterReadResponseRepository
+									.findByEmpIdAndDocumentId(employee.getEmpId(), object.getDocumentId());
+						
+						if (readResponse == null) {
+							employee.setNewsletterReadCheck(object);
+							break;
+						}
+					}
+				}
+				
+				
+				
 				response.setServiceResponse("Employee login info found.");
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				apiLogInfo.setApiResponse("Employee login info found.");
