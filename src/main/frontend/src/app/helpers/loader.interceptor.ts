@@ -127,7 +127,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getAllProjects`,
     `${this.baseUrl}` + `api/getActivityTemplate`,
     `${this.baseUrl}` + `api/getAllEventPhotos`,
-    `${this.baseUrl}`+`api/findEmployeeWorkingHistory`,
+    `${this.baseUrl}` + `api/findEmployeeWorkingHistory`,
     `${this.baseUrl}` + `api/customTimesheetApplicationReport`,
 
     `${this.baseUrl}` + `api/getMappedActivityPreview`,
@@ -173,18 +173,22 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}`+`api/getDefaultMapping`,
 
     `${this.baseUrl}`+`api/checkEmailWhenForgotPassword`,
-    `${this.baseUrl}`+`api/updateEmployeeForgotPassword`
+    `${this.baseUrl}`+`api/updateEmployeeForgotPassword`,
+
+    `${this.baseUrl}`+`api/newsletters/uploadNewsletter`,
+    `${this.baseUrl}`+`api/newsletters/`,
+    `${this.baseUrl}`+`api/newsletters/download/`,
+    `${this.baseUrl}`+`api/newsletters/setNewsletterReadResponseByEmpId`,
+    `${this.baseUrl}`+`api/newsletters/getAllReadNewslettersByEmpId`,
+
   ]
 
   constructor(private loaderService: LoaderService) { }
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
-
-
     this.URL_whiteList.forEach((element) => {
 
-
-      if (element === request.url) {
+      if (request.url.includes(element)) {
 
         request = request.clone({
           setHeaders: {

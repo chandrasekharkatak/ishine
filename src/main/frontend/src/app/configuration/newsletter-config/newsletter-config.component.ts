@@ -54,7 +54,7 @@ export class NewsletterConfigComponent implements OnInit {
   // Filter 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  documentsColumns:any[] = ['blank','displayName','createdByName','createdOn'];
+  documentsColumns:any[] = ['blank','displayName','fileName','createdByName','createdOn'];
 
 
   constructor(

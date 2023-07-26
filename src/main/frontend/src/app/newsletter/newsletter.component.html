@@ -37,7 +37,7 @@
                         </tr>
                         <tr *ngFor="let doc of newsletters | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |  paginate: { itemsPerPage: 10, currentPage: page }, let i = index  ">
                           <th class="info-label">{{10*(page-1)+i+1}}</th>
-                          <td>{{doc.policyName}}</td>
+                          <td>{{doc.displayName}}</td>
                           <td>{{doc.createdByName}}</td>
                           <td>{{doc.createdOn}}</td>
                           <td>
