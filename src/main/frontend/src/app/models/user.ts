@@ -59,4 +59,6 @@ export class User{
     poPortalAllProjectApi:any;
 
     probationPeriod: any;
+
+    newsletterReadCheck:any;
 }

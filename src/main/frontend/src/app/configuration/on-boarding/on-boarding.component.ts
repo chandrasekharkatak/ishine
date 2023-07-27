@@ -34,7 +34,7 @@ export class OnBoardingComponent implements OnInit {
      this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     }
 
-  ngOnInit(): void {   
+  ngOnInit(): void {
   }
 
   // getAssetDataFromSnipitPortal(template: TemplateRef<any>){
@@ -93,7 +93,7 @@ export class OnBoardingComponent implements OnInit {
     this.cancelRequest();
 
     let assetObj = {...this.assetObj};
-    
+
     if(!this.validationService.validateNullUndefinedEmptyString(assetObj.employeementId)){
       this.alertMessage = "Please enter Employee ID !!"
       this.openAlertMod(template, this.alertMessage);
@@ -122,7 +122,7 @@ export class OnBoardingComponent implements OnInit {
         this.departmentList = [...new Map(this.employeeOnBoardingDetailList.map((employee:Asset) => [employee[key], employee])).values()].map((employee:Asset) => {
           return { departmentName: employee.departmentName, deptId: employee.deptId}
         });
-        
+
         this.departmentList.forEach(dept => {
           dept["assetList"] = this.employeeOnBoardingDetailList.filter((employee:Asset) => employee.departmentName == dept.departmentName);
 
@@ -141,9 +141,12 @@ export class OnBoardingComponent implements OnInit {
         }
 
         console.log("Assets according to departments : ", this.departmentList);
-        
+
       } else {
         this.openAlertMod(template, response.serviceResponse);
+
+        this.employeeDetailList = null;
+        this.employeeOnBoardingDetailList = null;
       }
     });
   }

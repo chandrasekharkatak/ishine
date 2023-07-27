@@ -114,7 +114,7 @@ export class ReportListComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  leaveReportColumns:any[] = ['employeementId','employeeName','leaveType','fromDate','toDate','noOfDays','reason','status','managerName','departmentName','createdOn','updatedOn','leaveStatusUpdatedByName'];
+  leaveReportColumns:any[] = ['employeementId','employeeName','leaveType','fromDate','toDate','fromDateDayType','toDateDayType','noOfDays','reason','status','managerName','departmentName','createdOn','updatedOn','leaveStatusUpdatedByName'];
   timesheetReportColumns:any[] = ['employeementId','employeeName','date','dayType','description','status','totalWorkingHours','officeInTime','officeOutTime','totalWorkingOfficeHours','leaveType','createdOn','updatedOn','timesheetStatusUpdatedByName'];
   employeeReportColumn:any[] = ['employeementId','name','departmentName','jobRoleName','managerName','mobileNo','email','employmentstatus','dateOfJoining','aadhar','aboutMe','address','permanentAddress','city','bloodGroup','dateOfBirth','gender','fatherName','panNumber','placeOfBirth','workLocation','probationPeriod','noticePeriod','country','totalExperience','emergencyContactMobile','emergencyContactPerson','landline','maritalStatus','motherTongue','alternateMobileNo','pincode','relation','state','viewsOnOrganisation','passportNumber','bankAccountNo','bankIFSCCode','bankName','pfAccountNumber','previousPfAccountNumber','uan','esicNumber','graduationType','pursuing','passingGrade','yearOfPassing','updatedOn','updatedByName','createdByName','createdOn'];
   leaveTimesheetReportColumn:any[] = ['employeementId','employeeName','date','dayType','description','status','managerName','departmentName','createdOn','updatedOn','timesheetStatusUpdatedByName'];
@@ -394,7 +394,7 @@ export class ReportListComponent implements OnInit {
 
         this.allTimesheetApplicationsList.forEach(timesheet => {
           timesheet.employeementId = "A-".concat(timesheet.employeementId);
-          timesheet.description = timesheet.description.replaceAll('<br>', '')
+          timesheet.description = timesheet.description?.replaceAll('<br>', '')
           timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
           timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
@@ -425,7 +425,7 @@ export class ReportListComponent implements OnInit {
           }
           this.allTimesheetApplicationsList.forEach(timesheet => {
             timesheet.employeementId = "A-".concat(timesheet.employeementId);
-            timesheet.description = timesheet.description.replaceAll('<br>', '')
+            timesheet.description = timesheet.description?.replaceAll('<br>', '')
             timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
             timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
             timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;

@@ -306,6 +306,7 @@ export class LoginComponent implements OnInit{
       this.user.poPortalAllProjectApi = user.poPortalAllProjectApi;
       this.user.probationPeriod = user.probationPeriod;
       this.user.releaseNoteNotification = user.releaseNoteNotification;
+      this.user.newsletterReadCheck = user.newsletterReadCheck;
       
       sessionStorage.setItem('currentUser', JSON.stringify(this.user));
       this.authenticationService.setcurrentUserSubject(this.user);
@@ -339,6 +340,12 @@ export class LoginComponent implements OnInit{
         // }
         if(this.currentUser.policyReadConsent != null){
           this.router.navigate(['/user-policies']);
+        }
+      }
+      
+      if(this.user.tabList.find(e => e.tabName === 'Newsletters')){
+        if(this.currentUser.newsletterReadCheck != null){
+          this.router.navigate(['/newsletters']);
         }
       }
       

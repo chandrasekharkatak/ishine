@@ -150,7 +150,7 @@ export class UploadPoliciesComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }else if(!this.validationService.validateAlphaNumericWithSpace(this.policyName)){
-      this.alertMessage = "Please enter Valid Policy Name, Alphabets, Numericals & space allowed !!"
+      this.alertMessage = "Please enter Valid Policy Name, Alphabets, Numbers & space allowed !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }

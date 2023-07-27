@@ -51,7 +51,7 @@ public class AppreciationService {
 	public ServiceResponse saveAppreciation(AppreciationDTO appreciationDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("Appreciation");
+		apiLogInfo.setSubFeatureName("save_appreciation");
 		apiLogInfo.setApiUrl("/api/saveAppreciation");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
@@ -135,11 +135,10 @@ public class AppreciationService {
 	public ServiceResponse enableAppreciation(AppreciationEventDTO appreciationEventDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("Appreciation Configuration");
 		apiLogInfo.setApiUrl("/api/enableAppreciation");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("appreciationEventName : " +appreciationEventDTO.getAppreciationEventName() );
+		logBuilder.append("appreciationEventName : " +appreciationEventDTO.getAppreciationEventName());
 		try {
 		AppreciationEvent appEvent = new AppreciationEvent();
 		appEvent.setAppreciationEventName(appreciationEventDTO.getAppreciationEventName());
@@ -210,12 +209,23 @@ public class AppreciationService {
 
 
 	public AppreciationEventDTO getAppreciationEventInfo() {
-		
+		ServiceResponse response = new ServiceResponse();
 		AppreciationEventDTO appreciationEventInfo = new AppreciationEventDTO();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getAppreciationEventInfo");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("appreciationEventName : " +appreciationEventInfo.getAppreciationEventName());
+		
 		try {
 		List<Object[]> objectArrayList = enableAppreciationRepository.getAppreciationEventInfo();
 		if (objectArrayList.isEmpty()) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("No appreciation event found.");
+			apiLogInfo.setApiResponse("No appreciation event found.");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			return appreciationEventInfo;
+			
 		} else {
 			objectArrayList.forEach((object) -> {
 
@@ -228,18 +238,35 @@ public class AppreciationService {
 			    appreciationEventInfo.setFromDate(object[2] != null ? object[2].toString() : null);
 			    appreciationEventInfo.setToDate(object[3] != null ? object[3].toString() : null);
 			});
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse("Appreciation event info fetched.");
+			apiLogInfo.setApiResponse("Appreciation event info fetched.");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			return appreciationEventInfo;
 		}
 
 	} catch (Exception e) {
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse("Something went wrong.");
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		apiLogInfo.setLogLevel("ERROR");
 		e.printStackTrace();
 
 	}
+	apiLogInfo.setApiRequest(logBuilder.toString());
+	logService.logMyInfo(httpRequest, apiLogInfo);
 	return appreciationEventInfo;
 }
 
 	public ServiceResponse getAllAppreciationEvent() {
 	   ServiceResponse response = new ServiceResponse();
+	   AppreciationEventDTO appreciationEventInfo = new AppreciationEventDTO();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("get_getAllAppreciationEvent");
+		apiLogInfo.setApiUrl("/api/getAllAppreciationEvent");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("AllEventList :" + enableAppreciationRepository.findAll().size());
 	   		
 	try {
 	List<AppreciationEvent> allEvent = enableAppreciationRepository.findAll();
@@ -259,16 +286,24 @@ public class AppreciationService {
 	}
 	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	response.setServiceResponse(appreciationEventDTO);
+	apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	apiLogInfo.setApiResponse("List fetched of size : "+appreciationEventDTO.size());
 	}else {
 		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 		response.setServiceResponse("Appreciation Event List is empty.");
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		apiLogInfo.setApiResponse("Appreciation Event List is empty.");
 		}
 	}catch (Exception e) {
 		e.printStackTrace();
 		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 		response.setServiceResponse("Something Went Wrong.");
+		apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		apiLogInfo.setLogLevel("ERROR");
 		response.setServiceError(e.getMessage());
 	}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -315,7 +350,6 @@ public class AppreciationService {
 				
 				apiLogInfo.setApiResponse("list is empty !!");			
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				
 			}
 			
 		}catch(Exception e) {
@@ -323,14 +357,11 @@ public class AppreciationService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
-			
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
-			
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
-
 		return response;
 	}
 	
@@ -382,7 +413,7 @@ public class AppreciationService {
 	public ServiceResponse updateAppreciationEvent(AppreciationEventDTO appreciationEventDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("Update Appreciation Event");
+		apiLogInfo.setSubFeatureName("Update_appreciationEvent");
 		apiLogInfo.setApiUrl("/api/updateAppreciationEvent");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
@@ -522,7 +553,6 @@ public class AppreciationService {
 		ServiceResponse response = new ServiceResponse();
 		
 		LogDTO apiLogInfo = new LogDTO();
-		//apiLogInfo.setSubFeatureName("Delete Appreciation Event");
 		apiLogInfo.setApiUrl("/api/getAppreciateEmployeeByCurrentUser");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
@@ -574,7 +604,7 @@ public class AppreciationService {
 		return response;
 	}
 	
-	}
+}
 	
 	
 

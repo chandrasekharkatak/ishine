@@ -87,7 +87,7 @@ export class ResourceManagementComponent implements OnInit {
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin'];
   filters:any = {};
   isSearchEnabled:boolean = false;
-  projectColumns:any[] = ["blank", "blank", "name","projectManagerName","clientName","clientState","status","isDraftProject"];
+  projectColumns:any[] = ["blank", "blank", "name","projectManagerName","clientName","clientState","createdOn", "status","isDraftProject"];
 
   constructor(
     private departmentService: DepartmentService,

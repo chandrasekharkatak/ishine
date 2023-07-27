@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -55,7 +56,7 @@ public class ImageService {
 	@Value("${file.location.image}")
 	private String imageFileLocation;
 
-	public ServiceResponse uploadMultipleImages(List<MultipartFile> images, String eventName, Long uploadedBy) {
+	public ServiceResponse uploadMultipleImages(List<MultipartFile> images, String eventName, String eventCaption, String isExternalLink, String externalLink, Long uploadedBy) {
 		ServiceResponse response = new ServiceResponse();
 		List<File> savedFiles = new ArrayList<File>();
 		String errorMsg = "";
@@ -107,11 +108,22 @@ public class ImageService {
 
 					if (images.size() == savedFiles.size()) {
 						for (MultipartFile image : images) {
+							EventPhoto lastPhotoInOrder =  eventPhotosRepository.findFirstByOrderByPhotoOrderDesc();
 
+							Integer order = 0;
+							if(lastPhotoInOrder != null) {
+								order = lastPhotoInOrder.getPhotoOrder();
+							}
+							order++;
+							
 							EventPhoto newPhoto = new EventPhoto();
 							newPhoto.setEventName(eventName);
 							newPhoto.setImageName(image.getOriginalFilename());
-
+							newPhoto.setEventCaption(eventCaption);
+							newPhoto.setIsExternalLink(isExternalLink);
+							newPhoto.setExternalLink(externalLink);
+							newPhoto.setPhotoOrder(order);
+							
 							CommonProperties commonProp = new CommonProperties();
 							commonProp.setCreatedBy(uploadedBy);
 							newPhoto.setCommonProperty(commonProp);
@@ -199,6 +211,11 @@ public class ImageService {
 						photoDTO.setCreatedOn(object[3] != null ? object[3].toString() : null);
 						photoDTO.setCreatedByName(object[4] != null ? object[4].toString() : null);
 						photoDTO.setCreatedBy(object[5] != null ? Long.parseLong(object[5].toString()) : null);
+						photoDTO.setEventCaption(object[6] != null ? object[6].toString() : null);
+						photoDTO.setPhotoOrder(object[7] != null ? Integer.parseInt(object[7].toString()) : null);
+						photoDTO.setIsExternalLink(object[8] != null ? object[8].toString() : null);
+						photoDTO.setExternalLink(object[9] != null ? object[9].toString() : null);
+						
 
 						byte[] imageByte;
 
@@ -245,18 +262,18 @@ public class ImageService {
 		return response;
 	}
 	
-	public ServiceResponse getAllEventPhotosForHome() {
+	public ServiceResponse getFirstEventPhotoForHome() {
 		ServiceResponse response = new ServiceResponse();
 
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("View All Event Photos");
-		apiLogInfo.setApiUrl("/api/getAllEventPhotosForHome");
+		apiLogInfo.setApiUrl("/api/getFirstEventPhotoForHome");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
 
 		try {
 
-			List<Object[]> eventPhotolist = eventPhotosRepository.getAllImagePhotos();
+			List<Object[]> eventPhotolist = eventPhotosRepository.getFirstImagePhotosForHome();
 
 			Optional.ofNullable(eventPhotolist).ifPresentOrElse((list) -> {
 
@@ -281,7 +298,99 @@ public class ImageService {
 						photoDTO.setCreatedOn(object[3] != null ? object[3].toString() : null);
 						photoDTO.setCreatedByName(object[4] != null ? object[4].toString() : null);
 						photoDTO.setCreatedBy(object[5] != null ? Long.parseLong(object[5].toString()) : null);
+						photoDTO.setEventCaption(object[6] != null ? object[6].toString() : null);
+						photoDTO.setPhotoOrder(object[7] != null ? Integer.parseInt(object[7].toString()) : null);
+						photoDTO.setIsExternalLink(object[8] != null ? object[8].toString() : null);
+						photoDTO.setExternalLink(object[9] != null ? object[9].toString() : null);
+						
+						byte[] imageByte;
 
+						try {
+							imageByte = Files
+									.readAllBytes(Paths.get(imageFileLocation + File.separator + object[2].toString()));
+							photoDTO.setImageBytes(imageByte);
+
+							apiLogInfo.setApiResponse("Image set ");
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+						} catch (IOException e) {
+							e.printStackTrace();
+							response.setServiceError(e.getMessage());
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+							apiLogInfo.setLogLevel("ERROR");
+						}
+
+						dtoList.add(photoDTO);
+					});
+
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+
+					apiLogInfo.setApiResponse("Found first event photo for home");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				}
+			}, () -> {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Event photo list is empty.");
+
+				apiLogInfo.setApiResponse("Event photo list is empty.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+	
+	
+	
+	public ServiceResponse getAllEventPhotosForHome() {
+		ServiceResponse response = new ServiceResponse();
+
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("View All Event Photos");
+		apiLogInfo.setApiUrl("/api/getAllEventPhotosForHome");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+
+		try {
+
+			List<Object[]> eventPhotolist = eventPhotosRepository.getAllImagePhotosForHome();
+
+			Optional.ofNullable(eventPhotolist).ifPresentOrElse((list) -> {
+
+				if (list.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No Images found.Event Photos list is empty");
+
+					apiLogInfo.setApiResponse("No Images found for home.Event Photos list is empty.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+				} else {
+
+					List<EventPhotoDTO> dtoList = new ArrayList<EventPhotoDTO>();
+
+					list.forEach((object) -> {
+
+						EventPhotoDTO photoDTO = new EventPhotoDTO();
+
+						photoDTO.setEventPhotoId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						photoDTO.setEventName(object[1] != null ? object[1].toString() : null);
+						photoDTO.setImageName(object[2] != null ? object[2].toString() : null);
+						photoDTO.setCreatedOn(object[3] != null ? object[3].toString() : null);
+						photoDTO.setCreatedByName(object[4] != null ? object[4].toString() : null);
+						photoDTO.setCreatedBy(object[5] != null ? Long.parseLong(object[5].toString()) : null);
+						photoDTO.setEventCaption(object[6] != null ? object[6].toString() : null);
+						photoDTO.setPhotoOrder(object[7] != null ? Integer.parseInt(object[7].toString()) : null);
+						photoDTO.setIsExternalLink(object[8] != null ? object[8].toString() : null);
+						photoDTO.setExternalLink(object[9] != null ? object[9].toString() : null);
+						
 						byte[] imageByte;
 
 						try {
@@ -401,6 +510,154 @@ public class ImageService {
 		return response;
 	}
 
+	public ServiceResponse updatePhotoOrder(EventPhotoDTO eventPhotoDTO) {
+		ServiceResponse response = new ServiceResponse();
+		List<File> savedFiles = new ArrayList<File>();
+		String errorMsg = "";
+
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Update Order");
+		apiLogInfo.setApiUrl("/api/updatePhotoOrder");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Updated By : " + eventPhotoDTO.getUpdatedBy());
+
+		List<EventPhoto> modelList = new ArrayList<EventPhoto>();
+		try {
+
+			if (!eventPhotoDTO.getEventPhotoList().isEmpty()) {
+				for (EventPhotoDTO image : eventPhotoDTO.getEventPhotoList()) {
+					EventPhoto existingPhoto =  eventPhotosRepository.findByEventPhotoId(image.getEventPhotoId());
+
+					if(existingPhoto != null) {
+						existingPhoto.setPhotoOrder(image.getPhotoOrder());
+						
+						CommonProperties commonProp = new CommonProperties();
+						commonProp.setCreatedBy(existingPhoto.getCommonProperty().getCreatedBy());
+						commonProp.setCreatedOn(existingPhoto.getCommonProperty().getCreatedOn());
+						commonProp.setUpdatedBy(image.getUpdatedBy());
+						commonProp.setUpdatedOn(LocalDateTime.now());
+						existingPhoto.setCommonProperty(commonProp);
+
+						modelList.add(existingPhoto);
+					}
+				}
+				
+				if(!modelList.isEmpty()) {
+					
+					List<EventPhoto> UpdatedPhotos =  eventPhotosRepository.saveAll(modelList);		
+					
+					if(!UpdatedPhotos.isEmpty()) {
+						
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Event photos order updated successfully.");
+
+						apiLogInfo.setApiResponse("Event photos order updated successfully.");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+						
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Failed to update event photos order.");
+
+						apiLogInfo.setApiResponse("Failed to update event photos order.");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					}
+					
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Failed to update event photos order.");
+
+					apiLogInfo.setApiResponse("Failed to update event photos order.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				}
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Event Photo List not found.");
+
+				apiLogInfo.setApiResponse("Event Photo List not found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+	
+	public ServiceResponse updatePhotoDetails(EventPhotoDTO eventPhotoDTO) {
+		ServiceResponse response = new ServiceResponse();
+		List<File> savedFiles = new ArrayList<File>();
+		String errorMsg = "";
+
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Update Photo Details");
+		apiLogInfo.setApiUrl("/api/updatePhotoDetails");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Updated Event Caption : "+  eventPhotoDTO.getEventCaption() + ", Is External link  : " + eventPhotoDTO.getIsExternalLink() +
+				", External Link : " + eventPhotoDTO.getExternalLink() + ", Updated By : " + eventPhotoDTO.getUpdatedBy());
+
+		try {
+
+			EventPhoto existingPhoto =  eventPhotosRepository.findByEventPhotoId(eventPhotoDTO.getEventPhotoId());
+
+			if(existingPhoto != null) {
+				existingPhoto.setEventCaption(eventPhotoDTO.getEventCaption());
+				existingPhoto.setIsExternalLink(eventPhotoDTO.getIsExternalLink());
+				existingPhoto.setExternalLink(eventPhotoDTO.getExternalLink());
+				
+				CommonProperties commonProp = new CommonProperties();
+				commonProp.setCreatedBy(existingPhoto.getCommonProperty().getCreatedBy());
+				commonProp.setCreatedOn(existingPhoto.getCommonProperty().getCreatedOn());
+				commonProp.setUpdatedBy(eventPhotoDTO.getUpdatedBy());
+				commonProp.setUpdatedOn(LocalDateTime.now());
+				existingPhoto.setCommonProperty(commonProp);
+				
+				EventPhoto UpdatedPhoto =  eventPhotosRepository.save(existingPhoto);		
+				
+				if(UpdatedPhoto != null) {
+					
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Event photo details updated successfully.");
+
+					apiLogInfo.setApiResponse("Event photo details updated successfully.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Failed to update event photo details.");
+
+					apiLogInfo.setApiResponse("Failed to update event photo details.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				}
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("event photo not found.");
+
+				apiLogInfo.setApiResponse("event photo not found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+
+
+	
+	
+	// Documents 
+	
 	public ServiceResponse uploadEmployeeDocument(MultipartFile image, Long uploadedBy, Long employeementId,
 			Long empId) {
 

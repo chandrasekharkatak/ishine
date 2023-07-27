@@ -559,7 +559,8 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Department</label>
-                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.departmentId" (change)="getJobRolesByDept(employeeObj.departmentId);getDesignationByDeptId(employeeObj.departmentId)">
+                                                <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.departmentId" (change)="getJobRolesByDept(employeeObj.departmentId);getDesignationByDeptId(employeeObj.departmentId);clearAfterChange('empDesg','designationName')"> -->
+                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.departmentId" (change)="getJobRolesByDept(employeeObj.departmentId);getDesignationByDeptId(employeeObj.departmentId);updateDesignationDropdown()">
                                                     <option selected="selected" value="" disabled>Select</option>
                                                     <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
                                                 </select>
@@ -570,8 +571,9 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Designation</label>
-                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.designationId">
-                                                    <option selected="selected" value="" disabled>Select</option>
+                                                <!-- <select id="empDesg" class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.designationId"> -->
+                                                <select id="empDesg" class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.designationId">
+                                                    <option selected="selected" value="" [disabled]="isDesignationDisabled()">Select</option>
                                                     <option *ngFor="let designation of allDesignationList" value="{{designation.designationId}}">{{designation.designationName}}</option>
                                                 </select>
                                             </div>
@@ -592,7 +594,7 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Experience</label>
-                                                <select class="form-control" aria-hidden="true" (change)="clearAfterChange()" [(ngModel)]="employeeObj.experience">
+                                                <select class="form-control" aria-hidden="true" (change)="clearAfterChange('totalExp','totalExperience')" [(ngModel)]="employeeObj.experience">
                                                     <option selected="selected" value="" disabled>Select</option>
                                                     <option value="Fresher">Fresher</option>
                                                     <option value="Experienced">Experienced</option>
@@ -604,7 +606,7 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Total Experience</label>
-                                                <input type="number" class="form-control" maxlength="2" autocomplete="none" [(ngModel)]="employeeObj.totalExperience" >
+                                                <input type="number" id="totalExp" class="form-control" maxlength="2" autocomplete="none" [(ngModel)]="employeeObj.totalExperience" >
                                             </div>
                                         </div>
                                     </div>
@@ -1531,7 +1533,7 @@
                                         </div>
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
-                                                <p class="info-label">Exprience</p>
+                                                <p class="info-label">Experience</p>
                                                 <p class="info-text">{{previewObj.experience}}</p>
                                             </div>
                                         </div>
@@ -1546,7 +1548,7 @@
                                 </div>
                             </app-accordion-item>
 
-                            <!-- Previous Employer details will be diplayed only if exprience is "Experienced" -->
+                            <!-- Previous Employer details will be diplayed only if experience is "Experienced" -->
                             <app-accordion-item *ngIf="previewObj.experience == 'Experienced'"
                                 class="acc-content" title="Previous Employment Information" [showBody]="true">
                                 <div class="container-fluid">
@@ -2075,10 +2077,17 @@
                                         </div>
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
-                                                <p class="info-label">Exprience</p>
+                                                <p class="info-label">Experience</p>
                                                 <p class="info-text">{{previewEmployeeObj.experience}}</p>
                                             </div>
                                         </div>
+                                        <div *ngIf="previewEmployeeObj.experience == 'Experienced'" class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Total Experience</p>
+                                                <p class="info-text">{{previewEmployeeObj.totalExperience}}</p>
+                                            </div>
+                                        </div>
+
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
                                                 <p class="info-label">Work Location <small>(State)</small></p>
@@ -2272,15 +2281,15 @@
                         </div>
                         <div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
                             [tableTHeadTrId]="'auditInfoTHeadTr'">
-                            <table class="table table-responsive" id="auditInfo">
+                            <table class="table table-responsive" id="auditInfo" matSort (matSortChange)="sortData($event)">
                                 <thead class="thead-light" id="auditInfoTHead">
                                     <tr id="auditInfoTHeadTr">
                                         <th scope="col">Sr No.</th>
-                                        <th scope="col" class="info-label">Date</th>
-                                        <th scope="col" class="info-label">Field</th>
-                                        <th scope="col" class="info-label">Value</th>
-                                        <th scope="col" class="info-label">Bucket</th>
-                                        <th scope="col" class="info-label">Updated By</th>
+                                        <th scope="col" class="info-label" mat-sort-header="date|datetime">Date</th>
+                                        <th scope="col" class="info-label" mat-sort-header="field|string">Field</th>
+                                        <th scope="col" class="info-label" mat-sort-header="value|string">Value</th>
+                                        <th scope="col" class="info-label" mat-sort-header="bucketName|string">Bucket</th>
+                                        <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By</th>
                                     </tr>
                                     <tr app-column-filter-bar *ngIf="isTable && isAuditSearchEnabled" [columnList]="employeeAuditColumns" (onSearch)="onAuditSearch($event);page=1" ></tr>
                                 </thead>
@@ -2288,7 +2297,7 @@
                                     <tr *ngIf="filteredEmployeeAuditHistory.length == 0 || (filteredEmployeeAuditHistory | colFilter:auditFilter:false).length == 0">
                                         <th colspan="11" class="text-center info-label">No details to display...</th>
                                     </tr>
-                                    <tr *ngFor="let audit of filteredEmployeeAuditHistory | colFilter:auditFilter:false | paginate: { id: 'fullJourney' , itemsPerPage: 20, currentPage: pageNo };let i = index">
+                                    <tr *ngFor="let audit of filteredEmployeeAuditHistory | colFilter:auditFilter:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { id: 'fullJourney' , itemsPerPage: 20, currentPage: pageNo };let i = index">
                                         <td>{{20*(page-1)+i+1}}</td>
                                         <td>{{audit.date}}</td>
                                         <td>{{audit.field}}</td>
@@ -2319,15 +2328,15 @@
                         </div>
                         <div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
                             [tableTHeadTrId]="'auditInfoTHeadTr'">
-                            <table class="table table-responsive" id="auditInfo">
+                            <table class="table table-responsive" id="auditInfo" matSort (matSortChange)="sortData($event)">
                                 <thead class="thead-light" id="auditInfoTHead">
                                     <tr id="auditInfoTHeadTr">
                                         <th scope="col">Sr No.</th>
-                                        <th scope="col" class="info-label">Date</th>
-                                        <th scope="col" class="info-label">Field</th>
-                                        <th scope="col" class="info-label">Value</th>
-                                        <th scope="col" class="info-label">Bucket</th>
-                                        <th scope="col" class="info-label">Updated By</th>
+                                        <th scope="col" class="info-label" mat-sort-header="date|datetime">Date</th>
+                                        <th scope="col" class="info-label" mat-sort-header="field|string">Field</th>
+                                        <th scope="col" class="info-label" mat-sort-header="value|string">Value</th>
+                                        <th scope="col" class="info-label" mat-sort-header="bucketName|string">Bucket</th>
+                                        <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By</th>
                                     </tr>
                                     <tr app-column-filter-bar *ngIf="isTable && isAuditSearchEnabled"
                                         [columnList]="employeeAuditColumns" (onSearch)="onAuditSearch($event);page=1"></tr>
@@ -2338,7 +2347,7 @@
                                         <th colspan="11" class="text-center info-label">No details to display...</th>
                                     </tr>
                                     <tr
-                                        *ngFor="let audit of lifeCycleChangeList | colFilter:auditFilter:false | paginate: { id: 'lifeCycle' , itemsPerPage: 20, currentPage: pageNo };let i = index">
+                                        *ngFor="let audit of lifeCycleChangeList | colFilter:auditFilter:false |sort : [sortColumn, sortColumnType, sortDirection] | paginate: { id: 'lifeCycle' , itemsPerPage: 20, currentPage: pageNo };let i = index">
                                         <td>{{20*(page-1)+i+1}}</td>
                                         <td>{{audit.date}}</td>
                                         <td>{{audit.field}}</td>
@@ -2371,15 +2380,15 @@
                         </div>
                         <div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
                             [tableTHeadTrId]="'auditInfoTHeadTr'">
-                            <table class="table table-responsive" id="auditInfo">
+                            <table class="table table-responsive" id="auditInfo" matSort (matSortChange)="sortData($event)">
                                 <thead class="thead-light" id="auditInfoTHead">
                                     <tr id="auditInfoTHeadTr">
                                         <th scope="col">Sr No.</th>
-                                        <th scope="col" class="info-label">Date</th>
-                                        <th scope="col" class="info-label">Field</th>
-                                        <th scope="col" class="info-label">Value</th>
-                                        <th scope="col" class="info-label">Bucket</th>
-                                        <th scope="col" class="info-label">Updated By</th>
+                                        <th scope="col" class="info-label" mat-sort-header="date|datetime">Date</th>
+                                        <th scope="col" class="info-label" mat-sort-header="field|string">Field</th>
+                                        <th scope="col" class="info-label" mat-sort-header="value|string">Value</th>
+                                        <th scope="col" class="info-label" mat-sort-header="bucketName|string">Bucket</th>
+                                        <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By</th>
                                     </tr>
                                     <tr app-column-filter-bar *ngIf="isTable && isAuditSearchEnabled"
                                         [columnList]="employeeAuditColumns" (onSearch)="onAuditSearch($event);page=1"></tr>
@@ -2390,7 +2399,7 @@
                                         <th colspan="11" class="text-center info-label">No details to display...</th>
                                     </tr>
                                     <tr
-                                        *ngFor="let audit of teamProjectChangeList | colFilter:auditFilter:false | paginate: { id: 'teamProject' , itemsPerPage: 20, currentPage: pageNo };let i = index">
+                                        *ngFor="let audit of teamProjectChangeList | colFilter:auditFilter:false |sort : [sortColumn, sortColumnType, sortDirection] | paginate: { id: 'teamProject' , itemsPerPage: 20, currentPage: pageNo };let i = index">
                                         <td>{{20*(page-1)+i+1}}</td>
                                         <td>{{audit.date}}</td>
                                         <td>{{audit.field}}</td>
@@ -2423,15 +2432,15 @@
                         </div>
                         <div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
                             [tableTHeadTrId]="'auditInfoTHeadTr'">
-                            <table class="table table-responsive" id="auditInfo">
+                            <table class="table table-responsive" id="auditInfo" matSort (matSortChange)="sortData($event)">
                                 <thead class="thead-light" id="auditInfoTHead">
                                     <tr id="auditInfoTHeadTr">
                                         <th scope="col">Sr No.</th>
-                                        <th scope="col" class="info-label">Date</th>
-                                        <th scope="col" class="info-label">Field</th>
-                                        <th scope="col" class="info-label">Value</th>
-                                        <th scope="col" class="info-label">Bucket</th>
-                                        <th scope="col" class="info-label">Updated By</th>
+                                        <th scope="col" class="info-label" mat-sort-header="date|datetime">Date</th>
+                                        <th scope="col" class="info-label" mat-sort-header="field|string">Field</th>
+                                        <th scope="col" class="info-label" mat-sort-header="value|string">Value</th>
+                                        <th scope="col" class="info-label" mat-sort-header="bucketName|string">Bucket</th>
+                                        <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By</th>
                                     </tr>
                                     <tr app-column-filter-bar *ngIf="isTable && isAuditSearchEnabled"
                                         [columnList]="employeeAuditColumns" (onSearch)="onAuditSearch($event);page=1"></tr>
@@ -2442,7 +2451,7 @@
                                         <th colspan="11" class="text-center info-label">No details to display...</th>
                                     </tr>
                                     <tr
-                                        *ngFor="let audit of kycUpdateList | colFilter:auditFilter:false | paginate: { id: 'kycUpdate' , itemsPerPage: 20, currentPage: pageNo };let i = index">
+                                        *ngFor="let audit of kycUpdateList | colFilter:auditFilter:false |sort : [sortColumn, sortColumnType, sortDirection] | paginate: { id: 'kycUpdate' , itemsPerPage: 20, currentPage: pageNo };let i = index">
                                         <td>{{20*(page-1)+i+1}}</td>
                                         <td>{{audit.date}}</td>
                                         <td>{{audit.field}}</td>
@@ -2475,15 +2484,15 @@
                         </div>
                         <div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
                             [tableTHeadTrId]="'auditInfoTHeadTr'">
-                            <table class="table table-responsive" id="auditInfo">
+                            <table class="table table-responsive" id="auditInfo" matSort (matSortChange)="sortData($event)">
                                 <thead class="thead-light" id="auditInfoTHead">
                                     <tr id="auditInfoTHeadTr">
                                         <th scope="col">Sr No.</th>
-                                        <th scope="col" class="info-label">Date</th>
-                                        <th scope="col" class="info-label">Field</th>
-                                        <th scope="col" class="info-label">Value</th>
-                                        <th scope="col" class="info-label">Bucket</th>
-                                        <th scope="col" class="info-label">Updated By</th>
+                                        <th scope="col" class="info-label" mat-sort-header="date|datetime">Date</th>
+                                        <th scope="col" class="info-label" mat-sort-header="field|string">Field</th>
+                                        <th scope="col" class="info-label" mat-sort-header="value|string">Value</th>
+                                        <th scope="col" class="info-label" mat-sort-header="bucketName|string">Bucket</th>
+                                        <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By</th>
                                     </tr>
                                     <tr app-column-filter-bar *ngIf="isTable && isAuditSearchEnabled"
                                         [columnList]="employeeAuditColumns" (onSearch)="onAuditSearch($event);page=1"></tr>
@@ -2494,7 +2503,7 @@
                                         <th colspan="11" class="text-center info-label">No details to display...</th>
                                     </tr>
                                     <tr
-                                        *ngFor="let audit of employeeInfoChangeList | colFilter:auditFilter:false | paginate: { id: 'employeeInfo' , itemsPerPage: 20, currentPage: pageNo };let i = index">
+                                        *ngFor="let audit of employeeInfoChangeList | colFilter:auditFilter:false |sort : [sortColumn, sortColumnType, sortDirection] |  paginate: { id: 'employeeInfo' , itemsPerPage: 20, currentPage: pageNo };let i = index">
                                         <td>{{20*(page-1)+i+1}}</td>
                                         <td>{{audit.date}}</td>
                                         <td>{{audit.field}}</td>

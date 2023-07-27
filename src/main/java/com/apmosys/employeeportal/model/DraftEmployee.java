@@ -63,6 +63,7 @@ public class DraftEmployee {
 	private LocalDate dateOfJoining;
 	private String employmentstatus;
 	private Short noticePeriod;
+	private Short probationPeriod;
 
 
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
@@ -122,4 +123,10 @@ public class DraftEmployee {
 	private String approvalsTo;
 	
 	private Long designationId;
+	
+	@JsonFormat(pattern = "dd/MM/yyyy")
+	private LocalDate dateOfResign;
+	
+	@JsonFormat(pattern = "dd/MM/yyyy")
+	private String dateOfRelieving;
 }

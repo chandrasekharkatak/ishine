@@ -52,7 +52,7 @@
                         <td>{{doc.createdOn}}</td>
                         <td>
                           <button  class="btn btn-sm btn-outline-primary" *ngIf="(doc.readEnabled == 'true' && doc.isRead) || (doc.readEnabled == 'false')"  type="submit" (click)="downloadFile(doc)"><em class="fa fa-download"></em></button> &nbsp;
-                          <button class="btn btn-sm btn-outline-primary" (click)="previewPolicyDocument(preview_document,doc)" type="submit"><em>Read Policy</em></button>&nbsp;
+                          <button class="btn btn-sm btn-outline-primary" (click)="previewPolicyDocument(preview_document,doc,$event)" type="submit">Read Policy</button>&nbsp;
                           <!-- <button  class="btn btn-sm btn-outline-primary" *ngIf="doc.readEnabled == 'true'&& !doc.isRead"   type="submit" (click)="openReadEnabledMod(read_enabled, doc)" >Mark As Read</button>  -->
                         </td> 
                     </tbody>

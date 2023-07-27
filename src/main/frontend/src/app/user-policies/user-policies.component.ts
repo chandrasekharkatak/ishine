@@ -15,9 +15,6 @@ import { AppComponent } from '../app.component';
 
 
 
-
-
-
 @Component({
   selector: 'app-user-policies',
   templateUrl: './user-policies.component.html',
@@ -157,7 +154,11 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
   }
 
 
-  previewPolicyDocument(template: TemplateRef<any>,doc: any) {
+  previewPolicyDocument(template: TemplateRef<any>,doc: any,event?: MouseEvent) {
+    // disable button on click
+    if(event) (event.target as HTMLButtonElement).disabled = true; 
+      
+
     this.src = null;
     this.fileName = doc.policyName;
     this.isDocumentScrolledToBottom = false;
@@ -173,6 +174,7 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
       this.src =  a.href;
 
       if(this.src != null){
+        if(event) (event.target as HTMLButtonElement).disabled = false;
         this.openPreviewDocument(template);
       }
     });

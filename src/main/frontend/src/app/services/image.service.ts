@@ -21,12 +21,24 @@ export class ImageService {
   }
 
   // getAllEventPhotosForHome
+  getFirstEventPhotoForHome() {
+    return this.http.get(`${this.baseUrl}` + `api/getFirstEventPhotoForHome`);
+  }
+
   getAllEventPhotosForHome() {
     return this.http.get(`${this.baseUrl}` + `api/getAllEventPhotosForHome`);
   }
 
   deleteEventPhoto(imageObj: EventPhoto) {
     return this.http.post(`${this.baseUrl}` + `api/deleteEventPhoto`, imageObj);
+  }
+
+  updatePhotoOrder(eventPhotoObj:EventPhoto){
+    return this.http.post(`${this.baseUrl}`+`api/updatePhotoOrder`,eventPhotoObj);
+  }
+
+  updatePhotoDetails(eventPhotoObj:EventPhoto){
+    return this.http.post(`${this.baseUrl}`+`api/updatePhotoDetails`,eventPhotoObj);
   }
 
   /* Document Upload */

@@ -27,12 +27,40 @@
                 </div>
             </div>
             <div class="row">
+                <div class="col-md-4 mb-2">
+                    <label class="info-label mb-0">Caption</label>
+                    <textarea class="form-control" id="eventCaption" rows="5" maxlength="500" [(ngModel)]="eventCaption"></textarea>
+                </div>
+            </div>
+            <div class="row">
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label class="info-label mb-0"><span class="text-danger">*</span>Select Images</label>
+                            <label class="info-label"><span class="text-danger">*</span>Add External Link</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="isExternalLink">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="isExternalLink == 'true'" class="col-md-6 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>External Link</label>
+                            <input type="text" class="form-control" maxlength="250" autocomplete="none" [(ngModel)]="externalLink">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label mb-0"><span class="text-danger">*</span>Select Image</label>
                             <small class="d-block text-secondary mb-2 pl-2">Please Upload file upto 10MB</small>
-                            <input type="file" accept="image/x-png,image/jpeg,image/jpg" multiple class="form-control p-1" (change)="onImageSelect($event,alert_message)">
+                            <input type="file" accept="image/x-png,image/jpeg,image/jpg" class="form-control p-1" (change)="onImageSelect($event,alert_message)">
                         </div>
                     </div>
                 </div>
@@ -56,48 +84,97 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-3 mb-2 ml-auto d-flex justify-content-end align-items-start">
+            <div class="col-lg-6 col-md-6 mb-2 ml-auto d-flex justify-content-end align-items-start">
                 <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.upload_event_photos" [ngClass]="{'active' : isPhotoForm}" (click)="showUploadPhotosForm()"><em class="fa-solid fa-plus"></em>&nbsp;Upload Event Photos</button>
+                <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="showPhotosOrderpage()"><em class="fa-solid fa-list-ol"></em>&nbsp;Set Order</button>
             </div>
         </div>
         <div class="row">
             <div class="col-md-12">
+                <div class="selector-toggle" (click)="toggleSearch()">
+                    <a href="javascript:void(0)">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                    </a>
+                </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'eventInfo'" [tableTHeadId]="'eventInfoTHead'"
                     [tableTHeadTrId]="'eventInfoTHeadTr'">
                     <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)">
                         <thead class="thead-light">
                           <tr>
-                            <th scope="col" class="info-label" mat-sort-header="imageName|string">Image Name</th>
                             <th scope="col" class="info-label" mat-sort-header="eventName|string">Event Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="eventCaption|string">caption</th>
                             <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
                             <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
                             <th scope="col" class="info-label">Actions</th>
                           </tr>
+                          <tr app-column-filter-bar *ngIf="isTable && isSearchEnabled" [columnList]="eventTableColumns" (onSearch)="onSearch($event);page=1" ></tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="eventImages.length == 0">
+                            <tr *ngIf="eventImages.length == 0 || (eventImages| colFilter:filters:false).length == 0">
                                 <th colspan="6" class="text-center info-label">No Event Photos to display...</th>
                             </tr>
-                          <tr *ngFor="let image of eventImages | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-                            <td>{{image.imageName}}</td>
+                          <tr *ngFor="let image of eventImages | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                             <td>{{image.eventName}}</td>
+                            <td>{{image.eventCaption}}</td>
                             <td>{{image.createdByName}}</td>
                             <td>{{image.createdOn}}</td>
                             <td>
                                 <button class="btn btn-sm btn-outline-primary" type="submit" (click)="openPreviewEventPhoto(preview_template,image)"><em>Preview</em></button>&nbsp;
+                                <button class="btn btn-sm btn-outline-primary" type="submit" (click)="openUpdateEventPhotoDetails(update_template,image)"><em class="fa fa-edit"></em>&nbsp;Details</button>&nbsp;
                                 <button *ngIf="userMapping.delete_event_photos" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteEventPhoto(delete_template,image)"><em class="fa fa-trash"></em></button>
                             </td>
                           </tr>
                         </tbody>
-                      </table> 
-                </div> 
-                  <pagination-controls class="my-pagination" [hidden]="eventImages.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+                      </table>
+                </div>
+                  <pagination-controls class="my-pagination" [hidden]="eventImages.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
                   <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="eventImages.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>  -->
             </div>
         </div>
     </div>
 </div>
 <!-- end :: see all Photos table -->
+
+<!-- start :: Order Photos -->
+<div class="row" *ngIf="isPhotosOrderPage">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">Event Photos Order</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="alert alert-primary p-0 m-0" role="alert">
+                    <p class="p-1 m-0">Please select and drag event photo to re-arrange the order.</p>
+                  </div>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <small *ngIf="eventImages.length === 0" class="text-secondary text-center">No Event Photos to display...</small>
+                <div *ngIf="eventImages.length !== 0" cdkDropList class="photo-order-list" (cdkDropListDropped)="drop($event)">
+                    <div class="photo-order-box" *ngFor="let image of eventImages; let i = index" cdkDrag>
+                        <div class="w-100 d-flex justify-content-between">
+                            <h5>{{i+1}} - {{image.eventName}}</h5>
+                            <small>{{image.createdOn}}</small>
+                        </div>
+                        <p class="text-secondary">{{image.eventCaption}}</p>
+                        <div class="photo-order-list-placeholder" *cdkDragPlaceholder></div>
+                      <img class="drag-image-Preview" *cdkDragPreview src="data:image/png;base64,{{image.imageBytes}}" [alt]="image.eventName">
+                    </div>
+                  </div>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <button type="submit" class="btn btn-primary btn-sm mx-1" [disabled]="eventImages.length === 0" (click)="onUpdatePhotoOrder(alert_message)">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end :: Order Photos -->
 
 <!-- start :: Set Notification -->
 <div class="row">
@@ -140,7 +217,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="row mt-3">
                 <div class="col-md-12">
                     <button type="submit" *ngIf="isNotificationCreate" class="btn btn-primary btn-sm mx-1" (click)="onSetNotification(alert_message)">Set</button>
@@ -170,6 +247,12 @@
         </div>
         <div class="row">
             <div class="col-md-12">
+                <div class="selector-toggle" (click)="toggleSearch()">
+                    <a href="javascript:void(0)">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                    </a>
+                </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'notificationInfo'" [tableTHeadId]="'notificationInfoTHead'"
                     [tableTHeadTrId]="'notificationInfoTHeadTr'">
                     <table class="table table-responsive" id="notificationInfo" matSort (matSortChange)="sortData($event)">
@@ -185,12 +268,13 @@
                             <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">updated On</th>
                             <th scope="col" class="info-label">Actions</th>
                           </tr>
+                          <tr app-column-filter-bar *ngIf="isNotificationTable && isSearchEnabled" [columnList]="notificationsColumns" (onSearch)="onSearch($event);page=1" ></tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="allNotification.length == 0">
+                            <tr *ngIf="allNotification.length == 0 || (allNotification| colFilter:filters:false).length == 0">
                                 <th colspan="6" class="text-center info-label">No Notification to display...</th>
                             </tr>
-                          <tr *ngFor="let notification of allNotification | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                          <tr *ngFor="let notification of allNotification | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                             <th class="info-label">{{20*(page-1)+i+1}}</th>
                             <td [innerHTML]="notification.notificationMessage"></td>
                             <td>{{notification.notificationType == 'consentNotification' ? 'Consent Notification' : notification.notificationType == 'releaseNotes' ? 'Release Notes' : 'Notification'}}</td>
@@ -207,8 +291,8 @@
                             </td>
                           </tr>
                         </tbody>
-                      </table> 
-                </div> 
+                      </table>
+                </div>
                   <pagination-controls class="my-pagination" [hidden]="allNotification.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
             </div>
         </div>
@@ -234,18 +318,72 @@
 
 <ng-template #preview_template>
     <div class="modal-header">
-        <p class="modal-title">{{imageObj.imageName}} - {{imageObj.eventName}}</p>
+        <p class="modal-title">{{imageObj.eventName}}</p>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
             <span aria-hidden="true">&times;</span>
           </button>
     </div>
     <div class="modal-body">
         <div *ngIf="!isPreviewLoaded" class="container-fuid d-flex justify-content-center">
-            <div  class="spinner-border" role="status" style="height: 100px; width: 100px;"> 
+            <div  class="spinner-border" role="status" style="height: 100px; width: 100px;">
                 <span class="sr-only">Loading...</span>
               </div>
         </div>
         <img id="photoPreview" alt="Photo Preview">
+    </div>
+</ng-template>
+
+<ng-template #update_template>
+    <div class="modal-header">
+        <p class="modal-title"><b>Update Event Details</b>  - {{imageObj.eventName}}</p>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+    </div>
+    <div class="modal-body">
+        <div class="row">
+            <div class="col-md-6 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Event Name</label>
+                        <input type="text" class="form-control" maxlength="50" autocomplete="none" [(ngModel)]="imageObj.eventName">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-2">
+                <label class="info-label mb-0">Caption</label>
+                <textarea class="form-control" id="eventCaption" rows="5" maxlength="500" [(ngModel)]="imageObj.eventCaption"></textarea>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Add External Link</label>
+                        <select class="form-control" aria-hidden="true" [(ngModel)]="imageObj.isExternalLink">
+                            <option selected="selected" value="" disabled>Select</option>
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="imageObj.isExternalLink == 'true'" class="col-md-6 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>External Link</label>
+                        <input type="text" class="form-control" maxlength="250" autocomplete="none" [(ngModel)]="imageObj.externalLink">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateEventDetails(alert_message)">Update</button>
+            </div>
+        </div>
     </div>
 </ng-template>
 
@@ -302,10 +440,10 @@
                 <td>{{consent.consentOn}}</td>
               </tr>
             </tbody>
-          </table> 
-        </div>  
+          </table>
+        </div>
           <div class="my-buttons">
-            <pagination-controls class="my-pagination" [hidden]="consentNotificationResponse.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+            <pagination-controls class="my-pagination" [hidden]="consentNotificationResponse.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
             <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="consentNotificationResponse.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
           </div>
     </div>

@@ -89,6 +89,8 @@ import { MyResignationComponent } from './user-exit/my-resignation/my-resignatio
 import { ResignationComponent } from './user-exit/resignation/resignation.component';
 import { DomainConfigComponent } from './configuration/domain-config/domain-config.component';
 import { UserReleasenotesComponent } from './user-releasenotes/user-releasenotes.component';
+import { NewsletterComponent } from './newsletter/newsletter.component';
+import { NewsletterConfigComponent } from './configuration/newsletter-config/newsletter-config.component';
 
 @NgModule({
   declarations: [
@@ -151,7 +153,9 @@ import { UserReleasenotesComponent } from './user-releasenotes/user-releasenotes
     MyResignationComponent,
     ResignationComponent,
     DomainConfigComponent,
-    UserReleasenotesComponent
+    UserReleasenotesComponent,
+    NewsletterComponent,
+    NewsletterConfigComponent
   ],
   imports: [
     BrowserModule,

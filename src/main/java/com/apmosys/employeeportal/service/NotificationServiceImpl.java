@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.NotificationDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.EmployeeNotificationConsent;
@@ -31,9 +34,23 @@ public class NotificationServiceImpl implements NotificationService {
 	@Autowired
 	EmployeeNotificationConsentRepository employeeNotificationConsentRepository;
 	
+	@Autowired
+	private HttpServletRequest httpRequest;
+
+	@Autowired
+	private LogService logService;
+	 
+	
 	
 	public ServiceResponse addNotification(NotificationDTO notificationDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Add Notification");
+		apiLogInfo.setApiUrl("/api/addNotification");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Notification Type :" + notificationDTO.getNotificationType() + " ,CreatedBy :" + notificationDTO.getCreatedBy());
+
 		try {
 			Notification notification = new Notification();
 
@@ -48,9 +65,17 @@ public class NotificationServiceImpl implements NotificationService {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("New notification created.");
 
+                apiLogInfo.setApiResponse("New notification created");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Failed to create new notification.");
+
+                apiLogInfo.setApiResponse("Failed to create new notification");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 			}
 
 		} catch (Exception e) {
@@ -58,13 +83,24 @@ public class NotificationServiceImpl implements NotificationService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	@Override
 	public ServiceResponse updateNotification(NotificationDTO notificationDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Update Notification");
+		apiLogInfo.setApiUrl("/api/updateNotification");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Notification Type :" + notificationDTO.getNotificationType() + " ,UpdatedBy :" + notificationDTO.getUpdatedBy());
+
 		try {
 
 			Optional<Notification> existingNotification = notificationRepository
@@ -95,13 +131,20 @@ public class NotificationServiceImpl implements NotificationService {
 				if (updatedNotification.getNotificationId() != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Notification updated successfully.");
+					apiLogInfo.setApiResponse("Notification updated successfully");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Failed to update notification.");
+					apiLogInfo.setApiResponse("Failed to update notification");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No such notification available.");
+				apiLogInfo.setApiResponse("No such notification available");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 			}
 
 		} catch (Exception e) {
@@ -109,13 +152,24 @@ public class NotificationServiceImpl implements NotificationService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	@Override
 	public ServiceResponse deleteNotification(NotificationDTO notificationDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Delete Notification");
+		apiLogInfo.setApiUrl("/api/deleteNotification");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Notification Type :" + notificationDTO.getNotificationType() + " ,NotificationId :" + notificationDTO.getNotificationId());
+
 		try {
 
 			Optional<Notification> existingNotification = notificationRepository
@@ -128,10 +182,15 @@ public class NotificationServiceImpl implements NotificationService {
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Notification deleted successfully.");
+				apiLogInfo.setApiResponse("Notification deleted successfully.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No such notification available.");
+				apiLogInfo.setApiResponse("No such notification available");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				
 			}
 
 		} catch (Exception e) {
@@ -139,13 +198,23 @@ public class NotificationServiceImpl implements NotificationService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	@Override
 	public ServiceResponse getAllNotifications() {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getAllNotifications");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Notification List :" + notificationRepository.getAllNotications().size());
 		
 		try {
 
@@ -156,6 +225,8 @@ public class NotificationServiceImpl implements NotificationService {
 				if (list.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("No notifications found. List is empty.");
+                    apiLogInfo.setApiResponse("No Notification Found.");			
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				} else {
 					List<NotificationDTO> dtoList = new ArrayList<NotificationDTO>();
 
@@ -176,11 +247,15 @@ public class NotificationServiceImpl implements NotificationService {
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+                    apiLogInfo.setApiResponse("Notification List Fetched!");			
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 
 			}, () -> {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No  notifications found. List is null.");
+                apiLogInfo.setApiResponse("No notifications found");			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			});
 
 		} catch (Exception e) {
@@ -188,13 +263,23 @@ public class NotificationServiceImpl implements NotificationService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	@Override
 	public ServiceResponse getNotificationById(NotificationDTO notificationDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getNotificationById");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("NotificationId : " + notificationDTO.getNotificationId());
 		try {
 			
 			Notification notificationObj = notificationRepository.findByNotificationId(notificationDTO.getNotificationId());
@@ -208,9 +293,13 @@ public class NotificationServiceImpl implements NotificationService {
 				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dto);
+                apiLogInfo.setApiResponse("Dto:" + dto);			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Unable to find notification.");
+                apiLogInfo.setApiResponse("Unable to find notification");			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 			
 		}catch(Exception e) {
@@ -218,13 +307,22 @@ public class NotificationServiceImpl implements NotificationService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	@Override
 	public ServiceResponse onDeleteNotification(NotificationDTO notificationDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/onDeleteNotification");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("NotificationId : " + notificationDTO.getNotificationId());
 		try {
 			
 			Notification notificationObj = notificationRepository.findByNotificationId(notificationDTO.getNotificationId());
@@ -239,9 +337,14 @@ public class NotificationServiceImpl implements NotificationService {
 					if(dbResponse != null) {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse("Notification deleted Successfully.");
+
+                        apiLogInfo.setApiResponse("Notification deleted!");
+                        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Unable to delete notification.");
+                        apiLogInfo.setApiResponse("Unable to delete Notification");
+                        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					}
 				}else if(notificationObj.getNotificationType().equals("notification")) {
 					
@@ -249,6 +352,8 @@ public class NotificationServiceImpl implements NotificationService {
 					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Notification deleted Successfully.");
+                    apiLogInfo.setApiResponse("Notification Deleted!");
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}else if(notificationObj.getNotificationType().equals("releaseNotes")) {
 					
 					// Delete existing consents.
@@ -263,10 +368,14 @@ public class NotificationServiceImpl implements NotificationService {
 					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Notification deleted Successfully.");
+                    apiLogInfo.setApiResponse("Notification Deleted!");
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Unable to find notification.");
+                apiLogInfo.setApiResponse("Unable to find Notification");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 			
 		}catch(Exception e) {
@@ -274,12 +383,22 @@ public class NotificationServiceImpl implements NotificationService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse onInActivateNotification(NotificationDTO notificationDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/onInActivateNotification");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("NotificationId : " + notificationDTO.getNotificationId() + " ,Notification Type" + notificationDTO.getNotificationType() + " ,Notification is Active? : " + notificationDTO.getIsActive());
 		try {
 			
 			Notification notificationObj = notificationRepository.findByNotificationId(notificationDTO.getNotificationId());
@@ -294,9 +413,13 @@ public class NotificationServiceImpl implements NotificationService {
 					if(dbResponse != null) {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse("Notification InActivated Successfully.");
+						apiLogInfo.setApiResponse("Notification InActivated!");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Unable to InActivate notification.");
+						apiLogInfo.setApiResponse("Unable to InActivate notificaion");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					}
 				}else if(notificationObj.getNotificationType().equals("releaseNotes")) {
 					
@@ -308,14 +431,20 @@ public class NotificationServiceImpl implements NotificationService {
 					if(dbResponse != null) {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse("Notification InActivated Successfully.");
+						apiLogInfo.setApiResponse("Notification InActiivated SuccessFully");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Unable to InActivate notification.");
+						apiLogInfo.setApiResponse("Unable to InActivate notification");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					}
 				}
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Unable to find notification.");
+				apiLogInfo.setApiResponse("Unable to find notification");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 			
 		}catch(Exception e) {
@@ -323,13 +452,24 @@ public class NotificationServiceImpl implements NotificationService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
 	@Override
 	public ServiceResponse submitNotificationConsent(NotificationDTO notificationDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Submit Notification Consent");
+		apiLogInfo.setApiUrl("/api/submitNotificationConsent");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId : " + notificationDTO.getEmpId() + " ,NotificationId :" + notificationDTO.getNotificationId());
+
 		try {
 			
 			EmployeeNotificationConsent consentObj = new EmployeeNotificationConsent();
@@ -379,6 +519,9 @@ public class NotificationServiceImpl implements NotificationService {
 				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dto);
+                apiLogInfo.setApiResponse("Dto:" + dto);
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 			}
 			
 		}catch(Exception e) {
@@ -386,13 +529,22 @@ public class NotificationServiceImpl implements NotificationService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	@Override
 	public ServiceResponse getConsentNotificationResponse(NotificationDTO notificationDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getConsentNotificationResponse");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Notification Id : " + notificationDTO.getNotificationId());
 		try {
 			
 			List<Object[]> notificationResponse = employeeNotificationConsentRepository.getNotificationResponse(notificationDTO.getNotificationId());
@@ -413,9 +565,13 @@ public class NotificationServiceImpl implements NotificationService {
 				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("dto list:" + dtoList.size());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No response found.");
+				apiLogInfo.setApiResponse("No response found");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 			
 		}catch(Exception e) {
@@ -423,13 +579,23 @@ public class NotificationServiceImpl implements NotificationService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
 	@Override
 	public ServiceResponse getAllNotificationsByNotificationTypeAndEmpId(NotificationDTO notificationDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getAllNotificationsByNotificationTypeAndEmpId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId :" + notificationDTO.getEmpId() + " ,NotificationType : " + notificationDTO.getNotificationType() + " ,NotificationId : " + notificationDTO.getNotificationId());
+
 		try {
 
 			List<Object[]> objectList = notificationRepository.getAllNotificationsByNotificationTypeAndEmpId(notificationDTO.getNotificationType(), notificationDTO.getEmpId());
@@ -439,6 +605,9 @@ public class NotificationServiceImpl implements NotificationService {
 				if (list.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("No notifications found. List is empty.");
+                    apiLogInfo.setApiResponse("No Notifications Found !");			
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 				} else {
 					List<NotificationDTO> dtoList = new ArrayList<NotificationDTO>();
 
@@ -466,11 +635,17 @@ public class NotificationServiceImpl implements NotificationService {
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
+                    apiLogInfo.setApiResponse("NotificationList:" + dtoList.size());			
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 				}
 
 			}, () -> {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No  notifications found. List is null.");
+                apiLogInfo.setApiResponse("No Notifications found !");			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 			});
 
 		} catch (Exception e) {
@@ -478,7 +653,12 @@ public class NotificationServiceImpl implements NotificationService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
