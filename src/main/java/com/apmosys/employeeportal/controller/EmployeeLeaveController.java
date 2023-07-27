@@ -263,5 +263,12 @@ public class EmployeeLeaveController {
 		ServiceResponse response = employeeLeaveService.reconsileCasualBalance();
 		return response;
 	}
+	
+	@RequestMapping(value = "/addMaternityLeaves" ,method = RequestMethod.GET)
+	public ServiceResponse addMaternityLeaves() {
+		
+		ServiceResponse response = employeeLeaveService.addMaternityLeaves();
+		return response;
+	}
 
 }

@@ -213,4 +213,6 @@ public class EmployeeDTO {
 	private Float newBalance;
 	private Float oldBalance;
 	private Integer previouseCompOffExpiredCount;
+	
+	private Object newsletterReadCheck;
 }

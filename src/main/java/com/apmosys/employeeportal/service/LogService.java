@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.service;
 
 import java.text.SimpleDateFormat;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -19,6 +20,7 @@ import java.text.ParseException;
 
 
 
+
 @Service
 public class LogService {
 	
@@ -28,8 +30,18 @@ public class LogService {
 
 	private LogDTO sessionLogInfo;
 	
+	@Autowired
+	private HttpServletRequest httpRequest;
+	
 	public ServiceResponse setSessionInfo(LogDTO logDTO) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("SetSessionInfo");
+		apiLogInfo.setApiUrl("/api/setSessionInfo");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId : " + logDTO.getEmpId());
+
 		try {
 			boolean isUserLogInfoAvailable = userLogInfoList.containsKey(logDTO.getEmpId());
 			
@@ -39,16 +51,25 @@ public class LogService {
 			if(sessionLogInfo != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(sessionLogInfo);
+				apiLogInfo.setApiResponse("Log Info Updated!");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Failed to update Log Info !!");
+				apiLogInfo.setApiResponse("Failed to update log info!!");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	

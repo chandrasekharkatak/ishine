@@ -17,6 +17,7 @@ import { ImageService } from 'src/app/services/image.service';
 import { NotificationService } from 'src/app/services/notification.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { AngularEditorComponent, AngularEditorConfig } from '@kolkov/angular-editor';
+import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-home-config',
@@ -40,6 +41,7 @@ export class HomeConfigComponent implements OnInit {
   isPhotoForm: boolean = false;
   isNotificationForm: boolean = false;
   isTable: boolean = false;
+  isPhotosOrderPage:boolean = false;
   isNotificationTable: boolean = false;
   isNotificationCreate: boolean = false;
   isNotificationUpdate: boolean = false;
@@ -53,6 +55,9 @@ export class HomeConfigComponent implements OnInit {
   imageObj:EventPhoto = new EventPhoto();
   files:any[] = [];
   eventName:any;
+  eventCaption:any;
+  isExternalLink:any = "false";
+  externalLink:any;
 
   eventImages:any[] = [];
   isPreviewLoaded:boolean = false;
@@ -64,8 +69,9 @@ export class HomeConfigComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  consentNotificationResponseColumns:any[] = ['blank', 'employeementId', 'name', 'notificationMessage', 'consentDate'];
-
+  consentNotificationResponseColumns:any[] = ['blank', 'employeementId', 'name','consentDate'];
+  notificationsColumns:any[] = ['blank', 'notificationMessage','notificationType','isActive','createdByName','createdOn','updatedByName','updatedOn'];
+  eventTableColumns:any[] = ['eventName','eventCaption','imageName','createdByName','createdOn'];
   notificationObj: NotificationMessage = new NotificationMessage();
 
   //Angular Editor
@@ -158,6 +164,7 @@ export class HomeConfigComponent implements OnInit {
     this.isPhotoForm = true;
 
     this.isTable = false;
+    this.isPhotosOrderPage=false;
     this.isNotificationForm = false;
     this.isNotificationTable = false;
     this.isConsentNotificationResponseTable = false;
@@ -171,6 +178,7 @@ export class HomeConfigComponent implements OnInit {
     this.isNotificationUpdate = false;
     this.isNotificationTable = false;
     this.isConsentNotificationResponseTable = false;
+    this.isPhotosOrderPage=false;
     this.isPhotoForm = false;
     this.isTable = false;
     this.reset();
@@ -181,6 +189,7 @@ export class HomeConfigComponent implements OnInit {
     this.isNotificationForm = false;
 
     this.isPhotoForm = false;
+    this.isPhotosOrderPage=false;
     this.isConsentNotificationResponseTable = false;
     this.isTable = false;
 
@@ -194,6 +203,7 @@ export class HomeConfigComponent implements OnInit {
     this.isNotificationCreate = false;
     this.isNotificationTable = false;
     this.isConsentNotificationResponseTable = false;
+    this.isPhotosOrderPage=false;
     this.isPhotoForm = false;
     this.isTable = false;
 
@@ -204,20 +214,138 @@ export class HomeConfigComponent implements OnInit {
     this.isTable = true;
 
     this.isPhotoForm = false;
+    this.isPhotosOrderPage=false;
     this.isNotificationForm = false;
     this.isNotificationTable = false;
     this.isConsentNotificationResponseTable = false;
     this.getAllEventPhotos();
   }
 
+  showPhotosOrderpage() {
+    this.isPhotosOrderPage=true;
+    
+    this.isTable = false;
+    this.isPhotoForm = false;
+    this.isNotificationForm = false;
+    this.isNotificationTable = false;
+    this.isConsentNotificationResponseTable = false;
+    this.getAllEventPhotosInOrder();
+  }
+
   reset() {
     this.eventName = null;
+    this.eventCaption = null;
+    this.isExternalLink = "false";
+    this.externalLink = null;
     this.files = [];
 
     this.notificationObj = new NotificationMessage();
   }
 
+  isValidHttpUrl(string:string) {
+    let url;
+    
+    try {
+      url = new URL(string);
+    } catch (_) {
+      return false;  
+    }
+  
+    return url.protocol === "http:" || url.protocol === "https:";
+  }
+
+  drop(event: CdkDragDrop<EventPhoto[]>) {
+    moveItemInArray(this.eventImages, event.previousIndex, event.currentIndex);
+  }
+
+  onUpdatePhotoOrder(template: TemplateRef<any>){
+    this.eventImages.forEach((image, index) => {
+      image.photoOrder = index+1;
+    });
+
+    console.log("Updated Order : ", this.eventImages);
+
+    let updatedPhotoList = new EventPhoto();
+    updatedPhotoList.eventPhotoList = this.eventImages;
+    updatedPhotoList.updatedBy = this.currentUser.empId;
+
+    this.imageService.updatePhotoOrder(updatedPhotoList).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == 'Success') {
+        this.openAlertMod(template, response.serviceResponse);
+        this.reset();
+        this.showPhotosOrderpage();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  onUpdateEventDetails(template: TemplateRef<any>){
+    this.cancelRequest();
+
+    if(this.imageObj.eventName) this.imageObj.eventName = this.imageObj.eventName.trim();
+    if(this.imageObj.eventCaption) this.imageObj.eventCaption = this.imageObj.eventCaption.trim();
+    if(this.imageObj.isExternalLink == "true" && this.imageObj.externalLink){
+      this.imageObj.externalLink = this.imageObj.externalLink.trim();
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(this.imageObj.eventName)){
+      this.alertMessage = "Please enter Event Name !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    else if(!this.validationService.validateViewsOnOrganisation(this.imageObj.eventName)){
+      this.alertMessage = `Please enter Valid Event Name, Alphabets, Numbers, space & Allowed special characters are +-()'"?.,&!`
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(this.validationService.validateNullUndefinedEmptyString(this.imageObj.eventCaption)){
+      if(!this.validationService.validateViewsOnOrganisation(this.imageObj.eventCaption)){
+        this.alertMessage = `Please enter Valid Caption, Alphabets, Numbers, space & Allowed special characters are +-()'"?.,&!`;
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(this.imageObj.isExternalLink)){
+      this.alertMessage = "Please select Add External Link !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(this.imageObj.isExternalLink == "true"){
+      if(!this.validationService.validateNullUndefinedEmptyString(this.imageObj.externalLink)){
+        this.alertMessage = "Please enter external Link !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }else if(!this.isValidHttpUrl(this.imageObj.externalLink)){
+        this.alertMessage = "Please enter valid external Link !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+
+    let updatedPhotoDetails = new EventPhoto();
+    updatedPhotoDetails = Object.assign({}, this.imageObj);
+    updatedPhotoDetails.updatedBy = this.currentUser.empId;
+
+    console.log("onUpdateEventDetails : ", updatedPhotoDetails);
+    
+    this.imageService.updatePhotoDetails(updatedPhotoDetails).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == 'Success') {
+        this.openAlertMod(template, response.serviceResponse);
+        this.reset();
+        this.showTable();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+  
+
   onImageSelect(event:any,template: TemplateRef<any>){
+    const extensionRE = /(?:\.([^.]+))?$/;
     let isSizeInRange:boolean = false;
 
     //Bits in  10mb : 10485760
@@ -238,7 +366,7 @@ export class HomeConfigComponent implements OnInit {
     if (uploadedFiles.length != 0) {
       for (let i = 0; i < uploadedFiles.length; i++) {
         let image = uploadedFiles[i];
-        let imageName = image.name;
+        let imageName = "EventPhoto_"+moment(new Date()).format("DD-MM-YYYY-hh-mm-ss")+"."+extensionRE.exec(image.name)[1];
 
         let imgObj = {image : image,imageName : imageName}
         this.files.push(imgObj);
@@ -249,19 +377,51 @@ export class HomeConfigComponent implements OnInit {
   }
 
   onUploadImages(template: TemplateRef<any>){
+    if(this.eventName) this.eventName = this.eventName.trim();
+    if(this.eventCaption) this.eventCaption = this.eventCaption.trim();
+    if(this.isExternalLink == "true" && this.externalLink){
+      this.externalLink = this.externalLink.trim();
+    }
 
     if(!this.validationService.validateNullUndefinedEmptyString(this.eventName)){
       this.alertMessage = "Please enter Event Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }else if(!this.validationService.validateAlphaNumericWithSpace(this.eventName)){
-      this.alertMessage = "Please enter Valid Event Name, Alphabets, Numericals & space allowed !!"
+    }
+    else if(!this.validationService.validateViewsOnOrganisation(this.eventName)){
+      this.alertMessage = `Please enter Valid Event Name, Alphabets, Numbers, space & Allowed special characters are +-()'"?.,&!`
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
 
+    if(this.validationService.validateNullUndefinedEmptyString(this.eventCaption)){
+      if(!this.validationService.validateViewsOnOrganisation(this.eventCaption)){
+        this.alertMessage = `Please enter Valid Caption, Alphabets, Numbers, space & Allowed special characters are +-()'"?.,&!`;
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(this.isExternalLink)){
+      this.alertMessage = "Please select Add External Link !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(this.isExternalLink == "true"){
+      if(!this.validationService.validateNullUndefinedEmptyString(this.externalLink)){
+        this.alertMessage = "Please enter external Link !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }else if(!this.isValidHttpUrl(this.externalLink)){
+        this.alertMessage = "Please enter valid external Link !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+
     if (this.files.length == 0) {
-      this.alertMessage = "Kindly Select Images !!"
+      this.alertMessage = "Kindly Select Image !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -271,6 +431,9 @@ export class HomeConfigComponent implements OnInit {
       formData.append(`image`, file.image, file.imageName);
     });
     formData.append("eventName", this.eventName);
+    formData.append("eventCaption", (this.eventCaption == null) ? "" : this.eventCaption);
+    formData.append("isExternalLink", this.isExternalLink);
+    formData.append("externalLink", (this.externalLink == null) ? "" : this.externalLink);
     formData.append("uploadedBy", this.currentUser.empId);
     formData.append("employeementId", this.currentUser.employeementId);
     formData.append("empId", this.currentUser.empId);
@@ -298,6 +461,23 @@ export class HomeConfigComponent implements OnInit {
         this.showTable();
       } else {
         this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  getAllEventPhotosInOrder(){
+    this.eventImages = [];
+    this.imageService.getAllEventPhotos().pipe(first()).subscribe((response:any) => {
+      if (response.serviceStatus == "Success") {
+        this.eventImages =  response.serviceResponse;
+        this.eventImages.forEach(img => {
+          img.createdOn = (img.createdOn)? moment(img.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
+
+        this.eventImages.sort((a,b) => a.photoOrder - b.photoOrder);
+        console.log("eventImages : ", this.eventImages);
+      } else {
+        console.error(response.serviceResponse);
       }
     });
   }
@@ -493,6 +673,12 @@ export class HomeConfigComponent implements OnInit {
     this.isPreviewLoaded = false;
     document.getElementById(`photoPreview`).style.display = 'none';
     setTimeout(()=>{this.loadPreviewImage(imageObj);}, 1000);
+  }
+
+  openUpdateEventPhotoDetails(template: TemplateRef<any>, imageObj: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    console.log(imageObj);
+    this.imageObj = imageObj;
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {

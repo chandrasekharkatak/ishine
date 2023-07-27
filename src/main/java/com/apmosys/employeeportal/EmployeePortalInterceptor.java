@@ -40,7 +40,7 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 				"/employeeportal/api/logoutUser"
 			);
 			
-	
+	private final String POPORTAL_SESSION_KEY = "Nguif3kxwSDzmojAtj6M93aJlfJqsAWj9blFug4JWkHsoQ2LYgWiApqDe1GZqmpV"; 
 	
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
@@ -68,6 +68,11 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 		if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
 			
 			final String SESSION_TOKEN = requestTokenHeader.substring(7);
+			
+			// WHITELISTING APIs for PoPortal
+			if(POPORTAL_SESSION_KEY.equals(SESSION_TOKEN)) {
+				return true;
+			}
 			
 			boolean isUserAuthenticated = authenticationService.checkUserToken(SESSION_TOKEN);
 

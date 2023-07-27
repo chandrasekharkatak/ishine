@@ -18,7 +18,10 @@
                                     <div class="col-md-12 card p-0">
                                         <div class="alert alert-light fade show release-notification pr-4 m-0" role="alert">
                                             <div class="releaseNoteText text-dark" [innerHTML]="releaseNote.notificationMessage"></div>
-                                            <small>Created On : {{releaseNote.createdOn | date: 'dd-MM-yyyy HH:mm:ss'}}</small>
+                                            <div class="row justify-content-between px-3 pt-3">
+                                                <small>created on : {{releaseNote.createdOn | date: 'dd-MM-yyyy HH:mm:ss'}}</small>
+                                                <small *ngIf="releaseNote.updatedOn">updated on : {{releaseNote.updatedOn | date: 'dd-MM-yyyy HH:mm:ss'}}</small>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

@@ -296,6 +296,10 @@ export class MyTeamComponent implements OnInit {
 
         for(let y of this.teamViewList){
           y.employeementId = "A-".concat(y.employeementId);
+         
+          y.isHierarchy = false;
+          let temp = this.managerList.find(manager => manager.managerId == y.empId);
+          if(temp != undefined) y.isHierarchy = true;  
         }
         console.log("teamViewList : ", this.teamViewList);         
 

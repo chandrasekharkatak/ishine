@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +49,12 @@ public class EmployeeOnBoardingService {
 	
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
+	
+	@Autowired
+	private LogService logService;
+	
+	@Autowired
+	private HttpServletRequest httpRequest;
 
 	public ServiceResponse getEmployeeOnBoardingDetailByEmployeementId(AssetDTO assetDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -132,6 +140,8 @@ public class EmployeeOnBoardingService {
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -200,6 +210,8 @@ public class EmployeeOnBoardingService {
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
@@ -416,11 +428,20 @@ public class EmployeeOnBoardingService {
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse createEmployeeAssetMapping() {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("create_EmployeeAssetMapping");
+		apiLogInfo.setApiUrl("/api/createEmployeeAssetMapping");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("employeeOnboardingMapRepository size: "+employeeOnboardingMapRepository.findAll().size());
+		
 		try {
 			
 			List<Asset> asset = employeeOnboardingRepository.findAll();
@@ -466,13 +487,19 @@ public class EmployeeOnBoardingService {
 			
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse("Employee Asset mapping generated Successfully.");
+			apiLogInfo.setApiResponse("Employee Asset mapping generated Successfully.");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 

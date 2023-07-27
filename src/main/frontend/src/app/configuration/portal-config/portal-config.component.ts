@@ -1043,7 +1043,7 @@ export class PortalConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }else if(!this.validationService.validateAlphaNumericWithSpace(this.helpDocumentName)){
-      this.alertMessage = "Please enter Valid Help Document Name, Alphabets, Numericals & space allowed !!"
+      this.alertMessage = "Please enter Valid Help Document Name, Alphabets, Numbers & space allowed !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }

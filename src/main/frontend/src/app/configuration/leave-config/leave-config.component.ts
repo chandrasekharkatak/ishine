@@ -117,6 +117,7 @@ export class LeaveConfigComponent implements OnInit {
 
   // for View Holidays by State 
   selectedState: any = '';
+  selectedHolidayType: any = '';
 
   filters:any = {};
   isSearchEnabled:boolean = false;
@@ -446,6 +447,15 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   // Holiday
+  onHolidayTypeSelected(){
+    if(this.selectedHolidayType == ""){
+      this.holidayListFilter = this.holidayList.filter((holiday:Holiday)=> moment(holiday.dateOfHoliday, "DD-MM-YYYY").year() == this.selectedYear);
+    }else {
+      this.holidayListFilter = this.holidayList.filter((holiday:Holiday)=> moment(holiday.dateOfHoliday, "DD-MM-YYYY").year() == this.selectedYear && holiday.holidayType == this.selectedHolidayType);
+    }
+    
+    this.page = 1;
+  }
   setCurrentYearLimit() {
     let currentYear = new Date().getFullYear();
     let currentMonth = new Date().getMonth();
@@ -606,6 +616,7 @@ export class LeaveConfigComponent implements OnInit {
 
 
   onSelect() {
+    this.selectedHolidayType = "";
     if(this.selectedYear != null){
       if (this.selectedState == 'all state') {
         this.holidayListFilter = this.holidayList.filter((holiday:Holiday)=> moment(holiday.dateOfHoliday, "DD-MM-YYYY").year() == this.selectedYear);
@@ -644,6 +655,8 @@ export class LeaveConfigComponent implements OnInit {
 
         console.log(this.holidayListFilter, " : this.holidayListFilter");
         this.filterHolidayListByYear(new Date().getFullYear());
+        this.selectedHolidayType = "Festival";
+        this.onHolidayTypeSelected();
       } else {
         console.error(response.serviceResponse);
       }
@@ -651,6 +664,7 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   filterHolidayListByYear(value: any) {
+    this.selectedHolidayType = "";
     this.selectedYear = value;
     this.holidayListFilter = this.holidayList.filter((holiday:Holiday)=> moment(holiday.dateOfHoliday, "DD-MM-YYYY").year() == value);
     console.log(this.holidayListFilter, "this.holidayListFilter")

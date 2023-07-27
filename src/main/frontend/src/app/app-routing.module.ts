@@ -50,6 +50,8 @@ import { MyResignationComponent } from './user-exit/my-resignation/my-resignatio
 import { ResignationComponent } from './user-exit/resignation/resignation.component';
 import { DomainConfigComponent } from './configuration/domain-config/domain-config.component';
 import { UserReleasenotesComponent } from './user-releasenotes/user-releasenotes.component';
+import { NewsletterComponent } from './newsletter/newsletter.component';
+import { NewsletterConfigComponent } from './configuration/newsletter-config/newsletter-config.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -77,6 +79,7 @@ const routes: Routes = [
       { path: 'upload-policies', component: UploadPoliciesComponent, },
       { path: 'on-boarding', component: OnBoardingComponent, },
       { path: 'designation', component: DesignationConfigComponent, },
+      { path: 'newsletter', component: NewsletterConfigComponent, },
       // { path: 'project-config', component: ProjectConfigComponent, },
     ]
   },
@@ -141,6 +144,7 @@ const routes: Routes = [
   {path:'helpdesk', component: HelpdeskComponent},
   {path:'helpdesk/:id', component: HelpdeskComponent, canActivate: [AuthGuard]},
   {path:'release-notes', component: UserReleasenotesComponent, canActivate: [AuthGuard]},
+  {path:'newsletters', component: NewsletterComponent, canActivate: [AuthGuard]},
   {path:'**', redirectTo:'home', pathMatch:'full'},
 ];
 

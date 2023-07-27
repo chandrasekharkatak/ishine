@@ -299,6 +299,18 @@
                                         <p class="info-text">{{previewObj.noticePeriod}} Days</p>
                                     </div>
                                 </div>
+                                <div *ngIf="previewObj.employmentstatus == 'Resigned' || previewObj.employmentstatus == 'InActive'" class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Date Of Resign</p>
+                                        <p class="info-text">{{previewObj.dateOfResign | date:'dd-MM-yyyy'}}</p>
+                                    </div>
+                                </div>
+                                <div *ngIf="previewObj.employmentstatus == 'Resigned' || previewObj.employmentstatus == 'InActive'" class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Date Of Relieving</p>
+                                        <p class="info-text">{{previewObj.dateOfRelieving | date:'dd-MM-yyyy'}}</p>
+                                    </div>
+                                </div>
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <p class="info-label">Manager</p>
@@ -327,7 +339,7 @@
                                 </div>
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
-                                        <p class="info-label">Exprience</p>
+                                        <p class="info-label">Experience</p>
                                         <p class="info-text">{{previewObj.experience}}</p>
                                     </div>
                                 </div>

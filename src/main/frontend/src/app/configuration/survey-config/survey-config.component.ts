@@ -32,7 +32,7 @@ export class SurveyConfigComponent implements OnInit {
   sortColumn: any;
   sortColumnType:any;
 
-  //modal 
+  //modal
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
 
@@ -49,7 +49,7 @@ export class SurveyConfigComponent implements OnInit {
   allSurveyList:any[] = [];
   allSurveyResponseList:any[] = [];
   selectedSurveyName:any = "Test Survey";
-  responseListTableHeaders:any[] = 
+  responseListTableHeaders:any[] =
   [
     "Employee Name",
     "Employee ID",
@@ -65,7 +65,13 @@ export class SurveyConfigComponent implements OnInit {
     "Answer 5",
   ];
 
-  
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  surveyColumns:any[] = ['surveyName','description','isActive','createdByName','createdOn'];
+  surveyResponseColumns:any[] = ['0','1','2'];
+
+
+
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -75,18 +81,18 @@ export class SurveyConfigComponent implements OnInit {
     private locationStrategy: LocationStrategy,
     private clipboardService: ClipboardService,
     private router: Router
-  ) { 
+  ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
   ngOnInit(): void {
-    // Dynamic Subfeature Flags 
+    // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
     console.log(this.feature, this.userMapping);
-  
+
     // let questionObj = ;
     // questionObj.optionsList.push("");
     // this.allSurveyQuestionList.push(questionObj);
@@ -109,7 +115,7 @@ export class SurveyConfigComponent implements OnInit {
   showSurveyForm(){
     this.isSurveyForm = true;
     this.isCreation = true;
-    
+
     this.isUpdation = false;
     this.isSurveyList = false;
     this.isSurveyResponseList = false;
@@ -120,7 +126,7 @@ export class SurveyConfigComponent implements OnInit {
 
   showSurveys(){
     this.isSurveyList = true;
-    
+
     this.isSurveyForm = false;
     this.isCreation = false;
     this.isUpdation = false;
@@ -131,7 +137,7 @@ export class SurveyConfigComponent implements OnInit {
 
   showSurveyResponses(surveyObj:Survey){
     this.isSurveyResponseList = true;
-    
+
     this.isSurveyForm = false;
     this.isCreation = false;
     this.isUpdation = false;
@@ -139,20 +145,20 @@ export class SurveyConfigComponent implements OnInit {
 
     console.log("surveyObj for responses : ", surveyObj);
     this.getAllSurveyResponsesBySurveyId(surveyObj);
-    
+
   }
 
   showSurveyUpdate(surveyObj:Survey, template: TemplateRef<any>){
     this.isSurveyForm = true;
     this.isUpdation = true;
-    
+
     this.isCreation = false;
     this.isSurveyResponseList = false;
     this.isSurveyList = false;
 
     this.surveyObj = new Survey();
     this.allSurveyQuestionList = [];
-    
+
     this.surveyService.getAllQuestionsBySurveyId(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allSurveyQuestionList = response.serviceResponse;
@@ -165,14 +171,14 @@ export class SurveyConfigComponent implements OnInit {
         });
 
         console.log("For Edit SurveyObj ==> ",this.surveyObj, this.allSurveyQuestionList);
-        
+
       } else {
         console.error(response.serviceResponse);
       }
     });
-    
+
   }
- 
+
   // Manage Questions
   addQuestion(i){
     this.allSurveyQuestionList.splice(i+1,0,new SurveyQuestion());
@@ -207,13 +213,13 @@ export class SurveyConfigComponent implements OnInit {
     if (!inputValidated) return;
 
     const surveyTemplate:string = this.createTemplate();
-    
+
     let previewObj = new Survey();
     previewObj.surveyName = this.surveyObj.surveyName;
     previewObj.description = this.surveyObj.description;
     previewObj.surveyQuestionList = this.allSurveyQuestionList;
-    previewObj.surveyTemplate = surveyTemplate; 
-    
+    previewObj.surveyTemplate = surveyTemplate;
+
     console.log("previewObj : ", previewObj);
     this.openSurveyPreviewMod(previewTemplate,previewObj);
   }
@@ -223,7 +229,7 @@ export class SurveyConfigComponent implements OnInit {
       this.alertMessage = "Please enter Survey Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    } 
+    }
     if(!this.validationService.validateTeamName(surveyObj.surveyName.trim())){
       this.alertMessage = "Please enter Valid Survey Name !!"
       this.openAlertMod(template, this.alertMessage);
@@ -251,7 +257,7 @@ export class SurveyConfigComponent implements OnInit {
         flag = false;
         return;
       }
-      
+
       if(!this.validationService.validateNullUndefinedEmptyString(question.required)){
         this.alertMessage = `Please select reqiured ${index+1} !!`;
         this.openAlertMod(template, this.alertMessage);
@@ -277,7 +283,7 @@ export class SurveyConfigComponent implements OnInit {
         }
       }
     });
-    
+
     return flag;
   }
 
@@ -285,7 +291,7 @@ export class SurveyConfigComponent implements OnInit {
 
     let inputValidated: boolean = this.vallidateSurvey(template, this.surveyObj, this.allSurveyQuestionList);
     if (!inputValidated) return;
-    
+
     const surveyTemplate:string = this.createTemplate();
 
     let surveyObj = new Survey();
@@ -301,7 +307,6 @@ export class SurveyConfigComponent implements OnInit {
     });
 
     console.log("survey : ", surveyObj);
-
     this.surveyService.createSurvey(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -320,14 +325,14 @@ export class SurveyConfigComponent implements OnInit {
 
   getAllSurveys(){
     this.allSurveyList = [];
-    
+
     this.surveyService.getAllSurveys().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
        this.allSurveyList = response.serviceResponse;
        this.allSurveyList.forEach(survey => {
          survey.createdOn = (survey.createdOn)? moment(survey.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
        });
-       console.log("this.allSurveyList : ", this.allSurveyList); 
+       console.log("this.allSurveyList : ", this.allSurveyList);
       }else{
         console.error(response.serviceResponse);
       }
@@ -339,7 +344,7 @@ export class SurveyConfigComponent implements OnInit {
     console.log("For Preiew Survey : ", surveyObj);
     this.surveyObj = new Survey();
     this.allSurveyQuestionList = [];
-    
+
     this.surveyService.getAllQuestionsBySurveyId(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allSurveyQuestionList = response.serviceResponse;
@@ -388,7 +393,7 @@ export class SurveyConfigComponent implements OnInit {
     }
 
     console.log("Final responseListTableHeaders : ", this.responseListTableHeaders);
-    
+
 
     const response: any = await this.surveyService.getSurveyAllResponsesBySurveyId(surveyObj).toPromise();
     if (response.serviceStatus == "Success") {
@@ -397,23 +402,23 @@ export class SurveyConfigComponent implements OnInit {
       const key = "employeementId"
       let employees = [...new Map(responseList.map((response:SurveyQuestion) => [response[key], response])).values()].map((response:SurveyQuestion) => {
         return ["A-" + response.employeementId, response.name]
-        // return { 
+        // return {
         //   name: response.name,
-        //   employeementId : response.employeementId 
+        //   employeementId : response.employeementId
         // }
       });
 
       console.log("employees : ", employees);
-      
+
       employees.forEach(employee => {
         let employeeResponse:any[] = responseList.filter((response:SurveyQuestion) => "A-"+ response.employeementId == employee[0]);
-        
+
         this.responseListTableHeaders.forEach(header => {
           const surveyResponse = employeeResponse.find((response:SurveyQuestion) => response.question == header);
           if(surveyResponse) employee.push(surveyResponse.response);
         });
       });
-      
+
       console.log("employees with responses : ", employees);
       this.allSurveyResponseList = employees;
     } else {
@@ -444,12 +449,12 @@ export class SurveyConfigComponent implements OnInit {
       }else{
         this.openAlertMod(template, response.serviceResponse);
       }
-    }); 
+    });
   }
 
   onDelete(template: TemplateRef<any>){
     this.cancelRequest();
- 
+
     console.log("Delete Survey : ", this.surveyObj);
     this.surveyService.deleteSurvey(this.surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -458,7 +463,7 @@ export class SurveyConfigComponent implements OnInit {
       }else{
         this.openAlertMod(template, response.serviceResponse);
       }
-    }); 
+    });
   }
 
   onActivate(template: TemplateRef<any>){
@@ -468,7 +473,7 @@ export class SurveyConfigComponent implements OnInit {
     surveyObj.surveyId = this.surveyObj.surveyId;
     surveyObj.updatedBy = this.currentUser.empId;
     surveyObj.isActive = true;
-    
+
     console.log("Activate Survey : ", surveyObj);
     this.surveyService.changeSurveyStatus(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -477,7 +482,7 @@ export class SurveyConfigComponent implements OnInit {
       }else{
         this.openAlertMod(template, response.serviceResponse);
       }
-    }); 
+    });
   }
 
   onComplete(template: TemplateRef<any>){
@@ -487,7 +492,7 @@ export class SurveyConfigComponent implements OnInit {
     surveyObj.surveyId = this.surveyObj.surveyId;
     surveyObj.updatedBy = this.currentUser.empId;
     surveyObj.isActive = "Completed";
-    
+
     console.log("Complete Survey : ", surveyObj);
     this.surveyService.changeSurveyStatus(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -496,7 +501,7 @@ export class SurveyConfigComponent implements OnInit {
       }else{
         this.openAlertMod(template, response.serviceResponse);
       }
-    }); 
+    });
   }
 
   createTemplate():string{
@@ -515,7 +520,7 @@ export class SurveyConfigComponent implements OnInit {
     let questionTemplate = `<h5 class="mb-0"><i class="fa-solid fa-q question-icon"></i>.&nbsp; ${(question.question !== undefined && question.question !== null)? question.question : ''}${isQuestionRequired}</h5><small class="text-secondary">${(question.description !== undefined && question.description !== null)? question.description : ''}</small>`
 
     finalQuestionTemplate = questionStartTemplate + questionTemplate;
-    
+
      if (question.optionType == "text") {
        let textTemplate: any =`<textarea class="form-control" rows="1" name="question-${qIndex+1}"></textarea>`;
        finalQuestionTemplate = finalQuestionTemplate + textTemplate;
@@ -533,7 +538,7 @@ export class SurveyConfigComponent implements OnInit {
 
          optionTemplate = optionTemplate + checkboxTemplate;
       });
-      
+
       finalQuestionTemplate = finalQuestionTemplate + optionTemplate;
      } else if (question.optionType == "radio") {
 
@@ -581,7 +586,7 @@ export class SurveyConfigComponent implements OnInit {
     }
 
     console.log("Final responseListTableHeaders : ", this.responseListTableHeaders);
-    
+
 
     const response: any = await this.surveyService.getSurveyAllResponsesBySurveyId(this.surveyObj).toPromise();
     if (response.serviceStatus == "Success") {
@@ -590,14 +595,14 @@ export class SurveyConfigComponent implements OnInit {
       const key = "employeementId"
       let employees = [...new Map(responseList.map((response:SurveyQuestion) => [response[key], response])).values()].map((response:SurveyQuestion) => {
         return ["A-".concat(response.employeementId), response.name]
-        // return { 
+        // return {
         //   name: response.name,
-        //   employeementId : response.employeementId 
+        //   employeementId : response.employeementId
         // }
       });
 
       console.log("employees : ", employees);
-      
+
       employees.forEach(employee => {
         let employeeResponse:any[] = responseList.filter((response:SurveyQuestion) => response.employeementId == employee[0].substring(2));
         this.responseListTableHeaders.forEach(header => {
@@ -605,7 +610,7 @@ export class SurveyConfigComponent implements OnInit {
           if(surveyResponse) employee.push(surveyResponse.response);
         });
       })
-      
+
       dataForExcel = employees;
       console.log("dataForExcel : ", employees);
     } else {
@@ -617,18 +622,18 @@ export class SurveyConfigComponent implements OnInit {
         headers.forEach((header, index) => {
           data[header] = response[index]
         });
-        
+
         return data;
       });
       console.log("onlySpecificDataArr : ", onlySpecificDataArr);
-      
+
        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
   }
 
   copySurveyLinkToClipBoard(survey:any,template: TemplateRef<any>) {
     let url = window.location.href.split("#")[0].concat("#/user-survey/").concat(survey.surveyId);
     console.log(url, " : url");
-    
+
     this.clipboardService.copy(url);
     this.openAlertMod(template, "Link copied to clipboard !!");
   }
@@ -665,20 +670,30 @@ export class SurveyConfigComponent implements OnInit {
   cancelRequest() {
     this.modalRef.hide();
   }
-  
+
   page = 1;
   handlePageChange(event) {
     this.page = event;
   }
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+    if(!this.isSearchEnabled){
+      this.filters = {};
+    }
+  }
 
-  sortData(sort: Sort){	
+  sortData(sort: Sort){
     console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;
     }
+  }
+  onSearch(searchData){
+    this.filters = searchData;
+    console.log("Updated Filter : ", this.filters);
   }
 
 }

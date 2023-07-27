@@ -50,6 +50,10 @@
                     <a class="nav-link config__tab-item__link" id="on-boarding-tab" data-toggle="tab" role="tab"
                         aria-controls="on-boarding" aria-selected="false" routerLink="on-boarding">On-Boarding</a>
                 </li>
+                <li *ngIf="userMapping.newsletter_config" class="nav-item config__tab-item" (click)="removeActiveTab()">
+                    <a class="nav-link config__tab-item__link" id="newsletter-tab" data-toggle="tab" role="tab"
+                        aria-controls="newsletter" aria-selected="false" routerLink="newsletter">Newsletters</a>
+                </li>
                 <!-- <li *ngIf="userMapping.project_config" class="nav-item config__tab-item" (click)="removeActiveTab()">
                     <a class="nav-link config__tab-item__link" id="project-config-tab" data-toggle="tab" role="tab"
                         aria-controls="project-config" aria-selected="false" routerLink="project-config">Project</a>

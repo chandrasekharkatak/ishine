@@ -1,25 +1,21 @@
 package com.apmosys.employeeportal.service;
 
 import java.sql.SQLException;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
-
+import javax.servlet.http.HttpServletRequest;
 import org.hibernate.internal.build.AllowSysOut;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.stream.Collectors;
 
 import com.apmosys.employeeportal.dto.FeatureMasterDTO;
 import com.apmosys.employeeportal.dto.JobRoleDTO;
-import com.apmosys.employeeportal.dto.RoleFeatureMapDTO;
-import com.apmosys.employeeportal.dto.SubFeatureMasterDTO;
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.model.RoleFeatureMap;
 import com.apmosys.employeeportal.model.SubFeatureMaster;
 import com.apmosys.employeeportal.repository.RoleFeatureMapRepository;
@@ -34,10 +30,17 @@ public class RoleFeatureMapService {
 
 	@Autowired
 	RoleFeatureMapRepository roleFeatureMapRepository;
+	
+	@Autowired
+	private HttpServletRequest httpRequest;
+
+	@Autowired
+	private LogService logService;
 
 	public ServiceResponse setDefaultSubFeaturesByRoleId(JobRoleDTO jobRoleDTO) {
 
 		ServiceResponse serviceResponse = new ServiceResponse();
+		
 		try {
 			List<SubFeatureMaster> defaultSubFeatureMasterList = subFeatureMasterRepository
 					.findBySubFeatureType((short) 1);
@@ -100,6 +103,12 @@ public class RoleFeatureMapService {
 	@Transactional
 	public ServiceResponse updateRoleFeatureMapping(FeatureMasterDTO featureMasterDTO) {
 		ServiceResponse serviceResponse = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("UpdateRoleFeatureMapping");
+		apiLogInfo.setApiUrl("/api/updateRoleFeatureMapping");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("JobRole Id : " + featureMasterDTO.getJobRoleId());
 		try {
 			Long jobRoleId = featureMasterDTO.getJobRoleId();
 
@@ -120,13 +129,19 @@ public class RoleFeatureMapService {
 
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse("Subfeatures of role updated.");
+			apiLogInfo.setApiResponse("Subfeatures of role updated.");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			serviceResponse.setServiceResponse("Something Went Wrong.");
 			serviceResponse.setServiceError(e.getMessage());
+			apiLogInfo.setApiResponse("Something went Wrong");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return serviceResponse;
 	}
 

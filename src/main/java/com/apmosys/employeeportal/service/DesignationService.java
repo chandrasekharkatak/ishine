@@ -5,22 +5,24 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.DesignationDTO;
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.model.Designation;
 import com.apmosys.employeeportal.model.DesignationDepartmentMap;
 import com.apmosys.employeeportal.model.Employee;
-import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.repository.DesignationDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.DesignationRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
+
 
 @Service
 public class DesignationService {
@@ -36,9 +38,23 @@ public class DesignationService {
 	
 	@Autowired
 	EmployeeRepository employeeRepository;
+	
+	@Autowired
+	private HttpServletRequest httpRequest;
+
+	@Autowired
+	private LogService logService;
 
 	public ServiceResponse createDesignation(DesignationDTO designationDTO) {
 		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("create_designation");
+		apiLogInfo.setApiUrl("/api/createDesignation");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("designationName : "+designationDTO.getDesignationName()+ ", createdBy : "+designationDTO.getCreatedBy()+", deptIdList : "+designationDTO.getDeptIdList());
+				
 		try {
 			Designation designationObj = new Designation();
 			
@@ -63,25 +79,51 @@ public class DesignationService {
 				if(!mapResponse.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Designation Created Successfully.");
+					
+					apiLogInfo.setApiResponse("Designation Created Successfully.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Unable to create New Designation.");
+					
+					apiLogInfo.setApiResponse("Unable to create New Designation.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					
 				}
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Unable to create New Designation.");
+				
+				apiLogInfo.setApiResponse("Unable to create New Designation.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				
 			}
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		
 		return response;
 	}
 
 	public ServiceResponse getAllDesignation() {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("get_AllDesignation");
+		apiLogInfo.setApiUrl("/api/getAllDesignation");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("getAllDesignation size : "+designationRepository.findAllDesignation().size());
+		
 		try {
 			
 			List<Object[]> designationList = designationRepository.findAllDesignation();
@@ -103,21 +145,38 @@ public class DesignationService {
 				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("dtoList size : "+dtoList.size());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Designation List is empty.");
+				apiLogInfo.setApiResponse("Designation List is empty.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse checkDesignationName(DesignationDTO designationDTO) {
 		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/checkDesignationName");
+		apiLogInfo.setLogLevel("INFO");
+
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("designationName : "+designationDTO.getDesignationName());
+		
 		try {
 			
 			Designation designationObj = designationRepository.findByDesignationName(designationDTO.getDesignationName());
@@ -128,6 +187,9 @@ public class DesignationService {
 					
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Designation name already exists.");
+					
+					apiLogInfo.setApiResponse("Designation name already exists.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 			}
 			
@@ -135,13 +197,28 @@ public class DesignationService {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		
 		return response;
 	}
 
 	public ServiceResponse getDesignationById(DesignationDTO designationDTO) {
 		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getDesignationById");
+		apiLogInfo.setLogLevel("INFO");
+
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("designationId : "+designationDTO.getDesignationId()+", designationName : "+designationDTO.getDesignationName());		
+		
 		try {
 			
 			Designation designationObj = designationRepository.findByDesignationId(designationDTO.getDesignationId());
@@ -167,22 +244,46 @@ public class DesignationService {
 				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoObj);
+				
+				apiLogInfo.setApiResponse("List Fetched of size : "+dtoObj);
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Unable to find Designation.");
+				
+				apiLogInfo.setApiResponse("Unable to find Designation.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		
 			}
 			
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			
 			response.setServiceError(e.getMessage());
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		
 		return response;
 	}
 
 	public ServiceResponse updateDesignation(DesignationDTO designationDTO) {
 		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("update_designation");
+		apiLogInfo.setApiUrl("/api/updateDesignation");
+		apiLogInfo.setLogLevel("INFO");
+
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("designationId : "+designationDTO.getDesignationId()+", designationName : "+designationDTO.getDesignationName());
+		
 		try {
 			
 			Designation designationObj = designationRepository.findByDesignationId(designationDTO.getDesignationId());
@@ -225,23 +326,47 @@ public class DesignationService {
 					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Designation updated successfully.");
+					
+					apiLogInfo.setApiResponse("Designation updated successfully.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					
 				}
 				
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Unable to find Designation.");
+				
+				apiLogInfo.setApiResponse("Unable to find Designation.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				
 			}
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			
 			response.setServiceError(e.getMessage());
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		
 		return response;
 	}
 
 	public ServiceResponse getDesignationByDeptId(DesignationDTO designationDTO) {
 		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("get_DesignationByDeptId");
+		apiLogInfo.setApiUrl("/api/getDesignationByDeptId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("designationId : "+designationDTO.getDesignationId()+", designationName : "+designationDTO.getDesignationName()+", deptId : "+designationDTO.getDeptId());
+		
 		try {
 			
 			List<Object[]> mappObj = designationDepartmentMapRepository.findAllDesignationByDeptId(designationDTO.getDeptId());
@@ -258,22 +383,45 @@ public class DesignationService {
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				
+				apiLogInfo.setApiResponse("List Fetched of size : "+dtoList.size());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No Designation found.");
+				
+				apiLogInfo.setApiResponse("No Designation found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				
 			}
 			
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			
+			apiLogInfo.setApiResponse("Something Went Wrong.");
+			apiLogInfo.setLogLevel("ERROR");
+			
 			response.setServiceError(e.getMessage());
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse deleteDesignation(DesignationDTO designationDTO) {
 		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("delete_designation");
+		apiLogInfo.setApiUrl("/api/deleteDesignation");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("designationId : "+designationDTO.getDesignationId()+", designationName : "+designationDTO.getDesignationName());
+		
 		try {
 			
 			Designation designationObj = designationRepository.findByDesignationId(designationDTO.getDesignationId());
@@ -298,6 +446,9 @@ public class DesignationService {
 					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Designation Deleted Successfully.");
+					
+					apiLogInfo.setApiResponse("Designation Deleted Successfully.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 				} else {
 					
@@ -329,25 +480,47 @@ public class DesignationService {
 							
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							response.setServiceResponse(dtoList);
+							
+							apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+							
 						}
 					}
 				}
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Designation Not Found.");
+				
+				apiLogInfo.setApiResponse("Designation Not Found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				
 			}
 			
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			
+			apiLogInfo.setApiResponse("Something Went Wrong.");
+			apiLogInfo.setLogLevel("ERROR");
+			
 			response.setServiceError(e.getMessage());
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
 	public ServiceResponse changeEmployeeDesignationMapping(DesignationDTO designationDTO) {
 		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/changeEmployeeDesignationMapping");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("designationId : "+designationDTO.getDesignationId()+", designationName : "+designationDTO.getDesignationName()+", newDesignationId"+designationDTO.getNewDesignationId());
+		
 		try {
 			List<Employee> employeeDesignation = employeeRepository.findByDesignationId(designationDTO.getDesignationId());
 			List<Employee> updatedEmployeeInfo = new ArrayList<Employee>();
@@ -369,29 +542,57 @@ public class DesignationService {
 						if(deleteResponse.getServiceStatus().equals("Success")) {
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse(deleteResponse.getServiceResponse());
+							
+							apiLogInfo.setApiResponse(deleteResponse.getServiceResponse().toString());
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);							
+							
 						}else {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							response.setServiceResponse(deleteResponse.getServiceResponse());
+							
+							apiLogInfo.setApiResponse(deleteResponse.getServiceResponse().toString());
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+							
 						}
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Unable to change Designation & Employee Mapping.");
+						
+						apiLogInfo.setApiResponse("Unable to change Designation & Employee Mapping.");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+						
 					}
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Unable to update employee Designation.");
+					
+					apiLogInfo.setApiResponse("Unable to update employee Designation.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					
 				}
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No employee found for designation update.");
+				
+				apiLogInfo.setApiResponse("No employee found for designation update.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				
 			}
 			
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			
 			response.setServiceError(e.getMessage());
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		
 		return response;
 	}
 

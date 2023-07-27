@@ -305,6 +305,18 @@
                                         <p class="info-text">{{currentEmployeeInfo.noticePeriod}} Days</p>
                                     </div>
                                 </div>
+                                <div *ngIf="currentEmployeeInfo.employmentstatus == 'Resigned' || currentEmployeeInfo.employmentstatus == 'InActive'" class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Date Of Resign</p>
+                                        <p class="info-text">{{currentEmployeeInfo.dateOfResign | date:'dd-MM-yyyy'}}</p>
+                                    </div>
+                                </div>
+                                <div *ngIf="currentEmployeeInfo.employmentstatus == 'Resigned' || currentEmployeeInfo.employmentstatus == 'InActive'" class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Date Of Relieving</p>
+                                        <p class="info-text">{{currentEmployeeInfo.dateOfRelieving | date:'dd-MM-yyyy'}}</p>
+                                    </div>
+                                </div>
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <p class="info-label">Manager</p>

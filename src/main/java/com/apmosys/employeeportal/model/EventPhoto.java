@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.model;
 
+import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -26,6 +27,15 @@ public class EventPhoto  {
 	private String eventName;
 	
 	private String imageName;
+	
+	@Column(length = 500)
+	private String eventCaption;
+	
+	private Integer photoOrder;
+	
+	private String isExternalLink;
+	
+	private String externalLink;
 	
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();
