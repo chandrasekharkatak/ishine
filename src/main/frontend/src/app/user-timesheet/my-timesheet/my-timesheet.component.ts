@@ -96,8 +96,8 @@ export class MyTimesheetComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  selfTimesheetColumns:any[] = ['blank','date','dayType','officeInTime','officeOutTime','totalWorkingOfficeHours','description','totalTime','status','createdByName','createdOn','isNightShift','leaveType','remarks'];
-  teamTimesheetColumns:any[] = ['blank','employeeName','date','dayType','officeInTime','officeOutTime','totalWorkingOfficeHours','description','totalTime','status','createdOn','isNightShift','leaveType','remarks'];
+  selfTimesheetColumns:any[] = ['blank','date','dayType','officeInTime','officeOutTime','totalWorkingOfficeHours','description','totalTime','status','createdByName','createdOn','isNightShiftDisplay','leaveType','remarks'];
+  teamTimesheetColumns:any[] = ['blank','employeeName','date','dayType','officeInTime','officeOutTime','totalWorkingOfficeHours','description','totalTime','status','createdOn','isNightShiftDisplay','leaveType','remarks'];
 
   constructor(
     private validationService: ValidationService,
@@ -1042,6 +1042,7 @@ export class MyTimesheetComponent implements OnInit {
             timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
             timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
             timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+            timesheet.isNightShiftDisplay = (timesheet.isNightShift == 'true') ? 'Night Shift' : 'Regular Shift';
           });
           console.log("allMyTimesheets :", this.allMyTimesheets);
         } else {
@@ -1086,6 +1087,7 @@ export class MyTimesheetComponent implements OnInit {
           timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          timesheet.isNightShiftDisplay = (timesheet.isNightShift == 'true') ? 'Night Shift' : 'Regular Shift';
         });
         console.log("allMyTimesheets :", this.allMyTimesheets);
       } else {

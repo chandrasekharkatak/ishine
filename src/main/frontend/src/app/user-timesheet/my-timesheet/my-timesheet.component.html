@@ -118,7 +118,7 @@
                         <div class="form-group input-wrapper">
                             <label class="info-label"><span class="text-danger">*</span>Out Time</label>
                             <input id="officeOutTime" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.officeOutTime" [owlDateTimeTrigger]="officeOutTimePicker" [owlDateTime]="officeOutTimePicker"
-                            (dateTimeChange)="setTotalWorkingOfficeHours()" (keydown)="disableMannualDateInput()" placeholder="Select Out Time" autocomplete="off" [disabled]="!timesheetObj.officeInTime" [owlDateTimeFilter]="outTimeFilter">
+                            (dateTimeChange)="setTotalWorkingOfficeHours()" (keydown)="disableMannualDateInput()" placeholder="Select Out Time" autocomplete="off" [disabled]="!timesheetObj.officeInTime" [owlDateTimeFilter]="outTimeFilter" [max]="this.maxOutTimeDate">
                             <owl-date-time class="picker" [startAt]="timesheetObj.officeInTime" [hour12Timer]="true" #officeOutTimePicker></owl-date-time>
                         </div>
                     </div>
@@ -472,7 +472,7 @@
                                 <td>{{timesheet.status}}</td>
                                 <td *ngIf="isSelfTimesheets">{{timesheet.createdByName}}</td>
                                 <td>{{timesheet.createdOn}}</td>
-                                <td>{{timesheet.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift'}}</td>
+                                <td>{{timesheet.isNightShiftDisplay}}</td>
                                 <td>{{timesheet.leaveType}}</td>
                                 <td>{{timesheet.remarks}}</td>
                                 <td>

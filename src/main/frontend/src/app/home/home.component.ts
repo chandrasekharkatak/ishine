@@ -195,9 +195,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
     }
     if (this.userMapping.view_my_leave_details) {
       this.getMyLeaveBalancesByEmpId();
-      this.countMyApprovedLeaveApplicationsByLeaveType();
-      this.countMyPendingLeaveApplicationsByLeaveType();
-      this.countMyRejectedLeaveApplicationsByLeaveType();
     }
     if (this.userMapping.view_timesheet_display) this.getTimesheetsForHomePageByEmpId('Last 7 Days');
     if (this.userMapping.view_event_photos) this.getAllEventPhotosForHome();
@@ -250,7 +247,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.leaveService.getAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveApplicationList = response.serviceResponse;
-        this.leaveApplicationList.forEach(leave => {
+        this.leaveApplicationList.forEach((leave, index) => {
+          leave.checkId = "leave"+index;
           leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
           leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
           leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
@@ -420,13 +418,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamTimesheetRequests = response.serviceResponse;
-        for (let timesheet of this.allTeamTimesheetRequests) {
+        this.allTeamTimesheetRequests.forEach((timesheet, index) => {
+          timesheet.checkId = "timesheet"+index;
           timesheet.employeementId = "A-".concat(timesheet.employeementId);
           timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
            timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-        }
+        });
         console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
       } else {
         console.error(response.serviceResponse)
@@ -532,26 +531,83 @@ export class HomeComponent implements OnInit, AfterViewInit {
     });
   }
 
-  getMyLeaveBalancesByEmpId() {
+  async getMyLeaveBalancesByEmpId() {
     this.leaveBalanceList = [];
+    this.rejectedLeavesList = [];
+    this.approvedLeavesList = [];
+    this.pendingLeavesList = [];
+
 
     let leaveObj = new Leave();
     leaveObj.employeementId = this.currentUser.employeementId;
-    this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.leaveBalanceList = response.serviceResponse;
-        console.log("leaveBalanceList : ", this.leaveBalanceList);
-        this.leaveBucketDetails.forEach(data => {
-          let leaveDetail = this.leaveBalanceList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
-          if (leaveDetail) {
-            data.balance = (leaveDetail.balance) ? leaveDetail.balance : 0;
-          }
-        });
-        console.log("leaveBucketDetails : ", this.leaveBucketDetails);
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
+    leaveObj.empId = this.currentUser.empId;
+
+    let leaveBalanceResponse:any = await this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).toPromise();
+    if (leaveBalanceResponse.serviceStatus == "Success") {
+      this.leaveBalanceList = leaveBalanceResponse.serviceResponse;
+      console.log("leaveBalanceList : ", this.leaveBalanceList);
+      this.leaveBucketDetails.forEach(data => {
+        let leaveDetail = this.leaveBalanceList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
+        if (leaveDetail) {
+          data.balance = (leaveDetail.balance) ? leaveDetail.balance : 0;
+        }
+      });
+      console.log("leaveBucketDetails with Balance : ", this.leaveBucketDetails);
+    } else {
+      console.error(leaveBalanceResponse.serviceResponse);
+    }
+
+    let approvedLeaveResponse:any = await this.leaveService.countMyApprovedLeaveApplicationsByLeaveType(leaveObj).pipe(first()).toPromise();
+    if (approvedLeaveResponse.serviceStatus == "Success") {
+      this.approvedLeavesList = approvedLeaveResponse.serviceResponse;
+      console.log("approvedLeaves : ", this.approvedLeavesList);
+
+      this.leaveBucketDetails.forEach(data => {
+        let leaveDetail = this.approvedLeavesList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
+        if (leaveDetail) {
+          data.approvedApplicationsCount = (leaveDetail.applicationCount) ? leaveDetail.applicationCount : 0;
+        }
+      });
+
+      console.log("leaveBucketDetails with Approved Leaves : ", this.leaveBucketDetails);
+
+    } else {
+      console.error(approvedLeaveResponse.serviceResponse);
+    }
+
+    let rejectedLeaveResponse:any = await this.leaveService.countMyRejectedLeaveApplicationsByLeaveType(leaveObj).pipe(first()).toPromise();
+    if (rejectedLeaveResponse.serviceStatus == 'Success') {
+      this.rejectedLeavesList = rejectedLeaveResponse.serviceResponse;
+      console.log("Rejected Leaves : ", this.rejectedLeavesList);
+
+      this.leaveBucketDetails.forEach(data => {
+        let leaveDetail = this.rejectedLeavesList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
+        if (leaveDetail) {
+          data.rejectedApplicationsCount = (leaveDetail.applicationCount) ? leaveDetail.applicationCount : 0;
+        }
+      });
+
+      console.log("leaveBucketDetails with Rejected Leaves : ", this.leaveBucketDetails);
+    } else {
+      console.error(rejectedLeaveResponse.serviceResponse);
+    }
+
+    let pendingLeaveResponse:any = await this.leaveService.countMyPendingLeaveApplicationsByLeaveType(leaveObj).pipe(first()).toPromise();
+    if (pendingLeaveResponse.serviceStatus == "Success") {
+      this.pendingLeavesList = pendingLeaveResponse.serviceResponse;
+      console.log("pendingLeavesList : ", this.pendingLeavesList);
+
+      this.leaveBucketDetails.forEach(data => {
+        let leaveDetail = this.pendingLeavesList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
+        if (leaveDetail) {
+          data.pendingApplicationsCount = (leaveDetail.applicationCount) ? leaveDetail.applicationCount : 0;
+        }
+      });
+
+      console.log("leaveBucketDetails with pending leaves : ", this.leaveBucketDetails);
+    } else {
+      console.error(pendingLeaveResponse.serviceResponse);
+    }
   }
 
   countMyRejectedLeaveApplicationsByLeaveType() {
@@ -1152,10 +1208,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
     const checkboxes = document.querySelectorAll('.timesheet-req-checkbox');
 
+    console.log("select Data : ", this.allTeamTimesheetRequests);
+
     checkboxes.forEach((checkbox: any) => {
       console.log("checkbox : ", checkbox);
       let checkboxIndex = checkbox.getAttribute('id');
-      let checkedTimesheet = this.allTeamTimesheetRequests.find((_timesheet, index) => index == checkboxIndex);
+      let checkedTimesheet = this.allTeamTimesheetRequests.find((_timesheet, index) => _timesheet.checkId == checkboxIndex);
 
       if (event.target.checked) {
         checkbox.checked = true;
@@ -1177,7 +1235,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     leaveCheckboxes.forEach((leaveCheck: any) => {
       console.log("Check in leave home ", leaveCheck);
       let leaveCheckboxIndex = leaveCheck.getAttribute('id');
-      let checkedLeaveApplication = this.leaveApplicationList.find((_leave, index) => index == leaveCheckboxIndex);
+      let checkedLeaveApplication = this.leaveApplicationList.find((_leave, index) => _leave.checkId == leaveCheckboxIndex);
 
       if (event.target.checked) {
         leaveCheck.checked = true;

@@ -176,13 +176,14 @@ export class TeamTimesheetComponent implements OnInit {
     this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamTimesheetRequests = response.serviceResponse;
-        for (let x of this.allTeamTimesheetRequests) {
-          x.employeementId = "A-".concat(x.employeementId);
-          x.date = (x.date) ? moment(x.date).format(AppComponent.DATE_FORMAT) : null;
-          x.officeInTime = (x.officeInTime) ? moment(x.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
-          x.officeOutTime = (x.officeOutTime) ? moment(x.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
-          x.createdOn = (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-        }
+        this.allTeamTimesheetRequests.forEach((timesheet, index) => {
+          timesheet.checkId = "timesheet"+index;
+          timesheet.employeementId = "A-".concat(timesheet.employeementId);
+          timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
+          timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
+          timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
+          timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
         console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
       } else {
         console.error(response.serviceResponse)
@@ -378,7 +379,7 @@ export class TeamTimesheetComponent implements OnInit {
     checkboxes.forEach((checkbox: any) => {
       console.log("checkbox : ", checkbox);
       let checkboxIndex = checkbox.getAttribute('id');
-      let checkedTimesheet = this.allTeamTimesheetRequests.find((_timesheet, index) => index == checkboxIndex);
+      let checkedTimesheet = this.allTeamTimesheetRequests.find((_timesheet, index) => _timesheet.checkId == checkboxIndex);
 
       if (event.target.checked) {
         checkbox.checked = true;

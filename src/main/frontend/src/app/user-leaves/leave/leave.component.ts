@@ -122,8 +122,8 @@ export class LeaveComponent implements OnInit {
   
   filters:any = {};
   isSearchEnabled:boolean = false;
-  selfLeaveHistoryColumns:any[] = ['blank','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','reason','currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','level3ApproverName','level3ApprovalStatus','remark'];
-  teamLeaveHistoryColumns:any[] = ['blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdOn','reason','currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','level3ApproverName','level3ApprovalStatus','remark'];
+  selfLeaveHistoryColumns:any[] = ['blank','leaveType','fromDate','toDate','noOfDaysDisplay','status','createdByName','createdOn','reason','currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','level3ApproverName','level3ApprovalStatus','remark'];
+  teamLeaveHistoryColumns:any[] = ['blank','employeeName','leaveType','fromDate','toDate','noOfDaysDisplay','status','createdOn','reason','currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','level3ApproverName','level3ApprovalStatus','remark'];
   leaveBalColumns:any[] = ['leaveType','totalLeaveBalance','pendingForApproval','balance'];
   leaveLogColumns:any[] = ['rowNumber','leaveType','updateBalanceBy','balance','message','createdOn'];
   selfLeaveRevokeHistoryColumns:any[] = ['blank','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','revokeReason','approverName','remark'];
@@ -846,6 +846,11 @@ export class LeaveComponent implements OnInit {
         return false;	
       }	
     }	
+    
+    if(!this.leaveObj.fromDate || !this.leaveObj.toDate){
+      this.leaveObj.noOfDays = null;
+      return false
+    }
 
     //Get Overlaping leave Application
     this.getOverlappedTeamMemberLeave();
@@ -1356,7 +1361,11 @@ export class LeaveComponent implements OnInit {
         this.previouslyAppliedLeavesList = this.previouslyAppliedLeavesList.filter(leaveApplication => (leaveApplication.status != 'Rejected' && leaveApplication.status != 'Revoked'));
         this.leaveHistoryList = response.serviceResponse;
         this.leaveHistoryListForTable = response.serviceResponse;
-  
+
+        this.leaveHistoryList.forEach(leave => {
+          leave.noOfDaysDisplay = (leave.noOfDays)? leave.noOfDays + " day(s)" : null; 
+        });
+
         this.leaveHistoryListForTable.forEach(leave => {
           leave.checkDate = new Date(leave.fromDate);
           leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
@@ -1400,6 +1409,7 @@ export class LeaveComponent implements OnInit {
           leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
           leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
           leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          leave.noOfDaysDisplay = (leave.noOfDays)? leave.noOfDays + " day(s)" : null; 
           if(!leave.currentApprovalLevel && !leave.finalApprovalLevel){
             leave.currentApprovalLevel = 1;
             leave.finalApprovalLevel = 1; 

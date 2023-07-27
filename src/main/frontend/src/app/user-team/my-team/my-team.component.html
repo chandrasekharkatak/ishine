@@ -452,7 +452,7 @@
                   </tr>
                   <tr
                     *ngFor="let leaveApplication of leaveApplicationList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
-                    <td><input class="leaveApplication-req-checkbox" id="{{i}}" type="checkbox"
+                    <td><input class="leaveApplication-req-checkbox" id="{{leaveApplication.checkId}}" type="checkbox"
                         [(ngModel)]="leaveApplication.isSelected" (change)="select(leaveApplication,$event)"></td>
                     <td>{{items*(page-1)+i+1}}</td>
                     <td>{{leaveApplication.employeeName}}</td>

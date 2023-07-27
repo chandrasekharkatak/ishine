@@ -1793,6 +1793,8 @@ export class ReportDashboardComponent implements OnInit {
   openEodSegregation(template: TemplateRef<any>, titleName: any){
     let modalTableList = this.timsheetSummaryList;
     this.modalSummaryList = [];
+    this.resetSearch();
+
     if(titleName == "Employee Worked Between 0 to 5 hour"){
       this.page=1;
       this.modalTitle = titleName;
@@ -1846,6 +1848,8 @@ export class ReportDashboardComponent implements OnInit {
   openLeaveSummaryTableModel(statusName:any) {
     let modalTableList = this.uniqueLeaveSumarryList;
     this.modalSummaryList = [];
+    this.resetSearch();
+
     this.data = ''
       this.page=1;
       this.modalTitle = statusName+" Leave Summary";
@@ -1857,6 +1861,7 @@ export class ReportDashboardComponent implements OnInit {
     let modalTableList = this.timsheetSummaryList;
     this.modalSummaryList = [];
     this.countByLegend = [];
+    this.resetSearch();
 
     this.data = ''
       this.page=1;
@@ -1893,6 +1898,8 @@ export class ReportDashboardComponent implements OnInit {
   openTotalCountModal(title:any){
     this.data = ''
     this.modalSummaryList = [];
+    this.resetSearch();
+
     let dateToday = moment().format(this.dateFormat);
     let modalTableList = this.allEmployeeList;
     this.page = 1;
@@ -1907,7 +1914,9 @@ export class ReportDashboardComponent implements OnInit {
 
   openEmployeeStatusTableModal(status:any){
     this.modalSummaryList = [];
-    this.data = ''
+    this.data = '';
+    this.resetSearch();
+
     let modalTableList = this.allEmployeeList;
       this.page=1;
       this.modalTitle = "Employee In " + status;
@@ -1918,6 +1927,8 @@ export class ReportDashboardComponent implements OnInit {
   openGenderSummaryModalTable(gender:any){
     this.data = ''
     this.modalSummaryList = [];
+    this.resetSearch();
+
     let modalTableList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
     this.page = 1;
     this.modalTitle = gender + " Employee Data";
@@ -1928,6 +1939,8 @@ export class ReportDashboardComponent implements OnInit {
   openAgeSummayModalTable(age:any){
     this.data = ''
     this.modalSummaryList = [];
+    this.resetSearch();
+
     let modalTableList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
     if(age == "18 to 25"){
       this.page=1;
@@ -1958,6 +1971,8 @@ export class ReportDashboardComponent implements OnInit {
   openDepartmentWiseEmployeeModalTable(pointName:any){
     this.data = ''
     this.modalSummaryList = [];
+    this.resetSearch();
+
     let modalTableList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
       this.page=1;
       this.modalTitle = "Employee(s) in "+pointName;
@@ -1971,6 +1986,8 @@ export class ReportDashboardComponent implements OnInit {
   openEmployeeExperienceModalTable(pointName:any){
     this.data = ''
     this.modalSummaryList = [];
+    this.resetSearch();
+
     let modalTableList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
     if(pointName == "0 to 1"){
       this.page=1;
@@ -2007,6 +2024,8 @@ export class ReportDashboardComponent implements OnInit {
   openFresherLateralModalTable(pointName:any){
     this.data = ''
     this.modalSummaryList = [];
+    this.resetSearch();
+
     let modalTableList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
       this.page=1;
       this.modalTitle = "Employee(s) "+pointName;
@@ -2021,6 +2040,8 @@ export class ReportDashboardComponent implements OnInit {
   openEmployeeJoinResignModalTable(category:any, name:any){
     this.data = ''
     this.modalSummaryList = [];
+    this.resetSearch();
+
     let modalTableList = this.allEmployeeList;
     let dateToday = moment().year();
 
@@ -2041,6 +2062,8 @@ export class ReportDashboardComponent implements OnInit {
   openLeaveAnalysisTableModel(pointName:any, category:any){
     this.data =''
     this.modalSummaryList = [];
+    this.resetSearch();
+
     let modalTableList = this.leaveTrendAnalysisList;
       this.page=1;
       this.modalTitle = pointName + " taken on " + category;
@@ -2051,6 +2074,8 @@ export class ReportDashboardComponent implements OnInit {
   openWorkLocationSummaryTableModal(category:any){
     this.data =''
     this.modalSummaryList = [];
+    this.resetSearch();
+
     let modalTableList = this.employeeWorkLocationList;
       this.page=1;
       this.modalTitle = "Work Location : " + category;
@@ -2062,6 +2087,7 @@ export class ReportDashboardComponent implements OnInit {
     const CHECK_PERCENT = 100.00;
     this.data = ''
     this.modalSummaryList = [];
+    this.resetSearch();
 
     let modalTableList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
       this.page=1;
@@ -2098,6 +2124,11 @@ export class ReportDashboardComponent implements OnInit {
     if(!this.isSearchEnabled){
       this.filters = {};
     }
+  }
+
+  resetSearch(){
+    this.isSearchEnabled = false;
+    this.filters = {};
   }
 
   onSearch(searchData){

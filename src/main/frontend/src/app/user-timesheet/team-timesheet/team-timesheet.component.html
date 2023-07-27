@@ -174,7 +174,7 @@
             </tr>
             <tr
               *ngFor="let timesheet of allTeamTimesheetRequests| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index" [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
-              <td><input class="timesheet-req-checkbox" id="{{i}}" type="checkbox" [(ngModel)]="timesheet.isSelected"filters
+              <td><input class="timesheet-req-checkbox" id="{{timesheet.checkId}}" type="checkbox" [(ngModel)]="timesheet.isSelected"filters
                   (change)="select(timesheet,$event)"></td>
               <td>{{items*(page-1)+i+1}}</td>
               <td>{{timesheet.employeementId}}</td>

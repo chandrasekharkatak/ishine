@@ -66,3 +66,7 @@
 .highlight {
     background-color: rgb(171, 193, 253);
 }
+
+input[type=checkbox]:hover, input[type=radio]:hover {
+    cursor: pointer;
+}

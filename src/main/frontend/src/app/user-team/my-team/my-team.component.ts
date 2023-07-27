@@ -433,7 +433,8 @@ export class MyTeamComponent implements OnInit {
     this.leaveService.getAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveApplicationList = response.serviceResponse;
-        this.leaveApplicationList.forEach(leaveApp => {
+        this.leaveApplicationList.forEach((leaveApp, index) => {
+          leaveApp.checkId = "leave"+index;
           leaveApp.fromDate = (leaveApp.fromDate)? moment(leaveApp.fromDate).format(AppComponent.DATE_FORMAT) : null;
           leaveApp.toDate = (leaveApp.toDate)? moment(leaveApp.toDate).format(AppComponent.DATE_FORMAT) : null;
           leaveApp.createdOn = (leaveApp.createdOn)? moment(leaveApp.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
@@ -1007,7 +1008,7 @@ export class MyTeamComponent implements OnInit {
     checkboxes.forEach((checkbox:any) =>{
      
       let checkboxIndex = checkbox.getAttribute('id');
-      let checkedLeave = this.leaveApplicationList.find((_leave, index) => index == checkboxIndex);
+      let checkedLeave = this.leaveApplicationList.find((_leave, index) => _leave.checkId == checkboxIndex);
 
       if (event.target.checked) {
         checkbox.checked = true;

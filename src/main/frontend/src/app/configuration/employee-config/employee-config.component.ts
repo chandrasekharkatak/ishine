@@ -379,6 +379,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.isAuditSearchEnabled = false;
 
     this.managerList = [];
+    this.resetSearch();
     this.getAllEmployeeList();
   }
 
@@ -393,8 +394,8 @@ export class EmployeeConfigComponent implements OnInit {
     this.isDeletion = false;
     this.page=1;
     this.data='';
-    this.filters = {};
 
+    this.resetSearch();
     this.getAllDraftEmployees();
   }
 
@@ -2540,6 +2541,11 @@ export class EmployeeConfigComponent implements OnInit {
       if(!this.isSearchEnabled){
         this.filters = {};
       }
+  }
+
+  resetSearch(){
+    this.isSearchEnabled = false;
+    this.filters = {};
   }
 
   onSearch(searchData){

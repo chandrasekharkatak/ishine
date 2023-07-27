@@ -69,11 +69,13 @@ export class HomeConfigComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  consentNotificationResponseColumns:any[] = ['blank', 'employeementId', 'name','consentDate'];
   notificationsColumns:any[] = ['blank', 'notificationMessage','notificationType','isActive','createdByName','createdOn','updatedByName','updatedOn'];
-  eventTableColumns:any[] = ['eventName','eventCaption','imageName','createdByName','createdOn'];
+  eventTableColumns:any[] = ['eventName','eventCaption','createdByName','createdOn'];
   notificationObj: NotificationMessage = new NotificationMessage();
 
+  consentFilters:any = {};
+  isConsentSearchEnabled:boolean = false;
+  consentNotificationResponseColumns:any[] = ['blank', 'employeementId', 'name','consentOn'];
   //Angular Editor
 
   editorConfig: AngularEditorConfig = {
@@ -712,10 +714,27 @@ export class HomeConfigComponent implements OnInit {
     }
   }
 
+  resetSearch(){
+    this.isSearchEnabled = false;
+    this.filters = {};
+  }
+
   onSearch(searchData){
     this.filters = searchData;
     console.log("Updated Filter : ", this.filters);
   }
+
+  toggleConsentResponseSearch(){
+    this.isConsentSearchEnabled = !this.isConsentSearchEnabled;
+    if(!this.isConsentSearchEnabled){
+      this.consentFilters = {};
+    }
+  }
+
+  onConsentSearch(searchData){
+    this.onConsentSearch = searchData;
+  }
+
 }
 
   function compare(a: number | string, b: number | string, isAsc: boolean) {

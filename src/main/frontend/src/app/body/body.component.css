@@ -48,3 +48,7 @@
 /* #navbarNavDropdown{
     padding-right: 40px;
 } */
+
+.user-menu .dropdown-item {
+    cursor: pointer;
+}

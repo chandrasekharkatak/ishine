@@ -53,7 +53,7 @@ export class ResignationComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  resignationColumns:any[] = ['blank','employmentId','name','resignationStatus','statusUpdatedByName','createdOn'];
+  resignationColumns:any[] = ['blank','employmentId','name','resignationStatus','statusUpdatedByName','createdOn', 'statusUpdatedOn'];
   projectColumns:any[] = ['blank', 'projectName', 'teamName', 'active', 'startDate', 'endDate'];
 
   constructor(
@@ -80,11 +80,13 @@ export class ResignationComponent implements OnInit {
   viewEmployeeInfo(resignation: any){
     this.isViewEmployeeInfo = true;
     this.viewedApplication = resignation;
+    this.resetSearch();
     this.onGetEmployeeInfo(resignation);
   }
 
   goToApplicationPage(){
     this.isViewProject = false;
+    this.resetSearch();
     this.getAllResignationApplication();
   }
 
@@ -234,6 +236,7 @@ export class ResignationComponent implements OnInit {
         this.projectList.forEach((object) => {
           object.startDate = (object.startDate)? moment(object.startDate).format(AppComponent.DATETIME_FORMAT) : null;
           object.endDate = (object.endDate)? moment(object.endDate).format(AppComponent.DATETIME_FORMAT) : null;
+          object.active  = (object.active  == '1') ? 'Yes' : 'No';
         });
 
         console.log(" this.projectList : ", this.projectList);
@@ -263,6 +266,11 @@ export class ResignationComponent implements OnInit {
     if(!this.isSearchEnabled){
       this.filters = {};
     }
+  }
+
+  resetSearch(){
+    this.isSearchEnabled = false;
+    this.filters = {};
   }
 
   onSearch(searchData){

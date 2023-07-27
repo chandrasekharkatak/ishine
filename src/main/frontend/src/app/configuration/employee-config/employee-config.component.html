@@ -864,7 +864,7 @@
             <div class="col-md-2">
                 <div class="form-inline">
                     <small>View</small>
-                    <select class="form-select-sm align-items-center mx-1" aria-label="Default select example"
+                    <select class="form-select-sm align-items-center mx-1 table-options" aria-label="Default select example"
                         [(ngModel)]="items" (change)="page=1">
                         <option class="option-bg" selected value="10">10</option>
                         <option class="option-bg" value="20">20</option>
@@ -884,7 +884,7 @@
             <div *ngIf="!isDraftTable" class="col-md-2 ml-auto mb-2">
                 <div class="form-inline input-group">
                     <label class="d-inline-block mr-2 mt-2"><strong>Status</strong></label>
-                    <select class="form-control" aria-hidden="true" #changedata
+                    <select class="form-control table-options" aria-hidden="true" #changedata
                         (change)="changeEvent(changedata.value)">
                         <option selected="selected" value="" disabled>Select</option>
                         <option value="Active">Active</option>

@@ -51,7 +51,7 @@ export class CompOffComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  compOffReqColumns:any[] = ['blank','compOffReasons','fromDate','toDate','noOfDays','description','status'];
+  compOffReqColumns:any[] = ['blank','compOffReasons','fromDate','noOfDays','description','status'];
 
   constructor(
     private validationService:ValidationService,

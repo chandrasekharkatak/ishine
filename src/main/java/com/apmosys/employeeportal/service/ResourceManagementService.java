@@ -111,6 +111,9 @@ public class ResourceManagementService {
 	
 	@Value("${poPortal.api.syncProject}")
 	private String syncProjectApi;
+	
+	@Value("${rmg.project.approval.link}")
+	private String rmgProjectApprovalLink;
 
 	public ServiceResponse createDraftProjectInfo(ResourceManagementDTO resourceManagementDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -1138,7 +1141,7 @@ public class ResourceManagementService {
 						html.append("<br><br>");
 				}				
 			}
-			   html.append("<a style='background-color:blue;color:white;padding:10px 20px;text-decoration:none;border-radius:4px;' href='http://localhost:4200/#/user-team/resource-management/"+resourceManagementDTO.getId()+"'>Approve Here</a>");
+			   html.append("<a style='background-color:blue;color:white;padding:10px 20px;text-decoration:none;border-radius:4px;' href='"+rmgProjectApprovalLink+resourceManagementDTO.getId()+"'>Approve Here</a>");
 				
 				html.append("  </body>\n" +
 			            "</html>");

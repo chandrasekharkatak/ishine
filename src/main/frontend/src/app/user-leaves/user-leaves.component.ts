@@ -74,9 +74,23 @@ export class UserLeavesComponent implements OnInit,OnDestroy,AfterViewInit{
           queryParamsHandling: 'merge'
         });
       }else{
-        const tab = document.getElementById('leaveTab').querySelector('.nav-link');
-        tab.classList.add('active');
-        let activeRouteLink = tab.getAttribute('routerLink');
+        const urlPath = this.router.routerState.snapshot.url;
+        let activeRouteLink = "leave";
+
+        if(urlPath.includes("holiday")){
+          const tab = document.getElementById('holidays-tab').querySelector('.nav-link');
+          tab.classList.add('active');
+          activeRouteLink = tab.getAttribute('routerLink');
+        }else if(urlPath.includes("compOff")){
+          const tab = document.getElementById('compOff-tab').querySelector('.nav-link');
+          tab.classList.add('active');
+          activeRouteLink = tab.getAttribute('routerLink');
+        }else {
+          const tab = document.getElementById('leaveTab').querySelector('.nav-link');
+          tab.classList.add('active');
+          activeRouteLink = tab.getAttribute('routerLink');
+        }
+
         this.router.navigate(['./'+activeRouteLink], {relativeTo: this.route});
       }
     });

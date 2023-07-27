@@ -1,8 +1,8 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
         <!-- <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.upload_event_photos" [ngClass]="{'active' : isPhotoForm}" (click)="showUploadPhotosForm()">Upload Event Photos</button> -->
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="(userMapping.view_all_event_photos || userMapping.delete_event_photos) && !isPhotoForm && !isNotificationForm" [ngClass]="{'active' : isTable}" (click)="showTable()">All Event Photos List</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_all_notification && !isPhotoForm && !isNotificationForm" [ngClass]="{'active' : isNotificationTable}" (click)="showNotificationTable()">Notification</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="(userMapping.view_all_event_photos || userMapping.delete_event_photos) && !isPhotoForm && !isNotificationForm" [ngClass]="{'active' : isTable}" (click)="showTable();resetSearch()">All Event Photos List</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_all_notification && !isPhotoForm && !isNotificationForm" [ngClass]="{'active' : isNotificationTable}" (click)="showNotificationTable();resetSearch()">Notification</button>
     </div>
 </div>
 
@@ -411,10 +411,10 @@
         </button>
     </div>
     <div class="modal-body px-4">
-        <div class="selector-toggle" (click)="toggleSearch()">
+        <div class="selector-toggle" (click)="toggleConsentResponseSearch()">
             <a href="javascript:void(0)">
-                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                <i *ngIf="!isConsentSearchEnabled" class="fa fa-search"></i>
+                <i *ngIf="isConsentSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
         </div>
         <div class="overflow-auto" bassHorizontalScroll [tableId]="'consentNotificationResponse'" [tableTHeadId]="'consentNotificationResponseTHead'"
@@ -427,13 +427,13 @@
                 <th scope="col" class="info-label" mat-sort-header="name|string">Employee Name</th>
                 <th scope="col" class="info-label" mat-sort-header="consentOn|date">Consent Date</th>
               </tr>
-              <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="consentNotificationResponseColumns" (onSearch)="onSearch($event);page=1" ></tr>
+              <tr app-column-filter-bar *ngIf="isConsentSearchEnabled" [columnList]="consentNotificationResponseColumns" (onSearch)="onConsentSearch($event);page=1" ></tr>
             </thead>
             <tbody>
-              <tr *ngIf="consentNotificationResponse.length == 0 || (consentNotificationResponse | colFilter:filters:false).length == 0">
+              <tr *ngIf="consentNotificationResponse.length == 0 || (consentNotificationResponse | colFilter:consentFilters:false).length == 0">
                 <th colspan="9" class="text-center info-label">No details to display...</th>
               </tr>
-              <tr *ngFor="let consent of consentNotificationResponse| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+              <tr *ngFor="let consent of consentNotificationResponse| colFilter:consentFilters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                 <td>{{20*(page-1)+i+1}}</td>
                 <td>{{consent.employeementId}}</td>
                 <td>{{consent.name}}</td>
