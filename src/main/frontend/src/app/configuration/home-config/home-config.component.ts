@@ -732,7 +732,7 @@ export class HomeConfigComponent implements OnInit {
   }
 
   onConsentSearch(searchData){
-    this.onConsentSearch = searchData;
+    this.consentFilters = searchData;
   }
 
 }
