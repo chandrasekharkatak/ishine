@@ -188,7 +188,7 @@ export class LoaderInterceptor implements HttpInterceptor {
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     this.URL_whiteList.forEach((element) => {
 
-      if (request.url.includes(element)) {
+      if (request.url == element) {
 
         request = request.clone({
           setHeaders: {
