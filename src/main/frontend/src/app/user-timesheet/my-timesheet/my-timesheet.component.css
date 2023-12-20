@@ -70,3 +70,7 @@
 input[type=checkbox]:hover, input[type=radio]:hover {
     cursor: pointer;
 }
+
+#dayTypeCursor{
+    cursor:pointer;
+}

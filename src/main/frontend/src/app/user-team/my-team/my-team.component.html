@@ -165,7 +165,7 @@
         </div>
         <div class="col-md-3" *ngIf="userMapping.view_department_leave_history && isLeaveHistory">
           <div class="custom-control custom-switch">
-            <input type="checkbox" class="custom-control-input" id="leave-history-switch" (change)="toggleLeaveHistoryView($event)" [(ngModel)]="isLeaveHistoryOfDepartment">
+            <input type="checkbox" style="cursor:pointer" class="custom-control-input" id="leave-history-switch" (change)="toggleLeaveHistoryView($event)" [(ngModel)]="isLeaveHistoryOfDepartment">
             <label class="custom-control-label" for="leave-history-switch">View My Department Leave History</label>
           </div> 
         </div>

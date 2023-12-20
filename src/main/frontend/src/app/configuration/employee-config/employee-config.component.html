@@ -92,7 +92,7 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Mobile Number</label>
-                                                <input type="number" maxlength="10" class="form-control" autocomplete="none" (blur)="checkEmployeeMobileNo(alert_message)" [(ngModel)]="employeeObj.mobileNo">
+                                                <input type="number" maxlength="10" (keypress)="fieldRestictCharacterForNumber($event)" class="form-control" autocomplete="none" (blur)="checkEmployeeMobileNo(alert_message)" [(ngModel)]="employeeObj.mobileNo">
                                             </div>
                                         </div>
                                     </div>

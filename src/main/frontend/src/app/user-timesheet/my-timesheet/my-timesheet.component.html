@@ -59,7 +59,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Day Type</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.dayType" (change)="onTimesheetDescriptionChange();resetTimeonDayTypeChange()" >
+                            <select class="form-control" id="dayTypeCursor" aria-hidden="true" [(ngModel)]="timesheetObj.dayType" (change)="onTimesheetDescriptionChange();resetTimeonDayTypeChange()" >
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option value="Working">Working</option>
                                 <option value="Public Holiday">Public Holiday</option>
@@ -218,6 +218,7 @@
                                         <label class="info-label"><span class="text-danger">*</span>Team Name</label>
                                             <mat-select ngxMatSelect 
                                                 class="form-control"
+                                                id="dayTypeCursor"
                                                 #teamName="ngxMatSelect" 
                                                 [displayMember]="'displayTeam'"
                                                 [valueMember]="'teamId'"
@@ -292,7 +293,7 @@
                                 <div class="info-wrapper">
                                     <div class="form-group">
                                         <label class="info-label"><span class="text-danger">*</span>Activity</label>
-                                        <select class="form-control" aria-hidden="true"
+                                        <select class="form-control" aria-hidden="true" id="dayTypeCursor"
                                             [(ngModel)]="activityObj.activityId" (blur)="validateActivity($event,activityObj.activityId)" (change)="setActivity(activityObj)">
                                             <option selected="selected" value="" disabled>Select</option>
                                             <option *ngFor="let activity of activityObj.projectActivities"
