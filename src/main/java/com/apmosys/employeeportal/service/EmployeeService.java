@@ -2511,6 +2511,52 @@ public class EmployeeService {
 		return response;
 	}
 
+//	public ServiceResponse checkEmployeementId(EmployeeDTO employeedto) {
+//		ServiceResponse response = new ServiceResponse();
+//		LogDTO apiLogInfo = new LogDTO();
+//		apiLogInfo.setApiUrl("/api/checkEmployeementId");
+//		apiLogInfo.setLogLevel("INFO");
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append("email : " + employeedto.getEmail());
+//
+//		try {
+//			Employee checkEmployeementId = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());
+//			DraftEmployee checkDraftEmployeementId = draftEmployeeRepository
+//					.findByEmployeementId(employeedto.getEmployeementId());
+//
+//			if (checkEmployeementId == null && checkDraftEmployeementId == null) {
+//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//				
+//			} else {
+//				if (checkEmployeementId != null && !employeedto.getEmpId().equals(checkEmployeementId.getEmpId())) {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("Employeement ID already exist!");
+//					apiLogInfo.setApiResponse("Employeement ID already exist!");
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//				}
+//				if (checkDraftEmployeementId != null && !employeedto.getEmail().equals(checkDraftEmployeementId.getEmail())) {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("Employeement ID already exist in Employee Draft!");
+//					apiLogInfo.setApiResponse("Employeement ID already exist in Employee Draft!");
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//				}
+//			}
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			apiLogInfo.setLogLevel("ERROR");
+//			response.setServiceError(e.getMessage());
+//		}
+//		apiLogInfo.setApiRequest(logBuilder.toString());
+//		logService.logMyInfo(httpRequest, apiLogInfo);
+//		return response;
+//	}
+
+
 	public ServiceResponse checkEmployeementId(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -2521,26 +2567,21 @@ public class EmployeeService {
 
 		try {
 			Employee checkEmployeementId = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());
-			DraftEmployee checkDraftEmployeementId = draftEmployeeRepository
-					.findByEmployeementId(employeedto.getEmployeementId());
+//			DraftEmployee checkDraftEmployeementId = draftEmployeeRepository
+//					.findByEmployeementId(employeedto.getEmployeementId());
 
-			if (checkEmployeementId == null && checkDraftEmployeementId == null) {
+			if (checkEmployeementId == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				
 			} else {
-				if (checkEmployeementId != null && !employeedto.getEmpId().equals(checkEmployeementId.getEmpId())) {
+				if (checkEmployeementId != null && employeedto.getEmployeementId().equals(checkEmployeementId.getEmployeementId())) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Employeement ID already exist!");
 					apiLogInfo.setApiResponse("Employeement ID already exist!");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
-				if (checkDraftEmployeementId != null && !employeedto.getEmail().equals(checkDraftEmployeementId.getEmail())) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Employeement ID already exist in Employee Draft!");
-					apiLogInfo.setApiResponse("Employeement ID already exist in Employee Draft!");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				}
+				
 			}
 
 		} catch (Exception e) {
@@ -2556,6 +2597,80 @@ public class EmployeeService {
 		return response;
 	}
 
+	
+//	public ServiceResponse checkEmployeeMobileNo(EmployeeDTO employeedto) {
+//		ServiceResponse response = new ServiceResponse();
+//		LogDTO apiLogInfo = new LogDTO();
+//		apiLogInfo.setApiUrl("/api/checkEmployeeMobileNo");
+//		apiLogInfo.setLogLevel("INFO");
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append(employeedto.getMobileNo());
+//		try {
+//
+////			if (employeedto.getEmpId() != null) {
+////				checkEmployeeMobileNo = employeeRepository.findByMobileNoAndEmpId(employeedto.getMobileNo(),
+////						employeedto.getEmpId());
+////				checkDraftEmployeeMobileNo = draftEmployeeRepository
+////						.findByMobileNoAndDraftEmpId(employeedto.getMobileNo(), employeedto.getEmpId());
+////			} else {
+////				checkEmployeeMobileNo = employeeRepository.findByMobileNo(employeedto.getMobileNo());
+////				checkDraftEmployeeMobileNo = draftEmployeeRepository.findByMobileNo(employeedto.getMobileNo());
+////			}
+////
+////			if (employeedto.getMobileNo() == null) {
+////				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+////			} else {
+////				if (!checkEmployeeMobileNo.isEmpty()) {
+////					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+////					response.setServiceResponse("Mobile Number already exist!");
+////				}
+////				if (!checkDraftEmployeeMobileNo.isEmpty()) {
+////					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+////					response.setServiceResponse("Mobile Number already exist in Employee Draft!");
+////				}
+////			}
+//			
+//			List<Employee> checkEmployeeMobileNo = checkEmployeeMobileNo = employeeRepository.findByMobileNo(employeedto.getMobileNo());
+//			List<DraftEmployee> checkDraftEmployeeMobileNo = draftEmployeeRepository.findByMobileNo(employeedto.getMobileNo());
+//
+//			if(!checkEmployeeMobileNo.isEmpty()) {
+//				checkEmployeeMobileNo.forEach((employee) -> {
+//					if(!employee.getEmployeementId().equals(employeedto.getEmployeementId())) {
+//						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//						response.setServiceResponse("Mobile Number already exist!");
+//						apiLogInfo.setApiResponse("Mobile Number already exist!");
+//						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//					}
+//				});
+//			}
+//			
+//			if(!checkDraftEmployeeMobileNo.isEmpty()) {
+//				checkDraftEmployeeMobileNo.forEach((employee) -> {
+//					if(!employee.getEmployeementId().equals(employeedto.getEmployeementId())) {
+//						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//						response.setServiceResponse("Mobile Number already exist in Employee Draft!");
+//						apiLogInfo.setApiResponse("Mobile Number already exist in Employee Draft!");
+//						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//					}else {
+//						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//					}
+//				});
+//			}
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			apiLogInfo.setLogLevel("ERROR");
+//		}
+//		apiLogInfo.setApiRequest(logBuilder.toString());
+//		logService.logMyInfo(httpRequest, apiLogInfo);
+//		return response;
+//	}
+
+	
 	public ServiceResponse checkEmployeeMobileNo(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -2565,31 +2680,9 @@ public class EmployeeService {
 		logBuilder.append(employeedto.getMobileNo());
 		try {
 
-//			if (employeedto.getEmpId() != null) {
-//				checkEmployeeMobileNo = employeeRepository.findByMobileNoAndEmpId(employeedto.getMobileNo(),
-//						employeedto.getEmpId());
-//				checkDraftEmployeeMobileNo = draftEmployeeRepository
-//						.findByMobileNoAndDraftEmpId(employeedto.getMobileNo(), employeedto.getEmpId());
-//			} else {
-//				checkEmployeeMobileNo = employeeRepository.findByMobileNo(employeedto.getMobileNo());
-//				checkDraftEmployeeMobileNo = draftEmployeeRepository.findByMobileNo(employeedto.getMobileNo());
-//			}
-//
-//			if (employeedto.getMobileNo() == null) {
-//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//			} else {
-//				if (!checkEmployeeMobileNo.isEmpty()) {
-//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//					response.setServiceResponse("Mobile Number already exist!");
-//				}
-//				if (!checkDraftEmployeeMobileNo.isEmpty()) {
-//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//					response.setServiceResponse("Mobile Number already exist in Employee Draft!");
-//				}
-//			}
+
+			List<Employee> checkEmployeeMobileNo = employeeRepository.findByMobileNo(employeedto.getMobileNo());
 			
-			List<Employee> checkEmployeeMobileNo = checkEmployeeMobileNo = employeeRepository.findByMobileNo(employeedto.getMobileNo());
-			List<DraftEmployee> checkDraftEmployeeMobileNo = draftEmployeeRepository.findByMobileNo(employeedto.getMobileNo());
 
 			if(!checkEmployeeMobileNo.isEmpty()) {
 				checkEmployeeMobileNo.forEach((employee) -> {
@@ -2598,20 +2691,10 @@ public class EmployeeService {
 						response.setServiceResponse("Mobile Number already exist!");
 						apiLogInfo.setApiResponse("Mobile Number already exist!");
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-					}
-				});
-			}
-			
-			if(!checkDraftEmployeeMobileNo.isEmpty()) {
-				checkDraftEmployeeMobileNo.forEach((employee) -> {
-					if(!employee.getEmployeementId().equals(employeedto.getEmployeementId())) {
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-						response.setServiceResponse("Mobile Number already exist in Employee Draft!");
-						apiLogInfo.setApiResponse("Mobile Number already exist in Employee Draft!");
-						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Mobile Number is successfully added !");
 					}
 				});
 			}
@@ -2627,7 +2710,7 @@ public class EmployeeService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-
+	
 	public ServiceResponse checkEmployeeAadharNumber(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();

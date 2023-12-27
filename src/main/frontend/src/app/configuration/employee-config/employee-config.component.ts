@@ -362,6 +362,9 @@ export class EmployeeConfigComponent implements OnInit {
   }
 
   showTable() {
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.isTable = true;
 
     this.isForm = false;
@@ -1255,7 +1258,8 @@ return true;
   // }
   checkEmployeementId(template: TemplateRef<any>) {
     let employee = new Employee();
-    employee.employeementId = this.utilityService.substringEmployeementid2(this.employeeObj.employeementId);
+    // employee.employeementId = this.utilityService.substringEmployeementid2(this.employeeObj.employeementId);
+    employee.employeementId=this.employeeObj.employeementId;
     console.log("chechEmpId() employee.employeementId: ",employee.employeementId);
     employee.email = this.employeeObj.email;
     employee.empId = this.employeeObj.empId;
@@ -1263,12 +1267,19 @@ return true;
           this.alertMessage = "Please Enter Employment ID !!";
           this.openAlertMod(template, this.alertMessage);
           return false;
+    }else{
+      employee.employeementId = this.utilityService.substringEmployeementid2(this.employeeObj.employeementId);
+      if (!this.validationService.validateEmployeementId(employee.employeementId)) {
+        this.alertMessage = "Please Enter Valid Employment ID !!";
+        this.openAlertMod(template, this.alertMessage);
+        this.employeeObj.employeementId = '';
+      }
     }
-    if (!this.validationService.validateEmployeementId(employee.employeementId)) {
-      this.alertMessage = "Please Enter Valid Employment ID !!";
-      this.openAlertMod(template, this.alertMessage);
-      this.employeeObj.employeementId = '';
-    }
+    // if (!this.validationService.validateEmployeementId(employee.employeementId)) {
+    //   this.alertMessage = "Please Enter Valid Employment ID !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   this.employeeObj.employeementId = '';
+    // }
     this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
       console.log("EMPLY-ID response.serviceResponse: ",response.serviceResponse);
       if (response.serviceStatus == "Fail") {
@@ -1356,6 +1367,12 @@ return true;
     let employee = new Employee();
     employee.employeementId = this.utilityService.substringEmployeementid2(this.employeeObj.employeementId);
     employee.mobileNo = this.employeeObj.mobileNo;
+
+    if(!this.validationService.validateNullUndefinedEmptyString(employee.mobileNo)){
+      this.alertMessage="Please Enter Mobile Number";
+      this.openAlertMod(template,this.alertMessage);
+      return;
+    }
 
     if(!this.validationService.validateMobileNumber(employee.mobileNo))
     {
