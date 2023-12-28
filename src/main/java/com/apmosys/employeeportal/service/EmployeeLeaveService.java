@@ -1169,7 +1169,7 @@ public class EmployeeLeaveService {
 					
 					dto.setCurrentApprovalLevel(object[25] != null ? Integer.parseInt(object[25].toString()) : null);
 					dto.setFinalApprovalLevel(object[26] != null ? Integer.parseInt(object[26].toString()) : null);
-					
+					dto.setLeaveEmpId(object[27] != null ? Long.parseLong(object[27].toString()) : null);
 					dtoList.add(dto);
 				});
 
@@ -1207,7 +1207,7 @@ public class EmployeeLeaveService {
 		try {
 			Optional<EmployeeLeave> leaveApplication = employeeLeaveRepository.findById(leaveDTO.getLeaveId());
 			EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
-					.findByEmpIdAndLeaveTypeMasterId(leaveDTO.getEmpId(), leaveDTO.getLeaveTypeMasterId());
+					.findByEmpIdAndLeaveTypeMasterId(leaveDTO.getLeaveEmpId(), leaveDTO.getLeaveTypeMasterId());
 			Optional<Employee> employee = employeeRepository.findById(leaveDTO.getEmpId());
 			System.out.println("leaveDTO.getEmpId() : -- " +leaveDTO.getEmpId());
 			System.out.println("leaveDTO.getLeaveTypeMasterId() : -- " +leaveDTO.getLeaveTypeMasterId());
@@ -1413,9 +1413,11 @@ public class EmployeeLeaveService {
 							balance = 0F;
 						}else {					
 							balance = balance + pendingLeaveApplication.getNoOfDays();
+							System.err.println("check balance :: "+balance);
 						}
 						
 						employeeLeavesMap.setBalance(balance);
+						
 
 						LeaveBalanceLog log = new LeaveBalanceLog();
 						log.setBalance(employeeLeavesMap.getBalance());
@@ -1544,6 +1546,9 @@ public class EmployeeLeaveService {
 				}
 				EmployeeLeave updatedLeaveApplication = employeeLeaveRepository.save(pendingLeaveApplication);
 				EmployeeLeavesMap updatedEmployeeLeavesMap = employeeLeavesMapRepository.save(employeeLeavesMap);
+				
+				System.err.println(updatedLeaveApplication);
+				System.err.println(updatedEmployeeLeavesMap);
 				
 
 				if (updatedLeaveApplication != null && updatedEmployeeLeavesMap != null) {

@@ -146,4 +146,5 @@ public class LeaveDTO {
 	private String level3ApproverName;
 	private String level3ApproverEmail;
 	private String level3ApprovalStatus;
+	private Long leaveEmpId;
 }

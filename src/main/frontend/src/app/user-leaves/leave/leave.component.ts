@@ -1172,7 +1172,7 @@ export class LeaveComponent implements OnInit {
 
 
     }else{
-      let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
+      let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.leaveEmpId)
       
       // Level 1
       if(teamMember.reportingManagerId != null && teamMember.approvalsTo == "Reporting Manager"){
@@ -1187,7 +1187,7 @@ export class LeaveComponent implements OnInit {
 
       // Level 2
       if(this.leaveObj.finalApprovalLevel == 2 || this.leaveObj.finalApprovalLevel == 3){
-        if(this.leaveObj.empId == teamMember.hodId){
+        if(this.leaveObj.leaveEmpId == teamMember.hodId){
           if(teamMember.reportingManagerId != null && teamMember.approvalsTo == "Reporting Manager"){
             this.leaveObj.level2ApproverId = teamMember.reportingManagerId;
             this.leaveObj.level2ApproverEmail = teamMember.reportingManagerEmail;
@@ -1206,7 +1206,7 @@ export class LeaveComponent implements OnInit {
       
       // Level 3
       if(this.leaveObj.finalApprovalLevel == 3){
-          if(this.leaveObj.empId == teamMember.hodId){
+          if(this.leaveObj.leaveEmpId == teamMember.hodId){
             if(teamMember.reportingManagerId != null && teamMember.approvalsTo == "Reporting Manager"){
               this.leaveObj.level3ApproverId = teamMember.reportingManagerId;
               this.leaveObj.level3ApproverEmail = teamMember.reportingManagerEmail;
@@ -1229,6 +1229,8 @@ export class LeaveComponent implements OnInit {
     this.leaveObj.fromDate = moment(this.leaveObj.fromDate).format(dateFormat)
     this.leaveObj.toDate = moment(this.leaveObj.toDate).format(dateFormat)
     console.log(" this.leaveObj : ", this.leaveObj);
+    console.log("leave emp id : ", this.leaveObj.leaveEmpId);
+    
     
     this.leaveService.updatePendingLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	

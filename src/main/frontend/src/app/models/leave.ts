@@ -122,4 +122,6 @@ export class Leave{
 	level3ApproverName:any;
 	level3ApproverEmail:any;
 	level3ApprovalStatus:any;
+	leaveEmpId:any;
+	seniorManagerId:any;
 }
