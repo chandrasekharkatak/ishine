@@ -135,6 +135,11 @@ public class EmployeeLeaveService {
 			
 			List<Object[]> empObj = employeeRepository.getManagerEmail(leaveDTO.getEmpId());
 			
+			// added by anurag
+			
+			Employee findEmployee= employeeRepository.findByEmpId((long)leaveDTO.getManagerId());
+			System.out.println(" Reporting manager details : "+findEmployee);
+			
 			EmployeeDTO empDto = new EmployeeDTO();
 			
 				empObj.forEach((object) -> {
@@ -145,6 +150,8 @@ public class EmployeeLeaveService {
 					empDto.setEmployeementId(object[3] != null ? Long.parseLong(object[3].toString()): null);
 					empDto.setManagerName(object[4] != null ? object[4].toString() : null);
 					});
+				
+				System.out.println("Senior manager data :: "+findEmployee.getManagerId());
 				
 			Float availableCompOffBalance = 0.0F;
 			if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("CO")) {
@@ -191,9 +198,18 @@ public class EmployeeLeaveService {
 			// Approval Status : NA - Pending - Approved - Rejected
 			leaveApplication.setFinalApprovalLevel(leaveDTO.getFinalApprovalLevel());
 			
-			// By Default Current Approval level will be 1 i.e. Manager Approval
+			// By Default Current Approval level will be 1 i.e. Manager Approval			
+			
 			leaveApplication.setCurrentApprovalLevel(1);
-			leaveApplication.setManagerId(leaveDTO.getManagerId());
+			// added by anurag
+						if(!findEmployee.getEmploymentstatus().equals("InActive")) {
+							System.out.println(" Manager is active "+leaveDTO.getManagerId());
+							leaveApplication.setManagerId(leaveDTO.getManagerId());
+						}else {
+							leaveApplication.setManagerId(Math.toIntExact(findEmployee.getManagerId()));
+							System.err.println(" in case of inactive manager "+findEmployee.getManagerId());
+						}
+//			leaveApplication.setManagerId(leaveDTO.getManagerId());
 			leaveApplication.setManagerApprovalStatus("Pending");
 			
 			if(leaveApplication.getFinalApprovalLevel() == 2) {

@@ -1031,16 +1031,28 @@ export class LeaveComponent implements OnInit {
       }else{
         // Approvers for Team Member
         let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
+        console.log(this.leaveObj.empId," data filtered on the basis of teamMember ");
         
         // Level 1
         if(teamMember.reportingManagerId != null && teamMember.approvalsTo == "Reporting Manager"){
           this.leaveObj.managerId = teamMember.reportingManagerId;
           this.leaveObj.approverEmail = teamMember.reportingManagerEmail;
           this.leaveObj.approverName = teamMember.reportingManagerName;
+          this.leaveObj.leaveEmpId = teamMember.empId;
+          this.leaveObj.empId=this.leaveObj.leaveEmpId;
+          this.LeaveObj.seniorManagerId=teamMember.managerId;
+          console.log("Reporting manager ",this.leaveObj.seniorManagerId);
+          
+          this.leaveObj.empId = this.leaveObj.leaveEmpId;
         }else{
           this.leaveObj.managerId = teamMember.managerId;
           this.leaveObj.approverEmail = teamMember.managerEmail;
           this.leaveObj.approverName = teamMember.managerName;
+          this.leaveObj.leaveEmpId = teamMember.empId;
+          // this.leaveObj.empId = teamMember.empId;
+          this.leaveObj.empId=this.leaveObj.leaveEmpId;
+          this.LeaveObj.seniorManagerId=teamMember.reportingManagerId;
+          console.log("Reporting manager ",this.leaveObj.seniorManagerId);
         }
 
         // Level 2
@@ -1050,15 +1062,28 @@ export class LeaveComponent implements OnInit {
               this.leaveObj.level2ApproverId = teamMember.reportingManagerId;
               this.leaveObj.level2ApproverEmail = teamMember.reportingManagerEmail;
               this.leaveObj.level2ApproverName = teamMember.reportingManagerName;
+              this.leaveObj.leaveEmpId = teamMember.empId;
+              // this.leaveObj.empId = teamMember.empId;
+              this.leaveObj.empId=this.leaveObj.leaveEmpId;
+              this.LeaveObj.seniorManagerId=teamMember.reportingManagerId;
+          console.log("Reporting manager ",this.leaveObj.seniorManagerId);
             }else{
               this.leaveObj.level2ApproverId = teamMember.managerId;
               this.leaveObj.level2ApproverEmail = teamMember.managerEmail;
               this.leaveObj.level2ApproverName = teamMember.managerName;
+              this.leaveObj.leaveEmpId = teamMember.empId;
+              // this.leaveObj.empId = teamMember.empId;
+              this.leaveObj.empId=this.leaveObj.leaveEmpId;
+              this.LeaveObj.seniorManagerId=teamMember.reportingManagerId;
+          console.log("Reporting manager ",this.leaveObj.seniorManagerId);
             }
           }else{
             this.leaveObj.level2ApproverId = teamMember.hodId;
             this.leaveObj.level2ApproverEmail = teamMember.hodEmail;
             this.leaveObj.level2ApproverName = teamMember.hodName; 
+            this.leaveObj.leaveEmpId = teamMember.empId;
+            // this.leaveObj.empId = teamMember.empId;
+            this.leaveObj.empId=this.leaveObj.leaveEmpId;
           }
         }
         
@@ -1069,15 +1094,26 @@ export class LeaveComponent implements OnInit {
                 this.leaveObj.level3ApproverId = teamMember.reportingManagerId;
                 this.leaveObj.level3ApproverEmail = teamMember.reportingManagerEmail;
                 this.leaveObj.level3ApproverName = teamMember.reportingManagerName;
+                this.leaveObj.leaveEmpId = teamMember.empId;
+                this.leaveObj.empId=this.leaveObj.leaveEmpId;
+                this.LeaveObj.seniorManagerId=teamMember.reportingManagerId;
+          console.log("Reporting manager ",this.leaveObj.seniorManagerId);
+                // this.leaveObj.empId = teamMember.empId;
               }else{
                 this.leaveObj.level3ApproverId = teamMember.managerId;
                 this.leaveObj.level3ApproverEmail = teamMember.managerEmail;
                 this.leaveObj.level3ApproverName = teamMember.managerName; 
+                this.leaveObj.leaveEmpId = teamMember.empId;
+                this.leaveObj.empId=this.leaveObj.leaveEmpId;
+                // this.leaveObj.empId = teamMember.empId;
               }
             }else{
               this.leaveObj.level3ApproverId =    this.level2ApprovalTo;
               this.leaveObj.level3ApproverEmail = this.level2ApproverEmail;
               this.leaveObj.level3ApproverName =  this.level2ApproverName; 
+              this.leaveObj.leaveEmpId = teamMember.empId;
+              this.leaveObj.empId=this.leaveObj.leaveEmpId;
+              // this.leaveObj.empId = teamMember.empId;
             }
         }
       }

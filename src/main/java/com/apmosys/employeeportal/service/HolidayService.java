@@ -469,6 +469,9 @@ public class HolidayService {
 									apiLogInfo.setApiResponse("Unable to add Timesheet");
 									apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 								}
+							}else {
+								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								response.setServiceResponse("Timesheet Added Earlier for this date ");
 							}
 						}
 					});
