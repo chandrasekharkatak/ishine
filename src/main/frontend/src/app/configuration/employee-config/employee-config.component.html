@@ -478,6 +478,26 @@
                                             </div>
                                         </div>
                                     </div>
+<!-- added by sandip -->
+
+<div class="col-md-4 mb-0" *ngIf="isUpdation && employeeObj.employmentstatus == 'InActive' " >
+    <div class="info-wrapper">
+        <div class="form-group">
+            <label class="info-label"><span class="text-danger">*</span>Employment Release Status</label>
+            <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.employmentReleaseStatus">
+                <option selected="selected" value="" disabled>Select</option>
+                <option value="Released">Released</option>
+                <option value="Terminated">Terminated</option>
+                <option value="Absconded">Absconded</option>
+                <option value="askToResign">Ask To Resign</option>
+
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- end -->
+
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
@@ -928,6 +948,7 @@
                                 <th scope="col" class="info-label" mat-sort-header="name|string" >Full Name</th>
                                 <th scope="col" class="info-label" mat-sort-header="email|string" >Email Id</th>
                                 <th scope="col" class="info-label" mat-sort-header="employmentstatus|string">Employment Status</th>
+                                <th *ngIf="!isDraftTable" scope="col" class="info-label" mat-sort-header="employmentReleaseStatus|string">Employee Release Status</th>
                                 <th scope="col" class="info-label" mat-sort-header="managerName|string">Manager Name</th>
                                 <th scope="col" class="info-label" mat-sort-header="departmentName|string" >Department Name</th>
                                 <th scope="col" class="info-label" mat-sort-header="dateOfJoining|date">Date of Joining</th>
@@ -956,6 +977,7 @@
                                 <td>{{employee.name}}</td>
                                 <td>{{employee.email}}</td>
                                 <td>{{employee.employmentstatus}}</td>
+                                <td *ngIf="isDraftTable==true && employee.employmentStatus=='InActive' ? '{{employee.employmentReleaseStatus}} ' : ' ' " >{{employee.employmentReleaseStatus}}</td>
                                 <td>{{employee.managerName}}</td>
                                 <td>{{employee.departmentName}}</td>
                                 <td>{{employee.dateOfJoining}}</td>
@@ -971,12 +993,18 @@
                                     <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')"
                                         class="btn btn-sm btn-outline-primary mb-1" type="submit"
                                         (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
+
+                                        <button *ngIf="((currentUser.employeeRole == 'SuperAdmin' || currentUser.employeeRole == 'HR Manager') && employee.employmentstatus == 'InActive')"
+                                        class="btn btn-sm btn-outline-primary mb-1" type="submit"
+                                        (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
+
                                     <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')"
                                         class="btn btn-sm btn-outline-danger mb-1" type="submit" (click)="openDeleteEmployee(delete_template,employee)"><em
                                             class="fa fa-trash"></em></button>&nbsp;
                                     <button class="btn btn-sm btn-outline-primary mb-1" type="submit"
                                         (click)="getEmployeeAuditInfo(employee,audit_template,alert_message)"><em><i
                                                 class="fa-solid fa-clock-rotate-left"></i></em></button>&nbsp;
+
                                     <!-- <button type="submit"
                                         (click)="findEmployeeWorkingHistory(history_template,employee);onFindHistoryWorking(employee)"
                                         class="btn btn-sm btn-outline-primary mb-1"><i class="fa fa-info-circle"
@@ -2028,6 +2056,14 @@
                                                 <p class="info-label">Employment Status</p>
                                                 <p class="info-text info-highlight">
                                                     {{previewEmployeeObj.employmentstatus}}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Employee Release Status</p>
+                                                <p class="info-text info-highlight">
+                                                    {{previewEmployeeObj.employmentReleaseStatus}}
                                                 </p>
                                             </div>
                                         </div>

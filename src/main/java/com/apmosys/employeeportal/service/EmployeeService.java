@@ -990,6 +990,7 @@ public class EmployeeService {
 					empDTO.setReportingManagerName(object[66] != null ? object[66].toString() : null);
 					empDTO.setDesignationId(object[67] != null ? Long.parseLong(object[67].toString()) : null);
 					empDTO.setDesignationName(object[68] != null ? object[68].toString() : null);
+					empDTO.setEmploymentReleaseStatus(object[69] != null ? object[69].toString() : null);
 					
 					if (object[42] != null) {
 
@@ -1287,6 +1288,11 @@ public class EmployeeService {
 							: null);
 				}else if(employee.getEmploymentstatus().equals("Probation") || employee.getEmploymentstatus().equals("Confirmed")) {
 					employee.setDateOfResign(null);
+				}
+				if(employee.getEmploymentstatus().equals("Probation") || employee.getEmploymentstatus().equals("Confirmed") || employee.getEmploymentstatus().equals("Resigned")) {
+					employee.setEmploymentReleaseStatus(null);
+				}else {
+					employee.setEmploymentReleaseStatus(employeedto.getEmploymentReleaseStatus());
 				}
 				employee.setDateOfRelieving(employeedto.getDateOfRelieving());
 				employee.setUpdatedBy(Integer.parseInt(employeedto.getUpdatedBy().toString()));
@@ -1689,6 +1695,7 @@ public class EmployeeService {
 					empDTO.setCreatedByName(object[65] != null ? (object[65].toString()) : null);	
 					empDTO.setUpdatedOn(object[66] != null ? (object[66].toString()) : null);
 					empDTO.setIsTimesheetLockCheckEnable(object[67] != null ? (object[67].toString()) : null);
+					empDTO.setEmploymentReleaseStatus(object[68] != null ? (object[68].toString()) : null);
 					empDTO.setFailedAttempt(failedAttempt);
 				
 					ServiceResponse completionResponse = getEmployeeProfileCompletion(empDTO);
@@ -2464,6 +2471,53 @@ public class EmployeeService {
 		return response;
 	}
 
+//	public ServiceResponse checkEmployeeEmail(EmployeeDTO employeedto) {
+//		ServiceResponse response = new ServiceResponse();
+//		LogDTO apiLogInfo = new LogDTO();
+//		apiLogInfo.setApiUrl("/api/checkEmployeeEmail");
+//		apiLogInfo.setLogLevel("INFO");
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append("email : " + employeedto.getEmail());
+//
+//		try {
+//			Employee checkEmployeeEmail = employeeRepository.findByEmail(employeedto.getEmail());
+//			DraftEmployee checkDraftEmployeementEmail = draftEmployeeRepository.findByEmail(employeedto.getEmail());
+//
+//			if(checkEmployeeEmail != null) {
+//					if(!checkEmployeeEmail.getEmployeementId().equals(employeedto.getEmployeementId())) {
+//						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//						response.setServiceResponse("Email already exists !!");
+//						apiLogInfo.setApiResponse("Email already exists !!");
+//						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//					}
+//			}
+//			
+//			if(checkDraftEmployeementEmail != null) {
+//					if(!checkDraftEmployeementEmail.getEmployeementId().equals(employeedto.getEmployeementId())) {
+//						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//						response.setServiceResponse("Email already exists !!");
+//						apiLogInfo.setApiResponse("Email already exists !!");
+//						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//					}else {
+//						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//					}
+//			}
+//
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			apiLogInfo.setLogLevel("ERROR");
+//			response.setServiceError(e.getMessage());
+//		}
+//		apiLogInfo.setApiRequest(logBuilder.toString());
+//		logService.logMyInfo(httpRequest, apiLogInfo);
+//		return response;
+//	}
+	
 	public ServiceResponse checkEmployeeEmail(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -2510,6 +2564,7 @@ public class EmployeeService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+
 
 //	public ServiceResponse checkEmployeementId(EmployeeDTO employeedto) {
 //		ServiceResponse response = new ServiceResponse();

@@ -215,4 +215,5 @@ public class EmployeeDTO {
 	private Integer previouseCompOffExpiredCount;
 	
 	private Object newsletterReadCheck;
+	private String employmentReleaseStatus;
 }

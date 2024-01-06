@@ -32,4 +32,7 @@ public interface EmployeeLeavesMapRepository extends JpaRepository<EmployeeLeave
 	@Query(nativeQuery = true)
 	public List<Object[]> getInActiveEmployeeLeaveBalance(Long empId);
 
+	@Query(nativeQuery = true)
+	public List<Object[]> getEmpDetailsByLeaveTypeMasterId(short leaveTypeMasterId);
+
 }

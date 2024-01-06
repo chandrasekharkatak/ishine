@@ -170,4 +170,6 @@ public class Employee {
 	private LocalDateTime otpUpdatedOn;
 	
 	private Long designationId;
+	
+	private String employmentReleaseStatus;
 }

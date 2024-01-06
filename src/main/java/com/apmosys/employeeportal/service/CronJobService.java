@@ -341,51 +341,187 @@ public class CronJobService {
 	
 	// 0 0 0 31 MAR ? - AT 00:00 AT 31 DAY AT MARCH MONTH
 	
-	@Scheduled(cron = "0 0 0 31 MAR ?")
+//	@Scheduled(cron = "0 0 0 31 MAR ?")
+//	public void YearlyLeaveCronJob() {
+//		
+//		short leaveTypeMasterId = 0;
+//		try {
+//		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
+//		     
+//		          for(LeaveTypeMaster ltm :leaveType) {
+//			      leaveTypeMasterId = ltm.getLeaveTypeMasterId();
+//			
+//			      List<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
+//			      
+//			          for(LeavePolicyMaster lpm : leavePolicy) {
+//				         if(lpm.getCarryForward().equals("Yes") || lpm.getCarryForward().equals("No")) {
+//					
+//					         List<EmployeeLeavesMap> employeeLeaveMap = employeeLeavesMapRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
+//					       
+//					              for(EmployeeLeavesMap elm :employeeLeaveMap) {
+//						              float dbBalance = elm.getBalance();
+//						              
+//										if (lpm.getCarryForward().equals("No")) {
+//											
+//											float newBalance = 0;
+//											elm.setBalance(newBalance);
+//											EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(elm);
+//											
+//											if (dbResponse != null) {
+//												LeaveBalanceLog log = new LeaveBalanceLog();
+//
+//												log.setBalance(newBalance);
+//												log.setEmpId(elm.getEmpId());
+//												log.setLeaveTypeMasterId(ltm.getLeaveTypeMasterId());
+//												log.setMessage(LeaveLogMessage.autoDeductLeave.replace("0.0",
+//														Float.toString(dbBalance)));
+//												log.setUpdateBalanceBy("-" + dbBalance);
+//
+//												leaveBalanceLogRepository.save(log);
+//											}
+//										} else if (lpm.getCarryForward().equals("Yes")) {
+//											float carryForwardValue = lpm.getCarryForwardValue();
+//											
+//											if (dbBalance > carryForwardValue) {
+//												float newBalance = carryForwardValue;
+//												float deductedLeaveCount = dbBalance - carryForwardValue;
+//												elm.setBalance(newBalance);
+//												EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(elm);
+//
+//												if (dbResponse != null) {
+//													LeaveBalanceLog log = new LeaveBalanceLog();
+//
+//													log.setBalance(newBalance);
+//													log.setEmpId(elm.getEmpId());
+//													log.setLeaveTypeMasterId(ltm.getLeaveTypeMasterId());
+//													log.setMessage(LeaveLogMessage.autoDeductLeave.replace("0.0",
+//															Float.toString(deductedLeaveCount)));
+//													log.setUpdateBalanceBy("-" + deductedLeaveCount);
+//
+//													leaveBalanceLogRepository.save(log);
+//												}
+//											}
+//						              }
+//					              }
+//				          }
+//			           }
+//		            }
+//		   }catch(Exception e) {
+//			e.printStackTrace();
+//		   }
+//	}
+	 
+	// At 11:20 AM, on day 02 of the month, only in January
+@Scheduled(cron = "0 50 13 05 01 ?")
+	
 	public void YearlyLeaveCronJob() {
+		System.out.println("*************************************************************************");
 		
-		short leaveTypeMasterId = 0;
+		short leaveTypeMasterId = 0;	//initialize with zero
 		try {
-		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
+		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();	//get all leave type
 		     
 		          for(LeaveTypeMaster ltm :leaveType) {
-			      leaveTypeMasterId = ltm.getLeaveTypeMasterId();
+			      leaveTypeMasterId = ltm.getLeaveTypeMasterId();	//iterate each leave type and get the leaveTypeMasterId
 			
-			      List<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
+			      List<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterId(leaveTypeMasterId);	//get the leave policy details from leaveTypeMasterId
 			      
 			          for(LeavePolicyMaster lpm : leavePolicy) {
-				         if(lpm.getCarryForward().equals("Yes") || lpm.getCarryForward().equals("No")) {
+				         if(lpm.getCarryForward().equals("Yes") || lpm.getCarryForward().equals("No")) {	//check either carry forwared is possible or not both
 					
-					         List<EmployeeLeavesMap> employeeLeaveMap = employeeLeavesMapRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
-					       
-					              for(EmployeeLeavesMap elm :employeeLeaveMap) {
-						              float dbBalance = elm.getBalance();
-						              
-										if (lpm.getCarryForward().equals("No")) {
-											
-											float newBalance = 0;
-											elm.setBalance(newBalance);
-											EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(elm);
-											
-											if (dbResponse != null) {
-												LeaveBalanceLog log = new LeaveBalanceLog();
+//					         List<EmployeeLeavesMap> employeeLeaveMap = employeeLeavesMapRepository.findByLeaveTypeMasterId(leaveTypeMasterId);		//get all the list of employee by using leaveTypeMasterId
+				        	 List<Object[]> employeeLeaveMap = employeeLeavesMapRepository.getEmpDetailsByLeaveTypeMasterId(leaveTypeMasterId);
+				        	 
+//					              for(EmployeeLeavesMap elm :employeeLeaveMap) {
+				              		for(Object[] object : employeeLeaveMap) {
 
-												log.setBalance(newBalance);
-												log.setEmpId(elm.getEmpId());
-												log.setLeaveTypeMasterId(ltm.getLeaveTypeMasterId());
-												log.setMessage(LeaveLogMessage.autoDeductLeave.replace("0.0",
-														Float.toString(dbBalance)));
-												log.setUpdateBalanceBy("-" + dbBalance);
+				        	 		
+//						              float dbBalance = elm.getBalance();	//store the DB balance
+				              			float dbBalance = (object[1] != null ? Float.parseFloat(object[1].toString()) : null);
+				              			
+				              			Date dateOfJoin = (Date) (object[6]);
+				              			Short probationDays = (object[5] != null ? Short.parseShort(object[5].toString()) : null);
+				              	        Date probationCompleteDate = null;
 
-												leaveBalanceLogRepository.save(log);
+				              			System.err.println("Prabation days ::   "+probationDays);
+
+				              			if (probationDays != null) {
+				              			    Calendar cal = Calendar.getInstance();
+				              			    cal.setTime(dateOfJoin);
+				              			    cal.add(Calendar.DAY_OF_MONTH, probationDays);
+				              			    probationCompleteDate = cal.getTime();
+				              			    System.err.println("Complete probation Period ::  "+probationCompleteDate);
+				              			}
+				              	        
+				              	        int currentYear = LocalDate.now().getYear();
+				              			
+				              	        // Create Calendar instances for the start and end dates
+				              	        Calendar startDate = Calendar.getInstance();
+				              	        startDate.set(currentYear-1, Calendar.JULY, 1);
+				              	        
+				              	        Calendar endDate = Calendar.getInstance();
+				              	        endDate.set(currentYear-1, Calendar.DECEMBER, 31);
+				              	        
+				              	        System.out.println("Start Date and End Date     ::   "+startDate.getTime()+" = "+endDate.getTime());
+				              	        
+				              	        // Check if probationCompleteDate is between July 1, 2023, and December 31, 2023
+				              	        boolean isWithinRange = probationCompleteDate.after(startDate.getTime()) && probationCompleteDate.before(endDate.getTime());
+
+				              	        System.err.println("probationCompleteDate.after(startDate.getTime())    :: "+startDate.getTime() );
+				              	        System.err.println("probationCompleteDate.before(endDate.getTime()    ::    "+endDate.getTime());
+				              	        if (!isWithinRange) {
+				              	            System.out.println("Probation complete date is between July 1, 2023, and December 31, 2023.");
+				              	            
+											if (lpm.getCarryForward().equals("No")) {
+												
+												float newBalance = 1; 	// if carry forward is NO then set the balance to Zero
+//												elm.setBalance(newBalance);
+												EmployeeLeavesMap elm = new EmployeeLeavesMap();
+												elm.setEmployeeLeavesMapId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+												elm.setBalance(newBalance);
+												elm.setEmpId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+												elm.setLeaveTypeMasterId(object[3] != null ? Short.parseShort(object[3].toString()) : null);
+												elm.setPendingForApproval(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
+												
+												EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(elm);
+												
+												if (dbResponse != null) {	//set the changes in log table after alter the leave
+													LeaveBalanceLog log = new LeaveBalanceLog();
+
+													log.setBalance(newBalance);
+													log.setEmpId(elm.getEmpId());
+													log.setLeaveTypeMasterId(ltm.getLeaveTypeMasterId());
+													log.setMessage(LeaveLogMessage.autoDeductLeave.replace("0.0",
+															Float.toString(dbBalance)));
+													log.setUpdateBalanceBy("-" + dbBalance);
+
+													leaveBalanceLogRepository.save(log);
+												}
 											}
-										} else if (lpm.getCarryForward().equals("Yes")) {
+											
+				              	        } 
+				              			
+										if (lpm.getCarryForward().equals("Yes")) {	// check if carry forawrd or not
 											float carryForwardValue = lpm.getCarryForwardValue();
 											
+											System.err.println(" this is carryForwardValue   ::   "+carryForwardValue);
+											
+											
+											
 											if (dbBalance > carryForwardValue) {
-												float newBalance = carryForwardValue;
-												float deductedLeaveCount = dbBalance - carryForwardValue;
+												float newBalance = carryForwardValue;	//set new value as per the leave policy 
+												float deductedLeaveCount = dbBalance - carryForwardValue;	
+												System.out.println(deductedLeaveCount);
+												System.err.println(newBalance);
+//												elm.setBalance(newBalance);
+												
+												EmployeeLeavesMap elm = new EmployeeLeavesMap();
+												elm.setEmployeeLeavesMapId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 												elm.setBalance(newBalance);
+												elm.setEmpId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+												elm.setLeaveTypeMasterId(object[3] != null ? Short.parseShort(object[3].toString()) : null);
+												elm.setPendingForApproval(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
+												
 												EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(elm);
 
 												if (dbResponse != null) {

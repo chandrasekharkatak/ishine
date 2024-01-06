@@ -154,8 +154,8 @@ export class EmployeeConfigComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  employeeActiveColumns:any[] = ['employeementId','name','email','employmentstatus','managerName','departmentName','dateOfJoining','createdOn','createdByName','updatedOn','updatedByName'];
-  employeeInActiveColumns:any[] = ['employeementId','name','email','employmentstatus','managerName','departmentName','dateOfJoining','dateOfRelieving','createdOn','createdByName','updatedOn','updatedByName'];
+  employeeActiveColumns:any[] = ['employeementId','name','email','employmentstatus','employmentReleaseStatus','managerName','departmentName','dateOfJoining','createdOn','createdByName','updatedOn','updatedByName'];
+  employeeInActiveColumns:any[] = ['employeementId','name','email','employmentstatus','employmentReleaseStatus','managerName','departmentName','dateOfJoining','dateOfRelieving','createdOn','createdByName','updatedOn','updatedByName'];
   draftEmployeeColumns:any[] = ['employeementId','name','email','employmentstatus','managerName','departmentName','dateOfJoining','updateApplicationStatus']
   domainColumns:any[] = ['blank','domainName','createdByName','createdOn']
 
@@ -218,6 +218,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.approvalsTo = '';
     this.setYearOfPassingList();
     this.preventBackButton();
+    console.log(this.currentUser.employeeRole, "currentUser role");
   }
 
   preventBackButton(){
@@ -874,6 +875,15 @@ export class EmployeeConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+
+    if(employeeObj.employmentstatus == "InActive"){
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.employmentReleaseStatus)) {
+        this.alertMessage = "Please select Employment Release Status !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+
 
     if(employeeObj.employmentstatus == "Resigned"){
       if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfResign)) {

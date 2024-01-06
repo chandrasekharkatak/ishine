@@ -166,4 +166,5 @@ export class Employee{
 	resignationStatus:any;
 
 	unlockTimesheetFor:any;
+	employmentReleaseStatus:any;
 }
