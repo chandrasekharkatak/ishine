@@ -17,6 +17,7 @@ public interface EnableAppreciationRepository extends JpaRepository<Appreciation
 
 	AppreciationEvent findByAppreciationEventName(String appreciationEventName);
 
-
+	 @Query(nativeQuery = true)
+	    public List<Object[]> getAppreciationEventSummaryInfo(Long appreciationEventId);
 
 }

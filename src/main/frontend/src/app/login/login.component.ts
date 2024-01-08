@@ -255,7 +255,7 @@ export class LoginComponent implements OnInit{
       let log:Log = responseObj[6];
       log.empId = user.empId;
       this.enableAppreciation = responseObj[7];	
-      console.log("enableAppreciation",enableAppreciation);	
+      console.log("enableAppreciation",this.enableAppreciation);	
       console.log("checking"+sessionStorage.maxFileSize);
       this.authenticationService.setCookie({name:"SESSIONID",value:this.authenticationService.sessionString,session:true});
       sessionStorage.setItem('token', this.authenticationService.sessionString);

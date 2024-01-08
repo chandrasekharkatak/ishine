@@ -47,6 +47,7 @@ export class ResourceManagementComponent implements OnInit {
   teamObj:Team = new Team();
   employeeObj: Employee = new Employee();
   newteamMember:TeamMember = new TeamMember();
+  isActive:any;
 
   isProjectTable:boolean = false;
   isEditProject:boolean = false;
@@ -83,6 +84,7 @@ export class ResourceManagementComponent implements OnInit {
   allClientLocationList:any[] = [];
   clientLocationList:any[] = [];
   internalProjectList:any[] = [];
+  poPortalProjectList:any[] = [];
 
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin'];
   filters:any = {};
@@ -193,21 +195,113 @@ export class ResourceManagementComponent implements OnInit {
     "Maharashtra",
   ];
 
-  getAllProjects(){
+  // getAllProjects(){
+  //   fetch(this.currentUser.poPortalAllProjectApi).then(res => res.json()).then(async data => {
+  //     let allPoProject = data;
+  //     this.resourceManagementService.getInternalProject().pipe(first()).subscribe((response: any) => {
+  //       if (response.serviceStatus == "Success") {
+  //         this.internalProjectList = response.serviceResponse;
+
+  //         let _projectList = [...allPoProject,...this.internalProjectList];
+
+  //         if((_projectList != null || _projectList != undefined) && (this.teamCreatedProjectList != null || this.teamCreatedProjectList != undefined)){
+
+  //           //sort according to dateTime
+  //           _projectList = _projectList.sort((a, b) => (new Date(a.createdOn).getTime() < new Date(b.createdOn).getTime()) ? 1 : -1);
+    
+  //           _projectList.sort((a) => {
+  //             if (a.isTeamCreated && a.isDraftProject == 'Pending For Approval') {
+  //               return -1;
+  //             } else {
+  //               return 1;
+  //             }
+  //           });
+
+  //           console.log("AllPo projects   ::  ",allPoProject);
+  //           console.log(this.teamCreatedProjectList, " : teamCreatedProjectList");
+            
+  //           console.log(" _projectList    ::  ",_projectList);
+  //           _projectList.forEach((proj) => {
+
+  //             if(proj.id != null){
+  //               let selectedProj = this.teamCreatedProjectList.find((projTeam) => proj.id == projTeam.poProjectId);
+                
+                
+  //               if(selectedProj){
+  //                 proj.isTeamCreated = true;
+  //                 proj.isDraftProject = selectedProj.isDraftProject == 'true' ? 'Pending For Approval' : selectedProj.isDraftProject == 'Rejected' ? 'Rejected' : selectedProj.isDraftProject == 'false' ? 'Approved' : "NA";
+  //                 proj.createdOn = (proj.createdOn)? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+  //                 console.log("proj.isDraftProject",  proj.isDraftProject);
+  //               }else{
+  //                 proj.isTeamCreated = false;
+  //                 proj.isDraftProject = "NA";
+  //                 proj.createdOn = (proj.createdOn)? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+  //               }
+  //             }else{
+  //               let selectedProj = this.teamCreatedProjectList.find((projTeam) => proj.projectId == projTeam.projectId);
+
+  //               if(selectedProj){
+  //                 proj.isTeamCreated = true;
+  //                 proj.isDraftProject = proj.projectType;
+  //                 proj.createdOn = (proj.createdOn)? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+  //               }else{
+  //                 proj.isTeamCreated = false;
+  //                 proj.isDraftProject = proj.projectType;
+  //                 proj.createdOn = (proj.createdOn)? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+  //               }
+  //             }
+
+  //             if (proj.status != null) {
+  //               if (proj.status == "true") {
+  //                 proj.status = "InProgress";
+  //               } else if (proj.status == "false") {
+  //                 proj.status = "Completed";
+  //               } else {
+  //                 proj.status = proj.status;
+  //               }
+  //             } else {
+  //               return null;
+  //             }
+              
+  //           });
+            
+  //         }
+    
+  //         this.allProjectList = _projectList;
+  //         console.log(this.allProjectList, " all projects");
+          
+  //         // Navigate to Project when used link
+    
+  //         if(this.currentProjectId != undefined || this.currentProjectId != null){
+  //           this.allProjectList.forEach((proj) => {
+  //             if(proj.id == this.currentProjectId){
+  //               proj.isEditProject = true;
+  //               this.showEditProjectForm(proj);
+  //             }
+  //           })
+  //         }
+  //         console.log(this.internalProjectList, " this.internalProjectList");
+  //       } else {
+  //         console.error(response.serviceResponse);
+  //       }
+  //     });
+  //   });
+  // }
+
+  getAllProjects() {
     fetch(this.currentUser.poPortalAllProjectApi).then(res => res.json()).then(async data => {
       let allPoProject = data;
-      
       this.resourceManagementService.getInternalProject().pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.internalProjectList = response.serviceResponse;
-
-          let _projectList = [...allPoProject,...this.internalProjectList];
-
-          if((_projectList != null || _projectList != undefined) && (this.teamCreatedProjectList != null || this.teamCreatedProjectList != undefined)){
-
-            //sort according to dateTime
+  
+          let _projectList = [...allPoProject, ...this.internalProjectList];
+  
+          if ((_projectList != null || _projectList != undefined) && (this.teamCreatedProjectList != null || this.teamCreatedProjectList != undefined)) {
+  
+            // sort according to dateTime
             _projectList = _projectList.sort((a, b) => (new Date(a.createdOn).getTime() < new Date(b.createdOn).getTime()) ? 1 : -1);
-    
+  
             _projectList.sort((a) => {
               if (a.isTeamCreated && a.isDraftProject == 'Pending For Approval') {
                 return -1;
@@ -215,39 +309,27 @@ export class ResourceManagementComponent implements OnInit {
                 return 1;
               }
             });
-
-            console.log(this.teamCreatedProjectList, " : teamCreatedProjectList");
-            
-    
-            _projectList.forEach((proj) => {
-
-              if(proj.id != null){
-                let selectedProj = this.teamCreatedProjectList.find((projTeam) => proj.id == projTeam.poProjectId);
-                
-                if(selectedProj){
-                  proj.isTeamCreated = true;
-                  proj.isDraftProject = selectedProj.isDraftProject == 'true' ? 'Pending For Approval' : selectedProj.isDraftProject == 'Rejected' ? 'Rejected' : selectedProj.isDraftProject == 'false' ? 'Approved' : "NA";
-                  proj.createdOn = (proj.createdOn)? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-                  console.log("proj.isDraftProject",  proj.isDraftProject);
-                }else{
-                  proj.isTeamCreated = false;
-                  proj.isDraftProject = "NA";
-                  proj.createdOn = (proj.createdOn)? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-                }
-              }else{
-                let selectedProj = this.teamCreatedProjectList.find((projTeam) => proj.projectId == projTeam.projectId);
-
-                if(selectedProj){
-                  proj.isTeamCreated = true;
-                  proj.isDraftProject = proj.projectType;
-                  proj.createdOn = (proj.createdOn)? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-                }else{
-                  proj.isTeamCreated = false;
-                  proj.isDraftProject = proj.projectType;
-                  proj.createdOn = (proj.createdOn)? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-                }
+  
+            // Separate PoPortal projects and internal projects
+            this.poPortalProjectList = _projectList.filter(proj => proj.id != null);
+            this.internalProjectList = _projectList.filter(proj => proj.id == null);
+            console.log(" Anurag   ::    ",this.poPortalProjectList);
+            // Process PoPortal projects
+            this.poPortalProjectList.forEach((proj) => {
+              let selectedProj = this.teamCreatedProjectList.find((projTeam) => proj.id == projTeam.poProjectId);
+              console.log("selectedProj  ::   ",selectedProj);
+  
+              if (selectedProj) {
+                proj.isTeamCreated = true;
+                proj.isDraftProject = selectedProj.isDraftProject == 'Rejected' ? 'Rejected' : selectedProj.isDraftProject == 'false' ? 'Approved' : "NA";
+                proj.isActive=selectedProj.isActive;
+                proj.createdOn = (proj.createdOn) ? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+              } else {
+                proj.isTeamCreated = false;
+                proj.isDraftProject = "NA";
+                proj.createdOn = (proj.createdOn) ? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
               }
-
+  
               if (proj.status != null) {
                 if (proj.status == "true") {
                   proj.status = "InProgress";
@@ -256,34 +338,57 @@ export class ResourceManagementComponent implements OnInit {
                 } else {
                   proj.status = proj.status;
                 }
-              } else {
-                return null;
               }
-              
             });
-          }
-    
-          this.allProjectList = _projectList;
-          console.log(this.allProjectList, " all projects");
-          
-          // Navigate to Project when used link
-    
-          if(this.currentProjectId != undefined || this.currentProjectId != null){
-            this.allProjectList.forEach((proj) => {
-              if(proj.id == this.currentProjectId){
-                proj.isEditProject = true;
-                this.showEditProjectForm(proj);
+  
+            // Process internal projects
+            this.internalProjectList.forEach((proj) => {
+              let selectedProj = this.teamCreatedProjectList.find((projTeam) => proj.projectId == projTeam.projectId);
+  
+              if (selectedProj) {
+                proj.isTeamCreated = true;
+                proj.isDraftProject = proj.projectType;
+                proj.createdOn = (proj.createdOn) ? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+              } else {
+                proj.isTeamCreated = false;
+                proj.isDraftProject = proj.projectType;
+                proj.createdOn = (proj.createdOn) ? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
               }
-            })
+  
+              if (proj.status != null) {
+                if (proj.status == "true") {
+                  proj.status = "InProgress";
+                } else if (proj.status == "false") {
+                  proj.status = "Completed";
+                } else {
+                  proj.status = proj.status;
+                }
+              }
+            });
+  
+            this.allProjectList = _projectList;
+  
+            // Navigate to Project when used link
+            if (this.currentProjectId != undefined || this.currentProjectId != null) {
+              this.allProjectList.forEach((proj) => {
+                if (proj.id == this.currentProjectId) {
+                  proj.isEditProject = true;
+                  this.showEditProjectForm(proj);
+                }
+              });
+            }
+  
+            console.log(this.allProjectList, " all projects");
+            console.log(this.internalProjectList, " this.internalProjectList");
+          } else {
+            console.error(response.serviceResponse);
           }
-          console.log(this.internalProjectList, " this.internalProjectList");
-        } else {
-          console.error(response.serviceResponse);
         }
       });
     });
   }
 
+  
   alreadyCreatedTeam(){
     this.resourceManagementService.alreadyCreatedTeam().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -851,6 +956,8 @@ export class ResourceManagementComponent implements OnInit {
     if(newTeamMember){
       newTeamMember.employeeRole = this.newteamMember.employeeRole;
       this.allTeamMembers.push(newTeamMember);
+      console.log("New member ===== ::  ",newTeamMember);
+      
     }
     this.newteamMember = new TeamMember();
   }

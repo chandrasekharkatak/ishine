@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,5 +42,21 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 
 	@Query(nativeQuery = true)
 	List<Object[]> getAllProjectByEmpId(Long empId);
+
+	@Query(nativeQuery = true)
+	List<EmployeeTeamMap> findTeamListByTeamIdAndStatus(Long teamId);
+	
+	@Query(nativeQuery = true)
+	EmployeeTeamMap findEmployeeByTeamIdAndEmpId(Long empId , Long teamId);
+	
+	EmployeeTeamMap findEmployeeByEmpIdAndActive(Long empId , long l);
+
+	List<EmployeeTeamMap> findEmployeeByEmpId(Long empId);
+	
+//	@Query(nativeQuery = true)
+//	List<Object[]> findEmployeeByProjectId(Integer projectId );
+	
+	 @Query(nativeQuery = true)
+List<EmployeeTeamMap> findByProjectIdAndActive(Integer projectId,Long active);
 
 }

@@ -171,6 +171,13 @@ public class ProjectService {
 					dtoList.add(projectDto);
 				});
 				
+				System.err.println("----------------------------------------------------------------------------------------_________________________________________________________________________________-------------------------------------------------_______________________----------____________________------____----__---_");
+				
+				
+				
+				System.out.println("Anurag :: dtoList finded   :: "+dtoList.toString());
+				
+				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
 				apiLogInfo.setApiResponse("All Project fetched!");
@@ -619,7 +626,7 @@ public class ProjectService {
 								Department deptObj = departmentRepository.findByName(department);
 								if(deptObj == null) {
 									response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-									response.setServiceResponse("Department does not exists : " + team.getTeamName());
+									response.setServiceResponse("Department does not exists : "+" "+department+" " + team.getTeamName());
 									return response;
 								}
 							}

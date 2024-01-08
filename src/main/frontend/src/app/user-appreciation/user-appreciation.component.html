@@ -1,4 +1,4 @@
-
+<div class="container-fluid">
 <div class="row">
     <div class="col-md-12">
         <div class="card">
@@ -6,22 +6,159 @@
                 <strong >Appreciation</strong>
             </div>
             <div class="card-body">
+              <div class="col-md-12 mt-4">
+                <div class="appreciation-event-summary card">
+                  <div class="card-title px-1 pt-2 ">
+                    <p class="section-heading m-0 pl-2" style="text-align: center; color: #193d8a; font-weight: bold; font-size: x-large;">Event Summary</p>
+
+                  </div>
+                  <div class="summary-body ml-4">
+                    <p class="eventname " style="text-align:left; font-weight: bold; font-size: x-large;">{{appreciationEventInfo.appreciationEventName}}</p>
+                    <p class="date"  style="text-align: left;">{{appreciationEventInfo.fromDate}}-{{appreciationEventInfo.toDate}}</p>
+                    <table class="table table-borderless summary-table">
+                      <thead>
+                        <tr class="summary-table-head">
+                            <th scope="col">
+                                <div class="card border-dark" style="width: 27rem; height: 7rem; border-radius: 0.5cm;">
+                                    <h1><span class="badge" style="font-size: larger;">{{countSent}}</span></h1>
+                                    <p class="card-text ml-2 " style=" font-size: smaller; font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; padding:0px;">Appreciation Sent</p>
+                                    <button class="btn btn-success btn-sm" (click)="toggleFunctionforsent()" style=" margin-left: 21rem; margin-top: -3rem; height: 2rem; width: 5rem;font-size: small; padding: 0px;">View More</button>
+                                </div>
+                            </th>
+                            <th scope="col">
+                                <div class="card border-dark" style="width: 27rem; height: 7rem; border-radius: 0.5cm; margin-left: 10rem;">
+                                    <h1><span class="badge" style="font-size: larger;">{{countRecieved}}</span></h1>
+                                    <p class="card-text ml-2" style="font-size: smaller; font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; padding: 0px;">Appreciation Recieved</p>
+                                    <button class="btn btn-success btn-sm" (click)="toggleFunctionforreceived()" style=" margin-left: 21rem; margin-top: -3rem; height: 2rem; width: 5rem;font-size: small; padding: 0px;">View More</button>
+                                </div>
+                            </th>
+                        </tr>
+                      </thead>
+                      <tbody >
+                        <tr class="counterrow1" *ngIf="isAppreciateRecieved || isAppreciationSent">
+                          <th scope = "col">
+                            <div class="card border-primary" style="width: 15rem; height: 5rem;">
+                              <div class="card-title" style="display: flex; flex-direction: column; align-items: center;">
+                                  <div style="display: flex; align-items: center; margin-top: 0.5rem;">
+                                      <img src="assets/Images/star1.jpeg" style="height: 2rem; width: 2rem;">
+                                      <div *ngIf="isReceievedData">
+                                      <h2><span class="badge badge-primary" style="margin-left: 0.5rem;">{{appreciationcount.youAreMyStarCount}}</span></h2>
+                                      </div>
+                                      <div *ngIf="isSentData">
+                                        <h2><span class="badge badge-primary" style="margin-left: 0.5rem;">{{appreciationcount.sentYouAreMyStarCount}}</span></h2>
+                                      </div>
+                                   </div>
+                              <label style="font-size: smaller;">You Are My Star</label>
+                          </div>
+                        </div>
+                       </th>
+                          <th scope="col">
+                            <div class="card border-secondary" style="width: 15rem; height: 5rem; margin-left: -3rem;">
+                              <div class="card-title" style="display: flex; flex-direction: column; align-items: center;">
+                                  <div style="display: flex; align-items: center; margin-top: 0.5rem;">
+                                      <img src="assets/Images/gem.jpeg" style="height: 2rem; width: 2rem;">
+                                      <div *ngIf="isReceievedData">
+                                      <h2><span class="badge badge-primary" style="margin-left: 0.5rem;">{{appreciationcount.youAreGemOfAPersonCount}}</span></h2>
+                                    </div>
+                                    <div *ngIf="isSentData">
+                                      <h2><span class="badge badge-primary" style="margin-left: 0.5rem;">{{appreciationcount.sentYouAreGemOfAPersonCount}}</span></h2>
+                                    </div>
+                                  </div>
+                                  <label style="font-size: smaller;">You Are Gem Of a Person</label>
+                              </div>
+                            </div>
+                          </th>
+                          <th scope="col">
+                            <div class="card border-success" style="width: 15rem; height: 5rem; margin-left:-16rem;">
+                              <div class="card-title" style="display: flex; flex-direction: column; align-items: center;">
+                                  <div style="display: flex; align-items: center; margin-top: 0.5rem;">
+                                      <img src="assets/Images/problemsolver1.jpg" style="height: 2rem; width: 2rem;">
+                                      <div *ngIf="isReceievedData">
+                                      <h2><span class="badge badge-primary" style="margin-left: 0.5rem;">{{appreciationcount.youAreAproblemSolverCount}}</span></h2>
+                                    </div>
+                                    <div *ngIf="isSentData">
+                                      <h2><span class="badge badge-primary" style="margin-left: 0.5rem;">{{appreciationcount.sentYouAreAproblemSolverCount}}</span></h2>
+                                    </div>
+                                  </div>
+                                  <label style="font-size: smaller;">You Are A Problem Solver</label>
+                              </div>
+                            </div>
+                           </th>
+                        </tr>
+                        <tr class="counterrow2" *ngIf="isAppreciateRecieved || isAppreciationSent">
+                         <th scope="col">
+                          <div class="card border-warning" style="width: 15rem; height: 5rem;">
+                            <div class="card-title" style="display: flex; flex-direction: column; align-items: center;">
+                                <div style="display: flex; align-items: center; margin-top: 0.5rem;">
+                                    <img src="assets/Images/supportive.png" style="height: 2rem; width: 2rem;">
+                                    <div *ngIf="isReceievedData">
+                                    <h2><span class="badge badge-primary" style="margin-left: 0.5rem;">{{appreciationcount.youAreSupportiveCount}}</span></h2>
+                                  </div>
+                                  <div *ngIf="isSentData">
+                                    <h2><span class="badge badge-primary" style="margin-left: 0.5rem;">{{appreciationcount.sentYouAreSupportiveCount}}</span></h2>
+                                  </div>
+                                </div>
+                                <label style="font-size: smaller;">You Are Supportive</label>
+                            </div>
+                          </div>
+                         </th>
+                         <th scope="col">
+                          <div class="card border-danger" style="width: 15rem; height: 5rem; margin-left: -3rem;">
+                            <div class="card-title" style="display: flex; flex-direction: column; align-items: center; ">
+                                <div style="display: flex; align-items: center; margin-top: 0.5rem;">
+                                    <img src="assets/Images/dependable.jpg" style="height: 2rem; width: 2rem;">
+                                    <div *ngIf="isReceievedData">
+                                    <h2><span class="badge badge-primary" style="margin-left: 0.5rem;">{{appreciationcount.youAreReliableCount}}</span></h2>
+                                  </div>
+                                  <div *ngIf="isSentData">
+                                    <h2><span class="badge badge-primary" style="margin-left: 0.5rem;">{{appreciationcount.sentYouAreReliableCount}}</span></h2>
+                                  </div>
+                                </div>
+                                <label style="font-size: smaller;">You Are Reliable</label>
+                            </div>
+                          </div>
+                        </th>
+                        <th scope="col">
+                          <div class="card border-info" style="width: 15rem; height: 5rem; margin-left: -16rem;">
+                            <div class="card-title" style="display: flex; flex-direction: column; align-items: center;">
+                                <div style="display: flex; align-items: center; margin-top: 0.5rem;">
+                                    <img src="assets/Images/motivation11.jpg" style="height: 2rem; width: 2rem;">
+                                    <div *ngIf="isReceievedData">
+                                    <h2><span class="badge badge-primary" style="margin-left: 0.5rem;">{{appreciationcount.youAreAMotivatorCount}}</span></h2>
+                                  </div>
+                                  <div *ngIf="isSentData">
+                                    <h2><span class="badge badge-primary" style="margin-left: 0.5rem;">{{appreciationcount.sentYouAreAMotivatorCount}}</span></h2>
+                                  </div>
+                                </div>
+                                <label style="font-size: smaller;">You Are A Motivator</label>
+                            </div>
+                          </div>
+                        </th>
+                      </tr>
+                   </tbody>
+                </table>
+            </div>
+          </div>
+        </div>
+          <div class ="col-md-12" style="margin-top: 1rem;">
+            <div class="card">
+              <div class = "form">
                 <div class="row">
-                    <div class="col-md-4 mb-0">
+                    <div class="col-md-6 mb-0">
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label class="info-label" ><span class="text-danger">*</span><strong >Select Employee Name</strong></label>
                                 <select class="form-control" [(ngModel)]="employeeObj.empId" name="Appreciation" aria-hidden="true" (change)="getManagerByEmpId(employeeObj.empId)">
                                     <option selected="selected" value="" disabled>Select</option>
-    
-                                   <option *ngFor="let appr of allEmployee" value="{{appr.empId}}" [disabled]="appr.isAppreciated"  [class.disabled-item] = "appr.isAppreciated">{{appr.name}}</option> 
-                                  </select> 
+
+                                   <option *ngFor="let appr of allEmployee" value="{{appr.empId}}" [disabled]="appr.isAppreciated"  [class.disabled-item] = "appr.isAppreciated">{{appr.name}}</option>
+                                  </select>
                             </div>
                         </div>
                     </div>
                   </div>
                   <div class="row">
-                    <div class="col-md-4 mb-0">
+                    <div class="col-md-6 mb-0">
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label class="info-label"><span class="text-danger">*</span><strong >Reporting To</strong></label>
@@ -31,10 +168,10 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-4 mb-0">
+                    <div class="col-md-6 mb-0">
                         <div class="info-wrapper">
                             <div class="form-group">
-                                <label class="info-label"><span class="text-danger">*</span><strong>Appreciation Type</strong></label> 
+                                <label class="info-label"><span class="text-danger">*</span><strong>Appreciation Type</strong></label>
                                     <div>
                                       <input type="radio" id="Star" name="appreciationType" value="You are my Star"  checked  [(ngModel)]="employeeObj.appreciateType">
                                       <label for="Star">You are my Star. </label>
@@ -45,38 +182,32 @@
                                       <label for="Gem">You are Gem of a Person.</label>
                                       <img src="assets/Images/gem.jpeg" style="height: 36px; display: inline-block;">
                                     </div>
-                                
                                     <div>
                                       <input type="radio" id="Problem Solver" name="appreciationType" value="You are a Problem Solver" [(ngModel)]="employeeObj.appreciateType">
                                       <label for="Problem Solver">You are a Problem Solver</label>
                                       <img src="assets/Images/problemsolver1.jpg" style="height: 36px; display: inline-block;">
-    
                                     </div>
                                     <div>
                                         <input type="radio" id="Supportive" name="appreciationType" value="You are Supportive" [(ngModel)]="employeeObj.appreciateType">
                                         <label for="Supportive">You are Supportive</label>
                                         <img src="assets/Images/supportive.png" style="height: 36px; display: inline-block;">
-    
                                     </div>
                                     <div>
                                         <input type="radio" id="Reliable" name="appreciationType" value="You are Reliable" [(ngModel)]="employeeObj.appreciateType">
                                         <label for="Reliable">You are Reliable</label>
                                         <img src="assets/Images/dependable.jpg" style="height: 36px; display: inline-block;">
-    
                                     </div>
                                     <div>
                                         <input type="radio" id="Motivator" name="appreciationType" value="You are a Motivator" [(ngModel)]="employeeObj.appreciateType">
                                         <label for="Motivator">You are a Motivator</label>
                                         <img src="assets/Images/motivation11.jpg" style="height: 36px; display: inline-block;">
-    
                                     </div>
-                            
-                        </div>
-                    </div>
-                    </div> 
-                    </div>
+                                  </div>
+                               </div>
+                           </div>
+                         </div>
                     <div class="row">
-                    <div class="col-md-4 mb-0">
+                    <div class="col-md-6 mb-0">
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label for="leaveDesc"><span class="text-danger">*</span><strong>Why you want to give Appreciation?</strong></label>
@@ -85,15 +216,19 @@
                         </div>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-md-12">                  
+                <div class="submit">
+                    <div class="col-md-12">
                             <!-- <button  type="submit" class="btn btn-primary btn-sm mx-1" >Submit</button> -->
                             <button  type="submit" class="btn btn-primary btn-sm mx-1" (click)="submitAppreciation(alert_message)" >Submit</button>
                     </div>
                 </div>
-            </div> 
-        </div>           
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
     </div>
+</div>
 </div>
 
 <ng-template #alert_message>

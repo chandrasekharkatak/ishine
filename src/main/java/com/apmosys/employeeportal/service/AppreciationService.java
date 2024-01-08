@@ -15,6 +15,7 @@ import com.apmosys.employeeportal.dto.AppreciationDTO;
 import com.apmosys.employeeportal.dto.AppreciationEventDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Appreciation;
 import com.apmosys.employeeportal.model.AppreciationEvent;
 import com.apmosys.employeeportal.model.Employee;
@@ -47,11 +48,12 @@ public class AppreciationService {
 	
 	@Autowired
 	private HttpServletRequest httpRequest;
+	
 
 	public ServiceResponse saveAppreciation(AppreciationDTO appreciationDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("save_appreciation");
+		apiLogInfo.setSubFeatureName("Appreciation");
 		apiLogInfo.setApiUrl("/api/saveAppreciation");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
@@ -135,10 +137,11 @@ public class AppreciationService {
 	public ServiceResponse enableAppreciation(AppreciationEventDTO appreciationEventDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Appreciation Configuration");
 		apiLogInfo.setApiUrl("/api/enableAppreciation");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("appreciationEventName : " +appreciationEventDTO.getAppreciationEventName());
+		logBuilder.append("appreciationEventName : " +appreciationEventDTO.getAppreciationEventName() );
 		try {
 		AppreciationEvent appEvent = new AppreciationEvent();
 		appEvent.setAppreciationEventName(appreciationEventDTO.getAppreciationEventName());
@@ -209,64 +212,179 @@ public class AppreciationService {
 
 
 	public AppreciationEventDTO getAppreciationEventInfo() {
-		ServiceResponse response = new ServiceResponse();
-		AppreciationEventDTO appreciationEventInfo = new AppreciationEventDTO();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setApiUrl("/api/getAppreciationEventInfo");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("appreciationEventName : " +appreciationEventInfo.getAppreciationEventName());
 		
+		AppreciationEventDTO appreciationEventInfo = new AppreciationEventDTO();
 		try {
 		List<Object[]> objectArrayList = enableAppreciationRepository.getAppreciationEventInfo();
 		if (objectArrayList.isEmpty()) {
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("No appreciation event found.");
-			apiLogInfo.setApiResponse("No appreciation event found.");
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			return appreciationEventInfo;
-			
 		} else {
 			objectArrayList.forEach((object) -> {
 
 				EmployeeDTO dto = new EmployeeDTO();
 
 //				appreciationEventInfo.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-//				appreciationEventInfo.setName(object[1] != null ? object[1].toString() : null);
 				appreciationEventInfo.setAppreciationEventId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-				//appreciationEventInfo.setCreatedOn(object[1] != null ? object[1].toString() : null);
-			    appreciationEventInfo.setFromDate(object[2] != null ? object[2].toString() : null);
-			    appreciationEventInfo.setToDate(object[3] != null ? object[3].toString() : null);
+				appreciationEventInfo.setAppreciationEventName(object[1] !=null ? object[1].toString():null);
+				appreciationEventInfo.setCreatedOn(object[2] != null ? object[2].toString() : null);
+			    appreciationEventInfo.setFromDate(object[3] != null ? object[3].toString() : null);
+			    appreciationEventInfo.setToDate(object[4] != null ? object[4].toString() : null);
 			});
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse("Appreciation event info fetched.");
-			apiLogInfo.setApiResponse("Appreciation event info fetched.");
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			return appreciationEventInfo;
 		}
 
 	} catch (Exception e) {
-		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-		response.setServiceResponse("Something went wrong.");
-		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-		apiLogInfo.setLogLevel("ERROR");
 		e.printStackTrace();
 
 	}
-	apiLogInfo.setApiRequest(logBuilder.toString());
-	logService.logMyInfo(httpRequest, apiLogInfo);
 	return appreciationEventInfo;
 }
+	public ServiceResponse getAppreciationEventSummaryInfo(AppreciationEventDTO AppreciationEventDTO) {
+		AppreciationEventDTO appreciationEventInfo = new AppreciationEventDTO();
+		 ServiceResponse response = new ServiceResponse();
+		try {
+		
+			List<Object[]> objectArrayList = enableAppreciationRepository.getAppreciationEventSummaryInfo(AppreciationEventDTO.getAppreciationEventId());
+
+			
+           Long totalCountStar = appreciationRepository.countTotalAppreciationByIDandType_You_are_my_star(AppreciationEventDTO.getAppreciationEventId());
+           Long totalCountGem = appreciationRepository.countTotalAppreciationByIDandType_You_are_Gem_of_a_Person(AppreciationEventDTO.getAppreciationEventId());
+            Long totalCountProblemSolver = appreciationRepository.countTotalAppreciationByIDandType_You_are_A_Problem_Solver(AppreciationEventDTO.getAppreciationEventId());
+            Long totalCountSupportive = appreciationRepository.countTotalAppreciationByIDandType_You_are_Supportive(AppreciationEventDTO.getAppreciationEventId());
+            Long totalCountReliable = appreciationRepository.countTotalAppreciationByIDandType_You_are_Reliable(AppreciationEventDTO.getAppreciationEventId());            
+            Long totalCountMotivator = appreciationRepository.countTotalAppreciationByIDandType_You_are_a_Motivator(AppreciationEventDTO.getAppreciationEventId());
+            //System.out.println(AppreciationEventDTO.getAppreciationEventId());
+            
+           // System.out.println(totalCountStar);
+           // System.out.println(totalCountGem);
+           // System.out.println(totalCountProblemSolver);
+           // System.out.println(totalCountSupportive);
+          //  System.out.println(totalCountReliable);
+           // System.out.println(totalCountMotivator);
+			if (objectArrayList.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Appreciation EventSummmaryInfo is empty.");
+				 if(totalCountStar==null && totalCountGem==null && totalCountProblemSolver==null
+						 && totalCountSupportive==null && totalCountReliable==null && totalCountMotivator==null) {					 
+					 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Appreciation Event Total Count is empty");
+				 }
+				
+			} else {
+				
+				    appreciationEventInfo.setTotalYouAreMyStarCount(totalCountStar);
+				    appreciationEventInfo.setTotalYouAreGemOfAPersonCount(totalCountGem);
+				    appreciationEventInfo.setTotalYouAreAproblemSolverCount(totalCountProblemSolver);
+				    appreciationEventInfo.setTotalYouAreSupportiveCount(totalCountSupportive);
+				    appreciationEventInfo.setTotalYouAreReliableCount(totalCountReliable);
+				    appreciationEventInfo.setTotalYouAreAMotivatorCount(totalCountMotivator);
+				    
+				
+				objectArrayList.forEach((object) -> {
+
+					appreciationEventInfo.setAppreciationEventName(object[0] !=null ? object[0].toString():null);
+					appreciationEventInfo.setCreatedOn(object[1] != null ? object[1].toString() : null);
+				    appreciationEventInfo.setFromDate(object[2] != null ? object[2].toString() : null);
+				    appreciationEventInfo.setToDate(object[3] != null ? object[3].toString() : null);
+				   
+				    
+				    });
+				
+							
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(appreciationEventInfo);	
+				
+			}
+
+		} catch (Exception e) {
+		 e.printStackTrace();
+		}
+		return response;
+	}
+	
+	public ServiceResponse getAllEmployeeAppreciationListByCategory(AppreciationEventDTO AppreciationEventDTO) {
+	
+		 ServiceResponse response = new ServiceResponse();
+		 
+		 try {
+			 List<Object[]> objectArrayList = appreciationRepository.getAllEmployeeAppreciationListByCategory(AppreciationEventDTO.getAppreciationEventId());
+			 
+			 if (objectArrayList.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("All Employee Appreciation List is empty.");
+					 }
+			 else {
+				 List<AppreciationEventDTO> appreciationEventDTO = new ArrayList<>();
+				 
+				 
+				 objectArrayList.forEach((object) -> {
+					 AppreciationEventDTO appreciationEmployeeList = new AppreciationEventDTO();
+					 appreciationEmployeeList.setEmployeement_id(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					 appreciationEmployeeList.setName(object[1] != null ? object[1].toString() : null);
+					 appreciationEmployeeList.setDepartment(object[2] != null ? object[2].toString() : null);
+					 appreciationEmployeeList.setTotalYouAreMyStarCount(object[3] != null ? Long.parseLong(object[3].toString()): null);
+					 appreciationEmployeeList.setTotalYouAreGemOfAPersonCount(object[4] != null ? Long.parseLong(object[4].toString()): null);
+					 appreciationEmployeeList.setTotalYouAreAproblemSolverCount(object[5] != null ? Long.parseLong(object[5].toString()): null);
+					 appreciationEmployeeList.setTotalYouAreSupportiveCount(object[6] != null ? Long.parseLong(object[6].toString()): null);
+					 appreciationEmployeeList.setTotalYouAreReliableCount(object[7] != null ? Long.parseLong(object[7].toString()): null);
+					 appreciationEmployeeList.setTotalYouAreAMotivatorCount(object[8] != null ? Long.parseLong(object[8].toString()): null);
+					 
+					 
+					    appreciationEventDTO.add(appreciationEmployeeList);
+					   
+					    
+					    });
+					
+								
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(appreciationEventDTO);	
+				 
+			 }
+		 } catch (Exception e) {
+			 e.printStackTrace();
+			}
+			return response;
+			 
+			 
+		 }
+	
+	public ServiceResponse viewAppreciationInfo(AppreciationEventDTO AppreciationEventDTO) {
+		 
+		 ServiceResponse response = new ServiceResponse();
+		 
+		 try {
+			 List<Object[]>objectArrayList = appreciationRepository.viewAppreciationInfo(AppreciationEventDTO.getAppreciationEventId(),AppreciationEventDTO.getEmployeement_id());
+			 
+			 System.out.println(AppreciationEventDTO.getAppreciationEventId());
+			 
+			 if(objectArrayList.isEmpty()) {
+				 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				 response.setServiceResponse("All Employee Appreciation info is empty.");
+			 }
+			 else {
+				 List<AppreciationEventDTO> appreciationEventDTO = new ArrayList<>();
+				 objectArrayList.forEach((object) -> {
+					 AppreciationEventDTO appreciationInfoList = new AppreciationEventDTO();
+					 appreciationInfoList.setAppreciateType(object[0] != null ? object[0].toString():null);
+					 appreciationInfoList.setComment(object[1] != null ? object[1].toString() : null);
+					 appreciationInfoList.setAppreciationDate(object[2] != null ? object[2].toString() : null);
+		
+					    appreciationEventDTO.add(appreciationInfoList);
+					      
+				});
+								
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(appreciationEventDTO);	
+				 
+			 }
+		 } catch (Exception e) {
+			 e.printStackTrace();
+			}
+			return response;	
+	}
 
 	public ServiceResponse getAllAppreciationEvent() {
 	   ServiceResponse response = new ServiceResponse();
-	   AppreciationEventDTO appreciationEventInfo = new AppreciationEventDTO();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("get_getAllAppreciationEvent");
-		apiLogInfo.setApiUrl("/api/getAllAppreciationEvent");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("AllEventList :" + enableAppreciationRepository.findAll().size());
 	   		
 	try {
 	List<AppreciationEvent> allEvent = enableAppreciationRepository.findAll();
@@ -286,24 +404,16 @@ public class AppreciationService {
 	}
 	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	response.setServiceResponse(appreciationEventDTO);
-	apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-	apiLogInfo.setApiResponse("List fetched of size : "+appreciationEventDTO.size());
 	}else {
 		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 		response.setServiceResponse("Appreciation Event List is empty.");
-		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-		apiLogInfo.setApiResponse("Appreciation Event List is empty.");
 		}
 	}catch (Exception e) {
 		e.printStackTrace();
 		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 		response.setServiceResponse("Something Went Wrong.");
-		apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-		apiLogInfo.setLogLevel("ERROR");
 		response.setServiceError(e.getMessage());
 	}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -350,6 +460,7 @@ public class AppreciationService {
 				
 				apiLogInfo.setApiResponse("list is empty !!");			
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				
 			}
 			
 		}catch(Exception e) {
@@ -357,11 +468,14 @@ public class AppreciationService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
+			
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
+
 		return response;
 	}
 	
@@ -413,7 +527,7 @@ public class AppreciationService {
 	public ServiceResponse updateAppreciationEvent(AppreciationEventDTO appreciationEventDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("Update_appreciationEvent");
+		apiLogInfo.setSubFeatureName("Update Appreciation Event");
 		apiLogInfo.setApiUrl("/api/updateAppreciationEvent");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
@@ -553,6 +667,7 @@ public class AppreciationService {
 		ServiceResponse response = new ServiceResponse();
 		
 		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("Delete Appreciation Event");
 		apiLogInfo.setApiUrl("/api/getAppreciateEmployeeByCurrentUser");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
@@ -604,7 +719,97 @@ public class AppreciationService {
 		return response;
 	}
 	
-}
+	
+    
+    public ServiceResponse CountMyAppreciationBYcurrentUser(AppreciationDTO appreciationDTO) {
+        ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/CountMyAppreciationBYcurrentUser");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("AppreciationTo: " +appreciationDTO.getAppreciationTo());
+		try {
+		  Long appreciationRecieved = appreciationRepository.countRecievedAppreciationBYcurrentUser(appreciationDTO.getAppreciationTo());
+		   
+          Long appreciationSent = appreciationRepository.countSentAppreciationByCurrentUser(appreciationDTO.getAppreciationBy());  
+     
+          
+          //RECIEVED Appreciation BY TYPE
+          Long appTypeYouAreMyStar = appreciationRepository.countMyAppreciationType_You_are_my_Star(appreciationDTO.getAppreciationTo());
+          
+          Long appTypeYouAreGemOfaPerson = appreciationRepository.countMyAppreciationType_You_are_Gem_of_a_Person(appreciationDTO.getAppreciationTo());
+          
+          Long appTypeYouAreAProblemSolver = appreciationRepository.countMyAppreciationType_You_are_A_Problem_Solver(appreciationDTO.getAppreciationTo());
+          
+          Long appTypeYouAreSupportive = appreciationRepository.countMyAppreciationType_You_are_Supportive(appreciationDTO.getAppreciationTo());
+          
+          Long appTypeYouAreReliable = appreciationRepository.countMyAppreciationType_You_are_Reliable(appreciationDTO.getAppreciationTo());
+          
+          Long appTypeYouAreAMotivator = appreciationRepository.countMyAppreciationType_You_are_a_Motivator(appreciationDTO.getAppreciationTo());
+          
+          //SENT Appreciation BY TYPE
+          Long sentTypeYouAreMyStar = appreciationRepository.countSentAppreciationType_You_are_my_Star(appreciationDTO.getAppreciationBy());
+          
+          Long sentTypeYouAreGemOfaPerson = appreciationRepository.countSentAppreciationType_You_are_Gem_of_a_Person(appreciationDTO.getAppreciationBy());
+          
+          Long sentTypeYouAreAProblemSolver = appreciationRepository.countSentAppreciationType_You_are_A_Problem_Solver(appreciationDTO.getAppreciationBy());
+          
+          Long sentTypeYouAreSupportive = appreciationRepository.countSentAppreciationType_You_are_Supportive(appreciationDTO.getAppreciationBy());
+          
+          Long sentTypeYouAreReliable = appreciationRepository.countSentAppreciationType_You_are_Reliable(appreciationDTO.getAppreciationBy());
+          
+          Long sentTypeYouAreAMotivator = appreciationRepository.countSentAppreciationType_You_are_a_Motivator(appreciationDTO.getAppreciationBy());
+          
+          
+          
+              if (appreciationSent==0 && appreciationRecieved==0) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL); 
+				response.setServiceResponse("No Appreciations found.");
+				
+				apiLogInfo.setApiResponse("No Appreciations found.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+			} else {
+				appreciationDTO = new AppreciationDTO();
+				appreciationDTO.setYouAreMyStarCount(appTypeYouAreMyStar);
+				appreciationDTO.setYouAreGemOfAPersonCount(appTypeYouAreGemOfaPerson);
+				appreciationDTO.setYouAreAproblemSolverCount(appTypeYouAreAProblemSolver);
+				appreciationDTO.setYouAreSupportiveCount(appTypeYouAreSupportive);
+				appreciationDTO.setYouAreReliableCount(appTypeYouAreReliable);
+				appreciationDTO.setYouAreAMotivatorCount(appTypeYouAreAMotivator);
+				
+				appreciationDTO.setSentYouAreMyStarCount(sentTypeYouAreMyStar);
+				appreciationDTO.setSentYouAreGemOfAPersonCount(sentTypeYouAreGemOfaPerson);
+				appreciationDTO.setSentYouAreAproblemSolverCount(sentTypeYouAreAProblemSolver);
+				appreciationDTO.setSentYouAreSupportiveCount(sentTypeYouAreSupportive);
+				appreciationDTO.setSentYouAreReliableCount(sentTypeYouAreReliable);
+				appreciationDTO.setSentYouAreAMotivatorCount(sentTypeYouAreAMotivator);
+				
+				
+				appreciationDTO.setAppreciationSent(appreciationSent);
+				appreciationDTO.setAppreciationReceived(appreciationRecieved);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(appreciationDTO);
+				
+				apiLogInfo.setApiResponse("Appreication Sent : " + appreciationSent + " ,AppreciationReceived :" + appreciationRecieved);			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+    }
 	
 	
 

@@ -20,7 +20,7 @@ import { LocationStrategy } from '@angular/common';
 export class UserAppreciationComponent implements OnInit {
 
  // jobRoleObj: Appreciation = new Appreciation();
-  //modal 
+  //modal
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
 
@@ -35,23 +35,32 @@ export class UserAppreciationComponent implements OnInit {
   appreciationEventInfo:enableAppreciation;
   appreciateEmployeeByCurrentUser: any[] = [];
   allAppreciateEmployee:any;
-  
- 
+  appreciationcount:any;
+  isAppreciateRecieved:boolean = false;
+  isAppreciationSent:boolean = false;
+  isReceievedData:boolean;
+  isSentData:boolean;
+  clickCount: number = 0;
+  clickCount2:number = 0;
+  countSent:number = 0;
+  countRecieved:number=0;
   constructor(private appreciationService : AppreciationService,
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
     private validationService: ValidationService,
     private locationStrategy: LocationStrategy
-    ) { 
+    ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
   ngOnInit(): void {
     this.employeeObj.empId=this.currentUser.empId;
-    this.employeeObj.appreciateType = 'You are my Star';	 
+    this.employeeObj.appreciateType = 'You are my Star';
     this.appreciationEventInfo = this.currentUser.appreciationEventInfo;
     this.getAppreciateEmployeeByCurrentUser();
     this.preventBackButton();
+    this.CountMyAppreciationBYcurrentUser();
+    console.log("appreicationEventInfo :",this.currentUser.appreciationEventInfo);
   }
   preventBackButton(){
     history.pushState(null, null, location.href);
@@ -60,12 +69,63 @@ export class UserAppreciationComponent implements OnInit {
     })
   }
 
+  showMyAppreciation(){
+    this.isReceievedData = true;
+    this.isSentData = false;
+    this.isAppreciationSent = false;
+    return this.isAppreciateRecieved = true;
+
+  }
+
+  hideMyAppreication(){
+    this.isSentData=false;
+    this.isAppreciationSent=false;
+    this.isReceievedData = false;
+    return this.isAppreciateRecieved = false;
+
+  }
+  toggleFunctionforreceived() {
+    if (this.clickCount === 0) {
+      this.showMyAppreciation();
+      this.clickCount = 1;
+    } else {
+      this.hideMyAppreication();
+      this.clickCount = 0;
+    }
+  }
+  showSentAppreciation(){
+    this.isReceievedData = false;
+    this.isAppreciateRecieved = false;
+    this.isSentData = true;
+    return this.isAppreciationSent = true;
+
+  }
+  hideSentAppreciation(){
+    this.isAppreciateRecieved=false;
+    this.isReceievedData=false;
+    this.isAppreciationSent = false;
+    return this.isAppreciationSent = false;
+  }
+  toggleFunctionforsent() {
+    if (this.clickCount2 === 0) {
+      this.showSentAppreciation();
+      this.clickCount2 = 1;
+    } else {
+      this.hideSentAppreciation();
+      this.clickCount2 = 0;
+    }
+  }
+
+
   reset(){
    this.employeeObj = new Employee();
    this.employeeObj.empId='';
    this.employeeObj.managerName=null;
    this.employeeObj.appreciateType=null;
    this.employeeObj.reason=null;
+   this.countRecieved=0;
+   this.countSent=0;
+
   }
   getAppreciateEmployeeByCurrentUser(){
     this.employeeObj.appreciationBy = this.currentUser.employeementId;
@@ -84,8 +144,27 @@ export class UserAppreciationComponent implements OnInit {
     });
 
   }
+  CountMyAppreciationBYcurrentUser(){
+    this.employeeObj.appreciationTo = this.currentUser.employeementId;
+    console.log("CurrentEmpId :",this.employeeObj.appreciationTo);
+    this.appreciationService.CountMyAppreciationBYcurrentUser(this.employeeObj).pipe(first()).subscribe((response :any) =>{
+      if(response.serviceStatus == "Success"){
+        this.appreciationcount = response.serviceResponse;
+         this.countSent = this.appreciationcount.appreciationSent;
+         this.countRecieved = this.appreciationcount.appreciationReceived;
+
+        console.log("appreicationcount :", this.appreciationcount);
+        console.log("sent count",this.countSent);
+        console.log("count received",this.countRecieved);
+
+      }
+      else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
   getAllEmployees() {
-    
+
     this.appreciationService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployee = response.serviceResponse;
@@ -99,7 +178,7 @@ export class UserAppreciationComponent implements OnInit {
        this.appreciateEmployeeByCurrentUser.forEach((x) => {
        console.log(x.appreciationTo , " :   appriciation to");
        })
-       
+
        this.allEmployee.forEach((employee)=>{
          const appreciatedEmployee = this.appreciateEmployeeByCurrentUser.find((apprEmployee)=> employee.employeementId == apprEmployee.appreciationTo);
          if(appreciatedEmployee){
@@ -139,32 +218,32 @@ export class UserAppreciationComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    if(!this.validationService.validateAlphaWithSpace(employeeObj.reason)) {	
-      this.alertMessage = "Only support letters in Description !!"	
-      this.openAlertMod(template, this.alertMessage);	
-      return false;	
+    if(!this.validationService.validateAlphaWithSpace(employeeObj.reason)) {
+      this.alertMessage = "Only support letters in Description !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
     if(!this.validationService.validateTeamName(employeeObj.reason)){
       this.alertMessage = "Please enter a valid comment for why you want to give appreciation?"
-      this.openAlertMod(template, this.alertMessage);	
-      return false;	
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
     return true;
   }
- 
+
   submitAppreciation(template: TemplateRef<any>)
   {
     let inputValidated: boolean = this.validateAppreciation(this.employeeObj, template)
     if (!inputValidated) return;
-   
-  
+
+
     //email
     this.employeeObj.email = this.currentUser.email;
     this.employeeObj.emailAppreciated = this.employee.email;
     console.log("current user mail" + this.employeeObj.email)
     console.log("appreciation mail" + this.employeeObj.emailAppreciated)
 
-    
+
     //employment id
     this.employeeObj.appreciationBy = this.currentUser.employeementId;
     this.employeeObj.appreciationTo = this.employee.employeementId;
@@ -187,15 +266,15 @@ export class UserAppreciationComponent implements OnInit {
     this.employeeObj.appreciateType=this.employeeObj.appreciateType;
     this.employeeObj.reason=this.employeeObj.reason;
 
-   
+
 
     this.appreciationService.submitAppreciation(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.all = response.serviceResponse;
         console.log("appreciation : ", this.all)
-        this.openAlertMod(template, response.serviceResponse); 
-        this.getAppreciateEmployeeByCurrentUser();
-        this.reset();  
+        this.openAlertMod(template, response.serviceResponse);
+        this.ngOnInit();
+        this.reset();
       } else {
         console.error(response.serviceResponse)
       }
@@ -203,7 +282,7 @@ export class UserAppreciationComponent implements OnInit {
   }
 
   getManagerByEmpId(empId: any){
-    
+
     console.log(empId);
     this.employee = this.allEmployee.find(x => x.empId == empId);
     console.log(this.employee.managerName);

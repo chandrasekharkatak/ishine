@@ -1305,7 +1305,7 @@ public class EmployeeService {
 				employee.setTotalExperience(employeedto.getTotalExperience());
 				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				employee.setDesignationId(employeedto.getDesignationId());
-				
+				employee.setReportingManagerId(employeedto.getReportingManagerId());
 				if(employeedto.getReportingManagerId() == null) {
 					employee.setApprovalsTo(null);
 				}else {

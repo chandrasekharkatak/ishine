@@ -37,4 +37,6 @@ public class ResourceManagementDTO {
 	private String projectType;
 	private Integer projectId;
 	private String status;
+	private Long isActive;
+	private String projectName;
 }

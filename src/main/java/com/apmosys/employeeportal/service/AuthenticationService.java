@@ -228,6 +228,8 @@ public class AuthenticationService {
 					ServiceResponse serviceResponse = tabMasterService.getTabsByRoleId(employee.getJobRoleId());
 					EmployeeDTO currentEmployeeDto = employeeService.getEmployeeInfoOnLogin(employeedto.getEmail());
 					AppreciationEventDTO currentEventDto = appreciationService.getAppreciationEventInfo();	
+					
+					System.err.println("Enable appreciation ::   "+ currentEventDto);
 
 					currentEmployeeDto.setTimesheetBackDatedDays(timesheetBackDatedDays);
 					currentEmployeeDto.setCompOffLockDays(compOffLockDays);

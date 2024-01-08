@@ -41,6 +41,7 @@ class FilterData {
   styleUrls: ['./portal-config.component.css']
 })
 export class PortalConfigComponent implements OnInit {
+[x: string]: any;
 
   feature = "Portal Config";
   currentUser: User;
@@ -57,14 +58,14 @@ export class PortalConfigComponent implements OnInit {
   sortColumnType:any;
 
   helpObj:Help = new Help();
-  holidayObj:Holiday = new Holiday(); 
+  holidayObj:Holiday = new Holiday();
 
   maxFileSize:any;
 	maxRequestSize:any;
   fileSize: number = 0;
   helpDocumentName:any;
 
-  //flag	
+  //flag
   portalConfig: boolean = false;
   appreciationConfig: boolean = false;
   viewEventConfig: boolean = false;
@@ -78,6 +79,7 @@ export class PortalConfigComponent implements OnInit {
   isHelpConfiguration: boolean = false;
   isHelpTable: boolean = false;
   isUploadForm: boolean = false;
+  isAppreciationInfo : boolean = false;
 
   alertMessage: any;
   @ViewChild('alert_message') alertTemplate: TemplateRef<any>;
@@ -101,6 +103,10 @@ export class PortalConfigComponent implements OnInit {
   employeeList: any[] = [];
   document: any[] = [];
   files:any[] = [];
+  EventSummaryInfo:any;
+  EmployeeAppreciationList:any[]=[];
+  AppreciationInfo : any[]=[];
+
 
   allMonth: any[] = [
     "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
@@ -131,7 +137,7 @@ export class PortalConfigComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Dynamic Subfeature Flags 
+    // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -223,10 +229,10 @@ export class PortalConfigComponent implements OnInit {
           event.createdOn = (event.createdOn) ? moment(event.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
         // this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
-        console.log("allEventList : ", this.allAppreciationEvent)
+        console.log("allAppreciationEventList : ", this.allAppreciationEvent);
       } else {
         //this.openAlertMod(this.alertTemplate, response.serviceResponse)
-        console.log("allEventList : ", this.allAppreciationEvent);
+        console.log("allAppreciationEventList: ", this.allAppreciationEvent);
 
       }
     });
@@ -324,7 +330,7 @@ export class PortalConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.holidayList = response.serviceResponse;
         this.holidayDates = this.holidayList.map(holiday => new Date(this.datePipe.transform(holiday.dateOfHoliday, 'MM/dd/yyyy')));
-        console.log("holidayDates : ", this.holidayDates); 
+        console.log("holidayDates : ", this.holidayDates);
         console.log("holidayList : ", this.holidayList);
       } else {
         console.error(response.serviceResponse);
@@ -407,7 +413,7 @@ export class PortalConfigComponent implements OnInit {
     this.isAppreciationTable = false;
     this.isCreation = true;
     this.viewEventConfig = false;
-    this.isUpdation = false;
+    this.isUpdation =  false;
     this.isHelpConfiguration = false;
     this.reset();
   }
@@ -477,7 +483,7 @@ export class PortalConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return;
     }
-    
+
     if (!this.validationService.validateNullUndefinedEmptyString(portalObj.noticePeriod)) {
       this.alertMessage = "Please enter Notice Period !!"
       this.openAlertMod(template, this.alertMessage);
@@ -656,13 +662,13 @@ export class PortalConfigComponent implements OnInit {
     console.log("queryList : ", queryList);
 
     /* queryList Store query object and Stored data to re-populate same conditions if filter is re-opened.
-      Here we dont require any Stored data from Custom filter, hence assigning query object from queryList at index 0   
+      Here we dont require any Stored data from Custom filter, hence assigning query object from queryList at index 0
     */
 
     let queryObj = queryList[0]
     this.queryList = queryList[0];
     console.log("queryObj : ", queryObj);
-    
+
     this.cancelRequest();
 
     if (this.filterData.title == 'Filter Appreciation') {
@@ -850,7 +856,7 @@ export class PortalConfigComponent implements OnInit {
         });
         console.log("appByCategory : ", this.appByCategory)
         this.isAppreciationTable = true;
-        //this.reset();       
+        //this.reset();
       } else {
         // this.openAlertMod(template, response.serviceResponse)
         console.error(response.serviceResponse);
@@ -859,6 +865,73 @@ export class PortalConfigComponent implements OnInit {
     });
 
   }
+  getAppreciationEventSummaryInfo(appreciationEvent: any){
+    this.portalConfig = false;
+    this.appreciationConfig = false;
+    this.viewAppreciationForm = true;
+    this.isAppreciationTable = false;
+    this.isTable = false;
+    this.viewEventConfig = false;
+    this.isCreation = false;
+    this.isUpdation = false;
+    this.isHelpConfiguration = false;
+    this.appreciationObj = appreciationEvent;
+    console.log("appreciationObj :",this.appreciationObj);
+    this.portalService.getAppreciationEventSummaryInfo(this.appreciationObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+         this.EventSummaryInfo= response.serviceResponse;
+         console.log("EventSummaryInfo :",this.EventSummaryInfo);
+        }
+      else {
+        console.error(response.serviceResponse);
+
+      }
+    });
+
+    this.portalService.getAllEmployeeAppreciationListByCategory(this.appreciationObj).pipe(first()).subscribe((response:any) =>{
+      if (response.serviceStatus =="Success"){
+        this.EmployeeAppreciationList = response.serviceResponse;
+        console.log("EmployeeAppreciationList :",this.EmployeeAppreciationList);
+
+
+      }
+      else {
+        console.error(response.serviceResponse);
+
+      }
+    });
+
+  }
+
+
+  viewAppreciationInfo(EmployeeAppreciationList:any){
+    this.portalConfig = false;
+    this.appreciationConfig = false;
+    this.viewAppreciationForm = false;
+    this.isAppreciationTable = false;
+    this.isTable = false;
+    this.viewEventConfig = false;
+    this.isCreation = false;
+    this.isUpdation = false;
+    this.isHelpConfiguration = false;
+    this.isAppreciationInfo = true;
+    this.EmployeeAppreciationList.forEach(element => {
+      this.appreciationObj[element.employeement_id] = element.employeement_id;
+    });
+    this.portalService.viewAppreciationInfo(this.appreciationObj).pipe(first()).subscribe((response:any) =>{
+      if (response.serviceStatus =="Success"){
+        this.AppreciationInfo = response.serviceResponse;
+        console.log("appreciationObj:" ,this.appreciationObj);
+        console.log("AppreciationInfo :",this.AppreciationInfo);
+      }
+      else {
+        console.error(response.serviceResponse);
+
+      }
+    });
+  }
+
+
   validateViewAppreciation(appreciationObj: enableAppreciation, template: TemplateRef<any>) {
 
     if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.appreciationEventId)) {
@@ -885,6 +958,7 @@ export class PortalConfigComponent implements OnInit {
     this.viewEventConfig = true;
     this.isCreation = false;
     this.isUpdation = false;
+    this.isAppreciationInfo = false;
     this.getAllEvent();
 
   }
@@ -1043,7 +1117,7 @@ export class PortalConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }else if(!this.validationService.validateAlphaNumericWithSpace(this.helpDocumentName)){
-      this.alertMessage = "Please enter Valid Help Document Name, Alphabets, Numbers & space allowed !!"
+      this.alertMessage = "Please enter Valid Help Document Name, Alphabets, Numericals & space allowed !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -1101,7 +1175,7 @@ export class PortalConfigComponent implements OnInit {
     this.cancelRequest();
 
     console.log(this.helpObj, " : this.helpObj");
-    
+
 
     this.helpService.deleteHelpDocument(this.helpObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1138,7 +1212,7 @@ export class PortalConfigComponent implements OnInit {
   copyHelpDocumentLink(doc:any,template: TemplateRef<any>) {
     let url = window.location.href.split("#")[0].concat("#/helpdesk/").concat(doc.helpDocId);
     console.log(url, " : url");
-    
+
     this.clipboardService.copy(url);
     this.openAlertMod(template, "Link copied to clipboard !!");
   }
@@ -1169,14 +1243,14 @@ export class PortalConfigComponent implements OnInit {
   handlePageChange(event) {
     this.page = event;
   }
-  
-  sortData(sort: Sort){	
+
+  sortData(sort: Sort){
     console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;
     }
   }
 

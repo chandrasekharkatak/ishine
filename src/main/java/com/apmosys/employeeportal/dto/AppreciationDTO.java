@@ -31,5 +31,28 @@ public class AppreciationDTO {
 	private String managerName;	
 	private String managerMail;
 	private Long appreciationEventId;
+	//Count Appreciation
+		private Long appreciationSent;
+		private Long appreciationReceived;
+		private Long YouAreMyStarCount;
+		private Long YouAreGemOfAPersonCount;
+		private Long YouAreAproblemSolverCount;
+		private Long YouAreSupportiveCount;
+		private Long YouAreReliableCount;
+		private Long YouAreAMotivatorCount;
+		   //sent count
+		private Long SentYouAreMyStarCount;
+		private Long SentYouAreGemOfAPersonCount;
+		private Long SentYouAreAproblemSolverCount;
+		private Long SentYouAreSupportiveCount;
+		private Long SentYouAreReliableCount;
+		private Long SentYouAreAMotivatorCount;
+		   //totalcount
+		private Long TotalYouAreMyStarCount;
+		private Long TotalYouAreGemOfAPersonCount;
+		private Long TotalYouAreAproblemSolverCount;
+		private Long TotalYouAreSupportiveCount;
+		private Long TotalYouAreReliableCount;
+		private Long TotalYouAreAMotivatorCount;
 	
 }

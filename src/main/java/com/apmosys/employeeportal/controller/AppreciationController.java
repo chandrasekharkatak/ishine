@@ -65,5 +65,28 @@ public class AppreciationController {
 		ServiceResponse response=appreciationService.getAppreciateEmployeeByCurrentUser(appreciationDTO);	
 		return response;	
 	}
+
+    @RequestMapping(value = "CountMyAppreciationBYcurrentUser" ,method = RequestMethod.POST)
+    public ServiceResponse CountMyAppreciationBYcurrentUser(@RequestBody AppreciationDTO appreciationDTO) {
+    	ServiceResponse response=appreciationService.CountMyAppreciationBYcurrentUser(appreciationDTO);
+    	return response;
+    }
+    @RequestMapping(value = "getAppreciationEventSummaryInfo" ,method = RequestMethod.POST)
+   public ServiceResponse getAppreciationEventSummaryInfo(@RequestBody AppreciationEventDTO AppreciationEventDTO ) {
+  	ServiceResponse response=appreciationService.getAppreciationEventSummaryInfo(AppreciationEventDTO);
+   	return response;
+    }
+    
+    @RequestMapping(value = "getAllEmployeeAppreciationListByCategory" ,method = RequestMethod.POST)
+    public ServiceResponse getAllEmployeeAppreciationListByCategory(@RequestBody AppreciationEventDTO AppreciationEventDTO ) {
+   	ServiceResponse response=appreciationService.getAllEmployeeAppreciationListByCategory(AppreciationEventDTO);
+    	return response;
+     }
+    @RequestMapping(value = "viewAppreciationInfo" ,method = RequestMethod.POST)
+    public ServiceResponse viewAppreciationInfo(@RequestBody AppreciationEventDTO AppreciationEventDTO ) {
+   	ServiceResponse response=appreciationService.viewAppreciationInfo(AppreciationEventDTO);
+    	return response;
+     }
+   
     
 }
