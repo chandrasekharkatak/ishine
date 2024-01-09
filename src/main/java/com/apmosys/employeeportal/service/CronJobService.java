@@ -412,7 +412,7 @@ public class CronJobService {
 //	}
 	 
 	// At 11:20 AM, on day 02 of the month, only in January
-@Scheduled(cron = "0 50 14 09 01 ?")
+@Scheduled(cron = "0 25 15 09 01 ?")
 	
 	public void YearlyLeaveCronJob() {
 		System.out.println("*************************************************************************");
@@ -536,6 +536,47 @@ public class CronJobService {
 															Float.toString(deductedLeaveCount)));
 													log.setUpdateBalanceBy("-" + deductedLeaveCount);
 
+													leaveBalanceLogRepository.save(log);
+												}
+											}else if(dbBalance == carryForwardValue) {
+												float newBalance = carryForwardValue;
+												EmployeeLeavesMap elm = new EmployeeLeavesMap();
+												elm.setEmployeeLeavesMapId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+												newBalance = (float) (newBalance+1.5);
+												System.err.println(" Plan leaved PL deduct and set increases value ");
+												elm.setBalance(newBalance);
+												elm.setEmpId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+												elm.setLeaveTypeMasterId(object[3] != null ? Short.parseShort(object[3].toString()) : null);
+												elm.setPendingForApproval(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
+												
+												EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(elm);
+
+												if (dbResponse != null) {
+													LeaveBalanceLog log = new LeaveBalanceLog();
+
+													log.setBalance(newBalance);
+													log.setEmpId(elm.getEmpId());
+													log.setLeaveTypeMasterId(ltm.getLeaveTypeMasterId());
+													leaveBalanceLogRepository.save(log);
+												}
+											}else if(dbBalance < carryForwardValue) {
+												float newBalance = dbBalance;
+												EmployeeLeavesMap elm = new EmployeeLeavesMap();
+												elm.setEmployeeLeavesMapId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+												newBalance = (float) (newBalance+1.5);
+												System.err.println(" Plan leaved PL deduct and set increases value ");
+												elm.setBalance(newBalance);
+												elm.setEmpId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+												elm.setLeaveTypeMasterId(object[3] != null ? Short.parseShort(object[3].toString()) : null);
+												elm.setPendingForApproval(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
+												
+												EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(elm);
+												if (dbResponse != null) {
+													LeaveBalanceLog log = new LeaveBalanceLog();
+
+													log.setBalance(newBalance);
+													log.setEmpId(elm.getEmpId());
+													log.setLeaveTypeMasterId(ltm.getLeaveTypeMasterId());
 													leaveBalanceLogRepository.save(log);
 												}
 											}
