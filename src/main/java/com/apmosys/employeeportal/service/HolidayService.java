@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.service;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -416,6 +417,7 @@ public class HolidayService {
 			
 			LocalDate holidayDate = LocalDate.parse(holidayDTO.getDateOfHoliday());
 			Holiday holidayObj = holidayRepository.findFirstByDateOfHolidayAndState(holidayDate,"all");
+			System.out.println(" ANurag "+holidayObj+ " holidayDate  : "+holidayDate);
 			
 			List<Employee> allEmployee = employeeRepository.findAll();
 			
@@ -481,6 +483,11 @@ public class HolidayService {
 					apiLogInfo.setApiResponse("Employee List is empty");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
+			} else {
+			    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			    response.setServiceResponse("No holiday found for the specified date and state");
+			    apiLogInfo.setApiResponse("No holiday found for the specified date and state");
+			    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 		}catch(Exception e) {
 			e.printStackTrace();
