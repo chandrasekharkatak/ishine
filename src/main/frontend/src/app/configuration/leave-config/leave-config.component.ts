@@ -637,7 +637,9 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   getAllHolidays() {
-
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.holidayList = [];
     this.holidayListFilter = [];
     this.data = ''
@@ -833,6 +835,9 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   getAllLeaveTypes() {
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.leaveTypes = [];
     this.data = ''
     this.leaveService.getAllLeaveTypes().pipe(first()).subscribe((response: any) => {
@@ -1168,7 +1173,9 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   getAllLeavePolicies() {
-
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.data = ''
     this.leavePolicyList = [];
 

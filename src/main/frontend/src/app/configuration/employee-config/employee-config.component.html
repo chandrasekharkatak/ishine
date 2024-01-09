@@ -28,8 +28,10 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Emp Id</label>
-                                                <input type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8" autocomplete="none"
+                                                <input *ngIf="!isUpdation" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8" autocomplete="none"
                                                 [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">
+                                                <input *ngIf="isUpdation" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8" autocomplete="none"
+                                                [(ngModel)]="employeeObj.employeementId" readonly>
                                             </div>
                                         </div>
                                     </div>

@@ -412,7 +412,7 @@ public class CronJobService {
 //	}
 	 
 	// At 11:20 AM, on day 02 of the month, only in January
-@Scheduled(cron = "0 50 13 05 01 ?")
+@Scheduled(cron = "0 50 14 09 01 ?")
 	
 	public void YearlyLeaveCronJob() {
 		System.out.println("*************************************************************************");
@@ -460,7 +460,7 @@ public class CronJobService {
 				              	        startDate.set(currentYear-1, Calendar.JULY, 1);
 				              	        
 				              	        Calendar endDate = Calendar.getInstance();
-				              	        endDate.set(currentYear-1, Calendar.DECEMBER, 31);
+				              	        endDate.set(currentYear, Calendar.JANUARY, 10);
 				              	        
 				              	        System.out.println("Start Date and End Date     ::   "+startDate.getTime()+" = "+endDate.getTime());
 				              	        
@@ -517,6 +517,8 @@ public class CronJobService {
 												
 												EmployeeLeavesMap elm = new EmployeeLeavesMap();
 												elm.setEmployeeLeavesMapId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+												newBalance = (float) (newBalance+1.5);
+												System.err.println(" Plan leaved PL deduct and set increases value ");
 												elm.setBalance(newBalance);
 												elm.setEmpId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
 												elm.setLeaveTypeMasterId(object[3] != null ? Short.parseShort(object[3].toString()) : null);

@@ -155,7 +155,7 @@ export class DeptConfigComponent implements OnInit {
       this.alertMessage = "Please enter Department Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    } else if (!this.validationService.validateAlphaWithSpace(deptObj.name)) {
+    } else if (!this.validationService.validateDepartmentName(deptObj.name)) {
       this.alertMessage = "Please enter Valid Department Name!!"
       this.openAlertMod(template, this.alertMessage);
       return false;

@@ -187,6 +187,9 @@ export class HomeConfigComponent implements OnInit {
   }
 
   showNotificationTable(){
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.isNotificationTable = true;
     this.isNotificationForm = false;
 
@@ -213,6 +216,9 @@ export class HomeConfigComponent implements OnInit {
   }
 
   showTable() {
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.isTable = true;
 
     this.isPhotoForm = false;

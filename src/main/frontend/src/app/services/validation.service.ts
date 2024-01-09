@@ -306,6 +306,21 @@ export class ValidationService {
 
   }
 
+  validateDepartmentName(text : string): boolean {
+    const regex = /^[a-zA-Z0-9-_ |()]+$/;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+  }
+
   validateActivityName(text: string): boolean {
 
     const regex = /^[ A-Za-z0-9()-\/_\/]{3,}\w*$/;
