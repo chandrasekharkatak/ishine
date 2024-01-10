@@ -1469,6 +1469,7 @@ return true;
     console.log("Update Employe : ", this.employeeObj);
 
     let employee = Object.assign({}, this.employeeObj);
+    employee.imageBytes="";
     employee.updatedBy = this.currentUser.empId;
 
     if(this.employeeObj.employeementId.startsWith('A-')){
@@ -1488,6 +1489,7 @@ return true;
       employee.reportingManagerId = null;
       employee.approvalsTo = null;
     }
+console.log("Anurag call update method  ::  ",employee);
 
     this.employeeService.updateEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
