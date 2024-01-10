@@ -173,7 +173,7 @@ export class LeaveComponent implements OnInit {
     console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
-    // this.getAllLeaveTypes();
+    this.getAllLeaveTypes();
     this.getAllLeaveTypesByLeavePolicies(this.currentUser);
     this.getAllPortalConfigData();
     // this.dateToday = this.datePipe.transform(this.dateToday,'dd-MM-yyyy');
@@ -221,6 +221,7 @@ export class LeaveComponent implements OnInit {
 
     this.reset();
     this.getAllHolidays();
+    this.getAllLeaveTypes();
     this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
     this.leaveObj.fromDateDayType = ''
     this.leaveObj.toDateDayType = ''
@@ -708,11 +709,14 @@ export class LeaveComponent implements OnInit {
     }
     
     if(this.leaveObj.leaveAppliedFor == 'self'){
-      if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
+      if(this.leaveObj.leaveTypeCode == 'ML'){
         return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
-      }else{
-        return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
-      }
+      }else
+        if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
+          return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
+        }else{
+          return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
+        }
     }else{
       let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
       if(this.weekOffExcludedDepartmentList.find(deptId => deptId == teamMember.departmentId)){
@@ -726,17 +730,24 @@ export class LeaveComponent implements OnInit {
   }
 
   holidayHighlight: MatCalendarCellClassFunction<Date> = (cellDate, view) => {
+    // console.log("leaveObj  ::  ",this.leaveObj);
     // Only highligh dates inside the month view.
     if (view === 'month') {
       const time = cellDate.getTime()
       
       // Highlight the holidays.
       if(this.leaveObj.leaveAppliedFor == 'self'){
-        if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
+        if(this.leaveObj.leaveTypeCode == 'ML'){
+          this.isWeekOffsExcluded=true;
           return '';
         }else{
-          return (this.holidayDates.find(x=>x.getTime()==time)) ? 'holiday-date' : '';
+          if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
+            return '';
+          }else{
+            return (this.holidayDates.find(x=>x.getTime()==time)) ? 'holiday-date' : '';
+          }
         }
+       
       }else{
         let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
         if(this.weekOffExcludedDepartmentList.find(deptId => deptId == teamMember.departmentId)){
@@ -745,8 +756,6 @@ export class LeaveComponent implements OnInit {
           return (this.holidayDates.find(x=>x.getTime()==time)) ? 'holiday-date' : '';
         }
       }
-
-      
     }
     return '';
   }
@@ -775,11 +784,14 @@ export class LeaveComponent implements OnInit {
     }
 
     if(this.leaveObj.leaveAppliedFor == 'self'){
-      if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
-        return ((moment(d).format(dateFormat) >= moment(this.leaveObj.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat))) ? true : false;
-      }else{
-        return ((moment(d).format(dateFormat) >= moment(this.leaveObj.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat))) ? true : false;
-      } 
+      if(this.leaveObj.leaveTypeCode == 'ML'){
+        return ((moment(d).format(dateFormat) >= moment(this.leaveObj.fromDate).format(dateFormat)&& moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat))) ? true : false;
+      }else
+        if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
+          return ((moment(d).format(dateFormat) >= moment(this.leaveObj.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat))) ? true : false;
+        }else{
+          return ((moment(d).format(dateFormat) >= moment(this.leaveObj.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat))) ? true : false;
+        }  
     }else{
       let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
       if(this.weekOffExcludedDepartmentList.find(deptId => deptId == teamMember.departmentId)){
@@ -869,7 +881,17 @@ export class LeaveComponent implements OnInit {
     
 
     if(this.leaveObj.leaveAppliedFor == 'self'){
-      if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
+      if(this.leaveObj.leaveTypeCode == 'ML'){
+        this.isWeekOffsExcluded = true;
+        if (moment(this.leaveObj.fromDate).format(dateFormat) == moment(this.leaveObj.toDate).format(dateFormat)) {	
+          this.leaveObj.toDateDayType = 0;		
+        }	
+        const START_DAY_COUNT = 1;	
+        const diff = (e, t) => Math.abs(Math.floor((new Date(e).getTime() - new Date(t).getTime()) / (1000 * 60 * 60 * 24)));	
+        this.leaveObj.noOfDays = (START_DAY_COUNT - this.leaveObj.fromDateDayType) + (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - this.leaveObj.toDateDayType);
+        console.log(" Maternity leave apply :: no of days test ::  ",this.leaveObj.noOfDays);
+      }
+      else if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
         this.isWeekOffsExcluded = true;
         if (moment(this.leaveObj.fromDate).format(dateFormat) == moment(this.leaveObj.toDate).format(dateFormat)) {	
           this.leaveObj.toDateDayType = 0;		
@@ -1462,7 +1484,7 @@ export class LeaveComponent implements OnInit {
 
 
   getAllLeaveTypes(){
-    this.leaveTypes = [];
+    // this.leaveTypes = [];
 
     this.leaveService.getAllLeaveTypes().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1475,7 +1497,7 @@ export class LeaveComponent implements OnInit {
   }
 
   getAllLeaveTypesByLeavePolicies(userObj:User){
-    this.leaveTypes = [];
+    // this.leaveTypes = [];
 
     let leaveObj = new Leave();
     leaveObj.employmentStatus = userObj.employmentstatus;
