@@ -157,8 +157,8 @@ export class LeaveComponent implements OnInit {
 
   ngOnInit(): void {
     this.logService.updateLogInfo(this.log);
-    console.log("this.currentUser : ", this.currentUser);
-    console.log("logInfo : ", this.log);
+    //console.log("this.currentUser : ", this.currentUser);
+    //console.log("logInfo : ", this.log);
 
     this.leaveObj.leaveTypeMasterId = '';
     this.leaveObj.fromDateDayType = 0;
@@ -170,7 +170,7 @@ export class LeaveComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
+    //console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
     this.getAllLeaveTypes();
@@ -439,7 +439,7 @@ export class LeaveComponent implements OnInit {
       this.leaveObj.leaveAppliedFor = "team";
     }
 
-    console.log("this.leaveObj for Update : ", this.leaveObj);
+    //console.log("this.leaveObj for Update : ", this.leaveObj);
     this.getLeaveMetadata();
   }
 
@@ -456,7 +456,7 @@ export class LeaveComponent implements OnInit {
   openDeleteLeave(template: TemplateRef<any>, leaveHistory: any) {	
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });	
     this.leaveObj = leaveHistory;	
-    console.log(this.leaveObj);	
+    //console.log(this.leaveObj);	
   }
 
   openRevokeApprovedLeaveApplication(template: TemplateRef<any>, leaveHistory: any) {
@@ -467,7 +467,7 @@ export class LeaveComponent implements OnInit {
     }else{
       this.leaveObj.leaveAppliedFor = 'team';
     }
-    console.log(this.leaveObj);
+    //console.log(this.leaveObj);
   }
 
   openRevokeLeaveRejectModal(template: TemplateRef<any>, leave: any){
@@ -505,22 +505,28 @@ export class LeaveComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    if(!this.validationService.validateNullUndefinedEmptyString(leaveObj.fromDateDayType)){
-      this.alertMessage = "Please select from day type !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
+    if(leaveObj.leaveTypeCode != 'ML'){
+      if(!this.validationService.validateNullUndefinedEmptyString(leaveObj.fromDateDayType)){
+        this.alertMessage = "Please select from day type !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
     }
+    
 
     if(!this.validationService.validateNullUndefinedEmptyString(leaveObj.toDate)){
       this.alertMessage = "Please select To Date !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    if(!this.validationService.validateNullUndefinedEmptyString(leaveObj.toDateDayType)){
-      this.alertMessage = "Please select to day type !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
+    if(this.leaveObj.leaveTypeCode != 'ML'){
+      if(!this.validationService.validateNullUndefinedEmptyString(leaveObj.toDateDayType)){
+        this.alertMessage = "Please select to day type !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
     }
+   
 
     if(!this.validationService.validateNullUndefinedEmptyString(leaveObj.reason)){
       this.alertMessage = "Please enter Leave reason !!"
@@ -730,7 +736,7 @@ export class LeaveComponent implements OnInit {
   }
 
   holidayHighlight: MatCalendarCellClassFunction<Date> = (cellDate, view) => {
-    // console.log("leaveObj  ::  ",this.leaveObj);
+    // //console.log("leaveObj  ::  ",this.leaveObj);
     // Only highligh dates inside the month view.
     if (view === 'month') {
       const time = cellDate.getTime()
@@ -889,7 +895,7 @@ export class LeaveComponent implements OnInit {
         const START_DAY_COUNT = 1;	
         const diff = (e, t) => Math.abs(Math.floor((new Date(e).getTime() - new Date(t).getTime()) / (1000 * 60 * 60 * 24)));	
         this.leaveObj.noOfDays = (START_DAY_COUNT - this.leaveObj.fromDateDayType) + (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - this.leaveObj.toDateDayType);
-        console.log(" Maternity leave apply :: no of days test ::  ",this.leaveObj.noOfDays);
+        //console.log(" Maternity leave apply :: no of days test ::  ",this.leaveObj.noOfDays);
       }
       else if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
         this.isWeekOffsExcluded = true;
@@ -913,7 +919,7 @@ export class LeaveComponent implements OnInit {
           this.holidayWeekOffList = response.serviceResponse;	
           this.holidayWeekOffCount = this.holidayWeekOffList.length;	
         } else {	
-          console.log(response.serviceResponse);	
+          //console.log(response.serviceResponse);	
           this.holidayWeekOffCount = 0;	
         }	
   
@@ -949,7 +955,7 @@ export class LeaveComponent implements OnInit {
           this.holidayWeekOffList = response.serviceResponse;	
           this.holidayWeekOffCount = this.holidayWeekOffList.length;	
         } else {	
-          console.log(response.serviceResponse);	
+          //console.log(response.serviceResponse);	
           this.holidayWeekOffCount = 0;	
         }	
   
@@ -967,17 +973,17 @@ export class LeaveComponent implements OnInit {
     const dateFormat = 'YYYY-MM-DD';	
     this.leaveObj.fromDate = moment(this.leaveObj.fromDate).format(dateFormat)	
     this.leaveObj.toDate = moment(this.leaveObj.toDate).format(dateFormat)	
-    console.log(this.leaveObj.fromDate, this.leaveObj.toDate,  "this.leaveObj.fromDate, this.leaveObj.toDate");	
+    //console.log(this.leaveObj.fromDate, this.leaveObj.toDate,  "this.leaveObj.fromDate, this.leaveObj.toDate");	
     this.leaveService.getHolidayWeekOffSize(this.leaveObj).pipe(first()).subscribe((response: any) => {		
       if (response.serviceStatus == "Success") {	
         	
        this.holidayWeekOffList = response.serviceResponse;	
        this.holidayWeekOffCount= this.holidayWeekOffList.length;	
-       console.log(this.holidayWeekOffCount, "holidayWeekOffCount");        	
-       console.log(this.holidayWeekOffList , ": this.holidayWeekOffSize ");	
+       //console.log(this.holidayWeekOffCount, "holidayWeekOffCount");        	
+       //console.log(this.holidayWeekOffList , ": this.holidayWeekOffSize ");	
       } else {		
        // this.openAlertMod(template, response.serviceResponse);		
-       console.log(response.serviceResponse);	
+       //console.log(response.serviceResponse);	
        	
       }		
     });		
@@ -1053,7 +1059,7 @@ export class LeaveComponent implements OnInit {
       }else{
         // Approvers for Team Member
         let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
-        console.log(this.leaveObj.empId," data filtered on the basis of teamMember ");
+        //console.log(this.leaveObj.empId," data filtered on the basis of teamMember ");
         
         // Level 1
         if(teamMember.reportingManagerId != null && teamMember.approvalsTo == "Reporting Manager"){
@@ -1063,7 +1069,7 @@ export class LeaveComponent implements OnInit {
           this.leaveObj.leaveEmpId = teamMember.empId;
           this.leaveObj.empId=this.leaveObj.leaveEmpId;
           this.LeaveObj.seniorManagerId=teamMember.managerId;
-          console.log("Reporting manager ",this.leaveObj.seniorManagerId);
+          //console.log("Reporting manager ",this.leaveObj.seniorManagerId);
           
           this.leaveObj.empId = this.leaveObj.leaveEmpId;
         }else{
@@ -1074,7 +1080,7 @@ export class LeaveComponent implements OnInit {
           // this.leaveObj.empId = teamMember.empId;
           this.leaveObj.empId=this.leaveObj.leaveEmpId;
           this.LeaveObj.seniorManagerId=teamMember.reportingManagerId;
-          console.log("Reporting manager ",this.leaveObj.seniorManagerId);
+          //console.log("Reporting manager ",this.leaveObj.seniorManagerId);
         }
 
         // Level 2
@@ -1088,7 +1094,7 @@ export class LeaveComponent implements OnInit {
               // this.leaveObj.empId = teamMember.empId;
               this.leaveObj.empId=this.leaveObj.leaveEmpId;
               this.LeaveObj.seniorManagerId=teamMember.reportingManagerId;
-          console.log("Reporting manager ",this.leaveObj.seniorManagerId);
+          //console.log("Reporting manager ",this.leaveObj.seniorManagerId);
             }else{
               this.leaveObj.level2ApproverId = teamMember.managerId;
               this.leaveObj.level2ApproverEmail = teamMember.managerEmail;
@@ -1097,7 +1103,7 @@ export class LeaveComponent implements OnInit {
               // this.leaveObj.empId = teamMember.empId;
               this.leaveObj.empId=this.leaveObj.leaveEmpId;
               this.LeaveObj.seniorManagerId=teamMember.reportingManagerId;
-          console.log("Reporting manager ",this.leaveObj.seniorManagerId);
+          //console.log("Reporting manager ",this.leaveObj.seniorManagerId);
             }
           }else{
             this.leaveObj.level2ApproverId = teamMember.hodId;
@@ -1119,7 +1125,7 @@ export class LeaveComponent implements OnInit {
                 this.leaveObj.leaveEmpId = teamMember.empId;
                 this.leaveObj.empId=this.leaveObj.leaveEmpId;
                 this.LeaveObj.seniorManagerId=teamMember.reportingManagerId;
-          console.log("Reporting manager ",this.leaveObj.seniorManagerId);
+          //console.log("Reporting manager ",this.leaveObj.seniorManagerId);
                 // this.leaveObj.empId = teamMember.empId;
               }else{
                 this.leaveObj.level3ApproverId = teamMember.managerId;
@@ -1148,7 +1154,12 @@ export class LeaveComponent implements OnInit {
       this.leaveObj.fromDate = moment(this.leaveObj.fromDate).format(dateFormat)
       this.leaveObj.toDate = moment(this.leaveObj.toDate).format(dateFormat)
 
-      console.log("Apply Leave : ", this.leaveObj);
+      //console.log("Apply Leave : ", this.leaveObj);
+      if(this.leaveObj.leaveTypeCode == 'ML'){
+        this.leaveObj.fromDateDayType="0.0";
+        this.LeaveObj.toDateDayType= "0.0";
+      }
+console.log("leaveObj  ",this.leaveObj);
       this.leaveService.applyLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.openAlertMod(template, response.serviceResponse);
@@ -1286,8 +1297,8 @@ export class LeaveComponent implements OnInit {
     this.leaveObj.isWeekOffsExcluded = this.isWeekOffsExcluded;
     this.leaveObj.fromDate = moment(this.leaveObj.fromDate).format(dateFormat)
     this.leaveObj.toDate = moment(this.leaveObj.toDate).format(dateFormat)
-    console.log(" this.leaveObj : ", this.leaveObj);
-    console.log("leave emp id : ", this.leaveObj.leaveEmpId);
+    //console.log(" this.leaveObj : ", this.leaveObj);
+    //console.log("leave emp id : ", this.leaveObj.leaveEmpId);
     
     
     this.leaveService.updatePendingLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {	
@@ -1328,7 +1339,7 @@ export class LeaveComponent implements OnInit {
         if(overLapLeaveTemplate != null && overLapLeaveTemplate != undefined){
           this.modalRef = this.modalService.show(overLapLeaveTemplate, { class: 'modal-lg' });
         }
-        console.log("this.overLappingTeamMemberList : ", this.overLappingTeamMemberList);
+        //console.log("this.overLappingTeamMemberList : ", this.overLappingTeamMemberList);
       } else {
         console.error(response.serviceResponse);
       }	
@@ -1344,10 +1355,10 @@ export class LeaveComponent implements OnInit {
     this.leaveObj.managerId = this.currentUser.managerId;	
     this.leaveObj.managerEmail = this.currentUser.managerEmail;
     this.leaveObj.managerName = this.currentUser.managerName;
-    console.log(" this.leaveObj ",this.leaveObj)
+    //console.log(" this.leaveObj ",this.leaveObj)
     this.leaveService.deletePendingLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {
-        console.log("After Delete this.leaveObj : ", this.leaveObj);	
+        //console.log("After Delete this.leaveObj : ", this.leaveObj);	
         this.openAlertMod(template, response.serviceResponse);	
         if(this.isSelfLeaveHistory){
           this.showSelfLeaveHistoryTable();  
@@ -1362,7 +1373,7 @@ export class LeaveComponent implements OnInit {
 
 
   getLeaveMetadata(){
-    console.log("leave Obj For getLeaveMetadata : ", this.leaveObj);
+    //console.log("leave Obj For getLeaveMetadata : ", this.leaveObj);
     let userObj:User = new User();
     if(this.leaveObj.leaveAppliedFor == 'self'){
       this.leaveObj.empId = this.currentUser.empId; 
@@ -1373,7 +1384,7 @@ export class LeaveComponent implements OnInit {
       this.leaveObj.employeementId = this.currentUser.employeementId;
     }else{
       let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
-      console.log("Team Member : ", teamMember);
+      //console.log("Team Member : ", teamMember);
       userObj.empId = teamMember.empId;
       userObj.employmentstatus = teamMember.employmentstatus;
       this.leaveObj.name = teamMember.name;
@@ -1402,7 +1413,7 @@ export class LeaveComponent implements OnInit {
       this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response : any) => {
         if (response.serviceStatus == "Success") {
           this.teamMemberList = response.serviceResponse;
-          console.log("teamMemberList : ", this.teamMemberList);
+          //console.log("teamMemberList : ", this.teamMemberList);
         } else {
           console.error(response.serviceResponse);
         }
@@ -1436,9 +1447,9 @@ export class LeaveComponent implements OnInit {
             leave.finalApprovalLevel = 1; 
           }
         });
-        console.log("leaveHistoryListForTable : ", this.leaveHistoryListForTable);
+        //console.log("leaveHistoryListForTable : ", this.leaveHistoryListForTable);
 
-        console.log("leaveHistoryList : ", this.leaveHistoryList);
+        //console.log("leaveHistoryList : ", this.leaveHistoryList);
         // this.leaveHistoryList = this.leaveHistoryList.filter(leaveApplication => leaveApplication.status !== 'Rejected');
        // this.filteredMyLeaveApplication();
 
@@ -1450,7 +1461,7 @@ export class LeaveComponent implements OnInit {
 
   // filteredMyLeaveApplication(){
   //   this.filterLeaveHistoryList = this.leaveHistoryList.filter(leaveApplication => leaveApplication.status !== 'Rejected');
-  //   console.log("allEmployeeList : ", this.filterLeaveHistoryList)
+  //   //console.log("allEmployeeList : ", this.filterLeaveHistoryList)
   // }
 
   getAllMyTeamApplicationsByEmpId(userObj:User){
@@ -1475,7 +1486,7 @@ export class LeaveComponent implements OnInit {
             leave.finalApprovalLevel = 1; 
           }
         });
-        console.log("leaveHistoryList : ", this.leaveHistoryList);
+        //console.log("leaveHistoryList : ", this.leaveHistoryList);
       } else {
         console.error(response.serviceResponse);
       }
@@ -1489,7 +1500,7 @@ export class LeaveComponent implements OnInit {
     this.leaveService.getAllLeaveTypes().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveTypes = response.serviceResponse;
-        console.log("leaveTypes : ", this.leaveTypes);
+        //console.log("leaveTypes : ", this.leaveTypes);
       } else {
         console.error(response.serviceResponse);
       }
@@ -1506,7 +1517,7 @@ export class LeaveComponent implements OnInit {
     this.leaveService.getAllLeaveTypesByLeavePolicies(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveTypes = response.serviceResponse;
-        console.log("leaveTypes : ", this.leaveTypes);
+        //console.log("leaveTypes : ", this.leaveTypes);
       } else {
         console.error(response.serviceResponse);
       }
@@ -1524,7 +1535,7 @@ export class LeaveComponent implements OnInit {
         this.leaveLogList.forEach(log => {
           log.createdOn = (log.createdOn)? moment(log.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
-        console.log("leaveLogList : ", this.leaveLogList);
+        //console.log("leaveLogList : ", this.leaveLogList);
       } else {
         console.error(response.serviceResponse);
       }
@@ -1548,7 +1559,7 @@ export class LeaveComponent implements OnInit {
           }
           return leaveType;
         });
-        console.log("leaveBalanceList : ", this.leaveBalanceList);
+        //console.log("leaveBalanceList : ", this.leaveBalanceList);
       } else {
         console.error(response.serviceResponse);
       }
@@ -1563,8 +1574,8 @@ export class LeaveComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.holidayList = response.serviceResponse;
         this.holidayDates = this.holidayList.map(holiday => new Date(this.datePipe.transform(holiday.dateOfHoliday, 'MM/dd/yyyy')));
-        console.log("holidayDates : ", this.holidayDates); 
-        console.log("holidayList : ", this.holidayList);
+        //console.log("holidayDates : ", this.holidayDates); 
+        //console.log("holidayList : ", this.holidayList);
       } else {
         console.error(response.serviceResponse);
       }
@@ -1605,7 +1616,7 @@ export class LeaveComponent implements OnInit {
           leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
           leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
-        console.log(this.revokeLeaveApplicationList, " : revokeLeaveApplicationList");
+        //console.log(this.revokeLeaveApplicationList, " : revokeLeaveApplicationList");
       } else {
         console.error(response.serviceResponse);
       }
@@ -1624,7 +1635,7 @@ export class LeaveComponent implements OnInit {
           leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
           leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
-        console.log(this.revokeLeaveApplicationList, " : revokeLeaveApplicationList");
+        //console.log(this.revokeLeaveApplicationList, " : revokeLeaveApplicationList");
       } else {
         console.error(response.serviceResponse);
       }
@@ -1671,15 +1682,15 @@ export class LeaveComponent implements OnInit {
   }
 
   getAllLeaveBalanceByEmpId(leaveObj:Leave){
-    console.log("employyid:  ", leaveObj.empId )	
-    console.log("leaveTypeMasterId:  ", leaveObj.leaveTypeMasterId )	
+    //console.log("employyid:  ", leaveObj.empId )	
+    //console.log("leaveTypeMasterId:  ", leaveObj.leaveTypeMasterId )	
     this.leaveService.getAllLeaveBalanceByEmpId(this.leaveObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	
-        console.log("Leave Balance Response : ", response)   	
+        //console.log("Leave Balance Response : ", response)   	
         this.leaveBalance= response.serviceResponse;            	
         this.leaveDetails = this.leaveBalance.map(user => `${user.leaveType} : ${user.balance}`);	
            
-        console.log(this.leaveDetails,   "     : leaveDetails");	
+        //console.log(this.leaveDetails,   "     : leaveDetails");	
           
       } else {	
         console.error(response.serviceResponse)	
@@ -1699,7 +1710,7 @@ export class LeaveComponent implements OnInit {
       this.leaveService.getCompOffBalanceDetailsByEmpIdAndFromDate(compOffObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.availableCompOffDetails = response.serviceResponse;
-          console.log("this.availableCompOffDetails : ", this.availableCompOffDetails);
+          //console.log("this.availableCompOffDetails : ", this.availableCompOffDetails);
           let balanceAvailable = 0;
 
           this.availableCompOffDetails.forEach(compOff => {
@@ -1784,7 +1795,7 @@ export class LeaveComponent implements OnInit {
     }
 
     sortData(sort: Sort){	
-      console.log(sort);
+      //console.log(sort);
       if(sort.active){
         let sortParams:any[] = sort.active?.split("|");
         this.sortColumn = sortParams[0];
@@ -1802,7 +1813,7 @@ export class LeaveComponent implements OnInit {
 
     onSearch(searchData){
       this.filters = searchData;
-      console.log("Updated Filter : ", this.filters);
+      //console.log("Updated Filter : ", this.filters);
     }
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {	

@@ -12,6 +12,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
@@ -414,10 +415,16 @@ public class EmployeeLeaveService {
 
 						while(tempDateToday.compareTo(toDate) != 1) {
 							
-							if(tempDateToday.isEqual(fromDate) && leaveDTO.getFromDateDayType() == 0.5) {
-								System.out.println("From Date is Half Day");
-							}else if(tempDateToday.isEqual(toDate) && leaveDTO.getToDateDayType() == 0.5) {
-								System.out.println("To Date is Half Day");
+//							if(tempDateToday.isEqual(fromDate) && leaveDTO.getFromDateDayType() == 0.5) {
+//								System.out.println("From Date is Half Day");
+//							}else if(tempDateToday.isEqual(toDate) && leaveDTO.getToDateDayType() == 0.5) {
+//								System.out.println("To Date is Half Day");
+							if (tempDateToday.isEqual(fromDate) && Objects.equals(leaveDTO.getFromDateDayType(), 0.5)) {
+							    System.out.println("From Date is Half Day");
+							} else if (tempDateToday.isEqual(toDate) && Objects.equals(leaveDTO.getToDateDayType(), 0.5)) {
+							    System.out.println("To Date is Half Day");
+							
+
 							}else {
 								boolean isHoliday = false;
 								

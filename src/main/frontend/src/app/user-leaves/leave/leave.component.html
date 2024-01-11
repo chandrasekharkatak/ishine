@@ -95,11 +95,15 @@
                     <div class="info-wrapper">
                         <div class="form-group" >
                             <label class="info-label"><span class="text-danger">*</span>Day Type</label>
-                            <select class="form-control"  aria-hidden="true" [(ngModel)]="leaveObj.fromDateDayType" (change)="setNoOfDays(alert_message);">
-                                <option selected="selected" value="" disabled>Select</option>
-                                <option *ngIf="!isCompOffLeave" value=0.5>Half Day</option>
-                                <option value=0 selected>Full Day</option>
+                            <select  class="form-control"  aria-hidden="true" [(ngModel)]="leaveObj.fromDateDayType" (change)="setNoOfDays(alert_message);">
+                                <option *ngIf="leaveObj.leaveTypeCode != 'ML'" selected="selected" value="" disabled>Select</option>
+                                <option *ngIf="!isCompOffLeave && leaveObj.leaveTypeCode != 'ML'" value=0.5>Half Day</option>
+                                <option *ngIf="leaveObj.leaveTypeCode != 'ML'" value=0 selected>Full Day</option>
+                                <option *ngIf="leaveObj.leaveTypeCode == 'ML'" selected value=0 >Full Day</option>
                             </select>
+                           
+                           
+                        
                         </div>
                     </div>
                 </div>
@@ -119,15 +123,17 @@
                         </div>
                     </div>
                 </div>
-                <div class="offset-md-2 col-md-4 col-sm-6 mb-0">
+                <div class="offset-md-2 col-md-4 col-sm-6 mb-0" >
                     <div class="info-wrapper">
                         <div class="form-group" >
                             <label class="info-label"><span class="text-danger">*</span>Day Type</label>
-                            <select class="form-control"  aria-hidden="true" [(ngModel)]="leaveObj.toDateDayType"  (change)="setNoOfDays(alert_message);">
-                                <option selected="selected" value="" disabled>Select</option>
-                                <option *ngIf="!isCompOffLeave" value=0.5>Half Day</option>
-                                <option value=0 selected>Full Day</option>
+                            <select  class="form-control"  aria-hidden="true" [(ngModel)]="leaveObj.toDateDayType"  (change)="setNoOfDays(alert_message);">
+                                <option *ngIf="leaveObj.leaveTypeCode != 'ML'" selected="selected" value="" disabled>Select</option>
+                                <option *ngIf="!isCompOffLeave && leaveObj.leaveTypeCode != 'ML'" value=0.5>Half Day</option>
+                                <option *ngIf="leaveObj.leaveTypeCode != 'ML'" value=0 selected>Full Day</option>
+                                <option *ngIf="leaveObj.leaveTypeCode == 'ML'" selected value=0 >Full Day</option>
                             </select>
+                            
                         </div>
                     </div>
                 </div>
