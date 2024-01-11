@@ -186,6 +186,9 @@ export class TeamConfigComponent implements OnInit {
   }
 
   showViewTeams() {
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.selectedProject = '';
     this.selectedTeam = '';
     this.isTeamTable = true;
@@ -273,6 +276,9 @@ export class TeamConfigComponent implements OnInit {
   }
 
   showViewActivities() {
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.selectedProject = '';
     this.selectedTeam = '';
     this.isActivityTable = true;

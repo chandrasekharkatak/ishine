@@ -379,7 +379,7 @@ public class CustomFilterService {
 	
 	public StringBuilder createQueryForEmployeeReport(List<CustomFilterDTO> queryList) {
 		StringBuilder query = new StringBuilder("");
-		
+			System.err.println(" queryList ::   "+queryList);
 			for(CustomFilterDTO dto: queryList) {
 				if(dto.getOperator()!=null && dto.getOperator().equals("like")) {
 					dto.setValue("%"+dto.getValue()+"%");
@@ -387,127 +387,132 @@ public class CustomFilterService {
 				
 				switch (dto.getColumn()) {
 				case "Employee Id": {
-					query = query.append(" e.employeement_id ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					query = query.append("where e.employeement_id ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
 					break;
 				}
 				case "Full Name": {
-					query = query.append(" e.name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					query = query.append("where e.name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
 					break;
 				}
 				case "Employment Status": {
-					query = query.append(" e.employmentstatus ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					query = query.append("where e.employmentstatus ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
 					break;
 				}
 				case "Date Of Joining": {
-					query = query.append(" e.date_of_joining ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					query = query.append("where e.date_of_joining ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
 					break;
 				}
 				case "City": {
-					query = query.append(" e.city ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					query = query.append("where e.city ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
 					break;
 				}
 				case "Blood Group": {
-					query = query.append(" e.blood_group ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					query = query.append("where e.blood_group ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
 					break;
 				}
 				case "Gender": {
-					query = query.append(" e.gender ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					query = query.append("where e.gender ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
 					break;
 				}
 				case "Work Location": {
-					query = query.append(" e.work_location ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					query = query.append("where e.work_location ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
 					break;
 				}
 				case "Probation Period": {
-					query = query.append(" e.probation_period ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					query = query.append("where e.probation_period ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
 					break;
 				}
 				case "Notice Period": {
-					query = query.append(" e.notice_period ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					query = query.append("where e.notice_period ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
 					break;
 				}
 				case "Marital Status": {
-					query = query.append(" e.marital_status ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					query = query.append("where e.marital_status ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
 					break;
 				}
 				case "State": {
-					query = query.append(" e.state ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					query = query.append("where e.state ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
 					break;
 				}
 				case "Bank Name": {
-					query = query.append(" e.bank_name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					query = query.append("where e.bank_name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
 					break;
 				}
 				case "Created By": {
-					query = query.append(" e.created_by ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					query = query.append("where e.created_by ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
 					break;
 				}
 				case "Created On": {
-					query = query.append(" e.created_on ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					query = query.append("where e.created_on ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
 					break;
 				}
 				case "Department": {
-					query = query.append(" d.name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					query = query.append("where d.name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
 					break;
 				}
 				case "Job Role": {
-					query = query.append(" jr.name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					query = query.append("where jr.name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
 					break;
 				}
 				case "Designation": {
-					query = query.append(" de.designation_name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					query = query.append("where de.designation_name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
 					break;
 				}
 				case "Manager": {
-					query = query.append(" e2.name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					query = query.append("where e2.name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
 					break;
 				}
 				case "Experience": {
-					query = query.append(" e.total_experience ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					query = query.append("where e.total_experience ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
 					break;
 				}
 				case "Team Name": {
-					query = query.append(" t.team_name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					query = query.append("where t.team_name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
 					break;
 				}
 				case "Project Name": {
-					query = query.append(" p.project_name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					query = query.append("where p.project_name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
 					break;
 				}
 				case "Client Name": {
-					query = query.append(" p.client_name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					query = query.append("where p.client_name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
 					break;
 				}
 				case "Domain": {
-					query = query.append(" dm.domain_name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
+					query = query.append("where dm.domain_name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
 					break;
 				}
 				case "Specialization": {
-					query = query.append(" s.specialization_name ").append(dto.getOperator() + " '")
+					query = query.append("where s.specialization_name ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
+					break;
+				}
+				case "Profile Completion": {
+					query = query.append("GROUP BY e.employeement_id HAVING profile_completion_percentage ").append(dto.getOperator() + " '")
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
 					break;
 				}
@@ -555,7 +560,13 @@ public class CustomFilterService {
 						+ "jr.dept_id, jr.name as jobrolename,\n"
 						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience,\n"
 						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,t.team_name,p.project_name,p.client_name, e.updated_on,e4.name as createdByName, e3.name as updatedByName,\n"
-						+ "s.specialization_name,dm.domain_name,e.designation_id,de.designation_name\n"
+						+ "s.specialization_name,dm.domain_name,e.designation_id,de.designation_name,\n"
+						+"(SELECT\n"
+								+ "    COUNT(*) * 100.0 / NULLIF(COUNT(*), 0)\n"
+								+ "   FROM\n"
+								+ "    employee e_profile\n"
+								+ "   WHERE\n"
+								+ "    e_profile.emp_id = e.emp_id) AS profile_completion_percentage \n"
 						+ "FROM employee e\n"
 						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id\n"
 						+ "INNER JOIN department d ON d.dept_id = jr.dept_id\n"
@@ -568,7 +579,7 @@ public class CustomFilterService {
 						+ "LEFT JOIN employee_specialization_map esm ON esm.emp_id = e.emp_id\n"
 						+ "LEFT JOIN specialization s ON s.specialization_id = esm.specialization_id\n"
 						+ "LEFT JOIN domain dm ON dm.domain_id = s.domain_id\n"
-				        + "LEFT JOIN designation de ON de.designation_id = e.designation_id where "+customQuery+" GROUP BY e.employeement_id";
+				        + "LEFT JOIN designation de ON de.designation_id = e.designation_id  "+customQuery;
 				
 				System.out.println(q);
 				Query query = session.createSQLQuery(q);
@@ -599,6 +610,8 @@ public class CustomFilterService {
 		logBuilder.append("QueryList : "+ employeeDTO.getQueryList().size());
 
 		try {
+			
+			System.err.println(" createQueryForEmployeeReport  :: employeeDTO.getQueryList()     "+employeeDTO.getQueryList());
 			StringBuilder subQuery = createQueryForEmployeeReport(employeeDTO.getQueryList());
 			List<Object[]> list = getCustomEmployeeReport(subQuery.toString());
 			

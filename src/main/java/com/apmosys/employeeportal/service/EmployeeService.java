@@ -2529,26 +2529,23 @@ public class EmployeeService {
 		try {
 			Employee checkEmployeeEmail = employeeRepository.findByEmail(employeedto.getEmail());
 			DraftEmployee checkDraftEmployeementEmail = draftEmployeeRepository.findByEmail(employeedto.getEmail());
+			
+			//System.out.println(" checkEmployeeEmail.getEmployeementId()  :  "+checkEmployeeEmail.getEmployeementId() +"  =  employeedto.getEmployeementId() "+employeedto.getEmployeementId());
 
 			if(checkEmployeeEmail != null) {
-					if(!checkEmployeeEmail.getEmployeementId().equals(employeedto.getEmployeementId())) {
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-						response.setServiceResponse("Email already exists !!");
-						apiLogInfo.setApiResponse("Email already exists !!");
-						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-					}
-			}
-			
-			if(checkDraftEmployeementEmail != null) {
-					if(!checkDraftEmployeementEmail.getEmployeementId().equals(employeedto.getEmployeementId())) {
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-						response.setServiceResponse("Email already exists !!");
-						apiLogInfo.setApiResponse("Email already exists !!");
-						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-					}else {
+					if(employeedto.getEmployeementId().equals(checkEmployeeEmail.getEmployeementId())) {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					}else {
+						
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Email already exists !!");
+						apiLogInfo.setApiResponse("Email already exists !!");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					}
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 
 
@@ -2741,6 +2738,7 @@ public class EmployeeService {
 
 			if(!checkEmployeeMobileNo.isEmpty()) {
 				checkEmployeeMobileNo.forEach((employee) -> {
+					System.err.println(employee.getEmployeementId() + " = V  employeedto.getEmployeementId()  ::  "+employeedto.getEmployeementId());
 					if(!employee.getEmployeementId().equals(employeedto.getEmployeementId())) {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Mobile Number already exist!");

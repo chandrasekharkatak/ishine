@@ -147,7 +147,9 @@ export class MyTeamComponent implements OnInit {
 
   viewTeam() {
     this.isViewTeam = true;
-
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.isTeamLeaveHistory = false;
     this.isLeaveRequest = false;
     this.isCompOffRequest = false;
@@ -166,6 +168,9 @@ export class MyTeamComponent implements OnInit {
   }
 
   viewTeamLeaveHistory() {
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.isTeamLeaveHistory = true;
     this.isLeaveHistory = true;
     this.isCompOffHistory = false;
@@ -219,6 +224,9 @@ export class MyTeamComponent implements OnInit {
   }
 
   viewTeamRequest() {
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.isTeamRequest = true;
     this.isLeaveRequest = true;
     this.isCompOffRequest = false;
@@ -241,6 +249,9 @@ export class MyTeamComponent implements OnInit {
   }
 
   viewTeamLeaveRequest() {
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.isLeaveRequest = true;
     this.isCompOffRequest = false;
     this.isLeaveRevokeRequest = false;
@@ -251,6 +262,9 @@ export class MyTeamComponent implements OnInit {
   }
 
   viewTeamCompOffRequest() {
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.isLeaveRequest = false;
     this.isCompOffRequest = true;
     this.isLeaveRevokeRequest = false;
@@ -261,6 +275,9 @@ export class MyTeamComponent implements OnInit {
   }
 
   viewTeamLeaveRevokeRequest() {
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.isLeaveRequest = false;
     this.isCompOffRequest = false;
     this.isLeaveRevokeRequest = true;
