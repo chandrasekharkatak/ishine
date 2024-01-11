@@ -173,7 +173,7 @@ export class LeaveComponent implements OnInit {
     //console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
-    this.getAllLeaveTypes();
+    // this.getAllLeaveTypes();
     this.getAllLeaveTypesByLeavePolicies(this.currentUser);
     this.getAllPortalConfigData();
     // this.dateToday = this.datePipe.transform(this.dateToday,'dd-MM-yyyy');
@@ -221,7 +221,7 @@ export class LeaveComponent implements OnInit {
 
     this.reset();
     this.getAllHolidays();
-    this.getAllLeaveTypes();
+    // this.getAllLeaveTypes();
     this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
     this.leaveObj.fromDateDayType = ''
     this.leaveObj.toDateDayType = ''
