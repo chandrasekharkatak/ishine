@@ -324,6 +324,9 @@ export class SurveyConfigComponent implements OnInit {
   }
 
   getAllSurveys(){
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.allSurveyList = [];
 
     this.surveyService.getAllSurveys().pipe(first()).subscribe((response: any) => {

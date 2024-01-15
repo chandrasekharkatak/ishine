@@ -644,7 +644,8 @@ export class LeaveConfigComponent implements OnInit {
     this.holidayListFilter = [];
     this.data = ''
 
-    this.holidayService.getAllHolidays().pipe(first()).subscribe((response: any) => {
+    this.holidayObj.state=this.currentUser.workLocation;
+    this.holidayService.getAllHolidays(this.holidayObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.holidayListFilter = response.serviceResponse;
         this.holidayList = response.serviceResponse;
@@ -687,7 +688,7 @@ export class LeaveConfigComponent implements OnInit {
     if (this.isHolidayTable == true) {
       this.excelName = 'HolidaySheet.xlsx';
 
-      this.holidayService.getAllHolidays().pipe(first()).subscribe((response: any) => {
+      this.holidayService.getAllHolidays(this.holidayObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.holidayDataForExcel = response.serviceResponse;
         }

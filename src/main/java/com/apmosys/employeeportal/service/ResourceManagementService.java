@@ -532,18 +532,15 @@ public class ResourceManagementService {
 			    newProject.setPoProjectId(resourceManagementDTO.getId());
 			    newProject.setActive("true");
 			    newProject.setSyncProject("true");
-				/*
-				 * if (resourceManagementDTO.getIsHOD().equals("true")) {
-				 * newProject.setIsDraftProject("false"); } else {
-				 * newProject.setIsDraftProject("true"); }
-				 */
-			    
-			    if (resourceManagementDTO.getIsHOD().equals("true")) {
-		            projectObj.setIsDraftProject("false");
-		        } else {
-		           projectObj.setIsDraftProject("false");
-		            
-		        }
+				
+				  	if (resourceManagementDTO.getIsHOD().equals("true")) {
+				 	newProject.setIsDraftProject("false"); 
+				 	} else {
+				 	newProject.setIsDraftProject("true"); 
+				 	}
+				 
+			    System.out.println(" ANurag     ::   "+projectObj);
+
 			    newProject.setCreatedBy(resourceManagementDTO.getCreatedBy());
 
 			    Project projectDbResponse = projectRepository.save(newProject);

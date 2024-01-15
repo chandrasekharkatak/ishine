@@ -164,6 +164,7 @@ export class ReportListComponent implements OnInit {
   }
 
   showLeaveReportTable() {
+    this.storedDataList = [];
     this.sortColumn=[];
     this.sortColumnType=[];
     this.sortDirection='';
@@ -202,6 +203,7 @@ export class ReportListComponent implements OnInit {
   }
 
   showTimesheetReportTable() {
+    this.storedDataList=[];
     this.sortColumn=[];
     this.sortColumnType=[];
     this.sortDirection='';
@@ -235,6 +237,7 @@ export class ReportListComponent implements OnInit {
   }
 
   showEmployeeReportTable() {
+    this.storedDataList=[];
   this.sortColumn=[];
     this.sortColumnType=[];
     this.sortDirection='';
@@ -1173,6 +1176,9 @@ export class ReportListComponent implements OnInit {
   }
   
   toggleSearch(){
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.isSearchEnabled = !this.isSearchEnabled;
     if(!this.isSearchEnabled){
       this.filters = {};

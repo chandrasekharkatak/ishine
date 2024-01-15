@@ -61,4 +61,5 @@ export class User{
     probationPeriod: any;
 
     newsletterReadCheck:any;
+    workLocation:any;
 }

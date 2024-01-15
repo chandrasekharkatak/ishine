@@ -69,6 +69,9 @@ export class HolidaysComponent implements OnInit {
   getAllHolidayByEmpWorkLocation(){
     this.holidayList = [];
     this.holidayList1 = [];	
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     let employeeObj = new Employee();
     employeeObj.empId = this.currentUser.empId;
     this.holidayService.getAllHolidayByEmpWorkLocation(employeeObj).pipe(first()).subscribe((response: any) => {

@@ -2588,6 +2588,9 @@ console.log("Anurag call update method  ::  ",employee);
   }
 
   toggleSearch(){
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
       this.isSearchEnabled = !this.isSearchEnabled;
       if(!this.isSearchEnabled){
         this.filters = {};

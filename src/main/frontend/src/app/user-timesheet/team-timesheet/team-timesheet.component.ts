@@ -111,6 +111,9 @@ export class TeamTimesheetComponent implements OnInit {
   }
 
   showAllTimesheetRequestsTable() {
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.isAllTimesheetRequestTable = true;
 
     this.isAllTimesheetTable = false;

@@ -69,6 +69,9 @@ export class HelpdeskComponent implements OnInit, AfterViewInit {
   }
 
   getAllHelpDocument(){
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.data='';
     this.document = [];
     this.helpService.getAllHelpDocument().pipe(first()).subscribe((response:any) => {
@@ -122,6 +125,9 @@ export class HelpdeskComponent implements OnInit, AfterViewInit {
   }
   
   toggleSearch(){
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.isSearchEnabled = !this.isSearchEnabled;
     if(!this.isSearchEnabled){
       this.filters = {};

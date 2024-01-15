@@ -86,6 +86,9 @@ public class EmployeeLeaveService {
 	@Value("${hr.mail}")
 	private String hrMailAddress;
 	
+	@Value("${CLleave.maxDays}")
+	private Long clLeaveDays;
+	
 	@Autowired
 	private LogService logService;
 	
@@ -181,6 +184,21 @@ public class EmployeeLeaveService {
 						+ " day(s) before "+ leaveDTO.getFromDate() +" is not sufficient for this Leave Application.");
 				return response;
 			}
+			
+			// added by anurag for CL
+			
+			if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("CL") && leaveDTO.getNoOfDays()>clLeaveDays) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
+				response.setServiceResponse("Casual Leave Can't take more than "+clLeaveDays+" days");
+				return response;
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
+				response.setServiceResponse("Leave application submitted. Your timesheet will be automatically added by system");
+			}
+			
+			
+			
+			// ended
 
 			EmployeeLeave leaveApplication = new EmployeeLeave();
 

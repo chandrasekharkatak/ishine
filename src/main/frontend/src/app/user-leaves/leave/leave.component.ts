@@ -103,7 +103,7 @@ export class LeaveComponent implements OnInit {
   filterLeaveHistoryList:any;
   leaveHistoryListForTable:any[] = [];
   overLappingTeamMemberList:any[] = [];
-
+  
   leaveBalance:any[] = [];	
   leaveDetails = [];	
   holidayWeekOffList:any = [];	
@@ -228,6 +228,9 @@ export class LeaveComponent implements OnInit {
   }
 
   showLeaveHistoryTable() {
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.isLeaveHistoryTable = true;
 
     this.isLeaveBalanceTable = false;
@@ -301,7 +304,9 @@ export class LeaveComponent implements OnInit {
 
   showLeaveBalanceTable() {
     this.isLeaveBalanceTable = true;
-
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.isLeaveHistoryTable = false;
     this.isLeaveApplicationsTable = false;
     this.isLeaveLogTable = false;
@@ -319,7 +324,9 @@ export class LeaveComponent implements OnInit {
 
   showLeaveLogTable() {
     this.isLeaveLogTable = true;
-
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.isLeaveApplicationsTable = false;
     this.isLeaveHistoryTable = false;
     this.isLeaveBalanceTable = false;
@@ -336,6 +343,9 @@ export class LeaveComponent implements OnInit {
   }
 
   showLeaveRevokeApplicationTable(){
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.isLeaveRevokeApplicationTable = true;
     this.isSelfLeaveRevokeApplication = true;
 
@@ -1569,11 +1579,18 @@ console.log("leaveObj  ",this.leaveObj);
   getAllHolidays(){
     this.holidayList = [];
     this.holidayDates = [];
-
-    this.holidayService.getAllHolidays().pipe(first()).subscribe((response: any) => {
+    let holidayObj = new Holiday();
+    holidayObj.state=this.currentUser.workLocation;
+    console.log(" Worklocation ::  ",this.currentUser);
+    this.holidayService.getAllHolidays(holidayObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.holidayList = response.serviceResponse;
         this.holidayDates = this.holidayList.map(holiday => new Date(this.datePipe.transform(holiday.dateOfHoliday, 'MM/dd/yyyy')));
+      //   this.holidayDates = this.holidayList.map(holiday => ({
+      //     date: new Date(this.datePipe.transform(holiday.dateOfHoliday, 'MM/dd/yyyy')),
+      //     state: holiday.state
+      // }));
+      
         //console.log("holidayDates : ", this.holidayDates); 
         //console.log("holidayList : ", this.holidayList);
       } else {

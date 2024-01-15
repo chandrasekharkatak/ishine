@@ -78,7 +78,9 @@ export class NewsletterComponent implements OnInit {
 
    getAllNewsletters(){
     this.newsletters = [];
-    
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.newsletterService.getAllNewsletters().pipe(first()).subscribe((response:any) => {
       if (response.serviceStatus == "Success") {
         this.newsletters =  response.serviceResponse;
@@ -135,8 +137,9 @@ export class NewsletterComponent implements OnInit {
     });
   }
 
-  
-  previewPolicyDocument(template: TemplateRef<any>,doc: any) {   
+  loadingDocument = false;
+  previewPolicyDocument(template: TemplateRef<any>,doc: any) { 
+    this.loadingDocument = true;  
     this.src = null;
     this.fileName = doc.displayName;
 
@@ -153,7 +156,16 @@ export class NewsletterComponent implements OnInit {
       if(this.src != null){
         this.openPreviewDocument(template);
       }
-    });
+      this.loadingDocument = false;
+    },
+    (error) => {
+      
+      console.error('Error fetching document:', error);
+      
+     
+      this.loadingDocument = false;
+  }
+    );
   }
 
   downloadFile(doc: any) {
@@ -199,6 +211,9 @@ export class NewsletterComponent implements OnInit {
   }
   
   toggleSearch(){
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.isSearchEnabled = !this.isSearchEnabled;
     if(!this.isSearchEnabled){
       this.filters = {};

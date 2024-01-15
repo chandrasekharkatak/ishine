@@ -307,7 +307,7 @@ export class LoginComponent implements OnInit{
       this.user.probationPeriod = user.probationPeriod;
       this.user.releaseNoteNotification = user.releaseNoteNotification;
       this.user.newsletterReadCheck = user.newsletterReadCheck;
-      
+      this.user.workLocation = user.workLocation;
       sessionStorage.setItem('currentUser', JSON.stringify(this.user));
       this.authenticationService.setcurrentUserSubject(this.user);
       sessionStorage.setItem('logInfo', JSON.stringify(log));

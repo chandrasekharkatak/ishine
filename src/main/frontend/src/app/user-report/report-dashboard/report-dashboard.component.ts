@@ -1791,6 +1791,9 @@ export class ReportDashboardComponent implements OnInit {
   // Models
 
   openEodSegregation(template: TemplateRef<any>, titleName: any){
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     let modalTableList = this.timsheetSummaryList;
     this.modalSummaryList = [];
     this.resetSearch();
@@ -1846,6 +1849,9 @@ export class ReportDashboardComponent implements OnInit {
   }
 
   openLeaveSummaryTableModel(statusName:any) {
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     let modalTableList = this.uniqueLeaveSumarryList;
     this.modalSummaryList = [];
     this.resetSearch();
@@ -1862,7 +1868,9 @@ export class ReportDashboardComponent implements OnInit {
     this.modalSummaryList = [];
     this.countByLegend = [];
     this.resetSearch();
-
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.data = ''
       this.page=1;
       this.modalTitle = legendName + " Timesheet Summary";
@@ -1896,6 +1904,9 @@ export class ReportDashboardComponent implements OnInit {
     }
 
   openTotalCountModal(title:any){
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.data = ''
     this.modalSummaryList = [];
     this.resetSearch();
@@ -1913,6 +1924,9 @@ export class ReportDashboardComponent implements OnInit {
   }
 
   openEmployeeStatusTableModal(status:any){
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.modalSummaryList = [];
     this.data = '';
     this.resetSearch();
@@ -1925,6 +1939,9 @@ export class ReportDashboardComponent implements OnInit {
   }
 
   openGenderSummaryModalTable(gender:any){
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.data = ''
     this.modalSummaryList = [];
     this.resetSearch();
@@ -1940,7 +1957,9 @@ export class ReportDashboardComponent implements OnInit {
     this.data = ''
     this.modalSummaryList = [];
     this.resetSearch();
-
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     let modalTableList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
     if(age == "18 to 25"){
       this.page=1;
@@ -1969,6 +1988,9 @@ export class ReportDashboardComponent implements OnInit {
   }
 
   openDepartmentWiseEmployeeModalTable(pointName:any){
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.data = ''
     this.modalSummaryList = [];
     this.resetSearch();
@@ -1984,6 +2006,9 @@ export class ReportDashboardComponent implements OnInit {
   }
 
   openEmployeeExperienceModalTable(pointName:any){
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.data = ''
     this.modalSummaryList = [];
     this.resetSearch();
@@ -2022,6 +2047,9 @@ export class ReportDashboardComponent implements OnInit {
   }
 
   openFresherLateralModalTable(pointName:any){
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.data = ''
     this.modalSummaryList = [];
     this.resetSearch();
@@ -2038,6 +2066,9 @@ export class ReportDashboardComponent implements OnInit {
   }
 
   openEmployeeJoinResignModalTable(category:any, name:any){
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.data = ''
     this.modalSummaryList = [];
     this.resetSearch();
@@ -2060,6 +2091,9 @@ export class ReportDashboardComponent implements OnInit {
   }
 
   openLeaveAnalysisTableModel(pointName:any, category:any){
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.data =''
     this.modalSummaryList = [];
     this.resetSearch();
@@ -2072,6 +2106,9 @@ export class ReportDashboardComponent implements OnInit {
   }
 
   openWorkLocationSummaryTableModal(category:any){
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.data =''
     this.modalSummaryList = [];
     this.resetSearch();
@@ -2088,7 +2125,9 @@ export class ReportDashboardComponent implements OnInit {
     this.data = ''
     this.modalSummaryList = [];
     this.resetSearch();
-
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     let modalTableList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
       this.page=1;
       this.modalTitle = "Employee(s) with KYC "+status;
@@ -2120,6 +2159,9 @@ export class ReportDashboardComponent implements OnInit {
   }
 
   toggleSearch(){
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.isSearchEnabled = !this.isSearchEnabled;
     if(!this.isSearchEnabled){
       this.filters = {};

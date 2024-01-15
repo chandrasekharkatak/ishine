@@ -210,7 +210,7 @@ public class HolidayService {
 		return response;
 	}
 
-	public ServiceResponse getAllHolidays() {
+	public ServiceResponse getAllHolidays(HolidayDTO holidayDto) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setFeatureName("get_AllHoliday");
@@ -219,8 +219,9 @@ public class HolidayService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("getAllHolidays size : "+holidayRepository.findAll().size());
 		try {
-			List<Object[]> list = holidayRepository.getAllHolidaysList();
-
+			String state = holidayDto.getState();
+			List<Object[]> list = holidayRepository.getAllHolidaysList(state);
+			
 			List<HolidayDTO> dtoList = new ArrayList<HolidayDTO>();
 
 			if (list.isEmpty()) {

@@ -125,6 +125,9 @@ export class CompOffComponent implements OnInit {
   }
 
   showCompOffRequestTable(){
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.isCompOffRequestsTable = true;
 
     this.isForm = false;

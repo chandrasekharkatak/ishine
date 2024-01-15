@@ -325,8 +325,8 @@ export class PortalConfigComponent implements OnInit {
   getAllHolidays(){
     this.holidayList = [];
     this.holidayDates = [];
-
-    this.holidayService.getAllHolidays().pipe(first()).subscribe((response: any) => {
+    this.holidayObj.state = this.currentUser.workLocation
+    this.holidayService.getAllHolidays(this.holidayObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.holidayList = response.serviceResponse;
         this.holidayDates = this.holidayList.map(holiday => new Date(this.datePipe.transform(holiday.dateOfHoliday, 'MM/dd/yyyy')));
