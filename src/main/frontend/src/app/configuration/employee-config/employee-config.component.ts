@@ -151,7 +151,7 @@ export class EmployeeConfigComponent implements OnInit {
 
   previewObj:Employee = new Employee();
   previewEmployeeObj:Employee = new Employee();
-
+  errorMsg:any;
   filters:any = {};
   isSearchEnabled:boolean = false;
   employeeActiveColumns:any[] = ['employeementId','name','email','employmentstatus','employmentReleaseStatus','managerName','departmentName','dateOfJoining','createdOn','createdByName','updatedOn','updatedByName'];
@@ -175,7 +175,7 @@ export class EmployeeConfigComponent implements OnInit {
    'Job Role', 'Manager', 'Team Name', 'Project Name', 'Client Name',
     'Employment Status', 'Date Of Joining','Domain','Specialization', 'City', 'Blood Group',
      'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status',
-     'Bank Name', 'Created By', 'State', 'Created On'];
+     'Bank Name', 'Created By', 'State', 'Created On', 'Updated On', 'Updated By'];
 
 
 
@@ -2627,6 +2627,23 @@ console.log("Anurag call update method  ::  ",employee);
     this.auditFilter = searchData;
     console.log("Audit Updated Filter : ", this.filters);
   }
+
+  // added by anurag on field validation
+
+  ValidateName(template:TemplateRef<any>){
+    this.employeeObj.name = this.employeeObj.name?.trim();
+    if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.name)) {
+      this.alertMessage = "Please enter Full Name !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } else if (!this.validationService.validateAlphaWithSpace(this.employeeObj.name)) {
+      this.alertMessage = "Please enter Valid Full Name !!";
+      this.openAlertMod(template, this.alertMessage);
+      this.employeeObj.name='';
+      return false;
+    }
+  }
+
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);

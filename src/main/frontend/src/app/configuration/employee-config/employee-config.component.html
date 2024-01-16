@@ -40,7 +40,8 @@
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Full Name</label>
                                                 <input type="text" class="form-control" maxlength="40" autocomplete="none"
-                                                [(ngModel)]="employeeObj.name">
+                                                [(ngModel)]="employeeObj.name" (blur)="ValidateName(alert_message)">
+                                                <small class="errorMsg text-danger"></small>
                                             </div>
                                         </div>
                                     </div>
@@ -49,7 +50,7 @@
                                             <div class="form-group">
                                                 <label class="info-label" ><span class="text-danger">*</span>Email ID</label>
                                                 <input type="email" class="form-control" (blur)="checkEmail(alert_message)" autocomplete="none" maxlength="50"
-                                                [(ngModel)]="employeeObj.email">
+                                                [(ngModel)]="employeeObj.email" [disabled]="!employeeObj.employeementId">
                                             </div>
                                         </div>
                                     </div>
@@ -94,7 +95,7 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Mobile Number</label>
-                                                <input type="number" maxlength="10" (keypress)="fieldRestictCharacterForNumber($event)" class="form-control" autocomplete="none" (blur)="checkEmployeeMobileNo(alert_message)" [(ngModel)]="employeeObj.mobileNo">
+                                                <input type="number" maxlength="10" (keypress)="fieldRestictCharacterForNumber($event)" class="form-control" autocomplete="none" (blur)="checkEmployeeMobileNo(alert_message)" [(ngModel)]="employeeObj.mobileNo" [disabled]="!employeeObj.employeementId">
                                             </div>
                                         </div>
                                     </div>
@@ -1018,11 +1019,11 @@
                                     <button class="btn btn-sm btn-outline-primary" type="submit" title="View"
                                         (click)="openViewEmployeeInfoPreview(view_employee_info_preview, employee)"><em>view</em></button>
                                     <button *ngIf="employee.isTimesheetLockCheckEnable == 'false' && employee.employmentstatus != 'InActive'"
-                                        class="btn btn-sm btn-primary mb-1" type="submit"
-                                        (click)="onUpdateTimesheetLockCheck(alert_message,employee,'true')"><em><i class="fa-solid fa-lock"></i>&nbsp;Timesheet</em></button>
-                                    <button *ngIf="employee.isTimesheetLockCheckEnable == 'true' && employee.employmentstatus != 'InActive'"
                                         class="btn btn-sm btn-outline-primary mb-1" type="submit"
-                                        (click)="onUpdateTimesheetLockCheck(alert_message,employee,'false')"><em><i class="fa-solid fa-lock-open"></i>&nbsp;Timesheet</em></button>
+                                        (click)="onUpdateTimesheetLockCheck(alert_message,employee,'true')"><em><i class="fa-solid fa-lock-open"></i>&nbsp;Timesheet</em></button>
+                                    <button *ngIf="employee.isTimesheetLockCheckEnable == 'true' && employee.employmentstatus != 'InActive'"
+                                        class="btn btn-sm btn-primary mb-1" type="submit"
+                                        (click)="onUpdateTimesheetLockCheck(alert_message,employee,'false')"><em><i class="fa-solid fa-lock"></i>&nbsp;Timesheet</em></button>
                                 </td>
                                 <td
                                     *ngIf="(isDraftTable && userMapping.update_draft) || (isDraftTable && userMapping.update_draft)">

@@ -33,6 +33,7 @@ import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Designation;
 import com.apmosys.employeeportal.model.Domain;
+import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.Project;
@@ -452,6 +453,8 @@ public class CustomFilterService {
 					break;
 				}
 				case "Created By": {
+					Employee findEmployee = employeeRepository.findByName(dto.getValue());
+					dto.setValue(findEmployee.getEmpId().toString());
 					query = query.append("where e.created_by ").append(dto.getOperator() + " '")
 							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
 					break;
@@ -511,6 +514,18 @@ public class CustomFilterService {
 							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
 					break;
 				}
+				case "Updated By": {
+					Employee findEmployee = employeeRepository.findByName(dto.getValue());
+					dto.setValue(findEmployee.getEmpId().toString());
+					query = query.append("where e.updated_by ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
+					break;
+				}
+				case "Updated On": {
+					query = query.append("where e.updated_on ").append(dto.getOperator() + " '")
+							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
+					break;
+				}
 				case "Profile Completion": {
 					query = query.append("GROUP BY e.employeement_id HAVING profile_completion_percentage ").append(dto.getOperator() + " '")
 							.append(dto.getValue() + "' ").append(dto.getConjunction());
@@ -560,7 +575,7 @@ public class CustomFilterService {
 						+ "jr.dept_id, jr.name as jobrolename,\n"
 						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience,\n"
 						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,t.team_name,p.project_name,p.client_name, e.updated_on,e4.name as createdByName, e3.name as updatedByName,\n"
-						+ "s.specialization_name,dm.domain_name,e.designation_id,de.designation_name,\n"
+						+ "s.specialization_name,dm.domain_name,e.designation_id,de.designation_name,e.updated_by,\n"
 						+"(SELECT\n"
 								+ "    COUNT(*) * 100.0 / NULLIF(COUNT(*), 0)\n"
 								+ "   FROM\n"
