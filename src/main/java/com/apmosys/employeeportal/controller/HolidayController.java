@@ -48,6 +48,13 @@ public class HolidayController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getAllHoliday", method = RequestMethod.GET)
+	public ServiceResponse getAllHolidays() {
+
+		ServiceResponse response = holidayService.getAllHoliday();
+		return response;
+	}
+	
 	@RequestMapping(value = "/getAllHolidayByEmpWorkLocation", method = RequestMethod.POST)
 	public ServiceResponse getAllHolidayByWorkLocation(@RequestBody EmployeeDTO employeedto) {
 

@@ -886,6 +886,7 @@ export class LeaveComponent implements OnInit {
     //Check if leave has been already applied between from date & toDate
     let fromDate = moment(this.leaveObj.fromDate).format(dateFormat);
     let toDate = moment(this.leaveObj.toDate).format(dateFormat);
+    console.log(" from date and todate ",fromDate,toDate);
     let isLeaveContained = this.previouslyAppliedLeavesList.find(object => object.toDate <= toDate && object.fromDate >= fromDate);
 
     if(isLeaveContained){
@@ -924,9 +925,11 @@ export class LeaveComponent implements OnInit {
         getHolidayCountObj.toDate = moment(this.leaveObj.toDate).format(dateFormat)	
         
         //const holidayWeekOffCount = 0;	
+        this.leaveObj.state=this.currentUser.workLocation;
         let response:any = await this.leaveService.getHolidayWeekOffSize(this.leaveObj).toPromise(); 	
         if (response.serviceStatus == "Success") {	
           this.holidayWeekOffList = response.serviceResponse;	
+          console.log(" holidayWeekOffList  Anurag  ::  ",this.holidayWeekOffList);
           this.holidayWeekOffCount = this.holidayWeekOffList.length;	
         } else {	
           //console.log(response.serviceResponse);	
@@ -1169,6 +1172,7 @@ export class LeaveComponent implements OnInit {
         this.leaveObj.fromDateDayType="0.0";
         this.LeaveObj.toDateDayType= "0.0";
       }
+      this.leaveObj.state=this.currentUser.workLocation;
 console.log("leaveObj  ",this.leaveObj);
       this.leaveService.applyLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {

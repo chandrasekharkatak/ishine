@@ -95,7 +95,7 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Mobile Number</label>
-                                                <input type="number" maxlength="10" (keypress)="fieldRestictCharacterForNumber($event)" class="form-control" autocomplete="none" (blur)="checkEmployeeMobileNo(alert_message)" [(ngModel)]="employeeObj.mobileNo" [disabled]="!employeeObj.employeementId">
+                                                <input type="number" onKeyPress="if(this.value.length==10) return false;" (keypress)="fieldRestictCharacterForNumber($event)" class="form-control" autocomplete="none" (blur)="checkEmployeeMobileNo(alert_message)" [(ngModel)]="employeeObj.mobileNo" [disabled]="!employeeObj.employeementId">
                                             </div>
                                         </div>
                                     </div>

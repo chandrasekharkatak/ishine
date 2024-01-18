@@ -119,7 +119,7 @@
             <div class="col-md-3  mb-0">
                 <div class="form-inline input-group">
                     <label class="d-inline-block mr-2 mt-2"><strong>State</strong></label>
-                    <select class="form-control" aria-hidden="true" [(ngModel)]="selectedState" (ngModelChange)="onSelect()">
+                    <select class="form-control" aria-hidden="true" [(ngModel)]="selectedState" (ngModelChange)="onSelect()" #changedata (change)="changeEvent(changedata.value)">
                         <option selected="selected" value="" disabled>Select</option>
                         <option value=""></option>
                         <option value="all">All (common)</option>

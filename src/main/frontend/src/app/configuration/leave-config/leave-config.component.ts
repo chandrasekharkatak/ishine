@@ -26,6 +26,7 @@ export class LeaveConfigComponent implements OnInit {
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType:any;
+  _holidayList:any;
 
   //flags 
   isCreation: boolean = false;
@@ -149,6 +150,7 @@ export class LeaveConfigComponent implements OnInit {
     this.sectionViewInit();
     this.preventBackButton();
     this.dynamicYearForDropdown();
+    this.showHoliaysTable();
   }
   preventBackButton() {
     history.pushState(null, null, location.href);
@@ -616,7 +618,7 @@ export class LeaveConfigComponent implements OnInit {
 
 
   onSelect() {
-    this.selectedHolidayType = "";
+   // this.selectedHolidayType = "";
     if(this.selectedYear != null){
       if (this.selectedState == 'all state') {
         this.holidayListFilter = this.holidayList.filter((holiday:Holiday)=> moment(holiday.dateOfHoliday, "DD-MM-YYYY").year() == this.selectedYear);
@@ -636,6 +638,8 @@ export class LeaveConfigComponent implements OnInit {
     }
   }
 
+ 
+
   getAllHolidays() {
     this.sortColumn=[];
     this.sortColumnType=[];
@@ -644,18 +648,23 @@ export class LeaveConfigComponent implements OnInit {
     this.holidayListFilter = [];
     this.data = ''
 
-    this.holidayObj.state=this.currentUser.workLocation;
-    this.holidayService.getAllHolidays(this.holidayObj).pipe(first()).subscribe((response: any) => {
+    // this.holidayObj.state=this.currentUser.workLocation;
+    this.holidayService.getAllHoliday().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.holidayListFilter = response.serviceResponse;
         this.holidayList = response.serviceResponse;
+        
 
         this.holidayListFilter.forEach(holiday => {
           holiday.dateOfHoliday = (holiday.dateOfHoliday) ? moment(holiday.dateOfHoliday).format(AppComponent.DATE_FORMAT) : null;
           holiday.createdOn = (holiday.createdOn) ? moment(holiday.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           holiday.updatedOn = (holiday.updatedOn) ? moment(holiday.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
-
+        this._holidayList=this.holidayList;
+        this.changeEvent('Maharashtra');
+        // this.changeEvent(this.currentUser.workLocation);
+        this.selectedState='Maharashtra';
+        // this.selectedState=this.currentUser.workLocation;
         console.log(this.holidayListFilter, " : this.holidayListFilter");
         this.filterHolidayListByYear(new Date().getFullYear());
         this.selectedHolidayType = "Festival";
@@ -665,6 +674,16 @@ export class LeaveConfigComponent implements OnInit {
       }
     });
   }
+
+  changeEvent(value:string){
+    this.selectedHolidayType = "";
+    if(value == 'all'){
+      this.holidayList = this._holidayList.filter(x=> x.state == 'all');
+    }else{
+      this.holidayList = this._holidayList.filter((holiday:Holiday)=> (moment(holiday.dateOfHoliday, "DD-MM-YYYY").year() == this.selectedYear) && holiday.state == this.selectedState);
+    }
+  }
+
 
   filterHolidayListByYear(value: any) {
     this.selectedHolidayType = "";

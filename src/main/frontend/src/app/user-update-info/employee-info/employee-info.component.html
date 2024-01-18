@@ -264,7 +264,7 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <label class="info-label"><span class="text-danger">*</span>Pincode</label>
-                                        <input type="number" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.pincode" (blur)="addDemographiscInfo(alert_message,employeeObj.pincode);validatePincode($event,employeeObj.pincode)">
+                                        <input type="number" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.pincode" (blur)="addDemographiscInfo(alert_message,employeeObj.pincode);validatePincode($event,employeeObj.pincode)" onKeyPress="if(this.value.length==6) return false;">
                                         <small class="errorMsg text-danger"></small>
 
                                     </div>

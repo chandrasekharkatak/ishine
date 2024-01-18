@@ -31,6 +31,7 @@ import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
+import com.apmosys.employeeportal.model.Holiday;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.LeavePolicyMaster;
 import com.apmosys.employeeportal.model.LeaveRevokeApplication;
@@ -115,8 +116,7 @@ public class EmployeeLeaveService {
 	
 	@Autowired
 	CompOffLeaveService compOffLeaveService;
-	
-	
+		
 	@Transactional
 	public ServiceResponse applyLeave(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -129,7 +129,39 @@ public class EmployeeLeaveService {
 		System.out.println(leaveDTO);
 		try {
 
-//			LeaveTypeMaster leaveTypeMasterObj = leaveTypeMasterRepository.findByLeaveTypeCode(leaveDTO.getLeaveTypeCode());		
+//			LeaveTypeMaster leaveTypeMasterObj = leaveTypeMasterRepository.findByLeaveTypeCode(leaveDTO.getLeaveTypeCode());	
+			
+			// added by anurag
+			EmployeeLeave recentLeaves = employeeLeaveRepository.findRecentLeavesByEmpId(leaveDTO.getEmpId()).get(0);
+
+//	        if (!recentLeaves.isEmpty()) {
+//	            for (EmployeeLeave recentLeave : recentLeaves) {
+	                LocalDate newLeaveFromDate = LocalDate.parse(leaveDTO.getFromDate());
+	                LocalDate recentLeaveToDate = recentLeaves.getToDate();
+//	                System.err.println("recentLeaveToDate    ::  "+recentLeaveToDate);
+	                if (newLeaveFromDate.isEqual(recentLeaveToDate.plusDays(1))) {
+	                	
+	                    if (!recentLeaves.getLeaveTypeMasterId().equals(leaveDTO.getLeaveTypeMasterId())) {
+	                        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                        response.setServiceResponse("Two different types of leaves are not allowed on consecutive days. Please ensure that the same type of leave is applied for consecutive days.");
+	                        return response;
+	                    }
+	                } else {
+	                	System.err.println("recentLeaveToDate    ::  "+recentLeaveToDate);
+	                	boolean isWeekOff = this.isWeekOffFind(recentLeaveToDate.plusDays(1),newLeaveFromDate.minusDays(1));
+	                	if(isWeekOff) {
+	                		if((!leaveDTO.getLeaveTypeMasterId().equals(recentLeaves.getLeaveTypeMasterId()))) {
+	                			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		                        response.setServiceResponse("Two different types of leaves are not allowed on consecutive days.Week Offs also consider your last leave To date");
+		                        return response;
+	                		}
+	                	}
+	                }
+//	            }
+//	        }
+			
+			
+			
 			EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
 					.findByEmpIdAndLeaveTypeMasterId(leaveDTO.getEmpId(), leaveDTO.getLeaveTypeMasterId());
 			
@@ -390,7 +422,7 @@ public class EmployeeLeaveService {
 
 					long elapsedDays = ChronoUnit.DAYS.between(fromDate,toDate);
 					
-					List<Object[]> holidayList = holidayRepository.getHolidayWeekOffSize(leaveDTO.getFromDate(), leaveDTO.getToDate());
+					List<Object[]> holidayList = holidayRepository.getHolidayWeekOffSize(leaveDTO.getFromDate(), leaveDTO.getToDate(),leaveDTO.getState());
 					
 				    List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),leaveDTO.getFromDate(),leaveDTO.getToDate());
 				    if(!empTimeSheet.isEmpty()) {
@@ -506,6 +538,22 @@ public class EmployeeLeaveService {
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
+	}
+public boolean isWeekOffFind(LocalDate fromDate , LocalDate toDate) {
+		
+		System.out.println(" from date :: "+fromDate);
+		System.out.println("toDate :: "+toDate);
+		List<Holiday> weekOffFind = holidayRepository.findWeekOffCountByFromAndToDate(fromDate, toDate);
+		System.err.println("weekOffFind   ::   "+weekOffFind.size());
+		for (Holiday holiday : weekOffFind) {
+			System.err.println(holiday.toString()+"\n");
+		}
+		
+		if(weekOffFind.size()>0) 
+			return true;
+		
+		else 
+			return false;
 	}
 
 	@Transactional
@@ -970,7 +1018,7 @@ public class EmployeeLeaveService {
 
 							long elapsedDays = ChronoUnit.DAYS.between(fromDate,toDate);
 							
-							List<Object[]> holidayList = holidayRepository.getHolidayWeekOffSize(leaveDTO.getFromDate(), leaveDTO.getToDate());
+							List<Object[]> holidayList = holidayRepository.getHolidayWeekOffSize(leaveDTO.getFromDate(), leaveDTO.getToDate(), leaveDTO.getState());
 							
 						    List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),leaveDTO.getFromDate(),leaveDTO.getToDate());
 						    if(!empTimeSheet.isEmpty()) {
@@ -3777,6 +3825,7 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 		final Float MATERNITY_LEAVES = 180F;
 		
 		try {
+			System.err.println(" Maternity API's call from postman ");
 			
 			List<Employee> allEmployee = employeeRepository.findAll();
 			
@@ -3785,9 +3834,11 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 			if(!allEmployee.isEmpty()) {
 				allEmployee.forEach((object) -> {
 					
-					if("female".equals(object.getGender())){
+					if("female".equalsIgnoreCase(object.getGender())){
+//						if(object.getEmploymentstatus().equals("Confirmed")) {}
+
 						EmployeeLeavesMap empLeaveMap = employeeLeavesMapRepository
-								.findByEmpIdAndLeaveTypeMasterId(object.getEmpId(), (short) 5);
+								.findByEmpIdAndLeaveTypeMasterId(object.getEmpId(), (short) 18); // 18 is in local and Uat and 5 is in Prod
 						
 						if(empLeaveMap != null) {
 							empLeaveMap.setBalance(MATERNITY_LEAVES);
@@ -3824,6 +3875,7 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 								}
 							}
 						}
+					
 					}
 				});
 			}

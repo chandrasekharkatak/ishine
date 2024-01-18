@@ -93,6 +93,7 @@ export class MyTimesheetComponent implements OnInit {
   isTimesheetLockCheckEnable:any = "true";
 
   selectedTimesheet:any;
+  today = new Date().toISOString().split('T')[0];
 
   filters:any = {};
   isSearchEnabled:boolean = false;
@@ -134,6 +135,7 @@ export class MyTimesheetComponent implements OnInit {
     this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
     this.sectionViewInit();
     this.preventBackButton();
+    // this.setStartDateMinMax();
   }
   preventBackButton() {
     history.pushState(null, null, location.href);
@@ -191,6 +193,7 @@ export class MyTimesheetComponent implements OnInit {
 
     this.filters = {};
     this.isSearchEnabled = false;
+    this.setStartDateMinMax();
   }
 
   showTeamTimesheets() {
@@ -209,6 +212,7 @@ export class MyTimesheetComponent implements OnInit {
     this.isSearchEnabled = false;
 
     this.teamMemberList = [];
+    this.setStartDateMinMax();
 
     let employeeObj = new Employee();
     employeeObj.empId = this.currentUser.empId;
@@ -419,6 +423,17 @@ export class MyTimesheetComponent implements OnInit {
       inTimeDate.setAttribute('min', `${moment(timesheetDate).format(moment.HTML5_FMT.DATETIME_LOCAL)}`);
       officeOutTime.setAttribute('min', `${moment(timesheetDate).format(moment.HTML5_FMT.DATETIME_LOCAL)}`);
     }
+  }
+
+  // added by anurag for viewMyTimesheet()
+  setStartDateMinMax(): void {
+    
+    let startDateInput = document.getElementById('timesheetStartDate');
+    let startEndDate = document.getElementById('timesheetEndDate');
+    startDateInput.setAttribute('max',this.today);
+    startEndDate.setAttribute('max',this.today);
+    console.log("set date :: ",startDateInput);
+    
   }
 
   resetTotalWorkingOfficeHours() {

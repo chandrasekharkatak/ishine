@@ -40,5 +40,8 @@ export class HolidayService {
   reconsileHolidayTimesheet(holidayObj: Holiday){
     return this.http.post(`${this.baseUrl}` + `api/reconsileHolidayTimesheet`, holidayObj);
   }
+  getAllHoliday() {
+    return this.http.get(`${this.baseUrl}` + `api/getAllHoliday`);
+  }
 
 }
