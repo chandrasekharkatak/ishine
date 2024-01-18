@@ -134,11 +134,9 @@ public class EmployeeLeaveService {
 			// added by anurag
 			EmployeeLeave recentLeaves = employeeLeaveRepository.findRecentLeavesByEmpId(leaveDTO.getEmpId()).get(0);
 
-//	        if (!recentLeaves.isEmpty()) {
-//	            for (EmployeeLeave recentLeave : recentLeaves) {
+
 	                LocalDate newLeaveFromDate = LocalDate.parse(leaveDTO.getFromDate());
 	                LocalDate recentLeaveToDate = recentLeaves.getToDate();
-//	                System.err.println("recentLeaveToDate    ::  "+recentLeaveToDate);
 	                if (newLeaveFromDate.isEqual(recentLeaveToDate.plusDays(1))) {
 	                	
 	                    if (!recentLeaves.getLeaveTypeMasterId().equals(leaveDTO.getLeaveTypeMasterId())) {
@@ -149,17 +147,33 @@ public class EmployeeLeaveService {
 	                } else {
 	                	System.err.println("recentLeaveToDate    ::  "+recentLeaveToDate);
 	                	boolean isWeekOff = this.isWeekOffFind(recentLeaveToDate.plusDays(1),newLeaveFromDate.minusDays(1));
+	                	
 	                	if(isWeekOff) {
-	                		if((!leaveDTO.getLeaveTypeMasterId().equals(recentLeaves.getLeaveTypeMasterId()))) {
-	                			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-		                        response.setServiceResponse("Two different types of leaves are not allowed on consecutive days.Week Offs also consider your last leave To date");
-		                        return response;
-	                		}
+	                		EmployeeLeave findLeaveOnToDate = employeeLeaveRepository.findEmployeeLeaveByToDate(newLeaveFromDate.minusDays(1),leaveDTO.getEmpId());
+	                		System.err.println("findLeaveOnToDate   ::  "+findLeaveOnToDate);
+	                		if(findLeaveOnToDate != null) {
+	                			if((!leaveDTO.getLeaveTypeMasterId().equals(recentLeaves.getLeaveTypeMasterId()))) {
+		                			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			                        response.setServiceResponse("Two different types of leaves are not allowed on consecutive days.Week Offs also consider your last leave To date");
+			                        return response;
+		                		}
+	                		}else {
+	                			List<Holiday> findWeekOffAndFestival = holidayRepository.findWeekOffCountByFromAndToDate(newLeaveFromDate.minusDays(1));
+	                			EmployeeLeave findPreviousLeaveByFromDate = employeeLeaveRepository.findLeaveByFromDate(leaveDTO.getFromDate(), leaveDTO.getEmpId()).get(0);
+	                			System.err.println("findPreviousLeaveByFromDate    ::   "+findPreviousLeaveByFromDate);
+	                			System.err.println(" Anurag call else part "+findWeekOffAndFestival);
+	                			if(!findWeekOffAndFestival.isEmpty()) {
+	                				if(!leaveDTO.getLeaveTypeMasterId().equals(findPreviousLeaveByFromDate.getLeaveTypeMasterId())) {
+	                					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				                        response.setServiceResponse("Two different types of leaves are not allowed on consecutive days.Week Offs also consider your last leave To date");
+				                        return response;
+	                				}
+	                				}
+	                			}
+	                		
 	                	}
 	                }
-//	            }
-//	        }
-			
+
 			
 			
 			EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
@@ -543,13 +557,13 @@ public boolean isWeekOffFind(LocalDate fromDate , LocalDate toDate) {
 		
 		System.out.println(" from date :: "+fromDate);
 		System.out.println("toDate :: "+toDate);
-		List<Holiday> weekOffFind = holidayRepository.findWeekOffCountByFromAndToDate(fromDate, toDate);
+		List<Holiday> weekOffFind = holidayRepository.findWeekOffCountByFromAndToDate(fromDate);
 		System.err.println("weekOffFind   ::   "+weekOffFind.size());
 		for (Holiday holiday : weekOffFind) {
 			System.err.println(holiday.toString()+"\n");
 		}
 		
-		if(weekOffFind.size()>0) 
+		if(weekOffFind.size() < 3) 
 			return true;
 		
 		else 

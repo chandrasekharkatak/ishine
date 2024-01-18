@@ -81,5 +81,11 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
 
 	@Query(nativeQuery = true)
 	public List<EmployeeLeave> findRecentLeavesByEmpId(Long empId);
+	
+	@Query(nativeQuery = true)
+	public EmployeeLeave findEmployeeLeaveByToDate(LocalDate toDate,Long empId);
+
+	@Query(nativeQuery = true)
+	List<EmployeeLeave> findLeaveByFromDate(String fromDate, Long empId);
 
 }
