@@ -353,9 +353,15 @@ public class EmployeeLeaveService {
 				log.setBalance(balance);
 				log.setEmpId(leaveDTO.getEmpId());
 				log.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
-				log.setMessage(LeaveLogMessage.requestDeductLeave.replace("0.0", leaveDTO.getNoOfDays().toString()));
-				log.setUpdateBalanceBy("-" + leaveDTO.getNoOfDays());
-
+				
+				if(!leaveDTO.getLeaveTypeCode().equalsIgnoreCase("LWP")) {
+					log.setMessage(LeaveLogMessage.requestDeductLeave.replace("0.0", leaveDTO.getNoOfDays().toString()));
+					log.setUpdateBalanceBy("-" + leaveDTO.getNoOfDays());
+				}
+				else {
+					log.setMessage(LeaveLogMessage.requestDeductLeave);
+					log.setUpdateBalanceBy("0"); 
+					}
 				leaveBalanceLogRepository.save(log);
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -637,8 +643,10 @@ public boolean isWeekOffFind(LocalDate fromDate , LocalDate toDate) {
 							log.setMessage(LeaveLogMessage.deleteLeave.replace("0.0", leaveDTO.getNoOfDays().toString()));
 						}
 						
-						log.setUpdateBalanceBy("+" + leaveDTO.getNoOfDays());
-						
+						if(!leaveDTO.getLeaveTypeMasterId().equals((short)17)) // 17 is in local and UAT But in prod it is 3
+							log.setUpdateBalanceBy("+" + leaveDTO.getNoOfDays());
+						else
+							log.setUpdateBalanceBy("0");
 						leaveBalanceLogRepository.save(log);
 					}
 				}
@@ -1531,7 +1539,10 @@ public boolean isWeekOffFind(LocalDate fromDate , LocalDate toDate) {
 						}else {					
 							log.setMessage(LeaveLogMessage.requestAddLeave.replace("0.0", pendingLeaveApplication.getNoOfDays().toString()));
 						}
-						log.setUpdateBalanceBy("+" + pendingLeaveApplication.getNoOfDays());
+						if(!leaveDTO.getLeaveTypeMasterId().equals((short) 17)
+							log.setUpdateBalanceBy("+" + pendingLeaveApplication.getNoOfDays());
+						else
+							log.setUpdateBalanceBy("0");
 						leaveBalanceLogRepository.save(log);
 						response.setServiceResponse("Leave application rejected.");
 						apiLogInfo.setApiResponse("Leave application rejected.");
@@ -1831,7 +1842,7 @@ public boolean isWeekOffFind(LocalDate fromDate , LocalDate toDate) {
 
 									leave.setBalance(dto.getBalance());
 								} else {
-
+									System.err.println(" ANurag added balance   ::  "+dto.getBalance()+" leaveTypeMasterId  "+dto.getLeaveTypeMasterId());
 									if (dto.getBalance().equals(leave.getBalance())) {
 										// No change in balance leave
 										leave.setBalance(dto.getBalance());
