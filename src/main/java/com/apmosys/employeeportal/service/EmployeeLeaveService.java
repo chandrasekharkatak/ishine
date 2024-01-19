@@ -1539,7 +1539,7 @@ public boolean isWeekOffFind(LocalDate fromDate , LocalDate toDate) {
 						}else {					
 							log.setMessage(LeaveLogMessage.requestAddLeave.replace("0.0", pendingLeaveApplication.getNoOfDays().toString()));
 						}
-						if(!leaveDTO.getLeaveTypeMasterId().equals((short) 17)
+						if(!leaveDTO.getLeaveTypeMasterId().equals((short) 17))
 							log.setUpdateBalanceBy("+" + pendingLeaveApplication.getNoOfDays());
 						else
 							log.setUpdateBalanceBy("0");
