@@ -655,7 +655,7 @@
                                 <div class="form-group">
                                     <label class="info-label mb-0"><span class="text-danger">*</span>Select File</label>
                                     <small class="d-block text-secondary mb-2 pl-2">Please Upload file upto {{maxFileSize}}MB</small>
-                                    <input type="file" accept=".pdf" multiple class="form-control p-1" (change)="onFileSelect($event)">
+                                    <input type="file" accept=".pdf" multiple class="form-control p-1" (change)="onFileSelect($event,alert_message)">
                                 </div>
                             </div>
                         </div>

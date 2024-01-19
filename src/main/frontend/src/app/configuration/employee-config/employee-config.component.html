@@ -40,7 +40,7 @@
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Full Name</label>
                                                 <input type="text" class="form-control" maxlength="40" autocomplete="none"
-                                                [(ngModel)]="employeeObj.name" (blur)="ValidateName(alert_message)">
+                                                [(ngModel)]="employeeObj.name" (blur)="ValidateName(alert_message)" (keypress)="RestrictFullName($event)">
                                                 <small class="errorMsg text-danger"></small>
                                             </div>
                                         </div>

@@ -355,9 +355,21 @@ export class HomeConfigComponent implements OnInit {
   onImageSelect(event:any,template: TemplateRef<any>){
     const extensionRE = /(?:\.([^.]+))?$/;
     let isSizeInRange:boolean = false;
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+    const maxSizeInBytes = 10 * 1024 * 1024; // 10MB
+
+    const uploadedFiles = event.target.files;
+    console.log(" file type ::  ",uploadedFiles," file type :: ",uploadedFiles.type)
 
     //Bits in  10mb : 10485760
-    if(event.target.files[0].size > 10485760){
+// Check file type
+if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
+  this.openAlertMod(template,'Please select a valid image file (png, jpeg, or jpg).');
+  event.target.value = ''; // Clear the input
+  return;
+}
+    
+    if(event.target.files[0].size > maxSizeInBytes){
       this.openAlertMod(template, "File size is more than 10MB");
       event.target.value = null;
       isSizeInRange = false;
@@ -368,11 +380,12 @@ export class HomeConfigComponent implements OnInit {
    if(isSizeInRange){
     this.files = [];
 
-    const uploadedFiles = event.target.files;
+   
     console.log("uploadedFiles : ", uploadedFiles);
 
     if (uploadedFiles.length != 0) {
       for (let i = 0; i < uploadedFiles.length; i++) {
+        console.log(" upload method call ");
         let image = uploadedFiles[i];
         let imageName = "EventPhoto_"+moment(new Date()).format("DD-MM-YYYY-hh-mm-ss")+"."+extensionRE.exec(image.name)[1];
 

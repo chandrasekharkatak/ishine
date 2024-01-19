@@ -1090,11 +1090,31 @@ export class PortalConfigComponent implements OnInit {
 
   // Help Config :: start
 
-  onFileSelect(event: any) {
+  onFileSelect(event: any,template:TemplateRef<any>) {
     this.files = [];
+    const allowedTypes = ['application/pdf'];
+    const maxSizeInBytes = 20 * 1024 * 1024; // 20MB
     let totalSize: number = 0;
+    let isSizeInRange:boolean = false;
     this.fileSize = 0;
     const uploadedFiles = event.target.files;
+console.log("maxFileSize  ::  ",maxSizeInBytes)
+    if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
+      this.openAlertMod(template,'Please select a valid file (pdf).');
+      event.target.value = ''; // Clear the input
+      return;
+    }
+    if(event.target.files[0].size > maxSizeInBytes){
+      this.openAlertMod(template, "File size is more than 20MB");
+      event.target.value = null;
+      isSizeInRange = false;
+   }else{
+    isSizeInRange = true;
+   }
+
+   if(isSizeInRange){
+    this.files = [];
+   
     console.log("maxfilesize: " + this.maxFileSize);
     if (uploadedFiles.length != 0) {
       for (let i = 0; i < uploadedFiles.length; i++) {
@@ -1107,6 +1127,7 @@ export class PortalConfigComponent implements OnInit {
         console.log("Files : ", this.files);
       }
     };
+  }
   }
 
   onUploadFiles(template: TemplateRef<any>){
