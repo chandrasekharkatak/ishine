@@ -181,6 +181,9 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}`+`api/newsletters/setNewsletterReadResponseByEmpId`,
     `${this.baseUrl}`+`api/newsletters/getAllReadNewslettersByEmpId`,
     `${this.baseUrl}`+`api/approveDraftEmployeeApplication`,
+    `${this.baseUrl}`+`api/uploadHelpDocument`,
+    `${this.baseUrl}`+`api/uploadPolicies`,
+
 
   ]
 

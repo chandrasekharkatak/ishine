@@ -115,13 +115,25 @@ export class NewsletterConfigComponent implements OnInit {
     this.file=null;
   }
 
-  onFileSelect(event:any){
+  onFileSelect(event:any, template:TemplateRef<any>){
     this.file = {};
     let totalSize: number = 0;
-
+    const allowedTypes = ['application/pdf', 'application/doc'];
     this.fileSize = 0;
+    const maxSizeInBytes = 20 * 1024 * 1024; // 20MB
     const uploadedFiles = event.target.files;
     console.log("Max File Size: ", this.maxFileSize );
+
+    if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
+      this.openAlertMod(template,'Please select a valid file (.pdf or .doc).');
+      event.target.value = ''; // Clear the input
+      return;
+    }
+
+    if(event.target.files[0].size > maxSizeInBytes){
+      this.openAlertMod(template, "File size is more than 20MB");
+      event.target.value = null;
+   }
 
     let document = uploadedFiles[0];
     let fileName = document.name;

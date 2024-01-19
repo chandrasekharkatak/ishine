@@ -121,12 +121,33 @@ export class UploadPoliciesComponent implements OnInit {
     this.getAllDocuments();
   }
 
-  onFileSelect(event:any){
+  onFileSelect(event:any, template:TemplateRef<any>){
     this.files = [];
     let totalSize: number = 0;
+    let isSizeInRange:boolean = false;
+    const allowedTypes = ['application/pdf', 'application/doc'];
+    const maxSizeInBytes = 20 * 1024 * 1024; // 20MB
     this.fileSize = 0;
     const uploadedFiles = event.target.files;
      console.log("maxfilesize: "+ this.maxFileSize );
+
+     if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
+      this.openAlertMod(template,'Please select a valid file (.pdf or .doc).');
+      event.target.value = ''; // Clear the input
+      return;
+    }
+
+    if(event.target.files[0].size > maxSizeInBytes){
+      this.openAlertMod(template, "File size is more than 20MB");
+      event.target.value = null;
+      isSizeInRange = false;
+   }else{
+    isSizeInRange = true;
+   }
+
+   if(isSizeInRange){
+    this.files = [];
+
     if (uploadedFiles.length != 0) {
       for (let i = 0; i < uploadedFiles.length; i++) { 
         let document = uploadedFiles[i];
@@ -138,6 +159,7 @@ export class UploadPoliciesComponent implements OnInit {
         console.log("Files : ", this.files);
       }
     };
+  }
   }
   reset() {
     this.policyName = null;

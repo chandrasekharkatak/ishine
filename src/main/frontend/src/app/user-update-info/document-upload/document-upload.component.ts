@@ -162,7 +162,7 @@ export class DocumentUploadComponent implements OnInit {
 
   onImageSelect(event:any, index:any, documentObj:Document, template: TemplateRef<any>){
     const extensionRE = /(?:\.([^.]+))?$/;
-
+    const allowedTypes = ['image/jpeg'];
     const image = event.target.files[0];
     let imageSize = parseInt((image.size/1000).toFixed(2));
     let imgHeight; 
@@ -197,6 +197,11 @@ export class DocumentUploadComponent implements OnInit {
     if(imgExtension != 'jpeg' && imgExtension != 'jpg'){
       this.alertMessage = "Please upload valid file with jpeg/jpg extension"
       this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if(image && allowedTypes.indexOf(image.type) === -1){
+      this.openAlertMod(template,'Please select a valid image file (jpeg, or jpg).');
       return false;
     }
     
