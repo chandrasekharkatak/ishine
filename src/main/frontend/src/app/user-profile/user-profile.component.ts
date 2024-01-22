@@ -628,15 +628,23 @@ export class UserProfileComponent implements OnInit {
   }
 
 
-  onProfileImageSelect(event:any){
+  onProfileImageSelect(event:any, template:TemplateRef<any>){
     let uploadLabel = document.getElementById("profileImgLabel");
     let label = `Upload Image <i class="fa-solid fa-angles-right"></i>`;
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+    const uploadedFiles = event.target.files;
+    if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
+      this.openAlertMod(template,'Please select a valid image file (png, jpeg, or jpg).');
+      event.target.value = ''; // Clear the input
+      return;
+    }
+
 
     this.profileImage = null;
     this.profileImageName = null;
 
-    if (event.target.files[0] != null) {
-      this.profileImage = event.target.files[0];
+    if (uploadedFiles[0] != null) {
+      this.profileImage = uploadedFiles[0];
       this.profileImageName = this.profileImage.name;
       console.log(this.profileImage);
 
