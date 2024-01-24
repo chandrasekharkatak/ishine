@@ -310,7 +310,7 @@ public class CompOffLeaveService {
 					dto.setFromDate(object[5] != null ? object[5].toString() : null);
 					dto.setToDate(object[6] != null ? object[6].toString() : null);
 					dto.setNoOfDays(object[7] != null ? Float.parseFloat(object[7].toString()) : null);
-
+					dto.setRejectCompOffReason(object[8] != null ? object[8].toString() : null);
 					dtoList.add(dto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
