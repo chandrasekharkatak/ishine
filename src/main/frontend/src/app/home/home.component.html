@@ -252,6 +252,13 @@
     </div>
 </ng-template>
 
+<ng-template #compoff_success>
+    <div class="modal-body text-center">
+       <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest();openReqMod(LeaveReq);getPendingCompOffRequestsByManagerId()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
 <ng-template #timesheet_success>
     <div class="modal-body text-center">
        <p>{{alertMessage}}</p>
@@ -482,6 +489,11 @@
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">
         </div> -->
     <div class="modal-body px-4">
+        <div *ngIf="bulkCompOffApprove.length > 1 && bulkCompOffReject.length > 1" class="form-group ml-4">
+            <button class="btn btn-sm btn-outline-success mt-2" type="submit" (click)="cancelRequest();onBulkCompOffApprove(compoff_success)">Bulk
+                Approve</button>&nbsp;
+            <button type="submit" class="btn btn-sm btn-outline-danger ml-2 mt-2" (click)="cancelRequest();onBulkCompOffReject(bulk_comp_off_reject, leaveObj)">Bulk Reject</button>
+        </div>
         <div class="selector-toggle" (click)="toggleSearch()">
             <a href="javascript:void(0)">
                 <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
@@ -493,9 +505,11 @@
         <table class="table compOffApplication-table" matSort (matSortChange)="sortData($event)" id="compOffApplication">
             <thead class="thead-light" id="compOffApplicationTHead">
               <tr id="compOffApplicationTHeadTr">
+                <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAllCompOff($event)" [(ngModel)]="isSelectAll"></th>
                 <th scope="col" class="info-label">Sr No.</th>
                 <th scope="col" class="info-label" mat-sort-header="createdByName|string">Applied By</th>
                 <th scope="col" class="info-label" mat-sort-header="compOffReasons|string">Applied For</th>
+                <th scope="col" class="info-label" mat-sort-header="createdOn|date">Applied On</th>
                 <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>
                 <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>
                 <th scope="col" class="info-label" mat-sort-header="noOfDays|number">Duration</th>
@@ -509,18 +523,20 @@
                 <tr *ngIf="allCompOffApplications.length == 0 || compOffApplicationCount.length == 0 || (allCompOffApplications| colFilter:filters:false).length == 0">
                     <th colspan="10" class="text-center info-label">No details to display...</th>
                 </tr>
-                <tr *ngFor="let compOffApp of allCompOffApplications| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
+                <tr *ngFor="let compOffApplication of allCompOffApplications| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
+                    <td><input class="compoff-req-checkbox" id="{{compOffApplication.checkId}}" type="checkbox" [(ngModel)]="compOffApplication.isSelected" (change)="selectCompOff(compOffApplication,$event)"></td>
                     <td>{{i+1}}</td>
-                    <td>{{compOffApp.createdByName}}</td>
-                    <td>{{compOffApp.compOffReasons}}</td>
-                    <td>{{compOffApp.fromDate}}</td>
-                    <td>{{compOffApp.toDate}}</td>
-                    <td>{{compOffApp.noOfDays}}</td>
-                    <td>{{compOffApp.description}}</td>
-                    <td>{{compOffApp.status}}</td>
+                    <td>{{compOffApplication.createdByName}}</td>
+                    <td>{{compOffApplication.compOffReasons}}</td>
+                    <td>{{compOffApplication.createdOn}}</td>
+                    <td>{{compOffApplication.fromDate}}</td>
+                    <td>{{compOffApplication.toDate}}</td>
+                    <td>{{compOffApplication.noOfDays}}</td>
+                    <td>{{compOffApplication.description}}</td>
+                    <td>{{compOffApplication.status}}</td>
                     <td>
-                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success mb2" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
-                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger mb2" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
+                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success mb2" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
+                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger mb2" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApplication, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
                     </td>
                 </tr>
             </tbody>
@@ -636,11 +652,29 @@
         <button type="button" class="btn btn-danger" (click)="cancelRequest();openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
+
+<ng-template #bulk_comp_off_reject>
+    <div class="modal-body text-center">
+        <p>Kindly provide reason(s) for rejecting application.</p>
+        <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.rejectCompOffReason"> </textarea><br>
+        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectCompOffReason)" (click)="cancelRequest();bulkCompOffRejectLeave(comp_off_reject)">Reject</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest();openReqMod(compOffReq);getPendingCompOffRequestsByManagerId()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
 <!-- openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId() -->
 <ng-template #leave_reject>
     <div class="modal-body text-center">
        <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest();openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<!-- comp_off_reject -->
+<ng-template #comp_off_reject>
+    <div class="modal-body text-center">
+       <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest();openReqMod(compOffReq);getPendingCompOffRequestsByManagerId()">OK</button>&nbsp;
     </div>
 </ng-template>
 

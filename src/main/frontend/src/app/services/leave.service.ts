@@ -224,6 +224,14 @@ export class LeaveService {
   bulkRejectLeaveRequest(leaveObj: Leave){
     return this.http.post(`${this.baseUrl}`+ `api/bulkRejectLeaveRequest`, leaveObj);
   }
+// bulkCompOffReject
+bulkCompOffReject(compOff: Leave){
+  return this.http.post(`${this.baseUrl}`+ `api/bulkCompOffReject`, compOff);
+}
+// bulkCompOffApprove
+bulkCompOffApprove(compOff: Leave){
+  return this.http.post(`${this.baseUrl}`+ `api/bulkCompOffApprove`, compOff);
+}
 
   getAllLeaveBalanceByEmpId(leaveObj: Leave){
     return this.http.post(`${this.baseUrl}`+ `api/getAllLeaveBalanceByEmpId`, leaveObj);

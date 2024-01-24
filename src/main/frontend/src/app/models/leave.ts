@@ -124,5 +124,6 @@ export class Leave{
 	level3ApprovalStatus:any;
 	leaveEmpId:any;
 	seniorManagerId:any;
-	state:any
+	state:any;
+	rejectCompOffReason:any;
 }

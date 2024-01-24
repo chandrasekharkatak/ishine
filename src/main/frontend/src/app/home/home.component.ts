@@ -84,6 +84,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
   isSelectAll: boolean = false;
   bulkLeaveApprove: any = [];
   bulkLeaveReject: any = [];
+  bulkCompOffApprove: any = [];
+  bulkCompOffReject: any = [];
+  bulk
+
 
   leaveObj = new Leave();
 
@@ -327,16 +331,20 @@ export class HomeComponent implements OnInit, AfterViewInit {
   getPendingCompOffRequestsByManagerId() {
     this.data = ''
     this.allCompOffApplications = []
+    this.isSelectAll = false
+    this.bulkCompOffApprove=[]
+    this.bulkCompOffReject=[]
 
     let compOff = new Leave();
     compOff.managerId = this.currentUser.empId;
     this.leaveService.getPendingCompOffRequestsByManagerId(compOff).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allCompOffApplications = response.serviceResponse;
-        this.allCompOffApplications.forEach(compOff => {
+        this.allCompOffApplications.forEach((compOff, index) => {
+          compOff.checkId = "compOff"+index;
           compOff.fromDate = (compOff.fromDate)? moment(compOff.fromDate).format(AppComponent.DATE_FORMAT) : null;
           compOff.toDate = (compOff.toDate)? moment(compOff.toDate).format(AppComponent.DATE_FORMAT) : null;
-          compOff.createdOn = (compOff.createdOn)? moment(compOff.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          compOff.createdOn = (compOff.createdOn)? moment(compOff.createdOn).format(AppComponent.DATE_FORMAT) : null;
         });
         console.log("allCompOffApplications : ", this.allCompOffApplications);
       } else {
@@ -1209,6 +1217,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     const checkboxes = document.querySelectorAll('.timesheet-req-checkbox');
 
     console.log("select Data : ", this.allTeamTimesheetRequests);
+    console.log("checkboxes    ::   ",checkboxes);
 
     checkboxes.forEach((checkbox: any) => {
       console.log("checkbox : ", checkbox);
@@ -1232,6 +1241,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       }
     });
     const leaveCheckboxes = document.querySelectorAll('.homeLeave-req-checkbox');
+    console.log("leaveCheckboxes     ::   ",leaveCheckboxes);
     leaveCheckboxes.forEach((leaveCheck: any) => {
       console.log("Check in leave home ", leaveCheck);
       let leaveCheckboxIndex = leaveCheck.getAttribute('id');
@@ -1253,7 +1263,35 @@ export class HomeComponent implements OnInit, AfterViewInit {
         });
       }
 
-    })
+    });
+    
+  }
+  selectAllCompOff(event){
+    const compOffCheckBox = document.querySelectorAll('.compoff-req-checkbox');
+
+    console.log("select Data : ", compOffCheckBox);
+
+    compOffCheckBox.forEach((checkbox: any) => {
+      console.log("checkbox : ", checkbox);
+      let checkboxIndex = checkbox.getAttribute('id');
+      let checkedCompOff = this.allCompOffApplications.find((_compoff, index) => _compoff.checkId == checkboxIndex);
+      console.log("checkedCompOff   ::   ",checkedCompOff);
+      if (event.target.checked) {
+        checkbox.checked = true;
+        checkbox.classList.add('checked');
+        this.bulkCompOffApprove.push(checkedCompOff);
+        this.bulkCompOffReject.push(checkedCompOff);
+      } else {
+        checkbox.checked = false;
+        checkbox.classList.remove('checked');
+        this.bulkCompOffApprove.forEach((compOff, index) => {
+          if (compOff == checkedCompOff) this.bulkCompOffApprove.splice(index, 1);
+        });
+        this.bulkCompOffReject.forEach((compOff, index) => {
+          if (compOff == checkedCompOff) this.bulkCompOffReject.splice(index, 1);
+        });
+      }
+    });
   }
 
   select(timesheetObj, event) {
@@ -1280,7 +1318,28 @@ export class HomeComponent implements OnInit, AfterViewInit {
     console.log("Updated Bulk List : ", this.bulkApprove);
   }
 
+  selectCompOff(compOffObj,event){
 
+    // compoff-req-checkbox
+    console.log("compOff bulk method call clicked on ",compOffObj);
+    if(event.target.checked){
+      event.target.classList.add('checked');
+      this.bulkCompOffApprove.push(compOffObj);
+      this.bulkCompOffReject.push(compOffObj);
+    }else{
+      event.target.classList.remove('checked');
+      const compOffLeaveCheckBox = document.querySelectorAll('.compoff-req-checkbox.checked');
+      if(compOffLeaveCheckBox.length !== this.items) this.isSelectAll = false;
+      console.log("checkbox.length of comp off  ",compOffLeaveCheckBox.length);
+      this.bulkCompOffApprove.forEach((compOff,index)=>{
+        if(compOff == compOffObj) this.bulkCompOffApprove.splice(index, 1);
+      });
+      this.bulkCompOffReject.forEach((compOff,index)=>{
+        if(compOff == compOffObj) this.bulkCompOffReject.splice(index, 1);
+      });
+      console.log("Updated Bulk List : ", this.bulkCompOffApprove);
+    }
+  }
 
 
   onSelect(leaveObj, event) {
@@ -1475,6 +1534,69 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   }
 
+  
+
+
+    onBulkCompOffReject(template: TemplateRef<any>, leave) {
+    this.leaveObj.rejectCompOffReason = ''
+    this.cancelRequest();
+    this.leaveObj = leave
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
+  
+  onBulkCompOffApprove(template: TemplateRef<any>){
+    console.log(" bulk approve compoff call ::  ");
+    let compOffObj = new Leave();
+    compOffObj.bulkLeaveApprovedList = this.bulkCompOffApprove;
+    compOffObj.leaveStatusUpdatedBy = this.currentUser.empId;
+    compOffObj.approverEmail= this.currentUser.email;
+    compOffObj.leaveStatusId = 2;
+    this.leaveService.bulkCompOffApprove(compOffObj).pipe(first()).subscribe((response: any)=>{
+      if(response.serviceStatus == "Success"){
+        this.openAlertMod(template, "All Selected CompOff Leaves Approved Successfully ");
+        this.getPendingCompOffRequestsByManagerId();
+        this.bulkCompOffApprove = [];
+        this.bulkCompOffReject = [];
+
+      }else{
+        console.error(response.serviceResponse);
+      }
+  });
+}
+
+
+
+  bulkCompOffRejectLeave(template: TemplateRef<any>){
+    this.leaveObj.rejectCompOffReason = this.leaveObj.rejectCompOffReason?.trim();
+    if (!this.validationService.validateActivityTimesheetDiscription(this.leaveObj.rejectCompOffReason)) {
+      this.alertMessage = "please enter valid reason !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    let compOffObj = new Leave();
+    compOffObj.bulkLeaveRejectList= this.bulkCompOffReject;
+    console.log("-------------------------n   ",compOffObj.bulkLeaveRejectList);
+    compOffObj.leaveStatusUpdatedBy=this.currentUser.empId;
+    compOffObj.leaveStatusId = 3;
+    compOffObj.approverEmail= this.currentUser.email;
+    compOffObj.rejectCompOffReason = this.leaveObj.rejectCompOffReason?.trim();
+    compOffObj.bulkLeaveRejectList.forEach((compOff)=>{
+      compOff.employeementId = compOff.employeementId;
+    });
+    this.leaveService.bulkCompOffReject(compOffObj).pipe(first()).subscribe((response: any)=>{
+      if(response.serviceStatus == "Success"){
+        this.openAlertMod(template, "All Selected CompOff Leaves Rejected Successfully ");
+        this.getPendingCompOffRequestsByManagerId();
+        this.bulkCompOffApprove = [];
+        this.bulkCompOffReject = [];
+
+      }else{
+        console.error(response.serviceResponse);
+      }
+    });
+
+  }
 
   OnBulkReject(template: TemplateRef<any>) {
     let timesheet = new Timesheet();

@@ -174,4 +174,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	public List<Object[]> getEmployeeDetailForDSRCron(LocalDate startDate, LocalDate endDate);
 
 	public List<Employee> findByEmploymentstatusIsNot(String string);
+
+	@Query(nativeQuery = true)
+	public List<Object[]> findHodByEmpId(Long empId);
 }

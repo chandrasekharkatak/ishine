@@ -148,4 +148,5 @@ public class LeaveDTO {
 	private String level3ApprovalStatus;
 	private Long leaveEmpId;
 	private String state;
+	private String rejectCompOffReason;
 }

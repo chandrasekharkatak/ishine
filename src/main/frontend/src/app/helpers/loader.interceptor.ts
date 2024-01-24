@@ -183,6 +183,8 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}`+`api/approveDraftEmployeeApplication`,
     `${this.baseUrl}`+`api/uploadHelpDocument`,
     `${this.baseUrl}`+`api/uploadPolicies`,
+    `${this.baseUrl}`+`api/bulkCompOffReject`,
+    `${this.baseUrl}`+`api/bulkCompOffApprove`,
 
 
   ]

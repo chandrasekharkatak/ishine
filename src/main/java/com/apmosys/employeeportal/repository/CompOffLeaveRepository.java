@@ -2,6 +2,8 @@ package com.apmosys.employeeportal.repository;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -44,5 +46,9 @@ public interface CompOffLeaveRepository extends JpaRepository<CompOffLeave, Long
 
 	public List<CompOffLeave> findByEmpIdAndFromDateLessThanEqualAndCompOffStatusIs(Long empId, LocalDate date,
 			String string);
+
+	@Query(nativeQuery = true)
+	public List<CompOffLeave> findByLeaveStatusIdAndManagerIdAndCreatedOnBefore(short leaveStatusId, Long managerId,
+			Date sevenDaysAgoDate);
 	
 }

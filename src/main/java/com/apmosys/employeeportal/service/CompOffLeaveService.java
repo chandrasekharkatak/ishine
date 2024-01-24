@@ -2,15 +2,22 @@ package com.apmosys.employeeportal.service;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import javax.mail.MessagingException;
+import javax.mail.internet.AddressException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.logging.log4j.LogBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +44,8 @@ import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
 public class CompOffLeaveService {
+
+	private static final Long Long = null;
 
 	@Autowired
 	CompOffLeaveRepository compOffLeaveRepository;
@@ -132,7 +141,11 @@ public class CompOffLeaveService {
 
 			leave.setDescription(leaveDTO.getDescription());
 			leave.setEmpId(leaveDTO.getEmpId());
-			leave.setManagerId(leaveDTO.getHodId()); // Here Approvals will go to Department Head for CompOff Application
+			
+
+				leave.setManagerId(leaveDTO.getManagerId());
+			
+//			leave.setManagerId(leaveDTO.getHodId()); // Here Approvals will go to Department Head for CompOff Application
 			// 1= pending , 2= approved , 3 = rejected
 			leave.setLeaveStatusId((short) 1);
 			// 1 = CL , 2 = PL , 3 = ML , 4 = PTL , 5 = CO
@@ -333,112 +346,145 @@ public class CompOffLeaveService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("empId : " +leaveDTO.getEmpId()+ "compOffLeaveId : " +leaveDTO.getCompOffLeaveId()+ "leaveStatusUpdatedBy :" +leaveDTO.getLeaveStatusUpdatedBy()+ "leaveStatusId" +leaveDTO.getLeaveStatusId());
 		try {
-
+			
 			Optional<CompOffLeave> leaveObject = compOffLeaveRepository.findById(leaveDTO.getCompOffLeaveId());
+			List<Object[]> findHod = employeeRepository.findHodByEmpId(leaveDTO.getEmpId());
 			LeaveTypeMaster leavetypeObj = leaveTypeMasterRepository.findByLeaveTypeCode("CO");
 			System.out.println("  leave type" + " leavetypeObj " +leavetypeObj);
+			System.out.println(" findHod :  "+findHod.get(0));
 			
 			if (leaveObject.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No compoff request(s) found.");
 			} else {
-
-				CompOffLeave compOffLeave = leaveObject.get();
-
-				compOffLeave.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
-				compOffLeave.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
-
-				// 1 = pending , 2 = Approved , 3= Rejected
-				compOffLeave.setLeaveStatusId(leaveDTO.getLeaveStatusId());
-
-				if (leaveDTO.getLeaveStatusId() == 2) {
-					// 1 = CO
-					EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
-							.findByEmpIdAndLeaveTypeMasterId(leaveDTO.getEmpId(), leavetypeObj.getLeaveTypeMasterId());
-
-					employeeLeavesMap.setBalance(employeeLeavesMap.getBalance() + compOffLeave.getNoOfDays());
-					employeeLeavesMapRepository.save(employeeLeavesMap);
-
-					LeaveBalanceLog log = new LeaveBalanceLog();
-					log.setBalance(employeeLeavesMap.getBalance());
-					log.setEmpId(leaveDTO.getEmpId());
-					log.setLeaveTypeMasterId(leavetypeObj.getLeaveTypeMasterId());
-					log.setMessage(
-							LeaveLogMessage.compOffAddLeave.replace("0.0", compOffLeave.getNoOfDays().toString()));
-					log.setUpdateBalanceBy("+" + compOffLeave.getNoOfDays());
-					LeaveBalanceLog dbResponse = leaveBalanceLogRepository.save(log);
+				findHod.forEach((object)->{
+					CompOffLeave compOffLeave = leaveObject.get();
 					
-					if(dbResponse != null) {
+				
+					compOffLeave.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+
+					// 1 = pending , 2 = Approved , 3= Rejected
+					compOffLeave.setLeaveStatusId(leaveDTO.getLeaveStatusId());
+
+					if (leaveDTO.getLeaveStatusId() == 2) {
+						// 1 = CO
+						EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
+								.findByEmpIdAndLeaveTypeMasterId(leaveDTO.getEmpId(), leavetypeObj.getLeaveTypeMasterId());
+
+						// added by anurag comp off two step verification   
+						compOffLeave.setManagerId(object[1] != null ? Integer.parseInt(object[1].toString()) : null);
+						if(compOffLeave.getLeaveStatusUpdatedBy() != null) {
+							compOffLeave.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
+							compOffLeave.setLeaveStatusId((short) 2);
+						}
+						
+						else {
+							compOffLeave.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
+							compOffLeave.setLeaveStatusId((short) 1);
+						}
+						System.err.println(" Anurag find hod    :   "+compOffLeave.getManagerId());
+						employeeLeavesMap.setBalance(employeeLeavesMap.getBalance() + compOffLeave.getNoOfDays());
+						employeeLeavesMapRepository.save(employeeLeavesMap);
+
+						LeaveBalanceLog log = new LeaveBalanceLog();
+						log.setBalance(employeeLeavesMap.getBalance());
+						log.setEmpId(leaveDTO.getEmpId());
+						log.setLeaveTypeMasterId(leavetypeObj.getLeaveTypeMasterId());
+						log.setMessage(
+								LeaveLogMessage.compOffAddLeave.replace("0.0", compOffLeave.getNoOfDays().toString()));
+						log.setUpdateBalanceBy("+" + compOffLeave.getNoOfDays());
+						LeaveBalanceLog dbResponse = leaveBalanceLogRepository.save(log);
+						
+						if(dbResponse != null) {
+							compOffLeave.setCompOffStatus("Pending");
+							response.setServiceResponse("Compoff request application approved.");
+						}
+					} else if (leaveDTO.getLeaveStatusId() == 3) {
+						System.err.println(" Anurag find hod    :   "+compOffLeave.getManagerId());
 						compOffLeave.setCompOffStatus("Pending");
-						response.setServiceResponse("Compoff request application approved.");
+						compOffLeave.setRejectCompOffReason(leaveDTO.getRejectCompOffReason());					
+						response.setServiceResponse("CompOff request application rejected.");
 					}
-				} else if (leaveDTO.getLeaveStatusId() == 3) {
-					compOffLeave.setCompOffStatus("Pending");
-					response.setServiceResponse("CompOff request application rejected.");
-				}
 
-				CompOffLeave compOffUpdated = compOffLeaveRepository.save(compOffLeave);
+					CompOffLeave compOffUpdated = compOffLeaveRepository.save(compOffLeave);
 
-				if (compOffUpdated != null) {
-					if(leaveDTO.getLeaveStatusId() == 2) {
-						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						response.setServiceResponse("Compoff Request Approved");
+					if (compOffUpdated != null) {
+						if(leaveDTO.getLeaveStatusId() == 2) {
+							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse("Compoff Request Approved");
+							
+							try {
+								mailService.sendMailWithCC(leaveDTO.getEmail(), leaveDTO.getHodEmail()+","+leaveDTO.getManagerEmail()+","+hrMailAddress, "Regarding Compensatory off Request Approval", 
+										"Dear "+ leaveDTO.getEmployeeName()+","+
+								"<br> "
+								+" &nbsp;"+" &nbsp;"+" "+"Your Compensatory off application has been approved by "+ leaveDTO.getHodName() +"."+
+								"<br>"+"<br>"+"<b>"+"Comp-Off Details :"+"<b>"+
+								"<br>"+
+								"EmpID :"+"A- "+ leaveDTO.getEmployeementId()+
+								"<br>"+
+								"Name :"+" "+ leaveDTO.getEmployeeName()+
+								"<br>"+
+								" Date "+" "+ leaveDTO.getFromDate() +
+								"<br>"+
+								"No. Of Days :"+" 1 "+"day(s)"
+								+"<br>"+
+								"Comp-off Description :"+" "+leaveDTO.getDescription()+ "."
+								+"<br>"+
+								"Comp-off reason :"+" "+leaveDTO.getCompOffReasons()+ ".");
+							} catch (AddressException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							} catch (MessagingException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							
+						}else if(leaveDTO.getLeaveStatusId() == 3){
+							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse("Compoff Request Rejected");
+							
+							try {
+								mailService.sendMailWithCC(leaveDTO.getEmail(), leaveDTO.getHodEmail()+","+leaveDTO.getManagerEmail()+","+hrMailAddress, "Regarding Compensatory off Request Rejection", 
+										"Dear "+ leaveDTO.getEmployeeName()+","+
+								"<br> "
+								+" &nbsp;"+" &nbsp;"+" "+"Your Compensatory off application has been rejected by "+ leaveDTO.getHodName() +"."+
+								"<br>"+"<br>"+"<b>"+"Comp-Off Details :"+"<b>"+
+								"<br>"+
+								"EmpID :"+"A- "+ leaveDTO.getEmployeementId()+
+								"<br>"+
+								"Name :"+" "+ leaveDTO.getEmployeeName()+
+								"<br>"+
+								" Date "+" "+ leaveDTO.getFromDate() +
+								"<br>"+
+								"No. Of Days :"+" 1 "+"day(s)"
+								+"<br>"+
+								"Comp-off Description :"+" "+leaveDTO.getDescription()+ "."
+								+"<br>"+
+								"Comp-off reason :"+" "+leaveDTO.getCompOffReasons()+".");
+							} catch (MessagingException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							
+						}
+//						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//						response.setServiceResponse("Compoff leave status updated");
+
 						
-						mailService.sendMailWithCC(leaveDTO.getEmail(), leaveDTO.getHodEmail()+","+leaveDTO.getManagerEmail()+","+hrMailAddress, "Regarding Compensatory off Request Approval", 
-								"Dear "+ leaveDTO.getEmployeeName()+","+
-						"<br> "
-						+" &nbsp;"+" &nbsp;"+" "+"Your Compensatory off application has been approved by "+ leaveDTO.getHodName() +"."+
-						"<br>"+"<br>"+"<b>"+"Comp-Off Details :"+"<b>"+
-						"<br>"+
-						"EmpID :"+"A- "+ leaveDTO.getEmployeementId()+
-						"<br>"+
-						"Name :"+" "+ leaveDTO.getEmployeeName()+
-						"<br>"+
-						" Date "+" "+ leaveDTO.getFromDate() +
-						"<br>"+
-						"No. Of Days :"+" 1 "+"day(s)"
-						+"<br>"+
-						"Comp-off Description :"+" "+leaveDTO.getDescription()+ "."
-						+"<br>"+
-						"Comp-off reason :"+" "+leaveDTO.getCompOffReasons()+ ".");
+						apiLogInfo.setApiResponse("Compoff leave status updated");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+					} else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Compoff leave status updation failed.");
 						
-					}else if(leaveDTO.getLeaveStatusId() == 3){
-						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						response.setServiceResponse("Compoff Request Rejected");
-						
-						mailService.sendMailWithCC(leaveDTO.getEmail(), leaveDTO.getHodEmail()+","+leaveDTO.getManagerEmail()+","+hrMailAddress, "Regarding Compensatory off Request Rejection", 
-								"Dear "+ leaveDTO.getEmployeeName()+","+
-						"<br> "
-						+" &nbsp;"+" &nbsp;"+" "+"Your Compensatory off application has been rejected by "+ leaveDTO.getHodName() +"."+
-						"<br>"+"<br>"+"<b>"+"Comp-Off Details :"+"<b>"+
-						"<br>"+
-						"EmpID :"+"A- "+ leaveDTO.getEmployeementId()+
-						"<br>"+
-						"Name :"+" "+ leaveDTO.getEmployeeName()+
-						"<br>"+
-						" Date "+" "+ leaveDTO.getFromDate() +
-						"<br>"+
-						"No. Of Days :"+" 1 "+"day(s)"
-						+"<br>"+
-						"Comp-off Description :"+" "+leaveDTO.getDescription()+ "."
-					    +"<br>"+
-						"Comp-off reason :"+" "+leaveDTO.getCompOffReasons()+".");
-						
+						apiLogInfo.setApiResponse("Compoff leave status updation failed.");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					}
-//					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//					response.setServiceResponse("Compoff leave status updated");
-
-					
-					apiLogInfo.setApiResponse("Compoff leave status updated");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-
-				} else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Compoff leave status updation failed.");
-					
-					apiLogInfo.setApiResponse("Compoff leave status updation failed.");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				}
+						
+					});
+			
+				
 			}
 
 		} catch (Exception e) {
@@ -979,6 +1025,103 @@ public class CompOffLeaveService {
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
+	}
+
+	public ServiceResponse bulkCompOffRejectRequest(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+
+			for (LeaveDTO leave : leaveDTO.getBulkLeaveRejectList()) {
+				leave.setLeaveStatusId(leaveDTO.getLeaveStatusId());
+				leave.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
+				leave.setRejectCompOffReason(leaveDTO.getRejectCompOffReason());
+			
+				response = updateCompOffById(leave);
+				System.out.println(" leaveDTO.getReason() : "+leaveDTO.getRejectCompOffReason());
+				
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+			    DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			    
+				
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+
+		return response;
+	}
+
+	public ServiceResponse bulkCompOffApproveRequest(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+
+			for (LeaveDTO leave : leaveDTO.getBulkLeaveApprovedList()) {
+				leave.setLeaveStatusId(leaveDTO.getLeaveStatusId());
+				leave.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
+				leave.setRejectCompOffReason(leaveDTO.getRejectCompOffReason());
+			
+				response = updateCompOffById(leave);
+				System.out.println(" leaveDTO.getReason() : "+leaveDTO.getRejectCompOffReason());
+				
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+			    DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			    
+				
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+
+		return response;
+	}
+	
+
+
+//	@Scheduled(cron = "0 */6 * * * ?") // Run every 5 minutes @Scheduled(cron="${compOff_TAT}")
+	@Scheduled(cron="${compOff_TAT}")
+	public void checkCompOffTAT() {
+	    List<Employee> findAllEmployee = employeeRepository.findAll();
+
+	    findAllEmployee.forEach((employee) -> {
+	        Long managerId = employee.getManagerId();
+	    	  
+	        short leaveStatusId = 1;
+	        Employee manager = employeeRepository.findByEmpId(managerId);
+//	        System.err.println(" Manager   ::  "+manager);
+	        LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
+	        Timestamp sevenDaysAgoTimestamp = Timestamp.valueOf(sevenDaysAgo);
+
+
+	        List<CompOffLeave> overdueCompOffs = compOffLeaveRepository.findByLeaveStatusIdAndManagerIdAndCreatedOnBefore(
+	                leaveStatusId, managerId, sevenDaysAgoTimestamp);
+
+	        for (CompOffLeave compOffLeave : overdueCompOffs) {
+	            Employee requestor = employeeRepository.findByEmpId(compOffLeave.getEmpId());
+	            System.err.println(" compOffLeave leave Id "+compOffLeave.getCompOffLeaveId());
+	            Long leaveId = compOffLeave.getCompOffLeaveId();
+	            String subject = "Regarding Comp Off Request pending";
+	            String message = "Dear " + manager.getName() + ",\n\n"
+	                    + "Kindly Approve Pending Comp off request. It has already breached the TAT."+" Comp off leave Id is "+Long.toString(leaveId);
+
+	            try {
+	                mailService.sendMailWithCC(manager.getEmail(), requestor.getEmail(), subject, message);
+//	            	mailService.sendMailWithCC("anurag.chaturvedi@apmosys.com", "anurag.chaturvedi@apmosys.com", subject, message);
+	            } catch (MessagingException e) {
+	                // Log or handle the exception
+	                e.printStackTrace();
+	            }
+	        }
+	    });
 	}
 
 }
