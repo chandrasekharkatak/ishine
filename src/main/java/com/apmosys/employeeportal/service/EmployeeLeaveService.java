@@ -146,7 +146,7 @@ public class EmployeeLeaveService {
 	                    }
 	                } else {
 	                	System.err.println("recentLeaveToDate    ::  "+recentLeaveToDate);
-	                	boolean isWeekOff = this.isWeekOffFind(recentLeaveToDate.plusDays(1),newLeaveFromDate.minusDays(1));
+	                	boolean isWeekOff = this.isWeekOffFind(recentLeaveToDate.plusDays(1),newLeaveFromDate.minusDays(1), leaveDTO.getState());
 	                	
 	                	if(isWeekOff) {
 	                		EmployeeLeave findLeaveOnToDate = employeeLeaveRepository.findEmployeeLeaveByToDate(newLeaveFromDate.minusDays(1),leaveDTO.getEmpId());
@@ -158,7 +158,7 @@ public class EmployeeLeaveService {
 			                        return response;
 		                		}
 	                		}else {
-	                			List<Holiday> findWeekOffAndFestival = holidayRepository.findWeekOffCountByFromAndToDate(newLeaveFromDate.minusDays(1));
+	                			List<Holiday> findWeekOffAndFestival = holidayRepository.findWeekOffCountByFromAndToDate(newLeaveFromDate.minusDays(1), leaveDTO.getState());
 	                			EmployeeLeave findPreviousLeaveByFromDate = employeeLeaveRepository.findLeaveByFromDate(leaveDTO.getFromDate(), leaveDTO.getEmpId()).get(0);
 	                			System.err.println("findPreviousLeaveByFromDate    ::   "+findPreviousLeaveByFromDate);
 	                			System.err.println(" Anurag call else part "+findWeekOffAndFestival);
@@ -559,11 +559,11 @@ public class EmployeeLeaveService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-public boolean isWeekOffFind(LocalDate fromDate , LocalDate toDate) {
+public boolean isWeekOffFind(LocalDate fromDate , LocalDate toDate, String state) {
 		
 		System.out.println(" from date :: "+fromDate);
 		System.out.println("toDate :: "+toDate);
-		List<Holiday> weekOffFind = holidayRepository.findWeekOffCountByFromAndToDate(fromDate);
+		List<Holiday> weekOffFind = holidayRepository.findWeekOffCountByFromAndToDate(fromDate,state);
 		System.err.println("weekOffFind   ::   "+weekOffFind.size());
 		for (Holiday holiday : weekOffFind) {
 			System.err.println(holiday.toString()+"\n");

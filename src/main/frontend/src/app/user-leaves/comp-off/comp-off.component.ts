@@ -287,6 +287,11 @@ export class CompOffComponent implements OnInit {
       this.compOffObj.hodId = this.currentUser.hodId;
       this.compOffObj.hodEmail = this.currentUser.hodEmail;
       this.compOffObj.hodName = this.currentUser.hodName;
+      this.compOffObj.approverName=this.currentUser.managerName;
+      this.compOffObj.currentApprovalLevel=1;
+      this.compOffObj.managerApprovalStatus="Pending";
+      this.compOffObj.level2ApproverName=this.currentUser.hodName;
+      this.compOffObj.finalApprovalLevel=2;
   
       console.log("Apply Comp off : ", this.compOffObj);
       this.leaveService.applyForCompOff(this.compOffObj).pipe(first()).subscribe((response: any) => {

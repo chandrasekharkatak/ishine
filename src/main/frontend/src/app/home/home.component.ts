@@ -382,6 +382,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     compOff.hodEmail = this.currentUser.email;
     compOff.hodName = this.currentUser.name;
     compOff.employeeName = compOff.createdByName;
+    compOff.level2ApproverId= this.currentUser.hodId;
     console.log("Update Comp off : ", compOff);
 
     this.leaveService.updateCompOffById(compOff).pipe(first()).subscribe((response: any) => {

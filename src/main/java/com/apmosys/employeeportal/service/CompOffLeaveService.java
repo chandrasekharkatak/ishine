@@ -157,7 +157,9 @@ public class CompOffLeaveService {
 			leave.setToDate(stringToDateTimeParser.getDate(leaveDTO.getFromDate(), "yyyy-MM-dd"));
 			leave.setNoOfDays(1F);
 			leave.setCompOffStatus("Pending");
-
+			leave.setCurrentApprovalLevel(leaveDTO.getCurrentApprovalLevel());
+			leave.setManagerApprovalStatus("Pending");
+			leave.setFinalApprovalLevel(leaveDTO.getFinalApprovalLevel());			
 			CompOffLeave leaveApplied = compOffLeaveRepository.save(leave);
 
 			if (leaveApplied != null) {
@@ -311,6 +313,14 @@ public class CompOffLeaveService {
 					dto.setToDate(object[6] != null ? object[6].toString() : null);
 					dto.setNoOfDays(object[7] != null ? Float.parseFloat(object[7].toString()) : null);
 					dto.setRejectCompOffReason(object[8] != null ? object[8].toString() : null);
+					dto.setCurrentApprovalLevel(object[9] != null ? Integer.parseInt(object[9].toString()) : null);
+					dto.setFinalApprovalLevel(object[10] != null ? Integer.parseInt(object[10].toString()) : null);
+					dto.setManagerId(object[11] != null ? Integer.parseInt(object[11].toString()) : null);
+					dto.setLevel2ApprovalStatus(object[12] != null ? object[12].toString() : null);
+					dto.setLevel2ApproverId(object[13] != null ? Long.parseLong(object[13].toString()) : null);
+					dto.setManagerApprovalStatus(object[14] != null ? object[14].toString() : null);					
+					dto.setApproverName(object[15] != null ? object[15].toString() : null);
+					dto.setLevel2ApproverName(object[16] != null ? object[16].toString() : null);
 					dtoList.add(dto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -359,7 +369,6 @@ public class CompOffLeaveService {
 			} else {
 				findHod.forEach((object)->{
 					CompOffLeave compOffLeave = leaveObject.get();
-					
 				
 					compOffLeave.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 
@@ -370,15 +379,23 @@ public class CompOffLeaveService {
 						// 1 = CO
 						EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
 								.findByEmpIdAndLeaveTypeMasterId(leaveDTO.getEmpId(), leavetypeObj.getLeaveTypeMasterId());
+						compOffLeave.setCurrentApprovalLevel(leaveDTO.getCurrentApprovalLevel());
+						compOffLeave.setFinalApprovalLevel(leaveDTO.getFinalApprovalLevel());
 
+//						compOffLeave.setManagerId(leaveDTO.getManagerId());
 						// added by anurag comp off two step verification   
-						compOffLeave.setManagerId(object[1] != null ? Integer.parseInt(object[1].toString()) : null);
+						
 						if(compOffLeave.getLeaveStatusUpdatedBy() != null) {
+							compOffLeave.setLevel2ApprovalStatus("Approved");
+							compOffLeave.setManagerId(object[1] != null ? Integer.parseInt(object[1].toString()) : null);
 							compOffLeave.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
 							compOffLeave.setLeaveStatusId((short) 2);
 						}
 						
 						else {
+							compOffLeave.setManagerApprovalStatus("Approved");
+							compOffLeave.setLevel2ApprovalStatus("Pending");
+							compOffLeave.setLevel2ApproverId(leaveDTO.getLevel2ApproverId());
 							compOffLeave.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
 							compOffLeave.setLeaveStatusId((short) 1);
 						}
@@ -1123,5 +1140,5 @@ public class CompOffLeaveService {
 	        }
 	    });
 	}
-
+	
 }

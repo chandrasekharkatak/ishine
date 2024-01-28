@@ -32,6 +32,6 @@ public interface HolidayRepository extends JpaRepository<Holiday, Short> {
 //	public List<Holiday> findByCustomHoliday(String customHoliday);
 	
 	@Query(nativeQuery = true)
-    List<Holiday> findWeekOffCountByFromAndToDate(LocalDate fromDate);
+    List<Holiday> findWeekOffCountByFromAndToDate(LocalDate fromDate, String state);
 
 }
