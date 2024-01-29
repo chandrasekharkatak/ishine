@@ -7,8 +7,11 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
@@ -1105,8 +1108,8 @@ public class CompOffLeaveService {
 
 
 //	@Scheduled(cron = "0 */6 * * * ?") // Run every 5 minutes @Scheduled(cron="${compOff_TAT}")
-	@Scheduled(cron="${compOff_TAT}")
-	public void checkCompOffTAT() {
+	@Scheduled(cron="${timesheetDefaulter.time}")
+	public void checkCompOffTAT1() {
 	    List<Employee> findAllEmployee = employeeRepository.findAll();
 
 	    findAllEmployee.forEach((employee) -> {
@@ -1140,5 +1143,53 @@ public class CompOffLeaveService {
 	        }
 	    });
 	}
+	
+	@Scheduled(cron="${compOff_TAT}") // Run every two minutes
+	public void checkCompOffTAT() {
+	    System.out.println("CompOffTAT :: Call");
+
+	    String status = "Pending";
+	    LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
+        Timestamp sevenDaysAgoTimestamp = Timestamp.valueOf(sevenDaysAgo);
+	    List<CompOffLeave> overdueCompOffs = compOffLeaveRepository.findByCompOffStatusAndCreatedOnBefore(status, sevenDaysAgoTimestamp); // Find all pending comp offs
+	    System.err.println("findAllCompOff.size() :: " + overdueCompOffs.size());
+
+	    // Map to store processed CompOff leave IDs
+	    Set<Long> processedLeaveIds = new HashSet<>();
+
+	    for (CompOffLeave compOffLeave : overdueCompOffs) {
+	        Long leaveId = compOffLeave.getCompOffLeaveId();
+
+	        // Check if leave ID is already processed
+	        if (!processedLeaveIds.contains(leaveId)) {
+	            // Get employee and manager details
+	            Long employeeId = compOffLeave.getEmpId();
+	            Employee requestor = employeeRepository.findById(employeeId).orElse(null);
+	            Long managerId = requestor != null ? requestor.getManagerId() : null;
+	            Employee findManager = managerId != null ? employeeRepository.findById(managerId).orElse(null) : null;
+
+	            if (findManager != null) {
+	                // Construct email message
+	                String subject = "Regarding Comp Off Request pending";
+	                String message = "Dear " + findManager.getName() + ",\n\n"
+	                        + "Kindly Approve Pending Comp off request. It has already breached the TAT."
+	                        + " Comp off leave Id is " + leaveId;
+
+	                try {
+	                    mailService.sendMailWithCC(findManager.getEmail(), requestor.getEmail(), subject, message);
+	                } catch (MessagingException e) {
+	                    // Log or handle the exception
+	                    e.printStackTrace();
+	                }
+
+	                // Add leave ID to processed set
+	                processedLeaveIds.add(leaveId);
+	            }
+	        }
+	    }
+	}
+
+	
+	
 	
 }

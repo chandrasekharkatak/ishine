@@ -50,5 +50,7 @@ public interface CompOffLeaveRepository extends JpaRepository<CompOffLeave, Long
 	@Query(nativeQuery = true)
 	public List<CompOffLeave> findByLeaveStatusIdAndManagerIdAndCreatedOnBefore(short leaveStatusId, Long managerId,
 			Date sevenDaysAgoDate);
+
+	public List<CompOffLeave> findByCompOffStatusAndCreatedOnBefore(String status, Timestamp sevenDaysAgoTimestamp);
 	
 }
