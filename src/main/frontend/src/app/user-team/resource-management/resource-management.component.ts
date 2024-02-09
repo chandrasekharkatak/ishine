@@ -687,19 +687,27 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   getTeamListByProjectName(project:any){
-    this.previewTeamList = [];
+   // this.previewTeamList = [];
+   console.log(" project    ",project);
+   
+   
     this.resourceManagementService.getTeamListByProjectName(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectObj.teamList = response.serviceResponse;
+        console.log(this.projectObj.teamList, " this.projectObj.teamList");
         this.projectObj.teamList.forEach((obj) =>{
           obj.departmentList = obj.departmentList?.map(x=>+x);
+          console.log(" obj.departmentList     ",obj.departmentList.length);
+          
           obj.teamMemberList.forEach((member) => {
+            console.log(" teamMemberList    ",obj.teamMemberList);
             member.startDate = (member.startDate)? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null;
           });
         });
         console.log(this.projectObj.teamList, " this.projectObj.teamList");
         this.previewTeamList = this.projectObj.teamList;
 
+        console.log(" length of previewTeamList  ",this.previewTeamList.length);
         //Project Team List
         if (this.projectObj.teamList == undefined || this.projectObj.teamList.length == 0) {
           this.addInputTeamField();

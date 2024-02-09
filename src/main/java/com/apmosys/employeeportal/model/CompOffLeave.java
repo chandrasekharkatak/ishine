@@ -63,5 +63,7 @@ public class CompOffLeave {
 	
 	private Long level2ApproverId;
 	private String level2ApprovalStatus;
+	
+	private Long reportingManagerId;
 
 }

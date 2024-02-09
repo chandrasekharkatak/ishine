@@ -273,12 +273,15 @@ export class CompOffComponent implements OnInit {
       this.compOffObj.employeementId = this.currentUser.employeementId;
       this.compOffObj.email = this.currentUser.email;
       this.compOffObj.employeeName = this.currentUser.name;
+      this.compOffObj.hodId = this.currentUser.hodId;
 
       if(this.currentUser.reportingManagerId != null && this.currentUser.approvalsTo == "Reporting Manager"){
+        this.compOffObj.reportingManagerId = this.currentUser.reportingManagerId;
         this.compOffObj.managerId = this.currentUser.reportingManagerId;
         this.compOffObj.managerEmail = this.currentUser.reportingManagerEmail;
         this.compOffObj.managerName = this.currentUser.reportingManagerName;
       }else{
+        this.compOffObj.reportingManagerId = this.currentUser.managerId;
         this.compOffObj.managerId = this.currentUser.managerId;
         this.compOffObj.managerEmail = this.currentUser.managerEmail;
         this.compOffObj.managerName = this.currentUser.managerName;
@@ -294,6 +297,7 @@ export class CompOffComponent implements OnInit {
       this.compOffObj.finalApprovalLevel=2;
   
       console.log("Apply Comp off : ", this.compOffObj);
+      console.log("compoff currentuser    ::   ",this.currentUser);
       this.leaveService.applyForCompOff(this.compOffObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.openAlertMod(template, response.serviceResponse);
@@ -338,7 +342,21 @@ export class CompOffComponent implements OnInit {
       compOff.fromDate = moment(this.compOffObj.fromDate).format(dateFormat);
       // compOff.toDate = moment(this.compOffObj.toDate).format(dateFormat);
       compOff.updatedBy = this.currentUser.empId;
+      // compOff.reportingManagerId = this.currentUser.reportingManagerId
   
+      if(this.currentUser.reportingManagerId != null && this.currentUser.approvalsTo == "Reporting Manager"){
+        compOff.reportingManagerId = this.currentUser.reportingManagerId;
+        compOff.managerEmail = this.currentUser.reportingManagerEmail;
+        compOff.managerId = this.currentUser.reportingManagerId;
+        compOff.managerName = this.currentUser.reportingManagerName;
+      }else{
+        compOff.reportingManagerId = this.currentUser.managerId;
+        compOff.managerId = this.currentUser.managerId;
+        compOff.managerEmail = this.currentUser.managerEmail;
+        compOff.managerName = this.currentUser.managerName;
+      }
+
+
       console.log("Update comp off : ", compOff);
       this.leaveService.updateCompOff(compOff).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {

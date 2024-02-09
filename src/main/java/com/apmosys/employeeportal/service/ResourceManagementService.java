@@ -176,7 +176,7 @@ public class ResourceManagementService {
 		        		if(!team.getTeamId().equals(newlyAddedTeam)) {
 		        			projectObj.setIsDraftProject("false");
 		        		}else {
-		        			projectObj.setIsDraftProject("true");
+		        			projectObj.setIsDraftProject("false");
 		        		}
 		        	});
 		        }
@@ -726,10 +726,10 @@ public class ResourceManagementService {
 			}else {
 				projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());				
 			}
-			
+			System.err.println(" projectObj     "+projectObj.getProjectId());
 			if(projectObj != null) {
 				List<Team> teamList = teamRepository.findByProjectIdAndIsActive(projectObj.getProjectId(), "Y");
-				
+				System.out.println(" teamList    ::   "+teamList.size());
 				if(!teamList.isEmpty()) {
 					List<TeamDTO> teamListdto = new ArrayList<TeamDTO>();
 					teamList.forEach((object) -> {

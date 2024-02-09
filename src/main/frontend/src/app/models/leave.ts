@@ -126,4 +126,6 @@ export class Leave{
 	seniorManagerId:any;
 	state:any;
 	rejectCompOffReason:any;
+	reportingManagerId:any;
+
 }

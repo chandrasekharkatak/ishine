@@ -149,4 +149,5 @@ public class LeaveDTO {
 	private Long leaveEmpId;
 	private String state;
 	private String rejectCompOffReason;
+	private Long reportingManagerId;
 }
