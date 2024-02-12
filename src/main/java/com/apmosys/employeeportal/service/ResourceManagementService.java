@@ -741,7 +741,7 @@ public class ResourceManagementService {
 						teamdto.setDepartmentList(object.getDeptIds().split(","));
 						
 						//Get teamMembers Info
-						List<EmployeeTeamMap> empTeamMapping = employeeTeamMapRepository.findByTeamIdAndActive(object.getTeamId(), 1l);
+						List<EmployeeTeamMap> empTeamMapping = employeeTeamMapRepository.findByTeamIdAndActive(object.getTeamId());
 						if(!empTeamMapping.isEmpty()) {
 							List<TeamMemberDTO> teamMember = new ArrayList<TeamMemberDTO>();
 							empTeamMapping.forEach((teamMemberObj) -> {
@@ -1339,20 +1339,20 @@ public class ResourceManagementService {
 						poTeamDTO.setDepartmentList(deptList);
 						
 						//Get TeamMember Details
-						List<EmployeeTeamMap> teamMemberDetials = employeeTeamMapRepository.findByTeamIdAndActive(team.getTeamId(), 1l);
-						List<EmployeeTeamMap> teamMemberDetials1 = employeeTeamMapRepository.findByTeamIdAndActive(team.getTeamId(), 2l);
+						List<EmployeeTeamMap> teamMemberDetials = employeeTeamMapRepository.findByTeamIdAndActive(team.getTeamId());
+//						List<EmployeeTeamMap> teamMemberDetials1 = employeeTeamMapRepository.findByTeamIdAndActive(team.getTeamId(), 2l);
 						if(!teamMemberDetials.isEmpty()) {
 							teamMemberDetials.forEach((member) -> {
 								String memberEmpId = getEmploymentId(member.getEmpId());
 								teamMember.add(memberEmpId);
 							});
 						}
-						if(!teamMemberDetials1.isEmpty()) {
-							teamMemberDetials1.forEach((member) -> {
-								String memberEmpId = getEmploymentId(member.getEmpId());
-								teamMember.add(memberEmpId);
-							});
-						}
+//						if(!teamMemberDetials1.isEmpty()) {
+//							teamMemberDetials1.forEach((member) -> {
+//								String memberEmpId = getEmploymentId(member.getEmpId());
+//								teamMember.add(memberEmpId);
+//							});
+//						}
 						String teamMemberList[] = teamMember.toArray(new String[teamMember.size()]);
 						poTeamDTO.setTeamMemberList(teamMemberList);
 						

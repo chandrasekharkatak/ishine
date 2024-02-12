@@ -85,6 +85,7 @@ export class ResourceManagementComponent implements OnInit {
   clientLocationList:any[] = [];
   internalProjectList:any[] = [];
   poPortalProjectList:any[] = [];
+  allProject_Po_Internal:any[] = [];
 
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin'];
   filters:any = {};
@@ -314,6 +315,7 @@ export class ResourceManagementComponent implements OnInit {
             this.poPortalProjectList = _projectList.filter(proj => proj.id != null);
             this.internalProjectList = _projectList.filter(proj => proj.id == null);
             console.log(" Anurag   ::    ",this.poPortalProjectList);
+            console.log(" Anurag internal   ::   ",this.internalProjectList);
             // Process PoPortal projects
             this.poPortalProjectList.forEach((proj) => {
               let selectedProj = this.teamCreatedProjectList.find((projTeam) => proj.id == projTeam.poProjectId);
@@ -378,7 +380,12 @@ export class ResourceManagementComponent implements OnInit {
               });
             }
   
-            console.log(this.allProjectList, " all projects");
+            // added in single list  
+
+            this.allProject_Po_Internal = [...this.poPortalProjectList, ...this.internalProjectList];
+
+
+            console.log(_projectList, " all projects");
             console.log(this.internalProjectList, " this.internalProjectList");
           } else {
             console.error(response.serviceResponse);
