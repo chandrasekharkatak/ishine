@@ -185,7 +185,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}`+`api/uploadPolicies`,
     `${this.baseUrl}`+`api/bulkCompOffReject`,
     `${this.baseUrl}`+`api/bulkCompOffApprove`,
-
+    `${this.baseUrl}`+`api/getTeamListByProjectName`,
 
   ]
 
