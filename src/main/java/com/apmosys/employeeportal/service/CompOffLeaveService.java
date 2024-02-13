@@ -1121,43 +1121,6 @@ public class CompOffLeaveService {
 	
 
 
-//	@Scheduled(cron = "0 */6 * * * ?") // Run every 5 minutes @Scheduled(cron="${compOff_TAT}")
-	@Scheduled(cron="${timesheetDefaulter.time}")
-	public void checkCompOffTAT1() {
-	    List<Employee> findAllEmployee = employeeRepository.findAll();
-
-	    findAllEmployee.forEach((employee) -> {
-	        Long managerId = employee.getManagerId();
-	    	  
-	        short leaveStatusId = 1;
-	        Employee manager = employeeRepository.findByEmpId(managerId);
-//	        System.err.println(" Manager   ::  "+manager);
-	        LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
-	        Timestamp sevenDaysAgoTimestamp = Timestamp.valueOf(sevenDaysAgo);
-
-
-	        List<CompOffLeave> overdueCompOffs = compOffLeaveRepository.findByLeaveStatusIdAndManagerIdAndCreatedOnBefore(
-	                leaveStatusId, managerId, sevenDaysAgoTimestamp);
-
-	        for (CompOffLeave compOffLeave : overdueCompOffs) {
-	            Employee requestor = employeeRepository.findByEmpId(compOffLeave.getEmpId());
-	            System.err.println(" compOffLeave leave Id "+compOffLeave.getCompOffLeaveId());
-	            Long leaveId = compOffLeave.getCompOffLeaveId();
-	            String subject = "Regarding Comp Off Request pending";
-	            String message = "Dear " + manager.getName() + ",\n\n"
-	                    + "Kindly Approve Pending Comp off request. It has already breached the TAT."+" Comp off leave Id is "+Long.toString(leaveId);
-
-	            try {
-	                mailService.sendMailWithCC(manager.getEmail(), requestor.getEmail(), subject, message);
-//	            	mailService.sendMailWithCC("anurag.chaturvedi@apmosys.com", "anurag.chaturvedi@apmosys.com", subject, message);
-	            } catch (MessagingException e) {
-	                // Log or handle the exception
-	                e.printStackTrace();
-	            }
-	        }
-	    });
-	}
-	
 	@Scheduled(cron="${compOff_TAT}") // Run every two minutes
 	public void checkCompOffTAT() {
 	    System.out.println("CompOffTAT :: Call");
@@ -1186,11 +1149,20 @@ public class CompOffLeaveService {
 	                // Construct email message
 	                String subject = "Regarding Comp Off Request pending";
 	                String message = "Dear " + findManager.getName() + ",\n\n"
-	                        + "Kindly Approve Pending Comp off request. It has already breached the TAT."
-	                        + " Comp off leave Id is " + leaveId;
+	                        + "Kindly Approve Pending Comp off request. It has already breached the TAT."+"<br>"
+	                        +"<b>"+ "Comp off Details : "+"<b>"+
+	        				"<br>"+
+	        				"FromDate:"+compOffLeave.getFromDate()+
+	        				"<br>"+
+	        				"ToDate :"+" "+ compOffLeave.getToDate()+
+	        				"<br>"+
+	        				"No. Of Days :"+" 1 "+"day(s)"+
+	        				"<br>"+
+	        				"CompOff Description :"+" "+compOffLeave.getDescription();
 
 	                try {
 	                    mailService.sendMailWithCC(findManager.getEmail(), requestor.getEmail(), subject, message);
+//	                	mailService.sendMailWithCC("anurag.chaturvedi@apmosys.com", "anurag.chaturvedi@apmosys.com", subject, message);
 	                } catch (MessagingException e) {
 	                    // Log or handle the exception
 	                    e.printStackTrace();
