@@ -437,10 +437,10 @@ public class CompOffLeaveService {
 					}
 					Employee findHOD = employeeRepository.findByEmpId((long) compOffLeave.getManagerId());
 					Employee updatedBy = null;
-					if(compOffLeave.getLeaveStatusUpdatedBy() != null) {
-						updatedBy = employeeRepository.findByEmpId(compOffLeave.getLeaveStatusUpdatedBy());	
-					}else {
+					if(!compOffLeave.getLevel2ApprovalStatus().equals("Pending")) {				
 						updatedBy = employeeRepository.findByEmpId((long) compOffLeave.getManagerId());	
+					}else {
+						updatedBy = employeeRepository.findByEmpId((long) compOffLeave.getReportingManagerId());	
 					}
 					Employee findRequestor = employeeRepository.findByEmployeementId(leaveDTO.getEmployeementId());
 					CompOffLeave compOffUpdated = compOffLeaveRepository.save(compOffLeave);
