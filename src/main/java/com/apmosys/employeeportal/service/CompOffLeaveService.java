@@ -429,12 +429,19 @@ public class CompOffLeaveService {
 						}
 					} else if (leaveDTO.getLeaveStatusId() == 3) {
 						System.err.println(" Anurag find hod    :   "+compOffLeave.getManagerId());
-						compOffLeave.setCompOffStatus("Pending");
+						compOffLeave.setManagerApprovalStatus("Rejected");
+						compOffLeave.setLevel2ApprovalStatus("Rejected");
+						compOffLeave.setCompOffStatus("Rejected");
 						compOffLeave.setRejectCompOffReason(leaveDTO.getRejectCompOffReason());					
 						response.setServiceResponse("CompOff request application rejected.");
 					}
 					Employee findHOD = employeeRepository.findByEmpId((long) compOffLeave.getManagerId());
-					Employee updatedBy = employeeRepository.findByEmpId(compOffLeave.getLeaveStatusUpdatedBy());
+					Employee updatedBy = null;
+					if(compOffLeave.getLeaveStatusUpdatedBy() != null) {
+						updatedBy = employeeRepository.findByEmpId(compOffLeave.getLeaveStatusUpdatedBy());	
+					}else {
+						updatedBy = employeeRepository.findByEmpId((long) compOffLeave.getManagerId());	
+					}
 					Employee findRequestor = employeeRepository.findByEmployeementId(leaveDTO.getEmployeementId());
 					CompOffLeave compOffUpdated = compOffLeaveRepository.save(compOffLeave);
 
@@ -472,17 +479,18 @@ public class CompOffLeaveService {
 						}else if(leaveDTO.getLeaveStatusId() == 3){
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse("Compoff Request Rejected");
-							
+							System.err.println("Mail calling   ::   "+" , user email   "+leaveDTO.getEmail()+", hod mail   "+findHOD.getEmail()+",manager email "+leaveDTO.getManagerEmail()+","+ findRequestor.getName());
+
 							try {
-								mailService.sendMailWithCC(leaveDTO.getEmail(), leaveDTO.getHodEmail()+","+leaveDTO.getManagerEmail()+","+hrMailAddress, "Regarding Compensatory off Request Rejection", 
-										"Dear "+ leaveDTO.getEmployeeName()+","+
+								mailService.sendMailWithCC(leaveDTO.getEmail(), findHOD.getEmail()+","+leaveDTO.getManagerEmail()+","+hrMailAddress, "Regarding Compensatory off Request Rejection", 
+										"Dear "+ findRequestor.getName()+","+
 								"<br> "
-								+" &nbsp;"+" &nbsp;"+" "+"Your Compensatory off application has been rejected by "+ leaveDTO.getHodName() +"."+
+								+" &nbsp;"+" &nbsp;"+" "+"Your Compensatory off application has been rejected by "+ updatedBy.getName() +"."+
 								"<br>"+"<br>"+"<b>"+"Comp-Off Details :"+"<b>"+
 								"<br>"+
 								"EmpID :"+"A- "+ leaveDTO.getEmployeementId()+
 								"<br>"+
-								"Name :"+" "+ leaveDTO.getEmployeeName()+
+								"Name :"+" "+ findRequestor.getName()+
 								"<br>"+
 								" Date "+" "+ leaveDTO.getFromDate() +
 								"<br>"+
