@@ -316,6 +316,8 @@ export class ResourceManagementComponent implements OnInit {
             this.internalProjectList = _projectList.filter(proj => proj.id == null);
             console.log(" Anurag   ::    ",this.poPortalProjectList);
             console.log(" Anurag internal   ::   ",this.internalProjectList);
+            console.log(" teamCreatedProjectList   ",this.teamCreatedProjectList);
+            
             // Process PoPortal projects
             this.poPortalProjectList.forEach((proj) => {
               let selectedProj = this.teamCreatedProjectList.find((projTeam) => proj.id == projTeam.poProjectId);
@@ -323,7 +325,7 @@ export class ResourceManagementComponent implements OnInit {
   
               if (selectedProj) {
                 proj.isTeamCreated = true;
-                proj.isDraftProject = selectedProj.isDraftProject == 'Rejected' ? 'Rejected' : selectedProj.isDraftProject == 'false' ? 'Approved' : "NA";
+                proj.isDraftProject = selectedProj.isDraftProject == 'true' ? 'Pending For Approval' : selectedProj.isDraftProject == 'Rejected' ? 'Rejected' : selectedProj.isDraftProject == 'false' ? 'Approved' : "NA";
                 proj.isActive=selectedProj.isActive;
                 proj.createdOn = (proj.createdOn) ? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
               } else {
@@ -740,6 +742,8 @@ export class ResourceManagementComponent implements OnInit {
 
   onApproveProject(project:any) {
     project.empId = this.currentUser.empId;
+    project.projectId=this.projectObj.projectId;
+    console.log("this.projectObj.projectId   ",project);
     this.resourceManagementService.approvePendingProject(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.showViewProjects();

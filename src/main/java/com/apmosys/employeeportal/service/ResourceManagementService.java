@@ -582,7 +582,7 @@ public class ResourceManagementService {
 
 						
 			            Team newTeamObj = new Team();
-			            newTeamObj.setIsActive("N");
+			            newTeamObj.setIsActive("Y");
 			            newTeamObj.setProjectId(projectDbResponse.getProjectId());
 			            newTeamObj.setTeamLeadId(teamLeadId);
 			            newTeamObj.setTeamName(teamObj.getTeamName());
@@ -841,6 +841,7 @@ public class ResourceManagementService {
 						
 
 					ResourceManagementDTO projectDto = new ResourceManagementDTO();
+					
 					projectDto.setProjectId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
 					projectDto.setProjectName(object[1] != null ? object[1].toString() : null);
 					projectDto.setProjectManager(object[2] != null ? object[2].toString() : null);
@@ -850,7 +851,7 @@ public class ResourceManagementService {
 					projectDto.setIsDraftProject(object[7] != null ? object[7].toString() : null);
 					projectDto.setPoProjectId(object[8] != null ? Long.parseLong(object[8].toString()) : null);	
 					projectDto.setIsActive(object[9] != null ? Long.parseLong(object[9].toString()): null);
-					
+					projectDto.setId(object[8] != null ? Long.parseLong(object[8].toString()) : null);				
 							
 				
 					
@@ -1355,7 +1356,7 @@ public class ResourceManagementService {
 //						}
 						String teamMemberList[] = teamMember.toArray(new String[teamMember.size()]);
 						poTeamDTO.setTeamMemberList(teamMemberList);
-						
+						poTeamDTO.setProjectId(team.getProjectId());			
 						teamList.add(poTeamDTO);
 					});
 					projectDTO.setTeamList(teamList);
@@ -1386,7 +1387,7 @@ public class ResourceManagementService {
 										"Regarding Project Sync With PoPortal",
 										"Dear RMG Team ,"+"<br>"
 										+"<br>"
-										+"Project : " +resourceManagementDTO.getName()+ "has been successfully synced with PoPortal.");
+										+"Project : " +resourceManagementDTO.getName()+ " has been successfully synced with PoPortal.");
 							} catch (Exception e) {
 								e.printStackTrace();
 							}

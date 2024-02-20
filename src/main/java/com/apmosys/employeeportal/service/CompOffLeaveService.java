@@ -433,24 +433,26 @@ public class CompOffLeaveService {
 						compOffLeave.setRejectCompOffReason(leaveDTO.getRejectCompOffReason());					
 						response.setServiceResponse("CompOff request application rejected.");
 					}
-
+					Employee findHOD = employeeRepository.findByEmpId((long) compOffLeave.getManagerId());
+					Employee updatedBy = employeeRepository.findByEmpId(compOffLeave.getLeaveStatusUpdatedBy());
+					Employee findRequestor = employeeRepository.findByEmployeementId(leaveDTO.getEmployeementId());
 					CompOffLeave compOffUpdated = compOffLeaveRepository.save(compOffLeave);
 
 					if (compOffUpdated != null) {
 						if(leaveDTO.getLeaveStatusId() == 2) {
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse("Compoff Request Approved");
-							System.err.println("Mail calling   ::   "+" , user email   "+leaveDTO.getEmail()+", hod mail   "+leaveDTO.getHodEmail()+",manager email "+leaveDTO.getManagerEmail()+",");
+							System.err.println("Mail calling   ::   "+" , user email   "+leaveDTO.getEmail()+", hod mail   "+findHOD.getEmail()+",manager email "+leaveDTO.getManagerEmail()+","+ findRequestor.getName());
 							try {
-								mailService.sendMailWithCC(leaveDTO.getEmail(), leaveDTO.getHodEmail()+","+leaveDTO.getManagerEmail()+","+hrMailAddress, "Regarding Compensatory off Request Approval", 
-										"Dear "+ leaveDTO.getEmployeeName()+","+
+								mailService.sendMailWithCC(leaveDTO.getEmail(), findHOD.getEmail()+","+leaveDTO.getManagerEmail()+","+hrMailAddress, "Regarding Compensatory off Request Approval", 
+										"Dear "+ findRequestor.getName()+","+
 								"<br> "
-								+" &nbsp;"+" &nbsp;"+" "+"Your Compensatory off application has been approved by "+ leaveDTO.getHodName() +"."+
+								+" &nbsp;"+" &nbsp;"+" "+"Your Compensatory off application has been approved by "+ updatedBy.getName() +"."+
 								"<br>"+"<br>"+"<b>"+"Comp-Off Details :"+"<b>"+
 								"<br>"+
 								"EmpID :"+"A- "+ leaveDTO.getEmployeementId()+
 								"<br>"+
-								"Name :"+" "+ leaveDTO.getEmployeeName()+
+								"Name :"+" "+ findRequestor.getName()+
 								"<br>"+
 								" Date "+" "+ leaveDTO.getFromDate() +
 								"<br>"+
