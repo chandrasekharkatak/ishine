@@ -259,7 +259,7 @@ public class ResourceManagementService {
 					            // Add teamMember mapping
 					            newTeamMember.forEach((newMember) -> {
 					                List<EmployeeTeamMap> presentMember = employeeTeamMapRepository
-					                        .findFirstByEmpIdAndTeamIdAndActive(newMember.getEmpId(), teamDbResponse.getTeamId(), 1L);
+					                        .findFirstByEmpIdAndTeamIdAndActive(newMember.getEmpId(), teamDbResponse.getTeamId());
 
 					                List<EmployeeTeamMap> mapList = new ArrayList<EmployeeTeamMap>();
 					                EmployeeTeamMap empTeamMap = new EmployeeTeamMap();
@@ -440,6 +440,7 @@ public class ResourceManagementService {
 				// Send Project/Team detail JSON to PoPotal
 				
 			    if (!resourceManagementDTO.getProjectType().equals("Internal")) {
+			    	resourceManagementDTO.setPoProjectId(resourceManagementDTO.getId());
 			        ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
 
 			        if (poPortalResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
@@ -1285,6 +1286,7 @@ public class ResourceManagementService {
 			Project projectObj = null;
 			if(!resourceManagementDTO.getProjectType().equals("Internal"))
 				projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
+			System.err.println(" projectObj   "+projectObj.getPoProjectId());
 			List<PoProjectSyncDTO> projectInfo = new ArrayList<PoProjectSyncDTO>();
 			List<PoTeamDTO> teamList = new ArrayList<PoTeamDTO>();
 			

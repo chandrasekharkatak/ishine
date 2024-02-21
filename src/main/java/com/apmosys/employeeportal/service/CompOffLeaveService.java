@@ -411,21 +411,25 @@ public class CompOffLeaveService {
 							System.err.println(" managerId    "+object[1] != null ? Long.parseLong(object[1].toString()) : null);
 						}
 						System.err.println(" Anurag find hod    :   "+compOffLeave.getManagerId());
+						if(compOffLeave.getLevel2ApprovalStatus().equals("Approved"))
 						employeeLeavesMap.setBalance(employeeLeavesMap.getBalance() + compOffLeave.getNoOfDays());
 						employeeLeavesMapRepository.save(employeeLeavesMap);
 
-						LeaveBalanceLog log = new LeaveBalanceLog();
-						log.setBalance(employeeLeavesMap.getBalance());
-						log.setEmpId(leaveDTO.getEmpId());
-						log.setLeaveTypeMasterId(leavetypeObj.getLeaveTypeMasterId());
-						log.setMessage(
-								LeaveLogMessage.compOffAddLeave.replace("0.0", compOffLeave.getNoOfDays().toString()));
-						log.setUpdateBalanceBy("+" + compOffLeave.getNoOfDays());
-						LeaveBalanceLog dbResponse = leaveBalanceLogRepository.save(log);
+						if(compOffLeave.getLevel2ApprovalStatus().equals("Approved")) {
+							LeaveBalanceLog log = new LeaveBalanceLog();
+							log.setBalance(employeeLeavesMap.getBalance());
+							log.setEmpId(leaveDTO.getEmpId());
+							log.setLeaveTypeMasterId(leavetypeObj.getLeaveTypeMasterId());
+							log.setMessage(
+									LeaveLogMessage.compOffAddLeave.replace("0.0", compOffLeave.getNoOfDays().toString()));
+							log.setUpdateBalanceBy("+" + compOffLeave.getNoOfDays());
+							LeaveBalanceLog dbResponse = leaveBalanceLogRepository.save(log);
+						
 						
 						if(dbResponse != null) {
 							compOffLeave.setCompOffStatus("Pending");
 							response.setServiceResponse("Compoff request application approved.");
+						}
 						}
 					} else if (leaveDTO.getLeaveStatusId() == 3) {
 						System.err.println(" Anurag find hod    :   "+compOffLeave.getManagerId());

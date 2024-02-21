@@ -153,9 +153,24 @@ export class EmployeeInfoComponent implements OnInit{
   }
 
   preventDecimalOnNumberInput(event:any){
+    console.log(" check entered key",event.key)
     if(event.key==='.'){
       event.preventDefault();
     }
+  }
+
+  // added by anurag
+
+  fieldRestictCharacterForNumber(event){
+    var k;
+    k = event.charCode;
+
+    if(k== 69 || k == 101){
+      return false;
+    }else{
+      return true;
+    }
+
   }
 
   setCalenderMaxDate() {

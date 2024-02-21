@@ -313,7 +313,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Emergency Contact Number</label>
-                                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.emergencyContactMobile" (keydown)="preventDecimalOnNumberInput($event)" (blur)="validateValidEmptyNullUndefinedemergencyContactMobile($event,employeeObj.emergencyContactMobile)">
+                                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.emergencyContactMobile" (keydown)="preventDecimalOnNumberInput($event)" (blur)="validateValidEmptyNullUndefinedemergencyContactMobile($event,employeeObj.emergencyContactMobile)" (keypress)="fieldRestictCharacterForNumber($event)" onKeyPress="if(this.value.length==10) return false;">
                                             <small class="errorMsg text-danger"></small>
                                         </div>
                                     </div>

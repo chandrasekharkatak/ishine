@@ -858,7 +858,7 @@ public class ProjectService {
 										Employee teamMemberObj = getEmployeeByEmployeementId(memberObj);
 										teamMemberList.add(teamMemberObj.getEmpId());
 										List<EmployeeTeamMap> teamMappingObj = employeeTeamMapRepository.
-												findFirstByEmpIdAndTeamIdAndActive(teamMemberObj.getEmpId(), teamDbResponse.getTeamId(), 1l);
+												findFirstByEmpIdAndTeamIdAndActive(teamMemberObj.getEmpId(), teamDbResponse.getTeamId());
 										// adding new member
 										if(teamMappingObj.isEmpty()) {
 											

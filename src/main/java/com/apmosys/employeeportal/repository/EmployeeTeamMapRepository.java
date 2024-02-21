@@ -32,7 +32,8 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 
 	List<EmployeeTeamMap> findFirstByEmpIdAndTeamId(Long empId, Long teamId);
 
-	List<EmployeeTeamMap> findFirstByEmpIdAndTeamIdAndActive(Long empId, Long teamId, long l);
+	@Query(nativeQuery = true)
+	List<EmployeeTeamMap> findFirstByEmpIdAndTeamIdAndActive(Long empId, Long teamId);
 
 	List<EmployeeTeamMap> findByTeamId(Long teamId);
 

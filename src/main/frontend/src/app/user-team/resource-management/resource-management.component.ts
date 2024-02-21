@@ -656,6 +656,7 @@ export class ResourceManagementComponent implements OnInit {
     
     this.projectObj.teamList = this.allTeamList;
     this.projectObj.createdBy = this.currentUser.empId;
+    this.projectObj.projectId=this.projectObj.id;
     
     let inputValidated: boolean = this.validateProjectObj(this.projectObj, template)
     if (!inputValidated) return;

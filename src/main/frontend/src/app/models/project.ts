@@ -27,7 +27,7 @@ export class Project{
 	rejectReason:any;       // RMG project reject reason
 	isDraftProject:any;
 	bulkSyncList: any[] = [];
-
+	id:any;
 
 	//Project from Po
 	name:any;
