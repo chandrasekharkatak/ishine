@@ -166,20 +166,20 @@ public class ResourceManagementService {
 		        if (employee != null) {
 		            projManagerId = employee.getEmpId();
 		        }
-
+		        projectObj.setIsDraftProject("false");
 		        // Logic to determine if project should be set as draft...
 
-		        if (resourceManagementDTO.getIsHOD().equals("true")) {
-		            projectObj.setIsDraftProject("false");
-		        } else {
-		        	allExistTeam.forEach((team)->{
-		        		if(!team.getTeamId().equals(newlyAddedTeam)) {
-		        			projectObj.setIsDraftProject("false");
-		        		}else {
-		        			projectObj.setIsDraftProject("false");
-		        		}
-		        	});
-		        }
+//		        if (resourceManagementDTO.getIsHOD().equals("true")) {
+//		            projectObj.setIsDraftProject("false");
+//		        } else {
+//		        	allExistTeam.forEach((team)->{
+//		        		if(!team.getTeamId().equals(newlyAddedTeam)) {
+//		        			projectObj.setIsDraftProject("false");
+//		        		}else {
+//		        			projectObj.setIsDraftProject("false");
+//		        		}
+//		        	});
+//		        }
 
 		        projectObj.setProjectName(resourceManagementDTO.getName());
 		        projectObj.setProjectManagerId(projManagerId);
@@ -1297,6 +1297,7 @@ public class ResourceManagementService {
 				projectDTO.setProjectName(projectObj.getProjectName());
 				
 				String projectManagerId = getEmploymentId(projectObj.getProjectManagerId());
+				System.out.println(" projectManagerId   ::   "+projectManagerId);
 				projectDTO.setPoProjectManagerId(projectManagerId != null ? projectManagerId : null);
 				
 				//Get Team Details
@@ -1304,6 +1305,7 @@ public class ResourceManagementService {
 				
 				if(!teamDetails.isEmpty()) {
 					teamDetails.forEach((team) -> {
+						System.err.println(" anurag get PO portal sync details ::   "+team);
 						List<String> teamMember = new ArrayList<String>();
 
 						PoTeamDTO poTeamDTO = new PoTeamDTO();
@@ -1364,7 +1366,13 @@ public class ResourceManagementService {
 					projectDTO.setTeamList(teamList);
 					
 					System.err.println("Anurag poPortalListFind    :: "+projectDTO.toString());
-				}
+					
+					// added by anurag for temp  
+					for (PoTeamDTO team2 : teamList) {
+						System.err.println(team2);
+						System.out.println("-=------------------------------------------------");
+					}
+					}
 				
 				projectInfo.add(projectDTO);		
 				//Send projectDTO in PoPortal reverse-sync API
@@ -1381,6 +1389,8 @@ public class ResourceManagementService {
 					JSONObject json = new JSONObject(syncResponse);
 					
 					System.out.println(syncResponse  + " : syncResponse \n\n\n");
+					
+					System.err.println("   jsonjsonjsonjsonjsonjson   json    "+json);
 					
 					if(json.getInt("httpStatusCode") == 200) {
 						//Send Mail to PoPortal

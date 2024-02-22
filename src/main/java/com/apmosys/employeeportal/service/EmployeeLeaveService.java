@@ -643,7 +643,7 @@ public boolean isWeekOffFind(LocalDate fromDate , LocalDate toDate, String state
 							log.setMessage(LeaveLogMessage.deleteLeave.replace("0.0", leaveDTO.getNoOfDays().toString()));
 						}
 						
-						if(!leaveDTO.getLeaveTypeMasterId().equals((short)17)) // 17 is in local and UAT But in prod it is 3
+						if(!leaveDTO.getLeaveTypeMasterId().equals((short)3)) // 17 is in local and UAT But in prod it is 3
 							log.setUpdateBalanceBy("+" + leaveDTO.getNoOfDays());
 						else
 							log.setUpdateBalanceBy("0");
@@ -3863,7 +3863,7 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 //						if(object.getEmploymentstatus().equals("Confirmed")) {}
 
 						EmployeeLeavesMap empLeaveMap = employeeLeavesMapRepository
-								.findByEmpIdAndLeaveTypeMasterId(object.getEmpId(), (short) 18); // 18 is in local and Uat and 5 is in Prod
+								.findByEmpIdAndLeaveTypeMasterId(object.getEmpId(), (short) 5); // 18 is in local and Uat and 5 is in Prod
 						
 						if(empLeaveMap != null) {
 							empLeaveMap.setBalance(MATERNITY_LEAVES);

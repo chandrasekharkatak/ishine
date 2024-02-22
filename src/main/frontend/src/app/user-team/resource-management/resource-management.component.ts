@@ -292,6 +292,7 @@ export class ResourceManagementComponent implements OnInit {
   getAllProjects() {
     fetch(this.currentUser.poPortalAllProjectApi).then(res => res.json()).then(async data => {
       let allPoProject = data;
+      console.log("allPoProject    V  allPoProject   ",allPoProject);
       this.resourceManagementService.getInternalProject().pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.internalProjectList = response.serviceResponse;
@@ -325,7 +326,7 @@ export class ResourceManagementComponent implements OnInit {
   
               if (selectedProj) {
                 proj.isTeamCreated = true;
-                proj.isDraftProject = selectedProj.isDraftProject == 'true' ? 'Pending For Approval' : selectedProj.isDraftProject == 'Rejected' ? 'Rejected' : selectedProj.isDraftProject == 'false' ? 'Approved' : "NA";
+                proj.isDraftProject = selectedProj.isActive== 2 ? 'Pending For Approval' : selectedProj.isDraftProject == 'true' ? 'Pending For Approval' : selectedProj.isDraftProject == 'Rejected' ? 'Rejected' : selectedProj.isDraftProject == 'false' ? 'Approved' : "NA";
                 proj.isActive=selectedProj.isActive;
                 proj.createdOn = (proj.createdOn) ? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
               } else {
@@ -351,7 +352,8 @@ export class ResourceManagementComponent implements OnInit {
   
               if (selectedProj) {
                 proj.isTeamCreated = true;
-                proj.isDraftProject = proj.projectType;
+                proj.isDraftProject = selectedProj.isDraftProject == 'true' ? 'Pending For Approval' : selectedProj.isDraftProject == 'Rejected' ? 'Rejected' : selectedProj.isDraftProject == 'false' ? 'Approved' : "NA";
+                // proj.isDraftProject = proj.projectType;
                 proj.createdOn = (proj.createdOn) ? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
               } else {
                 proj.isTeamCreated = false;
@@ -656,7 +658,7 @@ export class ResourceManagementComponent implements OnInit {
     
     this.projectObj.teamList = this.allTeamList;
     this.projectObj.createdBy = this.currentUser.empId;
-    this.projectObj.projectId=this.projectObj.id;
+    // this.projectObj.projectId=this.projectObj.id;
     
     let inputValidated: boolean = this.validateProjectObj(this.projectObj, template)
     if (!inputValidated) return;
