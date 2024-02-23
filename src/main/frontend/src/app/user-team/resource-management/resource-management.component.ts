@@ -391,6 +391,8 @@ export class ResourceManagementComponent implements OnInit {
 
             console.log(_projectList, " all projects");
             console.log(this.internalProjectList, " this.internalProjectList");
+
+            console.error("  allProject_Po_Internal   ",this.allProject_Po_Internal);
           } else {
             console.error(response.serviceResponse);
           }

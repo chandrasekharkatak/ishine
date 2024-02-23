@@ -1515,6 +1515,9 @@ console.log("leaveObj  ",this.leaveObj);
       if (response.serviceStatus == "Success") {
         this.leaveTypes = response.serviceResponse;
         //console.log("leaveTypes : ", this.leaveTypes);
+
+        console.log("getAllLeaveTypes     ",this.getAllLeaveTypes);
+        
       } else {
         console.error(response.serviceResponse);
       }
@@ -1526,12 +1529,17 @@ console.log("leaveObj  ",this.leaveObj);
 
     let leaveObj = new Leave();
     leaveObj.employmentStatus = userObj.employmentstatus;
-    leaveObj.gender = userObj.gender;
+    leaveObj.gender = this.currentUser.gender;
 
+    console.log("   leaveObj   ",leaveObj);
+    
     this.leaveService.getAllLeaveTypesByLeavePolicies(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveTypes = response.serviceResponse;
         //console.log("leaveTypes : ", this.leaveTypes);
+        
+        console.log("getAllLeaveTypesByLeavePolicies    ",this.leaveTypes);
+        
       } else {
         console.error(response.serviceResponse);
       }
