@@ -73,4 +73,6 @@ public class LeavePolicyMaster {
 	private LocalDateTime updatedOn;
 	
 	private Integer updatedBy;
+	
+	private String maritalStatus;
 }

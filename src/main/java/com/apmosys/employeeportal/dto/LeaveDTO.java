@@ -150,4 +150,5 @@ public class LeaveDTO {
 	private String state;
 	private String rejectCompOffReason;
 	private Long reportingManagerId;
+	private String maritalStatus;
 }

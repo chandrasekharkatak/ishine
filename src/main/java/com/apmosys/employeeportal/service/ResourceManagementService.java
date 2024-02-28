@@ -167,19 +167,6 @@ public class ResourceManagementService {
 		            projManagerId = employee.getEmpId();
 		        }
 		        projectObj.setIsDraftProject("false");
-		        // Logic to determine if project should be set as draft...
-
-//		        if (resourceManagementDTO.getIsHOD().equals("true")) {
-//		            projectObj.setIsDraftProject("false");
-//		        } else {
-//		        	allExistTeam.forEach((team)->{
-//		        		if(!team.getTeamId().equals(newlyAddedTeam)) {
-//		        			projectObj.setIsDraftProject("false");
-//		        		}else {
-//		        			projectObj.setIsDraftProject("false");
-//		        		}
-//		        	});
-//		        }
 
 		        projectObj.setProjectName(resourceManagementDTO.getName());
 		        projectObj.setProjectManagerId(projManagerId);
@@ -268,7 +255,7 @@ public class ResourceManagementService {
 					                    // TeamLead
 					                    if ((newMember.getIsTeamLead() != null) && (newMember.getIsTeamLead().equals("true"))) {
 					                        empTeamMap.setEmpId(newMember.getEmpId());
-					                        empTeamMap.setActive(1L);
+//					                        empTeamMap.setActive(1L);
 					                        empTeamMap.setEmployeeRole("TeamLead");
 					                        empTeamMap.setTeamId(teamDbResponse.getTeamId());
 					                        mapList.add(empTeamMap);
@@ -279,7 +266,7 @@ public class ResourceManagementService {
 					                        }
 
 					                        empTeamMap.setEmpId(newMember.getEmpId());
-					                        empTeamMap.setActive(1L);
+//					                        empTeamMap.setActive(1L);
 					                        empTeamMap.setEmployeeRole(employeeRole.toString());
 					                        empTeamMap.setTeamId(teamDbResponse.getTeamId());
 					                        mapList.add(empTeamMap);
@@ -1079,7 +1066,7 @@ public class ResourceManagementService {
         StringBuilder logBuilder = new StringBuilder();
         logBuilder.append("Project Id : "+ resourceManagementDTO.getId() + " ,EmployeeId :" + resourceManagementDTO.getEmpId());
 		try {
-			
+			System.err.println("  resourceManagementDTO    \n\n\n\n\n\n"+resourceManagementDTO);
 			Project projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
 			if(projectObj != null) {
 				
@@ -1107,6 +1094,57 @@ public class ResourceManagementService {
 						response.setServiceResponse("Project Rejected.");
                         apiLogInfo.setApiResponse("Project Rejected");
                         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+                        
+                     // added by anurag for newly added user
+                        List<Team> findTeamToBeDeleted = teamRepository.findTeamByProjectId(projectObj.getProjectId());
+                        
+                        for(Team findTeam : findTeamToBeDeleted) {
+                            List<EmployeeTeamMap> teamMembersToActivate = employeeTeamMapRepository.findByTeamIdAndActive(findTeam.getTeamId());
+                            List<EmployeeTeamMap> findActiveTeamMembers = employeeTeamMapRepository.findTeammembersByTeamIdAndStatus(findTeam.getTeamId());
+                            
+                            System.err.println(" teamMembersToActivate     size   "+teamMembersToActivate.size());
+                            
+                            
+                            if(teamMembersToActivate.size()<=1) {
+                            	teamMembersToActivate.forEach((object) ->{
+                                	if(object.getActive() == 2) {
+                                		List<Activity> findActivities = activitiesRepository.findByTeamId(findTeam.getTeamId());
+                                		if(!findActivities.isEmpty()) {
+                                			activitiesRepository.deleteAll();
+                                			}
+                                		employeeTeamMapRepository.deleteAllByTeamId(findTeam.getTeamId());
+                                		teamRepository.delete(findTeam);                           	
+                                		}
+                                });
+                            }else {
+                            	teamMembersToActivate.forEach((teamObj)->{
+                            		if(teamObj.getActive() == 1) {
+                            			teamObj.setActive(1L);                    			
+                            		}else {
+                            			if(findActiveTeamMembers.isEmpty()) {
+                            				List<Activity> findActivities = activitiesRepository.findByTeamId(findTeam.getTeamId());
+                                    		if(!findActivities.isEmpty()) {
+                                    			activitiesRepository.deleteAll();
+                                    			}
+                                    		employeeTeamMapRepository.deleteAllByTeamId(findTeam.getTeamId());
+                                    		teamRepository.delete(findTeam);   
+                            			}else {
+                            				if(teamObj.getActive()==2) {
+                            					teamObj.setActive(0L); 		
+                            				}else {
+                            					teamObj.setActive(1L); 		
+                            				}
+                            				
+                            			}
+                            		}
+                            		
+                            		employeeTeamMapRepository.save(teamObj);
+                            	});
+                            }
+                            
+                            
+                        }
+                        
 
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -1284,7 +1322,7 @@ public class ResourceManagementService {
 		System.err.println(" Anurag sync PO portal    ::   "+resourceManagementDTO);
 		try {
 			Project projectObj = null;
-			if(!resourceManagementDTO.getProjectType().equals("Internal"))
+			if(!resourceManagementDTO.getProjectType().equals("Internal")) {
 				projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
 			System.err.println(" projectObj   "+projectObj.getPoProjectId());
 			List<PoProjectSyncDTO> projectInfo = new ArrayList<PoProjectSyncDTO>();
@@ -1421,6 +1459,7 @@ public class ResourceManagementService {
 					response.setServiceResponse(json.get("message"));
 				}
 			}
+		}
 			
 		}catch(Exception e) {
 			e.printStackTrace();

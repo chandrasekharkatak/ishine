@@ -265,10 +265,13 @@ public class LeaveTypeMasterService {
         apiLogInfo.setLogLevel("INFO");
         StringBuilder logBuilder = new StringBuilder();
         logBuilder.append("EmploymentStatus : " + leaveDTO.getEmploymentStatus() + " ,Gender : " + leaveDTO.getGender() + " ,leaveTypeList :" + leaveTypeMasterRepository
-				.getAllLeaveTypesByLeavePolicies(leaveDTO.getEmploymentStatus(), leaveDTO.getGender()).size());
+				.getAllLeaveTypesByLeavePolicies(leaveDTO.getEmploymentStatus(), leaveDTO.getGender(), leaveDTO.getMaritalStatus()).size());
 		try {
+			
+			System.err.println(" leaveDTO    "+leaveDTO);
+			
 			List<Object[]> list = leaveTypeMasterRepository
-					.getAllLeaveTypesByLeavePolicies(leaveDTO.getEmploymentStatus(), leaveDTO.getGender());
+					.getAllLeaveTypesByLeavePolicies(leaveDTO.getEmploymentStatus(), leaveDTO.getGender(), leaveDTO.getMaritalStatus());
 
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
 

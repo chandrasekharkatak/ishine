@@ -514,6 +514,11 @@
                 <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>
                 <th scope="col" class="info-label" mat-sort-header="noOfDays|number">Duration</th>
                 <th scope="col" class="info-label" mat-sort-header="description|string">Description</th>
+                <th scope="col" class="info-label" mat-sort-header="currentApprovalLevel|number">Current Approval Level</th>
+                <th scope="col" class="info-label" mat-sort-header="approverName|string">Level 1 Approver Name</th>
+                <th scope="col" class="info-label" mat-sort-header="managerApprovalStatus|string">Level 1 Approver Status</th>
+                <th scope="col" class="info-label" mat-sort-header="level2ApproverName|string">Level 2 Approver Name</th>
+                <th scope="col" class="info-label" mat-sort-header="level2ApprovalStatus|string">Level 2 Approver Status</th>
                 <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
                 <th scope="col" class="info-label">Actions</th>
              </tr>
@@ -533,6 +538,14 @@
                     <td>{{compOffApplication.toDate}}</td>
                     <td>{{compOffApplication.noOfDays}}</td>
                     <td>{{compOffApplication.description}}</td>
+                    <td>{{compOffApplication.currentApprovalLevel}}
+                        <br>
+                        <h6 class="badge badge-pill primary-pill" *ngIf="compOffApplication.currentApprovalLevel == compOffApplication.finalApprovalLevel && compOffApplication.status == 'Pending'">Final</h6>
+                    </td>
+                    <td>{{compOffApplication.approverName}}</td>
+                    <td [ngStyle]="{'color': (compOffApplication.managerApprovalStatus == 'Pending') ? 'orange' : (compOffApplication.managerApprovalStatus == 'Approved') ? 'green' : (compOffApplication.managerApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{compOffApplication.managerApprovalStatus}}</td>
+                    <td>{{compOffApplication.level2ApproverName}}</td>
+                    <td [ngStyle]="{'color': (compOffApplication.level2ApprovalStatus == 'Pending') ? 'orange' : (compOffApplication.level2ApprovalStatus == 'Approved') ? 'green' : (compOffApplication.level2ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{compOffApplication.level2ApprovalStatus}}</td>
                     <td>{{compOffApplication.status}}</td>
                     <td>
                         <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success mb2" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;

@@ -704,7 +704,6 @@ export class ResourceManagementComponent implements OnInit {
    // this.previewTeamList = [];
    console.log(" project    ",project);
    
-   
     this.resourceManagementService.getTeamListByProjectName(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectObj.teamList = response.serviceResponse;
@@ -726,6 +725,7 @@ export class ResourceManagementComponent implements OnInit {
         if (this.projectObj.teamList == undefined || this.projectObj.teamList.length == 0) {
           this.addInputTeamField();
         } else {
+          console.log(" find error in else part ")
           this.allTeamList = this.projectObj.teamList;
           // this.allTeamListCopy = this.projectObj.teamList;
           this.allTeamListCopy = JSON.parse(JSON.stringify(this.projectObj.teamList));

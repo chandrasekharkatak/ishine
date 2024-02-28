@@ -175,6 +175,7 @@ export class LeaveComponent implements OnInit {
     this.sectionViewInit();
     // this.getAllLeaveTypes();
     this.getAllLeaveTypesByLeavePolicies(this.currentUser);
+    console.log('this.currentUser    gender ',this.currentUser);
     this.getAllPortalConfigData();
     // this.dateToday = this.datePipe.transform(this.dateToday,'dd-MM-yyyy');
     this.preventBackButton();
@@ -1530,6 +1531,7 @@ console.log("leaveObj  ",this.leaveObj);
     let leaveObj = new Leave();
     leaveObj.employmentStatus = userObj.employmentstatus;
     leaveObj.gender = this.currentUser.gender;
+    leaveObj.maritalStatus = this.currentUser.maritalStatus;
 
     console.log("   leaveObj   ",leaveObj);
     

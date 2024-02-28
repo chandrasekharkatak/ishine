@@ -471,6 +471,19 @@
                         </div>
                     </div>
                 </div>
+                <div class="col-md-4 mb-0" *ngIf="leavePolicyObj.leaveTypeMasterId == 18">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Marital Status</label>
+                            <select class="form-control" aria-hidden="true"
+                                [(ngModel)]="leavePolicyObj.maritalStatus">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="single">Single</option>
+                                <option value="married">Married</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="row my-2">
                 <!-- LEAVE APPLICATION -->

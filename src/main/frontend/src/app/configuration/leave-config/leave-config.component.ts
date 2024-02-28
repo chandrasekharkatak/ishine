@@ -1039,6 +1039,11 @@ export class LeaveConfigComponent implements OnInit {
       return false;
     }
 
+    // if (!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.maritalStatus)) {
+    //   this.alertMessage = "Please Select Marital Status !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
     // Policy Checks
 
     if (!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.leaveApplication)) {

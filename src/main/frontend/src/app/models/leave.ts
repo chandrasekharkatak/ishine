@@ -127,5 +127,6 @@ export class Leave{
 	state:any;
 	rejectCompOffReason:any;
 	reportingManagerId:any;
+	maritalStatus : any;
 
 }

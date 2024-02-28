@@ -60,6 +60,7 @@ public class LeavePolicyMasterService {
 				newLeavePolicy.setEmploymentStatus(leaveDTO.getEmploymentStatus());
 				newLeavePolicy.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());			
 				newLeavePolicy.setDescription(leaveDTO.getDescription());
+				newLeavePolicy.setMaritalStatus(leaveDTO.getMaritalStatus());
 				newLeavePolicy.setLeaveApplication(leaveDTO.getLeaveApplication());
 				newLeavePolicy.setIncrement(leaveDTO.getIncrement());
 				newLeavePolicy.setIncrementValue(leaveDTO.getIncrementValue());
@@ -127,6 +128,7 @@ public class LeavePolicyMasterService {
 				leavePolicy.setEmploymentStatus(leaveDTO.getEmploymentStatus());
 				leavePolicy.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());			
 				leavePolicy.setDescription(leaveDTO.getDescription());
+				leavePolicy.setMaritalStatus(leaveDTO.getMaritalStatus());
 				leavePolicy.setLeaveApplication(leaveDTO.getLeaveApplication());
 				leavePolicy.setIncrement(leaveDTO.getIncrement());
 				leavePolicy.setIncrementValue(leaveDTO.getIncrementValue());
@@ -274,6 +276,7 @@ public class LeavePolicyMasterService {
 					dto.setUpdatedOn(object[23] != null ? object[23].toString() : null);
 					dto.setUpdatedBy(object[24] != null ? Integer.parseInt(object[24].toString()) : null);
 					dto.setUpdatedByName(object[25] != null ? object[25].toString() : null);
+					dto.setMaritalStatus(object[26] != null ? object[26].toString() : null);
 					
 					dtoList.add(dto);
 				}

@@ -259,7 +259,14 @@ public class CompOffLeaveService {
 					dto.setEmployeementId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
 					dto.setManagerId(object[12] != null ? Integer.parseInt(object[12].toString()) : null);
 					dto.setManagerEmail(object[13] != null ? object[13].toString() : null);
-					
+					dto.setFinalApprovalLevel(object[14] != null ? Integer.parseInt(object[14].toString()) : null);
+					dto.setLevel2ApproverId(object[15] != null ? Long.parseLong(object[15].toString()) : null);
+					dto.setManagerApprovalStatus(object[16] != null ? object[16].toString() : null);	
+					dto.setReportingManagerId(object[17] != null ? Long.parseLong(object[17].toString()) : null);
+					dto.setCurrentApprovalLevel(object[18] != null ? Integer.parseInt(object[18].toString()) : null);	
+					dto.setLevel2ApprovalStatus(object[19] != null ? object[19].toString() : null);
+					dto.setLevel2ApproverName(object[20] != null ? object[20].toString() : null);
+					dto.setApproverName(object[21] != null ? object[21].toString() : null);
 					dtoList.add(dto);
 				});
 

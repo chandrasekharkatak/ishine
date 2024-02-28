@@ -308,6 +308,7 @@ export class LoginComponent implements OnInit{
       this.user.releaseNoteNotification = user.releaseNoteNotification;
       this.user.newsletterReadCheck = user.newsletterReadCheck;
       this.user.workLocation = user.workLocation;
+      this.user.maritalStatus = user.maritalStatus;
       sessionStorage.setItem('currentUser', JSON.stringify(this.user));
       this.authenticationService.setcurrentUserSubject(this.user);
       sessionStorage.setItem('logInfo', JSON.stringify(log));
