@@ -75,4 +75,9 @@ public class LeavePolicyMaster {
 	private Integer updatedBy;
 	
 	private String maritalStatus;
+	
+	private String maternityType;
+	
+	private Long maternityLeaveDays;
+	
 }

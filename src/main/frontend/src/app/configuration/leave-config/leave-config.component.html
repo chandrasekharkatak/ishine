@@ -462,7 +462,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6 mb-0">
+                <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label for="leavePolicyDesc">Description</label>
@@ -478,12 +478,36 @@
                             <select class="form-control" aria-hidden="true"
                                 [(ngModel)]="leavePolicyObj.maritalStatus">
                                 <option selected="selected" value="" disabled>Select</option>
-                                <option value="single">Single</option>
+                                <!-- <option value="single">Single</option> -->
                                 <option value="married">Married</option>
                             </select>
                         </div>
                     </div>
                 </div>
+                <div class="col-md-4 mb-0" *ngIf="leavePolicyObj.maritalStatus != null">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label for="leavePolicyDesc">Maternity Type</label>
+                            <select class="form-control" aria-hidden="true"
+                                [(ngModel)]="leavePolicyObj.maternityType">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="miscarriage">Miscarriage</option>
+                                <option value="adoption">Adoption</option>
+                                <option value="fullMaternity">Full Maternity</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0" *ngIf="leavePolicyObj.maternityType != null ">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Maternity Leave Allowed ( Days )</label>
+                            <input type="text" class="form-control" autocomplete="none"
+                                [(ngModel)]="leavePolicyObj.maternityLeaveDays">
+                        </div>
+                    </div>
+                </div>
+
             </div>
             <div class="row my-2">
                 <!-- LEAVE APPLICATION -->
@@ -722,7 +746,8 @@
                               <tr>	
                                 <th scope="col" class="info-label">Sr No.</th>	
                                 <th scope="col" class="info-label" mat-sort-header="leavePolicyName|string">Leave Policy Name</th>	
-                                <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>	
+                                <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>
+                                <th scope="col" class="info-label" mat-sort-header="maternityType|string">Maternity Type</th>	
                                 <th scope="col" class="info-label desc-text-wrap" mat-sort-header="description|string">Description</th>	
                                 <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By</th>	
                                 <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
@@ -740,6 +765,7 @@
                                     <td>{{20*(page-1)+i+1}}</td>
                                     <td>{{leavePolicy.leavePolicyName}}</td>
                                     <td>{{leavePolicy.leaveType}}</td>
+                                    <td>{{leavePolicy.maternityType}}</td>
                                     <td class="desc-text-wrap">{{leavePolicy.description}}</td>
                                     <td>{{leavePolicy.createdByName}}</td>
                                     <td>{{leavePolicy.createdOn}}</td>

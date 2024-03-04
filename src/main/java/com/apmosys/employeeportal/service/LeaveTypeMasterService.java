@@ -307,6 +307,9 @@ public class LeaveTypeMasterService {
 					dto.setLockingValue(object[19] != null ? Integer.parseInt(object[19].toString()) : null);
 					dto.setProbation(object[20] != null ? object[20].toString() : null);
 					dto.setProbationPeriod(object[21] != null ? Integer.parseInt(object[21].toString()) : null);
+					dto.setMaritalStatus(object[22] != null ? object[22].toString() : null);
+					dto.setMaternityType(object[23] != null ? object[23].toString() : null);
+					dto.setMaternityLeaveDays(object[24] != null ? Long.parseLong(object[24].toString()) :  null);
 					
 					// set locking references 
 					if(dto.getLockingPeriod().equalsIgnoreCase("Yes")) {

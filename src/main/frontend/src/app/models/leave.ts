@@ -128,5 +128,6 @@ export class Leave{
 	rejectCompOffReason:any;
 	reportingManagerId:any;
 	maritalStatus : any;
-
+	maternityType: any;
+	maternityLeaveDays: any;
 }

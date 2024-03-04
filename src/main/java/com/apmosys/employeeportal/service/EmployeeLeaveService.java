@@ -132,48 +132,95 @@ public class EmployeeLeaveService {
 //			LeaveTypeMaster leaveTypeMasterObj = leaveTypeMasterRepository.findByLeaveTypeCode(leaveDTO.getLeaveTypeCode());	
 			
 			// added by anurag
-			EmployeeLeave recentLeaves = employeeLeaveRepository.findRecentLeavesByEmpId(leaveDTO.getEmpId()).get(0);
+//			EmployeeLeave recentLeaves = employeeLeaveRepository.findRecentLeavesByEmpId(leaveDTO.getEmpId()).get(0);
+//
+//System.out.println(" recentLeaves    "+recentLeaves);
+//	                LocalDate newLeaveFromDate = LocalDate.parse(leaveDTO.getFromDate());
+//	                LocalDate recentLeaveToDate = recentLeaves.getToDate();
+//	                if (newLeaveFromDate.isEqual(recentLeaveToDate.plusDays(1))) {
+//	                	
+//	                    if (!recentLeaves.getLeaveTypeMasterId().equals(leaveDTO.getLeaveTypeMasterId())) {
+//	                        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	                        response.setServiceResponse("Two different types of leaves are not allowed on consecutive days. Please ensure that the same type of leave is applied for consecutive days.");
+//	                        return response;
+//	                    }
+//	                } else {
+//	                	System.err.println("recentLeaveToDate    ::  "+recentLeaveToDate);
+//	                	boolean isWeekOff = this.isWeekOffFind(recentLeaveToDate.plusDays(1),newLeaveFromDate.minusDays(1), leaveDTO.getState());
+//	                	
+//	                	if(isWeekOff) {
+//	                		EmployeeLeave findLeaveOnToDate = employeeLeaveRepository.findEmployeeLeaveByToDate(newLeaveFromDate.minusDays(1),leaveDTO.getEmpId());
+//	                		System.err.println("findLeaveOnToDate   ::  "+findLeaveOnToDate);
+//	                		if(findLeaveOnToDate != null) {
+//	                			if((!leaveDTO.getLeaveTypeMasterId().equals(recentLeaves.getLeaveTypeMasterId()))) {
+//		                			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//			                        response.setServiceResponse("Two different types of leaves are not allowed on consecutive days.Week Offs also consider your last leave To date");
+//			                        return response;
+//		                		}
+//	                		}else {
+//	                			List<Holiday> findWeekOffAndFestival = holidayRepository.findWeekOffCountByFromAndToDate(newLeaveFromDate.minusDays(1), leaveDTO.getState());
+//	                			EmployeeLeave findPreviousLeaveByFromDate = employeeLeaveRepository.findLeaveByFromDate(leaveDTO.getFromDate(), leaveDTO.getEmpId()).get(0);
+//	                			System.err.println("findPreviousLeaveByFromDate    ::   "+findPreviousLeaveByFromDate);
+//	                			System.err.println(" Anurag call else part "+findWeekOffAndFestival);
+//	                			if(!findWeekOffAndFestival.isEmpty()) {
+//	                				if(!leaveDTO.getLeaveTypeMasterId().equals(findPreviousLeaveByFromDate.getLeaveTypeMasterId())) {
+//	                					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				                        response.setServiceResponse("Two different types of leaves are not allowed on consecutive days.Week Offs also consider your last leave To date");
+//				                        return response;
+//	                				}
+//	                				}
+//	                			}
+//	                		
+//	                	}
+//	                }
+			Optional<List<EmployeeLeave>> recentLeavesOptional = Optional.ofNullable(employeeLeaveRepository.findRecentLeavesByEmpId(leaveDTO.getEmpId()));
+			if (recentLeavesOptional.isPresent() && !recentLeavesOptional.get().isEmpty()) {
+			    EmployeeLeave recentLeaves = recentLeavesOptional.get().get(0);
+			    System.out.println(" recentLeaves    " + recentLeaves);
+			    LocalDate newLeaveFromDate = LocalDate.parse(leaveDTO.getFromDate());
+			    LocalDate recentLeaveToDate = recentLeaves.getToDate();
+			    
+			    if (newLeaveFromDate.isEqual(recentLeaveToDate.plusDays(1))) {
+			        if (!recentLeaves.getLeaveTypeMasterId().equals(leaveDTO.getLeaveTypeMasterId())) {
+			            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			            response.setServiceResponse("Two different types of leaves are not allowed on consecutive days. Please ensure that the same type of leave is applied for consecutive days.");
+			            return response;
+			        }
+			    } else {
+			        System.err.println("recentLeaveToDate    ::  " + recentLeaveToDate);
+			        boolean isWeekOff = this.isWeekOffFind(recentLeaveToDate.plusDays(1), newLeaveFromDate.minusDays(1), leaveDTO.getState());
 
-
-	                LocalDate newLeaveFromDate = LocalDate.parse(leaveDTO.getFromDate());
-	                LocalDate recentLeaveToDate = recentLeaves.getToDate();
-	                if (newLeaveFromDate.isEqual(recentLeaveToDate.plusDays(1))) {
-	                	
-	                    if (!recentLeaves.getLeaveTypeMasterId().equals(leaveDTO.getLeaveTypeMasterId())) {
-	                        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	                        response.setServiceResponse("Two different types of leaves are not allowed on consecutive days. Please ensure that the same type of leave is applied for consecutive days.");
-	                        return response;
-	                    }
-	                } else {
-	                	System.err.println("recentLeaveToDate    ::  "+recentLeaveToDate);
-	                	boolean isWeekOff = this.isWeekOffFind(recentLeaveToDate.plusDays(1),newLeaveFromDate.minusDays(1), leaveDTO.getState());
-	                	
-	                	if(isWeekOff) {
-	                		EmployeeLeave findLeaveOnToDate = employeeLeaveRepository.findEmployeeLeaveByToDate(newLeaveFromDate.minusDays(1),leaveDTO.getEmpId());
-	                		System.err.println("findLeaveOnToDate   ::  "+findLeaveOnToDate);
-	                		if(findLeaveOnToDate != null) {
-	                			if((!leaveDTO.getLeaveTypeMasterId().equals(recentLeaves.getLeaveTypeMasterId()))) {
-		                			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			        if (isWeekOff) {
+			            EmployeeLeave findLeaveOnToDate = employeeLeaveRepository.findEmployeeLeaveByToDate(newLeaveFromDate.minusDays(1), leaveDTO.getEmpId());
+			            System.err.println("findLeaveOnToDate   ::  " + findLeaveOnToDate);
+			            if (findLeaveOnToDate != null) {
+			                if ((!leaveDTO.getLeaveTypeMasterId().equals(recentLeaves.getLeaveTypeMasterId()))) {
+			                    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			                    response.setServiceResponse("Two different types of leaves are not allowed on consecutive days.Week Offs also consider your last leave To date");
+			                    return response;
+			                }
+			            } else {
+			                List<Holiday> findWeekOffAndFestival = holidayRepository.findWeekOffCountByFromAndToDate(newLeaveFromDate.minusDays(1), leaveDTO.getState());
+			                Optional<List<EmployeeLeave>> findPreviousLeaveByFromDateOptional = Optional.ofNullable(employeeLeaveRepository.findLeaveByFromDate(leaveDTO.getFromDate(), leaveDTO.getEmpId()));
+			               
+			                
+			                if (findPreviousLeaveByFromDateOptional.isPresent() && !findPreviousLeaveByFromDateOptional.get().isEmpty()) {
+			    			    EmployeeLeave findPreviousLeaveByFromDate = findPreviousLeaveByFromDateOptional.get().get(0);
+			    			    System.err.println("findPreviousLeaveByFromDate    ::   " + findPreviousLeaveByFromDate);
+			                System.err.println(" Anurag call else part " + findWeekOffAndFestival);
+			                if (!findWeekOffAndFestival.isEmpty()) {
+			                    if (!leaveDTO.getLeaveTypeMasterId().equals(findPreviousLeaveByFromDate.getLeaveTypeMasterId())) {
+			                        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			                        response.setServiceResponse("Two different types of leaves are not allowed on consecutive days.Week Offs also consider your last leave To date");
 			                        return response;
-		                		}
-	                		}else {
-	                			List<Holiday> findWeekOffAndFestival = holidayRepository.findWeekOffCountByFromAndToDate(newLeaveFromDate.minusDays(1), leaveDTO.getState());
-	                			EmployeeLeave findPreviousLeaveByFromDate = employeeLeaveRepository.findLeaveByFromDate(leaveDTO.getFromDate(), leaveDTO.getEmpId()).get(0);
-	                			System.err.println("findPreviousLeaveByFromDate    ::   "+findPreviousLeaveByFromDate);
-	                			System.err.println(" Anurag call else part "+findWeekOffAndFestival);
-	                			if(!findWeekOffAndFestival.isEmpty()) {
-	                				if(!leaveDTO.getLeaveTypeMasterId().equals(findPreviousLeaveByFromDate.getLeaveTypeMasterId())) {
-	                					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				                        response.setServiceResponse("Two different types of leaves are not allowed on consecutive days.Week Offs also consider your last leave To date");
-				                        return response;
-	                				}
-	                				}
-	                			}
-	                		
-	                	}
-	                }
-
+			                    }
+			                }
+			                
+			                }
+			            }
+			        }
+			    }
+			}
 			
 			
 			EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
@@ -231,6 +278,11 @@ public class EmployeeLeaveService {
 				return response;
 			}
 			
+			// added by anurag for maternity leave apply
+			else if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("ML")) {
+				System.err.println(" Maternity apply leave call ");
+			}
+			
 			// added by anurag for CL
 			
 			if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("CL") && leaveDTO.getNoOfDays()>clLeaveDays) {
@@ -258,7 +310,8 @@ public class EmployeeLeaveService {
 			leaveApplication.getCommonProperty().setCreatedBy(leaveDTO.getCreatedBy());
 			leaveApplication.setFromDateDayType(leaveDTO.getFromDateDayType());
 			leaveApplication.setToDateDayType(leaveDTO.getToDateDayType());	
-			
+			leaveApplication.setMaternityType(leaveDTO.getMaternityType());
+			leaveApplication.setMaternityLeaveDays(leaveDTO.getMaternityLeaveDays());
 			/* ----------- Multi-Level Approval ---------- */
 			// Approval Status : NA - Pending - Approved - Rejected
 			leaveApplication.setFinalApprovalLevel(leaveDTO.getFinalApprovalLevel());
@@ -1163,6 +1216,7 @@ public boolean isWeekOffFind(LocalDate fromDate , LocalDate toDate, String state
 		try {
 			List<Object[]> list = employeeLeaveRepository.getAllMyLeaveApplicationsByEmpId(leaveDTO.getEmpId());
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+			System.err.println(" listvvvv     list    list   "+list.toString());
 			if (list.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No Leave Application found");
@@ -1173,6 +1227,7 @@ public boolean isWeekOffFind(LocalDate fromDate , LocalDate toDate, String state
       
 				list.forEach((object) -> {
 					LeaveDTO dto = new LeaveDTO();
+					System.out.println("  ANurag find MaternityType      "+object[26] != null ? object[26].toString() : null);
 					dto.setLeaveId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 					dto.setLeaveType(object[1] != null ? object[1].toString() : null);
 					dto.setFromDate(object[2] != null ? object[2].toString() : null);
@@ -1202,7 +1257,8 @@ public boolean isWeekOffFind(LocalDate fromDate , LocalDate toDate, String state
 					
 					dto.setCurrentApprovalLevel(object[24] != null ? Integer.parseInt(object[24].toString()) : null);
 					dto.setFinalApprovalLevel(object[25] != null ? Integer.parseInt(object[25].toString()) : null);
-					
+					dto.setMaternityType(object[26] != null ? object[26].toString() : null);
+					dto.setMaternityLeaveDays(object[27] != null ? Long.parseLong(object[27].toString()) : null);
 					
 					dtoList.add(dto);
 				});

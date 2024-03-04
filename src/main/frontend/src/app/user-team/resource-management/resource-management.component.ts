@@ -435,7 +435,10 @@ export class ResourceManagementComponent implements OnInit {
     this.teamLeadsList = [];
     let employeeList = [];
 
-    this.employeeObj.role = "TeamLead";
+    // this.employeeObj.role = "TeamLead";
+    this.employeeObj.role = this.currentUser.employeeRole;
+    console.log(" Anurag call getAllEmployeesByRole from ishine  ",this.employeeObj);
+    
     this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         employeeList = response.serviceResponse;

@@ -151,4 +151,6 @@ public class LeaveDTO {
 	private String rejectCompOffReason;
 	private Long reportingManagerId;
 	private String maritalStatus;
+	private String maternityType;
+	private Long maternityLeaveDays;
 }

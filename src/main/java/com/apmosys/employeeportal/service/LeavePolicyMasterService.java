@@ -46,7 +46,7 @@ public class LeavePolicyMasterService {
 		try {
 			
 			Optional<LeavePolicyMaster> existingLeavePolicy = 
-					leavePolicyMasterRepository.findByEmployentStatusAndLeaveTypeMasterId(leaveDTO.getEmploymentStatus(), leaveDTO.getLeaveTypeMasterId());
+					leavePolicyMasterRepository.findByEmployentStatusAndLeaveTypeMasterIdAndMaternityType(leaveDTO.getEmploymentStatus(), leaveDTO.getLeaveTypeMasterId(), leaveDTO.getMaternityType());
 			
 			if (existingLeavePolicy.isPresent()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -76,6 +76,8 @@ public class LeavePolicyMasterService {
 				newLeavePolicy.setLockingValue(leaveDTO.getLockingValue());
 				newLeavePolicy.setProbation(leaveDTO.getProbation());
 				newLeavePolicy.setProbationPeriod(leaveDTO.getProbationPeriod());
+				newLeavePolicy.setMaternityType(leaveDTO.getMaternityType());
+				newLeavePolicy.setMaternityLeaveDays(leaveDTO.getMaternityLeaveDays());
 				
 				newLeavePolicy.setCreatedBy(leaveDTO.getCreatedBy());
 				
@@ -144,6 +146,8 @@ public class LeavePolicyMasterService {
 				leavePolicy.setLockingValue(leaveDTO.getLockingValue());
 				leavePolicy.setProbation(leaveDTO.getProbation());
 				leavePolicy.setProbationPeriod(leaveDTO.getProbationPeriod());
+				leavePolicy.setMaternityType(leaveDTO.getMaternityType());
+				leavePolicy.setMaternityLeaveDays(leaveDTO.getMaternityLeaveDays());
 		
 				leavePolicy.setUpdatedBy(leaveDTO.getUpdatedBy());
 				leavePolicy.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
@@ -277,6 +281,8 @@ public class LeavePolicyMasterService {
 					dto.setUpdatedBy(object[24] != null ? Integer.parseInt(object[24].toString()) : null);
 					dto.setUpdatedByName(object[25] != null ? object[25].toString() : null);
 					dto.setMaritalStatus(object[26] != null ? object[26].toString() : null);
+					dto.setMaternityType(object[27] != null ? object[27].toString() : null);
+					dto.setMaternityLeaveDays(object[28] != null ? Long.parseLong(object[28].toString()) : null);
 					
 					dtoList.add(dto);
 				}
@@ -336,6 +342,16 @@ public class LeavePolicyMasterService {
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+
+	public ServiceResponse getMaternityLeaveDaysByMaternityType(LeaveDTO leaveDto) {
+		System.err.println(leaveDto);
+		ServiceResponse response = new ServiceResponse();
+		LeavePolicyMaster findAllowedDaysForMaternity = leavePolicyMasterRepository.findLeavePolicyByMaternityType(leaveDto.getMaternityType());
+		System.err.println(findAllowedDaysForMaternity.toString());
+		response.setServiceResponse(findAllowedDaysForMaternity);
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		return response;
 	}
 

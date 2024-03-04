@@ -240,4 +240,10 @@ bulkCompOffApprove(compOff: Leave){
   getHolidayWeekOffSize(leaveObj: Leave){
     return this.http.post(`${this.baseUrl}`+ `api/getHolidayWeekOffSize`, leaveObj);
   }
+
+  getMaternityLeaveDaysByMaternityType(leaveObj:Leave){
+    return this.http.post(`${this.baseUrl}`+`api/getMaternityLeaveDaysByMaternityType`, leaveObj);
+  }
+
+
 }

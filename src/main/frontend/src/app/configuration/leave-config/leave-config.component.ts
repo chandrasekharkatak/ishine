@@ -346,6 +346,8 @@ export class LeaveConfigComponent implements OnInit {
     this.isCreation = false;
 
     this.leavePolicyObj = Object.assign({}, leavePolicyObj);
+    console.log("this.leavePolicyObj ",this.leavePolicyObj);
+    
     this.getAllLeaveTypes();
   }
 
@@ -1039,11 +1041,27 @@ export class LeaveConfigComponent implements OnInit {
       return false;
     }
 
-    // if (!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.maritalStatus)) {
-    //   this.alertMessage = "Please Select Marital Status !!"
-    //   this.openAlertMod(template, this.alertMessage);
-    //   return false;
-    // }
+   if(leavePolicyObj.leaveTypeMasterId == 18){
+    if (!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.maritalStatus)) {
+      this.alertMessage = "Please Select Marital Status !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    if(leavePolicyObj.maritalStatus != null){
+      if (!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.maternityType)) {
+        this.alertMessage = "Please Select Maternity Type !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+    if(leavePolicyObj.maternityType != null){
+      if (!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.maternityLeaveDays)) {
+        this.alertMessage = "Please Enter allowed Maternity Leave days for "+leavePolicyObj.maternityType+" !!";
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+   }
     // Policy Checks
 
     if (!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.leaveApplication)) {

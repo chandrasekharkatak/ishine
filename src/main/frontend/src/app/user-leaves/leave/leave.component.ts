@@ -35,6 +35,7 @@ export class LeaveComponent implements OnInit {
   alertTemplate:TemplateRef<any>
 
   data:string;
+  allowedLeaveDays : any;
 
   sortDirection = 'asc';
   sortColumn: any;
@@ -160,7 +161,8 @@ export class LeaveComponent implements OnInit {
     //console.log("this.currentUser : ", this.currentUser);
     //console.log("logInfo : ", this.log);
 
-    this.leaveObj.leaveTypeMasterId = '';
+    // this.leaveObj.leaveTypeMasterId = '';
+    this.leaveObj.maternityType = '';
     this.leaveObj.fromDateDayType = 0;
     this.leaveObj.toDateDayType = 0;
     this.leaveObj.leaveAppliedFor = "self"
@@ -219,13 +221,14 @@ export class LeaveComponent implements OnInit {
 
     this.isSelfLeaveRevokeApplication = false;
     this.isTeamLeaveRevokeApplication = false;
-
+    
     this.reset();
     this.getAllHolidays();
     // this.getAllLeaveTypes();
     this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
     this.leaveObj.fromDateDayType = ''
     this.leaveObj.toDateDayType = ''
+    
   }
 
   showLeaveHistoryTable() {
@@ -426,6 +429,7 @@ export class LeaveComponent implements OnInit {
     this.leaveBalanceList = [];
     this.leaveDetails = [];
     this.overLappingTeamMemberList = [];
+    this.leaveObj.maternityType = '';
   }
 
   showUpdateForm(leaveHistory:Leave){	
@@ -436,13 +440,14 @@ export class LeaveComponent implements OnInit {
     this.isLeaveHistoryTable = false;	
     this.isLeaveBalanceTable = false;
     this.isOverlapsedLeaveTable = false;
-    
+    this.leaveObj.maternityType = leaveHistory.maternityType
     this.leaveObj = Object.assign({}, leaveHistory);	
+    
     this.leaveObj.fromDateDayType = leaveHistory.fromDateDayType;
     this.leaveObj.toDateDayType = leaveHistory.toDateDayType;
     this.leaveObj.fromDate = (this.leaveObj.fromDate)? moment(this.leaveObj.fromDate, AppComponent.DATE_FORMAT).format(AppComponent.DB_DATE_FORMAT) : null;
     this.leaveObj.toDate = (this.leaveObj.toDate)? moment(this.leaveObj.toDate, AppComponent.DATE_FORMAT).format(AppComponent.DB_DATE_FORMAT) : null;
-    	
+    	console.log("    update form   ",this.leaveObj);
     if(this.isSelfLeaveHistory){
       this.leaveObj.leaveAppliedFor = "self";
       this.leaveObj.empId = this.currentUser.empId;
@@ -577,9 +582,10 @@ export class LeaveComponent implements OnInit {
   }
 
   setLeaveTypeCode(leaveTypeMasterId:any){
+    
     let leaveType = this.leaveTypes.find(leaveType => leaveType.leaveTypeMasterId == leaveTypeMasterId);  
     this.leaveObj.leaveTypeCode = leaveType.leaveTypeCode;
-
+    console.log(" ln 585 ",leaveType);
     // resetting Data for previously selected leave Type
     this.leaveObj.fromDate = '';
     this.leaveObj.fromDateDayType = '';
@@ -590,12 +596,15 @@ export class LeaveComponent implements OnInit {
     
     this.isOverlapsedLeaveTable = false;
     this.overLappingTeamMemberList = [];
+    this.leaveObj.maternityType = '';
+    
   }
 
   setPolicyObj(leaveTypeMasterId:any){
     this.leavePolicyObj = new Leave();
     let leavePolicyObj = this.leaveTypes.find(leaveType => leaveType.leaveTypeMasterId == leaveTypeMasterId);  
     this.leavePolicyObj = Object.assign({}, leavePolicyObj);
+    console.log("  leavePolicyObj     ",leavePolicyObj);
   }
 
   async checkPolicy(leaveObj:Leave, leavePolicyObj:Leave, template: TemplateRef<any>){
@@ -838,7 +847,7 @@ export class LeaveComponent implements OnInit {
 
     //Check if employee was in probation by fromDate
     let leaveType = this.leaveTypes.find(x => x.leaveTypeMasterId == this.leaveObj.leaveTypeMasterId);
-
+console.log(" on reset to date call   ",leaveType);
     if(leaveType != null && (leaveType.leaveTypeCode != 'LWP' && leaveType.leaveTypeCode != 'CO')){
       if(this.currentUser.probationPeriod != null && this.currentUser.dateOfJoining != null){
 
@@ -1407,7 +1416,7 @@ console.log("leaveObj  ",this.leaveObj);
       this.leaveObj.employeementId = teamMember.employeementId;
     }
     
-    this.getAllLeaveTypesByLeavePolicies(userObj);
+    // this.getAllLeaveTypesByLeavePolicies(userObj);
     this.getAllMyLeaveApplicationsByEmpId(userObj);
   }
 
@@ -1447,12 +1456,17 @@ console.log("leaveObj  ",this.leaveObj);
         this.previouslyAppliedLeavesList = this.previouslyAppliedLeavesList.filter(leaveApplication => (leaveApplication.status != 'Rejected' && leaveApplication.status != 'Revoked'));
         this.leaveHistoryList = response.serviceResponse;
         this.leaveHistoryListForTable = response.serviceResponse;
-
+        console.log(" leaveHistory ln 1455   ",this.leaveHistoryList);
         this.leaveHistoryList.forEach(leave => {
           leave.noOfDaysDisplay = (leave.noOfDays)? leave.noOfDays + " day(s)" : null; 
+          
+          
+          console.log(" leave in foreach   ",leave); 
+          console.log("  this.leaveObj.leaveTypeMasterId   ",this.leaveObj.leaveTypeMasterId);
         });
 
         this.leaveHistoryListForTable.forEach(leave => {
+          
           leave.checkDate = new Date(leave.fromDate);
           leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
           leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
@@ -1654,6 +1668,26 @@ console.log("leaveObj  ",this.leaveObj);
     });
   }
 
+  // added by anurag
+  findLeaveDaysOnMaternitySelect(leaveObj:Leave){
+    let leaveDays = null;
+    leaveObj.fromDate = '';
+    this.leaveObj.toDate = '';
+    let leave = new Leave();
+    console.log("maternityType    ",leaveObj);
+    leave.maternityType = leaveObj.maternityType;
+    console.log("maternityType    ",leave);
+     this.leaveService.getMaternityLeaveDaysByMaternityType(leave).pipe(first()).subscribe((response: any) => {
+      if(response.serviceStatus == "Success"){
+        leave = response.serviceResponse;
+        this.leaveObj.noOfDays = leave.maternityLeaveDays
+        this.leaveObj.maternityType = leave.maternityType;
+        this.allowedLeaveDays = leave.maternityLeaveDays;
+        console.log(leaveDays,"   leaveDays  ",leave.maternityLeaveDays ,"  this.leaveObj.noOfDays  ")
+      }
+     });
+  }
+
   getAllMyTeamLeaveRevokeApplicationsByEmpId(user: User){
     this.revokeLeaveApplicationList = [];
     
@@ -1730,7 +1764,7 @@ console.log("leaveObj  ",this.leaveObj);
   }	
 
   // CompOff Details 
-  getAvailableCompOffDetails(leaveObj:Leave){
+  getAvailableCompOffDetails(leaveObj:Leave,template:TemplateRef<any>){
     const dateFormat = 'YYYY-MM-DD';
 
     if(leaveObj.leaveTypeCode == "CO"){
@@ -1758,6 +1792,38 @@ console.log("leaveObj  ",this.leaveObj);
         }
       });
     }
+
+    if (this.leaveObj.maternityType === 'miscarriage' || this.leaveObj.maternityType === 'adoption' || this.leaveObj.maternityType === 'fullMaternity') {
+      console.log(this.leaveObj);
+     let isLeaveApplied = null;
+     let fromDate = moment(this.leaveObj.fromDate); // Create a moment object for fromDate
+     let toDate = fromDate.clone().add(this.allowedLeaveDays, 'days'); // Add maternity leave days to fromDate
+     this.leaveObj.toDate = toDate.format(dateFormat); // Assign formatted toDate to leaveObj.toDate
+     isLeaveApplied = !this.previouslyAppliedLeavesList.find(leaveApplication =>  moment(fromDate).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat));
+      this.leaveObj.fromDateDayType = '0';
+      this.leaveObj.toDateDayType = '0';
+      if(isLeaveApplied== true){
+        // fromDate = moment(this.leaveObj.fromDate); // Create a moment object for fromDate
+      
+      const START_DAY_COUNT = 1;
+      const diff = (e, t) => Math.abs(Math.floor((new Date(e).getTime() - new Date(t).getTime()) / (1000 * 60 * 60 * 24)));	
+      this.leaveObj.noOfDays =  (diff(fromDate, toDate));
+    
+      console.log(" this.leaveObj.toDate ", this.leaveObj.toDate, "  toDate  ", toDate.format(dateFormat));
+    
+    }else{
+        this.openAlertMod(template," Maternity Leaves already applied in between "+fromDate.format(dateFormat)+" to "+toDate.format(dateFormat));
+        this.leaveObj.fromDate = moment(null);
+        this.leaveObj.toDate = '';
+      }
+      
+      console.log(" previouslyAppliedLeavesList   ",!this.previouslyAppliedLeavesList);
+      
+      console.log("this.leaveObj.maternityLeaveDays   ",this.allowedLeaveDays);
+    }
+
+
+
   }
 
   exportToExcel(): void {	
@@ -1846,6 +1912,7 @@ console.log("leaveObj  ",this.leaveObj);
       this.filters = searchData;
       //console.log("Updated Filter : ", this.filters);
     }
+
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {	
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	

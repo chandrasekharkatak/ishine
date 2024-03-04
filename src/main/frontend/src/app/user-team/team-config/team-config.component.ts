@@ -846,7 +846,7 @@ export class TeamConfigComponent implements OnInit {
         }
 
         allProjectList = allProjectList.sort((a, b) => a.projectName.localeCompare(b.projectName));
-        if(this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin' || this.currentUser.employeeRole == 'HR' || isAllProjectAllowed){
+        if(this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin' || this.currentUser.employeeRole == 'HR' || this.currentUser.employeeRole == 'Manager' || isAllProjectAllowed){
           this.allProjectListByManagerId = allProjectList;
 
           //revome repeated project
@@ -856,7 +856,7 @@ export class TeamConfigComponent implements OnInit {
               t.projectId === value.projectId
             ))
           )
-          console.log("allProjectList For HOD / HR / SuperAdmin :", this.allProjectListByManagerId);
+          console.log("allProjectList For HOD / HR / SuperAdmin / Manager / ANurag :", this.allProjectListByManagerId);
         }else{
           this.allProjectListByManagerId = allProjectList;
           this.allProjectListByManagerId = allProjectList.filter((projectObj:Project) => projectObj.departmentName == this.currentUser.departmentName);

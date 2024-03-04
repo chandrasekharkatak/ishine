@@ -2112,6 +2112,7 @@ public class EmployeeService {
 			}
 			else {
 				jobRoleObj = jobRoleRepository.findByEmployeeRole(employeedto.getRole());
+				System.err.println(" in else  part  ::   "+employeedto.getRole());
 			}
 			List<EmployeeDTO> employeeList = new ArrayList<EmployeeDTO>();
 			
@@ -2119,6 +2120,7 @@ public class EmployeeService {
 				
 				List<Long> jobRoleIds = 
 						jobRoleObj.stream().map(JobRole::getJobRoleId).collect(Collectors.toList());
+				System.out.println(" jobRoleIds    ::   "+jobRoleIds);
 				
 					List<Object[]> empList = employeeRepository.getEmployeesByRoleIds(jobRoleIds);
 
