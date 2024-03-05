@@ -1276,6 +1276,14 @@ export class LeaveConfigComponent implements OnInit {
     console.log("Updated Filter : ", this.filters);
   }
 
+  createForResetOtherField(){
+    this.leavePolicyObj.maritalStatus = '';
+    this.leavePolicyObj.maternityLeaveDays = '';
+    this.leavePolicyObj.maternityType = '';
+  }
+
+
+
 }
 
 function compare(a: number | string, b: number | string, isAsc: boolean) {

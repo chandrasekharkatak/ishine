@@ -516,6 +516,14 @@ export class LeaveComponent implements OnInit {
       return false;
     }
 
+    if(leaveObj.leaveTypeMasterId == 18){
+      if(!this.validationService.validateNullUndefinedEmptyString(leaveObj.maternityType)){
+        this.alertMessage = "Please select Maternity Type !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+
     if(!this.validationService.validateNullUndefinedEmptyString(leaveObj.fromDate)){
       this.alertMessage = "Please select from date !!"
       this.openAlertMod(template, this.alertMessage);
@@ -1680,7 +1688,7 @@ console.log("leaveObj  ",this.leaveObj);
      this.leaveService.getMaternityLeaveDaysByMaternityType(leave).pipe(first()).subscribe((response: any) => {
       if(response.serviceStatus == "Success"){
         leave = response.serviceResponse;
-        this.leaveObj.noOfDays = leave.maternityLeaveDays
+        // this.leaveObj.noOfDays = leave.maternityLeaveDays
         this.leaveObj.maternityType = leave.maternityType;
         this.allowedLeaveDays = leave.maternityLeaveDays;
         console.log(leaveDays,"   leaveDays  ",leave.maternityLeaveDays ,"  this.leaveObj.noOfDays  ")

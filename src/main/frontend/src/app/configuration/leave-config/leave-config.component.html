@@ -454,7 +454,7 @@
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Leave Type</label>
                             <select class="form-control" aria-hidden="true"
-                                [(ngModel)]="leavePolicyObj.leaveTypeMasterId">
+                                [(ngModel)]="leavePolicyObj.leaveTypeMasterId" (change)="createForResetOtherField()">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let leave of leaveTypes" value="{{leave.leaveTypeMasterId}}">
                                     {{leave.leaveType}}</option>
@@ -484,10 +484,10 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 mb-0" *ngIf="leavePolicyObj.maritalStatus != null">
+                <div class="col-md-4 mb-0" *ngIf="leavePolicyObj.maritalStatus != null && leavePolicyObj.leaveTypeMasterId == 18">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label for="leavePolicyDesc">Maternity Type</label>
+                            <label for="leavePolicyDesc"><span class="text-danger">*</span>Maternity Type</label>
                             <select class="form-control" aria-hidden="true"
                                 [(ngModel)]="leavePolicyObj.maternityType">
                                 <option selected="selected" value="" disabled>Select</option>
@@ -498,7 +498,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 mb-0" *ngIf="leavePolicyObj.maternityType != null ">
+                <div class="col-md-4 mb-0" *ngIf="leavePolicyObj.maternityType != null && leavePolicyObj.leaveTypeMasterId == 18 ">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Maternity Leave Allowed ( Days )</label>

@@ -1227,7 +1227,6 @@ public boolean isWeekOffFind(LocalDate fromDate , LocalDate toDate, String state
       
 				list.forEach((object) -> {
 					LeaveDTO dto = new LeaveDTO();
-					System.out.println("  ANurag find MaternityType      "+object[26] != null ? object[26].toString() : null);
 					dto.setLeaveId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 					dto.setLeaveType(object[1] != null ? object[1].toString() : null);
 					dto.setFromDate(object[2] != null ? object[2].toString() : null);

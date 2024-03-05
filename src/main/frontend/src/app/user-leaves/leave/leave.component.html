@@ -81,11 +81,20 @@
                     </div>
                 </div>
             </div>
-            <div *ngIf="leaveDetails.length !== 0" class="row">
-                <div class="col-md-4 col-sm-6 mb-3">
+            <div  class="row">
+                <div class="col-md-4 col-sm-4 mb-3" *ngIf="leaveDetails.length !== 0">
                     <div class="card border-primary">
                         <div class="card-body" style="max-width: 27rem; max-height: 4rem;">
                             <h6> <span style=" color: #193d8a;" > Available Balance : {{leaveDetails}}</span></h6>
+                        </div>
+                    </div>
+                </div>
+            
+            
+                <div class="col-md-4 col-sm-4 mb-3" *ngIf="leaveObj.maternityType != ''">
+                    <div class="card border-primary">
+                        <div class="card-body" style="max-width: 27rem; max-height: 4rem;">
+                            <h6> <span style=" color: #193d8a;" > Available Balance : {{allowedLeaveDays}}</span></h6>
                         </div>
                     </div>
                 </div>
@@ -130,8 +139,8 @@
                             <!-- <input id="toDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="leaveObj.toDate" (change)="setNoOfDays(alert_message)"> -->
                             <div class="d-flex">
                                 <input class="form-control" matInput id="toDate" #input (focus)="toDatePicker.open()" [matDatepicker]="toDatePicker" [matDatepickerFilter]="toDateFilter"
-                                 placeholder="Choose a to date" [(ngModel)]="leaveObj.toDate" (dateChange)="setNoOfDays(alert_message)" (keydown)="disableMannualDateInput()" [disabled]="isUpdation && leaveObj.leaveTypeCode == 'ML'">
-                                <mat-datepicker-toggle matSuffix [for]="toDatePicker" style="margin-left: -40px;" [disabled]="(isCreation && leaveObj.fromDate == '' || leaveObj.fromDate == null) || (isUpdation && leaveObj.leaveType == 'Complimentry Off')"></mat-datepicker-toggle>
+                                 placeholder="Choose a to date" [(ngModel)]="leaveObj.toDate" (dateChange)="setNoOfDays(alert_message)" (keydown)="disableMannualDateInput()" [disabled]="leaveObj.leaveTypeCode == 'ML'">
+                                <mat-datepicker-toggle matSuffix [for]="toDatePicker" style="margin-left: -40px;" [disabled]="(isCreation && leaveObj.fromDate == '' || leaveObj.fromDate == null) || (isUpdation && leaveObj.leaveType == 'Complimentry Off') || leaveObj.leaveTypeCode == 'ML'"></mat-datepicker-toggle>
                             </div>
                             <mat-datepicker [dateClass]="holidayHighlight" #toDatePicker (closed)="input.blur()" [disabled]="(isCreation && (leaveObj.fromDate == '' || leaveObj.fromDate == null)) || (isUpdation && leaveObj.leaveType == 'Complimentry Off')" disabled="false" [startAt]="leaveObj.fromDate"></mat-datepicker>
                         </div>
