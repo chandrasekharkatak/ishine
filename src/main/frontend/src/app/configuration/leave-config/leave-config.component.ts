@@ -1060,6 +1060,11 @@ export class LeaveConfigComponent implements OnInit {
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
+      if(!this.validationService.validateNumber(leavePolicyObj.maternityLeaveDays)){
+        this.alertMessage = "Please Enter valid allowed Maternity Leave days for "+leavePolicyObj.maternityType+" !!";
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
     }
    }
     // Policy Checks
@@ -1282,6 +1287,10 @@ export class LeaveConfigComponent implements OnInit {
     this.leavePolicyObj.maternityType = '';
   }
 
+  fieldResetOnChangeMaternityType(leavePolicy:Leave){
+    leavePolicy.maternityLeaveDays = '';
+
+  }
 
 
 }

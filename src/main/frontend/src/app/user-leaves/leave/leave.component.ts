@@ -1681,6 +1681,7 @@ console.log("leaveObj  ",this.leaveObj);
     let leaveDays = null;
     leaveObj.fromDate = '';
     this.leaveObj.toDate = '';
+    this.leaveObj.noOfDays = '';
     let leave = new Leave();
     console.log("maternityType    ",leaveObj);
     leave.maternityType = leaveObj.maternityType;

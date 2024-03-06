@@ -515,6 +515,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     let leaveObj = new Leave();
     leaveObj.employmentStatus = userObj.employmentstatus;
     leaveObj.gender = userObj.gender;
+    leaveObj.maritalStatus = this.currentUser.maritalStatus;
 
     this.leaveService.getAllLeaveTypesByLeavePolicies(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

@@ -489,7 +489,7 @@
                         <div class="form-group">
                             <label for="leavePolicyDesc"><span class="text-danger">*</span>Maternity Type</label>
                             <select class="form-control" aria-hidden="true"
-                                [(ngModel)]="leavePolicyObj.maternityType">
+                                [(ngModel)]="leavePolicyObj.maternityType" (change)="fieldResetOnChangeMaternityType(leavePolicyObj)">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option value="miscarriage">Miscarriage</option>
                                 <option value="adoption">Adoption</option>
