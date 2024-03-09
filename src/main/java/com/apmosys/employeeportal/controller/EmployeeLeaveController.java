@@ -271,4 +271,13 @@ public class EmployeeLeaveController {
 		return response;
 	}
 
+//	getLeaveAppliedListByFromAndToDate
+	
+	@RequestMapping(value = "/getLeaveAppliedListByFromAndToDate" ,method = RequestMethod.POST)
+	public ServiceResponse getLeaveAppliedListByFromAndToDate(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = employeeLeaveService.getLeaveAppliedListByFromAndToDate(leaveDTO);
+		return response;
+	}
+	
 }

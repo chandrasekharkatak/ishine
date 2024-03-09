@@ -245,5 +245,7 @@ bulkCompOffApprove(compOff: Leave){
     return this.http.post(`${this.baseUrl}`+`api/getMaternityLeaveDaysByMaternityType`, leaveObj);
   }
 
-
+  getLeaveAppliedListByFromAndToDate(leaveObj:Leave){
+    return this.http.post(`${this.baseUrl}`+`api/getLeaveAppliedListByFromAndToDate`, leaveObj);
+  }
 }

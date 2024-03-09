@@ -198,7 +198,7 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label">Child - {{i+1}}</label>
-                                                <input type="text" class="form-control" autocomplete="none" [(ngModel)]="child.childName">
+                                                <input type="text" class="form-control" autocomplete="none" [(ngModel)]="child.childName"  (keypress)="restrictNumbersIn($event)">
                                             </div>
                                         </div>
                                     </div>

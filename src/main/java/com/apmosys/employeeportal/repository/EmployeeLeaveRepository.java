@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.repository;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -87,5 +88,8 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
 
 	@Query(nativeQuery = true)
 	List<EmployeeLeave> findLeaveByFromDate(String fromDate, Long empId);
+
+	@Query(nativeQuery = true)
+	public Optional<List<EmployeeLeave>> findLeaveByFromDateAndToDate(String fromDate, String toDate, Long empId);
 
 }

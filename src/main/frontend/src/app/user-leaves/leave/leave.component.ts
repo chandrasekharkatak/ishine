@@ -109,7 +109,7 @@ export class LeaveComponent implements OnInit {
   leaveDetails = [];	
   holidayWeekOffList:any = [];	
   holidayWeekOffCount:any;
-
+  
   level1MinNoOfDays:any;
   level1ApprovalTo:any;
   level2MinNoOfDays:any;
@@ -119,6 +119,7 @@ export class LeaveComponent implements OnInit {
 
   weekOffExcludedDepartmentList:any[] = [];
   previouslyAppliedLeavesList:any[] = [];
+  getListOfAppliedLeaveBetweenFromAndToDate : any[] = [];
   isWeekOffsExcluded:boolean = false;
   
   filters:any = {};
@@ -1697,6 +1698,33 @@ console.log("leaveObj  ",this.leaveObj);
      });
   }
 
+  getAppliedPreviousLeaveByFromAndToDate(fromDate:Date , toDate:Date, template:TemplateRef<any>){
+    this.getListOfAppliedLeaveBetweenFromAndToDate = [];
+
+    let leaveObj = new Leave();
+    leaveObj.empId = this.currentUser.empId;
+    leaveObj.fromDate = fromDate;
+    leaveObj.toDate = toDate;
+    this.leaveService.getLeaveAppliedListByFromAndToDate(leaveObj).pipe(first()).subscribe((response: any) => {	
+      if (response.serviceStatus == "Success") {	
+        
+        this.getListOfAppliedLeaveBetweenFromAndToDate = response.serviceResponse;
+        console.log(" leave find ",this.getListOfAppliedLeaveBetweenFromAndToDate);
+       
+      }else{
+        this.getListOfAppliedLeaveBetweenFromAndToDate = response.serviceResponse;
+        console.log(" else leave find ",this.getListOfAppliedLeaveBetweenFromAndToDate);
+         this.leaveObj.fromDate = '';
+        this.leaveObj.toDate = '';
+        this.leaveObj.noOfDays = '';
+        this.openAlertMod(template," Maternity Leaves already applied in between "+fromDate+" to "+toDate);
+        
+      }
+    });
+
+
+  }
+
   getAllMyTeamLeaveRevokeApplicationsByEmpId(user: User){
     this.revokeLeaveApplicationList = [];
     
@@ -1808,11 +1836,20 @@ console.log("leaveObj  ",this.leaveObj);
      let fromDate = moment(this.leaveObj.fromDate); // Create a moment object for fromDate
      let toDate = fromDate.clone().add(this.allowedLeaveDays, 'days'); // Add maternity leave days to fromDate
      this.leaveObj.toDate = toDate.format(dateFormat); // Assign formatted toDate to leaveObj.toDate
-     isLeaveApplied = !this.previouslyAppliedLeavesList.find(leaveApplication =>  moment(fromDate).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat));
+
+     let fromDate1 = fromDate;
+     this.leaveObj.fromDate = fromDate1.format(dateFormat);
+   
+     console.log(" fromDate in format    ",this.leaveObj.fromDate);
+
+     this.getAppliedPreviousLeaveByFromAndToDate(this.leaveObj.fromDate,this.leaveObj.toDate,template);
+    //  isLeaveApplied = !this.previouslyAppliedLeavesList.find(leaveApplication =>  moment(fromDate).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat));
       this.leaveObj.fromDateDayType = '0';
       this.leaveObj.toDateDayType = '0';
-      if(isLeaveApplied== true){
-        // fromDate = moment(this.leaveObj.fromDate); // Create a moment object for fromDate
+      console.log("   this.getListOfAppliedLeaveBetweenFromAndToDate     ",this.getListOfAppliedLeaveBetweenFromAndToDate);
+      
+      if(!this.getListOfAppliedLeaveBetweenFromAndToDate || this.getListOfAppliedLeaveBetweenFromAndToDate.length === 0 ) {
+       
       
       const START_DAY_COUNT = 1;
       const diff = (e, t) => Math.abs(Math.floor((new Date(e).getTime() - new Date(t).getTime()) / (1000 * 60 * 60 * 24)));	
@@ -1820,18 +1857,9 @@ console.log("leaveObj  ",this.leaveObj);
     
       console.log(" this.leaveObj.toDate ", this.leaveObj.toDate, "  toDate  ", toDate.format(dateFormat));
     
-    }else{
-        this.openAlertMod(template," Maternity Leaves already applied in between "+fromDate.format(dateFormat)+" to "+toDate.format(dateFormat));
-        this.leaveObj.fromDate = moment(null);
-        this.leaveObj.toDate = '';
-      }
-      
-      console.log(" previouslyAppliedLeavesList   ",!this.previouslyAppliedLeavesList);
-      
-      console.log("this.leaveObj.maternityLeaveDays   ",this.allowedLeaveDays);
     }
-
-
+      
+    }
 
   }
 
@@ -1921,6 +1949,10 @@ console.log("leaveObj  ",this.leaveObj);
       this.filters = searchData;
       //console.log("Updated Filter : ", this.filters);
     }
+
+
+
+
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {	

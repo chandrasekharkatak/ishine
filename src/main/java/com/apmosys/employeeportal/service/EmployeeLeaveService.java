@@ -3977,4 +3977,30 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+	
+	public ServiceResponse getLeaveAppliedListByFromAndToDate(LeaveDTO leaveDto) {
+		
+		ServiceResponse response = new ServiceResponse();
+		Optional<List<EmployeeLeave>> getLeaveByFromDateToDate = employeeLeaveRepository.findLeaveByFromDateAndToDate(leaveDto.getFromDate(),leaveDto.getToDate(),leaveDto.getEmpId());
+		
+		if(getLeaveByFromDateToDate.isPresent()) {
+			List<EmployeeLeave> listOfLeaveByEmpId =getLeaveByFromDateToDate.get();
+			EmployeeLeave findLeave = null;
+			if(listOfLeaveByEmpId.size() > 0) {
+				findLeave = listOfLeaveByEmpId.get(0);			
+			}
+			
+			if(findLeave != null) {
+				System.out.println(" There is leave present so that status will send as fail "+listOfLeaveByEmpId);
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse(listOfLeaveByEmpId);
+			}else {
+				System.err.println(" Success call because there is no leave present in between "+leaveDto.getFromDate()+" and "+leaveDto.getToDate());
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(new ArrayList<>());
+			}
+		}
+		  		
+		return response;
+	}
 }

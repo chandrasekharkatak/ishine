@@ -379,7 +379,6 @@ export class EmployeeInfoComponent implements OnInit{
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-
     if(employeeObj.maritalStatus == 'married'){
       if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.spouse)){
         this.alertMessage = "Please enter spouse name !!"
@@ -391,21 +390,22 @@ export class EmployeeInfoComponent implements OnInit{
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
-      if(!this.validationService.validateAlphaWithSpace(employeeObj.child1)){
-        this.alertMessage = "Please enter valid child1 name !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-      if(!this.validationService.validateAlphaWithSpace(employeeObj.child2)){
-        this.alertMessage = "Please enter valid child2 name !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-      if(!this.validationService.validateAlphaWithSpace(employeeObj.child3)){
-        this.alertMessage = "Please enter valid child3 name !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
+      // console.log("  employeeObj.child1 ",employeeObj.child1);
+      // if(!this.validationService.validateAlphaWithSpace(employeeObj.child1)){
+      //   this.alertMessage = "Please enter valid child1 anurag name !!"
+      //   this.openAlertMod(template, this.alertMessage);
+      //   return false;
+      // }
+      // if(!this.validationService.validateAlphaWithSpace(employeeObj.child2)){
+      //   this.alertMessage = "Please enter valid child2 name !!"
+      //   this.openAlertMod(template, this.alertMessage);
+      //   return false;
+      // }
+      // if(!this.validationService.validateAlphaWithSpace(employeeObj.child3)){
+      //   this.alertMessage = "Please enter valid child3 name !!"
+      //   this.openAlertMod(template, this.alertMessage);
+      //   return false;
+      // }
 
     }
 
@@ -1569,6 +1569,23 @@ event.target.nextElementSibling.textContent =  this.errorMsg
 
   cancelRequest() {
     this.modalRef.hide();
+  }
+
+  restrictNumbersIn(event){
+    var k ;
+    k = event.charCode;
+console.log("  charcode   ",k);
+    if((k == 33) || (k == 34) || (k == 35) || (k == 36 ) || (k == 37) ||
+    (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42 ) ||
+    (k == 43) || (k == 44) || (k == 46 ) || (k == 47) ||
+      (k==48) || (k==49) || (k==50) || (k==51) || (k==52) || 
+      (k==53)|| (k==54)|| (k==55)|| (k==56)|| (k==57) || 
+      (k==58) || (k == 59) || (k == 60) || (k == 61) || (k == 62 ) 
+      || (k == 63) || (k == 64)){
+      return (false);
+    }
+    return (true);
+
   }
 
 }
