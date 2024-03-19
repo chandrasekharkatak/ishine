@@ -2704,7 +2704,7 @@ console.log("this.deptId    ",this.deptId);
 
 console.log("this.listOfDepartment        ",this.listOfDepartment    );
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl'});
   }
 
   openModalForManagerChange(template: TemplateRef<any>, event,employeeId) {
