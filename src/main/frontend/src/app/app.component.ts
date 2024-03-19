@@ -2,6 +2,7 @@ import { Component, HostListener, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { User } from './models/user';
 import { AuthenticationService } from './services/authentication.service';
+import { first } from 'rxjs/operators';
 
 
 interface SideNavToggle{
@@ -39,6 +40,19 @@ export class AppComponent {
     this.screenWidth = data.screenWidth;
     this.isSideNavCollapsed = data.collapsed;
   }
+
+// added by anurag for auto-logout when user close browser directly before logout their session. It's work like transaction if someone refresh or reload their session will logout
+
+//   @HostListener('window:unload', ['$event'])
+// beforeunloadHandler(event: Event) {
+//   // event.preventDefault();
+//   let user = new User();
+//   user.empId = this.currentUser.empId;
+//   this.authenticationService.logoutUser(user).pipe(first()).subscribe((response: any) => {
+//     console.log('Session expired');
+//   });
+// }
+
 
   // @HostListener('window:beforeunload',[ '$event' ])
   // browserClosed(event:any){

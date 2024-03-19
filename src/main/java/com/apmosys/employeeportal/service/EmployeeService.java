@@ -43,6 +43,7 @@ import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
 import com.apmosys.employeeportal.dto.SurveyDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.model.Asset;
+import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.DraftEmployee;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeAssetMap;
@@ -60,9 +61,13 @@ import com.apmosys.employeeportal.model.NewsletterReadResponse;
 import com.apmosys.employeeportal.model.Notification;
 import com.apmosys.employeeportal.model.PolicyReadResponse;
 import com.apmosys.employeeportal.model.PreviousEmployment;
+import com.apmosys.employeeportal.model.Project;
+import com.apmosys.employeeportal.model.ProjectDepartmentMap;
+import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.model.UploadPolicy;
 import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.repository.AuditCustomRepository;
+import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.DraftEmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificateRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
@@ -81,6 +86,9 @@ import com.apmosys.employeeportal.repository.NewsletterRepository;
 import com.apmosys.employeeportal.repository.NotificationRepository;
 import com.apmosys.employeeportal.repository.PolicyReadResponseRepository;
 import com.apmosys.employeeportal.repository.PreviousEmploymentRepository;
+import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
+import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.repository.UploadPolicyRepository;
 import com.apmosys.employeeportal.repository.UserSessionRepository;
@@ -197,6 +205,17 @@ public class EmployeeService {
 	@Autowired
 	private NewsletterReadResponseRepository newsletterReadResponseRepository;
 	
+	@Autowired
+	DepartmentRepository departmentRepository;
+	
+	@Autowired
+	ProjectRepository projectRepository;
+	
+	@Autowired
+	TeamRepository teamRepository;
+	
+	@Autowired
+	ProjectDepartmentMapRepository projectDepartmentMapRepository;
 
 //	@Transactional
 //	public ServiceResponse createEmployee(EmployeeDTO employeedto) {
@@ -2520,6 +2539,7 @@ public class EmployeeService {
 //		return response;
 //	}
 	
+//	 added by anurag
 	public ServiceResponse checkEmployeeEmail(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -2611,6 +2631,7 @@ public class EmployeeService {
 //	}
 
 
+//	 added by anurag
 	public ServiceResponse checkEmployeementId(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -2725,6 +2746,7 @@ public class EmployeeService {
 //	}
 
 	
+//	added by anurag
 	public ServiceResponse checkEmployeeMobileNo(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -2766,6 +2788,7 @@ public class EmployeeService {
 		return response;
 	}
 	
+//	 addded by anurag
 	public ServiceResponse checkEmployeeAadharNumber(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -3371,7 +3394,7 @@ public class EmployeeService {
 		return response;
 	}
 	
-//	employee working history
+//	employee working history by anurag
 	
 	public ServiceResponse findEmployeeWorkingHistory(EmployeeDTO employeeDto) {
 		ServiceResponse response = new ServiceResponse();
@@ -4246,4 +4269,202 @@ public class EmployeeService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+
+//	public ServiceResponse getAllReporteesByEmpId(EmployeeDTO employeedto) {
+//		ServiceResponse response = new ServiceResponse();
+//		
+//		List<Department> findDepartmentDetailsByHodId = departmentRepository.findByHodId(employeedto.getHodId());
+//		if(!findDepartmentDetailsByHodId.isEmpty()) {
+//			findDepartmentDetailsByHodId.forEach(department ->{
+//				List<Project> findProjects = projectRepository.findProjectByDepartmentName(department.getName());
+//				findProjects.forEach(projectObj ->{
+//					List<Team> findTeamList = teamRepository.findTeamByProjectId(projectObj.getProjectId());
+//					findTeamList.forEach(teamObj->{
+//						List<EmployeeTeamMap>  teamMembersByTeamId = employeeTeamMapRepository.findByTeamId(teamObj.getTeamId());
+//						System.err.println(" teamMembersByTeamId     @@@@@@@@@@@@@@@@@@####################    "+teamMembersByTeamId.size());
+//					});
+//				});
+//				
+//			});
+//			
+//		}
+//		
+//		
+//		return response;
+//	}
+
+	
+	
+	
+	
+	public ServiceResponse getTotalNoOfreporties(String empId) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			Long id = Long.parseLong(empId);
+			Employee managerName = employeeRepository.findByEmpId(id);
+			Long findCount = employeeRepository.countReportiesByManagerId(id);
+			System.err.println(" count  "+findCount);
+			EmployeeDTO dto = new EmployeeDTO();
+			dto.setNoOfReporties(findCount);
+			System.err.println(" dto    "+dto);
+			
+			if(dto != null ) {
+				response.setServiceResponse(dto.getNoOfReporties()+" employees are reporting to "+managerName.getName());
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				}else {
+					response.setServiceResponse("No reportees found !! ");
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());	
+		}
+		
+		return response;
+	}
+
+	public ServiceResponse getDepartmentByHodId(Long empId) {
+		ServiceResponse response = new ServiceResponse();
+		
+		Optional<List<Object>> findDepartments = departmentRepository.getDepartmentsByHodId(empId);
+		Employee findEmployee = employeeRepository.findByEmpId(empId);
+		
+		if(findDepartments.isPresent()) {
+				List<Object> listOfDept = findDepartments.get();
+				
+				if(listOfDept != null) {
+					response.setServiceResponse(listOfDept);	
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);		
+				}	
+		}else {
+			response.setServiceResponse(findEmployee.getName()+" is not HOD of any department ");	
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		}
+		
+		return response;
+	}
+
+	public ServiceResponse getProjectsByDepartmentName(String departmentName) {
+		
+		ServiceResponse response = new ServiceResponse();
+		try {
+			Department findDepartment = departmentRepository.findByName(departmentName);
+			List<ProjectDepartmentMap> findProjectsByDeptId = projectDepartmentMapRepository.findByDeptId(findDepartment.getDeptId());
+			List<Project> allProjects = new ArrayList<Project>();
+			if(!findProjectsByDeptId.isEmpty()){
+				findProjectsByDeptId.forEach((projectObj)->{
+					Project project = projectRepository.findByProjectId(projectObj.getProjectId());
+					System.err.println(" project by department Id   "+project);
+					
+					allProjects.add(project);
+						
+				});	
+				response.setServiceResponse(allProjects);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				}else {
+					response.setServiceResponse(" Projects are not present in "+ departmentName+" department ");
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Duplicate department name found.");
+			response.setServiceError(e.getMessage());
+		}
+			
+		return response;
+	}
+
+	public ServiceResponse getTeamByProjectName(String projectName) {
+		ServiceResponse response = new ServiceResponse();
+		Project project = projectRepository.findByProjectName(projectName);
+		List<Team> listOfTeams = teamRepository.findTeamByProjectId(project.getProjectId());
+		System.out.println(" size   listOfTeams      "+listOfTeams.size());
+		if(listOfTeams != null) {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(listOfTeams);
+		}		
+		return response;
+	}
+
+	public ServiceResponse getTeamMemberByTeamName(String teamName) {
+		ServiceResponse response = new ServiceResponse();
+		
+		Team findTeam = teamRepository.findByTeamName(teamName);
+		System.out.println(" team found findTeam  "+findTeam);
+		List<EmployeeDTO> listOfMembers = new ArrayList<>();
+		List<Object[]> listOfEmployees = employeeTeamMapRepository.findTeammembersByTeamId(findTeam.getTeamId());
+
+        if (listOfEmployees != null) {
+            for (Object[] object : listOfEmployees) {
+                EmployeeDTO employeeDto = new EmployeeDTO();
+                employeeDto.setName(object[0] != null ? object[0].toString() : null);
+                employeeDto.setEmployeeRole(object[1] != null ? object[1].toString() : null);
+                employeeDto.setTeamName(object[2] != null ? object[2].toString() : null); 
+                employeeDto.setEmpId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
+                employeeDto.setManagerName(object[4] != null ? object[4].toString() : null);
+                employeeDto.setManagerId(object[5] != null ? Long.parseLong(object[5].toString()) : null);             
+                
+                listOfMembers.add(employeeDto);
+            }
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(listOfMembers);
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(listOfMembers);
+			}
+		
+		System.err.println("teamName    listOfEmployees      "+listOfMembers.size());
+		return response;
+	}
+
+	public ServiceResponse getManagerList() {
+		
+		ServiceResponse response = new ServiceResponse();
+		List<Object[]> findManagersList = employeeRepository.findManagerListByRole();
+		List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+		
+		findManagersList.forEach(object ->{
+			EmployeeDTO empDto = new EmployeeDTO();
+			empDto.setManagerId(object[0] != null ? Long.parseLong(object[0].toString()) : null );
+			empDto.setManagerName(object[1] != null ? object[1].toString() : null);
+			dtoList.add(empDto);
+			});
+		
+		if(dtoList != null) {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(dtoList);
+			}
+		
+		
+		return response;
+	}
+
+	public ServiceResponse setManagerToNewManager(EmployeeDTO employeeDto) {
+		
+		ServiceResponse response = new ServiceResponse();
+		Long employeeId = employeeDto.getEmpId();
+		Long managerId = employeeDto.getManagerId();
+		
+		Employee findEmployee = employeeRepository.findByEmpId(employeeId);
+		
+		if(findEmployee != null) {
+			findEmployee.setManagerId(employeeDto.getManagerId());
+			Employee dbResponse = employeeRepository.save(findEmployee);
+			if(dbResponse != null) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				
+			}
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse(" Employee Not found !!  ");
+				}
+		
+		System.err.println("findEmployee   "+findEmployee);
+		
+		return response;
+	}
+	
 }

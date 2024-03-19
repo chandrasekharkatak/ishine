@@ -44,6 +44,9 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	// added by anurag
 	@Query(nativeQuery = true)
 	public List<Object[]> findAllProjectByIsDraftAndIsActive();
+	
+
+	public List<Project> findProjectByDepartmentName(String name);
 
 
 }

@@ -181,8 +181,8 @@ export class ValidationService {
 
   //^[1-9][0-9]?$
   validateExperiencedNumber(text: string): boolean {
-
-    const regex = /^[0-9]{0,2}(\.([1-9]|1[0-1]){0,2})?$/;
+console.log(" text in number ",text)
+    const regex = /^[0-9]{0,2}(\.([1-9]|[0-1]){0,2})?$/;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
@@ -255,6 +255,7 @@ export class ValidationService {
   validateAlphaWithSpace(text: string): boolean {
 
     const regex = /^[a-zA-Z ]+$/;
+    console.log(" text in validation service  ",text);
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;

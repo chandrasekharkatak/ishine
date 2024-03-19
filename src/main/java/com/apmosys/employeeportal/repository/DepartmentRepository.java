@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -33,5 +34,9 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 	public List<Object[]> getSegregatedDeptEodDefaulter(LocalDate firstOfMonth, LocalDate currentDate);
 
 	public Department findByDeptId(Long deptId);
+
+	
+	@Query(nativeQuery = true , value = "select d.dept_id,d.hod_id,d.name from department d where d.hod_id= :empId")
+	public Optional<List<Object>> getDepartmentsByHodId(Long empId);
 
 }

@@ -216,4 +216,7 @@ public class EmployeeDTO {
 	
 	private Object newsletterReadCheck;
 	private String employmentReleaseStatus;
+	
+	// added by anurag countReporties
+	private Long noOfReporties;
 }

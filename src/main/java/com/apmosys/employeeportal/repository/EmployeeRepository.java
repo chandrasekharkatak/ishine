@@ -7,7 +7,8 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-import com.apmosys.employeeportal.dto.EmployeeDTO;	
+import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 
 @Repository
@@ -177,4 +178,14 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query(nativeQuery = true)
 	public List<Object[]> findHodByEmpId(Long empId);
+
+	@Query(nativeQuery = true , value = " select count(*) from employee e where e.manager_id = :empId")
+	public Long countReportiesByManagerId(Long empId);
+
+	@Query(nativeQuery = true)
+	public List<Object[]> findManagerListByRole();
+
+	@Query(nativeQuery = true , value = "Select * from employee e where e.emp_id = :empId")
+	public Employee findNameByEmpId(Long empId);
+	
 }

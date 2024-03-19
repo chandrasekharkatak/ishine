@@ -471,7 +471,7 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Employment Status</label>
-                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.employmentstatus">
+                                                <select class="form-control" (change)="openModalForManagerChange(change_manager_template, $event, employeeObj.empId)" aria-hidden="true" [(ngModel)]="employeeObj.employmentstatus">
                                                     <option selected="selected" value="" disabled>Select</option>
                                                     <option value="Probation">Probation</option>
                                                     <option value="Confirmed">Confirmed</option>
@@ -2563,4 +2563,101 @@
             </div>
         </app-accordion-item>
     </div>
+</ng-template>
+
+<!-- added by anurag for Managing manager in case of InActive thier status -->
+
+<ng-template #change_manager_template>
+
+    <div class="modal-body text-center">
+        <p>{{listOfReporties}}</p>
+         <button type="button" class="btn btn-primary" (click)="cancelRequest();openManagerDetailsModal(manager_modal, employeeObj.empId);">OK</button>&nbsp;
+    </div>
+
+</ng-template>
+
+<ng-template #manager_modal>
+
+    <div class="modal-header">
+        <h1 class="table-header-title" style="text-align: center;"><strong>Manager Mapping Changes UI</strong></h1>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+
+    <div class="modal-body">
+
+        <div class="row">
+            <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                  <div class="form-group">
+                    <label class="info-label">Department</label>
+                    <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.departmentId" (change)="getProjectsByDepartment(employeeObj.departmentId,alert_message)" >
+                        <option selected="selected" value="" disabled>Select</option>
+                        <option *ngFor="let dept of listOfDepartment" value="{{dept}}">{{dept}}</option>
+                      </select>
+                  </div>
+                </div>
+              </div>
+<!-- projects by deptId -->
+              <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                  <div class="form-group">
+                    <label class="info-label">Project</label>
+                    <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.projectName" (change)="getTeamsByProjectName(employeeObj.projectName,alert_message)" >
+                        <option selected="selected" value="" disabled>Select</option>
+                        <option *ngFor="let project of listOfProjectsByDeptId" value="{{project.projectName}}">{{project.projectName}}</option>
+                      </select>
+                  </div>
+                </div>
+              </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label">Team</label>
+                        <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.teamName" (change)="getTeamMemberByTeamName(employeeObj.teamName)" >
+                            <option selected="selected" value="" disabled>Select</option>
+                            <option *ngFor="let team of teamList" value="{{team.teamName}}">{{team.teamName}}</option>
+                          </select> 
+                    </div>
+                </div>
+            </div>
+        </div> 
+
+           <div class="col-md-12" *ngIf="employeeObj.teamName != ''" >
+                <table class="table">
+                    <thead class="thead-light" id="teamMembersInfoTHead">
+                        <tr id="teamMembersInfoTHeadTr">
+                            <th>Employee Name</th>
+                            <th>Employee Role</th>
+                            <th>Team Name</th>
+                            <th scope="col">Change Manager</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let teamMember of TeamMemberList">
+                            <td>{{teamMember.name}}</td>
+                            <td>{{teamMember.employeeRole}}</td>
+                            <td>{{teamMember.teamName}}</td>
+                            <td>
+                                <select class="form-control" aria-hidden="true" [(ngModel)]="teamMember.managerId" (change)="updateEmployeesManager(teamMember,alert_message)">
+                                    <option selected="selected" value="" disabled>Select</option>
+                                    <option *ngFor="let manager of managerAndAbove " value="{{manager.managerId}}">{{manager.managerName}}</option>
+                                </select>
+                            </td>
+
+                        </tr>
+                    </tbody>
+
+                </table>
+            </div>
+             
+        
+
+    </div>
+
+
 </ng-template>

@@ -193,4 +193,40 @@ export class EmployeeService {
    addDemographicsInfo(employeeObj:Employee){
     return this.http.post(`${this.baseUrl}`+`api/addDemographicsInfo`,employeeObj);
    }
+
+  //  added by anurag getTotalNoOfreporties
+  getTotalNoOfreporties(employeeObj:any){
+    return this.http.post(`${this.baseUrl}`+`api/getTotalNoOfreporties/`+employeeObj,employeeObj);
+   }
+
+   getDepartmentByHodId(empId :any){
+    return this.http.post(`${this.baseUrl}`+`api/getDepartmentByHodId/`+empId,empId);
+   }
+
+   // getProjectsByDepartmentName
+   getProjectsByDepartmentName(department : any){
+    return this.http.post(`${this.baseUrl}`+`api/getProjectsByDepartmentName/`+department,department);
+   }
+
+  //  getTeamByProjectName 
+  getTeamByProjectName(project : any){
+    return this.http.post(`${this.baseUrl}`+`api/getTeamByProjectName/`+project,project);
+   }
+
+  //  getTeamMemberByTeamName
+  getTeamMemberByTeamName(teamName : any){
+    return this.http.post(`${this.baseUrl}`+`api/getTeamMemberByTeamName/`+teamName,teamName);
+   }
+
+  //  getManagerList
+  getManagerList(){
+    return this.http.get(`${this.baseUrl}`+`api/getManagerList/`);
+   }
+
+  //  setManagerToNewManager
+  setManagerToNewManager(employee : any){
+    return this.http.post(`${this.baseUrl}`+`api/setManagerToNewManager`,employee);
+   }
+
+
 }

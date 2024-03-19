@@ -64,4 +64,11 @@ List<EmployeeTeamMap> findByProjectIdAndActive(Integer projectId,Long active);
 	 @Query(nativeQuery = true)
 	List<EmployeeTeamMap> findTeammembersByTeamIdAndStatus(Long teamId);
 
+//	 @Query(nativeQuery = true , value = "SELECT * FROM employee_team_mapping etm WHERE etm.team_id = :teamId")
+//	List<EmployeeTeamMap> findTeammembersByTeamId(Long teamId);
+	 
+	 @Query(nativeQuery = true)
+	 List<Object[]> findTeammembersByTeamId(Long teamId);
+
+	 
 }
