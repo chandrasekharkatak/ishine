@@ -102,6 +102,7 @@ export class Employee{
     email:any;
     emailAppreciated:any;
 	updateChild: any;
+  childLists: any;
 ;
     //employementID
 	appreciationBy:any;
@@ -167,4 +168,6 @@ export class Employee{
 
 	unlockTimesheetFor:any;
 	employmentReleaseStatus:any;
+	// added by anurag
+	updateType: any;
 }

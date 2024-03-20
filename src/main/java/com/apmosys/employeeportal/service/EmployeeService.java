@@ -1243,6 +1243,11 @@ public class EmployeeService {
 		List<EmployeeCertificateDTO> newCertificationlist = new ArrayList<EmployeeCertificateDTO>();
 		List<PreviousEmploymentDTO> newPreviousEmploymentList = new ArrayList<PreviousEmploymentDTO>();
 
+		List<Employee> listOfReporties = employeeRepository.findByManagerId(employeedto.getEmpId());
+		List<Employee> listOfEmp = new ArrayList<>();
+		System.err.println(" listOfReporties      "+listOfReporties.size());
+		System.out.println(" emplId   "+employeedto.getEmpId());
+		
 		try {
 			Optional<Employee> employeeObject = employeeRepository.findById(employeedto.getEmpId());
 			if (employeeObject.isPresent()) {
@@ -1302,9 +1307,20 @@ public class EmployeeService {
 				employee.setWorkLocation(employeedto.getWorkLocation());
 				employee.setProbationPeriod(employeedto.getProbationPeriod());
 				if(employee.getEmploymentstatus().equals("Resigned") || employee.getEmploymentstatus().equals("InActive") )  {
+					System.out.println("Right method call    ");
 					employee.setDateOfResign(employeedto.getDateOfResign() != null
 							? stringToDateTimeParser.getDate(employeedto.getDateOfResign(), "yyyy-MM-dd")
 							: null);
+					
+					if(employeedto.getUpdateType().equals("automatic")){
+						for(Employee emp : listOfReporties) {
+							emp.setManagerId(employeedto.getNewManagerId());
+							listOfEmp.add(emp);
+							System.err.println(" Manager mapping done ");
+						}
+						
+						employeeRepository.saveAll(listOfEmp);
+						}	
 				}else if(employee.getEmploymentstatus().equals("Probation") || employee.getEmploymentstatus().equals("Confirmed")) {
 					employee.setDateOfResign(null);
 				}

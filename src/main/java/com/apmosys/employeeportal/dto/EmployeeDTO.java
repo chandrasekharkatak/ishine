@@ -219,4 +219,7 @@ public class EmployeeDTO {
 	
 	// added by anurag countReporties
 	private Long noOfReporties;
+	
+//	added by anurag
+	private String updateType;
 }

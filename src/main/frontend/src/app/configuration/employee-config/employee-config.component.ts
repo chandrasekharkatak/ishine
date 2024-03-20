@@ -49,6 +49,7 @@ export class EmployeeConfigComponent implements OnInit {
   data:string;
   items = 10;
   datas:string;
+  managerFlag : boolean = false;
 
   sortDirection = 'asc';
   sortColumn: any;
@@ -871,7 +872,32 @@ export class EmployeeConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-
+    //  added by anurag
+   
+    if(!this.managerFlag){
+    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.updateType)){
+      this.alertMessage = "Please select Mapping Update Type !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+  }
+// end
+    if(employeeObj.employmentstatus == "InActive"){
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.employmentReleaseStatus)) {
+        this.alertMessage = "Please select Employment Release Status !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+    if(employeeObj.employmentstatus == "InActive"){
+    if(employeeObj.updateType == 'automatic'){
+      if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.newManagerId)){
+        this.alertMessage = "Please select New Manager !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+  }
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.noticePeriod)) {
       this.alertMessage = "Please enter notice period !!"
       this.openAlertMod(template, this.alertMessage);
@@ -885,15 +911,6 @@ export class EmployeeConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-
-    if(employeeObj.employmentstatus == "InActive"){
-      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.employmentReleaseStatus)) {
-        this.alertMessage = "Please select Employment Release Status !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-    }
-
 
     if(employeeObj.employmentstatus == "Resigned"){
       if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfResign)) {
@@ -1631,9 +1648,11 @@ console.log("Anurag call update method  ::  ",employee);
     if(value=="Active"){
         this.allEmployeeList = this._allEmployeeList.filter(x => x.employmentstatus != 'InActive');
         this.dateOfReleivingshow= false;
+        this.managerFlag = false;
     }else if(value=="InActive"){
       this.allEmployeeList = this._allEmployeeList.filter(x => x.employmentstatus == 'InActive');
       this.dateOfReleivingshow= true;
+      this.managerFlag = true;
     }
     this.page=1;
   }
@@ -2773,9 +2792,9 @@ console.log("this.listOfDepartment        ",this.listOfDepartment    );
     }
 
     getManagersList(){
-      this.managerId = "";
+      // this.managerId = "";
       // this.managerAndAbove = [];
-      this.managerAndAbove = this.managerAndAbove.forEach(t=> t.managerId == ""); 
+      // this.managerAndAbove = this.managerAndAbove.forEach(t=> t.managerId == ""); 
       console.log(" managers call ");
       this.employeeService.getManagerList().pipe(first()).subscribe((response : any)=>{
         if(response.serviceStatus == "Success"){
@@ -2810,10 +2829,10 @@ console.log("this.listOfDepartment        ",this.listOfDepartment    );
     }
 
     resetFieldOnChange(updateType){
-      updateType.employmentstatus = "";
+      // updateType.employmentstatus = "";
     }
     resetField(updateType){
-      updateType.newManagerId = "";
+      // updateType.newManagerId = "";
     }
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
