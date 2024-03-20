@@ -4239,7 +4239,7 @@ public class CronJobService {
 							
 							try {
 								mailService.sendMailWithCC(defaulterMail.toString(), String.join(",", hodMail)+","+String.join(",", managerMail),
-										"Deafulter : Profile not yet updated in ishine",
+										"Defaulter : Profile not yet updated in ishine",
 										"Dear Ishine Member,"
 										+ "<br><br>"
 										+ "You are in Defaulters list !"
