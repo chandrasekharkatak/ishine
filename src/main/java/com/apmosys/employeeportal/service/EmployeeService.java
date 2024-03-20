@@ -1245,8 +1245,6 @@ public class EmployeeService {
 
 		List<Employee> listOfReporties = employeeRepository.findByManagerId(employeedto.getEmpId());
 		List<Employee> listOfEmp = new ArrayList<>();
-		System.err.println(" listOfReporties      "+listOfReporties.size());
-		System.out.println(" emplId   "+employeedto.getEmpId());
 		
 		try {
 			Optional<Employee> employeeObject = employeeRepository.findById(employeedto.getEmpId());

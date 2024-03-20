@@ -168,6 +168,7 @@ export class Employee{
 
 	unlockTimesheetFor:any;
 	employmentReleaseStatus:any;
-	// added by anurag
+	// added by anurag 
 	updateType: any;
+
 }

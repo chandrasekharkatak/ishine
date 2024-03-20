@@ -2794,7 +2794,7 @@ console.log("this.listOfDepartment        ",this.listOfDepartment    );
     getManagersList(){
       // this.managerId = "";
       // this.managerAndAbove = [];
-      // this.managerAndAbove = this.managerAndAbove.forEach(t=> t.managerId == ""); 
+      this.managerAndAbove = this.managerAndAbove.forEach(t=> t.managerId == ""); 
       console.log(" managers call ");
       this.employeeService.getManagerList().pipe(first()).subscribe((response : any)=>{
         if(response.serviceStatus == "Success"){
@@ -2806,7 +2806,7 @@ console.log("this.listOfDepartment        ",this.listOfDepartment    );
     }
 
     updateEmployeesManager(employee, template: TemplateRef<any>){
-      // employee.managerId = '';
+
       let emp = new Employee();
       emp.empId = employee.empId;
       emp.managerId = employee.managerId

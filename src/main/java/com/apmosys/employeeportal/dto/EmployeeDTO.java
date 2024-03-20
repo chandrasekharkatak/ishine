@@ -222,4 +222,5 @@ public class EmployeeDTO {
 	
 //	added by anurag
 	private String updateType;
+	
 }
