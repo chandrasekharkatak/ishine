@@ -63,4 +63,5 @@ export class User{
     newsletterReadCheck:any;
     workLocation:any;
     maritalStatus : any;
+    jobRoleName : any;
 }

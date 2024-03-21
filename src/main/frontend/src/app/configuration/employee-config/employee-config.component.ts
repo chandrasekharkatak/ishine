@@ -229,7 +229,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.approvalsTo = '';
     this.setYearOfPassingList();
     this.preventBackButton();
-    console.log(this.currentUser.employeeRole, "currentUser role");
+    console.log(this.currentUser.jobRoleName, "currentUser role");
   }
 
   preventBackButton(){
@@ -1625,6 +1625,7 @@ console.log("Anurag call update method  ::  ",employee);
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
         console.log(this.allEmployeeList.dateOfRelieving,"dateofREleiving");
+        console.log("Hiii ");
         console.log("allEmployeeList : ", this.allEmployeeList)
         this.allEmployeeList.forEach(employeeObj => {
           employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.employeementId);

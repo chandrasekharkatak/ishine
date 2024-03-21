@@ -1087,7 +1087,7 @@
                                         class="btn btn-sm btn-outline-primary mb-1" type="submit"
                                         (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
 
-                                        <button *ngIf="((currentUser.employeeRole == 'SuperAdmin' || currentUser.employeeRole == 'HR Manager') && employee.employmentstatus == 'InActive')"
+                                        <button *ngIf="((currentUser.jobRoleName == 'SuperAdmin' || currentUser.jobRoleName == 'HR Manager') && employee.employmentstatus == 'InActive')"
                                         class="btn btn-sm btn-outline-primary mb-1" type="submit"
                                         (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
 
