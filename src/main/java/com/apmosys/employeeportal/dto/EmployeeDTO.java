@@ -223,4 +223,8 @@ public class EmployeeDTO {
 //	added by anurag
 	private String updateType;
 	
+	private Long pipId;
+	private String pipReason;
+	private String pipFlag;
+	
 }

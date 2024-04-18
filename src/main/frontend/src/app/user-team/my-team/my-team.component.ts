@@ -17,6 +17,7 @@ import { LocationStrategy } from '@angular/common';
 import * as moment from 'moment';
 import { AppComponent } from 'src/app/app.component';
 import { Router } from '@angular/router';
+import { Team } from 'src/app/models/team';
 
 @Component({
   selector: 'app-my-team',
@@ -97,12 +98,25 @@ export class MyTeamComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
+  isSearchLeaveHistoryEnabled : boolean = false;
   teamViewColumns:any[] = ['blank','employeementId','name','email','jobRoleName','mobileNo','managerName', 'timesheetStatus'];
   teamLeaveHistoryColumns:any[] = ['blank','createdByName','fromDate','toDate','createdOn','noOfDays','status','leaveStatusUpdatedByName','reason','leaveType',,'currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','level3ApproverName','level3ApprovalStatus','remark'];
   teamCompOffHistoryColumns:any[] = ['blank','createdByName','fromDate','toDate','createdOn','noOfDays','status','leaveStatusUpdatedByName','reason'];
   teamLeaveAppColumns:any[] = ['blank','blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','reason','currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','level3ApproverName','level3ApprovalStatus'];
   teamCompOffAppColumns:any[] = ['blank', 'createdByName','compOffReasons','fromDate','toDate','noOfDays','description','status'];
   leaveRevokeAppColumns:any[] = ['blank','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','revokeReason'];
+
+  // added by anurag
+  leaveHistory : any [] = [];
+  leaveHistoryObj: Leave = new Leave();
+  leaveUser : any;
+  isLeavesHistory : boolean = false;
+  leaveHistoryColumns : any[] = ['blank','createdByName','leaveType','fromDate','toDate','noOfDays','createdOn','approverName','managerApprovalStatus','reason','status']
+  leaveFilters:any = {};
+
+  isPipGenerate : boolean = false;
+  pipReasons : any =[];
+  isPipFlag : boolean = false;
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -1153,10 +1167,179 @@ export class MyTeamComponent implements OnInit {
     }
   }
 
+  toggleLeaveHistorySearch(){
+    this.isSearchLeaveHistoryEnabled = !this.isSearchLeaveHistoryEnabled;
+    if(!this.isSearchLeaveHistoryEnabled){
+      this.leaveFilters = {};
+    }
+  }
+
   onSearch(searchData){
     this.filters = searchData;
     console.log("Updated Filter : ", this.filters);
   }
+
+  onLeaveSearch(searchData){
+    this.leaveFilters = searchData;
+    console.log("Updated Filter : ", this.leaveFilters);
+  }
+
+
+  // added by anurag
+
+  pageNo = 1;
+  handlePageChanges(event) {
+    this.pageNo = event;
+  }
+
+  getAllLeavesByEmpId(teamObj){
+    console.log("method call",teamObj)
+
+    let team = new Leave();
+    team.empId = teamObj.empId;
+    this.leaveService.getAllMyLeaveApplicationsByEmpId(team).pipe(first()).subscribe((response : any)=>{
+      if(response.serviceStatus == "Success"){
+        console.log("getAllLeavesByEmpId  ",response.serviceResponse);
+        this.leaveHistory = response.serviceResponse;
+        this.leaveHistory.forEach((data)=>{
+          data.fromDate = moment(data.fromDate).format(AppComponent.DATE_FORMAT);
+          data.toDate = moment(data.toDate).format(AppComponent.DATE_FORMAT);
+          this.leaveHistoryObj.name = data.createdByName;
+          this.leaveUser = data.createdByName;
+        })
+      }
+    })
+  }
+
+  openHistoryTable(template:TemplateRef<any>,teamObj){
+    this.leaveHistory = [];
+    this.leaveUser ='';
+    this.isLeavesHistory = true;
+  this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+  this.leaveObj = teamObj;
+  }
+  
+//  added by anuarg
+
+PIP_generate(template:TemplateRef<any>, team){
+this.isPipGenerate = true;
+this.modalRef=this.modalService.show(template , { class : 'modal-sm'});
+this.leaveObj = team;
+}
+
+PIP_reverse_modal(template:TemplateRef<any> , team){
+  this.isPipGenerate = false;
+this.modalRef=this.modalService.show(template , { class : 'modal-sm'});
+this.leaveObj = team;
+}
+
+
+PIP_reverse(template:TemplateRef<any>,teamObj,flag){
+  this.isPipGenerate = false;
+  console.log(teamObj);
+  let leave = new Leave();
+  leave.pipFlag = flag;
+  leave.pipId = teamObj.pipId;
+  leave.empId = teamObj.empId;
+  leave.updatedBy = this.currentUser.empId;
+  leave.updatedByName = this.currentUser.name;
+  leave.revReason = teamObj.revReason;
+
+  this.leaveService.pipReturnFromUser(leave).pipe(first()).subscribe((response : any)=>{
+    if(response.serviceStatus == "Success"){
+      this.openAlertMod(template,response.serviceResponse);
+      this.getAllTeamView();
+    }else{
+      this.openAlertMod(template,response.serviceResponse);
+    }
+  })
+}
+
+PipGenerateToUser(template: TemplateRef<any>,leaveObj,flag){
+  console.log(" leaveObj   ",leaveObj);
+  let leave = new Leave();
+  leave.empId = leaveObj.empId;
+  leave.pipReason = leaveObj.pipReason;
+  leave.pipFlag = flag;
+  leave.createdBy = this.currentUser.empId;
+  leave.createdByName = this.currentUser.name;
+
+  console.log(leave);
+  this.leaveService.pipGenerateToUser(leave).pipe(first()).subscribe((response : any)=>{
+    if(response.serviceStatus == "Success"){
+      this.openAlertMod(template,response.serviceResponse);
+      this.getAllTeamView();
+    }else{
+      this.openAlertMod(template,response.serviceResponse);
+    }
+  })
+}
+
+pipReason(teamObj){
+  let team = new Leave();
+
+  team.empId = teamObj.empId;
+  team.pipId = teamObj.pipId;
+  team.pipFlag = teamObj.pipFlag;
+
+
+this.leaveService.getPipReasons(team).pipe(first()).subscribe((response : any)=>{
+  if(response.serviceStatus == "Success"){
+    this.pipReasons = response.serviceResponse;
+    if(this.pipReasons.length == 0){
+      if(this.leaveObj.pipFlag == "true") this.isPipFlag=true;
+      else this.isPipFlag=false;
+    }
+    this.pipReasons.forEach(d=>{
+      d.createdOn = moment(d.createdOn).format(AppComponent.DATE_FORMAT);
+      d.updatedOn = moment(d.updatedOn).format(AppComponent.DATE_FORMAT);
+      console.log(" d ki value ",d)
+      if(d.pipFlag == "true"){
+        console.log("i am in true flag")
+        this.isPipFlag = true;
+      }else{
+        console.log(" I'm in false flag")
+        this.isPipFlag = false;
+      }
+    })
+    console.log("this.pipReasons  ",this.pipReasons);  
+  }
+})
+  console.log(" team ",team);
+  console.log(team,"teamteamteamteam")
+}
+
+pipReasonModal(template:TemplateRef<any>,teamObj){
+  this.modalRef=this.modalService.show(template , { class : 'modal-lg'});
+this.leaveObj = teamObj;
+this.pipReason(this.leaveObj);
+}
+
+extendPipModal(template : TemplateRef<any> , teamObj){
+  this.modalRef=this.modalService.show(template , { class : 'modal-sm'});
+  this.leaveObj = teamObj;
+}
+
+setPipExtendsDays(template:TemplateRef<any>){
+  console.log("team in set extend modal",this.leaveObj)
+  let leave = new Leave();
+  leave.pipId = this.leaveObj.pipId;
+  leave.empId = this.leaveObj.empId;
+  leave.updatedByName = this.currentUser.name;
+  leave.extendDays = this.leaveObj.extendDays;
+
+  this.leaveService.setExtendPeriodByPipId(leave).pipe(first()).subscribe((response : any)=>{
+    if(response.serviceStatus == "Success"){
+      this.openAlertMod(template,response.serviceResponse);
+
+    }else{
+      this.openAlertMod(template,response.serviceResponse);
+    }
+  })
+
+}
+
+
 }
 
 function compare(a: number | string, b: number | string, isAsc: boolean) {	

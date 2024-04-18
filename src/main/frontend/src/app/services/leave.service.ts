@@ -248,4 +248,35 @@ bulkCompOffApprove(compOff: Leave){
   getLeaveAppliedListByFromAndToDate(leaveObj:Leave){
     return this.http.post(`${this.baseUrl}`+`api/getLeaveAppliedListByFromAndToDate`, leaveObj);
   }
+
+  //  added by anurag
+
+getAllLeaveByEmpId(teamObj : Leave){
+  return this.http.post(`${this.baseUrl}` + `api/getAllLeaveByEmpId`, teamObj);
+}
+
+// pipGenerateToUser
+pipGenerateToUser(teamObj : Leave){
+  return this.http.post(`${this.baseUrl}` + `api/pipGenerateToUser`, teamObj);
+}
+
+pipReturnFromUser(teamObj : Leave){
+  return this.http.post(`${this.baseUrl}` + `api/pipReturnFromUser`, teamObj);
+}
+
+//getOverLapsLeaveForManager
+getOverLapsLeaveForManager(leaveApp : Leave){
+  return this.http.post(`${this.baseUrl}` + `api/getOverLapsLeaveForManager`, leaveApp);
+}
+
+// getPipReasons
+getPipReasons(leaveApp : Leave){
+  return this.http.post(`${this.baseUrl}` + `api/getPipReasons`, leaveApp);
+}
+
+// setExtendPeriodByPipId
+setExtendPeriodByPipId(leaveApp : Leave){
+  return this.http.post(`${this.baseUrl}` + `api/setExtendPeriodByPipId`, leaveApp);
+}
+
 }

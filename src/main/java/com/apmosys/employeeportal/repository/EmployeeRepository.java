@@ -179,7 +179,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query(nativeQuery = true)
 	public List<Object[]> findHodByEmpId(Long empId);
 
-	@Query(nativeQuery = true , value = " select count(*) from employee e where e.manager_id = :empId")
+	@Query(nativeQuery = true , value = " select count(*) from employee e where e.manager_id = :empId or e.reporting_manager_id= :empId and e.employmentstatus != 'InActive'")
 	public Long countReportiesByManagerId(Long empId);
 
 	@Query(nativeQuery = true)
@@ -187,5 +187,14 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query(nativeQuery = true , value = "Select * from employee e where e.emp_id = :empId")
 	public Employee findNameByEmpId(Long empId);
+
+	@Query(nativeQuery = true , value = "Select * from employee e where e.pip_id = :pipId")
+	public Employee findEmployeeByPipId(Long pipId);
+
+	@Query(nativeQuery = true , value = "select e.emp_id, e.email as employeeEmail , p.created_on as createdOn ,em.email as managerEmail,p.extend_days,e.name,em.name as managerName from employee e\n"
+			+ "inner join pip p on p.pip_id=e.pip_id\n"
+			+ "inner join employee em ON em.emp_id=e.manager_id\n"
+			+ " where e.pip_flag=1")
+	public List<Object[]> findPipUserWithStatus();
 	
 }

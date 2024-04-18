@@ -443,8 +443,8 @@
                     <td>{{items*(page-1)+i+1}}</td>
                     <td>{{leaveApplication.employeeName}}</td>
                     <td>{{leaveApplication.leaveType}}</td>
-                    <td>{{leaveApplication.fromDate}}</td>
-                    <td>{{leaveApplication.toDate }}</td>
+                    <td>{{leaveApplication.fromDate}} &nbsp;<em class="fa fa-eye eye-img" (click)="onUpdateLeave(leave_success_method,leaveApplication)"></em></td>
+                    <td>{{leaveApplication.toDate }} &nbsp;<em class="fa fa-eye eye-img" (click)="onUpdateLeave(leave_success_method,leaveApplication)"></em></td>
                     <td>{{leaveApplication.noOfDays}} day(s)</td>
                     <td>{{leaveApplication.status}}</td>
                     <td>{{leaveApplication.createdByName}}</td>
@@ -818,3 +818,34 @@
   </ng-template>
 
 
+  <ng-template #leave_success_method>
+    <div class="modal-body text-center">
+        <table class="table">
+            <thead class="thead-light">
+            <tr>
+                    <th scope="col">EmpId</th>
+                    <th scope="col">Employee Name</th>
+                    <th scope="col">from date</th>
+                    <th scope="col">to date</th>
+                    <th scope="col">status</th>
+                    <th scope="col">Manager</th>
+            </tr>
+        </thead>
+            <tbody>
+                <tr *ngFor="let leaves of overLapsLeaveForManager" [ngStyle]="{'background-color':(this.leaveApplication.empId== leaves.empId) ? 'rgb(193, 207, 246)' : ''}">
+                    <td >{{leaves.employeementId}}</td>
+                    <td >{{leaves.employeeName}}</td>
+                    <td >{{leaves.fromDate}}</td>
+                    <td >{{leaves.toDate}}</td>
+                    <td >{{leaves.status}}</td>
+                    <td >{{leaves.managerName}}</td>
+                </tr>
+            </tbody>
+        </table>
+        <!-- <div class="container">
+            <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success row mr-1 mb2" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
+            <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger mb2" type="submit" (click)="openLeaveRejectModal(reject_leave_modal,leaveApplication)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
+
+        </div> -->
+    </div>
+  </ng-template>

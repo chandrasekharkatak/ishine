@@ -467,21 +467,8 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-4 mb-0" *ngIf="employeeObj.updateType !== 'automatic' && employeeObj.updateType !== 'manual'">
-                                        <div class="info-wrapper">
-                                            <div class="form-group">
-                                                <label class="info-label"><span class="text-danger">*</span>Employment Status</label>
-                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.employmentstatus">
-                                                    <option selected="selected" value="" disabled>Select</option>
-                                                    <option value="Probation">Probation</option>
-                                                    <option value="Confirmed">Confirmed</option>
-                                                    <option *ngIf="isUpdation" value="Resigned">Resigned</option>
-                                                    <option *ngIf="isUpdation" value="InActive">In-Active</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div> 
-<!-- added by sandip -->
+
+                                    <!-- added by sandip -->
 
 
 <!--  added by anurag for Inactive manager -->
@@ -500,6 +487,22 @@
     </div>
 </div>
 
+
+
+                                    <div class="col-md-4 mb-0" *ngIf="employeeObj.updateType !== 'automatic' && employeeObj.updateType !== 'manual'">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Employment Status</label>
+                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.employmentstatus">
+                                                    <option selected="selected" value="" disabled>Select</option>
+                                                    <option value="Probation">Probation</option>
+                                                    <option value="Confirmed">Confirmed</option>
+                                                    <option *ngIf="isUpdation" value="Resigned">Resigned</option>
+                                                    <option *ngIf="isUpdation" value="InActive">In-Active</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div> 
 
 <div class="col-md-4 mb-0" *ngIf="employeeObj.updateType == 'manual'">
     <div class="info-wrapper">
@@ -522,7 +525,7 @@
     <div class="info-wrapper">
         <div class="form-group">
             <label class="info-label"><span class="text-danger">*</span>Employment Status</label>
-            <select class="form-control"  aria-hidden="true" [(ngModel)]="employeeObj.employmentstatus">
+            <select class="form-control"  aria-hidden="true" (change)="resetField_OnChange(employeeObj)" [(ngModel)]="employeeObj.employmentstatus">
                 <option selected="selected" value="" disabled>Select</option>
                 <option value="Probation">Probation</option>
                 <option value="Confirmed">Confirmed</option>
@@ -638,7 +641,7 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Manager</label>
-                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.managerId">
+                                                <select class="form-control" (change)="mapLeavesAndCompOffToNewManager(employeeObj)" aria-hidden="true" [(ngModel)]="employeeObj.managerId">
                                                     <option selected="selected" value="" disabled>Select</option>
                                                     <option *ngFor="let employee of managerList" value="{{employee.empId}}">{{employee.name}}</option>
                                                 </select>
@@ -1103,7 +1106,7 @@
                                         class="btn btn-sm btn-outline-primary mb-1"><i class="fa fa-info-circle"
                                             aria-hidden="true"></i></button>&nbsp; -->
                                     <button
-                                        *ngIf="((employee.invalidAccessAttempt > employee.failedAttempt) && userMapping.enable_employee_login)"
+                                        *ngIf="((employee.invalidAccessAttempt > employee.failedAttempt) )"
                                         class="btn btn-sm btn-outline-primary mb-1" type="submit"
                                         (click)="forEnableAccount(revoke_template,employee)"><em>Enable</em></button>
                                     <button class="btn btn-sm btn-outline-primary" type="submit" title="View"
@@ -1114,7 +1117,24 @@
                                     <button *ngIf="employee.isTimesheetLockCheckEnable == 'true' && employee.employmentstatus != 'InActive'"
                                         class="btn btn-sm btn-primary mb-1" type="submit"
                                         (click)="onUpdateTimesheetLockCheck(alert_message,employee,'false')"><em><i class="fa-solid fa-lock"></i>&nbsp;Timesheet</em></button>
-                                </td>
+
+                                        <!-- added by anurag PIP  -->
+
+                                        <button class="btn btn-sm btn-outline-primary ml-10" *ngIf="employee.pipFlag=='false' && currentUser.jobRoleName == 'HR Manager'" (click)="PIP_generate(pip_template,employee)"><em><i class="fa-solid fa-flag"></i>&nbsp; PIP</em></button>
+
+                      <button class="btn btn-sm btn-danger ml-10" *ngIf="employee.pipFlag=='true' && currentUser.jobRoleName == 'HR Manager'" (click)="PIP_reverse_modal(pip_rev_template,employee)"><em><i class="fa-solid fa-flag"></i>&nbsp; PIP</em></button>
+                      <button class="btn btn-sm btn-outline-success mt5" (click)="pipReasonModal(pipReason_template,employee)" *ngIf="employee.pipFlag=='false' && currentUser.jobRoleName == 'HR Manager'">
+                        <em><i class="fa-solid fa-backward"></i>&nbsp; Rev Reason</em>
+                      </button>
+                      <button class="btn btn-sm btn-outline-primary ml-10 mt5" *ngIf="employee.pipFlag=='true'" (click)="extendPipModal(extend_template,employee)"><em><i class="fa-solid fa-eye"></i>&nbsp;Extends PIP</em></button>
+
+                      <button class="btn btn-sm btn-outline-primary mt5" (click)="pipReasonModal(pipReason_template,employee)" *ngIf="employee.pipFlag=='true' && currentUser.jobRoleName == 'HR Manager'">
+                        <em><i class="fa-solid fa-fist-raised"></i>&nbsp; PIP Reason</em>
+                      </button>
+
+
+                                        <!-- added by anurag PIP module  -->
+                                    </td>
                                 <td
                                     *ngIf="(isDraftTable && userMapping.update_draft) || (isDraftTable && userMapping.update_draft)">
                                     <!-- <button *ngIf="userMapping.update_draft" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateDraftForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
@@ -1132,7 +1152,7 @@
                     (pageChange)="handlePageChange($event)"></pagination-controls>
 
                 <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-                    [hidden]="allEmployeeList.length == 0" *ngIf="!isDraftTable" (click)="exportToExcel()"><em
+                    [hidden]="allEmployeeList.length == 0" *ngIf="(!isDraftTable && (currentUser.jobRoleName == 'Super Admin' || currentUser.jobRoleName == 'HR Manager'))" (click)="exportToExcel()"><em
                         class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>
             </div>
         </div>
@@ -2751,3 +2771,88 @@
 
 
 </ng-template>
+
+<!-- added by anurag PIP reason template -->
+
+<ng-template #pipReason_template>
+    <div class="modal-header" >
+      <h3 class="table-header-title">PIP Reasons</h3>
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+          <span aria-hidden="true">&times;</span>
+      </button>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <div class="modal-body">
+        <div class="container">
+          <table class="table table-pipReason">
+  
+            <thead class="thead-light text-center">
+              <tr>
+                <th scope="col">Sr.No</th>
+                <th scope="col">Employee ID</th>
+                <th scope="col" *ngIf="!isPipFlag">REV Reason</th>
+                <th scope="col" *ngIf="isPipFlag">PIP Reason</th>
+                <th scope="col">Raised BY</th>
+                <th scope="col" *ngIf="isPipFlag">Created On</th>
+                <th scope="col" *ngIf="!isPipFlag">Updated on</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="pipReasons.length == 0">
+                <th colspan="11" class="text-center info-label">No details to display...</th>
+            </tr>
+            <tr class="text-center" *ngFor="let reason of pipReasons| paginate: { itemsPerPage: 10, currentPage: pageNo };let i = index">
+              <td>{{10*(pageNo-1)+i+1}}</td>
+              <td>{{reason.employeeName}}</td>
+              <td *ngIf="reason.pipFlag=='false'">{{reason.revReason}}</td>
+              <td *ngIf="reason.pipFlag=='true'">{{reason.pipReason}}</td>
+              <td *ngIf="reason.pipFlag=='true'">{{reason.createdByName}}</td>
+              <td *ngIf="reason.pipFlag=='false'">{{reason.updatedByName}}</td>
+              <td *ngIf="reason.pipFlag=='true'">{{reason.createdOn}}</td>
+              <td *ngIf="reason.pipFlag=='false'">{{reason.updatedOn}}</td>
+  
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  </ng-template>
+
+  <ng-template #extend_template>
+    <div class="modal-header">
+      <h6>PIP Extend modal</h6>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="modal-body">
+          <div class="container">
+            <input type="number" class="form-control" [(ngModel)]="employeeObj.extendDays"><br>
+            <button type="button" [disabled]="!this.validationService.validateNullUndefinedEmptyString(employeeObj.extendDays)" class="btn btn-sm btn-outline-primary" (click)="setPipExtendsDays(alert_message);cancelRequest()">&nbsp;Set Extend Days</button>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+    </ng-template>
+
+    <ng-template #pip_rev_template>
+        <div class="modal-body text-center">
+          <p>Kindly provide reason(s) for Revert PIP .</p>
+          <textarea rows="3" cols="50" class="form-control" [(ngModel)]="employeeObj.revReason"> </textarea><br>
+          <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(employeeObj.revReason)" (click)="PIP_reverse(alert_message,employeeObj,0);cancelRequest()">Send</button>&nbsp;
+          <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+      </div>
+      </ng-template>
+
+      <ng-template #pip_template>
+        <div class="modal-body text-center">
+          <p>Kindly provide reason(s) for PIP .</p>
+          <textarea rows="3" cols="50" class="form-control" [(ngModel)]="employeeObj.pipReason"> </textarea><br>
+          <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(employeeObj.pipReason)" (click)="PipGenerateToUser(alert_message,employeeObj,1);cancelRequest()">Send</button>&nbsp;
+          <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+      </div>
+      
+      </ng-template>

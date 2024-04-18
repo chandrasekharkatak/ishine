@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.apmosys.employeeportal.dto.CustomFilterDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.dto.NewsletterDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.service.CustomFilterService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -68,6 +69,14 @@ public class CustomFilterController {
 	@RequestMapping(value = "/getCustomQueryData", method = RequestMethod.POST)
 	public ServiceResponse getCustomQueryData(@RequestBody CustomFilterDTO customFilterDTO) {
 		ServiceResponse response = customFilterService.getCustomQueryData(customFilterDTO);
+		return response;
+	}
+	
+//	added by anurag for document
+	
+	@RequestMapping(value = "/customQueryForDocument", method = RequestMethod.POST)
+	public ServiceResponse customQueryForDocument(@RequestBody NewsletterDTO newsletterDto) {
+		ServiceResponse response = customFilterService.customQueryForDocument(newsletterDto);
 		return response;
 	}
 }

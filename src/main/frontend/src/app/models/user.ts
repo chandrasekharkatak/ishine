@@ -64,4 +64,7 @@ export class User{
     workLocation:any;
     maritalStatus : any;
     jobRoleName : any;
+    pipReason : any;
+	pipFlag : any;
+	pipId: any;
 }

@@ -592,78 +592,86 @@ public class CronJobService {
 	}
 	
 	// 0 1 1 ? * * - At 01:01:00am every day
-	@Scheduled(cron = "0 1 1 ? * *")
+//	@Scheduled(cron = "0 1 1 ? * *")
+
+	@Scheduled(cron="${compOff_Expiration}")
 	public void LeaveExpirationCronJob() {
-		try {
-			LeaveTypeMaster leaveType = leaveTypeMasterRepository.findByLeaveTypeCode("CO");
-			
-			      List<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
-			      
-			          for(LeavePolicyMaster lpm : leavePolicy) {
-				         if(lpm.getExpirationPeriod().equals("Yes")) {
-				        	 Integer expirationPeriod = lpm.getExpirationPeriodValue();
-				        	 
-				        	 List<Employee> employeeObj = employeeRepository.findByEmploymentstatus(lpm.getEmploymentStatus());
-				        	 
-				        	 if(!employeeObj.isEmpty()) {
-				        		 employeeObj.forEach((object) -> {
-				        			 //Get employee leave balance
-				        			 EmployeeLeavesMap empLeaveMapObj = employeeLeavesMapRepository
-				        					 .findByEmpIdAndLeaveTypeMasterId(object.getEmpId(), leaveType.getLeaveTypeMasterId());
-				        			 
-				        			 //Get CompOff leave applications
-				        			 Timestamp perv45Day = Timestamp.valueOf(LocalDate.now().minusDays(45).atStartOfDay());
-//				        			 List<CompOffLeave> compOffLeaveObj = compOffLeaveRepository.findByEmpIdAndLeaveStatusIdAndCreatedOnAfterAndCompOffStatus(object.getEmpId(), (short)2, perv45Day, "Pending");
-				        			 List<CompOffLeave> compOffLeaveObj = compOffLeaveRepository.findAllPendingApplicationByEmpId(object.getEmpId(), perv45Day, "Pending");
-				        			 if(!compOffLeaveObj.isEmpty()) {
-				        				 compOffLeaveObj.forEach((compOffObj) -> {
-				        					 
-				        					 if(compOffObj.getUpdatedOn() != null) {
-				        						 compOffObj.setApproverDate(compOffObj.getUpdatedOn().toLocalDate());
-				        					 }
-				        					 
-				        					 LocalDate expirationDate = compOffObj.getFromDate().plusDays(expirationPeriod);
-				        					 LocalDate dateToday = LocalDate.now();
-				        					 if(expirationDate.equals(dateToday)) {
-				        						 Float pervBalance = empLeaveMapObj.getBalance();
-				        						 
-				        						 if(pervBalance != 0f) {
-				        							 Float newBalance;
-				        							 newBalance = pervBalance - compOffObj.getNoOfDays();
-				        							 compOffObj.setCompOffStatus("Expired");
-				        							 compOffLeaveRepository.save(compOffObj); 
-					        						 
-					        						 empLeaveMapObj.setBalance(newBalance);
-					        						 EmployeeLeavesMap dbResposne = employeeLeavesMapRepository.save(empLeaveMapObj);
-					        						 
-					        						 if(dbResposne != null) {
-					        							 
-					        							 LeaveBalanceLog log = new LeaveBalanceLog();
+		System.err.println("Cron work");
+	    try {
+	        // Find leave type
+	        LeaveTypeMaster leaveType = leaveTypeMasterRepository.findByLeaveTypeCode("CO");
+	        if (leaveType != null) {
+	            // Find leave policies for the leave type
+	            List<LeavePolicyMaster> leavePolicies = leavePolicyMasterRepository.findByLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
+	            for (LeavePolicyMaster leavePolicy : leavePolicies) {
+	                if ("Yes".equals(leavePolicy.getExpirationPeriod())) {
+	                    Integer expirationPeriod = leavePolicy.getExpirationPeriodValue();
+	                    String employmentStatus = leavePolicy.getEmploymentStatus();
 
-															log.setBalance(newBalance);
-															log.setEmpId(object.getEmpId());
-															log.setLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
-															log.setMessage(LeaveLogMessage.compOffExpire.replace("0.0",
-																	Float.toString(compOffObj.getNoOfDays())));
-						        							log.setUpdateBalanceBy("-" + compOffObj.getNoOfDays());
+	                    // Find employees with the specified employment status
+	                    List<Employee> employees = employeeRepository.findByEmploymentstatus(employmentStatus);
+	                    for (Employee employee : employees) {
+	                        // Get employee leave balance
+	                        EmployeeLeavesMap empLeaveMapObj = employeeLeavesMapRepository.findByEmpIdAndLeaveTypeMasterId(employee.getEmpId(), leaveType.getLeaveTypeMasterId());
 
-															leaveBalanceLogRepository.save(log);
-					        							 
-					        							 System.out.println("CompOff balance updated successfully");
-					        						 }else {
-					        							 System.out.println("CompOff balance updation failed");
-					        						 }
-					        					  }
-				        						 }
-				        				 });
-				        			 }
-				        		 });
-				        	 }
-				          }
-			           }
-		   }catch(Exception e) {
-			e.printStackTrace();
-		   }
+	                        // Get CompOff leave applications
+	                        List<CompOffLeave> compOffLeaveObj = compOffLeaveRepository.findAllPendingApplicationByEmpId(employee.getEmpId(), Timestamp.valueOf(LocalDate.now().minusDays(45).atStartOfDay()), "Pending");
+	                        System.err.println(" compOffLeaveObj.size()     "+compOffLeaveObj.size());
+	                        for (CompOffLeave compOffObj : compOffLeaveObj) {
+	                            LocalDate expirationDate;
+	                            if (compOffObj.getApproverDate() != null) {
+	                            expirationDate = compOffObj.getApproverDate().plusDays(expirationPeriod);
+	                            System.err.println("expirationDate   "+expirationDate);
+	                            System.out.println("LocalDate.now()     "+LocalDate.now());
+	                            System.err.println(" compoff id   "+compOffObj.getCompOffLeaveId());
+	                                if (expirationDate.equals(LocalDate.now())) {
+		                                Float currentBalance = empLeaveMapObj.getBalance();
+//		                                if (currentBalance != 0f) {
+		                                    Float newBalance = currentBalance - compOffObj.getNoOfDays();
+		                                    compOffObj.setCompOffStatus("Expired");
+		                                    compOffLeaveRepository.save(compOffObj);
+		                                    
+//		                                    if(compOffObj.getCompOffStatus().equals("Expired")) {
+//		                                    	compOffLeaveRepository.deleteById(compOffObj.getCompOffLeaveId());
+//		                                    }
+
+		                                    empLeaveMapObj.setBalance(newBalance);
+		                                    EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(empLeaveMapObj);
+
+		                                    if (dbResponse != null) {
+		                                        LeaveBalanceLog log = new LeaveBalanceLog();
+		                                        log.setBalance(newBalance);
+		                                        log.setEmpId(employee.getEmpId());
+		                                        log.setLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
+		                                        log.setMessage(LeaveLogMessage.compOffExpire.replace("0.0", Float.toString(compOffObj.getNoOfDays())));
+		                                        log.setUpdateBalanceBy("-" + compOffObj.getNoOfDays());
+		                                        leaveBalanceLogRepository.save(log);
+		                                        System.out.println("CompOff balance updated successfully");
+		                                    } else {
+		                                        System.out.println("CompOff balance updation failed");
+		                                    }
+//		                                }
+		                            }
+	                            
+	                            } 
+//	                            else {
+//	                                expirationDate = compOffObj.getFromDate().plusDays(expirationPeriod);
+//	                            }  // as discussed with bansi sir and pooja , comp off expiration should be happend Once Approved 
+//	                            System.err.println(" compOffObj.getUpdatedOn() expirationDate     "+compOffObj.getUpdatedOn());
+//	                            System.err.println(" compOffObj.getFromDate()  expirationDate     "+compOffObj.getFromDate());
+//	                           
+//	                            System.out.println(" today date "+LocalDate.now());
+	                            
+	                        }
+	                    }
+	                } else {
+	                    System.err.println("Please update Policy");
+	                }
+	            }
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
 	}
 	
 	//0 0 1 1,2,3,4,5,6,7 JAN ? - At 01:00:00am, on the 1st, 2nd, 3rd, 4th, 5th, 6th and 7th day, in January

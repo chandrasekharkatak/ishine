@@ -8,6 +8,8 @@ import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { enableAppreciation } from '../models/enableAppreciation';
 import { LocationStrategy } from '@angular/common';
+import { AppComponent } from '../app.component';
+import * as moment from 'moment';
 
 //import { Appreciation } from 'src/app/models/Appreciation';
 
@@ -44,6 +46,11 @@ export class UserAppreciationComponent implements OnInit {
   clickCount2:number = 0;
   countSent:number = 0;
   countRecieved:number=0;
+
+  sent : boolean = false;
+  recieve : boolean = false;
+
+
   constructor(private appreciationService : AppreciationService,
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
@@ -57,6 +64,8 @@ export class UserAppreciationComponent implements OnInit {
     this.employeeObj.empId=this.currentUser.empId;
     this.employeeObj.appreciateType = 'You are my Star';
     this.appreciationEventInfo = this.currentUser.appreciationEventInfo;
+    this.appreciationEventInfo.fromDate = moment(this.appreciationEventInfo.fromDate).format(AppComponent.DATE_FORMAT);
+    this.appreciationEventInfo.toDate = moment(this.appreciationEventInfo.toDate).format(AppComponent.DATE_FORMAT);
     this.getAppreciateEmployeeByCurrentUser();
     this.preventBackButton();
     this.CountMyAppreciationBYcurrentUser();
@@ -78,6 +87,8 @@ export class UserAppreciationComponent implements OnInit {
   }
 
   hideMyAppreication(){
+    this.sent=false;
+    this.recieve=false;
     this.isSentData=false;
     this.isAppreciationSent=false;
     this.isReceievedData = false;
@@ -85,8 +96,12 @@ export class UserAppreciationComponent implements OnInit {
 
   }
   toggleFunctionforreceived() {
+    this.clickCount2 = 0;
+    console.log(" recieve appreciation call  ");
     if (this.clickCount === 0) {
       this.showMyAppreciation();
+      this.recieve=true;
+      this.sent=false;
       this.clickCount = 1;
     } else {
       this.hideMyAppreication();
@@ -101,14 +116,21 @@ export class UserAppreciationComponent implements OnInit {
 
   }
   hideSentAppreciation(){
+    this.sent=false;
+    this.recieve=false;
     this.isAppreciateRecieved=false;
     this.isReceievedData=false;
     this.isAppreciationSent = false;
     return this.isAppreciationSent = false;
   }
   toggleFunctionforsent() {
+this.clickCount = 0;
+    console.log(" sent call appreciation ")
+
     if (this.clickCount2 === 0) {
       this.showSentAppreciation();
+      this.sent=true;
+      this.recieve=false;
       this.clickCount2 = 1;
     } else {
       this.hideSentAppreciation();

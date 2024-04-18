@@ -43,11 +43,13 @@ import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
 import com.apmosys.employeeportal.dto.SurveyDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.model.Asset;
+import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.DraftEmployee;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeAssetMap;
 import com.apmosys.employeeportal.model.EmployeeCertificate;
+import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.EmployeeNotificationConsent;
 import com.apmosys.employeeportal.model.EmployeeSpecializationMap;
@@ -59,17 +61,21 @@ import com.apmosys.employeeportal.model.Log;
 import com.apmosys.employeeportal.model.Newsletter;
 import com.apmosys.employeeportal.model.NewsletterReadResponse;
 import com.apmosys.employeeportal.model.Notification;
+import com.apmosys.employeeportal.model.PIP;
 import com.apmosys.employeeportal.model.PolicyReadResponse;
 import com.apmosys.employeeportal.model.PreviousEmployment;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.model.Team;
+import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.UploadPolicy;
 import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.repository.AuditCustomRepository;
+import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.DraftEmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificateRepository;
+import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeNotificationConsentRepository;
 import com.apmosys.employeeportal.repository.EmployeeOnBoardingMapRepository;
@@ -84,6 +90,7 @@ import com.apmosys.employeeportal.repository.LogsRepository;
 import com.apmosys.employeeportal.repository.NewsletterReadResponseRepository;
 import com.apmosys.employeeportal.repository.NewsletterRepository;
 import com.apmosys.employeeportal.repository.NotificationRepository;
+import com.apmosys.employeeportal.repository.PIPRepository;
 import com.apmosys.employeeportal.repository.PolicyReadResponseRepository;
 import com.apmosys.employeeportal.repository.PreviousEmploymentRepository;
 import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
@@ -216,6 +223,15 @@ public class EmployeeService {
 	
 	@Autowired
 	ProjectDepartmentMapRepository projectDepartmentMapRepository;
+	
+	@Autowired
+	CompOffLeaveRepository compOffLeaveRepository;
+	
+	@Autowired
+	EmployeeLeaveRepository employeeLeaveRepository;
+	
+	@Autowired
+	PIPRepository pipRepository;
 
 //	@Transactional
 //	public ServiceResponse createEmployee(EmployeeDTO employeedto) {
@@ -1315,7 +1331,54 @@ public class EmployeeService {
 							emp.setManagerId(employeedto.getNewManagerId());
 							listOfEmp.add(emp);
 							System.err.println(" Manager mapping done ");
+							
 						}
+						
+//						get compOff leaves 
+						
+						Optional<List<CompOffLeave>> findListOfCompOff = compOffLeaveRepository.findCompOffByEmpId(employeedto.getEmpId());
+						
+						if(findListOfCompOff.isPresent()) {
+							List<CompOffLeave> findCompOffs = findListOfCompOff.get();
+							
+							for (CompOffLeave compOff : findCompOffs) {
+								System.out.println(" compOff Id     ::   \n"+compOff.getCompOffLeaveId());
+								compOff.setManagerId(Math.toIntExact(employeedto.getNewManagerId()));
+								
+								compOffLeaveRepository.save(compOff);	
+							}
+						}
+						
+//						get leaves 
+						
+						Optional<List<EmployeeLeave>> findListOfLeaves = employeeLeaveRepository.findLeaveByManagerId(employeedto.getEmpId());
+						System.err.println(" findListOfLeaves    "+findListOfLeaves);
+						if(findListOfLeaves.isPresent()) {
+							List<EmployeeLeave> findLeaves = findListOfLeaves.get();
+							
+						for (EmployeeLeave empLeaves : findLeaves) {
+							System.out.println( " leavesId   ::   \n"+empLeaves.getLeaveId());
+							empLeaves.setManagerId(Math.toIntExact(employeedto.getNewManagerId()));
+							employeeLeaveRepository.save(empLeaves);
+							
+						}
+					}						
+						
+						// department HOD 
+						
+						Optional<List<Department>> findDept = Optional.ofNullable(departmentRepository.findByHodId(employeedto.getEmpId()));
+						if(findDept.isPresent() && !findDept.isEmpty()) {
+							System.err.println(" department update call ");
+							List<Department> listOfDept = findDept.get();
+							int count =0;
+							for (Department department : listOfDept) {
+								department.setHodId(employeedto.getNewManagerId());
+								departmentRepository.save(department);
+								count = count+1;
+							}
+							System.err.println(" count total "+count);
+						}
+						
 						
 						employeeRepository.saveAll(listOfEmp);
 						}	
@@ -1478,9 +1541,11 @@ public class EmployeeService {
 						}
 					}
 				}
-
+				
+				
 				Employee dbResponse = employeeRepository.save(employee);
-
+					
+				
 				if (dbResponse != null) {
 					
 					//Update Draft
@@ -1730,6 +1795,8 @@ public class EmployeeService {
 					empDTO.setIsTimesheetLockCheckEnable(object[67] != null ? (object[67].toString()) : null);
 					empDTO.setEmploymentReleaseStatus(object[68] != null ? (object[68].toString()) : null);
 					empDTO.setFailedAttempt(failedAttempt);
+					empDTO.setPipFlag(object[69] != null ? object[69].toString() : null);
+					empDTO.setPipId(object[70] != null ? Long.parseLong(object[70].toString()) : null );		
 				
 					ServiceResponse completionResponse = getEmployeeProfileCompletion(empDTO);
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
@@ -4480,6 +4547,41 @@ public class EmployeeService {
 		System.err.println("findEmployee   "+findEmployee);
 		
 		return response;
+	}
+	
+	public ServiceResponse mapLeavesAndCompOffToNewManager(EmployeeDTO employeeDto) {
+		
+		ServiceResponse response = new ServiceResponse();
+		
+		Employee findEmployee = employeeRepository.findByEmpId(employeeDto.getEmpId());
+		System.out.println("findEmployee  manager  "+findEmployee.getManagerId());
+		
+		System.out.println(" manager id "+employeeDto.getManagerId());
+		
+		List<CompOffLeave> findPendingCompOff = compOffLeaveRepository.findPendingCompOffOffByEmpId(findEmployee.getEmpId());
+		System.err.println(" findPendingCompOff "+findPendingCompOff.size());
+		for (CompOffLeave compOffLeave : findPendingCompOff) {
+			compOffLeave.setManagerId(Math.toIntExact(employeeDto.getManagerId()));
+			compOffLeaveRepository.save(compOffLeave);
+		}
+		
+		List<EmployeeLeave> findPendingLeaves = employeeLeaveRepository.findLeavesByEmpIdAndStatus(findEmployee.getEmpId());
+		System.err.println(" findPendingLeaves "+findPendingLeaves.size());
+		for (EmployeeLeave employeeLeave : findPendingLeaves) {
+			employeeLeave.setManagerId(Math.toIntExact(employeeDto.getManagerId()));
+			employeeLeaveRepository.save(employeeLeave);	
+		}
+		
+		findEmployee.setManagerId(employeeDto.getManagerId());
+		Employee dbResponse = employeeRepository.save(findEmployee);
+		
+		if(dbResponse != null) {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse("Manager updated");
+			
+		}
+		
+	return response;
 	}
 	
 }

@@ -10,6 +10,7 @@ import { environment } from 'src/environments/environment';
   providedIn: 'root'
 })
 export class EmployeeService {
+  
   private baseUrl:any = environment.baseUrl;
   
   constructor(private http: HttpClient) { }
@@ -228,5 +229,33 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}`+`api/setManagerToNewManager`,employee);
    }
 
+  //  mapLeavesAndCompOffToNewManager
+  mapLeavesAndCompOffToNewManager(employee:any){
+    return this.http.post(`${this.baseUrl}`+`api/mapLeavesAndCompOffToNewManager`,employee);
+  }
+
+  // pipGenerateToUser
+pipGenerateToUser(teamObj : Employee){
+  return this.http.post(`${this.baseUrl}` + `api/pipGenerateToUser`, teamObj);
+}
+
+pipReturnFromUser(teamObj : Employee){
+  return this.http.post(`${this.baseUrl}` + `api/pipReturnFromUser`, teamObj);
+}
+
+//getOverLapsLeaveForManager
+getOverLapsLeaveForManager(leaveApp : Employee){
+  return this.http.post(`${this.baseUrl}` + `api/getOverLapsLeaveForManager`, leaveApp);
+}
+
+// getPipReasons
+getPipReasons(leaveApp : Employee){
+  return this.http.post(`${this.baseUrl}` + `api/getPipReasons`, leaveApp);
+}
+
+// setExtendPeriodByPipId
+setExtendPeriodByPipId(leaveApp : Employee){
+  return this.http.post(`${this.baseUrl}` + `api/setExtendPeriodByPipId`, leaveApp);
+}
 
 }

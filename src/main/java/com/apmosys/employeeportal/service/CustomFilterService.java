@@ -28,6 +28,7 @@ import com.apmosys.employeeportal.dto.CustomFilterDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.NewsletterDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.Department;
@@ -55,176 +56,174 @@ import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
 public class CustomFilterService {
-	
+
 	@PersistenceContext
-    private EntityManager entityManager;
-	
+	private EntityManager entityManager;
+
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
-	
+
 	@Autowired
 	EmployeeRepository employeeRepository;
-	
+
 	@Autowired
 	EmployeeService employeeService;
-	
+
 	@Autowired
 	LeaveTypeMasterRepository leaveTypeMasterRepository;
-	
+
 	@Autowired
 	TeamRepository teamRepository;
-	
+
 	@Autowired
 	ProjectRepository projectRepository;
-	
+
 	@Autowired
 	ClientsRepository clientsRepository;
-	
+
 	@Autowired
 	DepartmentRepository departmentRepository;
-	
+
 	@Autowired
 	JobRoleRepository jobRoleRepository;
-	
+
 	@Autowired
 	EmployeeLeaveRepository employeeLeaveRepository;
-	
+
 	@Autowired
 	SpecializationRepository specializationRepository;
-	
+
 	@Autowired
 	DomainRepository domainRepository;
-	
+
 	@Autowired
 	DesignationRepository designationRepository;
-	
+
 	@Autowired
 	private HttpServletRequest httpRequest;
 
 	@Autowired
 	private LogService logService;
-	
-	
+
 	@Value("${spring.datasource.url}")
 	private String dbURL;
-	
+
 	@Value("${spring.datasource.username}")
 	private String dbUsername;
-	
+
 	@Value("${spring.datasource.password}")
 	private String dbPassword;
 
-	
 	public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) {
-			StringBuilder query = new StringBuilder("");
-			
-				for(CustomFilterDTO dto: queryList) {
-					if(dto.getOperator()!=null && dto.getOperator().equals("like")) {
-						dto.setValue("%"+dto.getValue()+"%");
-					}
-					
-					switch (dto.getColumn()) {
-					case "Employee Id": {
-						query = query.append(" e.employeement_id ").append(dto.getOperator() + " '")
-								.append(dto.getValue() + "' ").append(dto.getConjunction());
-						break;
-					}
-					case "Full Name": {
-						query = query.append(" e.name ").append(dto.getOperator() + " '")
-								.append(dto.getValue() + "' ").append(dto.getConjunction());
-						break;
-					}
-					case "Leave Type": {
-						query = query.append(" ltm.leave_type ").append(dto.getOperator() + " '")
-								.append(dto.getValue() + "' ").append(dto.getConjunction());
-						break;
-					}
+		StringBuilder query = new StringBuilder("");
 
-					case "From Date": {
-						query = query.append(" el.from_date ").append(dto.getOperator() + " '")
-								.append(dto.getValue() + "' ").append(dto.getConjunction());
-						break;
-					}
-					case "To Date": {
-						query = query.append(" el.to_date ").append(dto.getOperator() + " '")
-								.append(dto.getValue() + "' ").append(dto.getConjunction());
-						break;
-					}
-					case "No. of Days": {
-						query = query.append(" el.no_of_days ").append(dto.getOperator() + " '")
-								.append(dto.getValue() + "' ").append(dto.getConjunction());
-						break;
-					}
-					case "Reason": {
-						query = query.append(" el.reason ").append(dto.getOperator() + " '")
-								.append(dto.getValue() + "' ").append(dto.getConjunction());
-						break;
-					}
-					case "Status": {
-						query = query.append(" ls.status ").append(dto.getOperator() + " '")
-								.append(dto.getValue() + "' ").append(dto.getConjunction());
-						break;
-					}
-					case "Manager Name": {
-						query = query.append(" e2.name ").append(dto.getOperator() + " '")
-								.append(dto.getValue() + "' ").append(dto.getConjunction());
-						break;
-					}
-					case "Created On": {
-						query = query.append(" el.created_on ").append(dto.getOperator() + " '")
-								.append(dto.getValue() + "' ").append(dto.getConjunction());
-						break;
-					}
-					case "Updated On": {
-						query = query.append(" el.updated_on ").append(dto.getOperator() + " '")
-								.append(dto.getValue() + "' ").append(dto.getConjunction());
-						break;
-					}
-					case "Updated By": {
-						query = query.append(" e3.name ").append(dto.getOperator() + " '")
-								.append(dto.getValue() + "' ").append(dto.getConjunction());
-						break;
-					}
-					case "Team Name": {
-						query = query.append(" t.team_name ").append(dto.getOperator() + " '")
-								.append(dto.getValue() + "' ").append(dto.getConjunction());
-						break;
-					}
-					case "Project Name": {
-						query = query.append(" p.project_name ").append(dto.getOperator() + " '")
-								.append(dto.getValue() + "' ").append(dto.getConjunction());
-						break;
-					}
-					case "Client Name": {
-						query = query.append(" p.client ").append(dto.getOperator() + " '")
-								.append(dto.getValue() + "' ").append(dto.getConjunction());
-						break;
-					}
-					case "Department": {
-						query = query.append(" d.name ").append(dto.getOperator() + " '")
-								.append(dto.getValue() + "' ").append(dto.getConjunction());
-						break;
-					}
-					case "Employment Status": {	
-						query = query.append(" e.employmentstatus ").append(dto.getOperator() + " '")	
-								.append(dto.getValue() + "' ").append(dto.getConjunction());	
-						break;	
-					}
-					default:
-						break;
-					}
-				}
-				return query;
-	    }
-	
+		for (CustomFilterDTO dto : queryList) {
+			if (dto.getOperator() != null && dto.getOperator().equals("like")) {
+				dto.setValue("%" + dto.getValue() + "%");
+			}
+
+			switch (dto.getColumn()) {
+			case "Employee Id": {
+				query = query.append(" e.employeement_id ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
+				break;
+			}
+			case "Full Name": {
+				query = query.append(" e.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Leave Type": {
+				query = query.append(" ltm.leave_type ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+
+			case "From Date": {
+				query = query.append(" el.from_date ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "To Date": {
+				query = query.append(" el.to_date ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "No. of Days": {
+				query = query.append(" el.no_of_days ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Reason": {
+				query = query.append(" el.reason ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Status": {
+				query = query.append(" ls.status ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Manager Name": {
+				query = query.append(" e2.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Created On": {
+				query = query.append(" el.created_on ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Updated On": {
+				query = query.append(" el.updated_on ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Updated By": {
+				query = query.append(" e3.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Team Name": {
+				query = query.append(" t.team_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Project Name": {
+				query = query.append(" p.project_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Client Name": {
+				query = query.append(" p.client ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Department": {
+				query = query.append(" d.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Employment Status": {
+				query = query.append(" e.employmentstatus ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
+				break;
+			}
+			default:
+				break;
+			}
+		}
+		return query;
+	}
+
 	public List<Object[]> getCustomLeaveReport(String customQuery) {
 		try {
-			
+
 			Session session = entityManager.unwrap(Session.class);
-			
+
 			try {
-				
-				String q="select e.employeement_id, e.name as employee, ltm.leave_type, el.from_date, el.to_date,el.no_of_days,el.reason, ls.status, e2.name as manager, el.created_on, "
+
+				String q = "select e.employeement_id, e.name as employee, ltm.leave_type, el.from_date, el.to_date,el.no_of_days,el.reason, ls.status, e2.name as manager, el.created_on, "
 						+ "el.updated_on, e3.name as statusUpdateBy,d.name department,t.team_name,p.project_name,el.from_date_day_type, el.to_date_day_type from employee_leave el "
 						+ "INNER JOIN employee e on el.emp_id = e.emp_id "
 						+ "INNER JOIN leave_type_master ltm on el.leave_type_master_id = ltm.leave_type_master_id "
@@ -235,41 +234,42 @@ public class CustomFilterService {
 						+ "INNER JOIN department d ON d.dept_id = jr.dept_id "
 						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = el.emp_id "
 						+ "LEFT JOIN teams t on t.team_id = etm.team_id "
-						+ "LEFT JOIN projects p on p.project_id = t.project_id where "+customQuery+" GROUP BY e.employeement_id, el.from_date";
-				
+						+ "LEFT JOIN projects p on p.project_id = t.project_id where " + customQuery
+						+ " GROUP BY e.employeement_id, el.from_date";
+
 				System.out.println(q);
 				Query query = session.createSQLQuery(q);
 				System.out.println(query);
 				System.out.println(query.getResultList() + " ====");
 				return query.getResultList();
-				
-			}catch(Exception e) {
+
+			} catch (Exception e) {
 				e.printStackTrace();
-			}finally {
-				if(session!=null && session.isOpen()) {
+			} finally {
+				if (session != null && session.isOpen()) {
 					session.close();
 				}
 			}
-		}catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return new ArrayList<>();
 	}
-	
+
 	public ServiceResponse customQueryForLeaveReport(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 
-       LogDTO apiLogInfo = new LogDTO();
-       apiLogInfo.setSubFeatureName("customQueryForLeaveReport");
-       apiLogInfo.setApiUrl("/api/customQueryForLeaveReport");
-       apiLogInfo.setLogLevel("INFO");
-       StringBuilder logBuilder = new StringBuilder();
-       logBuilder.append("QueryList : "+ leaveDTO.getQueryList().size());
-		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("customQueryForLeaveReport");
+		apiLogInfo.setApiUrl("/api/customQueryForLeaveReport");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("QueryList : " + leaveDTO.getQueryList().size());
+
 		try {
 			StringBuilder subQuery = createQueryForLeaveReport(leaveDTO.getQueryList());
 			List<Object[]> list = getCustomLeaveReport(subQuery.toString());
-			
+
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
 
 			if (list != null) {
@@ -297,17 +297,17 @@ public class CustomFilterService {
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
-				apiLogInfo.setApiResponse(" dtoList :" + dtoList);			
+				apiLogInfo.setApiResponse(" dtoList :" + dtoList);
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("leave Application list is empty.");
-				apiLogInfo.setApiResponse("leave Application list is empty");			
+				apiLogInfo.setApiResponse("leave Application list is empty");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 
 			}
-		}catch(Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
@@ -319,7 +319,7 @@ public class CustomFilterService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-	
+
 	public ServiceResponse customQueryForLeaveTrendAnalysisReport(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -329,42 +329,42 @@ public class CustomFilterService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("FromDate : " + leaveDTO.getFromDate() + " ,ToDate : " + leaveDTO.getToDate());
 		try {
-			ServiceResponse customQueryForLeaveReportResponse = customQueryForLeaveReport(leaveDTO);	
-			
-			if(customQueryForLeaveReportResponse.getServiceStatus().equals("Success")) {	
-				List<LeaveDTO> leavedata = (List<LeaveDTO>)customQueryForLeaveReportResponse.getServiceResponse();	
-					
+			ServiceResponse customQueryForLeaveReportResponse = customQueryForLeaveReport(leaveDTO);
+
+			if (customQueryForLeaveReportResponse.getServiceStatus().equals("Success")) {
+				List<LeaveDTO> leavedata = (List<LeaveDTO>) customQueryForLeaveReportResponse.getServiceResponse();
+
 				List<LeaveDTO> newLeaveData = new ArrayList<>();
-			
-				if(leavedata != null) {	
-					leavedata.forEach((obj) -> {	
-						LocalDate tempdate = LocalDate.parse(obj.getFromDate());	
-						LocalDate toDate = LocalDate.parse(obj.getToDate());	
-						long i = 0L;	
-							
-						while(i <= ChronoUnit.DAYS.between(tempdate, toDate)) {	
-							LeaveDTO dto = new LeaveDTO();	
-								
-							dto.setEmployeementId(obj.getEmployeementId());	
-							dto.setDepartmentName(obj.getDepartmentName());	
-							dto.setEmployeeName(obj.getEmployeeName());	
-							dto.setFromDate(tempdate.toString());	
-							dto.setToDate(obj.getToDate());	
-							dto.setStatus(obj.getStatus());	
-							dto.setLeaveType(obj.getLeaveType());	
-							newLeaveData.add(dto);	
-								
-							tempdate = tempdate.plusDays(1);	
-						}	
+
+				if (leavedata != null) {
+					leavedata.forEach((obj) -> {
+						LocalDate tempdate = LocalDate.parse(obj.getFromDate());
+						LocalDate toDate = LocalDate.parse(obj.getToDate());
+						long i = 0L;
+
+						while (i <= ChronoUnit.DAYS.between(tempdate, toDate)) {
+							LeaveDTO dto = new LeaveDTO();
+
+							dto.setEmployeementId(obj.getEmployeementId());
+							dto.setDepartmentName(obj.getDepartmentName());
+							dto.setEmployeeName(obj.getEmployeeName());
+							dto.setFromDate(tempdate.toString());
+							dto.setToDate(obj.getToDate());
+							dto.setStatus(obj.getStatus());
+							dto.setLeaveType(obj.getLeaveType());
+							newLeaveData.add(dto);
+
+							tempdate = tempdate.plusDays(1);
+						}
 					});
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
-					response.setServiceResponse(newLeaveData);	
-					apiLogInfo.setApiResponse("NewLeaveData" + newLeaveData);			
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(newLeaveData);
+					apiLogInfo.setApiResponse("NewLeaveData" + newLeaveData);
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
-				}	
-			}		
-		}catch(Exception e){
+				}
+			}
+		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
@@ -377,171 +377,218 @@ public class CustomFilterService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-	
+
 	public StringBuilder createQueryForEmployeeReport(List<CustomFilterDTO> queryList) {
 		StringBuilder query = new StringBuilder("");
-			System.err.println(" queryList ::   "+queryList);
-			for(CustomFilterDTO dto: queryList) {
-				if(dto.getOperator()!=null && dto.getOperator().equals("like")) {
-					dto.setValue("%"+dto.getValue()+"%");
-				}
-				
-				switch (dto.getColumn()) {
-				case "Employee Id": {
-					query = query.append("where e.employeement_id ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "Full Name": {
-					query = query.append("where e.name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "Employment Status": {
-					query = query.append("where e.employmentstatus ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "Date Of Joining": {
-					query = query.append("where e.date_of_joining ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "City": {
-					query = query.append("where e.city ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "Blood Group": {
-					query = query.append("where e.blood_group ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "Gender": {
-					query = query.append("where e.gender ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "Work Location": {
-					query = query.append("where e.work_location ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "Probation Period": {
-					query = query.append("where e.probation_period ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "Notice Period": {
-					query = query.append("where e.notice_period ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "Marital Status": {
-					query = query.append("where e.marital_status ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "State": {
-					query = query.append("where e.state ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "Bank Name": {
-					query = query.append("where e.bank_name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "Created By": {
-					Employee findEmployee = employeeRepository.findByName(dto.getValue());
-					dto.setValue(findEmployee.getEmpId().toString());
-					query = query.append("where e.created_by ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "Created On": {
-					query = query.append("where e.created_on ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "Department": {
-					query = query.append("where d.name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "Job Role": {
-					query = query.append("where jr.name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "Designation": {
-					query = query.append("where de.designation_name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "Manager": {
-					query = query.append("where e2.name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "Experience": {
-					query = query.append("where e.total_experience ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "Team Name": {
-					query = query.append("where t.team_name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "Project Name": {
-					query = query.append("where p.project_name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "Client Name": {
-					query = query.append("where p.client_name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "Domain": {
-					query = query.append("where dm.domain_name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "Specialization": {
-					query = query.append("where s.specialization_name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "Updated By": {
-					Employee findEmployee = employeeRepository.findByName(dto.getValue());
-					dto.setValue(findEmployee.getEmpId().toString());
-					query = query.append("where e.updated_by ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "Updated On": {
-					query = query.append("where e.updated_on ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction()).append("GROUP BY e.employeement_id");;
-					break;
-				}
-				case "Profile Completion": {
-					query = query.append("GROUP BY e.employeement_id HAVING profile_completion_percentage ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				default:
-					break;
-				}
+		System.err.println(" queryList ::   " + queryList);
+		for (CustomFilterDTO dto : queryList) {
+			if (dto.getOperator() != null && dto.getOperator().equals("like")) {
+				dto.setValue("%" + dto.getValue() + "%");
 			}
-			return query;
-     }
-	
-	 List<Object[]> getCustomEmployeeReport(String customQuery) {
+
+			switch (dto.getColumn()) {
+			case "Employee Id": {
+				query = query.append("where e.employeement_id ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction())
+						.append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "Full Name": {
+				query = query.append("where e.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction()).append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "Employment Status": {
+				query = query.append("where e.employmentstatus ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction())
+						.append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "Date Of Joining": {
+				query = query.append("where e.date_of_joining ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction())
+						.append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "City": {
+				query = query.append("where e.city ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction()).append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "Blood Group": {
+				query = query.append("where e.blood_group ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction())
+						.append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "Gender": {
+				query = query.append("where e.gender ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction()).append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "Work Location": {
+				query = query.append("where e.work_location ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction())
+						.append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "Probation Period": {
+				query = query.append("where e.probation_period ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction())
+						.append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "Notice Period": {
+				query = query.append("where e.notice_period ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction())
+						.append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "Marital Status": {
+				query = query.append("where e.marital_status ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction())
+						.append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "State": {
+				query = query.append("where e.state ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction()).append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "Bank Name": {
+				query = query.append("where e.bank_name ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction())
+						.append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "Created By": {
+				Employee findEmployee = employeeRepository.findByName(dto.getValue());
+				dto.setValue(findEmployee.getEmpId().toString());
+				query = query.append("where e.created_by ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction())
+						.append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "Created On": {
+				query = query.append("where e.created_on ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction())
+						.append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "Department": {
+				query = query.append("where d.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction()).append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "Job Role": {
+				query = query.append("where jr.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction()).append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "Designation": {
+				query = query.append("where de.designation_name ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction())
+						.append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "Manager": {
+				query = query.append("where e2.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction()).append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "Experience": {
+				query = query.append("where e.total_experience ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction())
+						.append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "Team Name": {
+				query = query.append("where t.team_name ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction())
+						.append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "Project Name": {
+				query = query.append("where p.project_name ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction())
+						.append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "Client Name": {
+				query = query.append("where p.client_name ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction())
+						.append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "Domain": {
+				query = query.append("where dm.domain_name ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction())
+						.append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "Specialization": {
+				query = query.append("where s.specialization_name ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction())
+						.append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "Updated By": {
+				Employee findEmployee = employeeRepository.findByName(dto.getValue());
+				dto.setValue(findEmployee.getEmpId().toString());
+				query = query.append("where e.updated_by ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction())
+						.append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "Updated On": {
+				query = query.append("where e.updated_on ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction())
+						.append("GROUP BY e.employeement_id");
+				;
+				break;
+			}
+			case "Profile Completion": {
+				query = query.append("GROUP BY e.employeement_id HAVING profile_completion_percentage ")
+						.append(dto.getOperator() + " '").append(dto.getValue() + "' ").append(dto.getConjunction());
+				break;
+			}
+			default:
+				break;
+			}
+		}
+		return query;
+	}
+
+	List<Object[]> getCustomEmployeeReport(String customQuery) {
 		try {
 			Session session = entityManager.unwrap(Session.class);
-			
+
 			try {
 //				String q="SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
 //						+ "e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,\n"
@@ -563,26 +610,21 @@ public class CustomFilterService {
 //						+ "LEFT JOIN teams t on t.team_id = etm.team_id \n"
 //						+ "LEFT JOIN employee e4 on e.created_by = e4.emp_id \n"
 //						+ "LEFT JOIN projects p on p.project_id = t.project_id where "+customQuery;
-				
-				String q="SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
+
+				String q = "SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
 						+ "e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,\n"
 						+ "e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing,\n"
 						+ "e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, e.mother_tongue, e.name,\n"
 						+ "e.notice_period, e.alternate_mobile_no,  e.pan_number, e.passport_number,\n"
 						+ "e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade,\n"
 						+ "e.previous_pf_account_number, e.relation, e.state, e.uan,\n"
-						+ "e.views_on_organisation, e.year_of_passing,\n"
-						+ "jr.dept_id, jr.name as jobrolename,\n"
+						+ "e.views_on_organisation, e.year_of_passing,\n" + "jr.dept_id, jr.name as jobrolename,\n"
 						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience,\n"
 						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,t.team_name,p.project_name,p.client_name, e.updated_on,e4.name as createdByName, e3.name as updatedByName,\n"
 						+ "s.specialization_name,dm.domain_name,e.designation_id,de.designation_name,e.updated_by,\n"
-						+"(SELECT\n"
-								+ "    COUNT(*) * 100.0 / NULLIF(COUNT(*), 0)\n"
-								+ "   FROM\n"
-								+ "    employee e_profile\n"
-								+ "   WHERE\n"
-								+ "    e_profile.emp_id = e.emp_id) AS profile_completion_percentage \n"
-						+ "FROM employee e\n"
+						+ "(SELECT\n" + "    COUNT(*) * 100.0 / NULLIF(COUNT(*), 0)\n" + "   FROM\n"
+						+ "    employee e_profile\n" + "   WHERE\n"
+						+ "    e_profile.emp_id = e.emp_id) AS profile_completion_percentage \n" + "FROM employee e\n"
 						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id\n"
 						+ "INNER JOIN department d ON d.dept_id = jr.dept_id\n"
 						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id\n"
@@ -594,22 +636,22 @@ public class CustomFilterService {
 						+ "LEFT JOIN employee_specialization_map esm ON esm.emp_id = e.emp_id\n"
 						+ "LEFT JOIN specialization s ON s.specialization_id = esm.specialization_id\n"
 						+ "LEFT JOIN domain dm ON dm.domain_id = s.domain_id\n"
-				        + "LEFT JOIN designation de ON de.designation_id = e.designation_id  "+customQuery;
-				
+						+ "LEFT JOIN designation de ON de.designation_id = e.designation_id  " + customQuery;
+
 				System.out.println(q);
 				Query query = session.createSQLQuery(q);
 				System.out.println(query);
 				System.out.println(query.getResultList() + " ====");
 				return query.getResultList();
-				
-			}catch(Exception e) {
+
+			} catch (Exception e) {
 				e.printStackTrace();
-			}finally {
-				if(session!=null && session.isOpen()) {
+			} finally {
+				if (session != null && session.isOpen()) {
 					session.close();
 				}
 			}
-		}catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return new ArrayList<>();
@@ -622,20 +664,21 @@ public class CustomFilterService {
 		apiLogInfo.setApiUrl("/api/customQueryForEmployeeReport");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("QueryList : "+ employeeDTO.getQueryList().size());
+		logBuilder.append("QueryList : " + employeeDTO.getQueryList().size());
 
 		try {
-			
-			System.err.println(" createQueryForEmployeeReport  :: employeeDTO.getQueryList()     "+employeeDTO.getQueryList());
+
+			System.err.println(
+					" createQueryForEmployeeReport  :: employeeDTO.getQueryList()     " + employeeDTO.getQueryList());
 			StringBuilder subQuery = createQueryForEmployeeReport(employeeDTO.getQueryList());
 			List<Object[]> list = getCustomEmployeeReport(subQuery.toString());
-			
+
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 
 			if (list != null) {
 				list.forEach((object) -> {
 					EmployeeDTO empDTO = new EmployeeDTO();
-					
+
 					empDTO.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 					empDTO.setAadhar(object[1] != null ? Long.parseLong(object[1].toString()) : null);
 					empDTO.setAboutMe(object[2] != null ? object[2].toString() : null);
@@ -700,7 +743,7 @@ public class CustomFilterService {
 					empDTO.setMothersName(object[57] != null ? (object[57].toString()) : null);
 					empDTO.setSpouse(object[58] != null ? (object[58].toString()) : null);
 					empDTO.setTotalExperience(object[59] != null ? Float.parseFloat(object[59].toString()) : null);
-					empDTO.setUpdatedOn(object[63] != null ? (object[63].toString()) : null);	
+					empDTO.setUpdatedOn(object[63] != null ? (object[63].toString()) : null);
 					empDTO.setCreatedByName(object[64] != null ? (object[64].toString()) : null);
 					empDTO.setUpdatedByName(object[65] != null ? (object[65].toString()) : null);
 					empDTO.setSpecializationName(object[66] != null ? (object[66].toString()) : null);
@@ -709,26 +752,25 @@ public class CustomFilterService {
 					empDTO.setDesignationName(object[69] != null ? (object[69].toString()) : null);
 					ServiceResponse completionResponse = employeeService.getEmployeeProfileCompletion(empDTO);
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
-					
+
 					empDTO.setProfileCompletedPercent(emp != null ? emp.getProfileCompletedPercent() : 0.00);
-					
+
 					dtoList.add(empDTO);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
-				apiLogInfo.setApiResponse("dtoList :" + dtoList);			
+				apiLogInfo.setApiResponse("dtoList :" + dtoList);
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
-				
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Employee list is empty.");
-				apiLogInfo.setApiResponse("Employee List is empty");			
+				apiLogInfo.setApiResponse("Employee List is empty");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 
 			}
-			
-		}catch(Exception e) {
+
+		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
@@ -740,136 +782,136 @@ public class CustomFilterService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-	
+
 	public StringBuilder createQueryForTimesheetReport(List<CustomFilterDTO> queryList) {
 		StringBuilder query = new StringBuilder("");
-		
-			for(CustomFilterDTO dto: queryList) {
-				if(dto.getOperator()!=null && dto.getOperator().equals("like")) {
-					dto.setValue("%"+dto.getValue()+"%");
-				}
-				
-				switch (dto.getColumn()) {
-				case "Employee Id": {
-					query = query.append(" e1.employeement_id ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "Full Name": {
-					query = query.append(" e1.name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "Date": {
-					query = query.append(" et.date ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "Day Type": {
-					query = query.append(" et.day_type ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "Status": {
-					query = query.append(" et.status ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "Total Working Hour": {
-					query = query.append(" et.total_time ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "Team Name": {
-					query = query.append(" t.team_name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "Project Name": {
-					query = query.append(" p.project_name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "Client Name": {
-					query = query.append(" p.client_name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "From Date": {
-					query = query.append(" et.date ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "To Date": {
-					query = query.append(" et.date ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "Created On": {
-					query = query.append(" et.created_on ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "Updated On": {
-					query = query.append(" et.updated_on ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "Updated By": {
-					query = query.append(" e2.name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "Department": {	
-					query = query.append(" d.name ").append(dto.getOperator() + " '")	
-							.append(dto.getValue() + "' ").append(dto.getConjunction());	
-					break;	
-				}	
-				case "Employment Status": {	
-					query = query.append(" e1.employmentstatus ").append(dto.getOperator() + " '")	
-							.append(dto.getValue() + "' ").append(dto.getConjunction());	
-					break;	
-				}
-				case "Leave Type": {
-					query = query.append(" ltm.leave_type ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				default:
-					break;
-				}
+
+		for (CustomFilterDTO dto : queryList) {
+			if (dto.getOperator() != null && dto.getOperator().equals("like")) {
+				dto.setValue("%" + dto.getValue() + "%");
 			}
-			return query;
-     }
-	
-	 List<Object[]> getCustomTimesheetReport(String customQuery) {
+
+			switch (dto.getColumn()) {
+			case "Employee Id": {
+				query = query.append(" e1.employeement_id ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
+				break;
+			}
+			case "Full Name": {
+				query = query.append(" e1.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Date": {
+				query = query.append(" et.date ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Day Type": {
+				query = query.append(" et.day_type ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Status": {
+				query = query.append(" et.status ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Total Working Hour": {
+				query = query.append(" et.total_time ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Team Name": {
+				query = query.append(" t.team_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Project Name": {
+				query = query.append(" p.project_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Client Name": {
+				query = query.append(" p.client_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "From Date": {
+				query = query.append(" et.date ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "To Date": {
+				query = query.append(" et.date ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Created On": {
+				query = query.append(" et.created_on ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Updated On": {
+				query = query.append(" et.updated_on ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Updated By": {
+				query = query.append(" e2.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Department": {
+				query = query.append(" d.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Employment Status": {
+				query = query.append(" e1.employmentstatus ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
+				break;
+			}
+			case "Leave Type": {
+				query = query.append(" ltm.leave_type ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			default:
+				break;
+			}
+		}
+		return query;
+	}
+
+	List<Object[]> getCustomTimesheetReport(String customQuery) {
 		try {
 			Session session = entityManager.unwrap(Session.class);
-			
+
 			try {
-				String q="SELECT e1.employeement_id,e1.name employee, et.date, et.day_type, et.description, et.status, \n"
+				String q = "SELECT e1.employeement_id,e1.name employee, et.date, et.day_type, et.description, et.status, \n"
 						+ "et.total_time, et.created_on, et.updated_on, e2.name statusUpdatedBy, t.team_name,p.project_name,p.client_name, et.office_in_time, et.office_out_time, et.total_working_hours, ltm.leave_type \n"
-						+ "FROM employee_timesheets et \n"
-						+ "INNER JOIN employee e1 on et.emp_id = e1.emp_id \n"
+						+ "FROM employee_timesheets et \n" + "INNER JOIN employee e1 on et.emp_id = e1.emp_id \n"
 						+ "LEFT JOIN employee e2 on et.timesheet_status_updated_by = e2.emp_id \n"
-						+ "LEFT JOIN job_role jr on e1.job_role_id=jr.job_role_id \n"	
+						+ "LEFT JOIN job_role jr on e1.job_role_id=jr.job_role_id \n"
 						+ "LEFT JOIN department d on jr.dept_id = d.dept_id \n"
 						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = et.emp_id \n"
 						+ "LEFT JOIN teams t on t.team_id = etm.team_id \n"
 						+ "LEFT JOIN projects p on p.project_id = t.project_id \n"
-						+ "LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id where "+customQuery+" GROUP BY e1.employeement_id, et.date";
-				
+						+ "LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id where "
+						+ customQuery + " GROUP BY e1.employeement_id, et.date";
+
 				Query query = session.createSQLQuery(q);
 				return query.getResultList();
-				
-			}catch(Exception e) {
+
+			} catch (Exception e) {
 				e.printStackTrace();
-			}finally {
-				if(session!=null && session.isOpen()) {
+			} finally {
+				if (session != null && session.isOpen()) {
 					session.close();
 				}
 			}
-		}catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return new ArrayList<>();
@@ -884,23 +926,24 @@ public class CustomFilterService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("QueryList : " + timesheetDTO.getQueryList().size());
 		try {
-			
+
 			StringBuilder subQuery = createQueryForTimesheetReport(timesheetDTO.getQueryList());
 			List<Object[]> list = getCustomTimesheetReport(subQuery.toString());
-			
+
 			List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
 
 			if (list != null) {
 				list.forEach((object) -> {
 					TimesheetDTO timesheetDto = new TimesheetDTO();
-					
+
 					timesheetDto.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 					timesheetDto.setEmployeeName(object[1] != null ? object[1].toString() : null);
 					timesheetDto.setDate(object[2] != null ? object[2].toString() : null);
 					timesheetDto.setDayType(object[3] != null ? object[3].toString() : null);
 					timesheetDto.setDescription(object[4] != null ? object[4].toString() : null);
 					timesheetDto.setStatus(object[5] != null ? object[5].toString() : null);
-					timesheetDto.setTotalWorkingHours(object[6] != null ? Float.parseFloat(object[6].toString()) : null);
+					timesheetDto
+							.setTotalWorkingHours(object[6] != null ? Float.parseFloat(object[6].toString()) : null);
 					timesheetDto.setCreatedOn(object[7] != null ? object[7].toString() : null);
 					timesheetDto.setUpdatedOn(object[8] != null ? object[8].toString() : null);
 					timesheetDto.setTimesheetStatusUpdatedByName(object[9] != null ? object[9].toString() : null);
@@ -912,16 +955,16 @@ public class CustomFilterService {
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
-				apiLogInfo.setApiResponse("dtoList :" + dtoList);			
+				apiLogInfo.setApiResponse("dtoList :" + dtoList);
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			}else {
+			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Timesheet list is empty.");
-				apiLogInfo.setApiResponse("TimeSheet list is empty");			
+				apiLogInfo.setApiResponse("TimeSheet list is empty");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
-			
-		}catch(Exception e) {
+
+		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
@@ -933,251 +976,248 @@ public class CustomFilterService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-	
+
 	public StringBuilder createQueryForTimesheetSummaryChart(List<CustomFilterDTO> queryList) {
 		StringBuilder query = new StringBuilder("");
-		
-			for(CustomFilterDTO dto: queryList) {
-				if(dto.getOperator()!=null && dto.getOperator().equals("like")) {
-					dto.setValue("%"+dto.getValue()+"%");
-				}
-				
-				switch (dto.getColumn()) {
-				case "Employee Id": {
-					query = query.append(" e.employeement_id ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "Full Name": {
-					query = query.append(" e.name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "Date": {
-					query = query.append(" et.date ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "Day Type": {
-					query = query.append(" et.day_type ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "Status": {
-					query = query.append(" et.status ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "Total Working Hour": {
-					query = query.append(" et.total_time ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "Team Name": {
-					query = query.append(" t.team_name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "Project Name": {
-					query = query.append(" p.project_name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "Client Name": {
-					query = query.append(" p.client_name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "From Date": {
-					query = query.append(" et.date ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "To Date": {
-					query = query.append(" et.date ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "Created On": {
-					query = query.append(" et.created_on ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "Updated On": {
-					query = query.append(" et.updated_on ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "Updated By": {
-					query = query.append(" e2.name ").append(dto.getOperator() + " '")
-							.append(dto.getValue() + "' ").append(dto.getConjunction());
-					break;
-				}
-				case "Department": {	
-					query = query.append(" d.name ").append(dto.getOperator() + " '")	
-							.append(dto.getValue() + "' ").append(dto.getConjunction());	
-					break;	
-				}
-				default:
-					break;
-				}
-			}
-			return query;
-     }
-	public StringBuilder createQueryForTimesheetSummaryChart1(List<CustomFilterDTO> queryList) {	
-		StringBuilder query = new StringBuilder("");	
-			
-			for(CustomFilterDTO dto: queryList) {	
-				if(dto.getOperator()!=null && dto.getOperator().equals("like")) {	
-					dto.setValue("%"+dto.getValue()+"%");	
-				}	
-					
-				switch (dto.getColumn()) {	
-				case "Employee Id": {	
-					query = query.append(" e.employeement_id ").append(dto.getOperator() + " '")	
-							.append(dto.getValue() + "' ").append(dto.getConjunction());	
-					break;	
-				}	
-				case "Full Name": {	
-					query = query.append(" e.name ").append(dto.getOperator() + " '")	
-							.append(dto.getValue() + "' ").append(dto.getConjunction());	
-					break;	
-				}	
 
-				case "Team Name": {	
-					query = query.append(" t.team_name ").append(dto.getOperator() + " '")	
-							.append(dto.getValue() + "' ").append(dto.getConjunction());	
-					break;	
-				}	
-				case "Project Name": {	
-					query = query.append(" p.project_name ").append(dto.getOperator() + " '")	
-							.append(dto.getValue() + "' ").append(dto.getConjunction());	
-					break;	
-				}	
-				case "Client Name": {	
-					query = query.append(" p.client_name ").append(dto.getOperator() + " '")	
-							.append(dto.getValue() + "' ").append(dto.getConjunction());	
-					break;	
-				}	
-	
-				case "Updated By": {	
-					query = query.append(" e2.name ").append(dto.getOperator() + " '")	
-							.append(dto.getValue() + "' ").append(dto.getConjunction());	
-					break;	
-				}	
-				case "Department": {	
-					query = query.append(" d.name ").append(dto.getOperator() + " '")	
-							.append(dto.getValue() + "' ").append(dto.getConjunction());	
-					break;	
-				}	
-				default:	
-					break;	
-				}	
-			}	
-			return query;	
-     }	
-	
-	public ServiceResponse getCustomTimesheetSummaryChart(String customQuery,String customQuery1, List<CustomFilterDTO> queryList) {
+		for (CustomFilterDTO dto : queryList) {
+			if (dto.getOperator() != null && dto.getOperator().equals("like")) {
+				dto.setValue("%" + dto.getValue() + "%");
+			}
+
+			switch (dto.getColumn()) {
+			case "Employee Id": {
+				query = query.append(" e.employeement_id ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
+				break;
+			}
+			case "Full Name": {
+				query = query.append(" e.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Date": {
+				query = query.append(" et.date ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Day Type": {
+				query = query.append(" et.day_type ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Status": {
+				query = query.append(" et.status ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Total Working Hour": {
+				query = query.append(" et.total_time ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Team Name": {
+				query = query.append(" t.team_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Project Name": {
+				query = query.append(" p.project_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Client Name": {
+				query = query.append(" p.client_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "From Date": {
+				query = query.append(" et.date ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "To Date": {
+				query = query.append(" et.date ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Created On": {
+				query = query.append(" et.created_on ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Updated On": {
+				query = query.append(" et.updated_on ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Updated By": {
+				query = query.append(" e2.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Department": {
+				query = query.append(" d.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			default:
+				break;
+			}
+		}
+		return query;
+	}
+
+	public StringBuilder createQueryForTimesheetSummaryChart1(List<CustomFilterDTO> queryList) {
+		StringBuilder query = new StringBuilder("");
+
+		for (CustomFilterDTO dto : queryList) {
+			if (dto.getOperator() != null && dto.getOperator().equals("like")) {
+				dto.setValue("%" + dto.getValue() + "%");
+			}
+
+			switch (dto.getColumn()) {
+			case "Employee Id": {
+				query = query.append(" e.employeement_id ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
+				break;
+			}
+			case "Full Name": {
+				query = query.append(" e.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+
+			case "Team Name": {
+				query = query.append(" t.team_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Project Name": {
+				query = query.append(" p.project_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Client Name": {
+				query = query.append(" p.client_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+
+			case "Updated By": {
+				query = query.append(" e2.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Department": {
+				query = query.append(" d.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			default:
+				break;
+			}
+		}
+		return query;
+	}
+
+	public ServiceResponse getCustomTimesheetSummaryChart(String customQuery, String customQuery1,
+			List<CustomFilterDTO> queryList) {
 		ServiceResponse response = new ServiceResponse();
-		
-			Session session = entityManager.unwrap(Session.class);
-			String fromDate = null;
-			String toDate = null;
-			
-			for(CustomFilterDTO dto: queryList) {
-				if(dto.getColumn().equals("From Date")) {
-					fromDate = dto.getValue();
-				}
-				if(dto.getColumn().equals("To Date")) {
-					toDate = dto.getValue();
-				}
+
+		Session session = entityManager.unwrap(Session.class);
+		String fromDate = null;
+		String toDate = null;
+
+		for (CustomFilterDTO dto : queryList) {
+			if (dto.getColumn().equals("From Date")) {
+				fromDate = dto.getValue();
 			}
-			
-			try {
-									
-				String q1="SELECT e.emp_id,count(*) filled_eod FROM employee_timesheets et "
-						+ "INNER JOIN employee e ON e.emp_id = et.emp_id "
-						+ "WHERE date between '"+fromDate+"' and '"+toDate+"' "
-						+ " group by e.emp_id";
-				Query query1 = session.createSQLQuery(q1);
-				List<Object[]> timesheetList = query1.getResultList();
-				
-				
+			if (dto.getColumn().equals("To Date")) {
+				toDate = dto.getValue();
+			}
+		}
 
-				String q2="SELECT et.status,e.employeement_id,e.name,d.name dept,e.email,e.mobile_no,date,total_time working_hours, "
-						+ "et.day_type, e2.name manager, t.team_name,p.project_name,p.client_name "
-						+ "FROM employee_timesheets et "
-						+ "INNER JOIN employee e ON e.emp_id = et.emp_id "
-						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
-						+ "INNER JOIN department d ON d.dept_id = jr.dept_id "
-						+ "INNER JOIN employee e2 on e2.emp_id = e.manager_id "
-						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = et.emp_id "
-						+ "LEFT JOIN teams t on t.team_id = etm.team_id "
-						+ "LEFT JOIN projects p on p.project_id = t.project_id where "+customQuery;
-				
-				System.out.println(q2);
-				Query query2 = session.createSQLQuery(q2);
-				List<Object[]> filledTimesheetList = query2.getResultList();
-				
-				
-				LocalDate startDate = LocalDate.parse(fromDate);
-				LocalDate endDate = LocalDate.parse(toDate);
-				Long pendingEOdNumber = ChronoUnit.DAYS.between(startDate, endDate);
+		try {
 
-				List<TimesheetDTO> dtoList = new ArrayList<>();
-				
-				if(timesheetList != null) {
-				if(!customQuery1.equalsIgnoreCase("")) {
-				String empId = " SELECT distinct(e.emp_id),e.employeement_id,e.name,d.name as dept,e.email,e.mobile_no, e2.name as managerName,e.employmentstatus " 
-						+ " FROM employee_timesheets et "
-						+ " INNER JOIN employee e ON e.emp_id = et.emp_id "
-						+ " INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
-						+ " INNER JOIN department d ON d.dept_id = jr.dept_id " 
-						+ " INNER JOIN employee e2 on e2.emp_id = e.manager_id "
-						+ " LEFT JOIN employee_team_mapping etm on etm.emp_id = et.emp_id "
-						+ " LEFT JOIN teams t on t.team_id = etm.team_id "
-						+ " LEFT JOIN projects p on p.project_id = t.project_id "
-						+ "where e.employmentstatus not like 'InActive' and "  +customQuery1;
-				
-				Query EmployeeId = session.createSQLQuery(empId);
-				List<Object[]> employeeList= EmployeeId.getResultList();
-				
-				employeeList.forEach((employee) -> {
-					TimesheetDTO dto = new TimesheetDTO();
+			String q1 = "SELECT e.emp_id,count(*) filled_eod FROM employee_timesheets et "
+					+ "INNER JOIN employee e ON e.emp_id = et.emp_id " + "WHERE date between '" + fromDate + "' and '"
+					+ toDate + "' " + " group by e.emp_id";
+			Query query1 = session.createSQLQuery(q1);
+			List<Object[]> timesheetList = query1.getResultList();
 
-					dto.setEmployeementId(employee[1] != null ? Long.parseLong(employee[1].toString()) : null);
-					dto.setEmployeeName(employee[2] != null ? employee[2].toString() : null);
-					dto.setDepartmentName(employee[3] != null ? employee[3].toString() : null);
-					dto.setEmail(employee[4] != null ? employee[4].toString() : null);
-					dto.setMobileNo(employee[5] != null ? Long.parseLong(employee[5].toString()) : null);
-					dto.setManagerName(employee[6] != null ? employee[6].toString() : null);
-					dto.setEmpId(employee[0] != null ? Long.parseLong(employee[0].toString()) : null);
-					dto.setPendingEodCount(pendingEOdNumber);
-					dto.setLegend("Pending By User");
-					dto.setEmploymentstatus(employee[7] != null ? employee[7].toString() : null);
+			String q2 = "SELECT et.status,e.employeement_id,e.name,d.name dept,e.email,e.mobile_no,date,total_time working_hours, "
+					+ "et.day_type, e2.name manager, t.team_name,p.project_name,p.client_name "
+					+ "FROM employee_timesheets et " + "INNER JOIN employee e ON e.emp_id = et.emp_id "
+					+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
+					+ "INNER JOIN department d ON d.dept_id = jr.dept_id "
+					+ "INNER JOIN employee e2 on e2.emp_id = e.manager_id "
+					+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = et.emp_id "
+					+ "LEFT JOIN teams t on t.team_id = etm.team_id "
+					+ "LEFT JOIN projects p on p.project_id = t.project_id where " + customQuery;
 
-					timesheetList.forEach((timesheet) -> {
+			System.out.println(q2);
+			Query query2 = session.createSQLQuery(q2);
+			List<Object[]> filledTimesheetList = query2.getResultList();
 
-						Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
-						Long employeeEmpId = employee[0] != null ? Long.parseLong(employee[0].toString()) : null;
+			LocalDate startDate = LocalDate.parse(fromDate);
+			LocalDate endDate = LocalDate.parse(toDate);
+			Long pendingEOdNumber = ChronoUnit.DAYS.between(startDate, endDate);
 
-						if (timesheetEmpId.equals(employeeEmpId)) {
+			List<TimesheetDTO> dtoList = new ArrayList<>();
 
-							Long filledEodCount = timesheet[1] != null ? Long.parseLong(timesheet[1].toString()) : 0L;
+			if (timesheetList != null) {
+				if (!customQuery1.equalsIgnoreCase("")) {
+					String empId = " SELECT distinct(e.emp_id),e.employeement_id,e.name,d.name as dept,e.email,e.mobile_no, e2.name as managerName,e.employmentstatus "
+							+ " FROM employee_timesheets et " + " INNER JOIN employee e ON e.emp_id = et.emp_id "
+							+ " INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
+							+ " INNER JOIN department d ON d.dept_id = jr.dept_id "
+							+ " INNER JOIN employee e2 on e2.emp_id = e.manager_id "
+							+ " LEFT JOIN employee_team_mapping etm on etm.emp_id = et.emp_id "
+							+ " LEFT JOIN teams t on t.team_id = etm.team_id "
+							+ " LEFT JOIN projects p on p.project_id = t.project_id "
+							+ "where e.employmentstatus not like 'InActive' and " + customQuery1;
 
-							Long pendingEodCount = pendingEOdNumber - filledEodCount;
+					Query EmployeeId = session.createSQLQuery(empId);
+					List<Object[]> employeeList = EmployeeId.getResultList();
 
-							dto.setPendingEodCount(pendingEodCount);
+					employeeList.forEach((employee) -> {
+						TimesheetDTO dto = new TimesheetDTO();
 
-						}
+						dto.setEmployeementId(employee[1] != null ? Long.parseLong(employee[1].toString()) : null);
+						dto.setEmployeeName(employee[2] != null ? employee[2].toString() : null);
+						dto.setDepartmentName(employee[3] != null ? employee[3].toString() : null);
+						dto.setEmail(employee[4] != null ? employee[4].toString() : null);
+						dto.setMobileNo(employee[5] != null ? Long.parseLong(employee[5].toString()) : null);
+						dto.setManagerName(employee[6] != null ? employee[6].toString() : null);
+						dto.setEmpId(employee[0] != null ? Long.parseLong(employee[0].toString()) : null);
+						dto.setPendingEodCount(pendingEOdNumber);
+						dto.setLegend("Pending By User");
+						dto.setEmploymentstatus(employee[7] != null ? employee[7].toString() : null);
 
+						timesheetList.forEach((timesheet) -> {
+
+							Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
+							Long employeeEmpId = employee[0] != null ? Long.parseLong(employee[0].toString()) : null;
+
+							if (timesheetEmpId.equals(employeeEmpId)) {
+
+								Long filledEodCount = timesheet[1] != null ? Long.parseLong(timesheet[1].toString())
+										: 0L;
+
+								Long pendingEodCount = pendingEOdNumber - filledEodCount;
+
+								dto.setPendingEodCount(pendingEodCount);
+
+							}
+
+						});
+						dtoList.add(dto);
 					});
-					dtoList.add(dto);
-				});
 
-				}else {
+				} else {
 					List<Object[]> employeeList = employeeRepository.getAllEmployees();
-					
+
 					employeeList.forEach((employee) -> {
 						TimesheetDTO dto = new TimesheetDTO();
 
@@ -1199,7 +1239,8 @@ public class CustomFilterService {
 
 							if (timesheetEmpId.equals(employeeEmpId)) {
 
-								Long filledEodCount = timesheet[1] != null ? Long.parseLong(timesheet[1].toString()) : 0L;
+								Long filledEodCount = timesheet[1] != null ? Long.parseLong(timesheet[1].toString())
+										: 0L;
 
 								Long pendingEodCount = pendingEOdNumber - filledEodCount;
 
@@ -1212,45 +1253,47 @@ public class CustomFilterService {
 					});
 
 				}
-				
-					if (filledTimesheetList != null) {
-						filledTimesheetList.forEach((filledTimesheet) -> {
-							TimesheetDTO dto = new TimesheetDTO();
-							
-							dto.setLegend(filledTimesheet[0] != null ? filledTimesheet[0].toString() : null);
-							dto.setEmployeementId(filledTimesheet[1] != null ? Long.parseLong(filledTimesheet[1].toString()) : null);
-							dto.setEmployeeName(filledTimesheet[2] != null ? filledTimesheet[2].toString() : null);
-							dto.setDepartmentName(filledTimesheet[3] != null ? filledTimesheet[3].toString() : null);
-							dto.setEmail(filledTimesheet[4] != null ? filledTimesheet[4].toString() : null);
-							dto.setMobileNo(filledTimesheet[5] != null ? Long.parseLong(filledTimesheet[5].toString()) : null);
-							dto.setDate(filledTimesheet[6] != null ? filledTimesheet[6].toString() : null);
-							dto.setTotalWorkingHours(filledTimesheet[7] != null ? Float.parseFloat(filledTimesheet[7].toString()) : null);
-							dto.setDayType(filledTimesheet[8] != null ? filledTimesheet[8].toString() : null);
-							dto.setManagerName(filledTimesheet[9] != null ? filledTimesheet[9].toString() : null);
-							dtoList.add(dto);
-						});
-					}
 
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(dtoList);
-				} else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Timesheet not found. Kindly check date range.");
+				if (filledTimesheetList != null) {
+					filledTimesheetList.forEach((filledTimesheet) -> {
+						TimesheetDTO dto = new TimesheetDTO();
+
+						dto.setLegend(filledTimesheet[0] != null ? filledTimesheet[0].toString() : null);
+						dto.setEmployeementId(
+								filledTimesheet[1] != null ? Long.parseLong(filledTimesheet[1].toString()) : null);
+						dto.setEmployeeName(filledTimesheet[2] != null ? filledTimesheet[2].toString() : null);
+						dto.setDepartmentName(filledTimesheet[3] != null ? filledTimesheet[3].toString() : null);
+						dto.setEmail(filledTimesheet[4] != null ? filledTimesheet[4].toString() : null);
+						dto.setMobileNo(
+								filledTimesheet[5] != null ? Long.parseLong(filledTimesheet[5].toString()) : null);
+						dto.setDate(filledTimesheet[6] != null ? filledTimesheet[6].toString() : null);
+						dto.setTotalWorkingHours(
+								filledTimesheet[7] != null ? Float.parseFloat(filledTimesheet[7].toString()) : null);
+						dto.setDayType(filledTimesheet[8] != null ? filledTimesheet[8].toString() : null);
+						dto.setManagerName(filledTimesheet[9] != null ? filledTimesheet[9].toString() : null);
+						dtoList.add(dto);
+					});
 				}
-				
-				}catch(Exception e) {
-				e.printStackTrace();
-				response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-				response.setServiceResponse("Something Went Wrong.");
-				response.setServiceError(e.getMessage());
-			}finally {
-				if(session!=null && session.isOpen()) {
-					session.close();
-				}
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Timesheet not found. Kindly check date range.");
 			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		} finally {
+			if (session != null && session.isOpen()) {
+				session.close();
+			}
+		}
 		return response;
 	}
-
 
 	public ServiceResponse customQueryForTimesheetSummaryChart(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -1259,31 +1302,32 @@ public class CustomFilterService {
 		apiLogInfo.setApiUrl("/api/customQueryForTimesheetSummaryChart");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("QueryList : "+ timesheetDTO.getQueryList().size() + 
-				"  ,QueryList1 :" + timesheetDTO.getQueryList().size());
+		logBuilder.append("QueryList : " + timesheetDTO.getQueryList().size() + "  ,QueryList1 :"
+				+ timesheetDTO.getQueryList().size());
 
 		try {
-			
+
 			StringBuilder subQuery = createQueryForTimesheetSummaryChart(timesheetDTO.getQueryList());
-			
+
 			StringBuilder subQuery1 = createQueryForTimesheetSummaryChart1(timesheetDTO.getQueryList1());
 
-			ServiceResponse timesheetSummaryLeaveResposne = getCustomTimesheetSummaryChart(subQuery.toString(),subQuery1.toString(), timesheetDTO.getQueryList());
-			
-			if(timesheetSummaryLeaveResposne.getServiceStatus().equals("Success")) {
+			ServiceResponse timesheetSummaryLeaveResposne = getCustomTimesheetSummaryChart(subQuery.toString(),
+					subQuery1.toString(), timesheetDTO.getQueryList());
+
+			if (timesheetSummaryLeaveResposne.getServiceStatus().equals("Success")) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(timesheetSummaryLeaveResposne.getServiceResponse());
-				apiLogInfo.setApiResponse("Service_reponse :" + timesheetSummaryLeaveResposne.getServiceResponse());			
+				apiLogInfo.setApiResponse("Service_reponse :" + timesheetSummaryLeaveResposne.getServiceResponse());
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				
-			}else {
+
+			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse(timesheetSummaryLeaveResposne.getServiceResponse());
-				apiLogInfo.setApiResponse("Service_reponse :" + timesheetSummaryLeaveResposne.getServiceResponse());			
+				apiLogInfo.setApiResponse("Service_reponse :" + timesheetSummaryLeaveResposne.getServiceResponse());
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
-			
-		}catch(Exception e) {
+
+		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
@@ -1295,34 +1339,34 @@ public class CustomFilterService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-	
+
 	private StringBuilder createQueryForViewTimesheet(List<CustomFilterDTO> queryList) {
 		StringBuilder query = new StringBuilder("");
-		
-		for(CustomFilterDTO dto: queryList) {
-			if(dto.getOperator()!=null && dto.getOperator().equals("like")) {
-				dto.setValue("%"+dto.getValue()+"%");
+
+		for (CustomFilterDTO dto : queryList) {
+			if (dto.getOperator() != null && dto.getOperator().equals("like")) {
+				dto.setValue("%" + dto.getValue() + "%");
 			}
-			
+
 			switch (dto.getColumn()) {
 			case "Project Name": {
-				query = query.append(" p.project_name ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction());
+				query = query.append(" p.project_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
 				break;
 			}
 			case "Client Name": {
-				query = query.append(" p.client_name ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction());
+				query = query.append(" p.client_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
 				break;
 			}
 			case "From Date": {
-				query = query.append(" et.date ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction());
+				query = query.append(" et.date ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
 				break;
 			}
 			case "To Date": {
-				query = query.append(" et.date ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction());
+				query = query.append(" et.date ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
 				break;
 			}
 			default:
@@ -1331,7 +1375,7 @@ public class CustomFilterService {
 		}
 		return query;
 	}
-	
+
 	List<Object[]> getCustomViewTimesheet(String customQuery, Long empId) {
 		try {
 			Session session = entityManager.unwrap(Session.class);
@@ -1354,7 +1398,7 @@ public class CustomFilterService {
 						+ "LEFT JOIN employee e ON e.emp_id = et.emp_id "
 						+ "LEFT JOIN employee e2 ON e2.emp_id = e.manager_id "
 						+ "LEFT JOIN client_locations cl ON cl.client_location_id = map.client_location_id "
-						+ "WHERE et.emp_id ="+ empId+" AND"+ customQuery;
+						+ "WHERE et.emp_id =" + empId + " AND" + customQuery;
 
 				System.out.println(q);
 				Query query = session.createSQLQuery(q);
@@ -1378,17 +1422,17 @@ public class CustomFilterService {
 	public ServiceResponse getCustomFilteredTimesheet(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
-		//apiLogInfo.setSubFeatureName("");
+		// apiLogInfo.setSubFeatureName("");
 		apiLogInfo.setApiUrl("/api/getCustomFilteredTimesheet");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("empId : " + timesheetDTO.getEmpId() + " , QueryList: " + timesheetDTO.getQueryList().size());
 
 		try {
-			
+
 			StringBuilder subQuery = createQueryForViewTimesheet(timesheetDTO.getQueryList());
 			List<Object[]> list = getCustomViewTimesheet(subQuery.toString(), timesheetDTO.getEmpId());
-			
+
 			List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
 
 			if (list != null) {
@@ -1401,29 +1445,29 @@ public class CustomFilterService {
 					dto.setTimesheetId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 					dto.setDate(object[1] != null ? object[1].toString() : null);
 					dto.setDayType(object[2] != null ? object[2].toString() : null);
-					dto.setTotalTime(object[3] != null ? Float.parseFloat(object[3].toString() ) : null);
+					dto.setTotalTime(object[3] != null ? Float.parseFloat(object[3].toString()) : null);
 					dto.setStatus(object[4] != null ? object[4].toString() : null);
 					dto.setEmployeeName(object[5] != null ? object[5].toString() : null);
 					dto.setCreatedOn(object[6] != null ? object[6].toString() : null);
 					dto.setRemarks(object[7] != null ? object[7].toString() : null);
 					dto.setDescription(object[8] != null ? object[8].toString() : null);
-					
+
 					dtoList.add(dto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
-				apiLogInfo.setApiResponse("dtoList :" + dtoList);			
+				apiLogInfo.setApiResponse("dtoList :" + dtoList);
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
-			}else {
+			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Timesheet list is empty.");
-				apiLogInfo.setApiResponse("Timesheet list is empty");			
+				apiLogInfo.setApiResponse("Timesheet list is empty");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 
 			}
-			
-		}catch(Exception e) {
+
+		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
@@ -1443,13 +1487,13 @@ public class CustomFilterService {
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
 		try {
-			
+
 			List<Object[]> allEmployeeList = employeeRepository.getAllEmployees();
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
-			
+
 			switch (customFilterDTO.getColumn()) {
 			case "Employee Id": {
-				if(!allEmployeeList.isEmpty()){
+				if (!allEmployeeList.isEmpty()) {
 					allEmployeeList.forEach((object) -> {
 						EmployeeDTO dto = new EmployeeDTO();
 						dto.setName(object[0] != null ? object[0].toString() : null);
@@ -1457,13 +1501,13 @@ public class CustomFilterService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
-					apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+					apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				break;
 			}
 			case "Full Name": {
-				if(!allEmployeeList.isEmpty()){
+				if (!allEmployeeList.isEmpty()) {
 					allEmployeeList.forEach((object) -> {
 						EmployeeDTO dto = new EmployeeDTO();
 						dto.setName(object[29] != null ? object[29].toString() : null);
@@ -1471,14 +1515,14 @@ public class CustomFilterService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
-					apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+					apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				break;
 			}
 			case "Leave Type": {
 				List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
-				if(!leaveType.isEmpty()){
+				if (!leaveType.isEmpty()) {
 					leaveType.forEach((object) -> {
 						EmployeeDTO dto = new EmployeeDTO();
 						dto.setName(object.getLeaveType());
@@ -1486,14 +1530,14 @@ public class CustomFilterService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
-					apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+					apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				break;
 			}
 			case "Team Name": {
 				List<Team> teamObj = teamRepository.findAll();
-				if(!teamObj.isEmpty()){
+				if (!teamObj.isEmpty()) {
 					teamObj.forEach((object) -> {
 						EmployeeDTO dto = new EmployeeDTO();
 						dto.setName(object.getTeamName());
@@ -1501,29 +1545,29 @@ public class CustomFilterService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
-					apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+					apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				break;
 			}
-            case "Project Name": {
-            	List<Project> projectObj = projectRepository.findAll();
-            	if(!projectObj.isEmpty()){
-            		projectObj.forEach((object) -> {
+			case "Project Name": {
+				List<Project> projectObj = projectRepository.findAll();
+				if (!projectObj.isEmpty()) {
+					projectObj.forEach((object) -> {
 						EmployeeDTO dto = new EmployeeDTO();
 						dto.setName(object.getProjectName());
 						dtoList.add(dto);
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
-					apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+					apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				break;
 			}
-            case "Client Name": {
+			case "Client Name": {
 				List<Client> clientObj = clientsRepository.findAll();
-				if(!clientObj.isEmpty()){
+				if (!clientObj.isEmpty()) {
 					clientObj.forEach((object) -> {
 						EmployeeDTO dto = new EmployeeDTO();
 						dto.setName(object.getClientName());
@@ -1531,14 +1575,14 @@ public class CustomFilterService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
-					apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+					apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				break;
 			}
-            case "Department": {
+			case "Department": {
 				List<Department> departmentObj = departmentRepository.findAll();
-				if(!departmentObj.isEmpty()){
+				if (!departmentObj.isEmpty()) {
 					departmentObj.forEach((object) -> {
 						EmployeeDTO dto = new EmployeeDTO();
 						dto.setName(object.getName());
@@ -1546,56 +1590,26 @@ public class CustomFilterService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
-					apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+					apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				break;
 			}
-            // timesheet / leave status
-            case "Status": {
-            	String[] status = new String[]{"Pending", "Approved", "Rejected"};
-            	for(String object: status) {
-            		EmployeeDTO dto = new EmployeeDTO();
+			// timesheet / leave status
+			case "Status": {
+				String[] status = new String[] { "Pending", "Approved", "Rejected" };
+				for (String object : status) {
+					EmployeeDTO dto = new EmployeeDTO();
 					dto.setName(object);
 					dtoList.add(dto);
-            	}
-            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				}
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
-				apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+				apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				break;
 			}
-            case "Manager Name": {
-            	 List<Object[]> empObj = employeeRepository.getAllManagers();
-            	 if(!empObj.isEmpty()){
-            		 empObj.forEach((object) -> {
- 						EmployeeDTO dto = new EmployeeDTO();
- 						dto.setName(object[1] != null ? object[1].toString() : null);
- 						dtoList.add(dto);
- 					});
- 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
- 					response.setServiceResponse(dtoList);
- 					apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
- 				}
-				break;
-			}
-            case "Job Role": {
-				List<JobRole> jobRoleObj = jobRoleRepository.findAll();
-				if(!jobRoleObj.isEmpty()){
-					jobRoleObj.forEach((object) -> {
-						EmployeeDTO dto = new EmployeeDTO();
-						dto.setName(object.getName());
-						dtoList.add(dto);
-					});
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(dtoList);
-					apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				}
-				break;
-			}
-            case "Manager": {
+			case "Manager Name": {
 				List<Object[]> empObj = employeeRepository.getAllManagers();
 				if (!empObj.isEmpty()) {
 					empObj.forEach((object) -> {
@@ -1605,79 +1619,116 @@ public class CustomFilterService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
-					apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+					apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				break;
 			}
-            case "Employment Status": {
-            	String[] status = new String[]{"Probation", "Confirmed", "Resigned", "InActive"};
-            	for(String object: status) {
-            		EmployeeDTO dto = new EmployeeDTO();
+			case "Job Role": {
+				List<JobRole> jobRoleObj = jobRoleRepository.findAll();
+				if (!jobRoleObj.isEmpty()) {
+					jobRoleObj.forEach((object) -> {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object.getName());
+						dtoList.add(dto);
+					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				}
+				break;
+			}
+			case "Manager": {
+				List<Object[]> empObj = employeeRepository.getAllManagers();
+				if (!empObj.isEmpty()) {
+					empObj.forEach((object) -> {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object[1] != null ? object[1].toString() : null);
+						dtoList.add(dto);
+					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				}
+				break;
+			}
+			case "Employment Status": {
+				String[] status = new String[] { "Probation", "Confirmed", "Resigned", "InActive" };
+				for (String object : status) {
+					EmployeeDTO dto = new EmployeeDTO();
 					dto.setName(object);
 					dtoList.add(dto);
-            	}
-            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				}
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
-				apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+				apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				break;
 			}
-            case "Gender": {
-            	String[] status = new String[]{"male", "female", "other"};
-            	for(String object: status) {
-            		EmployeeDTO dto = new EmployeeDTO();
+			case "Gender": {
+				String[] status = new String[] { "male", "female", "other" };
+				for (String object : status) {
+					EmployeeDTO dto = new EmployeeDTO();
 					dto.setName(object);
 					dtoList.add(dto);
-            	}
-            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				}
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
-				apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+				apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				break;
 			}
-            case "Day Type": {
-            	String[] status = new String[]{"Working", "Holiday", "Non-working", "Public Holiday", "Leave", "Week Off"};
-            	for(String object: status) {
-            		EmployeeDTO dto = new EmployeeDTO();
+			case "Day Type": {
+				String[] status = new String[] { "Working", "Holiday", "Non-working", "Public Holiday", "Leave",
+						"Week Off" };
+				for (String object : status) {
+					EmployeeDTO dto = new EmployeeDTO();
 					dto.setName(object);
 					dtoList.add(dto);
-            	}
-            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				}
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
-				apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+				apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				break;
 			}
-            case "Work Location": {
-            	String[] state = new String[]{"Andaman & Nicobar Islands","Andhra Pradesh","Arunachal Pradesh","Assam","BiNohar","Chandigarh","Chhattisgarh","Dadra and Nagar Haveli and  Daman & Diu","Delhi","Goa","Gujarat",
-            	                                "Haryana","Himachal Pradesh","Jammu & Kashmir","Jharkhand","Karnataka","Kerala","Ladakh","Lakshadweep","Madhya Pradesh","Maharashtra","Manipur","Meghalaya","Mizoram",
-            	                                "Nagaland","Odisha","Puducherry","Punjab","Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura","Uttar Pradesh","Uttarakhand","West Bengal"};
-            	for(String object: state) {
-            		EmployeeDTO dto = new EmployeeDTO();
+			case "Work Location": {
+				String[] state = new String[] { "Andaman & Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh",
+						"Assam", "BiNohar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli and  Daman & Diu",
+						"Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu & Kashmir", "Jharkhand",
+						"Karnataka", "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur",
+						"Meghalaya", "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim",
+						"Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal" };
+				for (String object : state) {
+					EmployeeDTO dto = new EmployeeDTO();
 					dto.setName(object);
 					dtoList.add(dto);
-            	}
-            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				}
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
-				apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+				apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-            }
-            case "State": {
-            	String[] state = new String[]{"Andaman & Nicobar Islands","Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chandigarh","Chhattisgarh","Dadra and Nagar Haveli and  Daman & Diu","Delhi","Goa","Gujarat",
-            	                                "Haryana","Himachal Pradesh","Jammu & Kashmir","Jharkhand","Karnataka","Kerala","Ladakh","Lakshadweep","Madhya Pradesh","Maharashtra","Manipur","Meghalaya","Mizoram",
-            	                                "Nagaland","Odisha","Puducherry","Punjab","Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura","Uttar Pradesh","Uttarakhand","West Bengal"};
-            	for(String object: state) {
-            		EmployeeDTO dto = new EmployeeDTO();
+			}
+			case "State": {
+				String[] state = new String[] { "Andaman & Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh",
+						"Assam", "Bihar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli and  Daman & Diu",
+						"Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu & Kashmir", "Jharkhand",
+						"Karnataka", "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur",
+						"Meghalaya", "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim",
+						"Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal" };
+				for (String object : state) {
+					EmployeeDTO dto = new EmployeeDTO();
 					dto.setName(object);
 					dtoList.add(dto);
-            	}
-            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				}
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
 				apiLogInfo.setApiResponse("dto list fetched.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-            }
-            case "Specialization": {
+			}
+			case "Specialization": {
 				List<Specialization> allSpecialization = specializationRepository.findByIsActive("true");
 				if (!allSpecialization.isEmpty()) {
 					allSpecialization.forEach((object) -> {
@@ -1687,13 +1738,13 @@ public class CustomFilterService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
-					apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+					apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				break;
 			}
-            case "Domain": {
-            	List<Domain> allDomain = domainRepository.findByIsActive("true");
+			case "Domain": {
+				List<Domain> allDomain = domainRepository.findByIsActive("true");
 				if (!allDomain.isEmpty()) {
 					allDomain.forEach((object) -> {
 						EmployeeDTO dto = new EmployeeDTO();
@@ -1702,13 +1753,13 @@ public class CustomFilterService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
-					apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+					apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				break;
 			}
-            case "Designation": {
-            	List<Designation> allDesignation = designationRepository.findAll();
+			case "Designation": {
+				List<Designation> allDesignation = designationRepository.findAll();
 				if (!allDesignation.isEmpty()) {
 					allDesignation.forEach((object) -> {
 						EmployeeDTO dto = new EmployeeDTO();
@@ -1717,7 +1768,7 @@ public class CustomFilterService {
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
-					apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+					apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				break;
@@ -1725,7 +1776,7 @@ public class CustomFilterService {
 			default:
 				break;
 			}
-		}catch(Exception e) {
+		} catch (Exception e) {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -1736,69 +1787,68 @@ public class CustomFilterService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-	
-	
+
 	public ServiceResponse getCustomQueryData(CustomFilterDTO customFilterDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setApiUrl("/api/getCustomQueryData");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		
+
 		List<Object[]> list = new ArrayList<Object[]>();
 		Connection con = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		try {
-			
-			if(customFilterDTO.getCustomQuery() != null) {
-			
+
+			if (customFilterDTO.getCustomQuery() != null) {
+
 //				Session session = entityManager.unwrap(Session.class);
-				try {				
-					String q= customFilterDTO.getCustomQuery();
-					logBuilder.append("custom query : "+q);
-					
+				try {
+					String q = customFilterDTO.getCustomQuery();
+					logBuilder.append("custom query : " + q);
+
 //					Query query = session.createSQLQuery(q);
 //					System.out.println("\n\n query : "+ query);
 //					System.out.println("\n\n Result Set : "+ query.getResultList());
 //					list = query.getResultList();
-					
+
 					Class.forName("com.mysql.cj.jdbc.Driver");
-					con = DriverManager.getConnection(dbURL,dbUsername,dbPassword);
-					
+					con = DriverManager.getConnection(dbURL, dbUsername, dbPassword);
+
 					stmt = con.prepareStatement(q);
-					
+
 					if (stmt != null) {
 						rs = stmt.executeQuery();
 						ResultSetMetaData rsmd = (ResultSetMetaData) rs.getMetaData();
-						
+
 						int columnsNumber = rsmd.getColumnCount();
 						System.out.println("column size  : " + columnsNumber);
-						
+
 						Object[] headers = new Object[columnsNumber];
-						
+
 						for (int i = 1; i <= columnsNumber; i++) {
-							headers[i-1] = rsmd.getColumnLabel(i);
+							headers[i - 1] = rsmd.getColumnLabel(i);
 						}
-						
+
 						list.add(headers);
-						
+
 						while (rs.next()) {
 							Object[] dataArr = new Object[columnsNumber];
-							
+
 							for (int i = 1; i <= columnsNumber; i++) {
 								String data = rs.getString(i);
-								dataArr[i-1] = data;
-								
+								dataArr[i - 1] = data;
+
 							}
-							
+
 							list.add(dataArr);
 						}
-						
-						if (!list.isEmpty()){
+
+						if (!list.isEmpty()) {
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse(list);
-							apiLogInfo.setApiResponse("list size : "+list.size());
+							apiLogInfo.setApiResponse("list size : " + list.size());
 							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 						} else {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -1806,44 +1856,47 @@ public class CustomFilterService {
 							apiLogInfo.setApiResponse("Result set is empty.");
 							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 						}
-					}else {
+					} else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Invalid Query.");
 						apiLogInfo.setApiResponse("Invalid Query.");
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					}
-					
-				}catch(SQLException e) {
+
+				} catch (SQLException e) {
 					e.printStackTrace();
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Invalid Query, Please Check entered query.");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					apiLogInfo.setLogLevel("ERROR");
 					response.setServiceError(e.getMessage());
-				}catch(Exception e) {
+				} catch (Exception e) {
 					e.printStackTrace();
 					response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 					response.setServiceResponse("Something Went Wrong.");
 					apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 					apiLogInfo.setLogLevel("ERROR");
 					response.setServiceError(e.getMessage());
-				}finally {
+				} finally {
 					try {
-						if (stmt != null) stmt.close();
-						if (rs != null) rs.close();
-						if (con != null) con.close();
+						if (stmt != null)
+							stmt.close();
+						if (rs != null)
+							rs.close();
+						if (con != null)
+							con.close();
 					} catch (SQLException e) {
 						e.printStackTrace();
 					}
 				}
-				
-			}else {
+
+			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Custom Query Not Found.");
 				apiLogInfo.setApiResponse("Custom Query Not Found.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
-		}catch(Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
@@ -1855,4 +1908,144 @@ public class CustomFilterService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+
+	public ServiceResponse customQueryForDocument(NewsletterDTO newsletterDto) {
+
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("customQueryForDocument");
+		apiLogInfo.setApiUrl("/api/customQueryForDocument");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("QueryList : " + newsletterDto.getQueryList().size());
+
+		try {
+
+			StringBuilder subQuery = createQueryForDocument(newsletterDto.getQueryList());
+			List<Object[]> listOfDoc = getCustomDocuments(subQuery.toString());
+
+			System.err.println(" query   " + subQuery);
+
+			List<NewsletterDTO> dtoList = new ArrayList<NewsletterDTO>();
+
+			if (listOfDoc != null) {
+				listOfDoc.forEach((object) -> {
+					NewsletterDTO dto = new NewsletterDTO();
+
+					dto.setDisplayName(object[0] != null ? object[0].toString() : null);
+					dto.setCreatedOn(object[1] != null ? object[1].toString() : null);
+					dto.setCreatedBy(object[2] != null ? Integer.parseInt(object[2].toString()) : null);
+					dto.setName(object[3] != null ? object[3].toString() : null);
+					dto.setTypeName(object[4] != null ? object[4].toString() : null);
+					dto.setFileName(object[5] != null ? object[5].toString() : null);
+					dto.setDocumentId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
+
+					dtoList.add(dto);
+
+				});
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse(" dtoList :" + dtoList);
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Document list is Empty !! ");
+				apiLogInfo.setApiResponse("Document list is Empty !! ");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+
+	public StringBuilder createQueryForDocument(List<CustomFilterDTO> queryList) {
+		StringBuilder query = new StringBuilder("");
+		System.out.println(" after query List   " + queryList);
+		for (CustomFilterDTO dto : queryList) {
+			if (dto.getOperator() != null && dto.getOperator().equals("like")) {
+				dto.setValue("%" + dto.getValue() + "%");
+			}
+
+			switch (dto.getColumn()) {
+			case "Document Name": {
+				query = query.append(" d.display_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Created On": {
+				query = query.append(" d.created_on ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Created By": {
+				query = query.append(" d.created_by ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Full Name": {
+				query = query.append(" e.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Type": {
+				query = query.append(" td.type_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "File Name": {
+				query = query.append(" d.file_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+
+			default:
+				break;
+
+			}
+		}
+
+		return query;
+	}
+
+	public List<Object[]> getCustomDocuments(String customQuery) {
+		try {
+			
+			System.err.println(" custom query    "+customQuery);
+
+			Session session = entityManager.unwrap(Session.class);
+
+			try {
+
+				String q = "SELECT d.display_name, d.created_on,d.created_by, e.name, td.type_name , d.file_name, d.document_id FROM documents d "
+						+ "INNER JOIN employee e ON e.emp_id=d.created_by "
+						+ "INNER JOIN type_document td ON td.type_id=d.type_id  WHERE " + customQuery;
+
+				System.out.println(q);
+				Query query = session.createSQLQuery(q);
+				System.out.println(query);
+				System.out.println(query.getResultList() + " ====");
+				return query.getResultList();
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				if (session != null && session.isOpen()) {
+					session.close();
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return new ArrayList<>();
+
+	}
+
 }

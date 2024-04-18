@@ -404,5 +404,14 @@ public class EmployeeController {
 		ServiceResponse response = employeeService.setManagerToNewManager(employeeDto);
 		return response;
 	}
+//	mapLeavesAndCompOffToNewManager
+	
+	@RequestMapping(value = "/mapLeavesAndCompOffToNewManager", method = RequestMethod.POST)
+	public ServiceResponse mapLeavesAndCompOffToNewManager(@RequestBody EmployeeDTO employeeDto) {
+
+		System.out.println(" projectName  mapLeavesAndCompOffToNewManager ");
+		ServiceResponse response = employeeService.mapLeavesAndCompOffToNewManager(employeeDto);
+		return response;
+	}
 	
 }

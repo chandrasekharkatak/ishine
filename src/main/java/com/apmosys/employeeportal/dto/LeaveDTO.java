@@ -153,4 +153,10 @@ public class LeaveDTO {
 	private String maritalStatus;
 	private String maternityType;
 	private Long maternityLeaveDays;
+	
+	private String pipReason;
+	private String pipFlag;
+	private Long pipId;
+	private String revReason;
+	private Long extendDays;
 }

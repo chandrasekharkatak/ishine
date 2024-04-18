@@ -6,6 +6,7 @@ import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -15,11 +16,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import javax.mail.MessagingException;
+import javax.mail.internet.AddressException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +40,7 @@ import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.LeavePolicyMaster;
 import com.apmosys.employeeportal.model.LeaveRevokeApplication;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
+import com.apmosys.employeeportal.model.PIP;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.TimesheetActivityMap;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
@@ -48,6 +53,7 @@ import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
 import com.apmosys.employeeportal.repository.LeaveRevokeApplicationRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
+import com.apmosys.employeeportal.repository.PIPRepository;
 import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
@@ -116,6 +122,15 @@ public class EmployeeLeaveService {
 	
 	@Autowired
 	CompOffLeaveService compOffLeaveService;
+	
+	@Autowired
+	PIPRepository pipRepository;
+	
+	@Value("${reminder_Mail_Date}")
+	private Long reminderMailDays;
+
+	// added by anurag
+	private Object hodEmail;
 		
 	@Transactional
 	public ServiceResponse applyLeave(LeaveDTO leaveDTO) {
@@ -173,54 +188,54 @@ public class EmployeeLeaveService {
 //	                		
 //	                	}
 //	                }
-			Optional<List<EmployeeLeave>> recentLeavesOptional = Optional.ofNullable(employeeLeaveRepository.findRecentLeavesByEmpId(leaveDTO.getEmpId()));
-			if (recentLeavesOptional.isPresent() && !recentLeavesOptional.get().isEmpty()) {
-			    EmployeeLeave recentLeaves = recentLeavesOptional.get().get(0);
-			    System.out.println(" recentLeaves    " + recentLeaves);
-			    LocalDate newLeaveFromDate = LocalDate.parse(leaveDTO.getFromDate());
-			    LocalDate recentLeaveToDate = recentLeaves.getToDate();
-			    
-			    if (newLeaveFromDate.isEqual(recentLeaveToDate.plusDays(1))) {
-			        if (!recentLeaves.getLeaveTypeMasterId().equals(leaveDTO.getLeaveTypeMasterId())) {
-			            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			            response.setServiceResponse("Two different types of leaves are not allowed on consecutive days. Please ensure that the same type of leave is applied for consecutive days.");
-			            return response;
-			        }
-			    } else {
-			        System.err.println("recentLeaveToDate    ::  " + recentLeaveToDate);
-			        boolean isWeekOff = this.isWeekOffFind(recentLeaveToDate.plusDays(1), newLeaveFromDate.minusDays(1), leaveDTO.getState());
-
-			        if (isWeekOff) {
-			            EmployeeLeave findLeaveOnToDate = employeeLeaveRepository.findEmployeeLeaveByToDate(newLeaveFromDate.minusDays(1), leaveDTO.getEmpId());
-			            System.err.println("findLeaveOnToDate   ::  " + findLeaveOnToDate);
-			            if (findLeaveOnToDate != null) {
-			                if ((!leaveDTO.getLeaveTypeMasterId().equals(recentLeaves.getLeaveTypeMasterId()))) {
-			                    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			                    response.setServiceResponse("Two different types of leaves are not allowed on consecutive days.Week Offs also consider your last leave To date");
-			                    return response;
-			                }
-			            } else {
-			                List<Holiday> findWeekOffAndFestival = holidayRepository.findWeekOffCountByFromAndToDate(newLeaveFromDate.minusDays(1), leaveDTO.getState());
-			                Optional<List<EmployeeLeave>> findPreviousLeaveByFromDateOptional = Optional.ofNullable(employeeLeaveRepository.findLeaveByFromDate(leaveDTO.getFromDate(), leaveDTO.getEmpId()));
-			               
-			                
-			                if (findPreviousLeaveByFromDateOptional.isPresent() && !findPreviousLeaveByFromDateOptional.get().isEmpty()) {
-			    			    EmployeeLeave findPreviousLeaveByFromDate = findPreviousLeaveByFromDateOptional.get().get(0);
-			    			    System.err.println("findPreviousLeaveByFromDate    ::   " + findPreviousLeaveByFromDate);
-			                System.err.println(" Anurag call else part " + findWeekOffAndFestival);
-			                if (!findWeekOffAndFestival.isEmpty()) {
-			                    if (!leaveDTO.getLeaveTypeMasterId().equals(findPreviousLeaveByFromDate.getLeaveTypeMasterId())) {
-			                        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			                        response.setServiceResponse("Two different types of leaves are not allowed on consecutive days.Week Offs also consider your last leave To date");
-			                        return response;
-			                    }
-			                }
-			                
-			                }
-			            }
-			        }
-			    }
-			}
+//			Optional<List<EmployeeLeave>> recentLeavesOptional = Optional.ofNullable(employeeLeaveRepository.findRecentLeavesByEmpId(leaveDTO.getEmpId()));
+//			if (recentLeavesOptional.isPresent() && !recentLeavesOptional.get().isEmpty()) {
+//			    EmployeeLeave recentLeaves = recentLeavesOptional.get().get(0);
+//			    System.out.println(" recentLeaves    " + recentLeaves);
+//			    LocalDate newLeaveFromDate = LocalDate.parse(leaveDTO.getFromDate());
+//			    LocalDate recentLeaveToDate = recentLeaves.getToDate();
+//			    
+//			    if (newLeaveFromDate.isEqual(recentLeaveToDate.plusDays(1))) {
+//			        if (!recentLeaves.getLeaveTypeMasterId().equals(leaveDTO.getLeaveTypeMasterId())) {
+//			            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//			            response.setServiceResponse("Two different types of leaves are not allowed on consecutive days. Please ensure that the same type of leave is applied for consecutive days.");
+//			            return response;
+//			        }
+//			    } else {
+//			        System.err.println("recentLeaveToDate    ::  " + recentLeaveToDate);
+//			        boolean isWeekOff = this.isWeekOffFind(recentLeaveToDate.plusDays(1), newLeaveFromDate.minusDays(1), leaveDTO.getState());
+//
+//			        if (isWeekOff) {
+//			            EmployeeLeave findLeaveOnToDate = employeeLeaveRepository.findEmployeeLeaveByToDate(newLeaveFromDate.minusDays(1), leaveDTO.getEmpId());
+//			            System.err.println("findLeaveOnToDate   ::  " + findLeaveOnToDate);
+//			            if (findLeaveOnToDate != null) {
+//			                if ((!leaveDTO.getLeaveTypeMasterId().equals(recentLeaves.getLeaveTypeMasterId()))) {
+//			                    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//			                    response.setServiceResponse("Two different types of leaves are not allowed on consecutive days.Week Offs also consider your last leave To date");
+//			                    return response;
+//			                }
+//			            } else {
+//			                List<Holiday> findWeekOffAndFestival = holidayRepository.findWeekOffCountByFromAndToDate(newLeaveFromDate.minusDays(1), leaveDTO.getState());
+//			                Optional<List<EmployeeLeave>> findPreviousLeaveByFromDateOptional = Optional.ofNullable(employeeLeaveRepository.findLeaveByFromDate(leaveDTO.getFromDate(), leaveDTO.getEmpId()));
+//			               
+//			                
+//			                if (findPreviousLeaveByFromDateOptional.isPresent() && !findPreviousLeaveByFromDateOptional.get().isEmpty()) {
+//			    			    EmployeeLeave findPreviousLeaveByFromDate = findPreviousLeaveByFromDateOptional.get().get(0);
+//			    			    System.err.println("findPreviousLeaveByFromDate    ::   " + findPreviousLeaveByFromDate);
+//			                System.err.println(" Anurag call else part " + findWeekOffAndFestival);
+//			                if (!findWeekOffAndFestival.isEmpty()) {
+//			                    if (!leaveDTO.getLeaveTypeMasterId().equals(findPreviousLeaveByFromDate.getLeaveTypeMasterId())) {
+//			                        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//			                        response.setServiceResponse("Two different types of leaves are not allowed on consecutive days.Week Offs also consider your last leave To date");
+//			                        return response;
+//			                    }
+//			                }
+//			                
+//			                }
+//			            }
+//			        }
+//			    }
+//			}
 			
 			
 			EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
@@ -283,18 +298,34 @@ public class EmployeeLeaveService {
 				System.err.println(" Maternity apply leave call ");
 			}
 			
-			// added by anurag for CL
-			
-			if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("CL") && leaveDTO.getNoOfDays()>clLeaveDays) {
+			// added by anurag for CL		
+				
+				if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("CL") && leaveDTO.getNoOfDays()>clLeaveDays) {
+				
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
 				response.setServiceResponse("Casual Leave Can't take more than "+clLeaveDays+" days");
+				
 				return response;
 			}else {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
-				response.setServiceResponse("Leave application submitted. Your timesheet will be automatically added by system");
+
+				Optional<List<EmployeeLeave>> recentLeavesForCL = Optional.ofNullable(employeeLeaveRepository.findRecentLeavesByEmpId(leaveDTO.getEmpId()));
+				if(recentLeavesForCL.isPresent() && !recentLeavesForCL.get().isEmpty()) {
+					EmployeeLeave getLeaves = recentLeavesForCL.get().get(0);
+					LocalDate newFromDate = LocalDate.parse(leaveDTO.getFromDate());
+					LocalDate prevToDate = getLeaves.getToDate();		
+					
+				boolean valid = this.isValidateCasualLeave(prevToDate, newFromDate, leaveDTO.getLeaveTypeCode());
+				System.err.println(" valid "+valid);
+				if(valid) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
+					response.setServiceResponse("Leave application submitted. Your timesheet will be automatically added by system");
+				}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
+					response.setServiceResponse("Casual Leave Can't take Consecutively , another CL will be applicable after 15 days of your last CL applied !! ");
+				return response;
+				}
 			}
-			
-			
+		}
 			
 			// ended
 
@@ -612,22 +643,51 @@ public class EmployeeLeaveService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-public boolean isWeekOffFind(LocalDate fromDate , LocalDate toDate, String state) {
-		
-		System.out.println(" from date :: "+fromDate);
-		System.out.println("toDate :: "+toDate);
-		List<Holiday> weekOffFind = holidayRepository.findWeekOffCountByFromAndToDate(fromDate,state);
-		System.err.println("weekOffFind   ::   "+weekOffFind.size());
-		for (Holiday holiday : weekOffFind) {
-			System.err.println(holiday.toString()+"\n");
-		}
-		
-		if(weekOffFind.size() < 3) 
-			return true;
-		
-		else 
-			return false;
-	}
+//public boolean isWeekOffFind(LocalDate fromDate , LocalDate toDate, String state) {
+//		
+//		System.out.println(" from date :: "+fromDate);
+//		System.out.println("toDate :: "+toDate);
+//		List<Holiday> weekOffFind = holidayRepository.findWeekOffCountByFromAndToDate(fromDate,state);
+//		System.err.println("weekOffFind   ::   "+weekOffFind.size());
+//		for (Holiday holiday : weekOffFind) {
+//			System.err.println(holiday.toString()+"\n");
+//		}
+//		
+//		if(weekOffFind.size() < 3) 
+//			return true;
+//		
+//		else 
+//			return false;
+//	}
+
+/**
+ * create validation method for CL to validate 15 days gap in between each CL leaves
+ * @param leaveDTO
+ * @return
+ */
+
+public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, String leaveTypeCode) {
+
+    System.err.println("Validation method toDate " + toDate);
+
+    Optional<List<Object[]>> leaveRecords = employeeLeaveRepository.findClLeavesInBetweenDates(toDate, leaveTypeCode);
+    LocalDate after15Days = toDate.plusDays(15);
+
+    System.out.println("Validation from date " + fromDate);
+    System.err.println("After 15 Days " + after15Days);
+
+    if (leaveRecords.isPresent()) {
+        List<Object[]> leaves = leaveRecords.get();
+
+        if (!leaves.isEmpty() && fromDate.isBefore(after15Days)) {
+            return false;
+        } else {
+            return true;
+        }
+    } else {
+        return true;
+    }
+}
 
 	@Transactional
 	public ServiceResponse deletePendingLeave(LeaveDTO leaveDTO) {
@@ -696,7 +756,7 @@ public boolean isWeekOffFind(LocalDate fromDate , LocalDate toDate, String state
 							log.setMessage(LeaveLogMessage.deleteLeave.replace("0.0", leaveDTO.getNoOfDays().toString()));
 						}
 						
-						if(!leaveDTO.getLeaveTypeMasterId().equals((short)3)) // 17 is in local and UAT But in prod it is 3
+						if(!leaveDTO.getLeaveTypeMasterId().equals((short)19)) // 16 is in local and 19 in UAT But in prod it is 3
 							log.setUpdateBalanceBy("+" + leaveDTO.getNoOfDays());
 						else
 							log.setUpdateBalanceBy("0");
@@ -4003,4 +4063,360 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 		  		
 		return response;
 	}
+
+	public ServiceResponse getAllLeaveByEmpId(LeaveDTO leaveDto) {
+		
+		ServiceResponse response = new ServiceResponse();
+		
+		
+		Optional<List<EmployeeLeave>> findLeavesByEmpId = employeeLeaveRepository.findLeavesByEmpId(leaveDto.getEmpId());
+		if(findLeavesByEmpId.isPresent() && !findLeavesByEmpId.get().isEmpty()) {
+			List<EmployeeLeave> getLeaves = findLeavesByEmpId.get();
+			System.err.println("getLeaves   "+getLeaves);
+		if(getLeaves != null) {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(getLeaves);
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Leaves not present ");
+			}
+		}
+		
+		return response;
+	}
+	
+//	 added by anurag
+	
+	public ServiceResponse pipGenerateToUser(LeaveDTO leaveDto) {
+		
+		ServiceResponse response = new ServiceResponse();
+	
+		try {
+
+			Employee findEmployee = employeeRepository.findByEmpId(leaveDto.getEmpId());
+			Employee findManager = employeeRepository.findByEmpId(findEmployee.getManagerId());
+			String empEmail = findEmployee.getEmail();
+			String managerEmail = findManager.getEmail();
+			String pipReason = leaveDto.getPipReason();
+			
+			System.out.println("empEmail     "+empEmail);
+			System.err.println("managerEmail  "+managerEmail);
+			
+			
+			PIP pipCreate = new PIP();
+			pipCreate.setEmpId(leaveDto.getEmpId());
+			pipCreate.setPipReason(leaveDto.getPipReason());
+			pipCreate.setPipFlag(true);	
+			pipCreate.setCreatedOn(LocalDateTime.now());
+			pipCreate.setCreatedBy(leaveDto.getCreatedByName());
+			
+			PIP pipCreated = pipRepository.save(pipCreate);
+			findEmployee.setPipFlag(true);
+			findEmployee.setPipId(pipCreated.getPipId());
+			employeeRepository.save(findEmployee);
+			
+			System.err.println("findEmployee   +  "+findEmployee);
+			
+			if(pipCreated != null) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("PIP Raised ");
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("PIP not Raised");
+			}
+			List<Object[]> findData = employeeLeaveRepository.findHodsData(leaveDto.getEmpId());
+
+			findData.forEach((object) -> {
+			    this.hodEmail = object[3] != null ? object[3].toString() : null;
+			});
+			
+			String subject = " Attention - Performance Improvement Plan";
+			mailService.sendMailWithCC(empEmail, managerEmail + ","+ hrMailAddress+","+this.hodEmail,subject, 
+					"Dear "+findEmployee.getName()+" "+"<br>"
+					+"<br>"+
+							"This email is to formally notify you that you are being placed on a Performance Improvement Plan (PIP) effective "+LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))+". "
+							+ "The purpose of this plan is to provide you with clear expectations and support to "
+							+ "improve your performance in specific areas."+"<br><br>"
+							+ "During the recent performance evaluations, "
+							+ "we identified areas where your performance has not met "
+							+ "the expectations of the organization. <br><br>"
+							+ "These areas include : </b>"
+							+ "<b>"+pipReason +"</b>"+"<br><br>"
+							+ "This PIP emphasizes on the specific goals and objectives "
+							+ "you will need to achieve within a timeframe of one month. "
+							+ "Your progress towards these goals will be closely monitored and regular feedback "
+							+ "will be provided to support your development and improvement."+"<br><br>"
+							+ "It is important to understand that failure to meet the expectations outlined "
+							+ "in this plan within the timeframe may result in further disciplinary action, "
+							+ "up to and including termination of your employment."+"<br><br>"
+							+ " Sincerely,"+"<br>"
+							+ "Team HR - ApMoSys Technologies"
+					);
+			
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse("Something went wrong");	
+		}
+		
+		return response ;
+	}
+	
+	public ServiceResponse pipReturnFromUser(LeaveDTO leaveDto) throws AddressException, MessagingException {
+		
+		ServiceResponse response = new ServiceResponse();
+		
+		Employee findEmployee = employeeRepository.findEmployeeByPipId(leaveDto.getPipId());
+		Employee findManager = employeeRepository.findByEmpId(findEmployee.getManagerId());
+		String empEmail = findEmployee.getEmail();
+		String managerEmail = findManager.getEmail();
+		String pipReason = leaveDto.getRevReason();
+		
+		findEmployee.setPipFlag(false);
+		
+	Employee dbResponse = employeeRepository.save(findEmployee);
+	
+		PIP findpip = new PIP();
+		findpip.setUpdatedBy(leaveDto.getUpdatedByName());
+		findpip.setUpdatedOn(LocalDateTime.now());
+		findpip.setPipFlag(false);
+		findpip.setEmpId(leaveDto.getEmpId());
+		findpip.setRevReason(leaveDto.getRevReason());	
+		PIP dbPipResponse = pipRepository.save(findpip);		
+		
+		if(dbPipResponse != null) {
+			response.setServiceResponse("PIP reverse successfully ");
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			
+		}
+		
+		List<Object[]> findData = employeeLeaveRepository.findHodsData(leaveDto.getEmpId());
+
+		findData.forEach((object) -> {
+		    this.hodEmail = object[3] != null ? object[3].toString() : null;
+		});
+		
+		String subject = " Attention - Regarding PIP reversal mail";
+		mailService.sendMailWithCC(empEmail, managerEmail + ","+ hrMailAddress+","+this.hodEmail,subject, 
+				"Dear "+findEmployee.getName()+" "+"<br>"
+				+"<br>"+
+						"This email is to formally notify you that you are not being placed on a Performance Improvement Plan (PIP) effective . "
+						+ "your performance is now up to the mark so you are not in Performance Improvement Plan, "
+						+ "below the reason provided why we revert you from PIP "+"<br>"
+						+ "These areas include : </b>"
+						+ "<b>"+pipReason +"</b>"+"<br><br>"
+						+ " Sincerely,"+"<br>"
+						+ "Team HR - ApMoSys Technologies"
+				);
+		
+		return response;
+	}
+	
+	
+	@Scheduled(cron ="${leaveMapToNewManager_cron}")
+	public void mapOldPendingLeaveToNewManager() {
+		
+		ServiceResponse response = new ServiceResponse();
+		
+		System.out.println(" old leave to new leave manager map method call  ");
+		List<EmployeeLeave> findLeaves = employeeLeaveRepository.findOldPendingLeaves();
+		System.err.println(" findLeave ki size ...........   "+findLeaves.size());
+		int count = 0 ;
+//		findLeaves.forEach((leave)->{
+		for(EmployeeLeave leave : findLeaves) {
+			
+			Long employeeId = leave.getEmpId();
+			Employee employee = employeeRepository.findByEmpId(employeeId);
+			Long managerId = employee.getManagerId();
+			leave.setManagerId(Math.toIntExact(managerId));	
+		EmployeeLeave dbLeave = employeeLeaveRepository.save(leave);
+		count = count+1;
+		
+		System.err.println("count  :  "+count);
+		}
+		//		});
+		
+		
+	}
+	
+	public ServiceResponse getOverLapsLeaveForManager(LeaveDTO leaveDto) {
+		
+		    DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+		    DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+		    ServiceResponse response = new ServiceResponse();
+
+		    try {
+		        LocalDate fromDate = LocalDate.parse(leaveDto.getFromDate(), inputFormatter);
+		        LocalDate toDate = LocalDate.parse(leaveDto.getToDate(), inputFormatter);
+		        
+		        List<LeaveDTO> dtoList = new ArrayList<>();
+
+		        String fromDateStr = fromDate.format(outputFormatter);
+		        String toDateStr = toDate.format(outputFormatter);
+
+		        System.out.println(" fromDate and ToDate " + fromDateStr + " = " + toDateStr + " ");
+
+		        List<Object[]> findOverLapsLeave = employeeLeaveRepository.getOverLapsLeaveForManager(fromDateStr, toDateStr, leaveDto.getManagerId());
+		        System.err.println("findOverLapsLeave :: " + findOverLapsLeave.size());
+		        
+		        findOverLapsLeave.forEach((object)->{
+		        	LeaveDTO dto = new LeaveDTO();
+		        	
+		        	dto.setLeaveId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+		        	dto.setEmployeementId(object[1] != null ? Long.parseLong(object[1].toString()) : null);      	
+		        	dto.setEmpId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+		        	dto.setEmployeeName(object[3] != null ? object[3].toString() : null);
+		        	dto.setFromDate(object[4] != null ? object[4].toString() : null);
+		        	dto.setToDate(object[5] != null ? object[5].toString() : null);
+		        	dto.setCreatedOn(object[6] != null ? object[6].toString() : null);
+		        	dto.setCreatedByName(object[8] != null ? object[8].toString() : null);
+		        	dto.setManagerName(object[9] != null ? object[9].toString() : null);
+		        	dto.setStatus(object[10] != null ? object[10].toString() : null);
+		        	
+		        	dtoList.add(dto);
+		        });        
+		        
+		        
+		        if(dtoList != null) {
+		        	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        	response.setServiceResponse(dtoList);
+		        }
+	
+		    } catch (Exception e) {
+		    	e.printStackTrace();
+		    	response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		    	response.setServiceResponse("Something went wrong ");  
+		    }
+		    
+		return response;
+	}
+	
+//	PIP Reasons
+	public ServiceResponse getPipReasons(LeaveDTO leaveDto) {
+		
+		ServiceResponse response = new ServiceResponse();
+		System.err.println(" leaveDto.getEmpId(),leaveDto.getPipFlag() "+leaveDto.getEmpId()+" "+Boolean.valueOf(leaveDto.getPipFlag()));
+		List<Object[]> listOfPip = pipRepository.findPipReasonByEmpIdAndPipFlag(leaveDto.getEmpId(),Boolean.valueOf(leaveDto.getPipFlag()));
+		List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+		
+		listOfPip.forEach(object ->{
+			LeaveDTO dto = new LeaveDTO();
+			dto.setEmployeeName(object[0] != null ? object[0].toString() : null);
+			dto.setEmployeementId(object[1] != null ? Long.parseLong(object[1].toString()) : null);	
+			dto.setPipId(object[2] != null ? Long.parseLong(object[2].toString()) : null);		
+			dto.setPipReason(object[3] != null ? object[3].toString() : null);
+			dto.setCreatedByName(object[4] != null ? object[4].toString() : null);
+			dto.setCreatedOn(object[5] != null ? object[5].toString() : null);		
+			dto.setUpdatedByName(object[6] != null ? object[6].toString() : null);		
+			dto.setUpdatedOn(object[7] != null ? object[7].toString() : null);
+			
+			dto.setRevReason(object[8] != null ? object[8].toString() : null);
+			dto.setPipFlag(object[9] != null ? object[9].toString() : null);			
+			System.err.println(" dto   "+"\n"+dto);
+			dtoList.add(dto);
+			
+			});	
+		if(dtoList != null) {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(dtoList);
+		}
+		
+		
+		return response ;
+	}
+	
+	
+//	create cron for reminder mail to the manager and HR of PIP users
+	
+	@Scheduled(cron = "${pip_reminder_mail}")
+	public void createCronForPIPUserReminderMailToManagerAndHR() throws AddressException, MessagingException {
+
+		List<Object[]> listOfAddedPipUser = employeeRepository.findPipUserWithStatus();
+		Long empId = null;
+		String managerEmail = null;
+		Long extendDays = null;
+		LocalDate createdOn = null;
+		String employeeEmail = null;
+		String name = null;
+		String managerName = null;
+		String subject = null;
+		for (Object[] object : listOfAddedPipUser) {
+			empId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
+			employeeEmail = object[1] != null ? object[1].toString() : null;
+			createdOn = object[2] != null ? LocalDate.parse(object[2].toString()) : null;
+			managerEmail = object[3] != null ? object[3].toString() : null;
+			extendDays = object[4] != null ? Long.parseLong(object[4].toString()) : null;
+			name = object[5] != null ? object[5].toString() : null;
+			managerName = object[6] != null ? object[6].toString() : null;
+			
+			System.out.println("empId   " + empId);
+			System.out.println("createdOn   " + createdOn);
+			System.out.println("managerEmail  " + managerEmail);
+			System.out.println("extendDays    " + extendDays);
+
+			LocalDate reminderMailDate = null;
+			if (extendDays == null) {
+				reminderMailDate = createdOn.plusDays(reminderMailDays);
+				if (reminderMailDate.equals(LocalDate.now())) {
+					subject = "Attention - Regarding Reminder mail";
+					System.out.println(" Hii    mail is triggered ");
+
+					mailService.sendMailWithCC(employeeEmail, managerEmail + "," + hrMailAddress, subject, "Dear " + managerName
+							+ "," + "<br><br>"
+							+ "&nbsp;&nbsp;This email is to formally notify you that "+name+" has completed PIP period if their performance isn't upto the mark then you can extend PIP."+"<br><br>"
+							+ " Sincerely,"+"<br>"
+							+ "Team HR - ApMoSys Technologies");
+
+				}
+			} else {
+				subject = "Regarding PIP extend";
+				reminderMailDate = createdOn.plusDays(reminderMailDays + extendDays);
+				
+				if (reminderMailDate.equals(LocalDate.now())) {
+
+					System.out.println(" Hii    mail is triggered ");
+
+					mailService.sendMailWithCC(employeeEmail, managerEmail + "," + hrMailAddress, subject, "Dear " + name
+							+ "," + "<br><br>"
+							+ "&nbsp;&nbsp;This email is to formally notify you that your PIP duration has been extend for some period."+"<br><br>"
+							+ " Sincerely,"+"<br>"
+							+ "Team HR - ApMoSys Technologies");
+
+				}
+			}
+			System.err.println(" createdOn =  " + createdOn + " and reminderMailDate = " + reminderMailDate);
+			System.err.println("reminderMailDate    " + reminderMailDate);
+			
+
+		}
+
+	}
+	
+	public ServiceResponse setExtendPeriodByPipId(LeaveDTO leaveDto) {
+		ServiceResponse response = new ServiceResponse();
+		
+		PIP findPip = pipRepository.findByPipId(leaveDto.getPipId());	
+	
+		findPip.setExtendDays(leaveDto.getExtendDays());
+		findPip.setUpdatedBy(leaveDto.getUpdatedByName());
+		findPip.setUpdatedOn(LocalDateTime.now());	
+		
+		PIP updatePip =	pipRepository.save(findPip);	
+		
+	if(updatePip != null) {
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse("PIP extended successfully !! ");
+	}else {
+		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		response.setServiceResponse("PIP not extended !! ");
+	}
+	
+		
+		return response;
+	}
+	
+	 
 }

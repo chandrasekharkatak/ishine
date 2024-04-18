@@ -91,6 +91,7 @@ import { DomainConfigComponent } from './configuration/domain-config/domain-conf
 import { UserReleasenotesComponent } from './user-releasenotes/user-releasenotes.component';
 import { NewsletterComponent } from './newsletter/newsletter.component';
 import { NewsletterConfigComponent } from './configuration/newsletter-config/newsletter-config.component';
+import { DocumentComponent } from './configuration/document/document.component';
 
 @NgModule({
   declarations: [
@@ -155,7 +156,8 @@ import { NewsletterConfigComponent } from './configuration/newsletter-config/new
     DomainConfigComponent,
     UserReleasenotesComponent,
     NewsletterComponent,
-    NewsletterConfigComponent
+    NewsletterConfigComponent,
+    DocumentComponent
   ],
   imports: [
     BrowserModule,

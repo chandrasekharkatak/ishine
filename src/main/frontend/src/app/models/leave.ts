@@ -130,4 +130,11 @@ export class Leave{
 	maritalStatus : any;
 	maternityType: any;
 	maternityLeaveDays: any;
+
+	// added by anurag 
+	pipReason : any;
+	pipFlag : any;
+	pipId: any;
+	revReason: any;
+	extendDays : any;
 }

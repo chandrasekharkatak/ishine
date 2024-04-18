@@ -82,7 +82,7 @@
                   <th scope="col" class="info-label" mat-sort-header="mobileNo|number">Mobile No.</th>
                   <th scope="col" class="info-label" mat-sort-header="managerName|string">Reports To</th>
                   <th scope="col" class="info-label" mat-sort-header="timesheetStatus|string">Timesheet Status</th>
-                  <th scope="col" class="info-label">Actions</th>
+                  <th scope="col" class="info-label text-center" style="min-width: 300px;">Actions</th>
                 </tr>
                 <tr app-column-filter-bar *ngIf="isViewTeam && isSearchEnabled" [columnList]="teamViewColumns" (onSearch)="onSearch($event);page=1" ></tr>
               </thead>
@@ -109,12 +109,25 @@
                         (click)="onUpdateTimesheetLockCheck(alert_message,teamView,'true')"><em><i class="fa-solid fa-lock"></i>&nbsp;Timesheet</em></button>
                       <button *ngIf="teamView.isTimesheetLockCheckEnable == 'true'" class="btn btn-sm btn-outline-primary mb-1" type="submit"
                         (click)="onUpdateTimesheetLockCheck(alert_message,teamView,'false')"><em><i class="fa-solid fa-lock-open"></i>&nbsp;Timesheet</em></button>
-                        <button *ngIf="!showReporteeLeaveBalance" class="btn btn-sm btn-outline-primary mb-1" type="submit"
+                        <button *ngIf="!showReporteeLeaveBalance" class="btn btn-sm btn-outline-primary mb-1 ml-10" type="submit"
                         (click)="onGetEmpLeaveBalance(alert_message,teamView,i)"><em><i class="fa-solid fa-eye"></i>&nbsp; Balance</em></button>
                         <button *ngIf="showReporteeLeaveBalance && selectedDataIndex == i" class="btn btn-sm btn-outline-danger mb-1" type="submit"
                         (click)="onHideEmpLeaveBalance()"><em><i class="fa-solid fa-eye-slash"></i>&nbsp; Balance</em></button>
                         <button *ngIf="teamView.isDateOfRelievingToday == 'true'" class="btn btn-sm btn-outline-primary mb-1" type="submit" (click)="navigateToAssetConsent(teamView)"><em>Asset Consent</em></button>
+                        <!-- added by anurag -->
+                        <button class="btn btn-sm btn-outline-primary mb-1" (click)="openHistoryTable(leaveHistoryModal,teamView);getAllLeavesByEmpId(teamView)"><i class="fa-solid fa-eye"></i>&nbsp;Leaves</button>
                       <!-- <button  class="btn btn-sm btn-outline-primary"  type="submit" (click)="forEnableAccount(revoke_template,teamView)"><em >Enable</em></button>  -->
+                      <button class="btn btn-sm btn-outline-primary ml-10" *ngIf="teamView.pipFlag=='false'" (click)="PIP_generate(pip_template,teamView)"><em><i class="fa-solid fa-flag"></i>&nbsp; PIP</em></button>
+
+                      <button class="btn btn-sm btn-danger ml-10" *ngIf="teamView.pipFlag=='true'" (click)="PIP_reverse_modal(pip_rev_template,teamView)"><em><i class="fa-solid fa-flag"></i>&nbsp; PIP</em></button>
+                      <button class="btn btn-sm btn-outline-success mt-10" (click)="pipReasonModal(pipReason_template,teamView)" *ngIf="teamView.pipFlag=='false'">
+                        <em><i class="fa-solid fa-backward"></i>&nbsp; Rev Reason</em>
+                      </button>
+                      <button class="btn btn-sm btn-outline-primary ml-10" *ngIf="teamView.pipFlag=='true'" (click)="extendPipModal(extend_template,teamView)"><em><i class="fa-solid fa-eye"></i>&nbsp;Extends PIP</em></button>
+
+                      <button class="btn btn-sm btn-outline-primary mt-10" (click)="pipReasonModal(pipReason_template,teamView)" *ngIf="teamView.pipFlag=='true'">
+                        <em><i class="fa-solid fa-fist-raised"></i>&nbsp; PIP Reason</em>
+                      </button>
                     </td>
                   </tr>
                   <tr *ngIf="showReporteeLeaveBalance && selectedDataIndex == i" class="bg-light border-bottom" >
@@ -713,4 +726,155 @@
       <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)" (click)="onUpdateRevokeLeaveStatus(alert_message,leaveObj,3)">Reject</button>&nbsp;
       <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
   </div>
+</ng-template>
+
+<ng-template #leaveHistoryModal>
+  <div class="modal-header" >
+    <h1 class="table-header-title">{{leaveObj.name}} Leaves History</h1>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+<div class="row" *ngIf="isLeavesHistory">
+  <div class="col-md-12">
+    <div class="selector-toggle" (click)="toggleLeaveHistorySearch()">
+      <a href="javascript:void(0)">
+          <i *ngIf="!isSearchLeaveHistoryEnabled" class="fa fa-search"></i>
+          <i *ngIf="isSearchLeaveHistoryEnabled" class="fa-solid fa-xmark"></i>
+      </a>
+  </div>
+<div class="modal-body"  style="overflow: scroll;">
+  <div class="container leave-history-table">
+    <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveHistoryTableId'" [tableTHeadId]="'leaveHistoryTableTHead'"
+                    [tableTHeadTrId]="'leaveHistoryTableTHeadTr'">
+    <table class="table leave_history_table">
+      <thead class="thead-light text-center">
+        <tr>
+          <th scope="col" style="min-width: 150px;">Sr no.</th>
+          <th scope="col">Name</th>
+          <th scope="col"style="min-width: 150px;">Leave Type</th>
+          <th scope="col"style="min-width: 150px;">From Date</th>
+          <th scope="col"style="min-width: 150px;">To Date</th>
+          <th scope="col"style="min-width: 150px;">No of days</th>
+          <th scope="col"style="min-width: 150px;">Created On</th>
+          <th scope="col" style="min-width: 150px;">Approver Name</th>
+          <th scope="col" style="min-width: 250px;">Manager Approval Status</th>
+          <th scope="col">Reason</th>
+          <th scope="col">Status</th>
+        </tr>
+        <tr app-column-filter-bar *ngIf="isLeavesHistory && isSearchLeaveHistoryEnabled" [columnList]="leaveHistoryColumns" (onSearch)="onLeaveSearch($event);pageNo=1" ></tr>
+      </thead>
+<tbody>
+  <tr *ngIf="leaveHistory.length == 0 || (leaveHistory| colFilter:leaveFilters:false).length == 0">
+    <th colspan="11" class="text-center info-label">No details to display...</th>
+</tr>
+  <tr class="text-center" *ngFor="let history of leaveHistory| colFilter:leaveFilters:false | paginate: { itemsPerPage: 10, currentPage: pageNo };let i = index">
+    <td>{{10*(pageNo-1)+i+1}}</td>
+    <td>{{history.createdByName}}</td>
+    <td>{{history.leaveType}}</td>
+    <td>{{history.fromDate}}</td>
+    <td>{{history.toDate}}</td>
+    <td>{{history.noOfDays}}</td>
+    <td>{{history.createdOn}}</td>
+    <td>{{history.approverName}}</td>
+    <td>{{history.managerApprovalStatus}}</td>
+    <td>{{history.reason}}</td>
+    <td>{{history.status}}</td>
+  </tr>
+</tbody>
+    </table>
+    </div>
+  </div>
+</div>
+  </div>
+</div>
+
+<div class="my-buttons">
+  <pagination-controls class="my-pagination" [hidden]="leaveHistory.length == 0" (pageChange)="handlePageChanges($event)"></pagination-controls>
+</div>
+
+
+</ng-template>
+
+<ng-template #pip_template>
+  <div class="modal-body text-center">
+    <p>Kindly provide reason(s) for PIP .</p>
+    <textarea rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.pipReason"> </textarea><br>
+    <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.pipReason)" (click)="PipGenerateToUser(alert_message,leaveObj,1);cancelRequest()">Send</button>&nbsp;
+    <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+</div>
+
+</ng-template>
+
+<ng-template #pip_rev_template>
+  <div class="modal-body text-center">
+    <p>Kindly provide reason(s) for Revert PIP .</p>
+    <textarea rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.revReason"> </textarea><br>
+    <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.revReason)" (click)="PIP_reverse(alert_message,leaveObj,0);cancelRequest()">Send</button>&nbsp;
+    <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+</div>
+</ng-template>
+
+<ng-template #pipReason_template>
+  <div class="modal-header" >
+    <h3 class="table-header-title">PIP Reasons</h3>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+<div class="row">
+  <div class="col-md-12">
+    <div class="modal-body">
+      <div class="container">
+        <table class="table table-pipReason">
+
+          <thead class="thead-light text-center">
+            <tr>
+              <th scope="col">Sr.No</th>
+              <th scope="col">Employee ID</th>
+              <th scope="col" *ngIf="!isPipFlag">REV Reason</th>
+              <th scope="col" *ngIf="isPipFlag">PIP Reason</th>
+              <th scope="col">Raised BY</th>
+              <th scope="col" *ngIf="isPipFlag">Created On</th>
+              <th scope="col" *ngIf="!isPipFlag">Updated on</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="pipReasons.length == 0">
+              <th colspan="11" class="text-center info-label">No details to display...</th>
+          </tr>
+          <tr class="text-center" *ngFor="let reason of pipReasons| paginate: { itemsPerPage: 10, currentPage: pageNo };let i = index">
+            <td>{{10*(pageNo-1)+i+1}}</td>
+            <td>{{reason.employeeName}}</td>
+            <td *ngIf="reason.pipFlag=='false'">{{reason.revReason}}</td>
+            <td *ngIf="reason.pipFlag=='true'">{{reason.pipReason}}</td>
+            <td *ngIf="reason.pipFlag=='true'">{{reason.createdByName}}</td>
+            <td *ngIf="reason.pipFlag=='false'">{{reason.updatedByName}}</td>
+            <td *ngIf="reason.pipFlag=='true'">{{reason.createdOn}}</td>
+            <td *ngIf="reason.pipFlag=='false'">{{reason.updatedOn}}</td>
+
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+</ng-template>
+
+<ng-template #extend_template>
+<div class="modal-header">
+  <h6>PIP Extend modal</h6>
+</div>
+<div class="row">
+  <div class="col-md-12">
+    <div class="modal-body">
+      <div class="container">
+        <input type="number" class="form-control" [(ngModel)]="leaveObj.extendDays"><br>
+        <button type="button" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.extendDays)" class="btn btn-sm btn-outline-primary" (click)="setPipExtendsDays(alert_message);cancelRequest()">&nbsp;Set Extend Days</button>
+      </div>
+      
+    </div>
+  </div>
+</div>
 </ng-template>

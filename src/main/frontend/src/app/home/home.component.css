@@ -355,5 +355,8 @@
 }
 
 .highlight {
-    background-color: rgb(171, 193, 253);
+    background-color: rgb(193, 207, 246);
+}
+.eye-img{
+    color: #193d8a;
 }

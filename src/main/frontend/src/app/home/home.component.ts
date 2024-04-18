@@ -86,7 +86,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   bulkLeaveReject: any = [];
   bulkCompOffApprove: any = [];
   bulkCompOffReject: any = [];
-  bulk
+  overLapsLeaveForManager : any = [];
 
 
   leaveObj = new Leave();
@@ -121,6 +121,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   empId: any;
   consentNotificationMessage: any;
   user: User = new User();
+  leaveApplication : any;
 
   leaveTypes: Leave[] = [];
   leaveBucketDetails: any[] = [];
@@ -307,6 +308,26 @@ export class HomeComponent implements OnInit, AfterViewInit {
     });
   }
 
+  onUpdateLeaveStatusCheck(template: TemplateRef<any>, updatedLeaveStatusId) {
+    this.cancelRequest();
+    // 1 = pending , 2 = Approved , 3= Rejected
+    this.leaveApplication.leaveStatusId = updatedLeaveStatusId;
+    this.leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
+    this.leaveApplication.rejectReason = this.leaveApplication.rejectReason?.trim();
+
+    console.log("leaveApplication : ", this.leaveApplication);
+
+    this.leaveService.updateLeaveStatus(this.leaveApplication).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
+        this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
   // single leave reject modal
   onSingleReject(template: TemplateRef<any>,) {
     this.leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
@@ -325,7 +346,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
-
+ 
 
   //comOff Applications
   getPendingCompOffRequestsByManagerId() {
@@ -1908,6 +1929,45 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.filters = searchData;
     console.log("Updated Filter : ", this.filters);
   }
+
+  // added by anurag
+  onUpdateLeave(template:TemplateRef<any>,leaveApplication){
+    console.log("leaveApplication ",leaveApplication);
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.leaveApplication = leaveApplication;
+    this.findOverLapsLeaveForManager();
+  }
+
+   active : boolean =false;
+  findOverLapsLeaveForManager(){
+    let leaveApp = new Leave();
+
+    const dateFormat = 'YYYY-MM-DD';
+
+    leaveApp.managerId = this.currentUser.empId;
+    leaveApp.empId = this.leaveApplication.empId;
+    // leaveApp.fromDate = moment(this.leaveApplication.fromDate).format(dateFormat);
+    // leaveApp.toDate = moment(this.leaveApplication.toDate).format(dateFormat);
+
+    leaveApp.fromDate = this.leaveApplication.fromDate;
+    leaveApp.toDate = this.leaveApplication.toDate;
+    leaveApp.status = this.leaveApplication.status;
+
+    console.log(leaveApp);
+this.overLapsLeaveForManager=[];
+
+this.leaveService.getOverLapsLeaveForManager(leaveApp).pipe(first()).subscribe((response : any)=>{
+  if(response.serviceStatus == "Success"){
+    this.overLapsLeaveForManager = response.serviceResponse;
+
+    console.log("this.getOverLapsLeaveForManager ",this.overLapsLeaveForManager);
+  }
+})
+
+
+  }
+
+
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

@@ -938,7 +938,8 @@ export class TeamConfigComponent implements OnInit {
     this.teamLeadsList = [];
     let employeeList = [];
 
-    this.employeeObj.role = "TeamLead";
+    // this.employeeObj.role = "TeamLead";
+    this.employeeObj.role = this.currentUser.employeeRole;
     this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         employeeList = response.serviceResponse;

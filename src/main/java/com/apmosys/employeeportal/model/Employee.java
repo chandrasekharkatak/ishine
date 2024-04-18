@@ -172,4 +172,7 @@ public class Employee {
 	private Long designationId;
 	
 	private String employmentReleaseStatus;
+	
+	private boolean pipFlag = false;
+	private Long pipId;
 }

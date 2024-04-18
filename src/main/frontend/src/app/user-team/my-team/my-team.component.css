@@ -61,3 +61,11 @@
     word-wrap: break-word;
     min-width: 300px;
 }
+
+.ml-10{
+    margin-left: 10px !important;
+}
+
+.mt-10{
+    margin-left: 10px !important;
+}

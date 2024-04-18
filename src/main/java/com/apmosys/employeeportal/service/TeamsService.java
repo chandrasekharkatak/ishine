@@ -1145,10 +1145,10 @@ public class TeamsService {
 					dto.setEmployeementId(object[6] != null ? Long.parseLong(object[6].toString()): null);
 					dto.setInvalidAccessAttempt(object[7] != null ? Integer.parseInt(object[7].toString()): null);
 					dto.setIsTimesheetLockCheckEnable(object[8] != null ? object[8].toString(): null);
-					dto.setEmploymentstatus(object[9] != null ? object[9].toString(): null);
-					
+					dto.setEmploymentstatus(object[9] != null ? object[9].toString(): null);				
 					LocalDate dateOfRelieving = object[10] != null ? LocalDate.parse(object[10].toString()) : null;
-					
+					dto.setPipFlag(object[11] != null ? object[11].toString() : null);
+					dto.setPipId(object[12] != null ? Long.parseLong(object[12].toString()) : null);				
 					if(dateOfRelieving != null && dateOfRelieving.isEqual(LocalDate.now())) {
 						dto.setIsDateOfRelievingToday("true");
 					}else {

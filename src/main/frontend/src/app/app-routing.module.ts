@@ -52,6 +52,7 @@ import { DomainConfigComponent } from './configuration/domain-config/domain-conf
 import { UserReleasenotesComponent } from './user-releasenotes/user-releasenotes.component';
 import { NewsletterComponent } from './newsletter/newsletter.component';
 import { NewsletterConfigComponent } from './configuration/newsletter-config/newsletter-config.component';
+import { DocumentComponent } from './configuration/document/document.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -80,6 +81,7 @@ const routes: Routes = [
       { path: 'on-boarding', component: OnBoardingComponent, },
       { path: 'designation', component: DesignationConfigComponent, },
       { path: 'newsletter', component: NewsletterConfigComponent, },
+      { path: 'document', component: DocumentComponent}
       // { path: 'project-config', component: ProjectConfigComponent, },
     ]
   },

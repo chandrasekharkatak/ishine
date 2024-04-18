@@ -14,7 +14,12 @@
                   </div>
                   <div class="summary-body ml-4">
                     <p class="eventname " style="text-align:left; font-weight: bold; font-size: x-large;">{{appreciationEventInfo.appreciationEventName}}</p>
-                    <p class="date"  style="text-align: left;">{{appreciationEventInfo.fromDate}}-{{appreciationEventInfo.toDate}}</p>
+                    <div class="row">
+                      <p class="date"  style="text-align: left; font-weight: bolder; color: #193d8a;"><b style="margin-right: 10px;">From Date</b>{{appreciationEventInfo.fromDate}}</p>
+                      <!-- {{appreciationEventInfo.toDate}} -->
+                      <p class="date"  style="text-align: left; font-weight: bolder; color: #193d8a; margin-left: 50px;"><b style="margin-right: 10px;">To Date</b>{{appreciationEventInfo.toDate}}</p>
+                    </div>
+                    
                     <table class="table table-borderless summary-table">
                       <thead>
                         <tr class="summary-table-head">
@@ -22,14 +27,14 @@
                                 <div class="card border-dark" style="width: 27rem; height: 7rem; border-radius: 0.5cm;">
                                     <h1><span class="badge" style="font-size: larger;">{{countSent}}</span></h1>
                                     <p class="card-text ml-2 " style=" font-size: smaller; font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; padding:0px;">Appreciation Sent</p>
-                                    <button class="btn btn-success btn-sm" (click)="toggleFunctionforsent()" style=" margin-left: 21rem; margin-top: -3rem; height: 2rem; width: 5rem;font-size: small; padding: 0px;">View More</button>
+                                    <button class="btn btn-outline-primary btn-sm" (click)="toggleFunctionforsent()" [ngClass]="{'active' : sent}" style=" margin-left: 21rem; margin-top: -3rem; height: 2rem; width: 5rem;font-size: small; padding: 0px;">View More</button>
                                 </div>
                             </th>
                             <th scope="col">
                                 <div class="card border-dark" style="width: 27rem; height: 7rem; border-radius: 0.5cm; margin-left: 10rem;">
                                     <h1><span class="badge" style="font-size: larger;">{{countRecieved}}</span></h1>
                                     <p class="card-text ml-2" style="font-size: smaller; font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; padding: 0px;">Appreciation Recieved</p>
-                                    <button class="btn btn-success btn-sm" (click)="toggleFunctionforreceived()" style=" margin-left: 21rem; margin-top: -3rem; height: 2rem; width: 5rem;font-size: small; padding: 0px;">View More</button>
+                                    <button class="btn btn-outline-primary btn-sm" [ngClass]="{'active' : recieve}" (click)="toggleFunctionforreceived()" style=" margin-left: 21rem; margin-top: -3rem; height: 2rem; width: 5rem;font-size: small; padding: 0px;">View More</button>
                                 </div>
                             </th>
                         </tr>

@@ -27,6 +27,7 @@ import { DomainService } from 'src/app/services/domain.service';
 import { Query } from 'src/app/models/query';
 import { DestinationService } from 'src/app/services/destination.service';
 import { Designation } from 'src/app/models/designation';
+import { LeaveService } from 'src/app/services/leave.service';
 class FilterData {
   title: any;
   columns: any;
@@ -159,6 +160,10 @@ export class EmployeeConfigComponent implements OnInit {
   yearOfPassingList:any[] = [];
   revoke_template: any;
 
+  isPipGenerate : boolean = false;
+  pipReasons : any =[];
+  isPipFlag : boolean = false;
+
   previewObj:Employee = new Employee();
   previewEmployeeObj:Employee = new Employee();
   errorMsg:any;
@@ -206,7 +211,8 @@ export class EmployeeConfigComponent implements OnInit {
     private utilityService:UtilityService,
     private locationStrategy:LocationStrategy,
     private domainService:DomainService,
-    private destinationService:DestinationService) {
+    private destinationService:DestinationService,
+    private leaveService : LeaveService) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -874,7 +880,7 @@ export class EmployeeConfigComponent implements OnInit {
     }
     //  added by anurag
    
-    if(!this.managerFlag){
+    if(!this.managerFlag && !this.isCreation){
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.updateType)){
       this.alertMessage = "Please select Mapping Update Type !!"
       this.openAlertMod(template, this.alertMessage);
@@ -2444,6 +2450,8 @@ console.log("Anurag call update method  ::  ",employee);
     let queryObj = new Query();
     queryObj.queryList = queryObjList;
 
+    console.log("getCustomEmployeesList       ",queryObj);
+
     if (queryObjList == '') {
       this.getAllEmployeeList();
     } else {
@@ -2786,7 +2794,7 @@ console.log("this.listOfDepartment        ",this.listOfDepartment    );
         if(response.serviceStatus == "Success"){
           this.TeamMemberList = response.serviceResponse;
           this.getManagersList();
-          this.employeeObj.managerId = '';
+          // this.employeeObj.managerId = '';
           console.log(" teamMember list   ",this.TeamMemberList)
         }
       })
@@ -2814,6 +2822,8 @@ console.log("this.listOfDepartment        ",this.listOfDepartment    );
       employee.managerId = this.managerId;
       this.employeeService.setManagerToNewManager(emp).pipe(first()).subscribe((response :any)=>{
         if(response.serviceStatus == "Success"){
+          console.log(" teamName after manager changes done ",this.employeeObj.teamName)
+          this.getTeamMemberByTeamName(this.employeeObj.teamName);
           this.openAlertMod(template," Employee's Manager has changed !!");
           console.log(" Manager update ")
         }
@@ -2828,13 +2838,160 @@ console.log("this.listOfDepartment        ",this.listOfDepartment    );
 
 
     }
-
+    resetField_OnChange(updateType){
+      updateType.employmentReleaseStatus = "";
+      updateType.newManagerId = "";
+      this.employeeObj.newManagerId ='';
+    }
     resetFieldOnChange(updateType){
-      // updateType.employmentstatus = "";
-    }
+      updateType.employmentstatus = "";
+      updateType.newManagerId = "";
+      this.employeeObj.newManagerId ='';
+  }
     resetField(updateType){
-      // updateType.newManagerId = "";
+      // updateType.employmentReleaseStatus = "";
+      updateType.newManagerId = "";
+      this.employeeObj.newManagerId ='';
     }
+
+// added by anurag 
+
+    mapLeavesAndCompOffToNewManager(employee){
+      console.log(" employee   ",employee);
+      console.log(" pre employee ",this.employeeObj.managerId);
+      let emp = new Employee();
+      emp.empId=employee.empId;
+      emp.managerId=employee.managerId;
+
+      this.employeeService.mapLeavesAndCompOffToNewManager(emp).pipe(first()).subscribe((response:any)=>{
+        if(response.serviceStatus == "Success"){
+          console.log(" method successfully call ")
+        }
+      })
+    }
+
+    //  added by anuarg
+
+PIP_generate(template:TemplateRef<any>, employee){
+  this.isPipGenerate = true;
+  this.modalRef=this.modalService.show(template , { class : 'modal-sm'});
+  this.employeeObj = employee;
+  }
+  
+  PIP_reverse_modal(template:TemplateRef<any> , team){
+    this.isPipGenerate = false;
+  this.modalRef=this.modalService.show(template , { class : 'modal-sm'});
+  this.employeeObj = team;
+  }
+  
+  
+  PIP_reverse(template:TemplateRef<any>,teamObj,flag){
+    this.isPipGenerate = false;
+    console.log(teamObj);
+    let empObj = new Employee();
+    empObj.pipFlag = flag;
+    empObj.pipId = teamObj.pipId;
+    empObj.empId = teamObj.empId;
+    empObj.updatedBy = this.currentUser.empId;
+    empObj.updatedByName = this.currentUser.name;
+    empObj.revReason = teamObj.revReason;
+  
+    this.employeeService.pipReturnFromUser(empObj).pipe(first()).subscribe((response : any)=>{
+      if(response.serviceStatus == "Success"){
+        this.openAlertMod(template,response.serviceResponse);
+        this.getAllEmployeeList();
+      }else{
+        this.openAlertMod(template,response.serviceResponse);
+      }
+    })
+  }
+  
+  PipGenerateToUser(template: TemplateRef<any>,leaveObj,flag){
+    console.log(" leaveObj   ",leaveObj);
+    let emp = new Employee();
+    emp.empId = leaveObj.empId;
+    emp.pipReason = leaveObj.pipReason;
+    emp.pipFlag = flag;
+    emp.createdBy = this.currentUser.empId;
+    emp.createdByName = this.currentUser.name;
+  
+    console.log(emp);
+    this.employeeService.pipGenerateToUser(emp).pipe(first()).subscribe((response : any)=>{
+      if(response.serviceStatus == "Success"){
+        this.openAlertMod(template,response.serviceResponse);
+        this.getAllEmployeeList();
+      }else{
+        this.openAlertMod(template,response.serviceResponse);
+      }
+    })
+  }
+  
+  pipReason(teamObj){
+    let empObj = new Employee();
+  
+    empObj.empId = teamObj.empId;
+    empObj.pipId = teamObj.pipId;
+    empObj.pipFlag = teamObj.pipFlag;
+  
+  
+  this.employeeService.getPipReasons(empObj).pipe(first()).subscribe((response : any)=>{
+    if(response.serviceStatus == "Success"){
+      this.pipReasons = response.serviceResponse;
+      if(this.pipReasons.length == 0){
+        if(this.employeeObj.pipFlag == "true") this.isPipFlag=true;
+        else this.isPipFlag=false;
+      }
+      this.pipReasons.forEach(d=>{
+        d.createdOn = moment(d.createdOn).format(AppComponent.DATE_FORMAT);
+        d.updatedOn = moment(d.updatedOn).format(AppComponent.DATE_FORMAT);
+        console.log(" d ki value ",d)
+        if(d.pipFlag == "true"){
+          console.log("i am in true flag")
+          this.isPipFlag = true;
+        }else{
+          console.log(" I'm in false flag")
+          this.isPipFlag = false;
+        }
+      })
+      console.log("this.pipReasons  ",this.pipReasons);  
+    }
+  })
+    console.log(" team ",empObj);
+    console.log(empObj,"teamteamteamteam")
+  }
+  
+  pipReasonModal(template:TemplateRef<any>,teamObj){
+    this.modalRef=this.modalService.show(template , { class : 'modal-lg'});
+  this.employeeObj = teamObj;
+  this.pipReason(this.employeeObj);
+  }
+  
+  extendPipModal(template : TemplateRef<any> , teamObj){
+    this.modalRef=this.modalService.show(template , { class : 'modal-sm'});
+    this.employeeObj = teamObj;
+  }
+  
+  setPipExtendsDays(template:TemplateRef<any>){
+    console.log("team in set extend modal",this.employeeObj)
+    let leave = new Employee();
+    leave.pipId = this.employeeObj.pipId;
+    leave.empId = this.employeeObj.empId;
+    leave.updatedByName = this.currentUser.name;
+    leave.extendDays = this.employeeObj.extendDays;
+  
+    this.employeeService.setExtendPeriodByPipId(leave).pipe(first()).subscribe((response : any)=>{
+      if(response.serviceStatus == "Success"){
+        this.openAlertMod(template,response.serviceResponse);
+  
+      }else{
+        this.openAlertMod(template,response.serviceResponse);
+      }
+    })
+  
+  }
+  
+
+
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);

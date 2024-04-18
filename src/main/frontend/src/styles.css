@@ -237,3 +237,11 @@ body {
     background-color: var(--dark-cornflower-blue);
     color: white;
 }
+
+.mt10{
+    margin-top: 10px !important;
+}
+
+.mt5{
+    margin-top: 5px !important;
+}

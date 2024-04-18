@@ -96,7 +96,7 @@ export class AuthenticationService {
 
   startUserSessionCheck() {
     sessionStorage.setItem('sessioncheck', 'true');
-    this.sessionSubscription = timer(0,20000).subscribe(() =>  {
+    this.sessionSubscription = timer(0,10000).subscribe(() =>  {
       this.checkSession();
     });
   }

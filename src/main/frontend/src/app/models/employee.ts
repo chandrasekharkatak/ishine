@@ -170,5 +170,10 @@ export class Employee{
 	employmentReleaseStatus:any;
 	// added by anurag 
 	updateType: any;
+	pipReason : any;
+	pipFlag : any;
+	pipId: any;
+	revReason: any;
+	extendDays : any;
 
 }

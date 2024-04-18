@@ -187,6 +187,15 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}`+`api/bulkCompOffApprove`,
     `${this.baseUrl}`+`api/getTeamListByProjectName`,
 
+
+
+    // added by anurag 
+    `${this.baseUrl}`+`api/deleteType`,
+    `${this.baseUrl}`+`api/updateType`,
+    `${this.baseUrl}`+`api/getAllTypeName`,
+    `${this.baseUrl}`+`api/newsletters/getDocumentByType`,
+    `${this.baseUrl}`+`api/newsletters/customQueryForDocument`,
+    `${this.baseUrl}` + `api/pipGenerateToUser`,
   ]
 
   constructor(private loaderService: LoaderService) { }
