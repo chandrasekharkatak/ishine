@@ -1,0 +1,186 @@
+<div class="row mb-3">
+    <div class="col-md-12 px-0">
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.non_published" [ngClass]="{'active' : isCreateQueryForm}" (click)="showCreateQueryForm()">Create Query</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.non_published" [ngClass]="{'active' : isNonPublishedTable}" (click)="showNonPublishedQueryTable()">Non Published</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1"  *ngIf="userMapping.published" [ngClass]="{'active' : isPublishedTable}" (click)="showPublishedTable()">Published</button>
+    </div>
+</div>
+
+<div class="row" *ngIf="isNonPublishedTable">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+              <h1 class="table-header-title">Non Published Query</h1>
+            </div>
+          </div>
+      
+          <div class="row col-md-12">
+            <div class="overflow-auto">
+                <table class="table table-responsive" style="border-collapse: collapse;">
+                    <thead class="thead-light">
+                        <tr>
+                            <th scope="col" class="query-name">Sr No</th>
+                            <th scope="col" class="query-name">Query Name</th>
+                            <th scope="col" class="query-master">Query</th>
+                            <th scope="col" class="query-name">Created By</th>
+                            <th scope="col" class="query-name">Created on</th>
+                            <!-- <th scope="col" class="query-name">Updated By</th>
+                            <th scope="col" class="query-name">Updated on</th> -->
+                            <th scope="col" class="query-name">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngIf="nonPublishedList && nonPublishedList.length == 0 || (nonPublishedList | colFilter:filters:false).length == 0">
+                            <th colspan="5" class="text-center info-label">No Files to display...</th>
+                        </tr>
+                        <tr *ngFor="let query of nonPublishedList | colFilter:filters:false | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
+                            <th class="info-label">{{10*(page-1)+i+1}}</th>
+                            <td>{{query.queryName}}</td>
+                            <td>{{query.query}}</td>
+                            <td>{{query.createdByName}}</td>
+                            <td>{{query.createdOn}}</td>
+                            <td>
+                                <button class="btn btn-outline-primary btn-sm" (click)="publishQuery(query,alert_message)">Publish</button>&nbsp;
+                                <button class="btn btn-outline-danger btn-sm" (click)="deleteQuery(query,alert_message)"><em class="fa fa-trash"></em></button>
+                                <button class="btn btn-outline-primary btn-sm mt5 " (click)="openPreviewModal(preview_modal_template , query)"><em class="fa fa-eye"></em></button>
+                                <button class="btn btn-outline-primary btn-sm mt5" (click)="showUpdateForm(query)"><em class="fa fa-edit"></em></button>
+                            </td>
+                        </tr>
+                    </tbody>
+
+                </table>
+                <pagination-controls class="my-pagination" [hidden]="nonPublishedList.length == 0"
+                (pageChange)="handlePageChange($event)"></pagination-controls>
+            </div>
+          </div>
+
+    </div>
+</div>
+
+<!-- createQueryForm -->
+
+<div class="card col-md-8 offset-md-2 px-0" *ngIf="isCreateQueryForm || isUpdateQueryForm">
+    <div class="card-header text-center text-uppercase">
+        <strong>Query Form</strong>
+    </div>
+    <div class="card-body">
+        <div class="col-md-4 mb-0">
+            <div class="info-wrapper">
+                <div class="form-group">
+                    <label class="info-label"><span class="text-danger">*</span>Query name</label>
+                    <input type="text" placeholder="Enter Query name" [(ngModel)]="queryObj.queryName" class="form-control"  maxlength="50" autocomplete="off" >
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-0">
+            <div class="info-wrapper">
+                <div class="form-group">
+                    <label class="info-lable"><span class="text-danger">*</span>Query</label>
+                    <textarea name="" id="" class="text-area" [(ngModel)]="queryObj.query" cols="50" rows="10"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <button class="btn btn-outline-primary btn-sm mb-0" *ngIf="isCreateQueryForm" (click)="createQuery(queryObj,alert_message)">Create Query</button>&nbsp;
+                <button class="btn btn-outline-primary btn-sm mb-0" *ngIf="isUpdateQueryForm" (click)="updateQuery(queryObj,alert_message)">Update Query</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- published -->
+
+<div class="row" *ngIf="isPublishedTable">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+              <h1 class="table-header-title">Published Query</h1>
+            </div>
+          </div>
+      
+          <div class="row col-md-12">
+            <div class="overflow-auto">
+                <table class="table table-responsive" style="border-collapse: collapse;">
+                    <thead class="thead-light">
+                        <tr>
+                            <th scope="col" class="query-name">Sr No</th>
+                            <th scope="col" class="query-name">Query Name</th>
+                            <th scope="col" class="query-master">Query</th>
+                            <th scope="col" class="query-name">Created By</th>
+                            <th scope="col" class="query-name">Created on</th>
+                            <th scope="col" class="query-name">Updated By</th>
+                            <th scope="col" class="query-name">Updated on</th> 
+                            <!-- <th scope="col" class="query-name">Action</th> -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngIf="PublishedList && PublishedList.length == 0 || (PublishedList | colFilter:filters:false).length == 0">
+                            <th colspan="5" class="text-center info-label">No Files to display...</th>
+                        </tr>
+                        <tr *ngFor="let query of PublishedList | colFilter:filters:false | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
+                            <th class="info-label">{{10*(page-1)+i+1}}</th>
+                            <td>{{query.queryName}}</td>
+                            <td>{{query.query}}</td>
+                            <td>{{query.createdByName}}</td>
+                            <td>{{query.createdOn}}</td>
+                            <td>{{query.updatedByName}}</td>
+                            <td>{{query.updatedOn}}</td>
+                            <!-- <td>
+                                <button class="btn btn-outline-primary btn-sm" (click)="publishQuery(query,alert_message)">Publish</button>&nbsp;
+                                <button class="btn btn-outline-danger btn-sm" (click)="deleteQuery(query,alert_message)"><em class="fa fa-trash"></em></button>&nbsp;
+                                <button class="btn btn-outline-primary btn-sm mt5" (click)="openPreviewModal(preview_modal_template , query)"><em class="fa fa-eye"></em></button>&nbsp;
+                                <button class="btn btn-outline-primary btn-sm mt5" (click)="showUpdateForm(query)"><em class="fa fa-edit"></em></button>
+                            </td> -->
+                        </tr>
+                    </tbody>
+
+                </table>
+                <pagination-controls class="my-pagination" [hidden]="PublishedList.length == 0"
+                (pageChange)="handlePageChange($event)"></pagination-controls>
+            </div>
+          </div>
+
+    </div>
+</div>
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+  </ng-template>
+
+  <ng-template #preview_modal_template>
+    <div class="card">
+        <div class="row">
+            <div class="card-header text-center text-uppercase col-md-12">
+                <h1>Query Results</h1>
+            </div>
+            <div class="card-body" style="overflow-x: auto;">
+                <table class="table table-responsive">
+                    <thead class="thead-light">
+                        <tr>
+                            <th scope="col">Sr No</th>
+                            <th *ngFor="let header of headers">{{ header }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngIf="previewQueryResult && previewQueryResult.length == 0 || (previewQueryResult | colFilter:filters:false).length == 0">
+                            <th colspan="5" class="text-center info-label">No Files to display...</th>
+                        </tr>
+                        <tr *ngFor="let row of previewQueryResult | colFilter:filters:false | paginate: { itemsPerPage: 10, currentPage: pageNo }, let i = index">
+                            <td>{{ 10 * (page - 1) + i + 1 }}</td> 
+                            <td *ngFor="let cell of row">{{ cell }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <pagination-controls class="my-pagination" [hidden]="previewQueryResult.length == 0"
+                (pageChange)="handlePageChanges($event)"></pagination-controls>
+            </div>
+        </div>
+    </div>
+
+  </ng-template>

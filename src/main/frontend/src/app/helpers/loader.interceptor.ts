@@ -196,6 +196,14 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}`+`api/newsletters/getDocumentByType`,
     `${this.baseUrl}`+`api/newsletters/customQueryForDocument`,
     `${this.baseUrl}` + `api/pipGenerateToUser`,
+    // query/createQuery
+    `${this.baseUrl}` + `api/query/createQuery`,
+    `${this.baseUrl}` + `api/query/getNonPublishedQuery`,
+    `${this.baseUrl}` + `api/query/getQueryDataForPreview`,
+    `${this.baseUrl}` + `api/query/getQueryDetailsByQueryId`,
+    `${this.baseUrl}` + `api/query/updateQuery`,
+    `${this.baseUrl}` + `api/query/deleteQuery`,
+
   ]
 
   constructor(private loaderService: LoaderService) { }

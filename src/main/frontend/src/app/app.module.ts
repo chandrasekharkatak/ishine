@@ -92,6 +92,7 @@ import { UserReleasenotesComponent } from './user-releasenotes/user-releasenotes
 import { NewsletterComponent } from './newsletter/newsletter.component';
 import { NewsletterConfigComponent } from './configuration/newsletter-config/newsletter-config.component';
 import { DocumentComponent } from './configuration/document/document.component';
+import { QueryMasterComponent } from './user-report/query-master/query-master/query-master.component';
 
 @NgModule({
   declarations: [
@@ -157,7 +158,8 @@ import { DocumentComponent } from './configuration/document/document.component';
     UserReleasenotesComponent,
     NewsletterComponent,
     NewsletterConfigComponent,
-    DocumentComponent
+    DocumentComponent,
+    QueryMasterComponent
   ],
   imports: [
     BrowserModule,
