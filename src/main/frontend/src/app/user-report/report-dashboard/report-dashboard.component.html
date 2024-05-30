@@ -396,6 +396,10 @@
                         <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department Name</th>
                         <th scope="col" class="info-label wide-col" mat-sort-header="email|string">Email Id</th>
                         <th scope="col" class="info-label wide-col" mat-sort-header="managerName|string">Manager Name</th>
+
+                        <th scope="col" class="info-label wide-col" mat-sort-header="billable|string">Billable</th>
+                        <th scope="col" class="info-label wide-col" mat-sort-header="billableType|string">Billable Type</th>
+
                         <th scope="col" class="info-label wide-col" mat-sort-header="dateOfJoining|date">Date Of Joining</th>
                         <th scope="col" class="info-label wide-col" mat-sort-header="mobileNo|number">Mobile No.</th>
                         <th scope="col" class="info-label wide-col" mat-sort-header="employmentstatus|string">Status</th>
@@ -417,6 +421,10 @@
                         <td class="text-capitalize">{{leave.departmentName}}</td>
                         <td>{{leave.email}}</td>
                         <td class="text-capitalize" >{{leave.managerName}}</td>
+
+                        <td>{{leave.billable}}</td>
+                        <td>{{leave.billableType}}</td>
+
                         <td>{{leave.dateOfJoining}}</td>
                         <td>{{leave.mobileNo}}</td>
                         <td class="text-capitalize" >{{leave.employmentstatus}}</td>

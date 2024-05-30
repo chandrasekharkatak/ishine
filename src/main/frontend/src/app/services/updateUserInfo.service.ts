@@ -40,7 +40,7 @@ export class UpdateUserInfoService {
         this.userInfoObj = new Employee();
         let currentEmp = new Employee();
         currentEmp.empId = this.currentUser.empId;
-        console.log("currentEmp : ", currentEmp);
+        //console.log("currentEmp : ", currentEmp);
         
         this.employeeService.getEmployeeByEmpId(currentEmp).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus == "Success") {
@@ -52,7 +52,7 @@ export class UpdateUserInfoService {
                 this.userInfoObj.previousEmploymentList && this.userInfoObj.previousEmploymentList.forEach((previousEmployer:PreviousEmployer) => previousEmployer.previousEmploymentId = null);
             }
 
-            console.log("userInfoObj : ", this.userInfoObj);
+            //console.log("userInfoObj : ", this.userInfoObj);
             this.updateduserInfoObj.emit(this.userInfoObj);
           } else {
             console.error(response.serviceResponse);
@@ -73,7 +73,7 @@ export class UpdateUserInfoService {
         let response:any;
 
         this.userInfoObj.isDraft = true;
-        console.log("saveEmployeeInfo : ", this.userInfoObj);
+        //console.log("saveEmployeeInfo : ", this.userInfoObj);
 
         if (this.userInfoObj.updateApplicationStatus == "In-Progress") {
             
@@ -90,7 +90,7 @@ export class UpdateUserInfoService {
         this.userInfoObj.updatedBy = this.currentUser.empId;
         this.userInfoObj.isDraft = true;
         this.userInfoObj.updateApplicationStatus = "Pending For Approval";
-        console.log("updateEmployeeInfo : ", this.userInfoObj);
+        //console.log("updateEmployeeInfo : ", this.userInfoObj);
         return await this.employeeService.updateDraftStatusById(this.userInfoObj).toPromise();
     }
 
@@ -104,7 +104,7 @@ export class UpdateUserInfoService {
         const response:any = await this.employeeService.getDraftEmployeeByEmploymentId(currentEmp).toPromise();
         if (response.serviceStatus == "Success") {
             draftObj = response.serviceResponse;
-            console.log("draftObj : ", draftObj);
+            //console.log("draftObj : ", draftObj);
         } else {
             console.error(response.serviceResponse)
         }

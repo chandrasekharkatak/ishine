@@ -132,6 +132,9 @@ public class TeamsService {
 	@Value("${hr.mail}")
 	private String hrMailAddress;
 	
+	@Value("${valid.attempt}")
+	private Integer failedAttempt;
+	
 	@Autowired
 	LeaveTypeMasterRepository leaveTypeMasterRepository;
 	
@@ -1148,7 +1151,8 @@ public class TeamsService {
 					dto.setEmploymentstatus(object[9] != null ? object[9].toString(): null);				
 					LocalDate dateOfRelieving = object[10] != null ? LocalDate.parse(object[10].toString()) : null;
 					dto.setPipFlag(object[11] != null ? object[11].toString() : null);
-					dto.setPipId(object[12] != null ? Long.parseLong(object[12].toString()) : null);				
+					dto.setPipId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
+					dto.setFailedAttempt(failedAttempt);
 					if(dateOfRelieving != null && dateOfRelieving.isEqual(LocalDate.now())) {
 						dto.setIsDateOfRelievingToday("true");
 					}else {

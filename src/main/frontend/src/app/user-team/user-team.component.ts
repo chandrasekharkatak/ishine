@@ -25,8 +25,8 @@ export class UserTeamComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    console.log("this.currentUser : ", this.currentUser);
-    console.log("Mapped Features : ", this.currentUser.userMapping.filter(userMap => userMap.tabName == this.tabName));
+    //console.log("this.currentUser : ", this.currentUser);
+    //console.log("Mapped Features : ", this.currentUser.userMapping.filter(userMap => userMap.tabName == this.tabName));
     
 
     // Dynamic feature Flags 
@@ -37,7 +37,7 @@ export class UserTeamComponent implements OnInit {
       });
       this.userMapping[feat.featureName.replaceAll(' ', '_').toLowerCase()] = (inActiveSubfeatures.length === feat.subFeatures.length) ? false : true;
     });
-    console.log(this.tabName, this.userMapping);
+    //console.log(this.tabName, this.userMapping);
 
     this.projectId = this.router.url.split("/")[3];
   }
@@ -70,7 +70,7 @@ export class UserTeamComponent implements OnInit {
       this.router.navigate(['./'+activeRouteLink, this.projectId], {relativeTo: this.route});
     }else{
       const tab = document.getElementById('teamTab').querySelector('.nav-link');
-      console.log(tab);
+      //console.log(tab);
 
       tab.classList.add('active');
 
@@ -81,7 +81,7 @@ export class UserTeamComponent implements OnInit {
 
   removeActiveTab(){
     const tab = document.getElementById('teamTab').querySelector('.nav-link.active');
-    console.log("active tab :", tab);
+    //console.log("active tab :", tab);
     tab?.classList.remove('active');
   }
 

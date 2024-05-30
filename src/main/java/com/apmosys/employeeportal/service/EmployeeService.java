@@ -442,6 +442,7 @@ public class EmployeeService {
 			employee.setChild2(employeedto.getChild2());
 			employee.setChild3(employeedto.getChild3());
 			employee.setBillable(employeedto.getBillable());
+			employee.setBillableType(employeedto.getBillableType());
 			employee.setIsTimesheetLockCheckEnable("true");
 			employee.setDesignationId(employeedto.getDesignationId());
 
@@ -1026,7 +1027,7 @@ public class EmployeeService {
 					empDTO.setDesignationId(object[67] != null ? Long.parseLong(object[67].toString()) : null);
 					empDTO.setDesignationName(object[68] != null ? object[68].toString() : null);
 					empDTO.setEmploymentReleaseStatus(object[69] != null ? object[69].toString() : null);
-					
+					empDTO.setBillableType(object[70] != null ? object[70].toString() : null);
 					if (object[42] != null) {
 
 						File actualFile = new File(
@@ -1326,62 +1327,66 @@ public class EmployeeService {
 							? stringToDateTimeParser.getDate(employeedto.getDateOfResign(), "yyyy-MM-dd")
 							: null);
 					
-					if(employeedto.getUpdateType().equals("automatic")){
-						for(Employee emp : listOfReporties) {
-							emp.setManagerId(employeedto.getNewManagerId());
-							listOfEmp.add(emp);
-							System.err.println(" Manager mapping done ");
-							
-						}
-						
-//						get compOff leaves 
-						
-						Optional<List<CompOffLeave>> findListOfCompOff = compOffLeaveRepository.findCompOffByEmpId(employeedto.getEmpId());
-						
-						if(findListOfCompOff.isPresent()) {
-							List<CompOffLeave> findCompOffs = findListOfCompOff.get();
-							
-							for (CompOffLeave compOff : findCompOffs) {
-								System.out.println(" compOff Id     ::   \n"+compOff.getCompOffLeaveId());
-								compOff.setManagerId(Math.toIntExact(employeedto.getNewManagerId()));
+					if(employeedto.getUpdateType() != null) {
+						if(employeedto.getUpdateType().equals("automatic") && (!employeedto.getEmploymentstatus().equals("Resigned")) ) {
+							for(Employee emp : listOfReporties) {
+								emp.setManagerId(employeedto.getNewManagerId());
+								listOfEmp.add(emp);
+								System.err.println(" Manager mapping done ");
 								
-								compOffLeaveRepository.save(compOff);	
 							}
-						}
-						
-//						get leaves 
-						
-						Optional<List<EmployeeLeave>> findListOfLeaves = employeeLeaveRepository.findLeaveByManagerId(employeedto.getEmpId());
-						System.err.println(" findListOfLeaves    "+findListOfLeaves);
-						if(findListOfLeaves.isPresent()) {
-							List<EmployeeLeave> findLeaves = findListOfLeaves.get();
 							
-						for (EmployeeLeave empLeaves : findLeaves) {
-							System.out.println( " leavesId   ::   \n"+empLeaves.getLeaveId());
-							empLeaves.setManagerId(Math.toIntExact(employeedto.getNewManagerId()));
-							employeeLeaveRepository.save(empLeaves);
+//							get compOff leaves 
 							
-						}
-					}						
-						
-						// department HOD 
-						
-						Optional<List<Department>> findDept = Optional.ofNullable(departmentRepository.findByHodId(employeedto.getEmpId()));
-						if(findDept.isPresent() && !findDept.isEmpty()) {
-							System.err.println(" department update call ");
-							List<Department> listOfDept = findDept.get();
-							int count =0;
-							for (Department department : listOfDept) {
-								department.setHodId(employeedto.getNewManagerId());
-								departmentRepository.save(department);
-								count = count+1;
+							Optional<List<CompOffLeave>> findListOfCompOff = compOffLeaveRepository.findCompOffByEmpId(employeedto.getEmpId());
+							
+							if(findListOfCompOff.isPresent()) {
+								List<CompOffLeave> findCompOffs = findListOfCompOff.get();
+								
+								for (CompOffLeave compOff : findCompOffs) {
+									System.out.println(" compOff Id     ::   \n"+compOff.getCompOffLeaveId());
+									compOff.setManagerId(Math.toIntExact(employeedto.getNewManagerId()));
+									
+									compOffLeaveRepository.save(compOff);	
+								}
 							}
-							System.err.println(" count total "+count);
-						}
-						
-						
-						employeeRepository.saveAll(listOfEmp);
-						}	
+							
+//							get leaves 
+							
+							Optional<List<EmployeeLeave>> findListOfLeaves = employeeLeaveRepository.findLeaveByManagerId(employeedto.getEmpId());
+							System.err.println(" findListOfLeaves    "+findListOfLeaves);
+							if(findListOfLeaves.isPresent()) {
+								List<EmployeeLeave> findLeaves = findListOfLeaves.get();
+								
+							for (EmployeeLeave empLeaves : findLeaves) {
+								System.out.println( " leavesId   ::   \n"+empLeaves.getLeaveId());
+								empLeaves.setManagerId(Math.toIntExact(employeedto.getNewManagerId()));
+								employeeLeaveRepository.save(empLeaves);
+								
+							}
+						}						
+							
+							// department HOD 
+							
+							Optional<List<Department>> findDept = Optional.ofNullable(departmentRepository.findByHodId(employeedto.getEmpId()));
+							if(findDept.isPresent() && !findDept.isEmpty()) {
+								System.err.println(" department update call ");
+								List<Department> listOfDept = findDept.get();
+								int count =0;
+								for (Department department : listOfDept) {
+									department.setHodId(employeedto.getNewManagerId());
+									departmentRepository.save(department);
+									count = count+1;
+								}
+								System.err.println(" count total "+count);
+							}
+							
+							
+							employeeRepository.saveAll(listOfEmp);
+							}	
+					}
+					
+					
 				}else if(employee.getEmploymentstatus().equals("Probation") || employee.getEmploymentstatus().equals("Confirmed")) {
 					employee.setDateOfResign(null);
 				}
@@ -1393,6 +1398,7 @@ public class EmployeeService {
 				employee.setDateOfRelieving(employeedto.getDateOfRelieving());
 				employee.setUpdatedBy(Integer.parseInt(employeedto.getUpdatedBy().toString()));
 				employee.setBillable(employeedto.getBillable());
+				employee.setBillableType(employeedto.getBillableType());
 				employee.setChild1(employeedto.getChild1());
 				employee.setChild2(employeedto.getChild2());
 				employee.setChild3(employeedto.getChild3());
@@ -1796,7 +1802,8 @@ public class EmployeeService {
 					empDTO.setEmploymentReleaseStatus(object[68] != null ? (object[68].toString()) : null);
 					empDTO.setFailedAttempt(failedAttempt);
 					empDTO.setPipFlag(object[69] != null ? object[69].toString() : null);
-					empDTO.setPipId(object[70] != null ? Long.parseLong(object[70].toString()) : null );		
+					empDTO.setPipId(object[70] != null ? Long.parseLong(object[70].toString()) : null );	
+					empDTO.setBillableType(object[71] != null ? object[71].toString() : null );	
 				
 					ServiceResponse completionResponse = getEmployeeProfileCompletion(empDTO);
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();

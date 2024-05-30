@@ -120,7 +120,7 @@ export class DocumentComponent implements OnInit {
 
     // Sorting 
     sortData(sort: Sort){	
-      console.log(sort);
+      //console.log(sort);
       if(sort.active){
         let sortParams:any[] = sort.active?.split("|");
         this.sortColumn = sortParams[0];
@@ -130,7 +130,7 @@ export class DocumentComponent implements OnInit {
     }
 
   addTypeMethod(document : any,template:TemplateRef<any>){
-    console.log(" add function call");
+    //console.log(" add function call");
     let doc = new Document();
     doc.createdBy = this.currentUser.empId;
     doc.typeName = document.typeName;
@@ -143,7 +143,7 @@ export class DocumentComponent implements OnInit {
 
 
 
-    console.log(doc);
+    //console.log(doc);
     this.newsletterService.addTypeDocument(doc).pipe(first()).subscribe((response : any)=>{
       if(response.serviceStatus == "Success"){
         this.openAlertMod(template,response.serviceResponse);
@@ -159,7 +159,7 @@ export class DocumentComponent implements OnInit {
     let doc = new Document();
     doc.typeId = this.documentObj.typeId;
     doc.typeName = document.typeName;
-    console.log("Update method call   ",doc);
+    //console.log("Update method call   ",doc);
     this.newsletterService.updateType(doc).pipe(first()).subscribe((response : any)=>{
       if(response.serviceStatus == "Success"){
         this.openAlertMod(template,response.serviceResponse);
@@ -171,7 +171,7 @@ export class DocumentComponent implements OnInit {
 
   }
   checkTypeName(typeName,template:TemplateRef<any>){
-    console.log("hii ",typeName);
+    //console.log("hii ",typeName);
 
     this.newsletterService.checkTypeName(typeName).pipe(first()).subscribe((response :any)=>{
       if(response.serviceStatus == "Fail"){
@@ -189,7 +189,7 @@ export class DocumentComponent implements OnInit {
         this.allTypeList.forEach(type =>{
           type.createdOn = moment(type.createdOn).format(AppComponent.DATE_FORMAT);
         })
-        console.log("this.allTypeList   ::   ",this.allTypeList);
+        //console.log("this.allTypeList   ::   ",this.allTypeList);
       }
     })
   }
@@ -210,7 +210,7 @@ export class DocumentComponent implements OnInit {
     this.fileSize = 0;
     const maxSizeInBytes = 20 * 1024 * 1024; // 20MB
     const uploadedFiles = event.target.files;
-    console.log("Max File Size: ", this.maxFileSize );
+    //console.log("Max File Size: ", this.maxFileSize );
 
     if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
       this.openAlertMod(template,'Please select a valid file (.pdf or .doc).');
@@ -227,7 +227,7 @@ export class DocumentComponent implements OnInit {
     let fileName = document.name;
     this.fileSize = this.fileSize + document.size / 1024 /1024;
 
-    console.log("file size : ", this.fileSize);
+    //console.log("file size : ", this.fileSize);
         
     this.file = {document : document,fileName : fileName};
   }
@@ -251,7 +251,7 @@ export class DocumentComponent implements OnInit {
       return false;
     }
     
-    console.log(" get file ",this.file);
+    //console.log(" get file ",this.file);
     if(!this.file){
       this.openAlertMod(template, "Kindly select Document !! ");
       return false;
@@ -269,7 +269,7 @@ export class DocumentComponent implements OnInit {
     formData.append("typeId",this.documentObj.typeId);
     formData.append("readEnabled",this.documentObj.readEnabled);
 
-    console.log("FormData ",formData);
+    //console.log("FormData ",formData);
     this.newsletterService.uploadDocument(formData).pipe(first()).subscribe((response : any)=>{
       if(response.serviceStatus == "Success"){
         this.openAlertMod(template, response.serviceResponse);
@@ -292,7 +292,7 @@ export class DocumentComponent implements OnInit {
         this.documents.forEach(doc => {
           doc.createdOn = (doc.createdOn)? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
-        console.log("this.documents List : ", this.documents);
+        //console.log("this.documents List : ", this.documents);
       } else {
         console.error(response.serviceResponse);
       }
@@ -346,13 +346,13 @@ export class DocumentComponent implements OnInit {
 
   }
   getTypeById(type){
-    console.log(" getTypeBy Id method call ",type);
+    //console.log(" getTypeBy Id method call ",type);
    let doc = new Document();
    doc.typeId = type.typeId;
     this.newsletterService.getTypeById(doc).pipe(first()).subscribe((response : any)=>{
       if(response.serviceStatus == "Success"){
         this.documentObj = response.serviceResponse;
-        console.log("this.documentObj.typeName   ",this.documentObj.typeName);
+        //console.log("this.documentObj.typeName   ",this.documentObj.typeName);
       }
     })
   }
@@ -370,7 +370,7 @@ export class DocumentComponent implements OnInit {
     this.modalRef = this.modalService.show(template , { class : 'modal-sm'});
     this.documentObj = documentObj;
     this.typeNames = documentObj.typeName;
-    console.log("documentObj   on delete call  ",documentObj);
+    //console.log("documentObj   on delete call  ",documentObj);
 
   }
 
@@ -387,7 +387,7 @@ doc.typeName = this.documentObj.typeName;
         this.openAlertMod(template, response.serviceResponse);
       }
     })
-    console.log("yes delete !!   ",doc.typeId);
+    //console.log("yes delete !!   ",doc.typeId);
   }
 
   page = 1;
@@ -409,7 +409,7 @@ doc.typeName = this.documentObj.typeName;
   }
 
   deleteDoc(template:TemplateRef<any>,document){
-    console.log("deleteDoc    ",document)
+    //console.log("deleteDoc    ",document)
     this.modalRef = this.modalService.show(template , { class : 'modal-sm'});
     this.documentObj = document;
     this.documentObj.displayName = document.displayName;
@@ -420,8 +420,8 @@ doc.typeName = this.documentObj.typeName;
 checkDocumentName(documentName,template:TemplateRef<any>){
 
   this.documentName = documentName.trim();
-  console.log("this.documentName   ",this.documentName)
-  console.log(" Hii, document check method call",documentName);
+  //console.log("this.documentName   ",this.documentName)
+  //console.log(" Hii, document check method call",documentName);
 
   this.newsletterService.checkDocumentName(this.documentName).pipe(first()).subscribe((response:any)=>{
     if(response.serviceStatus == "Fail"){

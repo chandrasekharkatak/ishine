@@ -43,4 +43,8 @@ export class DomainService {
   getDomainSpecializationByEmpId(domainObj:Domain) {
     return this.http.post(`${this.baseUrl}` + `api/getDomainSpecializationByEmpId`, domainObj);
   }
+
+  billableFile(formData : FormData){
+    return this.http.post(`${this.baseUrl}`+`api/upload/billableFile`,formData);
+  }
 }

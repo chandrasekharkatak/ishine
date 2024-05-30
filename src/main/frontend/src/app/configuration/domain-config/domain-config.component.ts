@@ -42,6 +42,8 @@ export class DomainConfigComponent implements OnInit {
   isDomainCreation: boolean = false;
   isDomainUpdation: boolean = false;
   isDomainForm: boolean = false;
+  isfileUpload : boolean = false;
+  file:any;
 
   allDomainList:any[] = [];
   specializationList:any[] = [];
@@ -78,7 +80,7 @@ export class DomainConfigComponent implements OnInit {
      featureMap.subFeatures?.forEach(sub => {
        this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
      });
-     console.log(this.feature, this.userMapping);
+     //console.log(this.feature, this.userMapping);
 
     this.showAllDomain()
   }
@@ -90,6 +92,7 @@ export class DomainConfigComponent implements OnInit {
     this.isDomainCreation = false;
     this.isDomainUpdation = false;
     this.isDomainForm = false;
+    this.isfileUpload = false;
 
     this.getAllDomain(this.alertTemplate);
   }
@@ -113,6 +116,36 @@ export class DomainConfigComponent implements OnInit {
     }
   }
 
+  showFileUploadForm(){
+
+    this.isfileUpload = true;
+    this.isDomainTable = false;
+    
+  
+    this.isDomain = false;
+    this.isDomainForm = false;
+  
+  
+  }
+
+
+onBillableFileSelect(event: any, template: TemplateRef<any>){
+  const uploadedFiles = event.target.files;
+  console.log("uploadedFiles ", uploadedFiles);
+  this.file = uploadedFiles[0];
+  const formData = new FormData();
+  formData.append('file', this.file);
+
+  this.domainService.billableFile(formData).pipe(first()).subscribe(
+    (response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+}
+
   showUpdateDomainForm(domain:any){
     this.isDomainForm = true;
     this.isDomainUpdation = true;
@@ -127,7 +160,7 @@ export class DomainConfigComponent implements OnInit {
 
         this.allSpecializationList = this.domainObj.allSpecializationList;
 
-        console.log(response.serviceResponse, " : response.serviceResponse");
+        //console.log(response.serviceResponse, " : response.serviceResponse");
       } else {
         console.error(response.serviceResponse);
       }
@@ -146,7 +179,7 @@ export class DomainConfigComponent implements OnInit {
   {
      if(this.allSpecializationList.length!=0)
      {
-      console.log("spec: ", currentSpecializationName);
+      //console.log("spec: ", currentSpecializationName);
       if(!this.validationService.validateTeamActivity(currentSpecializationName))
       {
         let selectedSpec = this.allSpecializationList.find(currentSpecialization => currentSpecialization.specializationName == currentSpecializationName);
@@ -161,7 +194,7 @@ export class DomainConfigComponent implements OnInit {
      }
     let domainObj = new Domain();
     this.allSpecializationList.push(domainObj);
-    console.log(this.allSpecializationList, " : this.allSpecializationList");
+    //console.log(this.allSpecializationList, " : this.allSpecializationList");
   }
 
   removeInputSpecializationField(spec:any){
@@ -170,7 +203,7 @@ export class DomainConfigComponent implements OnInit {
         this.allSpecializationList.splice(index, 1);
       }
     });
-    console.log(this.allSpecializationList, " :this.allSpecializationList");
+    //console.log(this.allSpecializationList, " :this.allSpecializationList");
   }
 
   //Doamin & Specialization  :: start
@@ -184,7 +217,7 @@ export class DomainConfigComponent implements OnInit {
           domain.createdOn = (domain.createdOn)? moment(domain.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
 
-        console.log(this.allDomainList, " : this.allDomainList");
+        //console.log(this.allDomainList, " : this.allDomainList");
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -197,7 +230,7 @@ export class DomainConfigComponent implements OnInit {
     let domainObj = new Domain();
     domainObj.domainIdList = this.employeeObj.domainList;
 
-    console.log(domainObj, " : domainObj selected");
+    //console.log(domainObj, " : domainObj selected");
     this.domainService.getDomainSpecialization(domainObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.specializationList = response.serviceResponse;
@@ -360,7 +393,7 @@ export class DomainConfigComponent implements OnInit {
 
   //sort & searching
   sortData(sort: Sort){
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -379,7 +412,7 @@ export class DomainConfigComponent implements OnInit {
   onSearch(searchData){
     if(this.isSearchEnabled == true){
       this.filters = searchData;
-      console.log("Updated Filter : ", this.filters);
+      //console.log("Updated Filter : ", this.filters);
     }
   }
 }

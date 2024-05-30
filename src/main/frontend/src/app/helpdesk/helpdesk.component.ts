@@ -80,7 +80,7 @@ export class HelpdeskComponent implements OnInit, AfterViewInit {
         this.document.forEach(doc => {
           doc.createdOn = (doc.createdOn)? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
-        console.log("DocumentList : ", this.document);
+        //console.log("DocumentList : ", this.document);
       } else {
         console.error(response.serviceResponse);
       }
@@ -115,7 +115,7 @@ export class HelpdeskComponent implements OnInit, AfterViewInit {
   }
 
   sortData(sort: Sort){	
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -136,7 +136,7 @@ export class HelpdeskComponent implements OnInit, AfterViewInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 
   // Modal

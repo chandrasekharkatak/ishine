@@ -72,7 +72,7 @@ export class NewsletterConfigComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
+    //console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
     this.preventBackButton();
@@ -122,7 +122,7 @@ export class NewsletterConfigComponent implements OnInit {
     this.fileSize = 0;
     const maxSizeInBytes = 20 * 1024 * 1024; // 20MB
     const uploadedFiles = event.target.files;
-    console.log("Max File Size: ", this.maxFileSize );
+    //console.log("Max File Size: ", this.maxFileSize );
 
     if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
       this.openAlertMod(template,'Please select a valid file (.pdf or .doc).');
@@ -139,7 +139,7 @@ export class NewsletterConfigComponent implements OnInit {
     let fileName = document.name;
     this.fileSize = this.fileSize + document.size / 1024 /1024;
 
-    console.log("file size : ", this.fileSize);
+    //console.log("file size : ", this.fileSize);
         
     this.file = {document : document,fileName : fileName};
   }
@@ -157,7 +157,7 @@ export class NewsletterConfigComponent implements OnInit {
       return false;
     }
 
-    console.log("this.file : ", this.file);
+    //console.log("this.file : ", this.file);
     
     if (!this.file){
       this.alertMessage = "Kindly Select Newsletter !!"
@@ -177,7 +177,7 @@ export class NewsletterConfigComponent implements OnInit {
     formData.append("displayName", this.newsletterName);
     formData.append("uploadedBy", this.currentUser.empId);
 
-    console.log("Upload newsletter : ", formData);
+    //console.log("Upload newsletter : ", formData);
     this.newsletterService.uploadNewsletter(formData).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == 'Success') {
         this.openAlertMod(template, response.serviceResponse);
@@ -205,7 +205,7 @@ export class NewsletterConfigComponent implements OnInit {
         this.newsletters.forEach(doc => {
           doc.createdOn = (doc.createdOn)? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
-        console.log("Newsletters List : ", this.newsletters);
+        //console.log("Newsletters List : ", this.newsletters);
       } else {
         console.error(response.serviceResponse);
       }
@@ -215,7 +215,7 @@ export class NewsletterConfigComponent implements OnInit {
   openDeleteDocument(template: TemplateRef<any>, newsletterObj: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.newsletterObj = newsletterObj;
-    console.log("On Delete Obj : ", this.newsletterObj);
+    //console.log("On Delete Obj : ", this.newsletterObj);
   }
 
   onDeleteDocument(template: TemplateRef<any>) {
@@ -277,7 +277,7 @@ export class NewsletterConfigComponent implements OnInit {
 
   // Sorting 
   sortData(sort: Sort){	
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -297,6 +297,6 @@ export class NewsletterConfigComponent implements OnInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 }

@@ -56,8 +56,8 @@ export class QueryMasterComponent implements OnInit {
       this.name = sub.subFeatureName;
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log("this.name ",this.name)
-    console.log(this.userMapping);
+    //console.log("this.name ",this.name)
+    //console.log(this.userMapping);
     this.sectionViewInit();
   }
 
@@ -108,7 +108,7 @@ showUpdateForm(query){
   }
 
   createQuery(query,template : TemplateRef<any>){
-    console.log(query,"hii");
+    //console.log(query,"hii");
   
     let queryObj = new QueryTable();
     queryObj.queryName = query.queryName;
@@ -144,7 +144,7 @@ showUpdateForm(query){
   }
 
   deleteQuery(query,template: TemplateRef<any>){
-    console.log(" delete method call ",query);
+    //console.log(" delete method call ",query);
     let queryobj = new QueryTable();
 
     queryobj.queryId = query.queryId
@@ -171,16 +171,16 @@ showUpdateForm(query){
           data.createdOn = moment(data.createdOn).format(AppComponent.DATE_FORMAT);
         })
         this.nonPublishedList = this.nonPublishedQueryData;
-        console.log("   nonPublishedQueryData   ",this.nonPublishedList)
+        //console.log("   nonPublishedQueryData   ",this.nonPublishedList)
 
       }else{
-        console.log(response.serviceResponse)
+        //console.log(response.serviceResponse)
       }
     })
   }
 
   getPublishedQuery(){
-    console.log("published data will fetched here !!")
+    //console.log("published data will fetched here !!")
     this.queryService.getPublishedQuery().pipe(first()).subscribe((response : any)=>{
       if(response.serviceStatus == "Success"){
         this.PublishedQueryData = response.serviceResponse;
@@ -190,7 +190,7 @@ showUpdateForm(query){
         });
         this.PublishedList = this.PublishedQueryData;
       }else{
-        console.log(response.serviceResponse);
+        //console.log(response.serviceResponse);
       }
     })
   }
@@ -203,9 +203,9 @@ showUpdateForm(query){
       
         if(response.serviceStatus == "Success"){
         this.headers = response.serviceResponse[0]; 
-        console.log("headers ",this.headers)
+        //console.log("headers ",this.headers)
         this.previewQueryResult = response.serviceResponse.slice(1);
-        console.log("preview Query data ", this.previewQueryResult);
+        //console.log("preview Query data ", this.previewQueryResult);
       } else {
         this.openAlertMod(this.alertTemplate, response.serviceResponse);
       }
@@ -213,7 +213,7 @@ showUpdateForm(query){
   }
 
   getQueryDetailsByQueryId(query){
-    console.log("query details   ",query)
+    //console.log("query details   ",query)
     let queryobj = new QueryTable();
     queryobj.queryId = query.queryId;
     this.queryService.getQueryDetailsByQueryId(queryobj).pipe(first()).subscribe((response : any)=>{
@@ -228,7 +228,7 @@ showUpdateForm(query){
 
   publishQuery(query,template : TemplateRef<any>){
 
-    console.log(query)
+    //console.log(query)
     let queryobj = new QueryTable();
     queryobj.queryId = query.queryId;
     queryobj.query = query.query;

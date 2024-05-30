@@ -203,6 +203,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/query/getQueryDetailsByQueryId`,
     `${this.baseUrl}` + `api/query/updateQuery`,
     `${this.baseUrl}` + `api/query/deleteQuery`,
+    `${this.baseUrl}` + `api/getEmployeeAuditInfo`,
 
   ]
 

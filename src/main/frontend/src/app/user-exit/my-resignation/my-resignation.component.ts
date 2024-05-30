@@ -122,14 +122,14 @@ export class MyResignationComponent implements OnInit {
       this.exitEmployeeId = params['id'];
     });
 
-    console.log( this.router.url, " : url");
+    //console.log( this.router.url, " : url");
 
      // Dynamic Subfeature Flags 
      let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
      featureMap.subFeatures?.forEach(sub => {
        this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
      });
-     console.log(this.feature, this.userMapping);
+     //console.log(this.feature, this.userMapping);
 
     this.currentUserName = this.currentUser.name[0].toUpperCase() + this.currentUser.name.slice(1).toLowerCase();
 
@@ -147,7 +147,7 @@ export class MyResignationComponent implements OnInit {
 
   sectionViewInit(){
     if(this.exitEmployeeId != null && (this.currentUser.employeeRole != 'Employee' && this.currentUser.employeeRole != 'TeamLead')){
-      console.log("get empInfo", this.exitEmployeeId);
+      //console.log("get empInfo", this.exitEmployeeId);
       
       this.getEmployeeInfo(this.exitEmployeeId);
     }else{
@@ -168,7 +168,7 @@ export class MyResignationComponent implements OnInit {
     // tempDivElement.innerHTML = this.employeeExitObj.resignationMail;
     // let resignationMail = tempDivElement.textContent
 
-    // console.log(resignationMail,  ": resignationMail");
+    // //console.log(resignationMail,  ": resignationMail");
 
     // if (!this.validationService.validateAlphabetAtLeastTwoCharacter(resignationMail)) {
     //   this.alertMessage = "Please enter Valid resignation mail!!"
@@ -224,9 +224,9 @@ export class MyResignationComponent implements OnInit {
             this.router.navigate(['/user-exit/my-resignation']);
           }
         });
-        console.log(this.employeeInfo, " :   this.employeeInfo");
+        //console.log(this.employeeInfo, " :   this.employeeInfo");
       } else {
-        console.log(response.serviceResponse);
+        //console.log(response.serviceResponse);
       }
     });
   }
@@ -259,7 +259,7 @@ export class MyResignationComponent implements OnInit {
   //       this.isResignDetails = true;
   //       this.isResign = false;
   //       this.getEmployeeResignationDetails();
-  //       console.log(response.serviceResponse);
+  //       //console.log(response.serviceResponse);
   //     } else {
   //       this.openAlertMod(template, response.serviceResponse);
   //     }
@@ -291,7 +291,7 @@ export class MyResignationComponent implements OnInit {
         }
 
         let resignationPending = this.resignationApplicationList.find((x) => x.resignationStatus == 'Pending');
-        console.log(resignationPending, " : resignationPending");
+        //console.log(resignationPending, " : resignationPending");
         
         if(resignationPending != null){
           this.showResignationApplication = true;
@@ -299,7 +299,7 @@ export class MyResignationComponent implements OnInit {
         }
       } else {
         this.isResign = true;
-        console.log(response.serviceResponse);
+        //console.log(response.serviceResponse);
       }
     });
   }
@@ -344,7 +344,7 @@ export class MyResignationComponent implements OnInit {
         if(this.exitEmployeeId != null && this.currentUser.employeementId !== this.exitEmployeeId){
           this.router.navigate(['/user-exit/my-resignation', this.exitEmployeeId]);
         }
-        console.log(this.exitAssetDetailList, " : exitAssetDetailList");
+        //console.log(this.exitAssetDetailList, " : exitAssetDetailList");
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -358,7 +358,7 @@ export class MyResignationComponent implements OnInit {
       }else{
         this.updatedConsentList.push(updatedConsent);
       }
-      console.log(this.updatedConsentList);
+      //console.log(this.updatedConsentList);
   }
 
   submitConsent(template: TemplateRef<any>){
@@ -388,9 +388,9 @@ export class MyResignationComponent implements OnInit {
         this.questionList = response.serviceResponse;
         this.questionList = this.questionList.filter(x => x.type == "exit");
         this.getAllAnsweredExitInterview();
-        console.log("this.questionList : ", this.questionList[0]);
+        //console.log("this.questionList : ", this.questionList[0]);
       }else{
-        console.log(response.serviceResponse);
+        //console.log(response.serviceResponse);
       }
     });
   }
@@ -433,7 +433,7 @@ export class MyResignationComponent implements OnInit {
           this.surveyService.getAllQuestionsBySurveyId(surveyObj).pipe(first()).subscribe((response: any) => {
             if (response.serviceStatus == "Success") {
               this.allSurveyQuestionList = response.serviceResponse;
-              console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
+              //console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
 
               this.surveyObj = surveyObj;
               this.allSurveyQuestionList.forEach((survey: SurveyQuestion) => {
@@ -469,7 +469,7 @@ export class MyResignationComponent implements OnInit {
     this.exitService.getAnsweredInterviewByEmpId(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allAnsweredInterviewList = response.serviceResponse;
-       console.log("this.allAnsweredInterviewList : ", response.serviceResponse);
+       //console.log("this.allAnsweredInterviewList : ", response.serviceResponse);
        this.allAnsweredInterviewList.forEach((Object) => {
           let exitInterviewObj = this.questionList.find((ques) => Object.surveyId == ques.surveyId);
           if(exitInterviewObj) this.isAnswered = true;
@@ -533,7 +533,7 @@ export class MyResignationComponent implements OnInit {
       surveyTemplate = surveyTemplate + finalQuestionTemplate;
     });
  
-    // console.log("surveyTemplate : ", surveyTemplate);
+    // //console.log("surveyTemplate : ", surveyTemplate);
     return surveyTemplate;
   }
 
@@ -579,7 +579,7 @@ export class MyResignationComponent implements OnInit {
       surveyObj.surveyQuestionList.push(surveyQuestion);
     });
 
-    console.log("On Survey Submit : ", surveyObj);
+    //console.log("On Survey Submit : ", surveyObj);
     let inputValidated: boolean = this.validateSurveyResponse(surveyObj, template);
     if (!inputValidated) return;
     this.exitService.setExitInterviewResponseByEmpId(surveyObj).pipe(first()).subscribe((response: any) => {
@@ -602,13 +602,13 @@ export class MyResignationComponent implements OnInit {
       this.surveyObj.employeementId = this.currentUser.employeementId;
     }
     this.surveyObj.surveyId = this.questionList[0].surveyId;
-    console.log(this.surveyObj.surveyId, "this.surveyObj.surveyId==");
+    //console.log(this.surveyObj.surveyId, "this.surveyObj.surveyId==");
     
-    console.log("For View My Response : ", this.surveyObj);
+    //console.log("For View My Response : ", this.surveyObj);
     this.exitService.getExitInterviewResponseBySurveyIdAndEmp(this.surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.myResponseList = response.serviceResponse;
-        console.log("this.myResponseList : ", this.myResponseList);
+        //console.log("this.myResponseList : ", this.myResponseList);
         this.openExitInterviewPreviewMod(this.previewResponseTemplate);
       }else{
         this.openAlertMod(this.alertTemplate, response.serviceResponse);
@@ -631,7 +631,7 @@ export class MyResignationComponent implements OnInit {
   }
 
   sortData(sort: Sort){	
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -649,7 +649,7 @@ export class MyResignationComponent implements OnInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 
 }

@@ -58,7 +58,7 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
 
-    console.log(this.currentUser, " : current USer");
+    //console.log(this.currentUser, " : current USer");
     
 
   }
@@ -100,7 +100,7 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
           doc.createdOn = (doc.createdOn)? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
         this.getAllReadPolicies();
-        console.log("DocumentList xyz: ", this.document);
+        //console.log("DocumentList xyz: ", this.document);
       } else {
         console.error(response.serviceResponse);
       }
@@ -114,7 +114,7 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
     this.policiesService.getReadPoliciesByEmpId(fileObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allReadPoliciesList = response.serviceResponse;
-       console.log("this.alll : ", response.serviceResponse);
+       //console.log("this.alll : ", response.serviceResponse);
        this.allReadPoliciesList.forEach((readPolicies:UploadPolicy) => {
           let fileObj = this.document.find((policy:UploadPolicy) => readPolicies.policyID == policy.policyID);
           if(fileObj) fileObj.isRead = true;
@@ -144,7 +144,7 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
         let dtoResponse = response.serviceResponse;
         this.currentUser.policyReadConsent = dtoResponse.policyReadConsent;
 
-        console.log( this.currentUser.policyReadConsent , " :  this.currentUser.policyReadConsent");
+        //console.log( this.currentUser.policyReadConsent , " :  this.currentUser.policyReadConsent");
         this.authenticationService.setcurrentUserSubject(this.currentUser);
         this.openPreviewPolicyModal();
       }else{
@@ -216,7 +216,7 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
 
   openPreviewPolicyModal(){
     if(this.currentUser.policyReadConsent != null){
-      console.log("this.currentUser.policyReadConsent ", this.currentUser.policyReadConsent, " ---");
+      //console.log("this.currentUser.policyReadConsent ", this.currentUser.policyReadConsent, " ---");
       
       this.previewPolicyDocument(this.previewDocument,this.currentUser.policyReadConsent);
     }else{
@@ -230,7 +230,7 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
   }
 
   sortData(sort: Sort){	
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -248,7 +248,7 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 
 }

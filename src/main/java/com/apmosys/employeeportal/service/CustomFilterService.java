@@ -621,7 +621,7 @@ public class CustomFilterService {
 						+ "e.views_on_organisation, e.year_of_passing,\n" + "jr.dept_id, jr.name as jobrolename,\n"
 						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience,\n"
 						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,t.team_name,p.project_name,p.client_name, e.updated_on,e4.name as createdByName, e3.name as updatedByName,\n"
-						+ "s.specialization_name,dm.domain_name,e.designation_id,de.designation_name,e.updated_by,\n"
+						+ "s.specialization_name,dm.domain_name,e.designation_id,de.designation_name,e.updated_by,e.billable_type,\n"
 						+ "(SELECT\n" + "    COUNT(*) * 100.0 / NULLIF(COUNT(*), 0)\n" + "   FROM\n"
 						+ "    employee e_profile\n" + "   WHERE\n"
 						+ "    e_profile.emp_id = e.emp_id) AS profile_completion_percentage \n" + "FROM employee e\n"
@@ -746,10 +746,13 @@ public class CustomFilterService {
 					empDTO.setUpdatedOn(object[63] != null ? (object[63].toString()) : null);
 					empDTO.setCreatedByName(object[64] != null ? (object[64].toString()) : null);
 					empDTO.setUpdatedByName(object[65] != null ? (object[65].toString()) : null);
+					
 					empDTO.setSpecializationName(object[66] != null ? (object[66].toString()) : null);
 					empDTO.setDomainName(object[67] != null ? (object[67].toString()) : null);
 					empDTO.setDesignationId(object[68] != null ? Long.parseLong(object[68].toString()) : null);
 					empDTO.setDesignationName(object[69] != null ? (object[69].toString()) : null);
+					empDTO.setBillableType(object[71] != null ? object[71].toString() : null);
+					
 					ServiceResponse completionResponse = employeeService.getEmployeeProfileCompletion(empDTO);
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
 

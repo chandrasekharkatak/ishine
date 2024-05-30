@@ -142,7 +142,7 @@ export class ReportListComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
+    //console.log(this.feature, this.userMapping);
     this.sectionViewInit();
     this.preventBackButton();
   }
@@ -180,7 +180,7 @@ export class ReportListComponent implements OnInit {
     this.filters = {};
     this.isSearchEnabled = false;
 
-    console.log(this.storedDataList, " : storeddatalist");
+    //console.log(this.storedDataList, " : storeddatalist");
 
 
     this.storedDataList.forEach((object) => {
@@ -348,7 +348,7 @@ export class ReportListComponent implements OnInit {
             leave.toDateDayType = leave.toDateDayType === 0 ? "Full Day" : "Half Day";
           }
         });
-        console.log("allLeaveApplicationsList : ", this.allLeaveApplicationsList)
+        //console.log("allLeaveApplicationsList : ", this.allLeaveApplicationsList)
       } else {
         alert(response.serviceResponse)
       }
@@ -390,7 +390,7 @@ export class ReportListComponent implements OnInit {
               leave.toDateDayType = leave.toDateDayType === 0 ? "Full Day" : "Half Day";
             }
           });
-          console.log("allLeaveApplicationsList : ", this.allLeaveApplicationsList)
+          //console.log("allLeaveApplicationsList : ", this.allLeaveApplicationsList)
         } else {
           this.openAlertMod(template, response.serviceResponse)
         }
@@ -416,7 +416,7 @@ export class ReportListComponent implements OnInit {
           timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.updatedOn = (timesheet.updatedOn) ? moment(timesheet.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
-        console.log("allTimesheetApplicationsList : ", this.allTimesheetApplicationsList)
+        //console.log("allTimesheetApplicationsList : ", this.allTimesheetApplicationsList)
       } else {
         alert(response.serviceResponse)
       }
@@ -447,7 +447,7 @@ export class ReportListComponent implements OnInit {
             timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
             timesheet.updatedOn = (timesheet.updatedOn) ? moment(timesheet.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
           });
-          console.log("allTimesheetApplicationsList : ", this.allTimesheetApplicationsList)
+          //console.log("allTimesheetApplicationsList : ", this.allTimesheetApplicationsList)
         } else {
           this.openAlertMod(template, response.serviceResponse)
         }
@@ -473,7 +473,7 @@ export class ReportListComponent implements OnInit {
           employee.createdOn = (employee.createdOn) ? moment(employee.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           employee.updatedOn = (employee.updatedOn) ? moment(employee.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
-        console.log("allEmployeeList : ", this.allEmployeeList)
+        //console.log("allEmployeeList : ", this.allEmployeeList)
       } else {
         alert(response.serviceResponse)
       }
@@ -510,7 +510,7 @@ export class ReportListComponent implements OnInit {
             employee.createdOn = (employee.createdOn) ? moment(employee.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
             employee.updatedOn = (employee.updatedOn) ? moment(employee.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
           });
-          console.log("allEmployeeList : ", this.allEmployeeList)
+          //console.log("allEmployeeList : ", this.allEmployeeList)
         } else {
           this.openAlertMod(template, response.serviceResponse)
         }
@@ -572,7 +572,7 @@ export class ReportListComponent implements OnInit {
             });
 
             this.finalColumns = final;
-            console.log(this.finalColumns, " : final arr");
+            //console.log(this.finalColumns, " : final arr");
 
             // Generate Template
             this.subfeatureList.forEach(subfeature => {
@@ -588,14 +588,14 @@ export class ReportListComponent implements OnInit {
               });
               this.paginateData.push(paginateDataItem)
             });
-            console.log("paginateData : ", this.paginateData);
+            //console.log("paginateData : ", this.paginateData);
 
             this.personaWiseJobRole.forEach((role) => {
               this.employeeObj.jobRoleId = role.jobRoleId;
               this.jobRoleService.getMappedSubFeatureList(this.employeeObj).pipe(first()).subscribe((response: any) => {
                 if (response.serviceStatus == "Success") {
                   const mappedSubFeatures = response.serviceResponse;
-                  console.log("mappedSubFeatures : ", mappedSubFeatures);
+                  //console.log("mappedSubFeatures : ", mappedSubFeatures);
                   mappedSubFeatures.forEach(subFeature => {
                     let mappedSubFeatureData = this.paginateData.find(data => {
                       const subFeatureName = data.subFeature;
@@ -664,7 +664,7 @@ export class ReportListComponent implements OnInit {
         "subFeatureId": subFeatureId
       });
     }
-    console.log(this.updatedRoleSubFeature, " :   updatedRoleSubFeature");
+    //console.log(this.updatedRoleSubFeature, " :   updatedRoleSubFeature");
   }
 
   updateJobRoleSubFeatureMapping(template: TemplateRef<any>) {
@@ -734,7 +734,7 @@ export class ReportListComponent implements OnInit {
         });
 
         this.processData();
-        console.log( this.defaultMappingList , " :  this.defaultMappingList ");
+        //console.log( this.defaultMappingList , " :  this.defaultMappingList ");
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -753,7 +753,7 @@ export class ReportListComponent implements OnInit {
         "subFeatureName": subFeatureName
       });
     }
-    console.log(this.updateDefaultMapping, " :   updateDefaultMapping");
+    //console.log(this.updateDefaultMapping, " :   updateDefaultMapping");
   }
 
   updateDefaultFeatureMapping(template: TemplateRef<any>){
@@ -792,14 +792,14 @@ export class ReportListComponent implements OnInit {
       return { ...x, tabSpan, featureSpan };
     });
 
-    console.log(this.defaultMappingListFilter,  " : defaultMappingListFilter");
+    //console.log(this.defaultMappingListFilter,  " : defaultMappingListFilter");
   }
 
   // ACL end
 
   /* Filter */
   openFilterModal(template: TemplateRef<any>, columns: any[], title: any) {
-    console.log("columns : ", columns);
+    //console.log("columns : ", columns);
     this.queryList = [];
 
     this.filterData.title = title;
@@ -828,13 +828,13 @@ export class ReportListComponent implements OnInit {
 
     this.filterData.queryList = JSON.stringify(this.queryList);
 
-    console.log("filterData : ", this.filterData);
+    //console.log("filterData : ", this.filterData);
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
   }
 
   onFilterSubmit(emittedArray: any, template: TemplateRef<any>) {
     if (emittedArray[0].length != 0) {
-      console.log("queryList : ", emittedArray[0]);
+      //console.log("queryList : ", emittedArray[0]);
       this.queryList = JSON.parse(JSON.stringify(emittedArray[0]));
       this.cancelRequest();
 
@@ -909,7 +909,7 @@ export class ReportListComponent implements OnInit {
     let timesheetObj = new Timesheet();
     timesheetObj.startDate = this.startDate;
     timesheetObj.endDate = this.endDate;
-    console.log("timesheet obj  : ", timesheetObj)
+    //console.log("timesheet obj  : ", timesheetObj)
 
     this.timesheetService.getAllLeaveTimesheetsWithoutLeaveApplication(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -922,7 +922,7 @@ export class ReportListComponent implements OnInit {
           x.updatedOn = (x.updatedOn) ? moment(x.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         }
 
-        console.log("allLeaveTimesheets :", this.allLeaveTimesheets);
+        //console.log("allLeaveTimesheets :", this.allLeaveTimesheets);
       } else {
         console.error(response.serviceResponse)
       }
@@ -945,7 +945,7 @@ export class ReportListComponent implements OnInit {
     this.utilityService.getCustomQueryData(queryObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         let responseData = response.serviceResponse;
-        console.log("responseData : ", responseData);
+        //console.log("responseData : ", responseData);
 
         if(responseData){
           let exportData = responseData.map((dataArr) => {
@@ -1037,6 +1037,9 @@ export class ReportListComponent implements OnInit {
             "Email Id": x.email,		
             "Employment Status": x.employmentstatus,
             "Date Of Joining": x.dateOfJoining,
+            "Department" : x.departmentName,
+            "Billable" : x.billable,
+            "Billable Type" : x.billableType,
             "Aadhar":x.aadhar,
             "About Me":x.aboutMe,
             "address":x.address,
@@ -1166,7 +1169,7 @@ export class ReportListComponent implements OnInit {
   }
 
   sortData(sort: Sort){	
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -1187,7 +1190,7 @@ export class ReportListComponent implements OnInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 }
 

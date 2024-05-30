@@ -145,7 +145,7 @@ export class LeaveConfigComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
+    //console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
     this.preventBackButton();
@@ -346,7 +346,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isCreation = false;
 
     this.leavePolicyObj = Object.assign({}, leavePolicyObj);
-    console.log("this.leavePolicyObj ",this.leavePolicyObj);
+    //console.log("this.leavePolicyObj ",this.leavePolicyObj);
     
     this.getAllLeaveTypes();
   }
@@ -407,13 +407,13 @@ export class LeaveConfigComponent implements OnInit {
     for (var i = 1; i < 2; i++) {
       this.years.push(currentYear - i);
     }
-    console.log(this.years, "dynamic year");
+    //console.log(this.years, "dynamic year");
 
   }
 
   checkLeaveType(leaveTypeObj:Leave, template: TemplateRef<any>){
     let leaveCheck = Object.assign({}, leaveTypeObj);
-    console.log("Leave Check : ", leaveCheck);
+    //console.log("Leave Check : ", leaveCheck);
     this.leaveService.checkLeaveType(leaveCheck).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         // Valid Leave Type
@@ -447,7 +447,7 @@ export class LeaveConfigComponent implements OnInit {
   openDeleteLeaveType(template: TemplateRef<any>, leaveType: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.leaveTypeObj = leaveType;
-    console.log(this.leaveTypeObj);
+    //console.log(this.leaveTypeObj);
   }
 
   // Holiday
@@ -574,7 +574,7 @@ export class LeaveConfigComponent implements OnInit {
 
     // this.holidayObj.dateOfHoliday = this.datePipe.transform(this.holidayObj.dateOfHoliday, 'dd-MM-yyyy');
     this.holidayObj.createdBy = this.currentUser.empId;
-    console.log("Add Holiday : ", this.holidayObj);
+    //console.log("Add Holiday : ", this.holidayObj);
     this.holidayService.addHoliday(this.holidayObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -592,7 +592,7 @@ export class LeaveConfigComponent implements OnInit {
 
     // this.holidayObj.dateOfHoliday = this.datePipe.transform(this.holidayObj.dateOfHoliday, 'dd-MM-yyyy');
     this.holidayObj.updatedBy = this.currentUser.empId;
-    console.log("update Holiday : ", this.holidayObj);
+    //console.log("update Holiday : ", this.holidayObj);
 
     this.holidayService.updateHoliday(this.holidayObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -667,7 +667,7 @@ export class LeaveConfigComponent implements OnInit {
         // this.changeEvent(this.currentUser.workLocation);
         this.selectedState='Maharashtra';
         // this.selectedState=this.currentUser.workLocation;
-        console.log(this.holidayListFilter, " : this.holidayListFilter");
+        //console.log(this.holidayListFilter, " : this.holidayListFilter");
         this.filterHolidayListByYear(new Date().getFullYear());
         this.selectedHolidayType = "Festival";
         this.onHolidayTypeSelected();
@@ -691,7 +691,7 @@ export class LeaveConfigComponent implements OnInit {
     this.selectedHolidayType = "";
     this.selectedYear = value;
     this.holidayListFilter = this.holidayList.filter((holiday:Holiday)=> moment(holiday.dateOfHoliday, "DD-MM-YYYY").year() == value);
-    console.log(this.holidayListFilter, "this.holidayListFilter")
+    //console.log(this.holidayListFilter, "this.holidayListFilter")
   }
 
   checkOccasion(template: TemplateRef<any>) {
@@ -830,7 +830,7 @@ export class LeaveConfigComponent implements OnInit {
       return;
     }
 
-    console.log("Add Leave Type : ", this.leaveTypeObj);
+    //console.log("Add Leave Type : ", this.leaveTypeObj);
 
     this.leaveService.createLeaveType(this.leaveTypeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -843,7 +843,7 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   onUpdateLeaveType(template: TemplateRef<any>) {
-    console.log("update Leave Type : ", this.leaveTypeObj);
+    //console.log("update Leave Type : ", this.leaveTypeObj);
     this.leaveTypeObj.updatedBy = this.currentUser.empId;
 
     this.leaveService.updateLeaveType(this.leaveTypeObj).pipe(first()).subscribe((response: any) => {
@@ -865,7 +865,7 @@ export class LeaveConfigComponent implements OnInit {
     this.leaveService.getAllLeaveTypes().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveTypes = response.serviceResponse;
-        console.log("leaveTypes : ", this.leaveTypes);
+        //console.log("leaveTypes : ", this.leaveTypes);
         this.leaveTypes.forEach((leaveObj)=>{
           leaveObj.updatedOn = (leaveObj.updatedOn) ? moment(leaveObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         })
@@ -965,7 +965,7 @@ export class LeaveConfigComponent implements OnInit {
         return false;
       }
       leaveObj.employeementId = this.leaveBalanceObj.employeementId.substring(2);
-      console.log("Employee :", this.leaveBalanceObj);
+      //console.log("Employee :", this.leaveBalanceObj);
     } else {
       leaveObj.employeementId = this.leaveBalanceObj.employeementId
     }
@@ -974,8 +974,8 @@ export class LeaveConfigComponent implements OnInit {
         this.leaveBalanceList = response.serviceResponse;
         this.leaveBalanceObj.empId = response.serviceResponse1;
         this.employeeData = response.serviceResponse2;
-        console.log("employeeData : ", this.employeeData);
-        console.log("leaveBalanceList : ", this.leaveBalanceList);
+        //console.log("employeeData : ", this.employeeData);
+        //console.log("leaveBalanceList : ", this.leaveBalanceList);
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -1008,7 +1008,7 @@ export class LeaveConfigComponent implements OnInit {
 
     this.leaveBalanceObj.employeeLeaveList = this.leaveBalanceList;
     this.leaveBalanceObj.employeementId = this.leaveBalanceObj.employeementId?.substring(2)
-    console.log("manage Leave Balance :", this.leaveBalanceObj);
+    //console.log("manage Leave Balance :", this.leaveBalanceObj);
     this.leaveService.updateLeavesByEmpId(this.leaveBalanceObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -1178,7 +1178,7 @@ export class LeaveConfigComponent implements OnInit {
     if (!inputValidated) return;
 
     this.leavePolicyObj.createdBy = this.currentUser.empId;
-    console.log("Add Leave Policy : ", this.leavePolicyObj);
+    //console.log("Add Leave Policy : ", this.leavePolicyObj);
 
     this.leaveService.addLeavePolicy(this.leavePolicyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1195,7 +1195,7 @@ export class LeaveConfigComponent implements OnInit {
     if (!inputValidated) return;
 
     this.leavePolicyObj.updatedBy = this.currentUser.empId;
-    console.log("update Leave Policy : ", this.leavePolicyObj);
+    //console.log("update Leave Policy : ", this.leavePolicyObj);
 
     this.leaveService.updateLeavePolicy(this.leavePolicyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1208,7 +1208,7 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   ondeleteLeavePolicy(template: TemplateRef<any>) {
-    console.log("Delete Leave Policy : ", this.leavePolicyObj);
+    //console.log("Delete Leave Policy : ", this.leavePolicyObj);
 
     this.leaveService.deleteLeavePolicyByLeavePolicyMasterId(this.leavePolicyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1234,7 +1234,7 @@ export class LeaveConfigComponent implements OnInit {
           leavePolicy.createdOn = (leavePolicy.createdOn) ? moment(leavePolicy.createdOn).format(AppComponent.DATE_FORMAT) : null;
           leavePolicy.updatedOn = (leavePolicy.updatedOn) ? moment(leavePolicy.updatedOn).format(AppComponent.DATE_FORMAT) : null;
         });
-        console.log("leavePolicyList : ", this.leavePolicyList);
+        //console.log("leavePolicyList : ", this.leavePolicyList);
       } else {
         console.error(response.serviceResponse);
       }
@@ -1242,10 +1242,10 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   getLeavePolicyByEmploymentStatusAndLeaveType() {
-    console.log("get Leave Policy : ", this.leavePolicyObj);
+    //console.log("get Leave Policy : ", this.leavePolicyObj);
     this.leaveService.getLeavePolicyByEmployentStatusAndLeaveTypeMasterId(this.leavePolicyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        console.log("Leave Policy : ", response.serviceResponse);
+        //console.log("Leave Policy : ", response.serviceResponse);
       } else {
         console.error(response.serviceResponse);
       }
@@ -1260,7 +1260,7 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   sortData(sort: Sort){	
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -1278,7 +1278,7 @@ export class LeaveConfigComponent implements OnInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 
   createForResetOtherField(){

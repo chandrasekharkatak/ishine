@@ -46,7 +46,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
 
    ngOnInit(): void {
     this.screenWidth = window.innerWidth;
-    console.log("menuItems : ", this.menuItems);
+    //console.log("menuItems : ", this.menuItems);
     this.appreciationEventInfo = this.currentUser.appreciationEventInfo;
     
     const dateFormat = 'YYYY-MM-DD';
@@ -56,7 +56,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
     let toDate = this.appreciationEventInfo.toDate;
     var dateCheck=this.dateCheck(currentDate,fromDate,toDate);
 
-    console.log(this.currentUser.isAppreciationEnable, " : isAppreciationEnable");
+    //console.log(this.currentUser.isAppreciationEnable, " : isAppreciationEnable");
     
 
     this.menuItems.forEach((item,index) => {
@@ -96,11 +96,11 @@ export class SidenavComponent implements OnInit, OnDestroy {
     cDate = Date.parse(currentDate);
 
     if((cDate <= tDate && cDate >= fDate)) {
-      console.log("true date");
+      //console.log("true date");
         return true;
     }
     else{
-    console.log("false date");
+    //console.log("false date");
     return false;
     }
   }

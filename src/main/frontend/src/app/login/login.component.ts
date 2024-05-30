@@ -243,7 +243,7 @@ export class LoginComponent implements OnInit{
    if(this.userOTP.length <= 8){
     const response: any = await this.authenticationService.authenticateUserWithOTP(this.user).toPromise();
     if (response.serviceStatus == "Success") {
-      console.log("USER", response.serviceResponse);
+      //console.log("USER", response.serviceResponse);
       const responseObj = response.serviceResponse;
       let user = responseObj[0];
       this.allMappedSubfeatures = responseObj[1];
@@ -255,8 +255,8 @@ export class LoginComponent implements OnInit{
       let log:Log = responseObj[6];
       log.empId = user.empId;
       this.enableAppreciation = responseObj[7];	
-      console.log("enableAppreciation",this.enableAppreciation);	
-      console.log("checking"+sessionStorage.maxFileSize);
+      //console.log("enableAppreciation",this.enableAppreciation);	
+      //console.log("checking"+sessionStorage.maxFileSize);
       this.authenticationService.setCookie({name:"SESSIONID",value:this.authenticationService.sessionString,session:true});
       sessionStorage.setItem('token', this.authenticationService.sessionString);
       
@@ -318,7 +318,7 @@ export class LoginComponent implements OnInit{
 
       if(this.authGaurd.id != null){
         let url = this.authGaurd.currentUrl;
-        console.log(url, " : url");
+        //console.log(url, " : url");
         
         if(url.includes("user-survey")){
           this.router.navigate(['/user-survey', this.authGaurd.id]);
@@ -373,13 +373,13 @@ export class LoginComponent implements OnInit{
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
 
-    // console.log("================== user session timeout : ", this.userMapping.user_session_timeout, " ==================");
+    // //console.log("================== user session timeout : ", this.userMapping.user_session_timeout, " ==================");
     
     if(this.userMapping.user_session_timeout){
       this.bnIdle.startWatching(this.authenticationService.sessionTimeout).subscribe((isTimedOut: boolean) => {
         if (isTimedOut) {
          this.bodyComponent.userLogout();
-          console.log('session expired');
+          //console.log('session expired');
         }
       }); 
     }
@@ -534,7 +534,7 @@ export class LoginComponent implements OnInit{
   }
 
   getActiveSubFeatures():any{
-    // console.log("featureList :", this.featureList);
+    // //console.log("featureList :", this.featureList);
     this.allSubFeatures.forEach(sub => {
       let _sub = new SubFeature();
       _sub.subFeatureMasterId = sub.subFeatureMasterId;
@@ -548,10 +548,10 @@ export class LoginComponent implements OnInit{
 
       
       // let feature  = this.featureList.find(feature => feature.featureId == sub.featureId);
-      // console.log("sub - featureId : ", sub.featureId, " | feature :", feature);
+      // //console.log("sub - featureId : ", sub.featureId, " | feature :", feature);
       this.featureList.find(feature => feature.featureId == sub.featureId)?.subFeatures.push(_sub);
     });
-    console.log("featureList :", this.featureList);
+    //console.log("featureList :", this.featureList);
     return this.featureList;
   }
 
@@ -563,7 +563,7 @@ export class LoginComponent implements OnInit{
       this.user.email = this.userEmailIdForOtpVerification;	
     }	
     	
-    console.log("For Resend OTP : ", this.user);
+    //console.log("For Resend OTP : ", this.user);
     this.authenticationService.resendOTP(this.user).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.isError=true;

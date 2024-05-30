@@ -94,7 +94,7 @@ export class RoleConfigComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
+    //console.log(this.feature, this.userMapping);
 
     //Deafult values for dropdown
     this.jobRoleObj.departmentId = '';
@@ -188,7 +188,7 @@ export class RoleConfigComponent implements OnInit {
 
     this.jobRoleObj = Object.assign({}, jobRole)
     this.getSubfeaturesByJobRoleId();
-    console.log("showUpdateForm --> jobRoleObj : ", this.jobRoleObj);
+    //console.log("showUpdateForm --> jobRoleObj : ", this.jobRoleObj);
 
   }
 
@@ -235,7 +235,7 @@ export class RoleConfigComponent implements OnInit {
     this.jobRoleObj.name = this.jobRoleObj.name.trim();
     let inputValidated: boolean = this.validateJobRoleObj(this.jobRoleObj, template)
     if (!inputValidated) return;
-    // console.log("  :::::  ",this.sameRoleFound)
+    // //console.log("  :::::  ",this.sameRoleFound)
     // this.checkJobRole(template);
     //  if(this.sameRoleFound == true) return;
 
@@ -331,7 +331,7 @@ export class RoleConfigComponent implements OnInit {
     this.jobRoleObj.isJobRoleUsedInIshine = this.onDeleteJobRoleResponse.isJobRoleUsedInIshine;
     this.jobRoleObj.isJobRoleUsedInPoPortal = this.onDeleteJobRoleResponse.isJobRoleUsedInPoPortal;
 
-    console.log(this.jobRoleObj, " : this.jobRoleObj");
+    //console.log(this.jobRoleObj, " : this.jobRoleObj");
 
     this.jobRoleService.changeEmployeeJobRoleMapping(this.jobRoleObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -408,7 +408,7 @@ export class RoleConfigComponent implements OnInit {
     updateFeatureObj.subFeatures = updatedSubFeatureList;
     updateFeatureObj.jobRoleId = this.jobRoleObj.jobRoleId;
 
-    console.log("Update feature-mapping : ", updateFeatureObj);
+    //console.log("Update feature-mapping : ", updateFeatureObj);
     this.subfeatureService.updateRoleFeatureMapping(updateFeatureObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -482,7 +482,7 @@ export class RoleConfigComponent implements OnInit {
     this.jobRoleService.getAllJobRole().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.roleDataForExcel = response.serviceResponse;
-        console.log("response.serviceResponse: ",response.serviceResponse);
+        //console.log("response.serviceResponse: ",response.serviceResponse);
       }
 
       const onlySpecificDataArr = this.roleDataForExcel.map(
@@ -501,8 +501,8 @@ export class RoleConfigComponent implements OnInit {
   }
 
   getJobRolesByDept(departmentId: any) {
-    console.log("departmentId : ", departmentId);
-    console.log("this.allJobRoleList : ", this.allJobRoleList);
+    //console.log("departmentId : ", departmentId);
+    //console.log("this.allJobRoleList : ", this.allJobRoleList);
 
 
     this.filteredJobRoleList = [];
@@ -512,7 +512,7 @@ export class RoleConfigComponent implements OnInit {
     this.filterJobRoleListForMapping = [];
     this.filterJobRoleListForMapping = this.filteredJobRoleList.filter(x => x.jobRoleId !== this.jobRoleObj.jobRoleId);
 
-    console.log("filteredJobRoleList : ", this.filteredJobRoleList);
+    //console.log("filteredJobRoleList : ", this.filteredJobRoleList);
   }
 
 
@@ -520,7 +520,7 @@ export class RoleConfigComponent implements OnInit {
   openDeleteJobRole(template: TemplateRef<any>, jobRole: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.jobRoleObj = jobRole;
-    console.log(this.jobRoleObj);
+    //console.log(this.jobRoleObj);
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
@@ -538,7 +538,7 @@ export class RoleConfigComponent implements OnInit {
   }
 
   sortData(sort: Sort){
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -555,7 +555,7 @@ export class RoleConfigComponent implements OnInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 
 }

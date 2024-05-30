@@ -40,7 +40,7 @@ export class DocumentUploadComponent implements OnInit {
 
   ngOnInit(): void {
     this.currentEmployeeInfo = this.updateUserInfoService.getUserInfoObj();
-    console.log("currentEmployeeInfo in Document Upload => ", this.currentEmployeeInfo);
+    //console.log("currentEmployeeInfo in Document Upload => ", this.currentEmployeeInfo);
     
     if(this.currentEmployeeInfo){
       this.setDocumentList()
@@ -63,7 +63,7 @@ export class DocumentUploadComponent implements OnInit {
     if (response.serviceStatus == 'Success') {
       this.documentList = response.serviceResponse;
     } else {
-      console.log(response.serviceResponse);
+      //console.log(response.serviceResponse);
     }
 
     if (employeeObj.isDraft && this.documentList.length == 0) {
@@ -75,11 +75,11 @@ export class DocumentUploadComponent implements OnInit {
       if (response.serviceStatus == 'Success') {
         this.documentList = response.serviceResponse;
       } else {
-        console.log(response.serviceResponse);
+        //console.log(response.serviceResponse);
       }
     }
 
-    console.log("documentList : ", this.documentList);
+    //console.log("documentList : ", this.documentList);
 
     if (!this.documentList.find(doc => doc.documentType == 'Aadhar Card')) this.addAdharCard();
     if (!this.documentList.find(doc => doc.documentType == 'Pan Card')) this.addPanCard();
@@ -127,8 +127,8 @@ export class DocumentUploadComponent implements OnInit {
   }
 
   onSave(template: TemplateRef<any>){
-    console.log("Selected Files : ", this.files);
-    console.log("documentList : ", this.documentList);
+    //console.log("Selected Files : ", this.files);
+    //console.log("documentList : ", this.documentList);
 
     this.currentEmployeeInfo.documentList = this.documentList;
     this.updateUserInfoService.setUserInfoObj(this.currentEmployeeInfo);
@@ -148,7 +148,7 @@ export class DocumentUploadComponent implements OnInit {
     employeeObj.documentList = this.documentList;
     employeeObj.isDraft = true;
 
-    console.log("Save Documents : ", employeeObj);
+    //console.log("Save Documents : ", employeeObj);
     this.imageService.saveEmployeeDocuments(employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == 'Success') {
         this.openAlertMod(template, response.serviceResponse);
@@ -181,14 +181,14 @@ export class DocumentUploadComponent implements OnInit {
     
     if ( imgHeight > 900 || imgWidth > 700) {
       this.alertMessage = "File dimension exceeds 900px x 700px !!";
-      console.log("File dimension exceeds 900 x 700 !! :", this.alertMessage);
+      //console.log("File dimension exceeds 900 x 700 !! :", this.alertMessage);
       this.openAlertMod(template, this.alertMessage);
       return false;
     }    
     
     if (imageSize > 200) {
       this.alertMessage = "File size exceeds 200kB !!"
-      console.log("File size exceeds 200kB :", this.alertMessage);
+      //console.log("File size exceeds 200kB :", this.alertMessage);
       
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -232,8 +232,8 @@ export class DocumentUploadComponent implements OnInit {
     this.imageService.uploadEmployeeDocument(formData).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == 'Success') {
         let preview = document.getElementById(`docPreview${index + 1}`);
-        console.log("preview : ", preview);
-        console.log("image : ", image);
+        //console.log("preview : ", preview);
+        //console.log("image : ", image);
         if (image) {
           preview?.setAttribute('src', URL.createObjectURL(image));
         }
@@ -263,7 +263,7 @@ export class DocumentUploadComponent implements OnInit {
 
   // Modals
   openDocumentUploadMod(template: TemplateRef<any>, fileType:any) {
-    console.log("fileType : ", fileType);
+    //console.log("fileType : ", fileType);
     this.fileType = fileType;
     this.modalRef = this.modalService.show(template, { class: 'modal-md' });
   }

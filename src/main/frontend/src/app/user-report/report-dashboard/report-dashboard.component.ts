@@ -170,7 +170,7 @@ export class ReportDashboardComponent implements OnInit {
 
         });
 
-        console.log("allResignEmployee : ", this.allResignEmployee)
+        //console.log("allResignEmployee : ", this.allResignEmployee)
 
       } else {
         console.error(response.serviceResponse)
@@ -182,11 +182,11 @@ export class ReportDashboardComponent implements OnInit {
     this.leaveSumarryList = [];
     this.queryList=[];
     let leaveObj= new Leave();
-    console.log(leaveObj);
+    //console.log(leaveObj);
      leaveObj.startDate = moment().subtract(8, 'd').format(this.dateFormat);
      leaveObj.endDate = moment().format(this.dateFormat);
 
-     console.log(leaveObj.startDate, " leaveObj.startDate   ", leaveObj.endDate, "    leaveObj.endDate");
+     //console.log(leaveObj.startDate, " leaveObj.startDate   ", leaveObj.endDate, "    leaveObj.endDate");
 
     this.leaveService.getLast8DaysLeaveReport(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -201,7 +201,7 @@ export class ReportDashboardComponent implements OnInit {
           }
         });
 
-        console.log("leaveSumarryList : ", this.leaveSumarryList);
+        //console.log("leaveSumarryList : ", this.leaveSumarryList);
         this.extractLeaveReportData();
       } else {
         console.error(response.serviceResponse);
@@ -219,7 +219,7 @@ export class ReportDashboardComponent implements OnInit {
         t.employeementId === value.employeementId && t.fromDate === value.fromDate
       ))
     )
-    console.log(this.uniqueLeaveSumarryList, " uniqueIds ");
+    //console.log(this.uniqueLeaveSumarryList, " uniqueIds ");
 
     this.uniqueLeaveSumarryList.forEach(leaveStatus => {
       if (leaveStatus.status == "Pending") pendingCount++;
@@ -240,10 +240,10 @@ export class ReportDashboardComponent implements OnInit {
       y: rejectedCount
     }];
 
-    console.log("leaveStatusData : ", leaveStatusData);
+    //console.log("leaveStatusData : ", leaveStatusData);
 
     let checkLeaveStatusData = leaveStatusData.filter(data => data.y != 0);
-    console.log("checkLeaveStatusData :", checkLeaveStatusData);
+    //console.log("checkLeaveStatusData :", checkLeaveStatusData);
 
     if(checkLeaveStatusData && checkLeaveStatusData.length != 0){
       this.renderPieSummaryChart('Leave Summary Chart', 'leaveSummaryChart', leaveStatusData, 'Leaves', this.openLeaveSummaryTableModel.bind(this));
@@ -274,7 +274,7 @@ export class ReportDashboardComponent implements OnInit {
             }
           });
 
-          console.log(this.leaveSumarryList, "  :  this.leaveSumarryList");
+          //console.log(this.leaveSumarryList, "  :  this.leaveSumarryList");
           this.extractLeaveReportData();
         } else {
           this.openAlertMod(template,response.serviceResponse);
@@ -298,7 +298,7 @@ export class ReportDashboardComponent implements OnInit {
     this.leaveService.getAllLeaveTypes().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allLeaveTypes = response.serviceResponse;
-        console.log("leaveTypes : ", this.allLeaveTypes);
+        //console.log("leaveTypes : ", this.allLeaveTypes);
       } else {
         console.error(response.serviceResponse);
       }
@@ -340,7 +340,7 @@ export class ReportDashboardComponent implements OnInit {
         t.employeementId === value.employeementId && t.fromDate === value.fromDate
       ))
     )
-    console.log(this.leaveTrendAnalysisList, " uniqueTrendAnalysisList ");
+    //console.log(this.leaveTrendAnalysisList, " uniqueTrendAnalysisList ");
 
         let chartData = [];
         let leaveTypes = [];
@@ -355,9 +355,9 @@ export class ReportDashboardComponent implements OnInit {
           return leaveData;
         });
 
-        console.log("data :", data);
-        console.log("ChartData : ", chartData);
-        console.log("dateRange : ", dateRange);
+        //console.log("data :", data);
+        //console.log("ChartData : ", chartData);
+        //console.log("dateRange : ", dateRange);
 
         data.forEach(leaveDataArr => {
           dateRange.forEach(date => {
@@ -369,7 +369,7 @@ export class ReportDashboardComponent implements OnInit {
             chartData.find(chartDataObj => chartDataObj.name == leaveType)?.data.push(dataByDate.length)
           });
         });
-        console.log("Final ChartData : ", chartData);
+        //console.log("Final ChartData : ", chartData);
         this.renderLineGraphChart('Leave Trend Analysis Graph', 'leaveTrendAnalysis', chartData, 'Leave Trend', formattedDateRange, this.openLeaveAnalysisTableModel.bind(this));
   }
 
@@ -420,7 +420,7 @@ export class ReportDashboardComponent implements OnInit {
     this.timesheetService.getLast9DaysTimesheetReport().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.timsheetSummaryList = response.serviceResponse;
-        console.log("timsheetSummaryList : ", this.timsheetSummaryList);
+        //console.log("timsheetSummaryList : ", this.timsheetSummaryList);
         this.extractTimesheetReportData();
       } else {
         console.error(response.serviceResponse);
@@ -501,10 +501,10 @@ export class ReportDashboardComponent implements OnInit {
           y: pendingByUserCount
         }];
 
-        console.log("timesheetData : ", timesheetData);
+        //console.log("timesheetData : ", timesheetData);
 
         let checkTimesheetData = timesheetData.filter(data => data.y != 0);
-        console.log("checkTimesheetData :", checkTimesheetData);
+        //console.log("checkTimesheetData :", checkTimesheetData);
 
         if(checkTimesheetData && checkTimesheetData.length != 0){
           this.renderPieSummaryChart('Timesheet Status Summary Chart', 'timesheetStatusSummary', timesheetData, 'Timesheet',this.openTimesheetSummaryTableModel.bind(this));
@@ -542,7 +542,7 @@ export class ReportDashboardComponent implements OnInit {
       }
 
       let _tempQueryList = JSON.parse(JSON.stringify(queryObj.queryList));
-      console.log(_tempQueryList, "_tempQueryList");
+      //console.log(_tempQueryList, "_tempQueryList");
       let _filteredQueryList = _tempQueryList.filter((query)=> {
         if(query.column == 'Employee Id' || query.column == 'Department' || query.column == 'Full Name' || query.column == 'Team Name' || query.column == 'Project Name' || query.column == 'Client Name'){
           return Object.assign({}, query);
@@ -555,13 +555,13 @@ export class ReportDashboardComponent implements OnInit {
         }
       });
       queryObj.queryList1 = _filteredQueryList;
-      console.log( queryObj.queryList1," queryObj.queryList1");
-      console.log(queryObj.queryList, "queryObj.queryList")
+      //console.log( queryObj.queryList1," queryObj.queryList1");
+      //console.log(queryObj.queryList, "queryObj.queryList")
 
       this.timesheetService.customQueryForTimesheetSummaryChart(queryObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.timsheetSummaryList = response.serviceResponse;
-          console.log(this.timsheetSummaryList, " timsheetSummaryList");
+          //console.log(this.timsheetSummaryList, " timsheetSummaryList");
           this.extractTimesheetReportData();
         } else {
           this.openAlertMod(template,response.serviceResponse);
@@ -593,8 +593,8 @@ export class ReportDashboardComponent implements OnInit {
 
         let employeeWorkLocationCategories = employeeWorkLocationChartData.map(([location]) => ([location]));
 
-        console.log(employeeWorkLocationChartData, " employeeWorkLocationChartData")
-        console.log(this.employeeWorkLocationList , " : employeeWorkLocation");
+        //console.log(employeeWorkLocationChartData, " employeeWorkLocationChartData")
+        //console.log(this.employeeWorkLocationList , " : employeeWorkLocation");
 
         this.renderColumnBarSummaryChart('Employee Work Location Summary','employeeWorkLocationSummary',employeeWorkLocationChartData,employeeWorkLocationCategories,'employee', this.openWorkLocationSummaryTableModal.bind(this));
       } else{
@@ -617,7 +617,7 @@ export class ReportDashboardComponent implements OnInit {
             x.relievingMonth = moment(x.dateOfRelieving).format('MMMM');
             x.joiningMonth = moment(x.dateOfJoining).format('MMMM');
           }
-            console.log("allEmployeeList : ", this.allEmployeeList)
+            //console.log("allEmployeeList : ", this.allEmployeeList)
             this.extractData();
       } else {
         alert(response.serviceResponse)
@@ -655,7 +655,7 @@ export class ReportDashboardComponent implements OnInit {
             employee.joiningMonth = moment(employee.dateOfJoining).format('MMMM');
           });
           this.extractData();
-          console.log("allEmployeeList : ", this.allEmployeeList)
+          //console.log("allEmployeeList : ", this.allEmployeeList)
         } else {
           this.openAlertMod(template,response.serviceResponse)
         }
@@ -666,7 +666,7 @@ export class ReportDashboardComponent implements OnInit {
   extractData() {
     //Total Count
     this.countOfAllEmployees = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive').length;
-    console.log("Count of all employees : ",this.countOfAllEmployees);
+    //console.log("Count of all employees : ",this.countOfAllEmployees);
 
     //Fresher / Lateral Graph (Fresher/Experienced)
     //Graph Based Employment Status(Probation/Confirmed/Resigned/In-Active)
@@ -742,7 +742,7 @@ export class ReportDashboardComponent implements OnInit {
       if(employee.dateOfBirth != null && employee.employmentstatus != 'InActive'){
        let age = this.getAge(employee.dateOfBirth);
        employee.age = age;
-       console.log(age);
+       //console.log(age);
        if(age>= 18 && age <=25)countBetween18and25++;
        else if (age>25 && age<= 35) countBetween25and35++;
        else if (age>35 && age<= 45) countBetween35and45++;
@@ -800,32 +800,32 @@ export class ReportDashboardComponent implements OnInit {
 
     //Age Wise Graph
 
-    console.log("Freshers count: ",fresherCount);
-    console.log("Experience count: ",experienceCount);
-    console.log("----------------------------------------------------");
-    console.log("Probation employees: ",probationCount);
-    console.log("Confirmed employees: ",confirmedCount);
-    console.log("Resigned employees: ",resignedCount);
-    console.log("In-Active employees: ",inActiveCount);
-    console.log("----------------------------------------------------");
-    console.log("Male employees: ",maleCount);
-    console.log("Female employees: ",femaleCount);
-    console.log("Other employees: ", otherCount);
-    console.log("----------------------------------------------------")
-    console.log(employeeByDepartment);
-    console.log("----------------------------------------------------")
-    console.log("Age 18-25: ",countBetween18and25);
-    console.log("Age 26-35: ",countBetween25and35);
-    console.log("Age 36-45: ",countBetween35and45);
-    console.log("Age above 45: ",countAbove45);
-    console.log("----------------------------------------------------")
-    console.log("experience 0-1: ",experienceCountBetween0and1);
-    console.log("experience 1-2: ",experienceCountBetween1and2);
-    console.log("experience 2-5: ",experienceCountBetween2and5);
-    console.log("experience 5-10: ",experienceCountBetween5and10);
-    console.log("experience Above 10: ",experienceCountAbove10);
-    console.log("----------------------------------------------------")
-    console.log("joiningJanCount ", joiningJanCount);
+    //console.log("Freshers count: ",fresherCount);
+    //console.log("Experience count: ",experienceCount);
+    //console.log("----------------------------------------------------");
+    //console.log("Probation employees: ",probationCount);
+    //console.log("Confirmed employees: ",confirmedCount);
+    //console.log("Resigned employees: ",resignedCount);
+    //console.log("In-Active employees: ",inActiveCount);
+    //console.log("----------------------------------------------------");
+    //console.log("Male employees: ",maleCount);
+    //console.log("Female employees: ",femaleCount);
+    //console.log("Other employees: ", otherCount);
+    //console.log("----------------------------------------------------")
+    //console.log(employeeByDepartment);
+    //console.log("----------------------------------------------------")
+    //console.log("Age 18-25: ",countBetween18and25);
+    //console.log("Age 26-35: ",countBetween25and35);
+    //console.log("Age 36-45: ",countBetween35and45);
+    //console.log("Age above 45: ",countAbove45);
+    //console.log("----------------------------------------------------")
+    //console.log("experience 0-1: ",experienceCountBetween0and1);
+    //console.log("experience 1-2: ",experienceCountBetween1and2);
+    //console.log("experience 2-5: ",experienceCountBetween2and5);
+    //console.log("experience 5-10: ",experienceCountBetween5and10);
+    //console.log("experience Above 10: ",experienceCountAbove10);
+    //console.log("----------------------------------------------------")
+    //console.log("joiningJanCount ", joiningJanCount);
 
     /*
     Chart Data for - Employee Status Graph.
@@ -847,10 +847,10 @@ export class ReportDashboardComponent implements OnInit {
           y: inActiveCount
         }];
 
-        console.log("leaveStatusData : ", employeeStatusData);
+        //console.log("leaveStatusData : ", employeeStatusData);
 
         let checkEmployeeStatusData = employeeStatusData.filter(data => data.y != 0);
-        console.log("checkEmployeeStatusData :", checkEmployeeStatusData);
+        //console.log("checkEmployeeStatusData :", checkEmployeeStatusData);
 
         if(checkEmployeeStatusData && checkEmployeeStatusData.length != 0){
           this.renderPieSummaryChart('Employee Status Summary', 'employeeStatus', employeeStatusData, 'Employee Status', this.openEmployeeStatusTableModal.bind(this));
@@ -866,7 +866,7 @@ export class ReportDashboardComponent implements OnInit {
         let departmentWiseEmployeeData = employeeByDepartment.map(dept => {
           return [dept.departmentName, dept.employeeCount]
         })
-        console.log("departmentWiseEmployeeData : ", departmentWiseEmployeeData);
+        //console.log("departmentWiseEmployeeData : ", departmentWiseEmployeeData);
 
         let departmentWiseEmployeeCategories = employeeByDepartment.map(dept => {
           return [dept.departmentName]
@@ -891,10 +891,10 @@ export class ReportDashboardComponent implements OnInit {
             y: otherCount
         }];
 
-        console.log("genderData : ", genderData);
+        //console.log("genderData : ", genderData);
 
         let checkGenderData = genderData.filter(data => data.y != 0);
-        console.log("checkGenderData :", checkGenderData);
+        //console.log("checkGenderData :", checkGenderData);
 
         if(checkGenderData && checkGenderData.length != 0){
           this.renderPieSummaryChart('Gender Summary', 'genderSummary', genderData, 'Employee Summary', this.openGenderSummaryModalTable.bind(this));
@@ -923,10 +923,10 @@ export class ReportDashboardComponent implements OnInit {
           y: countAbove45
         }];
 
-        console.log("employeeAgeData : ", employeeAgeData);
+        //console.log("employeeAgeData : ", employeeAgeData);
 
         let checkEmployeeAgeData = employeeAgeData.filter(data => data.y != 0);
-        console.log("checkGenderData :", checkGenderData);
+        //console.log("checkGenderData :", checkGenderData);
 
         if(checkEmployeeAgeData && checkEmployeeAgeData.length != 0){
           this.renderPieSummaryChart('Age Summary', 'employeeAgeSummary', employeeAgeData, 'Employee Summary', this.openAgeSummayModalTable.bind(this));
@@ -965,7 +965,7 @@ export class ReportDashboardComponent implements OnInit {
         let totalExperienceCategories = experienceData.map(exp => {
           return [exp.name]
         })
-        console.log(" totalExperienceData :", totalExperienceData);
+        //console.log(" totalExperienceData :", totalExperienceData);
         this.renderColumnBarSummaryChart('Employee Experience','employeeExperienceSummary',totalExperienceData,totalExperienceCategories,'Experience', this.openEmployeeExperienceModalTable.bind(this));
 
         /*
@@ -981,10 +981,10 @@ export class ReportDashboardComponent implements OnInit {
           y: experienceCount
         }];
 
-        console.log("genderData : ", genderData);
+        //console.log("genderData : ", genderData);
 
         let checkFresherLateralData = fresherLateralData.filter(data => data.y != 0);
-        console.log("checkFresherLateralData :", checkFresherLateralData);
+        //console.log("checkFresherLateralData :", checkFresherLateralData);
 
         if(checkFresherLateralData && checkFresherLateralData.length != 0){
           this.renderPieSummaryChart('Fresher - Lateral Summary', 'fresherLateralChart', fresherLateralData, 'Employee Summary', this.openFresherLateralModalTable.bind(this));
@@ -1008,14 +1008,14 @@ export class ReportDashboardComponent implements OnInit {
         let finalEmpJoinResignData = empJoinResignData.map(x => {
           return {name : x.name, data : x.y}
         })
-        console.log("finalEmpJoinResignData :", finalEmpJoinResignData);
+        //console.log("finalEmpJoinResignData :", finalEmpJoinResignData);
         this.renderMultiBarChart('Employee Join VS Resign','employeeJoinAndResign',finalEmpJoinResignData,'Employee', this.openEmployeeJoinResignModalTable.bind(this));
 
 
          /*
           Chart Data for - Employee KYC by Department
        */
-        console.log("departmentList : ", departmentList);
+        //console.log("departmentList : ", departmentList);
         const CHECK_PERCENT = 100.00;
         let kycChartData = [{
           name: 'Pending',
@@ -1032,7 +1032,7 @@ export class ReportDashboardComponent implements OnInit {
         });
 
         let departmentKycData = Object.entries(departmentList).map(entry => {
-          console.log("entry : ", entry);
+          //console.log("entry : ", entry);
           const name = entry[0];
           const employeeList:any = entry[1];
 
@@ -1054,13 +1054,13 @@ export class ReportDashboardComponent implements OnInit {
           }
         });
 
-        console.log("departmentKycData : ", departmentKycData);
+        //console.log("departmentKycData : ", departmentKycData);
         departmentKycData.forEach(dept => {
           kycChartData[0].data.push(dept.pending);
           kycChartData[1].data.push(dept.completed);
         });
 
-        console.log("kycChartData : ", kycChartData);
+        //console.log("kycChartData : ", kycChartData);
 
         this.renderStackBarChart('Employee KYC Summary','employeeKycSummary',kycChartData,departmentCategories,'Employee', this.openDepartmentWiseEmployeeKycModalTable.bind(this))
 
@@ -1580,7 +1580,7 @@ export class ReportDashboardComponent implements OnInit {
 
     /* Filter */
     openFilterModal(template: TemplateRef<any>, columns:any[], title:any) {
-      console.log("columns : ", columns);
+      //console.log("columns : ", columns);
       this.queryList = [];
       let dateFormat = 'DD-MM-YYYY';
 
@@ -1616,13 +1616,13 @@ export class ReportDashboardComponent implements OnInit {
 
       this.filterData.queryList = JSON.stringify(this.queryList);
 
-      console.log("filterData : ", this.filterData);
+      //console.log("filterData : ", this.filterData);
       this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
     }
 
     onFilterSubmit(emittedArray:any , template:TemplateRef<any>){
       if (emittedArray[0].length != 0) {
-        console.log("queryList : ", emittedArray[0]);
+        //console.log("queryList : ", emittedArray[0]);
         this.queryList = JSON.parse(JSON.stringify(emittedArray[0]));
         this.cancelRequest();
 
@@ -1644,7 +1644,7 @@ export class ReportDashboardComponent implements OnInit {
           }
         });
 
-        console.log("updated queryList : ", emittedArray[0]);
+        //console.log("updated queryList : ", emittedArray[0]);
 
         if (this.filterData.title == 'Filter Employee Report') {
           this.getCustomEmployeesList(emittedArray[0], template);
@@ -1740,6 +1740,8 @@ export class ReportDashboardComponent implements OnInit {
         "Email Id": x.email,
         "Date Of Joining" : (x.dateOfJoining)? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null,
         "Manager Name": x.managerName,
+        "Billable": x.billable,
+        "Billable Type" : x.billableType,
         "Mobile No.": x.mobileNo,
         "Status": x.employmentstatus,
         "Total Experience": x.totalExperience,
@@ -1875,8 +1877,8 @@ export class ReportDashboardComponent implements OnInit {
       this.page=1;
       this.modalTitle = legendName + " Timesheet Summary";
       this.modalSummaryList = modalTableList.filter(x => x.legend == legendName);
-      console.log(this.modalSummaryList, "this.modalSummaryListttttttttttttt")
-      	console.log(this.countByLegend);
+      //console.log(this.modalSummaryList, "this.modalSummaryListttttttttttttt")
+      	//console.log(this.countByLegend);
       this.modalSummaryList.forEach(x=>{
         if(!this.countByLegend.find(employee => employee.employeementId == x.employeementId)){
           this.countByLegend.push({
@@ -1892,7 +1894,7 @@ export class ReportDashboardComponent implements OnInit {
           });
         }
       });
-      console.log(this.countByLegend,"Data");
+      //console.log(this.countByLegend,"Data");
       this.modalSummaryList = this.countByLegend;
 
       this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
@@ -2149,7 +2151,7 @@ export class ReportDashboardComponent implements OnInit {
   }
 
   sortData(sort: Sort){
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -2175,7 +2177,7 @@ export class ReportDashboardComponent implements OnInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 
 }

@@ -104,7 +104,7 @@
                       <button
                         *ngIf="((teamView.invalidAccessAttempt > teamView.failedAttempt) && userMapping.enable_login_by_reporting_head)"
                         class="btn btn-sm btn-outline-primary mb-1" type="submit"
-                        (click)="forEnableAccount(revoke_template,teamView)"><em>Enable</em></button>
+                        (click)="forEnableAccount(revoke_template,teamView)"><em>Enable</em></button>&nbsp;
                       <button *ngIf="teamView.isTimesheetLockCheckEnable == 'false'" class="btn btn-sm btn-primary mb-1" type="submit"
                         (click)="onUpdateTimesheetLockCheck(alert_message,teamView,'true')"><em><i class="fa-solid fa-lock"></i>&nbsp;Timesheet</em></button>
                       <button *ngIf="teamView.isTimesheetLockCheckEnable == 'true'" class="btn btn-sm btn-outline-primary mb-1" type="submit"
@@ -115,19 +115,19 @@
                         (click)="onHideEmpLeaveBalance()"><em><i class="fa-solid fa-eye-slash"></i>&nbsp; Balance</em></button>
                         <button *ngIf="teamView.isDateOfRelievingToday == 'true'" class="btn btn-sm btn-outline-primary mb-1" type="submit" (click)="navigateToAssetConsent(teamView)"><em>Asset Consent</em></button>
                         <!-- added by anurag -->
-                        <button class="btn btn-sm btn-outline-primary mb-1" (click)="openHistoryTable(leaveHistoryModal,teamView);getAllLeavesByEmpId(teamView)"><i class="fa-solid fa-eye"></i>&nbsp;Leaves</button>
-                      <!-- <button  class="btn btn-sm btn-outline-primary"  type="submit" (click)="forEnableAccount(revoke_template,teamView)"><em >Enable</em></button>  -->
-                      <button class="btn btn-sm btn-outline-primary ml-10" *ngIf="teamView.pipFlag=='false'" (click)="PIP_generate(pip_template,teamView)"><em><i class="fa-solid fa-flag"></i>&nbsp; PIP</em></button>
+                        <button class="btn btn-sm btn-outline-primary mb-1" (click)="openHistoryTable(leaveHistoryModal,teamView);getAllLeavesByEmpId(teamView)"><em><i class="fa-solid fa-eye"></i>&nbsp;Leaves</em></button>
+                      
+                      <!-- <button class="btn btn-sm btn-outline-primary ml-10" *ngIf="teamView.pipFlag=='false'" (click)="PIP_generate(pip_template,teamView)"><em><i class="fa-solid fa-flag"></i>&nbsp; PIP</em></button> -->
 
-                      <button class="btn btn-sm btn-danger ml-10" *ngIf="teamView.pipFlag=='true'" (click)="PIP_reverse_modal(pip_rev_template,teamView)"><em><i class="fa-solid fa-flag"></i>&nbsp; PIP</em></button>
-                      <button class="btn btn-sm btn-outline-success mt-10" (click)="pipReasonModal(pipReason_template,teamView)" *ngIf="teamView.pipFlag=='false'">
-                        <em><i class="fa-solid fa-backward"></i>&nbsp; Rev Reason</em>
-                      </button>
-                      <button class="btn btn-sm btn-outline-primary ml-10" *ngIf="teamView.pipFlag=='true'" (click)="extendPipModal(extend_template,teamView)"><em><i class="fa-solid fa-eye"></i>&nbsp;Extends PIP</em></button>
-
+                      <!-- <button class="btn btn-sm btn-danger ml-10" *ngIf="teamView.pipFlag=='true'" (click)="PIP_reverse_modal(pip_rev_template,teamView)"><em><i class="fa-solid fa-flag"></i>&nbsp; PIP</em></button> -->
+                      <!-- <button class="btn btn-sm btn-outline-success mt-10" (click)="pipReasonModal(pipReason_template,teamView)" *ngIf="teamView.pipFlag=='false'"> -->
+                        <!-- <em><i class="fa-solid fa-backward"></i>&nbsp; Rev Reason</em> -->
+                      <!-- </button> -->
+                      <!-- <button class="btn btn-sm btn-outline-primary ml-10" *ngIf="teamView.pipFlag=='true'" (click)="extendPipModal(extend_template,teamView)"><em><i class="fa-solid fa-eye"></i>&nbsp;Extends PIP</em></button> -->
+<!-- 
                       <button class="btn btn-sm btn-outline-primary mt-10" (click)="pipReasonModal(pipReason_template,teamView)" *ngIf="teamView.pipFlag=='true'">
                         <em><i class="fa-solid fa-fist-raised"></i>&nbsp; PIP Reason</em>
-                      </button>
+                      </button> -->
                     </td>
                   </tr>
                   <tr *ngIf="showReporteeLeaveBalance && selectedDataIndex == i" class="bg-light border-bottom" >
@@ -278,7 +278,7 @@
                             <td [ngStyle]="{'color': (leaveHistory.level3ApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.level3ApprovalStatus == 'Approved') ? 'green' : (leaveHistory.level3ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.level3ApprovalStatus}}</td>
                             <td class="info-label">{{leaveHistory.remark}}</td>
                             <td>
-                              <button *ngIf="userMapping.revoke_reportee_leave && leaveHistory.status == 'Approved' && leaveHistory.isExpire == 'true'" class="btn btn-sm btn-outline-danger mb-1" type="submit" (click)="openRevokeReporteeLeaveModal(revoke_approved_leave,leaveHistory)"><em>Revoke Leave</em></button>
+                              <button *ngIf="userMapping.revoke_reportee_leave && leaveHistory.status == 'Approved'" class="btn btn-sm btn-outline-danger mb-1" type="submit" (click)="openRevokeReporteeLeaveModal(revoke_approved_leave,leaveHistory)"><em>Revoke Leave</em></button>
                             </td>
                           </tr>
                         </tbody>

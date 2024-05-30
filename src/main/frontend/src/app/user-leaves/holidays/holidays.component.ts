@@ -63,7 +63,7 @@ export class HolidaysComponent implements OnInit {
     for (var i = 1; i < 2; i++) {	
       this.years.push(currentYear - i);	
     }	
-    console.log(this.years, "dynamic year");	
+    //console.log(this.years, "dynamic year");	
     	
   }
   getAllHolidayByEmpWorkLocation(){
@@ -88,8 +88,8 @@ export class HolidaysComponent implements OnInit {
         this.holidayList = this.holidayList.filter((holiday:Holiday)=> moment(holiday.dateOfHoliday, "DD-MM-YYYY").year() == this.currentYear);
 
 
-        console.log("this.holidayList : ", this.holidayList);
-        console.log("this.holidayList1 : ", this.holidayList1);
+        //console.log("this.holidayList : ", this.holidayList);
+        //console.log("this.holidayList1 : ", this.holidayList1);
       } else {
         console.error(response.serviceResponse);
       }
@@ -99,8 +99,8 @@ export class HolidaysComponent implements OnInit {
   getFilterHolidayList(value:any){	
     this.selectedYearholidayList = [];	
     let searchYear = parseInt(value);	
-    console.log(searchYear,"searchYear")	
-    console.log(this.holidayList,"this.holidayListthis.holidayList")	
+    //console.log(searchYear,"searchYear")	
+    //console.log(this.holidayList,"this.holidayListthis.holidayList")	
     this.holidayList1.forEach(holiday =>{	
       const year = moment(holiday.dateOfHoliday, "DD-MM-YYYY").year();	
       if(searchYear === year){	
@@ -108,7 +108,7 @@ export class HolidaysComponent implements OnInit {
       }      	
     });	
     this.holidayList =  this.selectedYearholidayList;	
-    console.log(this.selectedYearholidayList,"this.holidayListholidayList")	
+    //console.log(this.selectedYearholidayList,"this.holidayListholidayList")	
   }
 
   //pagination 
@@ -119,7 +119,7 @@ export class HolidaysComponent implements OnInit {
   }
 
   sortData(sort: Sort){	
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -137,7 +137,7 @@ export class HolidaysComponent implements OnInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 
 }

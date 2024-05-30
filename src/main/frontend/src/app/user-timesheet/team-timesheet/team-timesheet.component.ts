@@ -77,7 +77,7 @@ export class TeamTimesheetComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
+    //console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
     this.preventBackButton();
@@ -147,7 +147,7 @@ export class TeamTimesheetComponent implements OnInit {
     timesheetObj.status = "Approved";
     timesheetObj.startDate = this.startDate;
     timesheetObj.endDate = this.endDate;
-    console.log("timesheet obj  : ", timesheetObj)
+    //console.log("timesheet obj  : ", timesheetObj)
     this.timesheetService.getMyReporteesApprovedTimesheets(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamTimesheets = response.serviceResponse;
@@ -160,7 +160,7 @@ export class TeamTimesheetComponent implements OnInit {
           x.createdOn = (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         }
 
-        console.log("allTeamTimesheets :", this.allTeamTimesheets);
+        //console.log("allTeamTimesheets :", this.allTeamTimesheets);
       } else {
         console.error(response.serviceResponse)
       }
@@ -187,7 +187,7 @@ export class TeamTimesheetComponent implements OnInit {
           timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
-        console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
+        //console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
       } else {
         console.error(response.serviceResponse)
       }
@@ -242,7 +242,7 @@ export class TeamTimesheetComponent implements OnInit {
     this.timesheetService.getAllMyActivitiesByTimesheetId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.timesheetObj.allTimesheetActivities = response.serviceResponse;
-        console.log("timesheetObj.allTimesheetActivities :", this.timesheetObj.allTimesheetActivities);
+        //console.log("timesheetObj.allTimesheetActivities :", this.timesheetObj.allTimesheetActivities);
       } else {
         console.error(response.serviceResponse)
       }
@@ -365,7 +365,7 @@ export class TeamTimesheetComponent implements OnInit {
 
   //sorting timesheet	
   sortData(sort: Sort){	
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -380,7 +380,7 @@ export class TeamTimesheetComponent implements OnInit {
 
     const checkboxes = document.querySelectorAll('.timesheet-req-checkbox');
     checkboxes.forEach((checkbox: any) => {
-      console.log("checkbox : ", checkbox);
+      //console.log("checkbox : ", checkbox);
       let checkboxIndex = checkbox.getAttribute('id');
       let checkedTimesheet = this.allTeamTimesheetRequests.find((_timesheet, index) => _timesheet.checkId == checkboxIndex);
 
@@ -402,7 +402,7 @@ export class TeamTimesheetComponent implements OnInit {
 
   select(timesheetObj, event) {
 
-    console.log("clicked on : ", timesheetObj);
+    //console.log("clicked on : ", timesheetObj);
 
     if (event.target.checked) {
       event.target.classList.add('checked');
@@ -420,12 +420,12 @@ export class TeamTimesheetComponent implements OnInit {
       });
     }
 
-    console.log("Updated Bulk List : ", this.bulkApprove);
+    //console.log("Updated Bulk List : ", this.bulkApprove);
   }
 
   openBulkApprovalModal(nightShiftTemplate: TemplateRef<any>, alertTemplate: TemplateRef<any>) {
     const isNightShiftFound = this.bulkApprove.filter((x) => x.isNightShift == "true");
-    console.log(isNightShiftFound, " : isNightShiftFound");
+    //console.log(isNightShiftFound, " : isNightShiftFound");
 
     if (isNightShiftFound.length != 0) {
       this.modalRef = this.modalService.show(nightShiftTemplate, { class: 'modal-lg' });
@@ -446,7 +446,7 @@ export class TeamTimesheetComponent implements OnInit {
 
   openBulkRejectModal(nightShiftTemplate: TemplateRef<any>, bulkRejectTimesheet: TemplateRef<any>) {
     const isNightShiftFound = this.bulkApprove.filter((x) => x.isNightShift == "true");
-    console.log(isNightShiftFound, " : isNightShiftFound");
+    //console.log(isNightShiftFound, " : isNightShiftFound");
 
     if (isNightShiftFound.length != 0) {
       this.modalRef = this.modalService.show(nightShiftTemplate, { class: 'modal-lg' });
@@ -468,12 +468,12 @@ export class TeamTimesheetComponent implements OnInit {
 
   onBulkApproval(template: TemplateRef<any>) {
     this.cancelRequest();
-    console.log("Updated Bulk List : ", this.bulkApprove);
+    //console.log("Updated Bulk List : ", this.bulkApprove);
     let timesheetObj = new Timesheet();
     timesheetObj.bulkApprovedList = this.bulkApprove;
     timesheetObj.updatedBy = this.currentUser.empId;
     timesheetObj.status = "Approved"
-    console.log("For Bulk Update : ", timesheetObj);
+    //console.log("For Bulk Update : ", timesheetObj);
     timesheetObj.bulkApprovedList.forEach((x) => {
       x.employeementId = x.employeementId.substring(2)
     })
@@ -491,13 +491,13 @@ export class TeamTimesheetComponent implements OnInit {
   }
 
   OnBulkReject(template: TemplateRef<any>) {
-    console.log("Updated Bulk List : ", this.bulkReject);
+    //console.log("Updated Bulk List : ", this.bulkReject);
     let timesheetObj = new Timesheet();
     timesheetObj.bulkRejectList = this.bulkReject;
     timesheetObj.updatedBy = this.currentUser.empId;
     timesheetObj.status = "Rejected"
     timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
-    console.log("For Bulk Update : ", timesheetObj);
+    //console.log("For Bulk Update : ", timesheetObj);
     timesheetObj.bulkRejectList.forEach((y) => {
       y.employeementId = y.employeementId.substring(2);
     })
@@ -523,7 +523,7 @@ export class TeamTimesheetComponent implements OnInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 
 

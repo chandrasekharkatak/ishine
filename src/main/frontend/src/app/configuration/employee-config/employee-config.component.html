@@ -718,7 +718,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div *ngIf="employeeObj.experience == 'Experienced'" class="col-md-4 mb-0">
+                                    <div *ngIf="employeeObj.experience == 'Experienced'" class="col-md-3 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Total Experience</label>
@@ -726,7 +726,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-4 mb-0">
+                                    <div class="col-md-3 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Work Location <small>(State)</small></label>
@@ -737,7 +737,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-4 mb-0">
+                                    <div class="col-md-3 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Billable</label>
@@ -749,6 +749,37 @@
                                             </div>
                                         </div>
                                     </div>
+
+                                     <!-- as per discussion with pratima ma'am on 17/05/2024 07:10 PM -->
+
+                                     <div class="col-md-3 mb-0" *ngIf="employeeObj.billable == 'No'">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Billable Type</label>
+                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.billableType">
+                                                    <option selected="selected" value="" disabled>Select</option>
+                                                    <option value="Bench">Bench</option>
+                                                    <option value="Fixed Cost">Fixed Cost</option>
+                                                    <option value="InternalRNDProducts">InternalRNDProducts</option>
+                                                    <option value="Shadow">Shadow</option>
+                                                  </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3 mb-0" *ngIf="employeeObj.billable == 'Yes'">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Billable Type</label>
+                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.billableType">
+                                                    <option selected="selected" value="" disabled>Select</option>
+                                                    <option value="TNM">TNM</option>
+                                                  </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
                                     <div class="col-md-4 mb-0" *ngIf="isUpdation">
                                         <div class="info-wrapper">
                                             <div class="form-group">
@@ -1098,6 +1129,9 @@
                                         class="btn btn-sm btn-outline-danger mb-1" type="submit" (click)="openDeleteEmployee(delete_template,employee)"><em
                                             class="fa fa-trash"></em></button>&nbsp;
                                     <button class="btn btn-sm btn-outline-primary mb-1" type="submit"
+                                    *ngIf="currentUser.jobRoleName == 'VP - Business Development' || currentUser.jobRoleName == 'VP Pre Sales' || 
+                                    currentUser.jobRoleName == 'Sr Vp Human Resource' || currentUser.jobRoleName == 'VP Human Resource' || 
+                                    currentUser.jobRoleName == 'VP' || currentUser.jobRoleName == 'HR Manager'"
                                         (click)="getEmployeeAuditInfo(employee,audit_template,alert_message)"><em><i
                                                 class="fa-solid fa-clock-rotate-left"></i></em></button>&nbsp;
 
@@ -1120,17 +1154,17 @@
 
                                         <!-- added by anurag PIP  -->
 
-                                        <button class="btn btn-sm btn-outline-primary ml-10" *ngIf="employee.pipFlag=='false' && currentUser.jobRoleName == 'HR Manager'" (click)="PIP_generate(pip_template,employee)"><em><i class="fa-solid fa-flag"></i>&nbsp; PIP</em></button>
+                                        <!-- <button class="btn btn-sm btn-outline-primary ml-10" *ngIf="employee.pipFlag=='false' && currentUser.jobRoleName == 'HR Manager'" (click)="PIP_generate(pip_template,employee)"><em><i class="fa-solid fa-flag"></i>&nbsp; PIP</em></button>
 
                       <button class="btn btn-sm btn-danger ml-10" *ngIf="employee.pipFlag=='true' && currentUser.jobRoleName == 'HR Manager'" (click)="PIP_reverse_modal(pip_rev_template,employee)"><em><i class="fa-solid fa-flag"></i>&nbsp; PIP</em></button>
                       <button class="btn btn-sm btn-outline-success mt5" (click)="pipReasonModal(pipReason_template,employee)" *ngIf="employee.pipFlag=='false' && currentUser.jobRoleName == 'HR Manager'">
                         <em><i class="fa-solid fa-backward"></i>&nbsp; Rev Reason</em>
-                      </button>
-                      <button class="btn btn-sm btn-outline-primary ml-10 mt5" *ngIf="employee.pipFlag=='true'" (click)="extendPipModal(extend_template,employee)"><em><i class="fa-solid fa-eye"></i>&nbsp;Extends PIP</em></button>
+                      </button> -->
+                      <!-- <button class="btn btn-sm btn-outline-primary ml-10 mt5" *ngIf="employee.pipFlag=='true'" (click)="extendPipModal(extend_template,employee)"><em><i class="fa-solid fa-eye"></i>&nbsp;Extends PIP</em></button> -->
 
-                      <button class="btn btn-sm btn-outline-primary mt5" (click)="pipReasonModal(pipReason_template,employee)" *ngIf="employee.pipFlag=='true' && currentUser.jobRoleName == 'HR Manager'">
+                      <!-- <button class="btn btn-sm btn-outline-primary mt5" (click)="pipReasonModal(pipReason_template,employee)" *ngIf="employee.pipFlag=='true' && currentUser.jobRoleName == 'HR Manager'">
                         <em><i class="fa-solid fa-fist-raised"></i>&nbsp; PIP Reason</em>
-                      </button>
+                      </button> -->
 
 
                                         <!-- added by anurag PIP module  -->

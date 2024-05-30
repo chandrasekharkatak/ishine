@@ -63,11 +63,11 @@
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let leave of leaveTypes" value="{{leave.leaveTypeMasterId}}">{{leave.leaveType}}</option>
                             </select>
-                            <small *ngIf="leaveObj.leaveTypeMasterId == 4">(Another CL will be applicable after 15 days)</small>
+                            <small *ngIf="leaveObj.leaveTypeMasterId == 2">(Another CL will be applicable after 15 days)</small>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 mb-0" *ngIf="leaveObj.leaveTypeMasterId == 18 ">
+                <div class="col-md-4 mb-0" *ngIf="leaveObj.leaveTypeMasterId == 5 ">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Maternity Type</label>

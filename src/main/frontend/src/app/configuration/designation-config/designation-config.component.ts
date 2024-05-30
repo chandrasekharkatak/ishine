@@ -66,7 +66,7 @@ export class DesignationConfigComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
+    //console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
   }
@@ -169,7 +169,7 @@ export class DesignationConfigComponent implements OnInit {
 
     this.designationObj.createdBy = this.currentUser.empId;
 
-    console.log(this.designationObj, " : this.designationObj");
+    //console.log(this.designationObj, " : this.designationObj");
 
     this.destinationService.createDesignation(this.designationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -203,7 +203,7 @@ export class DesignationConfigComponent implements OnInit {
 
     this.designationObj.updatedBy = this.currentUser.empId;
 
-    console.log(this.designationObj, " : this.designationObj");
+    //console.log(this.designationObj, " : this.designationObj");
 
     this.destinationService.updateDesignation(this.designationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -252,7 +252,7 @@ export class DesignationConfigComponent implements OnInit {
   openDeleteDesignation(template: TemplateRef<any>, designation: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.designationToBeDeleted = designation;
-    console.log(this.designationObj);
+    //console.log(this.designationObj);
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
@@ -293,7 +293,7 @@ export class DesignationConfigComponent implements OnInit {
   }
 
   sortData(sort: Sort){
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -311,7 +311,7 @@ export class DesignationConfigComponent implements OnInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 
 }

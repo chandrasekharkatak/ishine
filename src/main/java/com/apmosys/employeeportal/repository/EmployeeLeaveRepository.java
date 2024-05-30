@@ -119,7 +119,7 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
 			+ "inner join employee e ON e.emp_id=el.emp_id\n"
 			+ "inner join leave_status ls on ls.leave_status_id=el.leave_status_id\n "
 			+ "inner join employee em ON em.emp_id=el.manager_id "
-			+ "where el.manager_id=:managerId and (el.from_date  between :fromDate and :toDate) or (el.to_date between :fromDate and :toDate)")
+			+ "where el.manager_id=:managerId and ((el.from_date  between :fromDate and :toDate) or (el.to_date between :fromDate and :toDate))")
 	public List<Object[]> getOverLapsLeaveForManager(String fromDate, String toDate, Integer managerId);
 
 	@Query(nativeQuery = true , value = "SELECT * FROM employee_leave el WHERE el.leave_status_id=1 AND el.emp_id = :empId AND el.manager_approval_status='Pending'")

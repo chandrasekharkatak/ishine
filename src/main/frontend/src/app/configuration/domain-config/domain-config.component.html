@@ -1,3 +1,14 @@
+
+<div class="row mb-3">
+    <div class="col-md-12 px-0">
+     <button class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isDomainTable}" (click)="showAllDomain()">All Domain</button>
+     <!-- <button class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isApplication}" (click)="showApplicationForm()">Create Application</button> -->
+     <!-- <button class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isAppTable}" (click)="showApplicationsTable()">Applications</button> -->
+     <button class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isfileUpload}" (click)="showFileUploadForm()">File Upload <small>(skills)</small></button>
+ </div>
+ </div>
+
+
 <!-- start :: Domain/ Specialization Configuration -->
 
 <!-- View All Domain :: start -->
@@ -110,6 +121,55 @@
 <!-- Create/Update Domain :: end -->
 
 <!-- end :: Domain/ Specialization Configuration -->
+
+
+<!-- isfileUpload -->
+
+<div class="row" *ngIf="isfileUpload">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">File upload</h1>
+            </div>
+        </div>
+        <div class="card-body">
+           <!-- <div class="row">
+            <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>File</label>
+                        <input type="file" class="form-control p-1" (change)="onFileSelect($event, alert_message)">
+                    </div>
+                </div>
+            </div>
+    
+            <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Download Sheet Format</label>
+                        <button class="btn btn-outline-danger" (click)="downloadFileTemplate()"><em class="fa fa-download"></em></button>
+                    </div>
+                </div>
+            </div>
+           </div> -->
+           <div class="row">
+            <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Billable related File</label>
+                        <input type="file" class="form-control p-1" (change)="onBillableFileSelect($event, alert_message)">
+                    </div>
+                </div>
+            </div>
+           </div>
+        </div>
+    
+    </div>
+    </div>
+    
+    
+    
+
 
 
 <ng-template #alert_message>

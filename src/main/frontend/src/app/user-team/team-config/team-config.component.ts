@@ -142,7 +142,7 @@ export class TeamConfigComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
+    //console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
     this.preventBackButton();
@@ -319,12 +319,12 @@ export class TeamConfigComponent implements OnInit {
     
     this.activityObj = Object.assign({}, activityObj);
 
-    console.log(this.activityObj, " : this.activityObj", " activityObj.departmentList" , activityObj.departmentList);
+    //console.log(this.activityObj, " : this.activityObj", " activityObj.departmentList" , activityObj.departmentList);
     
 
     this.activityObj.departmentList = activityObj.departmentList?.map(x=>+x);
 
-    console.log(this.activityObj, " : this.activityObj.departmentList");
+    //console.log(this.activityObj, " : this.activityObj.departmentList");
     
 
     this.getDepartmentByTeam(this.activityObj.teamId);
@@ -409,10 +409,10 @@ export class TeamConfigComponent implements OnInit {
 
         this.allTemplateActivityList = this.activityTemplateObj.templateActivityList;
 
-        console.log( this.activityTemplateObj , " :  this.activityTemplateObj ");
+        //console.log( this.activityTemplateObj , " :  this.activityTemplateObj ");
         
       } else {
-        console.log(response.serviceStatus);
+        //console.log(response.serviceStatus);
       }
     });
   }
@@ -421,7 +421,7 @@ export class TeamConfigComponent implements OnInit {
   addInputTemplateActivityField(){
     let newTeamObj = new Team();
     this.allTemplateActivityList.push(newTeamObj);
-    console.log(this.allTemplateActivityList, " : this.allClientLocation");
+    //console.log(this.allTemplateActivityList, " : this.allClientLocation");
   }
 
   removeInputTemplateActivityField(activityObj) {
@@ -431,7 +431,7 @@ export class TeamConfigComponent implements OnInit {
         this.allTemplateActivityList.splice(index, 1);
       }
     });
-    console.log(this.updatedTemplateActivityList, " :this.updatedTemplateActivityList");
+    //console.log(this.updatedTemplateActivityList, " :this.updatedTemplateActivityList");
   }
 
   reset() {
@@ -467,7 +467,7 @@ export class TeamConfigComponent implements OnInit {
       }
     });
 
-    console.log("Updated Members : ", this.allTeamMembers);
+    //console.log("Updated Members : ", this.allTeamMembers);
     
   }
 
@@ -528,10 +528,10 @@ export class TeamConfigComponent implements OnInit {
     let inputValidated: boolean = this.validateTeamObj(this.teamObj, template)
     if (!inputValidated) return;
 
-    console.log("allTeamMembers :", this.allTeamMembers);
+    //console.log("allTeamMembers :", this.allTeamMembers);
     this.teamObj.allTeamMemberList = (this.allTeamMembers.length !== 0) ? this.allTeamMembers : null;
     this.teamObj.createdBy = this.currentUser.empId;
-    console.log("create teamObj : ", this.teamObj);
+    //console.log("create teamObj : ", this.teamObj);
 
     
 
@@ -605,9 +605,9 @@ export class TeamConfigComponent implements OnInit {
       this.teamService.getMappedActivityPreview(teamObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.activityPreviewList = response.serviceResponse;
-          console.log(this.activityPreviewList, " : activityPreviewList");
+          //console.log(this.activityPreviewList, " : activityPreviewList");
         } else {
-          console.log(response.serviceResponse, " response");
+          //console.log(response.serviceResponse, " response");
         }
       });
     }
@@ -623,9 +623,9 @@ export class TeamConfigComponent implements OnInit {
     this.teamService.getMappedActivityInUpdateTeam(teamObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.activityPreviewList = response.serviceResponse;
-        console.log(this.activityPreviewList, " : activityPreviewList");
+        //console.log(this.activityPreviewList, " : activityPreviewList");
       } else {
-        console.log(response.serviceResponse, " response");
+        //console.log(response.serviceResponse, " response");
       }
     });
   }
@@ -654,7 +654,7 @@ export class TeamConfigComponent implements OnInit {
     }
 
     this.teamObj.updatedBy = this.currentUser.empId;
-    console.log("update teamObj : ", this.teamObj);
+    //console.log("update teamObj : ", this.teamObj);
     this.teamService.updateTeam(this.teamObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -690,7 +690,7 @@ export class TeamConfigComponent implements OnInit {
     this.filterStatus = "";
     this.activityObj.teamId = '';
 
-    console.log("selectedProject : ", this.selectedProject);
+    //console.log("selectedProject : ", this.selectedProject);
     
     if(projectId == 0){
         this.getAllMyTeamsByEmpId();
@@ -709,7 +709,7 @@ export class TeamConfigComponent implements OnInit {
           this._allTeamList = this.allTeamList
 
           this.isDisabled = false;
-          console.log("allTeamList :", this.allTeamList);
+          //console.log("allTeamList :", this.allTeamList);
         } else {
           console.error(response.serviceResponse)
         }
@@ -742,7 +742,7 @@ export class TeamConfigComponent implements OnInit {
 
     this.teamService.getAllMyTeamsByEmpId(employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        console.log("response.serviceResponse :", response.serviceResponse);
+        //console.log("response.serviceResponse :", response.serviceResponse);
         
         this.allTeamList = response.serviceResponse;
         this.allTeamList.forEach(team => {
@@ -750,7 +750,7 @@ export class TeamConfigComponent implements OnInit {
         });
         this._allTeamList = this.allTeamList
         this.isDisabled = false;
-        console.log("getAllMyTeamsByEmpId -- allTeamList :", this.allTeamList);
+        //console.log("getAllMyTeamsByEmpId -- allTeamList :", this.allTeamList);
       } else {
         console.error(response.serviceResponse)
       }
@@ -780,7 +780,7 @@ export class TeamConfigComponent implements OnInit {
         });
         this._allTeamList = this.allTeamList
         this.isDisabled = false;
-        console.log("getAllTeams :", this.allTeamList);
+        //console.log("getAllTeams :", this.allTeamList);
       } else {
         console.error(response.serviceResponse)
       }
@@ -821,7 +821,7 @@ export class TeamConfigComponent implements OnInit {
           this.getAllEmployeesByDepartmentIds();   
           this.getAllEmployeesByRole();      
         }
-        console.log("teamObj.allTeamMemberList :", this.teamObj.allTeamMemberList);
+        //console.log("teamObj.allTeamMemberList :", this.teamObj.allTeamMemberList);
       } else {
         console.error(response.serviceResponse)
       }
@@ -838,7 +838,7 @@ export class TeamConfigComponent implements OnInit {
     // projectObj.projectManagerId = 184; //! Here we are getting all projects
     this.projectService.getAllProjectListByProjectManagerId(projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        console.log("Current user : Persona : "+ this.currentUser.employeeRole + " || Department : "+ this.currentUser.departmentName);
+        //console.log("Current user : Persona : "+ this.currentUser.employeeRole + " || Department : "+ this.currentUser.departmentName);
         let allProjectList = response.serviceResponse;
 
         if(this.userMapping.allow_all_projects){
@@ -856,7 +856,7 @@ export class TeamConfigComponent implements OnInit {
               t.projectId === value.projectId
             ))
           )
-          console.log("allProjectList For HOD / HR / SuperAdmin / Manager / ANurag :", this.allProjectListByManagerId);
+          //console.log("allProjectList For HOD / HR / SuperAdmin / Manager / ANurag :", this.allProjectListByManagerId);
         }else{
           this.allProjectListByManagerId = allProjectList;
           this.allProjectListByManagerId = allProjectList.filter((projectObj:Project) => projectObj.departmentName == this.currentUser.departmentName);
@@ -883,7 +883,7 @@ export class TeamConfigComponent implements OnInit {
               t.projectId === value.projectId
             ))
           )
-          console.log("allProjectList By Department :", this.allProjectListByManagerId);
+          //console.log("allProjectList By Department :", this.allProjectListByManagerId);
         }
 
         this.allProjectListByManagerId = this.allProjectListByManagerId.sort((a, b) => a.projectName.localeCompare(b.projectName));
@@ -917,7 +917,7 @@ export class TeamConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.employeeSpecificProjectList = response.serviceResponse;
 
-        console.log(this.employeeSpecificProjectList, " this.employeeSpecificProjectList==");
+        //console.log(this.employeeSpecificProjectList, " this.employeeSpecificProjectList==");
         
         // filter list if data is duplicate
 
@@ -926,7 +926,7 @@ export class TeamConfigComponent implements OnInit {
             t.projectName === value.projectName
           ))
         )
-        console.log("employeeSpecificProjectList :", this.employeeSpecificProjectList);
+        //console.log("employeeSpecificProjectList :", this.employeeSpecificProjectList);
       } else {
         console.error(response.serviceResponse)
       }
@@ -943,8 +943,8 @@ export class TeamConfigComponent implements OnInit {
     this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         employeeList = response.serviceResponse;
-        console.log("employeeList By Role : ", employeeList);
-        console.log("Department Selected : ", this.teamObj.departmentList);
+        //console.log("employeeList By Role : ", employeeList);
+        //console.log("Department Selected : ", this.teamObj.departmentList);
 
         // remove teamLead if their department are not selected.
         // let filterDepartmentList = this.employeeListByDept.map(y => y.departmentId);
@@ -954,7 +954,7 @@ export class TeamConfigComponent implements OnInit {
         let filterDepartmentList = this.employeeListByDept.map(y => y.departmentId);
         this.teamLeadsList = employeeList.filter(x => this.teamObj.departmentList?.includes(x.departmentId));
         this.teamLeadsList = this.teamLeadsList.sort((a, b) => a.name.localeCompare(b.name));
-        console.log("teamLeadsList : ", this.teamLeadsList)
+        //console.log("teamLeadsList : ", this.teamLeadsList)
       } else {
         console.error(response.serviceResponse)
       }
@@ -962,8 +962,8 @@ export class TeamConfigComponent implements OnInit {
   }
 
   updateEmployeeListAccordingToTeamMembers() {
-    console.log("Existing Team Member : ", this.teamObj.allTeamMemberList);
-    console.log("Selected Team Member : ", this.allTeamMembers);
+    //console.log("Existing Team Member : ", this.teamObj.allTeamMemberList);
+    //console.log("Selected Team Member : ", this.allTeamMembers);
     this.employeeListByDept.forEach((employee, index) => {
       const existingEmployee = this.teamObj.allTeamMemberList?.find(member => member.empId == employee.empId);
       if (existingEmployee) {
@@ -988,13 +988,13 @@ export class TeamConfigComponent implements OnInit {
   //   //    return dept;
   //   // });
 
-  //   // console.log("empObj.departmentList : ", empObj.departmentList);
+  //   // //console.log("empObj.departmentList : ", empObj.departmentList);
     
   //   this.employeeService.getAllEmployeesByDepartmentId(empObj).pipe(first()).subscribe((response: any) => {
   //     if (response.serviceStatus == "Success") {
   //       this.employeeListByDept = response.serviceResponse;
   //       this.employeeListByDept = this.employeeListByDept.sort((a, b) => a.name.localeCompare(b.name));
-  //       console.log("employeeList By Department : ", this.employeeListByDept);
+  //       //console.log("employeeList By Department : ", this.employeeListByDept);
   //       this.updateEmployeeListAccordingToTeamMembers();
   //     } else {
   //       console.error(response.serviceResponse);
@@ -1012,13 +1012,13 @@ export class TeamConfigComponent implements OnInit {
        return dept;
     });
 
-    console.log("empObj.departmentList : ", empObj.departmentList);
+    //console.log("empObj.departmentList : ", empObj.departmentList);
     
     this.employeeService.getAllEmployeesByDepartmentIds(empObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeListByDept = response.serviceResponse;
         this.employeeListByDept = this.employeeListByDept.sort((a, b) => a.name.localeCompare(b.name));
-        console.log("employeeList By Department : ", this.employeeListByDept);
+        //console.log("employeeList By Department : ", this.employeeListByDept);
         this.updateEmployeeListAccordingToTeamMembers();
       } else {
         console.error(response.serviceResponse);
@@ -1033,7 +1033,7 @@ export class TeamConfigComponent implements OnInit {
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allDeptList = response.serviceResponse;
-        console.log("allDeptList : ", this.allDeptList)
+        //console.log("allDeptList : ", this.allDeptList)
       } else {
         console.error(response.serviceResponse);
       }
@@ -1098,7 +1098,7 @@ export class TeamConfigComponent implements OnInit {
     if (!inputValidated) return;
 
     this.activityObj.createdBy = this.currentUser.empId;
-    console.log("create activity : ", this.activityObj);
+    //console.log("create activity : ", this.activityObj);
     this.teamService.createActivity(this.activityObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -1118,7 +1118,7 @@ export class TeamConfigComponent implements OnInit {
     if (!inputValidated) return;
 
     this.activityObj.updatedBy = this.currentUser.empId;
-    console.log("update Activity : ", this.activityObj);
+    //console.log("update Activity : ", this.activityObj);
 
     this.teamService.updateActivity(this.activityObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1161,7 +1161,7 @@ export class TeamConfigComponent implements OnInit {
         this.allActivityList.forEach(activity => {
           activity.createdOn = (activity.createdOn)? moment(activity.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
-        console.log("allActivityList :", this.allActivityList);
+        //console.log("allActivityList :", this.allActivityList);
       } else {
         console.error(response.serviceResponse)
       }
@@ -1253,7 +1253,7 @@ export class TeamConfigComponent implements OnInit {
             t.departmentName === value.departmentName && t.employeeRole === value.employeeRole
           ))
         )
-        console.log(this.templateActivityList, " this.templateActivityList");
+        //console.log(this.templateActivityList, " this.templateActivityList");
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -1266,7 +1266,7 @@ export class TeamConfigComponent implements OnInit {
     if (!inputValidated) return;
     this.activityTemplateObj.templateActivityList = (Object.keys(this.allTemplateActivityList[0]).length === 0) ? null : this.allTemplateActivityList;
     
-    console.log(this.activityTemplateObj, " :this.activityTemplateObj");
+    //console.log(this.activityTemplateObj, " :this.activityTemplateObj");
     
     this.teamService.updateActivityTemplate(this.activityTemplateObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1377,7 +1377,7 @@ export class TeamConfigComponent implements OnInit {
 
   openActivityPreviewModal(template: TemplateRef<any>,teamObj:any) {
     this.storedTeamObj = teamObj;
-    console.log(this.storedTeamObj, " this.storedTeamObj");
+    //console.log(this.storedTeamObj, " this.storedTeamObj");
     
     this.modalRef = this.modalService.show(template);
   }
@@ -1390,7 +1390,7 @@ export class TeamConfigComponent implements OnInit {
   }
 
   sortData(sort: Sort){	
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -1408,7 +1408,7 @@ export class TeamConfigComponent implements OnInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 
 }

@@ -83,6 +83,9 @@ public class CompOffLeaveService {
 	@Value("${hr.mail}")
 	private String hrMailAddress;
 	
+	@Value("${compOff_apply_withIn}")
+	private Long compOffApplyWithIn;
+	
 	@Autowired
 	EmployeeLeaveRepository employeeLeaveRepository;
 
@@ -142,14 +145,16 @@ public class CompOffLeaveService {
 
 			CompOffLeave leave = new CompOffLeave();
 			
-//			added by anurag ( as discussed with bansi sir and pooja ) create validation
+//			added by anurag ( as discussed with bansi sir and pooja on 18-05-2024 comp off should allow for 10 days) create validation
 			LocalDate appliedForDate = LocalDate.parse(leaveDTO.getFromDate());
-			LocalDate lastSeventhDate = LocalDate.now().minusDays(7);
+			LocalDate lastSeventhDate = LocalDate.now().minusDays(compOffApplyWithIn);
+			LocalDate currentDate = LocalDate.now();
 			
 			System.out.println(" appliedForDate  "+appliedForDate);
 			System.out.println(" lastSeventhDate "+lastSeventhDate);
 			
-			if(appliedForDate.isAfter(lastSeventhDate)) {
+//			if(appliedForDate.isAfter(lastSeventhDate)) {
+			if (!appliedForDate.isBefore(lastSeventhDate) && !appliedForDate.isAfter(currentDate)) {
 				System.out.println(" Successfully created ");
 				
 				leave.setDescription(leaveDTO.getDescription());

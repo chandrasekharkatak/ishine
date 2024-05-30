@@ -159,7 +159,7 @@ export class LeaveComponent implements OnInit {
 
   ngOnInit(): void {
     this.logService.updateLogInfo(this.log);
-    //console.log("this.currentUser : ", this.currentUser);
+    console.log("this.currentUser : ", this.currentUser);
     //console.log("logInfo : ", this.log);
 
     // this.leaveObj.leaveTypeMasterId = '';
@@ -178,7 +178,7 @@ export class LeaveComponent implements OnInit {
     this.sectionViewInit();
     // this.getAllLeaveTypes();
     this.getAllLeaveTypesByLeavePolicies(this.currentUser);
-    console.log('this.currentUser    gender ',this.currentUser);
+    //console.log('this.currentUser    gender ',this.currentUser);
     this.getAllPortalConfigData();
     // this.dateToday = this.datePipe.transform(this.dateToday,'dd-MM-yyyy');
     this.preventBackButton();
@@ -448,7 +448,7 @@ export class LeaveComponent implements OnInit {
     this.leaveObj.toDateDayType = leaveHistory.toDateDayType;
     this.leaveObj.fromDate = (this.leaveObj.fromDate)? moment(this.leaveObj.fromDate, AppComponent.DATE_FORMAT).format(AppComponent.DB_DATE_FORMAT) : null;
     this.leaveObj.toDate = (this.leaveObj.toDate)? moment(this.leaveObj.toDate, AppComponent.DATE_FORMAT).format(AppComponent.DB_DATE_FORMAT) : null;
-    	console.log("    update form   ",this.leaveObj);
+    	//console.log("    update form   ",this.leaveObj);
     if(this.isSelfLeaveHistory){
       this.leaveObj.leaveAppliedFor = "self";
       this.leaveObj.empId = this.currentUser.empId;
@@ -594,7 +594,7 @@ export class LeaveComponent implements OnInit {
     
     let leaveType = this.leaveTypes.find(leaveType => leaveType.leaveTypeMasterId == leaveTypeMasterId);  
     this.leaveObj.leaveTypeCode = leaveType.leaveTypeCode;
-    console.log(" ln 585 ",leaveType);
+    //console.log(" ln 585 ",leaveType);
     // resetting Data for previously selected leave Type
     this.leaveObj.fromDate = '';
     this.leaveObj.fromDateDayType = '';
@@ -613,7 +613,7 @@ export class LeaveComponent implements OnInit {
     this.leavePolicyObj = new Leave();
     let leavePolicyObj = this.leaveTypes.find(leaveType => leaveType.leaveTypeMasterId == leaveTypeMasterId);  
     this.leavePolicyObj = Object.assign({}, leavePolicyObj);
-    console.log("  leavePolicyObj     ",leavePolicyObj);
+    //console.log("  leavePolicyObj     ",leavePolicyObj);
   }
 
   async checkPolicy(leaveObj:Leave, leavePolicyObj:Leave, template: TemplateRef<any>){
@@ -621,17 +621,19 @@ export class LeaveComponent implements OnInit {
 
     // One Time Leave Application Count 
     if(leavePolicyObj.oneTimeLeave == "Yes"){
-      if(leavePolicyObj.oneTimeLeaveMinCount > leaveObj.noOfDays){
-        this.alertMessage = `Leave Application days are not meeting minimum limit of ${leavePolicyObj.oneTimeLeaveMinCount} day(s) !!`
-        this.openAlertMod(template, this.alertMessage);
-        flag = false;
+      if(leavePolicyObj.leaveTypeCode != "ML"){
+        if(leavePolicyObj.oneTimeLeaveMinCount > leaveObj.noOfDays){
+          this.alertMessage = `Leave Application days are not meeting minimum limit of ${leavePolicyObj.oneTimeLeaveMinCount} day(s) !!`
+          this.openAlertMod(template, this.alertMessage);
+          flag = false;
+        }
+        if(leavePolicyObj.oneTimeLeaveCount < leaveObj.noOfDays){
+          this.alertMessage = `Leave Application days are exceeding limit of ${leavePolicyObj.oneTimeLeaveCount} day(s) !!`
+          this.openAlertMod(template, this.alertMessage);
+          flag = false;
+        }
       }
-
-      if(leavePolicyObj.oneTimeLeaveCount < leaveObj.noOfDays){
-        this.alertMessage = `Leave Application days are exceeding limit of ${leavePolicyObj.oneTimeLeaveCount} day(s) !!`
-        this.openAlertMod(template, this.alertMessage);
-        flag = false;
-      }
+     
     }
 
     // Leave Probation Period 
@@ -856,7 +858,7 @@ export class LeaveComponent implements OnInit {
 
     //Check if employee was in probation by fromDate
     let leaveType = this.leaveTypes.find(x => x.leaveTypeMasterId == this.leaveObj.leaveTypeMasterId);
-console.log(" on reset to date call   ",leaveType);
+//console.log(" on reset to date call   ",leaveType);
     if(leaveType != null && (leaveType.leaveTypeCode != 'LWP' && leaveType.leaveTypeCode != 'CO')){
       if(this.currentUser.probationPeriod != null && this.currentUser.dateOfJoining != null){
 
@@ -905,7 +907,7 @@ console.log(" on reset to date call   ",leaveType);
     //Check if leave has been already applied between from date & toDate
     let fromDate = moment(this.leaveObj.fromDate).format(dateFormat);
     let toDate = moment(this.leaveObj.toDate).format(dateFormat);
-    console.log(" from date and todate ",fromDate,toDate);
+    //console.log(" from date and todate ",fromDate,toDate);
     let isLeaveContained = this.previouslyAppliedLeavesList.find(object => object.toDate <= toDate && object.fromDate >= fromDate);
 
     if(isLeaveContained){
@@ -938,7 +940,7 @@ console.log(" on reset to date call   ",leaveType);
         let response:any = await this.leaveService.getHolidayWeekOffSize(this.leaveObj).toPromise(); 	
         if (response.serviceStatus == "Success") {	
           this.holidayWeekOffList = response.serviceResponse;	
-          console.log(" holidayWeekOffList  Anurag  ::  ",this.holidayWeekOffList);
+          //console.log(" holidayWeekOffList  Anurag  ::  ",this.holidayWeekOffList);
           this.holidayWeekOffCount = this.holidayWeekOffList.length;	
         } else {	
           //console.log(response.serviceResponse);	
@@ -1192,7 +1194,7 @@ console.log(" on reset to date call   ",leaveType);
         this.LeaveObj.toDateDayType= "0.0";
       }
       this.leaveObj.state=this.currentUser.workLocation;
-console.log("leaveObj  ",this.leaveObj);
+//console.log("leaveObj  ",this.leaveObj);
       this.leaveService.applyLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.openAlertMod(template, response.serviceResponse);
@@ -1465,13 +1467,13 @@ console.log("leaveObj  ",this.leaveObj);
         this.previouslyAppliedLeavesList = this.previouslyAppliedLeavesList.filter(leaveApplication => (leaveApplication.status != 'Rejected' && leaveApplication.status != 'Revoked'));
         this.leaveHistoryList = response.serviceResponse;
         this.leaveHistoryListForTable = response.serviceResponse;
-        console.log(" leaveHistory ln 1455   ",this.leaveHistoryList);
+        //console.log(" leaveHistory ln 1455   ",this.leaveHistoryList);
         this.leaveHistoryList.forEach(leave => {
           leave.noOfDaysDisplay = (leave.noOfDays)? leave.noOfDays + " day(s)" : null; 
           
           
-          console.log(" leave in foreach   ",leave); 
-          console.log("  this.leaveObj.leaveTypeMasterId   ",this.leaveObj.leaveTypeMasterId);
+          //console.log(" leave in foreach   ",leave); 
+          //console.log("  this.leaveObj.leaveTypeMasterId   ",this.leaveObj.leaveTypeMasterId);
         });
 
         this.leaveHistoryListForTable.forEach(leave => {
@@ -1540,7 +1542,7 @@ console.log("leaveObj  ",this.leaveObj);
         this.leaveTypes = response.serviceResponse;
         //console.log("leaveTypes : ", this.leaveTypes);
 
-        console.log("getAllLeaveTypes     ",this.getAllLeaveTypes);
+        //console.log("getAllLeaveTypes     ",this.getAllLeaveTypes);
         
       } else {
         console.error(response.serviceResponse);
@@ -1556,14 +1558,14 @@ console.log("leaveObj  ",this.leaveObj);
     leaveObj.gender = this.currentUser.gender;
     leaveObj.maritalStatus = this.currentUser.maritalStatus;
 
-    console.log("   leaveObj   ",leaveObj);
+    //console.log("   leaveObj   ",leaveObj);
     
     this.leaveService.getAllLeaveTypesByLeavePolicies(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveTypes = response.serviceResponse;
         //console.log("leaveTypes : ", this.leaveTypes);
         
-        console.log("getAllLeaveTypesByLeavePolicies    ",this.leaveTypes);
+        //console.log("getAllLeaveTypesByLeavePolicies    ",this.leaveTypes);
         
       } else {
         console.error(response.serviceResponse);
@@ -1618,7 +1620,7 @@ console.log("leaveObj  ",this.leaveObj);
     this.holidayDates = [];
     let holidayObj = new Holiday();
     holidayObj.state=this.currentUser.workLocation;
-    console.log(" Worklocation ::  ",this.currentUser);
+    //console.log(" Worklocation ::  ",this.currentUser);
     this.holidayService.getAllHolidays(holidayObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.holidayList = response.serviceResponse;
@@ -1684,16 +1686,16 @@ console.log("leaveObj  ",this.leaveObj);
     this.leaveObj.toDate = '';
     this.leaveObj.noOfDays = '';
     let leave = new Leave();
-    console.log("maternityType    ",leaveObj);
+    //console.log("maternityType    ",leaveObj);
     leave.maternityType = leaveObj.maternityType;
-    console.log("maternityType    ",leave);
+    //console.log("maternityType    ",leave);
      this.leaveService.getMaternityLeaveDaysByMaternityType(leave).pipe(first()).subscribe((response: any) => {
       if(response.serviceStatus == "Success"){
         leave = response.serviceResponse;
         // this.leaveObj.noOfDays = leave.maternityLeaveDays
         this.leaveObj.maternityType = leave.maternityType;
         this.allowedLeaveDays = leave.maternityLeaveDays;
-        console.log(leaveDays,"   leaveDays  ",leave.maternityLeaveDays ,"  this.leaveObj.noOfDays  ")
+        //console.log(leaveDays,"   leaveDays  ",leave.maternityLeaveDays ,"  this.leaveObj.noOfDays  ")
       }
      });
   }
@@ -1709,11 +1711,11 @@ console.log("leaveObj  ",this.leaveObj);
       if (response.serviceStatus == "Success") {	
         
         this.getListOfAppliedLeaveBetweenFromAndToDate = response.serviceResponse;
-        console.log(" leave find ",this.getListOfAppliedLeaveBetweenFromAndToDate);
+        //console.log(" leave find ",this.getListOfAppliedLeaveBetweenFromAndToDate);
        
       }else{
         this.getListOfAppliedLeaveBetweenFromAndToDate = response.serviceResponse;
-        console.log(" else leave find ",this.getListOfAppliedLeaveBetweenFromAndToDate);
+        //console.log(" else leave find ",this.getListOfAppliedLeaveBetweenFromAndToDate);
          this.leaveObj.fromDate = '';
         this.leaveObj.toDate = '';
         this.leaveObj.noOfDays = '';
@@ -1831,7 +1833,7 @@ console.log("leaveObj  ",this.leaveObj);
     }
 
     if (this.leaveObj.maternityType === 'miscarriage' || this.leaveObj.maternityType === 'adoption' || this.leaveObj.maternityType === 'fullMaternity') {
-      console.log(this.leaveObj);
+      //console.log(this.leaveObj);
      let isLeaveApplied = null;
      let fromDate = moment(this.leaveObj.fromDate); // Create a moment object for fromDate
      let toDate = fromDate.clone().add(this.allowedLeaveDays, 'days'); // Add maternity leave days to fromDate
@@ -1840,13 +1842,13 @@ console.log("leaveObj  ",this.leaveObj);
      let fromDate1 = fromDate;
      this.leaveObj.fromDate = fromDate1.format(dateFormat);
    
-     console.log(" fromDate in format    ",this.leaveObj.fromDate);
+     //console.log(" fromDate in format    ",this.leaveObj.fromDate);
 
      this.getAppliedPreviousLeaveByFromAndToDate(this.leaveObj.fromDate,this.leaveObj.toDate,template);
     //  isLeaveApplied = !this.previouslyAppliedLeavesList.find(leaveApplication =>  moment(fromDate).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat));
       this.leaveObj.fromDateDayType = '0';
       this.leaveObj.toDateDayType = '0';
-      console.log("   this.getListOfAppliedLeaveBetweenFromAndToDate     ",this.getListOfAppliedLeaveBetweenFromAndToDate);
+      //console.log("   this.getListOfAppliedLeaveBetweenFromAndToDate     ",this.getListOfAppliedLeaveBetweenFromAndToDate);
       
       if(!this.getListOfAppliedLeaveBetweenFromAndToDate || this.getListOfAppliedLeaveBetweenFromAndToDate.length === 0 ) {
        
@@ -1855,7 +1857,7 @@ console.log("leaveObj  ",this.leaveObj);
       const diff = (e, t) => Math.abs(Math.floor((new Date(e).getTime() - new Date(t).getTime()) / (1000 * 60 * 60 * 24)));	
       this.leaveObj.noOfDays =  (diff(fromDate, toDate));
     
-      console.log(" this.leaveObj.toDate ", this.leaveObj.toDate, "  toDate  ", toDate.format(dateFormat));
+      //console.log(" this.leaveObj.toDate ", this.leaveObj.toDate, "  toDate  ", toDate.format(dateFormat));
     
     }
       

@@ -245,3 +245,7 @@ body {
 .mt5{
     margin-top: 5px !important;
 }
+
+.ml5{
+    margin-left: 5px !important;
+}

@@ -113,7 +113,7 @@ export class BodyComponent implements OnInit {
     this.authenticationService.logoutUser(user).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.authenticationService.stopUserSessionCheck();
-        console.log(response.serviceResponse);
+        //console.log(response.serviceResponse);
           sessionStorage.removeItem('currentUser');
           sessionStorage.removeItem('token');
           sessionStorage.removeItem('logInfo');
@@ -209,7 +209,7 @@ export class BodyComponent implements OnInit {
     this.oldPasswordValid = false;
     this.newpassword = ''
     this.userNewPass = ''
-    console.log(this.currentUser.isNew)
+    //console.log(this.currentUser.isNew)
     if(this.currentUser.isNew == 'true'){
       this.modalRef = this.modalService.show(changePasswordTemplate,this.config);
     }else{

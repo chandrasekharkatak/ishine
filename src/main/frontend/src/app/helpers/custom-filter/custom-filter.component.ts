@@ -52,11 +52,11 @@ export class CustomFilterComponent implements OnInit {
   }
 
   selectEvent(value:any){
-    console.log(value, " : value");
+    //console.log(value, " : value");
   }
 
   onChangeSearch(a){
-    console.log(a, " : a");
+    //console.log(a, " : a");
   }
 
   valueFocus(columnName){
@@ -78,9 +78,9 @@ export class CustomFilterComponent implements OnInit {
             x.name = "A-".concat(x.name);
           });
         }
-        console.log(this.valueOptionList , ":this.valueOptionList ");
+        //console.log(this.valueOptionList , ":this.valueOptionList ");
       } else {
-        console.log(response.serviceResponse, " : response.serviceResponse");
+        //console.log(response.serviceResponse, " : response.serviceResponse");
       }
     }); 
   }
@@ -91,12 +91,12 @@ export class CustomFilterComponent implements OnInit {
   submit(){
     if(this.validateData()){
       if(this.queryList[0].column==null){
-        console.log("this.queryList : ",this.queryList);
+        //console.log("this.queryList : ",this.queryList);
         let arrayToBeEmitted = [[],this.data.title];
         this.filterSubmitted.emit(arrayToBeEmitted);
       }
       else{
-        console.log("this.queryList : ",this.queryList);
+        //console.log("this.queryList : ",this.queryList);
         this.queryList.forEach((obj) => {
           if(typeof obj.value === 'object'){
             obj.value = obj.value.name;
@@ -115,7 +115,7 @@ export class CustomFilterComponent implements OnInit {
           }
         });
 
-        console.log(this.storedFilterData, " : this.storedFilterData");
+        //console.log(this.storedFilterData, " : this.storedFilterData");
         
         let arrayToBeEmitted = [this.queryList,this.storedFilterData];
         this.filterSubmitted.emit(arrayToBeEmitted);

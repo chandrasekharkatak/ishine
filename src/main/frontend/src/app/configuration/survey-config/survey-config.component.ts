@@ -91,14 +91,14 @@ export class SurveyConfigComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
+    //console.log(this.feature, this.userMapping);
 
     // let questionObj = ;
     // questionObj.optionsList.push("");
     // this.allSurveyQuestionList.push(questionObj);
     this.sectionViewInit();
 
-    console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
+    //console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
     this.preventBackButton();
   }
   preventBackButton(){
@@ -143,7 +143,7 @@ export class SurveyConfigComponent implements OnInit {
     this.isUpdation = false;
     this.isSurveyList = false;
 
-    console.log("surveyObj for responses : ", surveyObj);
+    //console.log("surveyObj for responses : ", surveyObj);
     this.getAllSurveyResponsesBySurveyId(surveyObj);
 
   }
@@ -162,7 +162,7 @@ export class SurveyConfigComponent implements OnInit {
     this.surveyService.getAllQuestionsBySurveyId(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allSurveyQuestionList = response.serviceResponse;
-        console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
+        //console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
 
         this.surveyObj = surveyObj;
         this.allSurveyQuestionList.forEach((survey: SurveyQuestion) => {
@@ -170,7 +170,7 @@ export class SurveyConfigComponent implements OnInit {
           survey.required = JSON.parse(survey.required);
         });
 
-        console.log("For Edit SurveyObj ==> ",this.surveyObj, this.allSurveyQuestionList);
+        //console.log("For Edit SurveyObj ==> ",this.surveyObj, this.allSurveyQuestionList);
 
       } else {
         console.error(response.serviceResponse);
@@ -220,7 +220,7 @@ export class SurveyConfigComponent implements OnInit {
     previewObj.surveyQuestionList = this.allSurveyQuestionList;
     previewObj.surveyTemplate = surveyTemplate;
 
-    console.log("previewObj : ", previewObj);
+    //console.log("previewObj : ", previewObj);
     this.openSurveyPreviewMod(previewTemplate,previewObj);
   }
 
@@ -306,7 +306,7 @@ export class SurveyConfigComponent implements OnInit {
       survey.options = JSON.stringify(survey.optionsList);
     });
 
-    console.log("survey : ", surveyObj);
+    //console.log("survey : ", surveyObj);
     this.surveyService.createSurvey(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -335,7 +335,7 @@ export class SurveyConfigComponent implements OnInit {
        this.allSurveyList.forEach(survey => {
          survey.createdOn = (survey.createdOn)? moment(survey.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
        });
-       console.log("this.allSurveyList : ", this.allSurveyList);
+       //console.log("this.allSurveyList : ", this.allSurveyList);
       }else{
         console.error(response.serviceResponse);
       }
@@ -344,14 +344,14 @@ export class SurveyConfigComponent implements OnInit {
 
   onSurveyPreview(surveyObj:Survey, template: TemplateRef<any>){
 
-    console.log("For Preiew Survey : ", surveyObj);
+    //console.log("For Preiew Survey : ", surveyObj);
     this.surveyObj = new Survey();
     this.allSurveyQuestionList = [];
 
     this.surveyService.getAllQuestionsBySurveyId(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allSurveyQuestionList = response.serviceResponse;
-        console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
+        //console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
 
         this.surveyObj = surveyObj;
         this.allSurveyQuestionList.forEach((survey: SurveyQuestion) => {
@@ -367,7 +367,7 @@ export class SurveyConfigComponent implements OnInit {
         previewObj.surveyQuestionList = this.allSurveyQuestionList;
         previewObj.surveyTemplate = surveyTemplate;
 
-        console.log("previewObj : ", previewObj);
+        //console.log("previewObj : ", previewObj);
         this.openSurveyPreviewMod(template, previewObj);
       } else {
         console.error(response.serviceResponse);
@@ -386,7 +386,7 @@ export class SurveyConfigComponent implements OnInit {
     const questionResponse: any = await this.surveyService.getAllQuestionsBySurveyId(surveyObj).toPromise();
     if (questionResponse.serviceStatus == "Success") {
       questionsList = questionResponse.serviceResponse;
-      console.log("questionsList : ", questionsList);
+      //console.log("questionsList : ", questionsList);
       questionsList.forEach((question:SurveyQuestion, index) => {
         this.responseListTableHeaders.push(question.question);
         // this.responseListTableHeaders.push(`Question ${index+1}`, `Answer ${index+1}`);
@@ -395,13 +395,13 @@ export class SurveyConfigComponent implements OnInit {
       console.error(questionResponse.serviceResponse);
     }
 
-    console.log("Final responseListTableHeaders : ", this.responseListTableHeaders);
+    //console.log("Final responseListTableHeaders : ", this.responseListTableHeaders);
 
 
     const response: any = await this.surveyService.getSurveyAllResponsesBySurveyId(surveyObj).toPromise();
     if (response.serviceStatus == "Success") {
       responseList = response.serviceResponse;
-      console.log("responseList : ", responseList);
+      //console.log("responseList : ", responseList);
       const key = "employeementId"
       let employees = [...new Map(responseList.map((response:SurveyQuestion) => [response[key], response])).values()].map((response:SurveyQuestion) => {
         return ["A-" + response.employeementId, response.name]
@@ -411,7 +411,7 @@ export class SurveyConfigComponent implements OnInit {
         // }
       });
 
-      console.log("employees : ", employees);
+      //console.log("employees : ", employees);
 
       employees.forEach(employee => {
         let employeeResponse:any[] = responseList.filter((response:SurveyQuestion) => "A-"+ response.employeementId == employee[0]);
@@ -422,7 +422,7 @@ export class SurveyConfigComponent implements OnInit {
         });
       });
 
-      console.log("employees with responses : ", employees);
+      //console.log("employees with responses : ", employees);
       this.allSurveyResponseList = employees;
     } else {
       console.error(response.serviceResponse);
@@ -444,7 +444,7 @@ export class SurveyConfigComponent implements OnInit {
       survey.options = JSON.stringify(survey.optionsList);
     });
 
-    console.log("updateSurvey : ", surveyObj);
+    //console.log("updateSurvey : ", surveyObj);
     this.surveyService.updateSurvey(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -458,7 +458,7 @@ export class SurveyConfigComponent implements OnInit {
   onDelete(template: TemplateRef<any>){
     this.cancelRequest();
 
-    console.log("Delete Survey : ", this.surveyObj);
+    //console.log("Delete Survey : ", this.surveyObj);
     this.surveyService.deleteSurvey(this.surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -477,7 +477,7 @@ export class SurveyConfigComponent implements OnInit {
     surveyObj.updatedBy = this.currentUser.empId;
     surveyObj.isActive = true;
 
-    console.log("Activate Survey : ", surveyObj);
+    //console.log("Activate Survey : ", surveyObj);
     this.surveyService.changeSurveyStatus(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -496,7 +496,7 @@ export class SurveyConfigComponent implements OnInit {
     surveyObj.updatedBy = this.currentUser.empId;
     surveyObj.isActive = "Completed";
 
-    console.log("Complete Survey : ", surveyObj);
+    //console.log("Complete Survey : ", surveyObj);
     this.surveyService.changeSurveyStatus(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -508,8 +508,8 @@ export class SurveyConfigComponent implements OnInit {
   }
 
   createTemplate():string{
-   console.log("this.surveyObj : ", this.surveyObj);
-   console.log("this.allSurveyQuestionList : ", this.allSurveyQuestionList);
+   //console.log("this.surveyObj : ", this.surveyObj);
+   //console.log("this.allSurveyQuestionList : ", this.allSurveyQuestionList);
 
    let surveyTemplate = ``;
 
@@ -564,7 +564,7 @@ export class SurveyConfigComponent implements OnInit {
      surveyTemplate = surveyTemplate + finalQuestionTemplate;
    });
 
-   console.log("surveyTemplate : ", surveyTemplate);
+   //console.log("surveyTemplate : ", surveyTemplate);
    return surveyTemplate;
   }
 
@@ -579,7 +579,7 @@ export class SurveyConfigComponent implements OnInit {
     const questionResponse: any = await this.surveyService.getAllQuestionsBySurveyId(this.surveyObj).toPromise();
     if (questionResponse.serviceStatus == "Success") {
       questionsList = questionResponse.serviceResponse;
-      console.log("questionsList : ", questionsList);
+      //console.log("questionsList : ", questionsList);
       questionsList.forEach((question:SurveyQuestion, index) => {
         headers.push(question.question);
         // headers.push(`Question ${index+1}`, `Answer ${index+1}`);
@@ -588,13 +588,13 @@ export class SurveyConfigComponent implements OnInit {
       console.error(questionResponse.serviceResponse);
     }
 
-    console.log("Final responseListTableHeaders : ", this.responseListTableHeaders);
+    //console.log("Final responseListTableHeaders : ", this.responseListTableHeaders);
 
 
     const response: any = await this.surveyService.getSurveyAllResponsesBySurveyId(this.surveyObj).toPromise();
     if (response.serviceStatus == "Success") {
       responseList = response.serviceResponse;
-      console.log("responseList : ", responseList);
+      //console.log("responseList : ", responseList);
       const key = "employeementId"
       let employees = [...new Map(responseList.map((response:SurveyQuestion) => [response[key], response])).values()].map((response:SurveyQuestion) => {
         return ["A-".concat(response.employeementId), response.name]
@@ -604,7 +604,7 @@ export class SurveyConfigComponent implements OnInit {
         // }
       });
 
-      console.log("employees : ", employees);
+      //console.log("employees : ", employees);
 
       employees.forEach(employee => {
         let employeeResponse:any[] = responseList.filter((response:SurveyQuestion) => response.employeementId == employee[0].substring(2));
@@ -615,7 +615,7 @@ export class SurveyConfigComponent implements OnInit {
       })
 
       dataForExcel = employees;
-      console.log("dataForExcel : ", employees);
+      //console.log("dataForExcel : ", employees);
     } else {
       console.error(response.serviceResponse);
     }
@@ -628,14 +628,14 @@ export class SurveyConfigComponent implements OnInit {
 
         return data;
       });
-      console.log("onlySpecificDataArr : ", onlySpecificDataArr);
+      //console.log("onlySpecificDataArr : ", onlySpecificDataArr);
 
        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
   }
 
   copySurveyLinkToClipBoard(survey:any,template: TemplateRef<any>) {
     let url = window.location.href.split("#")[0].concat("#/user-survey/").concat(survey.surveyId);
-    console.log(url, " : url");
+    //console.log(url, " : url");
 
     this.clipboardService.copy(url);
     this.openAlertMod(template, "Link copied to clipboard !!");
@@ -686,7 +686,7 @@ export class SurveyConfigComponent implements OnInit {
   }
 
   sortData(sort: Sort){
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -696,7 +696,7 @@ export class SurveyConfigComponent implements OnInit {
   }
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 
 }

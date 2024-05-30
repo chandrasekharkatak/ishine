@@ -70,7 +70,7 @@ export class CompOffComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
+    //console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
     this.getAllCompOffReasons();
@@ -121,7 +121,7 @@ export class CompOffComponent implements OnInit {
     let selectedReason =  this.compOffReasons.find(compOffReson => compOffReson.compOffReasons == this.compOffObj.compOffReasons);
     if(selectedReason) this.compOffObj.reasonId = selectedReason.compOffId;
 
-    console.log("For Update Comp-Off : ", this.compOffObj, selectedReason);
+    //console.log("For Update Comp-Off : ", this.compOffObj, selectedReason);
   }
 
   showCompOffRequestTable(){
@@ -158,7 +158,7 @@ export class CompOffComponent implements OnInit {
     openDeleteCompOff(template: TemplateRef<any>, compOff: any) {	
       this.modalRef = this.modalService.show(template, { class: 'modal-sm' });	
       this.compOffObj = compOff;	
-      console.log("compOffObj : ", this.compOffObj);	
+      //console.log("compOffObj : ", this.compOffObj);	
     }
 
     getAllCompOffReasons(){
@@ -167,7 +167,7 @@ export class CompOffComponent implements OnInit {
       this.leaveService.getAllCompOffReasons().pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.compOffReasons = response.serviceResponse;
-          console.log("compOffReasons : ", this.compOffReasons);
+          //console.log("compOffReasons : ", this.compOffReasons);
         } else {
           console.error(response.serviceResponse);
         }
@@ -296,8 +296,8 @@ export class CompOffComponent implements OnInit {
       this.compOffObj.level2ApproverName=this.currentUser.hodName;
       this.compOffObj.finalApprovalLevel=2;
   
-      console.log("Apply Comp off : ", this.compOffObj);
-      console.log("compoff currentuser    ::   ",this.currentUser);
+      //console.log("Apply Comp off : ", this.compOffObj);
+      //console.log("compoff currentuser    ::   ",this.currentUser);
       this.leaveService.applyForCompOff(this.compOffObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.openAlertMod(template, response.serviceResponse);
@@ -324,7 +324,7 @@ export class CompOffComponent implements OnInit {
             compOff.fromDate = (compOff.fromDate)? moment(compOff.fromDate).format(AppComponent.DATE_FORMAT) : null;
             compOff.toDate = (compOff.toDate)? moment(compOff.toDate).format(AppComponent.DATE_FORMAT) : null 
           });
-          console.log("allCompOffRequests : ", this.allCompOffRequests);
+          //console.log("allCompOffRequests : ", this.allCompOffRequests);
         } else {
           console.error(response.serviceResponse);
         }
@@ -357,7 +357,7 @@ export class CompOffComponent implements OnInit {
       }
 
 
-      console.log("Update comp off : ", compOff);
+      //console.log("Update comp off : ", compOff);
       this.leaveService.updateCompOff(compOff).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.openAlertMod(template, response.serviceResponse);
@@ -386,7 +386,7 @@ export class CompOffComponent implements OnInit {
       compOff.hodEmail = this.currentUser.hodEmail;
       compOff.hodName = this.currentUser.hodName;
 
-      console.log("Delete compOff ",compOff)
+      //console.log("Delete compOff ",compOff)
       this.leaveService.deleteCompOff(compOff).pipe(first()).subscribe((response: any) => {	
         if (response.serviceStatus == "Success") {	
           this.openAlertMod(template, response.serviceResponse);	
@@ -424,7 +424,7 @@ export class CompOffComponent implements OnInit {
   }
 
   sortData(sort: Sort){	
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -439,7 +439,7 @@ export class CompOffComponent implements OnInit {
 
   onSearch(searchData){
   this.filters = searchData;
-  console.log("Updated Filter : ", this.filters);
+  //console.log("Updated Filter : ", this.filters);
   }
 
 }

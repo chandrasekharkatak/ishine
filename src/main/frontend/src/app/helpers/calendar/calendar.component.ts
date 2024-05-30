@@ -52,7 +52,7 @@ export class CalendarComponent implements OnInit {
       weekdaysShort.length - 1 - weekdaysShort.indexOf(endOfMonth);
 
     const clone = date.startOf('months').clone();
-    console.log("clone : ", clone);
+    //console.log("clone : ", clone);
     
     if (daysBefore > 0) {
       clone.subtract(daysBefore, 'days');

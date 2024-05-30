@@ -96,7 +96,7 @@ export class NewsletterComponent implements OnInit {
   }
 
   showTable(selectedType,template:TemplateRef<any>){
-    console.log(selectedType," type")
+    //console.log(selectedType," type")
     this.isTable = true;
     this.fileType.forEach(type => {
       type.isActive = (type === selectedType);
@@ -116,7 +116,7 @@ export class NewsletterComponent implements OnInit {
   //       this.newsletters.forEach(doc => {
   //         doc.createdOn = (doc.createdOn)? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
   //       });
-  //       console.log("Newsletters List : ", this.newsletters);
+  //       //console.log("Newsletters List : ", this.newsletters);
   //       this.getAllReadNewsletter();
   //     } else {
   //       console.error(response.serviceResponse);
@@ -125,7 +125,7 @@ export class NewsletterComponent implements OnInit {
   // }
 
   getAllNewsletters(selectedType, template:TemplateRef<any>){
-    console.log(" newsletter by typeId  ",selectedType);
+    //console.log(" newsletter by typeId  ",selectedType);
     let doc = new Document();
     doc.typeId= selectedType.typeId;
     doc.typeName = selectedType.typeName;
@@ -133,14 +133,14 @@ export class NewsletterComponent implements OnInit {
     this.sortColumn=[];
     this.sortColumnType=[];
     this.sortDirection='';
-    console.log(" Before call backend " ,doc);
+    //console.log(" Before call backend " ,doc);
     this.newsletterService.getAllNewslettersByTypeId(doc).pipe(first()).subscribe((response:any) => {
       if (response.serviceStatus == "Success") {
         this.newsletters =  response.serviceResponse;
         this.newsletters.forEach(doc => {
           doc.createdOn = (doc.createdOn)? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
-        console.log("Newsletters List : ", this.newsletters);
+        //console.log("Newsletters List : ", this.newsletters);
         this.getAllReadNewsletter();
       } else {
         this.openAlertMod(template,response.serviceResponse);
@@ -157,7 +157,7 @@ export class NewsletterComponent implements OnInit {
     this.newsletterService.getAllReadNewslettersByEmpId(newsletterObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allReadNewsletters = response.serviceResponse;
-       console.log("allReadNewsletters : ", response.serviceResponse);
+       //console.log("allReadNewsletters : ", response.serviceResponse);
 
        this.allReadNewsletters.forEach((readNewsletter:Newsletter) => {
           let fileObj = this.newsletters.find((newsletter:Newsletter) => readNewsletter.documentId == newsletter.documentId);
@@ -181,7 +181,7 @@ export class NewsletterComponent implements OnInit {
         let dtoResponse = response.serviceResponse;
         this.currentUser.newsletterReadCheck = dtoResponse.newsletterReadCheck;
 
-        console.log( this.currentUser.newsletterReadCheck , " :  this.currentUser.newsletterReadCheck");
+        //console.log( this.currentUser.newsletterReadCheck , " :  this.currentUser.newsletterReadCheck");
         this.authenticationService.setcurrentUserSubject(this.currentUser);
         this.openPreviewNewsletterModal(this.alertTemplate);
       }
@@ -197,7 +197,7 @@ export class NewsletterComponent implements OnInit {
     this.fileName = doc.displayName;
 
     this.newsletterObj = doc;
-console.log(" doc.documentId   ",doc.documentId);
+//console.log(" doc.documentId   ",doc.documentId);
     this.newsletterService.downloadDocument(doc.documentId).pipe(first()).subscribe((response:any) => {
       const blob = new Blob([response], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
@@ -254,7 +254,7 @@ console.log(" doc.documentId   ",doc.documentId);
   }
 
   sortData(sort: Sort){	
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -275,7 +275,7 @@ console.log(" doc.documentId   ",doc.documentId);
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 // added by anurag  
 
@@ -290,7 +290,7 @@ getAllTypeForDoc(template:TemplateRef<any>){
         }
       })
       this.getAllNewsletters(this.type, template);
-      console.log(" fileType   ",this.fileType);
+      //console.log(" fileType   ",this.fileType);
     }
   })
 }
@@ -298,7 +298,7 @@ getAllTypeForDoc(template:TemplateRef<any>){
 // custom filter modal
 
 openFilterModal(template: TemplateRef<any> , colums : any[], title: any){
-  console.log("Document columns   ",colums);
+  //console.log("Document columns   ",colums);
   this.queryList = [];
   this.filterData.title = title;
   this.filterData.columns = colums;
@@ -318,7 +318,7 @@ openFilterModal(template: TemplateRef<any> , colums : any[], title: any){
   });
 
   this.filterData.queryList = JSON.stringify(this.queryList);
-  console.log(" filteredData     ",this.filterData);
+  //console.log(" filteredData     ",this.filterData);
   this.modalRef = this.modalService.show(template, {class: 'modal-xl'});
 
 
@@ -330,7 +330,7 @@ getCustomDocumentList(queryObjList: any, template: TemplateRef<any>){
   let queryObj = new Query();
   queryObj.queryList = queryObjList;
 
-  console.log("QueryList    ::     ",queryObj);
+  //console.log("QueryList    ::     ",queryObj);
 
   if(queryObjList.length == 0){
     this.getAllNewsletters(this.type,template);
@@ -354,7 +354,7 @@ getCustomDocumentList(queryObjList: any, template: TemplateRef<any>){
 onFilterSubmit(emittedArray: any, template: TemplateRef<any>){
 
   if (emittedArray[0].length != 0) {
-    console.log("queryList : ", emittedArray[0]);
+    //console.log("queryList : ", emittedArray[0]);
     this.queryList = JSON.parse(JSON.stringify(emittedArray[0]));
     this.cancelRequest();
 

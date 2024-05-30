@@ -45,7 +45,7 @@ export class ColumnFilterBarComponent implements OnInit {
       }
     });
 
-    console.log("updated Search Data : ", searchData);
+    //console.log("updated Search Data : ", searchData);
     this.onSearch.emit(searchData);    
   }
 }

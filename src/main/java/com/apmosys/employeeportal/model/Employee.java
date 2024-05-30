@@ -175,4 +175,6 @@ public class Employee {
 	
 	private boolean pipFlag = false;
 	private Long pipId;
+	
+	private String billableType;
 }

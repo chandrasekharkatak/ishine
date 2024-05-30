@@ -79,7 +79,7 @@ export class UploadPoliciesComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
+    //console.log(this.feature, this.userMapping);
     this.sectionViewInit();
     this.preventBackButton();
   }
@@ -129,7 +129,7 @@ export class UploadPoliciesComponent implements OnInit {
     const maxSizeInBytes = 20 * 1024 * 1024; // 20MB
     this.fileSize = 0;
     const uploadedFiles = event.target.files;
-     console.log("maxfilesize: "+ this.maxFileSize );
+     //console.log("maxfilesize: "+ this.maxFileSize );
 
      if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
       this.openAlertMod(template,'Please select a valid file (.pdf or .doc).');
@@ -153,10 +153,10 @@ export class UploadPoliciesComponent implements OnInit {
         let document = uploadedFiles[i];
         let fileName = document.name;
         this.fileSize =this.fileSize +  uploadedFiles[i].size / 1024 /1024;
-        console.log(this.fileSize);
+        //console.log(this.fileSize);
         let fileObj1 = {document : document,fileName : fileName}
         this.files.push(fileObj1);
-        console.log("Files : ", this.files);
+        //console.log("Files : ", this.files);
       }
     };
   }
@@ -199,7 +199,7 @@ export class UploadPoliciesComponent implements OnInit {
     formData.append("uploadedBy", this.currentUser.empId);
     formData.append("readEnabled","false")
 
-    console.log("Upload files : ", formData);
+    //console.log("Upload files : ", formData);
     this.uploadPoliciesService.uploadMultipleFiles(formData).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == 'Success') {
         this.openAlertMod(template, response.serviceResponse);
@@ -228,7 +228,7 @@ export class UploadPoliciesComponent implements OnInit {
         this.document.forEach(doc => {
           doc.createdOn = (doc.createdOn)? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
-        console.log("DocumentList : ", this.document);
+        //console.log("DocumentList : ", this.document);
       } else {
         console.error(response.serviceResponse);
       }
@@ -257,7 +257,7 @@ export class UploadPoliciesComponent implements OnInit {
    openDeleteDocument(template: TemplateRef<any>, fileObj: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.fileObj = fileObj;
-    console.log(this.fileObj);
+    //console.log(this.fileObj);
   }
 
   onDeleteDocument(template: TemplateRef<any>) {
@@ -278,7 +278,7 @@ export class UploadPoliciesComponent implements OnInit {
     fileObj.policyID = this.fileObj.policyID;
     fileObj.updatedBy = this.currentUser.empId;
     fileObj.readEnabled = true;
-    console.log("Activate Survey : ", fileObj);
+    //console.log("Activate Survey : ", fileObj);
     this.uploadPoliciesService.changepolicyEnabledMode(fileObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -296,7 +296,7 @@ export class UploadPoliciesComponent implements OnInit {
     fileObj.policyID = this.fileObj.policyID;
     fileObj.updatedBy = this.currentUser.empId;
     fileObj.readEnabled = false;
-    console.log("Activate Survey : ", fileObj);
+    //console.log("Activate Survey : ", fileObj);
     this.uploadPoliciesService.changepolicyEnabledMode(fileObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -345,7 +345,7 @@ export class UploadPoliciesComponent implements OnInit {
         for(let x of this.responseList){
           x.empId = "A-".concat(x.empId);
         }
-        console.log(this.responseList);      
+        //console.log(this.responseList);      
       }
       else{
           console.error(response.serviceResponse);
@@ -364,7 +364,7 @@ export class UploadPoliciesComponent implements OnInit {
   }
 
   sortData(sort: Sort){	
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -382,7 +382,7 @@ export class UploadPoliciesComponent implements OnInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 }
   function compare(a: number | string, b: number | string, isAsc: boolean) {	

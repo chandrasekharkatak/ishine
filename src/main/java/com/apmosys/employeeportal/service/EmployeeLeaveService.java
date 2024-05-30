@@ -307,24 +307,29 @@ public class EmployeeLeaveService {
 				
 				return response;
 			}else {
-
-				Optional<List<EmployeeLeave>> recentLeavesForCL = Optional.ofNullable(employeeLeaveRepository.findRecentLeavesByEmpId(leaveDTO.getEmpId()));
-				if(recentLeavesForCL.isPresent() && !recentLeavesForCL.get().isEmpty()) {
-					EmployeeLeave getLeaves = recentLeavesForCL.get().get(0);
-					LocalDate newFromDate = LocalDate.parse(leaveDTO.getFromDate());
-					LocalDate prevToDate = getLeaves.getToDate();		
-					
-				boolean valid = this.isValidateCasualLeave(prevToDate, newFromDate, leaveDTO.getLeaveTypeCode());
-				System.err.println(" valid "+valid);
-				if(valid) {
+				if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("CL")) {
+					Optional<List<EmployeeLeave>> recentLeavesForCL = Optional.ofNullable(employeeLeaveRepository.findRecentLeavesByEmpId(leaveDTO.getEmpId()));
+					if(recentLeavesForCL.isPresent() && !recentLeavesForCL.get().isEmpty()) {
+						EmployeeLeave getLeaves = recentLeavesForCL.get().get(0);
+						LocalDate newFromDate = LocalDate.parse(leaveDTO.getFromDate());
+						LocalDate prevToDate = getLeaves.getToDate();		
+						
+					boolean valid = this.isValidateCasualLeave(prevToDate, newFromDate, leaveDTO.getLeaveTypeCode());
+					System.err.println(" valid "+valid);
+					if(valid) {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
+						response.setServiceResponse("Leave application submitted. Your timesheet will be automatically added by system");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
+						response.setServiceResponse("Casual Leave Can't take Consecutively , another CL will be applicable after 15 days of your last CL applied !! ");
+					return response;
+					}
+				}
+				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
 					response.setServiceResponse("Leave application submitted. Your timesheet will be automatically added by system");
-				}else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
-					response.setServiceResponse("Casual Leave Can't take Consecutively , another CL will be applicable after 15 days of your last CL applied !! ");
-				return response;
 				}
-			}
+				
 		}
 			
 			// ended
@@ -540,9 +545,18 @@ public class EmployeeLeaveService {
 
 				    	});
 				    	
-				    	if(!timesheet.getDayType().equals("Public Holiday") && !timesheet.getDayType().equals("Week Off")) {
-				    		timesheetsRepository.deleteById(timesheet.getTimesheetId());				    		
-				    	}
+//				    	if(!timesheet.getDayType().equals("Public Holiday") && !timesheet.getDayType().equals("Week Off")) {
+//				    		 timesheetsRepository.deleteById(timesheet.getTimesheetId());				    		
+//				    	}
+				    	System.out.println("ANurag  find leave type  "+ leaveDTO.getLeaveTypeCode());
+//				    	if(leaveDTO.getLeaveTypeCode().equals("ML")) {
+//				    		timesheetsRepository.deleteById(timesheet.getTimesheetId());				    		
+//				    	}else {
+//				    		if(!timesheet.getDayType().equals("Public Holiday") && !timesheet.getDayType().equals("Week Off")) {
+//					    		timesheetsRepository.deleteById(timesheet.getTimesheetId());				    		
+//					    	}
+//				    	}
+				    	timesheetsRepository.deleteById(timesheet.getTimesheetId());
 				    });
 				    }
 				    //after timesheet deletion
@@ -679,10 +693,10 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
     if (leaveRecords.isPresent()) {
         List<Object[]> leaves = leaveRecords.get();
 
-        if (!leaves.isEmpty() && fromDate.isBefore(after15Days)) {
-            return false;
-        } else {
+        if (!leaves.isEmpty() && fromDate.isAfter(after15Days)) {
             return true;
+        } else {
+            return false;
         }
     } else {
         return true;
@@ -756,7 +770,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 							log.setMessage(LeaveLogMessage.deleteLeave.replace("0.0", leaveDTO.getNoOfDays().toString()));
 						}
 						
-						if(!leaveDTO.getLeaveTypeMasterId().equals((short)19)) // 16 is in local and 19 in UAT But in prod it is 3
+						if(!leaveDTO.getLeaveTypeMasterId().equals((short)3)) // 16 is in local and 19 in UAT But in prod it is 3
 							log.setUpdateBalanceBy("+" + leaveDTO.getNoOfDays());
 						else
 							log.setUpdateBalanceBy("0");
@@ -1654,7 +1668,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 						}else {					
 							log.setMessage(LeaveLogMessage.requestAddLeave.replace("0.0", pendingLeaveApplication.getNoOfDays().toString()));
 						}
-						if(!leaveDTO.getLeaveTypeMasterId().equals((short) 17))
+						if(!leaveDTO.getLeaveTypeMasterId().equals((short) 3))
 							log.setUpdateBalanceBy("+" + pendingLeaveApplication.getNoOfDays());
 						else
 							log.setUpdateBalanceBy("0");
@@ -4202,7 +4216,7 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 		mailService.sendMailWithCC(empEmail, managerEmail + ","+ hrMailAddress+","+this.hodEmail,subject, 
 				"Dear "+findEmployee.getName()+" "+"<br>"
 				+"<br>"+
-						"This email is to formally notify you that you are not being placed on a Performance Improvement Plan (PIP) effective . "
+						"This email is to formally notify you that you are not placed on a Performance Improvement Plan (PIP) effective . "
 						+ "your performance is now up to the mark so you are not in Performance Improvement Plan, "
 						+ "below the reason provided why we revert you from PIP "+"<br>"
 						+ "These areas include : </b>"
@@ -4413,8 +4427,6 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 		response.setServiceResponse("PIP not extended !! ");
 	}
-	
-		
 		return response;
 	}
 	

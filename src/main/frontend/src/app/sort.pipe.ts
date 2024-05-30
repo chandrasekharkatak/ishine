@@ -16,7 +16,7 @@ export class SortPipe implements PipeTransform {
       multiplier = -1;
     }
 
-    console.log("Sort Data : ", value);
+    //console.log("Sort Data : ", value);
 
 
     value.sort((a: any, b: any) => {

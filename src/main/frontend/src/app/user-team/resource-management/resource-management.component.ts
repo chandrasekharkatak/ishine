@@ -116,12 +116,12 @@ export class ResourceManagementComponent implements OnInit {
      featureMap.subFeatures?.forEach(sub => {
        this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
      });
-     console.log(this.feature, this.userMapping);
+     //console.log(this.feature, this.userMapping);
 
      this.route.params.subscribe((params:Params) => {
       this.currentProjectId = params['id'];
     });
-    console.log(this.currentProjectId, " : this.currentProjectId");
+    //console.log(this.currentProjectId, " : this.currentProjectId");
     this.sectionViewInit();
   }
 
@@ -218,10 +218,10 @@ export class ResourceManagementComponent implements OnInit {
   //             }
   //           });
 
-  //           console.log("AllPo projects   ::  ",allPoProject);
-  //           console.log(this.teamCreatedProjectList, " : teamCreatedProjectList");
+  //           //console.log("AllPo projects   ::  ",allPoProject);
+  //           //console.log(this.teamCreatedProjectList, " : teamCreatedProjectList");
             
-  //           console.log(" _projectList    ::  ",_projectList);
+  //           //console.log(" _projectList    ::  ",_projectList);
   //           _projectList.forEach((proj) => {
 
   //             if(proj.id != null){
@@ -232,7 +232,7 @@ export class ResourceManagementComponent implements OnInit {
   //                 proj.isTeamCreated = true;
   //                 proj.isDraftProject = selectedProj.isDraftProject == 'true' ? 'Pending For Approval' : selectedProj.isDraftProject == 'Rejected' ? 'Rejected' : selectedProj.isDraftProject == 'false' ? 'Approved' : "NA";
   //                 proj.createdOn = (proj.createdOn)? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-  //                 console.log("proj.isDraftProject",  proj.isDraftProject);
+  //                 //console.log("proj.isDraftProject",  proj.isDraftProject);
   //               }else{
   //                 proj.isTeamCreated = false;
   //                 proj.isDraftProject = "NA";
@@ -269,7 +269,7 @@ export class ResourceManagementComponent implements OnInit {
   //         }
     
   //         this.allProjectList = _projectList;
-  //         console.log(this.allProjectList, " all projects");
+  //         //console.log(this.allProjectList, " all projects");
           
   //         // Navigate to Project when used link
     
@@ -281,7 +281,7 @@ export class ResourceManagementComponent implements OnInit {
   //             }
   //           })
   //         }
-  //         console.log(this.internalProjectList, " this.internalProjectList");
+  //         //console.log(this.internalProjectList, " this.internalProjectList");
   //       } else {
   //         console.error(response.serviceResponse);
   //       }
@@ -292,7 +292,7 @@ export class ResourceManagementComponent implements OnInit {
   getAllProjects() {
     fetch(this.currentUser.poPortalAllProjectApi).then(res => res.json()).then(async data => {
       let allPoProject = data;
-      console.log("allPoProject    V  allPoProject   ",allPoProject);
+      //console.log("allPoProject    V  allPoProject   ",allPoProject);
       this.resourceManagementService.getInternalProject().pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.internalProjectList = response.serviceResponse;
@@ -315,14 +315,14 @@ export class ResourceManagementComponent implements OnInit {
             // Separate PoPortal projects and internal projects
             this.poPortalProjectList = _projectList.filter(proj => proj.id != null);
             this.internalProjectList = _projectList.filter(proj => proj.id == null);
-            console.log(" Anurag   ::    ",this.poPortalProjectList);
-            console.log(" Anurag internal   ::   ",this.internalProjectList);
-            console.log(" teamCreatedProjectList   ",this.teamCreatedProjectList);
+            //console.log(" Anurag   ::    ",this.poPortalProjectList);
+            //console.log(" Anurag internal   ::   ",this.internalProjectList);
+            //console.log(" teamCreatedProjectList   ",this.teamCreatedProjectList);
             
             // Process PoPortal projects
             this.poPortalProjectList.forEach((proj) => {
               let selectedProj = this.teamCreatedProjectList.find((projTeam) => proj.id == projTeam.poProjectId);
-              console.log("selectedProj  ::   ",selectedProj);
+              //console.log("selectedProj  ::   ",selectedProj);
   
               if (selectedProj) {
                 proj.isTeamCreated = true;
@@ -389,8 +389,8 @@ export class ResourceManagementComponent implements OnInit {
             this.allProject_Po_Internal = [...this.poPortalProjectList, ...this.internalProjectList];
 
 
-            console.log(_projectList, " all projects");
-            console.log(this.internalProjectList, " this.internalProjectList");
+            //console.log(_projectList, " all projects");
+            //console.log(this.internalProjectList, " this.internalProjectList");
 
             console.error("  allProject_Po_Internal   ",this.allProject_Po_Internal);
           } else {
@@ -407,7 +407,7 @@ export class ResourceManagementComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.teamCreatedProjectList = response.serviceResponse;
         this.getAllProjects();
-        console.log(this.teamCreatedProjectList, " this.teamCreatedProjectList");
+        //console.log(this.teamCreatedProjectList, " this.teamCreatedProjectList");
       } else {
         this.getAllProjects();
         console.error(response.serviceResponse);
@@ -422,7 +422,7 @@ export class ResourceManagementComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.allDeptList = response.serviceResponse;
         this.filteredDeptList = this.allDeptList.filter(x => project.department.includes(x.name));
-        console.log("allDeptList : ", this.allDeptList)
+        //console.log("allDeptList : ", this.allDeptList)
       } else {
         console.error(response.serviceResponse);
       }
@@ -437,18 +437,18 @@ export class ResourceManagementComponent implements OnInit {
 
     // this.employeeObj.role = "TeamLead";
     this.employeeObj.role = this.currentUser.employeeRole;
-    console.log(" Anurag call getAllEmployeesByRole from ishine  ",this.employeeObj);
+    //console.log(" Anurag call getAllEmployeesByRole from ishine  ",this.employeeObj);
     
     this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         employeeList = response.serviceResponse;
-        console.log("employeeList By Role : ", employeeList);
-        console.log("Department Selected : ", departmentList);
+        //console.log("employeeList By Role : ", employeeList);
+        //console.log("Department Selected : ", departmentList);
 
         let filterDepartmentList = this.employeeListByDept.map(y => y.departmentId);
         this.teamLeadsList = employeeList.filter(x => departmentList?.includes(x.departmentId));
         this.teamLeadsList = this.teamLeadsList.sort((a, b) => a.name.localeCompare(b.name));
-        console.log("teamLeadsList : ", this.teamLeadsList)
+        //console.log("teamLeadsList : ", this.teamLeadsList)
       } else {
         console.error(response.serviceResponse)
       }
@@ -465,13 +465,13 @@ export class ResourceManagementComponent implements OnInit {
        return dept;
     });
 
-    console.log("empObj.departmentList : ", empObj.departmentList);
+    //console.log("empObj.departmentList : ", empObj.departmentList);
     
     this.employeeService.getAllEmployeesByDepartmentIds(empObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeListByDept = response.serviceResponse;
         this.employeeListByDept = this.employeeListByDept.sort((a, b) => a.name.localeCompare(b.name));
-        console.log("employeeList By Department : ", this.employeeListByDept);
+        //console.log("employeeList By Department : ", this.employeeListByDept);
         this.updateEmployeeListAccordingToTeamMembers();
       } else {
         console.error(response.serviceResponse);
@@ -480,8 +480,8 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   updateEmployeeListAccordingToTeamMembers() {
-    console.log("Existing Team Member : ", this.teamObj.allTeamMemberList);
-    console.log("Selected Team Member : ", this.allTeamMembers);
+    //console.log("Existing Team Member : ", this.teamObj.allTeamMemberList);
+    //console.log("Selected Team Member : ", this.allTeamMembers);
     this.employeeListByDept.forEach((employee, index) => {
       const existingEmployee = this.teamObj.allTeamMemberList?.find(member => member.empId == employee.empId);
       if (existingEmployee) {
@@ -504,13 +504,13 @@ export class ResourceManagementComponent implements OnInit {
           if(team.teamMemberList){
             teamLead.isTeamLead = true;
             team.teamMemberList = team.teamMemberList.filter(x => x.isTeamLead != true);
-            console.log(team.teamMemberList, " : team memeber list");
+            //console.log(team.teamMemberList, " : team memeber list");
             team.teamMemberList = [...team.teamMemberList, ...[teamLead]];
           }else{
             teamLead.isTeamLead = true;
             team.teamMemberList = [teamLead];
 
-            console.log(team.teamMemberList, " : team memeber list ===");
+            //console.log(team.teamMemberList, " : team memeber list ===");
           }
         }
       });
@@ -541,7 +541,7 @@ export class ResourceManagementComponent implements OnInit {
       teamObj.teamName = team.teamName;
       teamObj.projectName = this.projectObj.name;
 
-      console.log(teamObj, " : teamObj");
+      //console.log(teamObj, " : teamObj");
       
 
       this.teamService.checkTeamName(teamObj).pipe(first()).subscribe((response: any) => {
@@ -635,7 +635,7 @@ export class ResourceManagementComponent implements OnInit {
               if(member.employeeRole == undefined || member.employeeRole.length == 0 || member.employeeRole == null){
                 this.alertMessage = `Please select member(s) Employee Role - ${index + 1}!!`
                 flag = false;
-                console.log(projObj.teamMemberList, " : projObj.teamMemberList");
+                //console.log(projObj.teamMemberList, " : projObj.teamMemberList");
                 
                 return;
               }
@@ -670,7 +670,7 @@ export class ResourceManagementComponent implements OnInit {
 
     if (this.isHOD == true) {
       this.projectObj.isHOD = true;
-      console.log(this.projectObj, " : this.projectObj");
+      //console.log(this.projectObj, " : this.projectObj");
       this.resourceManagementService.createDraftProjectInfo(this.projectObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
             this.showViewProjects();
@@ -681,7 +681,7 @@ export class ResourceManagementComponent implements OnInit {
       });
     }else{
       this.projectObj.isHOD = false;
-      console.log(this.projectObj, " : this.projectObj");
+      //console.log(this.projectObj, " : this.projectObj");
       this.resourceManagementService.createDraftProjectInfo(this.projectObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.showViewProjects();
@@ -705,30 +705,30 @@ export class ResourceManagementComponent implements OnInit {
 
   getTeamListByProjectName(project:any){
    // this.previewTeamList = [];
-   console.log(" project    ",project);
+   //console.log(" project    ",project);
    
     this.resourceManagementService.getTeamListByProjectName(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectObj.teamList = response.serviceResponse;
-        console.log(this.projectObj.teamList, " this.projectObj.teamList");
+        //console.log(this.projectObj.teamList, " this.projectObj.teamList");
         this.projectObj.teamList.forEach((obj) =>{
           obj.departmentList = obj.departmentList?.map(x=>+x);
-          console.log(" obj.departmentList     ",obj.departmentList.length);
+          //console.log(" obj.departmentList     ",obj.departmentList.length);
           
           obj.teamMemberList.forEach((member) => {
-            console.log(" teamMemberList    ",obj.teamMemberList);
+            //console.log(" teamMemberList    ",obj.teamMemberList);
             member.startDate = (member.startDate)? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null;
           });
         });
-        console.log(this.projectObj.teamList, " this.projectObj.teamList");
+        //console.log(this.projectObj.teamList, " this.projectObj.teamList");
         this.previewTeamList = this.projectObj.teamList;
 
-        console.log(" length of previewTeamList  ",this.previewTeamList.length);
+        //console.log(" length of previewTeamList  ",this.previewTeamList.length);
         //Project Team List
         if (this.projectObj.teamList == undefined || this.projectObj.teamList.length == 0) {
           this.addInputTeamField();
         } else {
-          console.log(" find error in else part ")
+          //console.log(" find error in else part ")
           this.allTeamList = this.projectObj.teamList;
           // this.allTeamListCopy = this.projectObj.teamList;
           this.allTeamListCopy = JSON.parse(JSON.stringify(this.projectObj.teamList));
@@ -751,7 +751,7 @@ export class ResourceManagementComponent implements OnInit {
   onApproveProject(project:any) {
     project.empId = this.currentUser.empId;
     project.projectId=this.projectObj.projectId;
-    console.log("this.projectObj.projectId   ",project);
+    //console.log("this.projectObj.projectId   ",project);
     this.resourceManagementService.approvePendingProject(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.showViewProjects();
@@ -792,7 +792,7 @@ export class ResourceManagementComponent implements OnInit {
           emp.employeementId = "A-".concat(emp.employeementId);
         });
 
-        console.log("managerList : ", this.managerList);
+        //console.log("managerList : ", this.managerList);
       } else {	
         console.error(response.serviceResponse)	
       }	
@@ -810,7 +810,7 @@ export class ResourceManagementComponent implements OnInit {
         if (projObj == project) this.bulkSyncList.splice(index, 1);
       });
     }
-    console.log("Updated Bulk List : ", this.bulkSyncList);
+    //console.log("Updated Bulk List : ", this.bulkSyncList);
   }
 
   onBulkSyncProject(template: TemplateRef<any>){
@@ -818,7 +818,7 @@ export class ResourceManagementComponent implements OnInit {
     let projObj = new Project();
     projObj.bulkSyncList = this.bulkSyncList;
 
-    console.log(projObj, " : this.projObj");
+    //console.log(projObj, " : this.projObj");
     
     this.resourceManagementService.bulkSyncProject(projObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -852,7 +852,7 @@ export class ResourceManagementComponent implements OnInit {
           ))
         )
 
-        console.log(this.filteredClientList, " : this.filteredClientList");
+        //console.log(this.filteredClientList, " : this.filteredClientList");
       } else {
         console.error(response.serviceResponse)
       }
@@ -881,7 +881,7 @@ export class ResourceManagementComponent implements OnInit {
         return { clientLocationId: project.clientLocationId, clientLocation: project.clientLocation }
       }
     });
-    console.log("clientLocationList :", this.clientLocationList);
+    //console.log("clientLocationList :", this.clientLocationList);
   }
 
   checkProjectName(template:TemplateRef<any>){
@@ -947,7 +947,7 @@ export class ResourceManagementComponent implements OnInit {
     this.projectObj.departmentName = null;
     this.projectObj.projectName = this.projectObj.projectName?.trim();
     this.projectObj.createdBy = this.currentUser.empId;
-    console.log("     :   ",this.projectObj);
+    //console.log("     :   ",this.projectObj);
     
     this.projectService.createProject(this.projectObj).pipe(first()).subscribe((response: any) => {
       if(response.serviceStatus == "Success") {
@@ -965,7 +965,7 @@ export class ResourceManagementComponent implements OnInit {
     let newTeamObj = new Team();
     this.allTeamList.push(newTeamObj);
     this.allTeamListCopy = JSON.parse(JSON.stringify(this.allTeamList));
-    console.log(this.allTeamList, " : this.allTeamList");
+    //console.log(this.allTeamList, " : this.allTeamList");
   }
 
   removeInputTeamField(teamObj) {
@@ -983,7 +983,7 @@ export class ResourceManagementComponent implements OnInit {
     if(newTeamMember){
       newTeamMember.employeeRole = this.newteamMember.employeeRole;
       this.allTeamMembers.push(newTeamMember);
-      console.log("New member ===== ::  ",newTeamMember);
+      //console.log("New member ===== ::  ",newTeamMember);
       
     }
     this.newteamMember = new TeamMember();
@@ -994,7 +994,7 @@ export class ResourceManagementComponent implements OnInit {
     this.allTeamList?.forEach((team) => {
       if (team.teamName == currentTeam.teamName) {
         team.teamMemberList.splice(index,1);
-        console.log(team.teamMemberList, " : team.teamMemberList");
+        //console.log(team.teamMemberList, " : team.teamMemberList");
         
         this.teamObj.allTeamMemberList.splice(index, 1);
         let existingEmployee = this.employeeListByDept.find(employee => employee.empId == teamMember.empId);
@@ -1011,7 +1011,7 @@ export class ResourceManagementComponent implements OnInit {
         if (existingEmployee) existingEmployee.isSelected = false;
       }
     });
-    console.log("Updated Members : ", this.allTeamMembers);
+    //console.log("Updated Members : ", this.allTeamMembers);
   }
 
   // Modals
@@ -1029,8 +1029,8 @@ export class ResourceManagementComponent implements OnInit {
         if(teamLeadObj){
           this.teamObj.teamLeadId = teamLeadObj[0]?.empId;
         }
-        console.log(teamLeadObj, " :teamLeadObj");
-        console.log(this.teamObj.teamLeadId, " : this.teamObj.teamLeadId");
+        //console.log(teamLeadObj, " :teamLeadObj");
+        //console.log(this.teamObj.teamLeadId, " : this.teamObj.teamLeadId");
 
         this.teamObj.allTeamMemberList = team.teamMemberList?.filter(x => x.isTeamLead != true);
         if((this.teamObj.allTeamMemberList != undefined || this.teamObj.allTeamMemberList != null) && this.teamObj.allTeamMemberList.length != 0){
@@ -1040,7 +1040,7 @@ export class ResourceManagementComponent implements OnInit {
         }
       }
     });
-    console.log(this.teamObj.allTeamMemberList, " allTeamMemberList");
+    //console.log(this.teamObj.allTeamMemberList, " allTeamMemberList");
     
     this.currentTeam = currentTeam;
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
@@ -1074,7 +1074,7 @@ export class ResourceManagementComponent implements OnInit {
     if(projectObj.projectManager != null){
       this.setManagerName(projectObj);
     }
-    console.log(this.previewTeamList, " : this.previewTeamList");
+    //console.log(this.previewTeamList, " : this.previewTeamList");
     
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
@@ -1105,7 +1105,7 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   sortData(sort: Sort){	
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -1116,7 +1116,7 @@ export class ResourceManagementComponent implements OnInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 
   toggleSearch(){

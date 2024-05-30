@@ -69,7 +69,7 @@ export class UserAppreciationComponent implements OnInit {
     this.getAppreciateEmployeeByCurrentUser();
     this.preventBackButton();
     this.CountMyAppreciationBYcurrentUser();
-    console.log("appreicationEventInfo :",this.currentUser.appreciationEventInfo);
+    //console.log("appreicationEventInfo :",this.currentUser.appreciationEventInfo);
   }
   preventBackButton(){
     history.pushState(null, null, location.href);
@@ -97,7 +97,7 @@ export class UserAppreciationComponent implements OnInit {
   }
   toggleFunctionforreceived() {
     this.clickCount2 = 0;
-    console.log(" recieve appreciation call  ");
+    //console.log(" recieve appreciation call  ");
     if (this.clickCount === 0) {
       this.showMyAppreciation();
       this.recieve=true;
@@ -125,7 +125,7 @@ export class UserAppreciationComponent implements OnInit {
   }
   toggleFunctionforsent() {
 this.clickCount = 0;
-    console.log(" sent call appreciation ")
+    //console.log(" sent call appreciation ")
 
     if (this.clickCount2 === 0) {
       this.showSentAppreciation();
@@ -152,12 +152,12 @@ this.clickCount = 0;
   getAppreciateEmployeeByCurrentUser(){
     this.employeeObj.appreciationBy = this.currentUser.employeementId;
     this.employeeObj.appreciationEventId = this.currentUser.appreciationEventInfo.appreciationEventId;
-    console.log(this.employeeObj.appreciationEventId, "this.employeeObj.appreciationEventId");
-    console.log(this.currentUser.appreciationEventInfo.appreciationEventId, "checking current event");
+    //console.log(this.employeeObj.appreciationEventId, "this.employeeObj.appreciationEventId");
+    //console.log(this.currentUser.appreciationEventInfo.appreciationEventId, "checking current event");
     this.appreciationService.getAppreciateEmployeeByCurrentUser(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.appreciateEmployeeByCurrentUser = response.serviceResponse;
-        console.log("getAppreciateEmployeeByCurrentUser : ", this.appreciateEmployeeByCurrentUser);
+        //console.log("getAppreciateEmployeeByCurrentUser : ", this.appreciateEmployeeByCurrentUser);
       } else {
         console.error(response.serviceResponse);
       }
@@ -168,16 +168,16 @@ this.clickCount = 0;
   }
   CountMyAppreciationBYcurrentUser(){
     this.employeeObj.appreciationTo = this.currentUser.employeementId;
-    console.log("CurrentEmpId :",this.employeeObj.appreciationTo);
+    //console.log("CurrentEmpId :",this.employeeObj.appreciationTo);
     this.appreciationService.CountMyAppreciationBYcurrentUser(this.employeeObj).pipe(first()).subscribe((response :any) =>{
       if(response.serviceStatus == "Success"){
         this.appreciationcount = response.serviceResponse;
          this.countSent = this.appreciationcount.appreciationSent;
          this.countRecieved = this.appreciationcount.appreciationReceived;
 
-        console.log("appreicationcount :", this.appreciationcount);
-        console.log("sent count",this.countSent);
-        console.log("count received",this.countRecieved);
+        //console.log("appreicationcount :", this.appreciationcount);
+        //console.log("sent count",this.countSent);
+        //console.log("count received",this.countRecieved);
 
       }
       else {
@@ -195,10 +195,10 @@ this.clickCount = 0;
 
         this.allEmployee = this.allEmployee.sort((a, b) => a.name.toLowerCase()> b.name.toLowerCase()? 1 : -1);
 
-        console.log("appreciation : ", this.allEmployee);
+        //console.log("appreciation : ", this.allEmployee);
 
        this.appreciateEmployeeByCurrentUser.forEach((x) => {
-       console.log(x.appreciationTo , " :   appriciation to");
+       //console.log(x.appreciationTo , " :   appriciation to");
        })
 
        this.allEmployee.forEach((employee)=>{
@@ -210,7 +210,7 @@ this.clickCount = 0;
          }
       });
 
-        console.log(this.allAppreciateEmployee, "allAppreciateEmployee");
+        //console.log(this.allAppreciateEmployee, "allAppreciateEmployee");
       } else {
         console.error(response.serviceResponse)
       }
@@ -262,27 +262,27 @@ this.clickCount = 0;
     //email
     this.employeeObj.email = this.currentUser.email;
     this.employeeObj.emailAppreciated = this.employee.email;
-    console.log("current user mail" + this.employeeObj.email)
-    console.log("appreciation mail" + this.employeeObj.emailAppreciated)
+    //console.log("current user mail" + this.employeeObj.email)
+    //console.log("appreciation mail" + this.employeeObj.emailAppreciated)
 
 
     //employment id
     this.employeeObj.appreciationBy = this.currentUser.employeementId;
     this.employeeObj.appreciationTo = this.employee.employeementId;
-    console.log("currentuser employmentId" + this.employeeObj.appreciationBy)
-    console.log("appreciationTo employmentId" + this.employeeObj.appreciationTo)
+    //console.log("currentuser employmentId" + this.employeeObj.appreciationBy)
+    //console.log("appreciationTo employmentId" + this.employeeObj.appreciationTo)
 
     //name
     this.employeeObj.name = this.currentUser.name;
     this.employeeObj.nameAppreciate = this.employee.name;
-    console.log("currentuser name" + this.employeeObj.name)
-    console.log("appreciation name" + this.employeeObj.nameAppreciate)
+    //console.log("currentuser name" + this.employeeObj.name)
+    //console.log("appreciation name" + this.employeeObj.nameAppreciate)
 
     //manager mail
-    console.log("this.appreciationEventInfo",this.appreciationEventInfo);
-    console.log("this.enableAppreciation.appreciationEventID",this.appreciationEventInfo.appreciationEventId);
+    //console.log("this.appreciationEventInfo",this.appreciationEventInfo);
+    //console.log("this.enableAppreciation.appreciationEventID",this.appreciationEventInfo.appreciationEventId);
     this.employeeObj.appreciationEventId= this.appreciationEventInfo.appreciationEventId;
-    console.log("this.employeeObj.appreciationEventID",this.employeeObj.appreciationEventId);
+    //console.log("this.employeeObj.appreciationEventID",this.employeeObj.appreciationEventId);
 
 
     this.employeeObj.appreciateType=this.employeeObj.appreciateType;
@@ -293,7 +293,7 @@ this.clickCount = 0;
     this.appreciationService.submitAppreciation(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.all = response.serviceResponse;
-        console.log("appreciation : ", this.all)
+        //console.log("appreciation : ", this.all)
         this.openAlertMod(template, response.serviceResponse);
         this.ngOnInit();
         this.reset();
@@ -305,17 +305,17 @@ this.clickCount = 0;
 
   getManagerByEmpId(empId: any){
 
-    console.log(empId);
+    //console.log(empId);
     this.employee = this.allEmployee.find(x => x.empId == empId);
-    console.log(this.employee.managerName);
+    //console.log(this.employee.managerName);
     this.employeeObj.managerName = this.employee.managerName;
     this.employeeObj.managerMail = this.employee.managerMail;
-    console.log("manager mail" + this.employeeObj.managerMail)
+    //console.log("manager mail" + this.employeeObj.managerMail)
 
     this.employeeObj.empIdAppreciated=this.employee.empId;
     this.employeeObj.name=this.employee.name;
-    console.log("name" +this.employeeObj.name )
-    console.log(this.employeeObj.empIdAppreciated);
+    //console.log("name" +this.employeeObj.name )
+    //console.log(this.employeeObj.empIdAppreciated);
   }
 
   cancelRequest() {

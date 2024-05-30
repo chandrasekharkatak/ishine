@@ -227,4 +227,7 @@ public class EmployeeDTO {
 	private String pipReason;
 	private String pipFlag;
 	
+	private String billableType;
+	private String employeeName;
+	
 }

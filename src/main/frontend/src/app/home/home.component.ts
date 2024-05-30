@@ -188,7 +188,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, " : ", this.userMapping);
+    //console.log(this.feature, " : ", this.userMapping);
 
     this.getAllNotifications();
     this.getAllLeaveTypesByLeavePolicies(this.currentUser);
@@ -225,7 +225,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     }
 
     if(this.currentUser.isNew == "false"){
-      console.log("this.currentUser : ", this.currentUser);
+      //console.log("this.currentUser : ", this.currentUser);
       this.openConsentNotificationModal();
       this.setReleaseNote();
     }
@@ -262,7 +262,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
             leave.finalApprovalLevel = 1; 
           }
         });
-        console.log("leaveApplicationList : ", this.leaveApplicationList);
+        //console.log("leaveApplicationList : ", this.leaveApplicationList);
       } else {
         console.error(response.serviceResponse);
       }
@@ -280,7 +280,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.leaveService.countAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveApplicationCount = response.serviceResponse.applicationCount;
-        console.log("leaveApplicationCount : ", this.leaveApplicationCount);
+        //console.log("leaveApplicationCount : ", this.leaveApplicationCount);
       } else {
         this.leaveApplicationCount = 0;
         console.error(response.serviceResponse);
@@ -295,7 +295,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
     leaveApplication.rejectReason = leaveApplication.rejectReason?.trim();
 
-    console.log("leaveApplication : ", leaveApplication);
+    //console.log("leaveApplication : ", leaveApplication);
 
     this.leaveService.updateLeaveStatus(leaveApplication).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -315,7 +315,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
     this.leaveApplication.rejectReason = this.leaveApplication.rejectReason?.trim();
 
-    console.log("leaveApplication : ", this.leaveApplication);
+    //console.log("leaveApplication : ", this.leaveApplication);
 
     this.leaveService.updateLeaveStatus(this.leaveApplication).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -367,7 +367,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
           compOff.toDate = (compOff.toDate)? moment(compOff.toDate).format(AppComponent.DATE_FORMAT) : null;
           compOff.createdOn = (compOff.createdOn)? moment(compOff.createdOn).format(AppComponent.DATE_FORMAT) : null;
         });
-        console.log("allCompOffApplications : ", this.allCompOffApplications);
+        //console.log("allCompOffApplications : ", this.allCompOffApplications);
       } else {
         console.error(response.serviceResponse);
       }
@@ -385,7 +385,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.leaveService.countPendingCompOffRequestsByManagerId(compOff).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.compOffApplicationCount = response.serviceResponse.applicationCount;
-        console.log("CompOffApplicationCount : ", this.compOffApplicationCount);
+        //console.log("CompOffApplicationCount : ", this.compOffApplicationCount);
       } else {
         this.compOffApplicationCount = 0;
         console.error(response.serviceResponse);
@@ -404,7 +404,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     // compOff.hodName = this.currentUser.name;
     // compOff.employeeName = compOff.createdByName;
     // compOff.level2ApproverId= this.currentUser.hodId;
-    console.log("Update Comp off : ", compOff);
+    //console.log("Update Comp off : ", compOff);
 
     this.leaveService.updateCompOffById(compOff).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -456,7 +456,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
           timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
-        console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
+        //console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
       } else {
         console.error(response.serviceResponse)
       }
@@ -478,11 +478,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
     timesheetObj.date = timesheet.date;
     timesheetObj.dayType = timesheet.dayType;
     timesheetObj.totalWorkingOfficeHours = timesheet.totalWorkingOfficeHours;
-    console.log("  timesheetObj.totalWorkingHours ", timesheet.totalWorkingHours)
-    console.log("  timesheetObj.totalWorkingOfficeHours ", timesheet.totalWorkingOfficeHours)
+    //console.log("  timesheetObj.totalWorkingHours ", timesheet.totalWorkingHours)
+    //console.log("  timesheetObj.totalWorkingOfficeHours ", timesheet.totalWorkingOfficeHours)
     timesheetObj.status = status;
     timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
-    console.log("      :      ",timesheetObj)
+    //console.log("      :      ",timesheetObj)
 
     this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -522,7 +522,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.timesheetService.getAllMyActivitiesByTimesheetId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.timesheetObj.allTimesheetActivities = response.serviceResponse;
-        console.log("timesheetObj.allTimesheetActivities :", this.timesheetObj.allTimesheetActivities);
+        //console.log("timesheetObj.allTimesheetActivities :", this.timesheetObj.allTimesheetActivities);
       } else {
         console.error(response.serviceResponse)
       }
@@ -541,7 +541,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.leaveService.getAllLeaveTypesByLeavePolicies(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveTypes = response.serviceResponse;
-        console.log("leaveTypes : ", this.leaveTypes);
+        //console.log("leaveTypes : ", this.leaveTypes);
         this.leaveBucketDetails = this.leaveTypes.map((leave: Leave) => {
           let leaveObj = new Leave();
           leaveObj.leaveTypeMasterId = leave.leaveTypeMasterId;
@@ -555,7 +555,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
           return leaveObj;
         });
 
-        console.log("leaveBucketDetails : ", this.leaveBucketDetails);
+        //console.log("leaveBucketDetails : ", this.leaveBucketDetails);
       } else {
         console.error(response.serviceResponse);
       }
@@ -576,14 +576,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
     let leaveBalanceResponse:any = await this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).toPromise();
     if (leaveBalanceResponse.serviceStatus == "Success") {
       this.leaveBalanceList = leaveBalanceResponse.serviceResponse;
-      console.log("leaveBalanceList : ", this.leaveBalanceList);
+      //console.log("leaveBalanceList : ", this.leaveBalanceList);
       this.leaveBucketDetails.forEach(data => {
         let leaveDetail = this.leaveBalanceList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
         if (leaveDetail) {
           data.balance = (leaveDetail.balance) ? leaveDetail.balance : 0;
         }
       });
-      console.log("leaveBucketDetails with Balance : ", this.leaveBucketDetails);
+      //console.log("leaveBucketDetails with Balance : ", this.leaveBucketDetails);
     } else {
       console.error(leaveBalanceResponse.serviceResponse);
     }
@@ -591,7 +591,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     let approvedLeaveResponse:any = await this.leaveService.countMyApprovedLeaveApplicationsByLeaveType(leaveObj).pipe(first()).toPromise();
     if (approvedLeaveResponse.serviceStatus == "Success") {
       this.approvedLeavesList = approvedLeaveResponse.serviceResponse;
-      console.log("approvedLeaves : ", this.approvedLeavesList);
+      //console.log("approvedLeaves : ", this.approvedLeavesList);
 
       this.leaveBucketDetails.forEach(data => {
         let leaveDetail = this.approvedLeavesList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
@@ -600,7 +600,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
         }
       });
 
-      console.log("leaveBucketDetails with Approved Leaves : ", this.leaveBucketDetails);
+      //console.log("leaveBucketDetails with Approved Leaves : ", this.leaveBucketDetails);
 
     } else {
       console.error(approvedLeaveResponse.serviceResponse);
@@ -609,7 +609,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     let rejectedLeaveResponse:any = await this.leaveService.countMyRejectedLeaveApplicationsByLeaveType(leaveObj).pipe(first()).toPromise();
     if (rejectedLeaveResponse.serviceStatus == 'Success') {
       this.rejectedLeavesList = rejectedLeaveResponse.serviceResponse;
-      console.log("Rejected Leaves : ", this.rejectedLeavesList);
+      //console.log("Rejected Leaves : ", this.rejectedLeavesList);
 
       this.leaveBucketDetails.forEach(data => {
         let leaveDetail = this.rejectedLeavesList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
@@ -618,7 +618,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
         }
       });
 
-      console.log("leaveBucketDetails with Rejected Leaves : ", this.leaveBucketDetails);
+      //console.log("leaveBucketDetails with Rejected Leaves : ", this.leaveBucketDetails);
     } else {
       console.error(rejectedLeaveResponse.serviceResponse);
     }
@@ -626,7 +626,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     let pendingLeaveResponse:any = await this.leaveService.countMyPendingLeaveApplicationsByLeaveType(leaveObj).pipe(first()).toPromise();
     if (pendingLeaveResponse.serviceStatus == "Success") {
       this.pendingLeavesList = pendingLeaveResponse.serviceResponse;
-      console.log("pendingLeavesList : ", this.pendingLeavesList);
+      //console.log("pendingLeavesList : ", this.pendingLeavesList);
 
       this.leaveBucketDetails.forEach(data => {
         let leaveDetail = this.pendingLeavesList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
@@ -635,7 +635,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
         }
       });
 
-      console.log("leaveBucketDetails with pending leaves : ", this.leaveBucketDetails);
+      //console.log("leaveBucketDetails with pending leaves : ", this.leaveBucketDetails);
     } else {
       console.error(pendingLeaveResponse.serviceResponse);
     }
@@ -650,7 +650,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
       if (response.serviceStatus == 'Success') {
         this.rejectedLeavesList = response.serviceResponse;
-        console.log("Rejected Leaves : ", this.rejectedLeavesList);
+        //console.log("Rejected Leaves : ", this.rejectedLeavesList);
 
         this.leaveBucketDetails.forEach(data => {
           let leaveDetail = this.rejectedLeavesList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
@@ -674,7 +674,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.leaveService.countMyApprovedLeaveApplicationsByLeaveType(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.approvedLeavesList = response.serviceResponse;
-        console.log("approvedLeaves : ", this.approvedLeavesList);
+        //console.log("approvedLeaves : ", this.approvedLeavesList);
 
         this.leaveBucketDetails.forEach(data => {
           let leaveDetail = this.approvedLeavesList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
@@ -697,7 +697,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.leaveService.countMyPendingLeaveApplicationsByLeaveType(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.pendingLeavesList = response.serviceResponse;
-        console.log("pendingLeavesList : ", this.pendingLeavesList);
+        //console.log("pendingLeavesList : ", this.pendingLeavesList);
 
         this.leaveBucketDetails.forEach(data => {
           let leaveDetail = this.pendingLeavesList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
@@ -873,7 +873,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.employeeService.getAllEmployeesBirthDayToday().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.birthdayList = response.serviceResponse;
-        console.log("birthdayList : ", this.birthdayList);
+        //console.log("birthdayList : ", this.birthdayList);
       } else {
         this.compOffApplicationCount = 0;
         console.error(response.serviceResponse);
@@ -912,7 +912,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.imageService.getFirstEventPhotoForHome().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.eventImages = response.serviceResponse;
-        console.log("First image : ", this.eventImages);
+        //console.log("First image : ", this.eventImages);
         setTimeout(() => { 
           this.loadImages(this.eventImages);
         }, 1000);
@@ -929,7 +929,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
         let images = response.serviceResponse;
         this.eventImages.push(...images);
         this.eventImages.sort((a, b) => a.photoOrder - b.photoOrder)
-        console.log("eventImages : ", this.eventImages);
+        //console.log("eventImages : ", this.eventImages);
         setTimeout(() => { this.loadImages(this.eventImages); }, 1000);
       } else {
         console.error(response.serviceResponse);
@@ -1017,7 +1017,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       fromDate = new Date(currentDate.getTime() - (1 * DAY_IN_MS));
       toDate = new Date(currentDate.getTime() - (7 * DAY_IN_MS));
 
-      console.log(`Last 7 Days : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
+      //console.log(`Last 7 Days : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
       timesheetObj.startDate = moment(toDate).format(dateFormat);
       timesheetObj.endDate = moment(fromDate).format(dateFormat);
     } else if (dateRange == 'This Month') {
@@ -1025,7 +1025,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       fromDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
       toDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
 
-      console.log(`This Month : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
+      //console.log(`This Month : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
       timesheetObj.startDate = moment(fromDate).format(dateFormat);
       timesheetObj.endDate = moment(toDate).format(dateFormat);
     } else if (dateRange == 'Last Month') {
@@ -1034,7 +1034,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       fromDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
       toDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
 
-      console.log(`Last Month : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
+      //console.log(`Last Month : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
       timesheetObj.startDate = moment(fromDate).format(dateFormat);
       timesheetObj.endDate = moment(toDate).format(dateFormat);
     }
@@ -1042,7 +1042,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.timesheetService.getTimesheetsForHomePageByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         filledTimesheetDetails = response.serviceResponse;
-        console.log("filledTimesheetDetails : ", filledTimesheetDetails);
+        //console.log("filledTimesheetDetails : ", filledTimesheetDetails);
       } else {
         console.error(response.serviceResponse);
       }
@@ -1078,7 +1078,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
         this.timesheetDetails.push(newTimesheetObj);
       }
 
-      console.log("timesheetDetails : ", this.timesheetDetails);
+      //console.log("timesheetDetails : ", this.timesheetDetails);
       this.timesheetDetails.sort(this.dateCompare);
 
       let timesheetChartData = [{
@@ -1239,11 +1239,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
     const checkboxes = document.querySelectorAll('.timesheet-req-checkbox');
 
-    console.log("select Data : ", this.allTeamTimesheetRequests);
-    console.log("checkboxes    ::   ",checkboxes);
+    //console.log("select Data : ", this.allTeamTimesheetRequests);
+    //console.log("checkboxes    ::   ",checkboxes);
 
     checkboxes.forEach((checkbox: any) => {
-      console.log("checkbox : ", checkbox);
+      //console.log("checkbox : ", checkbox);
       let checkboxIndex = checkbox.getAttribute('id');
       let checkedTimesheet = this.allTeamTimesheetRequests.find((_timesheet, index) => _timesheet.checkId == checkboxIndex);
 
@@ -1264,9 +1264,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
       }
     });
     const leaveCheckboxes = document.querySelectorAll('.homeLeave-req-checkbox');
-    console.log("leaveCheckboxes     ::   ",leaveCheckboxes);
+    //console.log("leaveCheckboxes     ::   ",leaveCheckboxes);
     leaveCheckboxes.forEach((leaveCheck: any) => {
-      console.log("Check in leave home ", leaveCheck);
+      //console.log("Check in leave home ", leaveCheck);
       let leaveCheckboxIndex = leaveCheck.getAttribute('id');
       let checkedLeaveApplication = this.leaveApplicationList.find((_leave, index) => _leave.checkId == leaveCheckboxIndex);
 
@@ -1292,13 +1292,13 @@ export class HomeComponent implements OnInit, AfterViewInit {
   selectAllCompOff(event){
     const compOffCheckBox = document.querySelectorAll('.compoff-req-checkbox');
 
-    console.log("select Data : ", compOffCheckBox);
+    //console.log("select Data : ", compOffCheckBox);
 
     compOffCheckBox.forEach((checkbox: any) => {
-      console.log("checkbox : ", checkbox);
+      //console.log("checkbox : ", checkbox);
       let checkboxIndex = checkbox.getAttribute('id');
       let checkedCompOff = this.allCompOffApplications.find((_compoff, index) => _compoff.checkId == checkboxIndex);
-      console.log("checkedCompOff   ::   ",checkedCompOff);
+      //console.log("checkedCompOff   ::   ",checkedCompOff);
       if (event.target.checked) {
         checkbox.checked = true;
         checkbox.classList.add('checked');
@@ -1319,7 +1319,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   select(timesheetObj, event) {
 
-    console.log("clicked on : ", timesheetObj);
+    //console.log("clicked on : ", timesheetObj);
 
     if (event.target.checked) {
       event.target.classList.add('checked');
@@ -1329,8 +1329,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
       event.target.classList.remove('checked');
       const checkboxes = document.querySelectorAll('.timesheet-req-checkbox.checked');
       if (checkboxes.length !== this.items) this.isSelectAll = false;
-      console.log("Checkboxes.length ", checkboxes.length)
-      console.log(" items ", this.items)
+      //console.log("Checkboxes.length ", checkboxes.length)
+      //console.log(" items ", this.items)
       this.bulkApprove.forEach((timesheet, index) => {
         if (timesheet == timesheetObj) this.bulkApprove.splice(index, 1);
       });
@@ -1338,13 +1338,13 @@ export class HomeComponent implements OnInit, AfterViewInit {
         if (timesheet == timesheetObj) this.bulkReject.splice(index, 1);
       });
     }
-    console.log("Updated Bulk List : ", this.bulkApprove);
+    //console.log("Updated Bulk List : ", this.bulkApprove);
   }
 
   selectCompOff(compOffObj,event){
 
     // compoff-req-checkbox
-    console.log("compOff bulk method call clicked on ",compOffObj);
+    //console.log("compOff bulk method call clicked on ",compOffObj);
     if(event.target.checked){
       event.target.classList.add('checked');
       this.bulkCompOffApprove.push(compOffObj);
@@ -1353,21 +1353,21 @@ export class HomeComponent implements OnInit, AfterViewInit {
       event.target.classList.remove('checked');
       const compOffLeaveCheckBox = document.querySelectorAll('.compoff-req-checkbox.checked');
       if(compOffLeaveCheckBox.length !== this.items) this.isSelectAll = false;
-      console.log("checkbox.length of comp off  ",compOffLeaveCheckBox.length);
+      //console.log("checkbox.length of comp off  ",compOffLeaveCheckBox.length);
       this.bulkCompOffApprove.forEach((compOff,index)=>{
         if(compOff == compOffObj) this.bulkCompOffApprove.splice(index, 1);
       });
       this.bulkCompOffReject.forEach((compOff,index)=>{
         if(compOff == compOffObj) this.bulkCompOffReject.splice(index, 1);
       });
-      console.log("Updated Bulk List : ", this.bulkCompOffApprove);
+      //console.log("Updated Bulk List : ", this.bulkCompOffApprove);
     }
   }
 
 
   onSelect(leaveObj, event) {
 
-    console.log("clicked on : ", leaveObj);
+    //console.log("clicked on : ", leaveObj);
 
     if (event.target.checked) {
       event.target.classList.add('checked');
@@ -1377,7 +1377,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       event.target.classList.remove('checked');
       const leaveCheckboxes = document.querySelectorAll('.homeLeave-req-checkbox.checked');
       if (leaveCheckboxes.length !== this.items) this.isSelectAll = false;
-      console.log("checkbox.length ", leaveCheckboxes.length)
+      //console.log("checkbox.length ", leaveCheckboxes.length)
       this.bulkLeaveApprove.forEach((timesheet, index) => {
         if (timesheet == leaveObj) this.bulkLeaveApprove.splice(index, 1);
       });
@@ -1385,12 +1385,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
         if (timesheet == leaveObj) this.bulkLeaveReject.splice(index, 1);
       });
     }
-    console.log("Updated Bulk List : ", this.bulkLeaveApprove);
+    //console.log("Updated Bulk List : ", this.bulkLeaveApprove);
   }
 
   openBulkApprovalModal(nightShiftTemplate:TemplateRef<any>, alertTemplate:TemplateRef<any>){
     const isNightShiftFound = this.bulkApprove.filter((x) => x.isNightShift == "true");
-    console.log(isNightShiftFound, " : isNightShiftFound");
+    //console.log(isNightShiftFound, " : isNightShiftFound");
 
     if(isNightShiftFound.length != 0){
       this.modalRef = this.modalService.show(nightShiftTemplate, { class: 'modal-lg' });
@@ -1411,7 +1411,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   openBulkRejectModal(nightShiftTemplate:TemplateRef<any>, bulkRejectTimesheet:TemplateRef<any>){
     const isNightShiftFound = this.bulkApprove.filter((x) => x.isNightShift == "true");
-    console.log(isNightShiftFound, " : isNightShiftFound");
+    //console.log(isNightShiftFound, " : isNightShiftFound");
 
     if(isNightShiftFound.length != 0){
       this.modalRef = this.modalService.show(nightShiftTemplate, { class: 'modal-lg' });
@@ -1433,13 +1433,13 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   onBulkApproval(template: TemplateRef<any>) {
     this.cancelRequest();
-    console.log("Updated Bulk List : ", this.bulkApprove);
+    //console.log("Updated Bulk List : ", this.bulkApprove);
     let timesheetObj = new Timesheet();
     timesheetObj.bulkApprovedList = this.bulkApprove;
     timesheetObj.updatedBy = this.currentUser.empId;
 
     timesheetObj.status = "Approved"
-    console.log("For Bulk Update : ", timesheetObj);
+    //console.log("For Bulk Update : ", timesheetObj);
     timesheetObj.bulkApprovedList.forEach((x) => {
       x.employeementId = x.employeementId.substring(2);
     })
@@ -1465,14 +1465,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    console.log("Updated Bulk List : ", this.bulkReject);
+    //console.log("Updated Bulk List : ", this.bulkReject);
     let timesheetObj = new Timesheet();
     timesheetObj.bulkRejectList = this.bulkReject;
     timesheetObj.updatedBy = this.currentUser.empId;
     timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
-    console.log(" timesheet reason :  ", timesheetObj.rejectReason);
+    //console.log(" timesheet reason :  ", timesheetObj.rejectReason);
     timesheetObj.status = "Rejected"
-    console.log("For Bulk Update : ", timesheetObj);
+    //console.log("For Bulk Update : ", timesheetObj);
     timesheetObj.bulkRejectList.forEach((item) => {
       item.employeementId = item.employeementId.substring(2);
     })
@@ -1498,7 +1498,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
 
   onBulkLeaveApproval(template: TemplateRef<any>) {
-    console.log("Updated Bulk List : ", this.bulkLeaveApprove);
+    //console.log("Updated Bulk List : ", this.bulkLeaveApprove);
     let leaveObj = new Leave();
     leaveObj.bulkLeaveApprovedList = this.bulkLeaveApprove;
     leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
@@ -1533,7 +1533,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
     let leaveObj = new Leave();
     leaveObj.bulkLeaveRejectList = this.bulkLeaveReject;
-    console.log(" ............................ ", leaveObj.bulkLeaveRejectList)
+    //console.log(" ............................ ", leaveObj.bulkLeaveRejectList)
     leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
     leaveObj.leaveStatusId = 3
     leaveObj.approverEmail = this.currentUser.email;
@@ -1568,7 +1568,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
   
   onBulkCompOffApprove(template: TemplateRef<any>){
-    console.log(" bulk approve compoff call ::  ");
+    //console.log(" bulk approve compoff call ::  ");
     let compOffObj = new Leave();
     compOffObj.bulkLeaveApprovedList = this.bulkCompOffApprove;
     compOffObj.leaveStatusUpdatedBy = this.currentUser.empId;
@@ -1599,7 +1599,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
     let compOffObj = new Leave();
     compOffObj.bulkLeaveRejectList= this.bulkCompOffReject;
-    console.log("-------------------------n   ",compOffObj.bulkLeaveRejectList);
+    //console.log("-------------------------n   ",compOffObj.bulkLeaveRejectList);
     compOffObj.leaveStatusUpdatedBy=this.currentUser.empId;
     compOffObj.leaveStatusId = 3;
     compOffObj.approverEmail= this.currentUser.email;
@@ -1702,7 +1702,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.oldPasswordValid = false;
     this.newpassword = ''
     this.userNewPass = ''
-    console.log(this.currentUser.isNew)
+    //console.log(this.currentUser.isNew)
     if (this.currentUser.isNew == 'true') {
       this.modalRef = this.modalService.show(changePasswordTemplate, this.config);
     } else {
@@ -1727,7 +1727,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   this.authenticationService.logoutUser(user).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
       this.authenticationService.stopUserSessionCheck();
-      console.log(response.serviceResponse);
+      //console.log(response.serviceResponse);
       sessionStorage.removeItem('currentUser');
       sessionStorage.removeItem('token');
       sessionStorage.removeItem('logInfo');
@@ -1844,7 +1844,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
         this.allNotification = this.allNotification.filter(x => x.isActive == 'true' && x.notificationType != "consentNotification" && x.notificationType != "releaseNotes");
 
-        console.log("notificationList : ", this.allNotification);
+        //console.log("notificationList : ", this.allNotification);
       } else {
         console.error(response.serviceResponse);
       }
@@ -1852,7 +1852,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   openConsentNotificationModal(){
-    console.log(this.currentUser.notificationConsent, " : this.currentUser.notificationConsent");
+    //console.log(this.currentUser.notificationConsent, " : this.currentUser.notificationConsent");
 
     if (this.currentUser.notificationConsent != null || this.currentUser.notificationConsent != undefined) {
       this.consentNotificationMessage = this.currentUser.notificationConsent.notificationMessage;
@@ -1884,7 +1884,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   setReleaseNote(){
     this.isShowReleaseNote = false;
 
-    console.log(this.currentUser.releaseNoteNotification, " : releaseNoteNotification");
+    //console.log(this.currentUser.releaseNoteNotification, " : releaseNoteNotification");
 
     if (this.currentUser.releaseNoteNotification != null || this.currentUser.releaseNoteNotification != undefined) {
       this.releaseNoteText = this.currentUser.releaseNoteNotification.notificationMessage;
@@ -1909,7 +1909,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   sortData(sort: Sort){
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -1927,12 +1927,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 
   // added by anurag
   onUpdateLeave(template:TemplateRef<any>,leaveApplication){
-    console.log("leaveApplication ",leaveApplication);
+    //console.log("leaveApplication ",leaveApplication);
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
     this.leaveApplication = leaveApplication;
     this.findOverLapsLeaveForManager();
@@ -1953,14 +1953,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
     leaveApp.toDate = this.leaveApplication.toDate;
     leaveApp.status = this.leaveApplication.status;
 
-    console.log(leaveApp);
+    //console.log(leaveApp);
 this.overLapsLeaveForManager=[];
 
 this.leaveService.getOverLapsLeaveForManager(leaveApp).pipe(first()).subscribe((response : any)=>{
   if(response.serviceStatus == "Success"){
     this.overLapsLeaveForManager = response.serviceResponse;
 
-    console.log("this.getOverLapsLeaveForManager ",this.overLapsLeaveForManager);
+    //console.log("this.getOverLapsLeaveForManager ",this.overLapsLeaveForManager);
   }
 })
 

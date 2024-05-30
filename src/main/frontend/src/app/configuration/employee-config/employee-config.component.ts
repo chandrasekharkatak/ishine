@@ -224,7 +224,7 @@ export class EmployeeConfigComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
+    //console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
 
@@ -235,7 +235,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.approvalsTo = '';
     this.setYearOfPassingList();
     this.preventBackButton();
-    console.log(this.currentUser.jobRoleName, "currentUser role");
+    //console.log(this.currentUser.jobRoleName, "currentUser role");
   }
 
   preventBackButton(){
@@ -283,7 +283,7 @@ export class EmployeeConfigComponent implements OnInit {
       if(pincode != null){
         fetch('https://api.postalpincode.in/pincode/' + pincode).then(r => r.json()).then(j => {
         path = j[0].PostOffice[0];
-        console.log(path, " : path");
+        //console.log(path, " : path");
 
 
         let empObj = new Employee();
@@ -293,13 +293,13 @@ export class EmployeeConfigComponent implements OnInit {
         empObj.country = path.Country;
         empObj.employeementId = empId;
 
-        console.log(empObj, " empObj");
+        //console.log(empObj, " empObj");
 
         this.employeeService.addDemographicsInfo(empObj).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus == "Success") {
-            console.log("Employee demographics updated");
+            //console.log("Employee demographics updated");
           } else {
-            console.log("Employee demographics updation failed");
+            //console.log("Employee demographics updation failed");
           }
         });
       });
@@ -475,7 +475,7 @@ export class EmployeeConfigComponent implements OnInit {
 
         this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
 
-        console.log("employee :", this.employeeObj);
+        //console.log("employee :", this.employeeObj);
         // employee.employeementId = this.utilityService.appendEmployeementid(employee.employeementId);
         // Job Role
         if (this.employeeObj.departmentId) {
@@ -506,7 +506,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeService.getDraftEmployeeByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeObj = Object.assign({}, response.serviceResponse);
-        console.log("employee :", this.employeeObj);
+        //console.log("employee :", this.employeeObj);
 
         // Job Role
         if (this.employeeObj.departmentId) {
@@ -601,7 +601,7 @@ export class EmployeeConfigComponent implements OnInit {
 
   //       this.allSpecializationList = this.domainObj.allSpecializationList;
 
-  //       console.log(response.serviceResponse, " : response.serviceResponse");
+  //       //console.log(response.serviceResponse, " : response.serviceResponse");
   //     } else {
   //       console.error(response.serviceResponse);
   //     }
@@ -612,7 +612,7 @@ export class EmployeeConfigComponent implements OnInit {
   // addInputSpecializationField(){
   //   let domainObj = new Domain();
   //   this.allSpecializationList.push(domainObj);
-  //   console.log(this.allSpecializationList, " : this.allSpecializationList");
+  //   //console.log(this.allSpecializationList, " : this.allSpecializationList");
   // }
 
   // removeInputSpecializationField(spec:any){
@@ -621,7 +621,7 @@ export class EmployeeConfigComponent implements OnInit {
   //       this.allSpecializationList.splice(index, 1);
   //     }
   //   });
-  //   console.log(this.allSpecializationList, " :this.allSpecializationList");
+  //   //console.log(this.allSpecializationList, " :this.allSpecializationList");
   // }
 
   // Manage employer
@@ -1241,8 +1241,8 @@ return true;
 
   onCreateEmployee(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
-    console.log("allCertificationList : ", this.allCertificationList);
-    console.log("allPreviousEmployment : ", this.allPreviousEmployment);
+    //console.log("allCertificationList : ", this.allCertificationList);
+    //console.log("allPreviousEmployment : ", this.allPreviousEmployment);
 
 
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
@@ -1262,13 +1262,13 @@ return true;
     }
     this.employeeObj.previousEmploymentList = (Object.keys(this.allPreviousEmployment[0]).length === 0) ? null : this.allPreviousEmployment;
     this.employeeObj.createdBy = this.currentUser.empId;
-    console.log("Create Employe : ", this.employeeObj);
+    //console.log("Create Employe : ", this.employeeObj);
    let employee = Object.assign({},this.employeeObj)
     employee.employeementId = this.utilityService.substringEmployeementid(this.employeeObj.employeementId);
 
     if(this.employeeObj.employeementId.startsWith('A-')){
       employee.employeementId  = this.employeeObj.employeementId.substring(2);
-      console.log("Employee :", this.employeeObj);
+      //console.log("Employee :", this.employeeObj);
     }else {
       employee.employeementId  = this.employeeObj.employeementId
     }
@@ -1297,7 +1297,7 @@ return true;
   //       return false;
   //     }
   //     employee.employeementId  = this.employeeObj.employeementId.substring(2);
-  //     console.log("Employee :", this.employeeObj);
+  //     //console.log("Employee :", this.employeeObj);
   //   }else {
   //     employee.employeementId  = this.employeeObj.employeementId
   //   if (!this.validationService.validateNullUndefinedEmptyString(employee.employeementId)) {
@@ -1316,14 +1316,14 @@ return true;
   //       this.openAlertMod(template, response.serviceResponse);
   //       employee.employeementId = '';
   //     }
-  //     console.log("checkEmployeementId response: ",response);
+  //     //console.log("checkEmployeementId response: ",response);
   //   });
   // }
   checkEmployeementId(template: TemplateRef<any>) {
     let employee = new Employee();
     // employee.employeementId = this.utilityService.substringEmployeementid2(this.employeeObj.employeementId);
     employee.employeementId=this.employeeObj.employeementId;
-    console.log("chechEmpId() employee.employeementId: ",employee.employeementId);
+    //console.log("chechEmpId() employee.employeementId: ",employee.employeementId);
     employee.email = this.employeeObj.email;
     employee.empId = this.employeeObj.empId;
     if (!this.validationService.validateNullUndefinedEmptyString(employee.employeementId)) {
@@ -1344,7 +1344,7 @@ return true;
     //   this.employeeObj.employeementId = '';
     // }
     this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
-      console.log("EMPLY-ID response.serviceResponse: ",response.serviceResponse);
+      //console.log("EMPLY-ID response.serviceResponse: ",response.serviceResponse);
       if (response.serviceStatus == "Fail") {
         this.openAlertMod(template, response.serviceResponse);
         this.employeeObj.employeementId = '';
@@ -1371,7 +1371,7 @@ return true;
       return false;
     }
     this.employeeService.checkEmployeeEmail(employee).pipe(first()).subscribe((response: any) => {
-      console.log("EMAIL-response.serviceResponse: ",response.serviceResponse);
+      //console.log("EMAIL-response.serviceResponse: ",response.serviceResponse);
       if (response.serviceStatus == "Fail") {
         this.openAlertMod(template, response.serviceResponse);
         this.employeeObj.email = '';
@@ -1382,7 +1382,7 @@ return true;
   // checkEmail(template: TemplateRef<any>) {
   //   let employee = new Employee();
   //   employee.employeementId = this.utilityService.substringEmployeementid(this.employeeObj.employeementId)
-  //   console.log("checkEmail employee.employeementId: ",employee.employeementId);
+  //   //console.log("checkEmail employee.employeementId: ",employee.employeementId);
   //   const regex = /^(?:[0-9]+[a-z_.]|[a-z_.])[a-z0-9_.]+@apmosys\.com$/i;
   //   if (this.employeeObj.email != null)
   //   {
@@ -1395,7 +1395,7 @@ return true;
   //           this.openAlertMod(template, response.serviceResponse);
   //           this.employeeObj.email = '';
   //         }
-  //         console.log("checkEmployeeEmail response: ",response);
+  //         //console.log("checkEmployeeEmail response: ",response);
   //       });
   //     }else {
   //       this.openAlertMod(template, "Please enter valid email id... !!");
@@ -1445,7 +1445,7 @@ return true;
     }
 
     this.employeeService.checkEmployeeMobileNo(employee).pipe(first()).subscribe((response: any) => {
-      console.log("MOB No- response.serviceResponse: ", response.serviceResponse);
+      //console.log("MOB No- response.serviceResponse: ", response.serviceResponse);
       if (response.serviceStatus == "Fail") {
         this.openAlertMod(template, response.serviceResponse);
         this.employeeObj.mobileNo = '';
@@ -1458,7 +1458,7 @@ return true;
   //   employee.employeementId = this.utilityService.substringEmployeementid(this.employeeObj.employeementId);
   //   employee.mobileNo = this.employeeObj.mobileNo;
 
-  //   console.log(employee, " : employee");
+  //   //console.log(employee, " : employee");
 
   //   this.employeeService.checkEmployeeMobileNo(employee).pipe(first()).subscribe((response: any) => {
   //     if (response.serviceStatus == "Fail") {
@@ -1497,7 +1497,7 @@ return true;
     let element:any = document.getElementById(field);
     if(element) element.value = '';
 
-    console.log("value : ", element.value);
+    //console.log("value : ", element.value);
   
     this.employeeObj[fieldname] = '';
   }
@@ -1519,7 +1519,7 @@ return true;
     }
 
     this.employeeObj.updatedBy = this.currentUser.empId;;
-    console.log("Update Employe : ", this.employeeObj);
+    //console.log("Update Employe : ", this.employeeObj);
 
     let employee = Object.assign({}, this.employeeObj);
     employee.imageBytes="";
@@ -1527,7 +1527,7 @@ return true;
 
     if(this.employeeObj.employeementId.startsWith('A-')){
       employee.employeementId  = this.employeeObj.employeementId.substring(2);
-      console.log("Employee :", this.employeeObj);
+      //console.log("Employee :", this.employeeObj);
     }else {
       employee.employeementId  = this.employeeObj.employeementId
     }
@@ -1542,7 +1542,7 @@ return true;
       employee.reportingManagerId = null;
       employee.approvalsTo = null;
     }
-console.log("Anurag call update method  ::  ",employee);
+//console.log("Anurag call update method  ::  ",employee);
 
     this.employeeService.updateEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1603,13 +1603,13 @@ console.log("Anurag call update method  ::  ",employee);
     employee.managerId = this.employeeObj.newManagerId;
     employee.oldManagerId = this.employeeObj.oldManagerId;
 
-    console.log("changeManagerMapping : ", employee);
+    //console.log("changeManagerMapping : ", employee);
 
     this.employeeService.changeManagerMapping(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
 
         employee.empId = this.employeeObj.oldManagerId;
-        console.log("deleteEmployee : ", employee);
+        //console.log("deleteEmployee : ", employee);
         this.employeeService.deleteEmployee(employee).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus == "Success") {
             this.openAlertMod(template, response.serviceResponse);
@@ -1630,9 +1630,9 @@ console.log("Anurag call update method  ::  ",employee);
     this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
-        console.log(this.allEmployeeList.dateOfRelieving,"dateofREleiving");
-        console.log("Hiii ");
-        console.log("allEmployeeList : ", this.allEmployeeList)
+        //console.log(this.allEmployeeList.dateOfRelieving,"dateofREleiving");
+        //console.log("Hiii ");
+        //console.log("allEmployeeList : ", this.allEmployeeList)
         this.allEmployeeList.forEach(employeeObj => {
           employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.employeementId);
           employeeObj.dateOfJoining = (employeeObj.dateOfJoining)? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
@@ -1668,7 +1668,7 @@ console.log("Anurag call update method  ::  ",employee);
       let emp = { name: employee.name, empId: employee.empId.toString() };
       return emp;
     });
-    console.log("managerList : ", this.managerList);
+    //console.log("managerList : ", this.managerList);
   }
 
   name = 'EmployeeSheet.xlsx';
@@ -1739,20 +1739,20 @@ console.log("Anurag call update method  ::  ",employee);
     this.managerList = [];
     let employeeList = [];
 
-    console.log("Skip manager : ", employee)
+    //console.log("Skip manager : ", employee)
     this.employeeObj.role = "Manager";
     this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
     this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         employeeList = response.serviceResponse;
 
-        console.log("employeeList By Role : ", employeeList)
+        //console.log("employeeList By Role : ", employeeList)
         if(this.isUpdation || this.isDeletion){
           this.managerList = employeeList.filter((manager:Employee) => manager.empId !== employee.empId);
         }else{
           this.managerList = employeeList;
         }
-        console.log("managerList : ", this.managerList)
+        //console.log("managerList : ", this.managerList)
       } else {
         console.error(response.serviceResponse)
       }
@@ -1774,7 +1774,7 @@ console.log("Anurag call update method  ::  ",employee);
     this.employeeObj.certifications = (Object.keys(this.allCertificationList[0]).length === 0) ? null : this.allCertificationList;
     this.employeeObj.previousEmploymentList = (Object.keys(this.allPreviousEmployment[0]).length === 0) ? null : this.allPreviousEmployment;
     this.employeeObj.createdBy = this.currentUser.empId;
-    console.log("Create Employe Draft : ", this.employeeObj);
+    //console.log("Create Employe Draft : ", this.employeeObj);
     this.employeeService.createDraftEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -1795,7 +1795,7 @@ console.log("Anurag call update method  ::  ",employee);
     this.employeeObj.certifications = (Object.keys(this.allCertificationList[0]).length === 0) ? null : this.allCertificationList;
     this.employeeObj.previousEmploymentList = (Object.keys(this.allPreviousEmployment[0]).length === 0) ? null : this.allPreviousEmployment;
     this.employeeObj.updatedBy = this.currentUser.empId;
-    console.log("Update Employe Draft : ", this.employeeObj);
+    //console.log("Update Employe Draft : ", this.employeeObj);
     this.employeeService.updateDraftEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -1832,7 +1832,7 @@ console.log("Anurag call update method  ::  ",employee);
           x.dateOfJoining = (x.dateOfJoining)? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
           x.dateOfRelieving = (x.dateOfRelieving)? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
         }
-        console.log("allDraftEmployeeList : ", this.allEmployeeList)
+        //console.log("allDraftEmployeeList : ", this.allEmployeeList)
       } else {
         alert(response.serviceResponse)
       }
@@ -1846,7 +1846,7 @@ console.log("Anurag call update method  ::  ",employee);
     this.jobRoleService.getAllJobRole().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allJobRoleList = response.serviceResponse;
-        console.log("allJobRoleList : ", this.allJobRoleList);
+        //console.log("allJobRoleList : ", this.allJobRoleList);
       } else {
         console.error(response.serviceResponse)
       }
@@ -1860,7 +1860,7 @@ console.log("Anurag call update method  ::  ",employee);
     this.destinationService.getDesignationByDeptId(designationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
        this.allDesignationList = response.serviceResponse;
-       console.log(this.allDesignationList, " : allDesignationList");
+       //console.log(this.allDesignationList, " : allDesignationList");
       } else {
         console.error(response.serviceResponse)
       }
@@ -1873,7 +1873,7 @@ console.log("Anurag call update method  ::  ",employee);
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allDeptList = response.serviceResponse;
-        console.log("allDeptList : ", this.allDeptList);
+        //console.log("allDeptList : ", this.allDeptList);
       } else {
         console.error(response.serviceResponse)
       }
@@ -1943,7 +1943,7 @@ console.log("Anurag call update method  ::  ",employee);
       this.employeeObj.documentList.forEach((doc:Document) => doc.documentBytes = null);
     }
     this.employeeObj.remarks = this.employeeObj.remarks?.trim();
-    console.log(" reject KYC :  ",this.employeeObj)
+    //console.log(" reject KYC :  ",this.employeeObj)
     this.employeeService.rejectDraftEmployeeApplication(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
@@ -1977,7 +1977,7 @@ console.log("Anurag call update method  ::  ",employee);
   // Employee Info Preview
   async openEmployeeInfoPreview(template: TemplateRef<any>, employeeObj: Employee) {
 
-    console.log("employeeObj : ", employeeObj);
+    //console.log("employeeObj : ", employeeObj);
 
     let currentEmp = new Employee();
     currentEmp.employeementId = employeeObj.employeementId.substring(2);
@@ -1987,7 +1987,7 @@ console.log("Anurag call update method  ::  ",employee);
     const infoResponse: any = await this.employeeService.getDraftEmployeeByEmpId(currentEmp).toPromise();
     if (infoResponse.serviceStatus == "Success") {
       this.previewObj = infoResponse.serviceResponse;
-      console.log("this.previewObj : ", this.previewObj);
+      //console.log("this.previewObj : ", this.previewObj);
     } else {
       console.error(infoResponse.serviceResponse)
     }
@@ -1995,9 +1995,9 @@ console.log("Anurag call update method  ::  ",employee);
     const docResponse:any = await this.imageService.getEmployeeDocuments(currentEmp).toPromise();
     if (docResponse.serviceStatus == 'Success') {
       this.previewObj.documentList = docResponse.serviceResponse;
-      console.log("this.previewObj.documentList : ", this.previewObj.documentList);
+      //console.log("this.previewObj.documentList : ", this.previewObj.documentList);
     } else {
-      console.log(docResponse.serviceResponse);
+      //console.log(docResponse.serviceResponse);
     }
     this.previewModalRef = this.modalService.show(template, { class: 'modal-xl'});
     setTimeout(()=>{
@@ -2015,7 +2015,7 @@ console.log("Anurag call update method  ::  ",employee);
   // Employee Info preview View all tab
   async openViewEmployeeInfoPreview(template: TemplateRef<any>, employeeObj: Employee) {
 
-    console.log("employeeObj : ", employeeObj);
+    //console.log("employeeObj : ", employeeObj);
     this.domainSpecializationList = [];
 
     let currentEmp = new Employee();
@@ -2028,7 +2028,7 @@ console.log("Anurag call update method  ::  ",employee);
     if (infoResponse.serviceStatus == "Success") {
       this.previewEmployeeObj = infoResponse.serviceResponse;
 
-      console.log("this.previewObj : ", this.previewEmployeeObj);
+      //console.log("this.previewObj : ", this.previewEmployeeObj);
     } else {
       console.error(infoResponse.serviceResponse)
     }
@@ -2036,9 +2036,9 @@ console.log("Anurag call update method  ::  ",employee);
     const docResponse:any = await this.imageService.getEmployeeDocuments(currentEmp).toPromise();
     if (docResponse.serviceStatus == 'Success') {
       this.previewEmployeeObj.documentList = docResponse.serviceResponse;
-      console.log("this.previewObj.documentList : ", this.previewEmployeeObj.documentList);
+      //console.log("this.previewObj.documentList : ", this.previewEmployeeObj.documentList);
     } else {
-      console.log(docResponse.serviceResponse);
+      //console.log(docResponse.serviceResponse);
     }
 
     let domainObj = new Domain();
@@ -2046,7 +2046,7 @@ console.log("Anurag call update method  ::  ",employee);
     const domainResponse:any = await this.domainService.getDomainSpecializationByEmpId(domainObj).toPromise();
       if (domainResponse.serviceStatus == "Success") {
         this.domainSpecializationList = domainResponse.serviceResponse;
-        console.log(this.domainSpecializationList, " : this.domainSpecializationList");
+        //console.log(this.domainSpecializationList, " : this.domainSpecializationList");
       } else {
         console.error(domainResponse.serviceResponse);
       }
@@ -2085,12 +2085,12 @@ console.log("Anurag call update method  ::  ",employee);
 
   updateNoticePeriod(employeeObj: Employee){
     const dateFormat = 'YYYY-MM-DD';
-    console.log(employeeObj,"employeeObj");
+    //console.log(employeeObj,"employeeObj");
     this.employeeObj.dateOfRelieving = moment(this.employeeObj.dateOfRelieving).format(dateFormat);
-    console.log(this.employeeObj.dateOfRelieving);
+    //console.log(this.employeeObj.dateOfRelieving);
     const diff =  Math.abs(Math.floor((new Date(this.employeeObj.dateOfRelieving).getTime() - new Date(employeeObj.dateOfResign).getTime()) / (1000 * 60 * 60 * 24)));
     this.employeeObj.noticePeriod = diff;
-    console.log(diff, "diffDaysdiffDays")
+    //console.log(diff, "diffDaysdiffDays")
   }
 
   estimateDateOfReleiving(employeeObj: Employee){
@@ -2099,7 +2099,7 @@ console.log("Anurag call update method  ::  ",employee);
     if(this.employeeObj.dateOfResign){
       let estimateDateOfRelieving = new Date(this.employeeObj.dateOfResign);
       this.employeeObj.dateOfRelieving = moment(estimateDateOfRelieving).add(this.employeeObj.noticePeriod, "days").format(dateFormat);
-      console.log(this.employeeObj.dateOfRelieving, "this.employeeObj.dateOfRelieving")
+      //console.log(this.employeeObj.dateOfRelieving, "this.employeeObj.dateOfRelieving")
     }
   }
 
@@ -2114,7 +2114,7 @@ console.log("Anurag call update method  ::  ",employee);
       employee.employeementId  = employee.employeementId
     }
 
-    console.log("updateTimesheetLockCheck : ", employee);
+    //console.log("updateTimesheetLockCheck : ", employee);
     this.employeeService.updateTimesheetLockCheck(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.getAllEmployeeList();
@@ -2256,9 +2256,9 @@ console.log("Anurag call update method  ::  ",employee);
 
         this.modalRef =  this.modalService.show(auditTemplate, { class: 'modal-lg' });
 
-        console.log(this.filteredEmployeeAuditHistory , " : this.filteredEmployeeAuditHistory ");
+        //console.log(this.filteredEmployeeAuditHistory , " : this.filteredEmployeeAuditHistory ");
       } else {
-        console.log(response.serviceResponse, " audit response");
+        //console.log(response.serviceResponse, " audit response");
       }
     });
   }
@@ -2276,7 +2276,7 @@ console.log("Anurag call update method  ::  ",employee);
           domain.createdOn = (domain.createdOn)? moment(domain.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
 
-        console.log(this.allDomainList, " : this.allDomainList");
+        //console.log(this.allDomainList, " : this.allDomainList");
       } else {
         // this.openAlertMod(template, response.serviceResponse);
         console.error(response.serviceResponse);
@@ -2290,7 +2290,7 @@ console.log("Anurag call update method  ::  ",employee);
     let domainObj = new Domain();
     domainObj.domainIdList = this.employeeObj.domainList;
 
-    console.log(domainObj, " : domainObj selected");
+    //console.log(domainObj, " : domainObj selected");
     this.domainService.getDomainSpecialization(domainObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.specializationList = response.serviceResponse;
@@ -2411,7 +2411,7 @@ console.log("Anurag call update method  ::  ",employee);
 
   /* Filter */
   openFilterModal(template: TemplateRef<any>, columns: any[], title: any) {
-    console.log("columns : ", columns);
+    //console.log("columns : ", columns);
     this.queryList = [];
 
     this.filterData.title = title;
@@ -2440,7 +2440,7 @@ console.log("Anurag call update method  ::  ",employee);
 
     this.filterData.queryList = JSON.stringify(this.queryList);
 
-    console.log("filterData : ", this.filterData);
+    //console.log("filterData : ", this.filterData);
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
   }
 
@@ -2450,7 +2450,7 @@ console.log("Anurag call update method  ::  ",employee);
     let queryObj = new Query();
     queryObj.queryList = queryObjList;
 
-    console.log("getCustomEmployeesList       ",queryObj);
+    //console.log("getCustomEmployeesList       ",queryObj);
 
     if (queryObjList == '') {
       this.getAllEmployeeList();
@@ -2475,7 +2475,7 @@ console.log("Anurag call update method  ::  ",employee);
             employee.createdOn = (employee.createdOn) ? moment(employee.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
             employee.updatedOn = (employee.updatedOn) ? moment(employee.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
           });
-          console.log("allEmployeeList : ", this.allEmployeeList)
+          //console.log("allEmployeeList : ", this.allEmployeeList)
         } else {
           this.openAlertMod(template, response.serviceResponse)
         }
@@ -2485,7 +2485,7 @@ console.log("Anurag call update method  ::  ",employee);
 
   onFilterSubmit(emittedArray: any, template: TemplateRef<any>) {
     if (emittedArray[0].length != 0) {
-      console.log("queryList : ", emittedArray[0]);
+      //console.log("queryList : ", emittedArray[0]);
       this.queryList = JSON.parse(JSON.stringify(emittedArray[0]));
       this.cancelRequest();
 
@@ -2636,7 +2636,7 @@ console.log("Anurag call update method  ::  ",employee);
    }
 
   sortData(sort: Sort){
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -2663,7 +2663,7 @@ console.log("Anurag call update method  ::  ",employee);
   onSearch(searchData){
     if(this.isSearchEnabled == true){
       this.filters = searchData;
-      console.log("Updated Filter : ", this.filters);
+      //console.log("Updated Filter : ", this.filters);
     }
   }
 
@@ -2674,7 +2674,7 @@ console.log("Anurag call update method  ::  ",employee);
 
   onWorkHistorySearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 
   toggleAuditSearch(){
@@ -2683,7 +2683,7 @@ console.log("Anurag call update method  ::  ",employee);
 
   onAuditSearch(searchData){
     this.auditFilter = searchData;
-    console.log("Audit Updated Filter : ", this.filters);
+    //console.log("Audit Updated Filter : ", this.filters);
   }
 
   // added by anurag on field validation
@@ -2711,12 +2711,12 @@ console.log("Anurag call update method  ::  ",employee);
     this.employeeObj.departmentId ="";
     this.employeeObj.projectName = "";
     this.employeeObj.teamName = "";
-    console.log(" empId in manager UI change ",employeeId);
+    //console.log(" empId in manager UI change ",employeeId);
 
     this.employeeService.getDepartmentByHodId(employeeId).pipe(first()).subscribe((response: any)=>{
       if(response.serviceStatus == "Success"){
         const responseObj = response.serviceResponse;
-       console.log(" responseObj             ",responseObj);
+       //console.log(" responseObj             ",responseObj);
 
        responseObj.forEach((dept )=>{
         this.deptId = dept[0];
@@ -2728,9 +2728,9 @@ console.log("Anurag call update method  ::  ",employee);
         // this.listOfDepartment = response.serviceResponse;
       }
     })
-console.log("this.deptId    ",this.deptId);
+//console.log("this.deptId    ",this.deptId);
 
-console.log("this.listOfDepartment        ",this.listOfDepartment    );
+//console.log("this.listOfDepartment        ",this.listOfDepartment    );
 
     this.modalRef = this.modalService.show(template, { class: 'modal-xl'});
   }
@@ -2748,9 +2748,9 @@ console.log("this.listOfDepartment        ",this.listOfDepartment    );
         }
       })
       var empId = employeeId;
-      console.log(" empId    ",empId);
+      //console.log(" empId    ",empId);
       this.isSearchEnabled = false;
-      console.log("Log    eventValue    ",eventValue);
+      //console.log("Log    eventValue    ",eventValue);
     
       this.modalRef = this.modalService.show(template, { class: 'modal-sm' ,  backdrop: 'static', keyboard: false });
     }
@@ -2759,12 +2759,12 @@ console.log("this.listOfDepartment        ",this.listOfDepartment    );
   getProjectsByDepartment(departmentName,template: TemplateRef<any>){
     var newDept = departmentName?.trim();
     this.employeeObj.projectName = "";
-    console.log(" deptId value  ",departmentName);
+    //console.log(" deptId value  ",departmentName);
     this.employeeService.getProjectsByDepartmentName(newDept).pipe(first()).subscribe((response : any)=>{
       if(response.serviceStatus == "Success"){
 
         this.listOfProjectsByDeptId = response.serviceResponse;
-        console.log( " success ",this.listOfProjectsByDeptId);
+        //console.log( " success ",this.listOfProjectsByDeptId);
       }else{
         this.openAlertMod(template , response.serviceResponse);
       }
@@ -2773,29 +2773,29 @@ console.log("this.listOfDepartment        ",this.listOfDepartment    );
 
 
     getTeamsByProjectName(projectName,template: TemplateRef<any>){
-      console.log(" projectName   ",projectName);
+      //console.log(" projectName   ",projectName);
       this.employeeObj.teamName = "";
       this.employeeService.getTeamByProjectName(projectName).pipe(first()).subscribe((response : any)=>{
         if(response.serviceStatus == "Success"){
           this.teamList = response.serviceResponse;
-          console.log(" team list success   ",this.teamList);
+          //console.log(" team list success   ",this.teamList);
         }else{
           this.openAlertMod(template , response.serviceResponse);
-          console.log(" in fail ")
+          //console.log(" in fail ")
         }
       });
 
     }
 
     getTeamMemberByTeamName(teamName){
-      console.log(" teamName getTeamMemberByTeamName ",teamName);
+      //console.log(" teamName getTeamMemberByTeamName ",teamName);
       // this.managerAndAbove = this.managerAndAbove.forEach(t=> t.managerId == ""); 
       this.employeeService.getTeamMemberByTeamName(teamName).pipe(first()).subscribe((response : any)=>{
         if(response.serviceStatus == "Success"){
           this.TeamMemberList = response.serviceResponse;
           this.getManagersList();
           // this.employeeObj.managerId = '';
-          console.log(" teamMember list   ",this.TeamMemberList)
+          //console.log(" teamMember list   ",this.TeamMemberList)
         }
       })
     }
@@ -2804,12 +2804,12 @@ console.log("this.listOfDepartment        ",this.listOfDepartment    );
       // this.managerId = "";
       // this.managerAndAbove = [];
       this.managerAndAbove = this.managerAndAbove.forEach(t=> t.managerId == ""); 
-      console.log(" managers call ");
+      //console.log(" managers call ");
       this.employeeService.getManagerList().pipe(first()).subscribe((response : any)=>{
         if(response.serviceStatus == "Success"){
           this.managerAndAbove = response.serviceResponse
           this.managerAndAbove = this.managerAndAbove.filter(empId => empId.managerId != this.employeeObj.empId);
-          console.log(" managersAndAbove list   ",this.managerAndAbove);
+          //console.log(" managersAndAbove list   ",this.managerAndAbove);
         }
       });
     }
@@ -2822,17 +2822,17 @@ console.log("this.listOfDepartment        ",this.listOfDepartment    );
       employee.managerId = this.managerId;
       this.employeeService.setManagerToNewManager(emp).pipe(first()).subscribe((response :any)=>{
         if(response.serviceStatus == "Success"){
-          console.log(" teamName after manager changes done ",this.employeeObj.teamName)
+          //console.log(" teamName after manager changes done ",this.employeeObj.teamName)
           this.getTeamMemberByTeamName(this.employeeObj.teamName);
           this.openAlertMod(template," Employee's Manager has changed !!");
-          console.log(" Manager update ")
+          //console.log(" Manager update ")
         }
       })
 
-      console.log(" managerUpdate method call and employee id of reporties    :   ",employee.empId);
+      //console.log(" managerUpdate method call and employee id of reporties    :   ",employee.empId);
       
-      console.log(" managerUpdate method call  employee name  :   ",employee.name);
-      console.log(" managerId   ::   ",employee.managerId);
+      //console.log(" managerUpdate method call  employee name  :   ",employee.name);
+      //console.log(" managerId   ::   ",employee.managerId);
       
 
 
@@ -2857,15 +2857,15 @@ console.log("this.listOfDepartment        ",this.listOfDepartment    );
 // added by anurag 
 
     mapLeavesAndCompOffToNewManager(employee){
-      console.log(" employee   ",employee);
-      console.log(" pre employee ",this.employeeObj.managerId);
+      //console.log(" employee   ",employee);
+      //console.log(" pre employee ",this.employeeObj.managerId);
       let emp = new Employee();
       emp.empId=employee.empId;
       emp.managerId=employee.managerId;
 
       this.employeeService.mapLeavesAndCompOffToNewManager(emp).pipe(first()).subscribe((response:any)=>{
         if(response.serviceStatus == "Success"){
-          console.log(" method successfully call ")
+          //console.log(" method successfully call ")
         }
       })
     }
@@ -2887,7 +2887,7 @@ PIP_generate(template:TemplateRef<any>, employee){
   
   PIP_reverse(template:TemplateRef<any>,teamObj,flag){
     this.isPipGenerate = false;
-    console.log(teamObj);
+    //console.log(teamObj);
     let empObj = new Employee();
     empObj.pipFlag = flag;
     empObj.pipId = teamObj.pipId;
@@ -2907,7 +2907,7 @@ PIP_generate(template:TemplateRef<any>, employee){
   }
   
   PipGenerateToUser(template: TemplateRef<any>,leaveObj,flag){
-    console.log(" leaveObj   ",leaveObj);
+    //console.log(" leaveObj   ",leaveObj);
     let emp = new Employee();
     emp.empId = leaveObj.empId;
     emp.pipReason = leaveObj.pipReason;
@@ -2915,7 +2915,7 @@ PIP_generate(template:TemplateRef<any>, employee){
     emp.createdBy = this.currentUser.empId;
     emp.createdByName = this.currentUser.name;
   
-    console.log(emp);
+    //console.log(emp);
     this.employeeService.pipGenerateToUser(emp).pipe(first()).subscribe((response : any)=>{
       if(response.serviceStatus == "Success"){
         this.openAlertMod(template,response.serviceResponse);
@@ -2944,20 +2944,20 @@ PIP_generate(template:TemplateRef<any>, employee){
       this.pipReasons.forEach(d=>{
         d.createdOn = moment(d.createdOn).format(AppComponent.DATE_FORMAT);
         d.updatedOn = moment(d.updatedOn).format(AppComponent.DATE_FORMAT);
-        console.log(" d ki value ",d)
+        //console.log(" d ki value ",d)
         if(d.pipFlag == "true"){
-          console.log("i am in true flag")
+          //console.log("i am in true flag")
           this.isPipFlag = true;
         }else{
-          console.log(" I'm in false flag")
+          //console.log(" I'm in false flag")
           this.isPipFlag = false;
         }
       })
-      console.log("this.pipReasons  ",this.pipReasons);  
+      //console.log("this.pipReasons  ",this.pipReasons);  
     }
   })
-    console.log(" team ",empObj);
-    console.log(empObj,"teamteamteamteam")
+    //console.log(" team ",empObj);
+    //console.log(empObj,"teamteamteamteam")
   }
   
   pipReasonModal(template:TemplateRef<any>,teamObj){
@@ -2972,7 +2972,7 @@ PIP_generate(template:TemplateRef<any>, employee){
   }
   
   setPipExtendsDays(template:TemplateRef<any>){
-    console.log("team in set extend modal",this.employeeObj)
+    //console.log("team in set extend modal",this.employeeObj)
     let leave = new Employee();
     leave.pipId = this.employeeObj.pipId;
     leave.empId = this.employeeObj.empId;

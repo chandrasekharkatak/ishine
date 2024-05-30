@@ -71,7 +71,7 @@ export class UserSurveyComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
+    //console.log(this.feature, this.userMapping);
 
     this.route.params.subscribe((params:Params) => {
       this.currentSurveyId = params['id'];
@@ -79,7 +79,7 @@ export class UserSurveyComponent implements OnInit {
 
     this.sectionViewInit();
 
-    console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
+    //console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
 
     this.preventBackButton();
   }
@@ -136,7 +136,7 @@ export class UserSurveyComponent implements OnInit {
         }
         
         this.getAllAnsweredSurveys();
-        console.log("this.allSurveyList : ", this.allSurveyList);
+        //console.log("this.allSurveyList : ", this.allSurveyList);
       } else {
         console.error(response.serviceResponse);
       }
@@ -152,7 +152,7 @@ export class UserSurveyComponent implements OnInit {
     this.surveyService.getAnsweredSurveysByEmpId(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allAnsweredSurveyList = response.serviceResponse;
-        console.log("this.allAnsweredSurveyList : ", response.serviceResponse);
+        //console.log("this.allAnsweredSurveyList : ", response.serviceResponse);
         this.allAnsweredSurveyList.forEach((answeredSurvey: Survey) => {
           let surveyObj = this.allSurveyList.find((survey: Survey) => answeredSurvey.surveyId == survey.surveyId);
           if (surveyObj) surveyObj.isAnswered = true;
@@ -174,7 +174,7 @@ export class UserSurveyComponent implements OnInit {
     this.surveyService.getAllQuestionsBySurveyId(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allSurveyQuestionList = response.serviceResponse;
-        console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
+        //console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
 
         this.surveyObj = surveyObj;
         this.allSurveyQuestionList.forEach((survey: SurveyQuestion) => {
@@ -208,11 +208,11 @@ export class UserSurveyComponent implements OnInit {
     this.surveyObj = surveyObj;
 
     surveyObj.empId = this.currentUser.empId;
-    console.log("For View My Response : ", surveyObj);
+    //console.log("For View My Response : ", surveyObj);
     this.surveyService.getSurveyResponseByEmpIdAndSurveyId(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.myResponseList = response.serviceResponse;
-        console.log("this.myResponseList : ", this.myResponseList);
+        //console.log("this.myResponseList : ", this.myResponseList);
         this.openSurveyPreviewMod(this.previewResponseTemplate);
       } else {
         console.error(response.serviceResponse);
@@ -261,7 +261,7 @@ export class UserSurveyComponent implements OnInit {
       surveyObj.surveyQuestionList.push(surveyQuestion);
     });
 
-    console.log("On Survey Submit : ", surveyObj);
+    //console.log("On Survey Submit : ", surveyObj);
     let inputValidated: boolean = this.validateSurveyResponse(surveyObj, template);
     if (!inputValidated) return;
     this.surveyService.setSurveyResponseByEmpId(surveyObj).pipe(first()).subscribe((response: any) => {
@@ -331,7 +331,7 @@ export class UserSurveyComponent implements OnInit {
       surveyTemplate = surveyTemplate + finalQuestionTemplate;
     });
 
-    // console.log("surveyTemplate : ", surveyTemplate);
+    // //console.log("surveyTemplate : ", surveyTemplate);
     return surveyTemplate;
   }
 
@@ -356,7 +356,7 @@ export class UserSurveyComponent implements OnInit {
   }
 
   sortData(sort: Sort){	
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -374,7 +374,7 @@ export class UserSurveyComponent implements OnInit {
   }
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
   
   //end

@@ -175,5 +175,6 @@ export class Employee{
 	pipId: any;
 	revReason: any;
 	extendDays : any;
+	billableType : any;
 
 }

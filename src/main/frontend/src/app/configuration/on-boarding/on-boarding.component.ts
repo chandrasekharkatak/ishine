@@ -116,7 +116,7 @@ export class OnBoardingComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.employeeOnBoardingDetailList = response.serviceResponse;
         this.employeeDetailList = response.serviceResponse1;
-        console.log(this.employeeOnBoardingDetailList, ' : employeeOnBoardingDetailList');
+        //console.log(this.employeeOnBoardingDetailList, ' : employeeOnBoardingDetailList');
 
         const key = "deptId";
         this.departmentList = [...new Map(this.employeeOnBoardingDetailList.map((employee:Asset) => [employee[key], employee])).values()].map((employee:Asset) => {
@@ -140,7 +140,7 @@ export class OnBoardingComponent implements OnInit {
           this.departmentList = this.departmentList.filter(x => x.deptId == this.currentUser.departmentId);
         }
 
-        console.log("Assets according to departments : ", this.departmentList);
+        //console.log("Assets according to departments : ", this.departmentList);
 
       } else {
         this.openAlertMod(template, response.serviceResponse);
@@ -158,7 +158,7 @@ export class OnBoardingComponent implements OnInit {
       }else{
         this.updatedAssetList.push(updatedAsset);
       }
-      console.log(this.updatedAssetList);
+      //console.log(this.updatedAssetList);
   }
 
   updateOnBoardingCheckList(template: TemplateRef<any>){
@@ -166,7 +166,7 @@ export class OnBoardingComponent implements OnInit {
     // this.departmentList.forEach(asset => {
     //   this.assetObj.departmentWiseAssetList.push(...asset.assetList);
     // });
-    // console.log(this.assetObj.departmentWiseAssetList, " list");
+    // //console.log(this.assetObj.departmentWiseAssetList, " list");
 
     let assetObj = new Asset();
     assetObj.employeementId = this.assetObj.employeementId;

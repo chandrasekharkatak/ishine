@@ -74,7 +74,7 @@ export class ResignationComponent implements OnInit {
      featureMap.subFeatures?.forEach(sub => {
        this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
      });
-     console.log(this.feature, this.userMapping);
+     //console.log(this.feature, this.userMapping);
   }
 
   viewEmployeeInfo(resignation: any){
@@ -120,7 +120,7 @@ export class ResignationComponent implements OnInit {
     let currentEmp = new Employee();
     currentEmp.empId = resignation.empId;
 
-    console.log(currentEmp.empId, " : currentEmp.empId");
+    //console.log(currentEmp.empId, " : currentEmp.empId");
     
     const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
     if (response.serviceStatus == "Success") {
@@ -133,7 +133,7 @@ export class ResignationComponent implements OnInit {
       }
       this.employeeInfoObj.resignationStatus = resignation.resignationStatus;
     
-      console.log("currentEmployeeInfo : ", this.employeeInfoObj);
+      //console.log("currentEmployeeInfo : ", this.employeeInfoObj);
       this.loadProfileImage(this.employeeInfoObj.imageBytes);
     } else {
       console.error(response.serviceResponse);
@@ -239,7 +239,7 @@ export class ResignationComponent implements OnInit {
           object.active  = (object.active  == '1') ? 'Yes' : 'No';
         });
 
-        console.log(" this.projectList : ", this.projectList);
+        //console.log(" this.projectList : ", this.projectList);
       }else{
         console.error(response.serviceResponse);
       }
@@ -252,7 +252,7 @@ export class ResignationComponent implements OnInit {
   }
 
   sortData(sort: Sort){	
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -275,7 +275,7 @@ export class ResignationComponent implements OnInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 
   // Modal

@@ -118,7 +118,7 @@ export class HomeConfigComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
+    //console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
     this.preventBackButton();
@@ -271,7 +271,7 @@ export class HomeConfigComponent implements OnInit {
       image.photoOrder = index+1;
     });
 
-    console.log("Updated Order : ", this.eventImages);
+    //console.log("Updated Order : ", this.eventImages);
 
     let updatedPhotoList = new EventPhoto();
     updatedPhotoList.eventPhotoList = this.eventImages;
@@ -338,7 +338,7 @@ export class HomeConfigComponent implements OnInit {
     updatedPhotoDetails = Object.assign({}, this.imageObj);
     updatedPhotoDetails.updatedBy = this.currentUser.empId;
 
-    console.log("onUpdateEventDetails : ", updatedPhotoDetails);
+    //console.log("onUpdateEventDetails : ", updatedPhotoDetails);
     
     this.imageService.updatePhotoDetails(updatedPhotoDetails).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == 'Success') {
@@ -359,7 +359,7 @@ export class HomeConfigComponent implements OnInit {
     const maxSizeInBytes = 10 * 1024 * 1024; // 10MB
 
     const uploadedFiles = event.target.files;
-    console.log(" file type ::  ",uploadedFiles," file type :: ",uploadedFiles.type)
+    //console.log(" file type ::  ",uploadedFiles," file type :: ",uploadedFiles.type)
 
     //Bits in  10mb : 10485760
 // Check file type
@@ -381,11 +381,11 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
     this.files = [];
 
    
-    console.log("uploadedFiles : ", uploadedFiles);
+    //console.log("uploadedFiles : ", uploadedFiles);
 
     if (uploadedFiles.length != 0) {
       for (let i = 0; i < uploadedFiles.length; i++) {
-        console.log(" upload method call ");
+        //console.log(" upload method call ");
         let image = uploadedFiles[i];
         let imageName = "EventPhoto_"+moment(new Date()).format("DD-MM-YYYY-hh-mm-ss")+"."+extensionRE.exec(image.name)[1];
 
@@ -393,7 +393,7 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
         this.files.push(imgObj);
       };
     }
-    console.log("Files : ", this.files);
+    //console.log("Files : ", this.files);
    }
   }
 
@@ -459,7 +459,7 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
     formData.append("employeementId", this.currentUser.employeementId);
     formData.append("empId", this.currentUser.empId);
 
-    console.log("Upload Images : ", formData);
+    //console.log("Upload Images : ", formData);
     this.imageService.uploadMultipleImages(formData).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == 'Success') {
         this.openAlertMod(template, response.serviceResponse);
@@ -475,7 +475,7 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
     let imageObj = new EventPhoto();
     this.cancelRequest();
    this.imageObj.updatedBy = this.currentUser.empId;
-   console.log("Updated by .. ",this.imageObj.updatedBy)
+   //console.log("Updated by .. ",this.imageObj.updatedBy)
     this.imageService.deleteEventPhoto(this.imageObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -496,7 +496,7 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
         });
 
         this.eventImages.sort((a,b) => a.photoOrder - b.photoOrder);
-        console.log("eventImages : ", this.eventImages);
+        //console.log("eventImages : ", this.eventImages);
       } else {
         console.error(response.serviceResponse);
       }
@@ -511,7 +511,7 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
         this.eventImages.forEach(img => {
           img.createdOn = (img.createdOn)? moment(img.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         })
-        console.log("eventImages : ", this.eventImages);
+        //console.log("eventImages : ", this.eventImages);
       } else {
         console.error(response.serviceResponse);
       }
@@ -621,7 +621,7 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
           notification.updatedOn = (notification.updatedOn)? moment(notification.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
 
-        console.log("notificationList : ", this.allNotification);
+        //console.log("notificationList : ", this.allNotification);
       } else {
         console.error(response.serviceResponse);
       }
@@ -642,7 +642,7 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
         });
 
         this.modalRef = this.modalService.show(consentNotificationTemplate, { class: 'modal-lg' });
-        console.log("consentNotificationResponse : ", this.consentNotificationResponse);
+        //console.log("consentNotificationResponse : ", this.consentNotificationResponse);
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -672,24 +672,24 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
   openDeleteEventPhoto(template: TemplateRef<any>, imageObj: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.imageObj = imageObj;
-    console.log(this.imageObj);
+    //console.log(this.imageObj);
   }
 
   openDeleteNotificationModal(notificationObj:any, template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.notificationToBeDeleted = notificationObj;
-    console.log(this.notificationObj);
+    //console.log(this.notificationObj);
   }
 
   openInactivateNotificationModal(notificationObj:any, template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.notificationToBeDeleted = notificationObj;
-    console.log(this.notificationObj);
+    //console.log(this.notificationObj);
   }
 
   openPreviewEventPhoto(template: TemplateRef<any>, imageObj: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
-    console.log(imageObj);
+    //console.log(imageObj);
     this.imageObj = imageObj;
     this.isPreviewLoaded = false;
     document.getElementById(`photoPreview`).style.display = 'none';
@@ -698,7 +698,7 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
 
   openUpdateEventPhotoDetails(template: TemplateRef<any>, imageObj: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
-    console.log(imageObj);
+    //console.log(imageObj);
     this.imageObj = imageObj;
   }
 
@@ -717,7 +717,7 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
   }
 
   sortData(sort: Sort){
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -740,7 +740,7 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 
   toggleConsentResponseSearch(){

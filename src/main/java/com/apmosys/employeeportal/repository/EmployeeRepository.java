@@ -197,4 +197,25 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ " where e.pip_flag=1")
 	public List<Object[]> findPipUserWithStatus();
 	
+
+	@Query(nativeQuery = true , value = "select e.emp_id,e.employeement_id,e.name as employeeName , e.email,e.billable,e.billable_type, d.name as departmentName,em.name as managerName,hd.name as hodName,emp_proj_client.project_name, emp_proj_client.client_name  from employee e \n"
+			+ "			 inner join employee em ON em.emp_id=e.manager_id\n"
+			+ "			 Inner join job_role jr ON jr.job_role_id = e.job_role_id\n"
+			+ "			 INNER JOIN department d ON d.dept_id = jr.dept_id\n"
+			+ "			 INNER JOIN employee hd ON d.hod_id=hd.emp_id\n"
+			+ "             LEFT JOIN (SELECT etm.emp_id, GROUP_CONCAT(DISTINCT pr.project_name) AS project_name, GROUP_CONCAT(DISTINCT cl.client_name) AS client_name \n"
+			+ "FROM employee_team_mapping etm \n"
+			+ "LEFT JOIN teams t ON t.team_id = etm.team_id\n"
+			+ "LEFT JOIN projects pr ON pr.project_id = t.project_id \n"
+			+ "LEFT JOIN clients cl ON cl.client_id = pr.client_id \n"
+			+ "where etm.active !=0\n"
+			+ "GROUP BY etm.emp_id) emp_proj_client ON emp_proj_client.emp_id = e.emp_id \n"
+			+ "where e.employmentstatus != 'InActive'")
+	public List<Object[]> getEmployeesWithBillableType();
+
+	@Query(nativeQuery = true , value = "select e.email from employee e \n"
+			+ "inner join job_role jr ON jr.job_role_id = e.job_role_id\n"
+			+ "where jr.name like '%VP%' and e.employmentstatus != 'InActive'")
+	public List<Object[]> findAllVPsEmail();
+	
 }

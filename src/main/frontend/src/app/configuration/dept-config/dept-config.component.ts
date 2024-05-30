@@ -86,7 +86,7 @@ export class DeptConfigComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
+    //console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
     this.preventBackButton();
@@ -177,7 +177,7 @@ export class DeptConfigComponent implements OnInit {
     if (!inputValidated) return;
 
     this.deptObj.createdBy = this.currentUser.empId;
-    console.log("Create Dept : ", this.deptObj);
+    //console.log("Create Dept : ", this.deptObj);
     this.departmentService.createDepartment(this.deptObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -195,7 +195,7 @@ export class DeptConfigComponent implements OnInit {
     if (!inputValidated) return;
 
     this.deptObj.updatedBy = this.currentUser.empId;;
-    console.log("Update dept : ", this.deptObj);
+    //console.log("Update dept : ", this.deptObj);
     this.departmentService.updateDepartment(this.deptObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -252,7 +252,7 @@ export class DeptConfigComponent implements OnInit {
     department.isDeptUsedInIshine = this.onDeleteDepartmentResponse.isDeptUsedInIshine;
     department.isDeptUsedInPoPortal = this.onDeleteDepartmentResponse.isDeptUsedInPoPortal;
 
-    console.log(department, " : department");
+    //console.log(department, " : department");
 
     this.departmentService.changeDepartmentJobRoleMapping(department).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -284,7 +284,7 @@ export class DeptConfigComponent implements OnInit {
           dept.createdOn = (dept.createdOn)? moment(dept.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           dept.updatedOn = (dept.updatedOn)? moment(dept.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
-        console.log("allDeptList : ", this.allDeptList)
+        //console.log("allDeptList : ", this.allDeptList)
       } else {
         alert(response.serviceResponse)
       }
@@ -297,7 +297,7 @@ export class DeptConfigComponent implements OnInit {
   //   this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
   //     if (response.serviceStatus == "Success") {
   //       this.hodList = response.serviceResponse;
-  //       console.log("hodList : ", this.hodList)
+  //       //console.log("hodList : ", this.hodList)
   //       this.hodListFilter =  this.hodList.filter(x => x.jobRoleName.includes("-HOD"));
   //     } else {
   //       alert(response.serviceResponse)
@@ -313,9 +313,9 @@ export class DeptConfigComponent implements OnInit {
     this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         employeeList = response.serviceResponse;
-        console.log("employeeList By Role : ", employeeList)
+        //console.log("employeeList By Role : ", employeeList)
         this.hodList = employeeList;
-        console.log("managerList : ", this.hodList)
+        //console.log("managerList : ", this.hodList)
       } else {
         console.error(response.serviceResponse)
       }
@@ -346,7 +346,7 @@ export class DeptConfigComponent implements OnInit {
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.departmentDataForExcel = response.serviceResponse;
-        console.log("response.serviceResponse: ",response.serviceResponse);
+        //console.log("response.serviceResponse: ",response.serviceResponse);
       }
 
       const onlySpecificDataArr = this.departmentDataForExcel.map(
@@ -369,7 +369,7 @@ export class DeptConfigComponent implements OnInit {
   openDeleteDepartment(template: TemplateRef<any>, department: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.deptObj = department;
-    console.log(this.deptObj);
+    //console.log(this.deptObj);
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
@@ -389,7 +389,7 @@ export class DeptConfigComponent implements OnInit {
   }
 
   sortData(sort: Sort){
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -407,7 +407,7 @@ export class DeptConfigComponent implements OnInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

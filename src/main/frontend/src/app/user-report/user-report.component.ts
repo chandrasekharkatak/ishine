@@ -24,8 +24,8 @@ export class UserReportComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    console.log("this.currentUser : ", this.currentUser);
-    console.log("Mapped Features : ", this.currentUser.userMapping.filter(userMap => userMap.tabName == this.tabName));
+    //console.log("this.currentUser : ", this.currentUser);
+    //console.log("Mapped Features : ", this.currentUser.userMapping.filter(userMap => userMap.tabName == this.tabName));
     
     // Dynamic feature Flags 
     let featureMap:Feature[] = this.currentUser.userMapping.filter(userMap => userMap.tabName == this.tabName);
@@ -35,7 +35,7 @@ export class UserReportComponent implements OnInit, AfterViewInit, OnDestroy {
       });
       this.userMapping[feat.featureName.replaceAll(' ', '_').toLowerCase()] = (inActiveSubfeatures.length === feat.subFeatures.length) ? false : true;
     });
-    console.log(this.tabName, this.userMapping);
+    //console.log(this.tabName, this.userMapping);
   }
 
   ngAfterViewInit(): void {
@@ -48,19 +48,19 @@ export class UserReportComponent implements OnInit, AfterViewInit, OnDestroy {
 
   setActiveTab(){
     const tab = document.getElementById('reportTab').querySelector('.nav-link');
-    console.log(tab);
+    //console.log(tab);
 
     tab.classList.add('active');
     let activeRouteLink = tab.getAttribute('routerLink');
-    console.log("activeRouteLink :", activeRouteLink);
-    console.log("Router :",  this.router);
+    //console.log("activeRouteLink :", activeRouteLink);
+    //console.log("Router :",  this.router);
     
     this.router.navigate(['./'+activeRouteLink], {relativeTo: this.route});
   }
 
   removeActiveTab(){
     const tab = document.getElementById('reportTab').querySelector('.nav-link.active');
-    console.log("active tab :", tab);
+    //console.log("active tab :", tab);
     tab?.classList.remove('active');
   }
 

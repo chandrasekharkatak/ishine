@@ -29,7 +29,7 @@ export class LogService {
     this.setSessionInfo(log).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         sessionStorage.setItem('logInfo', JSON.stringify(log));
-        console.log("logInfo : ", response.serviceResponse);
+        //console.log("logInfo : ", response.serviceResponse);
         
       } else {
         console.error(response.serviceResponse);
