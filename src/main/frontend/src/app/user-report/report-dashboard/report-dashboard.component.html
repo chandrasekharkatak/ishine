@@ -146,6 +146,44 @@
                         <div id="employeeExperienceSummary" style="height: 300px;"></div>
                     </div>
 
+                     <!-- added by anurag for billable pie chart -->
+                     <div class="row col-md-12">
+                        <div class="col-sm-5 col-md-5 col-lg-5 graph">
+                            <div id="billableChart" style="height: 300px;"></div>
+                        </div>
+                      
+                          
+                          <div class="col-sm-7 col-md-7 col-lg-7 graph">
+                            <!-- <div class="form-group"> -->
+                                <!-- <label class="info-label"><span class="text-danger">*</span>Department</label> -->
+                               <div class="row">
+                                <div class="col-md-3" style="margin-left: 0 px !important;">
+                                    <label class=""><b>Department</b></label>&nbsp;
+                                    <mat-form-field class="custom-width" placeholder="Department">
+                                        <mat-select ngxMatSelect class="form-control"
+                                              #departmentSelect="ngxMatSelect"
+                                              [displayMember]="'name'"
+                                              [valueMember]="'deptId'"
+                                              [source]="allDepartmentList"
+                                              [useInfiniteScroll]="true"
+                                              [multiple]="true"
+                                              [(ngModel)]="departmentIds"
+                                              (selectionChange)="onSelectionChange($event)">
+                                              <mat-option [value]="dept.deptId" *ngFor="let dept of departmentSelect.filteredSource">
+                                                {{dept.name}}
+                                              </mat-option>
+                                        </mat-select>
+                                        </mat-form-field>
+                                </div>
+                                <div class="col-md-9">
+                                    <div id="billableChartByDepartment" style="height: 400px; width:450px;"></div>
+                                </div>
+                               </div>
+                          </div>
+                    </div>
+                      
+
+                    <!-- end -->
 
 
                     <div class="col-sm-12 col-md-6 col-lg-4 graph">
@@ -179,6 +217,16 @@
                     <div class="col-sm-12 col-md-6 col-lg-7 graph">
                         <div id="employeeKycSummary" style="height: 300px;"></div>
                     </div>
+
+                    <!-- billable non billable stackbar chart by anurag -->
+
+                    <div class="col-sm-12 col-md-12 col-lg-12 graph">
+                        <div class="scrollable-container" style="height: 400px;">
+                            <div id="billableEmployeeSummary"></div>
+                        </div>
+                    </div>
+
+                    <!-- end -->
                 </div>
             </div>
         </div>

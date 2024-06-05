@@ -20,6 +20,7 @@ import org.dhatim.fastexcel.Worksheet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
@@ -350,5 +351,59 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
         apiLogInfo.setApiRequest(logBuilder.toString());
         logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
-	}	
+	}
+
+	public ServiceResponse getDepartmentWiseBillableData(LeaveDTO leaveDto) {
+		ServiceResponse response = new ServiceResponse();
+		 
+		try {
+			List<Object[]> getAllBillableEmployee = employeeRepository.getBillableEmpWithDepartment();
+			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+			
+			getAllBillableEmployee.forEach((object)->{
+				EmployeeDTO dto = new EmployeeDTO();
+				
+				dto.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+				dto.setEmail(object[1] != null ? object[1].toString() : null);
+				dto.setName(object[2] != null ? object[2].toString() : null);
+				dto.setManagerName(object[3] != null ? object[3].toString() : null);
+				dto.setDepartmentName(object[4] != null ? object[4].toString() : null);
+				dto.setHodName(object[5] != null ? object[5].toString() : null);
+				dto.setBillable(object[6] != null ? object[6].toString() : null);
+				dto.setBillableType(object[7] != null ? object[7].toString() : null);
+				dto.setMobileNo(object[8] != null ? Long.parseLong(object[8].toString()): null);
+				dto.setMothersName(object[9] != null ? object[9].toString() : null);
+				dto.setApprovalsTo(object[10] != null ? object[10].toString() : null);
+				dto.setMaritalStatus(object[11] != null ? object[11].toString() : null);	
+				dto.setProjectName(object[12] != null ? object[12].toString() : null);
+				dto.setClientName(object[13] != null ? object[13].toString() : null);
+				dto.setGender(object[14] != null ? object[14].toString() : null);
+				dto.setEmploymentstatus(object[15] != null ? object[15].toString() : null);
+				dto.setTotalExperience(object[16] != null ? Float.parseFloat(object[16].toString()) : null);	
+				dto.setDateOfBirth(object[17] != null ? object[17].toString() : null);
+				dto.setDateOfJoining(object[18] != null ? object[18].toString() : null);		
+				dtoList.add(dto);
+				
+			});
+			
+			if(dtoList != null) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+				System.out.println(dtoList);
+				System.err.println("__________________________________________________---------------_________---------________-----______---____--____-");
+			}
+			else {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("List is empty !!");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong !!");
+			
+		}
+		
+		return response;
+	}
 }

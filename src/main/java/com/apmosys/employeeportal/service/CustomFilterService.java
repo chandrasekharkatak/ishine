@@ -378,6 +378,213 @@ public class CustomFilterService {
 		return response;
 	}
 
+//	public StringBuilder createQueryForEmployeeReport(List<CustomFilterDTO> queryList) {
+//		StringBuilder query = new StringBuilder("");
+//		System.err.println(" queryList ::   " + queryList);
+//		for (CustomFilterDTO dto : queryList) {
+//			if (dto.getOperator() != null && dto.getOperator().equals("like")) {
+//				dto.setValue("%" + dto.getValue() + "%");
+//			}
+//
+//			switch (dto.getColumn()) {
+//			case "Employee Id": {
+//				query = query.append(" e.employeement_id ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction())
+//						.append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "Full Name": {
+//				query = query.append("where e.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+//						.append(dto.getConjunction()).append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "Employment Status": {
+//				query = query.append("where e.employmentstatus ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction())
+//						.append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "Date Of Joining": {
+//				query = query.append("where e.date_of_joining ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction())
+//						.append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "City": {
+//				query = query.append("where e.city ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+//						.append(dto.getConjunction()).append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "Blood Group": {
+//				query = query.append("where e.blood_group ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction())
+//						.append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "Gender": {
+//				query = query.append("where e.gender ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+//						.append(dto.getConjunction()).append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "Work Location": {
+//				query = query.append("where e.work_location ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction())
+//						.append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "Probation Period": {
+//				query = query.append("where e.probation_period ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction())
+//						.append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "Notice Period": {
+//				query = query.append("where e.notice_period ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction())
+//						.append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "Marital Status": {
+//				query = query.append("where e.marital_status ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction())
+//						.append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "State": {
+//				query = query.append("where e.state ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+//						.append(dto.getConjunction()).append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "Bank Name": {
+//				query = query.append("where e.bank_name ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction())
+//						.append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "Created By": {
+//				Employee findEmployee = employeeRepository.findByName(dto.getValue());
+//				dto.setValue(findEmployee.getEmpId().toString());
+//				query = query.append("where e.created_by ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction())
+//						.append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "Created On": {
+//				query = query.append("where e.created_on ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction())
+//						.append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "Department": {
+//				query = query.append("where d.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+//						.append(dto.getConjunction()).append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "Job Role": {
+//				query = query.append("where jr.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+//						.append(dto.getConjunction()).append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "Designation": {
+//				query = query.append("where de.designation_name ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction())
+//						.append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "Manager": {
+//				query = query.append("where e2.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+//						.append(dto.getConjunction()).append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "Experience": {
+//				query = query.append("where e.total_experience ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction())
+//						.append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "Team Name": {
+//				query = query.append("where t.team_name ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction())
+//						.append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "Project Name": {
+//				query = query.append("where p.project_name ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction())
+//						.append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "Client Name": {
+//				query = query.append("where p.client_name ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction())
+//						.append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "Domain": {
+//				query = query.append("where dm.domain_name ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction())
+//						.append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "Specialization": {
+//				query = query.append("where s.specialization_name ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction())
+//						.append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "Updated By": {
+//				Employee findEmployee = employeeRepository.findByName(dto.getValue());
+//				dto.setValue(findEmployee.getEmpId().toString());
+//				query = query.append("where e.updated_by ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction())
+//						.append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "Updated On": {
+//				query = query.append("where e.updated_on ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction())
+//						.append("GROUP BY e.employeement_id");
+//				;
+//				break;
+//			}
+//			case "Profile Completion": {
+//				query = query.append("GROUP BY e.employeement_id HAVING profile_completion_percentage ")
+//						.append(dto.getOperator() + " '").append(dto.getValue() + "' ").append(dto.getConjunction());
+//				break;
+//			}
+//			default:
+//				break;
+//			}
+//		}
+//		return query;
+//	}
+	
 	public StringBuilder createQueryForEmployeeReport(List<CustomFilterDTO> queryList) {
 		StringBuilder query = new StringBuilder("");
 		System.err.println(" queryList ::   " + queryList);
@@ -388,193 +595,173 @@ public class CustomFilterService {
 
 			switch (dto.getColumn()) {
 			case "Employee Id": {
-				query = query.append("where e.employeement_id ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction())
-						.append("GROUP BY e.employeement_id");
+				query = query.append(" e.employeement_id ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
 				;
 				break;
 			}
 			case "Full Name": {
-				query = query.append("where e.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction()).append("GROUP BY e.employeement_id");
+				query = query.append(" e.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
 				;
 				break;
 			}
 			case "Employment Status": {
-				query = query.append("where e.employmentstatus ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction())
-						.append("GROUP BY e.employeement_id");
+				query = query.append(" e.employmentstatus ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
 				;
 				break;
 			}
 			case "Date Of Joining": {
-				query = query.append("where e.date_of_joining ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction())
-						.append("GROUP BY e.employeement_id");
+				query = query.append(" e.date_of_joining ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
 				;
 				break;
 			}
 			case "City": {
-				query = query.append("where e.city ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction()).append("GROUP BY e.employeement_id");
+				query = query.append(" e.city ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
 				;
 				break;
 			}
 			case "Blood Group": {
-				query = query.append("where e.blood_group ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction())
-						.append("GROUP BY e.employeement_id");
+				query = query.append(" e.blood_group ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
 				;
 				break;
 			}
 			case "Gender": {
-				query = query.append("where e.gender ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction()).append("GROUP BY e.employeement_id");
+				query = query.append(" e.gender ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
 				;
 				break;
 			}
 			case "Work Location": {
-				query = query.append("where e.work_location ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction())
-						.append("GROUP BY e.employeement_id");
+				query = query.append(" e.work_location ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
 				;
 				break;
 			}
 			case "Probation Period": {
-				query = query.append("where e.probation_period ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction())
-						.append("GROUP BY e.employeement_id");
+				query = query.append(" e.probation_period ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
 				;
 				break;
 			}
 			case "Notice Period": {
-				query = query.append("where e.notice_period ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction())
-						.append("GROUP BY e.employeement_id");
+				query = query.append(" e.notice_period ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
 				;
 				break;
 			}
 			case "Marital Status": {
-				query = query.append("where e.marital_status ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction())
-						.append("GROUP BY e.employeement_id");
+				query = query.append(" where e.marital_status ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
 				;
 				break;
 			}
 			case "State": {
-				query = query.append("where e.state ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction()).append("GROUP BY e.employeement_id");
+				query = query.append(" e.state ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
 				;
 				break;
 			}
 			case "Bank Name": {
-				query = query.append("where e.bank_name ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction())
-						.append("GROUP BY e.employeement_id");
+				query = query.append(" e.bank_name ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
 				;
 				break;
 			}
 			case "Created By": {
 				Employee findEmployee = employeeRepository.findByName(dto.getValue());
 				dto.setValue(findEmployee.getEmpId().toString());
-				query = query.append("where e.created_by ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction())
-						.append("GROUP BY e.employeement_id");
+				query = query.append(" where e.created_by ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
 				;
 				break;
 			}
 			case "Created On": {
-				query = query.append("where e.created_on ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction())
-						.append("GROUP BY e.employeement_id");
+				query = query.append(" e.created_on ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
 				;
 				break;
 			}
 			case "Department": {
-				query = query.append("where d.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction()).append("GROUP BY e.employeement_id");
+				query = query.append(" d.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
 				;
 				break;
 			}
 			case "Job Role": {
-				query = query.append("where jr.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction()).append("GROUP BY e.employeement_id");
+				query = query.append(" jr.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
 				;
 				break;
 			}
 			case "Designation": {
-				query = query.append("where de.designation_name ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction())
-						.append("GROUP BY e.employeement_id");
+				query = query.append(" de.designation_name ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
 				;
 				break;
 			}
 			case "Manager": {
-				query = query.append("where e2.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction()).append("GROUP BY e.employeement_id");
+				query = query.append(" e2.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
 				;
 				break;
 			}
 			case "Experience": {
-				query = query.append("where e.total_experience ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction())
-						.append("GROUP BY e.employeement_id");
+				query = query.append(" e.total_experience ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
 				;
 				break;
 			}
 			case "Team Name": {
-				query = query.append("where t.team_name ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction())
-						.append("GROUP BY e.employeement_id");
+				query = query.append(" t.team_name ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
 				;
 				break;
 			}
 			case "Project Name": {
-				query = query.append("where p.project_name ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction())
-						.append("GROUP BY e.employeement_id");
+				query = query.append(" p.project_name ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
 				;
 				break;
 			}
 			case "Client Name": {
-				query = query.append("where p.client_name ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction())
-						.append("GROUP BY e.employeement_id");
+				query = query.append(" p.client_name ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
 				;
 				break;
 			}
-			case "Domain": {
-				query = query.append("where dm.domain_name ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction())
-						.append("GROUP BY e.employeement_id");
-				;
-				break;
-			}
-			case "Specialization": {
-				query = query.append("where s.specialization_name ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction())
-						.append("GROUP BY e.employeement_id");
-				;
-				break;
-			}
+//			case "Domain": {
+//				query = query.append(" dm.domain_name ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction());
+//				;
+//				break;
+//			}
+//			case "Specialization": {
+//				query = query.append(" s.specialization_name ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction());
+//				;
+//				break;
+//			}
 			case "Updated By": {
 				Employee findEmployee = employeeRepository.findByName(dto.getValue());
 				dto.setValue(findEmployee.getEmpId().toString());
-				query = query.append("where e.updated_by ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction())
-						.append("GROUP BY e.employeement_id");
+				query = query.append(" e.updated_by ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
 				;
 				break;
 			}
 			case "Updated On": {
-				query = query.append("where e.updated_on ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction())
-						.append("GROUP BY e.employeement_id");
+				query = query.append(" e.updated_on ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
 				;
 				break;
 			}
 			case "Profile Completion": {
-				query = query.append("GROUP BY e.employeement_id HAVING profile_completion_percentage ")
+				query = query.append(" GROUP BY e.employeement_id HAVING profile_completion_percentage ")
 						.append(dto.getOperator() + " '").append(dto.getValue() + "' ").append(dto.getConjunction());
 				break;
 			}
@@ -611,6 +798,33 @@ public class CustomFilterService {
 //						+ "LEFT JOIN employee e4 on e.created_by = e4.emp_id \n"
 //						+ "LEFT JOIN projects p on p.project_id = t.project_id where "+customQuery;
 
+//				String q = "SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
+//						+ "e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,\n"
+//						+ "e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing,\n"
+//						+ "e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, e.mother_tongue, e.name,\n"
+//						+ "e.notice_period, e.alternate_mobile_no,  e.pan_number, e.passport_number,\n"
+//						+ "e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade,\n"
+//						+ "e.previous_pf_account_number, e.relation, e.state, e.uan,\n"
+//						+ "e.views_on_organisation, e.year_of_passing,\n" + "jr.dept_id, jr.name as jobrolename,\n"
+//						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience,\n"
+//						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,t.team_name,p.project_name,p.client_name, e.updated_on,e4.name as createdByName, e3.name as updatedByName,\n"
+//						+ "s.specialization_name,dm.domain_name,e.designation_id,de.designation_name,e.updated_by,e.billable_type,\n"
+//						+ "(SELECT\n" + "    COUNT(*) * 100.0 / NULLIF(COUNT(*), 0)\n" + "   FROM\n"
+//						+ "    employee e_profile\n" + "   WHERE\n"
+//						+ "    e_profile.emp_id = e.emp_id) AS profile_completion_percentage \n" + "FROM employee e\n"
+//						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id\n"
+//						+ "INNER JOIN department d ON d.dept_id = jr.dept_id\n"
+//						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id\n"
+//						+ "LEFT JOIN employee e3 ON e.updated_by = e3.emp_id\n"
+//						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = e.emp_id\n"
+//						+ "LEFT JOIN teams t on t.team_id = etm.team_id\n"
+//						+ "LEFT JOIN employee e4 on e.created_by = e4.emp_id\n"
+//						+ "LEFT JOIN projects p on p.project_id = t.project_id\n"
+//						+ "LEFT JOIN employee_specialization_map esm ON esm.emp_id = e.emp_id\n"
+//						+ "LEFT JOIN specialization s ON s.specialization_id = esm.specialization_id\n"
+//						+ "LEFT JOIN domain dm ON dm.domain_id = s.domain_id\n"
+//						+ "LEFT JOIN designation de ON de.designation_id = e.designation_id  " + customQuery;
+				
 				String q = "SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
 						+ "e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,\n"
 						+ "e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing,\n"
@@ -620,23 +834,23 @@ public class CustomFilterService {
 						+ "e.previous_pf_account_number, e.relation, e.state, e.uan,\n"
 						+ "e.views_on_organisation, e.year_of_passing,\n" + "jr.dept_id, jr.name as jobrolename,\n"
 						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience,\n"
-						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,t.team_name,p.project_name,p.client_name, e.updated_on,e4.name as createdByName, e3.name as updatedByName,\n"
-						+ "s.specialization_name,dm.domain_name,e.designation_id,de.designation_name,e.updated_by,e.billable_type,\n"
-						+ "(SELECT\n" + "    COUNT(*) * 100.0 / NULLIF(COUNT(*), 0)\n" + "   FROM\n"
-						+ "    employee e_profile\n" + "   WHERE\n"
-						+ "    e_profile.emp_id = e.emp_id) AS profile_completion_percentage \n" + "FROM employee e\n"
+						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,emp_proj_client.project_name, emp_proj_client.client_name, e.updated_on,e4.name as createdByName, e3.name as updatedByName,\n"
+						+ "e.designation_id,de.designation_name,e.updated_by,e.billable_type,\n"
+						+ "(SELECT COUNT(*) * 100.0 / NULLIF(COUNT(*), 0) FROM\n"
+						+ "employee e_profile WHERE\n"
+						+ "e_profile.emp_id = e.emp_id) AS profile_completion_percentage \n" + "FROM employee e\n"
 						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id\n"
 						+ "INNER JOIN department d ON d.dept_id = jr.dept_id\n"
 						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id\n"
 						+ "LEFT JOIN employee e3 ON e.updated_by = e3.emp_id\n"
-						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = e.emp_id\n"
-						+ "LEFT JOIN teams t on t.team_id = etm.team_id\n"
+						+ "LEFT JOIN designation de ON de.designation_id = e.designation_id \n"
 						+ "LEFT JOIN employee e4 on e.created_by = e4.emp_id\n"
-						+ "LEFT JOIN projects p on p.project_id = t.project_id\n"
-						+ "LEFT JOIN employee_specialization_map esm ON esm.emp_id = e.emp_id\n"
-						+ "LEFT JOIN specialization s ON s.specialization_id = esm.specialization_id\n"
-						+ "LEFT JOIN domain dm ON dm.domain_id = s.domain_id\n"
-						+ "LEFT JOIN designation de ON de.designation_id = e.designation_id  " + customQuery;
+						+ "LEFT JOIN (SELECT etm.emp_id, GROUP_CONCAT(DISTINCT pr.project_name) AS project_name, GROUP_CONCAT(DISTINCT cl.client_name) AS client_name \n"
+						+ "FROM employee_team_mapping etm \n"
+						+ "LEFT JOIN teams t ON t.team_id = etm.team_id \n"
+						+ "LEFT JOIN projects pr ON pr.project_id = t.project_id \n"
+						+ "LEFT JOIN clients cl ON cl.client_id = pr.client_id \n"
+						+ "GROUP BY etm.emp_id) emp_proj_client ON emp_proj_client.emp_id = e.emp_id  where " + customQuery;
 
 				System.out.println(q);
 				Query query = session.createSQLQuery(q);
@@ -656,6 +870,216 @@ public class CustomFilterService {
 		}
 		return new ArrayList<>();
 	}
+	
+/*
+ * added by anurag dashboard for billable/non-billable
+ */
+	
+	List<Object[]> getDepartmentWiseBillableEmployeeReport(List<Long> customQuery) {
+		try {
+			Session session = entityManager.unwrap(Session.class);
+			
+			System.out.println(" customQuery list  "+customQuery);
+			String ids = customQuery.toString();
+			String deptIds = ids.substring(1,ids.length()-1);
+			try {
+
+
+				String q = "SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
+						+ "e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,\n"
+						+ "e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing,\n"
+						+ "e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, e.mother_tongue, e.name,\n"
+						+ "e.notice_period, e.alternate_mobile_no,  e.pan_number, e.passport_number,\n"
+						+ "e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade,\n"
+						+ "e.previous_pf_account_number, e.relation, e.state, e.uan,\n"
+						+ "e.views_on_organisation, e.year_of_passing,\n" + "jr.dept_id, jr.name as jobrolename,\n"
+						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience,\n"
+						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,emp_proj_client.project_name, emp_proj_client.client_name, e.updated_on,e4.name as createdByName, e3.name as updatedByName,\n"
+						+ "e.designation_id,de.designation_name,e.updated_by,e.billable_type, \n"
+						+ "(SELECT COUNT(*) * 100.0 / NULLIF(COUNT(*), 0) FROM\n"
+						+ "employee e_profile WHERE\n"
+						+ "e_profile.emp_id = e.emp_id) AS profile_completion_percentage \n" + "FROM employee e\n"
+						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id\n"
+						+ "INNER JOIN department d ON d.dept_id = jr.dept_id\n"
+						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id\n"
+						+ "LEFT JOIN employee e3 ON e.updated_by = e3.emp_id\n"
+						+ "LEFT JOIN designation de ON de.designation_id = e.designation_id \n"
+						+ "LEFT JOIN employee e4 on e.created_by = e4.emp_id\n"
+						+ "LEFT JOIN (SELECT etm.emp_id, GROUP_CONCAT(DISTINCT pr.project_name) AS project_name, GROUP_CONCAT(DISTINCT cl.client_name) AS client_name \n"
+						+ "FROM employee_team_mapping etm \n"
+						+ "LEFT JOIN teams t ON t.team_id = etm.team_id \n"
+						+ "LEFT JOIN projects pr ON pr.project_id = t.project_id \n"
+						+ "LEFT JOIN clients cl ON cl.client_id = pr.client_id \n"
+						+ "GROUP BY etm.emp_id) emp_proj_client ON emp_proj_client.emp_id = e.emp_id  where d.dept_id IN (" + deptIds + ") GROUP BY \n"
+								+ "    e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode, e.bank_name, e.blood_group, \n"
+								+ "    e.city, e.country, e.created_by, e.created_on, e.date_of_birth, e.date_of_joining, e.email, \n"
+								+ "    e.emergency_contact_mobile, e.emergency_contact_person, e.employmentstatus, e.esic_number, e.father_name, \n"
+								+ "    e.gender, e.graduation_type, e.pursuing, e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, \n"
+								+ "    e.mother_tongue, e.name, e.notice_period, e.alternate_mobile_no, e.pan_number, e.passport_number, \n"
+								+ "    e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade, e.previous_pf_account_number, \n"
+								+ "    e.relation, e.state, e.uan, e.views_on_organisation, e.year_of_passing, jr.dept_id, jr.name, \n"
+								+ "    d.name, e.work_location, e.probation_period, e.emp_id, e2.name, e.experience, \n"
+								+ "    e.billable, e.child1, e.child2, e.child3, e.mothers_name, e.spouse, e.total_experience, emp_proj_client.project_name, \n"
+								+ "    emp_proj_client.client_name, e.updated_on, e4.name, e3.name, \n"
+								+ "    e.designation_id, de.designation_name, e.updated_by, e.billable_type";
+
+				
+				System.out.println(q);
+				Query query = session.createSQLQuery(q);
+				System.out.println(query);
+				System.out.println(query.getResultList() + " ====");
+				return query.getResultList();
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				if (session != null && session.isOpen()) {
+					session.close();
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return new ArrayList<>();
+	}
+	
+	public ServiceResponse customQueryForDepartmentWiseBillableEmployeeReport(List<Long> ids) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("CustomQueryForEmployeeReport");
+		apiLogInfo.setApiUrl("/api/customQueryForEmployeeReport");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append("QueryList : " + employeeDTO.getQueryList().size());
+
+		try {
+
+			System.err.println(
+					" createQueryForEmployeeReport  :: employeeDTO.getQueryList()     " + ids);
+//			StringBuilder subQuery = createQueryForDepartmentWiseBillableEmployeeReport(ids);
+			List<Object[]> list = getDepartmentWiseBillableEmployeeReport(ids);
+
+			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+
+			if (list != null) {
+				list.forEach((object) -> {
+					EmployeeDTO empDTO = new EmployeeDTO();
+
+					empDTO.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					empDTO.setAadhar(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+					empDTO.setAboutMe(object[2] != null ? object[2].toString() : null);
+					empDTO.setAddress(object[3] != null ? object[3].toString() : null);
+					empDTO.setBankAccountNo(object[4] != null ? object[4].toString() : null);
+					empDTO.setBankIFSCCode(object[5] != null ? object[5].toString() : null);
+					empDTO.setBankName(object[6] != null ? object[6].toString() : null);
+					empDTO.setBloodGroup(object[7] != null ? object[7].toString() : null);
+					empDTO.setCity(object[8] != null ? object[8].toString() : null);
+					empDTO.setCountry(object[9] != null ? object[9].toString() : null);
+					empDTO.setCreatedBy(object[10] != null ? Integer.parseInt(object[10].toString()) : null);
+					empDTO.setCreatedOn(object[11] != null ? (object[11].toString()) : null);
+					empDTO.setDateOfBirth(
+							object[12] != null ? stringToDateTimeParser.formatDateToString(object[12].toString())
+									: null);
+					empDTO.setDateOfJoining(
+							object[13] != null ? stringToDateTimeParser.formatDateToString(object[13].toString())
+									: null);
+					empDTO.setEmail(object[14] != null ? object[14].toString() : null);
+					empDTO.setEmergencyContactMobile(object[15] != null ? Long.parseLong(object[15].toString()) : null);
+					empDTO.setEmergencyContactPerson(object[16] != null ? object[16].toString() : null);
+					empDTO.setEmploymentstatus(object[17] != null ? object[17].toString() : null);
+					empDTO.setEsicNumber(object[18] != null ? object[18].toString() : null);
+					empDTO.setFatherName(object[19] != null ? object[19].toString() : null);
+					empDTO.setGender(object[20] != null ? object[20].toString() : null);
+					empDTO.setGraduationType(object[21] != null ? object[21].toString() : null);
+					empDTO.setPursuing(object[22] != null ? object[22].toString() : null);
+					empDTO.setJobRoleId(object[23] != null ? Long.parseLong(object[23].toString()) : null);
+					empDTO.setLandline(object[24] != null ? Long.parseLong(object[24].toString()) : null);
+					empDTO.setManagerId(object[25] != null ? Long.parseLong(object[25].toString()) : null);
+					empDTO.setMaritalStatus(object[26] != null ? object[26].toString() : null);
+					empDTO.setMobileNo(object[27] != null ? Long.parseLong(object[27].toString()) : null);
+					empDTO.setMotherTongue(object[28] != null ? object[28].toString() : null);
+					empDTO.setName(object[29] != null ? object[29].toString() : null);
+					empDTO.setNoticePeriod(object[30] != null ? Short.parseShort(object[30].toString()) : null);
+					empDTO.setAlternateMobileNo(object[31] != null ? Long.parseLong(object[31].toString()) : null);
+					empDTO.setPanNumber(object[32] != null ? object[32].toString() : null);
+					empDTO.setPassportNumber(object[33] != null ? object[33].toString() : null);
+					empDTO.setPermanentAddress(object[34] != null ? object[34].toString() : null);
+					empDTO.setPfAccountNumber(object[35] != null ? object[35].toString() : null);
+					empDTO.setPincode(object[36] != null ? Integer.parseInt(object[36].toString()) : null);
+					empDTO.setPlaceOfBirth(object[37] != null ? object[37].toString() : null);
+					empDTO.setPassingGrade(object[38] != null ? object[38].toString() : null);
+					empDTO.setPreviousPfAccountNumber(object[39] != null ? object[39].toString() : null);
+					empDTO.setRelation(object[40] != null ? object[40].toString() : null);
+					empDTO.setState(object[41] != null ? object[41].toString() : null);
+					empDTO.setUan(object[42] != null ? object[42].toString() : null);
+					empDTO.setViewsOnOrganisation(object[43] != null ? object[43].toString() : null);
+					empDTO.setYearOfPassing(object[44] != null ? Short.parseShort(object[44].toString()) : null);
+					empDTO.setDepartmentId(object[45] != null ? Long.parseLong(object[45].toString()) : null);
+					empDTO.setJobRoleName(object[46] != null ? object[46].toString() : null);
+					empDTO.setDepartmentName(object[47] != null ? object[47].toString() : null);
+					empDTO.setWorkLocation(object[48] != null ? object[48].toString() : null);
+					empDTO.setProbationPeriod(object[49] != null ? Short.parseShort(object[49].toString()) : null);
+					empDTO.setEmpId(object[50] != null ? Long.parseLong(object[50].toString()) : null);
+					empDTO.setManagerName(object[51] != null ? object[51].toString() : null);
+					empDTO.setExperience(object[52] != null ? object[52].toString() : null);
+					empDTO.setBillable(object[53] != null ? object[53].toString() : null);
+					empDTO.setChild1(object[54] != null ? (object[54].toString()) : null);
+					empDTO.setChild2(object[55] != null ? (object[55].toString()) : null);
+					empDTO.setChild3(object[56] != null ? (object[56].toString()) : null);
+					empDTO.setMothersName(object[57] != null ? (object[57].toString()) : null);
+					empDTO.setSpouse(object[58] != null ? (object[58].toString()) : null);
+					empDTO.setTotalExperience(object[59] != null ? Float.parseFloat(object[59].toString()) : null);
+					empDTO.setTotalExperience(object[59] != null ? Float.parseFloat(object[59].toString()) : null);
+					empDTO.setProjectName(object[60] != null ? object[60].toString() : null);
+					empDTO.setClientName(object[61] != null ? object[61].toString() : null);
+					empDTO.setUpdatedOn(object[62] != null ? (object[62].toString()) : null);
+					empDTO.setCreatedByName(object[63] != null ? (object[63].toString()) : null);
+					empDTO.setUpdatedByName(object[64] != null ? (object[64].toString()) : null);
+//					empDTO.setSpecializationName(object[65] != null ? (object[65].toString()) : null);
+//					empDTO.setDomainName(object[66] != null ? (object[66].toString()) : null);
+					empDTO.setDesignationId(object[65] != null ? Long.parseLong(object[65].toString()) : null);
+					empDTO.setDesignationName(object[66] != null ? (object[66].toString()) : null);
+					empDTO.setBillableType(object[68] != null ? object[68].toString() : null);
+					
+//					empDTO.setAge(object[70] != null ? Long.parseLong(object[70].toString()) : null);
+//					empDTO.setTotalExperience(object[69] != null ? Float.parseFloat(object[69].toString()) : null);		
+					
+					
+					ServiceResponse completionResponse = employeeService.getEmployeeProfileCompletion(empDTO);
+					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
+
+					empDTO.setProfileCompletedPercent(emp != null ? emp.getProfileCompletedPercent() : 0.00);
+
+					dtoList.add(empDTO);
+				});
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("dtoList :" + dtoList);
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee list is empty.");
+				apiLogInfo.setApiResponse("Employee List is empty");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+	
+	
+	
 
 	public ServiceResponse customQueryForEmployeeReport(EmployeeDTO employeeDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -743,15 +1167,18 @@ public class CustomFilterService {
 					empDTO.setMothersName(object[57] != null ? (object[57].toString()) : null);
 					empDTO.setSpouse(object[58] != null ? (object[58].toString()) : null);
 					empDTO.setTotalExperience(object[59] != null ? Float.parseFloat(object[59].toString()) : null);
-					empDTO.setUpdatedOn(object[63] != null ? (object[63].toString()) : null);
-					empDTO.setCreatedByName(object[64] != null ? (object[64].toString()) : null);
-					empDTO.setUpdatedByName(object[65] != null ? (object[65].toString()) : null);
+					empDTO.setProjectName(object[60] != null ? object[60].toString() : null);
+					empDTO.setClientName(object[61] != null ? object[61].toString() : null);
+					empDTO.setUpdatedOn(object[62] != null ? (object[62].toString()) : null);
+					empDTO.setCreatedByName(object[63] != null ? (object[63].toString()) : null);
+					empDTO.setUpdatedByName(object[64] != null ? (object[64].toString()) : null);
 					
-					empDTO.setSpecializationName(object[66] != null ? (object[66].toString()) : null);
-					empDTO.setDomainName(object[67] != null ? (object[67].toString()) : null);
-					empDTO.setDesignationId(object[68] != null ? Long.parseLong(object[68].toString()) : null);
-					empDTO.setDesignationName(object[69] != null ? (object[69].toString()) : null);
-					empDTO.setBillableType(object[71] != null ? object[71].toString() : null);
+//					empDTO.setSpecializationName(object[66] != null ? (object[66].toString()) : null);
+//					empDTO.setDomainName(object[67] != null ? (object[67].toString()) : null);
+					empDTO.setDesignationId(object[65] != null ? Long.parseLong(object[65].toString()) : null);
+					empDTO.setDesignationName(object[66] != null ? (object[66].toString()) : null);
+					empDTO.setBillableType(object[68] != null ? object[68].toString() : null);
+				
 					
 					ServiceResponse completionResponse = employeeService.getEmployeeProfileCompletion(empDTO);
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();

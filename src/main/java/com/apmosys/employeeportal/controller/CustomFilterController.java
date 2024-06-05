@@ -1,6 +1,8 @@
 package com.apmosys.employeeportal.controller;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +35,16 @@ public class CustomFilterController {
 	@RequestMapping(value = "/customQueryForEmployeeReport", method = RequestMethod.POST)
 	public ServiceResponse customQueryForEmployeeReport(@RequestBody EmployeeDTO employeeDTO) {
 		ServiceResponse response = customFilterService.customQueryForEmployeeReport(employeeDTO);
+		return response;
+	}
+	
+//	added by anurag for billable / non-billable dashboard report
+	
+	@RequestMapping(value = "/customQueryForDepartmentWiseBillableEmployeeReport", method = RequestMethod.POST)
+	public ServiceResponse customQueryForDepartmentWiseBillableEmployeeReport(@RequestBody Long[] ids) {
+		System.out.println("In controller "+ids);
+		List<Long> deptIds = new ArrayList<Long>(Arrays.asList(ids));
+		ServiceResponse response = customFilterService.customQueryForDepartmentWiseBillableEmployeeReport(deptIds);
 		return response;
 	}
 	

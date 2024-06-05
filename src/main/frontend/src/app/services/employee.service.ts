@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Observable, Subject, throwError } from 'rxjs';
 import { Employee } from '../models/employee';
 import { User } from '../models/user';
 import { Query } from '../models/query';
@@ -257,5 +257,22 @@ getPipReasons(leaveApp : Employee){
 setExtendPeriodByPipId(leaveApp : Employee){
   return this.http.post(`${this.baseUrl}` + `api/setExtendPeriodByPipId`, leaveApp);
 }
+
+customQueryForDepartmentWiseBillableEmployeeReport(selectedIds: any): Observable<any> {
+  // Ensure selectedIds is an array
+  if (!Array.isArray(selectedIds)) {
+    console.error("SelectedIds is not an array");
+    return throwError("SelectedIds must be an array");
+  }
+
+  // Ensure selectedIds contains only numbers (Long values)
+  if (selectedIds.some(id => typeof id !== 'number')) {
+    console.error("SelectedIds contains non-numeric values");
+    return throwError("SelectedIds must contain only numbers");
+  }
+
+  return this.http.post<any>(`${this.baseUrl}api/customQueryForDepartmentWiseBillableEmployeeReport`, selectedIds);
+}
+
 
 }

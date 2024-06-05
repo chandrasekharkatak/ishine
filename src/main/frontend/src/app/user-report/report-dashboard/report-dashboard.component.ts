@@ -13,6 +13,7 @@ import { Leave } from 'src/app/models/leave';
 import { Sort } from '@angular/material/sort';
 import { LocationStrategy } from '@angular/common';
 import { AppComponent } from 'src/app/app.component';
+import { DepartmentService } from 'src/app/services/department.service';
 
 HC_exportData(HighCharts);
 
@@ -41,6 +42,8 @@ export class ReportDashboardComponent implements OnInit {
   @ViewChild("workLocation_summary_template")
   workLocationSummaryTemplate: TemplateRef<any>;
 
+  @ViewChild('alert_message') alertTemplate: TemplateRef<any>;
+
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType:any;
@@ -57,6 +60,7 @@ export class ReportDashboardComponent implements OnInit {
   uniqueLeaveSumarryList:any[] = [];
   timsheetSummaryList:any[] = [];
   allEmployeeList: any[] = [];
+  departmentWiseBillableEmployeeList: any[] = [];
   leaveTrendAnalysisList:any[] = [];
   allLeaveTypes:any[] = [];
   employeeWorkLocationList:any[] = [];
@@ -101,7 +105,12 @@ export class ReportDashboardComponent implements OnInit {
   timesheetSummaryTableColumns:any[] =['blank','employeementId','employeeName','departmentName','email','managerName','mobileNo','pendingEodCount','legend'];
   eodSegregationTableColumns:any[]=['blank','employeementId','employeeName','departmentName','email','managerName','mobileNo','date','dayType','totalWorkingHours'];
 
+  billableChartByDepartmentColumns : any [] = ['Department'];
+
   resignedColumns:any[] = ['blank','employeementId','name','departmentName','dateOfResign','dateOfRelieving','managerName'];
+  departmentIds :any[]=[];
+  allDepartmentList : any [] =[];
+
 
   constructor(
     private leaveService : LeaveService,
@@ -109,7 +118,8 @@ export class ReportDashboardComponent implements OnInit {
     private modalService: BsModalService,
     private employeeService: EmployeeService,
     private exportExcelService: ExportExcelService,
-    private locationStrategy: LocationStrategy
+    private locationStrategy: LocationStrategy,
+    private departmentService : DepartmentService
   ) { }
 
   ngOnInit(): void {
@@ -145,7 +155,9 @@ export class ReportDashboardComponent implements OnInit {
 
     this.getAllEmployeeList();
     this.getLeaveTrendAnalysisReport();
+    this.getAllBillableEmployeeData();
     this.getEmployeeWorkLocation();
+    this.findAllDepartment();
   }
 
   employeeResigned(){
@@ -177,6 +189,30 @@ export class ReportDashboardComponent implements OnInit {
       }
     });
   }
+
+  getAllBillableEmployeeData(){
+    // getDepartmentWiseBillableData
+    console.log("Anurag check second mgetDepartmentWiseBillableData ");
+
+    this.departmentWiseBillableEmployeeList = [];
+    this.queryList = [];
+    let leaveObj = new Leave();
+  
+    this.leaveService.getDepartmentWiseBillableData(leaveObj).pipe(first()).subscribe((response : any)=>{
+      if(response.serviceStatus == "Success"){
+        this.departmentWiseBillableEmployeeList = response.serviceResponse;
+        this.departmentWiseBillableEmployeeList.forEach((data)=>{
+          data.employeementId = "A-".concat(data.employeementId);
+          let age = this.getAge(data.dateOfBirth);
+          data.age = age;
+        })
+        console.log("this.departmentWiseBillableEmployeeList ",this.departmentWiseBillableEmployeeList );
+      }
+      this.extractDataForBillable()
+    })
+
+  }
+
 
   get8DaysLeaveReport(){
     this.leaveSumarryList = [];
@@ -663,6 +699,100 @@ export class ReportDashboardComponent implements OnInit {
     }
   }
 
+
+  getCustomDepartmentWiseBillableEmployeesList(departmentIds: any[]) {
+    this.departmentWiseBillableEmployeeList = [];
+    console.log("Selected Department IDs: ", departmentIds);
+this.departmentIds = departmentIds;
+    if (departmentIds.length === 0) {
+      this.getAllBillableEmployeeData();
+    } else {
+      this.employeeService.customQueryForDepartmentWiseBillableEmployeeReport(this.departmentIds).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.departmentWiseBillableEmployeeList = response.serviceResponse;
+          this.departmentWiseBillableEmployeeList.forEach(employee =>{
+            let age = this.getAge(employee.dateOfBirth);
+            employee.age = age;
+          })
+
+          if (this.departmentWiseBillableEmployeeList.length === 0) {
+            this.openAlertMod(this.alertTemplate,"No Data Found");
+          }
+
+          this.departmentWiseBillableEmployeeList.forEach(employee => {
+            employee.employeementId = "A-".concat(employee.employeementId);
+          });
+
+          this.extractDataForBillable();
+          console.log("Department-wise Billable Employee List: ", this.departmentWiseBillableEmployeeList);
+        } else {
+          this.openAlertMod(this.alertTemplate,response.serviceResponse);
+        }
+      });
+    }
+  }
+
+
+ onSelectionChange(event: any) {
+    this.getCustomDepartmentWiseBillableEmployeesList(this.departmentIds);
+  }
+
+  extractDataForBillable(){
+
+    let internalBillableCount = 0;
+    let tnmBillableCount =0;
+    let fcBillableCount = 0;
+    let shadowBillableCount = 0;
+    let benchBillableCount = 0;
+
+
+
+    this.departmentWiseBillableEmployeeList.forEach((employee)=>{
+      if(employee.billableType == 'TNM' && employee.employmentstatus != "InActive") tnmBillableCount++;
+      if(employee.billableType == 'Bench' && employee.employmentstatus != "InActive") benchBillableCount++;
+      if(employee.billableType == 'Fixed Cost' && employee.employmentstatus != "InActive") fcBillableCount++;
+      if(employee.billableType == 'Shadow' && employee.employmentstatus != "InActive") shadowBillableCount++;
+      if(employee.billableType == 'InternalRNDProducts' && employee.employmentstatus != "InActive") internalBillableCount++;
+    })
+
+
+// billableChartByDepartment pie chart 
+
+let deptWiseBillableType =[{
+  name: "TNM",
+  y : tnmBillableCount
+},
+{
+  name: "Fixed Cost",
+  y : fcBillableCount
+},
+{
+name: "InternalRNDProducts",
+y : internalBillableCount
+},
+{
+name: "Bench",
+y : benchBillableCount
+},
+{
+name: "Shadow",
+y : shadowBillableCount
+}
+]
+let checkDeptWiseData = deptWiseBillableType.filter(data => data.y !=0);
+
+if(checkDeptWiseData && checkDeptWiseData.length != 0){
+this.renderPieSummaryChart('Department wise Billable/Non-Billable Employee Summary', 'billableChartByDepartment', deptWiseBillableType, 'Department wise Billable Data', this.openDepartmentWiseBillableEmployeeTableModal.bind(this));
+}else{
+this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summary', 'billableChartByDepartment');
+}
+
+
+
+
+  }
+
+
   extractData() {
     //Total Count
     this.countOfAllEmployees = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive').length;
@@ -722,6 +852,10 @@ export class ReportDashboardComponent implements OnInit {
     let resignOctoberCount = 0;
     let resignNovCount = 0;
     let resignDecCount = 0;
+
+    let billableCount = 0;
+    let nonBillableCount =0;
+    let otherBillableCount =0;
 
     this.allEmployeeList.forEach((employee)=>{
       let currentYear = moment().year();
@@ -789,7 +923,17 @@ export class ReportDashboardComponent implements OnInit {
       if(employee.dateOfJoining != null && employee.employmentstatus != 'InActive'){
         if(moment(dateToday).diff(moment(employee.dateOfJoining), 'months', true) > 6 && employee.employmentstatus == 'Probation')this.employeeInProbationAfter6MonthsCount++;
       }
+    
+    
+      if((employee.billable == 'Yes' && employee.billableType != null) && employee.employmentstatus !="InActive") billableCount++;
+      if((employee.billable == 'No' && employee.billableType != null)  && employee.employmentstatus !="InActive") nonBillableCount++;
+      if((employee.billable == "Yes" || employee.billable == "No" || employee.billable == null) && employee.billableType == null && employee.employmentstatus != 'InActive') otherBillableCount++;
     });
+
+
+    
+
+
 
     //Department wise Employee Count
     let departmentList = this.groupBy(this.allEmployeeList.filter(x => x.employmentstatus != 'InActive'),'departmentName');
@@ -857,6 +1001,34 @@ export class ReportDashboardComponent implements OnInit {
         }else{
           this.renderPlaceholderChart('Employee Status Summary', 'employeeStatus');
         }
+
+
+
+  /*
+        pie chart for billable non billable
+        */
+
+        let billableTypeData =[{
+          name : "Yes",
+          y : billableCount
+        },{
+          name : "No",
+          y : nonBillableCount
+        },
+        {
+          name : "Other",
+          y : otherBillableCount
+        }]
+
+        let checkEmployeeBillableData = billableTypeData.filter(data => data.y != 0);
+        console.log(" checkEmployeeBillableData ",checkEmployeeBillableData);
+
+        if(checkEmployeeBillableData && checkEmployeeBillableData.length != 0){
+          this.renderPieSummaryChart('Billable Employee Summary', 'billableChart', billableTypeData, 'Billable Data', this.openBillableEmployeeTableModal.bind(this));
+        }else{
+          this.renderPlaceholderChart('Billable Employee Summary', 'billableChart');
+        }
+
 
 
         /*
@@ -1064,6 +1236,58 @@ export class ReportDashboardComponent implements OnInit {
 
         this.renderStackBarChart('Employee KYC Summary','employeeKycSummary',kycChartData,departmentCategories,'Employee', this.openDepartmentWiseEmployeeKycModalTable.bind(this))
 
+
+ //  bar for billable type employee
+
+ console.log("departmentList: ", departmentList);
+
+ const BILLABLE_TYPES = ['Shadow', 'Bench', 'Fixed Cost', 'TNM', 'InternalRNDProducts']; 
+ let billableChartData = BILLABLE_TYPES.map(billableType => ({
+   name: billableType,
+   data: [],
+   stack: 'base'
+ }));
+ 
+ 
+ let departmentBillableData = Object.entries(departmentList).map(entry => {
+   const name = entry[0];
+   const employeeList: any = entry[1];
+ 
+   const billableCounts = {};
+ 
+   
+   BILLABLE_TYPES.forEach(billableType => {
+     billableCounts[billableType] = 0;
+   });
+ 
+   employeeList.forEach(employee => {
+     
+     billableCounts[employee.billableType]++;
+   });
+ 
+   
+   const billableCountsArray = BILLABLE_TYPES.map(billableType => billableCounts[billableType]);
+ 
+   return {
+     billableCounts: billableCountsArray,
+     departmentName: name
+   };
+ });
+ 
+ console.log("departmentBillableData: ", departmentBillableData);
+ 
+ departmentBillableData.forEach(dept => {
+   dept.billableCounts.forEach((count, index) => {
+     billableChartData[index].data.push(count);
+   });
+ });
+ 
+ console.log("billableChartData: ", billableChartData);
+ 
+ this.renderStackBarChart('Employee Billable/Non-Billable Summary', 'billableEmployeeSummary', billableChartData, departmentCategories, 'Employee', this.openDepartmentWiseBillableEmployeeModalTable.bind(this));
+
+
+
   }
 
   groupBy(objectArray, property) {
@@ -1118,6 +1342,10 @@ export class ReportDashboardComponent implements OnInit {
 
     if(chartId == "genderSummary"){
       colors = ['#88D2B8','#D288A2','#F33323'];
+    }
+
+    if(chartId == 'billableChartByDepartment'){
+      colors = ['#DDDF00', '#64E572', '#ED561B','#88D2B8' ,'#D288A2']
     }
 
     HighCharts.chart(chartId, {
@@ -1183,6 +1411,10 @@ export class ReportDashboardComponent implements OnInit {
               if(chartId == 'employeeAgeSummary'){
                 openMod(event.point.name);
               }if(chartId == 'fresherLateralChart'){
+                openMod(event.point.name);
+              }if(chartId == 'billableChart'){
+                openMod(event.point.name);
+              }if(chartId == 'billableChartByDepartment'){
                 openMod(event.point.name);
               }
             },
@@ -1449,6 +1681,10 @@ export class ReportDashboardComponent implements OnInit {
   renderStackBarChart(chartName:any, chartId:any, chartData:any, categories:any, labelName:any, openMod:any){
 
     let colors = ['#ED561B','#64E572'];
+
+    if(chartId == "billableEmployeeSummary"){
+      colors = ['#DDDF00', '#64E572', '#ED561B','#88D2B8' ,'#D288A2']
+    }
 
     HighCharts.chart(chartId, {
       chart: {
@@ -1905,6 +2141,45 @@ export class ReportDashboardComponent implements OnInit {
       }
     }
 
+    openDepartmentWiseBillableEmployeeTableModal(department:any){
+      console.log("Hii, billable modal call",department)
+      this.sortColumn=[];
+      this.sortColumnType=[];
+      this.sortDirection='';
+      this.modalSummaryList = [];
+      this.data = '';
+      this.resetSearch();
+  
+      let modalTableList = this.departmentWiseBillableEmployeeList.filter(x => x.employmentstatus != 'InActive' && x.billableType == department);
+        this.page=1;
+        this.modalTitle = department+" wise Billable Employee" ;
+        this.modalSummaryList = modalTableList;
+        console.log("this.modalSummaryList   anurag ",this.modalSummaryList)
+        this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
+    }
+  
+    openBillableEmployeeTableModal(billable:any){
+      console.log("Hii, billable modal call",billable)
+      this.sortColumn=[];
+      this.sortColumnType=[];
+      this.sortDirection='';
+      this.modalSummaryList = [];
+      this.data = '';
+      this.resetSearch();
+      
+      let  modalTableList = null;
+      if(billable != "Other"){
+       modalTableList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive' && x.billable == billable && x.billableType != null);   
+      }else{
+        modalTableList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive' && (x.billable == 'Yes' || x.billable == 'No') && x.billableType == null);
+      }
+       
+        this.page=1;
+        this.modalTitle = "Employee In " + billable;
+        this.modalSummaryList = modalTableList;
+        this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
+    }
+
   openTotalCountModal(title:any){
     this.sortColumn=[];
     this.sortColumnType=[];
@@ -2121,6 +2396,44 @@ export class ReportDashboardComponent implements OnInit {
       this.modalSummaryList = modalTableList.filter(x => x.clientLocation == category);
       this.modalRef = this.modalService.show(this.workLocationSummaryTemplate, { class: 'modal-xl' });
   }
+
+  openDepartmentWiseBillableEmployeeModalTable(deptName: any, billableType: any) {
+
+    const billableTypeList = ['Shadow', 'Bench', 'Fixed Cost', 'TNM', 'InternalRNDProducts'];
+    this.data = '';
+    this.modalSummaryList = [];
+    this.resetSearch();
+    this.sortColumn = [];
+    this.sortColumnType = [];
+    this.sortDirection = '';
+    let modalTableList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
+    this.page = 1;
+    console.log("modalTableList   ",modalTableList);
+    this.modalTitle = `Employee(s) with ${billableType} Billable Type`;
+    if (billableTypeList.includes(billableType)) {
+      this.modalSummaryList = modalTableList.filter(x => x.departmentName == deptName && x.billableType == billableType);
+    } else {
+      console.error('Invalid billable type');
+      return;
+    }
+    this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
+  }
+
+  findAllDepartment() {
+    this.allDepartmentList = [];
+
+    this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allDepartmentList = response.serviceResponse;
+        // this.filteredDeptList = this.allDeptList.filter(x => project.department.includes(x.name));
+        console.log("allDepartmentList : ", this.allDepartmentList)
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+
 
   openDepartmentWiseEmployeeKycModalTable(deptName:any, status:any){
     const CHECK_PERCENT = 100.00;

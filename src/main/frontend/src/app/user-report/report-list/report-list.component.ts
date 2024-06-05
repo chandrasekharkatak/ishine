@@ -1040,6 +1040,8 @@ export class ReportListComponent implements OnInit {
             "Department" : x.departmentName,
             "Billable" : x.billable,
             "Billable Type" : x.billableType,
+            "Project Name" : x.projectName,
+            "Client Name" : x.clientName,
             "Aadhar":x.aadhar,
             "About Me":x.aboutMe,
             "address":x.address,

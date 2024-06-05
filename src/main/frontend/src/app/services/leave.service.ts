@@ -279,4 +279,8 @@ setExtendPeriodByPipId(leaveApp : Leave){
   return this.http.post(`${this.baseUrl}` + `api/setExtendPeriodByPipId`, leaveApp);
 }
 
+getDepartmentWiseBillableData(leaveObj: Leave){
+  return this.http.post(`${this.baseUrl}`+ `api/getDepartmentWiseBillableData`, leaveObj);
+}
+
 }
