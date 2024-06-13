@@ -229,5 +229,6 @@ public class EmployeeDTO {
 	
 	private String billableType;
 	private String employeeName;
+	private Long count_of_employees;
 	
 }

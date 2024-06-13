@@ -1154,17 +1154,16 @@
 
                                         <!-- added by anurag PIP  -->
 
-                                        <!-- <button class="btn btn-sm btn-outline-primary ml-10" *ngIf="employee.pipFlag=='false' && currentUser.jobRoleName == 'HR Manager'" (click)="PIP_generate(pip_template,employee)"><em><i class="fa-solid fa-flag"></i>&nbsp; PIP</em></button>
+                                        <button class="btn btn-sm btn-outline-primary ml-10" *ngIf="employee.pipFlag=='false' && currentUser.jobRoleName == 'HR Manager'" (click)="PIP_generate(pip_template,employee)"><em><i class="fa-solid fa-flag"></i>&nbsp; PIP</em></button>
 
                       <button class="btn btn-sm btn-danger ml-10" *ngIf="employee.pipFlag=='true' && currentUser.jobRoleName == 'HR Manager'" (click)="PIP_reverse_modal(pip_rev_template,employee)"><em><i class="fa-solid fa-flag"></i>&nbsp; PIP</em></button>
                       <button class="btn btn-sm btn-outline-success mt5" (click)="pipReasonModal(pipReason_template,employee)" *ngIf="employee.pipFlag=='false' && currentUser.jobRoleName == 'HR Manager'">
-                        <em><i class="fa-solid fa-backward"></i>&nbsp; Rev Reason</em>
-                      </button> -->
-                      <!-- <button class="btn btn-sm btn-outline-primary ml-10 mt5" *ngIf="employee.pipFlag=='true'" (click)="extendPipModal(extend_template,employee)"><em><i class="fa-solid fa-eye"></i>&nbsp;Extends PIP</em></button> -->
+                        <em><i class="fa-solid fa-backward"></i>&nbsp; PIP History</em>
+                      </button>
 
-                      <!-- <button class="btn btn-sm btn-outline-primary mt5" (click)="pipReasonModal(pipReason_template,employee)" *ngIf="employee.pipFlag=='true' && currentUser.jobRoleName == 'HR Manager'">
-                        <em><i class="fa-solid fa-fist-raised"></i>&nbsp; PIP Reason</em>
-                      </button> -->
+                      <button class="btn btn-sm btn-outline-success mt5" (click)="pipReasonModal(pipReason_template,employee)" *ngIf="employee.pipFlag=='true' && currentUser.jobRoleName == 'HR Manager'">
+                        <em><i class="fa-solid fa-backward"></i>&nbsp; PIP History</em>
+                      </button>
 
 
                                         <!-- added by anurag PIP module  -->
@@ -2818,18 +2817,26 @@
   <div class="row">
     <div class="col-md-12">
       <div class="modal-body">
-        <div class="container">
-          <table class="table table-pipReason">
+        <div class="container overflow-auto">
+          <table class="table table-pipReason" >
   
             <thead class="thead-light text-center">
               <tr>
                 <th scope="col">Sr.No</th>
-                <th scope="col">Employee ID</th>
-                <th scope="col" *ngIf="!isPipFlag">REV Reason</th>
-                <th scope="col" *ngIf="isPipFlag">PIP Reason</th>
+                <th scope="col">Employee Name</th>
+                <th scope="col">Start Date</th>
+                <th scope="col">End Date</th>
+                <th scope="col" >PIP Reason</th>
+                <th scope="col" >REV Reason</th>
+                
+                <th scope="col" >Extend Reason</th>
+                
+                <th scope="col" >Aging</th>
                 <th scope="col">Raised BY</th>
-                <th scope="col" *ngIf="isPipFlag">Created On</th>
-                <th scope="col" *ngIf="!isPipFlag">Updated on</th>
+                <th scope="col"> Updated By</th>
+                <th scope="col">Created On</th>
+                <th scope="col" >Updated on</th>
+                <th scope="col" >Extend</th>
               </tr>
             </thead>
             <tbody>
@@ -2839,17 +2846,27 @@
             <tr class="text-center" *ngFor="let reason of pipReasons| paginate: { itemsPerPage: 10, currentPage: pageNo };let i = index">
               <td>{{10*(pageNo-1)+i+1}}</td>
               <td>{{reason.employeeName}}</td>
-              <td *ngIf="reason.pipFlag=='false'">{{reason.revReason}}</td>
-              <td *ngIf="reason.pipFlag=='true'">{{reason.pipReason}}</td>
-              <td *ngIf="reason.pipFlag=='true'">{{reason.createdByName}}</td>
-              <td *ngIf="reason.pipFlag=='false'">{{reason.updatedByName}}</td>
-              <td *ngIf="reason.pipFlag=='true'">{{reason.createdOn}}</td>
-              <td *ngIf="reason.pipFlag=='false'">{{reason.updatedOn}}</td>
+              <td>{{reason.startDate}}</td>
+              <td>{{reason.endDate}}</td>
+              <td>{{reason.pipReason}}</td>
+              <td>{{reason.revReason}}</td>
+              
+              <td>{{reason.extendReason}}</td>
+              
+              <td>{{reason.aging}}</td>
+              <td>{{reason.createdByName}}</td>
+              <td>{{reason.updatedByName}}</td>
+              <td >{{reason.createdOn}}</td>
+              <td >{{reason.updatedOn}}</td>
+              <td >{{reason.extendDays}}</td>
   
             </tr>
             </tbody>
           </table>
         </div>
+        <div class="my-buttons">
+            <pagination-controls class="my-pagination" [hidden]="pipReasons.length == 0" (pageChange)="handlePageChanges($event)"></pagination-controls>
+          </div>
       </div>
     </div>
   </div>
@@ -2872,20 +2889,100 @@
     </div>
     </ng-template>
 
+    
     <ng-template #pip_rev_template>
         <div class="modal-body text-center">
-          <p>Kindly provide reason(s) for Revert PIP .</p>
-          <textarea rows="3" cols="50" class="form-control" [(ngModel)]="employeeObj.revReason"> </textarea><br>
-          <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(employeeObj.revReason)" (click)="PIP_reverse(alert_message,employeeObj,0);cancelRequest()">Send</button>&nbsp;
+            <!-- added by anurag -->
+
+
+ <!-- as discussed with pooja start and end date should visible on pip revert call and also extend feature should be there -->
+      <!-- toggle added -->
+      <div class="row">
+        <div class="col-md-4 col-sm-8 custom-control custom-switch">
+          <input type="checkbox" class="custom-control-input" id="pip-switch" (change)="togglePipView($event)">
+          <label class="custom-control-label" for="pip-switch">Extend PIP</label>
+        </div>
+      </div>
+      
+    <div class="row">
+      <div class="col-md-6 text-center">
+        <label class="info-label" style="width: 200px;">Start Date</label>
+      <div class="d-flex">
+           <input class="form-control static-input" disabled matInput id="PIPStart"  [matDatepicker]="startPicker" #startInput
+            (click)="startPicker.open()" placeholder="Choose start Date" [(ngModel)]="startDate" autocomplete="off">
+           <mat-datepicker-toggle matSuffix [for]="startPicker" style="margin-left: -40px;"></mat-datepicker-toggle>
+       </div>
+       <mat-datepicker  #startPicker (closed)="startInput.blur()" disabled></mat-datepicker>
+      </div>
+     
+      <div class="col-md-6 text-center mb-1" *ngIf="isToggle">
+        <label class="info-label" style="width: 200px;" >End Date</label>
+       <div class="d-flex">
+           <input class="form-control static-input"  matInput id="PIPEnd" (dateChange)="checkDateChange()"  [matDatepicker]="endPicker" #endInput
+           placeholder="End Date" [(ngModel)]="endDate" [min]="minDateForExtend"  [max]="maxDateForExtend" autocomplete="off"  (click)="endPicker.open()" >
+           <mat-datepicker-toggle matSuffix [for]="endPicker" style="margin-left: -40px;" ></mat-datepicker-toggle>
+       </div>
+       <mat-datepicker  #endPicker (closed)="endInput.blur()" disabled="false"></mat-datepicker>
+      </div>
+
+      <div class="col-md-6 text-center mb-1" *ngIf="!isToggle">
+        <label class="info-label" style="width: 200px;" >End Date</label>
+       <div class="d-flex">
+           <input class="form-control static-input" [disabled]="!isToggle"  matInput id="PIPEnd"  [matDatepicker]="endPicker" #endInput
+           placeholder="End Date" [(ngModel)]="endDate" [min]="startDate" autocomplete="off"  (click)="endPicker.open()" >
+           <mat-datepicker-toggle matSuffix [for]="endPicker" style="margin-left: -40px;" [disabled]="!isToggle"></mat-datepicker-toggle>
+       </div>
+       <mat-datepicker  #endPicker (closed)="endInput.blur()" disabled="false"></mat-datepicker>
+      </div>
+     </div><br>
+
+    <!-- close  -->
+
+        <div *ngIf="!isToggle">
+            <p >Kindly provide reason(s) for Revert PIP .</p>
+            <textarea rows="3" cols="50" class="form-control" [(ngModel)]="employeeObj.revReason" ></textarea><br>
+        </div>
+          <div *ngIf="isToggle">
+            <p >Kindly provide reason(s) for Extend PIP .</p>
+          <textarea rows="3" cols="50" class="form-control" [(ngModel)]="employeeObj.extendReason"></textarea><br>
+          </div>
+          <button type="button" class="btn btn-success" *ngIf="!isToggle" [disabled]="!this.validationService.validateNullUndefinedEmptyString(employeeObj.revReason)" (click)="PIP_reverse(alert_message,employeeObj,0);cancelRequest()">Send</button>&nbsp;
+          <button class="btn btn-outline-primary ml-10" *ngIf="isToggle" [disabled]="!this.validationService.validateNullUndefinedEmptyString(employeeObj.extendReason)"  (click)="cancelRequest();setPipExtendsDays(alert_message);"><em><i class="fa-solid fa-eye"></i>&nbsp;Extends PIP</em></button>&nbsp;
           <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
       </div>
       </ng-template>
 
       <ng-template #pip_template>
         <div class="modal-body text-center">
+            <!-- added by anurag -->
+
+            <div class="row">
+                <div class="col-md-6 text-center">
+                  <label class="info-label" style="width: 200px;">Start Date</label>
+                <div class="d-flex">
+                     <input class="form-control static-input" matInput id="PIPStart"  [matDatepicker]="startPicker" #startInput
+                     (dateChange)="estimateEndDate()" (click)="startPicker.open()"
+                      placeholder="Choose start Date" [max]="maxDate" [min]="minDate" [(ngModel)]="startDate" autocomplete="off">
+                     <mat-datepicker-toggle matSuffix [for]="startPicker" style="margin-left: -40px;"></mat-datepicker-toggle>
+                 </div>
+                 <mat-datepicker  #startPicker (closed)="startInput.blur()" disabled="false"></mat-datepicker>
+                </div>
+                <div class="col-md-6 text-center mb-1">
+                  <label class="info-label" style="width: 200px;" >End Date</label>
+                 <div class="d-flex">
+                     <input class="form-control static-input" matInput id="PIPEnd" disabled [matDatepicker]="endPicker" #endInput
+                     placeholder="End Date" [(ngModel)]="endDate" autocomplete="off" >
+                     <mat-datepicker-toggle matSuffix [for]="endPicker" style="margin-left: -40px;"></mat-datepicker-toggle>
+                 </div>
+                 <mat-datepicker  #endPicker (closed)="endInput.blur()" disabled></mat-datepicker>
+                </div>
+               </div><br>
+
+            <!-- end -->
           <p>Kindly provide reason(s) for PIP .</p>
           <textarea rows="3" cols="50" class="form-control" [(ngModel)]="employeeObj.pipReason"> </textarea><br>
-          <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(employeeObj.pipReason)" (click)="PipGenerateToUser(alert_message,employeeObj,1);cancelRequest()">Send</button>&nbsp;
+          <button type="button" class="btn btn-success" [disabled]="!(validationService.validateNullUndefinedEmptyString(startDate) && validationService.validateNullUndefinedEmptyString(employeeObj.pipReason))" (click)="PipGenerateToUser(alert_message,employeeObj,1);cancelRequest()">Send</button>&nbsp;
+          <!-- <button type="button" class="btn btn-success" [disabled]="!(validationService.validateNullUndefinedEmptyString(startDate) && validationService.validateNullUndefinedEmptyString(leaveObj.pipReason))" (click)="PipGenerateToUser(alert_message,leaveObj,1);cancelRequest()">Send</button>&nbsp; -->
           <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
       </div>
       

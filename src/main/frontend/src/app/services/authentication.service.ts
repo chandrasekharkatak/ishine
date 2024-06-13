@@ -81,7 +81,7 @@ export class AuthenticationService {
     user.empId = this.currentUserValue.empId;
     user.sessionString = this.sessionString;
 
-    console.log("checking session ..", new Date().toTimeString());
+    //console.log("checking session ..", new Date().toTimeString());
     
       this.checkUserSession(user).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
@@ -96,7 +96,7 @@ export class AuthenticationService {
 
   startUserSessionCheck() {
     sessionStorage.setItem('sessioncheck', 'true');
-    this.sessionSubscription = timer(0,10000).subscribe(() =>  {
+    this.sessionSubscription = timer(0,30000).subscribe(() =>  {
       this.checkSession();
     });
   }
@@ -127,7 +127,7 @@ export class AuthenticationService {
 
     getCookie(name:string){
     let ca:Array<string> =document.cookie.split(';');
-    console.log(document.cookie);
+    //console.log(document.cookie);
     let caLen:number= ca.length;
     let cookieName=`${name}=`;
     let c :string;

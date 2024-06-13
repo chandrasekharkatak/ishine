@@ -49,7 +49,7 @@ export class AppComponent {
 //   let user = new User();
 //   user.empId = this.currentUser.empId;
 //   this.authenticationService.logoutUser(user).pipe(first()).subscribe((response: any) => {
-//     console.log('Session expired');
+//     //console.log('Session expired');
 //   });
 // }
 
@@ -71,7 +71,7 @@ export class AppComponent {
   //   user.empId = this.currentUser.empId;
   //   this.authenticationService.logoutUser(user).subscribe((response:any)=>{
   //     this.authenticationService.stopUserSessionCheck();
-  //     console.log(response.serviceResponse);
+  //     //console.log(response.serviceResponse);
   //     sessionStorage.removeItem('currentUser');
   //     sessionStorage.removeItem('token');
   //     // delete method call for cookies

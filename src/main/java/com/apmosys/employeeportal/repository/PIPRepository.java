@@ -19,11 +19,14 @@ public interface PIPRepository extends JpaRepository<PIP, Long>{
 	PIP findByPipId(Long pipId);
 
 	@Query(nativeQuery = true , value = "SELECT e.name as employeeName,e.employeement_id, p.pip_id,p.pip_reason,p.created_by as createdByName ,"
-			+ " p.created_on,p.updated_by as updatedByName,p.updated_on , p.rev_reason,p.pip_flag "
+			+ " p.created_on,p.updated_by as updatedByName,p.updated_on , p.rev_reason,p.pip_flag, p.aging,p.start_date , p.end_date, p.extend_days, p.extend_reason "
 			+ " from pip p "
 			+ "left join employee e on e.emp_id=p.emp_id "
-			+ "where p.emp_id= :empId and p.pip_flag = :pipFlag")
-	List<Object[]> findPipReasonByEmpIdAndPipFlag(Long empId, Boolean pipFlag);
+			+ "where p.emp_id= :empId order by p.pip_id desc")
+	List<Object[]> findPipReasonByEmpIdAndPipFlag(Long empId);
+
+	@Query(nativeQuery = true , value ="select * from pip where emp_id= :empId and pip_flag=1 order by pip_id desc")
+	List<PIP> getPipDetailsByEmployeeId(Long empId);
 	
 	
 

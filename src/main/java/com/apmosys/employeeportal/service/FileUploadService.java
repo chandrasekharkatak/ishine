@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -13,12 +14,14 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
@@ -49,6 +52,9 @@ public class FileUploadService {
 	
 	@Autowired
 	MailService mailService;
+	
+	@Value("${billable.mail}")
+	private String billableMail;
 
 //	public ServiceResponse uploadFile(MultipartFile file) throws IOException {
 //		ServiceResponse response = new ServiceResponse();
@@ -120,6 +126,7 @@ public class FileUploadService {
 	                Long employmentId = (long) currentRow.getCell(0).getNumericCellValue();
 	                String billable = currentRow.getCell(1).getStringCellValue();
 	                String billableType = currentRow.getCell(2).getStringCellValue();
+	                String gender = currentRow.getCell(3).getStringCellValue();
 
 	                Optional<Employee> optionalEmployee = Optional.ofNullable(employeeRepository.findByEmployeementId(employmentId));
 	                
@@ -128,7 +135,8 @@ public class FileUploadService {
 	                	Employee employee = optionalEmployee.get();
 	                    employee.setBillable(billable);
 	                    employee.setBillableType(billableType);
-	                
+	                    employee.setGender(gender);
+	                    
 		                employeeRepository.save(employee);
 	                } 
             
@@ -216,7 +224,9 @@ public class FileUploadService {
 	
 	
 //	@Scheduled(cron = "0 */4 * * * *")
-	@Scheduled(cron = "0 0 7 ? * *")
+//	@Scheduled(cron = "0 0 7 ? * *")
+	
+	@Scheduled(cron = "${VP_mails}")
 	public void execute() {
 		try {
 			List<Object[]> employees = employeeRepository.getEmployeesWithBillableType();
@@ -270,17 +280,171 @@ public class FileUploadService {
 	            // Prepare email body and attachment
 	            String subject = "Regarding Billable non Billable data";
 	            File file = new File(filePath);
-            mailService.sendMailWithAttachment(mails.toString(),"bansi.prasad@apmosys.com",subject,"Dear Vice Presidents, <br><br>"
-                    + "I hope this email finds you well. Please find attached the " + subject + " document containing the latest billable employee data.<br><br>"
-                    		+ "Thank you for your attention to this matter.<br><br>"
-                    		+ "Best regards,<br>",file);
-            System.out.println("Data exported and email sent successfully!");
+	            
+//	            iterate mail
+	            for (Employee employee : vpMails) {
+	            	mailService.sendMailWithoutAttachment(employee.getEmail(),subject,"Dear Vice Presidents, <br><br>"
+	                        + "I hope this email finds you well. Please find attached the " + subject + " document containing the latest billable employee data.<br><br>"
+	                        		+ "Thank you for your attention to this matter.<br><br>"
+	                        		+ "Best regards,<br>",file);
+	                System.out.println("Data exported and email sent successfully!");
+				}
+	            
+            
 		
 		} catch (Exception e) {
 			e.printStackTrace();
 			
 		}
 	}
+	
+	// added report feature only for directors
+	
+	public static void writeToExcelBillableReport(List<EmployeeDTO> employeeList, String filePath) throws IOException {
+	    try (Workbook workbook = new XSSFWorkbook()) {
+	        Sheet sheet = workbook.createSheet("Data");
+	        int rowNum = 0;
+
+	        String[] headers = {"Billable Type", "Count of Employees"};
+	        Row headerRow = sheet.createRow(rowNum++);
+
+	        // Create a bold font style for headers
+	        Font headerFont = workbook.createFont();
+	        headerFont.setBold(true);
+	        CellStyle headerCellStyle = workbook.createCellStyle();
+	        headerCellStyle.setFont(headerFont);
+	        headerCellStyle.setFillForegroundColor(IndexedColors.LIGHT_YELLOW.getIndex());
+	        headerCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+	        headerCellStyle.setBorderBottom(BorderStyle.THIN);
+	        headerCellStyle.setBorderTop(BorderStyle.THIN);
+	        headerCellStyle.setBorderLeft(BorderStyle.THIN);
+	        headerCellStyle.setBorderRight(BorderStyle.THIN);
+
+	        // Set headers with the bold style
+	        for (int i = 0; i < headers.length; i++) {
+	            var cell = headerRow.createCell(i);
+	            cell.setCellValue(headers[i]);
+	            cell.setCellStyle(headerCellStyle);
+	        }
+
+	        // Create a cell style for department rows with yellow background
+	        CellStyle departmentCellStyle = workbook.createCellStyle();
+	        departmentCellStyle.setFillForegroundColor(IndexedColors.LIGHT_YELLOW.getIndex());
+	        departmentCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+	        departmentCellStyle.setBorderBottom(BorderStyle.THIN);
+	        departmentCellStyle.setBorderTop(BorderStyle.THIN);
+	        departmentCellStyle.setBorderLeft(BorderStyle.THIN);
+	        departmentCellStyle.setBorderRight(BorderStyle.THIN);
+	        Font departmentFont = workbook.createFont();
+	        departmentFont.setBold(true);
+	        departmentCellStyle.setFont(departmentFont);
+
+	        String currentDepartment = null;
+	        for (EmployeeDTO data : employeeList) {
+	           
+	            if (!data.getDepartmentName().equals(currentDepartment)) {
+	                // Create a merged cell for department name with yellow background
+	                currentDepartment = data.getDepartmentName();
+	                Row departmentRow = sheet.createRow(rowNum++);
+	                Cell departmentCell = departmentRow.createCell(0);
+	                departmentCell.setCellValue(currentDepartment);
+	                departmentCell.setCellStyle(departmentCellStyle);
+	                sheet.addMergedRegion(new CellRangeAddress(departmentRow.getRowNum(), departmentRow.getRowNum(), 0, headers.length - 1));
+	            }
+	            Row row = sheet.createRow(rowNum++);
+	            row.createCell(0).setCellValue(data.getBillableType());
+	            row.createCell(1).setCellValue(data.getCount_of_employees());
+	        }
+
+	        for (int i = 0; i < headers.length; i++) {
+	            sheet.autoSizeColumn(i);
+	        }
+
+	        try (FileOutputStream fileOut = new FileOutputStream(filePath)) {
+	            workbook.write(fileOut);
+	        }
+	    }
+	}
+
+//	@Scheduled(cron = "0 */2 * * * *")
+	@Scheduled(cron = "${department_wise_billable_report}")
+	public void executeBillableReportMethod() {
+	    try {
+	        List<Object[]> employees = employeeRepository.getEmployeesBillableDataDepartmentWise();
+	        List<EmployeeDTO> dtoList = new ArrayList<>();
+
+	        employees.forEach((object)->{
+				EmployeeDTO dto = new EmployeeDTO();
+				
+				dto.setDepartmentName(object[0] != null ? object[0].toString() : null);		
+				dto.setBillableType(object[1] != null ? object[1].toString() : null);
+				dto.setCount_of_employees(object[2] != null ? Long.parseLong(object[2].toString()) : null);			
+				
+				dtoList.add(dto);
+				});
+
+	        String filePath = "Department_BillableData.xlsx";
+	        writeToExcelBillableReport(dtoList, filePath);
+
+	        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+	        LocalDate todayDate = LocalDate.now();
+	        
+	        String today = LocalDate.now().format(formatter);
+	        
+	        
+	        String subject = "Department wise Billable type document on - " + today;
+	        File file = new File(filePath);
+	        
+//	        mail boddy added
+	        
+			StringBuilder html = new StringBuilder();
+			html.append("<html>\n" +
+		            "  <head>\n" +
+		            "    <style>\n" +
+		            "      table, th, td {\n" +
+		            "        border: 1px solid black;\n" +
+		            "      }\n" +
+		            "      table {\n" +
+		            "        border-collapse: collapse;\n" +
+		            "      }\n" +
+		            "    </style>\n" +
+		            "  </head>\n" +
+		            "  <body>\n" +
+		            "    <table>\n" +
+		            "      <tr>\n" +
+		            "        <th>Department</th>\n" +
+		            "        <th>Billable Type</th>\n" +
+		            "        <th>Count of employees</th>\n" +
+		            "      </tr>\n");
+			// add rows to the table
+			for(EmployeeDTO dto: dtoList) {
+				html.append("      <tr>\n");
+				  // add cells to the row
+				  html.append("        <td>" + dto.getDepartmentName() + "</td>\n");
+				  html.append("        <td>" + dto.getBillableType() + "</td>\n");
+				  html.append("        <td>" + dto.getCount_of_employees() + "</td>\n");
+				  html.append("      </tr>\n");
+			}
+			
+			html.append("    </table>\n" +
+			            "  </body>\n" +
+			            "</html>");
+	        
+	        
+	        System.out.println("htm content "+html.toString());
+	        
+	        mailService.sendMailWithoutAttachmentWithMailBody(billableMail.toString(),subject,"Dear Directors, <br><br>"
+                    + "I hope this email finds you well. Please find attached the " + "Department wise Billable type document" +" report that containing the latest billable employee data.<br><br>"
+                    		+ "Thank you for your attention to this matter.<br><br>"
+                    		+ "Best regards,<br>"+ html.toString(),file);
+
+	        System.out.println("Data exported and email sent successfully!");
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+	
 	
 	
 	

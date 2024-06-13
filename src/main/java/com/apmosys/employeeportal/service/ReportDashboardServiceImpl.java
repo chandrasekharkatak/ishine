@@ -301,7 +301,7 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 				Long empId = empObj[0] != null ? Long.parseLong(empObj[0].toString()) : null;
 				Long employeementId = empObj[3] != null ? Long.parseLong(empObj[3].toString()) : null;
 				
-				System.out.println("Emp ID :" + empId);
+//				System.out.println("Emp ID :" + empId);
 				
 				List<Timesheet> monthlyTimesheet = timesheetsRepository.
 						findAllByEmpIdAndDateBetweenOrderByDateDesc(empId, firstDateOfPreviousMonth, lastDateOfPreviousMonth);
@@ -381,7 +381,8 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 				dto.setEmploymentstatus(object[15] != null ? object[15].toString() : null);
 				dto.setTotalExperience(object[16] != null ? Float.parseFloat(object[16].toString()) : null);	
 				dto.setDateOfBirth(object[17] != null ? object[17].toString() : null);
-				dto.setDateOfJoining(object[18] != null ? object[18].toString() : null);		
+				dto.setDateOfJoining(object[18] != null ? object[18].toString() : null);
+				dto.setWorkLocation(object[19] != null ? object[19].toString() : null);
 				dtoList.add(dto);
 				
 			});

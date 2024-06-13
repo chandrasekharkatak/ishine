@@ -307,28 +307,29 @@ public class EmployeeLeaveService {
 				
 				return response;
 			}else {
-				if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("CL")) {
-					Optional<List<EmployeeLeave>> recentLeavesForCL = Optional.ofNullable(employeeLeaveRepository.findRecentLeavesByEmpId(leaveDTO.getEmpId()));
-					if(recentLeavesForCL.isPresent() && !recentLeavesForCL.get().isEmpty()) {
-						EmployeeLeave getLeaves = recentLeavesForCL.get().get(0);
-						LocalDate newFromDate = LocalDate.parse(leaveDTO.getFromDate());
-						LocalDate prevToDate = getLeaves.getToDate();		
-						
-					boolean valid = this.isValidateCasualLeave(prevToDate, newFromDate, leaveDTO.getLeaveTypeCode());
-					System.err.println(" valid "+valid);
-					if(valid) {
-						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
-						response.setServiceResponse("Leave application submitted. Your timesheet will be automatically added by system");
-					}else {
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
-						response.setServiceResponse("Casual Leave Can't take Consecutively , another CL will be applicable after 15 days of your last CL applied !! ");
-					return response;
-					}
-				}
-				}else {
+//				if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("CL")) {
+//					Optional<List<EmployeeLeave>> recentLeavesForCL = Optional.ofNullable(employeeLeaveRepository.findRecentLeavesByEmpId(leaveDTO.getEmpId()));
+//					if(recentLeavesForCL.isPresent() && !recentLeavesForCL.get().isEmpty()) {
+//						EmployeeLeave getLeaves = recentLeavesForCL.get().get(0);
+//						LocalDate newFromDate = LocalDate.parse(leaveDTO.getFromDate());
+//						LocalDate prevToDate = getLeaves.getToDate();		
+//						
+//					boolean valid = this.isValidateCasualLeave(prevToDate, newFromDate, leaveDTO.getLeaveTypeCode());
+//					System.err.println(" valid "+valid);
+//					if(valid) {
+//						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
+//						response.setServiceResponse("Leave application submitted. Your timesheet will be automatically added by system");
+//					}else {
+//						response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
+//						response.setServiceResponse("Casual Leave Can't take Consecutively , another CL will be applicable after 15 days of your last CL applied !! ");
+//					return response;
+//					}
+//				}
+//				}
+//				else {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
 					response.setServiceResponse("Leave application submitted. Your timesheet will be automatically added by system");
-				}
+//				}
 				
 		}
 			
@@ -4102,9 +4103,9 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 //	 added by anurag
 	
 	public ServiceResponse pipGenerateToUser(LeaveDTO leaveDto) {
-		
+
 		ServiceResponse response = new ServiceResponse();
-	
+
 		try {
 
 			Employee findEmployee = employeeRepository.findByEmpId(leaveDto.getEmpId());
@@ -4112,119 +4113,127 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 			String empEmail = findEmployee.getEmail();
 			String managerEmail = findManager.getEmail();
 			String pipReason = leaveDto.getPipReason();
-			
-			System.out.println("empEmail     "+empEmail);
-			System.err.println("managerEmail  "+managerEmail);
-			
-			
+
+			System.out.println("empEmail     " + empEmail);
+			System.err.println("managerEmail  " + managerEmail);
+
 			PIP pipCreate = new PIP();
 			pipCreate.setEmpId(leaveDto.getEmpId());
 			pipCreate.setPipReason(leaveDto.getPipReason());
-			pipCreate.setPipFlag(true);	
+			pipCreate.setPipFlag(true);
+			pipCreate.setStartDate(leaveDto.getStartDate());
+			pipCreate.setEndDate(leaveDto.getEndDate());
 			pipCreate.setCreatedOn(LocalDateTime.now());
 			pipCreate.setCreatedBy(leaveDto.getCreatedByName());
-			
+			pipCreate.setExtendDays("No");
+
 			PIP pipCreated = pipRepository.save(pipCreate);
 			findEmployee.setPipFlag(true);
 			findEmployee.setPipId(pipCreated.getPipId());
 			employeeRepository.save(findEmployee);
-			
-			System.err.println("findEmployee   +  "+findEmployee);
-			
-			if(pipCreated != null) {
+
+			System.err.println("findEmployee   +  " + findEmployee);
+
+			if (pipCreated != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("PIP Raised ");
-			}else {
+			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("PIP not Raised");
 			}
 			List<Object[]> findData = employeeLeaveRepository.findHodsData(leaveDto.getEmpId());
 
 			findData.forEach((object) -> {
-			    this.hodEmail = object[3] != null ? object[3].toString() : null;
+				this.hodEmail = object[3] != null ? object[3].toString() : null;
 			});
-			
+
 			String subject = " Attention - Performance Improvement Plan";
-			mailService.sendMailWithCC(empEmail, managerEmail + ","+ hrMailAddress+","+this.hodEmail,subject, 
-					"Dear "+findEmployee.getName()+" "+"<br>"
-					+"<br>"+
-							"This email is to formally notify you that you are being placed on a Performance Improvement Plan (PIP) effective "+LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))+". "
+			mailService.sendMailWithCC(empEmail, managerEmail + "," + hrMailAddress + "," + this.hodEmail, subject,
+					"Dear " + findEmployee.getName() + " " + "<br>" + "<br>"
+							+ "This email is to formally notify you that you are being placed on a Performance Improvement Plan (PIP) effective "
+							+ leaveDto.getStartDate() + ". "
 							+ "The purpose of this plan is to provide you with clear expectations and support to "
-							+ "improve your performance in specific areas."+"<br><br>"
+							+ "improve your performance in specific areas." + "<br><br>"
 							+ "During the recent performance evaluations, "
 							+ "we identified areas where your performance has not met "
-							+ "the expectations of the organization. <br><br>"
-							+ "These areas include : </b>"
-							+ "<b>"+pipReason +"</b>"+"<br><br>"
+							+ "the expectations of the organization. <br><br>" + "These areas include : </b>" + "<b>"
+							+ pipReason + "</b>" + "<br><br>"
 							+ "This PIP emphasizes on the specific goals and objectives "
 							+ "you will need to achieve within a timeframe of one month. "
 							+ "Your progress towards these goals will be closely monitored and regular feedback "
-							+ "will be provided to support your development and improvement."+"<br><br>"
+							+ "will be provided to support your development and improvement." + "<br><br>"
 							+ "It is important to understand that failure to meet the expectations outlined "
 							+ "in this plan within the timeframe may result in further disciplinary action, "
-							+ "up to and including termination of your employment."+"<br><br>"
-							+ " Sincerely,"+"<br>"
-							+ "Team HR - ApMoSys Technologies"
-					);
-			
-			
-			
+							+ "up to and including termination of your employment." + "<br><br>" + " Sincerely,"
+							+ "<br>" + "Team HR - ApMoSys Technologies");
+
 		} catch (Exception e) {
 			e.printStackTrace();
-		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-		response.setServiceResponse("Something went wrong");	
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong");
 		}
-		
-		return response ;
+
+		return response;
 	}
 	
 	public ServiceResponse pipReturnFromUser(LeaveDTO leaveDto) throws AddressException, MessagingException {
-		
+
 		ServiceResponse response = new ServiceResponse();
-		
+
 		Employee findEmployee = employeeRepository.findEmployeeByPipId(leaveDto.getPipId());
 		Employee findManager = employeeRepository.findByEmpId(findEmployee.getManagerId());
 		String empEmail = findEmployee.getEmail();
 		String managerEmail = findManager.getEmail();
 		String pipReason = leaveDto.getRevReason();
-		
+
 		findEmployee.setPipFlag(false);
-		
-	Employee dbResponse = employeeRepository.save(findEmployee);
-	
+
+		Employee dbResponse = employeeRepository.save(findEmployee);
+
 		PIP findpip = new PIP();
 		findpip.setUpdatedBy(leaveDto.getUpdatedByName());
 		findpip.setUpdatedOn(LocalDateTime.now());
 		findpip.setPipFlag(false);
 		findpip.setEmpId(leaveDto.getEmpId());
-		findpip.setRevReason(leaveDto.getRevReason());	
-		PIP dbPipResponse = pipRepository.save(findpip);		
-		
-		if(dbPipResponse != null) {
+		findpip.setRevReason(leaveDto.getRevReason());
+//		findpip.setEndDate(LocalDate.now().toString().formatted("dd-mm-yyyy")); 
+		findpip.setStartDate(leaveDto.getStartDate());
+		findpip.setEndDate(leaveDto.getEndDate());
+
+		DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+		LocalDate startDate = LocalDate.parse(findpip.getStartDate(), dateFormatter);
+		LocalDate dtoEndDate = LocalDate.parse(leaveDto.getEndDate(), dateFormatter);
+
+		Long agingDays = Math.abs(ChronoUnit.DAYS.between(dtoEndDate, startDate));
+
+		System.out.println("dtoEndDate " + dtoEndDate);
+		System.out.println("startDate " + startDate);
+
+		System.err.println(" aging   " + agingDays);
+		findpip.setAging(agingDays);
+
+		PIP dbPipResponse = pipRepository.save(findpip);
+
+		if (dbPipResponse != null) {
 			response.setServiceResponse("PIP reverse successfully ");
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			
+
 		}
-		
+
 		List<Object[]> findData = employeeLeaveRepository.findHodsData(leaveDto.getEmpId());
 
 		findData.forEach((object) -> {
-		    this.hodEmail = object[3] != null ? object[3].toString() : null;
+			this.hodEmail = object[3] != null ? object[3].toString() : null;
 		});
-		
+
 		String subject = " Attention - Regarding PIP reversal mail";
-		mailService.sendMailWithCC(empEmail, managerEmail + ","+ hrMailAddress+","+this.hodEmail,subject, 
-				"Dear "+findEmployee.getName()+" "+"<br>"
-				+"<br>"+
-						"This email is to formally notify you that you are not placed on a Performance Improvement Plan (PIP) effective . "
-						+ "your performance is now up to the mark so you are not in Performance Improvement Plan, "
-						+ "below the reason provided why we revert you from PIP "+"<br>"
-						+ "These areas include : </b>"
-						+ "<b>"+pipReason +"</b>"+"<br><br>"
-						+ " Sincerely,"+"<br>"
-						+ "Team HR - ApMoSys Technologies"
-				);
-		
+		mailService.sendMailWithCC(empEmail, managerEmail + "," + hrMailAddress + "," + this.hodEmail, subject, "Dear "
+				+ findEmployee.getName() + " " + "<br>" + "<br>"
+				+ "This email is to formally notify you that you are not placed on a Performance Improvement Plan (PIP) effective . "
+				+ "your performance is now up to the mark so you are not in Performance Improvement Plan, "
+				+ "below the reason provided why we revert you from PIP " + "<br>" + "These areas include : </b>"
+				+ "<b>" + pipReason + "</b>" + "<br><br>" + " Sincerely," + "<br>" + "Team HR - ApMoSys Technologies");
+
 		return response;
 	}
 	
@@ -4309,37 +4318,45 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 	}
 	
 //	PIP Reasons
+	
 	public ServiceResponse getPipReasons(LeaveDTO leaveDto) {
-		
+
 		ServiceResponse response = new ServiceResponse();
-		System.err.println(" leaveDto.getEmpId(),leaveDto.getPipFlag() "+leaveDto.getEmpId()+" "+Boolean.valueOf(leaveDto.getPipFlag()));
-		List<Object[]> listOfPip = pipRepository.findPipReasonByEmpIdAndPipFlag(leaveDto.getEmpId(),Boolean.valueOf(leaveDto.getPipFlag()));
+		System.err.println(" leaveDto.getEmpId(),leaveDto.getPipFlag() " + leaveDto.getEmpId() + " "
+				+ Boolean.valueOf(leaveDto.getPipFlag()));
+//		List<Object[]> listOfPip = pipRepository.findPipReasonByEmpIdAndPipFlag(leaveDto.getEmpId(),Boolean.valueOf(leaveDto.getPipFlag()));
+		List<Object[]> listOfPip = pipRepository.findPipReasonByEmpIdAndPipFlag(leaveDto.getEmpId());
 		List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
-		
-		listOfPip.forEach(object ->{
+
+		listOfPip.forEach(object -> {
 			LeaveDTO dto = new LeaveDTO();
 			dto.setEmployeeName(object[0] != null ? object[0].toString() : null);
-			dto.setEmployeementId(object[1] != null ? Long.parseLong(object[1].toString()) : null);	
-			dto.setPipId(object[2] != null ? Long.parseLong(object[2].toString()) : null);		
+			dto.setEmployeementId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+			dto.setPipId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
 			dto.setPipReason(object[3] != null ? object[3].toString() : null);
 			dto.setCreatedByName(object[4] != null ? object[4].toString() : null);
-			dto.setCreatedOn(object[5] != null ? object[5].toString() : null);		
-			dto.setUpdatedByName(object[6] != null ? object[6].toString() : null);		
+			dto.setCreatedOn(object[5] != null ? object[5].toString() : null);
+			dto.setUpdatedByName(object[6] != null ? object[6].toString() : null);
 			dto.setUpdatedOn(object[7] != null ? object[7].toString() : null);
-			
+
 			dto.setRevReason(object[8] != null ? object[8].toString() : null);
-			dto.setPipFlag(object[9] != null ? object[9].toString() : null);			
-			System.err.println(" dto   "+"\n"+dto);
+			dto.setPipFlag(object[9] != null ? object[9].toString() : null);
+			dto.setAging(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+			dto.setStartDate(object[11] != null ? object[11].toString() : null);
+			dto.setEndDate(object[12] != null ? object[12].toString() : null);
+			dto.setExtendDays(object[13] != null ? object[13].toString() : null);
+			dto.setExtendReason(object[14] != null ? object[14].toString() : null);
+
+			System.err.println(" dto   " + "\n" + dto);
 			dtoList.add(dto);
-			
-			});	
-		if(dtoList != null) {
+
+		});
+		if (dtoList != null) {
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(dtoList);
 		}
-		
-		
-		return response ;
+
+		return response;
 	}
 	
 	
@@ -4409,26 +4426,60 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 
 	}
 	
-	public ServiceResponse setExtendPeriodByPipId(LeaveDTO leaveDto) {
+	public ServiceResponse setExtendPeriodByPipId(LeaveDTO leaveDto) throws AddressException, MessagingException {
 		ServiceResponse response = new ServiceResponse();
-		
-		PIP findPip = pipRepository.findByPipId(leaveDto.getPipId());	
-	
-		findPip.setExtendDays(leaveDto.getExtendDays());
+
+		Employee findEmp = employeeRepository.findByEmpId(leaveDto.getEmpId());
+		Employee findManager = employeeRepository.findByEmpId(findEmp.getManagerId());
+		String extendReason = leaveDto.getExtendReason();
+		PIP findPip = pipRepository.findByPipId(leaveDto.getPipId());
+
+		findPip.setExtendDays("Yes");
 		findPip.setUpdatedBy(leaveDto.getUpdatedByName());
-		findPip.setUpdatedOn(LocalDateTime.now());	
-		
-		PIP updatePip =	pipRepository.save(findPip);	
-		
-	if(updatePip != null) {
-		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-		response.setServiceResponse("PIP extended successfully !! ");
-	}else {
-		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-		response.setServiceResponse("PIP not extended !! ");
-	}
+		findPip.setEndDate(leaveDto.getEndDate());
+		findPip.setExtendReason(leaveDto.getExtendReason());
+
+		findPip.setUpdatedOn(LocalDateTime.now());
+
+		PIP updatePip = pipRepository.save(findPip);
+
+		if (updatePip != null) {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse("PIP extended successfully !! ");
+
+			String employeeEmail = findEmp.getEmail();
+			String managerEmail = findManager.getEmail();
+			String name = findEmp.getName();
+
+			String subject = "Regarding PIP extend";
+			mailService.sendMailWithCC(employeeEmail, managerEmail + "," + hrMailAddress, subject, "Dear " + name + ","
+					+ "<br><br>"
+					+ "&nbsp;&nbsp;This email is to formally notify you that your PIP duration has been extend for some period."
+					+ "<br>" + "&nbsp;&nbsp;" + "<b>" + " Extend Reason : </b> " + "&nbsp;&nbsp; " + extendReason + "."
+					+ "<br><br>" + " Sincerely," + "<br>" + "Team HR - ApMoSys Technologies");
+
+		} else {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("PIP not extended !! ");
+		}
 		return response;
 	}
-	
+	public ServiceResponse getPipDetailsByEmpId(LeaveDTO leaveDto) {
+		ServiceResponse response = new ServiceResponse();
+
+		List<PIP> findPipDetails = pipRepository.getPipDetailsByEmployeeId(leaveDto.getEmpId());
+
+		PIP findPIP = findPipDetails.get(0);
+
+		if (findPIP != null) {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(findPIP);
+		} else {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse(" PIP details not found");
+		}
+		return response;
+	}
+
 	 
 }

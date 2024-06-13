@@ -137,4 +137,5 @@ export class Leave{
 	pipId: any;
 	revReason: any;
 	extendDays : any;
+	extendReason : any;
 }

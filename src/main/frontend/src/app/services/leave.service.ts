@@ -283,4 +283,7 @@ getDepartmentWiseBillableData(leaveObj: Leave){
   return this.http.post(`${this.baseUrl}`+ `api/getDepartmentWiseBillableData`, leaveObj);
 }
 
+getPipDetailsByEmpId(leaveObj: Leave) {
+  return this.http.post(`${this.baseUrl}` + `api/getPipDetailsByEmpId`, leaveObj);
+}
 }

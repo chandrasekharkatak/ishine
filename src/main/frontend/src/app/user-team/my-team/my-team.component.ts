@@ -118,6 +118,21 @@ export class MyTeamComponent implements OnInit {
   pipReasons : any =[];
   isPipFlag : boolean = false;
 
+  isToggle : boolean = false;
+  tempValue : any;
+
+  startDate :any;
+  endDate : any;
+
+  // today = new Date().toISOString().split('T')[0];
+  today : Date; 
+  maxDate : Date;
+  minDate : Date;
+  maxDateForExtend : Date;
+  minDateForExtend : Date;
+  isDateChanged : boolean = false;
+
+
   constructor(
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
@@ -1222,21 +1237,57 @@ export class MyTeamComponent implements OnInit {
 //  added by anuarg
 
 PIP_generate(template:TemplateRef<any>, team){
+  this.startDate = '';
+  this.endDate = '';
+  this.leaveObj.pipReason = ''
 this.isPipGenerate = true;
-this.modalRef=this.modalService.show(template , { class : 'modal-sm'});
+this.modalRef=this.modalService.show(template , { class : 'modal-md'});
 this.leaveObj = team;
 }
+
 
 PIP_reverse_modal(template:TemplateRef<any> , team){
+  this.isToggle = false;
   this.isPipGenerate = false;
-this.modalRef=this.modalService.show(template , { class : 'modal-sm'});
+this.modalRef=this.modalService.show(template , { class : 'modal-md'});
 this.leaveObj = team;
+this.getPipDetailsByEmpId(team);
 }
 
+getPipDetailsByEmpId(employee : any){
+  // console.log(" emp details  ",employee);
+  let leaveObj = new Leave();
+  leaveObj.empId = employee.empId;
+
+  this.leaveService.getPipDetailsByEmpId(leaveObj).pipe(first()).subscribe((response : any)=>{
+    if(response.serviceStatus == "Success"){
+      
+      this.leaveObj = Object.assign({}, response.serviceResponse);
+
+      this.startDate = this.leaveObj.startDate;
+      this.endDate = this.leaveObj.endDate;
+      
+
+      this.endDate = (this.endDate)? moment(this.endDate, "DD-MM-YYYY").toDate() : '';
+      this.startDate = (this.startDate)? moment(this.startDate, "DD-MM-YYYY").toDate() : '';
+
+      if (this.endDate) {
+        this.tempValue = new Date(this.endDate);
+        this.minDateForExtend = new Date(this.endDate);
+        this.maxDateForExtend = new Date(this.endDate);
+        this.maxDateForExtend.setMonth(this.maxDateForExtend.getMonth() + 2);
+      }
+      
+      console.log(" startDate   ",this.endDate);
+      
+    }
+  })
+
+}
 
 PIP_reverse(template:TemplateRef<any>,teamObj,flag){
   this.isPipGenerate = false;
-  //console.log(teamObj);
+  console.log(teamObj);
   let leave = new Leave();
   leave.pipFlag = flag;
   leave.pipId = teamObj.pipId;
@@ -1244,6 +1295,18 @@ PIP_reverse(template:TemplateRef<any>,teamObj,flag){
   leave.updatedBy = this.currentUser.empId;
   leave.updatedByName = this.currentUser.name;
   leave.revReason = teamObj.revReason;
+  
+  leave.startDate = moment(this.startDate).format(AppComponent.DATE_FORMAT);
+  if(this.isToggle){
+    leave.endDate = moment(this.endDate).format(AppComponent.DATE_FORMAT);
+  }else{
+    let endDate : any = new Date();
+    endDate = moment(endDate).format(AppComponent.DATE_FORMAT);
+      console.log("endDate   ",endDate);
+    leave.endDate = endDate;
+  }
+ 
+console.log(" leaves ",leave)
 
   this.leaveService.pipReturnFromUser(leave).pipe(first()).subscribe((response : any)=>{
     if(response.serviceStatus == "Success"){
@@ -1255,27 +1318,53 @@ PIP_reverse(template:TemplateRef<any>,teamObj,flag){
   })
 }
 
-PipGenerateToUser(template: TemplateRef<any>,leaveObj,flag){
-  //console.log(" leaveObj   ",leaveObj);
-  let leave = new Leave();
-  leave.empId = leaveObj.empId;
-  leave.pipReason = leaveObj.pipReason;
-  leave.pipFlag = flag;
-  leave.createdBy = this.currentUser.empId;
-  leave.createdByName = this.currentUser.name;
+  togglePipView(event){
+    this.employeeObj.revReason = '';
+    this.isDateChanged = false;
+    if(event.target.checked){
+      this.isToggle = true;
+      this.employeeObj.extendReason = '';
 
-  //console.log(leave);
-  this.leaveService.pipGenerateToUser(leave).pipe(first()).subscribe((response : any)=>{
-    if(response.serviceStatus == "Success"){
-      this.openAlertMod(template,response.serviceResponse);
-      this.getAllTeamView();
     }else{
-      this.openAlertMod(template,response.serviceResponse);
+      this.isToggle = false;
+      // this.leaveObj.endDate = this.tempValue;
+      this.endDate = this.tempValue;
     }
-  })
+  }
+
+
+PipGenerateToUser(template: TemplateRef<any>,leaveObj,flag){
+  console.log(" leaveObj   ",leaveObj);
+ 
+    this.cancelRequest();
+    let leave = new Leave();
+    leave.empId = leaveObj.empId;
+    leave.pipReason = leaveObj.pipReason;
+    leave.startDate = moment(this.startDate).format(AppComponent.DATE_FORMAT);
+    leave.endDate = moment(this.endDate).format(AppComponent.DATE_FORMAT);
+    leave.pipFlag = flag;
+    leave.createdBy = this.currentUser.empId;
+    leave.createdByName = this.currentUser.name;
+  
+  
+  
+    console.log(leave);
+    this.leaveService.pipGenerateToUser(leave).pipe(first()).subscribe((response : any)=>{
+      if(response.serviceStatus == "Success"){
+        this.openAlertMod(template,response.serviceResponse);
+        this.getAllTeamView();
+      }else{
+        this.openAlertMod(template,response.serviceResponse);
+      }
+    })
+  // }
+  
 }
 
 pipReason(teamObj){
+  this.pageNo=1
+  this.pipReasons = []
+  
   let team = new Leave();
 
   team.empId = teamObj.empId;
@@ -1293,27 +1382,38 @@ this.leaveService.getPipReasons(team).pipe(first()).subscribe((response : any)=>
     this.pipReasons.forEach(d=>{
       d.createdOn = moment(d.createdOn).format(AppComponent.DATE_FORMAT);
       d.updatedOn = moment(d.updatedOn).format(AppComponent.DATE_FORMAT);
-      //console.log(" d ki value ",d)
+      console.log(" d ki value ",d)
       if(d.pipFlag == "true"){
-        //console.log("i am in true flag")
+        console.log("i am in true flag")
         this.isPipFlag = true;
       }else{
-        //console.log(" I'm in false flag")
+        console.log(" I'm in false flag")
         this.isPipFlag = false;
       }
+      if(d.updatedOn == 'Invalid date') d.updatedOn = '';
+      if(d.createdOn == 'Invalid date') d.createdOn = '';
+
+
     })
-    //console.log("this.pipReasons  ",this.pipReasons);  
+    console.log("this.pipReasons  ",this.pipReasons);  
   }
 })
-  //console.log(" team ",team);
-  //console.log(team,"teamteamteamteam")
+  console.log(" team ",team);
+  console.log(team,"teamteamteamteam")
 }
 
-pipReasonModal(template:TemplateRef<any>,teamObj){
+checkDateChange(){
+  this.isDateChanged = true;
+  }
+  
+  pipReasonModal(template:TemplateRef<any>,teamObj){
   this.modalRef=this.modalService.show(template , { class : 'modal-lg'});
-this.leaveObj = teamObj;
-this.pipReason(this.leaveObj);
-}
+  this.pageNo=1
+  this.leaveObj = teamObj;
+  this.pipReason(this.leaveObj);
+  }
+
+
 
 extendPipModal(template : TemplateRef<any> , teamObj){
   this.modalRef=this.modalService.show(template , { class : 'modal-sm'});
@@ -1321,23 +1421,41 @@ extendPipModal(template : TemplateRef<any> , teamObj){
 }
 
 setPipExtendsDays(template:TemplateRef<any>){
-  //console.log("team in set extend modal",this.leaveObj)
-  let leave = new Leave();
-  leave.pipId = this.leaveObj.pipId;
-  leave.empId = this.leaveObj.empId;
-  leave.updatedByName = this.currentUser.name;
-  leave.extendDays = this.leaveObj.extendDays;
 
-  this.leaveService.setExtendPeriodByPipId(leave).pipe(first()).subscribe((response : any)=>{
-    if(response.serviceStatus == "Success"){
-      this.openAlertMod(template,response.serviceResponse);
-
-    }else{
-      this.openAlertMod(template,response.serviceResponse);
+  if(!this.isDateChanged){
+    this.alertMessage="End date must be change for extend PIP";
+    this.openAlertMod(template , this.alertMessage);
+    return;
+  }
+  this.cancelRequest();
+  
+    let leave = new Leave();
+    leave.pipId = this.leaveObj.pipId;
+    leave.empId = this.leaveObj.empId;
+    leave.updatedByName = this.currentUser.name;
+    // leave.extendDays = this.leaveObj.extendDays;
+    leave.extendReason = this.leaveObj.extendReason;
+    leave.startDate = moment(this.startDate).format(AppComponent.DATE_FORMAT);
+    leave.endDate = moment(this.endDate).format(AppComponent.DATE_FORMAT);
+    console.log("team in set extend modal",leave)
+    this.leaveService.setExtendPeriodByPipId(leave).pipe(first()).subscribe((response : any)=>{
+      if(response.serviceStatus == "Success"){
+        this.openAlertMod(template,response.serviceResponse);
+  
+      }else{
+        this.openAlertMod(template,response.serviceResponse);
+      }
+    })
+  
+  }
+  
+  estimateEndDate() {
+    if (this.startDate) {
+      const startDate = new Date(this.startDate);
+      const endDate = new Date(startDate.getTime() + (90 * 24 * 60 * 60 * 1000)); // Adding 90 days
+      this.endDate = endDate.toISOString().split('T')[0];
     }
-  })
-
-}
+  }
 
 
 }

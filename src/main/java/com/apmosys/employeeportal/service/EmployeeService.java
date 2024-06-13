@@ -3561,6 +3561,8 @@ public class EmployeeService {
 		
 		Double proileCompleted = 0.00;
 		Double totalFields = 0.00;
+		System.err.println("check details \n");
+		System.err.println(" \n"+employeeDto);
 		try {
 			List<Object[]> employeeProile = employeeRepository.getEmployeeProfileCompletion(employeeDto.getEmpId());
 			

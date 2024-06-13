@@ -117,17 +117,15 @@
                         <!-- added by anurag -->
                         <button class="btn btn-sm btn-outline-primary mb-1" (click)="openHistoryTable(leaveHistoryModal,teamView);getAllLeavesByEmpId(teamView)"><em><i class="fa-solid fa-eye"></i>&nbsp;Leaves</em></button>
                       
-                      <!-- <button class="btn btn-sm btn-outline-primary ml-10" *ngIf="teamView.pipFlag=='false'" (click)="PIP_generate(pip_template,teamView)"><em><i class="fa-solid fa-flag"></i>&nbsp; PIP</em></button> -->
+                        <button class="btn btn-sm btn-outline-primary ml-10" *ngIf="teamView.pipFlag=='false'" (click)="PIP_generate(pip_template,teamView)"><em><i class="fa-solid fa-flag"></i>&nbsp; PIP</em></button>
 
-                      <!-- <button class="btn btn-sm btn-danger ml-10" *ngIf="teamView.pipFlag=='true'" (click)="PIP_reverse_modal(pip_rev_template,teamView)"><em><i class="fa-solid fa-flag"></i>&nbsp; PIP</em></button> -->
-                      <!-- <button class="btn btn-sm btn-outline-success mt-10" (click)="pipReasonModal(pipReason_template,teamView)" *ngIf="teamView.pipFlag=='false'"> -->
-                        <!-- <em><i class="fa-solid fa-backward"></i>&nbsp; Rev Reason</em> -->
-                      <!-- </button> -->
-                      <!-- <button class="btn btn-sm btn-outline-primary ml-10" *ngIf="teamView.pipFlag=='true'" (click)="extendPipModal(extend_template,teamView)"><em><i class="fa-solid fa-eye"></i>&nbsp;Extends PIP</em></button> -->
-<!-- 
-                      <button class="btn btn-sm btn-outline-primary mt-10" (click)="pipReasonModal(pipReason_template,teamView)" *ngIf="teamView.pipFlag=='true'">
-                        <em><i class="fa-solid fa-fist-raised"></i>&nbsp; PIP Reason</em>
-                      </button> -->
+                        <button class="btn btn-sm btn-danger ml-10" *ngIf="teamView.pipFlag=='true'" (click)="PIP_reverse_modal(pip_rev_template,teamView)"><em><i class="fa-solid fa-flag"></i>&nbsp; PIP</em></button>
+                        <button class="btn btn-sm btn-outline-success mt-10" (click)="pipReasonModal(pipReason_template,teamView)" *ngIf="teamView.pipFlag=='false'">
+                          <em><i class="fa-solid fa-backward"></i>&nbsp; PIP History</em>
+                        </button>
+                        <button class="btn btn-sm btn-outline-success mt-10" (click)="pipReasonModal(pipReason_template,teamView)" *ngIf="teamView.pipFlag=='true'">
+                          <em><i class="fa-solid fa-backward"></i>&nbsp; PIP History</em>
+                        </button>
                     </td>
                   </tr>
                   <tr *ngIf="showReporteeLeaveBalance && selectedDataIndex == i" class="bg-light border-bottom" >
@@ -798,83 +796,156 @@
 
 <ng-template #pip_template>
   <div class="modal-body text-center">
+    <div class="row">
+      <div class="col-md-6 text-center">
+        <label class="info-label" style="width: 200px;">Start Date</label>
+      <div class="d-flex">
+           <input class="form-control static-input" matInput id="PIPStart" [matDatepicker]="startPicker" #startInput
+           (dateChange)="estimateEndDate()" (click)="startPicker.open()"
+            placeholder="Choose start Date" [max]="maxDate" [min]="minDate" [(ngModel)]="startDate" autocomplete="off">
+           <mat-datepicker-toggle matSuffix [for]="startPicker" style="margin-left: -40px;"></mat-datepicker-toggle>
+       </div>
+       <mat-datepicker  #startPicker (closed)="startInput.blur()" disabled="false"></mat-datepicker>
+      </div>
+      <div class="col-md-6 text-center mb-1">
+        <label class="info-label" style="width: 200px;" >End Date</label>
+       <div class="d-flex">
+           <input class="form-control static-input" matInput id="PIPEnd" disabled [matDatepicker]="endPicker" #endInput
+           placeholder="End Date" [(ngModel)]="endDate" autocomplete="off" >
+           <mat-datepicker-toggle matSuffix [for]="endPicker" style="margin-left: -40px;"></mat-datepicker-toggle>
+       </div>
+       <mat-datepicker  #endPicker (closed)="endInput.blur()" disabled></mat-datepicker>
+      </div>
+     </div><br>
     <p>Kindly provide reason(s) for PIP .</p>
     <textarea rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.pipReason"> </textarea><br>
-    <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.pipReason)" (click)="PipGenerateToUser(alert_message,leaveObj,1);cancelRequest()">Send</button>&nbsp;
+    <button type="button" class="btn btn-success" [disabled]="!(validationService.validateNullUndefinedEmptyString(startDate) && validationService.validateNullUndefinedEmptyString(leaveObj.pipReason))" (click)="PipGenerateToUser(alert_message,leaveObj,1);cancelRequest()">Send</button>&nbsp;
     <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
-</div>
+  </div>
+  
+  
+  </ng-template>
 
-</ng-template>
+  <ng-template #pip_rev_template>
+    <div class="modal-body text-center">
+      <!-- as discussed with pooja start and end date should visible on pip revert call and also extend feature should be there -->
+        <!-- toggle added -->
+        <div class="row">
+          <div class="col-md-4 col-sm-8 custom-control custom-switch">
+            <input type="checkbox" class="custom-control-input" id="pip-switch" (change)="togglePipView($event)">
+            <label class="custom-control-label" for="pip-switch">Extend PIP</label>
+          </div>
+        </div>
+        
+      <div class="row">
+        <div class="col-md-6 text-center">
+          <label class="info-label" style="width: 200px;">Start Date</label>
+        <div class="d-flex">
+             <input class="form-control static-input" disabled  matInput id="PIPStart"  [matDatepicker]="startPicker" #startInput
+              (click)="startPicker.open()" placeholder="Choose start Date" [(ngModel)]="startDate" autocomplete="off">
+             <mat-datepicker-toggle matSuffix [for]="startPicker" style="margin-left: -40px;"></mat-datepicker-toggle>
+         </div>
+         <mat-datepicker  #startPicker (closed)="startInput.blur()" disabled></mat-datepicker>
+        </div>
+        <div class="col-md-6 text-center mb-1" *ngIf="isToggle">
+          <label class="info-label" style="width: 200px;" >End Date</label>
+         <div class="d-flex">
+             <input class="form-control static-input"  matInput id="PIPEnd" (dateChange)="checkDateChange()"  [matDatepicker]="endPicker" #endInput
+             placeholder="End Date" [(ngModel)]="endDate" [min]="minDateForExtend"  [max]="maxDateForExtend" autocomplete="off"  (click)="endPicker.open()" >
+             <mat-datepicker-toggle matSuffix [for]="endPicker" style="margin-left: -40px;" ></mat-datepicker-toggle>
+         </div>
+         <mat-datepicker  #endPicker (closed)="endInput.blur()" disabled="false"></mat-datepicker>
+        </div>
+  
+        <div class="col-md-6 text-center mb-1" *ngIf="!isToggle">
+          <label class="info-label" style="width: 200px;" >End Date</label>
+         <div class="d-flex">
+             <input class="form-control static-input" [disabled]="!isToggle"  matInput id="PIPEnd"  [matDatepicker]="endPicker" #endInput
+             placeholder="End Date" [(ngModel)]="endDate" [min]="startDate" autocomplete="off"  (click)="endPicker.open()" >
+             <mat-datepicker-toggle matSuffix [for]="endPicker" style="margin-left: -40px;" [disabled]="!isToggle"></mat-datepicker-toggle>
+         </div>
+         <mat-datepicker  #endPicker (closed)="endInput.blur()" disabled="false"></mat-datepicker>
+        </div>
+       </div><br>
+  
+      <!-- close  -->
+      <div *ngIf="!isToggle">
+        <p >Kindly provide reason(s) for Revert PIP .</p>
+        <textarea rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.revReason"></textarea><br>
+    </div>
+      <div *ngIf="isToggle">
+        <p >Kindly provide reason(s) for Extend PIP .</p>
+      <textarea rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.extendReason"></textarea><br>
+      </div>
+      <button type="button" *ngIf="!isToggle" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.revReason)" (click)="PIP_reverse(alert_message,leaveObj,0);cancelRequest()">Send</button>&nbsp;
+      <button class="btn btn-outline-primary ml-10" *ngIf="isToggle" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.extendReason)"  (click)="cancelRequest();setPipExtendsDays(alert_message);"><em><i class="fa-solid fa-eye"></i>&nbsp;Extends PIP</em></button>&nbsp;
+      <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+  </div>
+  </ng-template>
 
-<ng-template #pip_rev_template>
-  <div class="modal-body text-center">
-    <p>Kindly provide reason(s) for Revert PIP .</p>
-    <textarea rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.revReason"> </textarea><br>
-    <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.revReason)" (click)="PIP_reverse(alert_message,leaveObj,0);cancelRequest()">Send</button>&nbsp;
-    <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
-</div>
-</ng-template>
-
-<ng-template #pipReason_template>
-  <div class="modal-header" >
-    <h3 class="table-header-title">PIP Reasons</h3>
-    <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
-        <span aria-hidden="true">&times;</span>
-    </button>
-</div>
-<div class="row">
-  <div class="col-md-12">
-    <div class="modal-body">
-      <div class="container">
-        <table class="table table-pipReason">
-
-          <thead class="thead-light text-center">
-            <tr>
-              <th scope="col">Sr.No</th>
-              <th scope="col">Employee ID</th>
-              <th scope="col" *ngIf="!isPipFlag">REV Reason</th>
-              <th scope="col" *ngIf="isPipFlag">PIP Reason</th>
-              <th scope="col">Raised BY</th>
-              <th scope="col" *ngIf="isPipFlag">Created On</th>
-              <th scope="col" *ngIf="!isPipFlag">Updated on</th>
+  <ng-template #pipReason_template>
+    <div class="modal-header" >
+      <h3 class="table-header-title">PIP Reasons</h3>
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+          <span aria-hidden="true">&times;</span>
+      </button>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <div class="modal-body">
+        <div class="container overflow-auto">
+          <table class="table table-pipReason">
+  
+            <thead class="thead-light text-center">
+              <tr>
+                <th scope="col">Sr.No</th>
+                <th scope="col">Employee Name</th>
+                <th scope="col">Start Date</th>
+                <th scope="col">End Date</th>
+               
+                <th scope="col" >PIP Reason</th>
+                <th scope="col" >REV Reason</th>
+               
+                <th scope="col" >Extend Reason</th>
+               
+                <th scope="col" >Aging</th>
+                <th scope="col">Created BY</th>
+                <th scope="col">Updated BY</th>
+                <th scope="col" >Created On</th>
+                <th scope="col" >Updated on</th>
+                <th scope="col" >Extend</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="pipReasons.length == 0">
+                <th colspan="11" class="text-center info-label">No details to display...</th>
             </tr>
-          </thead>
-          <tbody>
-            <tr *ngIf="pipReasons.length == 0">
-              <th colspan="11" class="text-center info-label">No details to display...</th>
-          </tr>
-          <tr class="text-center" *ngFor="let reason of pipReasons| paginate: { itemsPerPage: 10, currentPage: pageNo };let i = index">
-            <td>{{10*(pageNo-1)+i+1}}</td>
-            <td>{{reason.employeeName}}</td>
-            <td *ngIf="reason.pipFlag=='false'">{{reason.revReason}}</td>
-            <td *ngIf="reason.pipFlag=='true'">{{reason.pipReason}}</td>
-            <td *ngIf="reason.pipFlag=='true'">{{reason.createdByName}}</td>
-            <td *ngIf="reason.pipFlag=='false'">{{reason.updatedByName}}</td>
-            <td *ngIf="reason.pipFlag=='true'">{{reason.createdOn}}</td>
-            <td *ngIf="reason.pipFlag=='false'">{{reason.updatedOn}}</td>
-
-          </tr>
-          </tbody>
-        </table>
+            <tr class="text-center" *ngFor="let reason of pipReasons| paginate: { itemsPerPage: 10, currentPage: pageNo };let i = index">
+              <td>{{10*(pageNo-1)+i+1}}</td>
+              <td>{{reason.employeeName}}</td>
+              <td>{{reason.startDate}}</td>
+              <td>{{reason.endDate}}</td>
+              <td >{{reason.pipReason}}</td>
+              <td >{{reason.revReason}}</td>
+              
+              <td>{{reason.extendReason}}</td>
+             
+              <td >{{reason.aging}}</td>
+              <td >{{reason.createdByName}}</td>
+              <td >{{reason.updatedByName}}</td>
+              <td >{{reason.createdOn}}</td>
+              <td >{{reason.updatedOn}}</td>
+              <td >{{reason.extendDays}}</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="my-buttons">
+          <pagination-controls class="my-pagination" [hidden]="pipReasons.length == 0" (pageChange)="handlePageChanges($event)"></pagination-controls>
+        </div>
+  
       </div>
     </div>
   </div>
-</div>
-</ng-template>
+  </ng-template>
 
-<ng-template #extend_template>
-<div class="modal-header">
-  <h6>PIP Extend modal</h6>
-</div>
-<div class="row">
-  <div class="col-md-12">
-    <div class="modal-body">
-      <div class="container">
-        <input type="number" class="form-control" [(ngModel)]="leaveObj.extendDays"><br>
-        <button type="button" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.extendDays)" class="btn btn-sm btn-outline-primary" (click)="setPipExtendsDays(alert_message);cancelRequest()">&nbsp;Set Extend Days</button>
-      </div>
-      
-    </div>
-  </div>
-</div>
-</ng-template>

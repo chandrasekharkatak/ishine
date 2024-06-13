@@ -28,6 +28,7 @@ import { Query } from 'src/app/models/query';
 import { DestinationService } from 'src/app/services/destination.service';
 import { Designation } from 'src/app/models/designation';
 import { LeaveService } from 'src/app/services/leave.service';
+import { Leave } from 'src/app/models/leave';
 class FilterData {
   title: any;
   columns: any;
@@ -186,6 +187,19 @@ export class EmployeeConfigComponent implements OnInit {
   queryList: any[] = [];
   filterData: any = new FilterData();
 
+  startDate :any;
+endDate : any;
+isToggle : boolean = false;
+today : Date;
+minDate: Date;
+  maxDate: Date;
+  isDateChanged : boolean = false;
+  tempValue : any;
+  maxDateForExtend : Date;
+  minDateForExtend : Date;
+
+
+
   employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department','Designation',
    'Job Role', 'Manager', 'Team Name', 'Project Name', 'Client Name',
     'Employment Status', 'Date Of Joining','Domain','Specialization', 'City', 'Blood Group',
@@ -236,6 +250,11 @@ export class EmployeeConfigComponent implements OnInit {
     this.setYearOfPassingList();
     this.preventBackButton();
     //console.log(this.currentUser.jobRoleName, "currentUser role");
+
+    this.today = new Date();
+    this.maxDate = new Date(this.today);
+    this.minDate = new Date();
+    this.minDate = new Date(2024, 0, 1); 
   }
 
   preventBackButton(){
@@ -2872,59 +2891,121 @@ return true;
 
     //  added by anuarg
 
-PIP_generate(template:TemplateRef<any>, employee){
-  this.isPipGenerate = true;
-  this.modalRef=this.modalService.show(template , { class : 'modal-sm'});
-  this.employeeObj = employee;
-  }
-  
-  PIP_reverse_modal(template:TemplateRef<any> , team){
-    this.isPipGenerate = false;
-  this.modalRef=this.modalService.show(template , { class : 'modal-sm'});
-  this.employeeObj = team;
-  }
-  
-  
-  PIP_reverse(template:TemplateRef<any>,teamObj,flag){
-    this.isPipGenerate = false;
-    //console.log(teamObj);
-    let empObj = new Employee();
-    empObj.pipFlag = flag;
-    empObj.pipId = teamObj.pipId;
-    empObj.empId = teamObj.empId;
-    empObj.updatedBy = this.currentUser.empId;
-    empObj.updatedByName = this.currentUser.name;
-    empObj.revReason = teamObj.revReason;
-  
-    this.employeeService.pipReturnFromUser(empObj).pipe(first()).subscribe((response : any)=>{
-      if(response.serviceStatus == "Success"){
-        this.openAlertMod(template,response.serviceResponse);
-        this.getAllEmployeeList();
-      }else{
-        this.openAlertMod(template,response.serviceResponse);
+    PIP_generate(template:TemplateRef<any>, employee){
+      this.isPipGenerate = true;
+      this.startDate = '';
+      this.endDate = '';
+      this.employeeObj.pipReason = ''
+      this.modalRef=this.modalService.show(template , { class : 'modal-md'});
+      this.employeeObj = employee;
       }
-    })
-  }
   
-  PipGenerateToUser(template: TemplateRef<any>,leaveObj,flag){
-    //console.log(" leaveObj   ",leaveObj);
-    let emp = new Employee();
-    emp.empId = leaveObj.empId;
-    emp.pipReason = leaveObj.pipReason;
-    emp.pipFlag = flag;
-    emp.createdBy = this.currentUser.empId;
-    emp.createdByName = this.currentUser.name;
-  
-    //console.log(emp);
-    this.employeeService.pipGenerateToUser(emp).pipe(first()).subscribe((response : any)=>{
-      if(response.serviceStatus == "Success"){
-        this.openAlertMod(template,response.serviceResponse);
-        this.getAllEmployeeList();
-      }else{
-        this.openAlertMod(template,response.serviceResponse);
+      PIP_reverse_modal(template:TemplateRef<any> , team){
+        this.isToggle = false;
+        this.isPipGenerate = false;
+      this.modalRef=this.modalService.show(template , { class : 'modal-md'});
+      this.employeeObj = team;
+      this.getPipDetailsByEmpId(team);
       }
-    })
+  
+      getPipDetailsByEmpId(employee : any){
+        // console.log(" emp details  ",employee);
+        let leaveObj = new Leave();
+        leaveObj.empId = employee.empId;
+    
+        this.leaveService.getPipDetailsByEmpId(leaveObj).pipe(first()).subscribe((response : any)=>{
+          if(response.serviceStatus == "Success"){
+            
+            this.employeeObj = Object.assign({}, response.serviceResponse);
+    
+            this.startDate = this.employeeObj.startDate;
+            this.endDate = this.employeeObj.endDate;
+    
+            this.endDate = (this.endDate)? moment(this.endDate, AppComponent.DATE_FORMAT).toDate() : '';
+            this.startDate = (this.startDate)? moment(this.startDate, AppComponent.DATE_FORMAT).toDate() : '';
+    
+            if (this.endDate) {
+              this.tempValue = new Date(this.endDate);
+              this.minDateForExtend = new Date(this.endDate);
+              this.maxDateForExtend = new Date(this.endDate);
+              this.maxDateForExtend.setMonth(this.maxDateForExtend.getMonth() + 2);
+            }
+            
+            
+            console.log(" startDate   ",this.startDate);
+            console.log(" endDate   ",this.endDate);
+            
+          }
+        })
+    
+      }
+  
+      PIP_reverse(template:TemplateRef<any>,teamObj,flag){
+        this.isPipGenerate = false;
+        console.log(teamObj);
+        let empObj = new Employee();
+        empObj.pipFlag = flag;
+        empObj.pipId = teamObj.pipId;
+        empObj.empId = teamObj.empId;
+        empObj.updatedBy = this.currentUser.empId;
+        empObj.updatedByName = this.currentUser.name;
+        empObj.revReason = teamObj.revReason;
+        empObj.startDate = moment(this.startDate).format(AppComponent.DATE_FORMAT);
+        if(this.isToggle){
+          empObj.endDate = moment(this.endDate).format(AppComponent.DATE_FORMAT);
+        }else{
+          let endDate : any = new Date();
+          endDate = moment(endDate).format(AppComponent.DATE_FORMAT);
+            console.log("endDate   ",endDate);
+          empObj.endDate = endDate;
+        }
+      
+        this.employeeService.pipReturnFromUser(empObj).pipe(first()).subscribe((response : any)=>{
+          if(response.serviceStatus == "Success"){
+            this.openAlertMod(template,response.serviceResponse);
+            this.getAllEmployeeList();
+          }else{
+            this.openAlertMod(template,response.serviceResponse);
+          }
+        })
+      }
+  
+      PipGenerateToUser(template: TemplateRef<any>,leaveObj,flag){
+        console.log(" leaveObj   ",leaveObj);
+        let emp = new Employee();
+        emp.empId = leaveObj.empId;
+        emp.pipReason = leaveObj.pipReason;
+        emp.startDate = moment(this.startDate).format(AppComponent.DATE_FORMAT);
+        emp.endDate = moment(this.endDate).format(AppComponent.DATE_FORMAT);
+        emp.pipFlag = flag;
+        emp.createdBy = this.currentUser.empId;
+        emp.createdByName = this.currentUser.name;
+      
+        console.log(emp);
+        this.employeeService.pipGenerateToUser(emp).pipe(first()).subscribe((response : any)=>{
+          if(response.serviceStatus == "Success"){
+            this.openAlertMod(template,response.serviceResponse);
+            this.getAllEmployeeList();
+          }else{
+            this.openAlertMod(template,response.serviceResponse);
+          }
+        })
+      }
+  
+  togglePipView(event){
+    this.employeeObj.revReason = '';
+    this.isDateChanged = false;
+    if(event.target.checked){
+      this.isToggle = true;
+      this.employeeObj.extendReason = '';
+
+    }else{
+      this.isToggle = false;
+      // this.leaveObj.endDate = this.tempValue;
+      this.endDate = this.tempValue;
+    }
   }
+  
   
   pipReason(teamObj){
     let empObj = new Employee();
@@ -2944,41 +3025,63 @@ PIP_generate(template:TemplateRef<any>, employee){
       this.pipReasons.forEach(d=>{
         d.createdOn = moment(d.createdOn).format(AppComponent.DATE_FORMAT);
         d.updatedOn = moment(d.updatedOn).format(AppComponent.DATE_FORMAT);
-        //console.log(" d ki value ",d)
+        console.log(" d ki value ",d)
         if(d.pipFlag == "true"){
-          //console.log("i am in true flag")
+          console.log("i am in true flag")
           this.isPipFlag = true;
         }else{
-          //console.log(" I'm in false flag")
+          console.log(" I'm in false flag")
           this.isPipFlag = false;
         }
+        if(d.createdOn == 'Invalid date'){
+          d.createdOn = '';
+        }
+        if(d.updatedOn == 'Invalid date'){
+          d.updatedOn = '';
+        }
       })
-      //console.log("this.pipReasons  ",this.pipReasons);  
+      console.log("this.pipReasons  ",this.pipReasons);  
     }
   })
-    //console.log(" team ",empObj);
-    //console.log(empObj,"teamteamteamteam")
+    console.log(" team ",empObj);
+    console.log(empObj,"teamteamteamteam")
   }
   
   pipReasonModal(template:TemplateRef<any>,teamObj){
+    this.pageNo = 1;
     this.modalRef=this.modalService.show(template , { class : 'modal-lg'});
   this.employeeObj = teamObj;
   this.pipReason(this.employeeObj);
   }
-  
+
   extendPipModal(template : TemplateRef<any> , teamObj){
     this.modalRef=this.modalService.show(template , { class : 'modal-sm'});
     this.employeeObj = teamObj;
   }
+
+  checkDateChange(){
+    this.isDateChanged = true;
+    } 
   
+  
+
   setPipExtendsDays(template:TemplateRef<any>){
-    //console.log("team in set extend modal",this.employeeObj)
+
+    if(!this.isDateChanged){
+      this.alertMessage="End date must be change for extend PIP";
+      this.openAlertMod(template , this.alertMessage);
+      return;
+    }
+this.cancelRequest();
     let leave = new Employee();
     leave.pipId = this.employeeObj.pipId;
     leave.empId = this.employeeObj.empId;
     leave.updatedByName = this.currentUser.name;
-    leave.extendDays = this.employeeObj.extendDays;
-  
+    leave.extendReason = this.employeeObj.extendReason;
+    // leave.extendDays = this.leaveObj.extendDays;
+    leave.startDate = moment(this.startDate).format(AppComponent.DATE_FORMAT);
+    leave.endDate = moment(this.endDate).format(AppComponent.DATE_FORMAT);
+    console.log("team in set extend modal",leave)
     this.employeeService.setExtendPeriodByPipId(leave).pipe(first()).subscribe((response : any)=>{
       if(response.serviceStatus == "Success"){
         this.openAlertMod(template,response.serviceResponse);
@@ -2990,6 +3093,13 @@ PIP_generate(template:TemplateRef<any>, employee){
   
   }
   
+  estimateEndDate() {
+    if (this.startDate) {
+      const startDate = new Date(this.startDate);
+      const endDate = new Date(startDate.getTime() + (90 * 24 * 60 * 60 * 1000)); // Adding 90 days
+      this.endDate = endDate.toISOString().split('T')[0];
+    }
+  }
 
 
 }

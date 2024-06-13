@@ -26,5 +26,10 @@ public class PIP {
 	private String createdBy;
 	private String updatedBy;
 	private LocalDateTime updatedOn;
-	private Long extendDays;
+	
+	private String extendDays;
+	private String startDate;
+	private String endDate;
+	private Long aging;
+	private String extendReason;
 }

@@ -220,7 +220,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query(nativeQuery = true , value = "select e.employeement_id,e.email,e.name , em.name as managerName,d.name as departmentName, hd.name as hodName,e.billable,e.billable_type,"
 			+ "e.mobile_no,e.mothers_name,e.approvals_to,e.marital_status,emp_proj_client.project_name,"
-			+ " emp_proj_client.client_name,e.gender,e.employmentstatus,e.total_experience,e.date_of_birth,e.date_of_joining from employee e\n"
+			+ " emp_proj_client.client_name,e.gender,e.employmentstatus,e.total_experience,e.date_of_birth,e.date_of_joining,e.work_location from employee e\n"
 			+ "inner join job_role jr ON jr.job_role_id=e.job_role_id\n"
 			+ "inner join department d ON d.dept_id=jr.dept_id\n"
 			+ "Inner join employee em ON em.emp_id=e.manager_id\n"
@@ -233,6 +233,18 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "GROUP BY etm.emp_id) emp_proj_client ON emp_proj_client.emp_id = e.emp_id \n"
 			+ "where e.employmentstatus != 'InActive'")
 	public List<Object[]> getBillableEmpWithDepartment();
+	
+	
+	//	report data change , requirement given by pratima ma'am
+	
+	@Query(nativeQuery = true , value="select d.name as department , e.billable_type , count(e.emp_id) as countEmployees from employee e \n"
+			+ "inner join job_role jr ON jr.job_role_id=e.job_role_id\n"
+			+ "inner join department d on d.dept_id=jr.dept_id \n"
+			+ "where e.employmentstatus != \"InActive\" GROUP BY \n"
+			+ "    d.name, e.billable_type\n"
+			+ "ORDER BY \n"
+			+ "    d.name, e.billable_type")
+	public List<Object[]> getEmployeesBillableDataDepartmentWise();
 	
 	
 }

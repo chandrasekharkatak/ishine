@@ -647,6 +647,7 @@ export class ReportDashboardComponent implements OnInit {
     this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
+        // this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != "InActive");
           for(let x of this.allEmployeeList){
             x.employeementId = "A-".concat(x.employeementId);
             x.dateOfRelieving = moment(x.dateOfResign).add(x.noticePeriod, 'days').format(this.dateFormat);
@@ -737,6 +738,7 @@ this.departmentIds = departmentIds;
     this.getCustomDepartmentWiseBillableEmployeesList(this.departmentIds);
   }
 
+  profileKycStatus = "";
   extractDataForBillable(){
 
     let internalBillableCount = 0;
@@ -753,6 +755,19 @@ this.departmentIds = departmentIds;
       if(employee.billableType == 'Fixed Cost' && employee.employmentstatus != "InActive") fcBillableCount++;
       if(employee.billableType == 'Shadow' && employee.employmentstatus != "InActive") shadowBillableCount++;
       if(employee.billableType == 'InternalRNDProducts' && employee.employmentstatus != "InActive") internalBillableCount++;
+
+
+
+      if(employee.profileCompletedPercent < 100.00){
+        this.profilestatus="No";
+        // employee.profileCompletedPercent = this.profilestatus;
+        employee.profileKycStatus = this.profileKycStatus
+      } 
+      if(employee.profileCompletedPercent >= 100.00){
+        this.profilestatus="Yes";
+        // employee.profileCompletedPercent = this.profilestatus
+        employee.profileKycStatus = this.profileKycStatus
+      } 
     })
 
 
@@ -791,7 +806,7 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
 
 
   }
-
+   profilestatus = "";
 
   extractData() {
     //Total Count
@@ -856,6 +871,7 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
     let billableCount = 0;
     let nonBillableCount =0;
     let otherBillableCount =0;
+    
 
     this.allEmployeeList.forEach((employee)=>{
       let currentYear = moment().year();
@@ -928,6 +944,18 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
       if((employee.billable == 'Yes' && employee.billableType != null) && employee.employmentstatus !="InActive") billableCount++;
       if((employee.billable == 'No' && employee.billableType != null)  && employee.employmentstatus !="InActive") nonBillableCount++;
       if((employee.billable == "Yes" || employee.billable == "No" || employee.billable == null) && employee.billableType == null && employee.employmentstatus != 'InActive') otherBillableCount++;
+
+      if(employee.profileCompletedPercent < 100.00){
+        this.profilestatus="No";
+        // employee.profileCompletedPercent = this.profilestatus;
+        employee.profileKycStatus = this.profilestatus
+      } 
+      if(employee.profileCompletedPercent >= 100.00){
+        this.profilestatus="Yes";
+        // employee.profileCompletedPercent = this.profilestatus
+        employee.profileKycStatus = this.profilestatus
+      } 
+
     });
 
 
@@ -1973,6 +2001,7 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
         "Emp ID": x.employeementId,
         "Name":x.name,
         "Department Name": x.departmentName,
+        "Experience" : x.experience,
         "Email Id": x.email,
         "Date Of Joining" : (x.dateOfJoining)? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null,
         "Manager Name": x.managerName,
@@ -1982,7 +2011,9 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
         "Status": x.employmentstatus,
         "Total Experience": x.totalExperience,
         "Gender": x.gender,
-        "Age": x.age
+        "Work Location": x.workLocation,
+        "Age": x.age,
+        "KYC Status" : x.profileKycStatus
       })
     )
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.modalTitle.concat(".xlsx"))
@@ -2002,6 +2033,44 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
     )
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.modalTitle.concat(".xlsx"))
   }
+
+// export global data
+name = "EmployeeReport.xlsx"
+exportGlobalData():void{
+  const onlySpecificDataArr = this.allEmployeeList.map(
+    x => ({
+      "Emp ID": x.employeementId,
+      "Employee Name":x.name,
+      "Department Name" : x.departmentName,
+      "Date Of Resign":(x.dateOfResign)? moment(x.dateOfResign).format(AppComponent.DATE_FORMAT) : null,
+      "Date Of Relieving":(x.dateOfRelieving)? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null,
+      "Reporting To":x.managerName,
+      "Experience" : x.experience,
+      "Email Id": x.email,
+      "Date Of Joining" : (x.dateOfJoining)? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null,
+      "Manager Name": x.managerName,
+      "Billable": x.billable,
+      "Billable Type" : x.billableType,
+      "Mobile No.": x.mobileNo,
+      "Status": x.employmentstatus,
+      "Total Experience": x.totalExperience,
+      "Gender": x.gender,
+      "Age": x.age,
+      "KYC Status" : x.profileKycStatus,
+      "Project Name":x.projectName,
+      "Client Name":x.clientName,
+      "Team Name":x.teamName,
+      "Client Location":x.managerName,
+      "Working Date":(x.date)? moment(x.date).format(AppComponent.DATE_FORMAT) : null
+    })
+  )
+  this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
+}
+
+
+
+
+
 
   // allResignEmployee
 
@@ -2181,6 +2250,8 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
     }
 
   openTotalCountModal(title:any){
+    // const checkKyc = 100.00;
+    // let status = null;
     this.sortColumn=[];
     this.sortColumnType=[];
     this.sortDirection='';
@@ -2192,8 +2263,19 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
     let modalTableList = this.allEmployeeList;
     this.page = 1;
     this.modalTitle = title;
+    
     if(title == 'All Active Employee'){
       this.modalSummaryList = modalTableList.filter(x => x.employmentstatus != "InActive");
+      // this.modalSummaryList.forEach(obj =>{
+       
+      //   if(obj.profileCompletedPercent < checkKyc){
+      //     status = "No";
+      //     obj.profileCompletedPercent = status;
+      //   }else{
+      //     status = "Yes";
+      //     obj.profileCompletedPercent = status;
+      //   }
+      // })
     }else{
       this.modalSummaryList = modalTableList.filter(x => moment(dateToday).diff(moment(x.dateOfJoining), 'months', true) > 6 && x.employmentstatus == 'Probation');
     }
@@ -2436,6 +2518,8 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
 
 
   openDepartmentWiseEmployeeKycModalTable(deptName:any, status:any){
+    console.log("dept ment Name ",deptName)
+    console.log("status   in kyc ",status)
     const CHECK_PERCENT = 100.00;
     this.data = ''
     this.modalSummaryList = [];
@@ -2449,7 +2533,7 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
       if(status == "Pending"){
         this.modalSummaryList = modalTableList.filter(x => x.departmentName == deptName && x.profileCompletedPercent < CHECK_PERCENT);
       }else{
-        this.modalSummaryList = modalTableList.filter(x => x.departmentName == deptName && x.profileCompletedPercent > CHECK_PERCENT);
+        this.modalSummaryList = modalTableList.filter(x => x.departmentName == deptName && x.profileCompletedPercent >= CHECK_PERCENT);
       }
       this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
   }

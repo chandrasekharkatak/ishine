@@ -158,5 +158,7 @@ public class LeaveDTO {
 	private String pipFlag;
 	private Long pipId;
 	private String revReason;
-	private Long extendDays;
+	private String extendDays;
+	private Long aging;
+	private String extendReason;
 }

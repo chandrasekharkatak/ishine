@@ -203,7 +203,88 @@ public class MailService {
 
 		}
 	}
+	
+//	added by anurag without cc
+	
+	public boolean sendMailWithoutAttachment(String receiver, String subject, String htmlBody ,File attachment)
+			throws AddressException, MessagingException {
 
+		try {
+			Session session = mailProperties();
+
+			Message msg = new MimeMessage(session);
+
+			msg.setSubject(subject);
+			msg.setFrom(new InternetAddress(sender));
+			msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(receiver));
+			
+
+			// creates message part
+			MimeBodyPart messageBodyPart = new MimeBodyPart();
+			messageBodyPart.setContent(htmlBody, "text/html");
+			
+
+			// creates multi-part
+			Multipart multipart = new MimeMultipart();
+			multipart.addBodyPart(messageBodyPart);
+			
+			// add attachment
+			MimeBodyPart attachmentBodypart = new MimeBodyPart();
+			attachmentBodypart.attachFile(attachment);
+
+			multipart.addBodyPart(attachmentBodypart);
+			msg.setContent(multipart);
+
+			javax.mail.Transport.send(msg);
+			return true;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+
+		}
+	}
+	
+	public boolean sendMailWithoutAttachmentWithMailBody(String receiver, String subject, String htmlBody ,File attachment)
+			throws AddressException, MessagingException {
+
+		try {
+			Session session = mailProperties();
+
+			Message msg = new MimeMessage(session);
+
+			msg.setSubject(subject);
+			msg.setFrom(new InternetAddress(sender));
+//			msg.setContent(text, "text/html");
+			msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(receiver));
+			
+
+			// creates message part
+			MimeBodyPart messageBodyPart = new MimeBodyPart();
+			messageBodyPart.setContent(htmlBody, "text/html");
+			
+
+			// creates multi-part
+			Multipart multipart = new MimeMultipart();
+			multipart.addBodyPart(messageBodyPart);
+			
+			// add attachment
+			MimeBodyPart attachmentBodypart = new MimeBodyPart();
+			attachmentBodypart.attachFile(attachment);
+
+			multipart.addBodyPart(attachmentBodypart);
+			msg.setContent(multipart);
+
+			javax.mail.Transport.send(msg);
+			return true;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+
+		}
+	}
+	
 	public static void main(String[] args) {
 		MailService mailTest = new MailService();
 		try {

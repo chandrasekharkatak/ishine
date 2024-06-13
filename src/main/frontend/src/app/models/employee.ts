@@ -176,5 +176,8 @@ export class Employee{
 	revReason: any;
 	extendDays : any;
 	billableType : any;
+	profileKycStatus :any;
+
+	extendReason : any;
 
 }

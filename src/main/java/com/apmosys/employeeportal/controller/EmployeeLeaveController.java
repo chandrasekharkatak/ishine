@@ -335,11 +335,23 @@ public class EmployeeLeaveController {
 	
 //	setExtendPeriodByPipId
 	@RequestMapping(value = "/setExtendPeriodByPipId" ,method = RequestMethod.POST)
-	public ServiceResponse setExtendPeriodByPipId(@RequestBody LeaveDTO leaveDto) {
+	public ServiceResponse setExtendPeriodByPipId(@RequestBody LeaveDTO leaveDto) throws AddressException, MessagingException {
 		
 		ServiceResponse response = new ServiceResponse();
 		
 		response = employeeLeaveService.setExtendPeriodByPipId(leaveDto);
 		return response;		
 	}
+	
+	@RequestMapping(value = "/getPipDetailsByEmpId" ,method = RequestMethod.POST)
+	public ServiceResponse getPipDetailsByEmpId(@RequestBody LeaveDTO leaveDto) {
+		ServiceResponse response = new ServiceResponse();
+		
+		response = employeeLeaveService.getPipDetailsByEmpId(leaveDto);
+		return response;
+	}
+	
+	
+	
+	
 }
