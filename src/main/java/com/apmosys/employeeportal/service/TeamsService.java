@@ -1986,6 +1986,68 @@ public class TeamsService {
 		return null;
 	}
 
+//	public ServiceResponse getDepartmentLeaveHistory(LeaveDTO leaveDTO) {
+//		ServiceResponse response = new ServiceResponse();
+//		LogDTO apiLogInfo = new LogDTO();
+//		//apiLogInfo.setSubFeatureName("");
+//		apiLogInfo.setApiUrl("/api/getDepartmentLeaveHistory");
+//		apiLogInfo.setLogLevel("INFO");
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append("DeptId : "+ leaveDTO.getDeptId() + "  ,FromDate : " + leaveDTO.getFromDate()
+//		 + " ,ToDate : " + leaveDTO.getToDate());
+//
+//		try {
+//			
+//			LocalDate start = LocalDate.parse(leaveDTO.getFromDate());
+//			LocalDate end = LocalDate.parse(leaveDTO.getToDate());
+//			List<Object[]> objectList = employeeLeaveRepository.getDepartmentLeaveHistory(leaveDTO.getDeptId(),start,end);
+//			
+//			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+//			if (objectList.isEmpty()) {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("No department leave history found");
+//				apiLogInfo.setApiResponse("No department leave history found");			
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//
+//			} else {
+//
+//				objectList.forEach((object) -> {
+//					LeaveDTO dto = new LeaveDTO();
+//					dto.setCreatedByName(object[0] != null ? object[0].toString() : null);
+//					dto.setFromDate(object[1] != null ? object[1].toString() : null);
+//					dto.setToDate(object[2] != null ? object[2].toString() : null);
+//					dto.setCreatedOn(object[3] != null ? object[3].toString() : null);
+//					dto.setNoOfDays(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
+//					dto.setStatus(object[5] != null ? object[5].toString() : null);
+//					dto.setReason(object[6] != null ? object[6].toString() : null);
+//					dto.setLeaveType(object[7] != null ? object[7].toString() : null);
+//					dto.setLeaveStatusUpdatedByName(object[8] != null ? object[8].toString() : null);
+//					dto.setLeaveId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+//					dto.setRemark(object[10] != null ? object[10].toString() : null);
+//					dtoList.add(dto);					
+//					});
+//
+//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//				response.setServiceResponse(dtoList);
+//				apiLogInfo.setApiResponse("Department leave History fetched");			
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//
+//			}
+//		}catch(Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			response.setServiceError(e.getMessage());
+//            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//            apiLogInfo.setLogLevel("ERROR");
+//		}
+//		apiLogInfo.setApiRequest(logBuilder.toString());
+//		logService.logMyInfo(httpRequest, apiLogInfo);
+//		return response;
+//	}
+	
+	// added by anurag
+	
 	public ServiceResponse getDepartmentLeaveHistory(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -1997,10 +2059,24 @@ public class TeamsService {
 		 + " ,ToDate : " + leaveDTO.getToDate());
 
 		try {
+			List<String> jobRoles = null;
+			List<Object[]> objectList = null;
 			
 			LocalDate start = LocalDate.parse(leaveDTO.getFromDate());
 			LocalDate end = LocalDate.parse(leaveDTO.getToDate());
-			List<Object[]> objectList = employeeLeaveRepository.getDepartmentLeaveHistory(leaveDTO.getDeptId(),start,end);
+			
+			
+			if(leaveDTO.getEmployeeRole().equals("HOD")) {
+				 jobRoles = new ArrayList<String>(Arrays.asList("SuperAdmin"));
+				 objectList = employeeLeaveRepository.getDepartmentLeaveHistoryAndNotIn(leaveDTO.getDeptId(),start,end,jobRoles);
+			}
+			if(leaveDTO.getEmployeeRole().equals("Manager")) {
+				 jobRoles = new ArrayList<String>(Arrays.asList("SuperAdmin","HOD"));
+				 objectList = employeeLeaveRepository.getDepartmentLeaveHistoryAndNotIn(leaveDTO.getDeptId(),start,end,jobRoles);
+			}
+			if(leaveDTO.getEmployeeRole().equals("SuperAdmin"))  {
+				 objectList = employeeLeaveRepository.getDepartmentLeaveHistory(leaveDTO.getDeptId(),start,end);
+			}
 			
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
 			if (objectList.isEmpty()) {
@@ -2024,6 +2100,29 @@ public class TeamsService {
 					dto.setLeaveStatusUpdatedByName(object[8] != null ? object[8].toString() : null);
 					dto.setLeaveId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
 					dto.setRemark(object[10] != null ? object[10].toString() : null);
+					
+//					added by anurag
+					
+					dto.setApproverName(object[11] != null ? object[11].toString() : null);
+					dto.setApproverEmail(object[12] != null ? object[12].toString() : null);
+
+					dto.setManagerApprovalStatus(object[13] != null ? object[13].toString() : null);
+					dto.setLevel2ApproverId(object[14] != null ? Long.parseLong(object[14].toString()) : null);
+					dto.setLevel2ApproverName(object[15] != null ? object[15].toString() : null);
+					dto.setLevel2ApproverEmail(object[16] != null ? object[16].toString() : null);
+					dto.setLevel2ApprovalStatus(object[17] != null ? object[17].toString() : null);
+					
+					dto.setLevel3ApproverId(object[18] != null ? Long.parseLong(object[18].toString()) : null);
+					dto.setLevel3ApproverName(object[19] != null ? object[19].toString() : null);
+					dto.setLevel3ApprovalStatus(object[20] != null ? object[20].toString() : null);
+					dto.setLevel3ApproverEmail(object[21] != null ? object[21].toString() : null);
+					
+					dto.setCurrentApprovalLevel(object[22] != null ? Integer.parseInt(object[22].toString()) : null);
+					dto.setFinalApprovalLevel(object[23] != null ? Integer.parseInt(object[23].toString()) : null);
+					
+					
+					
+					
 					dtoList.add(dto);					
 					});
 
@@ -2045,6 +2144,111 @@ public class TeamsService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+
+//	added by anurag
+	
+	
+	public ServiceResponse getDepartmentPendingLeaveHistory(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("");
+		apiLogInfo.setApiUrl("/api/getDepartmentPendingLeaveHistory");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("DeptId : "+ leaveDTO.getDeptId() + "  ,FromDate : " + leaveDTO.getFromDate()
+		 + " ,ToDate : " + leaveDTO.getToDate());
+
+		try {
+			
+//			added by anurag
+			
+			List<String> jobRoles = null;
+			List<Object[]> objectList = null;
+			
+			if(leaveDTO.getEmployeeRole().equals("HOD")) {
+				jobRoles = new ArrayList<String>(Arrays.asList("SuperAdmin"));
+				objectList = employeeLeaveRepository.getDepartmentPendingLeaveHistoryStatusNotIn(leaveDTO.getDeptId(),jobRoles);
+			}
+			if(leaveDTO.getEmployeeRole().equals("Manager")) {
+				jobRoles = new ArrayList<String>(Arrays.asList("HOD"));
+				objectList = employeeLeaveRepository.getDepartmentPendingLeaveHistoryStatusNotIn(leaveDTO.getDeptId(),jobRoles);
+			}
+			if(leaveDTO.getEmployeeRole().equals("SuperAdmin")) {
+				objectList = employeeLeaveRepository.getDepartmentPendingLeaveHistory(leaveDTO.getDeptId());	
+			}
+			
+			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+			if (objectList.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No department leave history found");
+				apiLogInfo.setApiResponse("No department leave history found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+			} else {
+
+				objectList.forEach((object) -> {
+					LeaveDTO dto = new LeaveDTO();
+					dto.setCreatedByName(object[0] != null ? object[0].toString() : null);
+					dto.setFromDate(object[1] != null ? object[1].toString() : null);
+					dto.setToDate(object[2] != null ? object[2].toString() : null);
+					dto.setCreatedOn(object[3] != null ? object[3].toString() : null);
+					dto.setNoOfDays(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
+					dto.setStatus(object[5] != null ? object[5].toString() : null);
+					dto.setReason(object[6] != null ? object[6].toString() : null);
+					dto.setLeaveType(object[7] != null ? object[7].toString() : null);
+					dto.setLeaveStatusUpdatedByName(object[8] != null ? object[8].toString() : null);
+					dto.setLeaveId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+					dto.setRemark(object[10] != null ? object[10].toString() : null);
+					
+//					added by anurag
+					
+					dto.setApproverName(object[11] != null ? object[11].toString() : null);
+					dto.setApproverEmail(object[12] != null ? object[12].toString() : null);
+
+					dto.setManagerApprovalStatus(object[13] != null ? object[13].toString() : null);
+					dto.setLevel2ApproverId(object[14] != null ? Long.parseLong(object[14].toString()) : null);
+					dto.setLevel2ApproverName(object[15] != null ? object[15].toString() : null);
+					dto.setLevel2ApproverEmail(object[16] != null ? object[16].toString() : null);
+					dto.setLevel2ApprovalStatus(object[17] != null ? object[17].toString() : null);
+					
+					dto.setLevel3ApproverId(object[18] != null ? Long.parseLong(object[18].toString()) : null);
+					dto.setLevel3ApproverName(object[19] != null ? object[19].toString() : null);
+					dto.setLevel3ApprovalStatus(object[20] != null ? object[20].toString() : null);
+					dto.setLevel3ApproverEmail(object[21] != null ? object[21].toString() : null);
+					
+					dto.setCurrentApprovalLevel(object[22] != null ? Integer.parseInt(object[22].toString()) : null);
+					dto.setFinalApprovalLevel(object[23] != null ? Integer.parseInt(object[23].toString()) : null);
+					
+					
+					
+					
+					dtoList.add(dto);					
+					});
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("Department leave History fetched");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+
+	
+	
+//	end
+	
+	
 
 	public ServiceResponse addDeptIdsInActivities() {
 		ServiceResponse response = new ServiceResponse();

@@ -43,7 +43,6 @@ class FilterData {
 })
 export class EmployeeConfigComponent implements OnInit {
 
-
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
 
@@ -255,6 +254,9 @@ minDate: Date;
     this.maxDate = new Date(this.today);
     this.minDate = new Date();
     this.minDate = new Date(2024, 0, 1); 
+
+   
+  
   }
 
   preventBackButton(){
@@ -658,6 +660,62 @@ minDate: Date;
 
     });
   }
+
+  //export 
+  exportData(type: string): void {
+    let data: any[] = [];
+    switch (type) {
+      case 'fullJourney':
+      data = this.filteredEmployeeAuditHistory.map(item => ({
+        Date: item.date,
+        Field: item.field,
+        Value: item.value,
+        Bucket: item.bucketName,
+        UpdatedBy: item.updatedByName
+      }));
+      break;
+      case 'lifeCycle':
+        data = this.lifeCycleChangeList.map(item => ({
+          Date: item.date,
+          Field: item.field,
+          Value: item.value,
+          Bucket: item.bucketName,
+          UpdatedBy: item.updatedByName
+        }));
+        break;
+        case 'teamProject':
+          data = this.teamProjectChangeList.map(item => ({
+            Date: item.date,
+            Field: item.field,
+            Value: item.value,
+            Bucket: item.bucketName,
+            UpdatedBy: item.updatedByName
+          }));
+          break;
+          case 'kycUpdate':
+            data = this.kycUpdateList.map(item => ({
+              Date: item.date,
+              Field: item.field,
+              Value: item.value,
+              Bucket: item.bucketName,
+              UpdatedBy: item.updatedByName
+            }));
+            break;
+          case 'employeeInfo':
+            data = this.employeeInfoChangeList.map(item => ({
+              Date: item.date,
+              Field: item.field,
+              Value: item.value,
+              Bucket: item.bucketName
+            }));
+            break;
+         default:
+            console.error('Unknown export type');
+         return;
+    }
+    this.exportExcelService.exportTableDataToExcel(data, `${type}.xlsx`);
+  }
+  
 
   // Manage Certifications
   addInputCertificationField() {
@@ -1656,6 +1714,7 @@ return true;
           employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.employeementId);
           employeeObj.dateOfJoining = (employeeObj.dateOfJoining)? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
           employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving)? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+          employeeObj.dateOfResign = (employeeObj.dateOfResign)? moment(employeeObj.dateOfResign).format(AppComponent.DATE_FORMAT) : null;
           employeeObj.updatedOn = (employeeObj.updatedOn)? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
           employeeObj.createdOn = (employeeObj.createdOn)? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
@@ -1702,7 +1761,9 @@ return true;
           "Full Name": x.name,
           "EmailId": x.email,
           "Employment Status": x.employmentstatus,
+          "Employment Release Status":x.employmentReleaseStatus,
           "Date of Joining": (x.dateOfJoining)? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null,
+          "Date of Resign" : (x.dateOfResign)? moment(x.dateOfResign).format(AppComponent.DATE_FORMAT) : null,
           "Date of Relieving" : (x.dateOfRelieving)? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null,
           "Department Name": x.departmentName,
           "Aadhar":x.aadhar,
@@ -1747,6 +1808,8 @@ return true;
           "Created On":(x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
           "Manager Name": x.managerName,
           "Job Role":x.jobRoleName,
+          "Billable":x.billable,
+          "Billable Type":x.billableType
 
         })
       )
@@ -2599,7 +2662,6 @@ return true;
   handlePageChanges(event) {
     this.pageNo = event;
   }
-
   handleAuditPageChanges(event) {
     this.pageNo = event;
   }

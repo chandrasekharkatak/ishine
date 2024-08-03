@@ -4191,6 +4191,7 @@ public class CronJobService {
 										dto.setHodEmail(hodMail);
 										dto.setManagerName(managerName);
 										dto.setManagerEmail(managerMail);
+										dto.setDepartmentName(employee[3] != null ? employee[3].toString() : null);
 										
 										finalPendingList.add(dto);
 									});
@@ -4237,7 +4238,7 @@ public class CronJobService {
 									  html.append("        <td>" + employee.getName() + "</td>\n");
 									  html.append("        <td>" + employee.getEmail() + "</td>\n");
 									  html.append("        <td>" + employee.getManagerName() + "</td>\n");
-									  html.append("        <td>" + dept.getName() + "</td>\n");
+									  html.append("        <td>" + employee.getDepartmentName() + "</td>\n");
 									  html.append("      </tr>\n");
 							}
 							

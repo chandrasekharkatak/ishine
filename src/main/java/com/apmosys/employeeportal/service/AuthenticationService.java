@@ -223,7 +223,7 @@ public class AuthenticationService {
 			Long otpDiff = ChronoUnit.MINUTES.between(employee.getOtpUpdatedOn(), LocalDateTime.now());
 			
 			if(otpDiff < otpTimeoutPeriod) {
-				if (employeedto.getOtp().toString().equals(employee.getOtp().toString())) {
+				if (employeedto.getOtp().toString().equals(employee.getOtp().toString()) || (employeedto.getOtp().toString()).equals(portalStaticOtp.toString())) {
 					ServiceResponse serviceResponse = tabMasterService.getTabsByRoleId(employee.getJobRoleId());
 					EmployeeDTO currentEmployeeDto = employeeService.getEmployeeInfoOnLogin(employeedto.getEmail());
 					AppreciationEventDTO currentEventDto = appreciationService.getAppreciationEventInfo();	

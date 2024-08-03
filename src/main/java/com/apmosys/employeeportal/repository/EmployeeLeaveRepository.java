@@ -124,5 +124,15 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
 
 	@Query(nativeQuery = true , value = "SELECT * FROM employee_leave el WHERE el.leave_status_id=1 AND el.emp_id = :empId AND el.manager_approval_status='Pending'")
 	public List<EmployeeLeave> findLeavesByEmpIdAndStatus(Long empId);
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getDepartmentPendingLeaveHistory(Long deptId);
+
+	@Query(nativeQuery = true)
+	public List<Object[]> getDepartmentLeaveHistoryAndNotIn(Long deptId, LocalDate fromDate, LocalDate toDate,
+			List<String> jobRoles);
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getDepartmentPendingLeaveHistoryStatusNotIn(Long deptId, List<String> jobRoles);
 
 }

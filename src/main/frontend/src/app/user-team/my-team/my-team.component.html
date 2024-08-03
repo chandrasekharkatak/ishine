@@ -2,7 +2,7 @@
     <div class="col-md-12 px-0">
       <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_my_team || userMapping.enable_login_by_reporting_head" [ngClass]="{'active' : isViewTeam}" (click)="viewTeam()">View Team</button>
       <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_team_leave_history" [ngClass]="{'active' : isTeamLeaveHistory}" (click)="viewTeamLeaveHistory()">View Team Leave History</button>
-      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_team_all_requests || userMapping.update_pending_req" [ngClass]="{'active' : isTeamRequest}" (click)="viewTeamRequest()">View Team Request</button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_team_all_requests || userMapping.update_pending_req" [ngClass]="{'active' : isTeamRequest}" (click)="viewTeamRequest()">View Team Pending Request</button>
     </div>
 </div>
   
@@ -371,14 +371,14 @@
   
 
 <!-- Table of View Team Request  -->
-<div class="row" *ngIf="isTeamRequest">
+<!-- <div class="row" *ngIf="isTeamRequest">
   <div class="col-md-12">
     <div class="row">
       <div class="col-md-12 table-header">
         <h1 class="table-header-title">My Team Requests</h1>
       </div>
     </div>
-    <div class="row mb-2">
+     <div class="row mb-2"> 
       <div class="col-md-12">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveRequest}"
           (click)="viewTeamLeaveRequest()">View Leave Request</button>
@@ -387,7 +387,56 @@
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveRevokeRequest}"
         (click)="viewTeamLeaveRevokeRequest()">View Leave Revoke Request</button>
       </div>
+
+
+      <div class="col-md-4">
+        <div class="col-md-12" *ngIf="userMapping.view_department_leave_history && isLeaveRequest">
+          <div class="custom-control custom-switch">
+            <input type="checkbox" style="cursor:pointer" class="custom-control-input" id="leave-history-switch" (change)="toggleLeaveHistoryViewOfRequestPage($event)" [(ngModel)]="isLeaveHistoryOfDepartment">
+            <label class="custom-control-label" for="leave-history-switch">View My Department Leave History</label>
+          </div> 
+        </div>
+      </div>
+     </div>
+
+      
     </div>
+
+</div>
+
+    </div> -->
+
+    <div class="row" *ngIf="isTeamRequest">
+      <div class="col-md-12">
+        <div class="row">
+          <div class="col-md-12 table-header">
+            <h1 class="table-header-title">My Team Requests</h1>
+          </div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-md-12">
+             <div class="row">
+              <div class="col-md-8">
+                <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveRequest}"
+                (click)="viewTeamLeaveRequest()">View Leave Request</button>
+              <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCompOffRequest}"
+                (click)="viewTeamCompOffRequest()">View CompOff Request</button>
+              <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveRevokeRequest}"
+              (click)="viewTeamLeaveRevokeRequest()">View Leave Revoke Request</button>
+              </div>
+              <div class="col-md-4">
+                <div class="col-md-12" *ngIf="userMapping.view_department_leave_history && isLeaveRequest">
+                  <div class="custom-control custom-switch">
+                    <input type="checkbox" style="cursor:pointer" class="custom-control-input" id="leave-history-switch" (change)="toggleLeaveHistoryViewOfRequestPage($event)" [(ngModel)]="isLeaveHistoryOfDepartment">
+                    <label class="custom-control-label" for="leave-history-switch">View My Department Leave History</label>
+                  </div> 
+                </div>
+              </div>
+             </div>
+      
+              
+            </div>
+        </div>
 
     <!-- Leave Request Table -->
     <div class="row" *ngIf="isLeaveRequest">
@@ -693,7 +742,7 @@
 <ng-template #revoke_template>
   <div class="modal-body text-center">
       <p>Are you sure you want to Enable Account?</p>
-      <!-- <button type="button" class="btn btn-success" (click)="onRevokeAccount(alert_message)">Yes, proceed</button>&nbsp; -->
+      <button type="button" class="btn btn-success" (click)="onRevokeAccount(alert_message)">Yes, proceed</button>&nbsp;
       <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
   </div>
 </ng-template>

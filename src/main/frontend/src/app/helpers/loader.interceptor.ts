@@ -208,7 +208,9 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getDepartmentWiseBillableData`,
     `${this.baseUrl}` + `api/pipReturnFromUser`,
     `${this.baseUrl}` + `api/setExtendPeriodByPipId`,
+    `${this.baseUrl}` + `api/revokeAccount`,
     `${this.baseUrl}` + `api/upload/billableFile`,
+    `${this.baseUrl}` + `api/getDepartmentPendingLeaveHistory`,
 
   ]
 

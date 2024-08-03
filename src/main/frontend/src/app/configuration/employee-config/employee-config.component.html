@@ -1140,10 +1140,10 @@
                                         class="btn btn-sm btn-outline-primary mb-1"><i class="fa fa-info-circle"
                                             aria-hidden="true"></i></button>&nbsp; -->
                                     <button
-                                        *ngIf="((employee.invalidAccessAttempt > employee.failedAttempt) )"
-                                        class="btn btn-sm btn-outline-primary mb-1" type="submit"
+                                        *ngIf="((employee.invalidAccessAttempt > employee.failedAttempt) || currentUser.jobRoleName == 'HR Manager')"
+                                        class="btn btn-sm btn-outline-primary mb-1 enable" type="submit"
                                         (click)="forEnableAccount(revoke_template,employee)"><em>Enable</em></button>
-                                    <button class="btn btn-sm btn-outline-primary" type="submit" title="View"
+                                    <button class="btn btn-sm btn-outline-primary view" type="submit" title="View"
                                         (click)="openViewEmployeeInfoPreview(view_employee_info_preview, employee)"><em>view</em></button>
                                     <button *ngIf="employee.isTimesheetLockCheckEnable == 'false' && employee.employmentstatus != 'InActive'"
                                         class="btn btn-sm btn-outline-primary mb-1" type="submit"
@@ -1185,7 +1185,7 @@
                     (pageChange)="handlePageChange($event)"></pagination-controls>
 
                 <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-                    [hidden]="allEmployeeList.length == 0" *ngIf="(!isDraftTable && (currentUser.jobRoleName == 'Super Admin' || currentUser.jobRoleName == 'HR Manager'))" (click)="exportToExcel()"><em
+                    [hidden]="allEmployeeList.length == 0" *ngIf="(!isDraftTable && (currentUser.jobRoleName == 'Super Admin' || currentUser.jobRoleName == 'HR Manager' || currentUser.jobRoleName == 'HR Executive'))" (click)="exportToExcel()"><em
                         class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>
             </div>
         </div>
@@ -2455,11 +2455,18 @@
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-md-12">
-                        <div class="selector-toggle" (click)="toggleAuditSearch()">
-                            <a href="javascript:void(0)">
-                                <i *ngIf="!isAuditSearchEnabled" class="fa fa-search"></i>
-                                <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
-                            </a>
+                        <div class="container">
+                            <div class="selector-toggle" (click)="toggleAuditSearch()">
+                                <a href="javascript:void(0)">
+                                    <i *ngIf="!isAuditSearchEnabled" class="fa fa-search"></i>
+                                    <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
+                                </a>
+                            </div>
+                            <div>
+                                <button class="fa-solid fa-file-excel fa-xl" style="color: rgb(25, 61, 138); border: 0px;" (click)="exportData('fullJourney')">
+                                    
+                                </button>
+                            </div>
                         </div>
                         <div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
                             [tableTHeadTrId]="'auditInfoTHeadTr'">
@@ -2493,6 +2500,7 @@
                         <div class="my-buttons">
                             <pagination-controls id="fullJourney" class="my-pagination" [hidden]="filteredEmployeeAuditHistory.length == 0" (pageChange)="handleAuditPageChanges($event)"></pagination-controls>
                         </div>
+                        
                     </div>
                 </div>
             </div>
@@ -2502,11 +2510,18 @@
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-md-12">
-                        <div class="selector-toggle" (click)="toggleAuditSearch()">
-                            <a href="javascript:void(0)">
-                                <i *ngIf="!isAuditSearchEnabled" class="fa fa-search"></i>
-                                <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
-                            </a>
+                        <div class="container">
+                            <div class="selector-toggle" (click)="toggleAuditSearch()">
+                                <a href="javascript:void(0)">
+                                    <i *ngIf="!isAuditSearchEnabled" class="fa fa-search"></i>
+                                    <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
+                                </a>
+                            </div>
+                            <div>
+                                <button class="fa-solid fa-file-excel fa-xl" style="color: rgb(25, 61, 138); border: 0px;" (click)="exportData('lifeCycle')">
+                                    
+                                </button>
+                            </div>
                         </div>
                         <div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
                             [tableTHeadTrId]="'auditInfoTHeadTr'">
@@ -2554,11 +2569,18 @@
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-md-12">
-                        <div class="selector-toggle" (click)="toggleAuditSearch()">
-                            <a href="javascript:void(0)">
-                                <i *ngIf="!isAuditSearchEnabled" class="fa fa-search"></i>
-                                <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
-                            </a>
+                        <div class="container">
+                            <div class="selector-toggle" (click)="toggleAuditSearch()">
+                                <a href="javascript:void(0)">
+                                    <i *ngIf="!isAuditSearchEnabled" class="fa fa-search"></i>
+                                    <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
+                                </a>
+                            </div>
+                            <div>
+                                <button class="fa-solid fa-file-excel fa-xl" style="color: rgb(25, 61, 138); border: 0px;" (click)="exportData('teamProject')">
+                                    
+                                </button>
+                            </div>
                         </div>
                         <div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
                             [tableTHeadTrId]="'auditInfoTHeadTr'">
@@ -2599,6 +2621,7 @@
                         </div>
                     </div>
                 </div>
+                
             </div>
         </app-accordion-item>
 
@@ -2606,11 +2629,18 @@
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-md-12">
-                        <div class="selector-toggle" (click)="toggleAuditSearch()">
-                            <a href="javascript:void(0)">
-                                <i *ngIf="!isAuditSearchEnabled" class="fa fa-search"></i>
-                                <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
-                            </a>
+                        <div class="container">
+                            <div class="selector-toggle" (click)="toggleAuditSearch()">
+                                <a href="javascript:void(0)">
+                                    <i *ngIf="!isAuditSearchEnabled" class="fa fa-search"></i>
+                                    <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
+                                </a>
+                            </div>
+                            <div>
+                                <button class="fa-solid fa-file-excel fa-xl" style="color: rgb(25, 61, 138); border: 0px;" (click)="exportData('kycUpdate')">
+                                    
+                                </button>
+                            </div>
                         </div>
                         <div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
                             [tableTHeadTrId]="'auditInfoTHeadTr'">
@@ -2658,11 +2688,18 @@
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-md-12">
-                        <div class="selector-toggle" (click)="toggleAuditSearch()">
-                            <a href="javascript:void(0)">
-                                <i *ngIf="!isAuditSearchEnabled" class="fa fa-search"></i>
-                                <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
-                            </a>
+                        <div class="container">
+                            <div class="selector-toggle" (click)="toggleAuditSearch()">
+                                <a href="javascript:void(0)">
+                                    <i *ngIf="!isAuditSearchEnabled" class="fa fa-search"></i>
+                                    <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
+                                </a>
+                            </div>
+                            <div>
+                                <button class="fa-solid fa-file-excel fa-xl" style="color: rgb(25, 61, 138); border: 0px;" (click)="exportData('employeeInfo')">
+                                    
+                                </button>
+                            </div>
                         </div>
                         <div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
                             [tableTHeadTrId]="'auditInfoTHeadTr'">
@@ -2809,7 +2846,7 @@
 
 <ng-template #pipReason_template>
     <div class="modal-header" >
-      <h3 class="table-header-title">PIP Reasons</h3>
+      <h3 class="table-header-title">PIP History</h3>
       <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
           <span aria-hidden="true">&times;</span>
       </button>

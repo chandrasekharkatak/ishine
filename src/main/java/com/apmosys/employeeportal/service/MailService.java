@@ -245,7 +245,7 @@ public class MailService {
 		}
 	}
 	
-	public boolean sendMailWithoutAttachmentWithMailBody(String receiver, String subject, String htmlBody ,File attachment)
+	public boolean sendMailWithoutAttachmentWithMailBody(String receiver, String subject, String htmlBody ,File attachment, String cc)
 			throws AddressException, MessagingException {
 
 		try {
@@ -258,6 +258,10 @@ public class MailService {
 //			msg.setContent(text, "text/html");
 			msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(receiver));
 			
+			if (cc != null && !cc.isEmpty()) {
+	            msg.setRecipients(Message.RecipientType.CC, InternetAddress.parse(cc));
+	        }
+
 
 			// creates message part
 			MimeBodyPart messageBodyPart = new MimeBodyPart();

@@ -72,7 +72,7 @@
     </div>
     <div class="leave-details-container mb-2">
         <div *ngIf="userMapping.view_all_team_requests" class="team-requests card mb-2" style="width: 100%;">
-            <div class="card-title px-1 pt-2">
+            <div class="card-title px-1 pt-2 mb-0">
                 <p class="section-heading m-0 pl-2">Team Request</p>
             </div>
 
@@ -96,11 +96,11 @@
             </div>
 
         </div>
-        <div *ngIf="userMapping.view_my_leave_details" class="leave-details card" style="width:100%;">
-            <div class="card-title px-1 pt-2">
+        <div *ngIf="userMapping.view_my_leave_details" class="leave-details card mb-2" style="width:100%;">
+            <div class="card-title px-1 pt-2 " style="margin-bottom: 0;">
                 <p class="section-heading m-0 pl-2">My Leave Details</p>
             </div>
-            <div class="leave-details-body">
+            <div class="leave-details-body"style="margin-bottom: 0;">
                 <table class="table table-borderless leaveBucketTable">
                     <thead>
                       <tr class="leaveBucketTableHdTr">
@@ -112,12 +112,12 @@
                       </tr>
                     </thead>
                     <tbody class="leave-body" [ngClass]="(userMapping.view_all_team_requests)? 'leave-body--scroll' : ''">
-                      <tr *ngFor="let leave of leaveBucketDetails">
+                      <tr *ngFor="let leave of leaveBucketDetails ">
                         <td scope="row">{{leave.leaveTypeCode}}</td>
-                        <td><h3><span class="badge badge-primary">{{leave.balance}}</span></h3></td>
-                        <td><h3><span class="badge badge-success">{{leave.approvedApplicationsCount}}</span></h3></td>
-                        <td><h3><span class="badge badge-warning">{{leave.pendingApplicationsCount}}</span></h3></td>
-                        <td><h3><span class="badge badge-danger">{{leave.rejectedApplicationsCount}}</span></h3></td>
+                        <td><h4><span class="badge badge-primary">{{leave.balance}}</span></h4></td>
+                        <td><h4><span class="badge badge-success">{{leave.approvedApplicationsCount}}</span></h4></td>
+                        <td><h4><span class="badge badge-warning">{{leave.pendingApplicationsCount}}</span></h4></td>
+                        <td><h4><span class="badge badge-danger">{{leave.rejectedApplicationsCount}}</span></h4></td>
                       </tr>
                     </tbody>
                   </table>
@@ -386,6 +386,7 @@
                 <small>View</small>
                 <select class="form-select-sm align-items-center mx-1" aria-label="Default select example" [(ngModel)]="items"
                     (change)="page=1">
+                    <option class="option-bg" value="10000">All</option>
                     <option class="option-bg" selected value="10">10</option>
                     <option class="option-bg" value="20">20</option>
                     <option class="option-bg" value="50">50</option>
@@ -530,7 +531,7 @@
                 </tr>
                 <tr *ngFor="let compOffApplication of allCompOffApplications| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
                     <td><input class="compoff-req-checkbox" id="{{compOffApplication.checkId}}" type="checkbox" [(ngModel)]="compOffApplication.isSelected" (change)="selectCompOff(compOffApplication,$event)"></td>
-                    <td>{{i+1}}</td>
+                    <td>{{10*(page-1)+i+1}}</td>
                     <td>{{compOffApplication.createdByName}}</td>
                     <td>{{compOffApplication.compOffReasons}}</td>
                     <td>{{compOffApplication.createdOn}}</td>
@@ -579,10 +580,12 @@
             <div class="form-inline col-md-3">
               <small>View</small>
               <select class="form-select-sm align-items-center mx-1" aria-label="Default select example" [(ngModel)]="items" (change)="page=1">
+                <option class="option-bg" value="10000">All</option>
                 <option class="option-bg" selected value="10">10</option>
                 <option class="option-bg" value="20">20</option>
                 <option class="option-bg" value="50">50</option>
                 <option class="option-bg" value="100">100</option>
+                
               </select>
               <small>entries</small>
             </div>

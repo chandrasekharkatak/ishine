@@ -75,5 +75,5 @@ public class DepartmentController {
 		ServiceResponse response = departmentService.getAllDepartmentInfo();
 		return response;
 	}
-
+	
 }

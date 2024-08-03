@@ -207,13 +207,23 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Notification Type</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="notificationObj.notificationType">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="notificationObj.notificationType" (change)="onNotificationTypeChange()">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option value="consentNotification">Notification With Consent</option>
                                 <option value="releaseNotes">Release Note</option>
                                 <option value="notification">Notification</option>
                             </select>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-wrapper" *ngIf="notificationObj.notificationType==='releaseNotes'">
+                <div class="form-group">
+                    <div class="form-group">
+                        <label class="info-label">Upload Video</label>
+                        <small class="d-block text-secondary mb-2 pl-2">Please Upload file upto 100 MB</small>
+                        <input type="file" id="fileUpload" accept=".mp4,.webm" class="form-control p-1" (change)="onFileSelect($event, alert_message)">
                     </div>
                 </div>
             </div>

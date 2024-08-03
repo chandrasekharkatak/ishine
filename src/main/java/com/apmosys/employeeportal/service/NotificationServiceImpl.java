@@ -64,7 +64,7 @@ public class NotificationServiceImpl implements NotificationService {
 			if (newNotificationCreated.getNotificationId() != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("New notification created.");
-
+				response.setServiceMessage(Integer.toString(newNotificationCreated.getNotificationId()));
                 apiLogInfo.setApiResponse("New notification created");
                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 

@@ -129,6 +129,14 @@ public class TeamsController {
 		return response; 
 	}
 	
+	@RequestMapping(value="/getDepartmentPendingLeaveHistory" , method = RequestMethod.POST)
+	public ServiceResponse getDepartmentPendingLeaveHistory(@RequestBody LeaveDTO leaveDTO) {		
+		
+		ServiceResponse response =	teamsService.getDepartmentPendingLeaveHistory(leaveDTO);	
+		return response; 
+	}
+	
+	
 	@RequestMapping(value="/revokeReporteeLeave" , method = RequestMethod.POST)
 	public ServiceResponse revokeReporteeLeave(@RequestBody LeaveDTO leaveDTO) {		
 		

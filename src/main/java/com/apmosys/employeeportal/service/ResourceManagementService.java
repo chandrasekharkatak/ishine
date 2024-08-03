@@ -426,27 +426,27 @@ public class ResourceManagementService {
 				
 				// Send Project/Team detail JSON to PoPotal
 				
-			    if (!resourceManagementDTO.getProjectType().equals("Internal")) {
-			    	resourceManagementDTO.setPoProjectId(resourceManagementDTO.getId());
-			        ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
-
-			        if (poPortalResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
-			            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			            response.setServiceResponse("Project updated successfully");
-			            apiLogInfo.setApiResponse("Project updated successfully");
-			            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			        } else {
-			            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			            response.setServiceResponse("Project & Team created successfully, but unable to sync with PoPortal : " + poPortalResponse.getServiceResponse());
-			            apiLogInfo.setApiResponse("Project & Team created successfully, but unable to sync with PoPortal");
-			            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			        }
-			    } else {
+//			    if (!resourceManagementDTO.getProjectType().equals("Internal")) {
+//			    	resourceManagementDTO.setPoProjectId(resourceManagementDTO.getId());
+//			        ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
+//
+//			        if (poPortalResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
+//			            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//			            response.setServiceResponse("Project updated successfully");
+//			            apiLogInfo.setApiResponse("Project updated successfully");
+//			            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//			        } else {
+//			            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//			            response.setServiceResponse("Project & Team created successfully, but unable to sync with PoPortal : " + poPortalResponse.getServiceResponse());
+//			            apiLogInfo.setApiResponse("Project & Team created successfully, but unable to sync with PoPortal");
+//			            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			        }
+//			    } else {
 			    	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			        response.setServiceResponse("Project updated successfully");
 			        apiLogInfo.setApiResponse("Project updated successfully");
 			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			    }
+//			    }
 			} else {
 				Integer clientId = null;
 			    Optional<Client> clientObj = clientsRepository.findByClientName(resourceManagementDTO.getClientName());
@@ -663,26 +663,26 @@ public class ResourceManagementService {
 			        }
 
 			        // Send Project/Team detail JSON to PoPortal
-			        if (!resourceManagementDTO.getProjectType().equals("Internal")) {
-			            ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
-
-			            if (poPortalResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
-			                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			                response.setServiceResponse("Project updated successfully");
-			                apiLogInfo.setApiResponse("Project updated successfully");
-			                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			            } else {
-			                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			                response.setServiceResponse("Project & Team created successfully, but unable to sync with PoPortal : " + poPortalResponse.getServiceResponse());
-			                apiLogInfo.setApiResponse("Project & Team created successfully, but unable to sync with PoPortal");
-			                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			            }
-			        } else {
+//			        if (!resourceManagementDTO.getProjectType().equals("Internal")) {
+//			            ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
+//
+//			            if (poPortalResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
+//			                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//			                response.setServiceResponse("Project updated successfully");
+//			                apiLogInfo.setApiResponse("Project updated successfully");
+//			                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//			            } else {
+//			                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//			                response.setServiceResponse("Project & Team created successfully, but unable to sync with PoPortal : " + poPortalResponse.getServiceResponse());
+//			                apiLogInfo.setApiResponse("Project & Team created successfully, but unable to sync with PoPortal");
+//			                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			            }
+//			        } else {
 			            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			            response.setServiceResponse("Project updated successfully");
 			            apiLogInfo.setApiResponse("Project updated successfully");
 			            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			        }
+//			        }
 			    }
 			}
 			}catch(Exception e) {
@@ -1007,7 +1007,7 @@ public class ResourceManagementService {
 	                        } else {
 	                            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	                            response.setServiceResponse(
-	                                    "Project & Team created successfully, but unable to sync with PoPortal: "
+	                                    "Project & Team created successfully, but unable to sync with PoPortal:1010 "
 	                                            + poPortalResponse.getServiceResponse());
 	                            apiLogInfo.setApiResponse(
 	                                    "Project & Team created successfully, but unable to sync with PoPortal"
@@ -1493,7 +1493,7 @@ public class ResourceManagementService {
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Project & Team created successfully,but unable to sync with PoPortal : "+syncResponse.getServiceResponse());
+					response.setServiceResponse("Project & Team created successfully,but unable to sync with PoPortal :1496 "+syncResponse.getServiceResponse());
 					apiLogInfo.setApiResponse("Project & Team created successfully,but unable to sync with PoPortal");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}	

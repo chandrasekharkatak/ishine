@@ -112,3 +112,17 @@
 .table-options:hover, option:hover {
     cursor: pointer;
 }
+
+.enable{
+    float: inline-start;
+}
+.view{
+    float: inline-start;
+}
+
+.container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%; /* Ensure the container takes up the full width */
+}

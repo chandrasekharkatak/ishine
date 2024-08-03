@@ -52,11 +52,11 @@
     color: var(--middle-grey);
 }
 
-:host /deep/ angular-editor#myEditor .angular-editor-button[title="Insert Image"],
-:host /deep/ angular-editor#myEditor .angular-editor-button[title="Insert Video"],
-:host /deep/ angular-editor#myEditor .angular-editor-button[title="Insert Link"],
-:host /deep/ angular-editor#myEditor .angular-editor-button[title="Unlink"],
-:host /deep/ #fontSelector-{
+:host ::ng-deep  angular-editor#myEditor .angular-editor-button[title="Insert Image"],
+:host ::ng-deep  angular-editor#myEditor .angular-editor-button[title="Insert Video"],
+:host::ng-deep  angular-editor#myEditor .angular-editor-button[title="Insert Link"],
+:host ::ng-deep  angular-editor#myEditor .angular-editor-button[title="Unlink"],
+:host ::ng-deep  #fontSelector-{
     display: none
 }
 
@@ -68,6 +68,6 @@
     padding-top: 10px;
 }
 
-:host /deep/ angular-editor#myEditor .angular-editor-textarea{
+:host ::ng-deep angular-editor#myEditor .angular-editor-textarea{
     padding-inline: 2rem;
 }

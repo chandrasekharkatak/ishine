@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -383,6 +384,29 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 				dto.setDateOfBirth(object[17] != null ? object[17].toString() : null);
 				dto.setDateOfJoining(object[18] != null ? object[18].toString() : null);
 				dto.setWorkLocation(object[19] != null ? object[19].toString() : null);
+				dto.setExperience(object[20] != null ? object[20].toString() : null);
+				dto.setEmpId(object[21] != null ? Long.parseLong(object[21].toString()) : null);
+				dto.setTeamName(object[22] != null ? object[22].toString() : null);
+//				ServiceResponse completionResponse = profileCompletionReport(dto);
+//				EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
+//				
+//				dto.setProfileCompletedPercent(emp != null ? emp.getProfileCompletedPercent() : 0.00);
+				
+				ServiceResponse completionResponse = profileCompletionReport(dto);
+				Object emp = completionResponse.getServiceResponse();
+
+				if (emp instanceof EmployeeDTO) {
+				    EmployeeDTO employeeDTO = (EmployeeDTO) emp;
+				    dto.setProfileCompletedPercent(employeeDTO.getProfileCompletedPercent());
+				} else {
+				    dto.setProfileCompletedPercent(0.00);
+				    if (emp instanceof String) {
+				        System.out.println("ServiceResponse message: " + emp);
+				    }
+				}
+
+				
+				
 				dtoList.add(dto);
 				
 			});
@@ -404,6 +428,52 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 			response.setServiceResponse("Something went wrong !!");
 			
 		}
+		
+		return response;
+	}
+	
+	public ServiceResponse profileCompletionReport(EmployeeDTO leaveDto) {
+		ServiceResponse response = new ServiceResponse();
+		
+		DecimalFormat df = new DecimalFormat("0.00");
+		
+		Double proileCompleted = 0.00;
+		Double totalFields = 0.00;
+		
+		try {
+			
+			List<Object[]> employeeProile = employeeRepository.getEmployeeProfileCompletion(leaveDto.getEmpId());
+			
+			
+			if (employeeProile.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Profile not found !!");
+			} else {
+				Object[] employee = employeeProile.get(0);
+				totalFields = (double) employee.length;
+						
+				for(int i = 0; i < employee.length; i++) {
+					if(employee[i] != null) {
+						proileCompleted++;
+					}
+				}
+				
+				Double profileCompletedPercent = (proileCompleted/totalFields)*100;
+				
+				leaveDto.setProfileCompletedPercent(Double.parseDouble(df.format(profileCompletedPercent)));
+				
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(leaveDto);
+				
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+		}	
 		
 		return response;
 	}

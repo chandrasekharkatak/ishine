@@ -1804,6 +1804,9 @@ public class EmployeeService {
 					empDTO.setPipFlag(object[69] != null ? object[69].toString() : null);
 					empDTO.setPipId(object[70] != null ? Long.parseLong(object[70].toString()) : null );	
 					empDTO.setBillableType(object[71] != null ? object[71].toString() : null );	
+					empDTO.setProjectName(object[72] != null ? object[72].toString() : null);
+					empDTO.setClientName(object[73] != null ? object[73].toString() : null);
+					empDTO.setTeamName(object[74] != null ? object[74].toString() : null);
 				
 					ServiceResponse completionResponse = getEmployeeProfileCompletion(empDTO);
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();

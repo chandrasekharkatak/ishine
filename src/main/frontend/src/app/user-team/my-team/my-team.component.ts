@@ -260,6 +260,7 @@ export class MyTeamComponent implements OnInit {
     this.isLeaveRequest = true;
     this.isCompOffRequest = false;
     this.isLeaveRevokeRequest = false;
+    this.isLeaveHistoryOfDepartment = false;
 
     this.isLeaveHistory = false;
     this.isCompOffHistory = false;
@@ -1151,28 +1152,62 @@ export class MyTeamComponent implements OnInit {
   forEnableAccount(template: TemplateRef<any>, employee: any) {
     //console.log("template", template);
     //console.log("alertMessage", this.alertMessage);
-   if(confirm("Are you sure you want to Enable Account?")){
-    //this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  //  if(confirm("Are you sure you want to Enable Account?")){
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.employeeObj = employee;
-    this.onRevokeAccount();
-   }
+    // this.onRevokeAccount(template);
+  //  }
     
    
   }
 
-  onRevokeAccount() {
-    //this.cancelRequest();
+  onRevokeAccount(template :TemplateRef<any>) {
+    this.cancelRequest();
     this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2)
     this.employeeService.revokeAccount(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-     //   this.openAlertMod(template, response.serviceResponse);
-      alert(response.serviceResponse);
+       this.openAlertMod(template, response.serviceResponse);
+      // alert(response.serviceResponse);
         this.viewTeam();
       } else {
-      //  this.openAlertMod(template, response.serviceResponse);
+       this.openAlertMod(template, response.serviceResponse);
       //console.log("error")
       }
     });
+  }
+
+
+  toggleLeaveHistoryViewOfRequestPage(event){
+    this.page = 1;
+    if(event.target.checked){
+      this.isLeaveHistoryOfDepartment = true;
+      this.getDepartmentPendingLeaveHistory();
+    }else{
+      this.items=10;
+      this.isLeaveHistoryOfDepartment = false;
+      this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
+    }
+  }
+
+  getDepartmentPendingLeaveHistory(){
+    let leaveObj = new Leave();
+
+    leaveObj.deptId = this.currentUser.departmentId;
+    leaveObj.employeeRole = this.currentUser.employeeRole
+    this.teamViewService.getDepartmentPendingLeaveHistory(leaveObj).pipe(first()).subscribe((response : any)=>{
+      if(response.serviceStatus == "Success"){
+        if(this.isLeaveRequest){
+          this.leaveApplicationList = response.serviceResponse;
+          this.leaveApplicationList = this.leaveApplicationList.filter(x=> x.leaveType != 'Compensatory Off' );
+        }
+       
+
+      console.log("this.leaveApplicationList   ",this.leaveApplicationList);
+      }else{
+        console.log(response.serviceResponse);
+      }
+    });
+
   }
 
   toggleSearch(){

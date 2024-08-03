@@ -529,6 +529,8 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
     }
   }
 
+  notificationId: number=0;
+
   onSetNotification(template: TemplateRef<any>) {
     if(!this.validationService.validateNullUndefinedEmptyString(this.notificationObj.notificationMessage)){
       this.alertMessage = "Please enter Notification Message !!"
@@ -552,9 +554,29 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showNotificationTable();
+        if (this.notificationSelect == true && this.file.fileName != null) {
+          this.notificationId = +response.serviceMessage;
+          this.notificationService.addReleaseNotesVideo(this.file, this.notificationId).subscribe(
+            (response: any) => {
+              if (response.serviceStatus === 'Success') {
+                console.log('File saved successfully:', response.serviceResponse);
+                alert(response.serviceMessage);
+              } else {
+                console.error('Failed to save file:', response.serviceError);
+                alert(response.serviceMessage);
+              }
+            },
+            (error) => {
+              console.error('Error during API call:', error);
+              alert('An error occurred while saving the file.');
+            }
+          );
+
+        }
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
+      this.file={};
     });
   }
 
@@ -754,9 +776,52 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
     this.consentFilters = searchData;
   }
 
+
+// Video Upload st
+notificationSelect: boolean = false;
+onNotificationTypeChange() {
+  if (this.notificationObj.notificationType === 'releaseNotes') {
+    this.notificationSelect = true;
+  } else {
+    this.notificationSelect = false;
+  }
 }
 
-  function compare(a: number | string, b: number | string, isAsc: boolean) {
+file: any = {};
+fileSize: number = 0;
+
+onFileSelect(event: any, template: TemplateRef<any>) {
+  this.file = {};
+  const maxSizeInBytes = 100 * 1024 * 1024; // 100MB
+  const uploadedFile = event.target.files[0];
+
+  if (!uploadedFile) {
+    return;
+  }
+
+  if (!['video/mp4', 'video/webm'].includes(uploadedFile.type)) {
+    this.openAlertMod(template, 'Please select a valid file (.mp4 or .webm).');
+    event.target.value = ''; 
+    return;
+  }
+
+  if (uploadedFile.size > maxSizeInBytes) {
+    this.openAlertMod(template, 'File size is more than 100MB');
+    event.target.value = null;
+    return;
+  }
+
+  this.file = { document: uploadedFile, fileName: uploadedFile.name };
+  this.fileSize = uploadedFile.size / 1024 / 1024;
+}
+
+
+// Call any other function or perform actions based on the selected value
+
+// Video Upload end
+
+
+}  function compare(a: number | string, b: number | string, isAsc: boolean) {
     return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
   }
 

@@ -19,6 +19,12 @@
     overflow-y: auto;
 }
 
+.playIcon{
+  cursor: pointer;
+  color: #1a3d8a;
+  border: 0px;
+}
+
 /* .releaseNoteText::-webkit-scrollbar {
     width: 10px;
 }

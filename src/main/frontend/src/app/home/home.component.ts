@@ -245,6 +245,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.bulkLeaveApprove = []
     this.bulkLeaveReject = []
     this.isSelectAll = false
+    this.items = 10;
 
     let leaveObj = new Leave();
     leaveObj.managerId = this.currentUser.empId;
@@ -441,6 +442,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.bulkReject = []
     this.allTeamTimesheetRequests = [];
     this.isSelectAll = false
+    this.items = 10;
 
     let timesheetObj = new Timesheet();
     timesheetObj.managerId = this.currentUser.empId;
@@ -1578,6 +1580,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       if(response.serviceStatus == "Success"){
         this.openAlertMod(template, "All Selected CompOff Leaves Approved Successfully ");
         this.getPendingCompOffRequestsByManagerId();
+        this.countPendingCompOffRequestsByManagerId();
         this.bulkCompOffApprove = [];
         this.bulkCompOffReject = [];
 
@@ -1611,6 +1614,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       if(response.serviceStatus == "Success"){
         this.openAlertMod(template, "All Selected CompOff Leaves Rejected Successfully ");
         this.getPendingCompOffRequestsByManagerId();
+        this.countPendingCompOffRequestsByManagerId();
         this.bulkCompOffApprove = [];
         this.bulkCompOffReject = [];
 

@@ -138,4 +138,5 @@ export class Leave{
 	revReason: any;
 	extendDays : any;
 	extendReason : any;
+	employeeRole:any;
 }

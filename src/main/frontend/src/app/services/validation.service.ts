@@ -744,18 +744,30 @@ export class ValidationService {
 
   }
 
-  validatePfAccountNumber(text:string): boolean {
+  // validatePfAccountNumber(text:string): boolean {
+  //   // const regex = /^[A-Z]{5}[0-9]{17}$/;  // eg. MHMUM12345670001234567
+  //   const regex = (/^[A-Z]{2}[\s\/]?[A-Z]{3}[\s\/]?[0-9]{7}[\s\/]?[0-9]{3}[\s\/]?[0-9]{7}$/);
+  //   if (text !== "" || text !== undefined || text !== null) {
+  //     if (regex.test(text)) {
+  //       return true;
+  //     }
+  //     else {
+  //       return false;
+  //     }
+  //   }
+  //   else {
+  //     return false;
+  //   }
+  // }
+
+  validatePfAccountNumber(text: string): boolean {
     // const regex = /^[A-Z]{5}[0-9]{17}$/;  // eg. MHMUM12345670001234567
-    const regex = (/^[A-Z]{2}[\s\/]?[A-Z]{3}[\s\/]?[0-9]{7}[\s\/]?[0-9]{3}[\s\/]?[0-9]{7}$/);
-    if (text !== "" || text !== undefined || text !== null) {
-      if (regex.test(text)) {
-        return true;
-      }
-      else {
-        return false;
-      }
-    }
-    else {
+    // const regex = /^[A-Z]{2}[\s\/]?[A-Z]{3}[\s\/]?[0-9]{7}[\s\/]?[0-9]{3}[\s\/]?[0-9]{7}$/;
+    const regex = /^.{0,22}$/; // This regex matches any string with 0 to 22 characters.
+  
+    if (text !== "" && text !== undefined && text !== null) {
+      return regex.test(text);
+    } else {
       return false;
     }
   }

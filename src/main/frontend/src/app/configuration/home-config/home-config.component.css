@@ -38,11 +38,11 @@
     width: 450px;
 }
 
-:host /deep/ angular-editor#myEditor .angular-editor-button[title="Insert Image"],
-:host /deep/ angular-editor#myEditor .angular-editor-button[title="Insert Video"],
-:host /deep/ angular-editor#myEditor .angular-editor-button[title="Insert Link"],
-:host /deep/ angular-editor#myEditor .angular-editor-button[title="Unlink"],
-:host /deep/ #fontSelector-{
+:host ::ng-deep  angular-editor#myEditor .angular-editor-button[title="Insert Image"],
+:host ::ng-deep  angular-editor#myEditor .angular-editor-button[title="Insert Video"],
+:host ::ng-deep  angular-editor#myEditor .angular-editor-button[title="Insert Link"],
+:host ::ng-deep  angular-editor#myEditor .angular-editor-button[title="Unlink"],
+:host ::ng-deep  #fontSelector-{
     display: none
 }
 
@@ -51,7 +51,7 @@
     min-width: 350px;
 }
 
-:host /deep/ angular-editor#myEditor .angular-editor-textarea{
+:host ::ng-deep angular-editor#myEditor .angular-editor-textarea{
     padding-inline: 1.5rem;
 }
 
@@ -116,4 +116,15 @@
 
   .drag-image-Preview{
     width: 500px;
+  }
+
+   /* Video Upload Start dt-22/06/24 */
+   input[type="file"]::file-selector-button {
+    border: 2px solid #1a3d8a;
+    padding: 0.2em 0.4em;
+    border-radius: .2em;
+    border: 0px;
+    background-color: #1a3d8a;
+    color: white;
+    transition: 1s;
   }
