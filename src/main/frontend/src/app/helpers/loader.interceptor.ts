@@ -180,6 +180,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}`+`api/newsletters/download/`,
     `${this.baseUrl}`+`api/newsletters/setNewsletterReadResponseByEmpId`,
     `${this.baseUrl}`+`api/newsletters/getAllReadNewslettersByEmpId`,
+    `${this.baseUrl}`+`api/getEmployeeAuditInfo`,
 
   ]
 

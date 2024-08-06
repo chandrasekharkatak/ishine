@@ -49,6 +49,7 @@ export class EmployeeConfigComponent implements OnInit {
   data:string;
   items = 10;
   datas:string;
+  imployeeID:any;
 
   sortDirection = 'asc';
   sortColumn: any;
@@ -69,6 +70,7 @@ export class EmployeeConfigComponent implements OnInit {
   isLifeCycleAccordianBody: boolean = false;
   isKycUpdateAccordianBody: boolean = false;
   isEmployeeInfoAccordianBody: boolean = false;
+  isEmployeeHistory:boolean = false;
   isTeamProjectAccordianBody: boolean = false;
 
   //modal
@@ -102,7 +104,7 @@ export class EmployeeConfigComponent implements OnInit {
   kycUpdateList:any[] = [];
   employeeInfoChangeList:any[] = [];
 
-  employeeWorkingHistory:[]
+  employeeWorkingHistory: any [] = [];
   allCertificationList: any[] = [];
   allPreviousEmployment: any[] = [];
   updatedCertificationList: any[] = [];
@@ -153,6 +155,7 @@ export class EmployeeConfigComponent implements OnInit {
   previewEmployeeObj:Employee = new Employee();
 
   filters:any = {};
+  filterOnhistory ={};
   isSearchEnabled:boolean = false;
   employeeActiveColumns:any[] = ['employeementId','name','email','employmentstatus','managerName','departmentName','dateOfJoining','createdOn','createdByName','updatedOn','updatedByName'];
   employeeInActiveColumns:any[] = ['employeementId','name','email','employmentstatus','managerName','departmentName','dateOfJoining','dateOfRelieving','createdOn','createdByName','updatedOn','updatedByName'];
@@ -166,6 +169,7 @@ export class EmployeeConfigComponent implements OnInit {
   auditFilter:any = {};
   isAuditSearchEnabled:boolean = false;
   employeeAuditColumns:any[] = ['blank', 'date', 'field', 'value', 'bucketName', 'updatedByName'];
+  employeehistoryColumns:any[]=['blank','name','teamName','projectName','startDate','endDate','teamLeadName','jobRole','clientLocation','clientName'];
 
 
   queryList: any[] = [];
@@ -374,6 +378,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.data='';
     this.filters = {};
     this.workHistoryFilters = {};
+    this.filterOnhistory={};
     this.isSearchEnabled = false;
     this.isworkHistorySearchEnabled = false;
     this.isAuditSearchEnabled = false;
@@ -2022,6 +2027,7 @@ export class EmployeeConfigComponent implements OnInit {
   resetAuditSearchFilter(event, title?:any){
     this.isAuditSearchEnabled = false;
     this.auditFilter = {};
+    this.filterOnhistory={};
 
     if(title == 'Full Journey'){
       this.isFullJourneyAccordianBody = true;
@@ -2045,23 +2051,52 @@ export class EmployeeConfigComponent implements OnInit {
     }
     if(title == 'Team/Project Change'){
       this.isTeamProjectAccordianBody = true;
-    }else{
+    
+    } else{
       this.isTeamProjectAccordianBody = false;
     }
+    if(title == 'Project History'){
+     this.isEmployeeHistory=true;
+     this.employeehistory();
+    } else{
+      this.isEmployeeHistory=false;
+    }
+   
   }
 
+  
+
+  employeehistory() {
+    this.employeeWorkingHistory = [];
+    let empObj = new Employee();
+    empObj.empId = this.imployeeID;
+   this.employeeService.findEmployeeWorkingHistory(empObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeeWorkingHistory=response.serviceResponse;
+        console.log('emoloyee hist-----', this.employeeWorkingHistory);
+      } else {
+        console.error(response.serviceResponse);
+      }
+     });
+   }
+
+
   getEmployeeAuditInfo(employee:any, auditTemplate: TemplateRef<any>, template: TemplateRef<any>){
+
     this.filteredEmployeeAuditHistory = [];
     this.employeeAuditHistory = [];
     this.filters = {};
+    this.filterOnhistory={};
     this.isEmployeeInfoAccordianBody = false;
     this.isTeamProjectAccordianBody = false;
     this.isKycUpdateAccordianBody  = false;
     this.isLifeCycleAccordianBody = false;
     this.isFullJourneyAccordianBody = false;
+    this.isEmployeeHistory=false
 
     let employeeObj = new Employee();
     employeeObj.empId = employee.empId;
+    this.imployeeID=employee.empId;
 
     this.employeeService.getEmployeeAuditInfo(employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -2175,6 +2210,8 @@ export class EmployeeConfigComponent implements OnInit {
       }
     });
   }
+
+
 
   getDomainSpecialization(){
     this.specializationList = [];
@@ -2559,6 +2596,11 @@ export class EmployeeConfigComponent implements OnInit {
     console.log("Updated Filter : ", this.filters);
   }
 
+
+  onsearchhistory(searchData){
+    this.filterOnhistory=searchData;
+  }
+
   toggleAuditSearch(){
     this.isAuditSearchEnabled = !this.isAuditSearchEnabled;
   }
@@ -2567,6 +2609,80 @@ export class EmployeeConfigComponent implements OnInit {
     this.auditFilter = searchData;
     console.log("Audit Updated Filter : ", this.filters);
   }
+
+
+
+  exportData(type: string): void {
+    let data: any[] = [];
+    switch (type) {
+      case 'fullJourney':
+      data = this.filteredEmployeeAuditHistory.map(item => ({
+        Date: item.date,
+        Field: item.field,
+        Value: item.value,
+        Bucket: item.bucketName,
+        UpdatedBy: item.updatedByName
+      }));
+      break;
+      case 'lifeCycle':
+        data = this.lifeCycleChangeList.map(item => ({
+          Date: item.date,
+          Field: item.field,
+          Value: item.value,
+          Bucket: item.bucketName,
+          UpdatedBy: item.updatedByName
+        }));
+        break;
+        case 'teamProject':
+          data = this.teamProjectChangeList.map(item => ({
+            Date: item.date,
+            Field: item.field,
+            Value: item.value,
+            Bucket: item.bucketName,
+            UpdatedBy: item.updatedByName
+          }));
+          break;
+          case 'kycUpdate':
+            data = this.kycUpdateList.map(item => ({
+              Date: item.date,
+              Field: item.field,
+              Value: item.value,
+              Bucket: item.bucketName,
+              UpdatedBy: item.updatedByName
+            }));
+            break;
+          case 'employeeInfo':
+            data = this.employeeInfoChangeList.map(item => ({
+              Date: item.date,
+              Field: item.field,
+              Value: item.value,
+              Bucket: item.bucketName
+            }));
+            break;
+            case 'employeehistoryID':
+              data = this.employeeWorkingHistory.map(item => ({
+                EmployeeName:item.name,
+                TeamName:item.teamName,
+                ProjectName:item.projectName,
+                StartDate:item.startDate,
+                EndDate:item.updatedOn,
+                TeamLeadName:item.teamLeadName,
+                JobRole:item.jobRoleName,
+                ClientLocation:item.clientLocation,
+                ClientName:item.clientName,
+              }));
+
+              break;
+         default:
+            console.error('Unknown export type');
+         return;
+    }
+    this.exportExcelService.exportTableDataToExcel(data, `${type}.xlsx`);
+  }
+
+
+
+
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);

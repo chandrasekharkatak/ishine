@@ -690,7 +690,7 @@ export class LeaveComponent implements OnInit {
     const DAY_IN_MS = 24 * 60 * 60 * 1000;
     let BACKDATED_LEAVE_PERIOD = 30;
     let FUTUREDATED_LEAVE_PERIOD = 180;
-    const time=d?.getTime();
+    const time = d?.getTime();
 
     if(this.currentUser.leaveBackdatedLockDays){
       BACKDATED_LEAVE_PERIOD = this.currentUser.leaveBackdatedLockDays;
