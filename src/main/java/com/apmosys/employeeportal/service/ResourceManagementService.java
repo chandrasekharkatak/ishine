@@ -1620,5 +1620,64 @@ public class ResourceManagementService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+	
+	
+/**
+ * getExistingProjectsAndTeamsByEmployee
+ * adding this method for RMG
+ * @param employeeId
+ * @return
+ */
+	public ServiceResponse getExistingProjectsAndTeamsByEmployee(ResourceManagementDTO resourceManagementDTO) {
+		
+		ServiceResponse response = new ServiceResponse();
+		
+		List<Object[]> getAllExistingProjectsAndTeams = employeeTeamMapRepository.getAllProjectsAndTeamsDetails(resourceManagementDTO.getEmpId());
+		List<ResourceManagementDTO> allData = new ArrayList<ResourceManagementDTO>();
+		getAllExistingProjectsAndTeams.forEach(obj ->{
+			ResourceManagementDTO dto = new ResourceManagementDTO();
+			
+			dto.setTeamId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
+			dto.setProjectName(obj[1] != null ? obj[1].toString() : null);
+			dto.setTeamName(obj[2] != null ? obj[2].toString() : null);			
+			dto.setClientName(obj[3] != null ? obj[3].toString() : null);
+			dto.setBillableType(obj[4] != null ? obj[4].toString() : null);
+			dto.setStartDate(obj[5] != null ? obj[5].toString() : null);
+			dto.setUpdatedOn(obj[6] != null ? obj[6].toString() : null);
+			dto.setEmpId(obj[7] != null ? Long.parseLong(obj[7].toString()) : null);			
+			allData.add(dto);
+		});
+		
+		if(allData != null) {
+			response.setServiceResponse(allData);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			
+		}
+		return response;
+	}
+	
+	/**
+	 * update status as inActive from team and project
+	 * 
+	 */
+	
+	public ServiceResponse updateProjectResourceAsInActive(ResourceManagementDTO resourceManagementDTO ) {
+		System.err.println("Anurag   updateProjectResourceAsInActive   ");
+		
+		ServiceResponse response = new ServiceResponse();
+		
+		EmployeeTeamMap findResource = employeeTeamMapRepository.findByEmpIdAndTeamIdAndActiveStatus(resourceManagementDTO.getEmpId(), resourceManagementDTO.getTeamId());		
+		System.out.println("findResource  "+findResource );
+		if(findResource != null) {
+			findResource.setActive(0l);	
+			employeeTeamMapRepository.save(findResource);
+		
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse("Resource mapped as InActive, team "+resourceManagementDTO.getTeamId());
+			
+		}
+		
+	return response;	
+	}
 
 }

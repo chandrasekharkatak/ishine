@@ -40,4 +40,5 @@ export class Project{
 	teamName:any;
 	teamMemberList:any;
 	isActive:any;
+	teamId:any;
 }

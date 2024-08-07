@@ -92,6 +92,8 @@ export class ResourceManagementComponent implements OnInit {
   isSearchEnabled:boolean = false;
   projectColumns:any[] = ["blank", "blank", "name","projectManagerName","clientName","clientState","createdOn", "status","isDraftProject"];
 
+  projectDetails : any =[];
+
   constructor(
     private departmentService: DepartmentService,
     public validationService: ValidationService,
@@ -1144,5 +1146,73 @@ exportToExcel(){
   )
   this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
 }
+
+
+// check resource template
+
+getExistingProjectsByUser( employee){
+  console.log("employee details in resoiurce mapping ",employee);
+
+  let projectObj = new Project();
+
+  projectObj.empId = employee;
+
+  // getExistingProjectsAndTeamsByEmployee service impl
+this.projectService.getExistingProjectsAndTeamsByEmployee(projectObj).pipe(first()).subscribe((response : any)=>{
+  if(response.serviceStatus == "Success"){
+    this.projectDetails = response.serviceResponse;
+    console.log("getExistingProjectsAndTeamsByEmployee   ",this.projectDetails);
+
+  }
+})
+
+
+}
+
+deleteResourceFromProject(template:TemplateRef<any>){
+
+
+  let projectObj = new Project();
+  projectObj.teamId = this.projectObj.teamId;
+  projectObj.empId = this.projectObj.empId;
+
+  console.log("team details ",projectObj)
+this.projectService.updateProjectResourceAsInActive(projectObj).pipe(first()).subscribe((response : any)=>{
+  if(response.serviceStatus == "Success"){
+    this.openAlertMod(template , response.serviceResponse);
+this.getExistingProjectsByUser(this.projectObj.empId)
+  }
+})
+
+}
+
+// againCall(){
+//   this.getExistingProjectsByUser(this.projectObj);
+// }
+
+openProjectTemplateModal(template :TemplateRef<any>, employee){
+  this.modalRef=this.modalService.show(template , { class : 'modal-xl'});
+  this.projectObj = employee;
+  this.getExistingProjectsByUser(employee);
+
+}
+
+deleteResourceModal(template : TemplateRef<any>,teamId){
+  this.modalRef = this.modalService.show(template , { class : 'modal-md'});
+  // this.deleteResourceFromProject(template , teamId);
+  this.projectObj = teamId;
+}
+
+pageNo = 1;
+handlePageChanges(event){
+this.pageNo = event;
+}
+
+closeProjectModal(){
+  console.log("again called after deleted ");
+  this.modalRef.hide();
+}
+
+
 
 }

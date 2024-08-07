@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -96,4 +97,17 @@ public class ResourceManagementController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getExistingProjectsAndTeamsByEmployee", method = RequestMethod.POST)
+	public ServiceResponse getExistingProjectsAndTeamsByEmployee(@RequestBody ResourceManagementDTO resourceManagementDTO) {
+		
+		ServiceResponse response = resourceManagementService.getExistingProjectsAndTeamsByEmployee(resourceManagementDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/updateProjectResourceAsInActive", method = RequestMethod.POST)
+	public ServiceResponse updateProjectResourceAsInActive(@RequestBody ResourceManagementDTO resourceManagementDTO) {
+		
+		ServiceResponse response = resourceManagementService.updateProjectResourceAsInActive(resourceManagementDTO);
+		return response;
+	}
 }

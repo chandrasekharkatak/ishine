@@ -39,4 +39,10 @@ public class ResourceManagementDTO {
 	private String status;
 	private Long isActive;
 	private String projectName;
+	
+	private Long teamId;
+	private String teamName;
+	private String billableType;
+	private String startDate;
+	private String updatedOn;
 }
