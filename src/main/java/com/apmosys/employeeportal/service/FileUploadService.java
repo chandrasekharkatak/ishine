@@ -75,8 +75,7 @@ public class FileUploadService {
 	@Value("${billable.mail}")
 	private String billableMail;
 	
-	@Value("${billable.mail.two}")
-	private String billableMailTwo;
+	
 	
 	@Value("${spring.profiles.active}")
 	private String profile;

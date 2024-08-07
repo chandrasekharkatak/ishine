@@ -43,6 +43,7 @@ class FilterData {
 })
 export class EmployeeConfigComponent implements OnInit {
 
+
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
 
@@ -50,19 +51,14 @@ export class EmployeeConfigComponent implements OnInit {
   data:string;
   items = 10;
   datas:string;
-  managerFlag : boolean = false;
+  imployeeID:any;
 
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType:any;
 
-  listOfDepartment : any[] =[];
-  listOfProjectsByDeptId : any[] =[];
-  deptId : any;
   teamList : any = [];
-  TeamMemberList : any = [];
-  managerAndAbove : any = [];
-  managerId : any;
+  listOfProjectsByDeptId : any[] =[];
 
   //flags
   isCreation: boolean = false;
@@ -79,6 +75,7 @@ export class EmployeeConfigComponent implements OnInit {
   isLifeCycleAccordianBody: boolean = false;
   isKycUpdateAccordianBody: boolean = false;
   isEmployeeInfoAccordianBody: boolean = false;
+  isEmployeeHistory:boolean = false;
   isTeamProjectAccordianBody: boolean = false;
 
   //modal
@@ -92,8 +89,9 @@ export class EmployeeConfigComponent implements OnInit {
   domainObj: Domain = new Domain();
   allEmployeeList: any;
   _allEmployeeList: any;
-  listOfReporties : any;
   managerList: any = [];
+
+  managerAndAbove : any = [];
   userMapping: any = {};
   allJobRoleList: any[] = [];
   allDeptList: any[] = [];
@@ -113,7 +111,7 @@ export class EmployeeConfigComponent implements OnInit {
   kycUpdateList:any[] = [];
   employeeInfoChangeList:any[] = [];
 
-  employeeWorkingHistory:[]
+  employeeWorkingHistory: any [] = [];
   allCertificationList: any[] = [];
   allPreviousEmployment: any[] = [];
   updatedCertificationList: any[] = [];
@@ -160,17 +158,18 @@ export class EmployeeConfigComponent implements OnInit {
   yearOfPassingList:any[] = [];
   revoke_template: any;
 
-  isPipGenerate : boolean = false;
-  pipReasons : any =[];
-  isPipFlag : boolean = false;
+  deptId : any;
+  managerFlag : boolean = false;
 
   previewObj:Employee = new Employee();
   previewEmployeeObj:Employee = new Employee();
-  errorMsg:any;
+  listOfReporties : any;
+
   filters:any = {};
+  filterOnhistory ={};
   isSearchEnabled:boolean = false;
-  employeeActiveColumns:any[] = ['employeementId','name','email','employmentstatus','employmentReleaseStatus','managerName','departmentName','dateOfJoining','createdOn','createdByName','updatedOn','updatedByName'];
-  employeeInActiveColumns:any[] = ['employeementId','name','email','employmentstatus','employmentReleaseStatus','managerName','departmentName','dateOfJoining','dateOfRelieving','createdOn','createdByName','updatedOn','updatedByName'];
+  employeeActiveColumns:any[] = ['employeementId','name','email','employmentstatus','managerName','departmentName','dateOfJoining','createdOn','createdByName','updatedOn','updatedByName'];
+  employeeInActiveColumns:any[] = ['employeementId','name','email','employmentstatus','managerName','departmentName','dateOfJoining','dateOfRelieving','createdOn','createdByName','updatedOn','updatedByName'];
   draftEmployeeColumns:any[] = ['employeementId','name','email','employmentstatus','managerName','departmentName','dateOfJoining','updateApplicationStatus']
   domainColumns:any[] = ['blank','domainName','createdByName','createdOn']
 
@@ -181,6 +180,7 @@ export class EmployeeConfigComponent implements OnInit {
   auditFilter:any = {};
   isAuditSearchEnabled:boolean = false;
   employeeAuditColumns:any[] = ['blank', 'date', 'field', 'value', 'bucketName', 'updatedByName'];
+  employeehistoryColumns:any[]=['blank','name','teamName','projectName','startDate','endDate','teamLeadName','jobRole','clientLocation','clientName'];
 
 
   queryList: any[] = [];
@@ -196,15 +196,19 @@ minDate: Date;
   tempValue : any;
   maxDateForExtend : Date;
   minDateForExtend : Date;
+ isPipGenerate : boolean = false;
+  pipReasons : any =[];
+  isPipFlag : boolean = false;
 
-
+  managerId : any;
+  TeamMemberList : any = [];
+  listOfDepartment : any[] =[];
 
   employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department','Designation',
    'Job Role', 'Manager', 'Team Name', 'Project Name', 'Client Name',
     'Employment Status', 'Date Of Joining','Domain','Specialization', 'City', 'Blood Group',
      'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status',
-     'Bank Name', 'Created By', 'State', 'Created On', 'Updated On', 'Updated By'];
-  departmentName: any;
+     'Bank Name', 'Created By', 'State', 'Created On'];
 
 
 
@@ -225,7 +229,8 @@ minDate: Date;
     private locationStrategy:LocationStrategy,
     private domainService:DomainService,
     private destinationService:DestinationService,
-    private leaveService : LeaveService) {
+    private leaveService : LeaveService
+  ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -237,7 +242,7 @@ minDate: Date;
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    //console.log(this.feature, this.userMapping);
+    console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
 
@@ -248,15 +253,6 @@ minDate: Date;
     this.employeeObj.approvalsTo = '';
     this.setYearOfPassingList();
     this.preventBackButton();
-    //console.log(this.currentUser.jobRoleName, "currentUser role");
-
-    this.today = new Date();
-    this.maxDate = new Date(this.today);
-    this.minDate = new Date();
-    this.minDate = new Date(2024, 0, 1); 
-
-   
-  
   }
 
   preventBackButton(){
@@ -304,7 +300,7 @@ minDate: Date;
       if(pincode != null){
         fetch('https://api.postalpincode.in/pincode/' + pincode).then(r => r.json()).then(j => {
         path = j[0].PostOffice[0];
-        //console.log(path, " : path");
+        console.log(path, " : path");
 
 
         let empObj = new Employee();
@@ -314,13 +310,13 @@ minDate: Date;
         empObj.country = path.Country;
         empObj.employeementId = empId;
 
-        //console.log(empObj, " empObj");
+        console.log(empObj, " empObj");
 
         this.employeeService.addDemographicsInfo(empObj).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus == "Success") {
-            //console.log("Employee demographics updated");
+            console.log("Employee demographics updated");
           } else {
-            //console.log("Employee demographics updation failed");
+            console.log("Employee demographics updation failed");
           }
         });
       });
@@ -378,6 +374,59 @@ minDate: Date;
     }
   }
 
+
+  updateEmployeesManager(employee, template: TemplateRef<any>){
+
+    let emp = new Employee();
+    emp.empId = employee.empId;
+    emp.managerId = employee.managerId
+    employee.managerId = this.managerId;
+    this.employeeService.setManagerToNewManager(emp).pipe(first()).subscribe((response :any)=>{
+      if(response.serviceStatus == "Success"){
+        //console.log(" teamName after manager changes done ",this.employeeObj.teamName)
+        this.getTeamMemberByTeamName(this.employeeObj.teamName);
+        this.openAlertMod(template," Employee's Manager has changed !!");
+        //console.log(" Manager update ")
+      }
+    })
+
+    //console.log(" managerUpdate method call and employee id of reporties    :   ",employee.empId);
+    
+    //console.log(" managerUpdate method call  employee name  :   ",employee.name);
+    //console.log(" managerId   ::   ",employee.managerId);
+    
+
+
+
+  }
+
+  getTeamMemberByTeamName(teamName){
+    //console.log(" teamName getTeamMemberByTeamName ",teamName);
+    // this.managerAndAbove = this.managerAndAbove.forEach(t=> t.managerId == ""); 
+    this.employeeService.getTeamMemberByTeamName(teamName).pipe(first()).subscribe((response : any)=>{
+      if(response.serviceStatus == "Success"){
+        this.TeamMemberList = response.serviceResponse;
+        this.getManagersList();
+        // this.employeeObj.managerId = '';
+        //console.log(" teamMember list   ",this.TeamMemberList)
+      }
+    })
+  }
+
+  getManagersList(){
+    // this.managerId = "";
+    // this.managerAndAbove = [];
+    this.managerAndAbove = this.managerAndAbove.forEach(t=> t.managerId == ""); 
+    //console.log(" managers call ");
+    this.employeeService.getManagerList().pipe(first()).subscribe((response : any)=>{
+      if(response.serviceStatus == "Success"){
+        this.managerAndAbove = response.serviceResponse
+        this.managerAndAbove = this.managerAndAbove.filter(empId => empId.managerId != this.employeeObj.empId);
+        //console.log(" managersAndAbove list   ",this.managerAndAbove);
+      }
+    });
+  }
+
   stringToNumber(year:any){
     this.employeeObj.yearOfPassing = Number.parseInt(year);
   }
@@ -401,9 +450,6 @@ minDate: Date;
   }
 
   showTable() {
-    this.sortColumn=[];
-    this.sortColumnType=[];
-    this.sortDirection='';
     this.isTable = true;
 
     this.isForm = false;
@@ -416,12 +462,12 @@ minDate: Date;
     this.data='';
     this.filters = {};
     this.workHistoryFilters = {};
+    this.filterOnhistory={};
     this.isSearchEnabled = false;
     this.isworkHistorySearchEnabled = false;
     this.isAuditSearchEnabled = false;
 
     this.managerList = [];
-    this.resetSearch();
     this.getAllEmployeeList();
   }
 
@@ -436,8 +482,8 @@ minDate: Date;
     this.isDeletion = false;
     this.page=1;
     this.data='';
+    this.filters = {};
 
-    this.resetSearch();
     this.getAllDraftEmployees();
   }
 
@@ -496,7 +542,7 @@ minDate: Date;
 
         this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
 
-        //console.log("employee :", this.employeeObj);
+        console.log("employee :", this.employeeObj);
         // employee.employeementId = this.utilityService.appendEmployeementid(employee.employeementId);
         // Job Role
         if (this.employeeObj.departmentId) {
@@ -527,7 +573,7 @@ minDate: Date;
     this.employeeService.getDraftEmployeeByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeObj = Object.assign({}, response.serviceResponse);
-        //console.log("employee :", this.employeeObj);
+        console.log("employee :", this.employeeObj);
 
         // Job Role
         if (this.employeeObj.departmentId) {
@@ -622,7 +668,7 @@ minDate: Date;
 
   //       this.allSpecializationList = this.domainObj.allSpecializationList;
 
-  //       //console.log(response.serviceResponse, " : response.serviceResponse");
+  //       console.log(response.serviceResponse, " : response.serviceResponse");
   //     } else {
   //       console.error(response.serviceResponse);
   //     }
@@ -633,7 +679,7 @@ minDate: Date;
   // addInputSpecializationField(){
   //   let domainObj = new Domain();
   //   this.allSpecializationList.push(domainObj);
-  //   //console.log(this.allSpecializationList, " : this.allSpecializationList");
+  //   console.log(this.allSpecializationList, " : this.allSpecializationList");
   // }
 
   // removeInputSpecializationField(spec:any){
@@ -642,7 +688,7 @@ minDate: Date;
   //       this.allSpecializationList.splice(index, 1);
   //     }
   //   });
-  //   //console.log(this.allSpecializationList, " :this.allSpecializationList");
+  //   console.log(this.allSpecializationList, " :this.allSpecializationList");
   // }
 
   // Manage employer
@@ -661,62 +707,6 @@ minDate: Date;
     });
   }
 
-  //export 
-  exportData(type: string): void {
-    let data: any[] = [];
-    switch (type) {
-      case 'fullJourney':
-      data = this.filteredEmployeeAuditHistory.map(item => ({
-        Date: item.date,
-        Field: item.field,
-        Value: item.value,
-        Bucket: item.bucketName,
-        UpdatedBy: item.updatedByName
-      }));
-      break;
-      case 'lifeCycle':
-        data = this.lifeCycleChangeList.map(item => ({
-          Date: item.date,
-          Field: item.field,
-          Value: item.value,
-          Bucket: item.bucketName,
-          UpdatedBy: item.updatedByName
-        }));
-        break;
-        case 'teamProject':
-          data = this.teamProjectChangeList.map(item => ({
-            Date: item.date,
-            Field: item.field,
-            Value: item.value,
-            Bucket: item.bucketName,
-            UpdatedBy: item.updatedByName
-          }));
-          break;
-          case 'kycUpdate':
-            data = this.kycUpdateList.map(item => ({
-              Date: item.date,
-              Field: item.field,
-              Value: item.value,
-              Bucket: item.bucketName,
-              UpdatedBy: item.updatedByName
-            }));
-            break;
-          case 'employeeInfo':
-            data = this.employeeInfoChangeList.map(item => ({
-              Date: item.date,
-              Field: item.field,
-              Value: item.value,
-              Bucket: item.bucketName
-            }));
-            break;
-         default:
-            console.error('Unknown export type');
-         return;
-    }
-    this.exportExcelService.exportTableDataToExcel(data, `${type}.xlsx`);
-  }
-  
-
   // Manage Certifications
   addInputCertificationField() {
     let newCertificationObj = new certification();
@@ -734,6 +724,22 @@ minDate: Date;
         this.allCertificationList.splice(index, 1);
       }
     });
+  }
+
+
+  getTeamsByProjectName(projectName,template: TemplateRef<any>){
+    //console.log(" projectName   ",projectName);
+    this.employeeObj.teamName = "";
+    this.employeeService.getTeamByProjectName(projectName).pipe(first()).subscribe((response : any)=>{
+      if(response.serviceStatus == "Success"){
+        this.teamList = response.serviceResponse;
+        //console.log(" team list success   ",this.teamList);
+      }else{
+        this.openAlertMod(template , response.serviceResponse);
+        //console.log(" in fail ")
+      }
+    });
+
   }
 
   validateEmployeeObj(employeeObj: Employee, template: TemplateRef<any>) {
@@ -955,32 +961,7 @@ minDate: Date;
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    //  added by anurag
-   
-    if(!this.managerFlag && !this.isCreation){
-    if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.updateType)){
-      this.alertMessage = "Please select Mapping Update Type !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-  }
-// end
-    if(employeeObj.employmentstatus == "InActive"){
-      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.employmentReleaseStatus)) {
-        this.alertMessage = "Please select Employment Release Status !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-    }
-    if(employeeObj.employmentstatus == "InActive"){
-    if(employeeObj.updateType == 'automatic'){
-      if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.newManagerId)){
-        this.alertMessage = "Please select New Manager !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-    }
-  }
+
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.noticePeriod)) {
       this.alertMessage = "Please enter notice period !!"
       this.openAlertMod(template, this.alertMessage);
@@ -1270,56 +1251,14 @@ minDate: Date;
     return (true);
 
   }
-
-  RestrictFullName(event){
-    var k;
-    k= event.charCode;
-    if((k == 33) || (k == 34) || (k == 35) || (k == 36 ) || (k == 37) ||
-    (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42 ) ||
-    (k == 43) || (k == 44) ||(k == 45) || (k == 46 ) || (k == 47) || (k == 48) ||
-    (k == 49) ||(k == 50) ||(k == 51) ||(k == 52) ||(k == 53) ||(k == 54) ||(k == 55) ||
-    (k == 56) ||(k == 57) || (k == 58) ||
-     (k == 59) || (k == 60) || (k == 61) || (k == 62 ) || (k == 63) ||
-     (k == 64) || (k == 91) || (k == 92) || (k == 93) || (k == 94) ||
-      (k == 95) || (k == 96) || (k == 123) ||
-        (k == 124) || (k == 125) || (k == 126) || (k == 127))
-        {
-          return (false);
-        }
-        return (true);
-
-
-  }
-
-  fieldRestictCharacterForNumber(event){
-    var k;
-    k = event.charCode;
-if((k == 32) || (k == 33) || (k == 34) || (k == 35) || (k == 36) || (k == 37) || (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42) || (k == 43) ||
-(k == 44) || (k == 45) || (k == 46) || (k == 47) ||(k == 97) || (k == 98 ) || (k == 99) ||
-(k == 99) || (k == 100) || (k == 101) || (k == 102) || (k == 103 ) ||
-(k == 104) || (k == 105) || (k == 106 ) || (k == 107) || (k == 108) ||
- (k == 109) || (k == 110) || (k == 111) || (k == 112 ) || (k == 113) ||
- (k == 114) || (k == 115 ) || (k == 116) || (k == 117) || (k == 118 ) ||
-   (k == 119) || (k == 120) || (k == 121) || (k == 122) || (k == 46) || (k == 65) || (k == 66 ) || (k == 67) || (k == 68) || (k == 69 ) ||
-   (k == 70) || (k == 71) || (k == 72 ) || (k == 73) || (k == 74) ||
-   (k == 75 ) || (k == 76) || (k == 77) || (k == 78) || (k == 79) ||
-   (k == 80) || (k == 81 ) || (k == 82) || (k == 83) || (k == 84) ||
-    (k == 85) ||  (k == 86) || (k == 87 ) || (k == 88) || (k == 89) ||
-   (k == 90) ){
-  return (false);
-}
-return true; 
- }
-
-
   // 97 to 122
 
   // CRUD
 
   onCreateEmployee(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
-    //console.log("allCertificationList : ", this.allCertificationList);
-    //console.log("allPreviousEmployment : ", this.allPreviousEmployment);
+    console.log("allCertificationList : ", this.allCertificationList);
+    console.log("allPreviousEmployment : ", this.allPreviousEmployment);
 
 
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
@@ -1339,13 +1278,13 @@ return true;
     }
     this.employeeObj.previousEmploymentList = (Object.keys(this.allPreviousEmployment[0]).length === 0) ? null : this.allPreviousEmployment;
     this.employeeObj.createdBy = this.currentUser.empId;
-    //console.log("Create Employe : ", this.employeeObj);
+    console.log("Create Employe : ", this.employeeObj);
    let employee = Object.assign({},this.employeeObj)
     employee.employeementId = this.utilityService.substringEmployeementid(this.employeeObj.employeementId);
 
     if(this.employeeObj.employeementId.startsWith('A-')){
       employee.employeementId  = this.employeeObj.employeementId.substring(2);
-      //console.log("Employee :", this.employeeObj);
+      console.log("Employee :", this.employeeObj);
     }else {
       employee.employeementId  = this.employeeObj.employeementId
     }
@@ -1374,7 +1313,7 @@ return true;
   //       return false;
   //     }
   //     employee.employeementId  = this.employeeObj.employeementId.substring(2);
-  //     //console.log("Employee :", this.employeeObj);
+  //     console.log("Employee :", this.employeeObj);
   //   }else {
   //     employee.employeementId  = this.employeeObj.employeementId
   //   if (!this.validationService.validateNullUndefinedEmptyString(employee.employeementId)) {
@@ -1393,35 +1332,27 @@ return true;
   //       this.openAlertMod(template, response.serviceResponse);
   //       employee.employeementId = '';
   //     }
-  //     //console.log("checkEmployeementId response: ",response);
+  //     console.log("checkEmployeementId response: ",response);
   //   });
   // }
   checkEmployeementId(template: TemplateRef<any>) {
     let employee = new Employee();
-    // employee.employeementId = this.utilityService.substringEmployeementid2(this.employeeObj.employeementId);
-    employee.employeementId=this.employeeObj.employeementId;
-    //console.log("chechEmpId() employee.employeementId: ",employee.employeementId);
+    employee.employeementId = this.utilityService.substringEmployeementid2(this.employeeObj.employeementId);
+    console.log("chechEmpId() employee.employeementId: ",employee.employeementId);
     employee.email = this.employeeObj.email;
     employee.empId = this.employeeObj.empId;
     if (!this.validationService.validateNullUndefinedEmptyString(employee.employeementId)) {
           this.alertMessage = "Please Enter Employment ID !!";
           this.openAlertMod(template, this.alertMessage);
           return false;
-    }else{
-      employee.employeementId = this.utilityService.substringEmployeementid2(this.employeeObj.employeementId);
-      if (!this.validationService.validateEmployeementId(employee.employeementId)) {
-        this.alertMessage = "Please Enter Valid Employment ID !!";
-        this.openAlertMod(template, this.alertMessage);
-        this.employeeObj.employeementId = '';
-      }
     }
-    // if (!this.validationService.validateEmployeementId(employee.employeementId)) {
-    //   this.alertMessage = "Please Enter Valid Employment ID !!";
-    //   this.openAlertMod(template, this.alertMessage);
-    //   this.employeeObj.employeementId = '';
-    // }
+    if (!this.validationService.validateEmployeementId(employee.employeementId)) {
+      this.alertMessage = "Please Enter Valid Employment ID !!";
+      this.openAlertMod(template, this.alertMessage);
+      this.employeeObj.employeementId = '';
+    }
     this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
-      //console.log("EMPLY-ID response.serviceResponse: ",response.serviceResponse);
+      console.log("EMPLY-ID response.serviceResponse: ",response.serviceResponse);
       if (response.serviceStatus == "Fail") {
         this.openAlertMod(template, response.serviceResponse);
         this.employeeObj.employeementId = '';
@@ -1448,7 +1379,7 @@ return true;
       return false;
     }
     this.employeeService.checkEmployeeEmail(employee).pipe(first()).subscribe((response: any) => {
-      //console.log("EMAIL-response.serviceResponse: ",response.serviceResponse);
+      console.log("EMAIL-response.serviceResponse: ",response.serviceResponse);
       if (response.serviceStatus == "Fail") {
         this.openAlertMod(template, response.serviceResponse);
         this.employeeObj.email = '';
@@ -1459,7 +1390,7 @@ return true;
   // checkEmail(template: TemplateRef<any>) {
   //   let employee = new Employee();
   //   employee.employeementId = this.utilityService.substringEmployeementid(this.employeeObj.employeementId)
-  //   //console.log("checkEmail employee.employeementId: ",employee.employeementId);
+  //   console.log("checkEmail employee.employeementId: ",employee.employeementId);
   //   const regex = /^(?:[0-9]+[a-z_.]|[a-z_.])[a-z0-9_.]+@apmosys\.com$/i;
   //   if (this.employeeObj.email != null)
   //   {
@@ -1472,7 +1403,7 @@ return true;
   //           this.openAlertMod(template, response.serviceResponse);
   //           this.employeeObj.email = '';
   //         }
-  //         //console.log("checkEmployeeEmail response: ",response);
+  //         console.log("checkEmployeeEmail response: ",response);
   //       });
   //     }else {
   //       this.openAlertMod(template, "Please enter valid email id... !!");
@@ -1502,17 +1433,26 @@ return true;
     }
   }
 
+  // added by anurag on field validation
+
+  ValidateName(template:TemplateRef<any>){
+    this.employeeObj.name = this.employeeObj.name?.trim();
+    if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.name)) {
+      this.alertMessage = "Please enter Full Name !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } else if (!this.validationService.validateAlphaWithSpace(this.employeeObj.name)) {
+      this.alertMessage = "Please enter Valid Full Name !!";
+      this.openAlertMod(template, this.alertMessage);
+      this.employeeObj.name='';
+      return false;
+    }
+  }
 
   checkEmployeeMobileNo(template: TemplateRef<any>) {
     let employee = new Employee();
     employee.employeementId = this.utilityService.substringEmployeementid2(this.employeeObj.employeementId);
     employee.mobileNo = this.employeeObj.mobileNo;
-
-    if(!this.validationService.validateNullUndefinedEmptyString(employee.mobileNo)){
-      this.alertMessage="Please Enter Mobile Number";
-      this.openAlertMod(template,this.alertMessage);
-      return;
-    }
 
     if(!this.validationService.validateMobileNumber(employee.mobileNo))
     {
@@ -1522,7 +1462,7 @@ return true;
     }
 
     this.employeeService.checkEmployeeMobileNo(employee).pipe(first()).subscribe((response: any) => {
-      //console.log("MOB No- response.serviceResponse: ", response.serviceResponse);
+      console.log("MOB No- response.serviceResponse: ", response.serviceResponse);
       if (response.serviceStatus == "Fail") {
         this.openAlertMod(template, response.serviceResponse);
         this.employeeObj.mobileNo = '';
@@ -1535,7 +1475,7 @@ return true;
   //   employee.employeementId = this.utilityService.substringEmployeementid(this.employeeObj.employeementId);
   //   employee.mobileNo = this.employeeObj.mobileNo;
 
-  //   //console.log(employee, " : employee");
+  //   console.log(employee, " : employee");
 
   //   this.employeeService.checkEmployeeMobileNo(employee).pipe(first()).subscribe((response: any) => {
   //     if (response.serviceStatus == "Fail") {
@@ -1574,7 +1514,7 @@ return true;
     let element:any = document.getElementById(field);
     if(element) element.value = '';
 
-    //console.log("value : ", element.value);
+    console.log("value : ", element.value);
   
     this.employeeObj[fieldname] = '';
   }
@@ -1596,15 +1536,14 @@ return true;
     }
 
     this.employeeObj.updatedBy = this.currentUser.empId;;
-    //console.log("Update Employe : ", this.employeeObj);
+    console.log("Update Employe : ", this.employeeObj);
 
     let employee = Object.assign({}, this.employeeObj);
-    employee.imageBytes="";
     employee.updatedBy = this.currentUser.empId;
 
     if(this.employeeObj.employeementId.startsWith('A-')){
       employee.employeementId  = this.employeeObj.employeementId.substring(2);
-      //console.log("Employee :", this.employeeObj);
+      console.log("Employee :", this.employeeObj);
     }else {
       employee.employeementId  = this.employeeObj.employeementId
     }
@@ -1619,7 +1558,6 @@ return true;
       employee.reportingManagerId = null;
       employee.approvalsTo = null;
     }
-//console.log("Anurag call update method  ::  ",employee);
 
     this.employeeService.updateEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1680,13 +1618,13 @@ return true;
     employee.managerId = this.employeeObj.newManagerId;
     employee.oldManagerId = this.employeeObj.oldManagerId;
 
-    //console.log("changeManagerMapping : ", employee);
+    console.log("changeManagerMapping : ", employee);
 
     this.employeeService.changeManagerMapping(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
 
         employee.empId = this.employeeObj.oldManagerId;
-        //console.log("deleteEmployee : ", employee);
+        console.log("deleteEmployee : ", employee);
         this.employeeService.deleteEmployee(employee).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus == "Success") {
             this.openAlertMod(template, response.serviceResponse);
@@ -1707,14 +1645,12 @@ return true;
     this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
-        //console.log(this.allEmployeeList.dateOfRelieving,"dateofREleiving");
-        //console.log("Hiii ");
-        //console.log("allEmployeeList : ", this.allEmployeeList)
+        console.log(this.allEmployeeList.dateOfRelieving,"dateofREleiving");
+        console.log("allEmployeeList : ", this.allEmployeeList)
         this.allEmployeeList.forEach(employeeObj => {
           employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.employeementId);
           employeeObj.dateOfJoining = (employeeObj.dateOfJoining)? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
           employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving)? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-          employeeObj.dateOfResign = (employeeObj.dateOfResign)? moment(employeeObj.dateOfResign).format(AppComponent.DATE_FORMAT) : null;
           employeeObj.updatedOn = (employeeObj.updatedOn)? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
           employeeObj.createdOn = (employeeObj.createdOn)? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
@@ -1733,11 +1669,9 @@ return true;
     if(value=="Active"){
         this.allEmployeeList = this._allEmployeeList.filter(x => x.employmentstatus != 'InActive');
         this.dateOfReleivingshow= false;
-        this.managerFlag = false;
     }else if(value=="InActive"){
       this.allEmployeeList = this._allEmployeeList.filter(x => x.employmentstatus == 'InActive');
       this.dateOfReleivingshow= true;
-      this.managerFlag = true;
     }
     this.page=1;
   }
@@ -1746,7 +1680,7 @@ return true;
       let emp = { name: employee.name, empId: employee.empId.toString() };
       return emp;
     });
-    //console.log("managerList : ", this.managerList);
+    console.log("managerList : ", this.managerList);
   }
 
   name = 'EmployeeSheet.xlsx';
@@ -1761,9 +1695,7 @@ return true;
           "Full Name": x.name,
           "EmailId": x.email,
           "Employment Status": x.employmentstatus,
-          "Employment Release Status":x.employmentReleaseStatus,
           "Date of Joining": (x.dateOfJoining)? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null,
-          "Date of Resign" : (x.dateOfResign)? moment(x.dateOfResign).format(AppComponent.DATE_FORMAT) : null,
           "Date of Relieving" : (x.dateOfRelieving)? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null,
           "Department Name": x.departmentName,
           "Aadhar":x.aadhar,
@@ -1808,8 +1740,6 @@ return true;
           "Created On":(x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
           "Manager Name": x.managerName,
           "Job Role":x.jobRoleName,
-          "Billable":x.billable,
-          "Billable Type":x.billableType
 
         })
       )
@@ -1821,20 +1751,20 @@ return true;
     this.managerList = [];
     let employeeList = [];
 
-    //console.log("Skip manager : ", employee)
+    console.log("Skip manager : ", employee)
     this.employeeObj.role = "Manager";
     this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
     this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         employeeList = response.serviceResponse;
 
-        //console.log("employeeList By Role : ", employeeList)
+        console.log("employeeList By Role : ", employeeList)
         if(this.isUpdation || this.isDeletion){
           this.managerList = employeeList.filter((manager:Employee) => manager.empId !== employee.empId);
         }else{
           this.managerList = employeeList;
         }
-        //console.log("managerList : ", this.managerList)
+        console.log("managerList : ", this.managerList)
       } else {
         console.error(response.serviceResponse)
       }
@@ -1856,7 +1786,7 @@ return true;
     this.employeeObj.certifications = (Object.keys(this.allCertificationList[0]).length === 0) ? null : this.allCertificationList;
     this.employeeObj.previousEmploymentList = (Object.keys(this.allPreviousEmployment[0]).length === 0) ? null : this.allPreviousEmployment;
     this.employeeObj.createdBy = this.currentUser.empId;
-    //console.log("Create Employe Draft : ", this.employeeObj);
+    console.log("Create Employe Draft : ", this.employeeObj);
     this.employeeService.createDraftEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -1877,7 +1807,7 @@ return true;
     this.employeeObj.certifications = (Object.keys(this.allCertificationList[0]).length === 0) ? null : this.allCertificationList;
     this.employeeObj.previousEmploymentList = (Object.keys(this.allPreviousEmployment[0]).length === 0) ? null : this.allPreviousEmployment;
     this.employeeObj.updatedBy = this.currentUser.empId;
-    //console.log("Update Employe Draft : ", this.employeeObj);
+    console.log("Update Employe Draft : ", this.employeeObj);
     this.employeeService.updateDraftEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -1914,7 +1844,7 @@ return true;
           x.dateOfJoining = (x.dateOfJoining)? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
           x.dateOfRelieving = (x.dateOfRelieving)? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
         }
-        //console.log("allDraftEmployeeList : ", this.allEmployeeList)
+        console.log("allDraftEmployeeList : ", this.allEmployeeList)
       } else {
         alert(response.serviceResponse)
       }
@@ -1928,7 +1858,7 @@ return true;
     this.jobRoleService.getAllJobRole().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allJobRoleList = response.serviceResponse;
-        //console.log("allJobRoleList : ", this.allJobRoleList);
+        console.log("allJobRoleList : ", this.allJobRoleList);
       } else {
         console.error(response.serviceResponse)
       }
@@ -1942,7 +1872,7 @@ return true;
     this.destinationService.getDesignationByDeptId(designationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
        this.allDesignationList = response.serviceResponse;
-       //console.log(this.allDesignationList, " : allDesignationList");
+       console.log(this.allDesignationList, " : allDesignationList");
       } else {
         console.error(response.serviceResponse)
       }
@@ -1955,7 +1885,7 @@ return true;
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allDeptList = response.serviceResponse;
-        //console.log("allDeptList : ", this.allDeptList);
+        console.log("allDeptList : ", this.allDeptList);
       } else {
         console.error(response.serviceResponse)
       }
@@ -2025,7 +1955,7 @@ return true;
       this.employeeObj.documentList.forEach((doc:Document) => doc.documentBytes = null);
     }
     this.employeeObj.remarks = this.employeeObj.remarks?.trim();
-    //console.log(" reject KYC :  ",this.employeeObj)
+    console.log(" reject KYC :  ",this.employeeObj)
     this.employeeService.rejectDraftEmployeeApplication(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
@@ -2059,7 +1989,7 @@ return true;
   // Employee Info Preview
   async openEmployeeInfoPreview(template: TemplateRef<any>, employeeObj: Employee) {
 
-    //console.log("employeeObj : ", employeeObj);
+    console.log("employeeObj : ", employeeObj);
 
     let currentEmp = new Employee();
     currentEmp.employeementId = employeeObj.employeementId.substring(2);
@@ -2069,7 +1999,7 @@ return true;
     const infoResponse: any = await this.employeeService.getDraftEmployeeByEmpId(currentEmp).toPromise();
     if (infoResponse.serviceStatus == "Success") {
       this.previewObj = infoResponse.serviceResponse;
-      //console.log("this.previewObj : ", this.previewObj);
+      console.log("this.previewObj : ", this.previewObj);
     } else {
       console.error(infoResponse.serviceResponse)
     }
@@ -2077,9 +2007,9 @@ return true;
     const docResponse:any = await this.imageService.getEmployeeDocuments(currentEmp).toPromise();
     if (docResponse.serviceStatus == 'Success') {
       this.previewObj.documentList = docResponse.serviceResponse;
-      //console.log("this.previewObj.documentList : ", this.previewObj.documentList);
+      console.log("this.previewObj.documentList : ", this.previewObj.documentList);
     } else {
-      //console.log(docResponse.serviceResponse);
+      console.log(docResponse.serviceResponse);
     }
     this.previewModalRef = this.modalService.show(template, { class: 'modal-xl'});
     setTimeout(()=>{
@@ -2097,7 +2027,7 @@ return true;
   // Employee Info preview View all tab
   async openViewEmployeeInfoPreview(template: TemplateRef<any>, employeeObj: Employee) {
 
-    //console.log("employeeObj : ", employeeObj);
+    console.log("employeeObj : ", employeeObj);
     this.domainSpecializationList = [];
 
     let currentEmp = new Employee();
@@ -2110,7 +2040,7 @@ return true;
     if (infoResponse.serviceStatus == "Success") {
       this.previewEmployeeObj = infoResponse.serviceResponse;
 
-      //console.log("this.previewObj : ", this.previewEmployeeObj);
+      console.log("this.previewObj : ", this.previewEmployeeObj);
     } else {
       console.error(infoResponse.serviceResponse)
     }
@@ -2118,9 +2048,9 @@ return true;
     const docResponse:any = await this.imageService.getEmployeeDocuments(currentEmp).toPromise();
     if (docResponse.serviceStatus == 'Success') {
       this.previewEmployeeObj.documentList = docResponse.serviceResponse;
-      //console.log("this.previewObj.documentList : ", this.previewEmployeeObj.documentList);
+      console.log("this.previewObj.documentList : ", this.previewEmployeeObj.documentList);
     } else {
-      //console.log(docResponse.serviceResponse);
+      console.log(docResponse.serviceResponse);
     }
 
     let domainObj = new Domain();
@@ -2128,7 +2058,7 @@ return true;
     const domainResponse:any = await this.domainService.getDomainSpecializationByEmpId(domainObj).toPromise();
       if (domainResponse.serviceStatus == "Success") {
         this.domainSpecializationList = domainResponse.serviceResponse;
-        //console.log(this.domainSpecializationList, " : this.domainSpecializationList");
+        console.log(this.domainSpecializationList, " : this.domainSpecializationList");
       } else {
         console.error(domainResponse.serviceResponse);
       }
@@ -2145,6 +2075,67 @@ return true;
       });
     }, 500)
   }
+
+  openModalForManagerChange(template: TemplateRef<any>, event,employeeId) {
+
+    this.filters = {};
+    var eventValue = event.target.value;
+    if(eventValue == 'InActive'){
+      var id = employeeId
+   
+      this.employeeService.getTotalNoOfreporties(id).pipe(first()).subscribe((response : any)=>{
+        if(response.serviceStatus == 'Success'){
+          this.listOfReporties = response.serviceResponse;
+        }
+      })
+      var empId = employeeId;
+      //console.log(" empId    ",empId);
+      this.isSearchEnabled = false;
+      //console.log("Log    eventValue    ",eventValue);
+    
+      this.modalRef = this.modalService.show(template, { class: 'modal-sm' ,  backdrop: 'static', keyboard: false });
+    }
+  }
+
+  RestrictFullName(event){
+    var k;
+    k= event.charCode;
+    if((k == 33) || (k == 34) || (k == 35) || (k == 36 ) || (k == 37) ||
+    (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42 ) ||
+    (k == 43) || (k == 44) ||(k == 45) || (k == 46 ) || (k == 47) || (k == 48) ||
+    (k == 49) ||(k == 50) ||(k == 51) ||(k == 52) ||(k == 53) ||(k == 54) ||(k == 55) ||
+    (k == 56) ||(k == 57) || (k == 58) ||
+     (k == 59) || (k == 60) || (k == 61) || (k == 62 ) || (k == 63) ||
+     (k == 64) || (k == 91) || (k == 92) || (k == 93) || (k == 94) ||
+      (k == 95) || (k == 96) || (k == 123) ||
+        (k == 124) || (k == 125) || (k == 126) || (k == 127))
+        {
+          return (false);
+        }
+        return (true);
+
+
+  }
+
+  fieldRestictCharacterForNumber(event){
+    var k;
+    k = event.charCode;
+if((k == 32) || (k == 33) || (k == 34) || (k == 35) || (k == 36) || (k == 37) || (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42) || (k == 43) ||
+(k == 44) || (k == 45) || (k == 46) || (k == 47) ||(k == 97) || (k == 98 ) || (k == 99) ||
+(k == 99) || (k == 100) || (k == 101) || (k == 102) || (k == 103 ) ||
+(k == 104) || (k == 105) || (k == 106 ) || (k == 107) || (k == 108) ||
+ (k == 109) || (k == 110) || (k == 111) || (k == 112 ) || (k == 113) ||
+ (k == 114) || (k == 115 ) || (k == 116) || (k == 117) || (k == 118 ) ||
+   (k == 119) || (k == 120) || (k == 121) || (k == 122) || (k == 46) || (k == 65) || (k == 66 ) || (k == 67) || (k == 68) || (k == 69 ) ||
+   (k == 70) || (k == 71) || (k == 72 ) || (k == 73) || (k == 74) ||
+   (k == 75 ) || (k == 76) || (k == 77) || (k == 78) || (k == 79) ||
+   (k == 80) || (k == 81 ) || (k == 82) || (k == 83) || (k == 84) ||
+    (k == 85) ||  (k == 86) || (k == 87 ) || (k == 88) || (k == 89) ||
+   (k == 90) ){
+  return (false);
+}
+return true; 
+ }
 
 
   getAllPortalConfigData() {
@@ -2165,14 +2156,66 @@ return true;
     });
   }
 
+  getProjectsByDepartment(departmentName,template: TemplateRef<any>){
+    var newDept = departmentName?.trim();
+    this.employeeObj.projectName = "";
+    //console.log(" deptId value  ",departmentName);
+    this.employeeService.getProjectsByDepartmentName(newDept).pipe(first()).subscribe((response : any)=>{
+      if(response.serviceStatus == "Success"){
+
+        this.listOfProjectsByDeptId = response.serviceResponse;
+        //console.log( " success ",this.listOfProjectsByDeptId);
+      }else{
+        this.openAlertMod(template , response.serviceResponse);
+      }
+    });
+    }
+
+    // added by anurag for manager changes incase of inactive
+
+  openManagerDetailsModal(template: TemplateRef<any>,employeeId) {
+    this.filters = {};
+    this.listOfDepartment = [];
+    this.isSearchEnabled = false;
+    this.employeeObj.departmentId ="";
+    this.employeeObj.projectName = "";
+    this.employeeObj.teamName = "";
+    //console.log(" empId in manager UI change ",employeeId);
+
+    this.employeeService.getDepartmentByHodId(employeeId).pipe(first()).subscribe((response: any)=>{
+      if(response.serviceStatus == "Success"){
+        const responseObj = response.serviceResponse;
+       //console.log(" responseObj             ",responseObj);
+
+       responseObj.forEach((dept )=>{
+        this.deptId = dept[0];
+        this.departmentName = dept[2];
+        this.listOfDepartment.push(this.departmentName);
+       });
+
+
+        // this.listOfDepartment = response.serviceResponse;
+      }
+    })
+//console.log("this.deptId    ",this.deptId);
+
+//console.log("this.listOfDepartment        ",this.listOfDepartment    );
+
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl'});
+  }
+  departmentName(departmentName: any) {
+    throw new Error('Method not implemented.');
+  }
+
+
   updateNoticePeriod(employeeObj: Employee){
     const dateFormat = 'YYYY-MM-DD';
-    //console.log(employeeObj,"employeeObj");
+    console.log(employeeObj,"employeeObj");
     this.employeeObj.dateOfRelieving = moment(this.employeeObj.dateOfRelieving).format(dateFormat);
-    //console.log(this.employeeObj.dateOfRelieving);
+    console.log(this.employeeObj.dateOfRelieving);
     const diff =  Math.abs(Math.floor((new Date(this.employeeObj.dateOfRelieving).getTime() - new Date(employeeObj.dateOfResign).getTime()) / (1000 * 60 * 60 * 24)));
     this.employeeObj.noticePeriod = diff;
-    //console.log(diff, "diffDaysdiffDays")
+    console.log(diff, "diffDaysdiffDays")
   }
 
   estimateDateOfReleiving(employeeObj: Employee){
@@ -2181,7 +2224,7 @@ return true;
     if(this.employeeObj.dateOfResign){
       let estimateDateOfRelieving = new Date(this.employeeObj.dateOfResign);
       this.employeeObj.dateOfRelieving = moment(estimateDateOfRelieving).add(this.employeeObj.noticePeriod, "days").format(dateFormat);
-      //console.log(this.employeeObj.dateOfRelieving, "this.employeeObj.dateOfRelieving")
+      console.log(this.employeeObj.dateOfRelieving, "this.employeeObj.dateOfRelieving")
     }
   }
 
@@ -2196,7 +2239,7 @@ return true;
       employee.employeementId  = employee.employeementId
     }
 
-    //console.log("updateTimesheetLockCheck : ", employee);
+    console.log("updateTimesheetLockCheck : ", employee);
     this.employeeService.updateTimesheetLockCheck(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.getAllEmployeeList();
@@ -2212,6 +2255,7 @@ return true;
   resetAuditSearchFilter(event, title?:any){
     this.isAuditSearchEnabled = false;
     this.auditFilter = {};
+    this.filterOnhistory={};
 
     if(title == 'Full Journey'){
       this.isFullJourneyAccordianBody = true;
@@ -2235,23 +2279,52 @@ return true;
     }
     if(title == 'Team/Project Change'){
       this.isTeamProjectAccordianBody = true;
-    }else{
+    
+    } else{
       this.isTeamProjectAccordianBody = false;
     }
+    if(title == 'Project History'){
+     this.isEmployeeHistory=true;
+     this.employeehistory();
+    } else{
+      this.isEmployeeHistory=false;
+    }
+   
   }
 
+  
+
+  employeehistory() {
+    this.employeeWorkingHistory = [];
+    let empObj = new Employee();
+    empObj.empId = this.imployeeID;
+   this.employeeService.findEmployeeWorkingHistory(empObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeeWorkingHistory=response.serviceResponse;
+        console.log('emoloyee hist-----', this.employeeWorkingHistory);
+      } else {
+        console.error(response.serviceResponse);
+      }
+     });
+   }
+
+
   getEmployeeAuditInfo(employee:any, auditTemplate: TemplateRef<any>, template: TemplateRef<any>){
+
     this.filteredEmployeeAuditHistory = [];
     this.employeeAuditHistory = [];
     this.filters = {};
+    this.filterOnhistory={};
     this.isEmployeeInfoAccordianBody = false;
     this.isTeamProjectAccordianBody = false;
     this.isKycUpdateAccordianBody  = false;
     this.isLifeCycleAccordianBody = false;
     this.isFullJourneyAccordianBody = false;
+    this.isEmployeeHistory=false
 
     let employeeObj = new Employee();
     employeeObj.empId = employee.empId;
+    this.imployeeID=employee.empId;
 
     this.employeeService.getEmployeeAuditInfo(employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -2338,9 +2411,9 @@ return true;
 
         this.modalRef =  this.modalService.show(auditTemplate, { class: 'modal-lg' });
 
-        //console.log(this.filteredEmployeeAuditHistory , " : this.filteredEmployeeAuditHistory ");
+        console.log(this.filteredEmployeeAuditHistory , " : this.filteredEmployeeAuditHistory ");
       } else {
-        //console.log(response.serviceResponse, " audit response");
+        console.log(response.serviceResponse, " audit response");
       }
     });
   }
@@ -2358,7 +2431,7 @@ return true;
           domain.createdOn = (domain.createdOn)? moment(domain.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
 
-        //console.log(this.allDomainList, " : this.allDomainList");
+        console.log(this.allDomainList, " : this.allDomainList");
       } else {
         // this.openAlertMod(template, response.serviceResponse);
         console.error(response.serviceResponse);
@@ -2366,13 +2439,15 @@ return true;
     });
   }
 
+
+
   getDomainSpecialization(){
     this.specializationList = [];
 
     let domainObj = new Domain();
     domainObj.domainIdList = this.employeeObj.domainList;
 
-    //console.log(domainObj, " : domainObj selected");
+    console.log(domainObj, " : domainObj selected");
     this.domainService.getDomainSpecialization(domainObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.specializationList = response.serviceResponse;
@@ -2493,7 +2568,7 @@ return true;
 
   /* Filter */
   openFilterModal(template: TemplateRef<any>, columns: any[], title: any) {
-    //console.log("columns : ", columns);
+    console.log("columns : ", columns);
     this.queryList = [];
 
     this.filterData.title = title;
@@ -2522,7 +2597,7 @@ return true;
 
     this.filterData.queryList = JSON.stringify(this.queryList);
 
-    //console.log("filterData : ", this.filterData);
+    console.log("filterData : ", this.filterData);
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
   }
 
@@ -2531,8 +2606,6 @@ return true;
 
     let queryObj = new Query();
     queryObj.queryList = queryObjList;
-
-    //console.log("getCustomEmployeesList       ",queryObj);
 
     if (queryObjList == '') {
       this.getAllEmployeeList();
@@ -2557,7 +2630,7 @@ return true;
             employee.createdOn = (employee.createdOn) ? moment(employee.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
             employee.updatedOn = (employee.updatedOn) ? moment(employee.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
           });
-          //console.log("allEmployeeList : ", this.allEmployeeList)
+          console.log("allEmployeeList : ", this.allEmployeeList)
         } else {
           this.openAlertMod(template, response.serviceResponse)
         }
@@ -2567,7 +2640,7 @@ return true;
 
   onFilterSubmit(emittedArray: any, template: TemplateRef<any>) {
     if (emittedArray[0].length != 0) {
-      //console.log("queryList : ", emittedArray[0]);
+      console.log("queryList : ", emittedArray[0]);
       this.queryList = JSON.parse(JSON.stringify(emittedArray[0]));
       this.cancelRequest();
 
@@ -2662,6 +2735,7 @@ return true;
   handlePageChanges(event) {
     this.pageNo = event;
   }
+
   handleAuditPageChanges(event) {
     this.pageNo = event;
   }
@@ -2717,7 +2791,7 @@ return true;
    }
 
   sortData(sort: Sort){
-    //console.log(sort);
+    console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -2727,24 +2801,16 @@ return true;
   }
 
   toggleSearch(){
-    this.sortColumn=[];
-    this.sortColumnType=[];
-    this.sortDirection='';
       this.isSearchEnabled = !this.isSearchEnabled;
       if(!this.isSearchEnabled){
         this.filters = {};
       }
   }
 
-  resetSearch(){
-    this.isSearchEnabled = false;
-    this.filters = {};
-  }
-
   onSearch(searchData){
     if(this.isSearchEnabled == true){
       this.filters = searchData;
-      //console.log("Updated Filter : ", this.filters);
+      console.log("Updated Filter : ", this.filters);
     }
   }
 
@@ -2755,7 +2821,12 @@ return true;
 
   onWorkHistorySearch(searchData){
     this.filters = searchData;
-    //console.log("Updated Filter : ", this.filters);
+    console.log("Updated Filter : ", this.filters);
+  }
+
+
+  onsearchhistory(searchData){
+    this.filterOnhistory=searchData;
   }
 
   toggleAuditSearch(){
@@ -2764,404 +2835,323 @@ return true;
 
   onAuditSearch(searchData){
     this.auditFilter = searchData;
-    //console.log("Audit Updated Filter : ", this.filters);
+    console.log("Audit Updated Filter : ", this.filters);
   }
 
-  // added by anurag on field validation
 
-  ValidateName(template:TemplateRef<any>){
-    this.employeeObj.name = this.employeeObj.name?.trim();
-    if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.name)) {
-      this.alertMessage = "Please enter Full Name !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    } else if (!this.validationService.validateAlphaWithSpace(this.employeeObj.name)) {
-      this.alertMessage = "Please enter Valid Full Name !!";
-      this.openAlertMod(template, this.alertMessage);
-      this.employeeObj.name='';
-      return false;
+
+  exportData(type: string): void {
+    let data: any[] = [];
+    switch (type) {
+      case 'fullJourney':
+      data = this.filteredEmployeeAuditHistory.map(item => ({
+        Date: item.date,
+        Field: item.field,
+        Value: item.value,
+        Bucket: item.bucketName,
+        UpdatedBy: item.updatedByName
+      }));
+      break;
+      case 'lifeCycle':
+        data = this.lifeCycleChangeList.map(item => ({
+          Date: item.date,
+          Field: item.field,
+          Value: item.value,
+          Bucket: item.bucketName,
+          UpdatedBy: item.updatedByName
+        }));
+        break;
+        case 'teamProject':
+          data = this.teamProjectChangeList.map(item => ({
+            Date: item.date,
+            Field: item.field,
+            Value: item.value,
+            Bucket: item.bucketName,
+            UpdatedBy: item.updatedByName
+          }));
+          break;
+          case 'kycUpdate':
+            data = this.kycUpdateList.map(item => ({
+              Date: item.date,
+              Field: item.field,
+              Value: item.value,
+              Bucket: item.bucketName,
+              UpdatedBy: item.updatedByName
+            }));
+            break;
+          case 'employeeInfo':
+            data = this.employeeInfoChangeList.map(item => ({
+              Date: item.date,
+              Field: item.field,
+              Value: item.value,
+              Bucket: item.bucketName
+            }));
+            break;
+            case 'employeehistoryID':
+              data = this.employeeWorkingHistory.map(item => ({
+                EmployeeName:item.name,
+                TeamName:item.teamName,
+                ProjectName:item.projectName,
+                StartDate:item.startDate,
+                EndDate:item.updatedOn,
+                TeamLeadName:item.teamLeadName,
+                JobRole:item.jobRoleName,
+                ClientLocation:item.clientLocation,
+                ClientName:item.clientName,
+              }));
+
+              break;
+         default:
+            console.error('Unknown export type');
+         return;
     }
+    this.exportExcelService.exportTableDataToExcel(data, `${type}.xlsx`);
   }
 
-  // added by anurag for manager changes incase of inactive
 
-  openManagerDetailsModal(template: TemplateRef<any>,employeeId) {
-    this.filters = {};
-    this.listOfDepartment = [];
-    this.isSearchEnabled = false;
-    this.employeeObj.departmentId ="";
-    this.employeeObj.projectName = "";
-    this.employeeObj.teamName = "";
-    //console.log(" empId in manager UI change ",employeeId);
-
-    this.employeeService.getDepartmentByHodId(employeeId).pipe(first()).subscribe((response: any)=>{
-      if(response.serviceStatus == "Success"){
-        const responseObj = response.serviceResponse;
-       //console.log(" responseObj             ",responseObj);
-
-       responseObj.forEach((dept )=>{
-        this.deptId = dept[0];
-        this.departmentName = dept[2];
-        this.listOfDepartment.push(this.departmentName);
-       });
-
-
-        // this.listOfDepartment = response.serviceResponse;
-      }
-    })
-//console.log("this.deptId    ",this.deptId);
-
-//console.log("this.listOfDepartment        ",this.listOfDepartment    );
-
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl'});
+  resetField_OnChange(updateType){
+    updateType.employmentReleaseStatus = "";
+    updateType.newManagerId = "";
+    this.employeeObj.newManagerId ='';
   }
-
-  openModalForManagerChange(template: TemplateRef<any>, event,employeeId) {
-
-    this.filters = {};
-    var eventValue = event.target.value;
-    if(eventValue == 'InActive'){
-      var id = employeeId
-   
-      this.employeeService.getTotalNoOfreporties(id).pipe(first()).subscribe((response : any)=>{
-        if(response.serviceStatus == 'Success'){
-          this.listOfReporties = response.serviceResponse;
-        }
-      })
-      var empId = employeeId;
-      //console.log(" empId    ",empId);
-      this.isSearchEnabled = false;
-      //console.log("Log    eventValue    ",eventValue);
-    
-      this.modalRef = this.modalService.show(template, { class: 'modal-sm' ,  backdrop: 'static', keyboard: false });
-    }
+  resetFieldOnChange(updateType){
+    updateType.employmentstatus = "";
+    updateType.newManagerId = "";
+    this.employeeObj.newManagerId ='';
+}
+  resetField(updateType){
+    // updateType.employmentReleaseStatus = "";
+    updateType.newManagerId = "";
+    this.employeeObj.newManagerId ='';
   }
-
-  getProjectsByDepartment(departmentName,template: TemplateRef<any>){
-    var newDept = departmentName?.trim();
-    this.employeeObj.projectName = "";
-    //console.log(" deptId value  ",departmentName);
-    this.employeeService.getProjectsByDepartmentName(newDept).pipe(first()).subscribe((response : any)=>{
-      if(response.serviceStatus == "Success"){
-
-        this.listOfProjectsByDeptId = response.serviceResponse;
-        //console.log( " success ",this.listOfProjectsByDeptId);
-      }else{
-        this.openAlertMod(template , response.serviceResponse);
-      }
-    });
-    }
-
-
-    getTeamsByProjectName(projectName,template: TemplateRef<any>){
-      //console.log(" projectName   ",projectName);
-      this.employeeObj.teamName = "";
-      this.employeeService.getTeamByProjectName(projectName).pipe(first()).subscribe((response : any)=>{
-        if(response.serviceStatus == "Success"){
-          this.teamList = response.serviceResponse;
-          //console.log(" team list success   ",this.teamList);
-        }else{
-          this.openAlertMod(template , response.serviceResponse);
-          //console.log(" in fail ")
-        }
-      });
-
-    }
-
-    getTeamMemberByTeamName(teamName){
-      //console.log(" teamName getTeamMemberByTeamName ",teamName);
-      // this.managerAndAbove = this.managerAndAbove.forEach(t=> t.managerId == ""); 
-      this.employeeService.getTeamMemberByTeamName(teamName).pipe(first()).subscribe((response : any)=>{
-        if(response.serviceStatus == "Success"){
-          this.TeamMemberList = response.serviceResponse;
-          this.getManagersList();
-          // this.employeeObj.managerId = '';
-          //console.log(" teamMember list   ",this.TeamMemberList)
-        }
-      })
-    }
-
-    getManagersList(){
-      // this.managerId = "";
-      // this.managerAndAbove = [];
-      this.managerAndAbove = this.managerAndAbove.forEach(t=> t.managerId == ""); 
-      //console.log(" managers call ");
-      this.employeeService.getManagerList().pipe(first()).subscribe((response : any)=>{
-        if(response.serviceStatus == "Success"){
-          this.managerAndAbove = response.serviceResponse
-          this.managerAndAbove = this.managerAndAbove.filter(empId => empId.managerId != this.employeeObj.empId);
-          //console.log(" managersAndAbove list   ",this.managerAndAbove);
-        }
-      });
-    }
-
-    updateEmployeesManager(employee, template: TemplateRef<any>){
-
-      let emp = new Employee();
-      emp.empId = employee.empId;
-      emp.managerId = employee.managerId
-      employee.managerId = this.managerId;
-      this.employeeService.setManagerToNewManager(emp).pipe(first()).subscribe((response :any)=>{
-        if(response.serviceStatus == "Success"){
-          //console.log(" teamName after manager changes done ",this.employeeObj.teamName)
-          this.getTeamMemberByTeamName(this.employeeObj.teamName);
-          this.openAlertMod(template," Employee's Manager has changed !!");
-          //console.log(" Manager update ")
-        }
-      })
-
-      //console.log(" managerUpdate method call and employee id of reporties    :   ",employee.empId);
-      
-      //console.log(" managerUpdate method call  employee name  :   ",employee.name);
-      //console.log(" managerId   ::   ",employee.managerId);
-      
-
-
-
-    }
-    resetField_OnChange(updateType){
-      updateType.employmentReleaseStatus = "";
-      updateType.newManagerId = "";
-      this.employeeObj.newManagerId ='';
-    }
-    resetFieldOnChange(updateType){
-      updateType.employmentstatus = "";
-      updateType.newManagerId = "";
-      this.employeeObj.newManagerId ='';
-  }
-    resetField(updateType){
-      // updateType.employmentReleaseStatus = "";
-      updateType.newManagerId = "";
-      this.employeeObj.newManagerId ='';
-    }
 
 // added by anurag 
 
-    mapLeavesAndCompOffToNewManager(employee){
-      //console.log(" employee   ",employee);
-      //console.log(" pre employee ",this.employeeObj.managerId);
-      let emp = new Employee();
-      emp.empId=employee.empId;
-      emp.managerId=employee.managerId;
+  mapLeavesAndCompOffToNewManager(employee){
+    //console.log(" employee   ",employee);
+    //console.log(" pre employee ",this.employeeObj.managerId);
+    let emp = new Employee();
+    emp.empId=employee.empId;
+    emp.managerId=employee.managerId;
 
-      this.employeeService.mapLeavesAndCompOffToNewManager(emp).pipe(first()).subscribe((response:any)=>{
-        if(response.serviceStatus == "Success"){
-          //console.log(" method successfully call ")
-        }
-      })
-    }
-
-    //  added by anuarg
-
-    PIP_generate(template:TemplateRef<any>, employee){
-      this.isPipGenerate = true;
-      this.startDate = '';
-      this.endDate = '';
-      this.employeeObj.pipReason = ''
-      this.modalRef=this.modalService.show(template , { class : 'modal-md'});
-      this.employeeObj = employee;
-      }
-  
-      PIP_reverse_modal(template:TemplateRef<any> , team){
-        this.isToggle = false;
-        this.isPipGenerate = false;
-      this.modalRef=this.modalService.show(template , { class : 'modal-md'});
-      this.employeeObj = team;
-      this.getPipDetailsByEmpId(team);
-      }
-  
-      getPipDetailsByEmpId(employee : any){
-        // console.log(" emp details  ",employee);
-        let leaveObj = new Leave();
-        leaveObj.empId = employee.empId;
-    
-        this.leaveService.getPipDetailsByEmpId(leaveObj).pipe(first()).subscribe((response : any)=>{
-          if(response.serviceStatus == "Success"){
-            
-            this.employeeObj = Object.assign({}, response.serviceResponse);
-    
-            this.startDate = this.employeeObj.startDate;
-            this.endDate = this.employeeObj.endDate;
-    
-            this.endDate = (this.endDate)? moment(this.endDate, AppComponent.DATE_FORMAT).toDate() : '';
-            this.startDate = (this.startDate)? moment(this.startDate, AppComponent.DATE_FORMAT).toDate() : '';
-    
-            if (this.endDate) {
-              this.tempValue = new Date(this.endDate);
-              this.minDateForExtend = new Date(this.endDate);
-              this.maxDateForExtend = new Date(this.endDate);
-              this.maxDateForExtend.setMonth(this.maxDateForExtend.getMonth() + 2);
-            }
-            
-            
-            console.log(" startDate   ",this.startDate);
-            console.log(" endDate   ",this.endDate);
-            
-          }
-        })
-    
-      }
-  
-      PIP_reverse(template:TemplateRef<any>,teamObj,flag){
-        this.isPipGenerate = false;
-        console.log(teamObj);
-        let empObj = new Employee();
-        empObj.pipFlag = flag;
-        empObj.pipId = teamObj.pipId;
-        empObj.empId = teamObj.empId;
-        empObj.updatedBy = this.currentUser.empId;
-        empObj.updatedByName = this.currentUser.name;
-        empObj.revReason = teamObj.revReason;
-        empObj.startDate = moment(this.startDate).format(AppComponent.DATE_FORMAT);
-        if(this.isToggle){
-          empObj.endDate = moment(this.endDate).format(AppComponent.DATE_FORMAT);
-        }else{
-          let endDate : any = new Date();
-          endDate = moment(endDate).format(AppComponent.DATE_FORMAT);
-            console.log("endDate   ",endDate);
-          empObj.endDate = endDate;
-        }
-      
-        this.employeeService.pipReturnFromUser(empObj).pipe(first()).subscribe((response : any)=>{
-          if(response.serviceStatus == "Success"){
-            this.openAlertMod(template,response.serviceResponse);
-            this.getAllEmployeeList();
-          }else{
-            this.openAlertMod(template,response.serviceResponse);
-          }
-        })
-      }
-  
-      PipGenerateToUser(template: TemplateRef<any>,leaveObj,flag){
-        console.log(" leaveObj   ",leaveObj);
-        let emp = new Employee();
-        emp.empId = leaveObj.empId;
-        emp.pipReason = leaveObj.pipReason;
-        emp.startDate = moment(this.startDate).format(AppComponent.DATE_FORMAT);
-        emp.endDate = moment(this.endDate).format(AppComponent.DATE_FORMAT);
-        emp.pipFlag = flag;
-        emp.createdBy = this.currentUser.empId;
-        emp.createdByName = this.currentUser.name;
-      
-        console.log(emp);
-        this.employeeService.pipGenerateToUser(emp).pipe(first()).subscribe((response : any)=>{
-          if(response.serviceStatus == "Success"){
-            this.openAlertMod(template,response.serviceResponse);
-            this.getAllEmployeeList();
-          }else{
-            this.openAlertMod(template,response.serviceResponse);
-          }
-        })
-      }
-  
-  togglePipView(event){
-    this.employeeObj.revReason = '';
-    this.isDateChanged = false;
-    if(event.target.checked){
-      this.isToggle = true;
-      this.employeeObj.extendReason = '';
-
-    }else{
-      this.isToggle = false;
-      // this.leaveObj.endDate = this.tempValue;
-      this.endDate = this.tempValue;
-    }
-  }
-  
-  
-  pipReason(teamObj){
-    let empObj = new Employee();
-  
-    empObj.empId = teamObj.empId;
-    empObj.pipId = teamObj.pipId;
-    empObj.pipFlag = teamObj.pipFlag;
-  
-  
-  this.employeeService.getPipReasons(empObj).pipe(first()).subscribe((response : any)=>{
-    if(response.serviceStatus == "Success"){
-      this.pipReasons = response.serviceResponse;
-      if(this.pipReasons.length == 0){
-        if(this.employeeObj.pipFlag == "true") this.isPipFlag=true;
-        else this.isPipFlag=false;
-      }
-      this.pipReasons.forEach(d=>{
-        d.createdOn = moment(d.createdOn).format(AppComponent.DATE_FORMAT);
-        d.updatedOn = moment(d.updatedOn).format(AppComponent.DATE_FORMAT);
-        console.log(" d ki value ",d)
-        if(d.pipFlag == "true"){
-          console.log("i am in true flag")
-          this.isPipFlag = true;
-        }else{
-          console.log(" I'm in false flag")
-          this.isPipFlag = false;
-        }
-        if(d.createdOn == 'Invalid date'){
-          d.createdOn = '';
-        }
-        if(d.updatedOn == 'Invalid date'){
-          d.updatedOn = '';
-        }
-      })
-      console.log("this.pipReasons  ",this.pipReasons);  
-    }
-  })
-    console.log(" team ",empObj);
-    console.log(empObj,"teamteamteamteam")
-  }
-  
-  pipReasonModal(template:TemplateRef<any>,teamObj){
-    this.pageNo = 1;
-    this.modalRef=this.modalService.show(template , { class : 'modal-lg'});
-  this.employeeObj = teamObj;
-  this.pipReason(this.employeeObj);
-  }
-
-  extendPipModal(template : TemplateRef<any> , teamObj){
-    this.modalRef=this.modalService.show(template , { class : 'modal-sm'});
-    this.employeeObj = teamObj;
-  }
-
-  checkDateChange(){
-    this.isDateChanged = true;
-    } 
-  
-  
-
-  setPipExtendsDays(template:TemplateRef<any>){
-
-    if(!this.isDateChanged){
-      this.alertMessage="End date must be change for extend PIP";
-      this.openAlertMod(template , this.alertMessage);
-      return;
-    }
-this.cancelRequest();
-    let leave = new Employee();
-    leave.pipId = this.employeeObj.pipId;
-    leave.empId = this.employeeObj.empId;
-    leave.updatedByName = this.currentUser.name;
-    leave.extendReason = this.employeeObj.extendReason;
-    // leave.extendDays = this.leaveObj.extendDays;
-    leave.startDate = moment(this.startDate).format(AppComponent.DATE_FORMAT);
-    leave.endDate = moment(this.endDate).format(AppComponent.DATE_FORMAT);
-    console.log("team in set extend modal",leave)
-    this.employeeService.setExtendPeriodByPipId(leave).pipe(first()).subscribe((response : any)=>{
+    this.employeeService.mapLeavesAndCompOffToNewManager(emp).pipe(first()).subscribe((response:any)=>{
       if(response.serviceStatus == "Success"){
-        this.openAlertMod(template,response.serviceResponse);
-  
-      }else{
-        this.openAlertMod(template,response.serviceResponse);
+        //console.log(" method successfully call ")
       }
     })
-  
   }
-  
-  estimateEndDate() {
-    if (this.startDate) {
-      const startDate = new Date(this.startDate);
-      const endDate = new Date(startDate.getTime() + (90 * 24 * 60 * 60 * 1000)); // Adding 90 days
-      this.endDate = endDate.toISOString().split('T')[0];
+
+  //  added by anuarg
+
+  PIP_generate(template:TemplateRef<any>, employee){
+    this.isPipGenerate = true;
+    this.startDate = '';
+    this.endDate = '';
+    this.employeeObj.pipReason = ''
+    this.modalRef=this.modalService.show(template , { class : 'modal-md'});
+    this.employeeObj = employee;
     }
+
+    PIP_reverse_modal(template:TemplateRef<any> , team){
+      this.isToggle = false;
+      this.isPipGenerate = false;
+    this.modalRef=this.modalService.show(template , { class : 'modal-md'});
+    this.employeeObj = team;
+    this.getPipDetailsByEmpId(team);
+    }
+
+    getPipDetailsByEmpId(employee : any){
+      // console.log(" emp details  ",employee);
+      let leaveObj = new Leave();
+      leaveObj.empId = employee.empId;
+  
+      this.leaveService.getPipDetailsByEmpId(leaveObj).pipe(first()).subscribe((response : any)=>{
+        if(response.serviceStatus == "Success"){
+          
+          this.employeeObj = Object.assign({}, response.serviceResponse);
+  
+          this.startDate = this.employeeObj.startDate;
+          this.endDate = this.employeeObj.endDate;
+  
+          this.endDate = (this.endDate)? moment(this.endDate, AppComponent.DATE_FORMAT).toDate() : '';
+          this.startDate = (this.startDate)? moment(this.startDate, AppComponent.DATE_FORMAT).toDate() : '';
+  
+          if (this.endDate) {
+            this.tempValue = new Date(this.endDate);
+            this.minDateForExtend = new Date(this.endDate);
+            this.maxDateForExtend = new Date(this.endDate);
+            this.maxDateForExtend.setMonth(this.maxDateForExtend.getMonth() + 2);
+          }
+          
+          
+          console.log(" startDate   ",this.startDate);
+          console.log(" endDate   ",this.endDate);
+          
+        }
+      })
+  
+    }
+
+    PIP_reverse(template:TemplateRef<any>,teamObj,flag){
+      this.isPipGenerate = false;
+      console.log(teamObj);
+      let empObj = new Employee();
+      empObj.pipFlag = flag;
+      empObj.pipId = teamObj.pipId;
+      empObj.empId = teamObj.empId;
+      empObj.updatedBy = this.currentUser.empId;
+      empObj.updatedByName = this.currentUser.name;
+      empObj.revReason = teamObj.revReason;
+      empObj.startDate = moment(this.startDate).format(AppComponent.DATE_FORMAT);
+      if(this.isToggle){
+        empObj.endDate = moment(this.endDate).format(AppComponent.DATE_FORMAT);
+      }else{
+        let endDate : any = new Date();
+        endDate = moment(endDate).format(AppComponent.DATE_FORMAT);
+          console.log("endDate   ",endDate);
+        empObj.endDate = endDate;
+      }
+    
+      this.employeeService.pipReturnFromUser(empObj).pipe(first()).subscribe((response : any)=>{
+        if(response.serviceStatus == "Success"){
+          this.openAlertMod(template,response.serviceResponse);
+          this.getAllEmployeeList();
+        }else{
+          this.openAlertMod(template,response.serviceResponse);
+        }
+      })
+    }
+
+    PipGenerateToUser(template: TemplateRef<any>,leaveObj,flag){
+      console.log(" leaveObj   ",leaveObj);
+      let emp = new Employee();
+      emp.empId = leaveObj.empId;
+      emp.pipReason = leaveObj.pipReason;
+      emp.startDate = moment(this.startDate).format(AppComponent.DATE_FORMAT);
+      emp.endDate = moment(this.endDate).format(AppComponent.DATE_FORMAT);
+      emp.pipFlag = flag;
+      emp.createdBy = this.currentUser.empId;
+      emp.createdByName = this.currentUser.name;
+    
+      console.log(emp);
+      this.employeeService.pipGenerateToUser(emp).pipe(first()).subscribe((response : any)=>{
+        if(response.serviceStatus == "Success"){
+          this.openAlertMod(template,response.serviceResponse);
+          this.getAllEmployeeList();
+        }else{
+          this.openAlertMod(template,response.serviceResponse);
+        }
+      })
+    }
+
+togglePipView(event){
+  this.employeeObj.revReason = '';
+  this.isDateChanged = false;
+  if(event.target.checked){
+    this.isToggle = true;
+    this.employeeObj.extendReason = '';
+
+  }else{
+    this.isToggle = false;
+    // this.leaveObj.endDate = this.tempValue;
+    this.endDate = this.tempValue;
   }
+}
+
+
+pipReason(teamObj){
+  let empObj = new Employee();
+
+  empObj.empId = teamObj.empId;
+  empObj.pipId = teamObj.pipId;
+  empObj.pipFlag = teamObj.pipFlag;
+
+
+this.employeeService.getPipReasons(empObj).pipe(first()).subscribe((response : any)=>{
+  if(response.serviceStatus == "Success"){
+    this.pipReasons = response.serviceResponse;
+    if(this.pipReasons.length == 0){
+      if(this.employeeObj.pipFlag == "true") this.isPipFlag=true;
+      else this.isPipFlag=false;
+    }
+    this.pipReasons.forEach(d=>{
+      d.createdOn = moment(d.createdOn).format(AppComponent.DATE_FORMAT);
+      d.updatedOn = moment(d.updatedOn).format(AppComponent.DATE_FORMAT);
+      console.log(" d ki value ",d)
+      if(d.pipFlag == "true"){
+        console.log("i am in true flag")
+        this.isPipFlag = true;
+      }else{
+        console.log(" I'm in false flag")
+        this.isPipFlag = false;
+      }
+      if(d.createdOn == 'Invalid date'){
+        d.createdOn = '';
+      }
+      if(d.updatedOn == 'Invalid date'){
+        d.updatedOn = '';
+      }
+    })
+    console.log("this.pipReasons  ",this.pipReasons);  
+  }
+})
+  console.log(" team ",empObj);
+  console.log(empObj,"teamteamteamteam")
+}
+
+pipReasonModal(template:TemplateRef<any>,teamObj){
+  this.pageNo = 1;
+  this.modalRef=this.modalService.show(template , { class : 'modal-lg'});
+this.employeeObj = teamObj;
+this.pipReason(this.employeeObj);
+}
+
+extendPipModal(template : TemplateRef<any> , teamObj){
+  this.modalRef=this.modalService.show(template , { class : 'modal-sm'});
+  this.employeeObj = teamObj;
+}
+
+checkDateChange(){
+  this.isDateChanged = true;
+  } 
+
+
+
+setPipExtendsDays(template:TemplateRef<any>){
+
+  if(!this.isDateChanged){
+    this.alertMessage="End date must be change for extend PIP";
+    this.openAlertMod(template , this.alertMessage);
+    return;
+  }
+this.cancelRequest();
+  let leave = new Employee();
+  leave.pipId = this.employeeObj.pipId;
+  leave.empId = this.employeeObj.empId;
+  leave.updatedByName = this.currentUser.name;
+  leave.extendReason = this.employeeObj.extendReason;
+  // leave.extendDays = this.leaveObj.extendDays;
+  leave.startDate = moment(this.startDate).format(AppComponent.DATE_FORMAT);
+  leave.endDate = moment(this.endDate).format(AppComponent.DATE_FORMAT);
+  console.log("team in set extend modal",leave)
+  this.employeeService.setExtendPeriodByPipId(leave).pipe(first()).subscribe((response : any)=>{
+    if(response.serviceStatus == "Success"){
+      this.openAlertMod(template,response.serviceResponse);
+
+    }else{
+      this.openAlertMod(template,response.serviceResponse);
+    }
+  })
+
+}
+
+estimateEndDate() {
+  if (this.startDate) {
+    const startDate = new Date(this.startDate);
+    const endDate = new Date(startDate.getTime() + (90 * 24 * 60 * 60 * 1000)); // Adding 90 days
+    this.endDate = endDate.toISOString().split('T')[0];
+  }
+}
 
 
 }

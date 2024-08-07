@@ -211,6 +211,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/revokeAccount`,
     `${this.baseUrl}` + `api/upload/billableFile`,
     `${this.baseUrl}` + `api/getDepartmentPendingLeaveHistory`,
+    `${this.baseUrl}`+`api/getEmployeeAuditInfo`,
 
   ]
 
