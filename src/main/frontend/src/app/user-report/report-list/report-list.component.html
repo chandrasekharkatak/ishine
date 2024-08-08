@@ -407,6 +407,8 @@
         <label for="Manager">Manager</label>
         <input class="ml-4 mr-1" type="radio" name="persona" id="HR" value="HR" (click)="selectPersona($event)">
         <label for="HR">HR</label>
+        <input class="ml-4 mr-1" type="radio" name="persona" id="RMG" value="RMG" (click)="selectPersona($event)">
+        <label for="RMG">RMG</label>
         <br class="d-md-none">
         <input class="ml-4 mr-1" type="radio" name="persona" id="HOD" value="HOD" (click)="selectPersona($event)">
         <label for="HOD">HOD</label>
@@ -546,6 +548,7 @@
                 <th scope="col" class="info-label wide-col">Employee</th>
                 <th scope="col" class="info-label wide-col">Team Lead</th>
                 <th scope="col" class="info-label wide-col">Manager</th>
+                <th scope="col" class="info-label wide-col">RMG</th>
                 <th scope="col" class="info-label wide-col">HoD</th>
                 <th scope="col" class="info-label wide-col">Super Admin</th>
               </tr>
@@ -578,6 +581,13 @@
                   <label class="cell-checkbox">
                     <input type="checkbox" [(ngModel)]="map.permissionList.Manager"
                       (change)="selectDefaultMapCellCheckbox(map.subFeatureId, map.permissionList.Manager, 'Manager', map.subFeatureName)" />
+                    <span class="primary"></span>
+                  </label>
+                </td>
+                <td>
+                  <label class="cell-checkbox">
+                    <input type="checkbox" [(ngModel)]="map.permissionList.RMG"
+                      (change)="selectDefaultMapCellCheckbox(map.subFeatureId, map.permissionList.RMG, 'RMG', map.subFeatureName)" />
                     <span class="primary"></span>
                   </label>
                 </td>

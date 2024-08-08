@@ -1558,6 +1558,11 @@ minDate: Date;
       employee.reportingManagerId = null;
       employee.approvalsTo = null;
     }
+employee.newManagerId = this.employeeObj.newManagerId;
+employee.reportiesFlag = this.employeeObj.reportiesFlag; 
+
+console.log("employee update before call ",employee);
+
 
     this.employeeService.updateEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1608,15 +1613,15 @@ minDate: Date;
     this.cancelRequest();
     this.isDeletion = false;
 
-    if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.newManagerId)) {
-      this.alertMessage = "Please select a Manager !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.newManagerId)) {
+    //   this.alertMessage = "Please select a Manager !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
     let employee: Employee = new Employee();
-    employee.managerId = this.employeeObj.newManagerId;
-    employee.oldManagerId = this.employeeObj.oldManagerId;
+    employee.newManagerId = this.employeeObj.newManagerId;
+    employee.managerId = this.employeeObj.managerId;
 
     console.log("changeManagerMapping : ", employee);
 
@@ -2076,11 +2081,13 @@ minDate: Date;
     }, 500)
   }
 
-  openModalForManagerChange(template: TemplateRef<any>, event,employeeId) {
-
+  openModalForManagerChange(updateType,template: TemplateRef<any>, event,employeeId) {
+    updateType.newManagerId = "";
+    // this.employeeObj.newManagerId ='';
     this.filters = {};
     var eventValue = event.target.value;
-    if(eventValue == 'InActive'){
+    // if(eventValue == 'InActive'){
+    if(eventValue == 'manual'){
       var id = employeeId
    
       this.employeeService.getTotalNoOfreporties(id).pipe(first()).subscribe((response : any)=>{
@@ -2908,38 +2915,38 @@ return true;
     this.exportExcelService.exportTableDataToExcel(data, `${type}.xlsx`);
   }
 
-
-  resetField_OnChange(updateType){
-    updateType.employmentReleaseStatus = "";
-    updateType.newManagerId = "";
-    this.employeeObj.newManagerId ='';
-  }
-  resetFieldOnChange(updateType){
-    updateType.employmentstatus = "";
-    updateType.newManagerId = "";
-    this.employeeObj.newManagerId ='';
-}
+  // by priyadarshini
+  // resetField_OnChange(updateType){
+  //   updateType.employmentReleaseStatus = "";
+  //   updateType.newManagerId = "";
+  //   this.employeeObj.newManagerId ='';
+  // }
+//   resetFieldOnChange(updateType){
+//     //updateType.employmentstatus = "";     //by priyadarshini
+//     updateType.newManagerId = "";
+//     this.employeeObj.newManagerId ='';
+// }
   resetField(updateType){
-    // updateType.employmentReleaseStatus = "";
+    updateType.employmentReleaseStatus = "";
     updateType.newManagerId = "";
     this.employeeObj.newManagerId ='';
   }
 
 // added by anurag 
 
-  mapLeavesAndCompOffToNewManager(employee){
-    //console.log(" employee   ",employee);
-    //console.log(" pre employee ",this.employeeObj.managerId);
-    let emp = new Employee();
-    emp.empId=employee.empId;
-    emp.managerId=employee.managerId;
+  // mapLeavesAndCompOffToNewManager(employee){
+  //   //console.log(" employee   ",employee);
+  //   //console.log(" pre employee ",this.employeeObj.managerId);
+  //   let emp = new Employee();
+  //   emp.empId=employee.empId;
+  //   emp.managerId=employee.managerId;
 
-    this.employeeService.mapLeavesAndCompOffToNewManager(emp).pipe(first()).subscribe((response:any)=>{
-      if(response.serviceStatus == "Success"){
-        //console.log(" method successfully call ")
-      }
-    })
-  }
+  //   this.employeeService.mapLeavesAndCompOffToNewManager(emp).pipe(first()).subscribe((response:any)=>{
+  //     if(response.serviceStatus == "Success"){
+  //       //console.log(" method successfully call ")
+  //     }
+  //   })
+  // }
 
   //  added by anuarg
 
@@ -3153,6 +3160,18 @@ estimateEndDate() {
   }
 }
 
+//added by priyadarshini
+onselectYes:boolean=false;
+
+onUpadateReportees(event:any){
+console.log('data printed ----',event.target.value);
+if(event.target.value == 'Yes' ){
+  this.onselectYes=true;
+}else{
+  this.onselectYes=false;
+}
+
+}
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

@@ -179,5 +179,6 @@ export class Employee{
 	profileKycStatus :any;
 
 	extendReason : any;
+	reportiesFlag : any;
 
 }
