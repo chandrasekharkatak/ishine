@@ -41,4 +41,10 @@ export class Project{
 	teamMemberList:any;
 	isActive:any;
 	teamId:any;
+
+	// As per RMG request
+
+	resourceCount : any;
+	experience : any;
+	role : any;
 }

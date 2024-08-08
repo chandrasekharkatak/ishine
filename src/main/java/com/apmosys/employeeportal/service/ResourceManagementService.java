@@ -279,11 +279,34 @@ public class ResourceManagementService {
 					                        newAddedMember.setActive(1L);
 					                    	else
 					                    		newAddedMember.setActive(2L);
+					                    	
+					                    	  System.out.println(" newTeamMember   "+newAddedMember);
+					                    	  
+//					                    	  find added employee's email
+					                    	  Employee  findEmp = employeeRepository.findByEmpId(newAddedMember.getEmpId());
+					                    	  Employee managerEmail = employeeRepository.findByEmpId(findEmp.getManagerId());
+					                    	  Project projectFind = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());	                    	  
+					                    	  try {
+												mailService.sendMailWithCC(findEmp.getEmail(), rmgMail+","+ managerEmail.getEmail(), "Regarding Resource mapped to new Project", "Dear << "
+														+ findEmp.getName()+" >>,"+"<br>"
+														+ "You have been mapped to "+" client name - "+"<< <b>"+resourceManagementDTO.getClientName()+"</b> >>"+" under "+" << <b>"+projectFind.getProjectName()+"</b> . >>"+"<br>"
+																+ "<br><br>"
+																+ "Sincerely,"+"<br>"
+																+ "Team RMG - ApMoSys Technologies"
+														);
+											} catch (AddressException e) {
+												// TODO Auto-generated catch block
+												e.printStackTrace();
+											} catch (MessagingException e) {
+												// TODO Auto-generated catch block
+												e.printStackTrace();
+											}
+					                    	  
 					                    });
 					                    employeeTeamMapRepository.saveAll(teamMapDbResponse);
 					                }
 					            });
-
+					            
 					            // Inactivate team member
 					            List<EmployeeTeamMap> alreadyExistMember = new ArrayList<>();
 					            if (!newTeamMember.isEmpty()) {
@@ -1670,6 +1693,8 @@ public class ResourceManagementService {
 		System.out.println("findResource  "+findResource );
 		if(findResource != null) {
 			findResource.setActive(0l);	
+			findResource.setUpdatedOn(LocalDateTime.now());
+			
 			employeeTeamMapRepository.save(findResource);
 		
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

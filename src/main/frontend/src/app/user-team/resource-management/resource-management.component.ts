@@ -42,8 +42,10 @@ export class ResourceManagementComponent implements OnInit {
 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
+  modalRef1: BsModalRef = new BsModalRef();
 
   projectObj:Project = new Project();
+  dataObj : Project = new Project()
   teamObj:Team = new Team();
   employeeObj: Employee = new Employee();
   newteamMember:TeamMember = new TeamMember();
@@ -86,6 +88,8 @@ export class ResourceManagementComponent implements OnInit {
   internalProjectList:any[] = [];
   poPortalProjectList:any[] = [];
   allProject_Po_Internal:any[] = [];
+
+  getBillableType : any;
 
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin'];
   filters:any = {};
@@ -520,11 +524,16 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   addTeamMemberMapping(){
+    // console.log("Hii addTeamMemberMapping   ");
+    // console.log(" this.allTeamList   ",this.allTeamList)
     this.allTeamList?.forEach((team:any) => {
       if(team.teamName == this.currentTeam.teamName){
+        // console.log("team.teamMemberList  ",team.teamMemberList)
         if(team.teamMemberList){
           if(this.allTeamMembers.length){
+            // console.log("this.allTeamMembers.length   ",this.allTeamMembers.length);
             team.teamMemberList = [...team.teamMemberList,...this.allTeamMembers];
+            console.log("team.teamMemberList   ",team.teamMemberList);
           }else{
             team.teamMemberList = [...team.teamMemberList];
           }
@@ -533,7 +542,7 @@ export class ResourceManagementComponent implements OnInit {
         }
       }
     });
-    this.cancelRequest();
+    this.cancelRequest1();
   }
 
   checkTeamName(template: TemplateRef<any>, team:any, teamIndex:any) {
@@ -982,8 +991,10 @@ export class ResourceManagementComponent implements OnInit {
 
   addTeamMember(){
     const newTeamMember = this.employeeListByDept.find(employee => employee.empId == this.newteamMember.empId);
+    console.log("newteamMember  ",newTeamMember)
     if(newTeamMember){
       newTeamMember.employeeRole = this.newteamMember.employeeRole;
+
       this.allTeamMembers.push(newTeamMember);
       //console.log("New member ===== ::  ",newTeamMember);
       
@@ -1045,7 +1056,7 @@ export class ResourceManagementComponent implements OnInit {
     //console.log(this.teamObj.allTeamMemberList, " allTeamMemberList");
     
     this.currentTeam = currentTeam;
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef1 = this.modalService.show(template, { class: 'modal-lg' });
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
@@ -1058,7 +1069,15 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   cancelRequest() {
+    console.log("cancel call ");
+    
     this.modalRef.hide();
+  }
+
+  cancelRequest1() {
+    console.log("cancel call ");
+    
+    this.modalRef1.hide();
   }
 
   previewTeamModal(template: TemplateRef<any>, teamObj:any, projectObj:any){
@@ -1161,8 +1180,11 @@ getExistingProjectsByUser( employee){
 this.projectService.getExistingProjectsAndTeamsByEmployee(projectObj).pipe(first()).subscribe((response : any)=>{
   if(response.serviceStatus == "Success"){
     this.projectDetails = response.serviceResponse;
-    console.log("getExistingProjectsAndTeamsByEmployee   ",this.projectDetails);
-
+    if(this.projectDetails[0].billableType == "TNM"){
+      this.openAlertMod(this.alertTemplate,"This Employee is already mapped to TNM project. Can't add to another project or Team !!");
+    }
+    this.getBillableType = this.projectDetails.find(employee => this.newteamMember.billableType = employee.billableType );
+  
   }
 })
 
@@ -1192,8 +1214,12 @@ this.getExistingProjectsByUser(this.projectObj.empId)
 
 openProjectTemplateModal(template :TemplateRef<any>, employee){
   this.modalRef=this.modalService.show(template , { class : 'modal-xl'});
-  this.projectObj = employee;
-  this.getExistingProjectsByUser(employee);
+  this.getExistingProjectsByUser(employee.empId);
+  this.dataObj = employee;
+  
+  console.log("data employee newmenbfcg  ",employee)
+
+  // this.getExistingProjectsByUser(employee.empId);
 
 }
 
@@ -1208,10 +1234,10 @@ handlePageChanges(event){
 this.pageNo = event;
 }
 
-closeProjectModal(){
-  console.log("again called after deleted ");
-  this.modalRef.hide();
-}
+// closeProjectModal(){
+//   console.log("again called after deleted ");
+//   this.modalRef.hide();
+// }
 
 
 
