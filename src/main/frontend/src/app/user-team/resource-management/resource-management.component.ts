@@ -50,6 +50,7 @@ export class ResourceManagementComponent implements OnInit {
   employeeObj: Employee = new Employee();
   newteamMember:TeamMember = new TeamMember();
   isActive:any;
+  temp : any
 
   isProjectTable:boolean = false;
   isEditProject:boolean = false;
@@ -90,6 +91,7 @@ export class ResourceManagementComponent implements OnInit {
   allProject_Po_Internal:any[] = [];
 
   getBillableType : any;
+  newMemberInProject : any;
 
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin'];
   filters:any = {};
@@ -1180,10 +1182,23 @@ getExistingProjectsByUser( employee){
 this.projectService.getExistingProjectsAndTeamsByEmployee(projectObj).pipe(first()).subscribe((response : any)=>{
   if(response.serviceStatus == "Success"){
     this.projectDetails = response.serviceResponse;
-    if(this.projectDetails[0].billableType == "TNM"){
-      this.openAlertMod(this.alertTemplate,"This Employee is already mapped to TNM project. Can't add to another project or Team !!");
+    
+    if(this.projectDetails.length > 0){
+      if(this.projectDetails[0].billableType == "TNM"){
+        this.openAlertMod(this.alertTemplate,"This Employee is already mapped to TNM project. Can't add to another project or Team !!");
+        this.getBillableType = this.projectDetails.find(employee => this.newteamMember.billableType = employee.billableType );
+      }else{
+        this.newMemberInProject = "NewMember";
+        this.newteamMember.billableType = this.newMemberInProject;  
+      }
+    }else{
+      this.newMemberInProject = "NewMember";
+      this.newteamMember.billableType = this.newMemberInProject;
     }
-    this.getBillableType = this.projectDetails.find(employee => this.newteamMember.billableType = employee.billableType );
+   
+
+    console.log("this.getBillableType ",this.getBillableType);
+    console.log(" newTeamMember   details   ",this.newteamMember)
   
   }
 })
