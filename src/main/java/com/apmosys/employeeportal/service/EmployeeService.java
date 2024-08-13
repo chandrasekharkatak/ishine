@@ -3216,8 +3216,7 @@ public class EmployeeService {
 					dto.setEmployeementId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
 					dto.setInvalidAccessAttempt(object[7] != null ? Integer.parseInt(object[7].toString()) : null);
 					dto.setIsTimesheetLockCheckEnable(object[8] != null ? object[8].toString() : null);
-					
-					
+					dto.setPipFlag(object[9] != null ? object[9].toString() : null);					
 					timesheetList.forEach((timesheet) -> {
 
 						Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
