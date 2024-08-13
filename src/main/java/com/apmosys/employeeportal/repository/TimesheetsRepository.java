@@ -16,12 +16,18 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 
 	public List<Timesheet> findAllByEmpIdAndDateBetweenOrderByDateDesc(Long empId,LocalDate start, LocalDate end);
 
-	@Query(nativeQuery = true)
-	public List<Object[]> getMyReporteesTimesheetRequests(Long managerId,String status);
+//	@Query(nativeQuery = true)
+//	public List<Object[]> getMyReporteesTimesheetRequests(Long managerId,String status);
 	
 	@Query(nativeQuery = true)
-	public Long countMyReporteesTimesheetRequests(Long managerId);
+	public List<Object[]> getMyReporteesTimesheetRequests(Long managerId,String status,LocalDate dateOfJoining);
+	
+//	@Query(nativeQuery = true)
+//	public Long countMyReporteesTimesheetRequests(Long managerId);
 
+	@Query(nativeQuery = true)
+	public Long countMyReporteesTimesheetRequests(Long managerId, LocalDate dateOfJoining);
+	
 	@Query(nativeQuery = true)
 	public List<Object[]> getMyReporteesApprovedTimesheets(Long managerId, LocalDate start, LocalDate end);
 	

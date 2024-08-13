@@ -1086,7 +1086,7 @@
                                 <th scope="col" class="info-label" mat-sort-header="name|string" >Full Name</th>
                                 <th scope="col" class="info-label" mat-sort-header="email|string" >Email Id</th>
                                 <th scope="col" class="info-label" mat-sort-header="employmentstatus|string">Employment Status</th>
-                                <th *ngIf="!isDraftTable" scope="col" class="info-label" mat-sort-header="employmentReleaseStatus|string">Employee Release Status</th>
+                                <th scope="col" class="info-label" *ngIf="!isActiveTable" mat-sort-header="employmentReleaseStatus|string">Employee Release Status</th>
                                 <th scope="col" class="info-label" mat-sort-header="managerName|string">Manager Name</th>
                                 <th scope="col" class="info-label" mat-sort-header="departmentName|string" >Department Name</th>
                                 <th scope="col" class="info-label" mat-sort-header="dateOfJoining|date">Date of Joining</th>
@@ -1115,7 +1115,7 @@
                                 <td>{{employee.name}}</td>
                                 <td>{{employee.email}}</td>
                                 <td>{{employee.employmentstatus}}</td>
-                                <td *ngIf="isDraftTable==true && employee.employmentStatus=='InActive' ? '{{employee.employmentReleaseStatus}} ' : ' ' " >{{employee.employmentReleaseStatus}}</td>
+                                <td *ngIf="isDraftTable== true && employee.employmentStatus=='InActive' ? '{{employee.employmentReleaseStatus}} ' : ' ' && !isActiveTable" >{{employee.employmentReleaseStatus}}</td>
                                 <td>{{employee.managerName}}</td>
                                 <td>{{employee.departmentName}}</td>
                                 <td>{{employee.dateOfJoining}}</td>

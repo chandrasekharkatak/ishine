@@ -285,7 +285,14 @@ public class ResourceManagementService {
 //					                    	  find added employee's email
 					                    	  Employee  findEmp = employeeRepository.findByEmpId(newAddedMember.getEmpId());
 					                    	  Employee managerEmail = employeeRepository.findByEmpId(findEmp.getManagerId());
-					                    	  Project projectFind = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());	                    	  
+					                    	  
+					                    	  Project projectFind = null;
+					              		    if (resourceManagementDTO.getProjectType().equals("Internal")) {
+					              		    	projectFind = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
+					              		    } else {
+					              		    	projectFind = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
+					              		    }
+					                    	  
 					                    	  try {
 												mailService.sendMailWithCC(findEmp.getEmail(), rmgMail+","+ managerEmail.getEmail(), "Regarding Resource mapped to new Project", "Dear << "
 														+ findEmp.getName()+" >>,"+"<br>"
@@ -1689,7 +1696,8 @@ public class ResourceManagementService {
 		
 		ServiceResponse response = new ServiceResponse();
 		
-		EmployeeTeamMap findResource = employeeTeamMapRepository.findByEmpIdAndTeamIdAndActiveStatus(resourceManagementDTO.getEmpId(), resourceManagementDTO.getTeamId());		
+		EmployeeTeamMap findResource = employeeTeamMapRepository.findByEmpIdAndTeamIdAndActiveStatus(resourceManagementDTO.getEmpId(), resourceManagementDTO.getTeamId());
+		Team findTeam = teamRepository.findTeamByTeamId(resourceManagementDTO.getTeamId());
 		System.out.println("findResource  "+findResource );
 		if(findResource != null) {
 			findResource.setActive(0l);	
@@ -1698,7 +1706,7 @@ public class ResourceManagementService {
 			employeeTeamMapRepository.save(findResource);
 		
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse("Resource mapped as InActive, team "+resourceManagementDTO.getTeamId());
+			response.setServiceResponse("Resource mapped as InActive, Team Name - "+findTeam.getTeamName());
 			
 		}
 		

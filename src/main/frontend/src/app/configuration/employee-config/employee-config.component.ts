@@ -200,6 +200,8 @@ minDate: Date;
   pipReasons : any =[];
   isPipFlag : boolean = false;
 
+  isActiveTable : boolean = false;
+
   managerId : any;
   TeamMemberList : any = [];
   listOfDepartment : any[] =[];
@@ -1674,9 +1676,13 @@ console.log("employee update before call ",employee);
     if(value=="Active"){
         this.allEmployeeList = this._allEmployeeList.filter(x => x.employmentstatus != 'InActive');
         this.dateOfReleivingshow= false;
+        this.managerFlag = false;
+        this.isActiveTable=true
     }else if(value=="InActive"){
       this.allEmployeeList = this._allEmployeeList.filter(x => x.employmentstatus == 'InActive');
       this.dateOfReleivingshow= true;
+      this.managerFlag = true;
+      this.isActiveTable=false;
     }
     this.page=1;
   }

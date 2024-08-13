@@ -45,6 +45,7 @@ export class ResourceManagementComponent implements OnInit {
   modalRef1: BsModalRef = new BsModalRef();
 
   projectObj:Project = new Project();
+  projectObj2:Project = new Project();
   dataObj : Project = new Project()
   teamObj:Team = new Team();
   employeeObj: Employee = new Employee();
@@ -1210,14 +1211,14 @@ deleteResourceFromProject(template:TemplateRef<any>){
 
 
   let projectObj = new Project();
-  projectObj.teamId = this.projectObj.teamId;
-  projectObj.empId = this.projectObj.empId;
+  projectObj.teamId = this.projectObj2.teamId;
+  projectObj.empId = this.projectObj2.empId;
 
   console.log("team details ",projectObj)
 this.projectService.updateProjectResourceAsInActive(projectObj).pipe(first()).subscribe((response : any)=>{
   if(response.serviceStatus == "Success"){
     this.openAlertMod(template , response.serviceResponse);
-this.getExistingProjectsByUser(this.projectObj.empId)
+this.getExistingProjectsByUser(this.projectObj2.empId)
   }
 })
 
@@ -1234,14 +1235,13 @@ openProjectTemplateModal(template :TemplateRef<any>, employee){
   
   console.log("data employee newmenbfcg  ",employee)
 
-  // this.getExistingProjectsByUser(employee.empId);
-
 }
 
 deleteResourceModal(template : TemplateRef<any>,teamId){
+  // let projectObj = Object.assign({},this.projectObj); for copy object
   this.modalRef = this.modalService.show(template , { class : 'modal-md'});
-  // this.deleteResourceFromProject(template , teamId);
-  this.projectObj = teamId;
+  this.projectObj2 = teamId;
+  
 }
 
 pageNo = 1;

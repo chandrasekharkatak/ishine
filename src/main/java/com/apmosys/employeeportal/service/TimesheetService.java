@@ -656,6 +656,84 @@ public class TimesheetService {
 		return response;	
 	}
 
+//	public ServiceResponse getMyReporteesTimesheetRequests(TimesheetDTO timesheetDTO) {
+//		ServiceResponse response = new ServiceResponse();
+//		
+//		LogDTO apiLogInfo = new LogDTO();
+//		apiLogInfo.setSubFeatureName("view_my_teams_timesheets_requests");
+//		apiLogInfo.setApiUrl("/api/getMyReporteesTimesheetRequests");
+//		apiLogInfo.setLogLevel("INFO");
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append("managerId : " +timesheetDTO.getManagerId()+ " ,status : " +timesheetDTO.getStatus());
+//		try {
+//
+//			List<Object[]> objectList = timesheetsRepository
+//					.getMyReporteesTimesheetRequests(timesheetDTO.getManagerId(), timesheetDTO.getStatus());
+//
+//			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
+//
+//				if (list.isEmpty()) {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("No timesheets found. List is empty.");
+//					
+//					apiLogInfo.setApiResponse("No timesheets found. List is empty.");			
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//				} else {
+//					List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
+//
+//					list.forEach((object) -> {
+//
+//						TimesheetDTO dto = new TimesheetDTO();
+//						dto.setTimesheetId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+//						dto.setDate(object[1] != null ? object[1].toString() : null);
+//						dto.setDayType(object[2] != null ? object[2].toString() : null);
+//						dto.setEmployeeName(object[3] != null ? object[3].toString() : null);
+//						dto.setDescription(object[4] != null ? object[4].toString() : null);
+//						dto.setStatus(object[5] != null ? object[5].toString() : null);
+//						dto.setCreatedByName(object[6] != null ? object[6].toString() : null);
+//						dto.setCreatedOn(object[7] != null ? object[7].toString() : null);
+//						dto.setEmployeementId(object[8] != null ? Long.parseLong(object[8].toString()) : null);
+//						dto.setTotalTime(object[9] != null ? Float.parseFloat(object[9].toString()) : null);
+//						dto.setEmail(object[10] != null ? object[10].toString() : null);
+//						dto.setOfficeInTime(object[11] != null ? object[11].toString() : null);
+//						dto.setOfficeOutTime(object[12] != null ? object[12].toString() : null);
+//						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
+//						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
+//						dtoList.add(dto);
+//					});
+//
+//					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//					response.setServiceResponse(dtoList);
+//					
+//					apiLogInfo.setApiResponse("dtoList : " +dtoList );			
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//				}
+//
+//			}, () -> {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("No  timesheets found. List is null.");
+//				
+//				apiLogInfo.setApiResponse("No  timesheets found. List is null.");			
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			});
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			response.setServiceError(e.getMessage());
+//			
+//			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			apiLogInfo.setLogLevel("ERROR");
+//		}
+//		
+//		apiLogInfo.setApiRequest(logBuilder.toString());
+//		logService.logMyInfo(httpRequest, apiLogInfo);
+//		return response;
+//	}
+	
+//	these changes are added for temporary , we have to add one more field that is manager id in employee_timesheets table 
+
 	public ServiceResponse getMyReporteesTimesheetRequests(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
 		
@@ -667,9 +745,13 @@ public class TimesheetService {
 		logBuilder.append("managerId : " +timesheetDTO.getManagerId()+ " ,status : " +timesheetDTO.getStatus());
 		try {
 
-			List<Object[]> objectList = timesheetsRepository
-					.getMyReporteesTimesheetRequests(timesheetDTO.getManagerId(), timesheetDTO.getStatus());
+			Employee employeeData = employeeRepository.findByEmpId(timesheetDTO.getManagerId()); 
 
+			List<Object[]> objectList = timesheetsRepository
+					.getMyReporteesTimesheetRequests(timesheetDTO.getManagerId(), timesheetDTO.getStatus(),employeeData.getDateOfJoining());
+
+			
+			
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
 
 				if (list.isEmpty()) {
@@ -732,6 +814,51 @@ public class TimesheetService {
 		return response;
 	}
 
+	
+//	public ServiceResponse countMyReporteesTimesheetRequests(TimesheetDTO timesheetDTO) {
+//		ServiceResponse response = new ServiceResponse();
+//		
+//		LogDTO apiLogInfo = new LogDTO();
+//		apiLogInfo.setSubFeatureName("view_all_team_requests");
+//		apiLogInfo.setApiUrl("/api/countMyReporteesTimesheetRequests");
+//		apiLogInfo.setLogLevel("INFO");
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append("managerId : " +timesheetDTO.getManagerId());
+//		try {
+//
+//			Long applicationCount = timesheetsRepository.countMyReporteesTimesheetRequests(timesheetDTO.getManagerId());
+//
+//			if (applicationCount == 0) {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("No timesheet request(s) found.");
+//				
+//				apiLogInfo.setApiResponse("No timesheet request(s) found.");			
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//
+//			} else {
+//				timesheetDTO = new TimesheetDTO();
+//				timesheetDTO.setApplicationCount(applicationCount);
+//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//				response.setServiceResponse(timesheetDTO);
+//				
+//				apiLogInfo.setApiResponse("timesheetDTO : " +timesheetDTO);			
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//			}
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			response.setServiceError(e.getMessage());
+//			
+//			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			apiLogInfo.setLogLevel("ERROR");
+//		}
+//		apiLogInfo.setApiRequest(logBuilder.toString());
+//		logService.logMyInfo(httpRequest, apiLogInfo);
+//		return response;
+//	}
+
 	public ServiceResponse countMyReporteesTimesheetRequests(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
 		
@@ -743,7 +870,9 @@ public class TimesheetService {
 		logBuilder.append("managerId : " +timesheetDTO.getManagerId());
 		try {
 
-			Long applicationCount = timesheetsRepository.countMyReporteesTimesheetRequests(timesheetDTO.getManagerId());
+			Employee employeeData = employeeRepository.findByEmpId(timesheetDTO.getManagerId()); 
+			
+			Long applicationCount = timesheetsRepository.countMyReporteesTimesheetRequests(timesheetDTO.getManagerId(),employeeData.getDateOfJoining());
 
 			if (applicationCount == 0) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -775,7 +904,7 @@ public class TimesheetService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-
+	
 	public ServiceResponse updateTimesheetRequestById(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
 		
