@@ -944,6 +944,13 @@ minDate: Date;
       return false;
     }
 
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.reportiesFlag)) {
+      this.alertMessage = "Please enter 'Do you want to change the reporting of your reportees ?' "
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.employmentstatus)) {
       this.alertMessage = "Please enter employment status !!"
       this.openAlertMod(template, this.alertMessage);
