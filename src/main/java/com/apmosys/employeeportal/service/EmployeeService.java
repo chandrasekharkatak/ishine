@@ -1278,7 +1278,8 @@ public class EmployeeService {
 						? stringToDateTimeParser.getDate(employeedto.getDateOfJoining(), "yyyy-MM-dd")
 						: null);
 				
-				if(employeedto.getReportiesFlag() == "No") {
+				if(employeedto.getReportiesFlag().equals("No")) {
+					System.err.println("New manager updated "+ employeedto.getManagerId());
 					employee.setManagerId(employeedto.getManagerId());	
 				}
 				else {
