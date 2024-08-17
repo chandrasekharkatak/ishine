@@ -53,4 +53,19 @@ public class FileUploadController {
 //        return ResponseEntity.ok("File uploaded and data saved successfully.");
         return response;
     }
+    
+    // as suggest by vini
+    
+    @PostMapping("/saveExcelDataForManagerMapping")
+    public ServiceResponse saveExcelDataForManagerMapping(@RequestParam("file") MultipartFile file) throws EncryptedDocumentException, InvalidFormatException {
+    	ServiceResponse response = new ServiceResponse();
+    	if (file.isEmpty()) {
+    		response.setServiceResponse("Please upload a file.");
+    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+    		return response;
+        }
+
+        response = fileUploadService.saveExcelDataForManagerMapping(file);
+        return response;
+    }
 }

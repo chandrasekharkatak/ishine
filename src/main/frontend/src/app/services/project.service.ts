@@ -57,4 +57,7 @@ export class ProjectService {
     return this.http.post(`${this.baseUrl}` + `api/updateProjectResourceAsInActive`, project);
   }
   
+  deleteTeam(project: Project){
+    return this.http.post(`${this.baseUrl}` + `api/deleteTeamByTeamId`, project);
+  }
 }

@@ -45,4 +45,8 @@ public class ResourceManagementDTO {
 	private String billableType;
 	private String startDate;
 	private String updatedOn;
+	private String employeeName;
+	private Long employeementId;
+	private String departmentName;
+	
 }

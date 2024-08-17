@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
+import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.service.ResourceManagementService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -108,6 +109,13 @@ public class ResourceManagementController {
 	public ServiceResponse updateProjectResourceAsInActive(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 		
 		ServiceResponse response = resourceManagementService.updateProjectResourceAsInActive(resourceManagementDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/deleteTeamByTeamId", method = RequestMethod.POST)
+	public ServiceResponse deleteTeamByTeamId(@RequestBody TeamDTO teamDto) {
+		
+		ServiceResponse response = resourceManagementService.deleteTeamByTeamId(teamDto);
 		return response;
 	}
 }

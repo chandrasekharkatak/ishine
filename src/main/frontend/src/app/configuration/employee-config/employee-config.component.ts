@@ -211,7 +211,7 @@ minDate: Date;
     'Employment Status', 'Date Of Joining','Domain','Specialization', 'City', 'Blood Group',
      'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status',
      'Bank Name', 'Created By', 'State', 'Created On'];
-
+     departmentName: any;
 
 
   constructor(
@@ -944,11 +944,11 @@ minDate: Date;
       return false;
     }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.reportiesFlag)) {
-      this.alertMessage = "Please enter 'Do you want to change the reporting of your reportees ?' "
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.reportiesFlag)) {
+    //   this.alertMessage = "Please enter 'Do you want to change the reporting of your reportees ?' "
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.employmentstatus)) {
@@ -1568,7 +1568,7 @@ minDate: Date;
       employee.approvalsTo = null;
     }
 employee.newManagerId = this.employeeObj.newManagerId;
-employee.reportiesFlag = this.employeeObj.reportiesFlag; 
+// employee.reportiesFlag = this.employeeObj.reportiesFlag; 
 
 console.log("employee update before call ",employee);
 
@@ -2094,13 +2094,34 @@ console.log("employee update before call ",employee);
     }, 500)
   }
 
-  openModalForManagerChange(updateType,template: TemplateRef<any>, event,employeeId) {
-    updateType.newManagerId = "";
-    // this.employeeObj.newManagerId ='';
+  // openModalForManagerChange(updateType,template: TemplateRef<any>, event,employeeId) {
+  //   updateType.newManagerId = "";
+  //   // this.employeeObj.newManagerId ='';
+  //   this.filters = {};
+  //   var eventValue = event.target.value;
+  //   // if(eventValue == 'InActive'){
+  //   if(eventValue == 'manual'){
+  //     var id = employeeId
+   
+  //     this.employeeService.getTotalNoOfreporties(id).pipe(first()).subscribe((response : any)=>{
+  //       if(response.serviceStatus == 'Success'){
+  //         this.listOfReporties = response.serviceResponse;
+  //       }
+  //     })
+  //     var empId = employeeId;
+  //     //console.log(" empId    ",empId);
+  //     this.isSearchEnabled = false;
+  //     //console.log("Log    eventValue    ",eventValue);
+    
+  //     this.modalRef = this.modalService.show(template, { class: 'modal-sm' ,  backdrop: 'static', keyboard: false });
+  //   }
+  // }
+
+  openModalForManagerChange(template: TemplateRef<any>, event,employeeId) {
+
     this.filters = {};
     var eventValue = event.target.value;
-    // if(eventValue == 'InActive'){
-    if(eventValue == 'manual'){
+    if(eventValue == 'InActive'){
       var id = employeeId
    
       this.employeeService.getTotalNoOfreporties(id).pipe(first()).subscribe((response : any)=>{
@@ -2205,7 +2226,7 @@ return true;
     this.employeeService.getDepartmentByHodId(employeeId).pipe(first()).subscribe((response: any)=>{
       if(response.serviceStatus == "Success"){
         const responseObj = response.serviceResponse;
-       //console.log(" responseObj             ",responseObj);
+       console.log(" responseObj             ",responseObj);
 
        responseObj.forEach((dept )=>{
         this.deptId = dept[0];
@@ -2223,10 +2244,8 @@ return true;
 
     this.modalRef = this.modalService.show(template, { class: 'modal-xl'});
   }
-  departmentName(departmentName: any) {
-    throw new Error('Method not implemented.');
-  }
 
+  
 
   updateNoticePeriod(employeeObj: Employee){
     const dateFormat = 'YYYY-MM-DD';
@@ -2929,21 +2948,21 @@ return true;
   }
 
   // by priyadarshini
-  // resetField_OnChange(updateType){
-  //   updateType.employmentReleaseStatus = "";
-  //   updateType.newManagerId = "";
-  //   this.employeeObj.newManagerId ='';
-  // }
-//   resetFieldOnChange(updateType){
-//     //updateType.employmentstatus = "";     //by priyadarshini
-//     updateType.newManagerId = "";
-//     this.employeeObj.newManagerId ='';
-// }
-  resetField(updateType){
+  resetField_OnChange(updateType){
     updateType.employmentReleaseStatus = "";
     updateType.newManagerId = "";
     this.employeeObj.newManagerId ='';
   }
+  resetFieldOnChange(updateType){
+    updateType.employmentstatus = "";
+    updateType.newManagerId = "";
+    this.employeeObj.newManagerId ='';
+}
+resetField(updateType){
+  // updateType.employmentReleaseStatus = "";
+  updateType.newManagerId = "";
+  this.employeeObj.newManagerId ='';
+}
 
 // added by anurag 
 

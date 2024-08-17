@@ -199,7 +199,7 @@
                                                     </div>
                                                     <!-- As per RMG request -->
 
-                                                    <div class="row">
+                                                    <!-- <div class="row">
                                                         <div class="col-md-4 mb-0">
                                                             <div class="info-wrapper">
                                                                 <div class="form-group">
@@ -235,7 +235,7 @@
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    </div>
+                                                    </div> -->
 
 
 
@@ -299,14 +299,26 @@
                                                                             class="fa fa-plus"
                                                                             aria-hidden="true"></i></button>
                                                                 </div>
-                                                                <div class="m-0">
+                                                                <!-- <div class="m-0">
                                                                     <button type="button" *ngIf="allTeamList.length > 1"
                                                                         title="Delete team"
                                                                         class="btn btn-outline-danger mx-1"
                                                                         (click)="removeInputTeamField(teamObj)"><i
                                                                             class="fa fa-trash"
                                                                             aria-hidden="true"></i></button>
+                                                                </div> -->
+                                                                <!-- added by anurag for user consent while deleting team -->
+
+                                                                <div class="m-0">
+                                                                    <button type="button" *ngIf="allTeamList.length > 1"
+                                                                        title="Delete team"
+                                                                        class="btn btn-outline-danger mx-1"
+                                                                        (click)="openDeleteModalForTeam(delete_team_modal,teamObj)"><i
+                                                                            class="fa fa-trash"
+                                                                            aria-hidden="true"></i></button>
                                                                 </div>
+
+                                                                <!-- end -->
                                                             </div>
                                                         </div>
                                                     </div>
@@ -458,6 +470,12 @@
         <div class="modal-body text-center">
             <p>{{alertMessage}}</p>
             <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+        </div>
+    </ng-template>
+    <ng-template #alert_team_message>
+        <div class="modal-body text-center">
+            <p>{{alertMessage}}</p>
+            <button type="button" class="btn btn-primary" (click)="cancelRequest();getRefreshPage()">OK</button>&nbsp;
         </div>
     </ng-template>
     <!-- <ng-template #delete_alert_message>
@@ -782,6 +800,14 @@
         <div class="modal-body text-center">
             <p>Do you confirm that you want to create a new internal project, which is not in PoPortal?</p>
             <button type="button" class="btn btn-success" (click)="cancelRequest();showCreateForm()">Yes</button>&nbsp;
+            <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+        </div>
+    </ng-template>
+
+    <ng-template #delete_team_modal>
+        <div class="modal-body text-center">
+            <p>Are you sure want to delete Team ?</p>
+            <button type="button" class="btn btn-success" (click)="cancelRequest();deleteTeam(alert_team_message)">Yes</button>&nbsp;
             <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
         </div>
     </ng-template>

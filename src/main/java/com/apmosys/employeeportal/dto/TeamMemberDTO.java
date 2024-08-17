@@ -17,4 +17,10 @@ public class TeamMemberDTO {
 	private String isTeamLead;
 	private String startDate;
 	
+	// added for resource
+	
+	private String employeeName;
+	private Long employeementId;
+	private String departmentName;
+	
 }

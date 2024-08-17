@@ -29,6 +29,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpServerErrorException.InternalServerError;
 import org.springframework.web.client.RestTemplate;
 
+import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
@@ -45,6 +46,7 @@ import com.apmosys.employeeportal.model.ClientLocation;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
+import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.model.Team;
@@ -55,6 +57,7 @@ import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
@@ -108,6 +111,9 @@ public class ResourceManagementService {
 
 	@Autowired
 	private LogService logService;
+	
+	@Autowired
+	private JobRoleRepository jobRoleRepository;
 	 
 	
 	@Value("${rmg.mail}")
@@ -294,9 +300,9 @@ public class ResourceManagementService {
 					              		    }
 					                    	  
 					                    	  try {
-												mailService.sendMailWithCC(findEmp.getEmail(), rmgMail+","+ managerEmail.getEmail(), "Regarding Resource mapped to new Project", "Dear "
+												mailService.sendMailWithCC("ar731829@gmail.com", rmgMail, "Regarding Resource mapped to new Project", "Dear "
 														+ findEmp.getName()+"<br>"
-														+ "You have been mapped to "+" client name - "+resourceManagementDTO.getClientName()+" under "+projectFind.getProjectName()+"<br>"
+														+ "You have been mapped to client name - "+resourceManagementDTO.getClientName()+" under the project "+projectFind.getProjectName()+"<br>"
 																+ "<br><br>"
 																+ "Sincerely,"+"<br>"
 																+ "Team RMG - ApMoSys Technologies"
@@ -329,9 +335,31 @@ public class ResourceManagementService {
 					                List<EmployeeTeamMap> inActiveMember = new ArrayList<EmployeeTeamMap>();
 
 					                alreadyExistMember.forEach((member) -> {
+					                	Employee emp = employeeRepository.findByEmpId(member.getEmpId());
+					                	Team findTeam = teamRepository.findByTeamId(teamDbResponse.getTeamId());
+					                	Project findProject = projectRepository.findByProjectId(findTeam.getProjectId());
+					                	
 					                    member.setActive(0L);
 					                    member.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 					                    inActiveMember.add(member);
+					                    
+//					                    mail for inactive employee
+					                    
+					                    try {
+											mailService.sendMail(rmgMail,"Regarding Resource removed from Project ", "Dear "
+													+ emp.getName()+"<br>"
+													+ "You have been removed from project "+findProject.getProjectName()+ "under the team - "+findTeam.getTeamName()+"<br>"
+															+ "<br><br>"
+															+ "Sincerely,"+"<br>"
+															+ "Team RMG - ApMoSys Technologies"
+													);
+										} catch (AddressException e) {
+											// TODO Auto-generated catch block
+											e.printStackTrace();
+										} catch (MessagingException e) {
+											// TODO Auto-generated catch block
+											e.printStackTrace();
+										}
 					                });
 					                List<EmployeeTeamMap> inActiveDbResponse = employeeTeamMapRepository.saveAll(inActiveMember);
 					            }
@@ -382,6 +410,24 @@ public class ResourceManagementService {
 					                    mapList.add(newEmpTeamMap);
 					                }
 					            }
+//					            mail for create Team
+					            
+					            try {
+						            mailService.sendMail(rmgMail,
+						                    "Regarding Resource management",
+						                    "Dear RMG Team ," + "<br>"
+						                            + "<br>"
+						                            + "The team has been created and the following reources are mapped to this team -> : " + teamDbResponse.getTeamName()+"<br>"
+						                            		+ "<br><br>"
+															+ "Sincerely,"+"<br>"
+															+ "Team RMG - ApMoSys Technologies"
+															+ "<br>"
+						                            +generateHtmlTable(teamObj.getTeamMemberList()));                             
+						        } catch (Exception e) {
+						            e.printStackTrace();
+						        }
+					            
+					            
 					            List<EmployeeTeamMap> teamMemberDbResponse = employeeTeamMapRepository.saveAll(mapList);
 
 					            // Add default activity
@@ -436,23 +482,25 @@ public class ResourceManagementService {
 			        alreadyExistTeam.forEach((team) -> {
 			            team.setIsActive("N");
 			            team.getCommonProperty().setUpdatedBy(resourceManagementDTO.getCreatedBy());
-			            teamToBeRemoved.add(team);
+			            
+			            teamToBeRemoved.add(team);			            
+			            
 			        });
 			        List<Team> teamToBeRemoveResponse = teamRepository.saveAll(teamToBeRemoved);
 			    }
 				
 				//Send mail to RMG: if HOD has updated project/Team
-			    if (resourceManagementDTO.getIsHOD().equals("true") && !resourceManagementDTO.getProjectType().equals("Internal")) {
-			        try {
-			            mailService.sendMailWithCC(rmgMail, employeeObj.getEmail(),
-			                    "Regarding Resource management",
-			                    "Dear RMG Team ," + "<br>"
-			                            + "<br>"
-			                            + employeeObj.getName() + " has updated the project : " + resourceManagementDTO.getName());
-			        } catch (Exception e) {
-			            e.printStackTrace();
-			        }
-			    }
+//			    if (resourceManagementDTO.getIsHOD().equals("true") && !resourceManagementDTO.getProjectType().equals("Internal")) {
+//			        try {
+//			            mailService.sendMailWithCC("ar731829@gmail.com", "sakti.das@apmosys.com",
+//			                    "Regarding Resource management",
+//			                    "Dear RMG Team ," + "<br>"
+//			                            + "<br>"
+//			                            + employeeObj.getName() + " project update hua hua  has updated the project : " + resourceManagementDTO.getName());
+//			        } catch (Exception e) {
+//			            e.printStackTrace();
+//			        }
+//			    }
 				
 				// Send Project/Team detail JSON to PoPotal
 				
@@ -638,6 +686,24 @@ public class ResourceManagementService {
 			                    }
 			                }
 			                List<EmployeeTeamMap> teamMemberDbResponse = employeeTeamMapRepository.saveAll(mapList);
+			                
+//			                after create team
+			                
+			                try {
+								mailService.sendMail(rmgMail,"Regarding Team Create", "Dear "
+										+ "Dear RMG ,"+"<br>"
+										+ "The Team has been created with the team name - "+teamDbResponse.getTeamName()+"<br>"
+												+ "<br><br>"
+												+ "Sincerely,"+"<br>"
+												+ "Team RMG - ApMoSys Technologies"
+										);
+							} catch (AddressException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							} catch (MessagingException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 
 			                // Add default activity
 			                Activity newActivityCreated = null;
@@ -680,17 +746,17 @@ public class ResourceManagementService {
 			        });
 
 			        // Send mail to RMG: if HOD/SuperAdmin has created project/Team
-			        if (resourceManagementDTO.getIsHOD().equals("true") && !resourceManagementDTO.getProjectType().equals("Internal")) {
-			            try {
-			                mailService.sendMailWithCC(rmgMail, employeeObj.getEmail(),
-			                        "Regarding Resource management",
-			                        "Dear RMG Team ," + "<br>"
-			                                + "<br>"
-			                                + employeeObj.getName() + " has created a project: " + resourceManagementDTO.getName());
-			            } catch (Exception e) {
-			                e.printStackTrace();
-			            }
-			        }
+//			        if (resourceManagementDTO.getIsHOD().equals("true") && !resourceManagementDTO.getProjectType().equals("Internal")) {
+//			            try {
+//			                mailService.sendMailWithCC("ar731829@gmail.com","sakti.das@apmosys.com",
+//			                        "Regarding Resource management",
+//			                        "Dear RMG Team ," + "<br>"
+//			                                + "<br>"
+//			                                + employeeObj.getName() + " dusra wala call kiya hai team create pr project update ka line no 729 has created a project:  -> " + resourceManagementDTO.getName()+"under this team hai "+resourceManagementDTO.getTeamList().get(0).getTeamName());                                      
+//			            } catch (Exception e) {
+//			                e.printStackTrace();
+//			            }
+//			        }
 
 			        // Send Project/Team detail JSON to PoPortal
 //			        if (!resourceManagementDTO.getProjectType().equals("Internal")) {
@@ -1713,4 +1779,97 @@ public class ResourceManagementService {
 	return response;	
 	}
 
+	private String generateHtmlTable(List<TeamMemberDTO> dtoList) {
+	    StringBuilder html = new StringBuilder();
+	    Employee empName = null;
+	    Department department = null;
+	    JobRole jobRole = null;
+	    
+	    html.append("<html>\n" +
+  	            "  <head>\n" +
+  	            "    <style>\n" +
+  	            "      table, th, td {\n" +
+  	            "        border: 1px solid black;\n" +
+  	            "      }\n" +
+  	            "      table {\n" +
+  	            "        border-collapse: collapse;\n" +
+  	            "      }\n" +
+  	            "    </style>\n" +
+  	            "  </head>\n" +
+  	            "  <body>\n" +
+  	            "    <table>\n" +
+  	            "      <tr>\n" +
+  	            "        <th>Employee Id</th>\n" +
+  	            "        <th>Employee Name</th>\n" +
+  	            "        <th>Department Name</th>\n" +
+  	            "      </tr>\n");
+	    for(TeamMemberDTO obj : dtoList) {
+	    	empName = employeeRepository.findByEmpId(obj.getEmpId());
+	    	jobRole = jobRoleRepository.findByjobRoleId(empName.getJobRoleId());
+	    	department = departmentRepository.findByDeptId(jobRole.getDeptId());
+	    	
+	    
+	  	        html.append("      <tr>\n");
+	  	        html.append("        <td>").append(empName.getEmployeementId()).append("</td>\n");
+	  	        html.append("        <td>").append(empName.getName()).append("</td>\n");
+	  	        html.append("        <td>").append(department.getName()).append("</td>\n");
+	  	        html.append("      </tr>\n");
+	    }
+	    html.append("    </table>\n" +
+  	            "  </body>\n" +
+  	            "</html>");
+	  
+	    return html.toString();
+	}
+	
+	public ServiceResponse deleteTeamByTeamId(TeamDTO teamDto) {
+		ServiceResponse response = new ServiceResponse();
+		
+		Optional<Team> team = teamRepository.findById(teamDto.getTeamId());
+		Team dbTeam = null;
+		if(team.isPresent()) {
+		Team getTeam = team.get();
+		getTeam.setIsActive("N");		
+		
+		List<EmployeeTeamMap> findAllMappedEmp = employeeTeamMapRepository.findByTeamId(teamDto.getTeamId());
+		System.err.println("findAllMappedEmp  "+findAllMappedEmp);
+		
+		findAllMappedEmp.forEach(emp ->{
+		
+			emp.setActive(0l);		
+			employeeTeamMapRepository.save(emp);
+		});	
+		
+		dbTeam = teamRepository.save(getTeam);
+		}
+		
+//        team inactivate mail generateHtmlTable
+        if(dbTeam != null) {
+        	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        	response.setServiceResponse("Team Deleted Successfully !!");
+        }else {
+        	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        	response.setServiceResponse("Team not found !!");
+        }
+        
+        try {
+            mailService.sendMail("ar731829@gmail.com ,sakti.das@apmosys.com",
+                    "Regarding Resource management",
+                    "Dear RMG Team ," + "<br>"
+                            + "<br>"
+                            + " team has been deleted and the following reources are removed from this team -> : " + teamDto.getTeamName()+"<br>"
+                            		+ "<br><br>"
+									+ "Sincerely,"+"<br>"
+									+ "Team RMG - ApMoSys Technologies"
+									+ "<br>"
+                            +generateHtmlTable(teamDto.getTeamMemberList()));                           
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+		
+		return response;
+	}
+	
+	
+	
 }

@@ -46,4 +46,7 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 	public Team findTeamByTeamId(Long teamId);
 	
 	public List<Team> findTeamListByProjectId (Integer projectId);
+
+	
+	public Team findByTeamId(Long teamId);
 }

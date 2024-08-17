@@ -157,8 +157,6 @@ public class FileUploadService {
 	                String billable = currentRow.getCell(1).getStringCellValue();
 	                String billableType = currentRow.getCell(2).getStringCellValue();
 	                String gender = currentRow.getCell(3).getStringCellValue();
-//	                String designationName = currentRow.getCell(1).getStringCellValue();
-//	                logger.info("designation Name : @@@@@  "+designationName);       
 	                
 	                Optional<Employee> optionalEmployee = Optional.ofNullable(employeeRepository.findByEmployeementId(employmentId));
 	                
@@ -169,9 +167,6 @@ public class FileUploadService {
 	                    employee.setBillableType(billableType);
 	                    employee.setGender(gender);
 	                    
-//	                	 Designation designation = designationRepository.findByDesignationName(designationName);
-	                	 
-//	                	 logger.info("designation found in database  "+designation);		                    employee.setDesignationId(designation.getDesignationId());
 		                employeeRepository.save(employee);
 	                } 
             
@@ -188,6 +183,50 @@ public class FileUploadService {
 		return response;
 	}
 	
+	public ServiceResponse saveExcelDataForManagerMapping(MultipartFile file) throws EncryptedDocumentException, InvalidFormatException {
+		ServiceResponse response = new ServiceResponse();
+		 try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
+	            Sheet sheet = workbook.getSheetAt(0);
+	            Iterator<Row> rows = sheet.iterator();
+	            rows.next(); // Skip header row
+
+	            while (rows.hasNext()) {
+	                Row currentRow = rows.next();
+
+	                Long employmentId = (long) currentRow.getCell(0).getNumericCellValue();
+	                String billable = currentRow.getCell(1).getStringCellValue();
+	                String billableType = currentRow.getCell(2).getStringCellValue();
+	                String gender = currentRow.getCell(3).getStringCellValue();
+	                String manager = currentRow.getCell(4).getStringCellValue();
+	                
+	                Optional<Employee> optionalEmployee = Optional.ofNullable(employeeRepository.findByEmployeementId(employmentId));
+	                Optional<Employee> findManager = Optional.ofNullable(employeeRepository.findByName(manager));
+	                
+	                
+	                if (optionalEmployee.isPresent()) {
+	                	Employee employee = optionalEmployee.get();
+	                	Employee getManager = findManager.get();
+	                	employee.setBillable(billable);
+	                    employee.setBillableType(billableType);
+	                    employee.setGender(gender);
+	                    if(manager != null)
+	                    employee.setManagerId(getManager.getEmpId());
+
+	                    employeeRepository.save(employee);
+	                } 
+            
+                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse("File uploaded and processed successfully.");
+           
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceResponse("Something went wrong");
+            
+        }
+		return response;
+	}
 	
 	
 //	export billable type and users daily basis excel report and attach on mail by cron

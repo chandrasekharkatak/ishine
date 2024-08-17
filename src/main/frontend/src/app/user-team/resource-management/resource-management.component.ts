@@ -982,15 +982,39 @@ export class ResourceManagementComponent implements OnInit {
     //console.log(this.allTeamList, " : this.allTeamList");
   }
 
-  removeInputTeamField(teamObj) {
-    this.allTeamList.forEach((value, index) => {
-      if (value == teamObj) {
-        this.updatedTeamList.push(value);
-        this.allTeamList.splice(index, 1);
-        this.allTeamListCopy.splice(index, 1);
-      }
-    });
+  // removeInputTeamField(teamObj) {
+  //   console.log("teamObj anurag   ",teamObj);
+  //   this.allTeamList.forEach((value, index) => {
+  //     if (value == teamObj) {
+  //       this.updatedTeamList.push(value);
+  //       this.allTeamList.splice(index, 1);
+  //       this.allTeamListCopy.splice(index, 1);
+  //     }
+  //   });
+  // }
+
+  tempTeam = new Project();
+
+  openDeleteModalForTeam(template : TemplateRef<any>, teamObj){
+    this.modalRef = this.modalService.show(template , { class: 'modal-sm' });
+    this.tempTeam = teamObj;
   }
+
+  deleteTeam(template : TemplateRef<any>){
+    console.log("delete team method call ",this.tempTeam);
+    this.projectService.deleteTeam(this.tempTeam).pipe(first()).subscribe((response : any)=>{
+      if(response.serviceStatus == "Success"){
+        this.openAlertMod(template , response.serviceResponse);
+      }else{
+        this.openAlertMod(template , response.serviceResponse);
+      }
+    })
+
+
+
+
+  }
+
 
   addTeamMember(){
     const newTeamMember = this.employeeListByDept.find(employee => employee.empId == this.newteamMember.empId);
@@ -1254,6 +1278,9 @@ this.pageNo = event;
 //   this.modalRef.hide();
 // }
 
+getRefreshPage(){
+  this.showEditProjectForm(this.projectObj);
+}
 
 
 }
