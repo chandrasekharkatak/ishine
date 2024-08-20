@@ -691,7 +691,7 @@ public class ResourceManagementService {
 			                
 			                try {
 								mailService.sendMail(rmgMail,"Regarding Team Create", "Dear "
-										+ "Dear RMG ,"+"<br>"
+										+ "RMG ,"+"<br>"
 										+ "The Team has been created with the team name - "+teamDbResponse.getTeamName()+"<br>"
 												+ "<br><br>"
 												+ "Sincerely,"+"<br>"

@@ -2587,7 +2587,7 @@
                                         <th colspan="11" class="text-center info-label">No details to display...</th>
                                     </tr>
                                     <tr *ngFor="let audit of filteredEmployeeAuditHistory | colFilter:auditFilter:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { id: 'fullJourney' , itemsPerPage: 20, currentPage: pageNo };let i = index">
-                                        <td>{{20*(page-1)+i+1}}</td>
+                                        <td>{{(pageNo-1)*20+i+1}}</td>
                                         <td>{{audit.date}}</td>
                                         <td>{{audit.field}}</td>
                                         <td>{{audit.value}}</td>
@@ -2645,7 +2645,7 @@
                                     </tr>
                                     <tr
                                         *ngFor="let audit of lifeCycleChangeList | colFilter:auditFilter:false |sort : [sortColumn, sortColumnType, sortDirection] | paginate: { id: 'lifeCycle' , itemsPerPage: 20, currentPage: pageNo };let i = index">
-                                        <td>{{20*(page-1)+i+1}}</td>
+                                        <td>{{(pageNo-1)*20+i+1}}</td>
                                         <td>{{audit.date}}</td>
                                         <td>{{audit.field}}</td>
                                         <td>{{audit.value}}</td>
@@ -2705,7 +2705,7 @@
                                     </tr>
                                     <tr
                                         *ngFor="let audit of teamProjectChangeList | colFilter:auditFilter:false |sort : [sortColumn, sortColumnType, sortDirection] | paginate: { id: 'teamProject' , itemsPerPage: 20, currentPage: pageNo };let i = index">
-                                        <td>{{20*(page-1)+i+1}}</td>
+                                        <td>{{(pageNo-1)*20+i+1}}</td>
                                         <td>{{audit.date}}</td>
                                         <td>{{audit.field}}</td>
                                         <td>{{audit.value}}</td>
@@ -2767,7 +2767,7 @@
                                     </tr>
                                     <tr
                                         *ngFor="let audit of kycUpdateList | colFilter:auditFilter:false |sort : [sortColumn, sortColumnType, sortDirection] | paginate: { id: 'kycUpdate' , itemsPerPage: 20, currentPage: pageNo };let i = index">
-                                        <td>{{20*(page-1)+i+1}}</td>
+                                        <td>{{(pageNo-1)*20+i+1}}</td>
                                         <td>{{audit.date}}</td>
                                         <td>{{audit.field}}</td>
                                         <td>{{audit.value}}</td>
@@ -2831,7 +2831,7 @@
                                     </tr>
                                     <tr
                                         *ngFor="let audit of employeeInfoChangeList | colFilter:auditFilter:false |sort : [sortColumn, sortColumnType, sortDirection] |  paginate: { id: 'employeeInfo' , itemsPerPage: 20, currentPage: pageNo };let i = index">
-                                        <td>{{20*(page-1)+i+1}}</td>
+                                        <td>{{(pageNo-1)*20+i+1}}</td>
                                         <td>{{audit.date}}</td>
                                         <td>{{audit.field}}</td>
                                         <td>{{audit.value}}</td>
@@ -2851,7 +2851,7 @@
             </div>
         </app-accordion-item>
 
-        <app-accordion-item class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Project History')" title="Project History" [showBody]="isEmployeeHistory">
+        <!-- <app-accordion-item class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Project History')" title="Project History" [showBody]="isEmployeeHistory">
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-md-12">
@@ -2902,17 +2902,15 @@
 
                                     <tr *ngFor="let employeehistory of employeeWorkingHistory | colFilter:filterOnhistory:false | paginate: { id: 'employeehistoryID' , itemsPerPage: 10, currentPage: pageNo };let i = index">
 
-                                        <td>{{20*(page-1)+i+1}}</td>
-                                        <!-- <td>{{empHistory.employeementId}}</td> -->
+                                        <td>{{(pageNo-1)*10+i+1}}</td>
+                                        
                                         <td>{{employeehistory.name}}</td>
                                         <td>{{employeehistory.teamName}}</td>
                                         <td>{{employeehistory.projectName}}</td>
                                         <td>{{employeehistory.startDate | date:'dd-MM-yyyy hh:mm:ss'}}</td>
                                         <td>{{employeehistory.updatedOn | date:'dd-MM-yyyy hh:mm:ss'}}</td>
                                         <td>{{employeehistory.teamLeadName}}</td>
-                                        <!-- <td>{{empHistory.dateOfJoining | date:'dd-MM-yyyy'}}</td> -->
-                                        <!-- <td *ngIf="employeeObj.employmentstatus == 'InActive'">{{empHistory.dateOfResign | date:'dd-MM-yyyy'}}</td> -->
-                                        <!-- <td>{{empHistory.role}}</td> -->
+                                        
                                         <td>{{employeehistory.jobRoleName}}</td>
                                         <td>{{employeehistory.clientLocation}}</td>
                                         <td>{{employeehistory.clientName}}</td>
@@ -2923,15 +2921,14 @@
                             </table>
                         </div>
                         <div class="my-buttons">
-                            <!-- <pagination-controls id="employeeInfo" class="my-pagination" [hidden]="employeeInfoChangeList.length == 0"
-                                (pageChange)="handleAuditPageChanges($event)"></pagination-controls> -->
+                           
                                 <pagination-controls id="employeehistoryID" class="my-pagination" [hidden]="employeeWorkingHistory.length == 0" (pageChange)="handlePageChanges($event)"></pagination-controls>
    
                         </div>
                     </div>
                 </div>
             </div>
-        </app-accordion-item>
+        </app-accordion-item> -->
 
     </div>
 </ng-template>
