@@ -5201,19 +5201,40 @@ public class EmployeeService {
 	public ServiceResponse getDepartmentByHodId(Long empId) {
 		ServiceResponse response = new ServiceResponse();
 		
-		Optional<List<Object>> findDepartments = departmentRepository.getDepartmentsByHodId(empId);
-		Employee findEmployee = employeeRepository.findByEmpId(empId);
+		/**
+		 * Optional<List<Object>> findDepartments =
+		 * departmentRepository.getDepartmentsByHodId(empId); Employee findEmployee =
+		 * employeeRepository.findByEmpId(empId);
+		 * 
+		 * if(findDepartments.isPresent()) { List<Object> listOfDept =
+		 * findDepartments.get();
+		 * 
+		 * if(listOfDept != null) { response.setServiceResponse(listOfDept);
+		 * response.setServiceStatus(ServiceResponse.STATUS_SUCCESS); } }else {
+		 * response.setServiceResponse(findEmployee.getName()
+		 * +" is not HOD of any department ");
+		 * response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		 } */
 		
-		if(findDepartments.isPresent()) {
-				List<Object> listOfDept = findDepartments.get();
-				
-				if(listOfDept != null) {
-					response.setServiceResponse(listOfDept);	
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);		
-				}	
+		// find list of reporties
+		
+		List<Object[]> findDepartment = employeeRepository.findDepartmentsByReporties(empId);
+		
+		List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+		
+		findDepartment.forEach(obj ->{
+			EmployeeDTO dto = new EmployeeDTO();
+			
+			dto.setDepartmentName(obj[3] != null ? obj[3].toString() : null);
+			dtoList.add(dto);
+		});
+		
+		if(dtoList != null) {
+			response.setServiceResponse(dtoList);
+			 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		}else {
-			response.setServiceResponse(findEmployee.getName()+" is not HOD of any department ");	
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("There is no reporties available !!");
+	         response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 		}
 		
 		return response;
@@ -5252,13 +5273,20 @@ public class EmployeeService {
 
 	public ServiceResponse getTeamByProjectName(String projectName) {
 		ServiceResponse response = new ServiceResponse();
-		Project project = projectRepository.findByProjectName(projectName);
-		List<Team> listOfTeams = teamRepository.findTeamByProjectId(project.getProjectId());
-		System.out.println(" size   listOfTeams      "+listOfTeams.size());
-		if(listOfTeams != null) {
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse(listOfTeams);
-		}		
+		try {
+			Project project = projectRepository.findByProjectName(projectName);
+			List<Team> listOfTeams = teamRepository.findTeamByProjectId(project.getProjectId());
+			System.out.println(" size   listOfTeams      "+listOfTeams.size());
+			if(listOfTeams.size() > 0) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(listOfTeams);
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Team is not present in this project !!");
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
 		return response;
 	}
 

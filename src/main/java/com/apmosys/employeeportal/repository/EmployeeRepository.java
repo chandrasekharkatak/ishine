@@ -184,7 +184,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query(nativeQuery = true)
 	public List<Object[]> findHodByEmpId(Long empId);
 
-	@Query(nativeQuery = true , value = " select count(*) from employee e where e.manager_id = :empId or e.reporting_manager_id= :empId and e.employmentstatus != 'InActive'")
+	@Query(nativeQuery = true , value = " select count(*) from employee e where (e.manager_id = :empId or e.reporting_manager_id= :empId) and e.employmentstatus != 'InActive'")
 	public Long countReportiesByManagerId(Long empId);
 
 	@Query(nativeQuery = true)
@@ -256,4 +256,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "FROM department d\n"
 			+ "JOIN employee e ON d.hod_id = e.emp_id;")
 		public List<Object[]> getHodDepartmentEmail();
+		
+		@Query(nativeQuery = true , value = "SELECT jr.job_role_id,jr.name,jr.employee_role, d.name as departmentName,d.dept_id FROM employee e \n"
+				+ "INNER JOIN job_role jr ON jr.job_role_id=e.job_role_id \n"
+				+ "INNER JOIN department d ON d.dept_id=jr.dept_id \n"
+				+ "WHERE (e.manager_id = :empId OR e.reporting_manager_id= :empId) AND e.employmentstatus != 'InActive' GROUP BY d.name")
+	public List<Object[]> findDepartmentsByReporties(Long empId);
 }

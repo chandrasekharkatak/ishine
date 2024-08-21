@@ -738,7 +738,7 @@ minDate: Date;
         //console.log(" team list success   ",this.teamList);
       }else{
         this.openAlertMod(template , response.serviceResponse);
-        //console.log(" in fail ")
+        console.log(" in fail ")
       }
     });
 
@@ -2130,7 +2130,7 @@ console.log("employee update before call ",employee);
         }
       })
       var empId = employeeId;
-      //console.log(" empId    ",empId);
+      console.log(" empId    ",empId);
       this.isSearchEnabled = false;
       //console.log("Log    eventValue    ",eventValue);
     
@@ -2225,14 +2225,17 @@ return true;
 
     this.employeeService.getDepartmentByHodId(employeeId).pipe(first()).subscribe((response: any)=>{
       if(response.serviceStatus == "Success"){
-        const responseObj = response.serviceResponse;
-       console.log(" responseObj             ",responseObj);
 
-       responseObj.forEach((dept )=>{
-        this.deptId = dept[0];
-        this.departmentName = dept[2];
-        this.listOfDepartment.push(this.departmentName);
-       });
+        this.listOfDepartment = response.serviceResponse; 
+
+      //   const responseObj = response.serviceResponse;
+      //  console.log(" responseObj             ",responseObj);
+
+      //  responseObj.forEach((dept )=>{
+      //   this.deptId = dept[4];
+      //   this.departmentName = dept[3];
+      //   this.listOfDepartment.push(this.departmentName);
+      //  });
 
 
         // this.listOfDepartment = response.serviceResponse;

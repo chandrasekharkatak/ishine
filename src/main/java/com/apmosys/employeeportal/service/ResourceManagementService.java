@@ -831,6 +831,10 @@ public class ResourceManagementService {
 							empTeamMapping.forEach((teamMemberObj) -> {
 								String employeeName = null;
 								Employee empObj = employeeRepository.findByEmpId(teamMemberObj.getEmpId());
+								// find department 
+								JobRole findJobRole = jobRoleRepository.findByjobRoleId(empObj.getJobRoleId());
+								Department findDepartment = departmentRepository.findByDeptId(findJobRole.getDeptId());							
+								
 								if(empObj != null) {
 									employeeName = empObj.getName();
 								}
@@ -843,6 +847,8 @@ public class ResourceManagementService {
 									teamMemberDTO.setName(employeeName);
 									teamMemberDTO.setIsTeamLead("true");
 									teamMemberDTO.setStartDate(teamMemberObj.getStartDate().toString());
+									teamMemberDTO.setDepartmentName(findDepartment.getName());
+									teamMemberDTO.setDepartmentId(findDepartment.getDeptId().toString());
 									teamMemberDTO.setEmployeeRole(teamMemberObj.getEmployeeRole().split(","));
 									teamMember.add(teamMemberDTO);
 								}else {
@@ -850,6 +856,8 @@ public class ResourceManagementService {
 									teamMemberDTO.setEmpId(teamMemberObj.getEmpId());
 									teamMemberDTO.setName(employeeName);
 									teamMemberDTO.setStartDate(teamMemberObj.getStartDate().toString());
+									teamMemberDTO.setDepartmentName(findDepartment.getName());
+									teamMemberDTO.setDepartmentId(findDepartment.getDeptId().toString());
 									teamMemberDTO.setEmployeeRole(teamMemberObj.getEmployeeRole().split(","));
 									teamMember.add(teamMemberDTO);
 								}

@@ -270,7 +270,8 @@
                                                                             [valueMember]="'deptId'"
                                                                             [source]="allDeptList"
                                                                             [useInfiniteScroll]="true" [multiple]="true"
-                                                                            [(ngModel)]="teamObj.departmentList">
+                                                                            [(ngModel)]="teamObj.departmentList"
+                                                                            (selectionChange)="changeDepartment($event)">
                                                                             <mat-option [value]="dept.deptId"
                                                                                 *ngFor="let dept of departmentSelect.filteredSource">
                                                                                 {{dept.name}}
@@ -772,7 +773,7 @@
                                 <div class="col-md-12 mb-0">
                                     <div class="info-wrapper">
                                         <p class="info-text">{{i + 1}} : {{member.name}} &nbsp;&nbsp;&nbsp;&nbsp; start
-                                            Date : {{member.startDate}}</p>
+                                            Date : {{member.startDate}}  &nbsp;&nbsp;&nbsp;&nbsp; |  Department Name :  {{member.departmentName}}</p>
                                     </div>
                                 </div>
                             </ng-container>
