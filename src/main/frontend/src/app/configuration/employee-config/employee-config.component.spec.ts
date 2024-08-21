@@ -9,7 +9,7 @@ describe('EmployeeConfigComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [ EmployeeConfigComponent ]
-    })
+    })   
     .compileComponents();
   });
 

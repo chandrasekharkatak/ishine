@@ -2087,7 +2087,7 @@ public class EmployeeService {
 				employee.setRole(employeedto.getRole());
 				employee.setWorkLocation(employeedto.getWorkLocation());
 				employee.setProbationPeriod(employeedto.getProbationPeriod());
-				if(employee.getEmploymentstatus().equals("Resigned") || employee.getEmploymentstatus().equals("InActive") )  {
+				if(employeedto.getEmploymentstatus().equals("Resigned") || employeedto.getEmploymentstatus().equals("InActive") )  {
 					System.out.println("Right method call    ");
 					employee.setDateOfResign(employeedto.getDateOfResign() != null
 							? stringToDateTimeParser.getDate(employeedto.getDateOfResign(), "yyyy-MM-dd")
@@ -2132,26 +2132,39 @@ public class EmployeeService {
 //							}
 //						}						
 							
-							// department HOD 
-							
-//							Optional<List<Department>> findDept = Optional.ofNullable(departmentRepository.findByHodId(employeedto.getEmpId()));
-//							if(findDept.isPresent() && !findDept.isEmpty()) {
-//								System.err.println(" department update call ");
-//								List<Department> listOfDept = findDept.get();
-//								int count =0;
-//								for (Department department : listOfDept) {
-//									department.setHodId(employeedto.getNewManagerId());
-//									departmentRepository.save(department);
-//									count = count+1;
-//								}
-//								System.err.println(" count total "+count);
-//							}
-							
 							
 							employeeRepository.saveAll(listOfEmp);
 							}	
 					}
 					
+					if(employeedto.getEmploymentstatus().equals("InActive")) {
+						// create logic for remove resource from team and projects
+						
+						List<EmployeeTeamMap> findAllActiveTeams = employeeTeamMapRepository.findByEmpId(employeedto.getEmpId());
+						if(findAllActiveTeams != null) {
+							
+							findAllActiveTeams.forEach(obj ->{
+								obj.setActive(0l);				
+								employeeTeamMapRepository.save(obj);
+								});
+						}
+						
+
+						// department HOD 
+						
+						Optional<List<Department>> findDept = Optional.ofNullable(departmentRepository.findByHodId(employeedto.getEmpId()));
+						if(findDept.isPresent() && !findDept.isEmpty()) {
+							System.err.println(" department update call ");
+							List<Department> listOfDept = findDept.get();
+							int count =0;
+							for (Department department : listOfDept) {
+								department.setHodId(employeedto.getNewManagerId());
+								departmentRepository.save(department);
+								count = count+1;
+							}
+							System.err.println(" count total "+count);
+						}
+					}
 					
 				}else if(employee.getEmploymentstatus().equals("Probation") || employee.getEmploymentstatus().equals("Confirmed")) {
 					employee.setDateOfResign(null);
