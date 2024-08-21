@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -36,7 +37,7 @@ public class TimesheetController {
 	
 	@RequestMapping(value = "/addTimesheet", method = RequestMethod.POST)
 	public ServiceResponse addTimesheet(@RequestBody TimesheetDTO timesheetDTO) {
-
+		System.out.println("timesheetDTO list : "+timesheetDTO);
 		ServiceResponse response = timesheetService.addTimesheet(timesheetDTO);
 		return response;
 	}
@@ -154,5 +155,10 @@ public class TimesheetController {
 		    return response;
 	}
 	
-	
+//	@Scheduled(cron = "0 53 17 * * ?")  // Runs at 3:55 pm
+//    public void scheduleUpdateCurrentManagerInTimesheets() {
+//		System.err.println("----cron started-----");
+//        timesheetService.updateCurrentManagerInTimesheets();
+//        System.err.println("--cron ended--");
+//    }
 }

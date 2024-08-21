@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.model.Department;
@@ -74,6 +75,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	public boolean existsByEmail(String email);
 
 	public Employee findByName(String leaveStatusUpdatedByName);
+//	List<Employee> findByName(String name);
+	@Query("SELECT e FROM Employee e WHERE LOWER(e.name) = :name")
+	Employee findByNameIgnoreCase(@Param("name") String name);
+
 
 	public List<Employee> findByJobRoleId(Long oldJobRoleId);
 

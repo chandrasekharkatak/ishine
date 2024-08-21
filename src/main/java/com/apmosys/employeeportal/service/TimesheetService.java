@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.service;
 
+import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -15,6 +16,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
@@ -243,6 +245,7 @@ public class TimesheetService {
 
 	public ServiceResponse addTimesheet(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
+		System.out.println("timesheetDTO currentManagerId : "+timesheetDTO.getCurrentManagerId());
 		
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("add_timesheet");
@@ -261,7 +264,11 @@ public class TimesheetService {
 			newTimesheet.setEmpId(timesheetDTO.getEmpId());
 			newTimesheet.setDate(stringToDateTimeParser.getDate(timesheetDTO.getDate(), "yyyy-MM-dd"));
 			newTimesheet.setDayType(timesheetDTO.getDayType());
+			System.out.println("timesheetDTO.getCurrentmanagerId() ==> "+timesheetDTO.getCurrentManagerId());
+
+			newTimesheet.setCurrentManagerId(timesheetDTO.getCurrentManagerId());	
 			if (timesheetDTO.getDayType().equals("Public Holiday") || timesheetDTO.getDayType().equals("Week Off") || timesheetDTO.getDayType().equals("Leave")) {
+				
 				newTimesheet.setDescription(timesheetDTO.getDescription());
 				newTimesheet.setTotalTime((float)0);
 				newTimesheet.setTotalWorkingHours("0");
@@ -1027,7 +1034,7 @@ public class TimesheetService {
 			if (timesheet.isPresent()) {
 
 				Timesheet existingTimesheet = timesheet.get();
-
+                existingTimesheet.setCurrentManagerId(timesheetDTO.getCurrentManagerId());
 				existingTimesheet.getCommonProperty().setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				existingTimesheet.getCommonProperty().setUpdatedBy(timesheetDTO.getCreatedBy());
 				existingTimesheet.setDate(stringToDateTimeParser.getDate(timesheetDTO.getDate(), "yyyy-MM-dd"));
@@ -1649,6 +1656,18 @@ public class TimesheetService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-	
+
+//	@Transactional
+//	public void updateCurrentManagerInTimesheets() {
+//	    List<Object[]> empAndManagerList = timesheetsRepository.findEmployeesAndTheirManagers();
+//
+//	    for (Object[] empAndManager : empAndManagerList) {
+//	        Long empId = ((BigInteger) empAndManager[0]).longValue();
+//	        Long managerId = ((BigInteger) empAndManager[1]).longValue();
+//
+//	        // Update current_manager_id in the employee_timesheets table
+//	        timesheetsRepository.updateCurrentManagerId(empId, managerId);
+//	    }
+//	}
 
 }

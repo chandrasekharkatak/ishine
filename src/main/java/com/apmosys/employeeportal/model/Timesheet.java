@@ -53,6 +53,8 @@ public class Timesheet {
 	
 	private Long timesheetStatusUpdatedBy;
 	
+	private Long currentManagerId;
+	
 	private String isNightShift;
 	
 	private Short leaveTypeMasterId;

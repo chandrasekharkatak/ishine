@@ -630,6 +630,7 @@ export class MyTimesheetComponent implements OnInit {
     }
     this.timesheetObj.createdBy = this.currentUser.empId;
     this.timesheetObj.createdByName = this.currentUser.name
+    this.timesheetObj.currentManagerId = this.currentUser.managerId;
     //console.log("Add timesheetObj : ", this.timesheetObj);
     this.timesheetService.addTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -694,6 +695,7 @@ export class MyTimesheetComponent implements OnInit {
       this.timesheetObj.totalWorkingOfficeHours = '';
     }
     this.timesheetObj.createdBy = this.currentUser.empId;
+    this.timesheetObj.currentManagerId = this.currentUser.managerId;
     //console.log("Update timesheetObj : ", this.timesheetObj);
     this.timesheetService.updateTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

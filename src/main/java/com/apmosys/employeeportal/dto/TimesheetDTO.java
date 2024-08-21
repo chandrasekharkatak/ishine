@@ -86,6 +86,7 @@ public class TimesheetDTO {
 	private Long actualEODCount;
 	private Long resourceCount;
 	private Long expectedEODCount;
+	private Long currentManagerId;
 	
 	private String leaveType;
 	private List<ActivityDTO> inactiveTimesheetActivities;

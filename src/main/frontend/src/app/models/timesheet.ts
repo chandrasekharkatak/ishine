@@ -12,6 +12,7 @@ export class Timesheet{
     createdByName : any;	
 	updatedOn: any;	
 	updatedBy: any;
+    currentManagerId: any;
 
 
     projectId : any;
@@ -28,6 +29,7 @@ export class Timesheet{
 	weekDayName : any;
 	totalWorkingHours : any;
     totalWorkingHoursPercentage : any;
+
 
     // how many hour employee worked
     totalTime: any;

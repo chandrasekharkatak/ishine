@@ -183,50 +183,95 @@ public class FileUploadService {
 		return response;
 	}
 	
+//	public ServiceResponse saveExcelDataForManagerMapping(MultipartFile file) throws EncryptedDocumentException, InvalidFormatException {
+//		ServiceResponse response = new ServiceResponse();
+//		 try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
+//	            Sheet sheet = workbook.getSheetAt(0);
+//	            Iterator<Row> rows = sheet.iterator();
+//	            rows.next(); // Skip header row
+//
+//	            while (rows.hasNext()) {
+//	                Row currentRow = rows.next();
+//
+//	                Long employmentId = (long) currentRow.getCell(0).getNumericCellValue();
+//	                String billable = currentRow.getCell(1).getStringCellValue();
+//	                String billableType = currentRow.getCell(2).getStringCellValue();
+//	                String gender = currentRow.getCell(3).getStringCellValue();
+//	                String manager = currentRow.getCell(4).getStringCellValue();
+//	                
+//	                Optional<Employee> optionalEmployee = Optional.ofNullable(employeeRepository.findByEmployeementId(employmentId));
+//	                Optional<Employee> findManager = Optional.ofNullable(employeeRepository.findByName(manager));
+//	                
+//	                
+//	                if (optionalEmployee.isPresent()) {
+//	                	Employee employee = optionalEmployee.get();
+//	                	Employee getManager = findManager.get();
+//	                	employee.setBillable(billable);
+//	                    employee.setBillableType(billableType);
+//	                    employee.setGender(gender);
+//	                    if(manager != null)
+//	                    employee.setManagerId(getManager.getEmpId());
+//
+//	                    employeeRepository.save(employee);
+//	                } 
+//            
+//                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//                response.setServiceResponse("File uploaded and processed successfully.");
+//           
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//            response.setServiceResponse("Something went wrong");
+//            
+//        }
+//		return response;
+//	}
+	
 	public ServiceResponse saveExcelDataForManagerMapping(MultipartFile file) throws EncryptedDocumentException, InvalidFormatException {
-		ServiceResponse response = new ServiceResponse();
-		 try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
-	            Sheet sheet = workbook.getSheetAt(0);
-	            Iterator<Row> rows = sheet.iterator();
-	            rows.next(); // Skip header row
+	    ServiceResponse response = new ServiceResponse();
+	    try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
+	        Sheet sheet = workbook.getSheetAt(0);
+	        Iterator<Row> rows = sheet.iterator();
+	        rows.next(); // Skip header row
 
-	            while (rows.hasNext()) {
-	                Row currentRow = rows.next();
+	        while (rows.hasNext()) {
+	            Row currentRow = rows.next();
 
-	                Long employmentId = (long) currentRow.getCell(0).getNumericCellValue();
-	                String billable = currentRow.getCell(1).getStringCellValue();
-	                String billableType = currentRow.getCell(2).getStringCellValue();
-	                String gender = currentRow.getCell(3).getStringCellValue();
-	                String manager = currentRow.getCell(4).getStringCellValue();
-	                
-	                Optional<Employee> optionalEmployee = Optional.ofNullable(employeeRepository.findByEmployeementId(employmentId));
-	                Optional<Employee> findManager = Optional.ofNullable(employeeRepository.findByName(manager));
-	                
-	                
-	                if (optionalEmployee.isPresent()) {
-	                	Employee employee = optionalEmployee.get();
-	                	Employee getManager = findManager.get();
-	                	employee.setBillable(billable);
-	                    employee.setBillableType(billableType);
-	                    employee.setGender(gender);
-	                    if(manager != null)
-	                    employee.setManagerId(getManager.getEmpId());
+	            Long employmentId = (long) currentRow.getCell(0).getNumericCellValue();
+	            String billable = currentRow.getCell(1).getStringCellValue();
+	            String billableType = currentRow.getCell(2).getStringCellValue();
+	            String gender = currentRow.getCell(3).getStringCellValue();
+	            String manager = currentRow.getCell(4).getStringCellValue().trim().toLowerCase(); // Convert to lowercase
+	            
+	            Optional<Employee> optionalEmployee = Optional.ofNullable(employeeRepository.findByEmployeementId(employmentId));
+	            Optional<Employee> findManager = Optional.ofNullable(employeeRepository.findByNameIgnoreCase(manager));
+	            
+	            if (optionalEmployee.isPresent()) {
+                	Employee employee = optionalEmployee.get();
+                	Employee getManager = findManager.get();
+                	employee.setBillable(billable);
+                    employee.setBillableType(billableType);
+                    employee.setGender(gender);
+                    if(manager != null)
+                    employee.setManagerId(getManager.getEmpId());
 
-	                    employeeRepository.save(employee);
-	                } 
-            
-                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-                response.setServiceResponse("File uploaded and processed successfully.");
-           
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-            response.setServiceResponse("Something went wrong");
-            
-        }
-		return response;
+                    employeeRepository.save(employee);
+	            }
+	        }
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse("File uploaded and processed successfully.");
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong");
+	    }
+	    return response;
 	}
+
+	
+	
 	
 	
 //	export billable type and users daily basis excel report and attach on mail by cron

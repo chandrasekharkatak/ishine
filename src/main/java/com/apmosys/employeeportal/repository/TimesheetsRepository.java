@@ -6,8 +6,10 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.model.Timesheet;
 
@@ -74,5 +76,14 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getTimesheetFilledByMember(Long empId, LocalDate date);
+	
+//	@Query(value = "SELECT et.emp_id, e.manager_id FROM employee e " +
+//            "INNER JOIN employee_timesheets et ON e.emp_id = et.emp_id", nativeQuery = true)
+//List<Object[]> findEmployeesAndTheirManagers();
+//
+//@Modifying
+//@Transactional
+//@Query(value = "UPDATE employee_timesheets SET current_manager_id = :managerId WHERE emp_id = :empId", nativeQuery = true)
+//void updateCurrentManagerId(Long empId, Long managerId);
 
 }
