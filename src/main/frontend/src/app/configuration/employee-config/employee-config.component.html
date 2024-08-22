@@ -485,7 +485,7 @@
 
 <!-- added by priyadarshini  -->
 
-<!-- <div class="col-md-4 mb-0">
+<div class="col-md-4 mb-0">
     <div class="info-wrapper">
         <div class="form-group">
             <label class="info-label"><span class="text-danger">*</span>Do you want to change the reporting of your reportees?</label>
@@ -496,13 +496,13 @@
             </select>
         </div>
     </div>
-</div> -->
+</div>
 
-<!-- <div class="col-md-4 mb-0" *ngIf="isUpdation && !managerFlag && onselectYes">
+<div class="col-md-4 mb-0" *ngIf="isUpdation && !managerFlag && onselectYes">
     <div class="info-wrapper">
         <div class="form-group">
             <label class="info-label"><span class="text-danger">*</span>Mapping Update Type</label>
-            <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.updateType" (change)="openModalForManagerChange(employeeObj,change_manager_template, $event, employeeObj.empId)" aria-hidden="true">
+            <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.updateType" (change)="openModalForManagerChange(change_manager_template, $event, employeeObj.empId)" aria-hidden="true">
                 <option value="automatic">Automatic</option>
                 <option value="manual">Manual</option>
             </select>
@@ -513,18 +513,18 @@
 <div class="col-md-4 mb-0" *ngIf="employeeObj.updateType == 'automatic' && isUpdation && onselectYes">
     <div class="info-wrapper">
         <div class="form-group">
-            <label class="info-label"><span class="text-danger">*</span>New Manager</label>
+            <label class="info-label"><span class="text-danger">*</span>New reportees mapped to</label>
             <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.newManagerId" >
             <option selected="selected" value="" disabled>Select</option>
             <option *ngFor="let employee of managerList" value="{{employee.empId}}">{{employee.name}}</option>
             </select>
         </div>
     </div>
-</div> -->
+</div> 
 
-<!-- <div class="col-md-4 mb-0" >    
+<div class="col-md-4 mb-0" >    
 
-    <div class="info-wrapper">
+     <div class="info-wrapper">
         <div class="form-group">
             <label class="info-label"><span class="text-danger">*</span>Employment Status</label>
             <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.employmentstatus">
@@ -536,7 +536,7 @@
             </select>
         </div>
     </div>
-</div>  -->
+</div> 
 
 <!-- <div class="col-md-4 mb-0" *ngIf="employeeObj.updateType == 'manual'">
     <div class="info-wrapper">
@@ -570,6 +570,7 @@
                                     <!-- added by Anurag -->
                                     
                                     <!-- <div class="col-md-4 mb-0" *ngIf="isUpdation && employeeObj.employmentstatus == 'InActive' " >   by priyadarshini -->
+
                                     <!-- <div class="col-md-4 mb-0" *ngIf="employeeObj.employmentstatus == 'InActive' " >    
                                     <div class="info-wrapper">
                                     <div class="form-group">
@@ -584,7 +585,7 @@
                                     </select>
                                     </div>
                                     </div>
-                                    </div> -->
+                                    </div>  -->
                                     
                                     <!-- end -->
                                     
@@ -592,23 +593,23 @@
 
                                     <!--  added by anurag for Inactive manager -->
 
-<div class="col-md-4 mb-0" *ngIf="isUpdation && !managerFlag">
+<!-- <div class="col-md-4 mb-0" *ngIf="isUpdation && !managerFlag">
     <div class="info-wrapper">
         <div class="form-group">
             <label class="info-label"><span class="text-danger">*</span>Mapping Update Type</label>
             <small class="text-danger">(Please select for employment status)</small>
             <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.updateType" (change)="resetFieldOnChange(employeeObj)">
-                <!-- <option selected="selected" value="" disabled>Select</option> -->
+                 <option selected="selected" value="" disabled>Select</option> 
                 <option value="automatic">Automatic</option>
                 <option value="manual">Manual</option>
             </select>
         </div>
     </div>
-</div>
+</div> -->
 
 
 
-                                    <div class="col-md-4 mb-0" *ngIf="employeeObj.updateType !== 'automatic' && employeeObj.updateType !== 'manual'">
+                                    <!-- <div class="col-md-4 mb-0" *ngIf="employeeObj.updateType !== 'automatic' && employeeObj.updateType !== 'manual'">
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Employment Status</label>
@@ -636,11 +637,11 @@
             </select>
         </div>
     </div>
-</div>
+</div> -->
 
 <!-- added by anurag -->
 
-<div class="col-md-4 mb-0" *ngIf="employeeObj.updateType == 'automatic'">
+<!-- <div class="col-md-4 mb-0" *ngIf="employeeObj.updateType == 'automatic'">
     <div class="info-wrapper">
         <div class="form-group">
             <label class="info-label"><span class="text-danger">*</span>Employment Status</label>
@@ -653,7 +654,7 @@
             </select>
         </div>
     </div>
-</div>
+</div> -->
 <!-- added by Anurag -->
 
 <div class="col-md-4 mb-0" *ngIf="isUpdation && employeeObj.employmentstatus == 'InActive' " >
@@ -676,7 +677,7 @@
 
 <!-- added by anurag -->
 
-<div class="col-md-4 mb-0" *ngIf="employeeObj.updateType == 'automatic' && isUpdation && employeeObj.employmentstatus == 'InActive'">
+<!-- <div class="col-md-4 mb-0" *ngIf="employeeObj.updateType == 'automatic' && isUpdation">
 <div class="info-wrapper">
 <div class="form-group">
 <label class="info-label"><span class="text-danger">*</span>New Manager</label>
@@ -685,8 +686,8 @@
 <option *ngFor="let employee of managerList" value="{{employee.empId}}">{{employee.name}}</option>
 </select>
 </div>
-</div>
-</div>
+</div>f
+</div> -->
 
                                     
                                     <!-- <div class="col-md-4 mb-0" *ngIf="employeeObj.updateType == 'automatic' && isUpdation && employeeObj.employmentstatus == 'InActive'"> by Priyadarshini -->

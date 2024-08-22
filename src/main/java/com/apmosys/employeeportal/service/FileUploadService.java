@@ -344,7 +344,7 @@ public class FileUploadService {
 	
 //	@Scheduled(cron = "0 */4 * * * *")
 //	@Scheduled(cron = "0 0 7 ? * *")
-	
+	@Async
 	@Scheduled(cron = "${VP_mails}")
 	public void execute() {
 		try {

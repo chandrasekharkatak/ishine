@@ -13,6 +13,7 @@ import { Sort } from '@angular/material/sort';
 import { Document } from '../models/document';
 import { Query } from '../models/query';
 
+
 class FilterData {
   title: any;
   columns: any;

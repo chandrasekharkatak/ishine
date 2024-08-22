@@ -45,5 +45,9 @@ public class Project {
 	private Long createdBy;
 	private Long updatedBy;
 	private LocalDateTime updatedOn;
+	//added as per RMG Requirement
+	private String role;
+    private Integer count;
+    private String experience;
 
 }

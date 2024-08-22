@@ -46,8 +46,10 @@ export class EmployeeConfigComponent implements OnInit {
 
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
-
+  @ViewChild('change_manager_template') 
+  changeManagerTemplate: TemplateRef<any>;
   feature = 'Employee Config';
+  managerFlag : boolean = false;
   data:string;
   items = 10;
   datas:string;
@@ -159,7 +161,7 @@ export class EmployeeConfigComponent implements OnInit {
   revoke_template: any;
 
   deptId : any;
-  managerFlag : boolean = false;
+  
 
   previewObj:Employee = new Employee();
   previewEmployeeObj:Employee = new Employee();
@@ -468,7 +470,7 @@ minDate: Date;
     this.isSearchEnabled = false;
     this.isworkHistorySearchEnabled = false;
     this.isAuditSearchEnabled = false;
-
+    
     this.managerList = [];
     this.getAllEmployeeList();
   }
@@ -1568,7 +1570,7 @@ minDate: Date;
       employee.approvalsTo = null;
     }
 employee.newManagerId = this.employeeObj.newManagerId;
-// employee.reportiesFlag = this.employeeObj.reportiesFlag; 
+employee.reportiesFlag = this.employeeObj.reportiesFlag; 
 
 console.log("employee update before call ",employee);
 
@@ -1788,6 +1790,131 @@ console.log("employee update before call ",employee);
       }
     });
   }
+
+//   onManagerChange(employeeObj: any) {
+
+//     this.onChangeManagerSelection(employeeObj);
+
+//     this.onUpdateTypeChange(employeeObj);
+
+// }
+
+
+
+//   onChangeManagerSelection(employeeObj: any) {
+
+//     // Handle logic when "Do you want to change manager?" field changes
+
+//     if (employeeObj.changeManager === 'no') {
+
+//         employeeObj.employmentReleaseStatus = '';
+
+//         employeeObj.updateType = '';
+
+//         employeeObj.newManagerId = '';
+
+//     }
+
+// }
+
+
+
+// onUpdateTypeChange(employeeObj: any) {
+
+//   // const selectElement = event.target as HTMLSelectElement;
+
+//   //   const status = selectElement.value;
+
+//   //   if (this.employeeObj.updateType === 'manual') {
+
+//   //     this.openModalForManagerChange(this.changeManagerTemplate, event, this.employeeObj.empId);
+
+//   // }
+
+//     if (this.employeeObj.updateType === 'manual') {
+
+//         this.openModalForManagerChange(this.changeManagerTemplate, event, this.employeeObj.empId);
+
+//     }
+
+// }
+
+// //added by priyadarshini
+
+// onMappingUpdateTypeChange(employeeObj: any) {
+
+//   // Handle logic when "Mapping Update Type" field changes
+
+//   if (employeeObj.updateType !== 'automatic') {
+
+//       employeeObj.newManagerId = '';
+
+//   }
+
+// }
+
+onManagerChange(employeeObj: any) {
+
+  this.onChangeManagerSelection(employeeObj);
+
+  this.onUpdateTypeChange(employeeObj);
+
+}
+
+
+
+onChangeManagerSelection(employeeObj: any) {
+
+  // Handle logic when "Do you want to change manager?" field changes
+
+  if (employeeObj.changeManager === 'no') {
+
+      employeeObj.employmentReleaseStatus = '';
+
+      employeeObj.updateType = '';
+
+      employeeObj.newManagerId = '';
+
+  }
+
+}
+
+
+
+onUpdateTypeChange(employeeObj: any) {
+
+// const selectElement = event.target as HTMLSelectElement;
+
+//   const status = selectElement.value;
+
+//   if (this.employeeObj.updateType === 'manual') {
+
+//     this.openModalForManagerChange(this.changeManagerTemplate, event, this.employeeObj.empId);
+
+// }
+
+  if (this.employeeObj.updateType === 'manual') {
+
+      this.openModalForManagerChange(this.changeManagerTemplate, event, this.employeeObj.empId);
+
+  }
+
+}
+
+
+
+onMappingUpdateTypeChange(employeeObj: any) {
+
+// Handle logic when "Mapping Update Type" field changes
+
+if (employeeObj.updateType !== 'automatic') {
+
+    employeeObj.newManagerId = '';
+
+}
+
+}
+
 
 
   /* Employee Draft */
@@ -2094,6 +2221,22 @@ console.log("employee update before call ",employee);
     }, 500)
   }
 
+  openModalForManagerChange(template: TemplateRef<any>, event: Event, employeeId: string) {
+    this.filters = {};
+    const eventValue = (event.target as HTMLSelectElement).value;
+   // Open modal only if the updateType is 'manual'
+   if (this.employeeObj.updateType === 'manual') {
+    this.employeeService.getTotalNoOfreporties(employeeId).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus === 'Success') {
+            this.listOfReporties = response.serviceResponse;
+        }
+    });
+    this.isSearchEnabled = false;
+        this.modalRef = this.modalService.show(template, { class: 'modal-sm', backdrop: 'static', keyboard: false });
+  }
+}
+
+
   // openModalForManagerChange(updateType,template: TemplateRef<any>, event,employeeId) {
   //   updateType.newManagerId = "";
   //   // this.employeeObj.newManagerId ='';
@@ -2117,26 +2260,26 @@ console.log("employee update before call ",employee);
   //   }
   // }
 
-  openModalForManagerChange(template: TemplateRef<any>, event,employeeId) {
+  // openModalForManagerChange(template: TemplateRef<any>, event,employeeId) {
 
-    this.filters = {};
-    var eventValue = event.target.value;
-    if(eventValue == 'InActive'){
-      var id = employeeId
+  //   this.filters = {};
+  //   var eventValue = event.target.value;
+  //   if(eventValue == 'InActive'){
+  //     var id = employeeId
    
-      this.employeeService.getTotalNoOfreporties(id).pipe(first()).subscribe((response : any)=>{
-        if(response.serviceStatus == 'Success'){
-          this.listOfReporties = response.serviceResponse;
-        }
-      })
-      var empId = employeeId;
-      console.log(" empId    ",empId);
-      this.isSearchEnabled = false;
-      //console.log("Log    eventValue    ",eventValue);
+  //     this.employeeService.getTotalNoOfreporties(id).pipe(first()).subscribe((response : any)=>{
+  //       if(response.serviceStatus == 'Success'){
+  //         this.listOfReporties = response.serviceResponse;
+  //       }
+  //     })
+  //     var empId = employeeId;
+  //     console.log(" empId    ",empId);
+  //     this.isSearchEnabled = false;
+  //     //console.log("Log    eventValue    ",eventValue);
     
-      this.modalRef = this.modalService.show(template, { class: 'modal-sm' ,  backdrop: 'static', keyboard: false });
-    }
-  }
+  //     this.modalRef = this.modalService.show(template, { class: 'modal-sm' ,  backdrop: 'static', keyboard: false });
+  //   }
+  // }
 
   RestrictFullName(event){
     var k;

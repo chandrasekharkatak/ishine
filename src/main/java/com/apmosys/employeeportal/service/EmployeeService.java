@@ -2087,55 +2087,65 @@ public class EmployeeService {
 				employee.setRole(employeedto.getRole());
 				employee.setWorkLocation(employeedto.getWorkLocation());
 				employee.setProbationPeriod(employeedto.getProbationPeriod());
+				
+			 if(employeedto.getReportiesFlag().equals("Yes") && employeedto.getUpdateType().equals("automatic")){
+					for(Employee emp : listOfReporties) {
+						emp.setManagerId(employeedto.getNewManagerId());
+						employeeRepository.save(emp);
+						System.err.println(" Manager mapping done ");
+						
+					}
+				}
+				
 				if(employeedto.getEmploymentstatus().equals("Resigned") || employeedto.getEmploymentstatus().equals("InActive") )  {
 					System.out.println("Right method call    ");
 					employee.setDateOfResign(employeedto.getDateOfResign() != null
 							? stringToDateTimeParser.getDate(employeedto.getDateOfResign(), "yyyy-MM-dd")
 							: null);
 					
-					if(employeedto.getUpdateType() != null) {
-						if(employeedto.getUpdateType().equals("automatic") && (!employeedto.getEmploymentstatus().equals("Resigned")) ) {
-							for(Employee emp : listOfReporties) {
-								emp.setManagerId(employeedto.getNewManagerId());
-								listOfEmp.add(emp);
-								System.err.println(" Manager mapping done ");
-								
-							}
-							
-//							get compOff leaves 
-							
-//							Optional<List<CompOffLeave>> findListOfCompOff = compOffLeaveRepository.findCompOffByEmpId(employeedto.getEmpId());
-//							
-//							if(findListOfCompOff.isPresent()) {
-//								List<CompOffLeave> findCompOffs = findListOfCompOff.get();
-//								
-//								for (CompOffLeave compOff : findCompOffs) {
-//									System.out.println(" compOff Id     ::   \n"+compOff.getCompOffLeaveId());
-//									compOff.setManagerId(Math.toIntExact(employeedto.getNewManagerId()));
-//									
-//									compOffLeaveRepository.save(compOff);	
-//								}
-//							}
-//							
-////							get leaves 
-//							
-//							Optional<List<EmployeeLeave>> findListOfLeaves = employeeLeaveRepository.findLeaveByManagerId(employeedto.getEmpId());
-//							System.err.println(" findListOfLeaves    "+findListOfLeaves);
-//							if(findListOfLeaves.isPresent()) {
-//								List<EmployeeLeave> findLeaves = findListOfLeaves.get();
-//								
-//							for (EmployeeLeave empLeaves : findLeaves) {
-//								System.out.println( " leavesId   ::   \n"+empLeaves.getLeaveId());
-//								empLeaves.setManagerId(Math.toIntExact(employeedto.getNewManagerId()));
-//								employeeLeaveRepository.save(empLeaves);
+//					if(employeedto.getUpdateType() != null) {
+//						if(employeedto.getUpdateType().equals("automatic") && (!employeedto.getEmploymentstatus().equals("Resigned")) ) {
+//							for(Employee emp : listOfReporties) {
+//								emp.setManagerId(employeedto.getNewManagerId());
+//								listOfEmp.add(emp);
+//								System.err.println(" Manager mapping done ");
 //								
 //							}
-//						}						
-							
-							
-							employeeRepository.saveAll(listOfEmp);
-							}	
-					}
+//							
+////							get compOff leaves 
+//							
+////							Optional<List<CompOffLeave>> findListOfCompOff = compOffLeaveRepository.findCompOffByEmpId(employeedto.getEmpId());
+////							
+////							if(findListOfCompOff.isPresent()) {
+////								List<CompOffLeave> findCompOffs = findListOfCompOff.get();
+////								
+////								for (CompOffLeave compOff : findCompOffs) {
+////									System.out.println(" compOff Id     ::   \n"+compOff.getCompOffLeaveId());
+////									compOff.setManagerId(Math.toIntExact(employeedto.getNewManagerId()));
+////									
+////									compOffLeaveRepository.save(compOff);	
+////								}
+////							}
+////							
+//////							get leaves 
+////							
+////							Optional<List<EmployeeLeave>> findListOfLeaves = employeeLeaveRepository.findLeaveByManagerId(employeedto.getEmpId());
+////							System.err.println(" findListOfLeaves    "+findListOfLeaves);
+////							if(findListOfLeaves.isPresent()) {
+////								List<EmployeeLeave> findLeaves = findListOfLeaves.get();
+////								
+////							for (EmployeeLeave empLeaves : findLeaves) {
+////								System.out.println( " leavesId   ::   \n"+empLeaves.getLeaveId());
+////								empLeaves.setManagerId(Math.toIntExact(employeedto.getNewManagerId()));
+////								employeeLeaveRepository.save(empLeaves);
+////								
+////							}
+////						}						
+//							
+//							
+//							employeeRepository.saveAll(listOfEmp);
+//							}	
+//					}
 					
 					if(employeedto.getEmploymentstatus().equals("InActive")) {
 						// create logic for remove resource from team and projects
@@ -2169,7 +2179,8 @@ public class EmployeeService {
 				}else if(employee.getEmploymentstatus().equals("Probation") || employee.getEmploymentstatus().equals("Confirmed")) {
 					employee.setDateOfResign(null);
 				}
-				if(employee.getEmploymentstatus().equals("Probation") || employee.getEmploymentstatus().equals("Confirmed") || employee.getEmploymentstatus().equals("Resigned")) {
+					if(employee.getEmploymentstatus().equals("Probation") || employee.getEmploymentstatus().equals("Confirmed") || employee.getEmploymentstatus().equals("Resigned")) {
+				
 					employee.setEmploymentReleaseStatus(null);
 				}else {
 					employee.setEmploymentReleaseStatus(employeedto.getEmploymentReleaseStatus());

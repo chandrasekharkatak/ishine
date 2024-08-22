@@ -36,6 +36,10 @@ public class ProjectDTO {
     private String createdByName;
     private String updatedByName;
     private String updatedOn;
+    //added as per RMG Requirement
+    private String role;
+    private Integer count;
+    private String experience;
     private List<ResourceManagementDTO> bulkSyncList;
 
 }
