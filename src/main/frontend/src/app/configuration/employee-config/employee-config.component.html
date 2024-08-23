@@ -2973,7 +2973,7 @@
                 <div class="info-wrapper">
                   <div class="form-group">
                     <label class="info-label">Department</label>
-                    <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.departmentId" (change)="getProjectsByDepartment(employeeObj.departmentId,alert_message)" >
+                    <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.departmentId" (change)="getProjectsByDepartment(employeeObj,alert_message)" >
                         <option selected="selected" value="" disabled>Select</option>
                         <option *ngFor="let dept of listOfDepartment" value="{{dept.departmentName}}">{{dept.departmentName}}</option>
                       </select>
@@ -2999,7 +2999,7 @@
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label">Team</label>
-                        <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.teamName" (change)="getTeamMemberByTeamName(employeeObj.teamName)" >
+                        <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.teamName" (change)="getTeamMemberByTeamName(employeeObj)" >
                             <option selected="selected" value="" disabled>Select</option>
                             <option *ngFor="let team of teamList" value="{{team.teamName}}">{{team.teamName}}</option>
                           </select> 
@@ -3019,6 +3019,9 @@
                         </tr>
                     </thead>
                     <tbody>
+                        <tr *ngIf="TeamMemberList.length == 0 || (TeamMemberList| colFilter:filters:false).length == 0">
+                            <th colspan="3" class="text-center info-label">No Team members to display...</th>
+                        </tr>
                         <tr *ngFor="let teamMember of TeamMemberList">
                             <td>{{teamMember.name}}</td>
                             <td>{{teamMember.employeeRole}}</td>

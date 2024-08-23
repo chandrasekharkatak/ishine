@@ -205,8 +205,8 @@ export class EmployeeService {
    }
 
    // getProjectsByDepartmentName
-   getProjectsByDepartmentName(department : any){
-    return this.http.post(`${this.baseUrl}`+`api/getProjectsByDepartmentName/`+department,department);
+   getProjectsByDepartmentName(department : Employee){
+    return this.http.post(`${this.baseUrl}`+`api/getProjectsByDepartmentName`,department);
    }
 
   //  getTeamByProjectName 
@@ -215,10 +215,13 @@ export class EmployeeService {
    }
 
   //  getTeamMemberByTeamName
-  getTeamMemberByTeamName(teamName : any){
-    return this.http.post(`${this.baseUrl}`+`api/getTeamMemberByTeamName/`+teamName,teamName);
-   }
+  // getTeamMemberByTeamName(teamName : any){
+  //   return this.http.post(`${this.baseUrl}`+`api/getTeamMemberByTeamName/`+teamName,teamName);
+  //  }
 
+  getTeamMemberByTeamName(teamName : Employee){
+    return this.http.post(`${this.baseUrl}`+`api/getTeamMemberByTeamName`,teamName);
+   }
   //  getManagerList
   getManagerList(){
     return this.http.get(`${this.baseUrl}`+`api/getManagerList/`);

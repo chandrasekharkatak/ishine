@@ -388,7 +388,7 @@ minDate: Date;
     this.employeeService.setManagerToNewManager(emp).pipe(first()).subscribe((response :any)=>{
       if(response.serviceStatus == "Success"){
         //console.log(" teamName after manager changes done ",this.employeeObj.teamName)
-        this.getTeamMemberByTeamName(this.employeeObj.teamName);
+        this.getTeamMemberByTeamName(this.employeeObj);
         this.openAlertMod(template," Employee's Manager has changed !!");
         //console.log(" Manager update ")
       }
@@ -404,10 +404,16 @@ minDate: Date;
 
   }
 
-  getTeamMemberByTeamName(teamName){
+  getTeamMemberByTeamName(employeeObj){
     //console.log(" teamName getTeamMemberByTeamName ",teamName);
     // this.managerAndAbove = this.managerAndAbove.forEach(t=> t.managerId == ""); 
-    this.employeeService.getTeamMemberByTeamName(teamName).pipe(first()).subscribe((response : any)=>{
+
+    let empObj = new Employee();
+    empObj.teamName = employeeObj.teamName;
+    empObj.managerId = employeeObj.managerId;
+
+
+    this.employeeService.getTeamMemberByTeamName(empObj).pipe(first()).subscribe((response : any)=>{
       if(response.serviceStatus == "Success"){
         this.TeamMemberList = response.serviceResponse;
         this.getManagersList();
@@ -2340,15 +2346,21 @@ return true;
     });
   }
 
-  getProjectsByDepartment(departmentName,template: TemplateRef<any>){
-    var newDept = departmentName?.trim();
+  getProjectsByDepartment(employeeObj,template: TemplateRef<any>){
+    // var newDept = employeeObj.departmentName?.trim();
     this.employeeObj.projectName = "";
-    //console.log(" deptId value  ",departmentName);
-    this.employeeService.getProjectsByDepartmentName(newDept).pipe(first()).subscribe((response : any)=>{
+    let empObj = new Employee();
+    
+    empObj.departmentName = employeeObj.departmentId;
+    empObj.managerId = employeeObj.empId;
+
+    console.log("empObj   ",empObj);
+
+    this.employeeService.getProjectsByDepartmentName(empObj).pipe(first()).subscribe((response : any)=>{
       if(response.serviceStatus == "Success"){
 
         this.listOfProjectsByDeptId = response.serviceResponse;
-        //console.log( " success ",this.listOfProjectsByDeptId);
+        console.log( " success ",this.listOfProjectsByDeptId);
       }else{
         this.openAlertMod(template , response.serviceResponse);
       }

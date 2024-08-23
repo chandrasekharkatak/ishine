@@ -1272,42 +1272,6 @@ export class ResourceManagementComponent implements OnInit {
   }
 
 
-  isDepartmentSelected: boolean = false;
-  previousSelection: any[] = [];
-
-  
-
-  // changeDepartment(event: any): void {
-  //   const selectedDepartmentIds = event.value;
-
-  //   this.currentDepartment = selectedDepartmentIds;
-
-
-  //   this.allTeamList.forEach(team => {
-
-  //     if(team.teamMemberList =='' || team.teamMemberList == null || team.teamMemberList == undefined ){
-    
-  //       return;
-
-  //   }else{
-  //     alert('you have deselected a department !!!!!!!!! Wish to add it again, please ensure that the team members for that department are added as well.');
-  //     const departmentList = team.departmentList;
-  //     const filteredTeamMemberList = team.teamMemberList.filter(member =>
-  //       departmentList.includes(member.departmentId)
-  //     );
-  //     team.teamMemberList = filteredTeamMemberList;
-  //     console.log(team.teamMemberList);
-  //   }
-
-
-  //   });
-
-
-  // }
-
-  //added by Priyadarshini
-  previousDepartmentIds: any[] = []; // Store the previous selected departments
-
 changeDepartment(event: any): void {
     const selectedDepartmentIds = event.value;
 console.log("this.copyDepartment ",this.copyDepartment);
@@ -1331,10 +1295,7 @@ console.log("this.copyDepartment ",this.copyDepartment);
 
                 const departmentList = team.departmentList;
                 console.log("team.teamMemberList  ",team.teamMemberList)
-                console.log("departmentList     ",departmentList)
-                // const filteredTeamMemberList = team.teamMemberList.filter(member =>
-                //     departmentList.includes(member.departmentId)
-                // );
+                console.log("departmentList     ",departmentList);
                 
                   // Use strict equality check and type casting if necessary
                   const filteredTeamMemberList = team.teamMemberList.filter(member => {

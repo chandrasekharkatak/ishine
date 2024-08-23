@@ -359,13 +359,21 @@ public class EmployeeController {
 		return response;
 	}
 	
-	// getProjectsByDepartmentName by anurag
+	// getProjectsByDepartmentName by anurag below method is only for entire projects by Department not manager wise
 	
-	@RequestMapping(value = "/getProjectsByDepartmentName/{departmentName}", method = RequestMethod.POST)
-	public ServiceResponse getProjectsByDepartmentName(@PathVariable("departmentName") String departmentName) {
+//	@RequestMapping(value = "/getProjectsByDepartmentName/{departmentName}", method = RequestMethod.POST)
+//	public ServiceResponse getProjectsByDepartmentName(@PathVariable("departmentName") String departmentName) {
+//
+//		System.out.println(" DepartmentName  getProjectsByDepartmentName "+departmentName);
+//		ServiceResponse response = employeeService.getProjectsByDepartmentName(departmentName);
+//		return response;
+//	}
+	
+	@RequestMapping(value = "/getProjectsByDepartmentName", method = RequestMethod.POST)
+	public ServiceResponse getProjectsByDepartmentName(@RequestBody EmployeeDTO employeedto) {
 
-		System.out.println(" DepartmentName  getProjectsByDepartmentName "+departmentName);
-		ServiceResponse response = employeeService.getProjectsByDepartmentName(departmentName);
+		System.out.println(" DepartmentName  getProjectsByDepartmentName "+employeedto.getDepartmentName());
+		ServiceResponse response = employeeService.getProjectsByDepartmentName(employeedto);
 		return response;
 	}
 	
@@ -379,13 +387,22 @@ public class EmployeeController {
 	}
 	
 //	getTeamMemberByTeamName
-	@RequestMapping(value = "/getTeamMemberByTeamName/{teamName}", method = RequestMethod.POST)
-	public ServiceResponse getTeamMemberByTeamName(@PathVariable("teamName") String teamName) {
+//	@RequestMapping(value = "/getTeamMemberByTeamName/{teamName}", method = RequestMethod.POST)
+//	public ServiceResponse getTeamMemberByTeamName(@PathVariable("teamName") String teamName) {
+//
+//		System.out.println(" projectName  getTeamByProjectName "+teamName);
+//		ServiceResponse response = employeeService.getTeamMemberByTeamName(teamName);
+//		return response;
+//	}
+	
+	@RequestMapping(value = "/getTeamMemberByTeamName", method = RequestMethod.POST)
+	public ServiceResponse getTeamMemberByTeamName(@RequestBody EmployeeDTO employeeDto) {
 
-		System.out.println(" projectName  getTeamByProjectName "+teamName);
-		ServiceResponse response = employeeService.getTeamMemberByTeamName(teamName);
+		System.out.println(" projectName  getTeamByProjectName "+employeeDto.getTeamName());
+		ServiceResponse response = employeeService.getTeamMemberByTeamName(employeeDto);
 		return response;
 	}
+	
 	
 	// getManagerList by anurag
 	@RequestMapping(value = "/getManagerList", method = RequestMethod.GET)

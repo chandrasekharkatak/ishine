@@ -5251,25 +5251,56 @@ public class EmployeeService {
 		return response;
 	}
 
-	public ServiceResponse getProjectsByDepartmentName(String departmentName) {
+//	public ServiceResponse getProjectsByDepartmentName(String departmentName) {
+//		
+//		ServiceResponse response = new ServiceResponse();
+//		try {
+//			Department findDepartment = departmentRepository.findByName(departmentName);
+//			List<ProjectDepartmentMap> findProjectsByDeptId = projectDepartmentMapRepository.findByDeptId(findDepartment.getDeptId());
+//			List<Project> allProjects = new ArrayList<Project>();
+//			if(!findProjectsByDeptId.isEmpty()){
+//				findProjectsByDeptId.forEach((projectObj)->{
+//					Project project = projectRepository.findByProjectId(projectObj.getProjectId());
+//					System.err.println(" project by department Id   "+project);
+//					
+//					allProjects.add(project);
+//						
+//				});	
+//				response.setServiceResponse(allProjects);
+//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//				}else {
+//					response.setServiceResponse(" Projects are not present in "+ departmentName+" department ");
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				}
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Duplicate department name found.");
+//			response.setServiceError(e.getMessage());
+//		}
+//			
+//		return response;
+//	}
+	
+public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		
 		ServiceResponse response = new ServiceResponse();
 		try {
-			Department findDepartment = departmentRepository.findByName(departmentName);
+			Department findDepartment = departmentRepository.findByName(employeeDto.getDepartmentName());
 			List<ProjectDepartmentMap> findProjectsByDeptId = projectDepartmentMapRepository.findByDeptId(findDepartment.getDeptId());
 			List<Project> allProjects = new ArrayList<Project>();
 			if(!findProjectsByDeptId.isEmpty()){
 				findProjectsByDeptId.forEach((projectObj)->{
-					Project project = projectRepository.findByProjectId(projectObj.getProjectId());
+					Project project = projectRepository.findByProjectIdAndProjectManagerId(projectObj.getProjectId(),employeeDto.getManagerId());
 					System.err.println(" project by department Id   "+project);
-					
+					if(project != null) {
 					allProjects.add(project);
-						
+					}
 				});	
 				response.setServiceResponse(allProjects);
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				}else {
-					response.setServiceResponse(" Projects are not present in "+ departmentName+" department ");
+					response.setServiceResponse(" Projects are not present in "+ employeeDto.getDepartmentName()+" department ");
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				}
 		} catch (Exception e) {
@@ -5301,23 +5332,51 @@ public class EmployeeService {
 		return response;
 	}
 
-	public ServiceResponse getTeamMemberByTeamName(String teamName) {
+//	public ServiceResponse getTeamMemberByTeamName(String teamName) {
+//		ServiceResponse response = new ServiceResponse();
+//		
+//		Team findTeam = teamRepository.findByTeamName(teamName);
+//		System.out.println(" team found findTeam  "+findTeam);
+//		List<EmployeeDTO> listOfMembers = new ArrayList<>();
+//		List<Object[]> listOfEmployees = employeeTeamMapRepository.findTeammembersByTeamId(findTeam.getTeamId());
+//
+//        if (listOfEmployees != null) {
+//            for (Object[] object : listOfEmployees) {
+//                EmployeeDTO employeeDto = new EmployeeDTO();
+//                employeeDto.setName(object[0] != null ? object[0].toString() : null);
+//                employeeDto.setEmployeeRole(object[1] != null ? object[1].toString() : null);
+//                employeeDto.setTeamName(object[2] != null ? object[2].toString() : null); 
+//                employeeDto.setEmpId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
+//                employeeDto.setManagerName(object[4] != null ? object[4].toString() : null);
+//                employeeDto.setManagerId(object[5] != null ? Long.parseLong(object[5].toString()) : null);             
+//                
+//                listOfMembers.add(employeeDto);
+//            }
+//			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//			response.setServiceResponse(listOfMembers);
+//			}else {
+//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//				response.setServiceResponse(listOfMembers);
+//			}
+//		
+//		System.err.println("teamName    listOfEmployees      "+listOfMembers.size());
+//		return response;
+//	}
+	
+	public ServiceResponse getTeamMemberByTeamName(EmployeeDTO employeeDTO) {
 		ServiceResponse response = new ServiceResponse();
 		
-		Team findTeam = teamRepository.findByTeamName(teamName);
+		Team findTeam = teamRepository.findByTeamName(employeeDTO.getTeamName());
 		System.out.println(" team found findTeam  "+findTeam);
 		List<EmployeeDTO> listOfMembers = new ArrayList<>();
-		List<Object[]> listOfEmployees = employeeTeamMapRepository.findTeammembersByTeamId(findTeam.getTeamId());
-
+		List<Object[]> listOfEmployees = employeeTeamMapRepository.findTeammembersByTeamIdAndManagerId(findTeam.getTeamId(), employeeDTO.getManagerId());
         if (listOfEmployees != null) {
             for (Object[] object : listOfEmployees) {
                 EmployeeDTO employeeDto = new EmployeeDTO();
                 employeeDto.setName(object[0] != null ? object[0].toString() : null);
                 employeeDto.setEmployeeRole(object[1] != null ? object[1].toString() : null);
                 employeeDto.setTeamName(object[2] != null ? object[2].toString() : null); 
-                employeeDto.setEmpId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
-                employeeDto.setManagerName(object[4] != null ? object[4].toString() : null);
-                employeeDto.setManagerId(object[5] != null ? Long.parseLong(object[5].toString()) : null);             
+                employeeDto.setEmpId(object[3] != null ? Long.parseLong(object[3].toString()) : null);      
                 
                 listOfMembers.add(employeeDto);
             }

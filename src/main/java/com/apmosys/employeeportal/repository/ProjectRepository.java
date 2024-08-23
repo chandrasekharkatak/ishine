@@ -48,5 +48,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 
 	public List<Project> findProjectByDepartmentName(String name);
 
+	public Project findByProjectIdAndProjectManagerId(Integer projectId, Long managerId);
+
 
 }
