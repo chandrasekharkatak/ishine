@@ -182,12 +182,15 @@ export class NewsletterComponent implements OnInit {
         let dtoResponse = response.serviceResponse;
         this.currentUser.newsletterReadCheck = dtoResponse.newsletterReadCheck;
 
+        //Update newsletterObj with latest data
+        this.newsletterObj = dtoResponse.newsletter;
+
         //console.log( this.currentUser.newsletterReadCheck , " :  this.currentUser.newsletterReadCheck");
         this.authenticationService.setcurrentUserSubject(this.currentUser);
         this.openPreviewNewsletterModal(this.alertTemplate);
       }
-
-      this.getAllNewsletters(this.type,template)
+      
+      //this.getAllNewsletters(this.type,template)
     });
   }
 

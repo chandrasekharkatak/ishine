@@ -835,7 +835,7 @@ public class ResourceManagementService {
 								JobRole findJobRole = jobRoleRepository.findByjobRoleId(empObj.getJobRoleId());
 								Department findDepartment = departmentRepository.findByDeptId(findJobRole.getDeptId());							
 								
-								if(empObj != null) {
+								if(empObj != null && !"InActive".equalsIgnoreCase(empObj.getEmploymentstatus())) {
 									employeeName = empObj.getName();
 								}
 								
