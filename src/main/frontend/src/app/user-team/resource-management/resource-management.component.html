@@ -517,7 +517,7 @@
                         <h3>Existing Team Members</h3>
                     </div>
                     <div *ngFor="let teamMember of teamObj.allTeamMemberList; let i = index" class="row">
-                        <div class="col-md-4 mb-0">
+                        <div class="col-md-4 mb-0" *ngIf="teamMember.name">
                             <div class="info-wrapper">
                                 <div class="form-group">
                                     <input type="text" class="form-control" autocomplete="none" disabled
@@ -525,7 +525,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-8 d-flex">
+                        <div class="col-md-8 d-flex" *ngIf="teamMember.name">
                             <div class="col-md-4 mb-0">
                                 <div class="info-wrapper">
                                     <div class="form-group">
@@ -770,7 +770,7 @@
                             </div>
                             <h5 class="card-name">Team Member Info</h5>
                             <ng-container *ngFor="let member of team.teamMemberList;let i = index">
-                                <div class="col-md-12 mb-0">
+                                <div class="col-md-12 mb-0" *ngIf="member.name">
                                     <div class="info-wrapper">
                                         <p class="info-text">{{i + 1}} : {{member.name}} &nbsp;&nbsp;&nbsp;&nbsp; start
                                             Date : {{member.startDate}}  &nbsp;&nbsp;&nbsp;&nbsp; |  Department Name :  {{member.departmentName}}</p>

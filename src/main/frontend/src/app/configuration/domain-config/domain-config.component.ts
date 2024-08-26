@@ -250,7 +250,7 @@ downloadFileTemplate(): void {
 
         //console.log(this.allDomainList, " : this.allDomainList");
       } else {
-        this.openAlertMod(template, response.serviceResponse);
+        //this.openAlertMod(template, response.serviceResponse);
       }
     });
   }
