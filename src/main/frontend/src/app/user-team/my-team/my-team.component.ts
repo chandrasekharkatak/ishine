@@ -911,6 +911,7 @@ export class MyTeamComponent implements OnInit {
       leaveObj.fromDate = this.fromDate;
       leaveObj.toDate = this.toDate;
       leaveObj.deptId = this.currentUser.departmentId;
+      leaveObj.employeeRole=this.currentUser.employeeRole;
       this.teamViewService.getDepartmentLeaveHistory(leaveObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.departmentLeaveHistoryList = response.serviceResponse;
