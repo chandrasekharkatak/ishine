@@ -729,10 +729,21 @@ export class ResourceManagementComponent implements OnInit {
           console.log(" obj.departmentList     ",obj.departmentList);
           this.copyDepartment = obj.departmentList;
 
-          obj.teamMemberList.forEach((member) => {
-            //console.log(" teamMemberList    ",obj.teamMemberList);
-            member.startDate = (member.startDate) ? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null;
-          });
+          // obj.teamMemberList.forEach((member) => {
+          //   //console.log(" teamMemberList    ",obj.teamMemberList);
+          //   member.startDate = (member.startDate) ? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null;
+          // });
+
+          if (obj.teamMemberList) {
+            obj.teamMemberList.forEach((member) => {
+              if (member) { // Check if member is not null
+                // Format the startDate if it exists, otherwise set it to null
+                member.startDate = member.startDate ? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null;
+              }
+            });
+          } else {
+            console.warn('teamMemberList is null or undefined');
+          }
         });
         //console.log(this.projectObj.teamList, " this.projectObj.teamList");
         this.previewTeamList = this.projectObj.teamList;
@@ -1124,10 +1135,14 @@ export class ResourceManagementComponent implements OnInit {
         this.previewTeamList = [team];
       }
     });
-
-    if (Object.keys(this.previewTeamList[0]).length === 0) {
-      this.previewTeamList = [];
-    }
+    //by priyadarshini
+    // if (Object.keys(this.previewTeamList[0]).length === 0) {
+    //   this.previewTeamList = [];
+    // }
+    if (this.previewTeamList.length === 0) {
+      console.warn('No team members available for this team.');
+      return; 
+  }
     if (projectObj.projectManager != null) {
       this.setManagerName(projectObj);
     }
