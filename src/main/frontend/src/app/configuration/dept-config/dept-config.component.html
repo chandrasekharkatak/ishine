@@ -29,6 +29,17 @@
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
+                            <label><span class="text-danger">*</span>Department Abbreviation</label>
+                            <input type="text" class="form-control" maxlength="8" autocomplete="none"
+                            [(ngModel)]="deptObj.deptAbbreviation"  pattern="^[a-zA-Z0-9]{3,8}$"
+                            (blur)="validateAbbreviation()">
+                        <div *ngIf="abbreviationError" class="text-danger small-font">{{ abbreviationError }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
                             <label><span class="text-danger">*</span>Head of Department</label>
                             <select class="form-control" aria-hidden="true" [(ngModel)]="deptObj.hodId">
                                 <option selected="selected" value="" disabled>Select</option>

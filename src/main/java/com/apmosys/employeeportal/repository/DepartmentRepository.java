@@ -40,5 +40,5 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 	@Query(nativeQuery = true , value = "select d.dept_id,d.hod_id,d.name from department d where d.hod_id= :empId")
 	public Optional<List<Object>> getDepartmentsByHodId(Long empId);
 	
-
+	public Department findByDeptAbbreviation(String deptAbbreviation);
 }

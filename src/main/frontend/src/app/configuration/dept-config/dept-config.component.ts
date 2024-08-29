@@ -37,6 +37,7 @@ export class DeptConfigComponent implements OnInit {
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType:any;
+  abbreviationError: string = '';
 
   //modal
   alertMessage: any;
@@ -149,6 +150,19 @@ export class DeptConfigComponent implements OnInit {
     this.deptObj = Object.assign({}, department)
   }
 
+  validateAbbreviation(): boolean {
+    const pattern = /^[a-zA-Z0-9]{2,8}$/;
+    const abbreviation = this.deptObj.deptAbbreviation;
+
+    if (!pattern.test(abbreviation)) {
+        this.abbreviationError = 'Department Abbreviation must be between 2 and 8 characters long and contain only letters and numbers.';
+        return false;  // Return false if the abbreviation is invalid
+    } else {
+        this.abbreviationError = '';
+        return true;  // Return true if the abbreviation is valid
+    }
+}
+
   validateDepartmentObj(deptObj: Department, template: TemplateRef<any>) {
 
     if (!this.validationService.validateNullUndefinedEmptyString(deptObj.name)) {
@@ -167,12 +181,20 @@ export class DeptConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+    if (!this.validationService.validateNullUndefinedEmptyString(deptObj.deptAbbreviation)) {
+      this.alertMessage = "Please enter Department Abbreviation !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+  }
     return true;
   }
 
   // CRUD
   onCreateDepartment(template: TemplateRef<any>) {
     this.deptObj.name = this.deptObj.name.trim();
+
+     // Validate abbreviation before proceeding
+     if (!this.validateAbbreviation()) return;
     let inputValidated: boolean = this.validateDepartmentObj(this.deptObj, template)
     if (!inputValidated) return;
 
@@ -191,6 +213,9 @@ export class DeptConfigComponent implements OnInit {
 
   onUpdateDepartment(template: TemplateRef<any>) {
     this.deptObj.name = this.deptObj.name.trim();
+
+    // Validate abbreviation before proceeding
+    if (!this.validateAbbreviation()) return;
     let inputValidated: boolean = this.validateDepartmentObj(this.deptObj, template)
     if (!inputValidated) return;
 

@@ -1766,6 +1766,7 @@ console.log("employee update before call ",employee);
           "Created On":(x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
           "Manager Name": x.managerName,
           "Job Role":x.jobRoleName,
+          "Designation Name":x.designationName
 
         })
       )

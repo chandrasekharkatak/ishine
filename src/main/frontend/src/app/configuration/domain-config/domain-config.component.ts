@@ -176,6 +176,18 @@ downloadFileTemplate(): void {
 
   XLSX.writeFile(wb, 'Manager_Mapping_Data_Template.xlsx');
 }
+headersBilliable = [
+  { 'Employee Id': '' , 'Billable': '', 'Billable Type': '', 'Gender': ''}
+];
+
+downloadBilliableFileTemplate():void{
+  const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.headersBilliable, { skipHeader: false });
+  const wb: XLSX.WorkBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Template');
+
+
+  XLSX.writeFile(wb, 'Billable_Related_Data_Template.xlsx');
+}
 
   showUpdateDomainForm(domain:any){
     this.isDomainForm = true;

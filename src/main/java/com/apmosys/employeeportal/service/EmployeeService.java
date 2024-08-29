@@ -2597,6 +2597,7 @@ public class EmployeeService {
 					empDTO.setProjectName(object[72] != null ? object[72].toString() : null);
 					empDTO.setClientName(object[73] != null ? object[73].toString() : null);
 					empDTO.setTeamName(object[74] != null ? object[74].toString() : null);
+					empDTO.setDesignationName(object[75] != null ? object[75].toString() : null);	
 				
 					ServiceResponse completionResponse = getEmployeeProfileCompletion(empDTO);
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
