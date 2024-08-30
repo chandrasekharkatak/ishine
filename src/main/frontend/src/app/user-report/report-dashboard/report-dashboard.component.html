@@ -455,6 +455,11 @@
                         <th scope="col" class="info-label wide-col" mat-sort-header="billable|string">Billable</th>
                         <th scope="col" class="info-label wide-col" mat-sort-header="billableType|string">Billable Type</th>
 
+                        <th scope="col" class="info-label wide-col" mat-sort-header="projectName|string">Project Name</th>
+                        <th scope="col" class="info-label wide-col" mat-sort-header="clientName|string">Client Name</th>
+
+
+
                         <th scope="col" class="info-label wide-col" mat-sort-header="dateOfJoining|date">Date Of Joining</th>
                         <th scope="col" class="info-label wide-col" mat-sort-header="mobileNo|number">Mobile No.</th>
                         <th scope="col" class="info-label wide-col" mat-sort-header="employmentstatus|string">Status</th>
@@ -483,6 +488,9 @@
 
                         <td>{{leave.billable}}</td>
                         <td>{{leave.billableType}}</td>
+
+                        <td>{{leave.projectName}}</td>
+                        <td>{{leave.clientName}}</td>
 
                         <td>{{leave.dateOfJoining}}</td>
                         <td>{{leave.mobileNo}}</td>

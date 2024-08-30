@@ -51,4 +51,8 @@ export class DomainService {
   saveExcelDataForManagerMapping(formData : FormData){
     return this.http.post(`${this.baseUrl}`+`api/upload/saveExcelDataForManagerMapping`,formData);
   }
+
+  designationBulkUpload(formData : FormData){
+    return this.http.post(`${this.baseUrl}`+`api/upload/designationBulkUpload`,formData);
+  }
 }
