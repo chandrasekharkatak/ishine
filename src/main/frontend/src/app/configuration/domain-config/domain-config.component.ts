@@ -147,6 +147,23 @@ onBillableFileSelect(event: any, template: TemplateRef<any>){
     });
 }
 
+onDesignationUpload(event: any, template: TemplateRef<any>){
+  const uploadedFiles = event.target.files;
+  console.log("uploadedFiles ", uploadedFiles);
+  this.file = uploadedFiles[0];
+  const formData = new FormData();
+  formData.append('file', this.file);
+
+  this.domainService.designationBulkUpload(formData).pipe(first()).subscribe(
+    (response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+}
+
 onFileSelect(event: any, template: TemplateRef<any>){
   const uploadedFiles = event.target.files;
   console.log("uploadedFiles ", uploadedFiles);
@@ -167,26 +184,32 @@ onFileSelect(event: any, template: TemplateRef<any>){
 headers = [
   { 'Employee Id': '', 'Billable': '', 'Billable Type': '', 'Gender': '', 'Manager Name': '' }
 ];
-
 downloadFileTemplate(): void {
   const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.headers, { skipHeader: false });
   const wb: XLSX.WorkBook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Template');
-
-
   XLSX.writeFile(wb, 'Manager_Mapping_Data_Template.xlsx');
 }
+
 headersBilliable = [
   { 'Employee Id': '' , 'Billable': '', 'Billable Type': '', 'Gender': ''}
 ];
-
 downloadBilliableFileTemplate():void{
   const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.headersBilliable, { skipHeader: false });
   const wb: XLSX.WorkBook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Template');
-
-
   XLSX.writeFile(wb, 'Billable_Related_Data_Template.xlsx');
+}
+
+headersDesignation = [
+  { 'Employee Id': '', 'Designation Name': '' }
+];
+downloadDeginationUploadFileTemplate(): void {
+  console.log("Designatin Template is downloaded");
+  const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.headersDesignation, { skipHeader: false });
+  const wb: XLSX.WorkBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Template');
+  XLSX.writeFile(wb, 'Bulk_Designation_Upload_Template.xlsx');
 }
 
   showUpdateDomainForm(domain:any){

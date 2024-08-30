@@ -69,4 +69,17 @@ public class FileUploadController {
         return response;
     }
     
+    @PostMapping("/designationBulkUpload")
+    public ServiceResponse designationBulkUpload(@RequestParam("file") MultipartFile file) throws EncryptedDocumentException, InvalidFormatException {
+    	ServiceResponse response = new ServiceResponse();
+    	if (file.isEmpty()) {
+    		response.setServiceResponse("Please upload a file.");
+    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+    		return response;
+        }
+
+        response = fileUploadService.designationBulkUpload(file);
+        return response;
+    }
+    
 }

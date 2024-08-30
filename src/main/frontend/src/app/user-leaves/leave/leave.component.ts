@@ -856,27 +856,18 @@ export class LeaveComponent implements OnInit {
     this.leaveObj.noOfDays = '';
     this.overLappingTeamMemberList = [];
 
-    //Check if employee was in probation by fromDate
-    let leaveType = this.leaveTypes.find(x => x.leaveTypeMasterId == this.leaveObj.leaveTypeMasterId);
-//console.log(" on reset to date call   ",leaveType);
-    if(leaveType != null && (leaveType.leaveTypeCode != 'LWP' && leaveType.leaveTypeCode != 'CO')){
-      if(this.currentUser.probationPeriod != null && this.currentUser.dateOfJoining != null){
-
-        let confirmationDate;
-        if(this.leaveObj.leaveAppliedFor == 'self'){
-          confirmationDate = moment(this.currentUser.dateOfJoining).add(this.currentUser.probationPeriod, 'days');
-        }else{
-          let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId);
-          confirmationDate = moment(teamMember.dateOfJoining).add(teamMember.probationPeriod, 'days');     
-        }
-        if(confirmationDate.format('YYYY-MM-DD') > moment(this.leaveObj.fromDate).format('YYYY-MM-DD')){
-          this.openAlertMod(this.alertTemplate, "Only LWP & CompOff can be applied during probation period.");
-          setTimeout(() => {
-            this.leaveObj.fromDate = '';
-          }, 100)
-        }
-      }
-    }
+    //Modified by Priyadarshini
+    // let leaveType = this.leaveTypes.find(x => x.leaveTypeMasterId == this.leaveObj.leaveTypeMasterId);
+    // if(leaveType != null && (leaveType.leaveTypeCode != 'CL' && leaveType.leaveTypeCode != 'PL' && leaveType.leaveTypeCode != 'LWP')){
+    //   if(this.currentUser.probationPeriod != null && this.currentUser.dateOfJoining != null){
+    //     if(this.currentUser.employmentstatus != 'Probation'){
+    //       this.openAlertMod(this.alertTemplate, "Only LWP & CompOff can be applied during probation period.");
+    //       setTimeout(() => {
+    //         this.leaveObj.fromDate = '';
+    //       }, 100)
+    //     }
+    //   }
+    // }
   }
 
   async setNoOfDays(template: TemplateRef<any>) {

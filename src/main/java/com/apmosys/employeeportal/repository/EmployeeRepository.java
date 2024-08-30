@@ -78,6 +78,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 //	List<Employee> findByName(String name);
 	@Query("SELECT e FROM Employee e WHERE LOWER(e.name) = :name")
 	Employee findByNameIgnoreCase(@Param("name") String name);
+	
+	
+	
 
 
 	public List<Employee> findByJobRoleId(Long oldJobRoleId);

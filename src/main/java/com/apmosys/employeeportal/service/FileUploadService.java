@@ -228,6 +228,51 @@ public class FileUploadService {
 //		return response;
 //	}
 	
+	public ServiceResponse designationBulkUpload(MultipartFile file) throws EncryptedDocumentException, InvalidFormatException {
+		ServiceResponse response = new ServiceResponse();
+		 try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
+	            Sheet sheet = workbook.getSheetAt(0);
+	            Iterator<Row> rows = sheet.iterator();
+	            rows.next(); // Skip header row
+
+	            while (rows.hasNext()) {
+	                Row currentRow = rows.next();
+
+	                Long employmentId = (long) currentRow.getCell(0).getNumericCellValue();
+	                String designationName = currentRow.getCell(1).getStringCellValue().trim().toLowerCase();
+	                
+	                Optional<Employee> optionalEmployee = Optional.ofNullable(employeeRepository.findByEmployeementId(employmentId));
+	                Optional<Designation> findDesignationName = Optional.ofNullable(designationRepository.findByDesignationNameIgnoreCase(designationName));
+	                
+	                if (optionalEmployee.isPresent()) {
+	                	Employee employee = optionalEmployee.get();
+	                	Designation getDesignation = findDesignationName.get();
+	                	if(designationName != null)
+	                	employee.setDesignationId(getDesignation.getDesignationId());
+	                	
+	                	employeeRepository.save(employee);
+	                	
+	                }
+		        }
+
+		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        response.setServiceResponse("File uploaded and processed successfully.");
+		    } catch (IOException e) {
+		        e.printStackTrace();
+		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		        response.setServiceResponse("Something went wrong");
+		    }
+		    return response;
+		}
+
+	                	
+	                		
+	                	
+	               
+	                	
+	                
+	               
+	
 	public ServiceResponse saveExcelDataForManagerMapping(MultipartFile file) throws EncryptedDocumentException, InvalidFormatException {
 	    ServiceResponse response = new ServiceResponse();
 	    try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
