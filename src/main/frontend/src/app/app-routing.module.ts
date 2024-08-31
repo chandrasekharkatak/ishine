@@ -54,6 +54,7 @@ import { NewsletterComponent } from './newsletter/newsletter.component';
 import { NewsletterConfigComponent } from './configuration/newsletter-config/newsletter-config.component';
 import { DocumentComponent } from './configuration/document/document.component';
 import { QueryMasterComponent } from './user-report/query-master/query-master/query-master.component';
+import { AttendanceReconciliationComponent } from './user-report/attendance-reconciliation/attendance-reconciliation.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -125,7 +126,8 @@ const routes: Routes = [
     children: [
       { path: 'report-list', component: ReportListComponent, },
       { path: 'report-dashboard', component: ReportDashboardComponent },
-      { path: 'query-master', component: QueryMasterComponent}
+      { path: 'query-master', component: QueryMasterComponent},
+      { path: 'attendance-reconciliation', component: AttendanceReconciliationComponent},
     ]
   },
   {path:'user-appreciation', component: UserAppreciationComponent, canActivate: [AuthGuard]},
