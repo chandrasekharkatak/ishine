@@ -1,13 +1,16 @@
 package com.apmosys.employeeportal.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.JobRoleDTO;
+import com.apmosys.employeeportal.service.BioMaxService;
 import com.apmosys.employeeportal.service.ReportService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -17,6 +20,10 @@ public class ReportController {
 	
 	@Autowired
 	ReportService reportService;
+	
+	
+	@Autowired
+	BioMaxService bioMaxService;
 	
 	@RequestMapping(value="/leaveReport" , method = RequestMethod.GET)
 	public ServiceResponse leaveReport() {		
@@ -59,5 +66,24 @@ public class ReportController {
 		ServiceResponse response = reportService.updateDefaultFeatureMapping(jobRoleDTO);
 		return response;
 	}
+	
+	
+	
+	//biomatric data link
+		@GetMapping(value = "/getBioData")
+		public ServiceResponse getBioData(@RequestParam String date) {
+			System.out.println("getBioData api call....................");
+			ServiceResponse response = bioMaxService.getEmpBioData(date);
+			
+			return response;
+		}
+		
+		
+		@GetMapping("/getBioDataById")
+		   public ServiceResponse getBioDataById(@RequestParam String empId,@RequestParam String date)
+		   {
+			   ServiceResponse response=bioMaxService.getEmpBioDataById(empId,date);
+			   return response;
+		   }
 
 }

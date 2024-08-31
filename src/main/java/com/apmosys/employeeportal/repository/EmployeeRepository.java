@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.repository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -265,4 +266,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 				+ "INNER JOIN department d ON d.dept_id=jr.dept_id \n"
 				+ "WHERE (e.manager_id = :empId OR e.reporting_manager_id= :empId) AND e.employmentstatus != 'InActive' GROUP BY d.name")
 	public List<Object[]> findDepartmentsByReporties(Long empId);
+	
+	
+	
+	
+	@Query(nativeQuery = true, value = "SELECT employeement_id,name FROM employee where employeement_id in :empList ")
+	public List<Object[]> getDataByEmpId(@Param("empList") Set empList );
 }
