@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.apmosys.employeeportal.dto.BioMaTO;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -103,7 +104,7 @@ public class BioMaxService {
 				EmplNameIdMap.put(obj[0].toString(), obj[1].toString());
 			}
 			
-			List<List<String>> finalEmpBioData=new ArrayList();
+			List<BioMaTO> finalEmpBioData=new ArrayList();
 
 			for (String empId : bioEmpIdSet) {
 				List<String> empTimeList = empMapById.get(empId);
@@ -160,15 +161,16 @@ public class BioMaxService {
 		
 				
 				
+				BioMaTO bioMaTO=new BioMaTO();
 				
-				List<String> empList=new ArrayList();
-				empList.add(empId);
-				empList.add(EmplNameIdMap.get(empId));
-				empList.add(punchIn);
-				empList.add(punchOut);
-				empList.add(timeString);
-				empList.add(finalDevTion);
-				finalEmpBioData.add(empList);
+				bioMaTO.setEmpId(empId);
+				bioMaTO.setEmpName(EmplNameIdMap.get(empId));
+				bioMaTO.setEmploginTime(punchIn);
+				bioMaTO.setEmplogoutTime(punchOut);
+				bioMaTO.setEmpTotalWorkingHours(timeString);
+				bioMaTO.setEmpDeviation(finalDevTion);
+				
+				finalEmpBioData.add(bioMaTO);
 				
 			}
 
@@ -226,7 +228,7 @@ public class BioMaxService {
 
 		ServiceResponse serviceResponse = new ServiceResponse();
 		try {
-			List<List<String>> empDataList = new ArrayList();
+			List<BioMaTO> empDataList = new ArrayList();
 
 			String Query = "SELECT UserId,LogDate,DeviceName FROM device_logs WHERE	logdate like '" + date
 					+ "%' and UserId = 'A" + empId + "' order by LogDate";
@@ -236,11 +238,12 @@ public class BioMaxService {
 			ResultSet resultSet = statement.executeQuery();
 
 			while (resultSet.next()) {
-				List<String> l = new ArrayList<>();
-				l.add(resultSet.getString(1).replace("A", "").trim());
-				l.add(resultSet.getString(2));
-				l.add(resultSet.getString(3));
-				empDataList.add(l);
+				BioMaTO bioMaTO=new BioMaTO();
+				
+				bioMaTO.setEmpId(resultSet.getString(1).replace("A", "").trim());
+				bioMaTO.setEmploginTime(resultSet.getString(2));
+				bioMaTO.setEmpDeviceName(resultSet.getString(3));
+				empDataList.add(bioMaTO);
 
 			}
 			serviceResponse.setServiceResponse(empDataList);
@@ -256,4 +259,4 @@ public class BioMaxService {
 		return serviceResponse;
 	}
 
-}
+} 

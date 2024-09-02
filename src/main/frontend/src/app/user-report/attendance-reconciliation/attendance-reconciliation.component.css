@@ -1,0 +1,159 @@
+.table-header {
+    width: 100%;
+    height: 50px;
+    background: var(--ghost-white);
+    margin-bottom: 1em;
+}
+
+.table-header-title {
+    font-size: 2rem;
+    padding: .2em;
+    margin-bottom: 0;
+    color: var(--raisin-black);
+}
+
+.scrollable-table {
+    width: 88vw;
+    height: 70vh;
+    margin-right: 0px !important;
+}
+
+/* .table-scroll{
+    font-size: 0.9rem;
+} */
+
+.wide-col {
+    min-width: 250px;
+}
+
+/* .table{
+    overflow-x: auto;
+} */
+
+.my-pagination::ng-deep .ngx-pagination .current {
+    background: #193d8a !important;
+}
+
+.my-pagination::ng-deep {
+    padding-top: 10px;
+}
+
+.thead-light th {
+    position: sticky;
+    top: -0.7px;
+}
+
+.info-label {
+    width: 200px !important;
+}
+
+/* .form-control{
+    margin-right: 30px;
+} */
+
+#buttonPosition {
+    margin-right: 40px !important;
+}
+
+.list-header {
+    background: var(--dark-cornflower-blue);
+    color: white;
+}
+
+.cell-checkbox span {
+    display: block;
+    height: 28px;
+    position: relative;
+    width: 28px;
+    padding: 0
+}
+
+.cell-checkbox {
+    background-color: #fff;
+    display: inline-block;
+    height: 28px;
+    margin: 0 .25em;
+    width: 28px;
+    border-radius: 4px;
+    border: 1px solid var(--dark-cornflower-blue);
+}
+
+.cell-checkbox span:after {
+    -moz-transform: scaleX(-1) rotate(135deg);
+    -ms-transform: scaleX(-1) rotate(135deg);
+    -webkit-transform: scaleX(-1) rotate(135deg);
+    transform: scaleX(-1) rotate(135deg);
+    -moz-transform-origin: left top;
+    -ms-transform-origin: left top;
+    -webkit-transform-origin: left top;
+    transform-origin: left top;
+    border-right: 4px solid #fff;
+    border-top: 4px solid #fff;
+    content: '';
+    display: block;
+    height: 20px;
+    left: 3px;
+    position: absolute;
+    top: 15px;
+    width: 10px
+}
+
+.cell-checkbox span:hover:after {
+    border-color: #999
+}
+
+.cell-checkbox input {
+    display: none
+}
+
+.cell-checkbox input:checked+span:after {
+    -webkit-animation: check .8s;
+    -moz-animation: check .8s;
+    -o-animation: check .8s;
+    animation: check .8s;
+    border-color: #555
+}
+
+.cell-checkbox input:checked+.primary:after {
+    height: 30px;
+    border-color: #006400;
+}
+
+.progress-bar-success {
+    color: #fff;
+    background-color: #28a745;
+
+    font-size: 0.825rem;
+}
+
+.profileCompleted-value {
+    margin-top: 0.6rem;
+    color: #193d8a;
+    font-weight: bold;
+}
+
+.acl-header{
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background-color: var(--ghost-white);
+}
+
+.sticky-col {
+    position: -webkit-sticky;
+    position: sticky;
+    background-color: white;
+    left: 0;
+    z-index: 1;
+}
+
+#BassScrollBar {
+    overflow-x: hidden !important;
+}
+
+.acl-table{
+    cursor: move;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+  
