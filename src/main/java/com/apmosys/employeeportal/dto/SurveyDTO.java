@@ -25,5 +25,7 @@ public class SurveyDTO {
 	private String updatedByName;
 	private String type;
 	private Long employeementId;
+	private String imageUrl;
+    private String videoUrl;
 	
 }

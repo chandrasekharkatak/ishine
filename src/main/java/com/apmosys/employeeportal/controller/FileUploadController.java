@@ -39,6 +39,21 @@ public class FileUploadController {
 //        }
 //    }
     
+
+//    @PostMapping("/uploadImage")
+//    public ResponseEntity<ServiceResponse> uploadImage(@RequestParam("file") MultipartFile file) {
+//        ServiceResponse response = fileUploadService.storeFile(file);
+//        return ResponseEntity.status(response.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS) ? HttpStatus.OK : HttpStatus.BAD_REQUEST)
+//                             .body(response);
+//    }
+//
+//    @PostMapping("/uploadVideo")
+//    public ResponseEntity<ServiceResponse> uploadVideo(@RequestParam("file") MultipartFile file) {
+//        ServiceResponse response = fileUploadService.storeFile(file);
+//        return ResponseEntity.status(response.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS) ? HttpStatus.OK : HttpStatus.BAD_REQUEST)
+//                             .body(response);
+//    }
+    
     @PostMapping("/billableFile")
     public ServiceResponse uploadBillableFile(@RequestParam("file") MultipartFile file) throws EncryptedDocumentException, InvalidFormatException {
     	ServiceResponse response = new ServiceResponse();
@@ -81,5 +96,19 @@ public class FileUploadController {
         response = fileUploadService.designationBulkUpload(file);
         return response;
     }
+    
+    @PostMapping("/confirmationDateBulkUpload")
+    public ServiceResponse confirmationDateBulkUpload(@RequestParam("file") MultipartFile file) throws EncryptedDocumentException, InvalidFormatException {
+        ServiceResponse response = new ServiceResponse();
+        if (file.isEmpty()) {
+            response.setServiceResponse("Please upload a file.");
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            return response;
+        }
+
+        response = fileUploadService.confirmationDateBulkUpload(file);
+        return response;
+    }
+    
     
 }

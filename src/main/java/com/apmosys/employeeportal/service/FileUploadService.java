@@ -5,8 +5,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -306,7 +308,40 @@ public class FileUploadService {
 	}
 
 
-           	
+	public ServiceResponse confirmationDateBulkUpload(MultipartFile file) throws EncryptedDocumentException, InvalidFormatException {
+        ServiceResponse response = new ServiceResponse();
+        try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
+            Sheet sheet = workbook.getSheetAt(0);
+            Iterator<Row> rows = sheet.iterator();
+            rows.next(); // Skip header row
+
+            while (rows.hasNext()) {
+                Row currentRow = rows.next();
+
+                Long employmentId = (long) currentRow.getCell(0).getNumericCellValue();
+                Date confirmationDate = currentRow.getCell(1).getDateCellValue();
+
+                Optional<Employee> optionalEmployee = Optional.ofNullable(employeeRepository.findByEmployeementId(employmentId));
+
+                if (optionalEmployee.isPresent()) {
+                    Employee employee = optionalEmployee.get();
+                    if (confirmationDate != null) {
+                        employee.setEmployeeConfirmationDate(confirmationDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+                    }
+
+                    employeeRepository.save(employee);
+                }
+            }
+
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse("Confirmation dates uploaded and processed successfully.");
+        } catch (IOException e) {
+            e.printStackTrace();
+            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceResponse("Something went wrong during file processing.");
+        }
+        return response;
+    }              	
 	                		
 	                	
 	               

@@ -1,5 +1,5 @@
 import { LocationStrategy } from '@angular/common';
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild} from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -16,6 +16,7 @@ import { SurveyService } from 'src/app/services/survey.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { ClipboardService } from 'ngx-clipboard';
 import { Router } from '@angular/router';
+import { SurveySection } from 'src/app/models/survey-section';
 
 @Component({
   selector: 'app-survey-config',
@@ -27,25 +28,23 @@ export class SurveyConfigComponent implements OnInit {
   feature = "Survey Config";
   currentUser: User;
   userMapping: any = {};
-
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType:any;
-
-  //modal
+  @ViewChild('uploadImageModal') uploadImageModal!: TemplateRef<any>;
+  selectedFile: File | null = null;
+  filePreviewUrl: string | null = null;
+  @ViewChild('uploadVideoModal') uploadVideoModal!: TemplateRef<any>;
+  fileType: 'image' | 'video' | null = null;
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
-
   isSurveyForm:boolean = false;
   isCreation:boolean = false;
   isUpdation:boolean = false;
-
   isSurveyList:boolean = false;
   isSurveyResponseList:boolean = false;
-
   surveyObj:Survey = new Survey();
   allSurveyQuestionList:SurveyQuestion[] = [new SurveyQuestion()];
-
   allSurveyList:any[] = [];
   allSurveyResponseList:any[] = [];
   selectedSurveyName:any = "Test Survey";
@@ -69,8 +68,6 @@ export class SurveyConfigComponent implements OnInit {
   isSearchEnabled:boolean = false;
   surveyColumns:any[] = ['surveyName','description','isActive','createdByName','createdOn'];
   surveyResponseColumns:any[] = ['0','1','2'];
-
-
 
   constructor(
     private validationService: ValidationService,
@@ -151,75 +148,191 @@ export class SurveyConfigComponent implements OnInit {
   showSurveyUpdate(surveyObj:Survey, template: TemplateRef<any>){
     this.isSurveyForm = true;
     this.isUpdation = true;
-
     this.isCreation = false;
     this.isSurveyResponseList = false;
     this.isSurveyList = false;
-
     this.surveyObj = new Survey();
     this.allSurveyQuestionList = [];
-
     this.surveyService.getAllQuestionsBySurveyId(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allSurveyQuestionList = response.serviceResponse;
         //console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
-
         this.surveyObj = surveyObj;
         this.allSurveyQuestionList.forEach((survey: SurveyQuestion) => {
           survey.optionsList = JSON.parse(survey.options);
           survey.required = JSON.parse(survey.required);
         });
-
         //console.log("For Edit SurveyObj ==> ",this.surveyObj, this.allSurveyQuestionList);
-
       } else {
         console.error(response.serviceResponse);
       }
     });
-
   }
 
-  // Manage Questions
-  addQuestion(i){
-    this.allSurveyQuestionList.splice(i+1,0,new SurveyQuestion());
+  addSection() {
+    this.surveyObj.sections.push(new SurveySection());
   }
 
-  removeQuestion(i){
-    this.allSurveyQuestionList.splice(i,1);
-  }
-
-  // Manage Options
-  addOption(i, questionObj:SurveyQuestion){
-    let question = this.allSurveyQuestionList.find(ques => ques == questionObj);
-    question.optionsList.splice(i+1,0, new SurveyOption());
-  }
-
-  removeOption(i, questionObj:SurveyQuestion){
-    let question = this.allSurveyQuestionList.find(ques => ques == questionObj);
-    question.optionsList.splice(i,1);
-  }
-
-  setOption(questionObj:SurveyQuestion){
-    if(questionObj.optionType == "checkbox" || questionObj.optionType == "radio"){
-      let question = this.allSurveyQuestionList.find(ques => ques == questionObj);
-      question.optionsList = [];
-      question.optionsList.splice(1,0,new SurveyOption());
+  removeSection(index: number) {
+    if (this.surveyObj.sections.length > 1) {
+      this.surveyObj.sections.splice(index, 1);
     }
   }
 
+  addQuestion(sectionIndex: number) {
+    this.surveyObj.sections[sectionIndex].questions.push(new SurveyQuestion());
+  }
 
-  onPreiew(previewTemplate: TemplateRef<any>, template: TemplateRef<any>){
+  removeQuestion(sectionIndex: number, questionIndex: number) {
+    if (this.surveyObj.sections[sectionIndex].questions.length > 1) {
+      this.surveyObj.sections[sectionIndex].questions.splice(questionIndex, 1);
+    }
+  }
+
+  addOption(sectionIndex: number, questionIndex: number) {
+    this.surveyObj.sections[sectionIndex].questions[questionIndex].optionsList.push(new SurveyOption());
+  }
+
+  removeOption(sectionIndex: number, questionIndex: number, optionIndex: number) {
+    if (this.surveyObj.sections[sectionIndex].questions[questionIndex].optionsList.length > 1) {
+      this.surveyObj.sections[sectionIndex].questions[questionIndex].optionsList.splice(optionIndex, 1);
+    }
+  }
+
+  addImage(sectionIndex: number, questionIndex: number) {
+    this.surveyObj.sections[sectionIndex].questions[questionIndex].image = '';
+  }
+  
+  onImageUpload(event: any, sectionIndex: number, questionIndex: number) {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.surveyObj.sections[sectionIndex].questions[questionIndex].image = reader.result as string;
+    };
+    reader.readAsDataURL(file); // Convert the image file to base64
+  }
+  
+
+  setOption(questionObj:SurveyQuestion){
+    if (questionObj.optionType === 'linearScale') {
+      questionObj.scaleMin = 0;
+      questionObj.scaleMax = 5;
+      questionObj.scaleLabelMin = 'Low';
+      questionObj.scaleLabelMax = 'High';
+    }else if(questionObj.optionType == "checkbox" || questionObj.optionType == "radio" || questionObj.optionType === "dropdown"){
+      let question = this.allSurveyQuestionList.find(ques => ques == questionObj);
+      questionObj.optionsList = [];
+      //questionObj.optionsList.splice(1,0,new SurveyOption());
+      questionObj.optionsList.push({ optionValue: '' });
+    } else if (questionObj.optionType === "shortAnswer" || questionObj.optionType === "paragraph") {
+      questionObj.optionsList = []; 
+      questionObj.answer = '';
+    }
+  }
+
+  goToSectionBasedOnAnswer(questionObj: SurveyQuestion) {
+    questionObj.optionsList.forEach(option => {
+      if (!questionObj.goToSectionBasedOnAnswer[option.optionValue]) {
+          questionObj.goToSectionBasedOnAnswer[option.optionValue] = null; 
+      }
+  });
+  }
+
+copySection(sectionIndex: number) {
+  const sectionToCopy = this.surveyObj.sections[sectionIndex];
+  const copiedSection = JSON.parse(JSON.stringify(sectionToCopy));
+  copiedSection.sectionName = `${copiedSection.sectionName} (Copy)`;
+  this.surveyObj.sections.push(copiedSection);
+}
+
+deleteSection(sectionIndex: number) {
+  if (this.surveyObj.sections.length > 1) {
+      const confirmDeletion = confirm('Are you sure you want to delete this section?');
+      if (confirmDeletion) {
+          this.surveyObj.sections.splice(sectionIndex, 1);
+      }
+  } else {
+      alert('At least one section is required.');
+  }
+}
+
+openImageModal(sectionIndex: number, questionIndex: number) {
+  console.log(`Section: ${sectionIndex}, Question: ${questionIndex}`);
+  this.fileType = 'image';
+  this.openUploadModal(this.uploadImageModal);
+}
+
+openVideoModal(sectionIndex: number, questionIndex: number) {
+  console.log(`Section: ${sectionIndex}, Question: ${questionIndex}`);
+  this.fileType = 'video';
+  this.openUploadModal(this.uploadVideoModal);
+}
+
+openUploadModal(modalTemplate: TemplateRef<any>) {
+  this.modalRef = this.modalService.show(modalTemplate, { class: 'modal-lg' });
+}
+
+closeUploadModal() {
+  if (this.modalRef) {
+    this.modalRef.hide();
+  }
+  this.resetFileSelection();
+}
+
+onFileSelected(event: Event, type: 'image' | 'video') {
+  const input = event.target as HTMLInputElement;
+  if (input.files && input.files[0]) {
+    this.selectedFile = input.files[0];
+    this.fileType = type;
+    this.previewFile(this.selectedFile, type);
+  }
+}
+
+previewFile(file: File, type: 'image' | 'video') {
+  const reader = new FileReader();
+  reader.onload = (e: any) => {
+    this.filePreviewUrl = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+uploadFile() {
+  if (this.selectedFile) {
+    if (this.fileType === 'image') {
+      this.surveyService.uploadImage(this.selectedFile).subscribe(
+        response => {
+          console.log('Image uploaded successfully', response);
+          this.closeUploadModal();
+        },
+        error => console.error('Error uploading image', error)
+      );
+    } else if (this.fileType === 'video') {
+      this.surveyService.uploadVideo(this.selectedFile).subscribe(
+        response => {
+          console.log('Video uploaded successfully', response);
+          this.closeUploadModal();
+        },
+        error => console.error('Error uploading video', error)
+      );
+    }
+  }
+}
+
+resetFileSelection() {
+  this.selectedFile = null;
+  this.filePreviewUrl = null;
+  this.fileType = null;
+}
+
+  onPreview(previewTemplate: TemplateRef<any>, template: TemplateRef<any>){
     let inputValidated: boolean = this.vallidateSurvey(template, this.surveyObj, this.allSurveyQuestionList);
     if (!inputValidated) return;
-
     const surveyTemplate:string = this.createTemplate();
-
     let previewObj = new Survey();
     previewObj.surveyName = this.surveyObj.surveyName;
     previewObj.description = this.surveyObj.description;
     previewObj.surveyQuestionList = this.allSurveyQuestionList;
     previewObj.surveyTemplate = surveyTemplate;
-
     //console.log("previewObj : ", previewObj);
     this.openSurveyPreviewMod(previewTemplate,previewObj);
   }

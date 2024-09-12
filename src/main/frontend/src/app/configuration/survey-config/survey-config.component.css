@@ -4,15 +4,12 @@
     background: var(--ghost-white);
     margin-bottom: 1em;
 }
-
 .table-header-title{
     font-size: 2rem;
     padding: .2em;
     margin-bottom: 0;
     color: var(--raisin-black);
 }
-
-/* overritting checkBox */
 .custom-control-lg .custom-control-label::before,
 .custom-control-lg .custom-control-label::after {
     top: 0.1rem !important;
@@ -42,3 +39,23 @@
 .my-pagination::ng-deep{
     padding-top: 10px;
 }
+.scale-end-label {
+    width: 50px; 
+    text-align: center;
+    font-size: 0.9em;
+}
+.scale-number {
+    flex: 1; 
+    text-align: center;
+    font-size: 0.8em;
+    color: #666;
+    margin-top: 8px; 
+}
+.form-control-range {
+    flex-grow: 1;
+    margin: 0 10px; 
+}
+.d-flex.justify-content-between.mt-2 {
+    margin-left: -10px; 
+}
+

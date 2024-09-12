@@ -186,8 +186,22 @@ onDesignationUpload(event: any, template: TemplateRef<any>) {
     });
 }
 
-   
+onConfirmationDateUpload(event: any, template: TemplateRef<any>){
+  const uploadedFiles = event.target.files;
+  console.log("uploadedFiles ", uploadedFiles);
+  this.file = uploadedFiles[0];
+  const formData = new FormData();
+  formData.append('file', this.file);
 
+  this.domainService.designationBulkUpload(formData).pipe(first()).subscribe(
+    (response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+}   
 
 onFileSelect(event: any, template: TemplateRef<any>){
   const uploadedFiles = event.target.files;
@@ -235,6 +249,17 @@ downloadDeginationUploadFileTemplate(): void {
   const wb: XLSX.WorkBook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Template');
   XLSX.writeFile(wb, 'Bulk_Designation_Upload_Template.xlsx');
+}
+
+headersConfirmationDate = [
+  { 'Employee Id': '', 'Confirmation Date': '' }
+];
+downloadConfirmationDateUpload(): void {
+  console.log("Confirmation Date Template is downloaded");
+  const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.headersConfirmationDate, { skipHeader: false });
+  const wb: XLSX.WorkBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Template');
+  XLSX.writeFile(wb, 'Bulk_Confirmation_Date_Upload.xlsx');
 }
 
   showUpdateDomainForm(domain:any){

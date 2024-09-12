@@ -47,12 +47,13 @@ export class DomainService {
   billableFile(formData : FormData){
     return this.http.post(`${this.baseUrl}`+`api/upload/billableFile`,formData);
   }
-
   saveExcelDataForManagerMapping(formData : FormData){
     return this.http.post(`${this.baseUrl}`+`api/upload/saveExcelDataForManagerMapping`,formData);
   }
-
   designationBulkUpload(formData : FormData){
     return this.http.post(`${this.baseUrl}`+`api/upload/designationBulkUpload`,formData);
+  }
+  onConfirmationDateUpload(formData : FormData){
+    return this.http.post(`${this.baseUrl}`+`api/upload/confirmationDateBulkUpload`,formData);
   }
 }

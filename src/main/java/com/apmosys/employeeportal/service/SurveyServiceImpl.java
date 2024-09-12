@@ -76,6 +76,25 @@ public class SurveyServiceImpl implements SurveyService {
 			newSurvey.setSurveyName(surveyDTO.getSurveyName());
 			newSurvey.setDescription(surveyDTO.getDescription());
 			newSurvey.setIsActive(surveyDTO.getIsActive());
+//			newSurvey.setImageUrl(surveyDTO.getImageUrl()); 
+//	        newSurvey.setVideoUrl(surveyDTO.getVideoUrl());
+			
+//			 if (surveyDTO.getImageFile() != null) {
+//		            ServiceResponse imageResponse = fileUploadService.storeFile(surveyDTO.getImageFile());
+//		            if (imageResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
+//		                newSurvey.setImageUrl(imageResponse.getServiceResponse());
+//		            } else {
+//		            }
+//		        }
+//		        
+//		        if (surveyDTO.getVideoFile() != null) {
+//		            ServiceResponse videoResponse = fileUploadService.storeFile(surveyDTO.getVideoFile());
+//		            if (videoResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
+//		                newSurvey.setVideoUrl(videoResponse.getServiceResponse());
+//		            } else {
+//		                
+//		            }
+//		        }
 
 			Survey newSurveyCreated = surveyRepository.save(newSurvey);
 

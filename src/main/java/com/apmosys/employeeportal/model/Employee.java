@@ -177,4 +177,8 @@ public class Employee {
 	private Long pipId;
 	
 	private String billableType;
+	
+	@Column(name = "employee_confirmation_date")
+    private LocalDate employeeConfirmationDate;
+
 }

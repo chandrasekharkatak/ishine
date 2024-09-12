@@ -2,6 +2,8 @@ package com.apmosys.employeeportal.dto;
 
 import java.util.List;
 
+import javax.persistence.Column;
+
 import com.apmosys.employeeportal.model.Notification;
 
 import java.time.LocalDate;	
@@ -231,5 +233,6 @@ public class EmployeeDTO {
 	private String employeeName;
 	private Long count_of_employees;
 	private String reportiesFlag;
-	
+    
+	private LocalDate employeeConfirmationDate;
 }

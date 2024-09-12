@@ -16,95 +16,208 @@
             <strong *ngIf="isUpdation">Update Survey</strong>
         </div>
         <div class="card-body">
-            <div class="row">
-                <div class="col-md-4 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Survey Name</label>
-                            <input type="text" class="form-control" autocomplete="none" (blur)="spaceTrimOnSurveyName()" [(ngModel)]="surveyObj.surveyName">
+            <div *ngFor="let section of surveyObj.sections; let sectionIndex = index" class="mb-4">
+                <h4>Section {{sectionIndex + 1}}: {{section.sectionName}}
+                    <button type="button" class="btn btn-outline-primary btn-sm" style="margin-left: 20px; font-size: large; font-size: small;" (click)="addSection()">
+                        <i class="fa fa-plus" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" style="margin-left: 10px; font-size: large; font-size: small;" (click)="copySection(sectionIndex)">
+                        <i class="fa fa-copy" aria-hidden="true"></i> 
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-sm" style="margin-left: 10px; font-size: large; font-size: small;" (click)="deleteSection(sectionIndex)">
+                        <i class="fa fa-trash" aria-hidden="true"></i>
+                    </button>        
+                </h4>
+                <div class="row">
+                    <div class="col-md-12 mb-0">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label class="info-label"><span class="text-danger">*</span>Section Name</label>
+                                <input type="text" class="form-control" autocomplete="none" [(ngModel)]="section.sectionName">
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label">Description</label>
-                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="surveyObj.description">
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <hr>
-            <div *ngFor="let question of allSurveyQuestionList; let i = index" class="row" [class.question-input]="allSurveyQuestionList.length>1">
-                <div class="col-md-12">
-                    <div class="row">
-                        <div class="col-md-8 mb-0">
-                            <div class="info-wrapper">
-                                <div class="form-group">
-                                    <label class="info-label"><span class="text-danger">*</span><b>Question - {{i+1}}</b></label>
-                                    <input type="text" class="form-control" autocomplete="none" [(ngModel)]="question.question">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-2 mb-0">
-                            <div class="info-wrapper">
-                                <div class="form-group">
-                                    <label class="info-label"><span class="text-danger">*</span>Options Type</label>
-                                    <select class="form-control" aria-hidden="true" [(ngModel)]="question.optionType" (change)="setOption(question)">
-                                        <option selected="selected" value="" disabled>Select</option>
-                                        <option value="checkbox">checkbox</option>
-                                        <option value="radio">radio</option>
-                                        <option value="text">text</option>
-                                      </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-2 pt-4 mt-2">
-                            <button type="button" class="btn btn-outline-primary mx-1" (click)="addQuestion(i)"><i class="fa fa-plus" aria-hidden="true"></i></button>
-                            <button *ngIf="allSurveyQuestionList.length>1" type="button" class="btn btn-outline-primary mx-1" (click)="removeQuestion(i)"><i class="fa fa-trash" aria-hidden="true"></i></button>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4 mb-0">
-                            <div class="info-wrapper">
-                                <div class="form-group">
-                                    <label class="info-label">Description</label>
-                                    <input type="text" class="form-control" autocomplete="none" [(ngModel)]="question.description">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-2 mb-0">
-                            <div class="info-wrapper">
-                                <div class="custom-control-lg custom-control custom-checkbox mt-4 pt-2">
-                                    <input class="custom-control-input" type="checkbox" id="requiredCheck{{i+1}}" [(ngModel)]="question.required">
-                                    <label class="custom-control-label" for="requiredCheck{{i+1}}"><span class="text-danger">*</span>Required</label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row" *ngIf="(question.optionType == 'checkbox' || question.optionType == 'radio')" >
-                        <div class="col-md-12" *ngFor="let option of question.optionsList; let i = index">
-                            <div class="row">
-                                <div class="col-md-4 mb-0">
-                                    <div class="info-wrapper">
-                                        <div class="form-group">
-                                            <label class="info-label">option - {{i+1}}</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="option.optionValue">
-                                        </div>
+                <div *ngFor="let question of section.questions; let i = index" class="row">
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="col-md-8 mb-0">
+                                <div class="info-wrapper">
+                                    <div class="form-group">
+                                        <label class="info-label"><span class="text-danger">*</span><b>Question - {{i + 1}}</b></label>
+                                        <input type="text" class="form-control" autocomplete="none" [(ngModel)]="question.question">
                                     </div>
                                 </div>
-                                <div class="col-md-3 pt-4 mt-2">
-                                    <button type="button" class="btn btn-outline-primary mx-1" (click)="addOption(i, question)"><i class="fa fa-plus" aria-hidden="true"></i></button>
-                                    <button *ngIf="question.optionsList.length>1" type="button" class="btn btn-outline-primary mx-1" (click)="removeOption(i, question)"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                            </div>
+                            <div class="col-md-2 mb-0">
+                                <div class="info-wrapper">
+                                    <div class="form-group">
+                                        <label class="info-label"><span class="text-danger">*</span>Options Type</label>
+                                        <select class="form-control" aria-hidden="true" [(ngModel)]="question.optionType" (change)="setOption(question)">
+                                            <option selected="selected" value="" disabled>Select</option>
+                                            <option value="checkbox">Checkbox</option>
+                                            <option value="radio">Radio</option>
+                                            <option value="dropdown">Dropdown</option>
+                                            <option value="shortAnswer">Short Answer</option>
+                                            <option value="paragraph">Paragraph</option>
+                                            <option value="linearScale">Linear Scale</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2 pt-4 mt-2">
+                                <button type="button" class="btn btn-outline-primary mx-1" (click)="openImageModal(sectionIndex, i)">
+                                    <i class="fa fa-image" aria-hidden="true"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-primary mx-1" (click)="openVideoModal(sectionIndex, i)">
+                                    <i class="fa fa-video" aria-hidden="true"></i>
+                                  </button>
+                                <button type="button" class="btn btn-outline-primary mx-1" (click)="addQuestion(sectionIndex)"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                                <button *ngIf="section.questions.length > 1" type="button" class="btn btn-outline-primary mx-1" (click)="removeQuestion(sectionIndex, i)"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-0">
+                                <div class="info-wrapper">
+                                    <div class="form-group">
+                                        <label class="info-label">Description</label>
+                                        <input type="text" class="form-control" autocomplete="none" [(ngModel)]="question.description">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2 mb-0">
+                                <div class="info-wrapper">
+                                    <div class="custom-control-lg custom-control custom-checkbox mt-4 pt-2">
+                                        <input class="custom-control-input" type="checkbox" id="requiredCheck{{sectionIndex + 1}}-{{i + 1}}" [(ngModel)]="question.required">
+                                        <label class="custom-control-label" for="requiredCheck{{sectionIndex + 1}}-{{i + 1}}"><span class="text-danger">*</span>Required</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div *ngIf="question.optionType == 'text'" class="row">
-                        <div class="col-md-4 mb-0">
-                            <div class="info-wrapper">
-                                <div class="form-group">
-                                    <input type="text" class="form-control" autocomplete="none" readonly value="Text Answer here...">
+                        <div *ngIf="question.optionType === 'dropdown'||question.optionType == 'checkbox' || question.optionType == 'radio'" class="row">
+                            <div class="col-md-4">
+                                <div class="info-wrapper">
+                                    <div class="form-group">
+                                        <div *ngFor="let option of question.optionsList; let j = index" class="row mb-2">
+                                            <div class="col-md-12">
+                                                <label class="info-label"><b>Option Value</b></label>
+                                            </div>
+                                            <div class="col-md-12 d-flex align-items-center">
+                                                <input type="text" class="form-control" autocomplete="none" 
+                                                    [(ngModel)]="option.optionValue" placeholder="Option value">
+                                                <button type="button" class="btn btn-outline-primary" style="margin-left: 20px;" 
+                                                        (click)="addOption(sectionIndex, i)">
+                                                    <i class="fa fa-plus" aria-hidden="true"></i>
+                                                </button>
+                                                <button *ngIf="question.optionsList.length > 1" type="button" style="margin-left: 20px;"
+                                                        class="btn btn-outline-primary" 
+                                                        (click)="removeOption(sectionIndex, i, j)">
+                                                    <i class="fa fa-trash" aria-hidden="true"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <!-- <label class="info-label"><b>Select an Option</b></label> -->
+                                        <!-- <select class="form-control mb-3" [(ngModel)]="question.answer">
+                                            <option value="" disabled selected>Select an option...</option> 
+                                            <option *ngFor="let option of question.optionsList" [value]="option.optionValue">
+                                                {{option.optionValue}}
+                                            </option>
+                                            <option value="">Clear Selection</option>
+                                        </select> -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <div class="custom-control custom-switch">
+                                    <input type="checkbox" class="custom-control-input" id="toggleNavigation{{sectionIndex}}-{{i}}" 
+                                           [(ngModel)]="question.enableNavigation">
+                                    <label class="custom-control-label" for="toggleNavigation{{sectionIndex}}-{{i}}">
+                                        Go to section based on answer
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div *ngIf="question.enableNavigation && (question.optionType === 'radio' || question.optionType === 'dropdown' || question.optionType === 'checkbox')" class="row mb-3">
+                            <div class="col-md-12">
+                                <div class="info-wrapper">
+                                    <div class="form-group">
+                                        <label class="info-label">Navigation Rules</label>
+                                        <div *ngFor="let option of question.optionsList; let j = index" class="row mb-2">
+                                            <div class="col-md-6">
+                                                <input type="text" class="form-control" placeholder="Option value" [(ngModel)]="option.optionValue" disabled>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <select class="form-control" [(ngModel)]="question.goToSectionBasedOnAnswer[option.optionValue]">
+                                                    <option [value]="null" disabled>Select section</option>
+                                                    <option *ngFor="let sec of surveyObj.sections; let k = index" [value]="k">
+                                                        Section {{k + 1}}: {{sec.sectionName}}
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary mt-2" (click)="goToSectionBasedOnAnswer(question)">
+                                            Add Navigation Rule
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-2 pt-4 mt-2">
+
+                        </div>
+                        <div *ngIf="question.image" class="row">
+                            <div class="col-md-8 mb-0">
+                                <div class="info-wrapper">
+                                    <div class="form-group">
+                                        <label class="info-label"><b>Uploaded Image:</b></label>
+                                        <img [src]="question.image" alt="Question Image" class="img-fluid" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="file" (change)="onImageUpload($event, sectionIndex, i)" class="form-control">
+                            </div>
+                        </div>
+                        
+                        <div *ngIf="question.optionType == 'shortAnswer'" class="row">
+                            <div class="col-md-4 mb-0">
+                                <div class="info-wrapper">
+                                    <div class="form-group">
+                                        <input type="text" class="form-control" autocomplete="none" placeholder="Short answer here..." maxlength="150">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div *ngIf="question.optionType == 'paragraph'" class="row">
+                            <div class="col-md-8 mb-0">
+                                <div class="info-wrapper">
+                                    <div class="form-group">
+                                        <textarea class="form-control" rows="3" autocomplete="none" placeholder="Paragraph answer here..." maxlength="500"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div *ngIf="question.optionType == 'linearScale'" class="row">
+                            <div class="col-md-12 mb-0">
+                                <div class="info-wrapper">
+                                    <div class="form-group">
+                                        <label class="info-label">Linear Scale: {{question.scaleLabelMin}} ({{question.scaleMin}}) to {{question.scaleLabelMax}} ({{question.scaleMax}})</label>
+                                        <div class="d-flex align-items-center">
+                                            <span class="mr-2">{{question.scaleLabelMin}}</span>
+                                            <input type="range" class="form-control-range flex-grow-1 mx-3"
+                                                [min]="question.scaleMin" 
+                                                [max]="question.scaleMax" 
+                                                [(ngModel)]="question.answer"
+                                                [step]="1">
+                                            <span class="ml-2">{{question.scaleLabelMax}}</span>  
+                                        </div>
+                                        <div class="mt-2 text-center">
+                                            level: {{question.answer}}
+                                        </div>                              
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -113,10 +226,9 @@
             </div>
             <div class="row mt-3">
                 <div class="col-md-12">
-                    <button type="submit" class="btn btn-outline-primary btn-sm mx-1" (click)="onPreiew(preview_template, alert_message)">Preview</button>
+                    <button type="submit" class="btn btn-outline-primary btn-sm mx-1" (click)="onPreview(preview_template, alert_message)">Preview</button>
                     <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onSubmit(alert_message)">Submit</button>
                     <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdate(alert_message)">Update</button>
-
                 </div>
             </div>
         </div>
@@ -132,7 +244,6 @@
                 <h1 class="table-header-title">Surveys</h1>
             </div>
         </div>
-
         <div class="col-md-12">
             <div class="row">
                 <div class="col-md-3 ml-auto d-flex justify-content-end align-items-start mb-1">
@@ -140,7 +251,6 @@
                 </div>
             </div>
         </div>
-
         <div class="row">
             <div class="col-md-12">
               <div class="selector-toggle" (click)="toggleSearch()">
@@ -175,11 +285,9 @@
                         <td>{{survey.createdOn}}</td>
                         <td>
                             <button class="btn btn-sm btn-outline-primary" type="submit" (click)="onSurveyPreview(survey, preview_template)"><em>Preview</em></button>
-
                             <button *ngIf="survey.isActive == 'false' || survey.type == 'exit'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showSurveyUpdate(survey, alert_message)"><em class="fa fa-edit"></em></button>
                             <button *ngIf="survey.isActive == 'false'" class="btn btn-sm btn-outline-danger" type="submit" (click)="openDeleteSurveyMod(delete_template, survey)"><em class="fa fa-trash"></em></button>
                             <button *ngIf="survey.isActive == 'false'" class="btn btn-sm btn-primary mx-1" type="submit" (click)="openActivateSurveyMod(activate_template, survey)"><em>Activate</em></button>
-
                             <button *ngIf="survey.isActive == 'true' && survey.type != 'exit'" class="btn btn-sm btn-primary mx-1" type="submit" (click)="openCompleteSurveyMod(complete_template, survey)"><em>Complete</em></button>
                             <button *ngIf="survey.isActive == 'true' || survey.isActive == 'Completed'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showSurveyResponses(survey)"><em>View Response</em></button>&nbsp;
                             <button *ngIf="survey.isActive == 'true'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="copySurveyLinkToClipBoard(survey,alert_message)"><em>Copy Survey Link</em></button>&nbsp;
@@ -283,3 +391,49 @@
         <div class="container-fluid d-flex flex-column align-tems-center" id="survey-container"></div>
     </div>
 </ng-template>
+
+<ng-template #uploadImageModal>
+    <div class="modal-header">
+      <h5 class="modal-title">Upload Image</h5>
+      <button type="button" class="close" aria-label="Close" (click)="closeUploadModal()">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="imageInput">Choose an image</label>
+        <input type="file" class="form-control" id="imageInput" (change)="onFileSelected($event, 'image')" accept="image/*">
+      </div>
+      <div *ngIf="filePreviewUrl && fileType === 'image'">
+        <h6 class="mt-3">Preview:</h6>
+        <img [src]="filePreviewUrl" class="img-fluid" alt="Image preview" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" (click)="uploadFile()">Upload</button>
+      <button type="button" class="btn btn-secondary" (click)="closeUploadModal()">Cancel</button>
+    </div>
+  </ng-template>
+
+  <ng-template #uploadVideoModal>
+    <div class="modal-header">
+      <h5 class="modal-title">Upload Video</h5>
+      <button type="button" class="close" aria-label="Close" (click)="closeUploadModal()">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="videoInput">Choose a video</label>
+        <input type="file" class="form-control" id="videoInput" (change)="onFileSelected($event, 'video')" accept="video/*">
+      </div>
+      <div *ngIf="filePreviewUrl && fileType === 'video'">
+        <h6 class="mt-3">Preview:</h6>
+        <video [src]="filePreviewUrl" controls class="img-fluid"></video>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" (click)="uploadFile()">Upload</button>
+      <button type="button" class="btn btn-secondary" (click)="closeUploadModal()">Cancel</button>
+    </div>
+  </ng-template>
