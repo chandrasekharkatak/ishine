@@ -5,6 +5,11 @@ import { HelpService } from '../services/help.service';
 import * as moment from 'moment';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
+import { AuthenticationService } from 'src/app/services/authentication.service';
+import { Appreciation } from 'src/app/models/appreciation';
+import { User } from 'src/app/models/user';
+import { UtilityService } from 'src/app/services/utility.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { saveAs } from "file-saver";
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Params } from '@angular/router';
@@ -25,48 +30,220 @@ export class HelpdeskComponent implements OnInit, AfterViewInit {
 
   document:any[] = [];
 
+  currentUser: User;
+
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType:any;
   data: any;
   src:any;
   fileName:any
+  myAppreciationexportExcel: any[] = [];
   currentDocument:any
-
+  isMyAppreciation:boolean = false;
+  isTeamAppreciation:boolean=false;
+  isReceived = true;
+  isGiven = false;
+  appreciatedByHeader = 'Appreciated By';
   filters:any = {};
   isSearchEnabled:boolean = false;
   documentsColumns:any[] = ['blank','fileName','helpDocumentName','createdByName','createdOn'];
-
+  startDate: any;
+  endDate: any;
+  myAppreciationList: any[] = [];
+  _myAppreciationList : any;
+  teamAppreciationList: any[] = [];
+  receivedAppreciations: any[] = [];
+  givenAppreciations: any[] = [];
+  receivedColumns:any[] = ['blank' , 'appreciationDate','appreciationEventName','appreciationBy','appreciationByName','appreciateType','comment'];
+  givenColumns:any[] = ['blank','appreciationDate','appreciationEventName','appreciationTo','appreciationToName','appreciateType','comment'];
+  teamColumns: any[] = ['blank','appreciationDate','appreciationEventName','appreciationBy','appreciationByName','appreciationTo','appreciationToName','appreciateType','comment'];
 
   constructor(
     private helpService: HelpService,
+    private authenticationService: AuthenticationService,
     private sanitizer: DomSanitizer,
     private modalService: BsModalService,
+    private exportExcelService: ExportExcelService,
+    private utilityService:UtilityService,
     private route: ActivatedRoute,
-  ) { }
+  ) {
+    this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+   }
 
 
   ngAfterViewInit(): void {
-     this.sectionViewInit();
+    //  this.sectionViewInit();
   }
 
 
   ngOnInit(): void {
     this.getAllHelpDocument();
+    this.myAppreciationTab();
+    // this.route.params.subscribe((params:Params) => {
+    //   this.currentDocument = params['id'];
+    // });
 
-    this.route.params.subscribe((params:Params) => {
-      this.currentDocument = params['id'];
+  }
+
+  // sectionViewInit(){
+  //   if(this.currentDocument != undefined && this.currentDocument != null){
+  //     let helpObj = new Help();
+  //     helpObj.helpDocId = this.currentDocument;
+  //     this.previewHelpDocument(this.previewDocument, helpObj);
+  //   }
+  // }
+
+  myAppreciationTab(){
+    this.isMyAppreciation = true;
+    this.isTeamAppreciation = false;
+    this.receivedAppreciation(); // Default to Received tab when "My Appreciation" is active
+  }
+  teamAppreciationTab(){
+    this.isMyAppreciation = false;
+    this.isTeamAppreciation = true; 
+  }
+  receivedAppreciation() {
+    this.isReceived = true;
+    this.isGiven = false;
+    this.appreciatedByHeader = 'Appreciated By';
+    this.filterAppreciations();
+  }
+  givenAppreciation() {
+    this.isReceived = false;
+    this.isGiven = true;
+    this.appreciatedByHeader = 'Appreciated To';
+    this.filterAppreciations();
+  }
+
+  // filterAppreciations() {
+  //   this.receivedAppreciations = this._myAppreciationList.filter(appreciation =>
+  //     appreciation.appreciationTo.replace('A-', '') === this.currentUser.employeementId
+  //   );
+
+  //   this.givenAppreciations = this._myAppreciationList.filter(appreciation =>
+  //     appreciation.appreciationBy.replace('A-', '') === this.currentUser.employeementId
+  //   );
+  // }
+
+  filterAppreciations() {
+    const formattedEmpId = `A-${this.currentUser.employeementId}`;
+  
+    this.receivedAppreciations = this._myAppreciationList.filter(appreciation =>
+      appreciation.appreciationTo === formattedEmpId
+    );
+  
+    this.givenAppreciations = this._myAppreciationList.filter(appreciation =>
+      appreciation.appreciationBy === formattedEmpId
+    );
+  }
+  
+
+  getMyAppreciationDetails(){
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
+    let appreciationObj = new Appreciation();
+    appreciationObj.employeementId = this.currentUser.employeementId;
+    appreciationObj.startDate =this.startDate;
+    appreciationObj.endDate = this.endDate;
+    this.helpService.getMyAppreciationDetails(appreciationObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.myAppreciationList= response.serviceResponse;
+        this.myAppreciationList.forEach(appObj => {
+          appObj.appreciationDate = (appObj.appreciationDate) 
+              ? moment(appObj.appreciationDate).format(AppComponent.DATETIME_FORMAT) 
+              : null;
+          appObj.appreciationBy = this.utilityService.appendEmployeementid(appObj.appreciationBy);
+          appObj.appreciationTo = this.utilityService.appendEmployeementid(appObj.appreciationTo);
+        });
+        this._myAppreciationList = this.myAppreciationList;
+        this.filterAppreciations();
+        console.log("myAppreciationList : ", this.myAppreciationList);
+      } else {
+        console.error(response.serviceResponse);
+      }
     });
 
   }
 
-  sectionViewInit(){
-    if(this.currentDocument != undefined && this.currentDocument != null){
-      let helpObj = new Help();
-      helpObj.helpDocId = this.currentDocument;
-      this.previewHelpDocument(this.previewDocument, helpObj);
-    }
+  name = 'ReceivedAppreciations.xlsx';
+  exportReceivedAppreciationsToExcel(): void {
+    const filteredData = this.receivedAppreciations.map(x => ({
+      "Date": x.appreciationDate ? moment(x.appreciationDate).format('DD-MM-YYYY') : null,
+      "Appreciation Event": x.appreciationEventName,
+      "Employee Id": "A-".concat(x.appreciationBy),
+      "Appreciated By": x.appreciationByName,
+      "Appreciation Type": x.appreciateType,
+      "Comment": x.comment
+    }));
+
+    this.exportExcelService.exportTableDataToExcel(filteredData, this.name);
   }
+   
+
+  namee = 'GivenAppreciations.xlsx';
+  exportGivenAppreciationsToExcel(): void {
+    const filteredData = this.givenAppreciations.map(x => ({
+      "Date": x.appreciationDate ? moment(x.appreciationDate).format('DD-MM-YYYY') : null,
+      "Appreciation Event": x.appreciationEventName,
+      "Employee Id": "A-".concat(x.appreciationTo),
+      "Appreciated To": x.appreciationToName,
+      "Appreciation Type": x.appreciateType,
+      "Comment": x.comment
+    }));
+
+    this.exportExcelService.exportTableDataToExcel(filteredData, this.namee);
+  }
+
+  nameee = 'MyTeamAppreciations.xlsx';
+  exportMyTeamAppreciationsToExcel(): void {
+    const filteredData = this.teamAppreciationList.map(x => ({
+      "Date": x.appreciationDate ? moment(x.appreciationDate).format('DD-MM-YYYY') : null,
+      "Appreciation Event": x.appreciationEventName,
+      "Employee Id (By)": x.appreciationBy ? "A-".concat(x.appreciationBy) : null,
+      "Appreciated By": x.appreciationByName,
+      "Employee Id (To)": x.appreciationTo ? "A-".concat(x.appreciationTo) : null,
+      "Appreciated To": x.appreciationToName,
+      "Appreciation Type": x.appreciateType,
+      "Comment": x.comment
+    }));
+
+    this.exportExcelService.exportTableDataToExcel(filteredData, this.nameee);
+  }
+
+  getTeamAppreciationDetails(){
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
+    let appreciationObj = new Appreciation();
+    appreciationObj.empId = this.currentUser.empId;
+    appreciationObj.startDate =this.startDate;
+    appreciationObj.endDate = this.endDate;
+    this.helpService.getTeamAppreciationDetails(appreciationObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.teamAppreciationList= response.serviceResponse;
+        console.log("teamAppreciationList : ", this.teamAppreciationList);
+
+        this.teamAppreciationList.forEach(appObj => {
+          appObj.appreciationDate = (appObj.appreciationDate) 
+              ? moment(appObj.appreciationDate).format(AppComponent.DATETIME_FORMAT) 
+              : null;
+          appObj.appreciationBy = this.utilityService.appendEmployeementid(appObj.appreciationBy);
+          appObj.appreciationTo = this.utilityService.appendEmployeementid(appObj.appreciationTo);
+        });
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  formatEmployeeId(employeeId: number): string {
+    // Ensure employeeId is numeric and add 'A-' prefix
+    return `A-${employeeId}`;
+  }
+
+  
 
   getAllHelpDocument(){
     this.sortColumn=[];
@@ -123,6 +300,36 @@ export class HelpdeskComponent implements OnInit, AfterViewInit {
       this.sortDirection = sort.direction;      
     }
   }
+  // sortData(sort: Sort){	
+  //   if(sort.active){
+  //     let sortParams: string[] = sort.active.split("|");
+  //     this.sortColumn = sortParams[0];
+  //     this.sortColumnType = sortParams[1];
+  //     this.sortDirection = sort.direction;
+  
+  //     // Check if sorting by date
+  //     if(this.sortColumnType === 'date') {
+  //       this.receivedAppreciations.sort((a, b) => {
+  //         const dateA = new Date(a[this.sortColumn]);
+  //         const dateB = new Date(b[this.sortColumn]);
+  //         return (this.sortDirection === 'asc') ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
+  //       });
+  //     }
+  //     // Check if sorting by string
+  //     else if(this.sortColumnType === 'string') {
+  //       this.receivedAppreciations.sort((a, b) => {
+  //         const valueA = a[this.sortColumn].toLowerCase();
+  //         const valueB = b[this.sortColumn].toLowerCase();
+  //         if (this.sortDirection === 'asc') {
+  //           return valueA < valueB ? -1 : valueA > valueB ? 1 : 0;
+  //         } else {
+  //           return valueA > valueB ? -1 : valueA < valueB ? 1 : 0;
+  //         }
+  //       });
+  //     }
+  //   }
+  // }
+  
   
   toggleSearch(){
     this.sortColumn=[];

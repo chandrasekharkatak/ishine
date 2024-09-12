@@ -10,8 +10,10 @@ import lombok.ToString;
 @Setter
 public class AppreciationDTO {
 	
-    private Long id;	
+private Long id;	
 	
+    private String appreciationEventName;
+    private String comment;
 	private String appreciateType;	
 	private String reason;	
 	private String appreciationDate;
@@ -54,5 +56,11 @@ public class AppreciationDTO {
 		private Long TotalYouAreSupportiveCount;
 		private Long TotalYouAreReliableCount;
 		private Long TotalYouAreAMotivatorCount;
+		
+		 private String startDate; // New field for filtering
+		    private String endDate;   // New field for filtering
+		    private Long employeementId; // Represents the current user's ID
+		    private Long empId;
+
 	
 }

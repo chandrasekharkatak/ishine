@@ -147,22 +147,47 @@ onBillableFileSelect(event: any, template: TemplateRef<any>){
     });
 }
 
-onDesignationUpload(event: any, template: TemplateRef<any>){
+// onDesignationUpload(event: any, template: TemplateRef<any>){
+//   const uploadedFiles = event.target.files;
+//   console.log("uploadedFiles ", uploadedFiles);
+//   this.file = uploadedFiles[0];
+//   const formData = new FormData();
+//   formData.append('file', this.file);
+
+//   this.domainService.designationBulkUpload(formData).pipe(first()).subscribe(
+//     (response: any) => {
+//       if (response.serviceStatus == "Success") {
+//         this.openAlertMod(template, response.serviceResponse);
+//       } else {
+//         this.openAlertMod(template, response.serviceResponse);
+//       }
+//     });
+// }
+
+onDesignationUpload(event: any, template: TemplateRef<any>) {
   const uploadedFiles = event.target.files;
-  console.log("uploadedFiles ", uploadedFiles);
   this.file = uploadedFiles[0];
   const formData = new FormData();
   formData.append('file', this.file);
 
   this.domainService.designationBulkUpload(formData).pipe(first()).subscribe(
     (response: any) => {
-      if (response.serviceStatus == "Success") {
+      if (response.serviceStatus === "Success") {
+        // Show success message using openAlertMod
         this.openAlertMod(template, response.serviceResponse);
+      } else if (response.serviceStatus === "Fail") {
+        // Show alert with the inactive employees' IDs or row errors
+        this.openAlertMod(template, `Errors found: ${response.serviceResponse}`);
+        // Optionally clear the file input for correction
+        event.target.value = '';  // Clear file input so user can upload a corrected file
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
     });
 }
+
+   
+
 
 onFileSelect(event: any, template: TemplateRef<any>){
   const uploadedFiles = event.target.files;

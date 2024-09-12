@@ -87,6 +87,19 @@ public class AppreciationController {
    	ServiceResponse response=appreciationService.viewAppreciationInfo(AppreciationEventDTO);
     	return response;
      }
+    
+    @RequestMapping(value = "getMyAppreciationDetails" ,method = RequestMethod.POST)
+    public ServiceResponse getMyAppreciationDetails(@RequestBody AppreciationDTO appreciationDTO) {
+    ServiceResponse response = appreciationService.getMyAppreciationDetails(appreciationDTO);
+    return response;
+    }
+    
+    @RequestMapping(value = "getTeamAppreciationDetails", method = RequestMethod.POST)
+    public ServiceResponse getTeamAppreciationDetails(@RequestBody AppreciationDTO appreciationDTO) {
+        ServiceResponse response = appreciationService.getTeamAppreciationDetails(appreciationDTO);
+        return response;
+    }
+
    
     
 }

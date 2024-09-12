@@ -5,3 +5,29 @@
 .my-pagination::ng-deep{
     padding-top: 10px;
 }
+/* Table Wrapper */
+.overflow-auto {
+    overflow-x: auto;
+  }
+  
+  /* Table */
+  .table {
+    width: 100%;
+    table-layout: fixed; /* Ensures table is responsive and handles long content */
+  }
+  
+  /* Table Headers */
+  .table th {
+    white-space: normal; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+  }
+  
+  /* Table Data */
+  .table td {
+    white-space: normal; 
+    overflow-wrap: break-word; 
+    word-wrap: break-word; 
+  }
+
+  

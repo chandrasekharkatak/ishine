@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.service;
 
 import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -28,6 +29,7 @@ import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.TimesheetActivityMap;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
+import com.apmosys.employeeportal.repository.AuditCustomRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
@@ -41,6 +43,9 @@ public class TimesheetService {
 
 	@Autowired
 	TimesheetsRepository timesheetsRepository;
+	
+	@Autowired
+	AuditCustomRepository auditCustomRepository ;
 
 	@Autowired
 	ProjectRepository projectRepository;
@@ -1669,5 +1674,57 @@ public class TimesheetService {
 //	        timesheetsRepository.updateCurrentManagerId(empId, managerId);
 //	    }
 //	}
+	
+	public List<Object[]> getManagerIdUpdates(Long empId) {
+	    String query = "SELECT e.manager_id, MAX(e.updated_on) AS latest_update " +
+	                   "FROM employee_aud e " +
+	                   "WHERE e.emp_id = :emp_id " +
+	                   "GROUP BY e.manager_id " +
+	                   "ORDER BY latest_update DESC " +
+	                   "LIMIT 2";
+	    List<Object[]> results = auditCustomRepository.readAuditCustomNativeQueryy(query, empId);
+	    
+	    // Convert the Timestamp to LocalDateTime
+	    for (Object[] result : results) {
+	        if (result[1] instanceof Timestamp) {
+	            result[1] = ((Timestamp) result[1]).toLocalDateTime();
+	        }
+	    }
+	    
+	    return results;
+	}
+
+	public void updateTimesheetManagerIds() {
+	    List<Long> employeeIds = timesheetsRepository.findDistinctEmpIds(); // Method to fetch distinct empIds
+
+	    for (Long empId : employeeIds) {
+	        List<Object[]> managerUpdates = getManagerIdUpdates(empId);
+
+	        if (managerUpdates.isEmpty() || managerUpdates.get(0)[0] == null) {
+	            continue; // No manager updates found or the first managerId is null, skip this employee
+	        }
+
+	        // Convert BigInteger to Long
+	        Long firstManagerId = ((BigInteger) managerUpdates.get(0)[0]).longValue();
+	        LocalDateTime latestUpdate = (LocalDateTime) managerUpdates.get(0)[1];
+	        Long secondManagerId = managerUpdates.size() > 1 ? ((BigInteger) managerUpdates.get(1)[0]).longValue() : null;
+
+	        List<Timesheet> timesheets = timesheetsRepository.findTimesheetsByEmpIdOrderByCreatedOn(empId);
+
+	        for (Timesheet timesheet : timesheets) {
+	            LocalDateTime createdOn = timesheet.getCommonProperty().getCreatedOn().toLocalDateTime(); // Access createdOn
+
+	            if (latestUpdate == null || createdOn.isBefore(latestUpdate)) {
+	                timesheetsRepository.updateCurrentManagerId(timesheet.getTimesheetId(), 
+	                                                            secondManagerId != null ? secondManagerId : firstManagerId);
+	            } else {
+	                timesheetsRepository.updateCurrentManagerId(timesheet.getTimesheetId(), firstManagerId);
+	            }
+	        }
+	    }
+	}
+
+    
+    
 
 }

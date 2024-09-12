@@ -161,4 +161,12 @@ public class TimesheetController {
 //        timesheetService.updateCurrentManagerInTimesheets();
 //        System.err.println("--cron ended--");
 //    }
+	
+	//@Scheduled(cron = "0 49 0 * * ?")
+	public void backfillManagerIds() {
+		System.err.println("----cron started-----");
+            timesheetService.updateTimesheetManagerIds();
+            System.err.println("--cron ended----");
+            
+    }
 }

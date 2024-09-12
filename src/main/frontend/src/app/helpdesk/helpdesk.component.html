@@ -1,4 +1,4 @@
-<div class="row" style="margin-top: 50px;">
+<!-- <div class="row" style="margin-top: 50px;">
     <div class="col-md-12">
         <div class="card">
             <div class="card-body">
@@ -61,8 +61,8 @@
     </div>
 </div>
 
-<!-- Modal Templates-->
-<ng-template #alert_message>
+ Modal Templates-->
+<!-- <ng-template #alert_message>
     <div class="modal-body text-center">
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
@@ -103,4 +103,500 @@
 
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
     </div>
+</ng-template>  -->
+
+
+
+<div class="row" style="margin-top: 50px;">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="col-md-12 table-header">
+                                <h1 class="table-header-title">Appreciation Details</h1>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-4">
+                                <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+                                    (click)="myAppreciationTab()" [ngClass]="{'active' : isMyAppreciation}">My
+                                    Appreciation</button>
+                                <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+                                    (click)="teamAppreciationTab()" [ngClass]="{'active' : isTeamAppreciation}">My Team
+                                    Appreciation</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Table of My Appreciation -->
+                        <!-- <div class="row" *ngIf="isMyAppreciation">
+                            <div class="col-md-12">
+                                <div class="row mb-2">
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Start
+                                                    Date</label>
+                                                <input id="historyFromDate" type="date" OnClick="this.showPicker()"
+                                                    class="form-control" autocomplete="none" [(ngModel)]="startDate">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>End
+                                                    Date</label>
+                                                <input id="historyFromDate" type="date" OnClick="this.showPicker()"
+                                                    class="form-control" autocomplete="none" [(ngModel)]="endDate"
+                                                    (change)="getMyAppreciationDetails()">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col-md-4">
+                                        <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+                                            (click)="receivedAppreciation()"
+                                            [ngClass]="{'active' : isReceived}">Received</button>
+                                        <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+                                            (click)="givenAppreciation()"
+                                            [ngClass]="{'active' : isGiven}">Given</button>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="selector-toggle" (click)="toggleSearch()">
+                                            <a href="javascript:void(0)">
+                                                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                                                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                                            </a>
+                                        </div>
+                                        <div class="overflow-auto" bassHorizontalScroll [tableId]="'helpDocInfo'"
+                                            [tableTHeadId]="'helpDocInfoTHead'" [tableTHeadTrId]="'helpDocInfoTHeadTr'">
+                                            <table class="table" matSort (matSortChange)="sortData($event)"
+                                                id="helpDocInfo">
+                                                <thead class="thead-light" id="helpDocInfoTHead">
+                                                    <tr id="helpDocInfoTHeadTr">
+                                                        <th scope="col" class="info-label">Sr No.</th>
+                                                        <th scope="col" class="info-label">Date</th>
+                                                        <th scope="col" class="info-label">Appreciation Event</th>
+                                                        <th scope="col" class="info-label">Employee Id</th>
+                                                        <th scope="col" class="info-label">{{ appreciatedByHeader }}
+                                                        </th>
+                                                        <th scope="col" class="info-label">Appreciation Type</th>
+                                                        <th scope="col" class="info-label">Comment</th>
+                                                    </tr>
+                                                    <tr app-column-filter-bar *ngIf="isSearchEnabled"
+                                                        [columnList]="documentsColumns"
+                                                        (onSearch)="onSearch($event);page=1">
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <th colspan="8" class="text-center info-label">No Files to
+                                                            display...</th>
+                                                    </tr>
+                                                    <tr *ngFor="let appreciation of myAppreciationList; let i = index">
+                                                        <td>{{ i + 1 }}</td>
+                                                        <td>{{ appreciation.appreciationDate | date: 'dd-MM-yyyy' }}
+                                                        </td>
+                                                        <td>{{ appreciation.appreciationEventName }}</td>
+                                                        <td>{{ isReceived ? appreciation.appreciationBy :
+                                                            appreciation.appreciationTo }}</td>
+                                                        <td>{{ isReceived ? appreciation.appreciationByName :
+                                                            appreciation.appreciationToName }}</td>
+                                                        <td>{{ appreciation.appreciateType }}</td>
+                                                        <td>{{ appreciation.comment }}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div> --> 
+
+
+                        <!-- Table of My Appreciation -->
+                        <div class="row" *ngIf="isMyAppreciation">
+                            <div class="col-md-12">
+                                <div class="row mb-2">
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Start
+                                                    Date</label>
+                                                <input id="historyFromDate" type="date" class="form-control"
+                                                    autocomplete="none" [(ngModel)]="startDate">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>End
+                                                    Date</label>
+                                                <input id="historyToDate" type="date" class="form-control"
+                                                    autocomplete="none" [(ngModel)]="endDate"
+                                                    (change)="getMyAppreciationDetails()">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col-md-4">
+                                        <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+                                            (click)="receivedAppreciation()"
+                                            [ngClass]="{'active': isReceived}">Received</button>
+                                        <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+                                            (click)="givenAppreciation()" [ngClass]="{'active': isGiven}">Given</button>
+                                    </div>
+                                </div>
+
+                                <!-- Table for Received Appreciations -->
+                                <div class="row" *ngIf="isReceived">
+                                    <div class="col-md-12">
+                                        <div class="selector-toggle" (click)="toggleSearch()">
+                                            <a href="javascript:void(0)">
+                                                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                                                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                                            </a>
+                                        </div>
+                                        <div class="overflow-auto" bassHorizontalScroll
+                                            [tableId]="'receivedAppreciationTable'"
+                                            [tableTHeadId]="'receivedAppreciationTHead'"
+                                            [tableTHeadTrId]="'receivedAppreciationTHeadTr'">
+                                            <table class="table" matSort (matSortChange)="sortData($event)"
+                                                id="receivedAppreciationTable">
+                                                <thead class="thead-light" id="receivedAppreciationTHead">
+                                                    <tr id="receivedAppreciationTHeadTr">
+                                                        <th scope="col" class="info-label">Sr No.</th>
+                                                        <th scope="col" class="info-label"  mat-sort-header="appreciationDate">Date</th>
+                                                        <th scope="col" class="info-label" mat-sort-header="appreciationEventName|string">Appreciation Event</th>
+                                                        <th scope="col" class="info-label" mat-sort-header="appreciationBy">Employee Id</th>
+                                                        <th scope="col" class="info-label" mat-sort-header="appreciationByName|string">{{ appreciatedByHeader }}
+                                                        </th>
+                                                        <th scope="col" class="info-label" mat-sort-header="appreciateType|string">Appreciation Type</th>
+                                                        <th scope="col" class="info-label" mat-sort-header="comment|string">Comment</th>
+                                                    </tr>
+                                                    <tr app-column-filter-bar *ngIf="isSearchEnabled"
+                                                        [columnList]="receivedColumns"
+                                                        (onSearch)="onSearch($event);page=1">
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr *ngIf="receivedAppreciations.length === 0">
+                                                        <td colspan="7" class="text-center info-label">No Details to display....
+                                                        </td>
+                                                    </tr>
+                                                    <tr
+                                                        *ngFor="let appreciation of receivedAppreciations | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
+                                                        <th class="info-label">{{10*(page-1)+i+1}}</th>
+                                                        <td>{{ appreciation.appreciationDate  }}</td>
+                                                        <td>{{ appreciation.appreciationEventName }}</td>
+                                                        <td>{{ appreciation.appreciationBy }}</td>
+                                                        <td>{{ appreciation.appreciationByName }}</td>
+                                                        <td>{{ appreciation.appreciateType }}</td>
+                                                        <td>{{ appreciation.comment }}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <pagination-controls class="my-pagination" [hidden]="receivedAppreciations.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+                                        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                                        [hidden]="receivedAppreciations.length == 0" ><em
+                                            class="fa fa-file-arrow-down fa-2x" (click)="exportReceivedAppreciationsToExcel()"></em>&nbsp;</button>
+                                    </div>
+                                </div>
+
+                                <!-- Table for Given Appreciations -->
+                                <div class="row" *ngIf="isGiven">
+                                    <div class="col-md-12">
+                                        <div class="selector-toggle" (click)="toggleSearch()">
+                                            <a href="javascript:void(0)">
+                                                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                                                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                                            </a>
+                                        </div>
+                                        <div class="overflow-auto" bassHorizontalScroll
+                                            [tableId]="'givenAppreciationTable'"
+                                            [tableTHeadId]="'givenAppreciationTHead'"
+                                            [tableTHeadTrId]="'givenAppreciationTHeadTr'">
+                                            <table class="table" matSort (matSortChange)="sortData($event)"
+                                                id="givenAppreciationTable">
+                                                <thead class="thead-light" id="givenAppreciationTHead">
+                                                    <tr id="givenAppreciationTHeadTr">
+                                                        <th scope="col" class="info-label" >Sr No.</th>
+                                                        <th scope="col" class="info-label" mat-sort-header="appreciationDate">Date</th>
+                                                        <th scope="col" class="info-label" mat-sort-header="appreciationEventName|string">Appreciation Event</th>
+                                                        <th scope="col" class="info-label" mat-sort-header="appreciationTo">Employee Id</th>
+                                                        <th scope="col" class="info-label" mat-sort-header="appreciationToName|string">{{ appreciatedByHeader }} </th>
+                                                        <th scope="col" class="info-label" mat-sort-header="appreciateType|string">Appreciation Type</th>
+                                                        <th scope="col" class="info-label" mat-sort-header="comment|string">Comment</th>
+                                                    </tr>
+                                                    <tr app-column-filter-bar *ngIf="isSearchEnabled"
+                                                        [columnList]="givenColumns"
+                                                        (onSearch)="onSearch($event);page=1">
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr *ngIf="givenAppreciations.length === 0">
+                                                        <td colspan="7" class="text-center info-label">No Details to display....
+                                                        </td>
+                                                    </tr>
+                                                    <tr *ngFor="let appreciation of givenAppreciations | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
+                                                        <th class="info-label">{{10*(page-1)+i+1}}</th>
+                                                        <td>{{ appreciation.appreciationDate }}</td>
+                                                        <td>{{ appreciation.appreciationEventName }}</td>
+                                                        <td>{{ appreciation.appreciationTo }}</td>
+                                                        <td>{{ appreciation.appreciationToName }}</td>
+                                                        <td>{{ appreciation.appreciateType }}</td>
+                                                        <td>{{ appreciation.comment }}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <pagination-controls class="my-pagination" [hidden]="givenAppreciations.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+                                        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                                        [hidden]="givenAppreciations.length == 0" ><em
+                                            class="fa fa-file-arrow-down fa-2x" (click)="exportGivenAppreciationsToExcel()"></em>&nbsp;</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+
+
+
+
+
+                        <!-- Table of view Team Appreciation -->
+
+                        <div class="row" *ngIf="isTeamAppreciation">
+                            <div class="col-md-12">
+                                <div class="row mb-2">
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Start
+                                                    Date</label>
+                                                <input id="historyFromDate" type="date" OnClick="this.showPicker()"
+                                                    class="form-control" autocomplete="none"  [(ngModel)]="startDate">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>End
+                                                    Date</label>
+                                                <input id="historyFromDate" type="date" OnClick="this.showPicker()"
+                                                    class="form-control" [(ngModel)]="endDate"   (change)="getTeamAppreciationDetails()">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="selector-toggle" (click)="toggleSearch()">
+                                            <a href="javascript:void(0)">
+                                                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                                                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                                            </a>
+                                        </div>
+                                        <div class="overflow-auto" bassHorizontalScroll [tableId]="'helpDocInfo'"
+                                            [tableTHeadId]="'helpDocInfoTHead'" [tableTHeadTrId]="'helpDocInfoTHeadTr'">
+                                            <table class="table" matSort (matSortChange)="sortData($event)"
+                                                id="helpDocInfo">
+                                                <thead class="thead-light" id="helpDocInfoTHead">
+                                                    <tr id="helpDocInfoTHeadTr">
+                                                        <th scope="col" class="info-label">Sr No.</th>
+                                                        <th scope="col" class="info-label"  mat-sort-header="appreciationDate|datetime">Date</th>
+                                                        <th scope="col" class="info-label" mat-sort-header="appreciationEventName|string">Appreciation Event</th>
+                                                        <th scope="col" class="info-label" mat-sort-header="appreciationBy">Employee Id (By)</th>
+                                                        <th scope="col" class="info-label" mat-sort-header="appreciationByName|string">Appreciated By</th>
+                                                        <th scope="col" class="info-label" mat-sort-header="appreciationTo">Employee Id (To)</th>
+                                                        <th scope="col" class="info-label" mat-sort-header="appreciationToName|string">Appreciated To</th>
+                                                        <th scope="col" class="info-label" mat-sort-header="appreciateType|string">Appreciation Type</th>
+                                                        <th scope="col" class="info-label" mat-sort-header="comment|string">Comment</th>
+                                                    </tr>
+                                                    <tr app-column-filter-bar *ngIf="isSearchEnabled"
+                                                        [columnList]="teamColumns"
+                                                        (onSearch)="onSearch($event);page=1">
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr *ngIf="teamAppreciationList.length === 0">
+                                                        <td colspan="8" class="text-center info-label">No Details to display....
+                                                            </td>
+                                                    </tr>
+                                                    <tr *ngFor="let teamappreciation of teamAppreciationList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
+                                                        <th class="info-label">{{10*(page-1)+i+1}}</th>
+                                                        <td>{{ teamappreciation.appreciationDate }}</td>
+                                                        <td>{{ teamappreciation.appreciationEventName }}</td>
+                                                        <td>{{ teamappreciation.appreciationBy }}</td>
+                                                        <td>{{ teamappreciation.appreciationByName }}</td>
+                                                        <td>{{ teamappreciation.appreciationTo }}</td>
+                                                        <td>{{ teamappreciation.appreciationToName }}</td>
+                                                        <td>{{ teamappreciation.appreciateType }}</td>
+                                                        <td>{{ teamappreciation.comment }}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <pagination-controls class="my-pagination" [hidden]="teamAppreciationList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+                                        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                                        [hidden]="teamAppreciationList.length == 0" ><em
+                                            class="fa fa-file-arrow-down fa-2x" (click)="exportMyTeamAppreciationsToExcel()"></em>&nbsp;</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        <!-- <div class="row mb-2">
+                             <div class="col-md-4 mb-0">
+                                <div class="info-wrapper">
+                                    <div class="form-group">
+                                        <label class="info-label"><span class="text-danger">*</span>Start
+                                            Date</label>
+                                        <input id="historyFromDate" type="date" OnClick="this.showPicker()"
+                                            class="form-control" autocomplete="none">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-0">
+                                <div class="info-wrapper">
+                                    <div class="form-group">
+                                        <label class="info-label"><span class="text-danger">*</span>End
+                                            Date</label>
+                                        <input id="historyFromDate" type="date" OnClick="this.showPicker()"
+                                            class="form-control">
+                                    </div>
+                                </div>
+                            </div> -->
+
+                        <!-- <div class="form-group ml-auto col-md-3 search-box">
+                                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+                              </div> 
+                        </div> -->
+                        <!-- <div class="row">
+                            <div class="col-md-12"> -->
+                        <!-- <div class="selector-toggle" (click)="toggleSearch()">
+                                    <a href="javascript:void(0)">
+                                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                                    </a>
+                                </div> -->
+                        <!-- <div class="overflow-auto" bassHorizontalScroll [tableId]="'helpDocInfo'"
+                                    [tableTHeadId]="'helpDocInfoTHead'" [tableTHeadTrId]="'helpDocInfoTHeadTr'">
+                                    <table class="table" matSort (matSortChange)="sortData($event)" id="helpDocInfo">
+                                        <thead class="thead-light" id="helpDocInfoTHead">
+                                            <tr id="helpDocInfoTHeadTr">
+                                                <th scope="col" class="info-label">Sr No.</th>
+                                                <th scope="col" class="info-label">Date</th>
+                                                <th scope="col" class="info-label">Appreciation Event</th>
+                                                <th scope="col" class="info-label">Appreciated By</th>
+                                                <th scope="col" class="info-label">Appreciation Type</th>
+                                                <th scope="col" class="info-label">Comment</th>
+                                            </tr>
+                                            <tr app-column-filter-bar *ngIf="isSearchEnabled"
+                                                [columnList]="documentsColumns" (onSearch)="onSearch($event);page=1">
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <th colspan="8" class="text-center info-label">No Files to
+                                                    display...</th>
+                                            </tr>
+                                            <tr>
+                                                <th class="info-label">1</th>
+                                                <td>01-01-2024</td>
+                                                <td>Event 1</td>
+                                                <td>John Doe</td>
+                                                <td>Type 1</td>
+                                                <td>Comment 1</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div> -->
+                        <!-- <pagination-controls class="my-pagination"  (pageChange)="handlePageChange($event)"></pagination-controls> -->
+                        <!-- </div>
+                        </div> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Templates-->
+<!-- <ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
 </ng-template>
+
+<ng-template #preview_document>
+    <div class="modal-body">
+        
+        <div class="row">
+            <div class="card col-md-12 p-0">
+                <div class="card-header text-center text-uppercase">
+                    <strong>{{fileName}}</strong>
+                </div>
+                <div class="card-body">
+                    <div id="outerContainer">
+                        <div class="pdf-container">
+                          <pdf-viewer
+                            [src]="src"
+                            [rotation]="0"
+                            [original-size]="false"
+                            [show-all]="true"
+                            [fit-to-page]="false"
+                            [zoom]="1"
+                            [zoom-scale]="'page-width'"
+                            [stick-to-page]="false"
+                            [render-text]="true"
+                            [external-link-target]="'blank'"
+                            [autoresize]="true"
+                            [show-borders]="false"
+                            style="width: 100%; height: 600px;"
+                          ></pdf-viewer>
+                        </div>
+                      </div>
+                </div>
+            </div>
+        </div>
+
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template> -->

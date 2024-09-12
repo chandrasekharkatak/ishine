@@ -229,43 +229,84 @@ public class FileUploadService {
 //	}
 	
 	public ServiceResponse designationBulkUpload(MultipartFile file) throws EncryptedDocumentException, InvalidFormatException {
-		ServiceResponse response = new ServiceResponse();
-		 try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
-	            Sheet sheet = workbook.getSheetAt(0);
-	            Iterator<Row> rows = sheet.iterator();
-	            rows.next(); // Skip header row
+	    ServiceResponse response = new ServiceResponse();
+	    List<Long> inactiveEmployees = new ArrayList<>();  // List to store IDs of inactive employees
+	    List<String> errorMessages = new ArrayList<>();    // List to store error messages with row numbers
 
-	            while (rows.hasNext()) {
-	                Row currentRow = rows.next();
+	    try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
+	        Sheet sheet = workbook.getSheetAt(0);
+	        Iterator<Row> rows = sheet.iterator();
+	        rows.next(); // Skip header row
+	        int rowNum = 1; // To track the row number
 
-	                Long employmentId = (long) currentRow.getCell(0).getNumericCellValue();
-	                String designationName = currentRow.getCell(1).getStringCellValue().trim().toLowerCase();
-	                
-	                Optional<Employee> optionalEmployee = Optional.ofNullable(employeeRepository.findByEmployeementId(employmentId));
-	                Optional<Designation> findDesignationName = Optional.ofNullable(designationRepository.findByDesignationNameIgnoreCase(designationName));
-	                
-	                if (optionalEmployee.isPresent()) {
-	                	Employee employee = optionalEmployee.get();
-	                	Designation getDesignation = findDesignationName.get();
-	                	if(designationName != null)
-	                	employee.setDesignationId(getDesignation.getDesignationId());
-	                	
-	                	employeeRepository.save(employee);
-	                	
+	        while (rows.hasNext()) {
+	            Row currentRow = rows.next();
+	            rowNum++;
+
+	            Long employmentId = null;
+	            String designationName = null;
+
+	            try {
+	                employmentId = (long) currentRow.getCell(0).getNumericCellValue();
+	                designationName = currentRow.getCell(1).getStringCellValue().trim().toLowerCase();
+	            } catch (Exception e) {
+	                errorMessages.add("Row " + rowNum + ": Invalid data format.");
+	                continue; // Skip processing this row
+	            }
+
+	            if (employmentId == null || designationName == null || designationName.isEmpty()) {
+	                errorMessages.add("Row " + rowNum + ": Either Employee ID or Designation Name is missing.");
+	                continue; // Skip processing this row
+	            }
+
+	            Optional<Employee> optionalEmployee = Optional.ofNullable(employeeRepository.findByEmployeementId(employmentId));
+	            Optional<Designation> findDesignationName = Optional.ofNullable(designationRepository.findByDesignationNameIgnoreCase(designationName));
+
+	            if (optionalEmployee.isPresent()) {
+	                Employee employee = optionalEmployee.get();
+
+	                if ("InActive".equalsIgnoreCase(employee.getEmploymentstatus())) {
+	                    inactiveEmployees.add(employmentId);  // Add inactive employee ID to the list
+	                    continue;  // Skip further processing for this employee
 	                }
-		        }
 
-		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-		        response.setServiceResponse("File uploaded and processed successfully.");
-		    } catch (IOException e) {
-		        e.printStackTrace();
-		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-		        response.setServiceResponse("Something went wrong");
-		    }
-		    return response;
-		}
+	                if (findDesignationName.isPresent()) {
+	                    Designation getDesignation = findDesignationName.get();
+	                    employee.setDesignationId(getDesignation.getDesignationId());
+	                    employeeRepository.save(employee);
+	                } else {
+	                    errorMessages.add("Row " + rowNum + ": Designation '" + designationName + "' not found.");
+	                }
+	            } else {
+	                errorMessages.add("Row " + rowNum + ": Employee ID '" + employmentId + "' not found.");
+	            }
+	        }
 
-	                	
+	        // Handle any errors related to missing data
+	        if (!inactiveEmployees.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Inactive employees found: " + inactiveEmployees.toString());
+	            return response;
+	        }
+
+	        if (!errorMessages.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse(String.join(", ", errorMessages));
+	            return response;
+	        }
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse("File uploaded and processed successfully.");
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	    }
+	    return response;
+	}
+
+
+           	
 	                		
 	                	
 	               

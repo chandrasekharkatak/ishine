@@ -809,6 +809,146 @@ public class AppreciationService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+    
+    
+    public ServiceResponse getMyAppreciationDetails(AppreciationDTO appreciationDTO) {
+		 ServiceResponse response = new ServiceResponse();
+		 
+	        LogDTO apiLogInfo = new LogDTO();
+	        //apiLogInfo.setSubFeatureName("get_AppreciationDetails");
+	        apiLogInfo.setApiUrl("/api/getMyAppreciationDetails");
+	        apiLogInfo.setLogLevel("INFO");
+	        
+	        StringBuilder logBuilder = new StringBuilder();
+	        logBuilder.append("Fetching appreciation details for employeement ID: ")
+           .append(appreciationDTO.getEmployeementId())
+           .append(" between dates ")
+           .append(appreciationDTO.getStartDate())
+           .append("and")
+           .append(appreciationDTO.getEndDate());      
+           
+           apiLogInfo.setApiRequest(logBuilder.toString());
+           
+           try {
+               List<Object[]> appreciationList = appreciationRepository.getMyAppreciationDetails(
+                   appreciationDTO.getStartDate(),
+                   appreciationDTO.getEndDate(),
+                   appreciationDTO.getEmployeementId() // Use employeementId from DTO
+               );
+               
+               Optional.ofNullable(appreciationList).ifPresentOrElse((list) -> {
+                   if (list.isEmpty()) {
+                       response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                       response.setServiceResponse("No appreciation details found.");
+                       apiLogInfo.setApiResponse("No appreciation details found. The list is empty.");
+                       apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                   }else {
+                       List<AppreciationDTO> dtoList = new ArrayList<>();
+                       list.forEach((object) -> {
+                           AppreciationDTO dto = new AppreciationDTO();
+                           dto.setAppreciationDate(object[0] != null ? object[0].toString() : null);
+                           dto.setAppreciationEventName(object[1] != null ? object[1].toString() : null);
+                           dto.setAppreciationBy(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+                           dto.setAppreciationByName(object[3] != null ? object[3].toString() : null);
+                           dto.setAppreciationTo(object[4] != null ? Long.parseLong(object[4].toString()) : null);
+                           dto.setAppreciationToName(object[5] != null ? object[5].toString() : null);
+                           dto.setAppreciateType(object[6] != null ? object[6].toString() : null);
+                           dto.setComment(object[7] != null ? object[7].toString() : null);
+                           dtoList.add(dto);
+                       });
+                       response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                       response.setServiceResponse(dtoList);
+                       apiLogInfo.setApiResponse("Fetched " + dtoList.size() + " appreciation details.");
+                   }
+               }, () -> {
+                   response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                   response.setServiceResponse("No appreciation details found.");
+                   apiLogInfo.setApiResponse("No appreciation details found.");
+                   apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+               });
+           } catch (Exception e) {
+               response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+               response.setServiceResponse("An error occurred while fetching appreciation details.");
+               apiLogInfo.setApiResponse("Error: " + e.getMessage());
+               apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+               e.printStackTrace(); // Consider using a logging framework for production
+           }
+
+           logService.logMyInfo(httpRequest, apiLogInfo);// Assuming this method logs the information
+           return response;
+       }
+    
+    public ServiceResponse getTeamAppreciationDetails(AppreciationDTO appreciationDTO) {
+        ServiceResponse response = new ServiceResponse();
+        
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setApiUrl("/api/getTeamAppreciationDetails");
+        apiLogInfo.setLogLevel("INFO");
+
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("Fetching team appreciation details for emp_id: ")
+           .append(appreciationDTO.getEmpId())
+           .append(" between dates ")
+           .append(appreciationDTO.getStartDate())
+           .append(" and ")
+           .append(appreciationDTO.getEndDate());
+
+        apiLogInfo.setApiRequest(logBuilder.toString());
+
+        try {
+            // Fetch employeement_id for the given emp_id
+            Long currentUserEmployeementId = appreciationRepository.findEmployeementIdByEmpId(appreciationDTO.getEmpId());          
+            // Fetch appreciation details of the user's team members
+            System.out.print(currentUserEmployeementId);
+            List<Object[]> appreciationList = appreciationRepository.getTeamAppreciationDetails(
+                appreciationDTO.getStartDate(),
+                appreciationDTO.getEndDate(),
+                appreciationDTO.getEmpId(),                 // Use employeementId for further filtering
+                currentUserEmployeementId
+            );
+
+            Optional.ofNullable(appreciationList).ifPresentOrElse((list) -> {
+                if (list.isEmpty()) {
+                    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                    response.setServiceResponse("No appreciation details found.");
+                    apiLogInfo.setApiResponse("No appreciation details found. The list is empty.");
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                } else {
+                    List<AppreciationDTO> dtoList = new ArrayList<>();
+                    list.forEach((object) -> {
+                        AppreciationDTO dto = new AppreciationDTO();
+                        dto.setAppreciationDate(object[0] != null ? object[0].toString() : null);
+                        dto.setAppreciationEventName(object[1] != null ? object[1].toString() : null);
+                        dto.setAppreciationBy(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+                        dto.setAppreciationByName(object[3] != null ? object[3].toString() : null);
+                        dto.setAppreciationTo(object[4] != null ? Long.parseLong(object[4].toString()) : null);
+                        dto.setAppreciationToName(object[5] != null ? object[5].toString() : null);
+                        dto.setAppreciateType(object[6] != null ? object[6].toString() : null);
+                        dto.setComment(object[7] != null ? object[7].toString() : null);
+                        dtoList.add(dto);
+                    });
+                    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                    response.setServiceResponse(dtoList);
+                    apiLogInfo.setApiResponse("Fetched " + dtoList.size() + " appreciation details for the team.");
+                }
+            }, () -> {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("No appreciation details found.");
+                apiLogInfo.setApiResponse("No appreciation details found.");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            });
+        } catch (Exception e) {
+            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceResponse("An error occurred while fetching appreciation details.");
+            apiLogInfo.setApiResponse("Error: " + e.getMessage());
+            apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            e.printStackTrace(); // Consider using a logging framework for production
+        }
+
+        logService.logMyInfo(httpRequest, apiLogInfo); // Assuming this method logs the information
+        return response;
+    }
+
     }
 	
 	
