@@ -740,7 +740,7 @@ public class DepartmentService {
 					dto.setDeptId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 					dto.setDeptName(object[1] != null ? object[1].toString() : null);
 					dto.setHodId(object[2] != null ? object[2].toString() : null);
-					
+					dto.setDeptAbbreviation(object[3] != null ? object[3].toString() : null);
 					dtoList.add(dto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
