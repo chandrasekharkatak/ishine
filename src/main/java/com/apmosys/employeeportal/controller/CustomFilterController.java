@@ -34,6 +34,7 @@ public class CustomFilterController {
 	
 	@RequestMapping(value = "/customQueryForEmployeeReport", method = RequestMethod.POST)
 	public ServiceResponse customQueryForEmployeeReport(@RequestBody EmployeeDTO employeeDTO) {
+		System.out.println("employeeDTO  ::  "+employeeDTO);
 		ServiceResponse response = customFilterService.customQueryForEmployeeReport(employeeDTO);
 		return response;
 	}

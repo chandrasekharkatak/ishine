@@ -707,31 +707,26 @@ public class CustomFilterService {
 			case "Manager": {
 				query = query.append(" e2.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
 						.append(dto.getConjunction());
-				;
 				break;
 			}
 			case "Experience": {
 				query = query.append(" e.total_experience ").append(dto.getOperator() + " '")
 						.append(dto.getValue() + "' ").append(dto.getConjunction());
-				;
 				break;
 			}
 			case "Team Name": {
-				query = query.append(" t.team_name ").append(dto.getOperator() + " '")
+				query = query.append(" emp_proj_client.team_name ").append(dto.getOperator() + " '")
 						.append(dto.getValue() + "' ").append(dto.getConjunction());
-				;
 				break;
 			}
 			case "Project Name": {
-				query = query.append(" p.project_name ").append(dto.getOperator() + " '")
+				query = query.append("  emp_proj_client.project_name ").append(dto.getOperator() + " '")
 						.append(dto.getValue() + "' ").append(dto.getConjunction());
-				;
 				break;
 			}
 			case "Client Name": {
-				query = query.append(" p.client_name ").append(dto.getOperator() + " '")
+				query = query.append(" emp_proj_client.client_name ").append(dto.getOperator() + " '")
 						.append(dto.getValue() + "' ").append(dto.getConjunction());
-				;
 				break;
 			}
 //			case "Domain": {

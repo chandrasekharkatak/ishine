@@ -277,5 +277,10 @@ customQueryForDepartmentWiseBillableEmployeeReport(selectedIds: any): Observable
   return this.http.post<any>(`${this.baseUrl}api/customQueryForDepartmentWiseBillableEmployeeReport`, selectedIds);
 }
 
+// employee.service.ts
+getManagerByEmpId(empId: string) {
+  return this.http.get(`/api/employee/${empId}/manager`);
+}
+
 
 }

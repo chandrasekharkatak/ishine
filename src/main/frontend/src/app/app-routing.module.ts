@@ -55,6 +55,7 @@ import { NewsletterConfigComponent } from './configuration/newsletter-config/new
 import { DocumentComponent } from './configuration/document/document.component';
 import { QueryMasterComponent } from './user-report/query-master/query-master/query-master.component';
 import { AttendanceReconciliationComponent } from './user-report/attendance-reconciliation/attendance-reconciliation.component';
+import { OthersComponent } from './configuration/others/others.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -83,7 +84,8 @@ const routes: Routes = [
       { path: 'on-boarding', component: OnBoardingComponent, },
       { path: 'designation', component: DesignationConfigComponent, },
       { path: 'newsletter', component: NewsletterConfigComponent, },
-      { path: 'document', component: DocumentComponent}
+      { path: 'document', component: DocumentComponent, },
+      { path: 'other', component: OthersComponent, },
       // { path: 'project-config', component: ProjectConfigComponent, },
     ]
   },

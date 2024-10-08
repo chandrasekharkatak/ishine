@@ -105,10 +105,10 @@
                         *ngIf="((teamView.invalidAccessAttempt > teamView.failedAttempt) && userMapping.enable_login_by_reporting_head)"
                         class="btn btn-sm btn-outline-primary mb-1" type="submit"
                         (click)="forEnableAccount(revoke_template,teamView)"><em>Enable</em></button>&nbsp;
-                      <button *ngIf="teamView.isTimesheetLockCheckEnable == 'false'" class="btn btn-sm btn-primary mb-1" type="submit"
-                        (click)="onUpdateTimesheetLockCheck(alert_message,teamView,'true')"><em><i class="fa-solid fa-lock"></i>&nbsp;Timesheet</em></button>
-                      <button *ngIf="teamView.isTimesheetLockCheckEnable == 'true'" class="btn btn-sm btn-outline-primary mb-1" type="submit"
-                        (click)="onUpdateTimesheetLockCheck(alert_message,teamView,'false')"><em><i class="fa-solid fa-lock-open"></i>&nbsp;Timesheet</em></button>
+                      <button *ngIf="teamView.isTimesheetLockCheckEnable == 'true'" class="btn btn-sm btn-primary mb-1" type="submit"
+                        (click)="onUpdateTimesheetLockCheck(alert_message,teamView,'false')"><em><i class="fa-solid fa-lock"></i>&nbsp;Timesheet</em></button>
+                      <button *ngIf="teamView.isTimesheetLockCheckEnable == 'false'" class="btn btn-sm btn-outline-primary mb-1" type="submit"
+                        (click)="onUpdateTimesheetLockCheck(alert_message,teamView,'true')"><em><i class="fa-solid fa-lock-open"></i>&nbsp;Timesheet</em></button>
                         <button *ngIf="!showReporteeLeaveBalance" class="btn btn-sm btn-outline-primary mb-1 ml-10" type="submit"
                         (click)="onGetEmpLeaveBalance(alert_message,teamView,i)"><em><i class="fa-solid fa-eye"></i>&nbsp; Balance</em></button>
                         <button *ngIf="showReporteeLeaveBalance && selectedDataIndex == i" class="btn btn-sm btn-outline-danger mb-1" type="submit"

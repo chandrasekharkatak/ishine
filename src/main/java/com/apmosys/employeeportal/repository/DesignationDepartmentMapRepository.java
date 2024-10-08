@@ -21,5 +21,8 @@ public interface DesignationDepartmentMapRepository extends JpaRepository<Design
 	List<Object[]> getFilteredDesignation(Set<Long> deptIds, int deptIdsLength);
 
 	List<DesignationDepartmentMap> findByDeptId(Long oldDeptId);
+	
+	@Query("SELECT d.deptId FROM DesignationDepartmentMap d WHERE d.designationId = :designationId")
+    List<Long> findDeptIdsByDesignationId(Long designationId);
 
 }

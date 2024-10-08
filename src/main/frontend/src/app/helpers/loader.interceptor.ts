@@ -24,6 +24,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/authenticateUser`,
     `${this.baseUrl}` + `api/authenticateUserWithOTP`,
     `${this.baseUrl}`+`api/upload/designationBulkUpload`,
+    `${this.baseUrl}`+`api/employeeBulkUpload`,
     `${this.baseUrl}` + `api/createDepartment`,
     `${this.baseUrl}` + `api/updateDepartment`,
     `${this.baseUrl}` + `api/deleteDepartment`,

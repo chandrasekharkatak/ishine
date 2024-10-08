@@ -200,7 +200,8 @@ export class ValidationService {
 
    validateApmosysEmail(text: string): boolean {
     //const regex = /^(?:[0-9]+[a-z_.]|[a-z_.])[a-z0-9_.]+@apmosys\.com$/i;
-    const regex = /^[a-z]{3}[a-z0-9_.]+@apmosys\.com$/i;
+    // const regex = /^[a-z]{3}[a-z0-9_.]+@apmosys\.com$/i;
+    const regex = /^[a-z]+[a-z0-9_.]*@apmosys\.com$/i;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;

@@ -86,15 +86,15 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 //@Query(value = "UPDATE employee_timesheets SET current_manager_id = :managerId WHERE emp_id = :empId", nativeQuery = true)
 //void updateCurrentManagerId(Long empId, Long managerId);
 	
-	@Query(value = "SELECT DISTINCT emp_id FROM employee_timesheets", nativeQuery = true)
-    List<Long> findDistinctEmpIds();
-	
-	@Query(value = "SELECT * FROM employee_timesheets WHERE emp_id = :empId ORDER BY created_on DESC", nativeQuery = true)
-	List<Timesheet> findTimesheetsByEmpIdOrderByCreatedOn(Long empId);
-	
-	@Modifying
-	@Transactional
-	@Query(value = "UPDATE employee_timesheets SET current_manager_id = :managerId WHERE timesheet_id = :timesheetId", nativeQuery = true)
-	void updateCurrentManagerId(Long timesheetId, Long managerId);
+//	@Query(value = "SELECT DISTINCT emp_id FROM employee_timesheets", nativeQuery = true)
+//    List<Long> findDistinctEmpIds();
+//	
+//	@Query(value = "SELECT * FROM employee_timesheets WHERE emp_id = :empId ORDER BY created_on DESC", nativeQuery = true)
+//	List<Timesheet> findTimesheetsByEmpIdOrderByCreatedOn(Long empId);
+//	
+//	@Modifying
+//	@Transactional
+//	@Query(value = "UPDATE employee_timesheets SET current_manager_id = :managerId WHERE timesheet_id = :timesheetId", nativeQuery = true)
+//	void updateCurrentManagerId(Long timesheetId, Long managerId);
 
 }
