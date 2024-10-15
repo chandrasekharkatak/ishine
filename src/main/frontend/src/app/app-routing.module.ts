@@ -56,6 +56,7 @@ import { DocumentComponent } from './configuration/document/document.component';
 import { QueryMasterComponent } from './user-report/query-master/query-master/query-master.component';
 import { AttendanceReconciliationComponent } from './user-report/attendance-reconciliation/attendance-reconciliation.component';
 import { OthersComponent } from './configuration/others/others.component';
+import { RewardsConfigComponent } from './configuration/rewards-config/rewards-config.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -86,7 +87,7 @@ const routes: Routes = [
       { path: 'newsletter', component: NewsletterConfigComponent, },
       { path: 'document', component: DocumentComponent, },
       { path: 'other', component: OthersComponent, },
-      // { path: 'project-config', component: ProjectConfigComponent, },
+      { path: 'rewards-config', component: RewardsConfigComponent, },
     ]
   },
   {path:'user-leaves', component: UserLeavesComponent, canActivate: [AuthGuard],

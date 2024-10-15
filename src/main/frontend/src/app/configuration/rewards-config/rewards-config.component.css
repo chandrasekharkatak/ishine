@@ -1,0 +1,38 @@
+.reward-type-box {
+    display: flex;
+    justify-content: space-between; /* Space between elements */
+    align-items: center; /* Center items vertically */
+    word-wrap: break-word; 
+}
+
+.reward-type-name {
+    flex-grow: 1; /* Make this span take all available space */
+    margin-right: 1rem; /* Spacing between the name and the remove button */
+    font-weight: bold;
+    color: rgb(80, 81, 82);
+    overflow-wrap: break-word;
+}
+
+.bullet {
+    margin-right: 0.5rem; /* Space between bullet and reward type name */
+    color: rgb(5, 38, 184); /* Bullet color */
+    font-size: 1.5rem; /* Size of the bullet */
+    font-weight: bold;
+}
+
+.remove-button {
+    flex-shrink: 0; /* Prevent the button from shrinking */
+}
+.input-group .add-button {
+    margin-left: 0.5rem; /* Add space between input and button */
+}
+
+.add-button {
+    transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+}
+
+.add-button:hover {
+    background-color: rgb(11, 11, 115); /* Change button background to blue on hover */
+    color: white; /* Change icon color to white for contrast */
+}
+
