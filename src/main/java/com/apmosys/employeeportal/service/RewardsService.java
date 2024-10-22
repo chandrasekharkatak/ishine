@@ -22,9 +22,13 @@ import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.CustomFilterDTO;
 import com.apmosys.employeeportal.dto.DocumentDTO;
+import com.apmosys.employeeportal.dto.EmployeeRewardsDTO;
 import com.apmosys.employeeportal.dto.RewardCategoryDTO;
 import com.apmosys.employeeportal.dto.RewardConfigurationDTO;
+import com.apmosys.employeeportal.model.CommonProperties;
+import com.apmosys.employeeportal.model.EmployeeRewards;
 import com.apmosys.employeeportal.model.RewardConfig;
+import com.apmosys.employeeportal.repository.EmployeeRewardsRepository;
 import com.apmosys.employeeportal.repository.RewardConfigRepository;
 import com.apmosys.employeeportal.repository.RewardsCategoryRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -40,6 +44,9 @@ public class RewardsService {
 
 	@Autowired
 	RewardConfigRepository rewardConfigRepository;
+	
+	@Autowired
+    private EmployeeRewardsRepository employeeRewardsRepository;
 
 	public ServiceResponse getAllRewardsCategory() {
 
@@ -417,4 +424,44 @@ public class RewardsService {
 	    return serviceResponse;
 	}
 
+	public ServiceResponse submitRewardForEmployee(EmployeeRewardsDTO employeeRewardsDTO) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		
+		try {
+			
+			EmployeeRewards employeeRewards = new EmployeeRewards();
+			
+//			employeeRewards.setEmpId(employeeRewardsDTO.getEmpId() != null ? employeeRewardsDTO.getEmpId() : null);
+			employeeRewards.setRewardedTo(employeeRewardsDTO.getRewardedTo() != null ? employeeRewardsDTO.getRewardedTo() : null);
+			employeeRewards.setRewardType(employeeRewardsDTO.getRewardType() != 0 ? employeeRewardsDTO.getRewardType() : 0); // Assuming 0 is an invalid type
+			employeeRewards.setManagerId(employeeRewardsDTO.getManagerId() != null ? employeeRewardsDTO.getManagerId() : null);
+			employeeRewards.setTeamLeadId(employeeRewardsDTO.getTeamLeadId() != null ? employeeRewardsDTO.getTeamLeadId() : null);
+			employeeRewards.setActive(employeeRewardsDTO.isActive());
+			employeeRewards.setFromDate(employeeRewardsDTO.getFromDate() != null ? employeeRewardsDTO.getFromDate() : null);
+			employeeRewards.setToDate(employeeRewardsDTO.getToDate() != null ? employeeRewardsDTO.getToDate() : null);
+			employeeRewards.setRemark(employeeRewardsDTO.getRemark() != null ? employeeRewardsDTO.getRemark() : null);
+//			employeeRewards.setCreatedBy(employeeRewardsDTO.getCreatedBy() != null ? employeeRewardsDTO.getCreatedBy() : null);
+//			employeeRewards.setUpdatedBy(employeeRewardsDTO.getUpdatedBy() != null ? employeeRewardsDTO.getUpdatedBy() : null);
+//			employeeRewards.setUpdatedOn(LocalDateTime.now()); // Set updatedOn
+            
+			CommonProperties commonProperties = new CommonProperties();
+            commonProperties.setCreatedBy(employeeRewardsDTO.getCreatedBy() != null ? employeeRewardsDTO.getCreatedBy() : null);
+            commonProperties.setUpdatedBy(employeeRewardsDTO.getUpdatedBy() != null ? employeeRewardsDTO.getUpdatedBy() : null);
+            commonProperties.setUpdatedOn(LocalDateTime.now()); 
+            
+            employeeRewards.setCommonProperty(commonProperties);
+			
+            employeeRewardsRepository.save(employeeRewards); // Save to database
+
+            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            serviceResponse.setServiceMessage("Reward submitted successfully.");
+		
+		} catch (Exception e) {
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceError(e.getMessage());
+		}
+			
+		return serviceResponse;
+	}
+	
 }

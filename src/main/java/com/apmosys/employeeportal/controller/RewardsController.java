@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.dto.EmployeeRewardsDTO;
 import com.apmosys.employeeportal.dto.RewardConfigurationDTO;
 import com.apmosys.employeeportal.service.RewardsService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -73,5 +74,12 @@ public class RewardsController {
         ServiceResponse serviceResponse = rewardsService.deleteRewardsByRewardId(id);
         return serviceResponse;
     }
+	
+	@PostMapping("/submitRewardForEmployee")
+	public ServiceResponse submitRewardForEmployee(@RequestBody EmployeeRewardsDTO EmployeeRewardsDTO)
+	{
+		ServiceResponse serviceResponse = rewardsService.submitRewardForEmployee(EmployeeRewardsDTO);
+        return serviceResponse;
+	}
 
 }
