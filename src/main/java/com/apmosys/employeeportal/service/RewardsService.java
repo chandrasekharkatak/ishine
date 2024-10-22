@@ -343,7 +343,6 @@ public class RewardsService {
 	    if (optionalReward.isPresent()) {
 	        RewardConfig reward = optionalReward.get();
 	        
-	        // Create a DTO and populate it with ternary checks
 	        RewardConfigurationDTO dto = new RewardConfigurationDTO();
 	        dto.setId(reward.getId() != null ? reward.getId() : null);
 	        dto.setRewardName(reward.getRewardName() != null ? reward.getRewardName() : null);
@@ -352,11 +351,10 @@ public class RewardsService {
 	        
 	        rewardList.add(dto);
 	        
-	        // Set success response
 	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        serviceResponse.setServiceResponse(rewardList);
 	    } else {
-	        // No reward found for the given ID
+	    	
 	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	        serviceResponse.setServiceResponse("No rewards found for the provided reward ID");
 	    }
@@ -364,7 +362,26 @@ public class RewardsService {
 	    return serviceResponse;
 	}
 
-	
+	public ServiceResponse deleteRewardsByRewardId(Long id) {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    
+	    Optional<RewardConfig> optionalReward = rewardConfigRepository.findById(id); 
+	    
+	    if (optionalReward.isPresent()) {
+	    	
+	    	rewardConfigRepository.deleteById(id);
+	        
+	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        serviceResponse.setServiceResponse("Reward deleted successfully");
+	    } else {
+	    	
+	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        serviceResponse.setServiceResponse("No rewards found for the provided reward ID");
+	    }
+	    
+	    return serviceResponse;
+	}
+
 	public ServiceResponse showAllRewards() {
 	    ServiceResponse serviceResponse = new ServiceResponse();
 	    List<RewardConfig> rewardsConfig = rewardConfigRepository.findAll();
