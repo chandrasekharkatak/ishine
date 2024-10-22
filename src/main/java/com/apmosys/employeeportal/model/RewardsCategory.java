@@ -28,7 +28,5 @@ public class RewardsCategory {
 	private Long rewardCategoryId;
 	
 	private String categoryName;
-	
-	
 
 }

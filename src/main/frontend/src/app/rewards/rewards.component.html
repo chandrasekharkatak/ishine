@@ -1,0 +1,18 @@
+<div class="row px-0" style="margin-top: 50px;">
+    <div class="col-md-12">
+        <div class="card">
+            <ul class="nav nav-tabs rewardsTab" id="rewards-tab" role="tablist">
+                <li class="nav-item rewardsTab-item" (click)="removeActiveTab()">
+                    <a class="nav-link rewardsTab-item__link" id="rewards-and-recognisation" data-toggle="tab" role="tab"
+                        aria-controls="rewards" aria-selected="true" routerLink="rewards-and-recognisation">Rewards And Recognisation</a>
+                </li>
+            </ul>
+          
+            <div class="tab-content" id="userTabContent">
+                <div class="config__tab-container">
+                    <router-outlet class="tab-pane fade" role="tabpanel"></router-outlet>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

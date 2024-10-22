@@ -57,6 +57,9 @@ import { QueryMasterComponent } from './user-report/query-master/query-master/qu
 import { AttendanceReconciliationComponent } from './user-report/attendance-reconciliation/attendance-reconciliation.component';
 import { OthersComponent } from './configuration/others/others.component';
 import { RewardsConfigComponent } from './configuration/rewards-config/rewards-config.component';
+import { RewardsAndRecognisationComponent } from './rewards/rewards-and-recognisation/rewards-and-recognisation.component';
+import { Rewards } from './models/rewards';
+import { RewardsComponent } from './rewards/rewards.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -131,6 +134,11 @@ const routes: Routes = [
       { path: 'report-dashboard', component: ReportDashboardComponent },
       { path: 'query-master', component: QueryMasterComponent},
       { path: 'attendance-reconciliation', component: AttendanceReconciliationComponent},
+    ]
+  },
+  {path:'rewards-tab', component: RewardsComponent, canActivate: [AuthGuard],
+       children: [
+      { path: 'rewards-and-recognisation', component: RewardsAndRecognisationComponent, },
     ]
   },
   {path:'user-appreciation', component: UserAppreciationComponent, canActivate: [AuthGuard]},

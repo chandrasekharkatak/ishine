@@ -1,138 +1,223 @@
 <div class="row mb-4 text-left">
     <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-md mx-1" (click)="showRewardSub()"
-            [ngClass]="{'active' : rewardSub}">Reward Category</button>
+        <button type="button" class="btn btn-outline-primary btn-md mx-1" style="font-size: smaller;" (click)="openForm('create')"
+            [ngClass]="{'active' : rewardSubData}">Reward Category</button>
     </div>
 </div>
-
-<div class="card col-md-12 px-0" *ngIf="rewardSub">
-    <div class="card-header text-center text-uppercase">
-        <strong>Set Reward Category</strong>
+<div class="col-md-12">
+    <div class="row mb-4 text-left p-3" *ngIf="rewardSubData">
+        <div class="col-md-12 p-3">
+            <button type="button" class="btn btn-outline-primary btn-md mx-1" (click)="toggleRewardForm()" [ngClass]="{'active' : rewardSub}">
+                {{ isEditMode ? 'Edit' : 'Create' }} Reward Category
+            </button>
+        </div>
     </div>
-    <div class="card-body">
-        <!-- <div class="row"> -->
-        <div class="col-md-4 mb-0">
-            <div class="info-wrapper">
-                <div class="form-group">
-                    <label class="info-label"><span class="text-danger">*</span>Rewards Sub Category</label>
-                    <input type="text" placeholder="Enter Sub Category name" class="form-control" maxlength="50"
-                        autocomplete="off">
-                </div>
-            </div>
+</div>
+<div class=""> 
+    
+    <!-- start :: Create & Update Form -->
+    <div class="card col-md-12 p-3" *ngIf="rewardSub">
+        <div class="card-header text-center text-uppercase">
+            <strong>{{ isEditMode ? 'Edit' : 'Create' }} Reward Category</strong>
         </div>
-
-        <div class="col-md-4 mb-0">
-            <div class="info-wrapper">
-                <div class="form-group">
-                    <label class="info-label"><span class="text-danger">*</span>Category</label>
-                    <select class="form-control" id="" [(ngModel)]="rewardsObj.rewardCategoryId">
-                        <option value="" selected>Select</option>
-                        <option *ngFor="let category of allCategoryist" value="{{category.rewardCategoryId}}">
-                            {{category.categoryName}}</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4 mb-0">
-            <div class="info-wrapper">
-                <div class="form-group">
-                    <label class="info-label"><span class="text-danger">*</span>Reward Types</label>
-                    <div class="input-group">
-                        <input type="text" [(ngModel)]="rewardType" class="form-control"
-                            placeholder="Enter Reward Type">
-                        <div class="input-group-append">
-                            <button class="btn btn-outline-secondary add-button" (click)="addRewardType()">
-                                <i class="fa fa-plus"></i> <!-- Font Awesome plus icon -->
-                            </button>
-                        </div>
+        <div class="card-body">
+            <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Rewards Sub Category</label>
+                        <input type="text" placeholder="Enter Sub Category name" class="form-control" maxlength="50"
+                            autocomplete="off">
                     </div>
-                    <ul class="mt-2 list-unstyled"> <!-- Added unordered list -->
-                        <li *ngFor="let type of rewardTypes; let i = index"
-                            class="reward-type-box d-flex justify-content-between align-items-center">
-                            <span class="bullet">•</span>
-                            <span class="reward-type-name">{{ type }}</span> <!-- Displaying reward type -->
-                            <button (click)="removeRewardType(i)" class="btn btn-danger btn-sm remove-button"><i
-                                    class="fa-duotone fa-solid fa-trash"></i></button>
-                        </li>
-                    </ul>
                 </div>
             </div>
-        </div>
-
-        <div class="col-md-12 mb-0 mt-4">
-            <div class="form-group">
-                <label class="info-label"><span class="text-danger">*</span>Criteria</label>
-                <div class="border p-3"> <!-- Add a border and padding to create a box -->
-                    <div class="container-fluid">
-                        <div class="row" *ngFor="let query of queryList; let i = index">
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                  <label class="info-label">Field</label>
-                                  <select class="form-control" aria-hidden="true" [(ngModel)]="query.column" name="column" (change)="getValueOptionData(query.column)">
-                                    <option selected="selected" value="" disabled>Select</option>
-                                    <option *ngFor="let c of columnList" [value]="c">{{c}}</option>
-                                  </select>
-                                  <span class="text-danger" *ngIf="invalidForm && !query.column">Required</span>
-                                </div>
-                              </div>
-                              
-                            <div class="col-md-2">
-                                <div class="form-group">
-                                    <label class="info-label">Operator</label>
-                                    <select class="form-control" aria-hidden="true" [(ngModel)]="query.operator"
-                                        name="operator">
+            <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Category</label>
+                        <select class="form-control" id="" [(ngModel)]="rewardsObj.categoryId">
+                            <option value="" selected>Select</option>
+                            <option *ngFor="let category of allCategoryist" value="{{category.rewardCategoryId}}">
+                                {{category.categoryName}}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+    
+            <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Reward Types</label>
+                        <div class="input-group">
+                            <input type="text" [(ngModel)]="rewardType" class="form-control"
+                                placeholder="Enter Reward Type">
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary add-button" (click)="addRewardType()">
+                                    <i class="fa fa-plus"></i> 
+                                </button>
+                            </div>
+                        </div>
+                        <ul class="mt-2 list-unstyled"> 
+                            <li *ngFor="let type of rewardTypes; let i = index"
+                                class="reward-type-box d-flex justify-content-between align-items-center">
+                                <span class="bullet">•</span>
+                                <span class="reward-type-name">{{ type }}</span> 
+                                <button (click)="removeRewardType(i)" class="btn btn-danger btn-sm remove-button"><i
+                                        class="fa-duotone fa-solid fa-trash"></i></button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+    
+            <div class="col-md-12 mb-0 mt-4">
+                <div class="form-group">
+                    <label class="info-label"><span class="text-danger">*</span>Criteria</label>
+                    <div class="border p-3"> 
+                        <div class="container-fluid">
+                            <div class="row" *ngFor="let query of queryList; let i = index">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                      <label class="info-label">Field</label>
+                                      <select class="form-control" aria-hidden="true" [(ngModel)]="query.column" name="column" (change)="getValueOptionData(query.column)">
                                         <option selected="selected" value="" disabled>Select</option>
-                                        <option *ngFor="let o of operatorList" [value]="o.symbol">{{o.name}}</option>
-                                    </select>
-                                    <span class="text-danger" *ngIf="invalidForm && !query.operator">Required</span>
+                                        <option *ngFor="let c of columnList" [value]="c">{{c}}</option>
+                                      </select>
+                                      <span class="text-danger" *ngIf="invalidForm && !query.column">Required</span>
+                                    </div>
+                                  </div>
+                                  
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="info-label">Operator</label>
+                                        <select class="form-control" aria-hidden="true" [(ngModel)]="query.operator"
+                                            name="operator">
+                                            <option selected="selected" value="" disabled>Select</option>
+                                            <option *ngFor="let o of operatorList" [value]="o.symbol">{{o.name}}</option>
+                                        </select>
+                                        <span class="text-danger" *ngIf="invalidForm && !query.operator">Required</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="info-label">Value</label>
+                                        <ng-autocomplete [data]="valueOptionList" [searchKeyword]="keyword"
+                                            (selected)='selectEvent($event)' (inputChanged)='onChangeSearch($event)'
+                                            (inputFocused)="valueFocus(query.column)" [itemTemplate]="itemTemplate"
+                                            [(ngModel)]="query.value">
+                                        </ng-autocomplete>
+    
+                                        <ng-template #itemTemplate let-item>
+                                            <a [innerHTML]="item.name"></a>
+                                        </ng-template>
+                                        <span class="text-danger" *ngIf="invalidForm && !query.value">Required</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="info-label">Conjunction</label>
+                                        <select class="form-control" aria-hidden="true" [(ngModel)]="query.conjunction"
+                                            name="conjunction">
+                                            <option selected="selected" value=""></option>
+                                            <option *ngFor="let con of conjunctionList" [value]="con.symbol">{{con.name}}</option>
+                                        </select>
+                                        <span class="text-danger"
+                                            *ngIf="invalidForm && !query.conjunction && i < queryList.length - 1">Required</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 pt-4 mt-2">
+                                    <button type="button" class="btn btn-outline-primary mx-1" (click)="addFilter(i);"><i
+                                            class="fa fa-plus" aria-hidden="true"></i></button>
+                                    <button *ngIf="queryList.length > 1" type="button" class="btn btn-outline-primary mx-1"
+                                        (click)="removeFilter(i)"><i class="fa fa-trash" aria-hidden="true"></i></button>
                                 </div>
                             </div>
-                            <div class="col-md-2">
-                                <div class="form-group">
-                                    <label class="info-label">Value</label>
-                                    <ng-autocomplete [data]="valueOptionList" [searchKeyword]="keyword"
-                                        (selected)='selectEvent($event)' (inputChanged)='onChangeSearch($event)'
-                                        (inputFocused)="valueFocus(query.column)" [itemTemplate]="itemTemplate"
-                                        [(ngModel)]="query.value">
-                                    </ng-autocomplete>
-
-                                    <ng-template #itemTemplate let-item>
-                                        <a [innerHTML]="item.name"></a>
-                                    </ng-template>
-                                    <span class="text-danger" *ngIf="invalidForm && !query.value">Required</span>
-                                </div>
+                            <div class="row">
+                                <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="clear()">Clear</button>
                             </div>
-                            <div class="col-md-2">
-                                <div class="form-group">
-                                    <label class="info-label">Conjunction</label>
-                                    <select class="form-control" aria-hidden="true" [(ngModel)]="query.conjunction"
-                                        name="conjunction">
-                                        <option selected="selected" value=""></option>
-                                        <option *ngFor="let con of conjunctionList" [value]="con.symbol">{{con.name}}</option>
-                                    </select>
-                                    <span class="text-danger"
-                                        *ngIf="invalidForm && !query.conjunction && i < queryList.length - 1">Required</span>
-                                </div>
-                            </div>
-                            <div class="col-md-3 pt-4 mt-2">
-                                <button type="button" class="btn btn-outline-primary mx-1" (click)="addFilter(i);"><i
-                                        class="fa fa-plus" aria-hidden="true"></i></button>
-                                <button *ngIf="queryList.length > 1" type="button" class="btn btn-outline-primary mx-1"
-                                    (click)="removeFilter(i)"><i class="fa fa-trash" aria-hidden="true"></i></button>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="clear()">Clear</button>
                         </div>
                     </div>
                 </div>
             </div>
+    
+            <div class="col-md-12 text-left mt-3">
+                <button type="button"  class="btn btn-outline-primary btn-md mx-1" (click)="onSubmit(alert_message)">{{ isEditMode ? 'Update' : 'Submit' }}</button>
+            </div>
+    
         </div>
-
-        <div class="col-md-12 text-left mt-3">
-            <button type="button"  class="btn btn-outline-primary btn-md mx-1">Submit</button>
-        </div>
-
     </div>
+    <!-- end :: create & update form -->
+
+    <!-- start :: See all Table -->
+    <div class="row" *ngIf="rewardSubData">
+        <div class="col-md-12">
+            
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="selector-toggle" (click)="toggleSearch()">
+                        <a href="javascript:void(0)">
+                            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                        </a>
+                    </div>
+                    <div class="overflow-auto" bassHorizontalScroll [tableId]="'rewardsInfo'" [tableTHeadId]="'rewardsInfoTHead'"
+                        [tableTHeadTrId]="'rewardsInfoTHeadTr'">
+                        <table class="table table-responsive" id="rewardsInfo" matSort
+                            (matSortChange)="sortData($event)">
+                            <thead class="thead-light" id="rewardsInfoTHead">
+                                <tr id="rewardsInfoTHeadTr">
+
+                                    <th scope="col" class="info-label">Sr No.</th>
+                                    <th scope="col" class="info-label" mat-sort-header="rewardName|string">Reward Name</th>
+                                    <th scope="col" class="info-label" mat-sort-header="categoryName|string">Category Name</th>
+                                    <th scope="col" class="info-label" mat-sort-header="rewardTypes|any">Reward Types</th>
+                                    <th scope="col" class="info-label">Actions</th>
+                                    <!-- <th *ngIf="userMapping.update_department || userMapping.delete_department" scope="col"
+                                        class="info-label">Actions</th> -->
+                                </tr>
+                                <tr app-column-filter-bar *ngIf="isTable && isSearchEnabled" [columnList]="rewardsColumns" (onSearch)="onSearch($event);page=1" ></tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngIf="rewardsList.length == 0 || (rewardsList | colFilter:filters:false).length == 0">
+                                    <th colspan="8" class="text-center info-label">No details to display...</th>
+                                </tr>
+                                <tr
+                                    *ngFor="let reward of rewardsList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
+                                    <th class="info-label">{{17*(page-1)+i+1}}</th>
+                                    <td>{{reward.rewardName}}</td>
+                                    <td>{{ reward.categoryName || 'N/A' }}</td>
+                                    <td>{{ reward.rewardTypes?.join(', ') || 'N/A' }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" type="submit" (click)="openForm('edit', rewardsObj)"><em class="fa fa-edit"></em></button>&nbsp;
+                                        <!-- <button class="btn btn-sm btn-outline-danger" type="submit" (click)=""><em class="fa fa-trash"></em></button> -->
+                                    </td>
+                                    <!-- <td *ngIf="userMapping.update_department || userMapping.delete_department">
+                                        <button *ngIf="userMapping.update_department" class="btn btn-sm btn-outline-primary"
+                                            type="submit" (click)="showUpdateForm(dept)"><em class="fa fa-edit"></em></button>&nbsp;
+                                        <button *ngIf="userMapping.delete_department" class="btn btn-sm btn-outline-danger"
+                                            type="submit" (click)="openDeleteDepartment(delete_template,dept)"><em
+                                                class="fa fa-trash"></em></button>
+                                    </td> -->
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <pagination-controls class="my-pagination" [hidden]="rewardsList.length == 0"
+                        (pageChange)="handlePageChange($event)"></pagination-controls>
+                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                        [hidden]="rewardsList.length == 0" (click)="exportToExcel()"><em
+                            class="fa fa-file-arrow-down fa-2x"></em></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- end :: see all table -->
+
+
 </div>
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>

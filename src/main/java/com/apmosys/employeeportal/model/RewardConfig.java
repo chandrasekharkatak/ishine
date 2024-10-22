@@ -1,6 +1,11 @@
 package com.apmosys.employeeportal.model;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+
 import javax.persistence.*;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -29,5 +34,14 @@ public class RewardConfig {
 
     @Column(name = "catagory_Id")
     private Integer categoryId;
+    
+    private Long createdBy;	
+	private Long updatedBy;
+	
+	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
+	private Timestamp createdOn;
+	
+	@JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
+	private LocalDateTime updatedOn;
 
 }

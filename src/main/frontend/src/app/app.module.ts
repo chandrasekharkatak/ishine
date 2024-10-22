@@ -96,6 +96,9 @@ import { QueryMasterComponent } from './user-report/query-master/query-master/qu
 import { AttendanceReconciliationComponent } from './user-report/attendance-reconciliation/attendance-reconciliation.component';
 import { OthersComponent } from './configuration/others/others.component';
 import { RewardsConfigComponent } from './configuration/rewards-config/rewards-config.component';
+import { MinutesToHoursPipe } from './minutes-to-hours.pipe';
+import { RewardsComponent } from './rewards/rewards.component';
+import { RewardsAndRecognisationComponent } from './rewards/rewards-and-recognisation/rewards-and-recognisation.component';
 //import { TestComponent } from './user-report/test/test.component';
 
 @NgModule({
@@ -167,6 +170,9 @@ import { RewardsConfigComponent } from './configuration/rewards-config/rewards-c
     AttendanceReconciliationComponent,
     OthersComponent,
     RewardsConfigComponent,
+    MinutesToHoursPipe,
+    RewardsComponent,
+    RewardsAndRecognisationComponent,
     //TestComponent
   ],
   imports: [

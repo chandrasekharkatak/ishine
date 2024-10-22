@@ -181,4 +181,10 @@ export class Employee{
 	extendReason : any;
 	reportiesFlag : any;
 
+	//for reward section
+	employeeNameForReward: any;
+	employeeIdForReward: any;
+	managerNameForReward: any;
+	managerIdForReward: any;
+	rewardId: any;
 }

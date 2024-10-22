@@ -1575,12 +1575,11 @@ minDate: Date;
       employee.reportingManagerId = null;
       employee.approvalsTo = null;
     }
-employee.newManagerId = this.employeeObj.newManagerId;
-employee.reportiesFlag = this.employeeObj.reportiesFlag; 
+    employee.newManagerId = this.employeeObj.newManagerId;
+    employee.reportiesFlag = this.employeeObj.reportiesFlag; 
 
-console.log("employee update before call ",employee);
-
-
+    console.log("employee update before call ",employee);
+    
     this.employeeService.updateEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);

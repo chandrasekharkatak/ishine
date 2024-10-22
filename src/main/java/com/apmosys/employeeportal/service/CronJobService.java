@@ -65,6 +65,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
+import com.apmosys.employeeportal.dto.BioMaTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
@@ -119,6 +120,9 @@ public class CronJobService {
 
 	@Autowired
 	ProjectRepository projectRepository;
+	
+	@Autowired
+	BioMaxService bioMaxService;
 	
 	@Autowired
 	LeaveTypeMasterRepository leaveTypeMasterRepository;
@@ -3748,190 +3752,224 @@ public class CronJobService {
 //			return response;
 //		}
 		
-		public ServiceResponse allEmployeeDsrReport(TimesheetDTO timesheetdto) {
-			ServiceResponse response = new ServiceResponse();
-			try {
+		public ServiceResponse allEmployeeDsrReport(TimesheetDTO timesheetdto) {ServiceResponse response = new ServiceResponse();
+		
+//		List<BioMaTO> finalEmpBioData=bioMaxService.getBioInOut(timesheetdto);
+		
+//		System.out.println("print---"+finalEmpBioData);
+		
+try {
+			
+			// Create Excel
+			LocalDate firstOfMonth = null;
+			LocalDate currentDate = null;
+			String subject = null;
+			int currentYear = 0;
+			
+			if(timesheetdto.getIsCron().equals("true")) {
+				currentYear = LocalDate.now().getYear();
+				int currentMonth = LocalDate.now().getMonthValue();
 				
-				// Create Excel
-				LocalDate firstOfMonth = null;
-				LocalDate currentDate = null;
-				String subject = null;
-				int currentYear = 0;
+				firstOfMonth = LocalDate.of(currentYear, currentMonth, 1);
+				currentDate = LocalDate.now().minusDays(1);
+				subject = "All Employee's DSR report from "+firstOfMonth+" to "+currentDate;
 				
-				if(timesheetdto.getIsCron().equals("true")) {
-					currentYear = LocalDate.now().getYear();
-					int currentMonth = LocalDate.now().getMonthValue();
+			}else if(timesheetdto.getIsCron().equals("false")) {
+				int month = Month.valueOf(timesheetdto.getMonth().toUpperCase()).getValue();
+				currentYear = LocalDate.now().getYear();
+				
+				firstOfMonth = LocalDate.of(timesheetdto.getYear(), month, 1);
+				currentDate = YearMonth.of(timesheetdto.getYear(), month).atEndOfMonth();
+				subject = "All Employee's DSR report of month : "+timesheetdto.getMonth() + " " + currentYear;
+			}
+				
+			
+			String fileName = "EmployeeDSR"+"-"+firstOfMonth.getMonth()+".xlsx";
+			var file = new File(fileName);
+			
+			if(allEmployeeDSRFileLocation != null) {
+				Path path = Files.createDirectories(Paths.get(allEmployeeDSRFileLocation + "AllEmployeeDSR"));
+				file = new File(path + File.separator + "EmployeeDSR"+"-"+firstOfMonth.getMonth()+".xlsx");				
+			}
+			
 					
-					firstOfMonth = LocalDate.of(currentYear, currentMonth, 1);
-					currentDate = LocalDate.now().minusDays(1);
-					subject = "All Employee's DSR report from "+firstOfMonth+" to "+currentDate;
+				try (var fos = new FileOutputStream(file)) {
+
+					var wb = new Workbook(fos, "Application", "1.0");
+					Worksheet ws = wb.newWorksheet(firstOfMonth.getMonth() + " DSR");
+
+					ws.value(0, 0, "EmpId");
+					ws.value(0, 1, "Emp Name");
+					ws.value(0, 2, "Department Name");
+					ws.value(0, 3, "Date");
+					ws.value(0, 4, "Day Type");
+					ws.value(0, 5, "Leave Type");
+					ws.value(0, 6, "In-Time");
+					ws.value(0, 7, "Out-Time");
+					ws.value(0, 8, "Shift");
+					ws.value(0, 9, "Total Working Hours");
+					ws.value(0, 10, "Activity"); //Comma seperated
+					ws.value(0, 11, "Client"); // comma seperated
+					ws.value(0, 12, "Project"); // comma seperated
+					ws.value(0, 13, "Status");
+//					ws.value(0, 14, "BiomaxInTime");
+//					ws.value(0, 15, "BiomaxOutTime");
+//					
 					
-				}else if(timesheetdto.getIsCron().equals("false")) {
-					int month = Month.valueOf(timesheetdto.getMonth().toUpperCase()).getValue();
-					currentYear = LocalDate.now().getYear();
-					
-					firstOfMonth = LocalDate.of(timesheetdto.getYear(), month, 1);
-					currentDate = YearMonth.of(timesheetdto.getYear(), month).atEndOfMonth();
-					subject = "All Employee's DSR report of month : "+timesheetdto.getMonth() + " " + currentYear;
-				}
-					
-				
-				String fileName = "EmployeeDSR"+"-"+firstOfMonth.getMonth()+".xlsx";
-				var file = new File(fileName);
-				
-				if(allEmployeeDSRFileLocation != null) {
-					Path path = Files.createDirectories(Paths.get(allEmployeeDSRFileLocation + "AllEmployeeDSR"));
-					file = new File(path + File.separator + "EmployeeDSR"+"-"+firstOfMonth.getMonth()+".xlsx");				
-				}
-				
-						
-					try (var fos = new FileOutputStream(file)) {
+					int rowNum = 1;
 
-						var wb = new Workbook(fos, "Application", "1.0");
-						Worksheet ws = wb.newWorksheet(firstOfMonth.getMonth() + " DSR");
+					List<Object[]> employeeList = employeeRepository.getEmployeeDetailForDSRCron(firstOfMonth, currentDate);
+					for (Object[] empObj : employeeList) {
 
-						ws.value(0, 0, "EmpId");
-						ws.value(0, 1, "Emp Name");
-						ws.value(0, 2, "Department Name");
-						ws.value(0, 3, "Date");
-						ws.value(0, 4, "Day Type");
-						ws.value(0, 5, "Leave Type");
-						ws.value(0, 6, "In-Time");
-						ws.value(0, 7, "Out-Time");
-						ws.value(0, 8, "Shift");
-						ws.value(0, 9, "Total Working Hours");
-						ws.value(0, 10, "Activity"); //Comma seperated
-						ws.value(0, 11, "Client"); // comma seperated
-						ws.value(0, 12, "Project"); // comma seperated
-						ws.value(0, 13, "Status");
-						
-						int rowNum = 1;
+						Long empId = empObj[0] != null ? Long.parseLong(empObj[0].toString()) : null;
+						String empName = empObj[2] != null ? empObj[2].toString() : null;
+						Long employeementId = empObj[3] != null ? Long.parseLong(empObj[3].toString()) : null;
+						String departmentName = empObj[6] != null ? empObj[6].toString() : null;
 
-						List<Object[]> employeeList = employeeRepository.getEmployeeDetailForDSRCron(firstOfMonth, currentDate);
-						for (Object[] empObj : employeeList) {
+						System.out.println("Emp ID :" + empId);
+						System.out.println("Employment ID :" + employeementId);
 
-							Long empId = empObj[0] != null ? Long.parseLong(empObj[0].toString()) : null;
-							String empName = empObj[2] != null ? empObj[2].toString() : null;
-							Long employeementId = empObj[3] != null ? Long.parseLong(empObj[3].toString()) : null;
-							String departmentName = empObj[6] != null ? empObj[6].toString() : null;
+						List<Timesheet> monthlyTimesheet = timesheetsRepository
+								.findAllByEmpIdAndDateBetweenOrderByDateDesc(empId, firstOfMonth, currentDate);
 
-							System.out.println("Emp ID :" + empId);
-							System.out.println("Employment ID :" + employeementId);
+						if (!monthlyTimesheet.isEmpty()) {
+							for (Timesheet timesheetObj : monthlyTimesheet) {
+								List<Object[]> objectList = timesheetActivityMapRepository
+										.activitiesByTimesheetId(timesheetObj.getTimesheetId());
 
-							List<Timesheet> monthlyTimesheet = timesheetsRepository
-									.findAllByEmpIdAndDateBetweenOrderByDateDesc(empId, firstOfMonth, currentDate);
-
-							if (!monthlyTimesheet.isEmpty()) {
-								for (Timesheet timesheetObj : monthlyTimesheet) {
-									List<Object[]> objectList = timesheetActivityMapRepository
-											.activitiesByTimesheetId(timesheetObj.getTimesheetId());
-
-									StringBuilder activity = new StringBuilder();
-									Set<String> project = new HashSet<>();
-									Set<String> clientName = new HashSet<>();
-									
-									if (!objectList.isEmpty()) {
-										for (Object[] object : objectList) {
-											activity.append(object[1] != null ? object[1].toString() : null).append(",");
-											project.add(object[5] != null ? object[5].toString() : null);
-											clientName.add(object[6] != null ? object[6].toString() : null);
-										}
-										
-										ws.style(rowNum, 3).format("dd-MM-yyyy").set();
-										ws.style(rowNum, 6).format("dd-MM-yyyy HH:mm:ss").set();
-										ws.style(rowNum, 7).format("dd-MM-yyyy HH:mm:ss").set();
-										
-										ws.value(rowNum, 0, "A-" + employeementId);
-										ws.value(rowNum, 1, empName);
-										ws.value(rowNum, 2, departmentName);
-										ws.value(rowNum, 3, timesheetObj.getDate());
-										ws.value(rowNum, 4, timesheetObj.getDayType());
-										ws.value(rowNum, 6, timesheetObj.getOfficeInTime());
-										ws.value(rowNum, 7, timesheetObj.getOfficeOutTime());
-										if(timesheetObj.getIsNightShift() == null) {
-											ws.value(rowNum, 8, "Regular Shift");
-										}else {
-											ws.value(rowNum, 8, timesheetObj.getIsNightShift().equals("true") ? "Night Shift" : "Regular Shift");
-										}
-										ws.value(rowNum, 9, timesheetObj.getTotalWorkingHours());
-										if (!objectList.isEmpty()) {
-											ws.value(rowNum, 10, activity.toString());
-										} else {
-											ws.value(rowNum, 10, timesheetObj.getDescription());
-										}
-										ws.value(rowNum, 11, String.join(",", clientName));
-										ws.value(rowNum, 12, String.join(",", project));
-										ws.value(rowNum, 13, timesheetObj.getStatus());
-
-										rowNum++;
-										
-									} else {
-										
-										//Get leave type
-										List<Object[]> empLeave = employeeLeaveRepository
-												.findLeaveTypeFromEmpIdAndDate(empId, timesheetObj.getDate().toString());
-										
-										String leaveType = null;
-										String dayType = timesheetObj.getDayType();
-										if(!empLeave.isEmpty()) {
-											for(Object[] object: empLeave) {
-												leaveType = object[0] != null ? object[0].toString() : null;
-												dayType = "Leave";
-											}
-										}
-
-										// Fill data of weekoff & leave
-
-										ws.style(rowNum, 3).format("dd-MM-yyyy").set();
-										ws.style(rowNum, 6).format("dd-MM-yyyy HH:mm:ss").set();
-										ws.style(rowNum, 7).format("dd-MM-yyyy HH:mm:ss").set();
-
-										ws.value(rowNum, 0, "A-" + employeementId);
-										ws.value(rowNum, 1, empName);
-										ws.value(rowNum, 2, departmentName);
-										ws.value(rowNum, 3, timesheetObj.getDate());
-										ws.value(rowNum, 4, dayType);
-										ws.value(rowNum, 5, leaveType);
-										ws.value(rowNum, 9, timesheetObj.getTotalWorkingHours());
-										ws.value(rowNum, 10, timesheetObj.getDescription());
-										ws.value(rowNum, 13, timesheetObj.getStatus());
-
-										rowNum++;
-
-										System.out.println("Activity List is empty");
+								StringBuilder activity = new StringBuilder();
+								Set<String> project = new HashSet<>();
+								Set<String> clientName = new HashSet<>();
+								
+								if (!objectList.isEmpty()) {
+									for (Object[] object : objectList) {
+										activity.append(object[1] != null ? object[1].toString() : null).append(",");
+										project.add(object[5] != null ? object[5].toString() : null);
+										clientName.add(object[6] != null ? object[6].toString() : null);
 									}
+									
+									ws.style(rowNum, 3).format("dd-MM-yyyy").set();
+									ws.style(rowNum, 6).format("dd-MM-yyyy HH:mm:ss").set();
+									ws.style(rowNum, 7).format("dd-MM-yyyy HH:mm:ss").set();
+									
+									ws.value(rowNum, 0, "A-" + employeementId);
+									ws.value(rowNum, 1, empName);
+									ws.value(rowNum, 2, departmentName);
+									ws.value(rowNum, 3, timesheetObj.getDate());
+									ws.value(rowNum, 4, timesheetObj.getDayType());
+									ws.value(rowNum, 6, timesheetObj.getOfficeInTime());
+									ws.value(rowNum, 7, timesheetObj.getOfficeOutTime());
+									if(timesheetObj.getIsNightShift() == null) {
+										ws.value(rowNum, 8, "Regular Shift");
+									}else {
+										ws.value(rowNum, 8, timesheetObj.getIsNightShift().equals("true") ? "Night Shift" : "Regular Shift");
+									}
+									ws.value(rowNum, 9, timesheetObj.getTotalWorkingHours());
+									if (!objectList.isEmpty()) {
+										ws.value(rowNum, 10, activity.toString());
+									} else {
+										ws.value(rowNum, 10, timesheetObj.getDescription());
+									}
+									ws.value(rowNum, 11, String.join(",", clientName));
+									ws.value(rowNum, 12, String.join(",", project));
+									ws.value(rowNum, 13, timesheetObj.getStatus());
+
+									rowNum++;
+									
+									
+									 // Check if employeementId exists in finalEmpBioData
+//						            for (BioMaTO bio : finalEmpBioData) {
+//						                if (bio.getEmployeeCode().equalsIgnoreCase(String.valueOf(employeementId))) {
+//				
+//						                	ws.value(rowNum, 14, bio.getInTime());
+//						                	ws.value(rowNum, 15, bio.getOutTime());
+//						                	
+//						                    break; // Exit the loop if found
+//						                }
+//						            }
+									
+									
+									
+									
+								} else {
+									
+									//Get leave type
+									List<Object[]> empLeave = employeeLeaveRepository
+											.findLeaveTypeFromEmpIdAndDate(empId, timesheetObj.getDate().toString());
+									
+									String leaveType = null;
+									String dayType = timesheetObj.getDayType();
+									if(!empLeave.isEmpty()) {
+										for(Object[] object: empLeave) {
+											leaveType = object[0] != null ? object[0].toString() : null;
+											dayType = "Leave";
+										}
+									}
+
+									// Fill data of weekoff & leave
+
+									ws.style(rowNum, 3).format("dd-MM-yyyy").set();
+									ws.style(rowNum, 6).format("dd-MM-yyyy HH:mm:ss").set();
+									ws.style(rowNum, 7).format("dd-MM-yyyy HH:mm:ss").set();
+
+									ws.value(rowNum, 0, "A-" + employeementId);
+									ws.value(rowNum, 1, empName);
+									ws.value(rowNum, 2, departmentName);
+									ws.value(rowNum, 3, timesheetObj.getDate());
+									ws.value(rowNum, 4, dayType);
+									ws.value(rowNum, 5, leaveType);
+									ws.value(rowNum, 9, timesheetObj.getTotalWorkingHours());
+									ws.value(rowNum, 10, timesheetObj.getDescription());
+									ws.value(rowNum, 13, timesheetObj.getStatus());
+									
+									 // Check if employeementId exists in finalEmpBioData
+//						            for (BioMaTO bio : finalEmpBioData) {
+//						                if (bio.getEmployeeCode().equalsIgnoreCase(String.valueOf(employeementId))) {
+//				
+//						                	ws.value(rowNum, 14, bio.getInTime());
+//						                	ws.value(rowNum, 15, bio.getOutTime());
+//						                	
+//						                    break; // Exit the loop if found
+//						                }
+//						            }
+
+									rowNum++;
+
+									System.out.println("Activity List is empty");
 								}
 							}
 						}
-						wb.finish();
-					}catch(Exception e) {
-						e.printStackTrace();
 					}
-					
-					// Send mail
-					
-					 boolean mailSent = mailService.sendMailWithAttachment(financeMail,
-							 hrMailAddress,
-							 subject,
-							 "Dear Team, <br><br>"
-	                       + "Please find " + subject + " attached below.",
-	                       file);
-					
-					 if(mailSent) {
-						 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						 response.setServiceResponse("All Employee's DSR report sent on mail to finance & HR department successfully.");
-					 }else {
-						 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-						 response.setServiceResponse("Unable to sent Mail.");
-					 }
-					
-			}catch(Exception e) {
-				e.printStackTrace();
-				response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-				response.setServiceResponse("Something Went Wrong.");
-				response.setServiceError(e.getMessage());
-			}
-			return response;
+					wb.finish();
+				}catch(Exception e) {
+					e.printStackTrace();
+				}
+				
+				// Send mail
+				
+				 boolean mailSent = mailService.sendMailWithAttachment(financeMail,
+						 hrMailAddress,
+						 subject,
+						 "Dear Team, <br><br>"
+                       + "Please find " + subject + " attached below.",
+                       file);
+				
+				 if(mailSent) {
+					 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					 response.setServiceResponse("All Employee's DSR report sent on mail to finance & HR department successfully.");
+				 }else {
+					 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					 response.setServiceResponse("Unable to sent Mail.");
+				 }
+				
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+		
 		}
 		
 		

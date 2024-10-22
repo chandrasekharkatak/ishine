@@ -1,0 +1,62 @@
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="row mb-3" style="margin-left: 10px; margin-top: 15px;">
+                <div class="col-md-12 px-0">
+                    <button *ngFor="let category of rewardsCategories" type="button" class="btn btn-outline-primary btn-sm mx-1"
+                    (click)="getRewardsByCategoryId(category.rewardCategoryId, alertMessageTemplate)" >{{category.categoryName}}</button>
+                </div>
+            </div>
+            <div class="" style="padding: 15px; padding-top: 0;">
+                <div class="row mb-3" style="margin-left: 10px;">
+                    <div class="col-md-12 px-0">
+                        <button *ngFor="let reward of rewards" type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="selectReward(reward)" >{{reward.rewardName}}</button>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-0"style="margin-left: 18px; margin-top: 20px">
+                    <div *ngIf="rewards.length > 0" >
+                        <label for="employeeSelect">Select Employee:</label>
+                        <select id="employeeSelect"  class="form-control">
+                            <option value="" disabled selected >Select Employee</option>
+                            <option *ngFor="let employee of employees" [value]="employee.employeeNameForReward">
+                                {{ employee.employeeNameForReward }}
+                            </option>
+                        </select>
+                      </div>
+                </div>               
+                <div style="margin-left: 18px; margin-top: 20px;">
+                    <div class="col-md-6 mb-0" *ngIf="selectedReward">
+                        <h5>Reward Types for {{ selectedReward.rewardName }}</h5>
+                        <div *ngFor="let type of selectedReward.rewardTypes">
+                            <input type="radio" 
+                                   [name]="selectedReward.rewardName" 
+                                   [value]="type" 
+                                   [(ngModel)]="selectedRewardType[selectedReward.rewardName]"/> {{ type }}
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-0" style="margin-top: 20px;">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label for="leaveDesc"><span class="text-danger">*</span><strong>Remarks</strong></label>
+                                <textarea class="form-control" id="Desc" rows="3" ></textarea>
+                              </div>
+                        </div>
+                    </div>
+                    <div class="submit" style="margin-top: 20px;">
+                        <div class="col-md-12">
+                                <!-- <button  type="submit" class="btn btn-primary btn-sm mx-1" >Submit</button> -->
+                                <button  type="submit" class="btn btn-primary btn-sm mx-1" >Submit</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+      <p>{{alertMessage}}</p>
+      <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+  </ng-template>

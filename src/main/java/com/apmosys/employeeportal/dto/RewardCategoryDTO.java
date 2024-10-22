@@ -10,8 +10,8 @@ import lombok.ToString;
 @Getter
 @ToString
 public class RewardCategoryDTO {
-    private Long rewardCategoryId;
 	
+    private Long rewardCategoryId;
 	private String categoryName;
 
 }
