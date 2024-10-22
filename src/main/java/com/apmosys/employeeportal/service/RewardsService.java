@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
@@ -129,7 +130,6 @@ public class RewardsService {
 	    
 	    return serviceResponse;
 	}
-
 
 	private String getRewardCondition(List<CustomFilterDTO> queryList) {
 
@@ -333,6 +333,37 @@ public class RewardsService {
 	    
 	    return serviceResponse;
 	}
+	
+	public ServiceResponse getAllRewardsByRewardId(Long id) {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    
+	    Optional<RewardConfig> optionalReward = rewardConfigRepository.findById(id); 
+	    List<RewardConfigurationDTO> rewardList = new ArrayList<>();
+	    
+	    if (optionalReward.isPresent()) {
+	        RewardConfig reward = optionalReward.get();
+	        
+	        // Create a DTO and populate it with ternary checks
+	        RewardConfigurationDTO dto = new RewardConfigurationDTO();
+	        dto.setId(reward.getId() != null ? reward.getId() : null);
+	        dto.setRewardName(reward.getRewardName() != null ? reward.getRewardName() : null);
+	        dto.setCategoryId(reward.getCategoryId() != null ? reward.getCategoryId() : null);
+	        dto.setRewardTypes(reward.getRewardType() != null ? Collections.singletonList(reward.getRewardType()) : Collections.emptyList());
+	        
+	        rewardList.add(dto);
+	        
+	        // Set success response
+	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        serviceResponse.setServiceResponse(rewardList);
+	    } else {
+	        // No reward found for the given ID
+	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        serviceResponse.setServiceResponse("No rewards found for the provided reward ID");
+	    }
+	    
+	    return serviceResponse;
+	}
+
 	
 	public ServiceResponse showAllRewards() {
 	    ServiceResponse serviceResponse = new ServiceResponse();

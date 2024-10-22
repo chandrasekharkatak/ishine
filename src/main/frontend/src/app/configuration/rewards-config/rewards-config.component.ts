@@ -106,9 +106,6 @@ export class RewardsConfigComponent implements OnInit {
     if (this.data.queryList.length > 5) {
       this.queryList = JSON.parse(this.data.queryList);
     }
-    // if (this.isEditMode && this.rewardIdToEdit) {
-    //   this.loadRewardConfiguration(this.rewardIdToEdit);
-    // }
   }
 
   toggleRewardForm() {
@@ -140,7 +137,7 @@ export class RewardsConfigComponent implements OnInit {
   addRewardType() {
     if (this.rewardType) {
       this.rewardTypes.push(this.rewardType);
-      this.rewardType = ''; // Clear the input field
+      this.rewardType = '';
     }
   }
 
@@ -237,20 +234,18 @@ export class RewardsConfigComponent implements OnInit {
     return true;
   }
 
-  openForm(mode: string, rewardObj?: Rewards) {
-    this.rewardSub = true;  // Ensure the form is visible
-
-    if (mode === 'edit' && rewardObj) {
-        this.isEditMode = true;
-        this.rewardsObj = { ...rewardObj };  // Pre-fill form with reward details for editing
-        this.rewardTypes = rewardObj.rewardTypes || [];
-    } else {
-        this.isEditMode = false;
-        this.rewardsObj = new Rewards();  // Clear form for creating a new reward
-        this.rewardTypes = [];
-    }
+openForm(mode: string, rewardObj?: Rewards) {
+  this.isEditMode = mode === 'edit';
+  if (this.isEditMode && rewardObj) {
+      // Populate the form with the selected reward object data
+      this.rewardsObj = {...rewardObj};
+      this.rewardSub = true; // To display the form
+  } else {
+      // For creating a new reward
+      this.rewardsObj = new Rewards(); // Clear the form
+      this.rewardSub = true; // To display the form
+  }
 }
-
 
   onEdit(rewardObj: Rewards) {
     this.isEditMode = true;
@@ -276,6 +271,7 @@ export class RewardsConfigComponent implements OnInit {
       console.log("Submit Button : ", this.rewardsObj);
       if (this.isEditMode) {
         this.rewardsObj.updatedBy = this.currentUser.empId;
+        // this.updateReward(this.rewardsObj);
         this.rewardsService.editRewardConfiguration(this.rewardsObj).subscribe((response: any) => {
           if (response.serviceStatus === 'Success') {
             console.log('Reward updated successfully', response);
@@ -284,6 +280,7 @@ export class RewardsConfigComponent implements OnInit {
         });
       } else {
         this.rewardsObj.createdBy = this.currentUser.empId;
+        // this.createReward(this.rewardsObj);
         this.rewardsService.saveRewardConfiguration(this.rewardsObj).subscribe((response: any) => {
           if (response.serviceStatus === 'Success') {
             console.log('Reward created successfully', response);

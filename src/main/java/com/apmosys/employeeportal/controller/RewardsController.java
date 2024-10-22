@@ -47,6 +47,12 @@ public class RewardsController {
 	    return serviceResponse;
 	}
 	
+	@RequestMapping(value = "/getAllRewardsByRewardId/{id}", method = RequestMethod.GET)
+	public ServiceResponse getAllRewardsByRewardId(@PathVariable("id") Long id) {
+	    ServiceResponse serviceResponse = rewardsService.getAllRewardsByRewardId(id);
+	    return serviceResponse;
+	}
+	
 	@RequestMapping(value = "/showAllRewards", method = RequestMethod.GET)
 	public ServiceResponse showAllRewards() {
 		ServiceResponse serviceResponse = new ServiceResponse();
