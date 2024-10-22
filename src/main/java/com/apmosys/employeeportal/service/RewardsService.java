@@ -19,6 +19,7 @@ import org.hibernate.Query;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.CustomFilterDTO;
 import com.apmosys.employeeportal.dto.DocumentDTO;
@@ -26,8 +27,10 @@ import com.apmosys.employeeportal.dto.EmployeeRewardsDTO;
 import com.apmosys.employeeportal.dto.RewardCategoryDTO;
 import com.apmosys.employeeportal.dto.RewardConfigurationDTO;
 import com.apmosys.employeeportal.model.CommonProperties;
+import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeRewards;
 import com.apmosys.employeeportal.model.RewardConfig;
+import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeRewardsRepository;
 import com.apmosys.employeeportal.repository.RewardConfigRepository;
 import com.apmosys.employeeportal.repository.RewardsCategoryRepository;
@@ -47,6 +50,9 @@ public class RewardsService {
 	
 	@Autowired
     private EmployeeRewardsRepository employeeRewardsRepository;
+	
+	@Autowired
+    private EmployeeRepository employeeRepository;
 
 	public ServiceResponse getAllRewardsCategory() {
 
@@ -74,6 +80,7 @@ public class RewardsService {
 
 	}
 
+	@Transactional
 	public ServiceResponse saveRewardConfiguration(RewardConfigurationDTO rewardConfigurationDTO) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 
@@ -109,6 +116,7 @@ public class RewardsService {
 		return serviceResponse;
 	}
 	
+	@Transactional
 	public ServiceResponse editRewardConfiguration(RewardConfigurationDTO rewardConfigurationDTO) {
 	    ServiceResponse serviceResponse = new ServiceResponse();
 	    try {
@@ -369,6 +377,7 @@ public class RewardsService {
 	    return serviceResponse;
 	}
 
+	@Transactional
 	public ServiceResponse deleteRewardsByRewardId(Long id) {
 	    ServiceResponse serviceResponse = new ServiceResponse();
 	    
@@ -424,6 +433,7 @@ public class RewardsService {
 	    return serviceResponse;
 	}
 
+	@Transactional
 	public ServiceResponse submitRewardForEmployee(EmployeeRewardsDTO employeeRewardsDTO) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		
@@ -431,7 +441,6 @@ public class RewardsService {
 			
 			EmployeeRewards employeeRewards = new EmployeeRewards();
 			
-//			employeeRewards.setEmpId(employeeRewardsDTO.getEmpId() != null ? employeeRewardsDTO.getEmpId() : null);
 			employeeRewards.setRewardedTo(employeeRewardsDTO.getRewardedTo() != null ? employeeRewardsDTO.getRewardedTo() : null);
 			employeeRewards.setRewardType(employeeRewardsDTO.getRewardType() != 0 ? employeeRewardsDTO.getRewardType() : 0); // Assuming 0 is an invalid type
 			employeeRewards.setManagerId(employeeRewardsDTO.getManagerId() != null ? employeeRewardsDTO.getManagerId() : null);
@@ -440,9 +449,6 @@ public class RewardsService {
 			employeeRewards.setFromDate(employeeRewardsDTO.getFromDate() != null ? employeeRewardsDTO.getFromDate() : null);
 			employeeRewards.setToDate(employeeRewardsDTO.getToDate() != null ? employeeRewardsDTO.getToDate() : null);
 			employeeRewards.setRemark(employeeRewardsDTO.getRemark() != null ? employeeRewardsDTO.getRemark() : null);
-//			employeeRewards.setCreatedBy(employeeRewardsDTO.getCreatedBy() != null ? employeeRewardsDTO.getCreatedBy() : null);
-//			employeeRewards.setUpdatedBy(employeeRewardsDTO.getUpdatedBy() != null ? employeeRewardsDTO.getUpdatedBy() : null);
-//			employeeRewards.setUpdatedOn(LocalDateTime.now()); // Set updatedOn
             
 			CommonProperties commonProperties = new CommonProperties();
             commonProperties.setCreatedBy(employeeRewardsDTO.getCreatedBy() != null ? employeeRewardsDTO.getCreatedBy() : null);
@@ -451,7 +457,7 @@ public class RewardsService {
             
             employeeRewards.setCommonProperty(commonProperties);
 			
-            employeeRewardsRepository.save(employeeRewards); // Save to database
+            employeeRewardsRepository.save(employeeRewards); 
 
             serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             serviceResponse.setServiceMessage("Reward submitted successfully.");
@@ -463,5 +469,47 @@ public class RewardsService {
 			
 		return serviceResponse;
 	}
+	
+	private String getEmployeeNameByEmpId(Long empId) {
+        Employee employee = employeeRepository.findByEmpId(empId);
+        return employee != null ? employee.getName() : null;
+    }
+
+	public ServiceResponse showAllEmployeeRewards() {
+        ServiceResponse serviceResponse = new ServiceResponse();
+        List<EmployeeRewardsDTO> rewardsDTOList = employeeRewardsRepository.findAll().stream()
+            .map(employeeRewards -> {
+            	
+                EmployeeRewardsDTO dto = new EmployeeRewardsDTO();
+                dto.setRewardId(employeeRewards.getRewardId());
+                dto.setRewardedTo(employeeRewards.getRewardedTo());
+                dto.setRewardType(employeeRewards.getRewardType());
+                dto.setManagerId(employeeRewards.getManagerId());
+                dto.setTeamLeadId(employeeRewards.getTeamLeadId());
+                dto.setActive(employeeRewards.isActive());
+                dto.setFromDate(employeeRewards.getFromDate());
+                dto.setToDate(employeeRewards.getToDate());
+                dto.setRemark(employeeRewards.getRemark());
+                dto.setCreatedBy(employeeRewards.getCommonProperty().getCreatedBy());
+                dto.setUpdatedBy(employeeRewards.getCommonProperty().getUpdatedBy());
+                dto.setUpdatedOn(employeeRewards.getCommonProperty().getUpdatedOn());
+                dto.setCreatedByName(getEmployeeNameByEmpId(employeeRewards.getCommonProperty().getCreatedBy()));
+                dto.setUpdatedByName(getEmployeeNameByEmpId(employeeRewards.getCommonProperty().getUpdatedBy()));
+                
+                return dto;
+            })
+            .collect(Collectors.toList());
+
+        if (!rewardsDTOList.isEmpty()) {
+            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            serviceResponse.setServiceResponse(rewardsDTOList);
+        } else {
+            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            serviceResponse.setServiceResponse("No rewards found");
+        }
+
+        return serviceResponse;
+    }
+
 	
 }

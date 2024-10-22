@@ -81,5 +81,12 @@ public class RewardsController {
 		ServiceResponse serviceResponse = rewardsService.submitRewardForEmployee(EmployeeRewardsDTO);
         return serviceResponse;
 	}
+	
+	@RequestMapping(value = "/showAllEmployeeRewards", method = RequestMethod.GET)
+	public ServiceResponse showAllEmployeeRewards() {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		serviceResponse = rewardsService.showAllEmployeeRewards();
+		return serviceResponse;
+	}
 
 }

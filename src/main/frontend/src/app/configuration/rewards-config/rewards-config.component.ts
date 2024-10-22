@@ -234,18 +234,43 @@ export class RewardsConfigComponent implements OnInit {
     return true;
   }
 
-openForm(mode: string, rewardObj?: Rewards) {
-  this.isEditMode = mode === 'edit';
-  if (this.isEditMode && rewardObj) {
-      // Populate the form with the selected reward object data
-      this.rewardsObj = {...rewardObj};
-      this.rewardSub = true; // To display the form
-  } else {
-      // For creating a new reward
-      this.rewardsObj = new Rewards(); // Clear the form
-      this.rewardSub = true; // To display the form
-  }
-}
+// openForm(mode: string, rewardObj?: Rewards) {
+//   this.isEditMode = mode === 'edit';
+//   if (this.isEditMode && rewardObj) {
+//       // Populate the form with the selected reward object data
+//       this.rewardsObj = {...rewardObj};
+//       this.rewardSub = true; // To display the form
+//   } else {
+//       // For creating a new reward
+//       this.rewardsObj = new Rewards(); // Clear the form
+//       this.rewardSub = true; // To display the form
+//   }
+// }
+
+// openForm(mode: string, rewardObj?: Rewards) {
+//   this.isEditMode = mode === 'edit';
+
+//   if (this.isEditMode && rewardObj) {
+//     this.rewardIdToEdit = rewardObj.id;
+//     this.fetchRewardById(this.rewardIdToEdit);  // Fetch reward details by ID for editing
+//   } else {
+//     // Create new reward scenario
+//     this.rewardsObj = new Rewards();  // Clear the form for a new entry
+//     this.rewardSub = true;  // Display the form
+//   }
+// }
+
+// fetchRewardById(id: number) {
+//   this.rewardsService.getRewardById(id).pipe(first()).subscribe((response: any) => {
+//     if (response.serviceStatus === "Success") {
+//       this.rewardsObj = { ...response.serviceResponse };  // Populate the form with fetched reward details
+//       this.rewardSub = true;  // Display the form
+//       this.rewardTypes = this.rewardsObj.rewardTypes || [];  // Ensure reward types are populated
+//     } else {
+//       console.error("Error fetching reward details: ", response.serviceError);
+//     }
+//   });
+// }
 
   onEdit(rewardObj: Rewards) {
     this.isEditMode = true;

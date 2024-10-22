@@ -25,5 +25,7 @@ public class EmployeeRewardsDTO {
 	private String remark;
 	private LocalDateTime updatedOn;
 	private Long updatedBy;
+	private String updatedByName;
 	private Long createdBy;
+	private String createdByName;
 }
