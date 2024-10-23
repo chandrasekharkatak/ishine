@@ -27,5 +27,6 @@ public class RewardConfigurationDTO implements Serializable{
 	private String employeeName;
     private String managerName;
     private String managerEmpId;
+    private String filterConditions;
    
 }

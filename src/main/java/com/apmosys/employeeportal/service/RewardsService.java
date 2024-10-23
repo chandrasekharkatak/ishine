@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,8 @@ import com.apmosys.employeeportal.repository.EmployeeRewardsRepository;
 import com.apmosys.employeeportal.repository.RewardConfigRepository;
 import com.apmosys.employeeportal.repository.RewardsCategoryRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class RewardsService {
@@ -101,6 +104,11 @@ public class RewardsService {
 			rewardConfig.setRewardName(rewardConfigurationDTO.getRewardName());
 			rewardConfig.setRewardType(getRewardType(rewardConfigurationDTO.getRewardTypes()));
 			rewardConfig.setRewardCondition(getRewardCondition(rewardConfigurationDTO.getCustomFilterDTOList()));
+			
+			ObjectMapper objectMapper = new ObjectMapper();
+	        String filtersJson = objectMapper.writeValueAsString(rewardConfigurationDTO.getCustomFilterDTOList());
+	        rewardConfig.setFilterConditions(filtersJson);  
+			
 			rewardConfig.setCreatedBy(rewardConfigurationDTO.getCreatedBy());
 
 			rewardConfigRepository.save(rewardConfig);
@@ -128,6 +136,11 @@ public class RewardsService {
 	        existingRewardConfig.setRewardName(rewardConfigurationDTO.getRewardName());
 	        existingRewardConfig.setRewardType(getRewardType(rewardConfigurationDTO.getRewardTypes()));
 	        existingRewardConfig.setRewardCondition(getRewardCondition(rewardConfigurationDTO.getCustomFilterDTOList()));
+	        
+	        ObjectMapper objectMapper = new ObjectMapper();
+	        String filtersJson = objectMapper.writeValueAsString(rewardConfigurationDTO.getCustomFilterDTOList());
+	        existingRewardConfig.setFilterConditions(filtersJson); 
+	        
 	        existingRewardConfig.setUpdatedBy(rewardConfigurationDTO.getUpdatedBy());
 	        existingRewardConfig.setUpdatedOn(LocalDateTime.now());
 	        
@@ -359,23 +372,37 @@ public class RewardsService {
 	        RewardConfig reward = optionalReward.get();
 	        
 	        RewardConfigurationDTO dto = new RewardConfigurationDTO();
-	        dto.setId(reward.getId() != null ? reward.getId() : null);
-	        dto.setRewardName(reward.getRewardName() != null ? reward.getRewardName() : null);
-	        dto.setCategoryId(reward.getCategoryId() != null ? reward.getCategoryId() : null);
-	        dto.setRewardTypes(reward.getRewardType() != null ? Collections.singletonList(reward.getRewardType()) : Collections.emptyList());
+	        dto.setId(reward.getId());
+	        dto.setRewardName(reward.getRewardName());
+	        dto.setCategoryId(reward.getCategoryId());
+	        dto.setRewardTypes(Arrays.asList(reward.getRewardType().split(",")));
+
+	        String filterConditionsJson = reward.getFilterConditions();
+	        if (filterConditionsJson != null && !filterConditionsJson.isEmpty()) {
+	            ObjectMapper objectMapper = new ObjectMapper();
+	            try {
+	                List<CustomFilterDTO> filterConditions = objectMapper.readValue(filterConditionsJson, new TypeReference<List<CustomFilterDTO>>() {});
+	                dto.setCustomFilterDTOList(filterConditions);
+	            } catch (Exception e) {
+	                serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                serviceResponse.setServiceResponse("Error parsing filter conditions: " + e.getMessage());
+	            }
+	        } else {
+	            dto.setCustomFilterDTOList(Collections.emptyList());  
+	        }
 	        
 	        rewardList.add(dto);
-	        
 	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        serviceResponse.setServiceResponse(rewardList);
 	    } else {
-	    	
 	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	        serviceResponse.setServiceResponse("No rewards found for the provided reward ID");
 	    }
 	    
 	    return serviceResponse;
 	}
+
+
 
 	@Transactional
 	public ServiceResponse deleteRewardsByRewardId(Long id) {
@@ -414,6 +441,7 @@ public class RewardsService {
 	        List<RewardConfigurationDTO> rewardDTOList = rewardsConfig.stream().map(reward -> {
 	            RewardConfigurationDTO rewardDTO = new RewardConfigurationDTO();
 	            rewardDTO.setRewardName(reward.getRewardName());
+	            rewardDTO.setId(reward.getId());
 	            rewardDTO.setCategoryId(reward.getCategoryId());
 	            rewardDTO.setRewardTypes(Collections.singletonList(reward.getRewardType())); 
 	            String categoryName = rewardCategories.stream()
