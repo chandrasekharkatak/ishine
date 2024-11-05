@@ -2,7 +2,6 @@ package com.apmosys.employeeportal.dto;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -14,12 +13,13 @@ import lombok.ToString;
 public class EmployeeRewardsDTO {
 	
 	private Long rewardId;
-//	private Long empId;
+	private String rewardTypeName;
 	private Long rewardedTo;
+	private String rewardedToByName; 
 	private int rewardType;
 	private Long managerId;
 	private Long teamLeadId;
-	private boolean isActive;
+	private int isActive;
 	private LocalDate fromDate;
 	private LocalDate toDate;
 	private String remark;
@@ -28,4 +28,10 @@ public class EmployeeRewardsDTO {
 	private String updatedByName;
 	private Long createdBy;
 	private String createdByName;
+	private String managerName;
+	private String teamLeadName;
+	private Long teamId;
+	private Long categoryId;
+	private Long Id;
+	private LocalDateTime createdOn;
 }

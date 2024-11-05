@@ -19,6 +19,4 @@ public class EmployeeportalApplication {
 		return new ModelMapper();
 	}
 	
-	
-
 }

@@ -28,6 +28,7 @@ import { LocationStrategy } from '@angular/common';
 import { Sort } from '@angular/material/sort';
 import { AppComponent } from '../app.component';
 import { EventPhoto } from '../models/EventPhoto';
+import { RewardsServiceService } from '../services/rewards-service.service';
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -66,6 +67,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   excelName: any = '';
 
   birthdayList: any[] = [];
+  rewardsList: any[] = [];
   eventImages: any[] = [];
   isImagesLoaded: boolean = false;
 
@@ -166,7 +168,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
     private bodyComponent: BodyComponent,
     public validationService: ValidationService,
     private logService: LogService,
-    private locationStrategy: LocationStrategy
+    private locationStrategy: LocationStrategy,
+    private rewardsService: RewardsServiceService
+
   ) {
     this.authenticationService.currentUser.subscribe(x => {
       this.currentUser = x;
@@ -185,6 +189,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.logService.updateLogInfo(this.log);
     // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    console.log("feature Name ",featureMap);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
@@ -203,12 +208,16 @@ export class HomeComponent implements OnInit, AfterViewInit {
     }
     if (this.userMapping.view_timesheet_display) this.getTimesheetsForHomePageByEmpId('Last 7 Days');
     if (this.userMapping.view_event_photos) this.getAllEventPhotosForHome();
+    if (this.userMapping.view_employee_rewards) this.getAllEmployeesRewards();
+
 
 
     if (this.currentUser.isNew == "true") {
       this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
     }
     this.preventBackButton();
+
+   console.log('User Mapping',this.userMapping);
   }
 
   preventBackButton() {
@@ -882,6 +891,23 @@ export class HomeComponent implements OnInit, AfterViewInit {
       }
     });
   }
+
+
+  getAllEmployeesRewards(){
+    this.rewardsService.fetchEmployeesForHomepage().subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.rewardsList = response.serviceResponse;
+        console.log("Rewardslist : ", this.rewardsList);
+
+      } else {
+        // this.compOffApplicationCount = 0;
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+
+
 
 
   /* Quick Links */

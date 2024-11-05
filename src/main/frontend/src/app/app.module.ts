@@ -99,6 +99,9 @@ import { RewardsConfigComponent } from './configuration/rewards-config/rewards-c
 import { MinutesToHoursPipe } from './minutes-to-hours.pipe';
 import { RewardsComponent } from './rewards/rewards.component';
 import { RewardsAndRecognisationComponent } from './rewards/rewards-and-recognisation/rewards-and-recognisation.component';
+import { RewardFilterPipe } from './reward-filter.pipe';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatOptionModule } from '@angular/material/core';
 //import { TestComponent } from './user-report/test/test.component';
 
 @NgModule({
@@ -173,11 +176,13 @@ import { RewardsAndRecognisationComponent } from './rewards/rewards-and-recognis
     MinutesToHoursPipe,
     RewardsComponent,
     RewardsAndRecognisationComponent,
+    RewardFilterPipe,
     //TestComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
+    MatAutocompleteModule,
     AccordionModule,
     FormsModule,
     ReactiveFormsModule,
@@ -216,7 +221,10 @@ import { RewardsAndRecognisationComponent } from './rewards/rewards-and-recognis
     OwlNativeDateTimeModule,
     AutocompleteLibModule,
     PdfViewerModule,
-    AngularEditorModule
+    AngularEditorModule,
+    MatInputModule,
+    MatFormFieldModule,
+    MatOptionModule,
   ],
   providers: [
     BsModalService,

@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.dto;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import lombok.Getter;
@@ -20,13 +21,17 @@ public class RewardConfigurationDTO implements Serializable{
 	private List<CustomFilterDTO> customFilterDTOList;
 	private long createdBy;
     private long updatedBy;
-    private String updatedOn;
+//    private String updatedOn;
+    private int isTeam;
+    private String createdByName; 
+    private String updatedByName; 
+    private LocalDateTime updatedOn;
+    private LocalDateTime createdOn;
     
-	//fetch employees for rewards module
 	private String employeeEmpId;
 	private String employeeName;
     private String managerName;
     private String managerEmpId;
     private String filterConditions;
-   
+
 }

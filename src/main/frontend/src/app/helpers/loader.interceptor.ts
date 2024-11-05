@@ -188,8 +188,6 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}`+`api/bulkCompOffApprove`,
     `${this.baseUrl}`+`api/getTeamListByProjectName`,
 
-
-
     // added by anurag 
     `${this.baseUrl}`+`api/deleteType`,
     `${this.baseUrl}`+`api/updateType`,
@@ -215,8 +213,14 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}`+`api/getEmployeeAuditInfo`,
     `${this.baseUrl}`+`api/deleteTeamByTeamId`,
     `${this.baseUrl}`+`api/upload/saveExcelDataForManagerMapping`,
-    `${this.baseUrl}` + `api/getBioData`
+    `${this.baseUrl}` + `api/getBioData`,
 
+    //added by priyadarshini
+    `${this.baseUrl}`+`api/saveRewardConfiguration`,
+    `${this.baseUrl}` + `api/showAllRewards/`,
+    `${this.baseUrl}` + `api/fetchEmployeesFromRewardCondition`,
+    `${this.baseUrl}`+`api/submitRewardForEmployee`,
+    `${this.baseUrl}` + `api/showAllEmployeeRewards`
   ]
 
   constructor(private loaderService: LoaderService) { }

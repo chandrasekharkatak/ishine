@@ -1,5 +1,5 @@
 import { LocationStrategy } from '@angular/common';
-import { Component, OnInit,EventEmitter, Input, Output, TemplateRef } from '@angular/core';
+import { Component, OnInit, EventEmitter, Input, Output, TemplateRef } from '@angular/core';
 import { Query } from 'src/app/models/query';
 import { LeaveService } from 'src/app/services/leave.service';
 import { first } from 'rxjs/operators';
@@ -11,7 +11,8 @@ import { RewardsServiceService } from 'src/app/services/rewards-service.service'
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { Sort } from '@angular/material/sort';
-
+import * as moment from 'moment';
+import { AppComponent } from 'src/app/app.component';
 
 class Operator{
   name:string;
@@ -43,7 +44,7 @@ export class RewardsConfigComponent implements OnInit {
     'Project Name','Client Name', 'Employment Status', 'Date Of Joining','Gender', 
      'Probation Period', 'Notice Period','Experience',
   ];
-  
+  items = 10;
   rewardType: string = '';
   rewardTypes: string[] = [];
   selectedRewardType: string | null = null;
@@ -59,14 +60,10 @@ export class RewardsConfigComponent implements OnInit {
   storedFilterData:storedData[] = [new storedData()];
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
-  rewardsList: Rewards[] = [];  // To store rewards data
+  rewardsList: Rewards[] = []; 
   allCategoryList: any[] = [];
   isSearchEnabled: boolean = false;
-  rewardsColumns = [
-    { columnDef: 'rewardName', header: 'Reward Name' },
-    { columnDef: 'categoryName', header: 'Category Name' },
-    { columnDef: 'rewardTypes', header: 'Reward Types' }
-  ];
+  rewardsColumns: any[] = ['','rewardName','categoryName','rewardTypes','createdByName','createdOn','updatedByName','updatedOn',''];
   rewardsDataForExcel: any[];
   name = 'Rewards.xlsx';
   isTable: boolean = false;
@@ -78,6 +75,7 @@ export class RewardsConfigComponent implements OnInit {
   allDeptList: any;
   isEditMode: boolean = false;  // Flag to determine create or edit mode
   rewardIdToEdit: number;  
+  rewardTeams: number = 0; 
 
   @Input() data: any;
   @Output() filterSubmitted:EventEmitter<any> =  new EventEmitter<any>(); 
@@ -110,6 +108,8 @@ export class RewardsConfigComponent implements OnInit {
 
   toggleRewardForm() {
     this.rewardSub = !this.rewardSub;
+    this.rewardSubData=!this.rewardSubData;
+
   }
 
   preventBackButton() {
@@ -234,50 +234,50 @@ export class RewardsConfigComponent implements OnInit {
     return true;
   }
 
-// openForm(mode: string, rewardObj?: Rewards) {
-//   this.isEditMode = mode === 'edit';
-//   if (this.isEditMode && rewardObj) {
-//       // Populate the form with the selected reward object data
-//       this.rewardsObj = {...rewardObj};
-//       this.rewardSub = true; // To display the form
-//   } else {
-//       // For creating a new reward
-//       this.rewardsObj = new Rewards(); // Clear the form
-//       this.rewardSub = true; // To display the form
-//   }
-// }
+openForm(id:any,mode: string,template: TemplateRef<any> ) {
+  this.isEditMode = mode === 'edit';
+  if (this.isEditMode) {
+      this.rewardSub = true; 
+      this.rewardSubData=false;
+      
+      this.rewardsService.getAllRewardsByRewardId(id).subscribe((response: any) => {
+       
+        if (response.serviceStatus === 'Success' && response.serviceResponse.length > 0) {
+          const rewardData = response.serviceResponse[0];
+        
+          this.rewardsObj = {
+            ...this.rewardsObj,
+            rewardName: rewardData.rewardName,
+            categoryId: rewardData.categoryId,
+            rewardTypes: rewardData.rewardTypes,
+            isTeam: rewardData.isTeam,
+            id: rewardData.id
+          };
+          this.rewardTypes = [...rewardData.rewardTypes];
 
-// openForm(mode: string, rewardObj?: Rewards) {
-//   this.isEditMode = mode === 'edit';
-
-//   if (this.isEditMode && rewardObj) {
-//     this.rewardIdToEdit = rewardObj.id;
-//     this.fetchRewardById(this.rewardIdToEdit);  // Fetch reward details by ID for editing
-//   } else {
-//     // Create new reward scenario
-//     this.rewardsObj = new Rewards();  // Clear the form for a new entry
-//     this.rewardSub = true;  // Display the form
-//   }
-// }
-
-// fetchRewardById(id: number) {
-//   this.rewardsService.getRewardById(id).pipe(first()).subscribe((response: any) => {
-//     if (response.serviceStatus === "Success") {
-//       this.rewardsObj = { ...response.serviceResponse };  // Populate the form with fetched reward details
-//       this.rewardSub = true;  // Display the form
-//       this.rewardTypes = this.rewardsObj.rewardTypes || [];  // Ensure reward types are populated
-//     } else {
-//       console.error("Error fetching reward details: ", response.serviceError);
-//     }
-//   });
-// }
+          this.rewardTeams = rewardData.isTeam === 1 ? 1 : 0;
+          this.queryList = rewardData.customFilterDTOList.map((filter: any) => ({
+            column: filter.column,
+            operator: filter.operator,
+            value: filter.value,
+            conjunction: filter.conjunction
+          }));
+        }
+      });
+  }
+  else {
+    this.resetForm();
+    this.rewardSub = true;
+    this.rewardSubData = false;
+  }
+}
 
   onEdit(rewardObj: Rewards) {
     this.isEditMode = true;
     this.rewardIdToEdit = rewardObj.id;
-    this.rewardsObj = { ...rewardObj }; // Shallow copy the object
-    this.rewardTypes = rewardObj.rewardTypes || []; // Ensure rewardTypes is an array
-    this.queryList = rewardObj.customFilterDTOList || []; // Handle case where this list might be empty
+    this.rewardsObj = { ...rewardObj };
+    this.rewardTypes = rewardObj.rewardTypes || [];
+    this.queryList = rewardObj.customFilterDTOList || [];
   }
   
   onSubmit(template: TemplateRef<any>) {
@@ -285,6 +285,7 @@ export class RewardsConfigComponent implements OnInit {
       this.rewardsObj.categoryId = parseInt(this.rewardsObj.categoryId, 10);
       this.rewardsObj.rewardName = (<HTMLInputElement>document.querySelector('input[placeholder="Enter Sub Category name"]')).value;
       this.rewardsObj.rewardTypes = this.rewardTypes;
+      this.rewardsObj.createdBy = this.currentUser.empId;
       this.rewardsObj.customFilterDTOList = this.queryList.map(filter => {
         return {
           ...filter,
@@ -294,13 +295,21 @@ export class RewardsConfigComponent implements OnInit {
         };
       });
       console.log("Submit Button : ", this.rewardsObj);
+
+      this.rewardsObj.isTeam=this.rewardTeams ;
+
       if (this.isEditMode) {
         this.rewardsObj.updatedBy = this.currentUser.empId;
+        this.rewardsObj.id = this.rewardsObj.id;
         // this.updateReward(this.rewardsObj);
         this.rewardsService.editRewardConfiguration(this.rewardsObj).subscribe((response: any) => {
           if (response.serviceStatus === 'Success') {
             console.log('Reward updated successfully', response);
             this.openAlertMod(template, response.serviceResponse);
+            this.rewardSub = !this.rewardSub;
+            this.rewardSubData = !this.rewardSubData;
+            this.fetchAllRewards();
+            this.resetForm();
           }
         });
       } else {
@@ -309,13 +318,23 @@ export class RewardsConfigComponent implements OnInit {
         this.rewardsService.saveRewardConfiguration(this.rewardsObj).subscribe((response: any) => {
           if (response.serviceStatus === 'Success') {
             console.log('Reward created successfully', response);
+            this.rewardSub = !this.rewardSub;
+            this.rewardSubData=!this.rewardSubData;
             this.openAlertMod(template, response.serviceResponse);
+            this.fetchAllRewards();
+            this.resetForm();
           }
         });
       }
     }
   }
-  
+
+   onToggle(event: Event): void {
+    const checkbox = event.target as HTMLInputElement;
+    this.rewardTeams = checkbox.checked ? 1 : 0; 
+    console.log("Reward Teams : ", this.rewardTeams);
+  }
+
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
@@ -327,6 +346,7 @@ export class RewardsConfigComponent implements OnInit {
 
   fetchAllRewards() {
     this.rewardsList = [];
+    this.filters = {};
     this.rewardsService.showAllRewards().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.rewardsList = response.serviceResponse;
@@ -343,9 +363,16 @@ export class RewardsConfigComponent implements OnInit {
     }
   }
 
+  // onSearch(searchData){
+  //   this.filters[searchData.key] = searchData.value;  
+  //   console.log("Updated Filter : ", this.filters);
+  // }
+
   onSearch(searchData){
-    this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    if(this.isSearchEnabled == true){
+      this.filters = searchData;
+      console.log("Updated Filter : ", this.filters);
+    }
   }
 
   handlePageChange(event) {
@@ -372,15 +399,53 @@ export class RewardsConfigComponent implements OnInit {
         x => ({
           "Reward Name": x.rewardName,
           "Category Name": x.categoryName || 'N/A',
-          "Reward Types": x.rewardTypes.join(', ')
-          // "Created by": x.createdByName,
-          // "Created on": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
-          // "Updaeted by": x.updatedByName ??' - ',
-          // "Updated On": (x.updatedOn)? moment(x.updatedOn).format(AppComponent.DATETIME_FORMAT) : ' - ',
+          "Reward Types": x.rewardTypes.join(', '),
+          "Created by": x.createdByName,
+          "Created on": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : ' - ',
+          "Updaeted by": x.updatedByName ??' - ',
+          "Updated On": (x.updatedOn)? moment(x.updatedOn).format(AppComponent.DATETIME_FORMAT) : ' - ',
         })
       )
       //console.log("Excel Array: ",onlySpecificDataArr);
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
     });
   }
+
+  deleteRewardsByRewardId(template: TemplateRef<any>,id:any){
+
+    console.log(id)
+
+    this.rewardsService.deleteRewardsByRewardId(id).subscribe((response: any) => {
+      if (response.serviceStatus === 'Success') {
+        console.log(response)
+        this.fetchAllRewards();
+        console.log('Reward deleted successfully', response);
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+  refresh(){
+  }
+
+  back(){
+    this.rewardSub = !this.rewardSub;
+    this.rewardSubData=!this.rewardSubData;
+    this.resetForm() ;
+    this.fetchAllRewards();
+  }
+
+  resetForm() {
+
+    this.rewardsObj.rewardName='';
+    this.rewardsObj.categoryId='';
+    this.rewardType='';
+    this.rewardTypes=[]
+    this.rewardsObj = new Rewards(); 
+    this.rewardTypes = []; 
+    this.queryList = [new Query()]; 
+    this.invalidForm = false; 
+    this.rewardTeams = 0;
+    this.isEditMode = false;
+  }
+
 }

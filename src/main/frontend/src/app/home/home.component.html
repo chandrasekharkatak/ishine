@@ -225,7 +225,7 @@
             </div>
         </div>
     </div>
-    <div *ngIf="userMapping.view_timesheet_display" class="timesheet-graph card mb-2">
+    <!-- <div *ngIf="userMapping.view_timesheet_display" class="timesheet-graph card mb-2">
         <div class="card-title px-1 pt-2">
             <p class="section-heading m-0 pl-2" id="timesheet-title">Total Timesheet Time</p>
         </div>
@@ -234,7 +234,62 @@
                 <div id="totalEODChart" style="width:100%; height:15.625rem;"></div>
             </div>
         </div>
+    </div> -->
+
+    <!-- <div *ngIf="userMapping.view_employee_rewards" class="timesheet-graph reward card mb-2">
+
+        <div class="card-title px-1 pt-2">
+            <p class="section-heading m-0 pl-2 p-3">Rewards Events</p>
+        </div>
+        <div class="row col reward-content-container" style=>
+            <div *ngIf="rewardsList.length == 0" class="container-fluid placeholder">
+                
+                <img class="placeholder-img" style="width: 50px;" src="assets/Images/reward2.png" alt="Rewards Icon">
+                <h1 class="placeholder-text">No Rewards Today</h1>
+            </div>
+            <marquee *ngIf="rewardsList.length != 0" direction="up" scrolldelay="250" onmouseover="this.stop();" onmouseout="this.start();">
+                <mat-list class="p-0 reward-content">
+                    <mat-list-item *ngFor="let rewards of rewardsList">
+                        
+                        <img matListAvatar src="assets/Images/reward2.png" alt="User Avatar">
+                        <h1 matLine>{{rewards.rewardedToByName}} || Reward Name : {{rewards.rewardTypeName}}</h1>
+                        <p matLine>{{rewards.department}}</p>
+                    </mat-list-item>
+                </mat-list>
+            </marquee>
+            <div class="card-title px-1 pt-2">
+                <p class="section-heading m-0 pl-2 p-3">dfghj</p>
+            </div>
+        </div>
+    </div> -->
+
+    <div *ngIf="userMapping.view_employee_rewards" class="timesheet-graph reward card mb-2">
+        <div class="card-title px-1 pt-2">
+            <p class="section-heading m-0 pl-2 p-3">Rewards Events</p>
+        </div>
+        
+        <div class="reward-content-container">
+            <div *ngIf="rewardsList.length == 0" class="container-fluid placeholder">
+                <img class="placeholder-img" src="assets/Images/reward2.png" alt="Rewards Icon">
+                <h1 class="placeholder-text">No Rewards Today</h1>
+            </div>
+            
+            <marquee *ngIf="rewardsList.length != 0" direction="up" scrolldelay="250" onmouseover="this.stop();" onmouseout="this.start();">
+                <mat-list class="reward-content">
+                    <mat-list-item *ngFor="let rewards of rewardsList">
+                        <img matListAvatar src="assets/Images/reward2.png" alt="User Avatar">
+                        <h1 matLine>{{rewards.rewardedToByName}} || Reward Name: {{rewards.rewardTypeName}}</h1>
+                        <p matLine>{{rewards.department}}</p>
+                    </mat-list-item>
+                </mat-list>
+            </marquee>
+            <br>
+            <div class="card-title px-1 pt-2 additional-title">
+                <p class="section-heading m-0 pl-2 p-3"></p>
+            </div>
+        </div>
     </div>
+    
 </div>
 
 <!-- Modals templates -->

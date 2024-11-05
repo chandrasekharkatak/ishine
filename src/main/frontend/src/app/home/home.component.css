@@ -155,7 +155,7 @@
 }
 
 .placeholder-img{
-    width: 30%;
+    width: 40%;
     margin: 1em auto;
 }
 
@@ -363,4 +363,25 @@
 }
 .eye-img{
     color: #193d8a;
+}
+
+.reward{
+    height: 21.5rem;
+}
+
+.reward-content-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.reward-content {
+    overflow-y: auto;
+    max-height: calc(100% - 4rem); 
+}
+
+.additional-title {
+    margin-top: auto; 
+    padding-top: 10px;
+    color: none!important; 
 }

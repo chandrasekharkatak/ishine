@@ -26,13 +26,16 @@ public class EmployeeRewards {
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();
 	
+	private String rewardTypeName;
 	private Long rewardedTo;
 	private int rewardType;
 	private Long managerId;
 	private Long teamLeadId;
-	private boolean isActive;
+	private int isActive;
 	private LocalDate fromDate;
 	private LocalDate toDate;
+	private Long id;
+	private Long teamId;
 	
 	@Column(length = 1000)
 	private String remark;

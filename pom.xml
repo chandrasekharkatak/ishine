@@ -107,12 +107,17 @@
             <artifactId>java-object-diff</artifactId>
             <version>0.95</version>
         </dependency>
-        
+        <dependency>
+		    <groupId>com.microsoft.sqlserver</groupId>
+		    <artifactId>mssql-jdbc</artifactId>
+		    <version>9.4.0.jre11</version>
+		</dependency>
         <dependency>
         <groupId>org.apache.poi</groupId>
         <artifactId>poi</artifactId>
         <version>3.17</version>
     </dependency>
+    
     <dependency>
         <groupId>org.apache.poi</groupId>
         <artifactId>poi-ooxml</artifactId>

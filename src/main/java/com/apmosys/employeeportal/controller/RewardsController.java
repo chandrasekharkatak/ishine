@@ -88,5 +88,47 @@ public class RewardsController {
 		serviceResponse = rewardsService.showAllEmployeeRewards();
 		return serviceResponse;
 	}
-
+	
+	@PostMapping("/getAllActiveTeams")
+	public ServiceResponse getAllActiveTeams(@RequestBody RewardConfigurationDTO rewardConfigurationDTO) {
+    ServiceResponse serviceResponse = new ServiceResponse();
+    System.out.println("Received request with isTeam: " + rewardConfigurationDTO.getIsTeam());
+		serviceResponse = rewardsService.getAllActiveTeams(rewardConfigurationDTO);
+		return serviceResponse;
+	}
+	
+	@PostMapping("/isActive")
+	public ServiceResponse isActive(@RequestBody EmployeeRewardsDTO employeeRewardsDTO) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		serviceResponse = rewardsService.isActive(employeeRewardsDTO);
+		return serviceResponse;
+	}
+	
+	@RequestMapping(value = "/getEmployeeRewardByRewardId/{id}", method = RequestMethod.GET)
+	public ServiceResponse getEmployeeRewardByRewardId(@PathVariable("id") Long id) { 
+		ServiceResponse serviceResponse = new ServiceResponse();
+		serviceResponse = rewardsService.getEmployeeRewardByRewardId(id);
+		return serviceResponse;
+	}
+	
+	@RequestMapping(value = "/fetchEmployeesForHomepage", method = RequestMethod.GET)
+	 public ServiceResponse fetchEmployeesForHomepage() {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		serviceResponse = rewardsService.fetchEmployeesForHomepage();
+	        return serviceResponse;
+	    }
+	
+	@DeleteMapping("/deleteEmployeeRewardByRewardId/{id}")
+	public ServiceResponse deleteEmployeeRewardByRewardId(@PathVariable Long id) { 
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    serviceResponse = rewardsService.deleteEmployeeRewardByRewardId(id);
+	    return serviceResponse;
+	}
+	
+	@PostMapping("/fetchEmployeesByTeamId")
+	public ServiceResponse fetchEmployeesByTeamId(@PathVariable Long teamId) {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    serviceResponse = rewardsService.fetchEmployeesByTeamId(teamId);
+	    return serviceResponse;
+	}
 }
