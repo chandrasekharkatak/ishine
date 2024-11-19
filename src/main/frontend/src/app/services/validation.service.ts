@@ -470,6 +470,23 @@ export class ValidationService {
     }
   }
 
+//  validateEmployeementId(text: any): boolean {
+//     const regex = /^A-(CS-)?\d{6}$/;
+//     if (text !== "" || text !== undefined || text !== null) {
+//       if (regex.test(text)) {
+//         console.log("validateEmployeementId() text:", text, "isValid:", true);
+//         return true;
+//       }
+//       else {
+//         return false;
+//       }
+//     }
+//     else {
+//       return false;
+//     }
+//   }
+
+
   validateYear(text: any): boolean {
     const regex = /^(19[5-9]\d|20[0-4]\d|2050)$/;
     if (text !== "" || text !== undefined || text !== null) {

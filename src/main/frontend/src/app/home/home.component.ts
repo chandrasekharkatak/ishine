@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { Leave } from '../models/leave';
@@ -169,7 +169,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
     public validationService: ValidationService,
     private logService: LogService,
     private locationStrategy: LocationStrategy,
-    private rewardsService: RewardsServiceService
+    private rewardsService: RewardsServiceService,
+    private cdr: ChangeDetectorRef
 
   ) {
     this.authenticationService.currentUser.subscribe(x => {
@@ -1092,8 +1093,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
             newTimesheetObj.totalWorkingHoursPercentage = (newTimesheetObj.totalWorkingHours / TOTAL_WORKING_HOURS_IN_DAY) * 100 + "%";
 
             // For Chart Data
-            if (newTimesheetObj.status == "Pending") pendingCount++;
-            else if (newTimesheetObj.status == "Approved") approvedCount++;
+            if (newTimesheetObj.status == "Pending") {pendingCount++; }
+            else if (newTimesheetObj.status == "Approved") {approvedCount++;}
             else if (newTimesheetObj.status == "Rejected") rejectedCount++;
           } else {
             newTimesheetObj.totalWorkingHoursPercentage = "0%";
@@ -1126,12 +1127,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
         y: rejectedCount
       }];
 
-      this.renderTimesheetChart(`${dateRange} Timesheet`, 'totalEODChart', timesheetChartData, 'Timesheet(s)');
+      // this.renderTimesheetChart(`${dateRange} Timesheet`, 'totalEODChart', timesheetChartData, 'Timesheet(s)');
       if (dateRange == 'This Month')
         this.thisMonthCalendar.addTimesheetDetails();
       else if (dateRange == 'Last Month')
         this.lastMonthCalendar.addTimesheetDetails();
     });
+
+  
+
   }
 
 

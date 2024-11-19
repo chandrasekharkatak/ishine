@@ -100,6 +100,10 @@ export class MyTimesheetComponent implements OnInit {
   selfTimesheetColumns:any[] = ['blank','date','dayType','officeInTime','officeOutTime','totalWorkingOfficeHours','description','totalTime','status','createdByName','createdOn','isNightShiftDisplay','leaveType','remarks'];
   teamTimesheetColumns:any[] = ['blank','employeeName','date','dayType','officeInTime','officeOutTime','totalWorkingOfficeHours','description','totalTime','status','createdOn','isNightShiftDisplay','leaveType','remarks'];
 
+  //added by Priyadarshini
+  isFirstOpen = true;
+  maxInTimeDate: any;
+
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -124,7 +128,7 @@ export class MyTimesheetComponent implements OnInit {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
     //console.log(this.feature, this.userMapping);
-
+    this.setMaxInTime();
     this.timesheetService.getServerDate().pipe(first()).subscribe((response: any) => {
       this.serverDate = response;
     });
@@ -144,6 +148,10 @@ export class MyTimesheetComponent implements OnInit {
     })
   }
 
+  setMaxInTime() {
+    // Set maxInTimeDate to current time minus 4 minutes
+    this.maxInTimeDate = moment().subtract(4, 'minutes').toDate();
+}
 
   sectionViewInit() {
     if (this.userMapping.add_timesheet) {
@@ -244,53 +252,108 @@ export class MyTimesheetComponent implements OnInit {
     this.showUpdateTimesheetForm(this.selectedTimesheet);
   }
 
+  // showUpdateTimesheetForm(timesheetObj: Timesheet) {
+  //   this.isTimesheetForm = true;
+  //   this.isUpdation = true;
+
+  //   this.isTimesheetTable = false;
+  //   this.isCreation = false;
+  //   this.isTimesheetUpdate = true;
+
+  //   this.timesheetObj = Object.assign({}, timesheetObj);
+  //   this.timesheetObj.updatedTimesheetActivities = [];
+  //   this.timesheetObj.date = (this.timesheetObj.date)? moment(timesheetObj.date, "DD-MM-YYYY").toDate() : '';
+  //   this.timesheetObj.officeInTime = (this.timesheetObj.officeInTime)? moment(timesheetObj.officeInTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
+  //   this.timesheetObj.officeOutTime = (this.timesheetObj.officeOutTime)? moment(timesheetObj.officeOutTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
+  //   this.timesheetObj.createdOn = (this.timesheetObj.createdOn)? moment(timesheetObj.createdOn, "DD-MM-YYYY HH:mm:ss").toDate() : '';
+  //   this.timesheetObj.dayType = (this.timesheetObj.dayType == "Holiday")? "Week Off" : this.timesheetObj.dayType;
+
+  //   // if (this.timesheetObj.officeInTime) {
+  //   //   this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1, 'd').toString());
+  //   // }
+
+  //   if (this.timesheetObj.officeInTime) {
+  //     // Set maxOutTimeDate to current time minus 3 minutes
+  //     const currentTimeMinusThreeMinutes = moment().subtract(3, 'minutes').toDate();
+  //     this.maxOutTimeDate = new Date(Math.min(
+  //       currentTimeMinusThreeMinutes.getTime(),
+  //       moment(this.timesheetObj.officeInTime).add(1, 'd').toDate().getTime()
+  //     ));
+  //   }
+
+  //   if(this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave"){
+  //     this.__tempDescription = this.timesheetObj.description;
+  //   }
+
+  //   let userObj: User = new User();
+  //   if (this.isSelfTimesheets) {
+  //     this.timesheetObj.timesheetAppliedFor = "self";
+  //     this.timesheetObj.empId = this.currentUser.empId;
+
+  //     userObj.empId = this.currentUser.empId;
+  //     userObj.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
+  //   } else if (this.isTeamTimesheets) {
+  //     this.timesheetObj.timesheetAppliedFor = "team";
+
+  //     let teamMember = this.teamMemberList.find(employee => employee.empId == timesheetObj.empId)
+  //     //console.log("Team Member : ", teamMember);
+  //     userObj.empId = teamMember.empId;
+  //     userObj.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
+  //     this.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
+  //   }
+
+  //   this.getAllProjectsByEmpId(userObj);
+  //   this.getAllAvailableTimesheetByEmpId(userObj);
+  //   setTimeout(()=>{
+  //     this.getAllMyActivitiesByTimesheetId(timesheetObj);
+  //   }, 500)
+  // }
+
+  //start by Priyadarshini Indira Singh
+
   showUpdateTimesheetForm(timesheetObj: Timesheet) {
     this.isTimesheetForm = true;
     this.isUpdation = true;
-
     this.isTimesheetTable = false;
     this.isCreation = false;
     this.isTimesheetUpdate = true;
 
     this.timesheetObj = Object.assign({}, timesheetObj);
     this.timesheetObj.updatedTimesheetActivities = [];
-    this.timesheetObj.date = (this.timesheetObj.date)? moment(timesheetObj.date, "DD-MM-YYYY").toDate() : '';
-    this.timesheetObj.officeInTime = (this.timesheetObj.officeInTime)? moment(timesheetObj.officeInTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
-    this.timesheetObj.officeOutTime = (this.timesheetObj.officeOutTime)? moment(timesheetObj.officeOutTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
-    this.timesheetObj.createdOn = (this.timesheetObj.createdOn)? moment(timesheetObj.createdOn, "DD-MM-YYYY HH:mm:ss").toDate() : '';
-    this.timesheetObj.dayType = (this.timesheetObj.dayType == "Holiday")? "Week Off" : this.timesheetObj.dayType;
 
-    if (this.timesheetObj.officeInTime) {
-      this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1, 'd').toString());
+    if (!this.timesheetObj.officeInTime) {
+        this.setDefaultOfficeInTime();
+    } else {
+        this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime, "DD-MM-YYYY HH:mm:ss").toDate();
     }
 
-    if(this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave"){
-      this.__tempDescription = this.timesheetObj.description;
-    }
+    this.timesheetObj.officeOutTime = this.timesheetObj.officeOutTime 
+        ? moment(this.timesheetObj.officeOutTime, "DD-MM-YYYY HH:mm:ss").toDate() 
+        : '';
+    this.timesheetObj.createdOn = this.timesheetObj.createdOn 
+        ? moment(this.timesheetObj.createdOn, "DD-MM-YYYY HH:mm:ss").toDate() 
+        : '';
+    this.timesheetObj.dayType = this.timesheetObj.dayType === "Holiday" ? "Week Off" : this.timesheetObj.dayType;
 
-    let userObj: User = new User();
-    if (this.isSelfTimesheets) {
-      this.timesheetObj.timesheetAppliedFor = "self";
-      this.timesheetObj.empId = this.currentUser.empId;
-
-      userObj.empId = this.currentUser.empId;
-      userObj.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
-    } else if (this.isTeamTimesheets) {
-      this.timesheetObj.timesheetAppliedFor = "team";
-
-      let teamMember = this.teamMemberList.find(employee => employee.empId == timesheetObj.empId)
-      //console.log("Team Member : ", teamMember);
-      userObj.empId = teamMember.empId;
-      userObj.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
-      this.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
-    }
-
-    this.getAllProjectsByEmpId(userObj);
-    this.getAllAvailableTimesheetByEmpId(userObj);
-    setTimeout(()=>{
-      this.getAllMyActivitiesByTimesheetId(timesheetObj);
-    }, 500)
+    const currentTimeMinusThreeMinutes = moment().subtract(1, 'minutes').toDate();
+    this.maxOutTimeDate = new Date(Math.min(
+        currentTimeMinusThreeMinutes.getTime(),
+        moment(this.timesheetObj.officeInTime).add(1, 'day').toDate().getTime()
+    ));
   }
+
+  setDefaultOfficeInTime() {
+    this.timesheetObj.officeInTime = moment().subtract(2, 'minutes').toDate();
+  }
+
+  onFocusInTimePicker() {
+    if (this.isFirstOpen) {
+        this.setDefaultOfficeInTime();
+        this.isFirstOpen = false; 
+    }
+  }
+
+  //end by priyadarshini indira singh
 
   reset() {
     this.timesheetObj = new Timesheet();
@@ -301,8 +364,6 @@ export class MyTimesheetComponent implements OnInit {
     this.allTimesheetActivities = [];
     this.addInputActivityField();
   }
-
-
 
   addInputActivityField(activityObj?: Activity) {
 
@@ -436,12 +497,53 @@ export class MyTimesheetComponent implements OnInit {
     
   }
 
-  resetTotalWorkingOfficeHours() {
+  // resetTotalWorkingOfficeHours(template: TemplateRef<any>) {
+  //   if (this.timesheetObj.officeInTime && this.timesheetObj.officeInTime > this.maxInTimeDate) {
+  //     this.openAlertMod(template,"The selected in-time exceeds the allowed limit. Please select a time within the allowable range.");
+  //     this.timesheetObj.officeInTime = null;  // Clear the input if it exceeds the limit
+  //     this.timesheetObj.totalWorkingOfficeHours = '';
+  //     return;
+  // }
+
+  //   this.timesheetObj.officeOutTime = '';
+  //   this.timesheetObj.totalWorkingOfficeHours = '';
+
+  //   // this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1, 'd').toString());
+
+  //   const currentTimeMinusThreeMinutes = moment().subtract(3, 'minutes').toDate();
+  //   this.maxOutTimeDate = new Date(Math.min(
+  //     currentTimeMinusThreeMinutes.getTime(),
+  //     moment(this.timesheetObj.officeInTime).add(1, 'd').toDate().getTime()
+  //   ));
+  // };
+
+  resetTotalWorkingOfficeHours(template: TemplateRef<any>) {
+    const currentTimeMinusFourMinutes = moment().subtract(4, 'minutes').toDate();
+
+    // Check if the selected in-time exceeds the allowed limit
+    if (this.timesheetObj.officeInTime && this.timesheetObj.officeInTime > currentTimeMinusFourMinutes) {
+        this.openAlertMod(template, "The selected in-time exceeds the allowed limit. Please select a time within the allowable range.");
+        
+        // Clear the invalid in-time and trigger change detection
+        this.timesheetObj.officeInTime = null;
+        this.timesheetObj.totalWorkingOfficeHours = '';
+        
+        // Return to prevent further processing
+        return;
+    }
+
+    // Clear office out-time and working hours if the in-time was valid
     this.timesheetObj.officeOutTime = '';
     this.timesheetObj.totalWorkingOfficeHours = '';
 
-    this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1, 'd').toString());
-  };
+    // Dynamically calculate maxOutTimeDate each time this function is called
+    const currentTimeMinusThreeMinutes = moment().subtract(3, 'minutes').toDate();
+    this.maxOutTimeDate = new Date(Math.min(
+        currentTimeMinusThreeMinutes.getTime(),
+        moment(this.timesheetObj.officeInTime).add(1, 'day').toDate().getTime()
+    ));
+}
+
 
   resetTimeonDayTypeChange(){
     if(this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave"){

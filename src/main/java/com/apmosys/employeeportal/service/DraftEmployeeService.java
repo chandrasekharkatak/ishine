@@ -1126,7 +1126,7 @@ public class DraftEmployeeService {
 			// System.out.println(employeedto);
 			Employee employee = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());
 			if (employee != null) {
-				System.out.println(employee);
+				System.out.println("Employee Object :- " + employee);
 
 				employee.setGender(employeedto.getGender());
 				employee.setBloodGroup(employeedto.getBloodGroup());
@@ -1215,7 +1215,10 @@ public class DraftEmployeeService {
 								+ "Draft" + File.separator + employeedto.getEmployeementId());
 						String[] contents = directoryPath.list();
 
-						List<String> filesInFolder = Arrays.asList(contents);
+//						by priyadarshini
+//						List<String> filesInFolder = Arrays.asList(contents);
+						List<String> filesInFolder = contents != null ? Arrays.asList(contents) : new ArrayList<>();
+
 						List<String> finalDocFileNames = new ArrayList<String>();
 
 						for (EmployeeDocument document : documentList) {

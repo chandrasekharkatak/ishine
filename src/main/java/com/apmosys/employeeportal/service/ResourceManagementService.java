@@ -1861,7 +1861,7 @@ public class ResourceManagementService {
         }
         
         try {
-            mailService.sendMail("ar731829@gmail.com ,sakti.das@apmosys.com",
+            mailService.sendMail("sakti.das@apmosys.com",
                     "Regarding Resource management",
                     "Dear RMG Team ," + "<br>"
                             + "<br>"

@@ -4,6 +4,7 @@
         class="calendar-days"
         
         [ngClass]="{'bg-white': day.status === 'Not Filled', 'bg-red': day.status === 'Rejected', 'bg-yellow' : day.status === 'Pending', 'bg-green' : day.status === 'Approved'}"
+        
         [ngClass]="day.className"
         *ngFor="let day of calendarItem"
       >

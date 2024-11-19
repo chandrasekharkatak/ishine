@@ -235,6 +235,7 @@ public class CustomFilterService {
 						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = el.emp_id "
 						+ "LEFT JOIN teams t on t.team_id = etm.team_id "
 						+ "LEFT JOIN projects p on p.project_id = t.project_id where " + customQuery
+						+ "etm.active != 0 AND t.is_active != 'N' AND pr.active != 'false'"
 						+ " GROUP BY e.employeement_id, el.from_date";
 
 				System.out.println(q);
@@ -845,7 +846,9 @@ public class CustomFilterService {
 						+ "LEFT JOIN teams t ON t.team_id = etm.team_id \n"
 						+ "LEFT JOIN projects pr ON pr.project_id = t.project_id \n"
 						+ "LEFT JOIN clients cl ON cl.client_id = pr.client_id \n"
-						+ " WHERE etm.active != 0 \n"
+						+ "WHERE etm.active != 0 "
+						+ "AND t.is_active != 'N' \n"
+						+ "AND pr.active != 'false'\n"
 						+ "GROUP BY etm.emp_id) emp_proj_client ON emp_proj_client.emp_id = e.emp_id  where " + customQuery;
 
 				System.out.println(q);
@@ -1325,7 +1328,9 @@ public class CustomFilterService {
 						+ "LEFT JOIN teams t on t.team_id = etm.team_id \n"
 						+ "LEFT JOIN projects p on p.project_id = t.project_id \n"
 						+ "LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id where "
-						+ customQuery + " GROUP BY e1.employeement_id, et.date";
+						+ customQuery 
+//						+ "AND etm.active != 0 AND t.is_active != 'N' AND pr.active != 'false' "
+						+ "GROUP BY e1.employeement_id, et.date";
 
 				Query query = session.createSQLQuery(q);
 				return query.getResultList();
@@ -2081,6 +2086,7 @@ public class CustomFilterService {
 				break;
 			}
 			case "Employment Status": {
+//				String[] status = new String[] { "Probation", "Confirmed", "Resigned", "InActive", "Reinstate" };
 				String[] status = new String[] { "Probation", "Confirmed", "Resigned", "InActive" };
 				for (String object : status) {
 					EmployeeDTO dto = new EmployeeDTO();

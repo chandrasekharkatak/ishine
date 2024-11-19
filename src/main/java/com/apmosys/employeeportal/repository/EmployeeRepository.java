@@ -239,7 +239,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "LEFT JOIN teams t ON t.team_id = etm.team_id \n"
 			+ "LEFT JOIN projects pr ON pr.project_id = t.project_id \n"
 			+ "LEFT JOIN clients cl ON cl.client_id = pr.client_id \n"
-			+ " WHERE etm.active != 0 \n"
+			+ "WHERE etm.active != 0 "
+			+ "AND t.is_active != 'N' \n"
+			+ "AND pr.active != 'false'\n"
 			+ "GROUP BY etm.emp_id) emp_proj_client ON emp_proj_client.emp_id = e.emp_id \n"
 			+ "where e.employmentstatus != 'InActive'")
 	public List<Object[]> getBillableEmpWithDepartment();

@@ -958,6 +958,25 @@ minDate: Date;
       return false;
     }
 
+   if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.billable)) {
+    this.alertMessage = "Please select a value for 'Billable'";
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+    }
+
+    if (this.employeeObj.billable === 'No' && 
+        !this.validationService.validateNullUndefinedEmptyString(this.employeeObj.billableType)) {
+        this.alertMessage = "Please select a value for 'Billable Type' when Billable is set to 'No'";
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+    }
+
+    if (this.employeeObj.billable === 'Yes' && 
+        !this.validationService.validateNullUndefinedEmptyString(this.employeeObj.billableType)) {
+        this.alertMessage = "Please select a value for 'Billable Type' when Billable is set to 'Yes'";
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+    }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.employmentstatus)) {
       this.alertMessage = "Please enter employment status !!"
@@ -1268,6 +1287,65 @@ minDate: Date;
     return (true);
 
   }
+
+  // fieldRestictCharacter(event){
+  //   var k;
+  //   k = event.charCode;
+  //   if((k == 33) || (k == 34) || (k == 35) || (k == 36 ) || (k == 37) ||
+  //   (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42 ) ||
+  //   (k == 43) || (k == 44) || (k == 46 ) || (k == 47) || (k == 58) ||
+  //    (k == 59) || (k == 60) || (k == 61) || (k == 62 ) || (k == 63) ||
+  //    (k == 64) || (k == 66 ) || (k == 68) || (k == 69 ) ||
+  //     (k == 70) || (k == 71) || (k == 72 ) || (k == 73) || (k == 74) ||
+  //     (k == 75 ) || (k == 76) || (k == 77) || (k == 78) || (k == 79) ||
+  //     (k == 80) || (k == 81 ) || (k == 82) || (k == 84) ||
+  //      (k == 85) ||  (k == 86) || (k == 87 ) || (k == 88) || (k == 89) ||
+  //     (k == 90) || (k == 91) || (k == 92) || (k == 93) || (k == 94) ||
+  //     (k == 95) || (k == 96) || (k == 97) || (k == 98 ) || (k == 99) ||
+  //   (k == 99) || (k == 100) || (k == 101) || (k == 102) || (k == 103 ) ||
+  //   (k == 104) || (k == 105) || (k == 106 ) || (k == 107) || (k == 108) ||
+  //    (k == 109) || (k == 110) || (k == 111) || (k == 112 ) || (k == 113) ||
+  //    (k == 114) || (k == 115 ) || (k == 116) || (k == 117) || (k == 118 ) ||
+  //      (k == 119) || (k == 120) || (k == 121) || (k == 122) || (k == 123) ||
+  //       (k == 124) || (k == 125) || (k == 126))
+  //   {
+  //     return (false);
+  //   }
+  //   return (true);
+
+  // }
+
+//   fieldRestictCharacter(event: KeyboardEvent): boolean {
+//     const allowedPattern = /^[A-Za-z0-9-]$/;
+//     const char = String.fromCharCode(event.charCode);
+    
+//     if (!allowedPattern.test(char)) {
+//         event.preventDefault();
+//         return false;
+//     }
+//     return true;
+// }
+
+// fieldRestictCharacter(event: KeyboardEvent): boolean {
+//   const char = String.fromCharCode(event.charCode);
+//   const currentValue = (event.target as HTMLInputElement).value + char;
+
+//   // Allow backspace, delete, and arrow keys
+//   // if (event.key === "Backspace" || event.key === "Delete" || event.key.startsWith("Arrow")) {
+//   //     return true;
+//   // }
+
+//   // Allow typing only if it matches the required pattern as it progresses
+//   const pattern = /^A-(CS-)?\d{0,6}$/;
+//   if (!pattern.test(currentValue)) {
+//       event.preventDefault();
+//       return false;
+//   }
+//   return true;
+// }
+
+
+
   // 97 to 122
 
   // CRUD
@@ -1318,64 +1396,65 @@ minDate: Date;
     });
   }
 
-  // checkEmployeementId(template: TemplateRef<any>) {
-  //   let employee = new Employee();
-  //   employee.empId = this.employeeObj.empId;
-  //   employee.email = this.employeeObj.email;
-
-  //   if(this.employeeObj.employeementId.startsWith('A-')){
-  //     if(!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)){
-  //       this.alertMessage = "Please enter Employee ID !!"
-  //       this.openAlertMod(template, this.alertMessage);
-  //       return false;
-  //     }
-  //     employee.employeementId  = this.employeeObj.employeementId.substring(2);
-  //     console.log("Employee :", this.employeeObj);
-  //   }else {
-  //     employee.employeementId  = this.employeeObj.employeementId
-  //   if (!this.validationService.validateNullUndefinedEmptyString(employee.employeementId)) {
-  //     this.alertMessage = "Please enter Employment ID !!";
-  //     this.openAlertMod(template, this.alertMessage);
-  //     return false;
-  //   }
-  //   if (!this.validationService.validateEmployeementId(employee.employeementId)) {
-  //     this.alertMessage = "Please enter valid Employment ID !!";
-  //     this.openAlertMod(template, this.alertMessage);
-  //     return false;
-  //   }
-  // }
-  //   this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
-  //     if (response.serviceStatus == "Fail") {
-  //       this.openAlertMod(template, response.serviceResponse);
-  //       employee.employeementId = '';
-  //     }
-  //     console.log("checkEmployeementId response: ",response);
-  //   });
-  // }
   checkEmployeementId(template: TemplateRef<any>) {
     let employee = new Employee();
-    employee.employeementId = this.utilityService.substringEmployeementid2(this.employeeObj.employeementId);
-    console.log("chechEmpId() employee.employeementId: ",employee.employeementId);
-    employee.email = this.employeeObj.email;
     employee.empId = this.employeeObj.empId;
+    employee.email = this.employeeObj.email;
+
+    if(this.employeeObj.employeementId.startsWith('A-')){
+      if(!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)){
+        this.alertMessage = "Please enter Employee ID !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+      employee.employeementId  = this.employeeObj.employeementId.substring(2);
+      console.log("Employee :", this.employeeObj);
+    }else {
+      employee.employeementId  = this.employeeObj.employeementId
     if (!this.validationService.validateNullUndefinedEmptyString(employee.employeementId)) {
-          this.alertMessage = "Please Enter Employment ID !!";
-          this.openAlertMod(template, this.alertMessage);
-          return false;
+      this.alertMessage = "Please enter Employment ID !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
     if (!this.validationService.validateEmployeementId(employee.employeementId)) {
-      this.alertMessage = "Please Enter Valid Employment ID !!";
+      this.alertMessage = "Please enter valid Employment ID !!";
       this.openAlertMod(template, this.alertMessage);
-      this.employeeObj.employeementId = '';
+      return false;
     }
+  }
     this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
-      console.log("EMPLY-ID response.serviceResponse: ",response.serviceResponse);
       if (response.serviceStatus == "Fail") {
         this.openAlertMod(template, response.serviceResponse);
-        this.employeeObj.employeementId = '';
+        employee.employeementId = '';
       }
+      console.log("checkEmployeementId response: ",response);
     });
   }
+
+  // checkEmployeementId(template: TemplateRef<any>) {
+  //   let employee = new Employee();
+  //   employee.employeementId = this.utilityService.substringEmployeementid2(this.employeeObj.employeementId);
+  //   console.log("chechEmpId() employee.employeementId: ",employee.employeementId);
+  //   employee.email = this.employeeObj.email;
+  //   employee.empId = this.employeeObj.empId;
+  //   if (!this.validationService.validateNullUndefinedEmptyString(employee.employeementId)) {
+  //         this.alertMessage = "Please Enter Employment ID !!";
+  //         this.openAlertMod(template, this.alertMessage);
+  //         return false;
+  //   }
+  //   if (!this.validationService.validateEmployeementId(employee.employeementId)) {
+  //     this.alertMessage = "Please Enter Valid Employment ID !!";
+  //     this.openAlertMod(template, this.alertMessage);
+  //     this.employeeObj.employeementId = '';
+  //   }
+  //   this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
+  //     console.log("EMPLY-ID response.serviceResponse: ",response.serviceResponse);
+  //     if (response.serviceStatus == "Fail") {
+  //       this.openAlertMod(template, response.serviceResponse);
+  //       this.employeeObj.employeementId = '';
+  //     }
+  //   });
+  // }
 
   checkEmail(template: TemplateRef<any>) {
     let employee = new Employee();
@@ -1540,7 +1619,7 @@ minDate: Date;
     const dateFormat = 'YYYY-MM-DD';
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
     if (!inputValidated) return;
-
+    this.employeeObj.imageBytes=null;
     this.employeeObj.isDraft = false;
     // transform date formats to YYYY-MM-DD
     if(this.employeeObj.dateOfBirth) this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth ).format(dateFormat)
@@ -2117,6 +2196,59 @@ if (employeeObj.updateType !== 'automatic') {
       }
     });
   }
+
+  // Method to convert file to Base64
+// convertFileToBase64(file: File): Promise<string> {
+//   return new Promise((resolve, reject) => {
+//     const reader = new FileReader();
+//     reader.readAsDataURL(file);
+//     reader.onload = () => resolve(reader.result as string);
+//     reader.onerror = error => reject(error);
+//   });
+// }
+
+// public getDocumentType(document: any): string {
+//   return document.documentType;
+// }
+
+
+// async handleFileInput(event: any) {
+//   const files: FileList = event.target.files;
+
+//   this.employeeObj.documentList = []; // Reset document list if needed
+
+//   for (let i = 0; i < files.length; i++) {
+//     const file = files[i];
+//     const base64String = await this.convertFileToBase64(file);
+    
+//     // Assuming documentList is an array of document objects
+//     this.employeeObj.documentList.push({
+//       documentName: file.name,
+//       documentBytes: base64String.split(',')[1], // Extract Base64 data without prefix
+//       documentType: this.getDocumentType(file.name), // Get document type based on your logic
+//       isDraft: 'true', // or any value you use
+//     });
+//   }
+// }
+
+// approveDraftEmployeeApplication(template: TemplateRef<any>) {
+//   this.cancelRequest();
+//   this.cancelApplication();
+//   this.employeeObj.updateApplicationStatus = 'Approved';
+//   this.employeeObj.updatedBy = this.currentUser.empId;
+
+//   this.employeeService.approveDraftEmployeeApplication(this.employeeObj)
+//     .pipe(first())
+//     .subscribe((response: any) => {
+//       if (response.serviceStatus === "Success") {
+//         this.allEmployeeList = response.serviceResponse;
+//         this.openAlertMod(template, response.serviceResponse);
+//         this.showDraftTable();
+//       } else {
+//         this.openAlertMod(template, response.serviceResponse);
+//       }
+//     });
+// }
 
   approveDraftEmployeeApplication(template: TemplateRef<any>){
     this.cancelRequest();

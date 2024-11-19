@@ -35,6 +35,15 @@ export class UtilityService {
     }
   }
 
+  // substringEmployeementid2(employeementId: string): string {
+  //   if (employeementId.startsWith("A-CS-")) {
+  //       return employeementId.substring(5); // Removes "A-CS-"
+  //   } else if (employeementId.startsWith("A-")) {
+  //       return employeementId.substring(2); // Removes "A-"
+  //   } else {
+  //       return employeementId;
+  //   } 
+  // }
 
   getCustomQueryData(query: Query) {
     return this.http.post(`${this.baseUrl}` + `api/getCustomQueryData`, query);

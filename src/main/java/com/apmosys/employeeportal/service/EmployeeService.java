@@ -2024,16 +2024,18 @@ public class EmployeeService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("empId : " + employeedto.getEmpId()+ "certification :" +employeedto.getCertifications()+ "updatedCertification :"+employeedto.getUpdatedCertifications()+ "experience : "+employeedto.getExperience());
 		List<EmployeeCertificateDTO> newCertificationlist = new ArrayList<EmployeeCertificateDTO>();
+//		System.out.println("newCertificationlist : " + newCertificationlist);
 		List<PreviousEmploymentDTO> newPreviousEmploymentList = new ArrayList<PreviousEmploymentDTO>();
-
+//		System.out.println("newPreviousEmploymentList : " + newPreviousEmploymentList);
 		List<Employee> listOfReporties = employeeRepository.findByManagerId(employeedto.getEmpId());
+//		System.out.println("listOfReporties : " + listOfReporties);
 		List<Employee> listOfEmp = new ArrayList<>();
-		
+//		System.out.println("listOfEmp : "+listOfEmp);		
 		try {
 			Optional<Employee> employeeObject = employeeRepository.findById(employeedto.getEmpId());
 			if (employeeObject.isPresent()) {
 				Employee employee = employeeObject.get();
-
+//				System.out.println("Employee 1 : " + employee);
 				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				employee.setEmployeementId(employeedto.getEmployeementId());
 				employee.setName(employeedto.getName());
@@ -2087,7 +2089,7 @@ public class EmployeeService {
 				employee.setRole(employeedto.getRole());
 				employee.setWorkLocation(employeedto.getWorkLocation());
 				employee.setProbationPeriod(employeedto.getProbationPeriod());
-				
+//				System.out.println("Employee 1 : " + employee);
 			 if(employeedto.getReportiesFlag().equals("Yes") && employeedto.getUpdateType().equals("automatic")){
 					for(Employee emp : listOfReporties) {
 						emp.setManagerId(employeedto.getNewManagerId());
@@ -2098,7 +2100,7 @@ public class EmployeeService {
 				}
 				
 				if(employeedto.getEmploymentstatus().equals("Resigned") || employeedto.getEmploymentstatus().equals("InActive") )  {
-					System.out.println("Right method call    ");
+					System.out.println("Right method call for  setDateOfResign   ");
 					employee.setDateOfResign(employeedto.getDateOfResign() != null
 							? stringToDateTimeParser.getDate(employeedto.getDateOfResign(), "yyyy-MM-dd")
 							: null);
@@ -2282,7 +2284,7 @@ public class EmployeeService {
 											.setManagerContactNumber(previousEmployeeDTO.getManagerContactNumber());
 									previousEmployment.setEmployerName(previousEmployeeDTO.getEmployerName());
 									previousEmployment.setYearsOfExperience(previousEmployeeDTO.getYearsOfExperience());
-
+//									System.out.println("previousEmployment : " + previousEmployment);
 									previousEmploymentRepository.save(previousEmployment);
 								});
 					}
@@ -2346,7 +2348,7 @@ public class EmployeeService {
 					
 					//Update Draft
 					DraftEmployee draftEmployee = draftEmployeeRepository.findByEmployeementId(dbResponse.getEmployeementId());
-					
+					System.out.println("draftEmployee : "+draftEmployee);
 					if(draftEmployee != null) {
 						draftEmployee.setName(dbResponse.getName());
 						draftEmployee.setDateOfBirth(dbResponse.getDateOfBirth());
@@ -2374,7 +2376,7 @@ public class EmployeeService {
 						}else {							
 							draftEmployee.setApprovalsTo(dbResponse.getApprovalsTo());
 						}
-						
+						System.out.println("draftEmployee : "+draftEmployee);
 						draftEmployeeRepository.save(draftEmployee);
 					}
 					

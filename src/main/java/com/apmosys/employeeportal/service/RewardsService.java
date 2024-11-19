@@ -508,8 +508,12 @@ public class RewardsService {
 	                    RewardConfigurationDTO rewardDTO = new RewardConfigurationDTO();
 
 	                    rewardDTO.setRewardName(reward.getRewardName() != null ? reward.getRewardName() : null);
-	                    rewardDTO.setId(reward.getId() != null ? reward.getId() : null);
-	                    rewardDTO.setCategoryId(reward.getCategoryId() != null ? reward.getCategoryId() : null);
+//	                    rewardDTO.setId(reward.getId() != null ? reward.getId() : null);
+//	                    rewardDTO.setCategoryId(reward.getCategoryId() != null ? reward.getCategoryId() : null);
+	                    
+	                    rewardDTO.setId(reward.getId() != null ? reward.getId() : 0L);  // Default value for long
+	                    rewardDTO.setCategoryId(reward.getCategoryId() != null ? reward.getCategoryId() : 0);  // Default value for int
+
 
 	                    rewardDTO.setRewardTypes(
 	                        reward.getRewardType() != null ? Collections.singletonList(reward.getRewardType()) : Collections.emptyList()
