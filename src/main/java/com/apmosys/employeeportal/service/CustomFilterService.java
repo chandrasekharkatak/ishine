@@ -235,7 +235,6 @@ public class CustomFilterService {
 						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = el.emp_id "
 						+ "LEFT JOIN teams t on t.team_id = etm.team_id "
 						+ "LEFT JOIN projects p on p.project_id = t.project_id where " + customQuery
-						+ "etm.active != 0 AND t.is_active != 'N' AND pr.active != 'false'"
 						+ " GROUP BY e.employeement_id, el.from_date";
 
 				System.out.println(q);
@@ -270,6 +269,8 @@ public class CustomFilterService {
 		try {
 			StringBuilder subQuery = createQueryForLeaveReport(leaveDTO.getQueryList());
 			List<Object[]> list = getCustomLeaveReport(subQuery.toString());
+			
+			System.out.println("SubQuery : "+subQuery);
 
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
 
