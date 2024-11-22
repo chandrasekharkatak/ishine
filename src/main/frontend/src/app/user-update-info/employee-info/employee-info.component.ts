@@ -837,7 +837,7 @@ export class EmployeeInfoComponent implements OnInit{
     this.employeeObj.bankAccountNo = this.employeeObj.bankAccountNo?.trim();
     this.employeeObj.bankIFSCCode = this.employeeObj.bankIFSCCode?.trim();
     this.employeeObj.esicNumber = this.employeeObj.esicNumber?.trim();
-
+    this.employeeObj.isConsultant = this.employeeObj.isConsultant.trim();
 
     this.employeeObj.previousEmploymentList?.forEach((x)=>{
       x.employerName = x.employerName?.trim();

@@ -898,7 +898,7 @@ public class DraftEmployeeService {
                     empDTO.setTotalExperience(object[64] !=null ? Float.parseFloat(object[64].toString()): null);
                     empDTO.setDateOfResign(object[65] != null ? format.format(format.parse(object[65].toString())) : null);
                     empDTO.setDateOfRelieving(object[66] != null ? format.format(format.parse(object[66].toString())) : null);
-                    
+                    empDTO.setIsConsultant(object[67] != null ? object[67].toString() : null);
 //					if (object[42] != null) {
 //
 //						File actualFile = new File(
@@ -969,7 +969,7 @@ public class DraftEmployeeService {
 						dto.setHrName(pervEmploy.getHrName());
 						dto.setHrContactNumber(pervEmploy.getHrContactNumber());
 						dto.setDesignation(pervEmploy.getDesignation());
-
+						
 						previousEmploymentDTOList.add(dto);
 					}
 					empDTO.setPreviousEmploymentList(previousEmploymentDTOList);

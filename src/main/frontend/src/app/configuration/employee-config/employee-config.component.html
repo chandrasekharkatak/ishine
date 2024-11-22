@@ -27,12 +27,24 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Is Employee a Consultant</label>
+                                                <select class="form-control" [(ngModel)]="employeeObj.isConsultant" >
+                                                    <option value="" disabled selected>Select</option>
+                                                    <option value='true'>Yes</option>
+                                                    <option value='false'>No</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Emp Id</label>
                                                 <!-- <input type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8" autocomplete="none"
                                                 [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)"> -->
-                                                <input *ngIf="!isUpdation" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8" autocomplete="none"
+                                                <input *ngIf="!isUpdation" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="11"  autocomplete="none"
                                                 [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">
-                                                <input *ngIf="isUpdation" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8" autocomplete="none"
+                                                <input *ngIf="isUpdation" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="11"  autocomplete="none"
                                                 [(ngModel)]="employeeObj.employeementId" readonly>
                                             </div>
                                         </div>

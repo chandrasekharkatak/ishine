@@ -129,4 +129,6 @@ public class DraftEmployee {
 	
 	@JsonFormat(pattern = "dd/MM/yyyy")
 	private String dateOfRelieving;
+	
+	private String isConsultant;
 }

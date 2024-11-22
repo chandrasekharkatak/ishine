@@ -110,7 +110,7 @@ public class EmployeeOnBoardingService {
 						empDto.setDateOfJoining(empObj.getDateOfJoining().toString());
 						empDto.setEmail(empObj.getEmail());
 						empDto.setEmployeementId(empObj.getEmployeementId());
-						
+						empDto.setIsConsultant(empObj.getIsConsultant());
 						employeeDataList.add(empDto);
 					});
 					

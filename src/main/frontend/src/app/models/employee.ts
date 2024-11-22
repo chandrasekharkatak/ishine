@@ -187,4 +187,5 @@ export class Employee{
 	managerNameForReward: any;
 	managerIdForReward: any;
 	rewardId: any;
+	isConsultant: any;
 }

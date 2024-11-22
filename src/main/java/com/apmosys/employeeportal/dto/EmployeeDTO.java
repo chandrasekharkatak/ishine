@@ -235,4 +235,6 @@ public class EmployeeDTO {
 	private String reportiesFlag;
     
 	private LocalDate employeeConfirmationDate;
+	
+	private String isConsultant;
 }

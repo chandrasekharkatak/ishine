@@ -374,7 +374,7 @@ public class EmployeeController {
 	@RequestMapping(value = "/getProjectsByDepartmentName", method = RequestMethod.POST)
 	public ServiceResponse getProjectsByDepartmentName(@RequestBody EmployeeDTO employeedto) {
 
-		System.out.println(" DepartmentName  getProjectsByDepartmentName "+employeedto.getDepartmentName());
+//		System.out.println(" DepartmentName  getProjectsByDepartmentName "+employeedto.getDepartmentName());
 		ServiceResponse response = employeeService.getProjectsByDepartmentName(employeedto);
 		return response;
 	}
@@ -400,7 +400,7 @@ public class EmployeeController {
 	@RequestMapping(value = "/getTeamMemberByTeamName", method = RequestMethod.POST)
 	public ServiceResponse getTeamMemberByTeamName(@RequestBody EmployeeDTO employeeDto) {
 
-		System.out.println(" projectName  getTeamByProjectName "+employeeDto.getTeamName());
+//		System.out.println(" projectName  getTeamByProjectName "+employeeDto.getTeamName());
 		ServiceResponse response = employeeService.getTeamMemberByTeamName(employeeDto);
 		return response;
 	}

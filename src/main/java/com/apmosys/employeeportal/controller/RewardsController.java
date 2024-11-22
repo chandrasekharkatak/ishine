@@ -92,7 +92,7 @@ public class RewardsController {
 	@PostMapping("/getAllActiveTeams")
 	public ServiceResponse getAllActiveTeams(@RequestBody RewardConfigurationDTO rewardConfigurationDTO) {
     ServiceResponse serviceResponse = new ServiceResponse();
-    System.out.println("Received request with isTeam: " + rewardConfigurationDTO.getIsTeam());
+//    System.out.println("Received request with isTeam: " + rewardConfigurationDTO.getIsTeam());
 		serviceResponse = rewardsService.getAllActiveTeams(rewardConfigurationDTO);
 		return serviceResponse;
 	}

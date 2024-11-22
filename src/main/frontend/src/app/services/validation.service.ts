@@ -455,10 +455,26 @@ export class ValidationService {
 
   }
 
-  validateEmployeementId(text: any): boolean {
-    const regex = /^[1-9]\d{3,6}$/;
+  // validateEmployeementId(text: any): boolean {
+  //   const regex = /^[1-9]\d{3,6}$/;
+  //   if (text !== "" || text !== undefined || text !== null) {
+  //     if (regex.test(text)) {
+  //       return true;
+  //     }
+  //     else {
+  //       return false;
+  //     }
+  //   }
+  //   else {
+  //     return false;
+  //   }
+  // }
+
+ validateEmployeementId(text: any): boolean {
+    const regex = /^A-(CS-)?\d{6}$/;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
+        console.log("validateEmployeementId() text:", text, "isValid:", true);
         return true;
       }
       else {
@@ -469,22 +485,6 @@ export class ValidationService {
       return false;
     }
   }
-
-//  validateEmployeementId(text: any): boolean {
-//     const regex = /^A-(CS-)?\d{6}$/;
-//     if (text !== "" || text !== undefined || text !== null) {
-//       if (regex.test(text)) {
-//         console.log("validateEmployeementId() text:", text, "isValid:", true);
-//         return true;
-//       }
-//       else {
-//         return false;
-//       }
-//     }
-//     else {
-//       return false;
-//     }
-//   }
 
 
   validateYear(text: any): boolean {

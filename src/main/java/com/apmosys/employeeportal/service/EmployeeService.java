@@ -445,7 +445,8 @@ public class EmployeeService {
 			employee.setBillableType(employeedto.getBillableType());
 			employee.setIsTimesheetLockCheckEnable("true");
 			employee.setDesignationId(employeedto.getDesignationId());
-
+			employee.setIsConsultant(employeedto.getIsConsultant());
+			
 			employee.setReportingManagerId(employeedto.getReportingManagerId());
 			if(employeedto.getReportingManagerId() == null) {
 				employee.setApprovalsTo(null);
@@ -1028,6 +1029,7 @@ public class EmployeeService {
 					empDTO.setDesignationName(object[68] != null ? object[68].toString() : null);
 					empDTO.setEmploymentReleaseStatus(object[69] != null ? object[69].toString() : null);
 					empDTO.setBillableType(object[70] != null ? object[70].toString() : null);
+					empDTO.setIsConsultant(object[71] != null ? object[71].toString() : null);
 					if (object[42] != null) {
 
 						File actualFile = new File(
@@ -2089,6 +2091,8 @@ public class EmployeeService {
 				employee.setRole(employeedto.getRole());
 				employee.setWorkLocation(employeedto.getWorkLocation());
 				employee.setProbationPeriod(employeedto.getProbationPeriod());
+				employee.setIsConsultant(employeedto.getIsConsultant());
+				
 //				System.out.println("Employee 1 : " + employee);
 			 if(employeedto.getReportiesFlag().equals("Yes") && employeedto.getUpdateType().equals("automatic")){
 					for(Employee emp : listOfReporties) {
@@ -2599,7 +2603,8 @@ public class EmployeeService {
 					empDTO.setProjectName(object[72] != null ? object[72].toString() : null);
 					empDTO.setClientName(object[73] != null ? object[73].toString() : null);
 					empDTO.setTeamName(object[74] != null ? object[74].toString() : null);
-					empDTO.setDesignationName(object[75] != null ? object[75].toString() : null);	
+					empDTO.setDesignationName(object[75] != null ? object[75].toString() : null);
+					empDTO.setIsConsultant(object[76] != null ? object[76].toString() : null);	
 				
 					ServiceResponse completionResponse = getEmployeeProfileCompletion(empDTO);
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();

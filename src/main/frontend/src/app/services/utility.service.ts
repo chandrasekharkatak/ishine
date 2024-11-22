@@ -12,12 +12,18 @@ export class UtilityService {
 
   constructor(private http: HttpClient) { }
 
-  appendEmployeementid(emp): string {
-    return "A-".concat(emp);
+  appendEmployeementid(isConsultant,emp): string {
+    if(isConsultant == "true")
+      return "A-CS-".concat(emp);
+    else
+      return "A-".concat(emp);
   }
 
-  substringEmployeementid(emp): string {
-    if (emp.startsWith("A-")) {
+  substringEmployeementid(isConsultant,emp): string {
+    if(emp.startsWith("A-CS-")){
+      return emp.substring(5);
+    }
+    else if (emp.startsWith("A-")) {
       return emp.substring(2);
     }
     else {
@@ -26,8 +32,11 @@ export class UtilityService {
     }
   }
 
-  substringEmployeementid2(employeementId): string {
-    if (employeementId.startsWith("A-")) {
+  substringEmployeementid2(isConsultant,employeementId): string {
+    if(employeementId.startsWith("A-CS-")){
+      return employeementId.substring(5);
+    }
+    else if (employeementId.startsWith("A-")) {
       return employeementId.substring(2);
     }
     else {

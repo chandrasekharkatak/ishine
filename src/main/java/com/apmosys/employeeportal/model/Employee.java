@@ -180,5 +180,7 @@ public class Employee {
 	
 	@Column(name = "employee_confirmation_date")
     private LocalDate employeeConfirmationDate;
+	
+	private String isConsultant;
 
 }
