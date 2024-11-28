@@ -130,7 +130,7 @@ export class ReportDashboardComponent implements OnInit {
   timesheetSummaryColumns:any[] = ['Employee Id','Full Name','Department','Date','Day Type','Status','Total Working Hour','Team Name','Project Name','Client Name','From Date','To Date','Created On','Updated On','Updated By'];
   
   employeeColumns:any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager','Team Name','Project Name','Client Name', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Experience'];
-  employeeSummaryColumns:any[] = ['blank','employeementId','name','experience','departmentName','email','managerName','billable','billableType','projectName','clientName','dateOfJoining','mobileNo','employmentstatus','totalExperience','currentExperienceYear','gender','workLocation','age','profileKycStatus'];
+  employeeSummaryColumns:any[] = ['blank','employeementId','name','experience','departmentName','email','managerName','billable','billableType','projectName','clientName','dateOfJoining','mobileNo','employmentstatus','totalExperience','gender','workLocation','age','profileKycStatus'];
   workLocationSummaryColumns:any[]=['blank','employeementId','employeeName','projectName','clientName','teamName','clientLocation','date'];
   LeaveTrendAnalysisGraphColumns:any[]=['blank','employeementId','employeeName','departmentName','fromDate','toDate','fromDateDayType','toDateDayType','status'];
   leaveSummaryTableColumns:any[] =['blank','employeementId','employeeName','departmentName','fromDate','toDate','fromDateDayType','toDateDayType','status'];
@@ -729,12 +729,12 @@ options:any;
       if (response.serviceStatus === "Success") {
         this.employeeWorkLocationList = response.serviceResponse;
         this.employeeWorkLocationList.forEach(data =>{
-          // data.employeementId = "A-".concat(data.employeementId)
-          if(data.isConsultant == 'true'){
-            data.employeementId = "A-CS-".concat(data.employeementId)
-          }else {
-            data.employeementId = "A-".concat(data.employeementId)
-          }
+          data.employeementId = "A-".concat(data.employeementId)
+          // if(data.isConsultant == 'true'){
+          //   data.employeementId = "A-CS-".concat(data.employeementId)
+          // }else {
+          //   data.employeementId = "A-".concat(data.employeementId)
+          // }
         })
         console.log("Initial employeeWorkLocationList: ", this.employeeWorkLocationList);
 
@@ -2399,8 +2399,8 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
   exportToExcelEmployeeSummary():void {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
-        // "Emp ID": x.employeementId,
-        "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        "Emp ID": x.employeementId,
+        // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
         "Name":x.name,
         "Department Name": x.departmentName,
         "Experience" : x.experience,
@@ -2483,8 +2483,8 @@ exportGlobalData():void{
   exportToExcelResignedEmployee():void {
     const onlySpecificDataArr = this.allResignEmployee.map(
       x => ({
-        // "Emp ID": x.employeementId,
-        "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        "Emp ID": x.employeementId,
+        // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
         "Employee Name":x.name,
         "Department":x.departmentName,
         "Date Of Resign":(x.dateOfResign)? moment(x.dateOfResign).format(AppComponent.DATE_FORMAT) : null,
@@ -2589,7 +2589,7 @@ exportGlobalData():void{
       this.page=1;
       this.modalTitle = legendName + " Timesheet Summary";
       this.modalSummaryList = modalTableList.filter(x => x.legend == legendName);
-      //console.log(this.modalSummaryList, "this.modalSummaryListttttttttttttt")
+      console.log(this.modalSummaryList, "this.modalSummaryListttttttttttttt")
       	//console.log(this.countByLegend);
       this.modalSummaryList.forEach(x=>{
         if(!this.countByLegend.find(employee => employee.employeementId == x.employeementId)){
@@ -2602,13 +2602,15 @@ exportGlobalData():void{
             managerName : x.managerName,
             pendingEodCount : x.pendingEodCount,
             legend : x.legend,
+            isConsultant : x.isConsultant,
             count : this.modalSummaryList.filter(y => y.employeementId == x.employeementId).length
           });
         }
       });
-      //console.log(this.countByLegend,"Data");
+      // console.log(this.countByLegend,"Data");
       this.modalSummaryList = this.countByLegend;
-
+  
+      console.log(this.modalSummaryList, "this.checked")
       this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
       if(legendName == 'Pending By User'){
         this.isPendingByUser = true;
@@ -2676,11 +2678,7 @@ exportGlobalData():void{
     this.modalTitle = title;
     
     if(title == 'All Active Employee'){
-
-      console.log("checked-====",this.modalSummaryList)
-
       this.modalSummaryList = modalTableList.filter(x => x.employmentstatus != "InActive");
-      console.log("checked-====",this.modalSummaryList)
       // this.modalSummaryList.forEach(obj =>{
        
       //   if(obj.profileCompletedPercent < checkKyc){

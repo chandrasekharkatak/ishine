@@ -36,29 +36,23 @@
                                             </div>
                                         </div>
                                     </div>
-
-
-                                   
-                                    
-                                      
-
-
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Emp Id</label>
                                                 <!-- <input type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8" autocomplete="none"
                                                 [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)"> -->
-                                                <input *ngIf="!isUpdation" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="11"  autocomplete="none"
+                                                <input *ngIf="!isUpdation && employeeObj.isConsultant == 'true'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
                                                 [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">
-                                                <input *ngIf="isUpdation" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="11"  autocomplete="none"
-                                                        [(ngModel)]="employeeObj.employeementId" readonly>
+                                                <input *ngIf="!isUpdation && employeeObj.isConsultant == 'false'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
+                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">
+                                                <input *ngIf="isUpdation && employeeObj.isConsultant == 'true'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
+                                                [(ngModel)]="employeeObj.employeementId" readonly>
+                                                <input *ngIf="isUpdation && employeeObj.isConsultant == 'false'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
+                                                [(ngModel)]="employeeObj.employeementId" readonly>
                                             </div>
                                         </div>
                                     </div>
-
-
-
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
@@ -71,8 +65,6 @@
                                             </div>
                                         </div>
                                     </div>
-
-
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
@@ -891,7 +883,7 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Billable Type</label>
-                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.billableType" (change)="onBillablechange()" >
+                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.billableType">
                                                     <option selected="selected" value="" disabled>Select</option>
                                                     <option value="Bench">Bench</option>
                                                     <option value="Fixed Cost">Fixed Cost</option>
@@ -1116,7 +1108,7 @@
                     <button *ngIf="(isCreation && userMapping.create_employee) || (isDraft && userMapping.save_draft)" type="submit" class="btn btn-primary btn-sm mx-1"
                     (click)="onCreateEmployee(alert_message)">Create Employee</button>
                     <button *ngIf="isUpdation && userMapping.update_employee" type="submit" class="btn btn-primary btn-sm mx-1"
-                    (click)="onUpdateEmployee(alert_message)">Update Employee</button> 
+                    (click)="onUpdateEmployee(alert_message)">Update Employee</button>
                 </div>
             </div>
           </div>
@@ -1513,7 +1505,7 @@
                                             <div class="info-wrapper">
                                                 <p class="info-label">Employee Id</p>
                                                 <p class="info-text info-highlight">
-                                                    A-{{previewObj.employeementId}}</p>
+                                                    {{ previewObj.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{previewObj.employeementId}}</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">
@@ -2018,7 +2010,7 @@
                                             <div class="info-wrapper">
                                                 <p class="info-label">Employee Id</p>
                                                 <p class="info-text info-highlight">
-                                                    A-{{previewEmployeeObj.employeementId}}</p>
+                                                    {{ previewEmployeeObj.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{previewEmployeeObj.employeementId}}</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">

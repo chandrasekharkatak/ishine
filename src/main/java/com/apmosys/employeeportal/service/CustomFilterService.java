@@ -1328,10 +1328,10 @@ public class CustomFilterService {
 						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = et.emp_id \n"
 						+ "LEFT JOIN teams t on t.team_id = etm.team_id \n"
 						+ "LEFT JOIN projects p on p.project_id = t.project_id \n"
-						+ "LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id where "
-						+ customQuery 
+						+ "LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id where \n"
+						+ customQuery ;
 //						+ "AND etm.active != 0 AND t.is_active != 'N' AND pr.active != 'false' "
-						+ "GROUP BY e1.employeement_id, et.date";
+//						+ "GROUP BY e1.employeement_id, et.date";
 
 				Query query = session.createSQLQuery(q);
 				return query.getResultList();

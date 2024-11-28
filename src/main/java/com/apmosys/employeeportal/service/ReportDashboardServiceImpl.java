@@ -150,7 +150,7 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 					dto.setPendingEodCount(8L);
 					dto.setLegend("Pending By User");
 					dto.setEmploymentstatus(employee[17] != null ? employee[17].toString() : null);
-
+					dto.setIsConsultant(employee[76] != null? employee[76].toString() : null);
 					timesheetList.forEach((timesheet) -> {
 
 						Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
@@ -302,6 +302,7 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 				Long empId = empObj[0] != null ? Long.parseLong(empObj[0].toString()) : null;
 				Long employeementId = empObj[3] != null ? Long.parseLong(empObj[3].toString()) : null;
 				
+				
 //				System.out.println("Emp ID :" + empId);
 				
 				List<Timesheet> monthlyTimesheet = timesheetsRepository.
@@ -387,6 +388,7 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 				dto.setExperience(object[20] != null ? object[20].toString() : null);
 				dto.setEmpId(object[21] != null ? Long.parseLong(object[21].toString()) : null);
 				dto.setTeamName(object[22] != null ? object[22].toString() : null);
+				dto.setIsConsultant(object[23] != null ? object[23].toString() : null);
 //				ServiceResponse completionResponse = profileCompletionReport(dto);
 //				EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
 //				

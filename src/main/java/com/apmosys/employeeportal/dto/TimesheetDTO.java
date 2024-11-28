@@ -90,4 +90,5 @@ public class TimesheetDTO {
 	
 	private String leaveType;
 	private List<ActivityDTO> inactiveTimesheetActivities;
+	private String isConsultant;
 }

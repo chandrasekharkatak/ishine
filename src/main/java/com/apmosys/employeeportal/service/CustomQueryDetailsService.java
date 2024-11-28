@@ -208,141 +208,6 @@ public class CustomQueryDetailsService {
 	    return response;
 	}
 	
-//	public ServiceResponse bulkUpload(MultipartFile file) throws EncryptedDocumentException, InvalidFormatException {
-//	    ServiceResponse response = new ServiceResponse();
-//	    List<Long> inactiveEmployees = new ArrayList<>();
-//	    List<String> errorMessages = new ArrayList<>();
-//
-//	    try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
-//	        Sheet sheet = workbook.getSheetAt(0);
-//	        Iterator<Row> rows = sheet.iterator();
-//
-//	        
-//	        Row headerRow = rows.next();
-//	        Set<String> availableColumns = new HashSet<>(Arrays.asList("Employee Id", "Billable", "Billable Type", "Gender", "Manager Name", "Designation Name"));
-//
-//	        
-//	       
-//	        Map<String, Integer> columnIndexMap = new HashMap<>();
-//	        for (Cell cell : headerRow) {
-//	            String headerName = cell.getStringCellValue().trim();
-//	            if (availableColumns.contains(headerName)) {
-//	                columnIndexMap.put(headerName, cell.getColumnIndex());
-//	            }
-//	        }
-//
-//	        
-//	        int rowNum = 1;
-//	        while (rows.hasNext()) {
-//	            Row currentRow = rows.next();
-//	            rowNum++;
-//
-//	            Long employeeId = null;
-//	            try {
-//	                employeeId = (long) currentRow.getCell(columnIndexMap.get("Employee Id")).getNumericCellValue();
-//	            } catch (Exception e) {
-//	                errorMessages.add("Row " + rowNum + ": Invalid EmployeeId.");
-//	                continue;
-//	            }
-//
-//	            Optional<Employee> optionalEmployee = Optional.ofNullable(employeeRepository.findByEmployeementId(employeeId));
-//	            if (!optionalEmployee.isPresent()) {
-//	                errorMessages.add("Row " + rowNum + ": Employee with ID '" + employeeId + "' not found.");
-//	                continue;
-//	            }
-//
-//	            Employee employee = optionalEmployee.get();
-//
-//	            
-//	            if ("InActive".equalsIgnoreCase(employee.getEmploymentstatus())) {
-//	                inactiveEmployees.add(employeeId);
-//	                continue;  
-//	            }
-//
-//	            
-//	            if (columnIndexMap.containsKey("Billable")) {
-//	                String billable = currentRow.getCell(columnIndexMap.get("Billable")).getStringCellValue();
-//	                employee.setBillable(billable);
-//	            }
-//	            if (columnIndexMap.containsKey("Billable Type")) {
-//	                String billableType = currentRow.getCell(columnIndexMap.get("BillableType")).getStringCellValue();
-//	                employee.setBillableType(billableType);
-//	            }
-//	            if (columnIndexMap.containsKey("Gender")) {
-//	                String gender = currentRow.getCell(columnIndexMap.get("Gender")).getStringCellValue();
-//	                employee.setGender(gender);
-//	            }
-//	            if (columnIndexMap.containsKey("Manager Name")) {
-//	                String managerName = currentRow.getCell(columnIndexMap.get("ManagerName")).getStringCellValue().trim().toLowerCase();
-//	                Optional<Employee> findManager = Optional.ofNullable(employeeRepository.findByNameIgnoreCase(managerName));
-//	                if (findManager.isPresent()) {
-//	                    employee.setManagerId(findManager.get().getEmpId());
-//	                } else {
-//	                    errorMessages.add("Row " + rowNum + ": Manager '" + managerName + "' not found.");
-//	                }
-//	            }
-//	            if (columnIndexMap.containsKey("Designation Name")) {
-//	                String designationName = currentRow.getCell(columnIndexMap.get("DesignationName")).getStringCellValue().trim().toLowerCase();
-//	                
-//	                Optional<Designation> findDesignation = Optional.ofNullable(designationRepository.findByDesignationNameIgnoreCase(designationName));
-//	                if (!findDesignation.isPresent()) {
-//	                    errorMessages.add("Row " + rowNum + ": Designation '" + designationName + "' not found.");
-//	                    continue;
-//	                }
-//
-//	                Designation designation = findDesignation.get();
-//
-//	                
-//	                Long jobRoleId = employee.getJobRoleId(); 
-//	                Optional<JobRole> jobRole = jobRoleRepository.findById(jobRoleId); 
-//	                if (!jobRole.isPresent()) {
-//	                    errorMessages.add("Row " + rowNum + ": Job role for employee ID '" + employeeId + "' not found.");
-//	                    continue;
-//	                }
-//
-//	                Long employeeDeptId = jobRole.get().getDeptId(); 
-//
-//	                
-//	                List<Long> deptIdListForDesignation = designationDepartmentMapRepository
-//	                    .findDeptIdsByDesignationId(designation.getDesignationId());
-//
-//	                
-//	                if (!deptIdListForDesignation.contains(employeeDeptId)) {
-//	                    errorMessages.add("Row " + rowNum + ": Employee ID '" + employeeId + "' with department ID '" + employeeDeptId + 
-//	                                      "' does not belong to the valid departments mapped to designation '" + designationName + "'.");
-//	                    continue;
-//	                }
-//
-//	                
-//	                employee.setDesignationId(designation.getDesignationId());
-//	            }
-//
-//	            employeeRepository.save(employee);  
-//	        }
-//
-//	        if (!inactiveEmployees.isEmpty()) {
-//	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//	            response.setServiceResponse("Inactive employees found: " + inactiveEmployees.toString());
-//	            return response;
-//	        }
-//
-//	        if (!errorMessages.isEmpty()) {
-//	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//	            response.setServiceResponse(String.join(", ", errorMessages));
-//	        } else {
-//	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//	            response.setServiceResponse("File uploaded and processed successfully.");
-//	        }
-//
-//	    } catch (IOException e) {
-//	        e.printStackTrace();
-//	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-//	        response.setServiceResponse("Something went wrong.");
-//	    }
-//
-//	    return response;
-//	}
-
 	public ServiceResponse bulkUpload(MultipartFile file) throws EncryptedDocumentException, InvalidFormatException {
 	    ServiceResponse response = new ServiceResponse();
 	    List<Long> inactiveEmployees = new ArrayList<>();
@@ -351,14 +216,10 @@ public class CustomQueryDetailsService {
 	    try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
 	        Sheet sheet = workbook.getSheetAt(0);
 	        Iterator<Row> rows = sheet.iterator();
-	        
-	        
 
-	        // Skip the header row
 	        Row headerRow = rows.next();
 	        Set<String> availableColumns = new HashSet<>(Arrays.asList("Employee Id", "Billable", "Billable Type", "Gender", "Manager Name", "Designation Name"));
 
-	        // Map header names to column indices
 	        Map<String, Integer> columnIndexMap = new HashMap<>();
 	        for (Cell cell : headerRow) {
 	            String headerName = cell.getStringCellValue().trim();

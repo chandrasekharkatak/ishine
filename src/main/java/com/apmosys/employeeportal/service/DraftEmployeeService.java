@@ -155,6 +155,7 @@ public class DraftEmployeeService {
 			employee.setApprovalsTo(employeedto.getApprovalsTo());
 			employee.setDesignationId(employeedto.getDesignationId());
 			employee.setProbationPeriod(employeedto.getProbationPeriod());
+			employee.setIsConsultant(employeedto.getIsConsultant());
 			if(employee.getEmploymentstatus().equals("Resigned") || employee.getEmploymentstatus().equals("InActive") )  {
 				employee.setDateOfResign(employeedto.getDateOfResign() != null
 						? stringToDateTimeParser.getDate(employeedto.getDateOfResign(), "yyyy-MM-dd")
@@ -785,6 +786,7 @@ public class DraftEmployeeService {
 					empDTO.setUpdateApplicationStatus(object[6] != null ? object[6].toString() : null);
 					empDTO.setManagerName(object[7] != null ? object[7].toString() : null);
 					empDTO.setDepartmentName(object[8] != null ? object[8].toString() : null);
+					empDTO.setIsConsultant(object[9] != null ? object[9].toString() : null);
 					dtoList.add(empDTO);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1168,6 +1170,7 @@ public class DraftEmployeeService {
 				employee.setBillable(employeedto.getBillable());
 				employee.setAboutMe(employeedto.getAboutMe());
 				employee.setViewsOnOrganisation(employeedto.getViewsOnOrganisation());
+				employee.setIsConsultant(employeedto.getIsConsultant());
 				// Update employee
 				Employee updatedEmployee = employeeRepository.save(employee);
 
