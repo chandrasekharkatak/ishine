@@ -80,7 +80,7 @@
                             <div class="d-flex">
                                 <input class="form-control" #input (focus)="timesheetDate.open()" matInput
                                     id="timesheetDate" [matDatepicker]="timesheetDate"
-                                    [matDatepickerFilter]="timesheetDateFilter" placeholder="Choose a timesheet date"
+                                    [matDatepickerFilter]="(timesheetObj.dayType === 'Week Off' || timesheetObj.dayType === 'Public Holiday') ? customDateFilter : timesheetDateFilter" placeholder="Choose a timesheet date"
                                     [(ngModel)]="timesheetObj.date" (keydown)="disableMannualDateInput()"
                                     autocomplete="off">
                                 <mat-datepicker-toggle matSuffix [for]="timesheetDate" style="margin-left: -44px; margin-top: 0px;"></mat-datepicker-toggle>
@@ -103,10 +103,7 @@
             </div>
             <!-- IN/OUT Time-->
             <div *ngIf="timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'" class="row">
-
-                <!--start by Priyadarshini Indira Singh -->
-
-                <!-- <div class="col-md-3 mb-0">
+                <div class="col-md-3 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group input-wrapper">
                             <label class="info-label"><span class="text-danger">*</span>In Time</label>
@@ -115,30 +112,9 @@
                             <owl-date-time class="picker" [hour12Timer]="true" #officeInTimePicker></owl-date-time>
                         </div>
                     </div>
-                </div> -->
+                </div>
                 <div class="col-md-3 mb-0">
                     <div class="info-wrapper">
-                        <div class="form-group input-wrapper">
-                            <label class="info-label"><span class="text-danger">*</span>In Time</label>
-                            <input id="officeInTime" 
-                                   class="form-control static-input" 
-                                   [(ngModel)]="timesheetObj.officeInTime" 
-                                   [owlDateTimeTrigger]="officeInTimePicker" 
-                                   [owlDateTime]="officeInTimePicker" 
-                                   [owlDateTimeFilter]="timesheetDateFilter"
-                                   (dateTimeChange)="resetTotalWorkingOfficeHours(alertTemplate)" 
-                                   (focus)="onFocusInTimePicker()"  
-                                   placeholder="Select In Time" 
-                                   autocomplete="off">
-                            <owl-date-time class="picker" [hour12Timer]="true" #officeInTimePicker></owl-date-time>
-                        </div>
-                    </div>
-                </div>                              
-            
-                 <!--end by Priyadarshini Indira Singh -->
-
-                <div class="col-md-3 mb-0">
-                    <div class="info-wrapper">  
                         <div class="form-group input-wrapper">
                             <label class="info-label"><span class="text-danger">*</span>Out Time</label>
                             <input id="officeOutTime" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.officeOutTime" [owlDateTimeTrigger]="officeOutTimePicker" [owlDateTime]="officeOutTimePicker"
@@ -147,7 +123,6 @@
                         </div>
                     </div>
                 </div>
-                
                 <div class="col-md-2 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
@@ -388,6 +363,7 @@
             <div class="col-md-12 table-header">
                 <h1 class="table-header-title">My Timesheets</h1>
             </div>
+
         </div>
         <div class="row">
             <div class="col-md-12">

@@ -6,8 +6,191 @@
     <div class="releaseNoteText" [innerHTML]="releaseNoteText"></div>
 </div>
 
+<!-- <div class="sticky-marquee" *ngIf="lines && lines.length > 0"> -->
+    <!-- <div class="scrolling-text">
+      <span *ngFor="let line of lines">
+        {{ line }}
+      </span>
+    </div> -->
+    <!-- <div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null" style="display: flex; justify-content: space-between; width: 100%; position: relative;"> -->
+
+        <!-- Left Side Marquee -->
+        <!-- <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
+            
+            direction="left" 
+            style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 60%; background-color: #193d8a; scrolldelay: 50; behavior: loop; 
+            position: absolute; left: 0;">
+            <span>
+                "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
+            </span>
+        </marquee> -->
+    
+        <!-- Right Side Marquee -->
+        <!-- <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
+            *ngIf="consentNotificationMessage != null"
+            direction="right" 
+            style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 33.5%; background-color: #193d8a; scrolldelay: 50; behavior: loop;
+            position: absolute; right: 0;">
+            <span>
+                {{consentNotificationMessage}}
+            </span>
+        </marquee> -->
+    
+    <!-- </div> -->
+
+
+    <!-- <div  *ngIf="(lines.billableType === 'Bench' && lines.dayOnbench != null) &&   (consentNotificationMessage != null) "  style="display: flex; justify-content: space-between; width: 100%;">
+
+       
+        <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
+            direction="left" 
+            style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 60%; background-color: #193d8a; scrolldelay: 50; behavior: loop;">
+            <span>
+                "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
+            </span>
+        </marquee>
+     
+       
+        <marquee  class="top-nav navbar navbar-expand sticky-top mb-2 pt-0" *ngIf="consentNotificationMessage != null" 
+            direction="right" 
+            style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 33.5%; background-color: #193d8a; scrolldelay: 50; behavior: loop;">
+            <span>
+                {{consentNotificationMessage}} 
+            </span>
+        </marquee>
+    
+    </div>
+       -->
+
+
+
+<!-- First Div: Both conditions are true -->
+<div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null && consentNotificationMessage != null" 
+    style="display: flex; justify-content: space-between; width: 100%;">
+
+    <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
+        direction="left" 
+        style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 60%; background-color: #193d8a; scrolldelay: 50; behavior: loop;">
+        <span>
+            "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
+        </span>
+    </marquee>
+    
+    <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-0" *ngIf="consentNotificationMessage != null" 
+        direction="right" 
+        style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 33.5%; background-color: #193d8a; scrolldelay: 50; behavior: loop;">
+        <span>
+            {{consentNotificationMessage}} 
+        </span>
+    </marquee>
+
+</div>
+
+<!-- Second Div: Only lines.billableType === 'Bench' && lines.dayOnbench != null is true -->
+<div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null && consentNotificationMessage == null" 
+    style="display: flex; justify-content: space-between; width: 100%; position: relative;">
+    
+    <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
+        direction="left" 
+        style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 60%; background-color: #193d8a; scrolldelay: 50; behavior: loop; position: absolute; left: 0;">
+        <span>
+            "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
+        </span>
+    </marquee>
+    
+</div>
+
+<!-- Third Div: Only consentNotificationMessage != null is true -->
+<div *ngIf="consentNotificationMessage != null && (lines.billableType !== 'Bench' || lines.dayOnbench == null)" 
+    style="display: flex; justify-content: space-between; width: 100%; position: relative;">
+    
+    <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
+        direction="left" 
+        style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 60%; background-color: #193d8a; scrolldelay: 50; behavior: loop; position: absolute; left: 0;">
+        <span>
+            {{consentNotificationMessage}}
+        </span>
+    </marquee>
+    
+</div>
+
+
+
+
+    <!-- <div style="display: flex; justify-content: space-between; width: 100%; position: relative;">
+
+        <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
+            *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null"
+            direction="left" 
+            style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 60%; background-color: #193d8a; scrolldelay: 50; behavior: loop; 
+            position: absolute; left: 0;">
+            <span>
+                "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
+            </span>
+        </marquee>
+    
+        <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
+            *ngIf="consentNotificationMessage != null"
+            direction="right" 
+            style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 33.5%; background-color: #193d8a; scrolldelay: 50; behavior: loop;
+            position: absolute; right: 0;">
+            <span>
+                {{consentNotificationMessage}}
+            </span>
+        </marquee>
+    
+    </div>
+ -->
+
+
+
+
+    <!-- <div style="display: flex; justify-content: space-between; width: 100%; position: relative;">
+
+      
+        <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
+            *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null"
+            direction="left" 
+            style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 60%; background-color: #193d8a; scrolldelay: 50; behavior: loop; 
+            position: absolute; left: 0;">
+            <span>
+                "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
+            </span>
+        </marquee>
+    
+       
+        <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
+            *ngIf="consentNotificationMessage != null"
+            direction="left" 
+            style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 60%; background-color: #193d8a; scrolldelay: 50; behavior: loop; 
+            position: absolute; left: 0;">
+            <span>
+                {{consentNotificationMessage}}
+            </span>
+        </marquee>
+    
+    </div> -->
+    
+    
+
+
+
+
+  
+
+
+
+
+    
+    
+
+  <!-- </div> -->
+  
 <div class="home-container">
     <div class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" *ngIf="currentUser">
+
+     
+
         <ul class="navbar-nav">
             <li class="nav-item pt-1 mr-2">
                 <small class="nav-text">Profile Completed</small>
@@ -207,7 +390,7 @@
                             <td>{{timesheet.status}}</td>
                             <td colspan="3">
                                 <div class="progress">
-                                    <div class="progress-bar" role="progressbar" [style.width]="timesheet.totalWorkingHoursPercentage" aria-valuemin="0" aria-valuemax="100">{{timesheet.totalWorkingHours}} hrs</div>
+                                    <div class="progress-bar" role="progressbar" [style.width]="timesheet.totalWorkingHoursPercentage" aria-valuemin="0" aria-valuemax="100" >{{timesheet.totalWorkingHours}} hrs</div>
                                   </div>
                             </td>
                           </tr>
@@ -863,7 +1046,7 @@
   </ng-template> -->
 
 
-  <ng-template #consent_notification_template>
+  <!-- <ng-template #consent_notification_template>
     <div class="modal-body">
         <div class="modal-header">
             <h5 class="modal-title">Notification</h5>
@@ -875,7 +1058,7 @@
             <button type="button" class="btn btn-success" (click)="submitNotificationConsent()">I agree</button>&nbsp;
           </div>
     </div>
-  </ng-template>
+  </ng-template> -->
 
 
   <ng-template #leave_success_method>

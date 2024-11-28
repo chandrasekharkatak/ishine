@@ -130,7 +130,7 @@ export class ReportDashboardComponent implements OnInit {
   timesheetSummaryColumns:any[] = ['Employee Id','Full Name','Department','Date','Day Type','Status','Total Working Hour','Team Name','Project Name','Client Name','From Date','To Date','Created On','Updated On','Updated By'];
   
   employeeColumns:any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager','Team Name','Project Name','Client Name', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Experience'];
-  employeeSummaryColumns:any[] = ['blank','employeementId','name','experience','departmentName','email','managerName','billable','billableType','projectName','clientName','dateOfJoining','mobileNo','employmentstatus','totalExperience','gender','workLocation','age','profileKycStatus'];
+  employeeSummaryColumns:any[] = ['blank','employeementId','name','experience','departmentName','email','managerName','billable','billableType','projectName','clientName','dateOfJoining','mobileNo','employmentstatus','totalExperience','currentExperienceYear','gender','workLocation','age','profileKycStatus'];
   workLocationSummaryColumns:any[]=['blank','employeementId','employeeName','projectName','clientName','teamName','clientLocation','date'];
   LeaveTrendAnalysisGraphColumns:any[]=['blank','employeementId','employeeName','departmentName','fromDate','toDate','fromDateDayType','toDateDayType','status'];
   leaveSummaryTableColumns:any[] =['blank','employeementId','employeeName','departmentName','fromDate','toDate','fromDateDayType','toDateDayType','status'];
@@ -2676,7 +2676,11 @@ exportGlobalData():void{
     this.modalTitle = title;
     
     if(title == 'All Active Employee'){
+
+      console.log("checked-====",this.modalSummaryList)
+
       this.modalSummaryList = modalTableList.filter(x => x.employmentstatus != "InActive");
+      console.log("checked-====",this.modalSummaryList)
       // this.modalSummaryList.forEach(obj =>{
        
       //   if(obj.profileCompletedPercent < checkKyc){

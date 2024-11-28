@@ -36,6 +36,13 @@
                                             </div>
                                         </div>
                                     </div>
+
+
+                                   
+                                    
+                                      
+
+
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
@@ -45,10 +52,13 @@
                                                 <input *ngIf="!isUpdation" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="11"  autocomplete="none"
                                                 [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">
                                                 <input *ngIf="isUpdation" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="11"  autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" readonly>
+                                                        [(ngModel)]="employeeObj.employeementId" readonly>
                                             </div>
                                         </div>
                                     </div>
+
+
+
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
@@ -61,6 +71,8 @@
                                             </div>
                                         </div>
                                     </div>
+
+
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
@@ -879,7 +891,7 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Billable Type</label>
-                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.billableType">
+                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.billableType" (change)="onBillablechange()" >
                                                     <option selected="selected" value="" disabled>Select</option>
                                                     <option value="Bench">Bench</option>
                                                     <option value="Fixed Cost">Fixed Cost</option>
@@ -1104,7 +1116,7 @@
                     <button *ngIf="(isCreation && userMapping.create_employee) || (isDraft && userMapping.save_draft)" type="submit" class="btn btn-primary btn-sm mx-1"
                     (click)="onCreateEmployee(alert_message)">Create Employee</button>
                     <button *ngIf="isUpdation && userMapping.update_employee" type="submit" class="btn btn-primary btn-sm mx-1"
-                    (click)="onUpdateEmployee(alert_message)">Update Employee</button>
+                    (click)="onUpdateEmployee(alert_message)">Update Employee</button> 
                 </div>
             </div>
           </div>

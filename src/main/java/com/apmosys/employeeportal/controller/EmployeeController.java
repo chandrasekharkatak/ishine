@@ -433,4 +433,14 @@ public class EmployeeController {
 		return response;
 	}
 	
+	
+	
+	@RequestMapping(value = "/isEmployeeOnBench", method = RequestMethod.POST)
+	public ServiceResponse isEmployeeOnBench(@RequestBody EmployeeDTO employeeDto) {
+		ServiceResponse response = employeeService.isEmployeeOnBench(employeeDto);
+		return response;
+	}
+	
+	
+	
 }

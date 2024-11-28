@@ -36,6 +36,7 @@ import { RewardsServiceService } from '../services/rewards-service.service';
 })
 export class HomeComponent implements OnInit, AfterViewInit {
 
+  lines:any=[];
   data: string;
   //modal
   alertMessage: any;
@@ -217,6 +218,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
     }
     this.preventBackButton();
+    this.isEmployeeOnBench();
 
    console.log('User Mapping',this.userMapping);
   }
@@ -523,6 +525,21 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.timesheetObj = timesheet;
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
+
+
+
+  isEmployeeOnBench(){
+    let obj = new Employee();
+     obj.empId = this.currentUser.empId;
+     obj.billableType ='Bench';
+    this.employeeService.isEmployeeOnBench(obj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        let dtoResponse = response.serviceResponse;
+       this.lines=dtoResponse[0];
+      }
+    });
+  }
+
 
 
   /* View TImesheet details */
@@ -1890,7 +1907,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
     if (this.currentUser.notificationConsent != null || this.currentUser.notificationConsent != undefined) {
       this.consentNotificationMessage = this.currentUser.notificationConsent.notificationMessage;
-      this.modalRef = this.modalService.show(this.consentNotificationTemplate, this.consentModalConfig);
+      // this.modalRef = this.modalService.show(this.consentNotificationTemplate, this.consentModalConfig);
     }
   }
 

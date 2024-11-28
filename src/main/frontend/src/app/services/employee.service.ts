@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, Subject, throwError } from 'rxjs';
 import { Employee } from '../models/employee';
@@ -281,6 +281,16 @@ customQueryForDepartmentWiseBillableEmployeeReport(selectedIds: any): Observable
 getManagerByEmpId(empId: string) {
   return this.http.get(`/api/employee/${empId}/manager`);
 }
+
+
+
+
+
+isEmployeeOnBench(onbench: Employee) {
+  // const params = new HttpParams().set('empId', empId.toString());
+  return this.http.post(`${this.baseUrl}api/isEmployeeOnBench`, onbench);
+}
+
 
 
 }

@@ -123,6 +123,7 @@ public class Employee {
 	
 
 	private String isNew;
+	
 	private String secondaryEmail;
 	
 	@JsonFormat(pattern = "dd/MM/yyyy")
@@ -183,4 +184,5 @@ public class Employee {
 	
 	private String isConsultant;
 
+	private String onbenchDate;
 }

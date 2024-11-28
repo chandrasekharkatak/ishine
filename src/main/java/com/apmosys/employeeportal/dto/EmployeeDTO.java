@@ -237,4 +237,7 @@ public class EmployeeDTO {
 	private LocalDate employeeConfirmationDate;
 	
 	private String isConsultant;
+	private String currentExperienceYear;
+	private String dayOnbench;
+	private String onbenchDate;
 }

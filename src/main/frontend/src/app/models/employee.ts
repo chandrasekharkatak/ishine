@@ -188,4 +188,5 @@ export class Employee{
 	managerIdForReward: any;
 	rewardId: any;
 	isConsultant: any;
+	onbenchDate : any;
 }
