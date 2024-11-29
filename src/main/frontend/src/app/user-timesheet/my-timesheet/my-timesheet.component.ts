@@ -1,3 +1,4 @@
+import { state } from '@angular/animations';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
@@ -140,6 +141,7 @@ AllWeekOfList:any[]=[];
     this.timesheetObj.empId = this.currentUser.empId;
     this.timesheetObj.totalWorkingOfficeHours = '';
     this.getAllHolidays();
+    this.getAllHolidaysbystate();
     this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
     this.sectionViewInit();
     this.preventBackButton();
@@ -390,12 +392,69 @@ WeekOfListFilter:any[]=[];
 
 
 
+
+holidaystateObj:Holiday = new Holiday();
+holidaystateList:any[]=[];
+
+
+getAllHolidaysbystate() {
+
+  this.holidayList = [];
+
+  
+
+  this.holidaystateObj.state = this.currentUser.workLocation
+  this.holidayService.getAllHolidays(this.holidaystateObj).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      this.holidaystateList = response.serviceResponse;
+
+      console.log("holidays  state wize",this.holidaystateList);
+
+      this.filterHolidaystateListByYear(new Date().getFullYear());
+    } else {
+      console.error(response.serviceResponse);
+    }
+  });
+}
+
+
+
+
+filterHolidaystateListByYear(year: number): void {
+  this.holidayListFilter = this.holidaystateList.filter((holiday) => {
+    const holidayYear = new Date(holiday.dateOfHoliday).getFullYear();
+    return (
+      holidayYear === year &&
+      holiday.holidayType !== 'WeekOff' &&
+      holiday.holidayType !== 'nonWorking' &&
+      (holiday.state.toLowerCase() === this.currentUser.workLocation.toLowerCase() || holiday.state.toLowerCase() === 'all')
+    );
+  });
+
+
+
+  this.Allholidays = this.holidayListFilter.map((holiday) =>
+    holiday.dateOfHoliday 
+  );
+
+  
+}
+
+
+
+
+
 getAllHolidays() {
 
   this.holidayList = [];
+
+  
+
  this.holidayService.getAllHoliday().pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
       this.holidayList = response.serviceResponse;
+
+      console.log("holidaylist   ",  this.holidayList);
       this.filterHolidayListByYear(new Date().getFullYear());
     } else {
       console.error(response.serviceResponse);
@@ -408,15 +467,6 @@ getAllHolidays() {
 
 
 filterHolidayListByYear(year: number): void {
-  this.holidayListFilter = this.holidayList.filter((holiday) => {
-    const holidayYear = new Date(holiday.dateOfHoliday).getFullYear();
-    return (
-      holidayYear === year &&
-      holiday.holidayType !== 'WeekOff' &&
-      holiday.holidayType !== 'nonWorking' &&
-      (holiday.state === 'All' || holiday.state === 'all')
-    );
-  });
 
   this.WeekOfListFilter =  this.holidayList.filter((holiday) => {
     const holidayYear = new Date(holiday.dateOfHoliday).getFullYear();
@@ -426,12 +476,6 @@ filterHolidayListByYear(year: number): void {
     );
   });
 
-
-
-
-  this.Allholidays = this.holidayListFilter.map((holiday) =>
-    holiday.dateOfHoliday 
-  );
 
   this.AllWeekOfList = this.WeekOfListFilter.map((holiday) =>
     holiday.dateOfHoliday 
@@ -507,6 +551,9 @@ console.log("date filter ",this.Allholidays);
 
   if (dayType === 'Public Holiday') {
     // Filter for Public Holidays
+
+    console.log("hodays ",this.Allholidays)
+
     return this.Allholidays
       .map(date => new Date(date))
       .filter(holidayDate => holidayDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date === this.datePipe.transform(holidayDate, 'yyyy-MM-dd')));
