@@ -659,19 +659,32 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr *ngFor="let userInfo of projectDetails |  colFilter:filters:false | paginate: { id: 'projectEmployeeDetailsId' , itemsPerPage: 10, currentPage: pageNo };let i = index">
+                    <tr *ngFor="let userInfo of projectDetails; let i = index">
+                        <th>{{ i + 1 }}</th>
+                        <td>{{ userInfo.projectName }}</td>
+                        <td>{{ userInfo.teamName }}</td>
+                        <td>{{ userInfo.clientName }}</td>
+                        <td>{{ userInfo.billableType }}</td>
+                        <td>{{ userInfo.startDate }}</td>
+                        <td>{{ userInfo.updatedOn }}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" (click)="deleteResourceModal(delete_modal_template,userInfo)"><em class="fa fa-trash"></em></button>
+                        </td>
+                      </tr>
+                      
+                    <!-- <tr *ngFor="let userInfo of projectDetails |  colFilter:filters:false | paginate: { id: 'projectEmployeeDetailsId' , itemsPerPage: 10, currentPage: pageNo };let i = index">
                         <th class="info-label">{{10*(pageNo-1)+i+1}}</th>
-                        <td>{{userInfo.projectName}}</td>
+                        <td>{{ userInfo.projectName || 'No Project Name' }}</td>
                         <td>{{userInfo.teamName}}</td>
                         <td>{{userInfo.clientName}}</td>
                         <td>{{userInfo.billableType}}</td>
                         <td>{{userInfo.startDate}}</td>
                         <td>{{userInfo.updatedOn}}</td>
-                        <td>
-                            <!-- <button class="btn btn-danger btn-sm" (click)="deleteResourceFromProject(alert_message,userInfo)"><em class="fa fa-trash"></em></button> -->
+                        <td>{{projectDetails}}
+             
                             <button class="btn btn-danger btn-sm" (click)="deleteResourceModal(delete_modal_template,userInfo)"><em class="fa fa-trash"></em></button>
                         </td>
-                    </tr>
+                    </tr> -->
                 </tbody>
                 <!-- <button class="btn btn-sm btn-outline-primary" (click)="closeProjectModal()">Close</button>  -->
             </table>

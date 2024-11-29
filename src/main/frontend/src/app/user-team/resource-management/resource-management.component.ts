@@ -1241,7 +1241,9 @@ export class ResourceManagementComponent implements OnInit {
     this.projectService.getExistingProjectsAndTeamsByEmployee(projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectDetails = response.serviceResponse;
+        console.log("this.projectDetails ", this.projectDetails);
 
+        console.log("Existing project detauls fetched for employee",this.projectDetails);
         if (this.projectDetails.length > 0) {
           if (this.projectDetails[0].billableType == "TNM") {
             this.openAlertMod(this.alertTemplate, "This Employee is already mapped to TNM project. Can't add to another project or Team !!");
@@ -1255,9 +1257,10 @@ export class ResourceManagementComponent implements OnInit {
           this.newteamMember.billableType = this.newMemberInProject;
         }
 
-
+        console.log("this.projectDetails ", this.projectDetails);
         console.log("this.getBillableType ", this.getBillableType);
         console.log(" newTeamMember   details   ", this.newteamMember)
+
 
       }
     })
