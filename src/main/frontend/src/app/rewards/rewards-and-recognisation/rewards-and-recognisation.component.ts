@@ -44,7 +44,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
   selectedTeamId: any;
   selectedIDdprimiryKey: any;
   @ViewChild('alert_message')
-  rewardHistoryList: any[] = [];
+  rewardHistoryList: any = [];
   isSearchEnabled: boolean = false;
   filters: any = {};
   isTeamRewardHistory: boolean = false;
@@ -352,6 +352,7 @@ setSelectedReward(reward: Rewards) {
           this.rewardHistoryList = response.serviceResponse;
 
         } else {
+          this.rewardHistoryList = [];
           console.error('No rewards data available');
         }
       },
@@ -361,30 +362,48 @@ setSelectedReward(reward: Rewards) {
     );
   }
 
-  exportToExcel() {
-    this.rewardsService.showAllEmployeeRewards().pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus === 'Success') {
-          this.rewardsDataForExcel = response.serviceResponse;
-          console.log("Reward History", response);
-        } 
-        const onlySpecificDataArr = this.rewardsDataForExcel.map(
-          x => ({
-            "Employee": x.rewardedToByName || 'N/A',
-            "Reward Type": x.rewardTypeName ? x.rewardTypeName : "null",
-            "Rewarded On": (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
-            "Manager Name": x.managerName || 'N/A',
-            "From Date": x.fromDate || 'N/A',
-            "To Date": x.toDate || 'N/A',
-            "Updated By": x.updatedByName || 'N/A',
-            "Updated On": (x.updatedOn) ? moment(x.updatedOn).format(AppComponent.DATETIME_FORMAT) : ' - ',
-            "Remarks": x.remark || 'N/A',
-          })
-        );
-        
-          this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
-        });
-      }
 
+  exportToExcelList: any[] = [];
+  exportToExcel() {
+    this.rewardsService.showAllEmployeeRewards().subscribe(
+      (response: any) => {
+        if (response.serviceStatus === 'Success') {
+          console.log("Reward exportToExcelList", response.serviceResponse);
+          this.exportToExcelList = response.serviceResponse;
+        } else {
+          this.exportToExcelList = [];
+          console.error('No rewards data available');
+        }
+      },
+      (error) => {
+        console.error('Error fetching rewards history:', error);
+      },
+      () => {
+        // Ensure the list is defined before mapping
+        if (Array.isArray(this.exportToExcelList)) {
+          const onlySpecificDataArr = this.exportToExcelList.map(
+            (x) => ({
+              "Employee": x.rewardedToByName || 'N/A',
+              "Reward Type": x.rewardTypeName ? x.rewardTypeName : "null",
+              "Rewarded On": (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
+              "Manager Name": x.managerName || 'N/A',
+              "From Date": x.fromDate || 'N/A',
+              "To Date": x.toDate || 'N/A',
+              "Updated By": x.updatedByName || 'N/A',
+              "Updated On": (x.updatedOn) ? moment(x.updatedOn).format(AppComponent.DATETIME_FORMAT) : ' - ',
+              "Remarks": x.remark || 'N/A',
+            })
+          );
+  
+          // Call the export function with the processed data
+          this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, 'Reward_History.xlsx');
+        } else {
+          console.error('exportToExcelList is not an array');
+        }
+      }
+    );
+  }
+  
   Approve(rewardId: any, template: TemplateRef<any>) {
     const obj = new Rewards();
     obj.isActive = 1;
