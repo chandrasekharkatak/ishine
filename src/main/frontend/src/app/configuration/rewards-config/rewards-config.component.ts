@@ -251,7 +251,9 @@ openForm(id:any,mode: string,template: TemplateRef<any> ) {
             categoryId: rewardData.categoryId,
             rewardTypes: rewardData.rewardTypes,
             isTeam: rewardData.isTeam,
-            id: rewardData.id
+            id: rewardData.id,
+            createdBy:rewardData.createdBy
+            
           };
           this.rewardTypes = [...rewardData.rewardTypes];
 
@@ -264,6 +266,8 @@ openForm(id:any,mode: string,template: TemplateRef<any> ) {
           }));
         }
       });
+
+     
   }
   else {
     this.resetForm();
@@ -285,7 +289,7 @@ openForm(id:any,mode: string,template: TemplateRef<any> ) {
       this.rewardsObj.categoryId = parseInt(this.rewardsObj.categoryId, 10);
       this.rewardsObj.rewardName = (<HTMLInputElement>document.querySelector('input[placeholder="Enter Sub Category name"]')).value;
       this.rewardsObj.rewardTypes = this.rewardTypes;
-      this.rewardsObj.createdBy = this.currentUser.empId;
+      // this.rewardsObj.createdBy = this.currentUser.empId;
       this.rewardsObj.customFilterDTOList = this.queryList.map(filter => {
         return {
           ...filter,

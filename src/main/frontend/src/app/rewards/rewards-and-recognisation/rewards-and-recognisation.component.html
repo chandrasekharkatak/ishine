@@ -56,22 +56,50 @@
 
     <div class="row mb-1">
         <div class="col-md-4 mt-3" style="padding-left: 3rem;">
+          <!-- Select Employee -->
           <div *ngIf="rewards.length > 0 && isTeam === 0">
             <label for="employeeSelect" class="d-block">Select Employee:</label>
-                <input type="text" class="form-control" matInput [(ngModel)]="employeeSearchText" [matAutocomplete]="autoEmployee">
-                 <mat-autocomplete #autoEmployee="matAutocomplete" (optionSelected)="onEmployeeChange($event.option.value)">
-                    <mat-option *ngFor="let employee of employees | rewardFilter:employeeSearchText"  [value]="employee.employeeNameForReward">{{ employee.employeeNameForReward }} </mat-option>
-                </mat-autocomplete>
+            <input
+              id="employeeSelect"
+              type="text"
+              class="form-control"
+              matInput
+              [(ngModel)]="employeeSearchText"
+              [matAutocomplete]="autoEmployee" style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px;"
+            />
+            <mat-autocomplete #autoEmployee="matAutocomplete" (optionSelected)="onEmployeeChange($event)">
+              <mat-option
+                *ngFor="let employee of employees | rewardFilter:employeeSearchText"
+                [value]="employee.employeeNameForReward"
+              >
+                {{ employee.employeeNameForReward }}
+              </mat-option>
+            </mat-autocomplete>
           </div>
+      
+          <!-- Select Team -->
           <div *ngIf="isTeam === 1">
             <label for="teamSelect" class="d-block">Select Team:</label>
-              <input type="text" class="form-control" matInput [(ngModel)]="teamSearchText" [matAutocomplete]="autoTeam">
-              <mat-autocomplete #autoTeam="matAutocomplete" (optionSelected)="sumbitRewards.teamId = $event.option.value">
-                <mat-option *ngFor="let team of teams | rewardFilter:teamSearchText"  [value]="team.teamId">{{ team.teamName }}</mat-option>
-              </mat-autocomplete>
+            <input
+              id="teamSelect"
+              type="text"
+              class="form-control"
+              matInput
+              [(ngModel)]="teamSearchText"
+              [matAutocomplete]="autoTeam"
+            />
+            <mat-autocomplete #autoTeam="matAutocomplete"  (optionSelected)="sumbitRewards.teamId = $event.option.value">
+              <mat-option
+                *ngFor="let team of teams | rewardFilter:teamSearchText"
+                [value]="team.teamId"
+              >
+                {{ team.teamName }}
+              </mat-option>
+            </mat-autocomplete>
           </div>
         </div>
-    </div>      
+      </div>
+         
       
     <div class="row mb-1" *ngIf="selectedReward">
         <div class="col-md-12 mt-4" style="padding-left: 3rem;">

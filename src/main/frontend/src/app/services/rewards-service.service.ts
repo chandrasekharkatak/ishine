@@ -13,7 +13,7 @@ export class RewardsServiceService {
   constructor(private http: HttpClient) { }
 
   getAllRewardsCategory(){
-    return this.http.get(`${this.baseUrl}` + `api/getAllRewardsCategory/`);
+    return this.http.get(`${this.baseUrl}` + `api/getAllRewardsCategory`);
   }
 
   saveRewardConfiguration(rewards: Rewards){
@@ -29,7 +29,7 @@ export class RewardsServiceService {
   }
 
   showAllRewards(){
-    return this.http.get(`${this.baseUrl}` + `api/showAllRewards/`);
+    return this.http.get(`${this.baseUrl}` + `api/showAllRewards`);
   }
 
   fetchEmployeesFromRewardCondition(rewardId: number) {

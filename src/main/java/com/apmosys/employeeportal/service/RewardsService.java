@@ -183,16 +183,23 @@ public class RewardsService {
 	        existingRewardConfig.setRewardType(rewardConfigurationDTO.getRewardTypes() != null ? getRewardType(rewardConfigurationDTO.getRewardTypes()) : null);
 	        existingRewardConfig.setRewardCondition(rewardConfigurationDTO.getCustomFilterDTOList() != null ? getRewardCondition(rewardConfigurationDTO.getCustomFilterDTOList()) : "");
 	        existingRewardConfig.setIsTeam(rewardConfigurationDTO.getIsTeam() != 0 ? rewardConfigurationDTO.getIsTeam() : 0);
+	       
 
 	        ObjectMapper objectMapper = new ObjectMapper();
 	        String filtersJson = rewardConfigurationDTO.getCustomFilterDTOList() != null ? objectMapper.writeValueAsString(rewardConfigurationDTO.getCustomFilterDTOList()) : "[]";
 	        existingRewardConfig.setFilterConditions(filtersJson);
 	        
 	        CommonProperties commonProperties = new CommonProperties();
+	        
+	        commonProperties.setCreatedBy(rewardConfigurationDTO.getCreatedBy() != 0 ? rewardConfigurationDTO.getCreatedBy() : null);
 		    commonProperties.setUpdatedBy(rewardConfigurationDTO.getUpdatedBy() != 0 ? rewardConfigurationDTO.getUpdatedBy() : null);
 		    commonProperties.setUpdatedOn(LocalDateTime.now());
 		    
 		    existingRewardConfig.setCommonProperty(commonProperties);
+		    
+		
+		    
+		    
 	        
 	        rewardConfigRepository.save(existingRewardConfig);
 
@@ -433,12 +440,23 @@ public class RewardsService {
 	    if (optionalReward.isPresent()) {
 	        RewardConfig reward = optionalReward.get();
 	        
+	        CommonProperties commonProperties = reward.getCommonProperty();
+	        
 	        RewardConfigurationDTO dto = new RewardConfigurationDTO();
 	        dto.setId(reward.getId());
 	        dto.setRewardName(reward.getRewardName());
 	        dto.setCategoryId(reward.getCategoryId());
 	        dto.setRewardTypes(Arrays.asList(reward.getRewardType().split(",")));
 	        dto.setIsTeam(reward.getIsTeam());
+	        
+	        if(commonProperties.getCreatedBy() == null) {
+	        	dto.setCreatedBy(0L);
+	        } else {
+	        	  dto.setCreatedBy(commonProperties.getCreatedBy());
+	        }  
+	        
+	      
+//	        dto.setCreatedOn(commonProperties.getCreatedOn().toLocalDateTime() != null ? commonProperties.getCreatedOn().toLocalDateTime() : null);
 	        
 	        
 	        
@@ -496,6 +514,7 @@ public class RewardsService {
 	            .stream()
 	            .map(category -> {
 	                RewardCategoryDTO dto = new RewardCategoryDTO();
+	                
 	                dto.setRewardCategoryId(category.getRewardCategoryId());
 	                dto.setCategoryName(category.getCategoryName());
 	                return dto;
@@ -505,36 +524,83 @@ public class RewardsService {
 	        if (rewardsConfig != null && !rewardsConfig.isEmpty()) {
 	            List<RewardConfigurationDTO> rewardDTOList = rewardsConfig.stream()
 	                .map(reward -> {
+	                	 CommonProperties commonProperties = reward.getCommonProperty();
+	                	System.out.println("reward  *****"+reward);
+	                	
+	                	
+	          
+	                	
 	                    RewardConfigurationDTO rewardDTO = new RewardConfigurationDTO();
 
-	                    rewardDTO.setRewardName(reward.getRewardName() != null ? reward.getRewardName() : null);
-//	                    rewardDTO.setId(reward.getId() != null ? reward.getId() : null);
-//	                    rewardDTO.setCategoryId(reward.getCategoryId() != null ? reward.getCategoryId() : null);
 	                    
+	                    
+	                    if (commonProperties.getCreatedOn() == null) {
+	                        rewardDTO.setCreatedOn(null);
+	                    } else {
+	                        rewardDTO.setCreatedOn(commonProperties.getCreatedOn().toLocalDateTime());
+	                    }
+
+	                    if (commonProperties.getUpdatedBy() == null) {
+	                        rewardDTO.setUpdatedByName(null); // Assuming updatedByName is correct
+	                    } else {
+	                        rewardDTO.setUpdatedByName(getEmployeeNameByEmpId(commonProperties.getUpdatedBy()));   
+	                    } 
+
+	                    if (commonProperties.getUpdatedOn() == null) {
+	                        rewardDTO.setUpdatedOn(null);
+	                    } else {
+	                        rewardDTO.setUpdatedOn(commonProperties.getUpdatedOn());
+	                    }
+
+	                    if (commonProperties.getCreatedBy() == null) {
+	                        rewardDTO.setCreatedByName(null); 
+	                    } else {
+	                        rewardDTO.setCreatedByName(getEmployeeNameByEmpId(commonProperties.getCreatedBy()));
+	                    }
+
+	                	
+
+
+	                    
+	                    
+	                    rewardDTO.setRewardName(reward.getRewardName() != null ? reward.getRewardName() : null);
+                    
 	                    rewardDTO.setId(reward.getId() != null ? reward.getId() : 0L);  // Default value for long
 	                    rewardDTO.setCategoryId(reward.getCategoryId() != null ? reward.getCategoryId() : 0);  // Default value for int
-
+	                    
+	                    
+                       
+	                   
 
 	                    rewardDTO.setRewardTypes(
 	                        reward.getRewardType() != null ? Collections.singletonList(reward.getRewardType()) : Collections.emptyList()
+	                        		
+	                        		
+	                        		
+	                        		
+	                        		
+	                        		
 	                    );
+	                    
+	                    
+	                    
 
-	                    try {
-	                        CommonProperties commonProperties = reward.getCommonProperty();
-	                        if (commonProperties != null) {
-	                            rewardDTO.setCreatedBy(commonProperties.getCreatedBy() != null ? commonProperties.getCreatedBy() : null);
-	                            rewardDTO.setUpdatedBy(commonProperties.getUpdatedBy() != null ? commonProperties.getUpdatedBy() : null);
-	                            rewardDTO.setUpdatedOn(commonProperties.getUpdatedOn() != null ? commonProperties.getUpdatedOn() : null);
-	                            rewardDTO.setCreatedOn(commonProperties.getCreatedOn().toLocalDateTime() != null ? commonProperties.getCreatedOn().toLocalDateTime() : null);
-
-	                            rewardDTO.setCreatedByName(getEmployeeNameByEmpId(commonProperties.getCreatedBy()) != null ? getEmployeeNameByEmpId(commonProperties.getCreatedBy()) : null);
-	                            rewardDTO.setUpdatedByName(getEmployeeNameByEmpId(commonProperties.getUpdatedBy()) != null ? getEmployeeNameByEmpId(commonProperties.getUpdatedBy()) : null);
-	                        }
-	                    } catch (Exception e) {
-	                        rewardDTO.setCreatedByName(null);
-	                        rewardDTO.setUpdatedByName(null);
-	                        System.err.println("An error occurred while processing CommonProperties: " + e.getMessage());
-	                    }
+//	                    try {
+//	                        CommonProperties commonProperties = reward.getCommonProperty();
+//	                        if (commonProperties != null) {
+//	                            rewardDTO.setCreatedBy(commonProperties.getCreatedBy() != null ? commonProperties.getCreatedBy() : null);
+//	                            rewardDTO.setUpdatedBy(commonProperties.getUpdatedBy() != null ? commonProperties.getUpdatedBy() : null);
+//	                            rewardDTO.setUpdatedOn(commonProperties.getUpdatedOn() != null ? commonProperties.getUpdatedOn() : null);
+//	                            rewardDTO.setCreatedOn(commonProperties.getCreatedOn().toLocalDateTime() != null ? commonProperties.getCreatedOn().toLocalDateTime() : null);
+//
+//	                            rewardDTO.setCreatedByName(getEmployeeNameByEmpId(commonProperties.getCreatedBy()) != null ? getEmployeeNameByEmpId(commonProperties.getCreatedBy()) : null);
+//	                            rewardDTO.setUpdatedByName(getEmployeeNameByEmpId(commonProperties.getUpdatedBy()) != null ? getEmployeeNameByEmpId(commonProperties.getUpdatedBy()) : null);
+//	                        }
+//	                    } catch (Exception e) {
+//	                        rewardDTO.setCreatedByName(null);
+//	                        rewardDTO.setUpdatedByName(null);
+//	                        System.err.println("An error occurred while processing CommonProperties: " + e.getMessage());
+//	                    }
 
 	                    String categoryName = rewardCategories.stream()
 	                        .filter(category -> category.getRewardCategoryId() != null && reward.getCategoryId() != null &&

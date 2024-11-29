@@ -291,7 +291,10 @@ setSelectedReward(reward: Rewards) {
   remarks: string;
 
   onEmployeeChange(event: any) {
-    this.selectemmpName = event.option.value;
+    this.selectemmpName = event?.option?.value;
+
+    console.log(' this.selectemmpName',  this.selectemmpName);
+
     if (this.selectemmpName) {
       const filterEMP = this.employees.find(employee => employee.employeeNameForReward === this.selectemmpName);
       console.log('emp---', filterEMP);
@@ -302,6 +305,8 @@ setSelectedReward(reward: Rewards) {
       this.sumbitRewards.rewardTypeName = latestReward.rewardTypes[0];
       this.sumbitRewards.managerId = filterEMP.managerIdForReward;
     }
+
+    console.log('yessss', this.sumbitRewards);
   }
 
   toggleSearch() {
