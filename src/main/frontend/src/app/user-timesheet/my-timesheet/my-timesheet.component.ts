@@ -908,7 +908,14 @@ console.log("date filter ",this.Allholidays);
     }
     this.timesheetObj.createdBy = this.currentUser.empId;
     this.timesheetObj.createdByName = this.currentUser.name
-    this.timesheetObj.currentManagerId = this.currentUser.managerId;
+    if (this.currentUser.approvalsTo == 'Reporting Manager'){
+      this.timesheetObj.currentManagerId = this.currentUser.reportingManagerId;
+    }else if (this.currentUser.approvalsTo == 'Manager'){
+      this.timesheetObj.currentManagerId = this.currentUser.managerId;
+    }else{
+      this.timesheetObj.currentManagerId = this.currentUser.managerId;
+    }
+    
     //console.log("Add timesheetObj : ", this.timesheetObj);
     this.timesheetService.addTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
