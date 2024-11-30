@@ -333,6 +333,41 @@ minDate: Date;
   }
 
 
+
+  billableBenchDate:any
+
+  onBillablechange(){
+
+    if(this.employeeObj.billableType =='Bench'){
+
+     this.billableBenchDate= this.getCurrentFormattedDate();
+
+    }else{
+      this.billableBenchDate="No";
+    }
+
+  }
+
+  
+
+
+  getCurrentFormattedDate(): string {
+    const now = new Date(); // Get the current date and time
+  
+    // Manually format the date
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+  
+    // Format the date as a string
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  }
+
+
+
   setCalenderMaxDate() {
     const dateFormat = 'YYYY-MM-DD';
     const today = moment(new Date()).format(dateFormat);
@@ -1361,6 +1396,9 @@ minDate: Date;
       employee.employeementId  = this.employeeObj.employeementId
     }
 
+
+    employee.onbenchDate=this.billableBenchDate;
+
     this.employeeService.createEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeService.deleteDraftEmployee(this.employeeObj); // deleting draft once employee is created
@@ -1647,6 +1685,8 @@ minDate: Date;
     employee.reportiesFlag = this.employeeObj.reportiesFlag; 
 
     console.log("employee update before call ",employee);
+
+    employee.onbenchDate=this.billableBenchDate;
     
     this.employeeService.updateEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

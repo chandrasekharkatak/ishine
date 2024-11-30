@@ -447,6 +447,13 @@ public class EmployeeService {
 			employee.setDesignationId(employeedto.getDesignationId());
 			employee.setIsConsultant(employeedto.getIsConsultant());
 			
+			
+			if ("No".equals(employeedto.getOnbenchDate())) {
+			    // Keep the existing value (no need to set it again)
+			} else {
+			    employee.setOnbenchDate(employeedto.getOnbenchDate());
+			}
+			
 			employee.setReportingManagerId(employeedto.getReportingManagerId());
 			if(employeedto.getReportingManagerId() == null) {
 				employee.setApprovalsTo(null);
@@ -2092,6 +2099,12 @@ public class EmployeeService {
 				employee.setWorkLocation(employeedto.getWorkLocation());
 				employee.setProbationPeriod(employeedto.getProbationPeriod());
 				employee.setIsConsultant(employeedto.getIsConsultant());
+				
+				if ("No".equals(employeedto.getOnbenchDate())) {
+				    // Keep the existing value (no need to set it again)
+				} else {
+				    employee.setOnbenchDate(employeedto.getOnbenchDate());
+				}
 				
 //				System.out.println("Employee 1 : " + employee);
 			 if(employeedto.getReportiesFlag().equals("Yes") && employeedto.getUpdateType().equals("automatic")){

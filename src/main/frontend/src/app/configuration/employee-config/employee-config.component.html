@@ -870,7 +870,7 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Billable</label>
-                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.billable">
+                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.billable" >
                                                     <option selected="selected" value="" disabled>Select</option>
                                                     <option value="Yes">Yes</option>
                                                     <option value="No">No</option>
@@ -885,7 +885,7 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Billable Type</label>
-                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.billableType">
+                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.billableType" (change)="onBillablechange()">
                                                     <option selected="selected" value="" disabled>Select</option>
                                                     <option value="Bench">Bench</option>
                                                     <option value="Fixed Cost">Fixed Cost</option>
