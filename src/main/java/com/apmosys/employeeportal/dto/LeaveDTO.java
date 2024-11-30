@@ -163,4 +163,6 @@ public class LeaveDTO {
 	private String extendReason;
 	private Double profileCompletedPercent;
 	private String employeeRole;
+	
+	private String isConsultant;
 }
