@@ -1917,7 +1917,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   submitNotificationConsent(){
-    this.cancelRequest();
+    // this.cancelRequest();
 
     let notificationObj = new NotificationMessage();
 

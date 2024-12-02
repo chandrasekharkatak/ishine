@@ -70,18 +70,23 @@
 
     <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
         direction="left" 
-        style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 60%; background-color: #193d8a; scrolldelay: 50; behavior: loop;">
+        style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop; width: calc(55vw - 4px);   overflow: hidden; display: inline-block;">
         <span>
             "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
         </span>
     </marquee>
     
-    <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-0" *ngIf="consentNotificationMessage != null" 
-        direction="right" 
-        style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 33.5%; background-color: #193d8a; scrolldelay: 50; behavior: loop;">
+    <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
+        direction="right"   onmouseover="this.stop()" 
+        onmouseout="this.start()"
+        style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop; width: calc(50vw - 255px);  overflow: hidden; display: inline-block;">
         <span>
             {{consentNotificationMessage}} 
         </span>
+        <button class="btn btn-sm btn-outline-success" (click)="submitNotificationConsent()" style="margin-left: 8px; height: 23px; width: 70px; font-size: 10px;">
+            I Agree
+          </button>
+          
     </marquee>
 
 </div>

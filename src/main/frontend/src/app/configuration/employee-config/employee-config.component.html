@@ -25,18 +25,42 @@
                             <div class="container-fluid">
                                 <div class="row">
                                     <div class="col-md-4 mb-0">
-                                        <div class="info-wrapper">
-                                            <div class="form-group">
-                                                <label class="info-label"><span class="text-danger">*</span>Is Employee a Consultant</label>
-                                                <select class="form-control" [(ngModel)]="employeeObj.isConsultant" >
-                                                    <!-- <option value="" disabled selected>Select</option> -->
-                                                    <option *ngIf="!isUpdation" value='true'>Yes</option>
-                                                    <option *ngIf="!isUpdation" value='false'>No</option>
-                                                    <option *ngIf="isUpdation && employeeObj.isConsultant == 'true'" selected value='true'>Yes</option>
-                                                    <option *ngIf="isUpdation && employeeObj.isConsultant != 'true'" selected value='false'>No</option>
-                                                </select>
-                                            </div>
+                                        <!-- <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Is Employee a Consultant</label>
+                                            <select class="form-control" [(ngModel)]="employeeObj.isConsultant" 
+                                                    [disabled]="isUpdation && (employeeObj.isConsultant == null || isUpdation)">
+         
+                                                <option *ngIf="!isUpdation" value="true">Yes</option>
+                                                <option *ngIf="!isUpdation" value="false">No</option>
+                                                <option *ngIf="isUpdation && employeeObj.isConsultant === true" selected value="true">Yes</option>
+                                                <option *ngIf="isUpdation && employeeObj.isConsultant !== true  || (employeeObj.isConsultant == null || isUpdation)" selected value="false">No</option>
+                                            </select>
+                                        </div> -->
+
+                                        <div class="form-group">
+                                            <label class="info-label">
+                                                <span class="text-danger">*</span>Is Employee a Consultant
+                                            </label>
+                                            
+                                            <!-- Select for creation mode -->
+                                            <select *ngIf="!isUpdation"
+                                                    class="form-control"
+                                                    [(ngModel)]="employeeObj.isConsultant">
+                                                <option value="true">Yes</option>
+                                                <option value="false">No</option>
+                                            </select>
+                                        
+                                            <!-- Select for update mode with null check -->
+                                            <select *ngIf="isUpdation"
+                                                    class="form-control"  [disabled]="employeeObj.isConsultant == null"
+                                                    [(ngModel)]="employeeObj.isConsultant">
+                                              
+                                                <option  [disabled]="isUpdation"  [ngStyle]="employeeObj.isConsultant === 'true' ? { color: 'blue' } : {}"  value="true">Yes</option>
+                                                <option [disabled]="isUpdation" [ngStyle]="employeeObj.isConsultant === 'false' ? { color: 'blue' } : {}" value="false">No</option>
+                                            </select>
                                         </div>
+                                        
+                                        
                                     </div>
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
