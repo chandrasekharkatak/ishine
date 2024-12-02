@@ -30,6 +30,8 @@ export class Timesheet{
 	totalWorkingHours : any;
     totalWorkingHoursPercentage : any;
 
+    isConsultant: any;
+
 
     // how many hour employee worked
     totalTime: any;

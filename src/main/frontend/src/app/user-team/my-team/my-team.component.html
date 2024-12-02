@@ -198,7 +198,7 @@
                   <div class="info-wrapper">
                       <div class="form-group">
                           <label class="info-label"><span class="text-danger">*</span>End Date</label>
-                          <input id="historyFromDate" type="date" OnClick="this.showPicker()" class="form-control" [(ngModel)]="toDate" (change)="getAllTeamLeaveHistoryView();getDepartmentLeaveHistory()">
+                          <input id="historyFromDate" type="date" OnClick="this.showPicker()" class="form-control" [(ngModel)]="toDate" (input)="getAllTeamLeaveHistoryView();getDepartmentLeaveHistory()">
                       </div>
                   </div>
               </div>

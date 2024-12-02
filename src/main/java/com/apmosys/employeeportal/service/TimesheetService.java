@@ -122,7 +122,6 @@ public class TimesheetService {
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("empId : " +timesheetDTO.getEmpId() );
-		
 
 		try {
 
@@ -797,6 +796,7 @@ public class TimesheetService {
 						dto.setOfficeOutTime(object[12] != null ? object[12].toString() : null);
 						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
 						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
+						dto.setIsConsultant(object[16] != null ? object[16].toString() : null);
 						dtoList.add(dto);
 					});
 
@@ -1632,6 +1632,7 @@ public class TimesheetService {
 						timesheetDto.setCreatedOn(object[9] != null ? object[9].toString() : null);
 						timesheetDto.setUpdatedOn(object[10] != null ? object[10].toString() : null);
 						timesheetDto.setTimesheetStatusUpdatedByName(object[11] != null ? object[11].toString() : null);
+						timesheetDto.setIsConsultant(object[12] != null ? object[12].toString() : null);
 						
 						dtoList.add(timesheetDto);
 					});

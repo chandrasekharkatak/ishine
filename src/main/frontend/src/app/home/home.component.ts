@@ -464,7 +464,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
         this.allTeamTimesheetRequests = response.serviceResponse;
         this.allTeamTimesheetRequests.forEach((timesheet, index) => {
           timesheet.checkId = "timesheet"+index;
-          timesheet.employeementId = "A-".concat(timesheet.employeementId);
+          if(timesheet.isConsultant == 'true'){
+            timesheet.employeementId = "A-CS-".concat(timesheet.employeementId);
+          }else{
+            timesheet.employeementId = "A-".concat(timesheet.employeementId);
+          }
+          // timesheet.employeementId = "A-".concat(timesheet.employeementId);
           timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
            timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
