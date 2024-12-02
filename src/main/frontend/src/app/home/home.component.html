@@ -83,10 +83,10 @@
         <span>
             {{consentNotificationMessage}} 
         </span>
-        <button class="btn btn-sm btn-outline-success" (click)="submitNotificationConsent()" style="margin-left: 8px; height: 23px; width: 70px; font-size: 10px;">
-            I Agree
-          </button>
-          
+       <button class="btn btn-sm btn-outline-success" (click)="submitNotificationConsent()" style="margin-left: 8px; height: 30px; width: 120px; font-size: 12px;">
+  I Agree
+</button>
+
     </marquee>
 
 </div>
@@ -97,7 +97,7 @@
     
     <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
         direction="left" 
-        style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 60%; background-color: #193d8a; scrolldelay: 50; behavior: loop; position: absolute; left: 0;">
+        style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop; width: calc(50vw - 255px);  overflow: hidden; display: inline-block;">
         <span>
             "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
         </span>
@@ -111,7 +111,8 @@
     
     <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
         direction="left" 
-        style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 60%; background-color: #193d8a; scrolldelay: 50; behavior: loop; position: absolute; left: 0;">
+     
+        style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop;   overflow: hidden; display: inline-block;">
         <span>
             {{consentNotificationMessage}}
         </span>
@@ -120,6 +121,7 @@
 </div>
 
 
+   <!-- style="font-family: Calibri, sans-serif; color: #FFFFFF;  background-color: #193d8a; scrolldelay: 50; behavior: loop; "> -->
 
 
     <!-- <div style="display: flex; justify-content: space-between; width: 100%; position: relative;">
