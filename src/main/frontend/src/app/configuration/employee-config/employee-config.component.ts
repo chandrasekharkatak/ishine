@@ -574,7 +574,9 @@ minDate: Date;
     this.updatedCertificationList = [];
     this.updatedPreviousEmployment = [];
 
-    this.employeeObj.employeementId = this.utilityService.getEmployeeIdSubstring(this.employeeObj);
+    employee.employeementId = this.utilityService.getEmployeeIdSubstring2(employee);
+
+    // this.employeeObj.employeementId = this.utilityService.getEmployeeIdSubstring(this.employeeObj);
 
   //   this.employeeObj.employeementId = this.utilityService.appendEmployeementid(
   //     this.employeeObj.isConsultant,
@@ -2477,13 +2479,18 @@ if (employeeObj.updateType !== 'automatic') {
     this.domainSpecializationList = [];
 
     let currentEmp = new Employee();
-    // if (employeeObj.isConsultant == 'true') {
-    //   currentEmp.employeementId = currentEmp.employeementId?.substring(5);
-    // }else{
+    if (employeeObj.isConsultant == 'true') {
+      console.log("cs called")
+      currentEmp.employeementId = currentEmp.employeementId?.substring(5);
+    }else  if (employeeObj.isApprenticeship == 'true') {
+      console.log("else ap called")
+      currentEmp.employeementId = currentEmp.employeementId?.substring(3);
+    }else{
+      console.log("else called")
+    currentEmp.employeementId = currentEmp.employeementId?.substring(2);
+    }
     // currentEmp.employeementId = currentEmp.employeementId?.substring(2);
-    // }
-    // currentEmp.employeementId = currentEmp.employeementId?.substring(2);
-    currentEmp.employeementId = this.utilityService.getEmployeeIdSubstring(employeeObj);
+    // currentEmp.employeementId = this.utilityService.getEmployeeIdSubstring2(currentEmp);
   
     currentEmp.empId = employeeObj.empId;
     currentEmp.isDraft = false;

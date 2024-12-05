@@ -810,13 +810,14 @@ export class ResourceManagementComponent implements OnInit {
     this.managerList = [];
 
     this.employeeObj.role = "Manager";
-    // if( this.employeeObj.isConsultant == 'true' ){
-    //   this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(5)
-    // }else{
-    //   this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
-    // }
+    if( this.employeeObj.isConsultant == 'true' ){
+      this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(5)
+    }else if( this.employeeObj.isApprenticeship == 'true' ){
+      this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(3)
+    }else{
+      this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
+    }
     // this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
-    this.employeeObj.employeementId = this.utilityService.getEmployeeIdSubstring2(this.employeeObj);
     this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.managerList = response.serviceResponse;

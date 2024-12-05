@@ -24,7 +24,7 @@
                         <app-accordion-item class="acc-content" title="Basic Information" [showBody]="true">
                             <div class="container-fluid">
                                 <div class="row">
-                                    <div class="col-md-4 mb-0">
+                                    <div class="col-md-4 mb-0"  *ngIf="!isUpdation">
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label">
@@ -33,15 +33,6 @@
                                                 <!-- Select for creation mode -->
                                                 <select *ngIf="!isUpdation" class="form-control"[(ngModel)]="employeeObj.employeeType" (ngModelChange)="onEmployeeTypeChange($event)">
                                                     <option value="" disabled>Select</option>
-                                                    <option value="Regular">Regular</option>
-                                                    <option value="Consultant">Consultant</option>
-                                                    <option value="Apprentice">Apprentice</option>
-                                                </select>
-                                            
-                                                <!-- Select for update mode with null check -->
-                                                <select *ngIf="isUpdation" class="form-control"  [disabled]="isUpdation" [(ngModel)]="employeeObj.employeeType" (ngModelChange)="onEmployeeTypeChange($event)">
-                                                    <!-- <option  [disabled]="isUpdation"  [ngStyle]="employeeObj.isConsultant === 'true' ? { color: 'blue' } : {}"  value="true">Yes</option>
-                                                    <option [disabled]="isUpdation" [ngStyle]="employeeObj.isConsultant === 'false' ? { color: 'blue' } : {}" value="false">No</option> -->
                                                     <option value="Regular">Regular</option>
                                                     <option value="Consultant">Consultant</option>
                                                     <option value="Apprentice">Apprentice</option>
@@ -63,12 +54,8 @@
                                                 [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">
                                                 <input *ngIf="!isUpdation && employeeObj.employeeType === 'Apprentice'" type="text" (keypress)="fieldRestictCharacterAP($event)" class="form-control" maxlength="9"  autocomplete="none"
                                                 [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">
-                                                <input *ngIf="isUpdation && employeeObj.employeeType === 'Regular'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" readonly>
-                                                <input *ngIf="isUpdation && employeeObj.employeeType === 'Consultant'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" readonly>
-                                                <input *ngIf="isUpdation && employeeObj.employeeType === 'Apprentice'" type="text" (keypress)="fieldRestictCharacterAP($event)" class="form-control" maxlength="9"  autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" readonly>
+
+                                                <input *ngIf="isUpdation" type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.employeementId" readonly>
                                             </div>
                                         </div>
                                     </div>
