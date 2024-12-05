@@ -42,6 +42,7 @@ ExportData(Highcharts);
 const Accessibility = require('highcharts/modules/accessibility');
 Accessibility(Highcharts);
 import * as Highcharts from 'highcharts';
+import { UtilityService } from 'src/app/services/utility.service';
 
 
 HC_exportData(HighCharts);
@@ -162,6 +163,7 @@ options:any;
     private departmentService : DepartmentService,
     private domainService : DomainService,
     private authenticationService: AuthenticationService,
+    public utilityService: UtilityService,
   ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit(): void {
@@ -247,11 +249,13 @@ options:any;
         this.allResignEmployee = this.allResignEmployee.filter(x => x.employmentstatus == 'Resigned');
         this.allResignEmployee.forEach(employee => {
           // employee.employeementId = "A-".concat(employee.employeementId);
-          if(employee.isConsultant == 'true'){
-            employee.employeementId = "A-CS-".concat(employee.employeementId);
-          }else{
-            employee.employeementId = "A-".concat(employee.employeementId);
-          }
+          // if(employee.isConsultant == 'true'){
+          //   employee.employeementId = "A-CS-".concat(employee.employeementId);
+          // }else{
+          //   employee.employeementId = "A-".concat(employee.employeementId);
+          // }
+          employee.employeementId = this.utilityService.getFormattedEmployeeId(employee);
+
           employee.dateOfRelieving = (employee.dateOfResign)? moment(employee.dateOfResign).add(employee.noticePeriod, 'days') : null;
 
           employee.dateOfResign = (employee.dateOfResign)? moment(employee.dateOfResign).format(AppComponent.DATE_FORMAT) : null;
@@ -282,11 +286,12 @@ options:any;
         this.departmentWiseBillableEmployeeList = response.serviceResponse;
         this.departmentWiseBillableEmployeeList.forEach((data)=>{
           // data.employeementId = "A-".concat(data.employeementId);
-          if(data.isConsultant == 'true'){
-            data.employeementId = "A-CS-".concat(data.employeementId);
-          }else{
-            data.employeementId = "A-".concat(data.employeementId);
-          }
+          // if(data.isConsultant == 'true'){
+          //   data.employeementId = "A-CS-".concat(data.employeementId);
+          // }else{
+          //   data.employeementId = "A-".concat(data.employeementId);
+          // }
+          data.employeementId = this.utilityService.getFormattedEmployeeId(data);
           let age = this.getAge(data.dateOfBirth);
           data.age = age;
 
@@ -622,7 +627,7 @@ options:any;
           y: pendingByUserCount
         }];
 
-        //console.log("timesheetData : ", timesheetData);
+        // console.log("timesheetData : ", timesheetData);
 
         let checkTimesheetData = timesheetData.filter(data => data.y != 0);
         //console.log("checkTimesheetData :", checkTimesheetData);
@@ -729,12 +734,13 @@ options:any;
       if (response.serviceStatus === "Success") {
         this.employeeWorkLocationList = response.serviceResponse;
         this.employeeWorkLocationList.forEach(data =>{
-          data.employeementId = "A-".concat(data.employeementId)
+          // data.employeementId = "A-".concat(data.employeementId)
           // if(data.isConsultant == 'true'){
           //   data.employeementId = "A-CS-".concat(data.employeementId)
           // }else {
           //   data.employeementId = "A-".concat(data.employeementId)
           // }
+          data.employeementId = this.utilityService.getFormattedEmployeeId(data);
         })
         console.log("Initial employeeWorkLocationList: ", this.employeeWorkLocationList);
 
@@ -793,7 +799,8 @@ options:any;
         // this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != "InActive");
           for(let x of this.allEmployeeList){
             // x.employeementId = "A-".concat(x.employeementId);
-            x.employeementId =x.isConsultant ? "A-CS-".concat(x.employeementId) : "A-".concat(x.employeementId);
+            // x.employeementId =x.isConsultant ? "A-CS-".concat(x.employeementId) : "A-".concat(x.employeementId);
+            x.employeementId = this.utilityService.getFormattedEmployeeId(x);
             x.dateOfRelieving = moment(x.dateOfResign).add(x.noticePeriod, 'days').format(this.dateFormat);
             x.relievingMonth = moment(x.dateOfRelieving).format('MMMM');
             x.joiningMonth = moment(x.dateOfJoining).format('MMMM');
@@ -830,11 +837,12 @@ options:any;
             this.openAlertMod(template, "No Data Found");
           }
           this.allEmployeeList.forEach(employee => {
-            if(employee.isConsultant == 'true'){
-              employee.employeementId = "A-CS-".concat(employee.employeementId);
-            }else{
-              employee.employeementId = "A-".concat(employee.employeementId);
-            }
+            employee.employeementId = this.utilityService.getFormattedEmployeeId(employee);
+            // if(employee.isConsultant == 'true'){
+            //   employee.employeementId = "A-CS-".concat(employee.employeementId);
+            // }else{
+            //   employee.employeementId = "A-".concat(employee.employeementId);
+            // }
             // employee.employeementId = "A-".concat(employee.employeementId);
             employee.dateOfRelieving = moment(employee.dateOfResign).add(employee.noticePeriod, 'days').format(this.dateFormat);
             employee.relievingMonth = moment(employee.dateOfRelieving).format('MMMM');
@@ -874,9 +882,10 @@ this.departmentIds = departmentIds;
           // });
 
           this.departmentWiseBillableEmployeeList.forEach(employee => {
-            employee.employeementId = employee.isConsultant 
-              ? "A-CS-".concat(employee.employeementId) 
-              : "A-".concat(employee.employeementId);
+            // employee.employeementId = employee.isConsultant 
+            //   ? "A-CS-".concat(employee.employeementId) 
+            //   : "A-".concat(employee.employeementId);
+            employee.employeementId = this.utilityService.getFormattedEmployeeId(employee);
           });          
 
           this.extractDataForBillable();
@@ -2257,15 +2266,18 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
       this.storedDataList.forEach((data) => {
         if(data.filterName == title){
           data.queryList.forEach((queryObj) => {
-            // if(queryObj.column == "Employee Id" && !queryObj.value.includes("A-")){
-            //   queryObj.value = "A-".concat(queryObj.value);
-            // }
-            if(queryObj.column == "Employee Id" && !queryObj.value.includes("A-CS-") && (data.isConsultant == 'true')){
-              queryObj.value = "A-CS-".concat(queryObj.value);
-            }
             if(queryObj.column == "Employee Id" && !queryObj.value.includes("A-")){
               queryObj.value = "A-".concat(queryObj.value);
             }
+            if(queryObj.column == "Employee Id" && !queryObj.value.includes("A-CS-") && (data.isConsultant == 'true')){
+              queryObj.value = "A-CS-".concat(queryObj.value);
+            }
+            if(queryObj.column == "Employee Id" && !queryObj.value.includes("AP-") && (data.IsApprenticeship == 'true')){
+              queryObj.value = "AP-".concat(queryObj.value);
+            }
+            // if (queryObj.column == "Employee Id") {
+            //   queryObj.value = this.utilityService.getFormattedEmployeeId(queryObj);
+            // } 
             if (queryObj.column == 'From Date' || queryObj.column == 'To Date' || queryObj.column == 'Date' || queryObj.column == 'Date Of Joining') {
               queryObj.value = (queryObj.value) ? moment(queryObj.value).format("DD-MM-YYYY") : '';
             } else if (queryObj.column == 'Created On' || queryObj.column == 'Updated On') {
@@ -2345,7 +2357,8 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
         // "Emp ID": "A-".concat(x.employeementId),
-        "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        "Emp ID": this.utilityService.getFormattedEmployeeId(x),
         "Name":x.employeeName,
         "Department Name": x.departmentName,
         "From Date": (x.fromDate)? moment(x.fromDate).format(AppComponent.DATE_FORMAT) : null,
@@ -2362,7 +2375,8 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
         // "Emp ID": "A-".concat(x.employeementId),
-        "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        "Emp ID": this.utilityService.getFormattedEmployeeId(x),
         "Name":x.employeeName,
         "Department Name": x.departmentName,
         "Timesheet Date":(x.date)? moment(x.date).format(AppComponent.DATE_FORMAT) : null,
@@ -2382,7 +2396,8 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
         // "Emp ID": "A-".concat(x.employeementId),
-        "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        "Emp ID": this.utilityService.getFormattedEmployeeId(x), 
         "Name":x.employeeName,
         "Department Name": x.departmentName,
         "Email Id": x.email,
@@ -2428,7 +2443,8 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
         // "Emp ID": x.employeementId,
-        "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        "Emp ID": this.utilityService.getFormattedEmployeeId(x), 
         "Employee Name":x.employeeName,
         "Project Name":x.projectName,
         "Client Name":x.clientName,
@@ -2589,7 +2605,7 @@ exportGlobalData():void{
       this.page=1;
       this.modalTitle = legendName + " Timesheet Summary";
       this.modalSummaryList = modalTableList.filter(x => x.legend == legendName);
-      console.log(this.modalSummaryList, "this.modalSummaryListttttttttttttt")
+      console.log(this.modalSummaryList, "this.modalSummaryListttttttttttttt   pri")
       	//console.log(this.countByLegend);
       this.modalSummaryList.forEach(x=>{
         if(!this.countByLegend.find(employee => employee.employeementId == x.employeementId)){
@@ -2603,6 +2619,7 @@ exportGlobalData():void{
             pendingEodCount : x.pendingEodCount,
             legend : x.legend,
             isConsultant : x.isConsultant,
+            IsApprenticeship: x.IsApprenticeship,
             count : this.modalSummaryList.filter(y => y.employeementId == x.employeementId).length
           });
         }

@@ -11,6 +11,7 @@ import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { UpdateUserInfoService } from 'src/app/services/updateUserInfo.service';
+import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
@@ -49,6 +50,7 @@ export class EmployeeInfoComponent implements OnInit{
     private modalService: BsModalService,
     private updateUserInfoService: UpdateUserInfoService,
     private authenticationService: AuthenticationService,
+    public utilityService: UtilityService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     this.updateUserInfoService.updateduserInfoObj.subscribe((employee:Employee)=>{
@@ -838,6 +840,7 @@ export class EmployeeInfoComponent implements OnInit{
     this.employeeObj.bankIFSCCode = this.employeeObj.bankIFSCCode?.trim();
     this.employeeObj.esicNumber = this.employeeObj.esicNumber?.trim();
     this.employeeObj.isConsultant = this.employeeObj.isConsultant.trim();
+    this.employeeObj.isApprenticeship = this.employeeObj.isApprenticeship.trim();
 
     this.employeeObj.previousEmploymentList?.forEach((x)=>{
       x.employerName = x.employerName?.trim();

@@ -16,7 +16,8 @@
         </thead>
         <tbody>
           <tr *ngFor="let employee of myDraftList, let i = index">
-            <td>{{employee.isConsultant === 'true' ? 'A-CS-' : 'A-'}}{{employee.employeementId}}</td>
+            <!-- <td>{{employee.isConsultant === 'true' ? 'A-CS-' : 'A-'}}{{employee.employeementId}}</td> -->
+            <td>{{utilityService.getFormattedEmployeeId(employee)}}</td>
             <td>{{employee.name}}</td>
             <td>{{employee.email}}</td>
             <td>{{employee.updateApplicationStatus}}</td>

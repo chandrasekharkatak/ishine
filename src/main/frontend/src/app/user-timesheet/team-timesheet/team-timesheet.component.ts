@@ -12,6 +12,7 @@ import { Sort } from '@angular/material/sort';
 import { LocationStrategy } from '@angular/common';
 import * as moment from 'moment';
 import { AppComponent } from 'src/app/app.component';
+import { UtilityService } from 'src/app/services/utility.service';
 
 
 @Component({
@@ -65,7 +66,8 @@ export class TeamTimesheetComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private timesheetService: TimesheetService,
     private exportExcelService: ExportExcelService,
-    private locationStrategy: LocationStrategy
+    private locationStrategy: LocationStrategy,
+    private utilityService: UtilityService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -153,7 +155,8 @@ export class TeamTimesheetComponent implements OnInit {
         this.allTeamTimesheets = response.serviceResponse;
 
         for (let x of this.allTeamTimesheets) {
-          x.employeementId = "A-".concat(x.employeementId);
+          // x.employeementId = "A-".concat(x.employeementId);
+          x.employeementId = this.utilityService.getFormattedEmployeeId(x);
           x.date = (x.date) ? moment(x.date).format(AppComponent.DATE_FORMAT) : null;
           x.officeInTime = (x.officeInTime) ? moment(x.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
           x.officeOutTime = (x.officeOutTime) ? moment(x.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
@@ -181,7 +184,8 @@ export class TeamTimesheetComponent implements OnInit {
         this.allTeamTimesheetRequests = response.serviceResponse;
         this.allTeamTimesheetRequests.forEach((timesheet, index) => {
           timesheet.checkId = "timesheet"+index;
-          timesheet.employeementId = "A-".concat(timesheet.employeementId);
+          // timesheet.employeementId = "A-".concat(timesheet.employeementId);
+          timesheet.employeementId = this.utilityService.getFormattedEmployeeId(timesheet);
           timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
           timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;

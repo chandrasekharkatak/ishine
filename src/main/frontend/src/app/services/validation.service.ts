@@ -455,26 +455,13 @@ export class ValidationService {
 
   }
 
-  // validateEmployeementId(text: any): boolean {
-  //   const regex = /^[1-9]\d{3,6}$/;
-  //   if (text !== "" || text !== undefined || text !== null) {
-  //     if (regex.test(text)) {
-  //       return true;
-  //     }
-  //     else {
-  //       return false;
-  //     }
-  //   }
-  //   else {
-  //     return false;
-  //   }
-  // }
+  validateEmployeementId(text: any): boolean {
 
- validateEmployeementId(text: any): boolean {
-    const regex = /^A-(CS-)?\d{6}$/;
+    console.log('chckedd',text);
+
+    const regex = /^[1-9]\d{3,6}$/;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
-        console.log("validateEmployeementId() text:", text, "isValid:", true);
         return true;
       }
       else {
@@ -485,6 +472,33 @@ export class ValidationService {
       return false;
     }
   }
+
+  // validateEmployeementId(employeeType: string, text: string): boolean {
+  //   let regex: RegExp;
+  
+  //   switch (employeeType) {
+  //     case 'Regular':
+  //       regex = /^A-\d{6}$/; 
+  //       break;
+  //     case 'Consultant':
+  //       regex = /^A-CS-\d{6}$/; 
+  //       break;
+  //     case 'Apprentice':
+  //       regex = /^AP-\d{6}$/;
+  //       break;
+  //     default:
+  //       return false;
+  //   }
+  
+  //   if (text && regex.test(text)) {
+  //     console.log(`validateEmployeementId() for ${employeeType}:`, text, "isValid:", true);
+  //     return true;
+  //   } else {
+  //     console.log(`validateEmployeementId() for ${employeeType}:`, text, "isValid:", false);
+  //     return false;
+  //   }
+  // }
+  
 
 
   validateYear(text: any): boolean {

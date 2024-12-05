@@ -8,6 +8,7 @@ import { EmployeeService } from '../services/employee.service';
 import { ImageService } from '../services/image.service';
 import { UpdateUserInfoService } from '../services/updateUserInfo.service';
 import { EmployeeUpdateListComponent } from './employee-update-list/employee-update-list.component';
+import { UtilityService } from '../services/utility.service';
 
 @Component({
   selector: 'app-user-update-info',
@@ -44,6 +45,7 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
     private sanitizer: DomSanitizer,
     private employeeService: EmployeeService,
     private modalService: BsModalService,
+    public utilityService: UtilityService,
   ) { }
 
   ngOnInit(): void {

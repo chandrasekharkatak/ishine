@@ -185,4 +185,7 @@ public class Employee {
 	private String isConsultant;
 
 	private String onbenchDate;
+	
+	//by priyadarshini
+	private String isApprenticeship;
 }

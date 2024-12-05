@@ -53,9 +53,10 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <p class="info-label">Employee Id</p>
-                                        <p class="info-text info-highlight">
+                                        <!-- <p class="info-text info-highlight">
                                             {{ previewObj.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{ previewObj.employeementId }}
-                                          </p>                                          
+                                          </p>       -->
+                                          <p class="info-text info-highlight">{{utilityService.getFormattedEmployeeId(previewObj)}}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-0">

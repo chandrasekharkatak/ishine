@@ -18,6 +18,7 @@ import * as moment from 'moment';
 import { AppComponent } from 'src/app/app.component';
 import { Router } from '@angular/router';
 import { Team } from 'src/app/models/team';
+import { UtilityService } from 'src/app/services/utility.service';
 
 @Component({
   selector: 'app-my-team',
@@ -143,6 +144,7 @@ export class MyTeamComponent implements OnInit {
     public validationService:ValidationService,
     private locationStrategy: LocationStrategy,
     private router: Router,
+    public utilityService: UtilityService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -342,12 +344,13 @@ export class MyTeamComponent implements OnInit {
         this.teamViewList = response.serviceResponse;
 
         for(let y of this.teamViewList){
-          if(y.isConsultant == 'true'){
-            y.employeementId = "A-CS-".concat(y.employeementId);
-          }else{
-            y.employeementId = "A-".concat(y.employeementId);
-          }
+          // if(y.isConsultant == 'true'){
+          //   y.employeementId = "A-CS-".concat(y.employeementId);
+          // }else{
+          //   y.employeementId = "A-".concat(y.employeementId);
+          // }
           // y.employeementId = "A-".concat(y.employeementId);
+          y.employeementId = this.utilityService.getFormattedEmployeeId(y);
          
           y.isHierarchy = false;
           let temp = this.managerList.find(manager => manager.managerId == y.empId);
