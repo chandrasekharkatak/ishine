@@ -47,7 +47,7 @@
 
                                                 <!-- <input type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8" autocomplete="none"
                                                 [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">  -->
-
+                                                <input *ngIf="!isUpdation && employeeObj.employeeType === ''" type="text" class="form-control" [(ngModel)]="employeeObj.employeementId" disabled> 
                                                 <input *ngIf="!isUpdation && employeeObj.employeeType === 'Regular'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
                                                 [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">
                                                 <input *ngIf="!isUpdation && employeeObj.employeeType === 'Consultant'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"

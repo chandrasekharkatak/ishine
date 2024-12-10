@@ -801,13 +801,23 @@ export class MyTeamComponent implements OnInit {
   myTeamHierarchyChart(employeeObj:Employee) {
     this.nodes = [];
     let employee = Object.assign({}, employeeObj);
-    employee.employeementId = employee.employeementId?.substring(2);
+    console.log("Employement Id : ",this.currentUser.employeementId);
+
+    // if( employee.employeementId.startsWith('A-CS-')){
+    //   employee.employeementId = employee.employeementId?.substring(5);
+    // } else if( employee.employeementId.startsWith('AP-')){
+    //   employee.employeementId = employee.employeementId?.substring(3);
+    // }else if( employee.employeementId.startsWith('A-')){
+    //   employee.employeementId = employee.employeementId?.substring(2);
+    // }else{
+    //   employee.employeementId = employee.employeementId?.substring(2);
+    // }
 
     this.employeeService.getHierarchyChartByEmpId(employee).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {
         this.teamViewList = response.serviceResponse;
         for(let teamMember of this.teamViewList){
-          teamMember.employeementId = "A-".concat(teamMember.employeementId);
+          teamMember.employeementId = this.utilityService.getFormattedEmployeeId(teamMember);
         }
         //console.log("teamViewList : ", this.teamViewList);
 

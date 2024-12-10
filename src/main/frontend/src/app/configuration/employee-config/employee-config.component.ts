@@ -2743,6 +2743,8 @@ return true;
       employee.employeementId  = employee.employeementId.substring(5);
     }else  if(employee.employeementId.startsWith('A-')){
       employee.employeementId  = employee.employeementId.substring(2);
+    }else  if(employee.employeementId.startsWith('AP-')){
+      employee.employeementId  = employee.employeementId.substring(3);
     }else {
       employee.employeementId  = employee.employeementId
     }
