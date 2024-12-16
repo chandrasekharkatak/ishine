@@ -194,5 +194,7 @@ export class Employee{
 	isApprenticeship: any;
 	employeeType:any;
 	isRegular: any;
+	isRetain:any
+	dateOfRetain:any
 
 }

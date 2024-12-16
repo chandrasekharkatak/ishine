@@ -102,6 +102,7 @@ import { RewardsAndRecognisationComponent } from './rewards/rewards-and-recognis
 import { RewardFilterPipe } from './reward-filter.pipe';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatOptionModule } from '@angular/material/core';
+import { Employee360Component } from './employee360/employee360.component';
 //import { TestComponent } from './user-report/test/test.component';
 
 @NgModule({
@@ -177,6 +178,7 @@ import { MatOptionModule } from '@angular/material/core';
     RewardsComponent,
     RewardsAndRecognisationComponent,
     RewardFilterPipe,
+    Employee360Component,
     //TestComponent
   ],
   imports: [

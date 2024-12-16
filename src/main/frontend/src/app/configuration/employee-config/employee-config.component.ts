@@ -234,7 +234,8 @@ minDate: Date;
     private locationStrategy:LocationStrategy,
     private domainService:DomainService,
     private destinationService:DestinationService,
-    private leaveService : LeaveService
+    private leaveService : LeaveService,
+   
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -475,6 +476,20 @@ minDate: Date;
 
   stringToNumber(year:any){
     this.employeeObj.yearOfPassing = Number.parseInt(year);
+  }
+
+
+  retainStatus(){
+
+    if(this.employeeObj.employmentstatus =="Retain"){
+      this.employeeObj.isRetain ="Yes";
+    } else{
+      this.employeeObj.isRetain ="No";
+    }
+
+
+    console.log(this.employeeObj.employmentstatus)
+    console.log(this.employeeObj.isRetain)
   }
 
   showCreateForm() {
@@ -1749,6 +1764,7 @@ minDate: Date;
     if(this.employeeObj.dateOfBirth) this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth ).format(dateFormat)
     if(this.employeeObj.dateOfJoining) this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat)
     if(this.employeeObj.dateOfResign) this.employeeObj.dateOfResign = moment(this.employeeObj.dateOfResign).format(dateFormat)
+    if(this.employeeObj.dateOfRetain) this.employeeObj.dateOfRetain = moment(this.employeeObj.dateOfRetain).format(dateFormat) 
 
     if(this.employeeObj.employmentstatus == "Confirmed" || this.employeeObj.employmentstatus == "Probation" ){
       this.employeeObj.dateOfResign = null;
@@ -2734,6 +2750,23 @@ return true;
     }
   }
 
+
+  estimateDateOfRetain(employeeObj: Employee){
+    const dateFormat = 'YYYY-MM-DD';
+
+    if(this.employeeObj.dateOfRetain){
+      let estimateDateOfRetain = new Date(this.employeeObj.dateOfRetain);
+      this.employeeObj.dateOfRetain = moment(estimateDateOfRetain).format(dateFormat);
+      console.log(this.employeeObj.dateOfRetain, "this.employeeObj.dateOfRetain")
+    }
+
+    console.log(this.employeeObj.dateOfRetain);
+  }
+
+
+
+
+
   onUpdateTimesheetLockCheck(template: TemplateRef<any>,employeeObj:Employee,status: any){
     let employee = Object.assign({}, employeeObj);
     employee.isTimesheetLockCheckEnable = status;
@@ -2743,6 +2776,8 @@ return true;
       employee.employeementId  = employee.employeementId.substring(5);
     }else  if(employee.employeementId.startsWith('A-')){
       employee.employeementId  = employee.employeementId.substring(2);
+    }else  if(employee.employeementId.startsWith('AP-')){
+      employee.employeementId  = employee.employeementId.substring(3);
     }else {
       employee.employeementId  = employee.employeementId
     }

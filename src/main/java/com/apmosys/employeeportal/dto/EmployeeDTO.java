@@ -5,6 +5,7 @@ import java.util.List;
 import javax.persistence.Column;
 
 import com.apmosys.employeeportal.model.Notification;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.time.LocalDate;	
 
@@ -243,4 +244,8 @@ public class EmployeeDTO {
 	
 	//by priyadarshini
 	private String isApprenticeship;
+
+     private String isRetain;
+
+	private String dateOfRetain;
 }

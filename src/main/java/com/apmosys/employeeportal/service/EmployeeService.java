@@ -446,7 +446,7 @@ public class EmployeeService {
 			employee.setIsTimesheetLockCheckEnable("true");
 			employee.setDesignationId(employeedto.getDesignationId());
 			employee.setIsConsultant(employeedto.getIsConsultant());
-			employee.setIsApprenticeship(employeedto.getIsApprenticeship());
+			
 			
 			if ("No".equals(employeedto.getOnbenchDate())) {
 			    // Keep the existing value (no need to set it again)
@@ -1037,7 +1037,6 @@ public class EmployeeService {
 					empDTO.setEmploymentReleaseStatus(object[69] != null ? object[69].toString() : null);
 					empDTO.setBillableType(object[70] != null ? object[70].toString() : null);
 					empDTO.setIsConsultant(object[71] != null ? object[71].toString() : null);
-					empDTO.setIsApprenticeship(object[72] != null ? object[72].toString() : null);
 					if (object[42] != null) {
 
 						File actualFile = new File(
@@ -2100,7 +2099,6 @@ public class EmployeeService {
 				employee.setWorkLocation(employeedto.getWorkLocation());
 				employee.setProbationPeriod(employeedto.getProbationPeriod());
 				employee.setIsConsultant(employeedto.getIsConsultant());
-				employee.setIsApprenticeship(employeedto.getIsApprenticeship());
 				
 				if ("No".equals(employeedto.getOnbenchDate())) {
 				    // Keep the existing value (no need to set it again)
@@ -2117,8 +2115,25 @@ public class EmployeeService {
 						
 					}
 				}
+			 
+			 
+			 
+			 if(employeedto.getEmploymentstatus().equals("Retain")) {
+					
+					employee.setDateOfRetain(employeedto.getDateOfRetain() != null
+							? stringToDateTimeParser.getDate(employeedto.getDateOfRetain(), "yyyy-MM-dd")
+							: null);
+					employee.setIsRetain(employeedto.getIsRetain());
+					
+		     } else {
+					employee.setIsRetain(employeedto.getIsRetain());
+			 }
+			 
+			 
+			 
+			 
 				
-				if(employeedto.getEmploymentstatus().equals("Resigned") || employeedto.getEmploymentstatus().equals("InActive") )  {
+				if(employeedto.getEmploymentstatus().equals("Resigned") || employeedto.getEmploymentstatus().equals("InActive") || employeedto.getEmploymentstatus().equals("Retain") )  {
 					System.out.println("Right method call for  setDateOfResign   ");
 					employee.setDateOfResign(employeedto.getDateOfResign() != null
 							? stringToDateTimeParser.getDate(employeedto.getDateOfResign(), "yyyy-MM-dd")
@@ -2168,6 +2183,10 @@ public class EmployeeService {
 //							}	
 //					}
 					
+					
+					
+					
+					
 					if(employeedto.getEmploymentstatus().equals("InActive")) {
 						// create logic for remove resource from team and projects
 						
@@ -2197,10 +2216,10 @@ public class EmployeeService {
 						}
 					}
 					
-				}else if(employee.getEmploymentstatus().equals("Probation") || employee.getEmploymentstatus().equals("Confirmed")) {
+				}else if(employee.getEmploymentstatus().equals("Probation") || employee.getEmploymentstatus().equals("Confirmed") || employee.getEmploymentstatus().equals("Retain") ) {
 					employee.setDateOfResign(null);
 				}
-					if(employee.getEmploymentstatus().equals("Probation") || employee.getEmploymentstatus().equals("Confirmed") || employee.getEmploymentstatus().equals("Resigned")) {
+					if(employee.getEmploymentstatus().equals("Probation") || employee.getEmploymentstatus().equals("Confirmed") || employee.getEmploymentstatus().equals("Resigned") || employee.getEmploymentstatus().equals("Retain")) {
 				
 					employee.setEmploymentReleaseStatus(null);
 				}else {
@@ -2619,8 +2638,7 @@ public class EmployeeService {
 					empDTO.setClientName(object[73] != null ? object[73].toString() : null);
 					empDTO.setTeamName(object[74] != null ? object[74].toString() : null);
 					empDTO.setDesignationName(object[75] != null ? object[75].toString() : null);
-					empDTO.setIsConsultant(object[76] != null ? object[76].toString() : null);
-					empDTO.setIsApprenticeship(object[77] != null ? object[77].toString() : null);
+					empDTO.setIsConsultant(object[76] != null ? object[76].toString() : null);	
 				
 					ServiceResponse completionResponse = getEmployeeProfileCompletion(empDTO);
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
@@ -3058,9 +3076,6 @@ public class EmployeeService {
 							dto.setDepartmentId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
 							dto.setEmployeementId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
 							dto.setBillableType(object[5] != null ? object[5].toString() : null);
-							dto.setIsConsultant(object[6] != null ? object[6].toString() : null);
-							dto.setIsApprenticeship(object[7] != null ? object[7].toString() : null);
-							
 							employeeList.add(dto);
 						});
 						
@@ -4019,10 +4034,7 @@ public class EmployeeService {
 					dto.setInvalidAccessAttempt(object[7] != null ? Integer.parseInt(object[7].toString()) : null);
 					dto.setIsTimesheetLockCheckEnable(object[8] != null ? object[8].toString() : null);
 					dto.setPipFlag(object[9] != null ? object[9].toString() : null);	
-					dto.setIsConsultant(object[10] != null ? object[10].toString() : null);
-					dto.setIsApprenticeship(object[11] != null ? object[11].toString() : null);
-					
-					timesheetList.forEach((timesheet) -> {
+					dto.setIsConsultant(object[10] != null ? object[10].toString() : null);					timesheetList.forEach((timesheet) -> {
 
 						Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
 						Long employeeEmpId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
@@ -4099,7 +4111,6 @@ public class EmployeeService {
 					managerObj.setManagerId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
 					managerObj.setReporteeCount(object[8] != null ? Integer.parseInt(object[8].toString()) : null);
 					managerObj.setIsConsultant(object[9] != null ? object[9].toString() : null);
-					managerObj.setIsApprenticeship(object[10] != null ? object[10].toString() : null);
 					
 					managerObj.setHierarchyType("Manager");
 					
@@ -4121,7 +4132,6 @@ public class EmployeeService {
 					coWorker.setManagerId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
 					coWorker.setReporteeCount(object[8] != null ? Integer.parseInt(object[8].toString()) : null);
 					coWorker.setIsConsultant(object[9] != null ? object[9].toString() : null);
-					coWorker.setIsApprenticeship(object[10] != null ? object[10].toString() : null);
 					
 					if(coWorker.getEmpId().equals(employeedto.getEmpId())) {
 						coWorker.setHierarchyType("Self");
@@ -4147,9 +4157,7 @@ public class EmployeeService {
 					reportee.setManagerName(object[6] != null ? object[6].toString() : null);
 					reportee.setManagerId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
 					reportee.setReporteeCount(object[8] != null ? Integer.parseInt(object[8].toString()) : null);
-					reportee.setIsConsultant(object[9] != null ? object[9].toString() : null);	
-					reportee.setIsApprenticeship(object[10] != null ? object[10].toString() : null);
-					
+					reportee.setIsConsultant(object[9] != null ? object[9].toString() : null);					
 					reportee.setHierarchyType("Reportee");
 					
 					dtoList.add(reportee);

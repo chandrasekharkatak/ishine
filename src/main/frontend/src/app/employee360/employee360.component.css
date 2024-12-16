@@ -1,0 +1,109 @@
+/* General Styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+  }
+  
+  .employee-container {
+    margin-top: 20px;
+  }
+  
+  .employee-card {
+    border: none;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  
+  /* Profile Section */
+  .profile-section {
+    background-color: #122f97;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    border-radius: 10px;
+  }
+  
+  .profile-picture img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+  }
+  
+  .profile-name {
+    font-size: 1.5rem;
+    margin: 10px 0;
+  }
+  
+  .profile-email,
+  .profile-phone {
+    font-size: 0.9rem;
+    margin: 5px 0;
+  }
+  
+  .profile-details {
+    margin-top: 15px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  
+  .profile-details p {
+    margin: 5px 0;
+  }
+  
+  /* Header */
+  .employee-header {
+    background-color: #17249f;
+    color: white;
+    text-align: center;
+    padding: 1.5rem;
+  }
+  
+  .employee-header h2 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: bold;
+  }
+  
+  .highlight-text {
+    color: #fff38d;
+  }
+  
+  /* Tabs */
+  .report__tabs {
+    border-bottom: 2px solid #ddd;
+  }
+  
+  .report__tab-item__link {
+    color: #888;
+    font-weight: bold;
+    padding: 1rem;
+  }
+  
+  .report__tab-item__link.active {
+    color: #182ca0;
+    border-bottom: 3px solid #163ea2;
+  }
+  
+  /* Table */
+  .project-table th {
+    background-color: #101e9c;
+    color: white;
+    text-align: center;
+  }
+  
+  .project-table td {
+    text-align: center;
+  }
+  
+  .see-more {
+    color: #1313b9;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  
+  .see-more:hover {
+    text-decoration: underline;
+  }
+  

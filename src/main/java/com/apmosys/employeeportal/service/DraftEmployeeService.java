@@ -156,6 +156,7 @@ public class DraftEmployeeService {
 			employee.setDesignationId(employeedto.getDesignationId());
 			employee.setProbationPeriod(employeedto.getProbationPeriod());
 			employee.setIsConsultant(employeedto.getIsConsultant());
+			employee.setIsApprenticeship(employeedto.getIsApprenticeship());
 			if(employee.getEmploymentstatus().equals("Resigned") || employee.getEmploymentstatus().equals("InActive") )  {
 				employee.setDateOfResign(employeedto.getDateOfResign() != null
 						? stringToDateTimeParser.getDate(employeedto.getDateOfResign(), "yyyy-MM-dd")

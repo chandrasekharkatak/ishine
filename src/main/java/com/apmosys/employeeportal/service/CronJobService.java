@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.service;
 
 import java.io.File;
+
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -108,11 +109,20 @@ import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
-import com.fasterxml.jackson.annotation.JsonValue;
+
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+
+import org.hibernate.Session;
+import javax.persistence.EntityManager;
+
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+
+import javax.transaction.Transactional;
+
 
 @Service
 @EnableAsync
@@ -172,8 +182,15 @@ public class CronJobService {
 	@Autowired
 	TeamRepository teamRepository;
 	
+	
+	 @PersistenceContext
+	 EntityManager entityManager;
+	
 	@Autowired
 	ClientsRepository clientsRepository;
+	
+//	@PersistenceContext
+//	private EntityManager entityManager;
 	
 	@Autowired
 	AuthenticationService authenticationService;
@@ -229,33 +246,68 @@ public class CronJobService {
 	@Value("${valid.attempt:5}")
 	private Long validAttempt;
 	
+	
+	
+	
+
+
+
+    public CronJobService(EntityManager entityManager) {
+        this.entityManager = entityManager;
+    }
+	
+	
+	
+	
+	
 		
 	//0 0 12 1 * ?  - Every month on the 1st, at noon
 //	0 0/2 * ? * *
-	@Scheduled(cron = "0 0 12 1 * ?")
+//	@Scheduled(cron = "0 0 12 1 * ?")
+//    @Scheduled(cron = "0 02 18 * * ?")
+    @Scheduled(cron = "0 0 17 * * ?")
 	public void monthlyLeaveIncrement() {
 		try {
 		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
+		     
 		     List<Employee> employeeList = employeeRepository.findAll();
-		     LocalDate dateToday = LocalDate.now();
-		     LocalDate prevMonthStart = dateToday.minusMonths(1).withDayOfMonth(1);
 		     
-		     YearMonth thisYearMonth = YearMonth.of(prevMonthStart.getYear(), prevMonthStart.getMonthValue());
+		     LocalDate dateToday = LocalDate.now();  //2024-12-05  
 		     
-		     LocalDate prevMonthEnd = thisYearMonth.atEndOfMonth();
+		     LocalDate prevMonthStart = dateToday.minusMonths(1).withDayOfMonth(1);  //2024-11-01
+		     
+		     YearMonth thisYearMonth = YearMonth.of(prevMonthStart.getYear(), prevMonthStart.getMonthValue());  //2024, 11
+		     
+		     LocalDate prevMonthEnd = thisYearMonth.atEndOfMonth();   //2024-11-30
 		     
 		     if(!leaveType.isEmpty()) {
+		    	 
 		    	 for(LeaveTypeMaster ltm :leaveType) {
 		        	  for(Employee employeeObj : employeeList) {
+		        		  
+		        		  System.out.println("checked     "+employeeObj.getEmploymentstatus().equals("Retain"));
+		        		  
+		        		  if(employeeObj.getEmploymentstatus().equals("Retain")) {
+	        				  
+	        				  System.out.println("@@@  "+employeeObj.getName());
+	        				  
+	        				  System.out.println("@@@  "+employeeObj.getIsRetain());	
+	        				  
+	        				 
+	        				  }
 		        		  
 		        		  System.out.println(employeeObj.getEmploymentstatus() +"  "+ ltm.getLeaveTypeMasterId());
 		        		  
 		        		  Optional<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.
 		        				  findByEmployentStatusAndLeaveTypeMasterId(employeeObj.getEmploymentstatus(),ltm.getLeaveTypeMasterId());
-		        		  
+	        		  
 		        		  if(!leavePolicy.isEmpty()) {
+		        			  
 		        			  LeavePolicyMaster leavePolicyObj = leavePolicy.get();
+
 		        			  if(leavePolicyObj.getIncrement().equals("Yes")){
+		        				  
+		        				
 		        				  
 		        				  EmployeeLeavesMap employeeLeaveMap = employeeLeavesMapRepository.
 		        						  findByEmpIdAndLeaveTypeMasterId(employeeObj.getEmpId(),ltm.getLeaveTypeMasterId());
@@ -266,6 +318,7 @@ public class CronJobService {
 		        				        	  
 		        				        	  // Manage Balance if user In-Between a month
 		        				        	  Boolean isContains = (employeeObj.getDateOfJoining().isBefore(prevMonthEnd) ) && (employeeObj.getDateOfJoining().isAfter(prevMonthStart));
+		        				        	  float retainValue = 0.0F;
 		        				        	  
 		        				        	  if(isContains) {
 		        				        		  Float newBalance = 0.0F;
@@ -311,7 +364,54 @@ public class CronJobService {
 		        				        		  
 		        				        	  }else {
 		        				        		  
-		        				        		  float newBalance = employeeLeaveMap.getBalance() + leavePolicyObj.getIncrementValue();
+		        				        		  
+
+		        				        		  
+		        				        		  LocalDate resignedDate = employeeObj.getDateOfResign();
+		        				        		  LocalDate retainedDate = employeeObj.getDateOfRetain();
+		        				        	      String  isRetain = employeeObj.getIsRetain();
+		        				        	      System.out.println("Yesssss     "+employeeObj);
+		        				        	      
+		        				        	      System.out.println("1    "+resignedDate); 
+		        				        	      System.out.println("2    "+retainedDate);
+		        				        	      System.out.println("3   "+isRetain);
+		        				        	      
+		        				        	      System.out.println("1    "+employeeObj.getDateOfResign()); 
+		        				        	      System.out.println("2    "+employeeObj.getDateOfRetain());
+		        				        	      System.out.println("3   "+employeeObj.getIsRetain());
+		        				        	      
+		        				        	      if ("Yes".equals(isRetain)) { 
+		        				        	    	    if (resignedDate != null && retainedDate != null) {
+		        				        	    	        LocalDate startDate = resignedDate;
+		        				        	    	        LocalDate endDate = retainedDate;
+		        				        	    	        long totalDays = ChronoUnit.DAYS.between(startDate, endDate);
+
+		        				        	    	        long fullMonths = totalDays / 30;
+		        				        	    	        
+		        				        	    	        System.out.print("fullMonth  "+fullMonths);
+
+		        				        	    	        for (long i = 0; i < fullMonths; i++) {
+		        				        	    	            retainValue = retainValue + leavePolicyObj.getIncrementValue();
+		        				        	    	        }
+
+		        				        	    	        if (retainValue > 0.0F) {
+//		        				        	    	            executeQueryForRetain(employeeObj);
+		        				        	    	        	employeeRepository.updateIsRetain(employeeObj.getEmpId());
+		        				        	    	        }
+		        				        	    	    } else {
+		        				        	    	        // Handle the case where either date is null
+		        				        	    	        System.out.println("Warning: resignedDate or retainedDate is null. Skipping retain calculation.");
+		        				        	    	        // Proceed with further execution
+		        				        	    	    }
+		        				        	    	}
+
+		        			
+		        				        		  
+		        				        		  
+		        				        		  
+  
+
+		        				        		  float newBalance = employeeLeaveMap.getBalance() + leavePolicyObj.getIncrementValue() + retainValue;
 			        				        	  System.out.println(newBalance);
 			        				        	  employeeLeaveMap.setBalance(newBalance);
 			        				        	  EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeaveMap);
@@ -342,6 +442,106 @@ public class CronJobService {
 			e.printStackTrace();
 		   }
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+
+	// Cron job to run the query at 12:00 AM on December 31st every year ........../
+//	   @Scheduled(cron = "0 0 0 31 12 ?")
+
+	   @Scheduled(cron = "0 0 17 * * ?")
+	@Transactional
+	public void executeQueryAtYearEnd() {
+	    // SQL query to update manager approval status and reason
+		String sql = "UPDATE employee_leave el " +
+                "JOIN employee e ON el.created_by = e.emp_id " +
+                "JOIN (" +
+                "    SELECT el.emp_id " +
+                "    FROM employee_leave el " +
+                "    WHERE el.leave_type_master_id = 4" +
+                ") subquery ON el.emp_id = subquery.emp_id " +
+                "SET " +
+                "    el.manager_approval_status = 'Rejected', " +
+                "    el.reason = 'Application rejected as CL exceeded its limit', " +
+                "    el.leave_status_id = 3, " +
+                "    el.leave_status_updated_by = el.manager_id " +
+                "WHERE " +
+                "    el.leave_type_master_id = 4";
+
+
+	    executeNativeQuery(sql);
+	    System.out.println("Query executed at year-end!");
+	}
+
+	   
+
+		public int executeNativeQuery(String query) {
+		    Session session = entityManager.unwrap(Session.class);
+		    javax.persistence.Query q = session.createNativeQuery(query);
+
+		    try {
+		        // Execute the update query and return the number of affected rows
+		        int result = q.executeUpdate();
+		        return result;
+		    } catch (Exception e) {
+		        e.printStackTrace(); 
+		    }
+
+		    // Return 0 if any error occurs
+		    return 0;
+ }
+	   
+	   
+	   
+	   
+	   
+	   
+		    //  @Transactional
+		    // public void executeQueryForRetain(Employee obj) {
+		    //     Long empId = obj.getEmpId();
+		    //     String sql = "UPDATE employee SET is_Retain = 'No' WHERE emp_id = :empId";
+
+		    //     Query query = entityManager.createNativeQuery(sql);
+		    //     query.setParameter("empId", empId);
+		    //     query.executeUpdate();
+
+		    //     System.out.println("Query executed Retain!");
+		    // }
+
+
+	
+
+	
+	
+	// // Method to execute a native query
+	// public int executeNativeQueryforRetain(String query) {
+
+	//     Session session = entityManager.unwrap(Session.class);
+	//     javax.persistence.Query q = session.createNativeQuery(query);
+
+	//     try {
+	//         // Execute the update query and return the number of affected rows
+	//         int result = q.executeUpdate();
+	//         return result;
+	//     } catch (Exception e) {
+	//         e.printStackTrace();  // Handle exception
+	//     }
+
+	//     // Return 0 if any error occurs
+	//     return 0;
+	// }
+
+	
+	
+	
+	
+	
+	
 	
 	// 0 0 0 31 MAR ? - AT 00:00 AT 31 DAY AT MARCH MONTH
 	
@@ -414,6 +614,23 @@ public class CronJobService {
 //			e.printStackTrace();
 //		   }
 //	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	 
 	// At 11:20 AM, on day 02 of the month, only in January
 @Scheduled(cron = "0 50 15 09 01 ?")
@@ -470,10 +687,11 @@ public class CronJobService {
 				              	        
 				              	        // Check if probationCompleteDate is between July 1, 2023, and December 31, 2023
 				              	        boolean isWithinRange = probationCompleteDate.after(startDate.getTime()) && probationCompleteDate.before(endDate.getTime());
-
+               //false
 				              	        System.err.println("probationCompleteDate.after(startDate.getTime())    :: "+startDate.getTime() );
 				              	        System.err.println("probationCompleteDate.before(endDate.getTime()    ::    "+endDate.getTime());
 				              	        if (!isWithinRange) {
+				//true              	        	
 				              	            System.out.println("Probation complete date is between July 1, 2023, and December 31, 2023.");
 				              	            
 											if (lpm.getCarryForward().equals("No")) {

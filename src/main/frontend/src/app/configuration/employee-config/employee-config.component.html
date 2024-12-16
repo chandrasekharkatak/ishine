@@ -47,7 +47,7 @@
 
                                                 <!-- <input type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8" autocomplete="none"
                                                 [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">  -->
-
+                                                <input *ngIf="!isUpdation && employeeObj.employeeType === ''" type="text" class="form-control" [(ngModel)]="employeeObj.employeementId" disabled> 
                                                 <input *ngIf="!isUpdation && employeeObj.employeeType === 'Regular'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
                                                 [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">
                                                 <input *ngIf="!isUpdation && employeeObj.employeeType === 'Consultant'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
@@ -549,13 +549,15 @@
      <div class="info-wrapper">
         <div class="form-group">
             <label class="info-label"><span class="text-danger">*</span>Employment Status</label>
-            <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.employmentstatus">
+            <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.employmentstatus" (change)="retainStatus()"  >
                 <option selected="selected" value="" disabled>Select</option>
                 <option value="Probation">Probation</option>
                 <option value="Confirmed">Confirmed</option>
                 <!-- <option value="Reinstate">Reinstate</option> -->
                 <option *ngIf="isUpdation" value="Resigned">Resigned</option>
+                <option *ngIf="isUpdation" value="Retain">Retain</option>
                 <option *ngIf="isUpdation" value="InActive">In-Active</option>
+               
             </select>
         </div>
     </div>
@@ -749,6 +751,26 @@
                                             </div>
                                         </div>
                                     </div>
+
+
+
+
+                                    <div class="col-md-4 mb-0" *ngIf="(isUpdation && employeeObj.employmentstatus == 'Retain') || (isUpdation && employeeObj.employmentstatus == 'InActive') ">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Date Of Retain</label>
+                                                <div class="d-flex">
+                                                 <!--  <input matInput [min]="minDate" (click)="setMinDate(); [startAt]="minDate"> -->
+                                                    <input class="form-control static-input" matInput id="DOR"  [matDatepicker]="DORePicker" #input2
+                                                    (click)="DORePicker.open()" (dateChange)="estimateDateOfRetain(employeeObj)"
+                                                    [matDatepickerFilter]="DateFilterForDOR" placeholder="Choose date of Retain" [(ngModel)]="employeeObj.dateOfRetain" autocomplete="off">
+                                                    <mat-datepicker-toggle matSuffix [for]="DORePicker" style="margin-left: -40px;"></mat-datepicker-toggle>
+                                                </div>
+                                                <mat-datepicker  #DORePicker (closed)="input2.blur()" disabled="false"></mat-datepicker>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div class="col-md-4 mb-0" *ngIf="isUpdation && employeeObj.employmentstatus == 'InActive' || employeeObj.employmentstatus == 'Resigned' ">
                                         <div class="info-wrapper">
                                             <div class="form-group">
@@ -1233,7 +1255,11 @@
                                 <!-- <th *ngIf="!isDraftTable" class="info-label">A-{{employee.employeementId}}</th>
                             <th *ngIf="isDraftTable" class="info-label">{{i+1}}</th> -->
                                 <td>{{employee.employeementId}}</td>
-                                <td>{{employee.name}}</td>
+                                <td>
+                                    <button class="btn p-0 text-decoration-none" style="cursor: pointer;"   routerLink="/employee-360">
+                                      {{employee.name}}
+                                    </button>
+                                </td>
                                 <td>{{employee.email}}</td>
                                 <td>{{employee.employmentstatus}}</td>
                                 <td *ngIf="isDraftTable== true && employee.employmentStatus=='InActive' ? '{{employee.employmentReleaseStatus}} ' : ' ' && !isActiveTable" >{{employee.employmentReleaseStatus}}</td>
