@@ -60,6 +60,7 @@ import { RewardsConfigComponent } from './configuration/rewards-config/rewards-c
 import { RewardsAndRecognisationComponent } from './rewards/rewards-and-recognisation/rewards-and-recognisation.component';
 import { Rewards } from './models/rewards';
 import { RewardsComponent } from './rewards/rewards.component';
+import { Employee360Component } from './employee360/employee360.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -142,6 +143,7 @@ const routes: Routes = [
     ]
   },
   {path:'user-appreciation', component: UserAppreciationComponent, canActivate: [AuthGuard]},
+  {path:'employee-360', component: Employee360Component},
   {path:'user-policies', component: UserPoliciesComponent, canActivate: [AuthGuard]},
   {path:'user-survey', component: UserSurveyComponent, canActivate: [AuthGuard]},
   {path:'user-survey/:id', component: UserSurveyComponent, canActivate: [AuthGuard]},
