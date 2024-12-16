@@ -266,6 +266,7 @@ public class EmployeeLeaveService {
 				System.out.println("Senior manager data :: "+findEmployee.getManagerId());
 				
 			Float availableCompOffBalance = 0.0F;
+			
 			if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("CO")) {
 				ServiceResponse compOffResponse = compOffLeaveService.getCompOffBalanceDetailsByEmpIdAndFromDate(leaveDTO);
 				
@@ -1447,9 +1448,12 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 		
 		try {
 			Optional<EmployeeLeave> leaveApplication = employeeLeaveRepository.findById(leaveDTO.getLeaveId());
+			
 			EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
 					.findByEmpIdAndLeaveTypeMasterId(leaveDTO.getLeaveEmpId(), leaveDTO.getLeaveTypeMasterId());
+			
 			Optional<Employee> employee = employeeRepository.findById(leaveDTO.getEmpId());
+			
 			System.out.println("leaveDTO.getEmpId() : -- " +leaveDTO.getEmpId());
 			System.out.println("leaveDTO.getLeaveTypeMasterId() : -- " +leaveDTO.getLeaveTypeMasterId());
 			if (leaveApplication.isPresent()) {

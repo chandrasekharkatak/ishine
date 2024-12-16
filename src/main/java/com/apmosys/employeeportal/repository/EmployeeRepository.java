@@ -5,7 +5,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.transaction.Transactional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -72,6 +75,12 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeInfoOnLogin(String email);
+	
+	
+	@Transactional
+	@Modifying
+	@Query("UPDATE Employee e SET e.isRetain = 'No' WHERE e.empId = :empId")
+	void updateIsRetain(@Param("empId") Long empId);
 
 	public boolean existsByEmail(String email);
 

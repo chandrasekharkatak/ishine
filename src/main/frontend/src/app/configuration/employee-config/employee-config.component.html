@@ -549,13 +549,15 @@
      <div class="info-wrapper">
         <div class="form-group">
             <label class="info-label"><span class="text-danger">*</span>Employment Status</label>
-            <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.employmentstatus">
+            <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.employmentstatus" (change)="retainStatus()"  >
                 <option selected="selected" value="" disabled>Select</option>
                 <option value="Probation">Probation</option>
                 <option value="Confirmed">Confirmed</option>
                 <!-- <option value="Reinstate">Reinstate</option> -->
                 <option *ngIf="isUpdation" value="Resigned">Resigned</option>
+                <option *ngIf="isUpdation" value="Retain">Retain</option>
                 <option *ngIf="isUpdation" value="InActive">In-Active</option>
+               
             </select>
         </div>
     </div>
@@ -749,6 +751,26 @@
                                             </div>
                                         </div>
                                     </div>
+
+
+
+
+                                    <div class="col-md-4 mb-0" *ngIf="(isUpdation && employeeObj.employmentstatus == 'Retain') || (isUpdation && employeeObj.employmentstatus == 'InActive') ">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Date Of Retain</label>
+                                                <div class="d-flex">
+                                                 <!--  <input matInput [min]="minDate" (click)="setMinDate(); [startAt]="minDate"> -->
+                                                    <input class="form-control static-input" matInput id="DOR"  [matDatepicker]="DORePicker" #input2
+                                                    (click)="DORePicker.open()" (dateChange)="estimateDateOfRetain(employeeObj)"
+                                                    [matDatepickerFilter]="DateFilterForDOR" placeholder="Choose date of Retain" [(ngModel)]="employeeObj.dateOfRetain" autocomplete="off">
+                                                    <mat-datepicker-toggle matSuffix [for]="DORePicker" style="margin-left: -40px;"></mat-datepicker-toggle>
+                                                </div>
+                                                <mat-datepicker  #DORePicker (closed)="input2.blur()" disabled="false"></mat-datepicker>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div class="col-md-4 mb-0" *ngIf="isUpdation && employeeObj.employmentstatus == 'InActive' || employeeObj.employmentstatus == 'Resigned' ">
                                         <div class="info-wrapper">
                                             <div class="form-group">

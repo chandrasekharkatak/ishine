@@ -188,4 +188,10 @@ public class Employee {
 	
 	//by priyadarshini
 	private String isApprenticeship;
+
+	private String isRetain;
+
+	
+	@JsonFormat(pattern = "dd/MM/yyyy")
+	private LocalDate dateOfRetain;
 }

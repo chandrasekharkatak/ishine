@@ -477,6 +477,20 @@ minDate: Date;
     this.employeeObj.yearOfPassing = Number.parseInt(year);
   }
 
+
+  retainStatus(){
+
+    if(this.employeeObj.employmentstatus =="Retain"){
+      this.employeeObj.isRetain ="Yes";
+    } else{
+      this.employeeObj.isRetain ="No";
+    }
+
+
+    console.log(this.employeeObj.employmentstatus)
+    console.log(this.employeeObj.isRetain)
+  }
+
   showCreateForm() {
     this.isForm = true;
     this.isCreation = true;
@@ -1749,6 +1763,7 @@ minDate: Date;
     if(this.employeeObj.dateOfBirth) this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth ).format(dateFormat)
     if(this.employeeObj.dateOfJoining) this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat)
     if(this.employeeObj.dateOfResign) this.employeeObj.dateOfResign = moment(this.employeeObj.dateOfResign).format(dateFormat)
+    if(this.employeeObj.dateOfRetain) this.employeeObj.dateOfRetain = moment(this.employeeObj.dateOfRetain).format(dateFormat) 
 
     if(this.employeeObj.employmentstatus == "Confirmed" || this.employeeObj.employmentstatus == "Probation" ){
       this.employeeObj.dateOfResign = null;
@@ -2732,6 +2747,19 @@ return true;
       this.employeeObj.dateOfRelieving = moment(estimateDateOfRelieving).add(this.employeeObj.noticePeriod, "days").format(dateFormat);
       console.log(this.employeeObj.dateOfRelieving, "this.employeeObj.dateOfRelieving")
     }
+  }
+
+
+  estimateDateOfRetain(employeeObj: Employee){
+    const dateFormat = 'YYYY-MM-DD';
+
+    if(this.employeeObj.dateOfRetain){
+      let estimateDateOfRetain = new Date(this.employeeObj.dateOfRetain);
+      this.employeeObj.dateOfRetain = moment(estimateDateOfRetain).format(dateFormat);
+      console.log(this.employeeObj.dateOfRetain, "this.employeeObj.dateOfRetain")
+    }
+
+    console.log(this.employeeObj.dateOfRetain);
   }
 
   onUpdateTimesheetLockCheck(template: TemplateRef<any>,employeeObj:Employee,status: any){
