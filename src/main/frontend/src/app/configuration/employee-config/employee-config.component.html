@@ -1255,14 +1255,14 @@
                                 <!-- <th *ngIf="!isDraftTable" class="info-label">A-{{employee.employeementId}}</th>
                             <th *ngIf="isDraftTable" class="info-label">{{i+1}}</th> -->
                                 <td>{{employee.employeementId}}</td>
-                                <td>
-                                    <button class="btn p-0 text-decoration-none" style="cursor: pointer;"   routerLink="/employee-360">
+
+                                <td  [navigateToEmployee360]="employee"  style="cursor: pointer;"  title="You want to redirect to Employee360 page" >
                                       {{employee.name}}
-                                    </button>
                                 </td>
+
                                 <td>{{employee.email}}</td>
                                 <td>{{employee.employmentstatus}}</td>
-                                <td *ngIf="isDraftTable== true && employee.employmentStatus=='InActive' ? '{{employee.employmentReleaseStatus}} ' : ' ' && !isActiveTable" >{{employee.employmentReleaseStatus}}</td>
+                                <td *ngIf="isDraftTable == true && employee.employmentStatus=='InActive' ? '{{employee.employmentReleaseStatus}} ' : ' ' && !isActiveTable" >{{employee.employmentReleaseStatus}}</td>
                                 <td>{{employee.managerName}}</td>
                                 <td>{{employee.departmentName}}</td>
                                 <td>{{employee.dateOfJoining}}</td>

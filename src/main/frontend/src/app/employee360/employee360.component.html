@@ -1,93 +1,56 @@
 <div class="container-fluid employee-container">
     <div class="row">
-      <!-- Main Content Section -->
+      
       <div class="col-md-9">
         <div class="card employee-card">
-          <!-- Header -->
+    
           <div class="employee-header">
-            <h2>EMPLOYEE <span class="highlight-text">360 VIEW</span></h2>
+            <h3  >EMPLOYEE <span class="highlight-text">360 VIEW</span></h3>
           </div>
   
-          <!-- Tabs -->
-          <ul class="nav nav-tabs report__tabs" id="reportTab" role="tablist">
-            <li class="nav-item report__tab-item">
-              <a class="nav-link report__tab-item__link" id="skills-tab" data-toggle="tab" href="#skills" role="tab"
-                aria-controls="skills" aria-selected="false">Jobs/Skills</a>
+       
+            <ul class="nav nav-tabs config__tabs" id="configTab" role="tablist">
+            
+            <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
+              <a class="nav-link report__tab-item__link" id="skills-tab" data-toggle="tab" routerLink="employee-360-profile" role="tab"
+                aria-controls="skills" aria-selected="false">Profile</a>
             </li>
-            <li class="nav-item report__tab-item">
-              <a class="nav-link report__tab-item__link" id="training-tab" data-toggle="tab" href="#training" role="tab"
-                aria-controls="training" aria-selected="false">Training</a>
+            <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
+              <a class="nav-link report__tab-item__link" id="training-tab" data-toggle="tab" routerLink="employee-360-leave" role="tab"
+                aria-controls="training" aria-selected="false">Leave</a>
             </li>
-            <li class="nav-item report__tab-item">
-              <a class="nav-link report__tab-item__link active" id="projects-tab" data-toggle="tab" href="#projects" role="tab"
-                aria-controls="projects" aria-selected="true">Projects</a>
+            <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
+              <a class="nav-link report__tab-item__link active" id="projects-tab" data-toggle="tab" routerLink="employee-360-project" role="tab"
+                aria-controls="projects" aria-selected="true">Project</a>
             </li>
-            <li class="nav-item report__tab-item">
-              <a class="nav-link report__tab-item__link" id="documents-tab" data-toggle="tab" href="#documents" role="tab"
-                aria-controls="documents" aria-selected="false">Documents</a>
+            <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
+              <a class="nav-link report__tab-item__link" id="documents-tab" data-toggle="tab" routerLink="employee-360-timesheet" role="tab"
+                aria-controls="documents" aria-selected="false">TimeSheet</a>
             </li>
-            <li class="nav-item report__tab-item">
-              <a class="nav-link report__tab-item__link" id="people-tab" data-toggle="tab" href="#people" role="tab"
-                aria-controls="people" aria-selected="false">People</a>
+            <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
+              <a class="nav-link report__tab-item__link" id="people-tab" data-toggle="tab" routerLink="employee-360-biomax" role="tab"
+                aria-controls="people" aria-selected="false">Biomax</a>
             </li>
+
+            <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
+              <a class="nav-link report__tab-item__link" id="people-tab" data-toggle="tab" routerLink="employee-360-rewards" role="tab"
+                aria-controls="people" aria-selected="false">Rewards</a>
+            </li>
+
+            <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
+              <a class="nav-link report__tab-item__link" id="people-tab" data-toggle="tab" routerLink="employee-360-appreciation" role="tab"
+                aria-controls="people" aria-selected="false">Appreciation</a>
+            </li>
+
           </ul>
   
-          <!-- Tab Content -->
           <div class="tab-content" id="reportTabContent">
-            <!-- Projects Tab -->
-            <div class="tab-pane fade show active report__tab-container" id="projects" role="tabpanel">
-              <h4 class="project-heading">Projects</h4>
-              <table class="table table-striped project-table">
-                <thead>
-                  <tr>
-                    <th>Project Title</th>
-                    <th>Role</th>
-                    <th>Client</th>
-                    <th>Industry</th>
-                    <th>Date Range</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Project 1</td>
-                    <td>Accountant</td>
-                    <td>Client AA</td>
-                    <td>Oil & Gas</td>
-                    <td>03/18 - 09/18</td>
-                  </tr>
-                  <tr>
-                    <td>Project 2</td>
-                    <td>Sr. Accountant</td>
-                    <td>Client AA</td>
-                    <td>Construction</td>
-                    <td>10/19 - 03/20</td>
-                  </tr>
-                  <tr>
-                    <td>Project 4</td>
-                    <td>Sr. Accountant</td>
-                    <td>Client BB</td>
-                    <td>Finance</td>
-                    <td>04/20 - 11/20</td>
-                  </tr>
-                  <tr>
-                    <td>Project 5</td>
-                    <td>Project Manager</td>
-                    <td>Client CC</td>
-                    <td>Construction</td>
-                    <td>02/21 - 05/21</td>
-                  </tr>
-                  <tr>
-                    <td>Project 6</td>
-                    <td>Project Manager</td>
-                    <td>Client CC</td>
-                    <td>Finance</td>
-                    <td>12/20 - 04/21</td>
-                  </tr>
-                </tbody>
-              </table>
-              <a href="#" class="see-more">See more</a>
-            </div>
+        
+            <div class="config__tab-container">
+              <router-outlet class="tab-pane fade" role="tabpanel"></router-outlet>
           </div>
+
+               </div>
         </div>
       </div>
   

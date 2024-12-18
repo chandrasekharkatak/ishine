@@ -103,6 +103,14 @@ import { RewardFilterPipe } from './reward-filter.pipe';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatOptionModule } from '@angular/material/core';
 import { Employee360Component } from './employee360/employee360.component';
+import { NavigateToEmployee360Directive } from './navigate-to-employee360.directive';
+import { Employee360ProfileComponent } from './employee360/employee360-profile/employee360-profile.component';
+import { Employee360LeaveComponent } from './employee360/employee360-leave/employee360-leave.component';
+import { Employee360ProjectComponent } from './employee360/employee360-project/employee360-project.component';
+import { Employee360TimesheetComponent } from './employee360/employee360-timesheet/employee360-timesheet.component';
+import { Employee360BiomaxComponent } from './employee360/employee360-biomax/employee360-biomax.component';
+import { Employee360RewardsComponent } from './employee360/employee360-rewards/employee360-rewards.component';
+import { Employee360AppreciationComponent } from './employee360/employee360-appreciation/employee360-appreciation.component';
 //import { TestComponent } from './user-report/test/test.component';
 
 @NgModule({
@@ -179,6 +187,14 @@ import { Employee360Component } from './employee360/employee360.component';
     RewardsAndRecognisationComponent,
     RewardFilterPipe,
     Employee360Component,
+    NavigateToEmployee360Directive,
+    Employee360ProfileComponent,
+    Employee360LeaveComponent,
+    Employee360ProjectComponent,
+    Employee360TimesheetComponent,
+    Employee360BiomaxComponent,
+    Employee360RewardsComponent,
+    Employee360AppreciationComponent
     //TestComponent
   ],
   imports: [
