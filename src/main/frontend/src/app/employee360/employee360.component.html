@@ -11,35 +11,37 @@
        
             <ul class="nav nav-tabs config__tabs" id="configTab" role="tablist">
             
+              <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
+                <a class="nav-link report__tab-item__link active" id="profile-tab" data-toggle="tab" routerLink="employee-360-profile" role="tab"
+                   aria-controls="profile" aria-selected="true">Profile</a>
+             </li>
+
+
             <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
-              <a class="nav-link report__tab-item__link" id="skills-tab" data-toggle="tab" routerLink="employee-360-profile" role="tab"
-                aria-controls="skills" aria-selected="false">Profile</a>
+              <a class="nav-link report__tab-item__link" id="leave-tab" data-toggle="tab" routerLink="employee-360-leave" role="tab"
+                aria-controls="leave" aria-selected="false">Leave</a>
+            </li>
+           <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
+              <a class="nav-link report__tab-item__link" id="projects-tab" data-toggle="tab" routerLink="employee-360-project" role="tab"
+                aria-controls="projects" aria-selected="false">Project</a>
+           </li>
+            <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
+              <a class="nav-link report__tab-item__link" id="timesheet-tab" data-toggle="tab" routerLink="employee-360-timesheet" role="tab"
+                aria-controls="timesheet" aria-selected="false">TimeSheet</a>
             </li>
             <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
-              <a class="nav-link report__tab-item__link" id="training-tab" data-toggle="tab" routerLink="employee-360-leave" role="tab"
-                aria-controls="training" aria-selected="false">Leave</a>
-            </li>
-            <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
-              <a class="nav-link report__tab-item__link active" id="projects-tab" data-toggle="tab" routerLink="employee-360-project" role="tab"
-                aria-controls="projects" aria-selected="true">Project</a>
-            </li>
-            <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
-              <a class="nav-link report__tab-item__link" id="documents-tab" data-toggle="tab" routerLink="employee-360-timesheet" role="tab"
-                aria-controls="documents" aria-selected="false">TimeSheet</a>
-            </li>
-            <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
-              <a class="nav-link report__tab-item__link" id="people-tab" data-toggle="tab" routerLink="employee-360-biomax" role="tab"
-                aria-controls="people" aria-selected="false">Biomax</a>
+              <a class="nav-link report__tab-item__link" id="biomax-tab" data-toggle="tab" routerLink="employee-360-biomax" role="tab"
+                aria-controls="biomax" aria-selected="false">Biomax</a>
             </li>
 
             <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
-              <a class="nav-link report__tab-item__link" id="people-tab" data-toggle="tab" routerLink="employee-360-rewards" role="tab"
-                aria-controls="people" aria-selected="false">Rewards</a>
+              <a class="nav-link report__tab-item__link" id="rewards-tab" data-toggle="tab" routerLink="employee-360-rewards" role="tab"
+                aria-controls="reward" aria-selected="false">Rewards</a>
             </li>
 
             <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
-              <a class="nav-link report__tab-item__link" id="people-tab" data-toggle="tab" routerLink="employee-360-appreciation" role="tab"
-                aria-controls="people" aria-selected="false">Appreciation</a>
+              <a class="nav-link report__tab-item__link" id="appreciation-tab" data-toggle="tab" routerLink="employee-360-appreciation" role="tab"
+                aria-controls="appreciation" aria-selected="false">Appreciation</a>
             </li>
 
           </ul>
@@ -48,7 +50,7 @@
         
             <div class="config__tab-container">
               <router-outlet class="tab-pane fade" role="tabpanel"></router-outlet>
-          </div>
+            </div>
 
                </div>
         </div>
