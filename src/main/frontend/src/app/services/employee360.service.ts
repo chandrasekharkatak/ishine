@@ -12,4 +12,7 @@ export class Employee360Service {
   navigateToEmployee360(data: any) {
     this.router.navigate(['/employee-360'], { state: { data } });
   }
+
+
+  
 }

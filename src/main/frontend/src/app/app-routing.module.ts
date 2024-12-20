@@ -153,13 +153,13 @@ const routes: Routes = [
   
   {path:'employee-360', component: Employee360Component,
      children: [
-      { path: 'employee-360-profile', component: Employee360ProfileComponent, },
-      { path:'employee-360-leave', component: Employee360LeaveComponent, },
-      { path: 'employee-360-project', component: Employee360ProjectComponent, },
-      { path: 'employee-360-timesheet', component: Employee360TimesheetComponent, },
-      { path: 'employee-360-biomax', component: Employee360BiomaxComponent, },
-      { path: 'employee-360-rewards', component: Employee360RewardsComponent, },
-      { path: 'employee-360-appreciation', component: Employee360AppreciationComponent, },
+      { path: 'profile', component: Employee360ProfileComponent, },
+      { path:'leave', component: Employee360LeaveComponent, },
+      { path: 'project', component: Employee360ProjectComponent, },
+      { path: 'timesheet', component: Employee360TimesheetComponent, },
+      { path: 'biomax', component: Employee360BiomaxComponent, },
+      { path: 'rewards', component: Employee360RewardsComponent, },
+      { path: 'appreciation', component: Employee360AppreciationComponent, },
 
     ]
   },

@@ -44,6 +44,8 @@ export class Employee360Component implements OnInit {
   ngOnInit(): void {
     this.employeeData = history.state.data;
 
+  
+
     // Dynamic feature Flags 
     let featureMap:Feature[] = this.currentUser.userMapping.filter(userMap => userMap.tabName == this.tabName);
     console.log("feature Name ",featureMap);
@@ -60,31 +62,31 @@ export class Employee360Component implements OnInit {
 
 
 
-  // ngAfterViewInit(): void {
-  //   this.setActiveTab();
-  //   // setTimeout(this.setActiveTab,2000)
-  // }
+  ngAfterViewInit(): void {
+    this.setActiveTab();
+    // setTimeout(this.setActiveTab,2000)
+  }
 
-  // ngOnDestroy(): void {
-  //   this.removeActiveTab();
-  // }
+  ngOnDestroy(): void {
+    this.removeActiveTab();
+  }
 
-  // setActiveTab(){
-  //   const tab = document.getElementById('configTab').querySelector('.nav-link');
-  //   //console.log(tab);
+  setActiveTab(){
+    const tab = document.getElementById('Employee360Tab').querySelector('.nav-link');
+    //console.log(tab);
 
-  //   tab.classList.add('active');
-  //   let activeRouteLink = tab.getAttribute('routerLink');
-  //   //console.log("activeRouteLink :", activeRouteLink);
-  //   //console.log("Router :",  this.router);
+    tab.classList.add('active');
+    let activeRouteLink = tab.getAttribute('routerLink');
+    //console.log("activeRouteLink :", activeRouteLink);
+    //console.log("Router :",  this.router);
     
-  //   this.router.navigate(['./'+activeRouteLink], {relativeTo: this.route});
-  // }
+    this.router.navigate(['./'+activeRouteLink], {relativeTo: this.route});
+  }
 
-  // removeActiveTab(){
-  //   const tab = document.getElementById('configTab').querySelector('.nav-link.active');
-  //   //console.log("active tab :", tab);
-  //   tab?.classList.remove('active');
-  // }
+  removeActiveTab(){
+    const tab = document.getElementById('Employee360Tab').querySelector('.nav-link.active');
+    //console.log("active tab :", tab);
+    tab?.classList.remove('active');
+  }
 
 }

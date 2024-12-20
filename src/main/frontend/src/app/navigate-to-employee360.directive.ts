@@ -12,6 +12,7 @@ export class NavigateToEmployee360Directive {
 
   @HostListener('click') onClick() {
     if (this.data) {
+      
       this.employee360Service.navigateToEmployee360(this.data);
     }
   }
