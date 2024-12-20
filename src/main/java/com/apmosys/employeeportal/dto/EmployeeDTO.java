@@ -244,8 +244,15 @@ public class EmployeeDTO {
 	
 	//by priyadarshini
 	private String isApprenticeship;
-
-     private String isRetain;
-
+	
+    private String isRetain;
 	private String dateOfRetain;
+	
+	//by priyadarshini
+	private String leaveDate;
+	private String leaveType;
+	private String total_leave_records;
+	private String total_leave_days;
+	private String status;
+	
 }

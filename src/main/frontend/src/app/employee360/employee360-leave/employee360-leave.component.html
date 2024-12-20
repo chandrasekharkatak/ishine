@@ -1,1 +1,54 @@
-<p>employee360-leave works!</p>
+<div class="row mb-3">
+    <div class="col-md-12 pl-4 pt-3">
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Pending'}" (click)="setActiveButton('Pending')">Pending</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Approved'}" (click)="setActiveButton('Approved')">Approved</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Rejected'}" (click)="setActiveButton('Rejected')">Rejected</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'CompOff'}" (click)="setActiveButton('CompOff')">Comp-off</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'TeamLeave'}" (click)="setActiveButton('TeamLeave')">Team Leave</button>
+    </div>
+</div>
+
+<div class="row" *ngIf="activeButton === 'CompOff'">
+    <div class="col-md-12 pl-4 pt-2" style="padding-left: 2rem;">
+        <button type="button" class="btn btn-outline-primary btn-sm active ng-star-inserted mx-1" [ngClass]="{'active': activeCompOffButton === 'Requests'}" (click)="setActiveCompOffButton('Requests')">Comp-off Requests</button>
+        <button type="button" class="btn btn-outline-primary btn-sm active ng-star-inserted mx-1" [ngClass]="{'active': activeCompOffButton === 'Applications'}" (click)="setActiveCompOffButton('Applications')">Comp-off Applications</button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-4 mb-0" *ngIf="activeButton === 'Pending' || 'Approved' || 'Rejected' || 'TeamLeave'" >
+                            <div id="leaveChartContainer" style="width: 100%; height: 400px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row" *ngIf="activeButton === 'CompOff' && activeCompOffButton === 'Requests'">
+            <div class="col-md-12">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-4 mb-0">
+                            Comp Off Requests
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row" *ngIf="activeButton === 'CompOff' && activeCompOffButton === 'Applications'">
+            <div class="col-md-12">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-4 mb-0">
+                            Comp Off Applications
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

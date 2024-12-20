@@ -77,28 +77,16 @@ export class UtilityService {
   }
 
   substringEmploymentId2(isConsultant: string, isApprenticeship: string, emp: string): string {
-    if (isConsultant === "true") {
       if (emp.startsWith("A-CS-")) {
         return emp.substring(5);
-      } else {
-        console.error("Invalid consultant ID format");
-        return emp; // Return as-is if format is invalid
-      }
-    } else if (isApprenticeship === "true") {
-      if (emp.startsWith("AP-")) {
+      } else if (emp.startsWith("AP-")) {
         return emp.substring(3);
-      } else {
-        console.error("Invalid apprenticeship ID format");
-        return emp; // Return as-is if format is invalid
-      }
-    } else {
-      if (emp.startsWith("A-")) {
+      } else if (emp.startsWith("A-")) {
         return emp.substring(2); // Regular employees
       } else {
         console.error("Invalid regular employee ID format");
         return emp; // Return as-is if format is invalid
       }
-    }
   }
 
   getEmployeeIdSubstring2(empObj: any): string {  
