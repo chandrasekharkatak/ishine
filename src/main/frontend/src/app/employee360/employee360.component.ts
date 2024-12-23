@@ -19,7 +19,7 @@ import { RoleConfigComponent } from '../configuration/role-config/role-config.co
 export class Employee360Component implements OnInit {
 
   employeeData: any;
-
+  emplId:any;
   employeeConfig: EmployeeConfigComponent;
   departmentConfig: DeptConfigComponent;
   roleConfig: RoleConfigComponent;
@@ -42,7 +42,19 @@ export class Employee360Component implements OnInit {
 
 
   ngOnInit(): void {
-    this.employeeData = history.state.data;
+
+    const storedData = localStorage.getItem('employee360Data');
+    const parsedData = storedData ? JSON.parse(storedData) : null;
+  
+    if(parsedData != null || parsedData != undefined ){
+      this.employeeData =  parsedData;
+    }else{
+      this.employeeData = history.state.data;
+    }
+    
+   
+
+    console.log("employeeData   ",this.employeeData);
 
   
 
