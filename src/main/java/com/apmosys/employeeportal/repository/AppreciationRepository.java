@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.apmosys.employeeportal.dto.AppreciationDetailsDTO;
 import com.apmosys.employeeportal.model.Appreciation;
 
 @Repository
@@ -126,6 +127,14 @@ List<Object[]> getMyAppreciationDetails(@Param("startDate") String startDate,
 	@Query( nativeQuery=true, value="SELECT e.employeement_id FROM employee e where e.emp_id = :empId ;")
 	public Long findEmployeementIdByEmpId(@Param("empId")Long empId);
     
+	
+	@Query("SELECT new com.apmosys.employeeportal.dto.AppreciationDetailsDTO( " +
+		       "a.appreciateType, a.appreciationDate, emp.name, e.fromDate, e.toDate) " +
+		       "FROM Appreciation a " +
+		       "JOIN AppreciationEvent e ON a.appreciationEventId = e.appreciationEventid " +
+		       "JOIN Employee emp ON a.appreciationBy = emp.empId " +
+		       "WHERE a.appreciationTo = :empId")
+		List<AppreciationDetailsDTO> getAppreciationDetailsByEmpId(@Param("empId") Long empId);
 
 
 }

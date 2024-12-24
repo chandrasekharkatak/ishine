@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.controller;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.dto.AppreciationDetails;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.service.EmployeeService;
@@ -39,6 +41,10 @@ public class EmployeeController {
 			response = employeeService.createEmployeeByList(employee);
 		}
 		return response;
+	}
+	@RequestMapping(value = "/getEmployeeAppreciationByEmpId", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public AppreciationDetails getEmployeeAppreciationByEmpId(@RequestBody Long empId) {
+		return employeeService.getEmployeeAppreciationByEmpId(empId);
 	}
 
 	@RequestMapping(value = "/getEmployeeByEmpId", method = RequestMethod.POST)
