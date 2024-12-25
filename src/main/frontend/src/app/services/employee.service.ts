@@ -42,7 +42,21 @@ export class EmployeeService {
   getEmployeeByEmpId(employeeObj: Employee) {
     return this.http.post(`${this.baseUrl}` + `api/getEmployeeByEmpId`, employeeObj);
   }
-
+  getEmployeeAppreciationByEmpId(requestPayload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}api/getEmployeeAppreciationByEmpId`, requestPayload, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } 
+  getDateRangesForDropdown(currentEmp:any){
+    return this.http.post(`${this.baseUrl}` + `api/getDateRangesForDropdown`,currentEmp,{
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+  getTeamAppreciationByEmpId(requestPayload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}api/getTeamAppreciationByEmpId`, requestPayload, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
   updateEmployeeProfile(employeeObj: Employee) {
     return this.http.post(`${this.baseUrl}` + `api/updateEmployeeProfileByEmpId`, employeeObj);
   }

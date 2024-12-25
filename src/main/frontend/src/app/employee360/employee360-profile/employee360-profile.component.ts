@@ -557,7 +557,7 @@ export class Employee360ProfileComponent implements OnInit {
       const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
       if (response.serviceStatus == "Success") {
         this.currentEmployeeInfo = response.serviceResponse;
-      
+
         //console.log("currentEmployeeInfo : ", this.currentEmployeeInfo);
         this.loadProfileImage(this.currentEmployeeInfo.imageBytes)
   
@@ -732,7 +732,7 @@ export class Employee360ProfileComponent implements OnInit {
       let assetObj = new Asset();
 
       let employementid = Number(this.utilityService.getEmployeeIdSubstring2(this.employeeData))
-
+      sessionStorage.setItem('employeeId',this.utilityService.getEmployeeIdSubstring2(this.employeeData));
       assetObj.employeementId = employementid;
       this.onBoardingService.getEmployeeOnBoardingDetailByEmployeementId(assetObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
