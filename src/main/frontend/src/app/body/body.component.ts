@@ -77,6 +77,15 @@ export class BodyComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  getBreadcrumbClass(): string{
+    let styleClass = '';
+
+    if(!this.isHome){
+      styleClass= 'mt-5';
+    }
+    return styleClass;
+  }
+
   getBodyClass(): string{
     let styleClass = '';
 

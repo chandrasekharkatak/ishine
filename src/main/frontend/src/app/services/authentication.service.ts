@@ -114,6 +114,7 @@ export class AuthenticationService {
     sessionStorage.removeItem('maxFileSize');
     sessionStorage.removeItem('maxRequestSize');
     sessionStorage.removeItem('sessioncheck');
+    sessionStorage.removeItem('breadcrumb');
     // delete method call for cookies
     this.deleteCookies();
     this.setcurrentUserSubject(null);

@@ -12,6 +12,9 @@
   </ul>
 </nav>
 <div class="body" [ngClass]="getBodyClass()">
+  <div [ngClass]="getBreadcrumbClass()" *ngIf="currentUser">
+    <app-breadcrumb></app-breadcrumb>
+  </div>
   <router-outlet></router-outlet>
 </div>
 

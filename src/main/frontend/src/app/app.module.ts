@@ -111,6 +111,7 @@ import { Employee360TimesheetComponent } from './employee360/employee360-timeshe
 import { Employee360BiomaxComponent } from './employee360/employee360-biomax/employee360-biomax.component';
 import { Employee360RewardsComponent } from './employee360/employee360-rewards/employee360-rewards.component';
 import { Employee360AppreciationComponent } from './employee360/employee360-appreciation/employee360-appreciation.component';
+import { BreadcrumbComponent } from './helpers/breadcrumb/breadcrumb.component';
 //import { TestComponent } from './user-report/test/test.component';
 
 @NgModule({
@@ -194,7 +195,8 @@ import { Employee360AppreciationComponent } from './employee360/employee360-appr
     Employee360TimesheetComponent,
     Employee360BiomaxComponent,
     Employee360RewardsComponent,
-    Employee360AppreciationComponent
+    Employee360AppreciationComponent,
+    BreadcrumbComponent
     //TestComponent
   ],
   imports: [
