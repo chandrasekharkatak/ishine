@@ -34,7 +34,11 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.EncryptDecrypt;
+import com.apmosys.employeeportal.dto.AppreciationDetails;
+import com.apmosys.employeeportal.dto.AppreciationDetailsDTO;
+import com.apmosys.employeeportal.dto.DateRangeDTO;
 import com.apmosys.employeeportal.dto.DepartmentDTO;
+import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeCertificateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
@@ -70,6 +74,7 @@ import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.UploadPolicy;
 import com.apmosys.employeeportal.model.UserSession;
+import com.apmosys.employeeportal.repository.AppreciationRepository;
 import com.apmosys.employeeportal.repository.AuditCustomRepository;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
@@ -232,6 +237,9 @@ public class EmployeeService {
 	
 	@Autowired
 	PIPRepository pipRepository;
+	
+	@Autowired
+	AppreciationRepository appreciationRepository;
 
 //	@Transactional
 //	public ServiceResponse createEmployee(EmployeeDTO employeedto) {
@@ -938,7 +946,44 @@ public class EmployeeService {
 
 		return (employeeCertificateRepository.saveAll(list).isEmpty()) ? false : true;
 	}
+	
+	public AppreciationDetails getEmployeeAppreciationByEmpId(EmployeeAppreciationRequest request) {
+	    List<AppreciationDetailsDTO> appreciationList;
 
+	    if (request.getFromDate() == null || request.getToDate() == null) {
+	        appreciationList = appreciationRepository.getAppreciationDetailsByEmpId(request.getEmpId());
+	    } else {
+	        appreciationList = appreciationRepository.getAppreciationDetailsByEmpIdAndDateRange(
+	            request.getEmpId(), request.getFromDate(), request.getToDate());
+	    }
+
+	    AppreciationDetails appreciationDetails = new AppreciationDetails();
+	    appreciationDetails.setAppreciationDto(appreciationList);
+	    return appreciationDetails;
+	}
+	
+	public List<DateRangeDTO> getDateRangesForDropdown(Long empId) {
+	    List<Object[]> dateRanges = appreciationRepository.getAllDateRangesByEmpId(empId);
+
+	    List<DateRangeDTO> dateRangeDTOs = new ArrayList<>();
+	    for (Object[] range : dateRanges) {
+	        String fromDate = (String) range[0];
+	        String toDate = (String) range[1];
+	        dateRangeDTOs.add(new DateRangeDTO(fromDate, toDate));
+	    }
+
+	    return dateRangeDTOs;
+	}
+	
+	public AppreciationDetails getTeamAppreciationByEmpId(EmployeeAppreciationRequest request) {
+		List<AppreciationDetailsDTO> appreciationList;
+
+	    appreciationList = appreciationRepository.getTeamAppreciationDetailsByEmpId(request.getEmpId());
+	    AppreciationDetails appreciationDetails = new AppreciationDetails();
+	    appreciationDetails.setAppreciationDto(appreciationList);
+	    return appreciationDetails;
+	}
+	
 	public ServiceResponse getEmployeeByEmpId(EmployeeDTO employeedto) {
 		
 		ServiceResponse response = new ServiceResponse();
