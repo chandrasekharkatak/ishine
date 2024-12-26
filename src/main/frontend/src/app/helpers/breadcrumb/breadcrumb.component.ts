@@ -31,9 +31,13 @@ export class BreadcrumbComponent implements OnInit {
   ngOnInit(): void {
     this.updateDisplayedBreadcrumbs();
     this.breadcrumbService.setBreadcrumbSubject(this.breadcrumbList);
+    if(this.breadcrumbList.length > 1){
+      this.isEmployee360Module = true;
+    }
   }
 
   updateDisplayedBreadcrumbs() {
+    this.breadcrumbList = JSON.parse(sessionStorage.getItem('breadcrumb'));
     const maxVisible = 4;
 
     if (this.breadcrumbList.length > 10) {
@@ -48,11 +52,6 @@ export class BreadcrumbComponent implements OnInit {
     }
 
     console.log(this.displayedBreadcrumbs, " : this.displayedBreadcrumbs");
-
-    if(this.breadcrumbList.length > 1){
-      this.isEmployee360Module = true;
-    }
-    
   }
 
   navigateToSelectedTab(module: any, index: any){
