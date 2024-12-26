@@ -1,4 +1,8 @@
-<div class="container-fluid employee-container">
+<div class="mt-5">
+  <app-breadcrumb></app-breadcrumb>
+</div>
+
+<div class="container-fluid">
     <div class="row">
       
       <div class="col-md-9">
@@ -28,7 +32,7 @@
            </li>
             <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
               <a class="nav-link report__tab-item__link" id="timesheet-tab" data-toggle="tab" routerLink="timesheet" role="tab" (click)="removeActiveTab()"
-                aria-controls="timesheet" aria-selected="false">TimeSheet</a>
+                aria-controls="timesheet" aria-selected="false">Timesheet</a>
             </li>
             <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
               <a class="nav-link report__tab-item__link" id="biomax-tab" data-toggle="tab" routerLink="biomax" role="tab" (click)="removeActiveTab()"

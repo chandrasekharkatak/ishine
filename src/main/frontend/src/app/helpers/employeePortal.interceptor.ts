@@ -45,6 +45,7 @@ export class EmployeePortalInterceptor implements HttpInterceptor {
           sessionStorage.removeItem('maxFileSize');
           sessionStorage.removeItem('maxRequestSize');
           sessionStorage.removeItem('sessioncheck');
+          sessionStorage.removeItem('breadcrumb');
           // delete method call for cookies
           this.authenticationService.deleteCookies();
           this.authenticationService.setcurrentUserSubject(null);

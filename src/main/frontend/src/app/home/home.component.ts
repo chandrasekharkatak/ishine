@@ -1794,6 +1794,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       sessionStorage.removeItem('maxFileSize');
       sessionStorage.removeItem('maxRequestSize');
       sessionStorage.removeItem('sessioncheck');
+      sessionStorage.removeItem('breadcrumb');
       // delete method call for cookies
       this.authenticationService.deleteCookies();
       this.authenticationService.setcurrentUserSubject(null);
@@ -1810,6 +1811,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
         sessionStorage.removeItem('maxFileSize');
         sessionStorage.removeItem('maxRequestSize');
         sessionStorage.removeItem('sessioncheck');
+        sessionStorage.removeItem('breadcrumb');
         // delete method call for cookies
         this.authenticationService.deleteCookies();
         this.authenticationService.setcurrentUserSubject(null);
