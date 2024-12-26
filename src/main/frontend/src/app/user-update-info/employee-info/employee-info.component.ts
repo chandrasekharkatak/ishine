@@ -53,6 +53,7 @@ export class EmployeeInfoComponent implements OnInit{
     public utilityService: UtilityService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+
     this.updateUserInfoService.updateduserInfoObj.subscribe((employee:Employee)=>{
       this.sectionViewInit(employee);
     });
@@ -61,6 +62,7 @@ export class EmployeeInfoComponent implements OnInit{
   ngOnInit(): void {
 
     const employee:Employee = this.updateUserInfoService.getUserInfoObj();
+
     this.sectionViewInit(employee);
     this.setYearOfPassingList();
     //console.log("employeeObj :: ", this.employeeObj);
@@ -839,8 +841,14 @@ export class EmployeeInfoComponent implements OnInit{
     this.employeeObj.bankAccountNo = this.employeeObj.bankAccountNo?.trim();
     this.employeeObj.bankIFSCCode = this.employeeObj.bankIFSCCode?.trim();
     this.employeeObj.esicNumber = this.employeeObj.esicNumber?.trim();
-    this.employeeObj.isConsultant = this.employeeObj.isConsultant.trim();
-    this.employeeObj.isApprenticeship = this.employeeObj.isApprenticeship.trim();
+    this.employeeObj.isConsultant = this.employeeObj.isConsultant 
+    ? this.employeeObj.isConsultant.trim() 
+    : '';
+  
+  this.employeeObj.isApprenticeship = this.employeeObj.isApprenticeship 
+    ? this.employeeObj.isApprenticeship.trim() 
+    : '';
+  
 
     this.employeeObj.previousEmploymentList?.forEach((x)=>{
       x.employerName = x.employerName?.trim();

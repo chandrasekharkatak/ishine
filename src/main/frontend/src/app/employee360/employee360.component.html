@@ -12,7 +12,7 @@
             <ul class="nav nav-tabs config__tabs" id="Employee360Tab" role="tablist">
             
               <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
-                <a class="nav-link report__tab-item__link" id="profile-tab" data-toggle="tab" routerLink="profile" role="tab" (click)="removeActiveTab()"
+                <a class="nav-link report__tab-item__link" id="profile-tab" data-toggle="tab" routerLink="profile" role="tab" (click)="removeActiveTab()" [state]="{ employeeData: employeeData }"
                    aria-controls="profile" aria-selected="true">Profile</a>
              </li>
 
@@ -62,16 +62,16 @@
         <div class="profile-card text-center">
           <!-- Profile Picture -->
           <div class="profile-picture">
-            <img src="https://via.placeholder.com/100" alt="Profile Picture" />
+            <img src="assets/Images/default-user-image.jpeg" alt="Profile Picture" />
           </div>
           <!-- Name and Email -->
-          <h3 class="profile-name">John Smith</h3>
-          <p class="profile-email">John.smith.com</p>
-          <p class="profile-phone">+1 (222) 444-4444</p>
+          <h3 class="profile-name">{{employeeData.name}}</h3>
+          <p class="profile-email">{{employeeData.email}}</p>
+          <p class="profile-phone">{{employeeData.mobileNo}}</p>
   
           <!-- Employee Details -->
           <div class="profile-details">
-            <p><strong>Employee ID:</strong> 1234</p>
+            <p><strong>Employee ID:</strong> {{employeeData.employeementId}}</p>
             <p><strong>Job Title:</strong> Project Manager</p>
             <p><strong>Department:</strong> Accounting Department</p>
             <p><strong>Office:</strong> Boston, MA, U.S.</p>

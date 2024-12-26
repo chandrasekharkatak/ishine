@@ -1,1 +1,47 @@
-<p>employee360-appreciation works!</p>
+<div class="d-flex justify-content-between mb-3">
+  <div>
+    <label for="date-range-dropdown">Select Yearly Range:</label>
+    <select 
+      id="date-range-dropdown" [value]="selectedDateRange" (change)="onSelectRange($event)" 
+      [disabled]="isTeamAppreciationView || isDateRangeDisabled">
+      <option value="" disabled>Select Date Range</option>
+      <option *ngFor="let range of formattedDateRanges" [value]="range">
+        {{ range }}
+      </option>
+    </select>
+  </div>
+  <div class="ml-auto">
+    <button class="btn" [ngClass]="{'btn-primary': isTeamAppreciationView, 'btn-success': !isTeamAppreciationView}" 
+    (click)="getTeamAppreciationData()"> 
+    {{ isTeamAppreciationView ? 'Show Individual Data' : 'Show Team Data' }}</button>
+  </div>
+</div>
+<div class="row-md-6">
+  <table class="table" matSort (matSortChange)="sortData($event)">
+    <thead class="thead-light">
+      <tr>
+        <th scope="col" class="info-label">Sr No.</th>
+        <th scope="col" class="info-label">Appreciation Type</th>
+        <th scope="col" class="info-label">Appreciation By</th>
+        <th scope="col" class="info-label">Appreciation Date</th>
+        <th scope="col" class="info-label">From</th>
+        <th scope="col" class="info-label">To</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngIf="!employee || employee.length === 0">
+        <th colspan="6" class="text-center info-label">No Files to display...</th>
+      </tr>
+      <tr *ngFor="let event of employee | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+        <th class="info-label">{{ 10 * (page - 1) + i + 1 }}</th>
+        <td>{{ event.appreciateType }}</td>
+        <td>{{ event.appreciationByName }}</td>
+        <td>{{ event.appreciationDate | date: 'short' }}</td>
+        <td>{{ event.fromDate }}</td>
+        <td>{{ event.toDate }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <pagination-controls class="my-pagination" [hidden]="employee.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+</div>

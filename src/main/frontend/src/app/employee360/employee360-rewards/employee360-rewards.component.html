@@ -1,1 +1,114 @@
-<p>employee360-rewards works!</p>
+<div class="col-md-2 mb-2">
+    <div class="form-inline input-group">
+        <select id="rewardsDropdown" class="form-control form-control-sm"
+            (change)="onCategoryChange($event, alertMessageTemplate)">
+            <option *ngFor="let category of rewardsCategories" 
+                [value]="category.rewardCategoryId"
+                [selected]="category.rewardCategoryId === activeCategoryId">
+                {{ category.categoryName }}
+            </option>
+        </select>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="row p-3">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">Rewards</h1>
+            </div>
+        </div>
+
+        <div class="row mb-2 p-3" >
+            <div class="col-md-12 px-7" style="padding-left: 2rem;">
+                <button *ngFor="let category of rewardsCategories" type="button"
+                    class="btn btn-outline-primary btn-sm active ng-star-inserted mx-1"
+                    [ngClass]="{'active': category.rewardCategoryId === activeCategoryId}"
+                    (click)="getRewardsByCategoryId(category.rewardCategoryId, alertMessageTemplate)">{{category.categoryName}}
+                </button>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12" style="text-align: center;">
+                <div class="overflow-auto">
+                    <table class="table table-responsive" id="rewardHistoryInfo">
+                        <thead class="thead-light" id="rewardHistoryInfoTHead">
+                            <tr id="rewardHistoryInfoTHeadTr">
+                                <th scope="col" class="info-label">Sr No.</th>
+                                <th scope="col" class="info-label">Rewards Name</th>
+                                <th scope="col" class="info-label">Rewarded To</th>
+                                <th scope="col" class="info-label">Rewards Date</th>
+                                <th scope="col" class="info-label">Description</th>
+                                <th scope="col" class="info-label">Updated By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr
+                            *ngFor="let rewardHistory of  rewards ;  let i = index">
+                            <th class="info-label">{{i+1}}</th>
+                            <td>{{rewardHistory.rewardName}}</td>
+                            <td>
+                                {{rewardHistory.rewardedTo}}
+                                <button type="button" class="btn btn-sm btn-primary ml-2"
+                                    (click)="openEditModal(reward)">View Team</button>
+                            </td>
+                            <td>{{rewardHistory.createdOn}}</td>
+                            <td>{{rewardHistory.remark}}</td>
+                            <td>{{rewardHistory.updatedBy}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<ng-template #reward>
+    <div class="modal-body text-center">
+        <div class="row">
+            <div  class="col-12" style="text-align:center">
+                <!-- <label>{{ 'dashboard.claim.process.modal.heading1' | translate }} &nbsp; <em class="fa fa-info-circle" aria-hidden="true" data-toggle="tooltip" title="{{ 'dashboard.claim.process.modal.noneligible.claim.reason' | translate }}"></em></label><br> -->
+                <label>Team Rewards</label>
+            </div>
+
+            <div *ngIf="rewards.length > 0" class="col-md-12" style="overflow: auto; height: 250px;">
+                <table class="table table-striped" id="claimTbl">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="info-label">Sr No.</th>
+                            <th scope="col" class="info-label">Name.</th>
+                            <th scope="col" class="info-label">Rewards Name</th>
+                            <th scope="col" class="info-label">Rewarded By</th>
+                            <th scope="col" class="info-label">Rewarded To</th>
+                            <th scope="col" class="info-label">Rewarded Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="claimTBody">
+                        <!-- <tr *ngFor="let claim of allValidClaimList, let i = index">
+                            <td [title]="('editclaim.tableApproveReason' | translate)">
+                                <i [class]="'fa-solid fa-check'" style="font-size:20px !important"
+                                    [style.color]="'#63fd4e'"></i>
+                            </td>
+                            <th class="info-label"><label>{{i+1}}</label></th>
+                            <td><label>{{claim.societyCode}}</label></td>
+                            <td><label>{{claim.memberNo}}</label></td>
+                            <td><label *ngIf="claim.societyId==1 || claim.societyId==4">{{claim.accountNo}}</label></td>
+                            <td><label *ngIf="claim.societyId==2 || claim.societyId==3">{{claim.receiptNo}}</label></td>
+                            <td><label>{{claim.certificateNo}}</label></td>
+                            <td><label>{{claim.depositeDate}}</label></td>
+                            <td><label>&#8377; {{claim.depositeAmount != null ? claim.depositeAmount : 0}}</label></td>
+                            <td><label>&#8377; {{claim.partialReceivedAmount != null ? claim.partialReceivedAmount : 0}}</label></td>
+                            <td><label>&#8377; {{claim.loanAmount != null ? claim.loanAmount : 0}}</label></td>
+                            <td><label>&#8377; {{claim.loanAmountRepaid != null ? claim.loanAmountRepaid : 0}}</label>
+                            </td>
+                        </tr> -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>    
+</ng-template>

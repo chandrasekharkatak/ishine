@@ -12,6 +12,7 @@ export class AuthenticationService {
 
   private baseUrl: any = environment.baseUrl;
   private currentUserSubject: BehaviorSubject<User>;
+  
   public currentUser: Observable<User>;
   sessionItem: string | null;
   timerId: any;

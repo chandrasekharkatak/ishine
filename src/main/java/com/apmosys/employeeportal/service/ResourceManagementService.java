@@ -300,7 +300,7 @@ public class ResourceManagementService {
 					              		    }
 					                    	  
 					                    	  try {
-												mailService.sendMailWithCC("ar731829@gmail.com", rmgMail, "Regarding Resource mapped to new Project", "Dear "
+												mailService.sendMailWithCC("sudeep.rajput@apmosys.com", rmgMail, "Regarding Resource mapped to new Project", "Dear "
 														+ findEmp.getName()+"<br>"
 														+ "You have been mapped to client name - "+resourceManagementDTO.getClientName()+" under the project "+projectFind.getProjectName()+"<br>"
 																+ "<br><br>"

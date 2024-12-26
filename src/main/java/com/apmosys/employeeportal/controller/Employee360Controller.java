@@ -25,5 +25,12 @@ public class Employee360Controller {
 		ServiceResponse response = employee360Service.getLeaveDataPerMonthByEmpId(empId);
 		return response;
 	}
+	
+	@RequestMapping(value = "/getEmployeeDetails", method = RequestMethod.GET)
+	public ServiceResponse getEmployeeDetails(@RequestParam Long empId) {
+
+		ServiceResponse response = employee360Service.getEmployeeDetails(empId);
+		return response;
+	}
 
 }
