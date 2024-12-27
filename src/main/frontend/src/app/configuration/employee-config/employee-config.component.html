@@ -52,7 +52,7 @@
                                                 [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">
                                                 <input *ngIf="!isUpdation && employeeObj.employeeType === 'Consultant'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
                                                 [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">
-                                                <input *ngIf="!isUpdation && employeeObj.employeeType === 'Apprentice'" type="text" (keypress)="fieldRestictCharacterAP($event)" class="form-control" maxlength="9"  autocomplete="none"
+                                               <input *ngIf="!isUpdation && employeeObj.employeeType === 'Apprentice'" type="text" (keypress)="fieldRestictCharacterAP($event)" class="form-control" maxlength="9"  autocomplete="none"
                                                 [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">
 
                                                 <input *ngIf="isUpdation" type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.employeementId" readonly>
@@ -1256,9 +1256,9 @@
                             <th *ngIf="isDraftTable" class="info-label">{{i+1}}</th> -->
                                 <td>{{employee.employeementId}}</td>
                                 <td>
-                                    <button class="btn p-0 text-decoration-none" style="cursor: pointer;"   routerLink="/employee-360">
+                                    <!-- <button class="btn p-0 text-decoration-none" style="cursor: pointer;"   routerLink="/employee-360"> -->
                                       {{employee.name}}
-                                    </button>
+                                    <!-- </button> -->
                                 </td>
                                 <td>{{employee.email}}</td>
                                 <td>{{employee.employmentstatus}}</td>

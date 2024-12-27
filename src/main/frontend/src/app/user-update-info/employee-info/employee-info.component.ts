@@ -1,5 +1,4 @@
-import { AfterContentInit, Component, EventEmitter, OnInit, Output, TemplateRef } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, EventEmitter, OnInit, Output, TemplateRef } from '@angular/core';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
@@ -816,31 +815,32 @@ export class EmployeeInfoComponent implements OnInit{
 
   async onSave(template : TemplateRef<any>){
 
-    this.employeeObj.viewsOnOrganisation = this.employeeObj.viewsOnOrganisation?.trim();
-    this.employeeObj.aboutMe = this.employeeObj.aboutMe?.trim();
-    this.employeeObj.bloodGroup = this.employeeObj.bloodGroup?.trim();
-    this.employeeObj.fatherName = this.employeeObj.fatherName?.trim();
-    this.employeeObj.mothersName = this.employeeObj.mothersName?.trim();
-    this.employeeObj.placeOfBirth = this.employeeObj.placeOfBirth?.trim();
-    this.employeeObj.motherTongue = this.employeeObj.motherTongue?.trim();
-    this.employeeObj.passportNumber = this.employeeObj.passportNumber?.trim();
+    this.employeeObj.viewsOnOrganisation = this.employeeObj.viewsOnOrganisation?.trim() ||'';
+    this.employeeObj.aboutMe = this.employeeObj.aboutMe?.trim() ||'';
+    this.employeeObj.bloodGroup = this.employeeObj.bloodGroup?.trim() ||'';
+    this.employeeObj.fatherName = this.employeeObj.fatherName?.trim() ||'';
+    this.employeeObj.mothersName = this.employeeObj.mothersName?.trim() ||'';
+    this.employeeObj.placeOfBirth = this.employeeObj.placeOfBirth?.trim() ||'';
+    this.employeeObj.motherTongue = this.employeeObj.motherTongue?.trim() ||'';
+    this.employeeObj.passportNumber = this.employeeObj.passportNumber?.trim()||'';
+    this.employeeObj.panNumber = this.employeeObj.panNumber?.trim() ||'';
+    this.employeeObj.spouse = this.employeeObj.spouse?.trim() ||'';
+    this.employeeObj.child1 = this.employeeObj.child1?.trim() ||'';
+    this.employeeObj.child2 = this.employeeObj.child2?.trim() ||'';
+    this.employeeObj.child3 = this.employeeObj.child3?.trim() ||'';
+    this.employeeObj.address = this.employeeObj.address?.trim() ||'';
+    this.employeeObj.permanentAddress = this.employeeObj.permanentAddress?.trim() ||'';
+    this.employeeObj.emergencyContactPerson = this.employeeObj.emergencyContactPerson?.trim() ||'';
+    this.employeeObj.relation = this.employeeObj.relation?.trim() ||'';
+    this.employeeObj.passingGrade = this.employeeObj.passingGrade?.trim() ||'';
+    this.employeeObj.bankName = this.employeeObj.bankName?.trim() ||'';
+    this.employeeObj.bankAccountNo = this.employeeObj.bankAccountNo?.trim() ||'';
+    this.employeeObj.bankIFSCCode = this.employeeObj.bankIFSCCode?.trim() || '' ;
+    this.employeeObj.esicNumber = this.employeeObj.esicNumber?.trim() || '';
+   
+    this.employeeObj.isApprenticeship = this.employeeObj.isApprenticeship?.trim() || '';
+    this.employeeObj.isConsultant = this.employeeObj.isConsultant?.trim() || '';
 
-    this.employeeObj.panNumber = this.employeeObj.panNumber?.trim();
-    this.employeeObj.spouse = this.employeeObj.spouse?.trim();
-    this.employeeObj.child1 = this.employeeObj.child1?.trim();
-    this.employeeObj.child2 = this.employeeObj.child2?.trim();
-    this.employeeObj.child3 = this.employeeObj.child3?.trim();
-    this.employeeObj.address = this.employeeObj.address?.trim();
-    this.employeeObj.permanentAddress = this.employeeObj.permanentAddress?.trim();
-    this.employeeObj.emergencyContactPerson = this.employeeObj.emergencyContactPerson?.trim();
-    this.employeeObj.relation = this.employeeObj.relation?.trim();
-    this.employeeObj.passingGrade = this.employeeObj.passingGrade?.trim();
-    this.employeeObj.bankName = this.employeeObj.bankName?.trim();
-    this.employeeObj.bankAccountNo = this.employeeObj.bankAccountNo?.trim();
-    this.employeeObj.bankIFSCCode = this.employeeObj.bankIFSCCode?.trim();
-    this.employeeObj.esicNumber = this.employeeObj.esicNumber?.trim();
-    this.employeeObj.isConsultant = this.employeeObj.isConsultant.trim();
-    this.employeeObj.isApprenticeship = this.employeeObj.isApprenticeship.trim();
 
     this.employeeObj.previousEmploymentList?.forEach((x)=>{
       x.employerName = x.employerName?.trim();

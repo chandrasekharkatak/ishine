@@ -287,7 +287,71 @@ public class ResourceManagementService {
 					                    		newAddedMember.setActive(2L);
 					                    	
 					                    	  System.out.println(" newTeamMember   "+newAddedMember);
-					                    	  
+//					                    	// Add default activity for the new team member
+//						                    	// Add default activity for the new team member
+						                    	  if (newAddedMember.getEmpId() != null) {
+						                    	      // Fetch the employee's job role and department ID
+						                    	      List<Object[]> employeeDetails = employeeRepository.getEmployeeByEmpId(newAddedMember.getEmpId());
+						                    	      System.out.println("New member added: " + employeeDetails.get(0));
+
+						                    	      if (employeeDetails != null && !employeeDetails.isEmpty()) {
+						                    	          // Assuming the first row contains the desired details
+						                    	          Object[] employeeDetailRow = employeeDetails.get(0);
+						                    	          String departmentId = employeeDetailRow[46] != null ? employeeDetailRow[46].toString() : null;
+						                    	          System.out.println("Department ID: " + departmentId);
+
+						                    	          if (departmentId != null) {
+						                    	              // Split employeeRole into a list of strings
+						                    	              List<String> employeeRoles = Arrays.asList(newAddedMember.getEmployeeRole().split(","));
+
+						                    	              for (String role : employeeRoles) {
+						                    	                  role = role.trim(); // Trim whitespace around each role
+						                    	                  System.out.println("Processing role: " + role);
+
+						                    	                  // Check if activities exist for the employee's department and role
+						                    	                  List<Activity> existingActivities = activitiesRepository.findByDeptIdsAndEmployeeRoleAndTeamId(
+						                    	                      departmentId,
+						                    	                      role,
+						                    	                      teamDbResponse.getTeamId()
+						                    	                  );
+
+						                    	                  if (existingActivities.isEmpty()) {
+						                    	                      System.out.println("No activities exist for Dept ID: " + departmentId + ", Role: " + role);
+
+						                    	                      // Fetch the activity templates for the given department and role
+						                    	                      List<ActivityTemplate> activityTemplateList = activityTemplateRepository.getByDeptIdAndEmployeeRoleType(
+						                    	                          Long.parseLong(departmentId),
+						                    	                          role
+						                    	                      );
+						                    	                      if (!activityTemplateList.isEmpty()) {
+						                    	                          for (ActivityTemplate activityTemplate : activityTemplateList) {
+						                    	                              // Create and save new activities
+						                    	                              Activity newActivity = new Activity();
+						                    	                              newActivity.setActivity(activityTemplate.getTemplateActivity());
+						                    	                              newActivity.setTeamId(teamDbResponse.getTeamId());
+						                    	                              newActivity.setEmployeeRole(activityTemplate.getEmployeeRole());
+						                    	                              newActivity.setDeptIds(activityTemplate.getDeptId().toString());
+						                    	                              newActivity.getCommonProperty().setCreatedBy(resourceManagementDTO.getCreatedBy());
+						                    	                              activitiesRepository.save(newActivity);
+
+						                    	                              System.out.println("New activity created: " + activityTemplate.getTemplateActivity());
+						                    	                          }
+						                    	                      } else {
+						                    	                          System.out.println("No activity templates found for Dept ID: " + departmentId + ", Role: " + role);
+						                    	                      }
+						                    	                  } else {
+						                    	                      System.out.println("Activities already exist for Dept ID: " + departmentId + ", Role: " + role);
+						                    	                  }
+						                    	              }
+						                    	          } else {
+						                    	              System.out.println("Department ID is null for Employee ID: " + newAddedMember.getEmpId());
+						                    	          }
+						                    	      } else {
+						                    	          System.out.println("No employee details found for Employee ID: " + newAddedMember.getEmpId());
+						                    	      }
+						                    	  }
+
+
 //					                    	  find added employee's email
 					                    	  Employee  findEmp = employeeRepository.findByEmpId(newAddedMember.getEmpId());
 					                    	  Employee managerEmail = employeeRepository.findByEmpId(findEmp.getManagerId());
@@ -300,7 +364,7 @@ public class ResourceManagementService {
 					              		    }
 					                    	  
 					                    	  try {
-												mailService.sendMailWithCC("ar731829@gmail.com", rmgMail, "Regarding Resource mapped to new Project", "Dear "
+												mailService.sendMailWithCC("shivtoshpal06@gmail.com", rmgMail, "Regarding Resource mapped to new Project", "Dear "
 														+ findEmp.getName()+"<br>"
 														+ "You have been mapped to client name - "+resourceManagementDTO.getClientName()+" under the project "+projectFind.getProjectName()+"<br>"
 																+ "<br><br>"
@@ -492,7 +556,7 @@ public class ResourceManagementService {
 				//Send mail to RMG: if HOD has updated project/Team
 //			    if (resourceManagementDTO.getIsHOD().equals("true") && !resourceManagementDTO.getProjectType().equals("Internal")) {
 //			        try {
-//			            mailService.sendMailWithCC("ar731829@gmail.com", "sakti.das@apmosys.com",
+//			            mailService.sendMailWithCC("demo@gmail.com", "sakti.das@apmosys.com",
 //			                    "Regarding Resource management",
 //			                    "Dear RMG Team ," + "<br>"
 //			                            + "<br>"
@@ -748,7 +812,7 @@ public class ResourceManagementService {
 			        // Send mail to RMG: if HOD/SuperAdmin has created project/Team
 //			        if (resourceManagementDTO.getIsHOD().equals("true") && !resourceManagementDTO.getProjectType().equals("Internal")) {
 //			            try {
-//			                mailService.sendMailWithCC("ar731829@gmail.com","sakti.das@apmosys.com",
+//			                mailService.sendMailWithCC("demo@gmail.com","sakti.das@apmosys.com",
 //			                        "Regarding Resource management",
 //			                        "Dear RMG Team ," + "<br>"
 //			                                + "<br>"

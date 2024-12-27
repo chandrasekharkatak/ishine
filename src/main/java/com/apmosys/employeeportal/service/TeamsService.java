@@ -1373,9 +1373,10 @@ public class TeamsService {
 			LocalDate start = LocalDate.parse(leaveDTO.getFromDate());
 
 			LocalDate end = LocalDate.parse(leaveDTO.getToDate());
-
+            System.out.println("comoffhistory"+leaveDTO.getEmpId());
 			List<Object[]> list = employeeLeaveRepository.getAllTeamCompOffHistoryView(leaveDTO.getEmpId(),start,end);
-			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+            System.out.println("Conoff historu"+list);
+            List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
 			if (list.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No teams leave history found");

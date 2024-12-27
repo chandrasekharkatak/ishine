@@ -265,7 +265,7 @@ public class CronJobService {
 //	0 0/2 * ? * *
 //	@Scheduled(cron = "0 0 12 1 * ?")
 //    @Scheduled(cron = "0 02 18 * * ?")
-    @Scheduled(cron = "0 0 17 * * ?")
+    @Scheduled(cron = "0 08 10 * * ?")
 	public void monthlyLeaveIncrement() {
 		try {
 		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
@@ -347,11 +347,12 @@ public class CronJobService {
 		        									newBalance =  (float)(employeeLeaveMap.getBalance() + leavesForDays);
 		        									
 		        									employeeLeaveMap.setBalance(newBalance);
+		        									 System.out.println("chcjhdgh"+employeeLeaveMap);
 				        				        	 EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeaveMap);
 				        				        	 
 				        				        	 if(dbResponse != null) {
 															LeaveBalanceLog log = new LeaveBalanceLog();
-
+															
 															log.setBalance(newBalance);
 															log.setEmpId(employeeObj.getEmpId());
 															log.setLeaveTypeMasterId(ltm.getLeaveTypeMasterId());
@@ -445,18 +446,14 @@ public class CronJobService {
 	
 	
 	
-	
-	
-	
-	
+
 	
 
 	// Cron job to run the query at 12:00 AM on December 31st every year ........../
 //	   @Scheduled(cron = "0 0 0 31 12 ?")
 
-	   @Scheduled(cron = "0 0 17 * * ?")
-	@Transactional
-	public void executeQueryAtYearEnd() {
+	   @Scheduled(cron = "0 30 14 * * ?")
+	   @Transactional	public void executeQueryAtYearEnd() {
 	    // SQL query to update manager approval status and reason
 		String sql = "UPDATE employee_leave el " +
                 "JOIN employee e ON el.created_by = e.emp_id " +
@@ -472,14 +469,28 @@ public class CronJobService {
                 "    el.leave_status_updated_by = el.manager_id " +
                 "WHERE " +
                 "    el.leave_type_master_id = 4";
-
-
+   System.out.println("gdugdvhdfvjhdbvdfjhvdv");
+   
+   String sql1="UPDATE employee_leaves_mapping elm " +
+               "JOIN employee e  ON  elm.emp_id=e.emp_id " +
+		      "SET elm.balance=0 " +
+               "WHERE elm.leave_type_master_id=4 ";
+   
+   String sql2="UPDATE leave_balance_log lbl " +
+               "JOIN employee e ON lbl.emp_id=e.emp_id " +
+		       "SET lbl.balance=0 " +
+               "WHERE lbl.leave_type_master_id=4 ";
+   		 
+    	
+     
 	    executeNativeQuery(sql);
+	    executeNativeQuery(sql1);
+	    executeNativeQuery(sql2);
+	   // executeNativeQuery(sql1);
 	    System.out.println("Query executed at year-end!");
 	}
 
-	   
-
+   
 		public int executeNativeQuery(String query) {
 		    Session session = entityManager.unwrap(Session.class);
 		    javax.persistence.Query q = session.createNativeQuery(query);

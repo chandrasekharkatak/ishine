@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -456,7 +456,7 @@ downloadConfirmationDateUpload(): void {
     domainObj.domainName = domainName;
     domainObj.domainId = this.domainObj.domainId;
     this.domainService.checkDomainName(this.domainObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Fail") {
+      if (response.serviceStatus === "true") {
         this.domainObj.domainName = '';
         this.openAlertMod(template, response.serviceResponse);
       }

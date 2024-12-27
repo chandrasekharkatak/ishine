@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Query } from '../models/query';
 import { environment } from 'src/environments/environment';
+import { Query } from '../models/query';
 
 @Injectable({
   providedIn: 'root'
@@ -19,7 +19,7 @@ export class UtilityService {
     else if(isApprenticeship == "true"){
       return  "AP-".concat(emp);
     }
-    else
+    else 
       return "A-".concat(emp);
   }
 

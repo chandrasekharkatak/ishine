@@ -7,9 +7,16 @@ import { Component, OnInit } from '@angular/core';
 })
 export class Employee360Component implements OnInit {
 
+  currentab:String;
+  leave:String;
+  othertab:any;
   constructor() { }
 
   ngOnInit(): void {
   }
-
+ 
+  leave360viewtab(tab:any){  
+          this.currentab=tab;        
+          console.log(this.currentab);
+  }
 }
