@@ -61,7 +61,7 @@ export class EmployeeInfoComponent implements OnInit{
 
   ngOnInit(): void {
 
-    const employee:Employee = this.updateUserInfoService.getUserInfoObj();
+    const employee:Employee = this.updateUserInfoService.getUserInfoObjwithEmpId();
 
     this.sectionViewInit(employee);
     this.setYearOfPassingList();

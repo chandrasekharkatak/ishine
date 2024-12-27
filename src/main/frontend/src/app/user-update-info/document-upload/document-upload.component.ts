@@ -40,7 +40,7 @@ export class DocumentUploadComponent implements OnInit {
 
   ngOnInit(): void {
     this.currentEmployeeInfo = this.updateUserInfoService.getUserInfoObj();
-    //console.log("currentEmployeeInfo in Document Upload => ", this.currentEmployeeInfo);
+    console.log("currentEmployeeInfo in Document Upload => ", this.currentEmployeeInfo);
     
     if(this.currentEmployeeInfo){
       this.setDocumentList()
