@@ -452,41 +452,83 @@ public class CronJobService {
 	// Cron job to run the query at 12:00 AM on December 31st every year ........../
 //	   @Scheduled(cron = "0 0 0 31 12 ?")
 
-	   @Scheduled(cron = "0 30 14 * * ?")
+	   @Scheduled(cron = "0 15 18 * * ?")
 	   @Transactional	public void executeQueryAtYearEnd() {
 	    // SQL query to update manager approval status and reason
-		String sql = "UPDATE employee_leave el " +
-                "JOIN employee e ON el.created_by = e.emp_id " +
-                "JOIN (" +
-                "    SELECT el.emp_id " +
-                "    FROM employee_leave el " +
-                "    WHERE el.leave_type_master_id = 4" +
-                ") subquery ON el.emp_id = subquery.emp_id " +
-                "SET " +
-                "    el.manager_approval_status = 'Rejected', " +
-                "    el.reason = 'Application rejected as CL exceeded its limit', " +
-                "    el.leave_status_id = 3, " +
-                "    el.leave_status_updated_by = el.manager_id " +
-                "WHERE " +
-                "    el.leave_type_master_id = 4";
-   System.out.println("gdugdvhdfvjhdbvdfjhvdv");
+		   //to make pending rejected
+		   String sql = "UPDATE employee_leave el " +
+	                "JOIN employee e ON el.created_by = e.emp_id " +
+	                "JOIN (" +
+	                "    SELECT el.emp_id " +
+	                "    FROM employee_leave el " +
+	                "    WHERE el.leave_type_master_id = 4" +
+	                "	AND el.leave_status_id = 1 " +
+	                "	AND el.manager_approval_status = 'Approved'" +
+	                ") subquery ON el.emp_id = subquery.emp_id " +
+	                "SET " +
+	                "    el.manager_approval_status = 'Rejected', " +
+	                "    el.level2approval_status = 'NA', " +
+	                "    el.level3approval_status = 'NA', " +
+		   "    el.level2approver_id = null, " +
+		   "    el.level3approver_id = null, " +
+	                "    el.reason = 'Application rejected as CL exceeded its limit', " +
+	                "    el.leave_status_id = 3, " +
+	                "    el.leave_status_updated_by = el.manager_id, " +
+	                "    el.current_approval_level = 1, " +
+	                "    el.final_approval_level = 1 " +
+	                "WHERE " +
+	                "    el.leave_type_master_id = 4" +
+	                "	AND el.leave_status_id = 1 " +
+	                "	AND el.manager_approval_status = 'Approved' " ;
+//	   System.out.println("gdugdvhdfvjhdbvdfjhvdv");
    
+   //to make cl balance 0
    String sql1="UPDATE employee_leaves_mapping elm " +
                "JOIN employee e  ON  elm.emp_id=e.emp_id " +
 		      "SET elm.balance=0 " +
                "WHERE elm.leave_type_master_id=4 ";
    
+   //logs to indicate 0
    String sql2="UPDATE leave_balance_log lbl " +
                "JOIN employee e ON lbl.emp_id=e.emp_id " +
 		       "SET lbl.balance=0 " +
                "WHERE lbl.leave_type_master_id=4 ";
    		 
-    	
+   String sql3 = "UPDATE employee_leave el " +
+		   "JOIN employee e ON el.created_by = e.emp_id " +
+		   "JOIN (" +
+		   "    SELECT el.emp_id " +
+		   "    FROM employee_leave el " +
+		   "    WHERE el.leave_type_master_id = 4" +
+		   "	AND el.leave_status_id = 2 " +
+		   "	AND el.manager_approval_status = 'Approved'" +
+		   ") subquery ON el.emp_id = subquery.emp_id " +
+		   "SET " +
+		   "    el.leave_status_id = 5, " +
+		   "    el.manager_approval_status = 'Revoked', " +
+		   "    el.level2approval_status = 'NA', " +
+		   "    el.level3approval_status = 'NA', " +
+		   "    el.level2approver_id = null, " +
+		   "    el.level3approver_id = null, " +
+		   "    el.reason = 'Application revoked by system as CL exceeded its limit', " +
+		   "    el.leave_status_updated_by = 3, " +
+		   "    el.current_approval_level = 1, " +
+		   "    el.final_approval_level = 1 " +
+		   "	WHERE " +
+		   "    el.leave_type_master_id = 4 " +
+		   "	AND el.manager_approval_status = 'Approved' " +
+		   "	AND el.leave_status_id = 2 " +
+		   "	AND (el.from_date > '2024-12-31' OR el.to_date > '2024-12-31')";
+//		   System.out.println("Priyadarshini");
+//   System.out.println("Priyadarshini");
+   		 
+   
+//System.out.println("gdugdvhdfvjhdbvdfjhvdv");
      
 	    executeNativeQuery(sql);
 	    executeNativeQuery(sql1);
 	    executeNativeQuery(sql2);
-	   // executeNativeQuery(sql1);
+	    executeNativeQuery(sql3);
 	    System.out.println("Query executed at year-end!");
 	}
 
