@@ -1,1 +1,143 @@
-<p>employee360-timesheet works!</p>
+
+<div class="row mb-3">
+    <div class="col-md-12 pl-4 pt-3">
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Pending'}" (click)="setActiveButton('Pending')">Pending</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Approved'}" (click)="setActiveButton('Approved')">Approved</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Rejected'}" (click)="setActiveButton('Rejected')">Rejected</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Calendar'}" (click)="setActiveButton('Calendar')">Calendar</button>
+    </div>
+</div>
+
+<!-- <div *ngIf="activeButton === 'CompOff'">
+<li class="nav-item timesheet__tab-item">
+    <a class="nav-link timesheet__tab-item__link" id="thisMonth-tab" data-toggle="tab" role="tab"
+    href="#thisMonth-tabpanel" aria-controls="thisMonth" aria-selected="false" (click)="getTimesheetsForHomePageByEmpId('This Month')">EOD This Month</a>
+</li>
+</div> -->
+
+<!-- <div *ngIf="userMapping.view_timesheet_display" class="timesheet-display card mb-2"> -->
+<div *ngIf="activeButton === 'Calendar'">
+    <ul class="nav nav-tabs" id="timesheetSummaryTab" role="tablist">
+        <li class="nav-item timesheet_tab-item">
+            <a class="nav-link active timesheet__tab-item__link" id="weekly-tab" data-toggle="tab" role="tab"
+            href="#weekly-tabpanel" aria-controls="weekly" aria-selected="true" (click)="getTimesheetsForHomePageByEmpId('Last 7 Days')">EOD Last 7 Days</a>
+        </li>
+        <li class="nav-item timesheet__tab-item">
+            <a class="nav-link timesheet__tab-item__link" id="thisMonth-tab" data-toggle="tab" role="tab"
+            href="#thisMonth-tabpanel" aria-controls="thisMonth" aria-selected="false" (click)="getTimesheetsForHomePageByEmpId('This Month')">EOD This Month</a>
+        </li>
+        <li class="nav-item timesheet__tab-item">
+            <a class="nav-link timesheet__tab-item__link" id="lastMonth-tab" data-toggle="tab" role="tab"
+            href="#lastMonth-tabpanel" aria-controls="lastMonth" aria-selected="false" (click)="getTimesheetsForHomePageByEmpId('Last Month')">EOD Last Month</a>
+        </li>
+    </ul>
+
+    <!-- tab Containers -->
+    <div class="tab-content timesheetTabContent" id="timesheetTabContent">
+        <div class="tab-pane active show fade timesheet__tab-container" id="weekly-tabpanel" role="tabpanel"
+            aria-labelledby="weekly-tabpanel">
+            <div class="row col-md-12 p-0 m-0">
+                <table class="table table-sm timesheet-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Sr.No</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Day</th>
+                        <th scope="col">Day Type</th>
+                        <th scope="col">Status</th>
+                        <th scope="col" colspan="3">Working Hours</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let timesheet of timesheetDetails; let i = index">
+                        <th scope="row">{{i+1}}</th>
+                        <td>{{timesheet.date}}</td>
+                        <td>{{timesheet.weekDayName}}</td>
+                        <td>{{timesheet.dayType}}</td>
+                        <td>{{timesheet.status}}</td>
+                        <td colspan="3">
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" [style.width]="timesheet.totalWorkingHoursPercentage" aria-valuemin="0" aria-valuemax="100" >{{timesheet.totalWorkingHours}} hrs</div>
+                              </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+            </div>
+        </div>
+        <div class="tab-pane fade timesheet__tab-container pt-2" id="thisMonth-tabpanel" role="tabpanel"
+            aria-labelledby="thisMonth-tabpanel">
+            <app-calendar #thisMonthCal [timesheetDetails]="timesheetDetails"></app-calendar>
+        </div>
+        <div class="tab-pane fade timesheet__tab-container pt-2" id="lastMonth-tabpanel" role="tabpanel"
+            aria-labelledby="lastMonth-tabpanel">
+            <app-calendar #lastMonthCal [subtractmonth]="1" [timesheetDetails]="timesheetDetails"></app-calendar>
+        </div>
+    </div>
+</div>
+
+
+
+<div *ngIf="activeButton !== 'Calendar'" class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="thead-light">
+            <tr>
+                <th>
+                    <input type="checkbox" [(ngModel)]="allSelected" (change)="toggleSelectAll()" />
+                </th>
+                <th>Sr No</th>
+                <th>Emp Id</th>
+                <th>Name</th>
+                <th>Date</th>
+                <th>Date Type</th>
+                <th>Activity</th>
+                <th>Project</th>
+                <th>Team Name</th>
+                <th>In Time</th>
+                <th>Out Time</th>
+                <th>Total Working Hrs</th>
+                <th>Shift</th>
+                <th>Status</th>
+                <th>Applied On</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody class="table-body">
+            <tr *ngFor="let item of data; let i = index">
+                <td>
+                    <input type="checkbox" [(ngModel)]="item.selected" (change)="updateSelection()" />
+                </td>
+                <td>{{ i + 1 }}</td>
+                <td>{{ item.empId }}</td>
+                <td>{{ item.name }}</td>
+                <td>{{ item.date | date: 'shortDate' }}</td>
+                <td>{{ item.dateType }}</td>
+                <td>{{ item.activity }}</td>
+                <td>
+                    <span (click)="filterByProject(item.project)" style="cursor: pointer; color: blue; ">
+                        <!-- text-decoration: underline; -->
+                        {{ item.project }}
+                    </span>
+                </td>
+                <td>
+                    <span (click)="filterByProject(item.project)" style="cursor: pointer; color: blue; ">
+                        <!-- text-decoration: underline; -->
+                        {{ item.teamName }}
+                    </span>
+                </td>
+                <td>{{ item.inTime | date: 'shortTime' }}</td>
+                <td>{{ item.outTime | date: 'shortTime' }}</td>
+                <td>{{ item.totalWorkingHrs }}</td>
+                <td>{{ item.shift }}</td>
+                <td>{{ item.status }}</td>
+                <td>{{ item.appliedOn | date: 'short' }}</td>
+                <td>
+                    <button>Action</button> <!-- Action -->
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <button (click)="saveSelected()">Save</button> <!-- Save button -->
+</div>
+
+

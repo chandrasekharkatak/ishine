@@ -1,0 +1,7 @@
+.config__tabs{
+    position: sticky;
+    top: 0;
+  z-index: 1000; /* Ensure it stays above other content */
+  background-color: white; /* To prevent transparency */
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Optional for better visibility */
+}
