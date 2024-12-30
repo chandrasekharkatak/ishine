@@ -72,4 +72,18 @@ export class Timesheet{
 
     displayTeam:any;
     inactiveTimesheetActivities:any;
+
+
+    // 360 time sheet 
+    name: any;
+    dateType: any ;
+    activity: any;
+    project: any;
+    outTime: any;
+    totalWorkingHrs: any;
+    appliedOn: any;
+    selected : any;
+    timeSheet: any;
+    nightShift: any;
+
 }

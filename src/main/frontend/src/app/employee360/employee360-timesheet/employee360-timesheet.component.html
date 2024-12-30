@@ -92,7 +92,7 @@
                 <th>Emp Id</th>
                 <th>Name</th>
                 <th>Date</th>
-                <th>Date Type</th>
+                <th>Day Type</th>
                 <th>Activity</th>
                 <th>Project</th>
                 <th>Team Name</th>
@@ -114,24 +114,45 @@
                 <td>{{ item.empId }}</td>
                 <td>{{ item.name }}</td>
                 <td>{{ item.date | date: 'shortDate' }}</td>
-                <td>{{ item.dateType }}</td>
-                <td>{{ item.activity }}</td>
+                <td>{{ item.dayType }}</td>
+                <!-- <td>{{ item.activity }}</td> -->
                 <td>
+                    <ul>
+                        <li *ngFor="let timeSheet of item.timeSheet">
+                            <ul>
+                                <li *ngFor="let activity of timeSheet.activities">{{ activity }}</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </td>
+                <td>
+                    <ul>
+                        <li *ngFor="let timeSheet of item.timeSheet">
+                            <span (click)="filterByProject(timeSheet.projectName)" style="cursor: pointer; color: blue;">
+                                {{ timeSheet.projectName }}
+                            </span>
+                        </li>
+                    </ul>
+                </td>
+                <td>hello</td>
+                <!-- <td>
+                    <span *ngFor="let activity of item.timeSheet[0]?.activities">{{ activity }} </span>
                     <span (click)="filterByProject(item.project)" style="cursor: pointer; color: blue; ">
-                        <!-- text-decoration: underline; -->
                         {{ item.project }}
                     </span>
-                </td>
-                <td>
-                    <span (click)="filterByProject(item.project)" style="cursor: pointer; color: blue; ">
-                        <!-- text-decoration: underline; -->
+                </td> -->
+                <!-- text-decoration: underline; -->
+                <!-- <td> -->
+                    <!-- <span *ngFor="let activity of item.timeSheet[0]?.projectName">{{ activity }} </span> -->
+                    <!-- text-decoration: underline; -->
+                    <!-- <span (click)="filterByProject(item.project)" style="cursor: pointer; color: blue; ">
                         {{ item.teamName }}
-                    </span>
-                </td>
-                <td>{{ item.inTime | date: 'shortTime' }}</td>
-                <td>{{ item.outTime | date: 'shortTime' }}</td>
+                    </span> -->
+                <!-- </td> -->
+                <td>{{ item.officeInTime | date: 'shortTime' }}</td>
+                <td>{{ item.officeOutTime | date: 'shortTime' }}</td>
                 <td>{{ item.totalWorkingHrs }}</td>
-                <td>{{ item.shift }}</td>
+                <td>{{ item.nightShift }}</td>
                 <td>{{ item.status }}</td>
                 <td>{{ item.appliedOn | date: 'short' }}</td>
                 <td>

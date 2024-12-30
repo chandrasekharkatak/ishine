@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { first } from 'rxjs/operators';
+import { Timesheet } from 'src/app/models/timesheet';
 import { Employee360Service } from 'src/app/services/employee360.service';
 
 @Component({
@@ -14,90 +15,28 @@ export class Employee360TimesheetComponent implements OnInit {
   activeCompOffButton: string;
   timesheetDetails: any;
   userMapping: any;
+  time
 
-  data: any[] = [
-    {
-        id: 1,
-        empId: 'E001',
-        name: 'John Doe',
-        date: new Date('2023-10-01'), // Example date
-        dateType: 'Comp Off',
-        activity: 'Worked on project A',
-        project: 'Project A',
-        teamName: 'Team Alpha',
-        inTime: new Date('2023-10-01T09:00:00'), // Example in time
-        outTime: new Date('2023-10-01T17:00:00'), // Example out time
-        totalWorkingHrs: 8,
-        shift: 'Day',
-        status: 'Approved',
-        appliedOn: new Date('2023-09-30') // Example applied on date
-    },
-    {
-      id: 1,
-      empId: 'E001',
-      name: 'John Doe',
-      date: new Date('2023-10-01'), // Example date
-      dateType: 'Comp Off',
-      activity: 'Worked on project A',
-      project: 'Project A',
-      teamName: 'Team Alpha',
-      inTime: new Date('2023-10-01T09:00:00'), // Example in time
-      outTime: new Date('2023-10-01T17:00:00'), // Example out time
-      totalWorkingHrs: 8,
-      shift: 'Day',
-      status: 'Approved',
-      appliedOn: new Date('2023-09-30') // Example applied on date
-    },
-    {
-      id: 1,
-      empId: 'E001',
-      name: 'John Doe',
-      date: new Date('2023-10-01'), // Example date
-      dateType: 'Comp Off',
-      activity: 'Worked on project A',
-      project: 'Project A',
-      teamName: 'Team Alpha',
-      inTime: new Date('2023-10-01T09:00:00'), // Example in time
-      outTime: new Date('2023-10-01T17:00:00'), // Example out time
-      totalWorkingHrs: 8,
-      shift: 'Day',
-      status: 'Approved',
-      appliedOn: new Date('2023-09-30') // Example applied on date
-    },
-    {
-        id: 2,
-        empId: 'E002',
-        name: 'Jane Smith',
-        date: new Date('2023-10-02'),
-        dateType: 'Sick Leave',
-        activity: 'Worked on project B',
-        project: 'Project B',
-        teamName: 'Team Beta',
-        inTime: new Date('2023-10-02T09:30:00'),
-        outTime: new Date('2023-10-02T17:30:00'),
-        totalWorkingHrs: 8,
-        shift: 'Day',
-        status: 'Pending',
-        appliedOn: new Date('2023-10-01')
-    },
-    {
-        id: 3,
-        empId: 'E003',
-        name: 'Alice Johnson',
-        date: new Date('2023-10-03'),
-        dateType: 'Annual Leave',
-        activity: 'Worked on project C',
-        project: 'Project C',
-        teamName: 'Team Gamma',
-        inTime: new Date('2023-10-03T08:45:00'),
-        outTime: new Date('2023-10-03T16:45:00'),
-        totalWorkingHrs: 8,
-        shift: 'Day',
-        status: 'Approved',
-        appliedOn: new Date('2023-10-02')
-    },
-    // Add more data as needed
-];
+  data  :Timesheet [] = [];
+//   data: any[] = [
+//     {
+//         id: 1,
+//         empId: 'E001',
+//         name: 'John Doe',
+//         date: new Date('2023-10-01'), // Example date
+//         dateType: 'Comp Off',
+//         activity: 'Worked on project A',
+//         project: 'Project A',
+//         teamName: 'Team Alpha',
+//         inTime: new Date('2023-10-01T09:00:00'), // Example in time
+//         outTime: new Date('2023-10-01T17:00:00'), // Example out time
+//         totalWorkingHrs: 8,
+//         shift: 'Day',
+//         status: 'Approved',
+//         appliedOn: new Date('2023-09-30') // Example applied on date
+//     }
+//     // Add more data as needed
+// ];
 allSelected: any;
 
   constructor(
@@ -149,18 +88,18 @@ allSelected: any;
 
 
 
-    get360TimesheetDetails(){
+    get360TimesheetDetails() {
       console.log(this.activeButton);
-      this.employee360Service.get360TimesheetDetails(this.activeButton).pipe(first()).subscribe ((response: any) => {
-        if(response.serviceStatus == "Success"){
-          console.log("=> serviceResponse" + response.serviceResponse);
-          this .data = response.serviceResponse;
-          console.log("=> data " + this.data);
-          console.log( this.data);
-        }
-      })
-
-
-    }
+      this.employee360Service.get360TimesheetDetails(this.activeButton).pipe(first()).subscribe((response: any) => {
+          if (response.serviceStatus === "Success") {
+              console.log("=> serviceResponse", response.serviceResponse);
+              this.data = response.serviceResponse;
+  
+              // Transform the data from an object to an array
+              this.data = Object.values(this.data); // Convert to array
+              console.log("=> transformed data", this.data);
+          }
+      });
+  }
 
 }
