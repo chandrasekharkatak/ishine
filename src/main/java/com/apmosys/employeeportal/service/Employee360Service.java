@@ -1,7 +1,12 @@
 package com.apmosys.employeeportal.service;
 
+import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -9,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.Employee360DTO;
+import com.apmosys.employeeportal.dto.EmployeeTimesheetDto;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.repository.Employee360Repository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -128,5 +134,102 @@ public class Employee360Service {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+	
+	public ServiceResponse get360TimesheetDetails(String status) {
+		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("get360TimesheetDetails");
+		apiLogInfo.setApiUrl("/api/get360TimesheetDetails");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("status : " + status);
+		try {
+			
+			List<Employee360DTO> employeeDtoList = new ArrayList<>();
+			
+			List<Object[]> objectList = employeeRepository.getTimesheetData(status);
+			Map<Long, Employee360DTO> employeeMap = new HashMap<>();
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
+		if (!objectList.isEmpty()) {
+			for (Object[] row : objectList) {
+				Long empId = row[0] != null ? ((BigInteger) row[0]).longValue() : null;
+			    String projectName = (String) row[13];
+			    String activity = (String) row[12];
+			    String date = ((java.sql.Date) row[4]).toString();
+
+			    // Find or create Employee DTO
+			    Employee360DTO employee = employeeMap.computeIfAbsent(empId, id -> {
+			        Employee360DTO dto = new Employee360DTO();
+					dto.setEmpId(row[0] != null ? Long.parseLong(row[0].toString()) : null);
+			        dto.setName((String) row[3]);
+			        dto.setDate(date);
+			        dto.setDayType(row[5] != null ? row[5].toString() : null);
+			        if (row[6] != null) {
+			           dto.setOfficeInTime(((java.sql.Timestamp) row[6]).toLocalDateTime());}
+			        if (row[7] != null) {
+				           dto.setOfficeOutTime(((java.sql.Timestamp) row[7]).toLocalDateTime());}
+	                dto.setTotalWorkingHours(row[8] != null ? row[8].toString() : null);
+			        dto.setStatus(row[10] != null ? row[10].toString() : null);
+			        if (row[11] != null) {
+				           dto.setCreatedOn(((java.sql.Timestamp) row[11]).toLocalDateTime());}
+			        dto.setTimeSheet(new ArrayList<>());
+			        return dto;
+			    });
+			    
+
+			    // Find or create Project DTO
+			    List<EmployeeTimesheetDto> timeSheet = employee.getTimeSheet();
+			    EmployeeTimesheetDto project = timeSheet.stream()
+			            .filter(p -> p.getProjectName().equals(projectName))
+			            .findFirst()
+			            .orElseGet(() -> {
+			            	EmployeeTimesheetDto newProject = new EmployeeTimesheetDto();
+			                newProject.setProjectName(projectName);
+			                newProject.setProjectId(row[1] != null ? Long.parseLong(row[1].toString()) : null);
+			                newProject.setActivityId(row[2] != null ? Long.parseLong(row[2].toString()) : null);
+			                newProject.setActivities(new ArrayList<>());
+			                timeSheet.add(newProject);
+			                return newProject;
+			            });
+
+			    // Add activity to the project
+			    project.getActivities().add(activity);
+			}
+		}
+
+			// Convert Map values to a list of Employee360DTO if needed
+			List<Employee360DTO> employees = new ArrayList<>(employeeMap.values());
+
+			
+			if (!objectList.isEmpty()) {
+
+				for (Object[] object : objectList) {
+					
+					Employee360DTO dto = new Employee360DTO();
+					
+				
+				}
+			}
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(employeeMap);
+			apiLogInfo.setApiResponse("Timesheet details fetched.");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+
+	
 }
