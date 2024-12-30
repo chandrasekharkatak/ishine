@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.dto;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.apmosys.employeeportal.model.Notification;
@@ -25,5 +26,18 @@ public class Employee360DTO {
 	private String leaveType;
 	private String totalDays;
 	private String leaveStatus;
+	private int createdBy;
+	private String employeeName;
+	private String date;
+	private String dayType;
+	private LocalDateTime officeInTime;
+	private LocalDateTime officeOutTime;
+	private boolean isNightShift;
+	private String totalWorkingHours;
+	private String status;
+	private LocalDateTime createdOn;
+	private List timeSheet;
+	
+
 
 }

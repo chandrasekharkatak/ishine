@@ -14,7 +14,7 @@ export class BreadcrumbComponent implements OnInit {
 
   breadcrumbList:any[] = [
     {
-      "title": "Exit Employee 360",
+      "title": "Home",
       "url": "/home",
       "subtab": "",
       "object": {
@@ -37,7 +37,8 @@ export class BreadcrumbComponent implements OnInit {
   }
 
   updateDisplayedBreadcrumbs() {
-    this.breadcrumbList = JSON.parse(sessionStorage.getItem('breadcrumb'));
+    console.log(JSON.parse(sessionStorage.getItem('breadcrumb')) + " :==========")
+    this.breadcrumbList = JSON.parse(sessionStorage.getItem('breadcrumb')) != undefined ? JSON.parse(sessionStorage.getItem('breadcrumb')) : this.breadcrumbList;
     const maxVisible = 4;
 
     if (this.breadcrumbList.length > 10) {

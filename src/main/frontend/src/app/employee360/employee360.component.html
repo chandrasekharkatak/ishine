@@ -1,4 +1,8 @@
-<div class="container-fluid employee-container">
+<div class="mt-5">
+  <app-breadcrumb></app-breadcrumb>
+</div>
+
+<div class="container-fluid">
     <div class="row">
       
       <div class="col-md-9">
@@ -28,7 +32,7 @@
            </li>
             <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
               <a class="nav-link report__tab-item__link" id="timesheet-tab" data-toggle="tab" routerLink="timesheet" role="tab" (click)="removeActiveTab()"
-                aria-controls="timesheet" aria-selected="false">TimeSheet</a>
+                aria-controls="timesheet" aria-selected="false">Timesheet</a>
             </li>
             <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
               <a class="nav-link report__tab-item__link" id="biomax-tab" data-toggle="tab" routerLink="biomax" role="tab" (click)="removeActiveTab()"
@@ -72,12 +76,15 @@
           <!-- Employee Details -->
           <div class="profile-details">
             <p><strong>Employee ID:</strong> {{employeeData.employeementId}}</p>
-            <p><strong>Job Title:</strong> Project Manager</p>
-            <p><strong>Department:</strong> Accounting Department</p>
-            <p><strong>Office:</strong> Boston, MA, U.S.</p>
-            <p><strong>Employee Since:</strong> March 7, 2016</p>
-            <p><strong>Last Performance Evaluation:</strong> 5/5</p>
-            <p><strong>Current Utilization Rate:</strong> 60%</p>
+            <p><strong>Job Title:</strong> {{employeeData.designationName}}</p>
+            <p><strong>Department:</strong> {{employeeData.departmentName}}</p>
+            <p><strong>Office:</strong>{{employeeData.workLocation}}</p>
+            <p><strong>Employee Since:</strong> {{employeeData.dateOfJoining}}</p>
+            <p><strong>Manager Name</strong> {{employeeData.managerName}}</p>
+            <p><strong>Project Name</strong> {{employeeData.projectName}}</p>
+            <p><strong>Billable Type</strong> {{employeeData.billableType}}</p>
+            <p><strong>Status</strong> {{employeeData.employmentstatus}}</p>
+            <p><strong>Total Experince</strong> {{employeeData.totalExperience}}</p>
           </div>
         </div>
       </div>

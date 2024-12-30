@@ -279,11 +279,21 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	public List<Object[]> findDepartmentsByReporties(Long empId);
 	
 	
-	
-	
-	@Query(nativeQuery = true, value = "SELECT employeement_id,name FROM employee where employeement_id in :empList ")
-	public List<Object[]> getDataByEmpId(@Param("empList") Set empList );
-
+	@Query(nativeQuery = true, value =
+		    "select et.emp_id, p.project_id, a.activity_id,\n"
+		    + "    e.name, et.date, et.day_type,\n"
+		    + "    et.office_in_time, et.office_out_time, et.total_working_hours, et.is_night_shift, \n"
+		    + "    et.status, et.created_on,\n"
+		    + "    a.activity,\n"
+		    + "    p.project_name   \n"
+		    + "from employee_timesheets et \n"
+		    + "INNER JOIN employee e ON et.created_by = e.emp_id\n"
+		    + "inner join employee_timesheet_activities_mapping etam on et.timesheet_id = etam.timesheet_id\n"
+		    + "inner join activities a on a.activity_id = etam.activity_id\n"
+		    + "INNER JOIN teams t ON t.team_id = a.team_id \n"
+		    + " INNER JOIN projects p ON p.project_id = t.project_id\n"
+		    + "WHERE et.status = :status")
+		List<Object[]> getTimesheetData(@Param("status") String status);
 	
 	
 }

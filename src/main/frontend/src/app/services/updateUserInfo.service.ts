@@ -12,6 +12,7 @@ import { EmployeeService } from "./employee.service";
 import { ValidationService } from "./validation.service";
 import { environment } from "src/environments/environment";
 import { Router } from "@angular/router";
+import { UtilityService } from "./utility.service";
 
 @Injectable({ providedIn: 'root' })
 export class UpdateUserInfoService {
@@ -33,7 +34,8 @@ export class UpdateUserInfoService {
         private authenticationService: AuthenticationService,
         private modalService: BsModalService,
         private employeeService: EmployeeService,
-        private router: Router
+        private router: Router,
+        private utilityService:UtilityService
     ) {
         this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
         this.getEmployeeInfo();
@@ -82,9 +84,14 @@ export class UpdateUserInfoService {
     }
 
     getUserInfoObj() {
-        this.getEmployeeInfo();
-
+      //  this.getEmployeeInfo();
         return Object.assign({}, this.userInfoObj);
+    }
+
+
+    getUserInfoObjwithEmpId(){
+          this.getEmployeeInfo();
+         return Object.assign({}, this.userInfoObj);
     }
 
     setUserInfoObj(userInfoObj: Employee) {
@@ -110,9 +117,29 @@ export class UpdateUserInfoService {
     }
 
     async updateEmployeeInfo(): Promise<any> {
+
+
+        if (this.router.url.startsWith('/employee-360/profile')) {
+            const storedData = localStorage.getItem('employee360Data');
+            const parsedData = storedData ? JSON.parse(storedData) : null;
+            if(parsedData != null || parsedData != undefined ){
+              this.employeeData =  parsedData;
+            }
+
+            this.userInfoObj.updatedBy = this.employeeData.empId;
+            this.userInfoObj.isDraft = true;
+            this.userInfoObj.updateApplicationStatus = "Pending For Approval";
+           
+        } else {
         this.userInfoObj.updatedBy = this.currentUser.empId;
         this.userInfoObj.isDraft = true;
         this.userInfoObj.updateApplicationStatus = "Pending For Approval";
+        }
+
+
+
+
+       
         //console.log("updateEmployeeInfo : ", this.userInfoObj);
         return await this.employeeService.updateDraftStatusById(this.userInfoObj).toPromise();
     }
@@ -121,8 +148,29 @@ export class UpdateUserInfoService {
         let draftObj: Employee;
 
         let currentEmp = new Employee();
+
+
+        if (this.router.url.startsWith('/employee-360/profile')) {
+            const storedData = localStorage.getItem('employee360Data');
+            const parsedData = storedData ? JSON.parse(storedData) : null;
+            if(parsedData != null || parsedData != undefined ){
+              this.employeeData =  parsedData;
+            }
+            let employementid =  Number(this.utilityService.getEmployeeIdSubstring2(this.employeeData));
+
+            currentEmp.employeementId = employementid;
+            currentEmp.isDraft = true;
+        } else{
+            
+           
         currentEmp.employeementId = this.currentUser.employeementId;
         currentEmp.isDraft = true;
+        }
+
+       
+
+
+        
 
         const response: any = await this.employeeService.getDraftEmployeeByEmploymentId(currentEmp).toPromise();
         if (response.serviceStatus == "Success") {

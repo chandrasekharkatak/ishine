@@ -4,11 +4,6 @@ body {
     background-color: #f5f5f5;
   }
   
-  .employee-container {
-    margin-top: 50px;
-   
-  }
-  
   .employee-card {
     border: none;
     box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
