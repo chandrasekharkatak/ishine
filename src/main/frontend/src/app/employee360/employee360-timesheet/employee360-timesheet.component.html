@@ -113,7 +113,7 @@
                 <td>{{ i + 1 }}</td>
                 <td>{{ item.empId }}</td>
                 <td>{{ item.name }}</td>
-                <td>{{ item.date | date: 'shortDate' }}</td>
+                <td>{{ item.date | date: 'yyyy-MM-dd' }}</td>
                 <td>{{ item.dayType }}</td>
                 <!-- <td>{{ item.activity }}</td> -->
                 <td>
@@ -134,7 +134,16 @@
                         </li>
                     </ul>
                 </td>
-                <td>hello</td>
+                <td>
+                    <ul>
+                        <li *ngFor="let timeSheet of item.timeSheet">
+                            <span (click)="filterByTeam(timeSheet.teamName)" style="cursor: pointer; color: blue;">
+                                {{ timeSheet.teamName }}
+                            </span>
+                        </li>
+                    </ul>
+                </td>
+                <!-- <td>hello</td> -->
                 <!-- <td>
                     <span *ngFor="let activity of item.timeSheet[0]?.activities">{{ activity }} </span>
                     <span (click)="filterByProject(item.project)" style="cursor: pointer; color: blue; ">
@@ -151,10 +160,10 @@
                 <!-- </td> -->
                 <td>{{ item.officeInTime | date: 'shortTime' }}</td>
                 <td>{{ item.officeOutTime | date: 'shortTime' }}</td>
-                <td>{{ item.totalWorkingHrs }}</td>
+                <td>{{ item.totalWorkingHours }}</td>
                 <td>{{ item.nightShift }}</td>
                 <td>{{ item.status }}</td>
-                <td>{{ item.appliedOn | date: 'short' }}</td>
+                <td>{{ item.createdOn | date: 'yyyy-MM-dd' }}</td>
                 <td>
                     <button>Action</button> <!-- Action -->
                 </td>

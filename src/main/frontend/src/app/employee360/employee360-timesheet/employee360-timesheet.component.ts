@@ -15,6 +15,9 @@ export class Employee360TimesheetComponent implements OnInit {
   activeCompOffButton: string;
   timesheetDetails: any;
   userMapping: any;
+  projectName:any;
+  teamName:any;
+  empId:any;
   time
 
   data  :Timesheet [] = [];
@@ -82,8 +85,30 @@ allSelected: any;
     console.log('Selected Employee IDs:', selectedEmpIds);
   }
 
-  filterByProject(arg0: any) {
-    throw new Error('Method not implemented.');
+  filterByProject(arg0: any){
+    console.log("project clicked =>  " + arg0 );
+    
+    this.projectName = arg0;
+    this.byClick();
+  }
+  filterByTeam(arg0: any){
+    console.log("team clicked => " + arg0);
+    
+    this.teamName = arg0;
+    this.byClick();
+  }
+  filterByEmp(arg0: any){
+    this.empId = arg0;
+    this.byClick();
+  }
+
+  byClick() {
+    let obj = {
+      projectName : this.projectName,
+      teamName: this.projectName,
+      // empId:this.empId
+
+    }
     }
 
 
