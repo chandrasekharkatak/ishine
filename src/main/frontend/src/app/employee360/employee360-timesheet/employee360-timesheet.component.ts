@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { first } from 'rxjs/operators';
+import { Employee360Service } from 'src/app/services/employee360.service';
 
 @Component({
   selector: 'app-employee360-timesheet',
@@ -6,9 +8,7 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./employee360-timesheet.component.css']
 })
 export class Employee360TimesheetComponent implements OnInit {
-filterByProject(arg0: any) {
-throw new Error('Method not implemented.');
-}
+
 
   activeButton: any;
   activeCompOffButton: string;
@@ -100,10 +100,15 @@ throw new Error('Method not implemented.');
 ];
 allSelected: any;
 
-  constructor() { }
+  constructor(
+    private employee360Service : Employee360Service
+  ) {
+    
+   }
 
   ngOnInit(): void {
     this.activeButton = 'Pending';
+    this.get360TimesheetDetails();
   }
 
   setActiveButton(button: string): void {
@@ -138,9 +143,24 @@ allSelected: any;
     console.log('Selected Employee IDs:', selectedEmpIds);
   }
 
-  yourFunction(){
-    console.log("exected")
-  }
+  filterByProject(arg0: any) {
+    throw new Error('Method not implemented.');
+    }
 
+
+
+    get360TimesheetDetails(){
+      console.log(this.activeButton);
+      this.employee360Service.get360TimesheetDetails(this.activeButton).pipe(first()).subscribe ((response: any) => {
+        if(response.serviceStatus == "Success"){
+          console.log("=> serviceResponse" + response.serviceResponse);
+          this .data = response.serviceResponse;
+          console.log("=> data " + this.data);
+          console.log( this.data);
+        }
+      })
+
+
+    }
 
 }

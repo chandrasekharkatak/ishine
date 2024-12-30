@@ -28,6 +28,11 @@ export class Employee360Service {
     return this.http.get(`${this.baseUrl}` + `api/getEmployeeDetails?empId=${empId}`);
   }
 
+
+  get360TimesheetDetails(status: String) {
+    return this.http.get(`${this.baseUrl}` + `api/get360TimesheetDetails?status=${status}`);
+  }
+
   // getAllLeaveTypes() {
   //   return this.http.get(`${this.baseUrl}` + `api/getAllLeaveTypes`);
   // }
