@@ -13,6 +13,7 @@ public class EmployeeTimesheetDto {
 
 	private List<String> activities;
 	private String projectName;
+	private String teamName;
 	private Long projectId;
 	private Long activityId;
 }

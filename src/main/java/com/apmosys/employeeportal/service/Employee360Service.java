@@ -187,6 +187,7 @@ public class Employee360Service {
 			            .orElseGet(() -> {
 			            	EmployeeTimesheetDto newProject = new EmployeeTimesheetDto();
 			                newProject.setProjectName(projectName);
+			                newProject.setTeamName(row[14] != null ? row[14].toString() : null);
 			                newProject.setProjectId(row[1] != null ? Long.parseLong(row[1].toString()) : null);
 			                newProject.setActivityId(row[2] != null ? Long.parseLong(row[2].toString()) : null);
 			                newProject.setActivities(new ArrayList<>());
@@ -198,20 +199,6 @@ public class Employee360Service {
 			    project.getActivities().add(activity);
 			}
 		}
-
-			// Convert Map values to a list of Employee360DTO if needed
-			List<Employee360DTO> employees = new ArrayList<>(employeeMap.values());
-
-			
-			if (!objectList.isEmpty()) {
-
-				for (Object[] object : objectList) {
-					
-					Employee360DTO dto = new Employee360DTO();
-					
-				
-				}
-			}
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(employeeMap);
 			apiLogInfo.setApiResponse("Timesheet details fetched.");
