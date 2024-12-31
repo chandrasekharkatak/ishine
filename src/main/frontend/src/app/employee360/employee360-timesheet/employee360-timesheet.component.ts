@@ -26,10 +26,12 @@ export class Employee360TimesheetComponent implements OnInit {
   timesheetDetails: any;
   userMapping: any;
   projectName:any;
-  teamName:any=null;
+  teamName:any="null";
   empId:any=0;
+  empIdd:any;
   projectId:any=0;
-  time
+  currentUser:any;
+  time;
 
   data  :Timesheet [] = [];
 
@@ -65,28 +67,21 @@ allSelected: any;
 
   ngOnInit(): void {
     this.activeButton = 'Pending';
-    this.get360TimesheetDetails();
+    // this.empIdd=sessionStorage.getItem('employeeId');
+    this.empIdd=240065;
+    this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName);
   }
 
   setActiveButton(button: string): void {
     this.activeButton = button;
-    // if (button === 'CompOff') {
-    //   this.activeCompOffButton = 'Requests';
-    // }
+    
     if(this.activeButton !=='Calendar'){
-      this.get360TimesheetDetails();
+      this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName);
     }else{
       this.getTimesheetsForHomePageByEmpId('Last 7 Days');
     }
   }
-  setFrequency(frequency: string) {
-    this.selectedFrequency = frequency;
-    console.log('Selected Frequency:', this.selectedFrequency);
-}
 
-  // getTimesheetsForHomePageByEmpId(arg0: string) {
-  //   console.log('Hello')
-  //   }
   getTimesheetsForHomePageByEmpId(dateRange: any) {
     this.timesheetDetails = [];
     const TOTAL_WORKING_HOURS_IN_DAY = 8;
@@ -269,17 +264,14 @@ allSelected: any;
     console.log('Selected Employee IDs:', selectedEmpIds);
   }
 
-  findByProject(arg0: any){
-    console.log("project clicked =>  " + arg0 );
-    
-    this.projectName = arg0;
-    this.byClick();
+  findByProject(projectId: number){
+    console.log("project clicked =>  " + projectId );
+    this.get360TimesheetDetails(this.activeButton,this.empId,projectId,this.teamName);
   }
-  findByTeam(arg0: any){
-    console.log("team clicked => " + arg0);
-    
-    this.teamName = arg0;
-    this.byClick();
+
+  findByTeam(teamName: any){
+    console.log("team clicked => " + teamName);
+    this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,teamName);
   }
   findByEmp(arg0: any){
     this.empId = arg0;
@@ -299,11 +291,16 @@ allSelected: any;
       console.log()
     }
 
-    get360TimesheetDetails() {
+    get360TimesheetDetails(activeButton:string,empId:number,projectId:number,teamName:string) {
       console.log(this.activeButton);
-      this.empId=sessionStorage.getItem('employeeId');
-      
-      this.employee360Service.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName).pipe(first()).subscribe((response: any) => {
+      this.currentUser=sessionStorage.getItem('currentUser');
+      if (this.currentUser) {
+        const currentUserData = JSON.parse(this.currentUser);
+        const managerId = currentUserData.empId;
+        console.log(managerId);
+        
+      }
+      this.employee360Service.get360TimesheetDetails(activeButton,empId,projectId,teamName).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus === "Success") {
               console.log("=> serviceResponse", response.serviceResponse);
               this.data = response.serviceResponse;
