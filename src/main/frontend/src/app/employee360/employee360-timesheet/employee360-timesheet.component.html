@@ -1,10 +1,29 @@
 
-<div class="row mb-3">
+<!-- <div class="row mb-3">
     <div class="col-md-12 pl-4 pt-3">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Pending'}" (click)="setActiveButton('Pending')">Pending</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Approved'}" (click)="setActiveButton('Approved')">Approved</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Rejected'}" (click)="setActiveButton('Rejected')">Rejected</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Calendar'}" (click)="setActiveButton('Calendar')">Calendar</button>
+    </div>
+</div> -->
+
+<div class="row mb-3">
+    <div class="col-md-12 pl-4 pt-3 d-flex justify-content-between">
+        <div>
+            <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Pending'}" (click)="setActiveButton('Pending')">Pending</button>
+            <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Approved'}" (click)="setActiveButton('Approved')">Approved</button>
+            <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Rejected'}" (click)="setActiveButton('Rejected')">Rejected</button>
+            <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Calendar'}" (click)="setActiveButton('Calendar')">Calendar</button>
+        </div>
+
+        <!-- Dropdown aligned to the right -->
+        <select class="form-select-sm align-items-center mx-1 custom-select parent-container" aria-label="Default select example"
+            [(ngModel)]="selectedOption" (change)="onChangeOption()">
+            <option class="option-bg" value="1">All</option>
+            <option class="option-bg" value="2">Weekly</option>
+            <option class="option-bg" value="3">Monthly</option>
+        </select>
     </div>
 </div>
 
@@ -72,6 +91,24 @@
             aria-labelledby="thisMonth-tabpanel">
             <app-calendar #thisMonthCal [timesheetDetails]="timesheetDetails"></app-calendar>
         </div>
+        <!--  -->
+        <!-- <div class="tab-pane fade timesheet__tab-container pt-2" id="thisMonth-tabpanel" role="tabpanel"
+        aria-labelledby="thisMonth-tabpanel">
+        <app-calendar 
+          [timesheetDetails]="timesheetDetails" 
+          (hoverEvent)="onHover($event)" 
+          (leaveEvent)="onLeave()">
+        </app-calendar>
+    
+        
+        <div *ngIf="hoveredData" class="tooltip-box" 
+             [style.top.px]="position.y + 10" 
+             [style.left.px]="position.x + 10">
+            <p><strong>Date:</strong> {{ hoveredData.date }}</p>
+            <p><strong>Details:</strong> {{ hoveredData.details }}</p>
+        </div>
+        </div> -->
+
         <div class="tab-pane fade timesheet__tab-container pt-2" id="lastMonth-tabpanel" role="tabpanel"
             aria-labelledby="lastMonth-tabpanel">
             <app-calendar #lastMonthCal [subtractmonth]="1" [timesheetDetails]="timesheetDetails"></app-calendar>
@@ -86,7 +123,7 @@
         <thead class="thead-light">
             <tr>
                 <th>
-                    <input type="checkbox" [(ngModel)]="allSelected" (change)="toggleSelectAll()" />
+                    <input *ngIf="data === null || data.length === 0" type="checkbox" [(ngModel)]="allSelected" (change)="toggleSelectAll()" />
                 </th>
                 <th>Sr No</th>
                 <th>Emp Id</th>
@@ -106,13 +143,16 @@
             </tr>
         </thead>
         <tbody class="table-body">
+            <tr *ngIf="data === null || data.length === 0">
+                <td colspan="16" style="text-align: center;">No Data To Display.....</td>
+            </tr>
             <tr *ngFor="let item of data; let i = index">
                 <td>
                     <input type="checkbox" [(ngModel)]="item.selected" (change)="updateSelection()" />
                 </td>
                 <td>{{ i + 1 }}</td>
                 <td>{{ item.empId }}</td>
-                <td>{{ item.name }}</td>
+                <td [navigateToEmployee360]="item"  style="cursor: pointer;"  title="Click to view Employee 360">{{ item.name }}</td>
                 <td>{{ item.date | date: 'yyyy-MM-dd' }}</td>
                 <td>{{ item.dayType }}</td>
                 <!-- <td>{{ item.activity }}</td> -->
@@ -128,7 +168,7 @@
                 <td>
                     <ul>
                         <li *ngFor="let timeSheet of item.timeSheet">
-                            <span (click)="filterByProject(timeSheet.projectName)" style="cursor: pointer; color: blue;">
+                            <span (click)="findByProject(timeSheet.projectName)" style="cursor: pointer; color: blue;">
                                 {{ timeSheet.projectName }}
                             </span>
                         </li>
@@ -137,16 +177,15 @@
                 <td>
                     <ul>
                         <li *ngFor="let timeSheet of item.timeSheet">
-                            <span (click)="filterByTeam(timeSheet.teamName)" style="cursor: pointer; color: blue;">
+                            <span (click)="findByTeam(timeSheet.teamName)" style="cursor: pointer; color: blue;">
                                 {{ timeSheet.teamName }}
                             </span>
                         </li>
                     </ul>
                 </td>
-                <!-- <td>hello</td> -->
                 <!-- <td>
                     <span *ngFor="let activity of item.timeSheet[0]?.activities">{{ activity }} </span>
-                    <span (click)="filterByProject(item.project)" style="cursor: pointer; color: blue; ">
+                    <span (click)="findByProject(item.project)" style="cursor: pointer; color: blue; ">
                         {{ item.project }}
                     </span>
                 </td> -->
@@ -154,7 +193,7 @@
                 <!-- <td> -->
                     <!-- <span *ngFor="let activity of item.timeSheet[0]?.projectName">{{ activity }} </span> -->
                     <!-- text-decoration: underline; -->
-                    <!-- <span (click)="filterByProject(item.project)" style="cursor: pointer; color: blue; ">
+                    <!-- <span (click)="findByProject(item.project)" style="cursor: pointer; color: blue; ">
                         {{ item.teamName }}
                     </span> -->
                 <!-- </td> -->
@@ -165,12 +204,14 @@
                 <td>{{ item.status }}</td>
                 <td>{{ item.createdOn | date: 'yyyy-MM-dd' }}</td>
                 <td>
-                    <button>Action</button> <!-- Action -->
-                </td>
+                    <button *ngIf="activeButton === 'Pending'" class="approve-button" (click)="action('approved')"> APPROVE </button>
+                    <button *ngIf="activeButton === 'Pending'" class="reject-button" (click)="action('rejected')"> REJECT </button>
+                    <button *ngIf="activeButton !== 'Pending'" class="revoke-button" (click)="action('revoke')"> REVOKE </button>
+                </td>  
             </tr>
         </tbody>
     </table>
-    <button (click)="saveSelected()">Save</button> <!-- Save button -->
+    <button *ngIf="data === null || data.length === 0" (click)="saveSelected()">Save</button>
 </div>
 
 

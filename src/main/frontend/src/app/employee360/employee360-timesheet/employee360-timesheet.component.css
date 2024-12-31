@@ -5,3 +5,82 @@
   background-color: white; /* To prevent transparency */
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Optional for better visibility */
 }
+
+/* Common button styles */
+button {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: bold;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  display: inline-block;
+  margin: 5px;
+}
+
+/* Pending buttons - Approve and Reject */
+.approve-button {
+  background-color: #4CAF50; /* Green */
+  color: white;
+}
+
+.approve-button:hover {
+  background-color: #45a049;
+  transform: scale(1.05);
+}
+
+.reject-button {
+  background-color: #f44336; /* Red */
+  color: white;
+}
+
+.reject-button:hover {
+  background-color: #e53935;
+  transform: scale(1.05);
+}
+
+/* Revoke button when not in Pending state */
+.revoke-button {
+  background-color: #ff9800; /* Orange */
+  color: white;
+}
+
+.revoke-button:hover {
+  background-color: #fb8c00;
+  transform: scale(1.05);
+}
+
+/* Active button state */
+button:active {
+  transform: scale(0.98);
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  button {
+      width: 100%;
+      margin: 5px 0;
+  }
+}
+
+
+.custom-select {
+  border-radius: 4px;
+  height: 35px; /* Set your desired height here */
+  width: 100px;
+}
+.custom-select {
+  border-radius: 7px;
+  padding-top: 500px; 
+  /* border-radius: 50%; Makes the corners fully circular */
+  height: 35px; /* Set your desired height here */
+  width: 100px; /* Set your desired width here */
+  padding: 0 10px; /* Optional: Add padding for better text alignment */
+  border: 1px solid #ced4da; /* Optional: Add a border for visibility */
+}
+/* .parent-container {
+  padding-top: 50px; 
+} */
+
+
