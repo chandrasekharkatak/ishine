@@ -135,7 +135,7 @@ public class Employee360Service {
 		return response;
 	}
 	
-	public ServiceResponse get360TimesheetDetails(String status) {
+	public ServiceResponse get360TimesheetDetails(String status,long empId,long projectId,String teamName) {
 		ServiceResponse response = new ServiceResponse();
 		
 		LogDTO apiLogInfo = new LogDTO();
@@ -147,14 +147,17 @@ public class Employee360Service {
 		try {
 			
 			List<Employee360DTO> employeeDtoList = new ArrayList<>();
-			
-			List<Object[]> objectList = employeeRepository.getTimesheetData(status);
+			List<Object[]> objectList;
+			if(empId!=0) {objectList = employeeRepository.getTimesheetDataByEmpId(status,empId);}
+			else if(projectId!=0){objectList = employeeRepository.getTimesheetDataByProjectId(status,projectId);}
+			else{objectList = employeeRepository.getTimesheetDataByTeamName(status,teamName);}
+
+
 			Map<Long, Employee360DTO> employeeMap = new HashMap<>();
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
 		if (!objectList.isEmpty()) {
 			for (Object[] row : objectList) {
-				Long empId = row[0] != null ? ((BigInteger) row[0]).longValue() : null;
 			    String projectName = (String) row[13];
 			    String activity = (String) row[12];
 			    String date = ((java.sql.Date) row[4]).toString();
@@ -162,7 +165,7 @@ public class Employee360Service {
 			    // Find or create Employee DTO
 			    Employee360DTO employee = employeeMap.computeIfAbsent(empId, id -> {
 			        Employee360DTO dto = new Employee360DTO();
-					dto.setEmpId(row[0] != null ? Long.parseLong(row[0].toString()) : null);
+					dto.setEmpId(empId!=0?empId:Long.parseLong(row[1].toString()));
 			        dto.setName((String) row[3]);
 			        dto.setDate(date);
 			        dto.setDayType(row[5] != null ? row[5].toString() : null);
@@ -187,8 +190,8 @@ public class Employee360Service {
 			            .orElseGet(() -> {
 			            	EmployeeTimesheetDto newProject = new EmployeeTimesheetDto();
 			                newProject.setProjectName(projectName);
-			                newProject.setTeamName(row[14] != null ? row[14].toString() : null);
-			                newProject.setProjectId(row[1] != null ? Long.parseLong(row[1].toString()) : null);
+			                newProject.setTeamName(!teamName.equals("null") ? teamName :(String) row[14]);
+			                newProject.setProjectId(projectId != 0L ?projectId: Long.parseLong(row[1].toString()));
 			                newProject.setActivityId(row[2] != null ? Long.parseLong(row[2].toString()) : null);
 			                newProject.setActivities(new ArrayList<>());
 			                timeSheet.add(newProject);
