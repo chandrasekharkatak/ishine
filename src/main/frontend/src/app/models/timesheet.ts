@@ -76,14 +76,12 @@ export class Timesheet{
 
     // 360 time sheet 
     name: any;
-    dateType: any ;
     activity: any;
     project: any;
+    inTime:any;
     outTime: any;
-    totalWorkingHrs: any;
     appliedOn: any;
     selected : any;
     timeSheet: any;
     nightShift: any;
-
 }

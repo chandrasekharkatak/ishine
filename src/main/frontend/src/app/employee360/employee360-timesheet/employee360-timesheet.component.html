@@ -130,9 +130,9 @@
                 <th>Name</th>
                 <th>Date</th>
                 <th>Day Type</th>
-                <th>Activity</th>
-                <th>Project</th>
                 <th>Team Name</th>
+                <th>Project</th>
+                <th>Activity</th>
                 <th>In Time</th>
                 <th>Out Time</th>
                 <th>Total Working Hrs</th>
@@ -156,33 +156,32 @@
                 <td>{{ item.date | date: 'yyyy-MM-dd' }}</td>
                 <td>{{ item.dayType }}</td>
                 <!-- <td>{{ item.activity }}</td> -->
+                
                 <td>
-                    <ul>
-                        <li *ngFor="let timeSheet of item.timeSheet">
+                    <div *ngFor="let timeSheet of item.timeSheet;let j = index">
+                        <span (click)="findByTeam(timeSheet.teamName)" style="cursor: pointer; color: blue;">
+                            {{ timeSheet.teamName }}
+                        </span>
+                    <hr *ngIf="j < item.timeSheet.length - 1" style="border: none; border-top: 1px solid #ccc; margin: 5px 0;">
+                    </div>
+                </td>
+
+                <td>
+                    <div *ngFor="let timeSheet of item.timeSheet; let j = index" style="cursor: pointer; color: blue;"> 
+                      <span (click)="findByProject(timeSheet.projectId)">{{ timeSheet.projectName }}</span> 
+                      <hr *ngIf="j < item.timeSheet.length - 1" style="border: none; border-top: 1px solid #ccc; margin: 5px 0;">
+                    </div>
+                </td>
+
+                <td>
+                    <li *ngFor="let timeSheet of item.timeSheet">
                             <ul>
                                 <li *ngFor="let activity of timeSheet.activities">{{ activity }}</li>
                             </ul>
                         </li>
-                    </ul>
-                </td>
-                <td>
-                    <ul>
-                        <li *ngFor="let timeSheet of item.timeSheet">
-                            <span (click)="findByProject(timeSheet.projectName)" style="cursor: pointer; color: blue;">
-                                {{ timeSheet.projectName }}
-                            </span>
-                        </li>
-                    </ul>
-                </td>
-                <td>
-                    <ul>
-                        <li *ngFor="let timeSheet of item.timeSheet">
-                            <span (click)="findByTeam(timeSheet.teamName)" style="cursor: pointer; color: blue;">
-                                {{ timeSheet.teamName }}
-                            </span>
-                        </li>
-                    </ul>
-                </td>
+
+                </td>   
+                
                 <!-- <td>
                     <span *ngFor="let activity of item.timeSheet[0]?.activities">{{ activity }} </span>
                     <span (click)="findByProject(item.project)" style="cursor: pointer; color: blue; ">

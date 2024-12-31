@@ -26,8 +26,9 @@ export class Employee360TimesheetComponent implements OnInit {
   timesheetDetails: any;
   userMapping: any;
   projectName:any;
-  teamName:any;
-  empId:any;
+  teamName:any=null;
+  empId:any=0;
+  projectId:any=0;
   time
 
   data  :Timesheet [] = [];
@@ -300,7 +301,9 @@ allSelected: any;
 
     get360TimesheetDetails() {
       console.log(this.activeButton);
-      this.employee360Service.get360TimesheetDetails(this.activeButton).pipe(first()).subscribe((response: any) => {
+      this.empId=sessionStorage.getItem('employeeId');
+      
+      this.employee360Service.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus === "Success") {
               console.log("=> serviceResponse", response.serviceResponse);
               this.data = response.serviceResponse;

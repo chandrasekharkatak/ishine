@@ -29,9 +29,17 @@ export class Employee360Service {
   }
 
 
-  get360TimesheetDetails(status: String) {
-    return this.http.get(`${this.baseUrl}` + `api/get360TimesheetDetails?status=${status}`);
-  }
+  get360TimesheetDetails(status: string, empId: number, projectId:number, teamName:string) {
+    return this.http.get(`${this.baseUrl}api/get360TimesheetDetails`, {
+        params: {
+            status: status,
+            empId: empId.toString(),
+            projectId:projectId.toString(),
+            teamName:teamName
+        }
+    });
+}
+
 
   // getAllLeaveTypes() {
   //   return this.http.get(`${this.baseUrl}` + `api/getAllLeaveTypes`);
