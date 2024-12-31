@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { environment } from 'src/environments/environment';
+import { Timesheet } from '../models/timesheet';
 
 @Injectable({
   providedIn: 'root'
@@ -36,5 +37,10 @@ export class Employee360Service {
   // getAllLeaveTypes() {
   //   return this.http.get(`${this.baseUrl}` + `api/getAllLeaveTypes`);
   // }
+
+
+  get360TimesheetsForHomePageByEmpId(timesheetObj: Timesheet) {
+    return this.http.post(`${this.baseUrl}` + `api/get360TimesheetsForHomePageByEmpId`, timesheetObj);
+  }
 
 }
