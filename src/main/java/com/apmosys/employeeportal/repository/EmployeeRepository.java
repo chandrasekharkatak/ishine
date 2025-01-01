@@ -310,8 +310,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 					    + "INNER JOIN teams t ON t.team_id = a.team_id \n"
 					    + " INNER JOIN projects p ON p.project_id = t.project_id\n"
 					    + "WHERE et.status = :status "
-					    + "and  p.project_id=:projectId")
-			List<Object[]> getTimesheetDataByProjectId(@Param("status") String status,@Param("projectId")long projectId);
+					    + "and  p.project_id=:projectId "
+					    + "and et.current_manager_id=:managerId")
+			List<Object[]> getTimesheetDataByProjectId(@Param("status") String status,@Param("projectId")long projectId,@Param("managerId")long managerId);
 			
 			@Query(nativeQuery = true, value =
 					"select et.description,et.emp_id, a.activity_id,\n"
@@ -327,8 +328,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 						    + "INNER JOIN teams t ON t.team_id = a.team_id \n"
 						    + " INNER JOIN projects p ON p.project_id = t.project_id\n"
 						    + "WHERE et.status = :status "
-						    + "and t.team_name=:teamName")
-				List<Object[]> getTimesheetDataByTeamName(@Param("status") String status,@Param("teamName")String teamName);
+						    + "and t.team_name=:teamName "
+						    + "and et.current_manager_id=:managerId")
+				List<Object[]> getTimesheetDataByTeamName(@Param("status") String status,@Param("teamName")String teamName,@Param("managerId")long managerId);
 	
 	
 }

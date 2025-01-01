@@ -203,9 +203,9 @@
                 <td>{{ item.status }}</td>
                 <td>{{ item.createdOn | date: 'yyyy-MM-dd' }}</td>
                 <td>
-                    <button *ngIf="activeButton === 'Pending'" class="approve-button" (click)="action('approved')"> APPROVE </button>
-                    <button *ngIf="activeButton === 'Pending'" class="reject-button" (click)="action('rejected')"> REJECT </button>
-                    <button *ngIf="activeButton !== 'Pending'" class="revoke-button" (click)="action('revoke')"> REVOKE </button>
+                    <button *ngIf="activeButton === 'Pending'" class="approve-button" (click)="action('Approved')"> APPROVE </button>
+                    <button *ngIf="activeButton === 'Pending'" class="reject-button" (click)="action('Rejected')"> REJECT </button>
+                    <button *ngIf="activeButton !== 'Pending'" class="revoke-button" (click)="action('Pending')"> REVOKE </button>
                 </td>  
             </tr>
         </tbody>

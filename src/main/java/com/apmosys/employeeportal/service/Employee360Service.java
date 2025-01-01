@@ -135,7 +135,7 @@ public class Employee360Service {
 		return response;
 	}
 	
-	public ServiceResponse get360TimesheetDetails(String status,long empId,long projectId,String teamName) {
+	public ServiceResponse get360TimesheetDetails(String status,long empId,long projectId,String teamName,long managerId) {
 		ServiceResponse response = new ServiceResponse();
 		
 		LogDTO apiLogInfo = new LogDTO();
@@ -149,8 +149,8 @@ public class Employee360Service {
 			List<Employee360DTO> employeeDtoList = new ArrayList<>();
 			List<Object[]> objectList;
 			if(empId!=0) {objectList = employeeRepository.getTimesheetDataByEmpId(status,empId);}
-			else if(projectId!=0){objectList = employeeRepository.getTimesheetDataByProjectId(status,projectId);}
-			else{objectList = employeeRepository.getTimesheetDataByTeamName(status,teamName);}
+			else if(projectId!=0){objectList = employeeRepository.getTimesheetDataByProjectId(status,projectId,managerId);}
+			else{objectList = employeeRepository.getTimesheetDataByTeamName(status,teamName,managerId);}
 
 
 			Map<Long, Employee360DTO> employeeMap = new HashMap<>();

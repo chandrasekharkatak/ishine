@@ -35,9 +35,9 @@ public class Employee360Controller {
 	
 	@RequestMapping(value = "/get360TimesheetDetails", method = RequestMethod.GET)
 	public ServiceResponse get360TimesheetDetails(@RequestParam String status, @RequestParam long empId,
-			@RequestParam long projectId,@RequestParam String teamName) {
+			@RequestParam long projectId,@RequestParam String teamName,@RequestParam long managerId) {
 
-		ServiceResponse response = employee360Service.get360TimesheetDetails(status,empId,projectId,teamName);
+		ServiceResponse response = employee360Service.get360TimesheetDetails(status,empId,projectId,teamName,managerId);
 		return response;
 	}
 

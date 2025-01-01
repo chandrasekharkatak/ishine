@@ -32,7 +32,7 @@ export class Employee360TimesheetComponent implements OnInit {
   projectId:any=0;
   currentUser:any;
   time;
-
+  managerId:any;
   data  :Timesheet [] = [];
 
 
@@ -67,16 +67,22 @@ allSelected: any;
 
   ngOnInit(): void {
     this.activeButton = 'Pending';
+    this.currentUser=sessionStorage.getItem('currentUser');
+    if (this.currentUser) {
+      const currentUserData = JSON.parse(this.currentUser);
+      this.managerId = currentUserData.empId;
+      console.log(this.managerId); 
+    }
     // this.empIdd=sessionStorage.getItem('employeeId');
     this.empIdd=240065;
-    this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName);
+    this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.managerId);
   }
 
   setActiveButton(button: string): void {
     this.activeButton = button;
     
     if(this.activeButton !=='Calendar'){
-      this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName);
+      this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.managerId);
     }else{
       this.getTimesheetsForHomePageByEmpId('Last 7 Days');
     }
@@ -266,12 +272,12 @@ allSelected: any;
 
   findByProject(projectId: number){
     console.log("project clicked =>  " + projectId );
-    this.get360TimesheetDetails(this.activeButton,this.empId,projectId,this.teamName);
+    this.get360TimesheetDetails(this.activeButton,this.empId,projectId,this.teamName,this.managerId);
   }
 
   findByTeam(teamName: any){
     console.log("team clicked => " + teamName);
-    this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,teamName);
+    this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,teamName,this.managerId);
   }
   findByEmp(arg0: any){
     this.empId = arg0;
@@ -288,19 +294,12 @@ allSelected: any;
     }
 
     action(arg : any){
-      console.log()
+      console.log(arg);
     }
 
-    get360TimesheetDetails(activeButton:string,empId:number,projectId:number,teamName:string) {
+    get360TimesheetDetails(activeButton:string,empId:number,projectId:number,teamName:string,managerId:number) {
       console.log(this.activeButton);
-      this.currentUser=sessionStorage.getItem('currentUser');
-      if (this.currentUser) {
-        const currentUserData = JSON.parse(this.currentUser);
-        const managerId = currentUserData.empId;
-        console.log(managerId);
-        
-      }
-      this.employee360Service.get360TimesheetDetails(activeButton,empId,projectId,teamName).pipe(first()).subscribe((response: any) => {
+      this.employee360Service.get360TimesheetDetails(activeButton,empId,projectId,teamName,managerId).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus === "Success") {
               console.log("=> serviceResponse", response.serviceResponse);
               this.data = response.serviceResponse;
