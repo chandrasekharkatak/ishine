@@ -15,6 +15,8 @@ interface CalendarItem {
   dayType?: string;
   status?: string;
   workingHours?: number;
+  description?: String;
+  projectName?:String;
 }
 
 @Component({
@@ -29,6 +31,7 @@ export class CalendarComponent implements OnInit {
   calendar: Array<CalendarItem[]> = [];
   dayDetails:any = {};
   modalRef: BsModalRef = new BsModalRef();
+  popupDescription : any;
 
   constructor(
     private modalService: BsModalService,
@@ -112,6 +115,7 @@ export class CalendarComponent implements OnInit {
             calendarItem.dayType = timesheet.dayType;
             calendarItem.status = timesheet.status;
             calendarItem.workingHours = timesheet.totalWorkingHours;
+            calendarItem.description = timesheet.description;
           }
       });
     });
@@ -131,5 +135,47 @@ export class CalendarComponent implements OnInit {
   cancelRequest() {
     this.modalRef.hide();
   }
+
+  isPopupVisible = false;
+  pointerX = 0;
+  pointerY = 0;
+
+  // onHoverStart(description: any): void {
+  //   this.isPopupVisible = true;
+  //   this.popupDescription = description;
+  //   console.log(description);
+    
+  // }
+
+  // onHoverEnd(description : any): void {
+  //   this.isPopupVisible = false;
+  //   this.popupDescription = '';
+  // }
+
+
+
+  // onHoverStart(event: MouseEvent, description: any): void {
+  //   this.isPopupVisible = true;
+  //   this.popupDescription = description;
+  //   this.pointerX = event.clientX + 10; // Add offset for better positioning
+  //   this.pointerY = event.clientY + 10;
+  // }
+
+  // onHoverEnd(): void {
+  //   this.isPopupVisible = false;
+  //   this.popupDescription = '';
+  // }
+
+  onHoverStart(event: MouseEvent, description: any): void {
+    this.isPopupVisible = true;
+    this.popupDescription = description;
+    this.pointerX = event.clientX + 10; // Offset for positioning
+    this.pointerY = event.clientY + 10;
+}
+
+onHoverEnd(): void {
+    this.isPopupVisible = false;
+    this.popupDescription = '';
+}
 
 }

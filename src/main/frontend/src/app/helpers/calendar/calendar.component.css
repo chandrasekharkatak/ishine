@@ -64,3 +64,46 @@
 .bg-red{
     background-color: #DC143C;
 }
+
+/* surakshith */
+
+
+.popup {
+    position: fixed; /* Ensures popup position relative to the viewport */
+    background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent white */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 8px;
+    z-index: 1000;
+    transform: translate(-50%, -50%);
+    animation: fadeIn 0.2s ease-in-out;
+    pointer-events: none; /* Prevents popup from interfering with hover */
+    max-width: 200px; /* Limits width for readability */
+    font-size: 12px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Offset to prevent overlap with mouse pointer */
+.popup::after {
+    content: "";
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 5px 5px 0 5px;
+    border-color: #ccc transparent transparent transparent;
+    top: 100%; /* Position at the bottom center */
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+
