@@ -56,6 +56,13 @@ public class Employee360Controller {
 		ServiceResponse response = employee360Service.get360TimesheetDetails(status,empId,projectId,teamName,managerId,startDate,endDate);
 		return response;
 	}
+	
+	@RequestMapping(value = "/updateStatus", method = RequestMethod.GET)
+	public ServiceResponse updateStatus(@RequestParam String status, @RequestParam long empId,@RequestParam String date) {
+
+		ServiceResponse response = employee360Service.updateStatus(status,empId,date);
+		return response;
+	}
 
 	
 }

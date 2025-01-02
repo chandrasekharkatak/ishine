@@ -3,6 +3,7 @@ import { Rewards } from 'src/app/models/rewards';
 import { RewardsServiceService } from 'src/app/services/rewards-service.service';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { Employee } from 'src/app/models/employee';
+import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 
 
 @Component({
@@ -17,6 +18,7 @@ export class Employee360RewardsComponent implements OnInit {
   constructor(
     private rewardsService: RewardsServiceService,
     private modalService: BsModalService,
+    private breadcrumbService: BreadcrumbService
   ) { }
 
   modalRef: BsModalRef = new BsModalRef();

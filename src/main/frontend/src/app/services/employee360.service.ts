@@ -44,6 +44,15 @@ export class Employee360Service {
     });
 }
 
+updateStatus(status: string, empId: number,date:string) {
+  return this.http.get(`${this.baseUrl}api/updateStatus`, {
+      params: {
+          status: status,
+          empId: empId.toString(),
+          date:date
+      }
+  });
+}
 
   // getAllLeaveTypes() {
   //   return this.http.get(`${this.baseUrl}` + `api/getAllLeaveTypes`);

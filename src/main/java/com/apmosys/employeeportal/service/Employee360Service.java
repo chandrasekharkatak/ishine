@@ -15,13 +15,17 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.datetime.DateFormatter;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.apmosys.employeeportal.dto.Employee360DTO;
 import com.apmosys.employeeportal.dto.EmployeeTimesheetDto;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.repository.Employee360Repository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @Service
@@ -34,10 +38,15 @@ public class Employee360Service {
 	EmployeeRepository employeeRepository;
 	
 	@Autowired
+	TimesheetsRepository timesheetsRepository;
+	
+	@Autowired
 	private LogService logService;
 	
 	@Autowired
 	private HttpServletRequest httpRequest;
+
+	private String LocalDate;
 	
 	public ServiceResponse getLeaveDataPerMonthByEmpId(Long empId) {
 		ServiceResponse response = new ServiceResponse();
@@ -321,7 +330,6 @@ public class Employee360Service {
 	        System.out.println(objectList);
 			System.out.println(results);
 			Map<Long, Employee360DTO> employeeMap = new HashMap<>();
-			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
 		if (!objectList.isEmpty()) {
 			for (Object[] row : objectList) {
@@ -379,6 +387,53 @@ public class Employee360Service {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+
+	public ServiceResponse updateStatus(String status,long empId, String date) {
+		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("getEmployeeDetails");
+		apiLogInfo.setApiUrl("/api/getEmployeeDetails");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("empId : " + empId);
+		try {
+			
+			List<Employee360DTO> employeeDtoList = new ArrayList<>();
+			SimpleDateFormat formatedDate = new SimpleDateFormat("yyyy-MM-dd");
+			Date datee = formatedDate.parse(date);
+			LocalDate localDate = datee.toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate();
+
+			System.out.println("LocalDate: " + localDate);
+			
+			Timesheet timesheet = timesheetsRepository.findByEmpIdAndDate(empId,localDate);
+			
+			if (timesheet!=null) {
+					timesheet.setStatus(status);
+		            timesheetsRepository.save(timesheet);
+				}
+			
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse("Updated Successfully!!");
+			apiLogInfo.setApiResponse("Employee_Timesheet details updated.");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
 			

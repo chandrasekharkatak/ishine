@@ -2,12 +2,14 @@ package com.apmosys.employeeportal.repository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +43,12 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 
 	public Timesheet findByEmpIdAndDate(Long empId, LocalDate dateToday);
 
+	@Query(nativeQuery = true, value =
+			"Select emp_Id,date,status "
+			+"from employee_timesheets "
+			+"where emp_Id=:empId and date=:localDate")
+	List<Object[]>  getTimesheetDataByEmpIdAndDate( Long empId,LocalDate localDate);
+	
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllTimesheetData();
 

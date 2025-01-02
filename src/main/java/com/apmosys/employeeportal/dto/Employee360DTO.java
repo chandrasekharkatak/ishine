@@ -37,8 +37,5 @@ public class Employee360DTO {
 	private String status;
 	private LocalDateTime createdOn;
 	private List timeSheet;
-	private int pageNumber;
-	private int pageSize;
-	private String sortBy;
-	private String sortDirection; 
+	private String remarks;
 }

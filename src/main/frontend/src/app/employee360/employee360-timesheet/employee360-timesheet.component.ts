@@ -1,6 +1,7 @@
-import { Component, OnInit, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Component, OnInit, TemplateRef, Input, Output, ViewChild } from '@angular/core';
 import * as moment from 'moment';
 import { first } from 'rxjs/operators';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { CalendarComponent } from 'src/app/helpers/calendar/calendar.component';
 import { Timesheet } from 'src/app/models/timesheet';
 import { Employee360Service } from 'src/app/services/employee360.service';
@@ -12,6 +13,7 @@ import { DatePipe } from '@angular/common';
 
 
 
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-employee360-timesheet',
@@ -25,6 +27,10 @@ export class Employee360TimesheetComponent implements OnInit {
   @ViewChild("lastMonthCal")
   private lastMonthCalendar: CalendarComponent;
   
+  @ViewChild("alertTemplate") alertModal: TemplateRef<any>;
+
+  showModal = false;
+  alertMessage: string = '';
   activeButton: any;
   selectedFrequency: string = 'All';
   selectedOption: number = 1;
@@ -52,10 +58,23 @@ export class Employee360TimesheetComponent implements OnInit {
   constructor(
     private employee360Service : Employee360Service,
     private timesheetService : TimesheetService,
-    private datePipe: DatePipe
+    private datePipe: DatePipe,
+    private modalService: BsModalService,
+    private router: Router
   ) {
     
    }
+  modalRef: BsModalRef = new BsModalRef();
+  isProjectTeamClicked:boolean=false;
+  header:String="";
+  // allSelected: any;
+  empIds:[];
+
+  // constructor(
+  //   private employee360Service : Employee360Service,
+  //   private timesheetService : TimesheetService,
+  //   private modalService: BsModalService,
+  //   private router: Router ) {}
 
   ngOnInit(): void {
     this.activeButton = 'Pending';
@@ -254,45 +273,72 @@ export class Employee360TimesheetComponent implements OnInit {
     });
   }
 
-  updateSelection() {
+  updateSelection(empId:any) {
+    console.log(empId);
     this.allSelected = this.data.every(item => item.selected); 
   }
 
-  saveSelected() {
-    console.log("save clicked ");
+  saveSelected(status:String) {
+    console.log("save clicked :"+status);
+    console.log("=>allSelected: "+this.allSelected);
     
     const selectedEmpIds = this.data
       .filter(item => item.selected) 
       .map(item => item .empId); 
-    console.log('Selected Employee IDs:', selectedEmpIds);
+    console.log('Selected Employee IDs:', this.allSelected);
   }
 
   findByProject(projectId: number){
+    this.isProjectTeamClicked=true;
+    this.header="Project Member Details";
     console.log("project clicked =>  " + projectId );
     this.get360TimesheetDetails(this.activeButton,this.empId,projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
   }
 
   findByTeam(teamName: any){
+    this.isProjectTeamClicked=true;
+    this.header="Team Member Details";
     console.log("team clicked => " + teamName);
     this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
   }
-  findByEmp(arg0: any){
-    this.empId = arg0;
-    this.byClick();
+  
+  updateStatus(status: string, empId: number, date: string) {
+    status = "Pending";
+
+    this.employee360Service.updateStatus(status, empId, date).pipe(first()).subscribe(
+      (response: any) => {
+        if (response.serviceStatus === "Success") {
+          console.log("=> serviceResponse", response.serviceResponse);
+          this.alertMessage = response.serviceResponse; 
+          this.showModal = true; 
+          setTimeout(() => {
+            console.log("this.alertModal"+ this.alertModal);
+            // this.modalRef=this.modalService.show(this.alertModal,{ class: 'modal-sm' })
+            this.modalRef=this.modalService.show(this.alertModal,{ keyboard: false,class: 'modal-sm' })
+          }, 0);
+          
+        } else {
+          this.alertMessage = response.serviceResponse; 
+          this.showModal = true; 
+        }
+      },
+      (error) => {
+        console.error("Error occurred:", error);
+        this.alertMessage ="Error";
+        this.showModal = true; 
+      }
+    );
   }
 
-  byClick() {
-    let obj = {
-      projectName : this.projectName,
-      teamName: this.teamName,
-      // empId:this.empId
+  cancelRequest() {
+    // Hide the modal
+    this.showModal = false;
+  }
 
-    }
-    }
-
-    action(arg : any){
-      console.log(arg);
-    }
+  goBack(){
+    this.isProjectTeamClicked=false;
+    this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
+  }
 
     get360TimesheetDetails(activeButton:string,empId:number,projectId:number,teamName:string,managerId:number,formattedStartDate:string,formattedEndDate:string) {
       console.log(this.activeButton);
@@ -300,10 +346,7 @@ export class Employee360TimesheetComponent implements OnInit {
           if (response.serviceStatus === "Success") {
               console.log("=> serviceResponse", response.serviceResponse);
               this.data = response.serviceResponse;
-              // this.data = null;
-  
-              // Transform the data from an object to an array
-              this.data = Object.values(this.data); // Convert to array
+              this.data = Object.values(this.data); 
               console.log("=> transformed data", this.data);
           }
       });
@@ -378,7 +421,24 @@ export class Employee360TimesheetComponent implements OnInit {
       this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.managerId,this.startDate,this.endDate);
 
     }
-    
+  }
+  
+
+  navigateToEmployee360(){
+    this.removeActiveTab();
+    this.router.navigate(['/employee-360/profile']);
+    this.setActiveTab();
+  }
+
+  removeActiveTab(){
+    const tab = document.getElementById('Employee360Tab').querySelector('.nav-link.active');
+    tab?.classList.remove('active');
+  }
+
+  setActiveTab(){
+    const tab = document.getElementById('Employee360Tab').querySelector('.nav-link');
+    tab.classList.add('active');
+    let activeRouteLink = tab.getAttribute('routerLink');
   }
 
 }
