@@ -9,6 +9,8 @@ import { EmployeeConfigComponent } from '../configuration/employee-config/employ
 import { DeptConfigComponent } from '../configuration/dept-config/dept-config.component';
 import { LeaveConfigComponent } from '../configuration/leave-config/leave-config.component';
 import { RoleConfigComponent } from '../configuration/role-config/role-config.component';
+import { Breadcrumb } from '../models/breadcrumd';
+import { BreadcrumbService } from '../services/breadcrumb.service';
 
 
 @Component({
@@ -35,6 +37,7 @@ export class Employee360Component implements OnInit {
     private authenticationService: AuthenticationService,
     private router: Router,
     private route: ActivatedRoute,
+    private breadcrumbService: BreadcrumbService
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -96,6 +99,13 @@ export class Employee360Component implements OnInit {
   }
 
   removeActiveTab(){
+
+    let breadcrumbObject = new Breadcrumb();
+      
+      breadcrumbObject.title = "Rewards";
+      breadcrumbObject.url = "/employee-360/rewards";
+      this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
+
     const tab = document.getElementById('Employee360Tab').querySelector('.nav-link.active');
     //console.log("active tab :", tab);
     tab?.classList.remove('active');

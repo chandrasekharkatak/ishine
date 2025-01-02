@@ -12,15 +12,7 @@ export class BreadcrumbComponent implements OnInit {
   //Boolean 
   isEmployee360Module: boolean = false;
 
-  breadcrumbList:any[] = [
-    {
-      "title": "Home",
-      "url": "/home",
-      "subtab": "",
-      "object": {
-        }
-    }
-  ];
+  breadcrumbList:any[] = [];
   displayedBreadcrumbs:any[] = [];
 
   constructor(
@@ -29,30 +21,40 @@ export class BreadcrumbComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.updateDisplayedBreadcrumbs();
+    this.breadcrumbService.currentBreadcrumb.subscribe(breadcrumbs => {
+
+      console.log(breadcrumbs , " : breadcrumbs ====");
+
+      if(breadcrumbs != undefined){
+        this.breadcrumbList = breadcrumbs;
+        if (this.breadcrumbList.length > 10) {
+          const lastItems = this.breadcrumbList.slice(-5);
+          this.displayedBreadcrumbs = [
+            this.breadcrumbList[0],
+            { title: '...', url: '', subtab: '', object: {} },
+            ...lastItems
+          ];
+        } else {
+          this.displayedBreadcrumbs = [...this.breadcrumbList];
+        }
+      }else{
+        this.breadcrumbList = [
+          {
+            "title": "Home",
+            "url": "/home",
+            "subtab": "",
+            "object": {
+              }
+          }
+        ];
+      }
+    });
+
+    // this.updateDisplayedBreadcrumbs();
     this.breadcrumbService.setBreadcrumbSubject(this.breadcrumbList);
     if(this.breadcrumbList.length > 1){
       this.isEmployee360Module = true;
     }
-  }
-
-  updateDisplayedBreadcrumbs() {
-    console.log(JSON.parse(sessionStorage.getItem('breadcrumb')) + " :==========")
-    this.breadcrumbList = JSON.parse(sessionStorage.getItem('breadcrumb')) != undefined ? JSON.parse(sessionStorage.getItem('breadcrumb')) : this.breadcrumbList;
-    const maxVisible = 4;
-
-    if (this.breadcrumbList.length > 10) {
-      const lastItems = this.breadcrumbList.slice(-5);
-      this.displayedBreadcrumbs = [
-        this.breadcrumbList[0],
-        { title: '...', url: '', subtab: '', object: {} },
-        ...lastItems
-      ];
-    } else {
-      this.displayedBreadcrumbs = [...this.breadcrumbList];
-    }
-
-    console.log(this.displayedBreadcrumbs, " : this.displayedBreadcrumbs");
   }
 
   navigateToSelectedTab(module: any, index: any){
