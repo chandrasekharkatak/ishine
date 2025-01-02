@@ -84,4 +84,5 @@ export class Timesheet{
     selected : any;
     timeSheet: any;
     nightShift: any;
+    remarks: any;
 }

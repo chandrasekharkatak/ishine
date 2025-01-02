@@ -6,14 +6,11 @@ import { CalendarComponent } from 'src/app/helpers/calendar/calendar.component';
 import { Timesheet } from 'src/app/models/timesheet';
 import { Employee360Service } from 'src/app/services/employee360.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
-import { Modal } from 'bootstrap';
-import { OwlDateTimeComponent } from 'ng-pick-datetime';
 import { ScrollStrategy } from '@angular/cdk/overlay';
 import { DatePipe } from '@angular/common';
-
-
-
 import { Router } from '@angular/router';
+import { Breadcrumb } from 'src/app/models/breadcrumd';
+import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 
 @Component({
   selector: 'app-employee360-timesheet',
@@ -26,7 +23,6 @@ export class Employee360TimesheetComponent implements OnInit {
   private thisMonthCalendar: CalendarComponent;
   @ViewChild("lastMonthCal")
   private lastMonthCalendar: CalendarComponent;
-  
   @ViewChild("alertTemplate") alertModal: TemplateRef<any>;
 
   showModal = false;
@@ -54,29 +50,33 @@ export class Employee360TimesheetComponent implements OnInit {
   allSelected: any;
   dateTimeRange: any = null;
   todayDate: Date = new Date();
+  breadcrumbs:any;
   
   constructor(
     private employee360Service : Employee360Service,
     private timesheetService : TimesheetService,
     private datePipe: DatePipe,
     private modalService: BsModalService,
-    private router: Router
-  ) {
-    
-   }
+    private router: Router,
+    private breadcrumbService: BreadcrumbService
+  ) {}
+
   modalRef: BsModalRef = new BsModalRef();
   isProjectTeamClicked:boolean=false;
   header:String="";
   // allSelected: any;
   empIds:[];
+  breadcrumbUrl:any;
 
-  // constructor(
-  //   private employee360Service : Employee360Service,
-  //   private timesheetService : TimesheetService,
-  //   private modalService: BsModalService,
-  //   private router: Router ) {}
 
   ngOnInit(): void {
+    console.log("timesheet breadcrumb:"+sessionStorage.getItem('breadcrumb'));
+    this.breadcrumbUrl=sessionStorage.getItem('breadcrumb');
+    let breadcrumbObject = new Breadcrumb();
+    breadcrumbObject.title = "Timesheet";
+    breadcrumbObject.url = this.breadcrumbUrl+"/timesheet";
+    this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
+
     this.activeButton = 'Pending';
     this.currentUser=sessionStorage.getItem('currentUser');
     if (this.currentUser) {
@@ -86,7 +86,7 @@ export class Employee360TimesheetComponent implements OnInit {
     }
     // this.empIdd=sessionStorage.getItem('employeeId');
     this.empIdd=21899;
-    this.managerId = 21865
+    this.managerId = 21865;
     this.startDate = null;
     this.endDate = null;
     this.formattedStartDate = null;
@@ -127,7 +127,6 @@ export class Employee360TimesheetComponent implements OnInit {
       fromDate = new Date(currentDate.getTime() - (1 * DAY_IN_MS));
       toDate = new Date(currentDate.getTime() - (7 * DAY_IN_MS));
 
-      //console.log(`Last 7 Days : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
       timesheetObj.startDate = moment(toDate).format(dateFormat);
       timesheetObj.endDate = moment(fromDate).format(dateFormat);
     } else if (dateRange == 'This Month') {
@@ -135,7 +134,6 @@ export class Employee360TimesheetComponent implements OnInit {
       fromDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
       toDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
 
-      //console.log(`This Month : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
       timesheetObj.startDate = moment(fromDate).format(dateFormat);
       timesheetObj.endDate = moment(toDate).format(dateFormat);
     } else if (dateRange == 'Last Month') {
@@ -144,7 +142,6 @@ export class Employee360TimesheetComponent implements OnInit {
       fromDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
       toDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
 
-      //console.log(`Last Month : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
       timesheetObj.startDate = moment(fromDate).format(dateFormat);
       timesheetObj.endDate = moment(toDate).format(dateFormat);
     }
@@ -152,7 +149,6 @@ export class Employee360TimesheetComponent implements OnInit {
     this.timesheetService.getTimesheetsForHomePageByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         filledTimesheetDetails = response.serviceResponse;
-        //console.log("filledTimesheetDetails : ", filledTimesheetDetails);7, claimIds
       } else {
         console.error(response.serviceResponse);
       }
@@ -207,8 +203,6 @@ export class Employee360TimesheetComponent implements OnInit {
         name: "Rejected",
         y: rejectedCount
       }];
-
-      // this.renderTimesheetChart(`${dateRange} Timesheet`, 'totalEODChart', timesheetChartData, 'Timesheet(s)');
       if (dateRange == 'This Month')
         this.thisMonthCalendar.addTimesheetDetails();
       else if (dateRange == 'Last Month')
@@ -340,7 +334,7 @@ export class Employee360TimesheetComponent implements OnInit {
     this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
   }
 
-    get360TimesheetDetails(activeButton:string,empId:number,projectId:number,teamName:string,managerId:number,formattedStartDate:string,formattedEndDate:string) {
+  get360TimesheetDetails(activeButton:string,empId:number,projectId:number,teamName:string,managerId:number,formattedStartDate:string,formattedEndDate:string) {
       console.log(this.activeButton);
       this.employee360Service.get360TimesheetDetails(activeButton,empId,projectId,teamName,managerId,formattedStartDate,formattedEndDate).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus === "Success") {
@@ -353,16 +347,7 @@ export class Employee360TimesheetComponent implements OnInit {
   }
  
 
-
-  // selectedOption: number = 1;  // Default option is "All"
-  
-  // Variables for date range
-  // startDate: Date | null = null;
-  // endDate: Date | null = null;
-  // activeButton: string = 'Pending';
-
   onChangeOption(arg: any) {
-    // this.dateTimeRange = null;
     if (arg == 1) {
       // Handle "All"
       this.startDate = null;
@@ -407,7 +392,7 @@ export class Employee360TimesheetComponent implements OnInit {
       this.startDate = fromDate;
       this.endDate = toDate;
   
-      // Your logic to filter data based on the selected range
+      //logic to filter data based on the selected range
       this.setDate();
     }
   }
@@ -423,7 +408,6 @@ export class Employee360TimesheetComponent implements OnInit {
     }
   }
   
-
   navigateToEmployee360(){
     this.removeActiveTab();
     this.router.navigate(['/employee-360/profile']);

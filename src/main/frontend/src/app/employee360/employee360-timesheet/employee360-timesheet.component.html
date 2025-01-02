@@ -107,24 +107,6 @@
             aria-labelledby="thisMonth-tabpanel">
             <app-calendar #thisMonthCal [timesheetDetails]="timesheetDetails"></app-calendar>
         </div>
-        <!--  -->
-        <!-- <div class="tab-pane fade timesheet__tab-container pt-2" id="thisMonth-tabpanel" role="tabpanel"
-        aria-labelledby="thisMonth-tabpanel">
-        <app-calendar 
-          [timesheetDetails]="timesheetDetails" 
-          (hoverEvent)="onHover($event)" 
-          (leaveEvent)="onLeave()">
-        </app-calendar>
-    
-        
-        <div *ngIf="hoveredData" class="tooltip-box" 
-             [style.top.px]="position.y + 10" 
-             [style.left.px]="position.x + 10">
-            <p><strong>Date:</strong> {{ hoveredData.date }}</p>
-            <p><strong>Details:</strong> {{ hoveredData.details }}</p>
-        </div>
-        </div> -->
-
         <div class="tab-pane fade timesheet__tab-container pt-2" id="lastMonth-tabpanel" role="tabpanel"
             aria-labelledby="lastMonth-tabpanel">
             <app-calendar #lastMonthCal [subtractmonth]="1" [timesheetDetails]="timesheetDetails"></app-calendar>
@@ -135,7 +117,7 @@
 
 <!-- for pending , approved  and rejected  -->
 <div *ngIf="activeButton !== 'Calendar'" class="table-responsive">
-    <!-- <table class="table table-bordered">
+    <table class="table table-bordered">
         <thead class="thead-light">
             <tr>
                 <th>
@@ -146,8 +128,8 @@
                 <th>Name</th>
                 <th>Date</th>
                 <th>Day Type</th>
-                <th>Project</th>
                 <th>Team Name</th>
+                <th>Project</th>
                 <th>Activity</th>
                 <th>In Time</th>
                 <th>Out Time</th>
@@ -171,21 +153,24 @@
                 <td>{{ item.empId }}</td>
                 <td (click)="navigateToEmployee360()" style="cursor: pointer; color: blue;"  title="Click to view Employee 360">{{ item.name }}</td>
                 <td>{{ item.date | date: 'yyyy-MM-dd' }}</td>
-                <td>{{ item.dayType }}</td> -->
+                <td>{{ item.dayType }}</td>
                 <!-- <td>{{ item.activity }}</td> -->
-                <!-- <td>
-                    <div *ngFor="let timeSheet of item.timeSheet; let j = index" style="cursor: pointer; color: blue;"> 
-                      <span (click)="findByProject(timeSheet.projectId)">{{ timeSheet.projectName }}</span> 
-                      <hr *ngIf="j < item.timeSheet.length - 1" style="border: none; border-top: 1px solid #ccc; margin: 5px 0;">
-                    </div>
-                </td>
                 
                 <td>
                     <div *ngFor="let timeSheet of item.timeSheet;let j = index">
-                        <span (click)="findByTeam(timeSheet.teamName)" style="cursor: pointer; color: blue;">
+                        <span *ngIf="!isProjectTeamClicked" (click)="findByTeam(timeSheet.teamName)" style="cursor: pointer; color: blue;">
                             {{ timeSheet.teamName }}
                         </span>
+                        <span *ngIf="isProjectTeamClicked">{{ timeSheet.teamName }}</span>
                     <hr *ngIf="j < item.timeSheet.length - 1" style="border: none; border-top: 1px solid #ccc; margin: 5px 0;">
+                    </div>
+                </td>
+
+                <td>
+                    <div *ngFor="let timeSheet of item.timeSheet; let j = index"> 
+                      <span *ngIf="!isProjectTeamClicked" (click)="findByProject(timeSheet.projectId)" style="cursor: pointer; color: blue;">{{ timeSheet.projectName }}</span> 
+                      <span *ngIf="isProjectTeamClicked" (click)="findByProject(timeSheet.projectId)">{{ timeSheet.projectName }}</span> 
+                      <hr *ngIf="j < item.timeSheet.length - 1" style="border: none; border-top: 1px solid #ccc; margin: 5px 0;">
                     </div>
                 </td>
 
@@ -196,7 +181,7 @@
                             </ul>
                         </li>
 
-                </td>    -->
+                </td>   
                 
                 <!-- <td>
                     <span *ngFor="let activity of item.timeSheet[0]?.activities">{{ activity }} </span>
@@ -212,8 +197,7 @@
                         {{ item.teamName }}
                     </span> -->
                 <!-- </td> -->
-                 
-                <!-- <td>{{ item.officeInTime | date: 'shortTime' }}</td>
+                <td>{{ item.officeInTime | date: 'shortTime' }}</td>
                 <td>{{ item.officeOutTime | date: 'shortTime' }}</td>
                 <td>{{ item.totalWorkingHours }}</td>
                 <td>{{ item.nightShift }}</td>
@@ -225,82 +209,11 @@
                 </td>  
             </tr>
         </tbody>
-    </table> -->
-
-    <table class="table table-bordered">
-        <thead class="thead-light">
-            <tr>
-                <th>
-                    <input *ngIf="data === null || data.length === 0" type="checkbox" [(ngModel)]="allSelected" (change)="toggleSelectAll()" />
-                </th>
-                <th>Sr No</th>
-                <th>Emp Id</th>
-                <th>Name</th>
-                <th>Date</th>
-                <th>Day Type</th>
-                <th>Project</th>
-                <th>Team Name</th>
-                <th>Activity</th>
-                <th>In Time</th>
-                <th>Out Time</th>
-                <th>Total Working Hrs</th>
-                <th>Shift</th>
-                <th>Status</th>
-                <th>Applied On</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody class="table-body">
-            <tr *ngIf="data === null || data.length === 0">
-                <td colspan="16" style="text-align: center;">No Data To Display.....</td>
-            </tr>
-            <tr *ngFor="let item of data; let i = index">
-                <td [attr.rowspan]="item.timeSheet?.length || 1">
-                    <input type="checkbox" [(ngModel)]="item.selected" (change)="updateSelection(item.empId)" />
-                </td>
-                <td [attr.rowspan]="item.timeSheet?.length || 1">{{ i + 1 }}</td>
-                <td [attr.rowspan]="item.timeSheet?.length || 1">{{ item.empId }}</td>
-                <td [attr.rowspan]="item.timeSheet?.length || 1" [navigateToEmployee360]="item" style="cursor: pointer;" title="Click to view Employee 360">
-                    {{ item.name }}
-                </td>
-                <td [attr.rowspan]="item.timeSheet?.length || 1">{{ item.date | date: 'yyyy-MM-dd' }}</td>
-                <td [attr.rowspan]="item.timeSheet?.length || 1">{{ item.dayType }}</td>
-                <ng-container *ngFor="let timeSheet of item.timeSheet; let tsIndex = index">
-                    <!-- <tr *ngIf="tsIndex === 0"> -->
-                        <td [attr.rowspan]="item.timeSheet?.length || 1">
-                            <span (click)="findByProject(timeSheet.projectId)" style="cursor: pointer; color: blue;">
-                                {{ timeSheet.projectName }}
-                            </span>
-                        </td>
-                        <td [attr.rowspan]="item.timeSheet?.length || 1">
-                            <span (click)="findByTeam(timeSheet.teamName)" style="cursor: pointer; color: blue;">
-                                {{ timeSheet.teamName }}
-                            </span>
-                        </td>
-                        <td [attr.rowspan]="item.timeSheet?.length || 1">
-                            <ul>
-                                <li *ngFor="let activity of timeSheet.activities">{{ activity }}</li>
-                            </ul>
-                        </td>
-                    <!-- </tr> -->
-                </ng-container>
-                <td [attr.rowspan]="item.timeSheet?.length || 1">{{ item.officeInTime | date: 'shortTime' }}</td>
-                <td [attr.rowspan]="item.timeSheet?.length || 1">{{ item.officeOutTime | date: 'shortTime' }}</td>
-                <td [attr.rowspan]="item.timeSheet?.length || 1">{{ item.totalWorkingHours }}</td>
-                <td [attr.rowspan]="item.timeSheet?.length || 1">{{ item.nightShift }}</td>
-                <td [attr.rowspan]="item.timeSheet?.length || 1">{{ item.status }}</td>
-                <td [attr.rowspan]="item.timeSheet?.length || 1">{{ item.createdOn | date: 'yyyy-MM-dd' }}</td>
-                <td [attr.rowspan]="item.timeSheet?.length || 1">
-                    <button *ngIf="item.status === 'Pending'" class="approve-button" (click)="updateStatus('Approved',item.empId,item.date)">APPROVE</button>
-                    <button *ngIf="item.status === 'Pending'" class="reject-button" (click)="updateStatus('Rejected',item.empId,item.date)">REJECT</button>
-                    <!-- <button *ngIf="item.status !== 'Pending'" class="revoke-button" (click)="action('Pending')">REVOKE</button> -->
-                </td>
-            </tr>
-        </tbody>
     </table>
     <button *ngIf="!(data === null || data.length === 0)" (click)="saveSelected('Approved')" class="btn btn-sm" style="color: rgb(244, 244, 248); background-color: rgb(0, 0, 141);">Approve</button>
     <button *ngIf="!(data === null || data.length === 0)" (click)="saveSelected('Rejected')" class="btn btn-sm" style="color: rgb(244, 244, 248); background-color: rgb(0, 0, 141);">Reject</button>
 </div>
+
 
 <!-- <ng-template #alertTemplate>
     <ng-container *ngIf="showModal">
@@ -313,7 +226,7 @@
 
 <ng-template #alertTemplate class="alert alert-warning alert-dismissible show d-flex flex-column align-items-center" role="alert"> 
     <p *ngIf="showModal" class="text-center">{{ alertMessage }}</p> 
-    <button *ngIf="showModal" type="button" class="btn btn-primary btn-sm m-auto" (click)="cancelRequest()">OK</button> 
+    <button *ngIf="showModal" type="button" class="btn btn-primary btn-sm m-auto px-3 mpy-3" (click)="cancelRequest()">OK</button> 
 </ng-template>
 
 <!-- <div *ngIf="showModal" #alertTemplate class="alert alert-warning alert-dismissible show d-flex flex-column align-items-center" role="alert">
