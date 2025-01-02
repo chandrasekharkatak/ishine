@@ -5,6 +5,12 @@ import { CalendarComponent } from 'src/app/helpers/calendar/calendar.component';
 import { Timesheet } from 'src/app/models/timesheet';
 import { Employee360Service } from 'src/app/services/employee360.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
+import { Modal } from 'bootstrap';
+import { OwlDateTimeComponent } from 'ng-pick-datetime';
+import { ScrollStrategy } from '@angular/cdk/overlay';
+import { DatePipe } from '@angular/common';
+
+
 
 
 @Component({
@@ -13,12 +19,12 @@ import { TimesheetService } from 'src/app/services/timesheet.service';
   styleUrls: ['./employee360-timesheet.component.css']
 })
 export class Employee360TimesheetComponent implements OnInit {
-
+  
   @ViewChild("thisMonthCal")
   private thisMonthCalendar: CalendarComponent;
   @ViewChild("lastMonthCal")
   private lastMonthCalendar: CalendarComponent;
-
+  
   activeButton: any;
   selectedFrequency: string = 'All';
   selectedOption: number = 1;
@@ -33,34 +39,20 @@ export class Employee360TimesheetComponent implements OnInit {
   currentUser:any;
   time;
   managerId:any;
+  endDate:any ;
+  startDate:any ;
+  scrollStrategy: ScrollStrategy;
   data  :Timesheet [] = [];
-
-
-
-//   data: any[] = [
-//     {
-//         id: 1,
-//         empId: 'E001',
-//         name: 'John Doe',
-//         date: new Date('2023-10-01'), // Example date
-//         dateType: 'Comp Off',
-//         activity: 'Worked on project A',
-//         project: 'Project A',
-//         teamName: 'Team Alpha',
-//         inTime: new Date('2023-10-01T09:00:00'), // Example in time
-//         outTime: new Date('2023-10-01T17:00:00'), // Example out time
-//         totalWorkingHrs: 8,
-//         shift: 'Day',
-//         status: 'Approved',
-//         appliedOn: new Date('2023-09-30') // Example applied on date
-//     }
-//     // Add more data as needed
-// ];
-allSelected: any;
-
+  formattedStartDate:any;
+  formattedEndDate: any;
+  allSelected: any;
+  dateTimeRange: any = null;
+  todayDate: Date = new Date();
+  
   constructor(
     private employee360Service : Employee360Service,
-    private timesheetService : TimesheetService
+    private timesheetService : TimesheetService,
+    private datePipe: DatePipe
   ) {
     
    }
@@ -74,15 +66,20 @@ allSelected: any;
       console.log(this.managerId); 
     }
     // this.empIdd=sessionStorage.getItem('employeeId');
-    this.empIdd=240065;
-    this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.managerId);
+    this.empIdd=21899;
+    this.managerId = 21865
+    this.startDate = null;
+    this.endDate = null;
+    this.formattedStartDate = null;
+    this.formattedEndDate = null;
+    this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
   }
 
   setActiveButton(button: string): void {
     this.activeButton = button;
     
     if(this.activeButton !=='Calendar'){
-      this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.managerId);
+      this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
     }else{
       this.getTimesheetsForHomePageByEmpId('Last 7 Days');
     }
@@ -272,12 +269,12 @@ allSelected: any;
 
   findByProject(projectId: number){
     console.log("project clicked =>  " + projectId );
-    this.get360TimesheetDetails(this.activeButton,this.empId,projectId,this.teamName,this.managerId);
+    this.get360TimesheetDetails(this.activeButton,this.empId,projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
   }
 
   findByTeam(teamName: any){
     console.log("team clicked => " + teamName);
-    this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,teamName,this.managerId);
+    this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
   }
   findByEmp(arg0: any){
     this.empId = arg0;
@@ -297,9 +294,9 @@ allSelected: any;
       console.log(arg);
     }
 
-    get360TimesheetDetails(activeButton:string,empId:number,projectId:number,teamName:string,managerId:number) {
+    get360TimesheetDetails(activeButton:string,empId:number,projectId:number,teamName:string,managerId:number,formattedStartDate:string,formattedEndDate:string) {
       console.log(this.activeButton);
-      this.employee360Service.get360TimesheetDetails(activeButton,empId,projectId,teamName,managerId).pipe(first()).subscribe((response: any) => {
+      this.employee360Service.get360TimesheetDetails(activeButton,empId,projectId,teamName,managerId,formattedStartDate,formattedEndDate).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus === "Success") {
               console.log("=> serviceResponse", response.serviceResponse);
               this.data = response.serviceResponse;
@@ -311,8 +308,77 @@ allSelected: any;
           }
       });
   }
-  onChangeOption() {
-    throw new Error('Method not implemented.');
+ 
+
+
+  // selectedOption: number = 1;  // Default option is "All"
+  
+  // Variables for date range
+  // startDate: Date | null = null;
+  // endDate: Date | null = null;
+  // activeButton: string = 'Pending';
+
+  onChangeOption(arg: any) {
+    // this.dateTimeRange = null;
+    if (arg == 1) {
+      // Handle "All"
+      this.startDate = null;
+      this.endDate = null;
+      this.setDate();
+    } else if (arg == 2) {
+      // Handle "Weekly"
+      this.startDate = new Date();
+      this.endDate = new Date();
+      this.startDate.setDate(this.startDate.getDate() - 7);
+      this.setDate();
+    } else if (arg == 3) {
+      // Handle "Monthly"
+      this.startDate = new Date();
+      this.endDate = new Date();
+      this.startDate.setDate(this.startDate.getDate() - 30);
+      this.setDate();
+    } else if (arg == 4) {
+      // Handle "Date range"
+      // start and end date will be handled by the owl-datepicker input fields
     }
+    console.log("startDate" , this.startDate);
+    console.log("endDate" , this.endDate);
+
+  }
+
+  resetDateRange() {
+    this.dateTimeRange = null;
+    this.startDate = null;
+    this.endDate = null;
+    // Optionally, call your method to fetch data after reset
+    this.onChangeOption(1);
+  }
+
+  getDateRange() {
+    if (this.dateTimeRange && this.dateTimeRange.length === 2) {
+      const fromDate = this.dateTimeRange[0];
+      const toDate = this.dateTimeRange[1];
+  
+      console.log('From Date:', fromDate);
+      console.log('To Date:', toDate);
+      this.startDate = fromDate;
+      this.endDate = toDate;
+  
+      // Your logic to filter data based on the selected range
+      this.setDate();
+    }
+  }
+
+  setDate(){
+    if (this.startDate && this.endDate) {
+       this.formattedStartDate = this.datePipe.transform(this.startDate, 'dd-MM-yyyy');
+      this.formattedEndDate = this.datePipe.transform(this.endDate, 'dd-MM-yyyy');
+      this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
+    }else{
+      this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.managerId,this.startDate,this.endDate);
+
+    }
+    
+  }
 
 }

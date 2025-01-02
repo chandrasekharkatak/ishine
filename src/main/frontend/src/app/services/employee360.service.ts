@@ -30,14 +30,16 @@ export class Employee360Service {
   }
 
 
-  get360TimesheetDetails(status: string, empId: number, projectId:number, teamName:string,managerId:number) {
+  get360TimesheetDetails(status: string, empId: number, projectId:number, teamName:string,managerId:number,startDate:string,endDate:string) {
     return this.http.get(`${this.baseUrl}api/get360TimesheetDetails`, {
         params: {
             status: status,
             empId: empId.toString(),
             projectId:projectId.toString(),
             teamName:teamName,
-            managerId:managerId.toString()
+            managerId:managerId.toString(),
+            startDate:startDate,
+            endDate:endDate
         }
     });
 }

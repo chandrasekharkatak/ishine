@@ -331,6 +331,36 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 						    + "and t.team_name=:teamName "
 						    + "and et.current_manager_id=:managerId")
 				List<Object[]> getTimesheetDataByTeamName(@Param("status") String status,@Param("teamName")String teamName,@Param("managerId")long managerId);
-	
-	
+				
+				
+				   @Query(nativeQuery = true, value = "SELECT et.description, p.project_id, a.activity_id, " +
+				            "e.name, et.date, et.day_type, " +
+				            "et.office_in_time, et.office_out_time, et.total_working_hours, et.is_night_shift, " +
+				            "et.status, et.created_on, " +
+				            "a.activity, " +
+				            "p.project_name, t.team_name " +
+				            "FROM employee_timesheets et " +
+				            "INNER JOIN employee e ON et.created_by = e.emp_id " +
+				            "INNER JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id " +
+				            "INNER JOIN activities a ON a.activity_id = etam.activity_id " +
+				            "INNER JOIN teams t ON t.team_id = a.team_id " +
+				            "INNER JOIN projects p ON p.project_id = t.project_id " +
+				            "WHERE et.status = :status " +
+				            "AND (:empId = 0 OR et.emp_id = :empId) " +
+				            "AND (:projectId = 0 OR p.project_id = :projectId) " +
+				            "AND (:teamName IS NULL OR t.team_name = :teamName) " +
+				            "AND (:managerId = 0 OR et.current_manager_id = :managerId) " +
+				            "AND ((:startDate IS NULL OR :endDate IS NULL) OR (et.date BETWEEN :startDate AND :endDate))")
+				    List<Object[]> getDynamicTimesheetData(
+				            @Param("status") String status,
+				            @Param("empId") long empId,
+				            @Param("projectId") long projectId,
+				            @Param("teamName") String teamName,
+				            @Param("managerId") Long managerId,
+				            @Param("startDate") LocalDate startDate,
+				            @Param("endDate") LocalDate endDate
+				    );
+
+				
+
 }
