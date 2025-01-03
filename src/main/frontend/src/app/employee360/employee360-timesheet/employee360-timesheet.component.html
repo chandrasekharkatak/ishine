@@ -14,7 +14,7 @@
         <h4 *ngIf="isProjectTeamClicked" class="text-center flex-grow-1 mb-0">{{header}}</h4>
     
         <!-- Dropdown aligned to the right -->
-        <select class="form-select-sm align-items-center mx-1 custom-select parent-container" aria-label="Default select example"
+        <select *ngIf = "activeButton !='Calendar'" class="form-select-sm align-items-center mx-1 custom-select parent-container" aria-label="Default select example"
             [(ngModel)]="selectedOption" (change)="onChangeOption(selectedOption)"> 
             <option class="option-bg" value=1>All</option>
             <option class="option-bg" value=2>Weekly</option>
@@ -311,10 +311,16 @@
     </ng-container>
 </ng-template> -->
 
+<!-- <ng-template #alertTemplate class="alert alert-warning alert-dismissible show d-flex flex-column align-items-center" role="alert"> 
+    <p *ngIf="showModal" class="text-center">{{ alertMessage }}</p> 
+    <button *ngIf="showModal" type="button" class="btn btn-primary btn-sm m-auto" (click)="cancelRequest()">OK</button> 
+</ng-template> -->
+
 <ng-template #alertTemplate class="alert alert-warning alert-dismissible show d-flex flex-column align-items-center" role="alert"> 
     <p *ngIf="showModal" class="text-center">{{ alertMessage }}</p> 
     <button *ngIf="showModal" type="button" class="btn btn-primary btn-sm m-auto" (click)="cancelRequest()">OK</button> 
-</ng-template>
+  </ng-template>
+  
 
 <!-- <div *ngIf="showModal" #alertTemplate class="alert alert-warning alert-dismissible show d-flex flex-column align-items-center" role="alert">
     <p class="text-center">{{ alertMessage }}</p>

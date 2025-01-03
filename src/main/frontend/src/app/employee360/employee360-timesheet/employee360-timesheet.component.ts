@@ -85,8 +85,8 @@ export class Employee360TimesheetComponent implements OnInit {
       console.log(this.managerId); 
     }
     // this.empIdd=sessionStorage.getItem('employeeId');
-    this.empIdd=21899;
-    this.managerId = 21865
+    this.empIdd=240065;
+    this.managerId = 21823;
     this.startDate = null;
     this.endDate = null;
     this.formattedStartDate = null;
@@ -117,6 +117,7 @@ export class Employee360TimesheetComponent implements OnInit {
     let timesheetObj = new Timesheet();
     timesheetObj.empId = sessionStorage.getItem('employeeId');
     timesheetObj.empId = 21899;
+    // 240065
     console.log(sessionStorage.getItem('employeeId'));
     console.log("timesheetObj.empId => " , timesheetObj.empId);
     
@@ -302,38 +303,90 @@ export class Employee360TimesheetComponent implements OnInit {
     this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
   }
   
-  updateStatus(status: string, empId: number, date: string) {
-    status = "Pending";
+  // updateStatus(status: string, empId: number, date: string) {
+  //   status = "Pending";
 
-    this.employee360Service.updateStatus(status, empId, date).pipe(first()).subscribe(
-      (response: any) => {
-        if (response.serviceStatus === "Success") {
-          console.log("=> serviceResponse", response.serviceResponse);
-          this.alertMessage = response.serviceResponse; 
-          this.showModal = true; 
-          setTimeout(() => {
-            console.log("this.alertModal"+ this.alertModal);
-            // this.modalRef=this.modalService.show(this.alertModal,{ class: 'modal-sm' })
-            this.modalRef=this.modalService.show(this.alertModal,{ keyboard: false,class: 'modal-sm' })
-          }, 0);
+  //   this.employee360Service.updateStatus(status, empId, date).pipe(first()).subscribe(
+  //     (response: any) => {
+  //       if (response.serviceStatus === "Success") {
+  //         console.log("=> serviceResponse", response.serviceResponse);
+  //         this.alertMessage = response.serviceResponse; 
+  //         this.showModal = true; 
+  //         setTimeout(() => {
+  //           console.log("this.alertModal"+ this.alertModal);
+  //           // this.modalRef=this.modalService.show(this.alertModal,{ class: 'modal-sm' })
+  //           this.modalRef=this.modalService.show(this.alertModal,{ keyboard: false,class: 'modal-sm' })
+  //           console.log('hello');
+            
+  //         }, 0);
           
-        } else {
-          this.alertMessage = response.serviceResponse; 
-          this.showModal = true; 
+  //       } else {
+  //         this.alertMessage = response.serviceResponse; 
+  //         this.showModal = true; 
+  //       }
+  //     },
+  //     (error) => {
+  //       console.error("Error occurred:", error);
+  //       this.alertMessage ="Error";
+  //       this.showModal = true; 
+  //     }
+  //   );
+  // }
+
+  loading: boolean = false; // Add a loading flag
+
+updateStatus(status: string, empId: number, date: string) {
+  if (this.loading) return; // Prevent duplicate calls
+  this.loading = true; // Set loading to true
+
+  status = "Pending";
+
+  this.employee360Service.updateStatus(status, empId, date).pipe(first()).subscribe(
+    (response: any) => {
+      this.loading = false; // Reset loading on response
+
+      if (response.serviceStatus === "Success") {
+        this.alertMessage = response.serviceResponse;
+        this.showModal = true;
+
+        // Properly manage modal service
+        if (this.modalRef) {
+          this.modalRef.hide();
+          this.modalRef = null;
         }
-      },
-      (error) => {
-        console.error("Error occurred:", error);
-        this.alertMessage ="Error";
-        this.showModal = true; 
+
+        this.modalRef = this.modalService.show(this.alertModal, {
+          keyboard: false,
+          class: 'modal-sm',
+        });
+      } else {
+        this.alertMessage = response.serviceResponse;
+        this.showModal = true;
       }
-    );
-  }
+    },
+    (error) => {
+      this.loading = false; // Reset loading on error
+      console.error("Error occurred:", error);
+      this.alertMessage = "Error occurred while updating status.";
+      this.showModal = true;
+    }
+  );
+}
+
+
+  // cancelRequest() {
+  //   // Hide the modal
+  //   this.showModal = false;
+  // }
 
   cancelRequest() {
-    // Hide the modal
-    this.showModal = false;
+    this.showModal = false; // Hide the modal
+    if (this.modalRef) {
+      this.modalRef.hide(); // Properly hide the modal
+      this.modalRef = null;
+    }
   }
+  
 
   goBack(){
     this.isProjectTeamClicked=false;

@@ -8,7 +8,7 @@
         [ngClass]="day.className"
         *ngFor="let day of calendarItem"
         
-        (mouseenter)="onHoverStart($event, day.description)"
+        (mouseenter)="onHoverStart($event, day.description,day.activity)"
         (mouseleave)="onHoverEnd()"
       >
         <div *ngIf="i === 0"><b>{{day.dayName}}</b></div>
@@ -107,9 +107,8 @@
   *ngIf="isPopupVisible && popupDescription != null && popupDescription.length != 0"
   [ngStyle]="{ top: pointerY + 'px', left: pointerX + 'px' }"
 >
-<p *ngIf="popupDescription != null && popupDescription.length != 0">
-    Description: {{ popupDescription }}
-  </p>
+<p *ngIf="popupActivity != null && popupActivity.length != 0"> Activity: {{popupActivity}}</p>
+<p *ngIf="popupDescription != null && popupDescription.length != 0">  Description: {{ popupDescription }} </p>
 </div>
 
   
