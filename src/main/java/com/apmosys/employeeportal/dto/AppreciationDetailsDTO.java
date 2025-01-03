@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AppreciationDetailsDTO {
 
+	private Long empId;
     private String appreciateType;
     private LocalDateTime appreciationDate;
     private String appreciationByName;

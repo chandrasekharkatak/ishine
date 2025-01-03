@@ -129,7 +129,7 @@ List<Object[]> getMyAppreciationDetails(@Param("startDate") String startDate,
     
 	
 	@Query("SELECT new com.apmosys.employeeportal.dto.AppreciationDetailsDTO( " +
-		       "a.appreciateType, a.appreciationDate, emp.name, e.fromDate, e.toDate) " +
+		       "emp.empId, a.appreciateType, a.appreciationDate, emp.name, e.fromDate, e.toDate) " +
 		       "FROM com.apmosys.employeeportal.model.Appreciation a " +
 		       "JOIN com.apmosys.employeeportal.model.AppreciationEvent e ON a.appreciationEventId = e.appreciationEventid " +
 		       "JOIN com.apmosys.employeeportal.model.Employee emp ON a.appreciationBy = emp.empId " +
@@ -138,7 +138,7 @@ List<Object[]> getMyAppreciationDetails(@Param("startDate") String startDate,
 	
 	@Query(
 			"SELECT new com.apmosys.employeeportal.dto.AppreciationDetailsDTO( " +
-			"a.appreciateType, a.appreciationDate, e.name, ae.fromDate, ae.toDate) " +
+			"e.empId, a.appreciateType, a.appreciationDate, e.name, ae.fromDate, ae.toDate) " +
 			"FROM com.apmosys.employeeportal.model.Appreciation a " +
 			"JOIN com.apmosys.employeeportal.model.AppreciationEvent ae ON a.appreciationEventId = ae.appreciationEventid " +
 			"JOIN com.apmosys.employeeportal.model.EmployeeTeamMap etm ON a.appreciationTo = etm.empId " + 
@@ -156,7 +156,7 @@ List<Object[]> getMyAppreciationDetails(@Param("startDate") String startDate,
 		List<Object[]> getAllDateRangesByEmpId(@Param("empId") Long empId);
 
 	@Query("SELECT new com.apmosys.employeeportal.dto.AppreciationDetailsDTO( " +
-		       "a.appreciateType, a.appreciationDate, emp.name, e.fromDate, e.toDate) " +
+		       "emp.empId, a.appreciateType, a.appreciationDate, emp.name, e.fromDate, e.toDate) " +
 		       "FROM com.apmosys.employeeportal.model.Appreciation a " +
 		       "JOIN com.apmosys.employeeportal.model.AppreciationEvent e ON a.appreciationEventId = e.appreciationEventid " +
 		       "JOIN com.apmosys.employeeportal.model.Employee emp ON a.appreciationBy = emp.empId " +

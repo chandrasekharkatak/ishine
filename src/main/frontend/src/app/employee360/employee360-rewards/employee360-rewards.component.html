@@ -111,7 +111,7 @@
 
         <div class="row">
             <div class="col-md-12" style="text-align: center;">
-                <div class="overflow-auto">
+                <div class="overflow-auto" *ngIf="!isTeamTableVisible">
                     <table class="table table-responsive" id="rewardHistoryInfo">
                         <thead class="thead-light" id="rewardHistoryInfoTHead">
                             <tr id="rewardHistoryInfoTHeadTr">
@@ -119,6 +119,7 @@
                                 <th scope="col" class="info-label">Rewards Name</th>
                                 <th scope="col" class="info-label">Rewarded To</th>
                                 <th scope="col" class="info-label">Rewards Date</th>
+                                <th scope="col" class="info-label">Teams Name</th>
                                 <th scope="col" class="info-label">Description</th>
                                 <th scope="col" class="info-label">Updated By</th>
                             </tr>
@@ -128,18 +129,52 @@
                             *ngFor="let rewardHistory of  employee ;  let i = index">
                             <th class="info-label">{{i+1}}</th>
                             <td>{{rewardHistory.rewardTypeName}}</td>
-                            <td>
-                                {{rewardHistory.name}}
-                                <button type="button" class="btn btn-sm btn-primary ml-2"
-                                    (click)="openEditModal(reward)">View Team</button>
-                            </td>
+                            <td>{{rewardHistory.name}}</td>
                             <td>{{rewardHistory.createdOn}}</td>
+                            <td><span
+                                class="info-label"
+                                style="cursor: pointer;"
+                                (click)="showTeamTable(rewardHistory.teamName)"
+                              >
+                                {{ rewardHistory.teamName }}
+                              </span></td>
                             <td>{{rewardHistory.remark}}</td>
                             <td>{{rewardHistory.updatedBy}}</td>
                         </tr>
                         </tbody>
                     </table>
                 </div>
+                <div class="overflow-auto" *ngIf="isTeamTableVisible">
+                    <div class="d-flex align-items-center mb-2">
+                        <button class="btn btn-outline-primary btn-sm mx-1" (click)="goBack()">Back</button>
+                    </div>
+                    <table class="table table-striped" id="claimTbl">
+                      <thead>
+                        <tr>
+                          <th scope="col" class="info-label">Sr No.</th>
+                          <th scope="col" class="info-label">Rewards Name</th>
+                          <th scope="col" class="info-label">Rewarded To</th>
+                          <th scope="col" class="info-label">Rewarded By</th>
+                          <th scope="col" class="info-label">Rewarded Date</th>
+                        </tr>
+                      </thead>
+                      <tbody id="claimTBody">
+                        <tr *ngFor="let teamlist of teamRewardList; let i = index">
+                          <th class="info-label"><label>{{ i + 1 }}</label></th>
+                          <td><label>{{ teamlist.rewardTypeName }}</label></td>
+                          <td>
+                            <span style="cursor: pointer;" *ngIf="getMatchedEmployee(teamlist)">
+                                <a [navigateToEmployee360]="getMatchedEmployee(teamlist)">
+                                  {{ teamlist.name }}
+                                </a>
+                            </span>
+                          </td>
+                          <td><label>{{ teamlist.createdByName }}</label></td>
+                          <td><label>{{ teamlist.createdOn }}</label></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>                
             </div>
         </div>
     </div>
@@ -150,7 +185,6 @@
     <div class="modal-body text-center">
         <div class="row">
             <div  class="col-12" style="text-align:center">
-                <!-- <label>{{ 'dashboard.claim.process.modal.heading1' | translate }} &nbsp; <em class="fa fa-info-circle" aria-hidden="true" data-toggle="tooltip" title="{{ 'dashboard.claim.process.modal.noneligible.claim.reason' | translate }}"></em></label><br> -->
                 <label>Team Rewards</label>
             </div>
 
@@ -159,29 +193,24 @@
                     <thead>
                         <tr>
                             <th scope="col" class="info-label">Sr No.</th>
-                            <th scope="col" class="info-label">Name.</th>
                             <th scope="col" class="info-label">Rewards Name</th>
-                            <th scope="col" class="info-label">Rewarded By</th>
                             <th scope="col" class="info-label">Rewarded To</th>
+                            <th scope="col" class="info-label">Rewarded By</th>
                             <th scope="col" class="info-label">Rewarded Date</th>
                         </tr>
                     </thead>
                     <tbody id="claimTBody">
                         <tr *ngFor="let teamlist of teamRewardList, let i = index">
                             <th class="info-label"><label>{{i+1}}</label></th>
-                            <!-- <td><label>{{teamlist.name}}</label></td> -->
                             <td>
                                 <span style="cursor: pointer;" *ngFor="let matchedEmployee of matchedEmployees">
                                   <ng-container *ngIf="teamlist.rewardedTo === matchedEmployee.empId">
-                                    <!-- <h1>{{teamlist.rewardedTo}}</h1>
-                                    <h1>{{matchedEmployee.empId}}</h1> -->
                                     <span [navigateToEmployee360]="matchedEmployee">
                                       {{ teamlist.name }}
                                     </span>
                                   </ng-container>
                                 </span>
                             </td>
-                            <!-- <h1>{{teamlist.name}}</h1> -->
                             <td><label>{{teamlist.rewardTypeName}}</label></td>
                             <td><label>{{teamlist.createdByName }}</label></td>
                             <td><label>{{teamlist.name}}</label></td>

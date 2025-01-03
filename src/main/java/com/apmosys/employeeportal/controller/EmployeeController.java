@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.AppreciationDetails;
+import com.apmosys.employeeportal.dto.AppreciationRequest;
 import com.apmosys.employeeportal.dto.DateRangeDTO;
 import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
@@ -75,7 +77,15 @@ public class EmployeeController {
 		ServiceResponse response = employeeService.getAllEmployees();
 		return response;
 	}
-
+	
+	@PostMapping("/getEmployeeByAppreciationName")
+    public ServiceResponse getEmployeeByAppreciationName(@RequestBody AppreciationRequest request) {
+        String appreciationByName = request.getEmpName();
+        ServiceResponse response = employeeService.getEmployeeByAppreciationName(appreciationByName);
+        return response;
+        
+	}
+	
 	@RequestMapping(value = "/updateEmployeeByEmpId", method = RequestMethod.POST)
 	public ServiceResponse updateEmployeeByEmpId(@RequestBody EmployeeDTO employeedto) {
 		

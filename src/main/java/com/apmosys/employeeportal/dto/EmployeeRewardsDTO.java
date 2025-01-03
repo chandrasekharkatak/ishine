@@ -36,4 +36,5 @@ public class EmployeeRewardsDTO {
 	private LocalDateTime createdOn;
 	private String name;
 	private Long empId;
+	private String teamName;
 }

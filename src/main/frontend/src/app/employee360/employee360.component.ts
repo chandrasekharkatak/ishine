@@ -9,8 +9,8 @@ import { EmployeeConfigComponent } from '../configuration/employee-config/employ
 import { DeptConfigComponent } from '../configuration/dept-config/dept-config.component';
 import { LeaveConfigComponent } from '../configuration/leave-config/leave-config.component';
 import { RoleConfigComponent } from '../configuration/role-config/role-config.component';
-import { Breadcrumb } from '../models/breadcrumd';
-import { BreadcrumbService } from '../services/breadcrumb.service';
+import { Subscription } from 'rxjs';
+import { Employee360Service } from '../services/employee360.service';
 
 
 @Component({
@@ -32,12 +32,13 @@ export class Employee360Component implements OnInit {
   userMapping:any = {};
 
   
+  private navigationSubscription: Subscription;
 
   constructor(
     private authenticationService: AuthenticationService,
     private router: Router,
     private route: ActivatedRoute,
-    private breadcrumbService: BreadcrumbService,
+    private employee360Service: Employee360Service,
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -45,6 +46,10 @@ export class Employee360Component implements OnInit {
 
 
   ngOnInit(): void {
+    this.navigationSubscription = this.employee360Service.getNavigationEvent().subscribe(() => {
+      this.removeActiveTab();
+      this.setActiveTab();
+    });
 
     const storedData = localStorage.getItem('employee360Data');
     const parsedData = storedData ? JSON.parse(storedData) : null;
@@ -83,7 +88,10 @@ export class Employee360Component implements OnInit {
   }
 
   ngOnDestroy(): void {
-    this.removeActiveTab();
+  if (this.navigationSubscription) {
+    this.navigationSubscription.unsubscribe();
+  }
+  this.removeActiveTab();
   }
 
   setActiveTab(){
@@ -91,18 +99,19 @@ export class Employee360Component implements OnInit {
     const tab = document.getElementById('Employee360Tab').querySelector('.nav-link');
     //console.log(tab);
 
-    tab.classList.add('active');
-    let activeRouteLink = tab.getAttribute('routerLink');
-    //console.log("activeRouteLink :", activeRouteLink);
-    //console.log("Router :",  this.router);
-    
-    this.router.navigate(['./'+activeRouteLink], {relativeTo: this.route});
+    if (tab) {
+      tab.classList.add('active');
+      const activeRouteLink = tab.getAttribute('routerLink');
+      this.router.navigate(['./' + activeRouteLink], { relativeTo: this.route });
+    }
   }
 
   removeActiveTab(){
     const tab = document.getElementById('Employee360Tab').querySelector('.nav-link.active');
     //console.log("active tab :", tab);
-    tab?.classList.remove('active');
+    if (tab) {
+      tab.classList.remove('active');
+    }
   }
 
 }

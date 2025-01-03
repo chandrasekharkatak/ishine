@@ -24,8 +24,8 @@ export class NavigateToEmployee360Directive {
       breadcrumbObject.url = "/employee-360";
       breadcrumbObject.object=this.data;
 
-       const stringifiedData = typeof this.store === 'string' ? this.store : JSON.stringify(this.store);
-       localStorage.setItem('employee360Data', stringifiedData);
+      const stringifiedData = typeof this.store === 'string' ? this.store : JSON.stringify(this.store);
+      localStorage.setItem('employee360Data', stringifiedData);
       this.employee360Service.navigateToEmployee360(this.data);
       this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }

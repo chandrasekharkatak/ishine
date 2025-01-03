@@ -17,7 +17,7 @@
             
               <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
                 <a class="nav-link report__tab-item__link" id="profile-tab" data-toggle="tab" routerLink="profile" role="tab" (click)="removeActiveTab()" [state]="{ employeeData: employeeData }"
-                   aria-controls="profile" aria-selected="true">Profile</a>
+                   aria-controls="profile" aria-selected="false">Profile</a>
              </li>
 
 
@@ -40,7 +40,7 @@
             </li>
 
             <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
-              <a class="nav-link report__tab-item__link" id="rewards-tab" data-toggle="tab" routerLink="rewards" role="tab" (click)="removeActiveTab()"
+              <a class="nav-link report__tab-item__link" id="rewards-tab"  data-toggle="tab" routerLink="rewards" role="tab" (click)="removeActiveTab()"
                 aria-controls="reward" aria-selected="false">Rewards</a>
             </li>
 

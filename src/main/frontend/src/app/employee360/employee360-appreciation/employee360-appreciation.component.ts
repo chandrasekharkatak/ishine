@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { Sort } from '@angular/material/sort';
+import { Breadcrumb } from 'src/app/models/breadcrumd';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
+import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 import { EmployeeService } from 'src/app/services/employee.service';
-
 @Component({
   selector: 'app-employee360-appreciation',
   templateUrl: './employee360-appreciation.component.html',
@@ -17,24 +18,50 @@ export class Employee360AppreciationComponent implements OnInit {
   isSearchEnabled:boolean = false;
   filters:any = {};
   employee : any[]=[];
+  employeeData : any[]=[];
   formattedDateRanges: string[] = []; 
   isTeamAppreciationView: boolean = false;
-  isDateRangeDisabled: boolean = true;
+  isDateRangeDisabled: boolean = false;
   selectedDateRange: string | null = null;
   selectedRange: string = '';
   page = 1;
-  currentEmpId: number = Number(sessionStorage.getItem('employeeId'));
+  currentEmpId: number = Number(sessionStorage.getItem('empId'));
+  employeeList: any[] = [];
+  matchedEmployees: any[] = [];
+  matchedEmployee: any;
+  currentBreadcrumbList: any[] = [];
+
 
   constructor(
     private authenticationService: AuthenticationService,
     private employeeService: EmployeeService,
+        private breadcrumbService: BreadcrumbService,
+    
   ) {
+    const empData = sessionStorage.getItem('AllEmployees');
+    if (empData) {
+      this.employeeList = JSON.parse(empData);
+      console.log(this.employeeList);
+    }
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
+
     this.getDateRanges();
     this.getEmployeeInfo();
    }
 
   ngOnInit(): void {
+
+    let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title == "Appreciation");
+        if (findbreadcrumbObject >= 0) {
+          this.currentBreadcrumbList.splice(findbreadcrumbObject + 1);
+          this.breadcrumbService.setBreadcrumbSubject(this.currentBreadcrumbList);
+        } else {
+          let breadcrumbObject = new Breadcrumb();
+          breadcrumbObject.title = "Appreciation";
+          breadcrumbObject.url = "/employee-360/appreciation";
+          this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
+        }
     
   }
   getDateRanges() {
@@ -97,6 +124,7 @@ export class Employee360AppreciationComponent implements OnInit {
       this.employeeService.getTeamAppreciationByEmpId(requestPayload).subscribe(
         (response: any) => {
           this.employee = response.appreciationDto;
+          this.getMatchingEmployees();
           console.log('Team appreciation data:', this.employee);
         },
         (error) => {
@@ -106,6 +134,24 @@ export class Employee360AppreciationComponent implements OnInit {
     } else {
       this.getEmployeeInfo();
     }
+  }
+
+  getMatchingEmployees(): void {
+    this.employee.forEach((empObj: any) => {
+      this.employeeList.forEach((listObj: any) => {
+        if (empObj.empId === listObj.empId) {
+          this.matchedEmployees.push(listObj);
+        }
+      });
+    console.log('Matched Employees:', this.matchedEmployees);
+    },
+    (error) => {
+      console.error('Error fetching employee data:', error);
+    });
+  }
+
+  getMatchedEmployee(event: any) {
+    return this.matchedEmployees.find(employee => employee.empId === event.empId);
   }
 
   handlePageChange(event) {
