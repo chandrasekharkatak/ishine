@@ -1,11 +1,16 @@
-import { Component, OnInit, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Component, OnInit, TemplateRef, Input, Output, ViewChild } from '@angular/core';
 import * as moment from 'moment';
 import { first } from 'rxjs/operators';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { CalendarComponent } from 'src/app/helpers/calendar/calendar.component';
 import { Timesheet } from 'src/app/models/timesheet';
 import { Employee360Service } from 'src/app/services/employee360.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
-
+import { ScrollStrategy } from '@angular/cdk/overlay';
+import { DatePipe } from '@angular/common';
+import { Router } from '@angular/router';
+import { Breadcrumb } from 'src/app/models/breadcrumd';
+import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 
 @Component({
   selector: 'app-employee360-timesheet',
@@ -13,12 +18,15 @@ import { TimesheetService } from 'src/app/services/timesheet.service';
   styleUrls: ['./employee360-timesheet.component.css']
 })
 export class Employee360TimesheetComponent implements OnInit {
-
+  
   @ViewChild("thisMonthCal")
   private thisMonthCalendar: CalendarComponent;
   @ViewChild("lastMonthCal")
   private lastMonthCalendar: CalendarComponent;
+  @ViewChild("alertTemplate") alertModal: TemplateRef<any>;
 
+  showModal = false;
+  alertMessage: string = '';
   activeButton: any;
   selectedFrequency: string = 'All';
   selectedOption: number = 1;
@@ -33,39 +41,42 @@ export class Employee360TimesheetComponent implements OnInit {
   currentUser:any;
   time;
   managerId:any;
+  endDate:any ;
+  startDate:any ;
+  scrollStrategy: ScrollStrategy;
   data  :Timesheet [] = [];
-
-
-
-//   data: any[] = [
-//     {
-//         id: 1,
-//         empId: 'E001',
-//         name: 'John Doe',
-//         date: new Date('2023-10-01'), // Example date
-//         dateType: 'Comp Off',
-//         activity: 'Worked on project A',
-//         project: 'Project A',
-//         teamName: 'Team Alpha',
-//         inTime: new Date('2023-10-01T09:00:00'), // Example in time
-//         outTime: new Date('2023-10-01T17:00:00'), // Example out time
-//         totalWorkingHrs: 8,
-//         shift: 'Day',
-//         status: 'Approved',
-//         appliedOn: new Date('2023-09-30') // Example applied on date
-//     }
-//     // Add more data as needed
-// ];
-allSelected: any;
-
+  formattedStartDate:any;
+  formattedEndDate: any;
+  allSelected: any;
+  dateTimeRange: any = null;
+  todayDate: Date = new Date();
+  breadcrumbs:any;
+  
   constructor(
     private employee360Service : Employee360Service,
-    private timesheetService : TimesheetService
-  ) {
-    
-   }
+    private timesheetService : TimesheetService,
+    private datePipe: DatePipe,
+    private modalService: BsModalService,
+    private router: Router,
+    private breadcrumbService: BreadcrumbService
+  ) {}
+
+  modalRef: BsModalRef = new BsModalRef();
+  isProjectTeamClicked:boolean=false;
+  header:String="";
+  // allSelected: any;
+  empIds:[];
+  breadcrumbUrl:any;
+
 
   ngOnInit(): void {
+    console.log("timesheet breadcrumb:"+sessionStorage.getItem('breadcrumb'));
+    this.breadcrumbUrl=sessionStorage.getItem('breadcrumb');
+    let breadcrumbObject = new Breadcrumb();
+    breadcrumbObject.title = "Timesheet";
+    breadcrumbObject.url = this.breadcrumbUrl+"/timesheet";
+    this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
+
     this.activeButton = 'Pending';
     this.currentUser=sessionStorage.getItem('currentUser');
     if (this.currentUser) {
@@ -75,14 +86,19 @@ allSelected: any;
     }
     // this.empIdd=sessionStorage.getItem('employeeId');
     this.empIdd=240065;
-    this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.managerId);
+    this.managerId = 21823;
+    this.startDate = null;
+    this.endDate = null;
+    this.formattedStartDate = null;
+    this.formattedEndDate = null;
+    this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
   }
 
   setActiveButton(button: string): void {
     this.activeButton = button;
     
     if(this.activeButton !=='Calendar'){
-      this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.managerId);
+      this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
     }else{
       this.getTimesheetsForHomePageByEmpId('Last 7 Days');
     }
@@ -101,6 +117,7 @@ allSelected: any;
     let timesheetObj = new Timesheet();
     timesheetObj.empId = sessionStorage.getItem('employeeId');
     timesheetObj.empId = 21899;
+    // 240065
     console.log(sessionStorage.getItem('employeeId'));
     console.log("timesheetObj.empId => " , timesheetObj.empId);
     
@@ -111,7 +128,6 @@ allSelected: any;
       fromDate = new Date(currentDate.getTime() - (1 * DAY_IN_MS));
       toDate = new Date(currentDate.getTime() - (7 * DAY_IN_MS));
 
-      //console.log(`Last 7 Days : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
       timesheetObj.startDate = moment(toDate).format(dateFormat);
       timesheetObj.endDate = moment(fromDate).format(dateFormat);
     } else if (dateRange == 'This Month') {
@@ -119,7 +135,6 @@ allSelected: any;
       fromDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
       toDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
 
-      //console.log(`This Month : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
       timesheetObj.startDate = moment(fromDate).format(dateFormat);
       timesheetObj.endDate = moment(toDate).format(dateFormat);
     } else if (dateRange == 'Last Month') {
@@ -128,7 +143,6 @@ allSelected: any;
       fromDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
       toDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
 
-      //console.log(`Last Month : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
       timesheetObj.startDate = moment(fromDate).format(dateFormat);
       timesheetObj.endDate = moment(toDate).format(dateFormat);
     }
@@ -136,7 +150,6 @@ allSelected: any;
     this.timesheetService.getTimesheetsForHomePageByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         filledTimesheetDetails = response.serviceResponse;
-        //console.log("filledTimesheetDetails : ", filledTimesheetDetails);7, claimIds
       } else {
         console.error(response.serviceResponse);
       }
@@ -191,8 +204,6 @@ allSelected: any;
         name: "Rejected",
         y: rejectedCount
       }];
-
-      // this.renderTimesheetChart(`${dateRange} Timesheet`, 'totalEODChart', timesheetChartData, 'Timesheet(s)');
       if (dateRange == 'This Month')
         this.thisMonthCalendar.addTimesheetDetails();
       else if (dateRange == 'Last Month')
@@ -257,62 +268,214 @@ allSelected: any;
     });
   }
 
-  updateSelection() {
+  updateSelection(empId:any) {
+    console.log(empId);
     this.allSelected = this.data.every(item => item.selected); 
   }
 
-  saveSelected() {
-    console.log("save clicked ");
+  saveSelected(status:String) {
+    console.log("save clicked :"+status);
+    console.log("=>allSelected: "+this.allSelected);
     
     const selectedEmpIds = this.data
       .filter(item => item.selected) 
       .map(item => item .empId); 
-    console.log('Selected Employee IDs:', selectedEmpIds);
+    console.log('Selected Employee IDs:', this.allSelected);
   }
 
   findByProject(projectId: number){
+    this.isProjectTeamClicked=true;
+    this.header="Project Member Details";
     console.log("project clicked =>  " + projectId );
-    this.get360TimesheetDetails(this.activeButton,this.empId,projectId,this.teamName,this.managerId);
+    this.get360TimesheetDetails(this.activeButton,this.empId,projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
   }
 
   findByTeam(teamName: any){
+    this.isProjectTeamClicked=true;
+    this.header="Team Member Details";
     console.log("team clicked => " + teamName);
-    this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,teamName,this.managerId);
+    this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
   }
-  findByEmp(arg0: any){
-    this.empId = arg0;
-    this.byClick();
+  
+  // updateStatus(status: string, empId: number, date: string) {
+  //   status = "Pending";
+
+  //   this.employee360Service.updateStatus(status, empId, date).pipe(first()).subscribe(
+  //     (response: any) => {
+  //       if (response.serviceStatus === "Success") {
+  //         console.log("=> serviceResponse", response.serviceResponse);
+  //         this.alertMessage = response.serviceResponse; 
+  //         this.showModal = true; 
+  //         setTimeout(() => {
+  //           console.log("this.alertModal"+ this.alertModal);
+  //           // this.modalRef=this.modalService.show(this.alertModal,{ class: 'modal-sm' })
+  //           this.modalRef=this.modalService.show(this.alertModal,{ keyboard: false,class: 'modal-sm' })
+  //           console.log('hello');
+            
+  //         }, 0);
+          
+  //       } else {
+  //         this.alertMessage = response.serviceResponse; 
+  //         this.showModal = true; 
+  //       }
+  //     },
+  //     (error) => {
+  //       console.error("Error occurred:", error);
+  //       this.alertMessage ="Error";
+  //       this.showModal = true; 
+  //     }
+  //   );
+  // }
+
+  loading: boolean = false; // Add a loading flag
+
+updateStatus(status: string, empId: number, date: string) {
+  if (this.loading) return; // Prevent duplicate calls
+  this.loading = true; // Set loading to true
+
+  status = "Pending";
+
+  this.employee360Service.updateStatus(status, empId, date).pipe(first()).subscribe(
+    (response: any) => {
+      this.loading = false; // Reset loading on response
+
+      if (response.serviceStatus === "Success") {
+        this.alertMessage = response.serviceResponse;
+        this.showModal = true;
+
+        // Properly manage modal service
+        if (this.modalRef) {
+          this.modalRef.hide();
+          this.modalRef = null;
+        }
+
+        this.modalRef = this.modalService.show(this.alertModal, {
+          keyboard: false,
+          class: 'modal-sm',
+        });
+      } else {
+        this.alertMessage = response.serviceResponse;
+        this.showModal = true;
+      }
+    },
+    (error) => {
+      this.loading = false; // Reset loading on error
+      console.error("Error occurred:", error);
+      this.alertMessage = "Error occurred while updating status.";
+      this.showModal = true;
+    }
+  );
+}
+
+
+  // cancelRequest() {
+  //   // Hide the modal
+  //   this.showModal = false;
+  // }
+
+  cancelRequest() {
+    this.showModal = false; // Hide the modal
+    if (this.modalRef) {
+      this.modalRef.hide(); // Properly hide the modal
+      this.modalRef = null;
+    }
+  }
+  
+
+  goBack(){
+    this.isProjectTeamClicked=false;
+    this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
   }
 
-  byClick() {
-    let obj = {
-      projectName : this.projectName,
-      teamName: this.teamName,
-      // empId:this.empId
-
-    }
-    }
-
-    action(arg : any){
-      console.log(arg);
-    }
-
-    get360TimesheetDetails(activeButton:string,empId:number,projectId:number,teamName:string,managerId:number) {
+  get360TimesheetDetails(activeButton:string,empId:number,projectId:number,teamName:string,managerId:number,formattedStartDate:string,formattedEndDate:string) {
       console.log(this.activeButton);
-      this.employee360Service.get360TimesheetDetails(activeButton,empId,projectId,teamName,managerId).pipe(first()).subscribe((response: any) => {
+      this.employee360Service.get360TimesheetDetails(activeButton,empId,projectId,teamName,managerId,formattedStartDate,formattedEndDate).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus === "Success") {
               console.log("=> serviceResponse", response.serviceResponse);
               this.data = response.serviceResponse;
-              // this.data = null;
-  
-              // Transform the data from an object to an array
-              this.data = Object.values(this.data); // Convert to array
+              this.data = Object.values(this.data); 
               console.log("=> transformed data", this.data);
           }
       });
   }
-  onChangeOption() {
-    throw new Error('Method not implemented.');
+ 
+
+  onChangeOption(arg: any) {
+    if (arg == 1) {
+      // Handle "All"
+      this.startDate = null;
+      this.endDate = null;
+      this.setDate();
+    } else if (arg == 2) {
+      // Handle "Weekly"
+      this.startDate = new Date();
+      this.endDate = new Date();
+      this.startDate.setDate(this.startDate.getDate() - 7);
+      this.setDate();
+    } else if (arg == 3) {
+      // Handle "Monthly"
+      this.startDate = new Date();
+      this.endDate = new Date();
+      this.startDate.setDate(this.startDate.getDate() - 30);
+      this.setDate();
+    } else if (arg == 4) {
+      // Handle "Date range"
+      // start and end date will be handled by the owl-datepicker input fields
     }
+    console.log("startDate" , this.startDate);
+    console.log("endDate" , this.endDate);
+
+  }
+
+  resetDateRange() {
+    this.dateTimeRange = null;
+    this.startDate = null;
+    this.endDate = null;
+    // Optionally, call your method to fetch data after reset
+    this.onChangeOption(1);
+  }
+
+  getDateRange() {
+    if (this.dateTimeRange && this.dateTimeRange.length === 2) {
+      const fromDate = this.dateTimeRange[0];
+      const toDate = this.dateTimeRange[1];
+  
+      console.log('From Date:', fromDate);
+      console.log('To Date:', toDate);
+      this.startDate = fromDate;
+      this.endDate = toDate;
+  
+      //logic to filter data based on the selected range
+      this.setDate();
+    }
+  }
+
+  setDate(){
+    if (this.startDate && this.endDate) {
+       this.formattedStartDate = this.datePipe.transform(this.startDate, 'dd-MM-yyyy');
+      this.formattedEndDate = this.datePipe.transform(this.endDate, 'dd-MM-yyyy');
+      this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
+    }else{
+      this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.managerId,this.startDate,this.endDate);
+
+    }
+  }
+  
+  navigateToEmployee360(){
+    this.removeActiveTab();
+    this.router.navigate(['/employee-360/profile']);
+    this.setActiveTab();
+  }
+
+  removeActiveTab(){
+    const tab = document.getElementById('Employee360Tab').querySelector('.nav-link.active');
+    tab?.classList.remove('active');
+  }
+
+  setActiveTab(){
+    const tab = document.getElementById('Employee360Tab').querySelector('.nav-link');
+    tab.classList.add('active');
+    let activeRouteLink = tab.getAttribute('routerLink');
+  }
 
 }

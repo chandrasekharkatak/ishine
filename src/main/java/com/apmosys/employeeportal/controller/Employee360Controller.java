@@ -35,9 +35,32 @@ public class Employee360Controller {
 	
 	@RequestMapping(value = "/get360TimesheetDetails", method = RequestMethod.GET)
 	public ServiceResponse get360TimesheetDetails(@RequestParam String status, @RequestParam long empId,
-			@RequestParam long projectId,@RequestParam String teamName,@RequestParam long managerId) {
+			@RequestParam long projectId,@RequestParam String teamName,@RequestParam(required = false) long managerId,
+	        @RequestParam(required = false) String startDate,
+	        @RequestParam(required = false) String endDate 
+			) {
+//			startDate = null;
 
-		ServiceResponse response = employee360Service.get360TimesheetDetails(status,empId,projectId,teamName,managerId);
+		 if (startDate == null || startDate.isEmpty()) {
+		        System.out.println("startDate is null or undefined");
+		    } else {
+		        System.out.println("Start Date: " + startDate);
+		    }
+
+		    if (endDate == null || endDate.isEmpty()) {
+		        System.out.println("endDate is null or undefined");
+		    } else {
+		        System.out.println("End Date: " + endDate);
+		    }
+		    
+		ServiceResponse response = employee360Service.get360TimesheetDetails(status,empId,projectId,teamName,managerId,startDate,endDate);
+		return response;
+	}
+	
+	@RequestMapping(value = "/updateStatus", method = RequestMethod.GET)
+	public ServiceResponse updateStatus(@RequestParam String status, @RequestParam long empId,@RequestParam String date) {
+
+		ServiceResponse response = employee360Service.updateStatus(status,empId,date);
 		return response;
 	}
 

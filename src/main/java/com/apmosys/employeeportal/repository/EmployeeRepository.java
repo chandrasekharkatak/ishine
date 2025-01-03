@@ -277,60 +277,36 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 				+ "INNER JOIN department d ON d.dept_id=jr.dept_id \n"
 				+ "WHERE (e.manager_id = :empId OR e.reporting_manager_id= :empId) AND e.employmentstatus != 'InActive' GROUP BY d.name")
 	public List<Object[]> findDepartmentsByReporties(Long empId);
-	
-	
-	@Query(nativeQuery = true, value =
-		    "select et.description,p.project_id, a.activity_id,\n"
-		    + "    e.name, et.date, et.day_type,\n"
-		    + "    et.office_in_time, et.office_out_time, et.total_working_hours, et.is_night_shift, \n"
-		    + "    et.status, et.created_on,\n"
-		    + "    a.activity,\n"
-		    + "    p.project_name,t.team_name   \n"
-		    + "from employee_timesheets et \n"
-		    + "INNER JOIN employee e ON et.created_by = e.emp_id\n"
-		    + "inner join employee_timesheet_activities_mapping etam on et.timesheet_id = etam.timesheet_id\n"
-		    + "inner join activities a on a.activity_id = etam.activity_id\n"
-		    + "INNER JOIN teams t ON t.team_id = a.team_id \n"
-		    + " INNER JOIN projects p ON p.project_id = t.project_id\n"
-		    + "WHERE et.status = :status "
-		    + "and  et.emp_id=:empId")
-		List<Object[]> getTimesheetDataByEmpId(@Param("status") String status,@Param("empId")long empId);
-		
-		@Query(nativeQuery = true, value =
-				"select et.description,et.emp_id, a.activity_id,\n"
-					    + "    e.name, et.date, et.day_type,\n"
-					    + "    et.office_in_time, et.office_out_time, et.total_working_hours, et.is_night_shift, \n"
-					    + "    et.status, et.created_on,\n"
-					    + "    a.activity,\n"
-					    + "    p.project_name,t.team_name   \n"
-					    + "from employee_timesheets et \n"
-					    + "INNER JOIN employee e ON et.created_by = e.emp_id\n"
-					    + "inner join employee_timesheet_activities_mapping etam on et.timesheet_id = etam.timesheet_id\n"
-					    + "inner join activities a on a.activity_id = etam.activity_id\n"
-					    + "INNER JOIN teams t ON t.team_id = a.team_id \n"
-					    + " INNER JOIN projects p ON p.project_id = t.project_id\n"
-					    + "WHERE et.status = :status "
-					    + "and  p.project_id=:projectId "
-					    + "and et.current_manager_id=:managerId")
-			List<Object[]> getTimesheetDataByProjectId(@Param("status") String status,@Param("projectId")long projectId,@Param("managerId")long managerId);
-			
-			@Query(nativeQuery = true, value =
-					"select et.description,et.emp_id, a.activity_id,\n"
-						    + "    e.name, et.date, et.day_type,\n"
-						    + "    et.office_in_time, et.office_out_time, et.total_working_hours, et.is_night_shift, \n"
-						    + "    et.status, et.created_on,\n"
-						    + "    a.activity,\n"
-						    + "    p.project_name   \n"
-						    + "from employee_timesheets et \n"
-						    + "INNER JOIN employee e ON et.created_by = e.emp_id\n"
-						    + "inner join employee_timesheet_activities_mapping etam on et.timesheet_id = etam.timesheet_id\n"
-						    + "inner join activities a on a.activity_id = etam.activity_id\n"
-						    + "INNER JOIN teams t ON t.team_id = a.team_id \n"
-						    + " INNER JOIN projects p ON p.project_id = t.project_id\n"
-						    + "WHERE et.status = :status "
-						    + "and t.team_name=:teamName "
-						    + "and et.current_manager_id=:managerId")
-				List<Object[]> getTimesheetDataByTeamName(@Param("status") String status,@Param("teamName")String teamName,@Param("managerId")long managerId);
-	
-	
+				
+				
+		@Query(nativeQuery = true, value = "SELECT et.description, p.project_id, a.activity_id, " +
+				            "e.name, et.date, et.day_type, " +
+				            "et.office_in_time, et.office_out_time, et.total_working_hours, et.is_night_shift, " +
+				            "et.status, et.created_on, " +
+				            "a.activity, " +
+				            "p.project_name, t.team_name,et.remarks " +
+				            "FROM employee_timesheets et " +
+				            "INNER JOIN employee e ON et.created_by = e.emp_id " +
+				            "INNER JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id " +
+				            "INNER JOIN activities a ON a.activity_id = etam.activity_id " +
+				            "INNER JOIN teams t ON t.team_id = a.team_id " +
+				            "INNER JOIN projects p ON p.project_id = t.project_id " +
+				            "WHERE et.status = :status " +
+				            "AND (:empId = 0 OR et.emp_id = :empId) " +
+				            "AND (:projectId = 0 OR p.project_id = :projectId) " +
+				            "AND (:teamName IS NULL OR t.team_name = :teamName) " +
+				            "AND (:managerId = 0 OR et.current_manager_id = :managerId) " +
+				            "AND ((:startDate IS NULL OR :endDate IS NULL) OR (et.date BETWEEN :startDate AND :endDate))")
+				    List<Object[]> getDynamicTimesheetData(
+				            @Param("status") String status,
+				            @Param("empId") long empId,
+				            @Param("projectId") long projectId,
+				            @Param("teamName") String teamName,
+				            @Param("managerId") Long managerId,
+				            @Param("startDate") LocalDate startDate,
+				            @Param("endDate") LocalDate endDate
+				    );
+
+				
+
 }
