@@ -42,17 +42,17 @@ export class Employee360TimesheetComponent implements OnInit {
   projectName:any;
   teamName:any="null";
   empId:any=0;
-  empIdd:any;
+  empIdd:any=0;
   projectId:any=0;
   currentUser:any;
   time;
-  managerId:any;
+  managerId:any=0;
   endDate:any ;
   startDate:any ;
   scrollStrategy: ScrollStrategy;
   data  :Timesheet [] = [];
-  formattedStartDate:any;
-  formattedEndDate: any;
+  formattedStartDate:any="null";
+  formattedEndDate: any="null";
   allSelected: any;
   dateTimeRange: any = null;
   todayDate: Date = new Date();
@@ -60,9 +60,6 @@ export class Employee360TimesheetComponent implements OnInit {
   mainRowSpam:any ;
   result:any [] = [];
   responseCount:any;
-
-  // Sub-headers
-  isPending: boolean = false;
 
   //Bulk approve-reject
   isSelectAll: boolean = false;
@@ -80,7 +77,7 @@ export class Employee360TimesheetComponent implements OnInit {
     private modalService: BsModalService,
     private router: Router,
     private breadcrumbService: BreadcrumbService
-  ) {this.breadcrumbService.currentBreadcrumb.subscribe(x => this.breadcrumbUrl = x);
+  ) {
     
    }
   modalRef: BsModalRef = new BsModalRef();
@@ -88,26 +85,20 @@ export class Employee360TimesheetComponent implements OnInit {
   header:String="";
   // allSelected: any;
   empIds:[];
-  breadcrumbUrl:any[] = [];
-
-  // constructor(
-  //   private employee360Service : Employee360Service,
-  //   private timesheetService : TimesheetService,
-  //   private modalService: BsModalService,
-  //   private router: Router ) {}
-
+  currentBreadcrumbList: any[] = [];
+  
   ngOnInit(): void {
-      
-    let findbreadcrumbObject = this.breadcrumbUrl.findIndex(x => x.title == "Timesheet");
+    let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title == "Timesheet");
     if (findbreadcrumbObject >= 0) {
-      this.breadcrumbUrl.splice(findbreadcrumbObject + 1);
-      this.breadcrumbService.setBreadcrumbSubject(this.breadcrumbUrl);
+      this.currentBreadcrumbList.splice(findbreadcrumbObject + 1);
+      this.breadcrumbService.setBreadcrumbSubject(this.currentBreadcrumbList);
     }else{
       let breadcrumbObject = new Breadcrumb();
       breadcrumbObject.title = "Timesheet";
       breadcrumbObject.url = "/employee-360/timesheet";
       this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
+
 
     this.activeButton = 'Pending';
     this.currentUser=sessionStorage.getItem('currentUser');
@@ -128,6 +119,7 @@ export class Employee360TimesheetComponent implements OnInit {
 
   setActiveButton(button: string): void {
     this.activeButton = button;
+    this.empIdd=240065;
     
     if(this.activeButton !=='Calendar'){
       this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
@@ -336,12 +328,14 @@ export class Employee360TimesheetComponent implements OnInit {
   }
   
 
-  loading: boolean = false; // Add a loading flag
+loading: boolean = false; 
 
 updateStatus(status: string, empId: number, date: string) {
   if (this.loading) return; 
   this.loading = true; 
+
   status = "Pending";
+
   this.employee360Service.updateStatus(status, empId, date).pipe(first()).subscribe(
     (response: any) => {
       this.loading = false; 
@@ -386,16 +380,16 @@ updateStatus(status: string, empId: number, date: string) {
     this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
   }
 
-  // let transformedTimeSheet = [];
+  
 
-    get360TimesheetDetails(activeButton:string,empId:number,projectId:number,teamName:string,managerId:number,formattedStartDate:string,formattedEndDate:string) {
+  get360TimesheetDetails(activeButton:string,empId:number,projectId:number,teamName:string,managerId:number,formattedStartDate:string,formattedEndDate:string) {
       console.log(this.activeButton);
       this.employee360Service.get360TimesheetDetails(activeButton,empId,projectId,teamName,managerId,formattedStartDate,formattedEndDate).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus === "Success") {
+              console.log("=> serviceResponse", response.serviceResponse);
               this.data = response.serviceResponse;
-              this.data = Object.values(this.data); 
-              this.responseCount=this.data.length;
-
+              this.data = Object.values(this.data);
+              this.responseCount=this.data.length; 
               const activityCounts: number[] = [];
 
               // Iterate over employee data
@@ -419,20 +413,7 @@ updateStatus(status: string, empId: number, date: string) {
   }
 
   
-// console.log(transformedTimeSheet);
-
- 
-
-
-  // selectedOption: number = 1;  // Default option is "All"
-  
-  // Variables for date range
-  // startDate: Date | null = null;
-  // endDate: Date | null = null;
-  // activeButton: string = 'Pending';
-
   onChangeOption(arg: any) {
-    // this.dateTimeRange = null;
     if (arg == 1) {
       // Handle "All"
       this.startDate = null;
@@ -477,7 +458,7 @@ updateStatus(status: string, empId: number, date: string) {
       this.startDate = fromDate;
       this.endDate = toDate;
   
-      // Your logic to filter data based on the selected range
+      // logic to filter data based on the selected range
       this.setDate();
     }
   }
@@ -511,113 +492,6 @@ updateStatus(status: string, empId: number, date: string) {
     let activeRouteLink = tab.getAttribute('routerLink');
   }
 
-
-  //Bulk Approve-Reject
-
-  selectAll(event) {
-    this.bulkApprove = [];
-    this.bulkReject = [];
-
-    const checkboxes = document.querySelectorAll('.item-req-checkbox');
-    checkboxes.forEach((checkbox: any) => {
-      console.log("checkbox : ", checkbox);
-      let checkboxIndex = checkbox.getAttribute('id');
-      let checkedTimesheet = this.allTeamTimesheetRequests.find((item, index) => item.checkId == checkboxIndex);
-
-      if (event.target.checked) {
-        checkbox.checked = true;
-        this.bulkApprove.push(checkedTimesheet);
-        this.bulkReject.push(checkedTimesheet);
-      } else {
-        checkbox.checked = false;
-        this.bulkApprove.forEach((timesheet, index) => {
-          if (timesheet == checkedTimesheet) this.bulkApprove.splice(index, 1);
-        });
-        this.bulkReject.forEach((timesheet, index) => {
-          if (timesheet == checkedTimesheet) this.bulkReject.splice(index, 1);
-        });
-      }
-    });
-  }
-
-  select(timesheetObj, event) {
-    console.log("clicked on : ", timesheetObj);
-    if (event.target.checked) {
-      event.target.classList.add('checked');
-      this.bulkApprove.push(timesheetObj);
-      this.bulkReject.push(timesheetObj);
-    } else {
-      event.target.classList.remove('checked');
-      const checkboxes = document.querySelectorAll('.timesheet-req-checkbox');
-      if (checkboxes.length !== this.responseCount) this.isSelectAll = false
-      this.bulkApprove.forEach((timesheet, index) => {
-        if (timesheet == timesheetObj) this.bulkApprove.splice(index, 1);
-      });
-      this.bulkReject.forEach((timesheet, index) => {
-        if (timesheet == timesheetObj) this.bulkReject.splice(index, 1);
-      });
-    }
-    console.log("=>>>this.bulkApprove+++"+this.bulkApprove.length);
-    console.log("=>>>this.bulkReject+++"+this.bulkReject.length);
-    console.log("Updated Bulk List : ", this.bulkApprove);
-  }
-
-  /* Approve / Reject Timesheet requests */
-  updateTimesheetRequestById( timesheet: Timesheet, status: any) {
-    let timesheetObj = Object.assign({}, timesheet);
-    // timesheetObj.status = status;
-    timesheetObj.status = "Pending";
-    timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
-    timesheetObj.employeementId = timesheetObj.empId;
-    timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
-    // timesheetObj.timesheetId=timesheetObj.timesheetId;
-
-    this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.alertMessage = response.serviceResponse;
-        this.showModal = true;
-        if (this.modalRef) {
-          this.modalRef.hide();
-          this.modalRef = null;
-        }
-
-        this.modalRef = this.modalService.show(this.alertModal, {
-          keyboard: false,
-          class: 'modal-sm',
-        });
-      } else {
-        this.alertMessage = response.serviceResponse;
-        this.showModal = true;
-      }
-    });
-  }
-  // updateTimesheetRequestById(status: any) {
-  //   let timesheetObj = Object.assign({},this.bulkApprove);
-  //   // timesheetObj.status = status;
-  //   timesheetObj.status = "Pending";
-  //   timesheetObj.timesheetStatusUpdatedBy = this.managerId;
-  //   timesheetObj.employeementId = this.bulkApprove[0].empIdd;
-  //   timesheetObj.timesheetId=this.bulkApprove[0].timesheetId
-    
-  //   this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
-  //     if (response.serviceStatus == "Success") {
-  //       this.alertMessage = response.serviceResponse;
-  //       this.showModal = true;
-  //       if (this.modalRef) {
-  //         this.modalRef.hide();
-  //         this.modalRef = null;
-  //       }
-
-  //       this.modalRef = this.modalService.show(this.alertModal, {keyboard: false, class: 'modal-sm',});
-  //     } else {
-  //       this.alertMessage = response.serviceResponse;
-  //       this.showModal = true;
-  //     }
-  //   });
-  // }
-
-  
-
 transformData(originalData: any ) {
   let transformedData = [];
 
@@ -633,7 +507,7 @@ transformData(originalData: any ) {
         transformedData.push({
           empId: employee.empId,
           name: employee.name,
-          date: employee.date,  // Maintained date
+          date: employee.date, 
           officeInTime: employee.officeInTime,
           officeOutTime: employee.officeOutTime,
           totalWorkingHours: employee.totalWorkingHours,
@@ -660,6 +534,86 @@ transformData(originalData: any ) {
   });
 
   return transformedData;
+}
+
+//Bulk Approve-Reject
+
+selectAll(event) {
+  this.bulkApprove = [];
+  this.bulkReject = [];
+
+  const checkboxes = document.querySelectorAll('.item-req-checkbox');
+  checkboxes.forEach((checkbox: any) => {
+    console.log("checkbox : ", checkbox);
+    let checkboxIndex = checkbox.getAttribute('id');
+    let checkedTimesheet = this.allTeamTimesheetRequests.find((item, index) => item.checkId == checkboxIndex);
+
+    if (event.target.checked) {
+      checkbox.checked = true;
+      this.bulkApprove.push(checkedTimesheet);
+      this.bulkReject.push(checkedTimesheet);
+    } else {
+      checkbox.checked = false;
+      this.bulkApprove.forEach((timesheet, index) => {
+        if (timesheet == checkedTimesheet) this.bulkApprove.splice(index, 1);
+      });
+      this.bulkReject.forEach((timesheet, index) => {
+        if (timesheet == checkedTimesheet) this.bulkReject.splice(index, 1);
+      });
+    }
+  });
+}
+
+select(timesheetObj, event) {
+  console.log("clicked on : ", timesheetObj);
+  if (event.target.checked) {
+    event.target.classList.add('checked');
+    this.bulkApprove.push(timesheetObj);
+    this.bulkReject.push(timesheetObj);
+  } else {
+    event.target.classList.remove('checked');
+    const checkboxes = document.querySelectorAll('.timesheet-req-checkbox');
+    if (checkboxes.length !== this.responseCount) this.isSelectAll = false
+    this.bulkApprove.forEach((timesheet, index) => {
+      if (timesheet == timesheetObj) this.bulkApprove.splice(index, 1);
+    });
+    this.bulkReject.forEach((timesheet, index) => {
+      if (timesheet == timesheetObj) this.bulkReject.splice(index, 1);
+    });
+  }
+  console.log("=>>>this.bulkApprove+++"+this.bulkApprove.length);
+  console.log("=>>>this.bulkReject+++"+this.bulkReject.length);
+  console.log("Updated Bulk List : ", this.bulkApprove);
+}
+
+/* Approve / Reject Timesheet requests */
+updateTimesheetRequestById( timesheet: Timesheet, status: any) {
+  let timesheetObj = Object.assign({}, timesheet);
+  // timesheetObj.status = status;
+  timesheetObj.status = "Pending";
+  timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
+  timesheetObj.employeementId = timesheetObj.empId;
+  timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
+  // timesheetObj.timesheetId=timesheetObj.timesheetId;
+
+  this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      this.alertMessage = response.serviceResponse;
+      this.showModal = true;
+      if (this.modalRef) {
+        this.modalRef.hide();
+        this.modalRef = null;
+      }
+
+      this.modalRef = this.modalService.show(this.alertModal, {
+        keyboard: false,
+        class: 'modal-sm',
+      });
+    } else {
+      this.alertMessage = response.serviceResponse;
+      this.showModal = true;
+    }
+  });
 }
 
 }

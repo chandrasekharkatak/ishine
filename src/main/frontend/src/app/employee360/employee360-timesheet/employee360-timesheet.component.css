@@ -20,36 +20,25 @@
 } */
 
 /* Pending buttons - Approve and Reject */
-.approve-button {
-  background-color: #4CAF50; /* Green */
+/* .approve-button {
+  background-color: #4CAF50; 
   color: white;
-}
+} */
 
-.approve-button:hover {
+/* .approve-button:hover {
   background-color: #45a049;
   transform: scale(1.05);
-}
+} */
 
-.reject-button {
-  background-color: #f44336; /* Red */
+/* .reject-button {
+  background-color: #f44336; 
   color: white;
-}
+} */
 
-.reject-button:hover {
+/* .reject-button:hover {
   background-color: #e53935;
   transform: scale(1.05);
-}
-
-/* Revoke button when not in Pending state */
-.revoke-button {
-  background-color: #ff9800; /* Orange */
-  color: white;
-}
-
-.revoke-button:hover {
-  background-color: #fb8c00;
-  transform: scale(1.05);
-}
+} */
 
 /* Ok button */
 .ok-button {

@@ -1,25 +1,76 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 
-import { BreadcrumbComponent } from './breadcrumb.component';
+@Component({
+  selector: 'app-breadcrumb',
+  templateUrl: './breadcrumb.component.html',
+  styleUrls: ['./breadcrumb.component.css']
+})
+export class BreadcrumbComponent implements OnInit {
 
-describe('BreadcrumbComponent', () => {
-  let component: BreadcrumbComponent;
-  let fixture: ComponentFixture<BreadcrumbComponent>;
+  //Boolean 
+  isEmployee360Module: boolean = false;
+  private unsubscribe$ = new Subject<void>();
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      declarations: [ BreadcrumbComponent ]
-    })
-    .compileComponents();
-  });
+  breadcrumbList:any[] = [];
+  displayedBreadcrumbs:any[] = [];
 
-  beforeEach(() => {
-    fixture = TestBed.createComponent(BreadcrumbComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+  constructor(
+    private router: Router,
+    private breadcrumbService: BreadcrumbService
+  ) { }
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-});
+  ngOnInit(): void {
+    this.breadcrumbService.currentBreadcrumb.pipe(takeUntil(this.unsubscribe$))
+    .subscribe(breadcrumbs => {
+
+      console.log(breadcrumbs , " : breadcrumbs ====");
+
+      if(breadcrumbs != undefined){
+        this.breadcrumbList = breadcrumbs;
+        if (this.breadcrumbList.length > 10) {
+          const lastItems = this.breadcrumbList.slice(-5);
+          this.displayedBreadcrumbs = [
+            this.breadcrumbList[0],
+            { title: '...', url: '', subtab: '', object: {} },
+            ...lastItems
+          ];
+        } else {
+          this.displayedBreadcrumbs = [...this.breadcrumbList];
+        }
+      }else{
+        this.breadcrumbList = [
+          {
+            "title": "Home",
+            "url": "/home",
+            "subtab": "",
+            "object": {
+              }
+          }
+        ];
+      }
+    });
+
+    // this.updateDisplayedBreadcrumbs();
+    this.breadcrumbService.setBreadcrumbSubject(this.breadcrumbList);
+    if(this.breadcrumbList.length > 1){
+      this.isEmployee360Module = true;
+    }
+  }
+
+  navigateToSelectedTab(module: any, index: any){
+    this.breadcrumbList.splice(index + 1);
+    this.breadcrumbService.setBreadcrumbSubject(this.breadcrumbList);
+
+    this.displayedBreadcrumbs = [...this.breadcrumbList];
+    this.router.navigate([module.url], { queryParams: { }});
+
+    if(index == 0 && module.title == "Exit Employee 360"){
+      this.isEmployee360Module = false;
+    }
+  }
+
+}
