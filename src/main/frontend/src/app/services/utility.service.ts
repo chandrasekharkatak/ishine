@@ -9,6 +9,7 @@ import { environment } from 'src/environments/environment';
 export class UtilityService {
 
   private baseUrl:any = environment.baseUrl;
+  private employee360ViewUser: boolean = false;
 
   constructor(private http: HttpClient) { }
 
@@ -126,6 +127,14 @@ export class UtilityService {
 
   getCustomQueryData(query: Query) {
     return this.http.post(`${this.baseUrl}` + `api/getCustomQueryData`, query);
+  }
+
+  setEmployee360ViewAccess(hasAccess: boolean): void {
+    this.employee360ViewUser = hasAccess;
+  }
+
+  getEmployee360ViewAccess(): boolean {
+    return this.employee360ViewUser;
   }
 
 }
