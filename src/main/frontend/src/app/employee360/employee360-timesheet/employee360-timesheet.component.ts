@@ -51,6 +51,19 @@ export class Employee360TimesheetComponent implements OnInit {
   dateTimeRange: any = null;
   todayDate: Date = new Date();
   breadcrumbs:any;
+  responseCount:any;
+
+  // Sub-headers
+  isPending: boolean = false;
+
+  //Bulk approve-reject
+  isSelectAll: boolean = false;
+  isSelect: boolean = false;
+  bulkApprove: any = [];
+  bulkReject: any = [];
+  bulkTeamLeaveApprove:any=[];
+  bulkTeamLeaveReject:any=[];
+  allTeamTimesheetRequests: Timesheet[] = [];
   
   constructor(
     private employee360Service : Employee360Service,
@@ -59,23 +72,28 @@ export class Employee360TimesheetComponent implements OnInit {
     private modalService: BsModalService,
     private router: Router,
     private breadcrumbService: BreadcrumbService
-  ) {}
+  ) {this.breadcrumbService.currentBreadcrumb.subscribe(x => this.breadcrumbUrl = x);}
 
   modalRef: BsModalRef = new BsModalRef();
   isProjectTeamClicked:boolean=false;
   header:String="";
   // allSelected: any;
   empIds:[];
-  breadcrumbUrl:any;
+  breadcrumbUrl:any[] = [];
 
 
   ngOnInit(): void {
-    console.log("timesheet breadcrumb:"+sessionStorage.getItem('breadcrumb'));
-    this.breadcrumbUrl=sessionStorage.getItem('breadcrumb');
-    let breadcrumbObject = new Breadcrumb();
-    breadcrumbObject.title = "Timesheet";
-    breadcrumbObject.url = this.breadcrumbUrl+"/timesheet";
-    this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
+      
+    let findbreadcrumbObject = this.breadcrumbUrl.findIndex(x => x.title == "Timesheet");
+    if (findbreadcrumbObject >= 0) {
+      this.breadcrumbUrl.splice(findbreadcrumbObject + 1);
+      this.breadcrumbService.setBreadcrumbSubject(this.breadcrumbUrl);
+    }else{
+      let breadcrumbObject = new Breadcrumb();
+      breadcrumbObject.title = "Timesheet";
+      breadcrumbObject.url = "/employee-360/timesheet";
+      this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
+    }
 
     this.activeButton = 'Pending';
     this.currentUser=sessionStorage.getItem('currentUser');
@@ -297,53 +315,19 @@ export class Employee360TimesheetComponent implements OnInit {
     this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
   }
   
-  // updateStatus(status: string, empId: number, date: string) {
-  //   status = "Pending";
-
-  //   this.employee360Service.updateStatus(status, empId, date).pipe(first()).subscribe(
-  //     (response: any) => {
-  //       if (response.serviceStatus === "Success") {
-  //         console.log("=> serviceResponse", response.serviceResponse);
-  //         this.alertMessage = response.serviceResponse; 
-  //         this.showModal = true; 
-  //         setTimeout(() => {
-  //           console.log("this.alertModal"+ this.alertModal);
-  //           // this.modalRef=this.modalService.show(this.alertModal,{ class: 'modal-sm' })
-  //           this.modalRef=this.modalService.show(this.alertModal,{ keyboard: false,class: 'modal-sm' })
-  //           console.log('hello');
-            
-  //         }, 0);
-          
-  //       } else {
-  //         this.alertMessage = response.serviceResponse; 
-  //         this.showModal = true; 
-  //       }
-  //     },
-  //     (error) => {
-  //       console.error("Error occurred:", error);
-  //       this.alertMessage ="Error";
-  //       this.showModal = true; 
-  //     }
-  //   );
-  // }
-
-  loading: boolean = false; // Add a loading flag
+loading: boolean = false; 
 
 updateStatus(status: string, empId: number, date: string) {
-  if (this.loading) return; // Prevent duplicate calls
-  this.loading = true; // Set loading to true
-
+  if (this.loading) return; 
+  this.loading = true; 
   status = "Pending";
-
   this.employee360Service.updateStatus(status, empId, date).pipe(first()).subscribe(
     (response: any) => {
-      this.loading = false; // Reset loading on response
+      this.loading = false; 
 
       if (response.serviceStatus === "Success") {
         this.alertMessage = response.serviceResponse;
         this.showModal = true;
-
-        // Properly manage modal service
         if (this.modalRef) {
           this.modalRef.hide();
           this.modalRef = null;
@@ -359,7 +343,7 @@ updateStatus(status: string, empId: number, date: string) {
       }
     },
     (error) => {
-      this.loading = false; // Reset loading on error
+      this.loading = false; 
       console.error("Error occurred:", error);
       this.alertMessage = "Error occurred while updating status.";
       this.showModal = true;
@@ -367,16 +351,10 @@ updateStatus(status: string, empId: number, date: string) {
   );
 }
 
-
-  // cancelRequest() {
-  //   // Hide the modal
-  //   this.showModal = false;
-  // }
-
   cancelRequest() {
-    this.showModal = false; // Hide the modal
+    this.showModal = false; 
     if (this.modalRef) {
-      this.modalRef.hide(); // Properly hide the modal
+      this.modalRef.hide(); 
       this.modalRef = null;
     }
   }
@@ -391,10 +369,9 @@ updateStatus(status: string, empId: number, date: string) {
       console.log(this.activeButton);
       this.employee360Service.get360TimesheetDetails(activeButton,empId,projectId,teamName,managerId,formattedStartDate,formattedEndDate).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus === "Success") {
-              console.log("=> serviceResponse", response.serviceResponse);
               this.data = response.serviceResponse;
               this.data = Object.values(this.data); 
-              console.log("=> transformed data", this.data);
+              this.responseCount=this.data.length;
           }
       });
   }
@@ -477,5 +454,112 @@ updateStatus(status: string, empId: number, date: string) {
     tab.classList.add('active');
     let activeRouteLink = tab.getAttribute('routerLink');
   }
+
+
+  //Bulk Approve-Reject
+
+  selectAll(event) {
+    this.bulkApprove = [];
+    this.bulkReject = [];
+
+    const checkboxes = document.querySelectorAll('.item-req-checkbox');
+    checkboxes.forEach((checkbox: any) => {
+      console.log("checkbox : ", checkbox);
+      let checkboxIndex = checkbox.getAttribute('id');
+      let checkedTimesheet = this.allTeamTimesheetRequests.find((item, index) => item.checkId == checkboxIndex);
+
+      if (event.target.checked) {
+        checkbox.checked = true;
+        this.bulkApprove.push(checkedTimesheet);
+        this.bulkReject.push(checkedTimesheet);
+      } else {
+        checkbox.checked = false;
+        this.bulkApprove.forEach((timesheet, index) => {
+          if (timesheet == checkedTimesheet) this.bulkApprove.splice(index, 1);
+        });
+        this.bulkReject.forEach((timesheet, index) => {
+          if (timesheet == checkedTimesheet) this.bulkReject.splice(index, 1);
+        });
+      }
+    });
+  }
+
+  select(timesheetObj, event) {
+    console.log("clicked on : ", timesheetObj);
+    if (event.target.checked) {
+      event.target.classList.add('checked');
+      this.bulkApprove.push(timesheetObj);
+      this.bulkReject.push(timesheetObj);
+    } else {
+      event.target.classList.remove('checked');
+      const checkboxes = document.querySelectorAll('.timesheet-req-checkbox');
+      if (checkboxes.length !== this.responseCount) this.isSelectAll = false
+      this.bulkApprove.forEach((timesheet, index) => {
+        if (timesheet == timesheetObj) this.bulkApprove.splice(index, 1);
+      });
+      this.bulkReject.forEach((timesheet, index) => {
+        if (timesheet == timesheetObj) this.bulkReject.splice(index, 1);
+      });
+    }
+    console.log("=>>>this.bulkApprove+++"+this.bulkApprove.length);
+    console.log("=>>>this.bulkReject+++"+this.bulkReject.length);
+    console.log("Updated Bulk List : ", this.bulkApprove);
+  }
+
+  /* Approve / Reject Timesheet requests */
+  updateTimesheetRequestById( timesheet: Timesheet, status: any) {
+    let timesheetObj = Object.assign({}, timesheet);
+    // timesheetObj.status = status;
+    timesheetObj.status = "Pending";
+    timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
+    timesheetObj.employeementId = timesheetObj.empId;
+    timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
+    // timesheetObj.timesheetId=timesheetObj.timesheetId;
+
+    this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.alertMessage = response.serviceResponse;
+        this.showModal = true;
+        if (this.modalRef) {
+          this.modalRef.hide();
+          this.modalRef = null;
+        }
+
+        this.modalRef = this.modalService.show(this.alertModal, {
+          keyboard: false,
+          class: 'modal-sm',
+        });
+      } else {
+        this.alertMessage = response.serviceResponse;
+        this.showModal = true;
+      }
+    });
+  }
+  // updateTimesheetRequestById(status: any) {
+  //   let timesheetObj = Object.assign({},this.bulkApprove);
+  //   // timesheetObj.status = status;
+  //   timesheetObj.status = "Pending";
+  //   timesheetObj.timesheetStatusUpdatedBy = this.managerId;
+  //   timesheetObj.employeementId = this.bulkApprove[0].empIdd;
+  //   timesheetObj.timesheetId=this.bulkApprove[0].timesheetId
+    
+  //   this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.alertMessage = response.serviceResponse;
+  //       this.showModal = true;
+  //       if (this.modalRef) {
+  //         this.modalRef.hide();
+  //         this.modalRef = null;
+  //       }
+
+  //       this.modalRef = this.modalService.show(this.alertModal, {keyboard: false, class: 'modal-sm',});
+  //     } else {
+  //       this.alertMessage = response.serviceResponse;
+  //       this.showModal = true;
+  //     }
+  //   });
+  // }
+
+  
 
 }

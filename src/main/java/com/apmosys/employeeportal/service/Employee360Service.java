@@ -226,6 +226,7 @@ public class Employee360Service {
 	                dto.setTotalWorkingHours(row[8] != null ? row[8].toString() : null);
 			        dto.setStatus(row[10] != null ? row[10].toString() : null);
 			        dto.setRemarks(row[15] != null ? row[15].toString() : null);
+			        dto.setTimesheetId(row[16] != null ? Long.parseLong(row[16].toString()) : null);
 			        if (row[11] != null) {
 				           dto.setCreatedOn(((java.sql.Timestamp) row[11]).toLocalDateTime());}
 			        dto.setTimeSheet(new ArrayList<>());
@@ -318,5 +319,6 @@ public class Employee360Service {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+	
 	
 }

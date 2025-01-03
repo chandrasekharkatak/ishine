@@ -7,7 +7,7 @@
 }
 
 /* Common button styles */
-button {
+/* button {
   padding: 10px 20px;
   font-size: 14px;
   font-weight: bold;
@@ -17,7 +17,7 @@ button {
   transition: background-color 0.3s ease, transform 0.3s ease;
   display: inline-block;
   margin: 5px;
-}
+} */
 
 /* Pending buttons - Approve and Reject */
 .approve-button {
@@ -80,29 +80,28 @@ button:active {
 
 .custom-select {
   border-radius: 4px;
-  height: 35px; /* Set your desired height here */
+  height: 35px; 
   width: 100px;
 }
-.custom-select {
+/* .custom-select {
   border-radius: 7px;
   padding-top: 500px; 
-  /* border-radius: 50%; Makes the corners fully circular */
-  height: 35px; /* Set your desired height here */
-  width: 100px; /* Set your desired width here */
-  padding: 0 10px; /* Optional: Add padding for better text alignment */
-  border: 1px solid #ced4da; /* Optional: Add a border for visibility */
-}
-.alert-overlay {
+  height: 35px; 
+  width: 100px; 
+  padding: 0 10px; 
+  border: 1px solid #ced4da; 
+} */
+/* .alert-overlay {
   position: fixed;
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 90%; /* Adjust width as needed */
+  width: 90%; 
   z-index: 1000;
-}
+} */
 
 .alert-content {
-  background-color: #f44336; /* Red background for error */
+  background-color: #f44336;
   color: white;
   padding: 15px;
   border-radius: 5px;
@@ -116,14 +115,14 @@ button:active {
   align-items: center;
 }
 
-.close-button {
+/* .close-button {
   background: none;
   border: none;
   color: white;
   font-size: 16px;
   cursor: pointer;
   margin-left: 10px;
-}
+} */
 
 .back-button {
   position: absolute; /* Position it absolutely */

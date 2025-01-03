@@ -36,6 +36,7 @@ public class Employee360DTO {
 	private String totalWorkingHours;
 	private String status;
 	private String remarks;
+	private Long timesheetId;
 	private LocalDateTime createdOn;
 	private List timeSheet;
 	

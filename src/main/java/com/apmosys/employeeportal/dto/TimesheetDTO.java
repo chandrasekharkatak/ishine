@@ -92,4 +92,6 @@ public class TimesheetDTO {
 	private List<ActivityDTO> inactiveTimesheetActivities;
 	private String isConsultant;
 	private String isApprenticeship;
+	
+	private List<EmployeeTimesheetDto> timeSheet;
 }
