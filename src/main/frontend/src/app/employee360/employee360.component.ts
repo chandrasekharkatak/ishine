@@ -37,7 +37,7 @@ export class Employee360Component implements OnInit {
     private authenticationService: AuthenticationService,
     private router: Router,
     private route: ActivatedRoute,
-    private breadcrumbService: BreadcrumbService
+    private breadcrumbService: BreadcrumbService,
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -87,6 +87,7 @@ export class Employee360Component implements OnInit {
   }
 
   setActiveTab(){
+
     const tab = document.getElementById('Employee360Tab').querySelector('.nav-link');
     //console.log(tab);
 

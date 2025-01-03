@@ -19,6 +19,7 @@ export class NavigateToEmployee360Directive {
      this.store=this.data;
 
       let breadcrumbObject = new Breadcrumb();
+      
       breadcrumbObject.title = "Employee 360";
       breadcrumbObject.url = "/employee-360";
       breadcrumbObject.object=this.data;

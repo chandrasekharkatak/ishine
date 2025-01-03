@@ -1,35 +1,35 @@
 package com.apmosys.employeeportal.service;
 
 import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.servlet.http.HttpServletRequest;
 
-import org.hibernate.Session;
 import org.hibernate.Query;
-
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.apmosys.employeeportal.dto.AppreciationDetails;
+import com.apmosys.employeeportal.dto.AppreciationDetailsDTO;
 import com.apmosys.employeeportal.dto.CustomFilterDTO;
-import com.apmosys.employeeportal.dto.DocumentDTO;
+import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeRewardForHomeDTO;
 import com.apmosys.employeeportal.dto.EmployeeRewardsDTO;
+import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
 import com.apmosys.employeeportal.dto.RewardCategoryDTO;
 import com.apmosys.employeeportal.dto.RewardConfigurationDTO;
+import com.apmosys.employeeportal.dto.RewardsDetails;
 import com.apmosys.employeeportal.model.CommonProperties;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeRewards;
@@ -980,6 +980,192 @@ public class RewardsService {
 	    }
 
 	    return serviceResponse;
+	}
+
+//	public RewardsDetails getEmployeeRewardByEmpId(EmployeeRewardsRequest request) {
+//		
+//		List<EmployeeRewardsDTO> rewardlist = null;
+//		
+//		if(request.getEmpId() != null) {
+//			rewardlist = employeeRewardsRepository.getRewardByEmpId(request.getEmpId());
+//		}
+//		RewardsDetails rewardsDetails = new RewardsDetails();
+//		rewardsDetails.setRewardsDTO(rewardlist);
+//		return rewardsDetails;
+//	}
+	public RewardsDetails getEmployeeRewardByEmpId(EmployeeRewardsRequest request) {
+	    List<EmployeeRewardsDTO> rewardList = new ArrayList<>();
+
+	    // Convert String dates to LocalDate
+	    LocalDate fromDate = null;
+	    LocalDate toDate = null;
+
+	    if (request.getFromDate() != null) {
+	        fromDate = LocalDate.parse(request.getFromDate());
+	    }
+	    if (request.getToDate() != null) {
+	        toDate = LocalDate.parse(request.getToDate());
+	    }
+
+	    if (request.getEmpId() != null) {
+	      
+	        List<Object[]> result = employeeRewardsRepository.getRewardByEmpIdWithDateRange(
+	                request.getEmpId(), fromDate, toDate
+	        );
+	        for (Object[] row : result) {
+	           
+	            String rewardTypeName = (String) row[0];
+	            Long rewardedTo = null;
+	            if (row[1] instanceof BigInteger) {
+	                rewardedTo = ((BigInteger) row[1]).longValue();  
+	            } else if (row[1] instanceof Long) {
+	                rewardedTo = (Long) row[1]; 
+	            }
+	            LocalDateTime createdOn = null;
+	            if (row[2] instanceof Timestamp) {
+	                createdOn = ((Timestamp) row[2]).toLocalDateTime();
+	            }
+	            String remark = (String) row[3];
+	            Long updatedBy = null;
+	            if (row[4] != null) {
+	                updatedBy = ((Number) row[4]).longValue();
+	            }
+	            String name = (String) row[5];
+	            EmployeeRewardsDTO dto = new EmployeeRewardsDTO();
+	            dto.setRewardTypeName(rewardTypeName);
+	            dto.setRewardedTo(rewardedTo);
+	            dto.setCreatedOn(createdOn);
+	            dto.setRemark(remark);
+	            dto.setUpdatedBy(updatedBy);
+	            dto.setName(name);
+
+	            // Add DTO to the list
+	            rewardList.add(dto);
+	        }
+	    }
+
+	    // Return rewards details with the list of DTOs
+	    RewardsDetails rewardsDetails = new RewardsDetails();
+	    rewardsDetails.setRewardsDTO(rewardList);
+	    return rewardsDetails;
+	}
+
+
+
+//	public RewardsDetails getTeamRewardByEmpId(EmployeeRewardsRequest request) {
+//	    List<EmployeeRewardsDTO> rewardList = new ArrayList<>();
+//		
+//		// Convert String dates to LocalDate
+//	    LocalDate fromDate = null;
+//	    LocalDate toDate = null;
+//
+//	    if (request.getFromDate() != null) {
+//	        fromDate = LocalDate.parse(request.getFromDate());
+//	    }
+//	    if (request.getToDate() != null) {
+//	        toDate = LocalDate.parse(request.getToDate());
+//	    }
+//	    if (request.getEmpId() != null) {
+//		      
+//	        List<Object[]> result = employeeRewardsRepository.getRewardByTeamAndDateRange(
+//	                request.getEmpId());
+//	        for (Object[] row : result) {
+//	           
+//	            String name = (String) row[0];
+//	            String rewardedTypeName = (String) row[1];
+//	            Long rewardedTo = null;
+//	            if (row[2] instanceof BigInteger) {
+//	                rewardedTo = ((BigInteger) row[2]).longValue();  
+//	            } else if (row[2] instanceof Long) {
+//	                rewardedTo = (Long) row[2]; 
+//	            }
+//	            LocalDateTime createdOn = null;
+//	            if (row[3] instanceof Timestamp) {
+//	                createdOn = ((Timestamp) row[3]).toLocalDateTime();
+//	            }
+//	            Long createdBy = null;
+//	            if (row[4] != null) {
+//	            	createdBy = ((Number) row[4]).longValue();
+//	            }
+//	            Long empId=null;
+//	            if (row[5] != null) {
+//	            	empId = ((Number) row[5]).longValue();
+//	            }
+//	            
+//	            EmployeeRewardsDTO dto = new EmployeeRewardsDTO();
+//	            dto.setName(name);
+//	            dto.setRewardTypeName(rewardedTypeName);
+//	            dto.setRewardedTo(rewardedTo);
+//	            dto.setCreatedOn(createdOn);
+//	            dto.setCreatedBy(createdBy);
+//	            dto.setEmpId(empId);
+//
+//	            // Add DTO to the list
+//	            rewardList.add(dto);
+//	        }
+//	    }
+//
+//		RewardsDetails rewardDetails = new RewardsDetails();
+//		rewardDetails.setRewardsDTO(rewardList);
+//	    return rewardDetails;
+//	}
+	
+	public RewardsDetails getTeamRewardByEmpId(EmployeeRewardsRequest request) {
+	    List<EmployeeRewardsDTO> rewardList = new ArrayList<>();
+
+	    // Convert String dates to LocalDate
+	    LocalDate fromDate = parseDate(request.getFromDate());
+	    LocalDate toDate = parseDate(request.getToDate());
+
+	    if (request.getEmpId() != null) {
+	        List<Object[]> result = employeeRewardsRepository.getRewardByTeamAndDateRange(request.getEmpId());
+
+	        for (Object[] row : result) {
+	            EmployeeRewardsDTO dto = mapRowToDTO(row);
+	            rewardList.add(dto);
+	        }
+	    }
+
+	    RewardsDetails rewardDetails = new RewardsDetails();
+	    rewardDetails.setRewardsDTO(rewardList);
+	    return rewardDetails;
+	}
+
+	private LocalDate parseDate(String date) {
+	    return date != null ? LocalDate.parse(date) : null;
+	}
+
+	private EmployeeRewardsDTO mapRowToDTO(Object[] row) {
+	    EmployeeRewardsDTO dto = new EmployeeRewardsDTO();
+
+	    dto.setName(getStringValue(row[0]));
+	    dto.setRewardTypeName((String) row[1]);
+	    dto.setRewardedTo(getLongValue(row[2]));
+	    dto.setCreatedOn(getLocalDateTime(row[3]));
+	    dto.setCreatedByName(getStringValue(row[4]));
+//	    dto.setEmpId(getLongValue(row[5]));
+
+	    return dto;
+	}
+
+	private Long getLongValue(Object value) {
+	    if (value instanceof BigInteger) {
+	        return ((BigInteger) value).longValue();
+	    } else if (value instanceof Long) {
+	        return (Long) value;
+	    }
+	    return null;
+	}
+	
+	private String getStringValue(Object value) {
+	    return value != null ? value.toString() : null;
+	}
+
+	private LocalDateTime getLocalDateTime(Object value) {
+	    if (value instanceof Timestamp) {
+	        return ((Timestamp) value).toLocalDateTime();
+	    }
+	    return null;
 	}
 
 }

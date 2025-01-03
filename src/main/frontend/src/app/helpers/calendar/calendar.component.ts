@@ -17,6 +17,7 @@ interface CalendarItem {
   workingHours?: number;
   description?: String;
   projectName?:String;
+  activity? : String;
 }
 
 @Component({
@@ -32,6 +33,7 @@ export class CalendarComponent implements OnInit {
   dayDetails:any = {};
   modalRef: BsModalRef = new BsModalRef();
   popupDescription : any;
+  popupActivity: any;
 
   constructor(
     private modalService: BsModalService,
@@ -116,6 +118,9 @@ export class CalendarComponent implements OnInit {
             calendarItem.status = timesheet.status;
             calendarItem.workingHours = timesheet.totalWorkingHours;
             calendarItem.description = timesheet.description;
+            calendarItem.activity = timesheet.activity;
+
+
           }
       });
     });
@@ -166,9 +171,10 @@ export class CalendarComponent implements OnInit {
   //   this.popupDescription = '';
   // }
 
-  onHoverStart(event: MouseEvent, description: any): void {
+  onHoverStart(event: MouseEvent, description: any, activity: any ): void {
     this.isPopupVisible = true;
     this.popupDescription = description;
+    this.popupActivity = activity;
     this.pointerX = event.clientX + 10; // Offset for positioning
     this.pointerY = event.clientY + 10;
 }
@@ -176,6 +182,7 @@ export class CalendarComponent implements OnInit {
 onHoverEnd(): void {
     this.isPopupVisible = false;
     this.popupDescription = '';
+    this.popupActivity = '';
 }
 
 }

@@ -79,8 +79,8 @@
     transform: translate(-50%, -50%);
     animation: fadeIn 0.2s ease-in-out;
     pointer-events: none; /* Prevents popup from interfering with hover */
-    max-width: 200px; /* Limits width for readability */
-    font-size: 12px;
+    max-width: 250px; /* Limits width for readability */
+    font-size: 15px;
 }
 
 @keyframes fadeIn {
@@ -105,5 +105,21 @@
     left: 50%;
     transform: translateX(-50%);
 }
+
+.popup p {
+    margin: 0px 0; /* Adds 8px of vertical space between paragraphs */
+    line-height: 1.5; /* Improves readability by increasing line height */
+    font-size: 14px; /* Ensures text size is legible */
+    color: #333; /* Neutral dark gray text for better visibility */
+}
+
+.popup p:first-child {
+    margin-top: 0; /* Removes unnecessary space above the first paragraph */
+}
+
+.popup p:last-child {
+    margin-bottom: 0; /* Removes unnecessary space below the last paragraph */
+}
+
 
 

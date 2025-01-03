@@ -29,6 +29,7 @@ import { DestinationService } from 'src/app/services/destination.service';
 import { Designation } from 'src/app/models/designation';
 import { LeaveService } from 'src/app/services/leave.service';
 import { Leave } from 'src/app/models/leave';
+import { SharedService } from 'src/app/services/shared.service';
 class FilterData {
   title: any;
   columns: any;
@@ -235,6 +236,7 @@ minDate: Date;
     private domainService:DomainService,
     private destinationService:DestinationService,
     private leaveService : LeaveService,
+    private sharedService : SharedService,
    
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -259,6 +261,7 @@ minDate: Date;
     this.employeeObj.approvalsTo = '';
     this.setYearOfPassingList();
     this.preventBackButton();
+    this.getAllEmployeeList();
   }
 
   preventBackButton(){
@@ -1912,6 +1915,7 @@ minDate: Date;
         // Default Sorting
         this.allEmployeeList = new SortPipe().transform(this.allEmployeeList, ['name','string', 'asc']);
         // this.createEmployeeList(this.allEmployeeList)
+        this.sharedService.updateEmployeeList(this.allEmployeeList);
       } else {
         alert(response.serviceResponse);
       }

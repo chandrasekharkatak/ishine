@@ -1,6 +1,8 @@
 package com.apmosys.employeeportal.model;
 
+import java.sql.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Embedded;
@@ -36,6 +38,11 @@ public class EmployeeRewards {
 	private LocalDate toDate;
 	private Long id;
 	private Long teamId;
+//	@Column(name = "created_on")
+//	private LocalDateTime createdOn;
+//	@Column(name = "updated_by")
+//	private Long updatedBy;
+
 	
 	@Column(length = 1000)
 	private String remark;

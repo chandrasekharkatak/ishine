@@ -34,4 +34,6 @@ public class EmployeeRewardsDTO {
 	private Long categoryId;
 	private Long Id;
 	private LocalDateTime createdOn;
+	private String name;
+	private Long empId;
 }
