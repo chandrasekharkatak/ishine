@@ -9,8 +9,6 @@ import { EmployeeRewarsRequest } from 'src/app/models/employeeRewardRequest';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { User } from 'src/app/models/user';
 import { Router } from '@angular/router';
-import { SharedService } from 'src/app/services/shared.service';
-
 
 @Component({
   selector: 'app-employee360-rewards',
@@ -43,6 +41,8 @@ export class Employee360RewardsComponent implements OnInit {
   selectedYear: number | null = null;
   selectedPeriod: string | null = null;
   employeeList: any[] = [];
+  isTeamTableVisible: boolean = false;
+  matchedEmployees: any[] = [];
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -50,8 +50,12 @@ export class Employee360RewardsComponent implements OnInit {
     private modalService: BsModalService,
     private breadcrumbService: BreadcrumbService,
     private router: Router,
-    private sharedService: SharedService,
   ) {
+    const empData = sessionStorage.getItem('AllEmployees');
+    if (empData) {
+      this.employeeList = JSON.parse(empData);
+      console.log(this.employeeList);
+    }
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
 
@@ -79,10 +83,6 @@ export class Employee360RewardsComponent implements OnInit {
     for (let i = currentYear; i >= currentYear - 10; i--) {
       this.availableYears.push(i);
     }
-    this.sharedService.employeeList$.subscribe((employeeList) => {
-      this.employeeList = employeeList;
-      console.log('Received employee list:', this.employeeList);
-    });
   }
 
   onYearChange(event: Event): void {
@@ -440,8 +440,27 @@ export class Employee360RewardsComponent implements OnInit {
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
   }
 
+  getMatchedEmployee(event: any) {
+    return this.matchedEmployees.find(employee => employee.empId === event.rewardedTo);
+  }
+  
+  showTeamTable(teamName: string): void {
+    console.log(`Showing table for team: ${teamName}`);
+    this.isTeamTableVisible = true;
+    const request = new EmployeeRewarsRequest();
+    request.empId = this.currentEmpId;
+    this.rewardsService.getTeamRewardByEmpId(request).subscribe(
+      (response: any) => {
+        this.teamRewardList = response.rewardsDTO;
+        this.getMatchingEmployees();
+        console.log('Team Rewards Details:', response);
+      });
+  }
 
-  matchedEmployees: any[] = [];
+  goBack(): void {
+    this.isTeamTableVisible = false;
+  }
+  
   getMatchingEmployees(): void {
     this.teamRewardList.forEach((empObj: any) => {
       this.employeeList.forEach((listObj: any) => {

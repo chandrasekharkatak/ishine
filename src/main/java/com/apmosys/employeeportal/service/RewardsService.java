@@ -1014,23 +1014,24 @@ public class RewardsService {
 	        );
 	        for (Object[] row : result) {
 	           
-	            String rewardTypeName = (String) row[0];
+	        	String name = row[0].toString();
+	            String rewardTypeName = (String) row[1];
 	            Long rewardedTo = null;
-	            if (row[1] instanceof BigInteger) {
-	                rewardedTo = ((BigInteger) row[1]).longValue();  
+	            if (row[2] instanceof BigInteger) {
+	                rewardedTo = ((BigInteger) row[2]).longValue();  
 	            } else if (row[1] instanceof Long) {
-	                rewardedTo = (Long) row[1]; 
+	                rewardedTo = (Long) row[2]; 
 	            }
 	            LocalDateTime createdOn = null;
-	            if (row[2] instanceof Timestamp) {
-	                createdOn = ((Timestamp) row[2]).toLocalDateTime();
+	            if (row[3] instanceof Timestamp) {
+	                createdOn = ((Timestamp) row[3]).toLocalDateTime();
 	            }
-	            String remark = (String) row[3];
+	            String remark = row[4].toString();
 	            Long updatedBy = null;
-	            if (row[4] != null) {
-	                updatedBy = ((Number) row[4]).longValue();
+	            if (row[5] != null) {
+	                updatedBy = ((Number) row[5]).longValue();
 	            }
-	            String name = (String) row[5];
+	            String teamName = row[6].toString();
 	            EmployeeRewardsDTO dto = new EmployeeRewardsDTO();
 	            dto.setRewardTypeName(rewardTypeName);
 	            dto.setRewardedTo(rewardedTo);
@@ -1038,6 +1039,7 @@ public class RewardsService {
 	            dto.setRemark(remark);
 	            dto.setUpdatedBy(updatedBy);
 	            dto.setName(name);
+	            dto.setTeamName(teamName);
 
 	            // Add DTO to the list
 	            rewardList.add(dto);
@@ -1143,7 +1145,6 @@ public class RewardsService {
 	    dto.setRewardedTo(getLongValue(row[2]));
 	    dto.setCreatedOn(getLocalDateTime(row[3]));
 	    dto.setCreatedByName(getStringValue(row[4]));
-//	    dto.setEmpId(getLongValue(row[5]));
 
 	    return dto;
 	}

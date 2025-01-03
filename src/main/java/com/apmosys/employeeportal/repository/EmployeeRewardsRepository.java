@@ -55,24 +55,16 @@ public interface EmployeeRewardsRepository extends JpaRepository <EmployeeReward
 			nativeQuery = true)
 	 List<EmployeeRewardsDTO> getRewardByEmpId(Long empId);
 	
-	@Query(value = "SELECT " +
-            "    er.reward_type_name, " +
-            "    er.rewarded_to, " +
-            "    er.created_on, " +
-            "    er.remark, " +
-            "    e.updated_by, " +
-            "    e.name " +
-            "FROM " +
-            "    employee_rewards er " +
-            "INNER JOIN " +
-            "    employee e ON e.emp_id = er.rewarded_to " +
-            "WHERE er.rewarded_to = :empId " +
-            "  AND (:fromDate IS NULL OR er.from_date >= :fromDate) " +
-            "  AND (:toDate IS NULL OR er.to_date <= :toDate)", 
-    nativeQuery = true)
-	List<Object[]> getRewardByEmpIdWithDateRange(@Param("empId") Long empId, 
-                                                    @Param("fromDate") LocalDate fromDate, 
-                                                    @Param("toDate") LocalDate toDate);
+	@Query(value = "SELECT \n" +
+            "e.name, er.reward_type_name, er.rewarded_to, er.created_on, er.remark, e.updated_by, t.team_name \n" +
+            "FROM employee_rewards er \n" +
+            "INNER JOIN employee e ON e.emp_id = er.rewarded_to \n" +
+            "INNER JOIN employee_team_mapping etm ON etm.emp_id = er.rewarded_to \n" +
+            "INNER JOIN teams t ON t.team_id = etm.team_id \n" +
+            "WHERE er.rewarded_to = :empId \n" +
+            "AND (:fromDate IS NULL OR er.from_date >= :fromDate) \n" +
+            "AND (:toDate IS NULL OR er.to_date <= :toDate)", nativeQuery = true)
+	List<Object[]> getRewardByEmpIdWithDateRange(@Param("empId") Long empId, @Param("fromDate") LocalDate fromDate, @Param("toDate") LocalDate toDate);
 	
 //	@Query(value = "SELECT " +
 //            "    e.name, " +

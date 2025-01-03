@@ -30,6 +30,7 @@ import { Designation } from 'src/app/models/designation';
 import { LeaveService } from 'src/app/services/leave.service';
 import { Leave } from 'src/app/models/leave';
 import { SharedService } from 'src/app/services/shared.service';
+import { Subscription } from 'rxjs';
 class FilterData {
   title: any;
   columns: any;
@@ -216,6 +217,7 @@ minDate: Date;
      'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status',
      'Bank Name', 'Created By', 'State', 'Created On'];
      departmentName: any;
+     private subscription: Subscription = new Subscription();
 
 
   constructor(
@@ -237,7 +239,6 @@ minDate: Date;
     private destinationService:DestinationService,
     private leaveService : LeaveService,
     private sharedService : SharedService,
-   
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -271,7 +272,11 @@ minDate: Date;
     })
   }
 
-
+  ngOnDestroy() {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+  }
   ngAfterViewInit() {
 
   }
@@ -1915,7 +1920,7 @@ minDate: Date;
         // Default Sorting
         this.allEmployeeList = new SortPipe().transform(this.allEmployeeList, ['name','string', 'asc']);
         // this.createEmployeeList(this.allEmployeeList)
-        this.sharedService.updateEmployeeList(this.allEmployeeList);
+        sessionStorage.setItem('AllEmployees',JSON.stringify(this.allEmployeeList));
       } else {
         alert(response.serviceResponse);
       }

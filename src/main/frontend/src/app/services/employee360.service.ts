@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { environment } from 'src/environments/environment';
 import { Timesheet } from '../models/timesheet';
+import { Subject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -10,15 +11,19 @@ import { Timesheet } from '../models/timesheet';
 export class Employee360Service {
 
   private baseUrl:any = environment.baseUrl;
-
+  private navigationSubject = new Subject<void>();
   constructor(
     private router: Router,
     private http: HttpClient
   ) {}
+  getNavigationEvent() {
+    return this.navigationSubject.asObservable();
+  }
 
-  // Navigate to the target route with data
   navigateToEmployee360(data: any) {
-    this.router.navigate(['/employee-360'], { state: { data } });
+    this.router.navigate(['/employee-360/profile'], { state: { data } }).then(() => {
+      this.navigationSubject.next();
+    });
   }
 
   getLeaveDataPerMonthByEmpId(empId: Number) {

@@ -11,9 +11,9 @@
     </select>
   </div>
   <div class="ml-auto">
-    <button class="btn" [ngClass]="{'btn-primary': isTeamAppreciationView, 'btn-success': !isTeamAppreciationView}" 
+    <button class="btn btn-outline-primary btn-sm mx-1"  
     (click)="getTeamAppreciationData()"> 
-    {{ isTeamAppreciationView ? 'Show Individual Data' : 'Show Team Data' }}</button>
+    {{ isTeamAppreciationView ? 'View Employee Appreciation' : 'View Team Appreciation' }}</button>
   </div>
 </div>
 <div class="row-md-6">
@@ -22,7 +22,10 @@
       <tr>
         <th scope="col" class="info-label">Sr No.</th>
         <th scope="col" class="info-label">Appreciation Type</th>
-        <th scope="col" class="info-label">Appreciation By</th>
+        <th scope="col" class="info-label">
+          <span *ngIf="isTeamAppreciationView">Appreciation To</span>
+          <span *ngIf="!isTeamAppreciationView">Appreciation By</span>
+        </th>
         <th scope="col" class="info-label">Appreciation Date</th>
         <th scope="col" class="info-label">From</th>
         <th scope="col" class="info-label">To</th>
@@ -35,7 +38,16 @@
       <tr *ngFor="let event of employee | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
         <th class="info-label">{{ 10 * (page - 1) + i + 1 }}</th>
         <td>{{ event.appreciateType }}</td>
-        <td>{{ event.appreciationByName }}</td>
+        <td *ngIf="isTeamAppreciationView">
+          <span *ngIf="getMatchedEmployee(event)">
+            <a [navigateToEmployee360]="getMatchedEmployee(event)">
+              {{ event.appreciationByName }}
+            </a>
+          </span>
+        </td>
+        <td *ngIf="!isTeamAppreciationView">
+          {{ event.appreciationByName }}
+        </td>
         <td>{{ event.appreciationDate | date: 'short' }}</td>
         <td>{{ event.fromDate }}</td>
         <td>{{ event.toDate }}</td>
