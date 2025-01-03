@@ -35,7 +35,8 @@ public class Employee360DTO {
 	private boolean isNightShift;
 	private String totalWorkingHours;
 	private String status;
+	private String remarks;
 	private LocalDateTime createdOn;
 	private List timeSheet;
-	private String remarks;
+	
 }
