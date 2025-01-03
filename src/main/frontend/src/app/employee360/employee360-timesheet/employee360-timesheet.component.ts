@@ -6,8 +6,13 @@ import { CalendarComponent } from 'src/app/helpers/calendar/calendar.component';
 import { Timesheet } from 'src/app/models/timesheet';
 import { Employee360Service } from 'src/app/services/employee360.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
+import { Modal } from 'bootstrap';
+import { OwlDateTimeComponent } from 'ng-pick-datetime';
 import { ScrollStrategy } from '@angular/cdk/overlay';
 import { DatePipe } from '@angular/common';
+
+
+
 import { Router } from '@angular/router';
 import { Breadcrumb } from 'src/app/models/breadcrumd';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
@@ -23,6 +28,7 @@ export class Employee360TimesheetComponent implements OnInit {
   private thisMonthCalendar: CalendarComponent;
   @ViewChild("lastMonthCal")
   private lastMonthCalendar: CalendarComponent;
+  
   @ViewChild("alertTemplate") alertModal: TemplateRef<any>;
 
   showModal = false;
@@ -51,6 +57,8 @@ export class Employee360TimesheetComponent implements OnInit {
   dateTimeRange: any = null;
   todayDate: Date = new Date();
   breadcrumbs:any;
+  mainRowSpam:any ;
+  result:any [] = [];
   
   constructor(
     private employee360Service : Employee360Service,
@@ -59,8 +67,9 @@ export class Employee360TimesheetComponent implements OnInit {
     private modalService: BsModalService,
     private router: Router,
     private breadcrumbService: BreadcrumbService
-  ) {}
-
+  ) {
+    
+   }
   modalRef: BsModalRef = new BsModalRef();
   isProjectTeamClicked:boolean=false;
   header:String="";
@@ -68,6 +77,11 @@ export class Employee360TimesheetComponent implements OnInit {
   empIds:[];
   breadcrumbUrl:any;
 
+  // constructor(
+  //   private employee360Service : Employee360Service,
+  //   private timesheetService : TimesheetService,
+  //   private modalService: BsModalService,
+  //   private router: Router ) {}
 
   ngOnInit(): void {
     console.log("timesheet breadcrumb:"+sessionStorage.getItem('breadcrumb'));
@@ -128,6 +142,7 @@ export class Employee360TimesheetComponent implements OnInit {
       fromDate = new Date(currentDate.getTime() - (1 * DAY_IN_MS));
       toDate = new Date(currentDate.getTime() - (7 * DAY_IN_MS));
 
+      //console.log(`Last 7 Days : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
       timesheetObj.startDate = moment(toDate).format(dateFormat);
       timesheetObj.endDate = moment(fromDate).format(dateFormat);
     } else if (dateRange == 'This Month') {
@@ -135,6 +150,7 @@ export class Employee360TimesheetComponent implements OnInit {
       fromDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
       toDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
 
+      //console.log(`This Month : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
       timesheetObj.startDate = moment(fromDate).format(dateFormat);
       timesheetObj.endDate = moment(toDate).format(dateFormat);
     } else if (dateRange == 'Last Month') {
@@ -143,6 +159,7 @@ export class Employee360TimesheetComponent implements OnInit {
       fromDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
       toDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
 
+      //console.log(`Last Month : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
       timesheetObj.startDate = moment(fromDate).format(dateFormat);
       timesheetObj.endDate = moment(toDate).format(dateFormat);
     }
@@ -150,6 +167,7 @@ export class Employee360TimesheetComponent implements OnInit {
     this.timesheetService.getTimesheetsForHomePageByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         filledTimesheetDetails = response.serviceResponse;
+        //console.log("filledTimesheetDetails : ", filledTimesheetDetails);7, claimIds
       } else {
         console.error(response.serviceResponse);
       }
@@ -204,6 +222,8 @@ export class Employee360TimesheetComponent implements OnInit {
         name: "Rejected",
         y: rejectedCount
       }];
+
+      // this.renderTimesheetChart(`${dateRange} Timesheet`, 'totalEODChart', timesheetChartData, 'Timesheet(s)');
       if (dateRange == 'This Month')
         this.thisMonthCalendar.addTimesheetDetails();
       else if (dateRange == 'Last Month')
@@ -297,35 +317,6 @@ export class Employee360TimesheetComponent implements OnInit {
     this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
   }
   
-  // updateStatus(status: string, empId: number, date: string) {
-  //   status = "Pending";
-
-  //   this.employee360Service.updateStatus(status, empId, date).pipe(first()).subscribe(
-  //     (response: any) => {
-  //       if (response.serviceStatus === "Success") {
-  //         console.log("=> serviceResponse", response.serviceResponse);
-  //         this.alertMessage = response.serviceResponse; 
-  //         this.showModal = true; 
-  //         setTimeout(() => {
-  //           console.log("this.alertModal"+ this.alertModal);
-  //           // this.modalRef=this.modalService.show(this.alertModal,{ class: 'modal-sm' })
-  //           this.modalRef=this.modalService.show(this.alertModal,{ keyboard: false,class: 'modal-sm' })
-  //           console.log('hello');
-            
-  //         }, 0);
-          
-  //       } else {
-  //         this.alertMessage = response.serviceResponse; 
-  //         this.showModal = true; 
-  //       }
-  //     },
-  //     (error) => {
-  //       console.error("Error occurred:", error);
-  //       this.alertMessage ="Error";
-  //       this.showModal = true; 
-  //     }
-  //   );
-  // }
 
   loading: boolean = false; // Add a loading flag
 
@@ -387,7 +378,9 @@ updateStatus(status: string, empId: number, date: string) {
     this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
   }
 
-  get360TimesheetDetails(activeButton:string,empId:number,projectId:number,teamName:string,managerId:number,formattedStartDate:string,formattedEndDate:string) {
+  // let transformedTimeSheet = [];
+
+    get360TimesheetDetails(activeButton:string,empId:number,projectId:number,teamName:string,managerId:number,formattedStartDate:string,formattedEndDate:string) {
       console.log(this.activeButton);
       this.employee360Service.get360TimesheetDetails(activeButton,empId,projectId,teamName,managerId,formattedStartDate,formattedEndDate).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus === "Success") {
@@ -395,12 +388,44 @@ updateStatus(status: string, empId: number, date: string) {
               this.data = response.serviceResponse;
               this.data = Object.values(this.data); 
               console.log("=> transformed data", this.data);
+
+              const activityCounts: number[] = [];
+
+              // Iterate over employee data
+              // for (const employee of this.data) {
+              //     // Calculate the total number of activities for each employee
+              //     const totalActivities = employee.timeSheet.reduce(
+              //         (count: number, timeSheet: any) => count + timeSheet.activities.length,
+              //         0
+              //     );
+              //     activityCounts.push(totalActivities);
+              // }
+
+              console.log("=> Activity counts array", activityCounts);
+              
+              // this.mainRowSpam= activityCounts;
+              this.result = this.transformData(response.serviceResponse);
+              console.log("this.result =>", this.result )
+
           }
       });
   }
+
+  
+// console.log(transformedTimeSheet);
+
  
 
+
+  // selectedOption: number = 1;  // Default option is "All"
+  
+  // Variables for date range
+  // startDate: Date | null = null;
+  // endDate: Date | null = null;
+  // activeButton: string = 'Pending';
+
   onChangeOption(arg: any) {
+    // this.dateTimeRange = null;
     if (arg == 1) {
       // Handle "All"
       this.startDate = null;
@@ -445,7 +470,7 @@ updateStatus(status: string, empId: number, date: string) {
       this.startDate = fromDate;
       this.endDate = toDate;
   
-      //logic to filter data based on the selected range
+      // Your logic to filter data based on the selected range
       this.setDate();
     }
   }
@@ -461,6 +486,7 @@ updateStatus(status: string, empId: number, date: string) {
     }
   }
   
+
   navigateToEmployee360(){
     this.removeActiveTab();
     this.router.navigate(['/employee-360/profile']);
@@ -478,4 +504,49 @@ updateStatus(status: string, empId: number, date: string) {
     let activeRouteLink = tab.getAttribute('routerLink');
   }
 
+transformData(originalData: any ) {
+  let transformedData = [];
+
+  Object.values(originalData).forEach((employee :any) => {
+    let isFirstActivity = true; // Track the first activity for each employee
+
+      // Calculate the total number of activities for the employee
+  const totalActivitiesCount = employee.timeSheet.reduce((total, item) => total + item.activities.length, 0);
+
+    employee.timeSheet.forEach(items => {
+      let showProject = true;
+      items.activities.forEach(activity => {
+        transformedData.push({
+          empId: employee.empId,
+          name: employee.name,
+          date: employee.date,  // Maintained date
+          officeInTime: employee.officeInTime,
+          officeOutTime: employee.officeOutTime,
+          totalWorkingHours: employee.totalWorkingHours,
+          nightShift: employee.nightShift,
+          status: employee.status,
+          createdOn: employee.createdOn,
+
+          activities: activity,
+          projectName: items.projectName,
+          teamName: items.teamName,
+          projectId: items.projectId,
+          activityId: items.activityId,
+          empActivitiesCountForDay: totalActivitiesCount, // Total activities count for the employee
+          projectActivityCount: items.activities.length,
+          showProject: showProject,  // Show project only for the first activity in the list
+          showEmpId: isFirstActivity, // Show employee ID only for the first activity
+        });
+        
+        // Set isFirstActivity to false after the first activity for the employee
+        isFirstActivity = false;
+        showProject = false;
+      });
+    });
+  });
+
+  return transformedData;
 }
+
+}
+
