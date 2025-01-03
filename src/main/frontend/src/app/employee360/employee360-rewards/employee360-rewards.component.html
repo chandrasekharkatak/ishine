@@ -1,4 +1,59 @@
+<!-- <app-breadcrumb></app-breadcrumb> -->
+
 <div class="col-md-2 mb-2">
+    <!-- Year Dropdown -->
+    <div class="form-inline input-group">
+        <select id="yearDropdown" class="form-control form-control-sm"
+            (change)="onYearChange($event)">
+            <option [value]="''" disabled selected>Select Year</option>
+            <option *ngFor="let year of availableYears" [value]="year">
+                {{ year }}
+            </option>
+        </select>
+    </div>
+</div>
+
+<div class="col-md-2 mb-2" *ngIf="selectedYear">
+    <!-- Period Dropdown -->
+    <div class="form-inline input-group">
+        <select id="periodDropdown" class="form-control form-control-sm"
+            (change)="onPeriodChange($event)">
+            <option [value]="''" disabled selected>Select Period</option>
+            <option value="monthly">Monthly</option>
+            <option value="halfYearly">Half-Yearly</option>
+        </select>
+    </div>
+</div>
+
+<div class="col-md-2 mb-2" *ngIf="rewardsCategories.length > 0">
+    <!-- Rewards Dropdown -->
+    <div class="form-inline input-group">
+        <select id="rewardsDropdown" class="form-control form-control-sm"
+            (change)="onCategoryChange($event)">
+            <option [value]="''" disabled selected>Select Category</option>
+            <option *ngFor="let category of rewardsCategories" [value]="category.rewardCategoryId">
+                {{ category.categoryName }}
+            </option>
+        </select>
+    </div>
+</div>
+
+
+
+
+<!-- <div class="col-md-2 mb-2">
+    <div class="form-inline input-group">
+        <select id="rewardsDropdown" class="form-control form-control-sm"
+            (change)="onCategoryChange($event, alertMessageTemplate)">
+            <option *ngFor="let category of rewardsCategories" 
+                [value]="category.rewardCategoryId"
+                [selected]="category.rewardCategoryId === activeCategoryId">
+                {{ category.categoryName }}
+            </option>
+        </select>
+    </div>
+</div> -->
+<!-- <div class="col-md-2 mb-2">
     <div class="form-inline input-group">
         <select id="rewardsDropdown" class="form-control form-control-sm"
             (change)="onCategoryChange($event, alertMessageTemplate)">
@@ -11,6 +66,30 @@
     </div>
 </div>
 
+<div *ngIf="subDropdownOptions.length > 0" class="col-md-2 mb-2">
+    <div class="form-inline input-group">
+        <select id="subRewardsDropdown" class="form-control form-control-sm" 
+            (change)="onSubCategoryChange($event)">
+            <option *ngFor="let option of subDropdownOptions" [value]="option">
+                {{ option }}
+            </option>
+        </select>
+    </div>
+</div> -->
+
+<!-- <div *ngIf="subDropdownOptions.length > 0" class="col-md-2 mb-2">
+    <div class="form-inline input-group">
+        <select id="subRewardsDropdown" class="form-control form-control-sm">
+            <option *ngFor="let option of subDropdownOptions" [value]="option">
+                {{ option }}
+            </option>
+        </select>
+    </div>
+</div> -->
+
+
+
+
 
 <div class="row">
     <div class="col-md-12">
@@ -20,7 +99,7 @@
             </div>
         </div>
 
-        <div class="row mb-2 p-3" >
+        <!-- <div class="row mb-2 p-3" >
             <div class="col-md-12 px-7" style="padding-left: 2rem;">
                 <button *ngFor="let category of rewardsCategories" type="button"
                     class="btn btn-outline-primary btn-sm active ng-star-inserted mx-1"
@@ -28,7 +107,7 @@
                     (click)="getRewardsByCategoryId(category.rewardCategoryId, alertMessageTemplate)">{{category.categoryName}}
                 </button>
             </div>
-        </div>
+        </div> -->
 
         <div class="row">
             <div class="col-md-12" style="text-align: center;">
@@ -46,11 +125,11 @@
                         </thead>
                         <tbody>
                             <tr
-                            *ngFor="let rewardHistory of  rewards ;  let i = index">
+                            *ngFor="let rewardHistory of  employee ;  let i = index">
                             <th class="info-label">{{i+1}}</th>
-                            <td>{{rewardHistory.rewardName}}</td>
+                            <td>{{rewardHistory.rewardTypeName}}</td>
                             <td>
-                                {{rewardHistory.rewardedTo}}
+                                {{rewardHistory.name}}
                                 <button type="button" class="btn btn-sm btn-primary ml-2"
                                     (click)="openEditModal(reward)">View Team</button>
                             </td>
@@ -88,24 +167,26 @@
                         </tr>
                     </thead>
                     <tbody id="claimTBody">
-                        <!-- <tr *ngFor="let claim of allValidClaimList, let i = index">
-                            <td [title]="('editclaim.tableApproveReason' | translate)">
-                                <i [class]="'fa-solid fa-check'" style="font-size:20px !important"
-                                    [style.color]="'#63fd4e'"></i>
-                            </td>
+                        <tr *ngFor="let teamlist of teamRewardList, let i = index">
                             <th class="info-label"><label>{{i+1}}</label></th>
-                            <td><label>{{claim.societyCode}}</label></td>
-                            <td><label>{{claim.memberNo}}</label></td>
-                            <td><label *ngIf="claim.societyId==1 || claim.societyId==4">{{claim.accountNo}}</label></td>
-                            <td><label *ngIf="claim.societyId==2 || claim.societyId==3">{{claim.receiptNo}}</label></td>
-                            <td><label>{{claim.certificateNo}}</label></td>
-                            <td><label>{{claim.depositeDate}}</label></td>
-                            <td><label>&#8377; {{claim.depositeAmount != null ? claim.depositeAmount : 0}}</label></td>
-                            <td><label>&#8377; {{claim.partialReceivedAmount != null ? claim.partialReceivedAmount : 0}}</label></td>
-                            <td><label>&#8377; {{claim.loanAmount != null ? claim.loanAmount : 0}}</label></td>
-                            <td><label>&#8377; {{claim.loanAmountRepaid != null ? claim.loanAmountRepaid : 0}}</label>
+                            <!-- <td><label>{{teamlist.name}}</label></td> -->
+                            <td>
+                                <span style="cursor: pointer;" *ngFor="let matchedEmployee of matchedEmployees">
+                                  <ng-container *ngIf="teamlist.rewardedTo === matchedEmployee.empId">
+                                    <!-- <h1>{{teamlist.rewardedTo}}</h1>
+                                    <h1>{{matchedEmployee.empId}}</h1> -->
+                                    <span [navigateToEmployee360]="matchedEmployee">
+                                      {{ teamlist.name }}
+                                    </span>
+                                  </ng-container>
+                                </span>
                             </td>
-                        </tr> -->
+                            <!-- <h1>{{teamlist.name}}</h1> -->
+                            <td><label>{{teamlist.rewardTypeName}}</label></td>
+                            <td><label>{{teamlist.createdByName }}</label></td>
+                            <td><label>{{teamlist.name}}</label></td>
+                            <td><label>{{teamlist.createdOn}}</label></td>
+                        </tr>
                     </tbody>
                 </table>
             </div>

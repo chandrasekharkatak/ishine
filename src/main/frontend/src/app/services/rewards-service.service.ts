@@ -2,6 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { Rewards } from '../models/rewards';
+import { EmployeeRewarsRequest } from '../models/employeeRewardRequest';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +12,12 @@ export class RewardsServiceService {
 
   private baseUrl:any = environment.baseUrl;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient,    private router: Router,
+    ) { }
+
+  navigateToEmployee360(data: any) {
+    this.router.navigate(['/employee-360/rewards'], { state: { data } });
+  }
 
   getAllRewardsCategory(){
     return this.http.get(`${this.baseUrl}` + `api/getAllRewardsCategory`);
@@ -81,5 +88,14 @@ deleteEmployeeRewardByRewardId(rewardId: any) {
   return this.http.delete(`${this.baseUrl}api/deleteEmployeeRewardByRewardId/${rewardId}`);
 }
 
+getEmployeeRewardByEmpId(request : any){
+  return this.http.post(`${this.baseUrl}`+`api/getEmployeeRewardByEmpId`,request);
+
+}
+
+getTeamRewardByEmpId(request : any){
+  return this.http.post(`${this.baseUrl}`+`api/getTeamRewardByEmpId`,request);
+
+}
 
 }

@@ -21,9 +21,9 @@ export class BreadcrumbService {
     this.breadcrumbSubject.next(breadcrumbList);
   }
 
-  addObjectToAddInBreadcrumb(breadcrumbObject: any){
-    let breadcrumbSessionList:any[] = JSON.parse(sessionStorage.getItem('breadcrumb'));
-    breadcrumbSessionList.push(breadcrumbObject);
-    this.setBreadcrumbSubject(breadcrumbSessionList);
-  }
+    addObjectToAddInBreadcrumb(breadcrumbObject: any){
+      let breadcrumbSessionList:any[] = JSON.parse(sessionStorage.getItem('breadcrumb'));
+      breadcrumbSessionList.push(breadcrumbObject);
+      this.setBreadcrumbSubject(breadcrumbSessionList);
+    }
 }
