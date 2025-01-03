@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 
 @Component({
@@ -12,6 +14,8 @@ export class BreadcrumbComponent implements OnInit {
   //Boolean 
   isEmployee360Module: boolean = false;
 
+  private unsubscribe$ = new Subject<void>();
+
   breadcrumbList:any[] = [];
   displayedBreadcrumbs:any[] = [];
 
@@ -21,7 +25,8 @@ export class BreadcrumbComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.breadcrumbService.currentBreadcrumb.subscribe(breadcrumbs => {
+    this.breadcrumbService.currentBreadcrumb.pipe(takeUntil(this.unsubscribe$))
+    .subscribe(breadcrumbs => {
 
       console.log(breadcrumbs , " : breadcrumbs ====");
 

@@ -4,6 +4,7 @@ import { RewardsServiceService } from 'src/app/services/rewards-service.service'
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { Employee } from 'src/app/models/employee';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
+import { Breadcrumb } from 'src/app/models/breadcrumd';
 
 
 @Component({
@@ -13,16 +14,7 @@ import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 })
 export class Employee360RewardsComponent implements OnInit {
 
-
-
-  constructor(
-    private rewardsService: RewardsServiceService,
-    private modalService: BsModalService,
-    private breadcrumbService: BreadcrumbService
-  ) { }
-
   modalRef: BsModalRef = new BsModalRef();
-
   activeCategoryId: number | null = null;
   rewards: Rewards[] = [];
   isTeam: any;
@@ -36,16 +28,29 @@ export class Employee360RewardsComponent implements OnInit {
   isRewards: boolean = true;
   alertMessageTemplate!: TemplateRef<any>;
 
+  currentBreadcrumbList: any[] = [];
 
-
-
-
-
-
-
-
+  constructor(
+    private rewardsService: RewardsServiceService,
+    private modalService: BsModalService,
+    private breadcrumbService: BreadcrumbService
+  ) {
+    this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
+   }
 
   ngOnInit(): void {
+
+    let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title == "Rewards");
+    if (findbreadcrumbObject >= 0) {
+      this.currentBreadcrumbList.splice(findbreadcrumbObject + 1);
+      this.breadcrumbService.setBreadcrumbSubject(this.currentBreadcrumbList);
+    }else{
+      let breadcrumbObject = new Breadcrumb();
+      breadcrumbObject.title = "Rewards";
+      breadcrumbObject.url = "/employee-360/rewards";
+      this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
+    }
+
     this.getRewardsCategories(this.alertMessageTemplate);
   }
 

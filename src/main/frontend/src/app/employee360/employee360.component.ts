@@ -99,13 +99,6 @@ export class Employee360Component implements OnInit {
   }
 
   removeActiveTab(){
-
-    let breadcrumbObject = new Breadcrumb();
-      
-      breadcrumbObject.title = "Rewards";
-      breadcrumbObject.url = "/employee-360/rewards";
-      this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
-
     const tab = document.getElementById('Employee360Tab').querySelector('.nav-link.active');
     //console.log("active tab :", tab);
     tab?.classList.remove('active');
