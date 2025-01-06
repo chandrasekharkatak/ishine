@@ -78,13 +78,13 @@ public class EmployeeController {
 		return response;
 	}
 	
-	@PostMapping("/getEmployeeByAppreciationName")
-    public ServiceResponse getEmployeeByAppreciationName(@RequestBody AppreciationRequest request) {
-        String appreciationByName = request.getEmpName();
-        ServiceResponse response = employeeService.getEmployeeByAppreciationName(appreciationByName);
-        return response;
-        
-	}
+//	@PostMapping("/getEmployeeByAppreciationName")
+//    public ServiceResponse getEmployeeByAppreciationName(@RequestBody AppreciationRequest request) {
+//        String appreciationByName = request.getEmpName();
+//        ServiceResponse response = employeeService.getEmployeeByAppreciationName(appreciationByName);
+//        return response;
+//        
+//	}
 	
 	@RequestMapping(value = "/updateEmployeeByEmpId", method = RequestMethod.POST)
 	public ServiceResponse updateEmployeeByEmpId(@RequestBody EmployeeDTO employeedto) {

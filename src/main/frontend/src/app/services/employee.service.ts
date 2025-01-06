@@ -39,11 +39,11 @@ export class EmployeeService {
     return this.http.get(`${this.baseUrl}` + `api/getAllEmployees`);
   }
 
-  getEmployeeByAppreciationName(requestBody: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}api/getEmployeeByAppreciationName`, requestBody,{
-      headers: { 'Content-Type': 'application/json' },
-  });
-  }
+  // getEmployeeByAppreciationName(requestBody: any): Observable<any> {
+  //   return this.http.post(`${this.baseUrl}api/getEmployeeByAppreciationName`, requestBody,{
+  //     headers: { 'Content-Type': 'application/json' },
+  // });
+  // }
 
   getEmployeeByEmpId(employeeObj: Employee) {
     return this.http.post(`${this.baseUrl}` + `api/getEmployeeByEmpId`, employeeObj);

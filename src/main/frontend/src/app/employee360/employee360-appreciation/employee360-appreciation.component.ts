@@ -53,16 +53,32 @@ export class Employee360AppreciationComponent implements OnInit {
   ngOnInit(): void {
 
     let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title == "Appreciation");
-        if (findbreadcrumbObject >= 0) {
-          this.currentBreadcrumbList.splice(findbreadcrumbObject + 1);
-          this.breadcrumbService.setBreadcrumbSubject(this.currentBreadcrumbList);
-        } else {
-          let breadcrumbObject = new Breadcrumb();
-          breadcrumbObject.title = "Appreciation";
-          breadcrumbObject.url = "/employee-360/appreciation";
-          this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
-        }
-    
+    if (findbreadcrumbObject >= 0) {
+      this.currentBreadcrumbList.splice(findbreadcrumbObject + 1);
+      this.breadcrumbService.setBreadcrumbSubject(this.currentBreadcrumbList);
+    } else {
+      let breadcrumbObject = new Breadcrumb();
+      breadcrumbObject.title = "Appreciation";
+      breadcrumbObject.url = "/employee-360/appreciation";
+      this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
+    }
+    this.removeActiveTab();
+    this.setActiveTab();
+  }
+  ngAfterViewInit(){
+    this.setActiveTab();
+  }
+  ngOnDestroy(){
+    this.removeActiveTab();
+  }
+  setActiveTab(){
+    const tab = document.getElementById('Employee360Tab/appreciation').querySelector('.nav-link');
+    tab.classList.add('active');
+  }
+
+  removeActiveTab(){
+    const tab = document.getElementById('Employee360Tab').querySelector('.nav-link.active');
+    tab?.classList.remove('active');
   }
   getDateRanges() {
     this.employeeService.getDateRangesForDropdown(this.currentEmpId).subscribe(
