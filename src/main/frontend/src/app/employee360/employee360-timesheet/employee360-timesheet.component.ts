@@ -41,7 +41,6 @@ export class Employee360TimesheetComponent implements OnInit {
   projectName:any;
   teamName:any="null";
   empId:any=0;
-  empIdd:any=0;
   projectId:any=0;
   currentUser:any;
   time;
@@ -59,7 +58,7 @@ export class Employee360TimesheetComponent implements OnInit {
   mainRowSpam:any ;
   result:any [] = [];
   timesheetIds:any []=[];
-  responseCount:any;
+  responseCount:any=0;
 
   //Bulk approve-reject
   bulkList: any = [];
@@ -80,12 +79,11 @@ export class Employee360TimesheetComponent implements OnInit {
     private router: Router,
     private breadcrumbService: BreadcrumbService
   ) {
-    
+    this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
    }
   modalRef: BsModalRef = new BsModalRef();
   isProjectTeamClicked:boolean=false;
   header:String="";
-  empIds:[];
   currentBreadcrumbList: any[] = [];
 
   ngOnInit(): void {
@@ -107,22 +105,24 @@ export class Employee360TimesheetComponent implements OnInit {
       this.managerId = currentUserData.empId;
       console.log(this.managerId); 
     }
-    // this.empIdd=sessionStorage.getItem('employeeId');
-    this.empIdd=240065;
-    this.managerId = 21823;
+    this.empId=sessionStorage.getItem('empId');
+    // this.empIdd=240065;
+    // this.managerId = 21823;
     this.startDate = null;
     this.endDate = null;
     this.formattedStartDate = null;
     this.formattedEndDate = null;
-    this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
+    this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
   }
 
   setActiveButton(button: string): void {
     this.activeButton = button;
-    this.empIdd=240065;
-    
+    // this.empIdd=240065;
+    if(button!=='Pending'){
+      this.allSelected=false;
+    }
     if(this.activeButton !=='Calendar'){
-      this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
+      this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
     }else{
       this.getTimesheetsForHomePageByEmpId('Last 7 Days');
     }
@@ -140,7 +140,7 @@ export class Employee360TimesheetComponent implements OnInit {
 
     let timesheetObj = new Timesheet();
     timesheetObj.empId = sessionStorage.getItem('employeeId');
-    timesheetObj.empId = 21899;
+    // timesheetObj.empId = 21899;
     // 240065
     console.log(sessionStorage.getItem('employeeId'));
     console.log("timesheetObj.empId => " , timesheetObj.empId);
@@ -367,7 +367,8 @@ loading: boolean = false;
 updateStatus(status: string) {
   if (this.loading) return; 
   this.loading = true; 
-  status = "Pending";
+  // status = "Pending";
+  console.log("allSelected+++++++"+this.allSelected);
   this.employee360Service.updateStatus(status, this.timesheetIds, this.managerId).pipe(first()).subscribe(
     (response: any) => {
       this.loading = false; 
@@ -409,7 +410,7 @@ updateStatus(status: string) {
 
   goBack(){
     this.isProjectTeamClicked=false;
-    this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
+    this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
   }
 
   
@@ -420,8 +421,9 @@ updateStatus(status: string) {
           if (response.serviceStatus === "Success") {
               console.log("=> serviceResponse", response.serviceResponse);
               this.data = response.serviceResponse;
-              this.data = Object.values(this.data);
-              this.responseCount=this.data.length; 
+              // this.data = Object.values(this.data);
+              if(this.data.length!=undefined){
+              this.responseCount=this.data.length; }
               const activityCounts: number[] = [];
               console.log("=> Activity counts array", activityCounts);
               this.result = this.transformData(response.serviceResponse);

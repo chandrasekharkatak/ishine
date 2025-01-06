@@ -110,85 +110,86 @@
         </div>
     </div>
   </div>
-  
-  
-  <!-- for pending , approved  and rejected  -->
-  <div *ngIf="activeButton !== 'Calendar'" class="table-responsive">
-    <!-- <div  class="form-group col-md-6">
-      <button *ngIf="bulkList.length>1||bulkList.length==responseCount" class="btn btn-sm btn-outline-success" type="submit" (click)="bulkClicked('Approved')">Bulk
-        Approve</button>&nbsp;
-      <button *ngIf="bulkList.length>1||bulkList.length==responseCount " type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="bulkClicked('Rejected')"
-        >Bulk Reject</button>
-    </div> -->
-    <table class="table table-bordered">
-        <thead class="thead-light">
-            <tr>
-                <th>
-                    <input *ngIf="!(data === null || data.length === 0) && activeButton == 'Pending'" type="checkbox" [(ngModel)]="allSelected" (change)="toggleSelectAll()" />
-                </th>
-                <th>Sr No</th>
-                <th >Emp Id</th>
-                <th>Name</th>
-                <th>Date</th>
-                <th>Day Type</th>
-                <th>Project</th>
-                <th>Team Name</th>
-                <th>Activity</th>
-                <th>In Time</th>
-                <th>Out Time</th>
-                <th>Total Working Hrs</th>
-                <th>Shift</th>
-                <th>Status</th>
-                <th>Applied On</th>
-                <th *ngIf="activeButton === 'Pending'">Action</th>
-                <th *ngIf="activeButton === 'Rejected'">Reason</th>
-            </tr>
-        </thead>
-  
-        <tbody class="table-body">
-            <tr *ngIf="result === null || result.length === 0">
-                <td colspan="16" style="text-align: center;">No Data To Display.....</td>
-            </tr>
-            <tr *ngFor="let item of result; let i = index">
-                <td *ngIf="item.showEmpId && activeButton == 'Pending'" [attr.rowspan]="item.empActivitiesCountForDay" >
-                    <input type="checkbox" [(ngModel)]="item.selected" (change)="toggleRowSelection(item.empId,item.date,item.selected)" />
-                </td>
-                <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ i + 1 }}</td>
-                <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.empId }}</td>
-                <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" (click)="navigateToEmployee360()" style="cursor: pointer; color: blue;">{{ item.name }}</td>
-                <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.date | date: 'yyyy-MM-dd' }}</td>
-                <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.dayType }}</td>
-                <td *ngIf="item.showProject && !isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount" (click)="findByProject(item.projectId)" style="cursor: pointer; color: blue;">
-                    {{item.projectName}}
-                </td>
-                <td *ngIf="item.showProject&& isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount">
+
+
+<!-- for pending , approved  and rejected  -->
+<div *ngIf="activeButton !== 'Calendar'" class="table-responsive">
+  <!-- <div  class="form-group col-md-6">
+
+    <button *ngIf="(bulkList.length>1||(bulkList.length==responseCount&&responseCount!=0))&& activeButton=='Pending'" class="btn btn-sm btn-outline-success" type="submit" (click)="bulkClicked('Approved')">Bulk
+      Approve</button>&nbsp;
+    <button *ngIf="(bulkList.length>1||(bulkList.length==responseCount&&responseCount!=0))&& activeButton=='Pending'" type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="bulkClicked('Rejected')"
+      >Bulk Reject</button>
+  </div> -->
+  <table class="table table-bordered">
+      <thead class="thead-light">
+          <tr>
+              <th *ngIf="!(responseCount===0) && activeButton=='Pending'">
+                  <input type="checkbox" [(ngModel)]="allSelected" (change)="toggleSelectAll()" />
+              </th>
+              <th>Sr No</th>
+              <th >Emp Id</th>
+              <th>Name</th>
+              <th>Date</th>
+              <th>Day Type</th>
+              <th>Project</th>
+              <th>Team Name</th>
+              <th>Activity</th>
+              <th>In Time</th>
+              <th>Out Time</th>
+              <th>Total Working Hrs</th>
+              <th>Shift</th>
+              <th>Status</th>
+              <th>Applied On</th>
+              <th *ngIf="activeButton === 'Pending'">Action</th>
+              <th *ngIf="activeButton === 'Rejected'">Reason</th>
+          </tr>
+      </thead>
+
+      <tbody class="table-body">
+          <tr *ngIf="result === null || result.length === 0">
+              <td colspan="16" style="text-align: center;">No Data To Display.....</td>
+          </tr>
+          <tr *ngFor="let item of result; let i = index">
+            <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >
+                <input type="checkbox" [(ngModel)]="item.selected" (change)="toggleRowSelection(item.empId,item.date,item.selected)" />
+            </td>
+              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ i + 1 }}</td>
+              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.empId }}</td>
+              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" (click)="navigateToEmployee360()" style="cursor: pointer; color: blue;">{{ item.name }}</td>
+              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.date | date: 'yyyy-MM-dd' }}</td>
+              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.dayType }}</td>
+              <td *ngIf="item.showProject && !isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount" (click)="findByProject(item.projectId)" style="cursor: pointer; color: blue;">
                   {{item.projectName}}
               </td>
-  
-                <td *ngIf="item.showProject&& !isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount" (click)="findByTeam(item.teamName)" style="cursor: pointer; color: blue;">{{item.teamName}}</td>
-                <td *ngIf="item.showProject&& isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount">{{item.teamName}}</td>
-                <td [attr.rowspan]="1">{{item.activities}} </td>   
-                <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.officeInTime | date: 'shortTime' }}</td>
-                <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.officeOutTime | date: 'shortTime' }}</td>
-                <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.totalWorkingHours }}</td>
-                <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.nightShift == 'true' ? 'Night Shift' : 'Regular Shift' }}</td>
-                <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.status }}</td>
-                <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.createdOn | date: 'yyyy-MM-dd' }}</td>
-                <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >
-                    <button  *ngIf="activeButton === 'Pending'" class="btn btn-sm btn-outline-success"
-                    type="submit" title="Approve"
-                    (click)="update('Approved',item.empId,item.date)"><em
-                      class="fa-solid fa-check"></em></button>&nbsp;
-                  <button  *ngIf="activeButton === 'Pending'" class="btn btn-sm btn-outline-danger"
-                    type="submit" title="Reject" (click)="update('Rejected',item.empId,item.date)"><em
-                      class="fa-solid fa-xmark"></em></button>
-                </td>  
-            </tr>
-        </tbody>
-  
-  
-    </table>
-  </div>
+              <td *ngIf="item.showProject&& isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount">
+                {{item.projectName}}
+            </td>
+
+              <td *ngIf="item.showProject&& !isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount" (click)="findByTeam(item.teamName)" style="cursor: pointer; color: blue;">{{item.teamName}}</td>
+              <td *ngIf="item.showProject&& isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount">{{item.teamName}}</td>
+              <td [attr.rowspan]="1">{{item.activities}} </td>   
+              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.officeInTime | date: 'shortTime' }}</td>
+              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.officeOutTime | date: 'shortTime' }}</td>
+              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.totalWorkingHours }}</td>
+              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.nightShift == 'true' ? 'Night Shift' : 'Regular Shift' }}</td>
+              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.status }}</td>
+              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.createdOn | date: 'yyyy-MM-dd' }}</td>
+              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >
+                  <button  *ngIf="activeButton === 'Pending'" class="btn btn-sm btn-outline-success"
+                  type="submit" title="Approve"
+                  (click)="update('Approved',item.empId,item.date)"><em
+                    class="fa-solid fa-check"></em></button>&nbsp;
+                <button  *ngIf="activeButton === 'Pending'" class="btn btn-sm btn-outline-danger"
+                  type="submit" title="Reject" (click)="update('Rejected',item.empId,item.date)"><em
+                    class="fa-solid fa-xmark"></em></button>
+              </td>  
+          </tr>
+      </tbody>
+
+
+  </table>
+</div>
   
   <!-- Modals -->
   <ng-template #alertTemplate>

@@ -277,22 +277,14 @@ public class Employee360Service {
 		ServiceResponse response = new ServiceResponse();
 		
 		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("getEmployeeDetails");
-		apiLogInfo.setApiUrl("/api/getEmployeeDetails");
+		apiLogInfo.setSubFeatureName("get360TimesheetDetails");
+		apiLogInfo.setApiUrl("/api/updateStatus");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("timesheetId : " + timesheetId);
 		try {
 			
 			List<Employee360DTO> employeeDtoList = new ArrayList<>();
-			SimpleDateFormat formatedDate = new SimpleDateFormat("yyyy-MM-dd");
-//			Date datee = formatedDate.parse(date);
-//			LocalDate localDate = datee.toInstant()
-//                    .atZone(ZoneId.systemDefault())
-//                    .toLocalDate();
-
-//			System.out.println("LocalDate: " + localDate);
-			
 			List<Timesheet> timesheet = timesheetsRepository.findByTimesheetIdIn(timesheetId);
 			
 			if (!timesheet.isEmpty()) {
