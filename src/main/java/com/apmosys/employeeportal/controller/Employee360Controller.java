@@ -1,5 +1,8 @@
 package com.apmosys.employeeportal.controller;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -7,9 +10,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.dto.BioMaTO;
+import com.apmosys.employeeportal.dto.BioMax360;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
+import com.apmosys.employeeportal.service.BioMaxService;
 import com.apmosys.employeeportal.service.DraftEmployeeService;
 import com.apmosys.employeeportal.service.Employee360Service;
+import com.apmosys.employeeportal.service.TimesheetService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @RestController
@@ -18,6 +27,10 @@ public class Employee360Controller {
 	
 	@Autowired
 	Employee360Service employee360Service;
+	@Autowired
+	private BioMaxService bioMaxService;
+	@Autowired
+	private TimesheetService timesheetService;
 	
 	@RequestMapping(value = "/getLeaveDataPerMonthByEmpId", method = RequestMethod.GET)
 	public ServiceResponse getLeaveDataPerMonthByEmpId(@RequestParam Long empId) {
