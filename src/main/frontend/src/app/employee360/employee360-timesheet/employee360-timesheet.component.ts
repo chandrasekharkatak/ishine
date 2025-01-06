@@ -63,6 +63,14 @@ export class Employee360TimesheetComponent implements OnInit {
 
   //Bulk approve-reject
   bulkList: any = [];
+  isSelectAll: boolean = false;
+  isSelect: boolean = false;
+  bulkApprove: any = [];
+  bulkReject: any = [];
+  bulkTeamLeaveApprove:any=[];
+  bulkTeamLeaveReject:any=[];
+  allTeamTimesheetRequests: Timesheet[] = [];
+  timesheetID:any = [];
   
   constructor(
     private employee360Service : Employee360Service,
@@ -88,7 +96,9 @@ export class Employee360TimesheetComponent implements OnInit {
     }else{
       let breadcrumbObject = new Breadcrumb();
       breadcrumbObject.title = "Timesheet";
+      // this.removeActiveTab();
       breadcrumbObject.url = "/employee-360/timesheet";
+      // this.setActiveTab();
       this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
 
@@ -278,6 +288,8 @@ export class Employee360TimesheetComponent implements OnInit {
     return weekDay;
   }
 
+  
+
   bulkClicked(status:string){
     console.log("status+++"+status);
     this.updateStatus(status);
@@ -361,10 +373,12 @@ export class Employee360TimesheetComponent implements OnInit {
 
 loading: boolean = false; 
 
+
 updateStatus(status: string) {
   if (this.loading) return; 
   this.loading = true; 
   // status = "Pending";
+  console.log("allSelected+++++++"+this.allSelected);
   this.employee360Service.updateStatus(status, this.timesheetIds, this.managerId).pipe(first()).subscribe(
     (response: any) => {
       this.loading = false; 
@@ -417,11 +431,12 @@ updateStatus(status: string) {
           if (response.serviceStatus === "Success") {
               console.log("=> serviceResponse", response.serviceResponse);
               this.data = response.serviceResponse;
-              this.data = Object.values(this.data);
+              // this.data = Object.values(this.data);
               this.responseCount=this.data.length; 
               const activityCounts: number[] = [];
               console.log("=> Activity counts array", activityCounts);
               this.result = this.transformData(response.serviceResponse);
+              console.log("this.data",this.data);
               console.log("this.result =>", this.result )
 
           }
