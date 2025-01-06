@@ -1417,6 +1417,65 @@ public class TeamsService {
 		return response;
 	}
 	
+	public ServiceResponse getAllTeamCompOffHistoryViewByEmpId(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("");
+		apiLogInfo.setApiUrl("/api/getAllTeamCompOffHistoryViewByEmpId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId : " + leaveDTO.getEmpId() + " ,FromDate :" + leaveDTO.getFromDate() + 
+				" ,ToDate :" + leaveDTO.getToDate());
+
+		try {
+			
+			LocalDate start = LocalDate.parse(leaveDTO.getFromDate());
+
+			LocalDate end = LocalDate.parse(leaveDTO.getToDate());
+
+			List<Object[]> list = employeeLeaveRepository.getAllTeamCompOffHistoryViewByEmpId(leaveDTO.getEmpId(),start,end);
+			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+			if (list.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No teams leave history found");
+				apiLogInfo.setApiResponse("NO teams leave history found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			} else {
+
+				list.forEach((object) -> {
+					LeaveDTO dto = new LeaveDTO();
+					dto.setCreatedByName(object[0] != null ? object[0].toString() : null);
+					dto.setFromDate(object[1] != null ? object[1].toString() : null);
+					dto.setToDate(object[2] != null ? object[2].toString() : null);
+					dto.setCreatedOn(object[3] != null ? object[3].toString() : null);
+					dto.setNoOfDays(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
+					dto.setStatus(object[5] != null ? object[5].toString() : null);
+					dto.setReason(object[6] != null ? object[6].toString() : null);
+					dto.setLeaveType(object[7] != null ? object[7].toString() : null);
+					dto.setLeaveStatusUpdatedByName(object[8] != null ? object[8].toString() : null);
+					dtoList.add(dto);					
+					});
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("AllTeamCompoff History View Fetched:" + dtoList.size());			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+	
 	public ServiceResponse checkTeamName(TeamDTO teamdto) {
 		
 		ServiceResponse response = new ServiceResponse();
@@ -2662,4 +2721,5 @@ public class TeamsService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+
 }

@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { environment } from 'src/environments/environment';
 import { Timesheet } from '../models/timesheet';
 import { Subject } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -12,10 +13,15 @@ export class Employee360Service {
 
   private baseUrl:any = environment.baseUrl;
   private navigationSubject = new Subject<void>();
+  private employeeDataSource = new BehaviorSubject<any>(null);
+
+  currentEmployeeData = this.employeeDataSource.asObservable();
+
   constructor(
     private router: Router,
     private http: HttpClient
   ) {}
+
   getNavigationEvent() {
     return this.navigationSubject.asObservable();
   }
@@ -66,6 +72,10 @@ updateStatus(status: string, empId: number,date:string) {
 
   get360TimesheetsForHomePageByEmpId(timesheetObj: Timesheet) {
     return this.http.post(`${this.baseUrl}` + `api/get360TimesheetsForHomePageByEmpId`, timesheetObj);
+  }
+
+  changeEmployeeData(data: any) {
+    this.employeeDataSource.next(data);
   }
 
 }

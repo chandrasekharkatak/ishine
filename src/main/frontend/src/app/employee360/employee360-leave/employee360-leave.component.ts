@@ -10,10 +10,21 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 
 import { Log } from '../../models/log';
 import { LogService } from 'src/app/services/log.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { UtilityService } from 'src/app/services/utility.service';
 import { Employee360Service } from 'src/app/services/employee360.service';
 import * as Highcharts from 'highcharts';
+import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
+
+declare module 'highcharts' {
+  interface Series {
+    status?: string; 
+    leaveType?: string; 
+  }
+  interface SeriesOptions {
+    status?: string; 
+  }
+}
 
 interface CustomChartPoint {
   name: string;
@@ -32,6 +43,7 @@ export class Employee360LeaveComponent implements OnInit {
 
   leaveObj = new Leave();
   employeeData: any;
+  employeeData2: any;
   employeeDetails: any;
   currentUserName = "";
   currentUser: User;
@@ -53,44 +65,116 @@ export class Employee360LeaveComponent implements OnInit {
   leaveData: any = [];
   years: number[] = [];
   selectedYear: number;
+  breadcrumbUrl:any[] = [];
+
   chartOptions: Highcharts.Options = {
     chart: {
-      type: 'column'
+        type: "column"
     },
     title: {
-      text: 'Leave Data Per Month'
+        text: "Leave Data Per Month"
     },
-    xAxis: [{
-      categories: [],  // Populated dynamically by 'prepareChartData'
-      title: {
-        text: 'Month'
-      }
-    }] as Highcharts.XAxisOptions[],  // Explicitly cast to an array of XAxisOptions if multiple axes are used
-    yAxis: {
-      min: 0,
-      title: {
-        text: 'Total Days'
-      },
-      stackLabels: {
-        enabled: true,
-        style: {
-          fontWeight: 'bold',
-          color: 'gray'
+    xAxis: {
+        categories: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"],
+        title: {
+            text: "Month"
         }
-      }
+    },
+    yAxis: {
+        min: 0,
+        title: {
+            text: "Total Days"
+        },
+        stackLabels: {
+            enabled: true,
+            style: {
+                fontWeight: "bold",
+                color: "gray"
+            }
+        }
     },
     tooltip: {
-      shared: true,
-      valueSuffix: ' days'
+        shared: true,
+        valueSuffix: " days"
     },
     plotOptions: {
-      column: {
-        stacking: 'normal'
-      }
+        column: {
+            stacking: "normal"
+        }
     },
-    series: []  // Populated dynamically by 'prepareChartData'
-  };
-  
+    series: [
+        {
+            type: "column",
+            name: "Revoked",
+            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 17],
+            color: "#1b263b",
+            stack: "CO"
+        },
+        {
+            type: "column",
+            name: "Rejected",
+            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 14],
+            color: "#1b263b",
+            stack: "CO"
+        },
+        {
+            type: "column",
+            name: "Approved",
+            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 11],
+            color: "#1b263b",
+            stack: "CO"
+        },
+        {
+            type: "column",
+            name: "Pending",
+            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 13],
+            color: "#1b263b",
+            stack: "CO"
+        },
+        {
+            type: "column",
+            name: "Applied For Revoke",
+            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 12],
+            color: "#1b263b",
+            stack: "CO"
+        },
+        {
+            type: "column",
+            name: "Revoked",
+            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 17],
+            color: "#1b263b",
+            stack: "PL"
+        },
+        {
+            type: "column",
+            name: "Rejected",
+            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 14],
+            color: "#1b263b",
+            stack: "PL"
+        },
+        {
+            type: "column",
+            name: "Approved",
+            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 11],
+            color: "#1b263b",
+            stack: "PL"
+        },
+        {
+            type: "column",
+            name: "Pending",
+            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 13],
+            color: "#1b263b",
+            stack: "PL"
+        },
+        {
+            type: "column",
+            name: "Applied For Revoke",
+            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 12],
+            color: "#1b263b",
+            stack: "PL"
+        }
+    ]
+};
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -99,28 +183,39 @@ export class Employee360LeaveComponent implements OnInit {
     private router: Router,
     private utilityService: UtilityService,
     private employee360Service: Employee360Service,
+    // private route: ActivatedRoute,
+    private breadcrumbService: BreadcrumbService,
   ) {
+    this.breadcrumbService.currentBreadcrumb.subscribe(x => this.breadcrumbUrl = x);
+
     this.authenticationService.currentUser.subscribe(x => {
       this.currentUser = x;
       this.currentUserName = this.currentUser.name.split(" ")[0];
       this.currentUserName = this.currentUserName[0].toUpperCase() + this.currentUserName.slice(1).toLowerCase();
     });
+
     this.logService.log.subscribe(x => {
       this.log = x;
       this.log.tabName = this.feature;
       this.log.featureName = this.feature;
     });
+
     const navigation = this.router.getCurrentNavigation();
     this.employeeData = navigation?.extras.state?.['employeeData'];
+    this.employeeData2 = this.employeeData;
    }
 
   ngOnInit(): void {  
+    this.employeeData2 = history.state.data;
     console.log("Priyadarshini  Leave    ",this.employeeData);
+    const employeeName = this.employeeData?.name || "Employee";
+
+    const breadcrumbObject = { title: `${employeeName} - Leave`, url: "/employee-360/leave" };
+    this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
+
     this.getAllLeaveTypesByLeavePolicies();
     this.generateLeaveChart();
-    this.getLeaveDataPerMonthByEmpId(2023);
-    this.getEmployeeDetails();
-    this.renderChart();
+    this.getLeaveDataPerMonthByEmpId(2024);
   }
 
   setActiveButton(button: string): void {
@@ -132,7 +227,36 @@ export class Employee360LeaveComponent implements OnInit {
 
   setActiveCompOffButton(button: string): void {
     this.activeCompOffButton = button;
+    if (button === 'Requests') {
+      const dataToSend = { ...this.employeeData, status: 'comp-off-requests' };
+      this.employee360Service.changeEmployeeData(dataToSend);
+      this.redirectToMyTeam('comp-off-requests');
+    }
+    if (button === 'Applications') {
+      const dataToSend = { ...this.employeeData, status: 'comp-off-requests' };
+      this.employee360Service.changeEmployeeData(dataToSend);
+      this.redirectToMyTeam('comp-off-applications');
+    }
   }
+
+  redirectToMyTeam(status: string): void {
+    console.log(" redirectToMyTeam ", this.employeeData);
+    const dataToSend = { ...this.employeeData, status };
+    this.utilityService.setEmployee360ViewAccess(true);
+    this.employee360Service.changeEmployeeData(dataToSend);
+
+    const employeeName = this.employeeData?.name || "Employee";
+
+    let breadcrumbObject = { title: `${employeeName} - ${status}`, url: "/user-team" };
+    this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
+
+    this.router.navigate(['/user-team'], { 
+      queryParams: { tab: 'my-team', action: 'view-pending-request', status }
+    });
+
+    console.log("Redirecting with queryParams:", { tab: 'my-team', action: 'view-pending-request', status });
+    console.log(" redirectToMyTeam end ", this.employeeData);
+  }  
 
   getAllLeaveTypesByLeavePolicies() {
     this.leaveTypes = [];
@@ -433,147 +557,132 @@ export class Employee360LeaveComponent implements OnInit {
       }],
     });
   }
-  
+
   getLeaveDataPerMonthByEmpId(year: number): void {
-    this.leaveByMonth = [];
-    
     this.employee360Service.getLeaveDataPerMonthByEmpId(this.employeeData.empId).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus === "Success") {
+        if (response.serviceStatus === "Success") {
+            const leaveData = response.serviceResponse;
+            const dataByLeaveType: any = {
+                "PL": { "Revoked": Array(12).fill(0), "Approved": Array(12).fill(0), "Rejected": Array(12).fill(0), "Pending": Array(12).fill(0), "Applied for revoke": Array(12).fill(0) },
+                "CL": { "Revoked": Array(12).fill(0), "Approved": Array(12).fill(0), "Rejected": Array(12).fill(0), "Pending": Array(12).fill(0), "Applied for revoke": Array(12).fill(0) },
+                "CO": { "Revoked": Array(12).fill(0), "Approved": Array(12).fill(0), "Rejected": Array(12).fill(0), "Pending": Array(12).fill(0), "Applied for revoke": Array(12).fill(0) },
+                "LWP": { "Revoked": Array(12).fill(0), "Approved": Array(12).fill(0), "Rejected": Array(12).fill(0), "Pending": Array(12).fill(0), "Applied for revoke": Array(12).fill(0) },
+                "ML": { "Revoked": Array(12).fill(0), "Approved": Array(12).fill(0), "Rejected": Array(12).fill(0), "Pending": Array(12).fill(0), "Applied for revoke": Array(12).fill(0) }
+            };
 
-        this.leaveByMonth = response.serviceResponse;
-        console.log("getLeaveDataPerMonthByEmpId 1: ", this.leaveByMonth); 
-        this.leaveByMonth = this.leaveByMonth.filter((leave) => {
-          console.log("getLeaveDataPerMonthByEmpId 2: ", this.leaveByMonth);
-          
-          const leaveYear = parseInt(leave.leaveYear, 10);  
-          return leaveYear === year;
-        });
-  
-        this.prepareChartData();
-        console.log("getLeaveDataPerMonthByEmpId : ", this.leaveByMonth);
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
-  }
-  
-  prepareChartData(): void {
-    let leaveTypes = {};
-    let months = Array.from({ length: 12 }, (_, i) => i + 1); 
-    let chartData = {
-      xAxisCategories: [],
-      seriesData: [] 
-    };
-  
-    chartData.xAxisCategories = months.map(month => month.toString());
+            leaveData.forEach(leave => {
+                const leaveType = leave.leaveType;
+                const leaveStatus = leave.leaveStatus;
+                const leaveMonth = parseInt(leave.leaveMonth, 10) - 1;
+                const totalDays = parseFloat(leave.totalDays);
 
-    this.leaveByMonth.forEach((leave) => {
-      const leaveMonth = parseInt(leave.leaveMonth, 10);
-      const leaveType = leave.leaveType; 
-      const leaveStatus = leave.leaveStatus; 
-  
-      if (!leaveTypes[leaveMonth]) {
-        leaveTypes[leaveMonth] = {}; 
-      }
-  
-      if (!leaveTypes[leaveMonth][leaveType]) {
-        leaveTypes[leaveMonth][leaveType] = { "Pending": 0, "Approved": 0, "Rejected": 0, 'Revoked': 0, 'Applied For Revoke': 0 }; 
-      }
-      const totalDays = parseFloat(leave.totalDays); 
-      if (!isNaN(totalDays)) {
-        leaveTypes[leaveMonth][leaveType][leaveStatus] += totalDays;
-      }
-    });
+                if (dataByLeaveType[leaveType] && dataByLeaveType[leaveType][leaveStatus]) {
+                    dataByLeaveType[leaveType][leaveStatus][leaveMonth] += totalDays;
+                }
+            });
 
-    Object.keys(leaveTypes).forEach((month) => {
-      const dataForMonth = [];
-      
-      Object.keys(leaveTypes[month]).forEach((leaveType) => {
-        const leaveStatusData = leaveTypes[month][leaveType];
-        
-        Object.keys(leaveStatusData).forEach((status) => {
-          dataForMonth.push({
-            name: status,
-            data: [leaveStatusData[status]],
-            color: this.getColorForLeaveStatus(status), 
-            stack: leaveType, 
-          });
-        });
-      });
-  
-      chartData.seriesData.push(...dataForMonth);
-    });
-  
-    this.chartOptions = {
-      chart: {
-        type: 'column'
-      },
-      title: {
-        text: 'Leave Data Per Month'
-      },
-      xAxis: {
-        categories: chartData.xAxisCategories,
-        title: {
-          text: 'Month'
+            const seriesData = [];
+            const uniqueStatuses: Set<string> = new Set();
+            for (let leaveType in dataByLeaveType) {
+                for (let leaveStatus in dataByLeaveType[leaveType]) {
+                    seriesData.push({
+                        name: `${leaveType} - ${leaveStatus}`,
+                        data: dataByLeaveType[leaveType][leaveStatus],
+                        color: this.getLeaveStatusColor(leaveStatus),
+                        stack: leaveType,
+                        status: leaveStatus,
+                        leaveType: leaveType
+                    });
+                    uniqueStatuses.add(leaveStatus);
+                }
+            }
+
+            const legendItems = Array.from(uniqueStatuses).map(status => ({
+                name: status,
+                status: status,
+                color: this.getLeaveStatusColor(status) 
+            }));
+
+            Highcharts.chart('leaveByMonthContainer', {
+                chart: {
+                    type: 'column',
+                },
+                title: {
+                    text: 'Leave Data for 2024',
+                },
+                xAxis: {
+                    categories: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"],
+                    title: {
+                        text: "Month",
+                    },
+                },
+                yAxis: {
+                    min: 0,
+                    title: {
+                        text: "Leave Count",
+                    },
+                },
+                tooltip: {
+                    shared: false,
+                    formatter: function (this: Highcharts.TooltipFormatterContextObject) {
+                        const seriesOptions = this.series.options as any; 
+                        return `<b>Month:</b> ${this.x}<br/>` +
+                            `<b>Status:</b> ${seriesOptions.status}<br/>` +
+                            `<b>Days:</b> ${this.y}`;
+                    },
+                },
+                legend: {
+                    labelFormatter: function () {
+                        const seriesOptions = this.options as any; 
+                        return seriesOptions.status;
+                    },
+                    useHTML: true,
+                },
+                plotOptions: {
+                    column: {
+                        stacking: 'normal',
+                    },
+                    series: {
+                        events: {
+                            legendItemClick: function () {
+                                const clickedStatus = (this.options as any).status;
+                                this.chart.series.forEach(series => {
+                                    if ((series.options as any).status === clickedStatus) {
+                                        series.visible ? series.hide() : series.show();
+                                    }
+                                });
+
+                                return false;
+                            },
+                        },
+                        showInLegend: true, 
+                    },
+                },
+                series: seriesData,
+            },
+            function(chart) {
+              console.log('Highcharts Chart Object:', chart);
+          });      
+        } else {
+            console.error(response.serviceResponse);
         }
-      },
-      yAxis: {
-        min: 0,
-        title: {
-          text: 'Total Days'
-        },
-        stackLabels: {
-          enabled: true,
-          style: {
-            fontWeight: 'bold',
-            color: 'gray'
-          }
-        }
-      },
-      tooltip: {
-        shared: true,
-        valueSuffix: ' days'
-      },
-      plotOptions: {
-        column: {
-          stacking: 'normal'
-        }
-      },
-      series: chartData.seriesData 
-    };
-  
-    console.log("Prepared Chart Data: ", this.chartOptions);
-  }
-  
-  getColorForLeaveStatus(status: string) {
-    const colorMap = {
-      'Pending': '#a2d2ff',
-      'Approved': '#778da9',
-      'Rejected': '#415a77',
-      'Revoked': '#0d1b2a',
-      'Applied For Revoke': '#1b263b'
-    };
-    return colorMap[status] || '#2a9d8f'; 
-  }
-  
-  
-  
-  getEmployeeDetails() {
-    this.employeeDetails = [];
-    this.formatedEmploymentID = Number(this.utilityService.getEmployeeIdSubstring2(this.employeeData));
-    console.log("formatedEmploymentID  : ", this.formatedEmploymentID);
-
-    this.employee360Service.getEmployeeDetails(this.formatedEmploymentID).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.employeeDetails = response.serviceResponse;
-        console.log("getEmployeeDetails : ", this.employeeDetails);
-      } else {
-        console.error(response.serviceResponse);
-      }
     });
-  }
+}
 
-  renderChart() {
-    Highcharts.chart('leaveByMonthContainer', this.chartOptions); 
+getLeaveStatusColor(status: string): string {
+    switch (status) {
+        case "Approved":
+            return "#c5d86d";
+        case "Rejected":
+            return "#e63946";
+        case "Pending":
+            return "#fde74c";
+        case "Revoked":
+            return "#4e878c";
+        case "Applied for revoke":
+            return "#f2bac9";
+        default:
+            return "#122f97";
+    }
   }
 }
