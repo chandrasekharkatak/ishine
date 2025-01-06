@@ -41,7 +41,6 @@ export class Employee360TimesheetComponent implements OnInit {
   projectName:any;
   teamName:any="null";
   empId:any=0;
-  empIdd:any=0;
   projectId:any=0;
   currentUser:any;
   time;
@@ -85,7 +84,6 @@ export class Employee360TimesheetComponent implements OnInit {
   modalRef: BsModalRef = new BsModalRef();
   isProjectTeamClicked:boolean=false;
   header:String="";
-  empIds:[];
   currentBreadcrumbList: any[] = [];
 
   ngOnInit(): void {
@@ -109,14 +107,14 @@ export class Employee360TimesheetComponent implements OnInit {
       this.managerId = currentUserData.empId;
       console.log(this.managerId); 
     }
-    this.empIdd=sessionStorage.getItem('empId');
+    this.empId=sessionStorage.getItem('empId');
     // this.empIdd=240065;
     // this.managerId = 21823;
     this.startDate = null;
     this.endDate = null;
     this.formattedStartDate = null;
     this.formattedEndDate = null;
-    this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
+    this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
   }
 
   setActiveButton(button: string): void {
@@ -126,7 +124,7 @@ export class Employee360TimesheetComponent implements OnInit {
       this.allSelected=false;
     }
     if(this.activeButton !=='Calendar'){
-      this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
+      this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
     }else{
       this.getTimesheetsForHomePageByEmpId('Last 7 Days');
     }
@@ -417,7 +415,7 @@ updateStatus(status: string) {
 
   goBack(){
     this.isProjectTeamClicked=false;
-    this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
+    this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
   }
 
   
