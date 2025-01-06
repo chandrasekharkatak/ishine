@@ -16,14 +16,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.transaction.Transactional;
 
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import com.apmosys.employeeportal.dto.BioMaTO;
 import com.apmosys.employeeportal.dto.BioMax360;
+import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -49,6 +58,9 @@ public class BioMaxService {
 
 	@Autowired
 	EmployeeRepository employeeRepository;
+	
+	@PersistenceContext
+    private EntityManager entityManager;
 
 	public Connection getConnection() {
 		
@@ -693,6 +705,140 @@ System.out.println("Query"+Query);
 		    
 		    return finalEmpBioData;
 		}
+	 
+	 
+	 public ServiceResponse getBioOverTimeandState(EmployeeDTO employeedto) {
+		    HashMap<String, Object> res = new HashMap<>();
+		    HashMap<String, Object> stats = new HashMap<>();
+			ServiceResponse serviceResponse = new ServiceResponse();
+		    ArrayList<HashMap<String, Object>> AllDataList =new   ArrayList<HashMap<String, Object>>();
+		    
+//		    Long empId = employeedto.getEmpId();
+		    Long empId = (long) 21887;
+		    
+		    String strMYSQLQuery = "SELECT " +
+	                "(SELECT COUNT(emp_id) " +
+	                " FROM employee_leave " +
+	                " WHERE emp_id = :empId " +
+	                "   AND MONTH(created_on) = MONTH(CURRENT_DATE - INTERVAL 1 MONTH) " +
+	                "   AND YEAR(created_on) = YEAR(CURRENT_DATE - INTERVAL 1 MONTH)) AS leave_count, " +
+
+	                "(SELECT COUNT(reward_id) " +
+	                " FROM employee_rewards " +
+	                " WHERE created_by = :empId " +
+	                "   AND MONTH(created_on) = MONTH(CURRENT_DATE - INTERVAL 1 MONTH) " +
+	                "   AND YEAR(created_on) = YEAR(CURRENT_DATE - INTERVAL 1 MONTH)) AS rewards_count, " +
+
+	                "(SELECT COUNT(id) " +
+	                " FROM db_emp_portal.appreciation " +
+	                " WHERE appreciation_to = :empId " +
+	                "   AND MONTH(appreciation_date) = MONTH(CURRENT_DATE - INTERVAL 1 MONTH) " +
+	                "   AND YEAR(appreciation_date) = YEAR(CURRENT_DATE - INTERVAL 1 MONTH)) AS appreciation_count";
+
+	        // Execute the Query
+	        Query query = entityManager.createNativeQuery(strMYSQLQuery);
+	        query.setParameter("empId", empId);
+
+	        // Fetch the result
+	        Object[] result = (Object[]) query.getSingleResult();
+
+	        // Map the results
+	        
+	        stats.put("leave_count",   result[0]);
+	        stats.put("rewards_count", result[1]);
+	        stats.put("appreciation_count",  result[2]);
+
+	       
+	        System.out.println("data  --===="+ stats);
+	        
+
+		    try {
+		        // Fetch all employees from the repository
+		        List<Employee> AllEmpList = employeeRepository.findAll();
+
+		        // Loop through each employee and process
+		        AllEmpList.forEach(emp -> {
+		            if (emp.getEmpId().equals(employeedto.getEmpId())) {
+		                // SQL query to fetch total overtime and other relevant data
+		            	
+		            	String EmploymentId = "A" + emp.getEmployeementId();
+		            	
+		            	
+		            	String strMSSQLQuery = "SELECT "
+		            	        + "SUM(CAST(AttendanceLogs.OverTime AS INT)) AS total_OverTime, "
+		            	        + "CONCAT('-', ABS(SUM(CAST(AttendanceLogs.OverTimeE AS INT)))) AS total_UnderTimeE "
+		            	        + "FROM AttendanceLogs "
+		            	        + "INNER JOIN Employees ON AttendanceLogs.EmployeeId = Employees.EmployeeId "
+		            	        + "WHERE Employees.EmployeeCode = ? "
+		            	        + "AND MONTH(AttendanceLogs.AttendanceDate) = MONTH(DATEADD(MONTH, -1, GETDATE())) "
+		            	        + "AND YEAR(AttendanceLogs.AttendanceDate) = YEAR(DATEADD(MONTH, -1, GETDATE()))";
+
+
+
+		                try {
+		                    // Load the SQL Server JDBC driver
+		                    Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+
+		                    // Establish connection
+		                    Connection con = getConnection();
+
+		                    // Prepare the SQL statement
+		                    PreparedStatement statement = con.prepareStatement(strMSSQLQuery);
+		                    
+		                    
+		                    statement.setString(1, String.valueOf(EmploymentId)); 
+
+		                    // Execute the query
+		                    ResultSet resultSet = statement.executeQuery();
+
+		                    // Process the result set
+		                    if (resultSet.next()) {
+		                        int totalOverTime = resultSet.getInt("total_OverTime");
+		                        String totalOverTimeE = resultSet.getString("total_UnderTimeE");
+
+		                        // Add results to the response
+		                        res.put("totalOverTime", totalOverTime);
+		                        res.put("totalOverTimeE", totalOverTimeE);
+		                    }
+
+		                    // Close resources
+		                    resultSet.close();
+		                    statement.close();
+		                    con.close();
+		                } catch (ClassNotFoundException | SQLException e) {
+		                    e.printStackTrace();
+		                }
+		                
+		                
+		            }
+		        });
+		        
+		        System.out.println("data res --===="+ res);
+
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		    }
+
+		    
+		    
+		    AllDataList.add(res);
+		    AllDataList.add(stats);
+		  
+		    serviceResponse.setServiceResponse(AllDataList);
+		    serviceResponse.setServiceMessage("Success");
+		    serviceResponse.setServiceError("");
+	
+		    return serviceResponse; 
+		}
+	 
+	 
+
+	 
+	
+	   
+	   
+	   
+	 
 		
 	
 
