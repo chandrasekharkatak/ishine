@@ -117,16 +117,14 @@
 <!-- for pending , approved  and rejected  -->
 <div *ngIf="activeButton !== 'Calendar'" class="table-responsive">
   <div  class="form-group col-md-6">
-    <button *ngIf="bulkList.length>=1" class="btn btn-sm btn-outline-success" type="submit" (click)="bulkClicked('Approved')">Bulk
-      Approve</button>&nbsp;
-    <button *ngIf="bulkList.length>=1 " type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="bulkClicked('Rejected')"
-      >Bulk Reject</button>
+    <button class="btn btn-sm btn-outline-success" type="submit" (click)="bulkClicked('Approved')">Bulk Approve</button>&nbsp;
+    <button type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="bulkClicked('Rejected')">Bulk Reject</button>
   </div>
   <table class="table table-bordered">
       <thead class="thead-light">
           <tr>
               <th>
-                  <input *ngIf="!(data === null || data.length === 0)" type="checkbox" [(ngModel)]="allSelected" (change)="toggleSelectAll()" />
+                  <input *ngIf="result && result.length > 0" type="checkbox" [(ngModel)]="allSelected" (change)="toggleSelectAll()" />
               </th>
               <th>Sr No</th>
               <th >Emp Id</th>
@@ -152,9 +150,9 @@
               <td colspan="16" style="text-align: center;">No Data To Display.....</td>
           </tr>
           <tr *ngFor="let item of result; let i = index">
-              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >
-                  <input type="checkbox" [(ngModel)]="item.selected" (change)="toggleRowSelection(item.empId,item.date,item.selected)" />
-              </td>
+            <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >
+                <input type="checkbox" [(ngModel)]="item.selected" (change)="toggleRowSelection(item.empId,item.date,item.selected)" />
+            </td>
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ i + 1 }}</td>
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.empId }}</td>
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" (click)="navigateToEmployee360()" style="cursor: pointer; color: blue;">{{ item.name }}</td>
