@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -21,16 +22,20 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.BioMaTO;
+import com.apmosys.employeeportal.dto.BioMax360;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @Service
 public class BioMaxService {
-
+	@Autowired
+	TimesheetService TimesheetService;
 	@Value("${BioDbIp}")
 	public String DBIp;
-	
+	Connection con = null;
+    PreparedStatement statement = null;
+    ResultSet resultSet = null;
 	
 //	@Value("${BioDbPort}")
 	//public String DBPort;
@@ -58,7 +63,7 @@ public class BioMaxService {
 //			Connection con = DriverManager.getConnection("jdbc:sqlserver://yourserver:1433;databaseName=yourdatabase;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;");
 //			Connection con = DriverManager.getConnection("jdbc:sqlserver://yourserver:1433;databaseName=yourdatabase;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;");
 //			 Connection con = DriverManager.getConnection("jdbc:sqlserver://192.168.0.126:1433;databaseName=SmartOfficedb;user=sa;password=biomax;");
-			 Connection con = DriverManager.getConnection("jdbc:sqlserver://192.168.0.126:1433;databaseName=smartofficedb;encrypt=true;trustServerCertificate=true;user=sa;password=biomax;sslProtocol=TLSv1.2");
+			  con = DriverManager.getConnection("jdbc:sqlserver://192.168.0.126:1433;databaseName=smartofficedb;encrypt=true;trustServerCertificate=true;user=sa;password=biomax;sslProtocol=TLSv1.2");
 
 			 
 			 if (con !=null) {
@@ -73,15 +78,81 @@ public class BioMaxService {
 		return null;
 	}
 
+	 public Connection getConnectionForProject() {
+	        String DB_URL = "jdbc:mysql://localhost:3306/db_emp_portal"; // Replace with your MySQL server info
+	        String DB_USER = "root"; // Replace with your MySQL username
+	        String DB_PASSWORD = "Welcome@2024"; // Replace with your MySQL password
+
+	        try {
+	            // Load MySQL JDBC driver
+	            Class.forName("com.mysql.cj.jdbc.Driver");
+
+	            // Establish connection
+	             con = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+
+	            if (con != null) {
+	                System.out.println("Connection made to MySQL database");
+	            }
+	            return con;
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+
+	        return null;
+	    }
+	 
+	public String getProjectTimeSheet(String date,String employeeId) {
+		String timesheetId="0";
+	
+		String Query="SELECT * FROM employee_timesheets AS e \n"
+				+ "WHERE \n"
+				+ "e.emp_id IN (\n"
+				+ "    SELECT employee.emp_id \n"
+				+ "    FROM db_emp_portal.employee \n"
+				+ "    WHERE employee.emp_id = '"+employeeId+"'"
+				+ ")\n"
+				+ "AND\n"
+				+ "e.date=DATE_FORMAT(STR_TO_DATE('"+date+"', '%d-%b-%Y'), '%Y-%m-%d')\n";
+		
+		try {
+			con = getConnectionForProject();
+			 statement=con.prepareStatement(Query);
+			 resultSet=statement.executeQuery();
+				 if(resultSet.next()) {
+					 
+				 timesheetId=resultSet.getString("timesheet_id");
+			 }else {
+				 timesheetId="0";
+			 }
+		}catch(Exception e) {
+			e.printStackTrace();
+		}finally {
+	        // Properly close the resources in the finally block
+	        try {
+	            if (resultSet != null) {
+	            	resultSet.close();
+	            }
+	            if (statement != null) {
+	                statement.close();
+	            }
+	            if (con != null) {
+	            	con.close();
+	            }
+	        } catch (SQLException ex) {
+	            ex.printStackTrace();
+	        }
+	    }
+		
+		
+		return timesheetId;
+				
+	}
 	public ServiceResponse getEmpBioData(String date) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		try {
 			Set<String> bioEmpIdSet = new HashSet<>();
 			Map<String, List<String>> empMapById = new HashMap<>();
 			List<BioMaTO> finalEmpBioData=new ArrayList();
-
-//			List<List<Object>> bioMaxAllList = new ArrayList();
-
 			 String Query = "WITH LatestLogDate AS (\n"
 			 		+ "    SELECT \n"
 			 		+ "        dl.UserId,\n"
@@ -127,7 +198,6 @@ public class BioMaxService {
 			 		+ "WHERE \n"
 			 		+ "    adl.AttendanceDateStr = ?"; // Use ? as a placeholder
 
-			
 			Connection con = getConnection();
 			PreparedStatement statement = con.prepareStatement(Query);
 			
@@ -288,6 +358,136 @@ public class BioMaxService {
 	}
 	
 
+	public ServiceResponse getEmpBioData360(String startdate, String endDate, String employeeId) {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    Connection con = null;
+	    PreparedStatement statement = null;
+	    ResultSet resultSet = null;
+
+	    try {
+	        Set<String> bioEmpIdSet = new HashSet<>();
+	        Map<String, List<String>> empMapById = new HashMap<>();
+	        List<BioMax360> finalEmpBioData = new ArrayList();
+
+	        String Query = "WITH LatestLogDate AS ("
+	                + "    SELECT "
+	                + "        dl.UserId, "
+	                + "        MAX(dl.LogDate) AS LastLogDate "
+	                + "    FROM "
+	                + "        [SmartOfficedb].[dbo].[DeviceLogs_10_2024] dl "
+	                + "    INNER JOIN "
+	                + "        [SmartOfficedb].[dbo].[Employees] emp ON dl.UserId = emp.EmployeeCode "
+	                + "    INNER JOIN "
+	                + "        [SmartOfficedb].[dbo].[AttendanceLogs] adl ON emp.EmployeeId = adl.EmployeeId "
+	                + "    WHERE "
+	                + "        adl.AttendanceDateStr BETWEEN '" + startdate + "' AND '" + endDate + "' "
+	                + "        AND emp.EmployeeCode IN ( '" + employeeId + "' )"
+	                + "    GROUP BY "
+	                + "        dl.UserId "
+	                + ") "
+	                + "SELECT "
+	                + "   adl.AttendanceDateStr,"
+	                + "     dl.LogDate, "
+	                + "    emp.EmployeeCode, "
+	                + "    emp.EmployeeName, "
+	                + "    adl.TotalDuration, "
+	                + "    s.ShiftName, "
+	                + "    adl.BeginTime, "
+	                + "    adl.EndTime, "
+	                + "    adl.Status, "
+	                + "    adl.PunchRecords, "
+	                + "    adl.EarlyBy, "
+	                + "    adl.LateBy, "
+	                + "    adl.Duration, "
+	                + "    adl.InTime, "
+	                + "    adl.OutTime, "
+	                + "    adl.ShiftDuration "
+	                + "FROM "
+	                + "    LatestLogDate lld "
+	                + "INNER JOIN "
+	                + "    [SmartOfficedb].[dbo].[DeviceLogs_10_2024] dl ON lld.UserId = dl.UserId AND lld.LastLogDate = dl.LogDate "
+	                + "INNER JOIN "
+	                + "    [SmartOfficedb].[dbo].[Employees] emp ON dl.UserId = emp.EmployeeCode "
+	                + "INNER JOIN "
+	                + "    [SmartOfficedb].[dbo].[AttendanceLogs] adl ON emp.EmployeeId = adl.EmployeeId "
+	                + "INNER JOIN "
+	                + "    [SmartOfficedb].[dbo].[Shifts] s ON adl.ShiftId = s.ShiftId "
+	                + "WHERE "
+	                + "    adl.AttendanceDateStr BETWEEN '" + startdate + "' AND '" + endDate + "' "
+	                + "    AND emp.EmployeeCode IN( '" + employeeId + "' )"; // Direct values in the query
+System.out.println("Query"+Query);
+	        // Getting the database connection
+	        con = getConnection();
+	        statement = con.prepareStatement(Query);
+
+	        // Execute the query and retrieve the result set
+	        resultSet = statement.executeQuery();
+
+	        // Process the result set
+	        while (resultSet.next()) {
+	            BioMax360 bioMaTO = new BioMax360();
+	            bioMaTO.setAttendanceDateStr(resultSet.getString("AttendanceDateStr"));
+	            bioMaTO.setLogDate(resultSet.getString("LogDate"));
+	            bioMaTO.setEmployeeCode(resultSet.getString("EmployeeCode"));
+	            bioMaTO.setEmployeeName(resultSet.getString("EmployeeName"));
+	            bioMaTO.setTotalDuration(resultSet.getString("TotalDuration")); // Assuming TotalDuration is a String
+	            bioMaTO.setShiftName(resultSet.getString("ShiftName")); // Added shift name from your query
+	            bioMaTO.setBeginTime(resultSet.getString("BeginTime"));
+	            bioMaTO.setEndTime(resultSet.getString("EndTime"));
+	            bioMaTO.setStatus(resultSet.getString("Status"));
+	            bioMaTO.setPunchRecords(resultSet.getString("PunchRecords"));
+	            bioMaTO.setEarlyBy(resultSet.getString("EarlyBy"));
+	            bioMaTO.setLateBy(resultSet.getString("LateBy"));
+	            bioMaTO.setDuration(resultSet.getString("Duration")); // Assuming Duration is a String
+	            bioMaTO.setInTime(resultSet.getString("InTime"));
+	            bioMaTO.setOutTime(resultSet.getString("OutTime"));
+	            bioMaTO.setShiftDuration(resultSet.getString("ShiftDuration")); 
+	            TimesheetDTO timesheetdto=new TimesheetDTO();
+	            timesheetdto.setTimesheetId(Long.parseLong("51058"));
+	        	TimesheetDTO ob=new TimesheetDTO();
+	        	ob.setClientId(1);
+	        	ob.setProjectId(1);
+	        	ob.setProjectName("Test");
+	        	TimesheetDTO ob1=new TimesheetDTO();
+	        	ob1.setClientId(1);
+	        	ob1.setProjectId(1);
+	        	ob1.setProjectName("Test2");
+	        	List<TimesheetDTO> dto=new ArrayList<>();
+	        	dto.add(ob);
+	        	dto.add(ob1);
+	        	bioMaTO.setTimesheetdto(dto);
+	          //  bioMaTO.setTimesheetdto(TimesheetService.getAllProjectsByEmpIdForBioMax(Long.parseLong("51058")));
+	            finalEmpBioData.add(bioMaTO);
+	        }
+	        serviceResponse.setServiceResponse(finalEmpBioData);
+	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+
+	        // Set the error in response
+	        serviceResponse.setServiceResponse("");
+	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        serviceResponse.setServiceError(e.getMessage());
+	    } finally {
+	        // Properly close the resources in the finally block
+	        try {
+	            if (resultSet != null) {
+	                resultSet.close();
+	            }
+	            if (statement != null) {
+	                statement.close();
+	            }
+	            if (con != null) {
+	                con.close();
+	            }
+	        } catch (SQLException ex) {
+	            ex.printStackTrace();
+	        }
+	    }
+
+	    return serviceResponse;
+	}
 
 	public long calculateTime(String startDateStr, String endDateStr) {
 
@@ -411,89 +611,89 @@ public class BioMaxService {
 //	
 //	
 //	
-//	 public List<BioMaTO> getBioInOut(TimesheetDTO timesheetdto) {
-//		    List<BioMaTO> finalEmpBioData = new ArrayList<>();
-//		    
-//		    try {
-//		        Set<String> bioEmpIdSet = new HashSet<>();
-//		        Map<String, List<String>> empMapById = new HashMap<>();
-//		        
-//		        String query = "SELECT " +
-//		            "adl.AttendanceDate, " +
-//		            "emp.EmployeeCode, " +
-//		            "emp.EmployeeName, " +
-//		            "adl.TotalDuration, " +
-//		            "s.ShiftName, " +
-//		            "adl.BeginTime, " +
-//		            "adl.EndTime, " +
-//		            "adl.Status, " +
-//		            "adl.PunchRecords, " +
-//		            "adl.EarlyBy, " +
-//		            "adl.LateBy, " +
-//		            "adl.Duration, " +
-//		            "adl.InTime, " +
-//		            "adl.OutTime, " +
-//		            "adl.ShiftDuration " +
-//		            "FROM [SmartOfficedb].[dbo].[AttendanceLogs] adl " +
-//		            "INNER JOIN [SmartOfficedb].[dbo].[Employees] emp ON adl.EmployeeId = emp.EmployeeId " +
-//		            "INNER JOIN [SmartOfficedb].[dbo].[Shifts] s ON adl.ShiftId = s.ShiftId " +
-//		            "WHERE YEAR(adl.AttendanceDate) = ? AND MONTH(adl.AttendanceDate) = ?;";
-//		        
-//		        
-//		        Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-//
-//				 Connection con = getConnection();
-//
-//		        PreparedStatement statement = con.prepareStatement(query);
-//		       
-//		        // Set the date parameters
-//		        statement.setString(1, String.valueOf(2024)); // Set the year
-//		        statement.setString(2, String.valueOf(9));    // Set the month
-//		        
-//		        System.out.println("Executing query: " + statement.toString());
-//		        
-//		        ResultSet resultSet = statement.executeQuery();
-//		        
-//		        if (!resultSet.next()) {
-//		            System.out.println("No results found.");
-//		        } else {
-//		        	 while (resultSet.next()){
-//		                BioMaTO bioMaTO = new BioMaTO();
-//		                
-//		                System.out.println(resultSet.getString("EmployeeCode"));
-//		                System.out.println(resultSet.getString("ShiftName"));
-//		                System.out.println(resultSet.getString("EmployeeName"));
-//		                System.out.println(resultSet.getString("TotalDuration"));
-//		               
-//		                // Populate bioMaTO object
-//		                bioMaTO.setEmployeeCode(resultSet.getString("EmployeeCode"));
-//		                bioMaTO.setEmployeeName(resultSet.getString("EmployeeName"));
-//		                bioMaTO.setTotalDuration(resultSet.getString("TotalDuration"));
-//		                bioMaTO.setShiftName(resultSet.getString("ShiftName"));
-//		                bioMaTO.setBeginTime(resultSet.getString("BeginTime"));
-//		                bioMaTO.setEndTime(resultSet.getString("EndTime"));
-//		                bioMaTO.setStatus(resultSet.getString("Status"));
-//		                bioMaTO.setPunchRecords(resultSet.getString("PunchRecords"));
-//		                bioMaTO.setEarlyBy(resultSet.getString("EarlyBy"));
-//		                bioMaTO.setLateBy(resultSet.getString("LateBy"));
-//		                bioMaTO.setDuration(resultSet.getString("Duration"));
-//		                bioMaTO.setInTime(resultSet.getString("InTime"));
-//		                bioMaTO.setOutTime(resultSet.getString("OutTime"));
-//		                bioMaTO.setShiftDuration(resultSet.getString("ShiftDuration"));
-//
-//		                finalEmpBioData.add(bioMaTO);
-//		                
-//		            }
-//		            
-//		        }
-//		        
-//		    } catch (Exception e) {
-//		        e.printStackTrace(); // Log the exception message
-//		    }
-//		    
-//		    return finalEmpBioData;
-//		}
-//		
+	 public List<BioMaTO> getBioInOut() {
+		    List<BioMaTO> finalEmpBioData = new ArrayList<>();
+		    
+		    try {
+		        Set<String> bioEmpIdSet = new HashSet<>();
+		        Map<String, List<String>> empMapById = new HashMap<>();
+		        
+		        String query = "SELECT " +
+		            "adl.AttendanceDate, " +
+		            "emp.EmployeeCode, " +
+		            "emp.EmployeeName, " +
+		            "adl.TotalDuration, " +
+		            "s.ShiftName, " +
+		            "adl.BeginTime, " +
+		            "adl.EndTime, " +
+		            "adl.Status, " +
+		            "adl.PunchRecords, " +
+		            "adl.EarlyBy, " +
+		            "adl.LateBy, " +
+		            "adl.Duration, " +
+		            "adl.InTime, " +
+		            "adl.OutTime, " +
+		            "adl.ShiftDuration " +
+		            "FROM [SmartOfficedb].[dbo].[AttendanceLogs] adl " +
+		            "INNER JOIN [SmartOfficedb].[dbo].[Employees] emp ON adl.EmployeeId = emp.EmployeeId " +
+		            "INNER JOIN [SmartOfficedb].[dbo].[Shifts] s ON adl.ShiftId = s.ShiftId " +
+		            "WHERE YEAR(adl.AttendanceDate) = ? AND MONTH(adl.AttendanceDate) = ?;";
+		        
+		        
+		        Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+
+				 Connection con = getConnection();
+
+		        PreparedStatement statement = con.prepareStatement(query);
+		       
+		        // Set the date parameters
+		        statement.setString(1, String.valueOf(2024)); // Set the year
+		        statement.setString(2, String.valueOf(9));    // Set the month
+		        
+		        System.out.println("Executing query: " + statement.toString());
+		        
+		        ResultSet resultSet = statement.executeQuery();
+		        
+		        if (!resultSet.next()) {
+		            System.out.println("No results found.");
+		        } else {
+		        	 while (resultSet.next()){
+		                BioMaTO bioMaTO = new BioMaTO();
+		                
+		                System.out.println(resultSet.getString("EmployeeCode"));
+		                System.out.println(resultSet.getString("ShiftName"));
+		                System.out.println(resultSet.getString("EmployeeName"));
+		                System.out.println(resultSet.getString("TotalDuration"));
+		               
+		                // Populate bioMaTO object
+		                bioMaTO.setEmployeeCode(resultSet.getString("EmployeeCode"));
+		                bioMaTO.setEmployeeName(resultSet.getString("EmployeeName"));
+		                bioMaTO.setTotalDuration(resultSet.getString("TotalDuration"));
+		                bioMaTO.setShiftName(resultSet.getString("ShiftName"));
+		                bioMaTO.setBeginTime(resultSet.getString("BeginTime"));
+		                bioMaTO.setEndTime(resultSet.getString("EndTime"));
+		                bioMaTO.setStatus(resultSet.getString("Status"));
+		                bioMaTO.setPunchRecords(resultSet.getString("PunchRecords"));
+		                bioMaTO.setEarlyBy(resultSet.getString("EarlyBy"));
+		                bioMaTO.setLateBy(resultSet.getString("LateBy"));
+		                bioMaTO.setDuration(resultSet.getString("Duration"));
+		                bioMaTO.setInTime(resultSet.getString("InTime"));
+		                bioMaTO.setOutTime(resultSet.getString("OutTime"));
+		                bioMaTO.setShiftDuration(resultSet.getString("ShiftDuration"));
+
+		                finalEmpBioData.add(bioMaTO);
+		                
+		            }
+		            
+		        }
+		        
+		    } catch (Exception e) {
+		        e.printStackTrace(); // Log the exception message
+		    }
+		    
+		    return finalEmpBioData;
+		}
+		
 	
 
 

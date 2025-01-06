@@ -79,6 +79,7 @@ import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
 import {AutocompleteLibModule} from 'angular-ng-autocomplete';
 import { ResourceManagementComponent } from './user-team/resource-management/resource-management.component';
 import {ColFilterPipe} from './col-filter.pipe';
+
 import { SortPipe } from './sort.pipe';
 import { ColumnFilterBarComponent } from './helpers/column-filter-bar/column-filter-bar.component';
 import { MultiColFilterPipe } from './multi-col-filter.pipe';
@@ -113,6 +114,7 @@ import { Employee360RewardsComponent } from './employee360/employee360-rewards/e
 import { Employee360AppreciationComponent } from './employee360/employee360-appreciation/employee360-appreciation.component';
 import { BreadcrumbComponent } from './helpers/breadcrumb/breadcrumb.component';
 //import { TestComponent } from './user-report/test/test.component';
+  // Import Owl DateTime modules
 
 @NgModule({
   declarations: [
@@ -196,7 +198,11 @@ import { BreadcrumbComponent } from './helpers/breadcrumb/breadcrumb.component';
     Employee360BiomaxComponent,
     Employee360RewardsComponent,
     Employee360AppreciationComponent,
+<<<<<<< Updated upstream
     BreadcrumbComponent
+=======
+    Employee360BiomaxComponent
+>>>>>>> Stashed changes
     //TestComponent
   ],
   imports: [
