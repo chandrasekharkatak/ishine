@@ -11,6 +11,7 @@ import { LeaveConfigComponent } from '../configuration/leave-config/leave-config
 import { RoleConfigComponent } from '../configuration/role-config/role-config.component';
 import { Subscription } from 'rxjs';
 import { Employee360Service } from '../services/employee360.service';
+import { BreadcrumbService } from '../services/breadcrumb.service';
 
 
 @Component({
@@ -26,11 +27,11 @@ export class Employee360Component implements OnInit {
   departmentConfig: DeptConfigComponent;
   roleConfig: RoleConfigComponent;
   leaveConfig: LeaveConfigComponent;
-
+  
   tabName:any = 'Configurations';
   currentUser:User;
   userMapping:any = {};
-
+  breadcrumbUrl:any[] = [];
   
   private navigationSubscription: Subscription;
 
@@ -39,8 +40,10 @@ export class Employee360Component implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private employee360Service: Employee360Service,
+    private breadcrumbService: BreadcrumbService,
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    this.breadcrumbService.currentBreadcrumb.subscribe(x => this.breadcrumbUrl = x);
   }
 
 
@@ -60,7 +63,14 @@ export class Employee360Component implements OnInit {
       this.employeeData = history.state.data;
     }
     
-   
+    let findBreadcrumbObject = this.breadcrumbUrl.findIndex(x => x.title === "Employee-360");
+    if (findBreadcrumbObject >= 0) {
+      this.breadcrumbUrl.splice(findBreadcrumbObject + 1);
+      this.breadcrumbService.setBreadcrumbSubject(this.breadcrumbUrl);
+    } else {
+      let breadcrumbObject = { title: "Employee-360-Profile", url: "/employee-360/profile" };
+      this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
+    }
 
     console.log("employeeData   ",this.employeeData);
 

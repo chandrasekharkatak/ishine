@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
@@ -112,6 +113,13 @@ public class TeamsController {
 	public ServiceResponse getAllTeamCompOffHistoryView(@RequestBody LeaveDTO leaveDTO) {		
 		
 		ServiceResponse response =	teamsService.getAllTeamCompOffHistoryView(leaveDTO);		
+		return response;
+	}
+	
+	@RequestMapping(value="/getAllTeamCompOffHistoryViewByEmpId" , method = RequestMethod.POST)
+	public ServiceResponse getAllTeamCompOffHistoryViewByEmpId(@RequestBody LeaveDTO leaveDTO) {		
+		
+		ServiceResponse response =	teamsService.getAllTeamCompOffHistoryViewByEmpId(leaveDTO);		
 		return response;
 	}
 	
@@ -270,4 +278,5 @@ public class TeamsController {
 		ServiceResponse response = teamsService.addProjectManager();
 		return response;
 	}
+	
 }

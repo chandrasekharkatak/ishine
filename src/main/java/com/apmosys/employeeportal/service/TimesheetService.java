@@ -175,6 +175,59 @@ public class TimesheetService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+	
+	public List<TimesheetDTO> getAllProjectsByEmpIdForBioMax(Long timesheetId) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("add_timesheet");
+		apiLogInfo.setApiUrl("/api/getAllProjectsByEmpId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		List<TimesheetDTO> listDto = new ArrayList<TimesheetDTO>();
+
+		try {
+
+			//List<Object[]> projectList = employeeTeamMapRepository.findProjectsByTeamId(timesheetDTO.getEmpId());
+		
+			List<Object[]> objectList = timesheetActivityMapRepository
+					.activitiesByTimesheetId(timesheetId);
+			System.out.println("timesheetId"+timesheetId);
+			if (!objectList.isEmpty()) {
+				TimesheetDTO timesheetDto = new TimesheetDTO();
+
+				for (Object[] object : objectList) {
+					timesheetDto = new TimesheetDTO();
+					timesheetDto.setClientId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
+					timesheetDto.setClientName(object[1] != null ? object[1].toString() : null);
+					timesheetDto.setClientLocationId(object[2] != null ? Integer.parseInt(object[2].toString()) : null);
+					timesheetDto.setClientLocation(object[3] != null ? object[3].toString() : null);
+					timesheetDto.setProjectId(object[4] != null ? Integer.parseInt(object[4].toString()) : null);
+					timesheetDto.setProjectName(object[5] != null ? object[5].toString() : null);
+	  				timesheetDto.setTeamName(object[6] != null ? object[6].toString() : null);
+					timesheetDto.setTeamId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
+//					timesheetDto.setActivity(object[8] != null ? object[8].toString() : null);
+//					timesheetDto.setActivityId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+					listDto.add(timesheetDto);
+				}
+				return listDto;
+			} else {
+				return listDto;
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return listDto;
+	}
 
 	public ServiceResponse getAllActivitiesByProjectIdandEmpId(TimesheetDTO timesheetDTO) {
 

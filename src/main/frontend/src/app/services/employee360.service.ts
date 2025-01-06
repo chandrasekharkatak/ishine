@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { environment } from 'src/environments/environment';
 import { Timesheet } from '../models/timesheet';
 import { Subject } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -11,11 +12,18 @@ import { Subject } from 'rxjs';
 export class Employee360Service {
 
   private baseUrl:any = environment.baseUrl;
+
   private navigationSubject = new Subject<void>();
-  constructor(
+  private employeeDataSource = new BehaviorSubject<any>(null);
+
+  currentEmployeeData = this.employeeDataSource.asObservable();
+
+
+   constructor(
     private router: Router,
     private http: HttpClient
   ) {}
+
   getNavigationEvent() {
     return this.navigationSubject.asObservable();
   }
@@ -64,8 +72,19 @@ updateStatus(status: string, timesheetIds:number[],updatedBy: number) {
   // }
 
 
+
   get360TimesheetsForHomePageByEmpId(timesheetObj: Timesheet) {
     return this.http.post(`${this.baseUrl}` + `api/get360TimesheetsForHomePageByEmpId`, timesheetObj);
   }
 
+  changeEmployeeData(data: any) {
+    this.employeeDataSource.next(data);
+  }
+
+
+  getEmployeeDetailsForBiomax(startDate:String,endDate:String,employeeId:String){
+    return this.http.get(`http://localhost:8080/api/biomax?startDate=${startDate}&endDate=${endDate}&employeeId=${employeeId}`);
+  }
+
+ 
 }

@@ -125,6 +125,10 @@
                             </tr>
                         </thead>
                         <tbody>
+                            <tr *ngIf="!employee || employee.length === 0">
+                                <th colspan="6" class="text-center info-label">No Files to display...</th>
+                              </tr>
+                            
                             <tr
                             *ngFor="let rewardHistory of  employee ;  let i = index">
                             <th class="info-label">{{i+1}}</th>
@@ -159,6 +163,9 @@
                         </tr>
                       </thead>
                       <tbody id="claimTBody">
+                        <tr *ngIf="!teamRewardList || teamRewardList.length === 0">
+                            <th colspan="6" class="text-center info-label">No Files to display...</th>
+                          </tr>
                         <tr *ngFor="let teamlist of teamRewardList; let i = index">
                           <th class="info-label"><label>{{ i + 1 }}</label></th>
                           <td><label>{{ teamlist.rewardTypeName }}</label></td>

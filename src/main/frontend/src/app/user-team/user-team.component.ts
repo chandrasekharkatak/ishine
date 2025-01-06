@@ -15,6 +15,9 @@ export class UserTeamComponent implements OnInit {
   currentUser:User;
   userMapping:any = {};
   projectId:any;
+  activeTab: string = 'my-team';
+  action: any;
+
 
   constructor(
     private router: Router,
@@ -40,6 +43,14 @@ export class UserTeamComponent implements OnInit {
     //console.log(this.tabName, this.userMapping);
 
     this.projectId = this.router.url.split("/")[3];
+
+    this.route.queryParams.subscribe(params => {
+      this.activeTab = params['tab'] || 'my-team';
+      this.action = params['action'] || null;
+      if (this.activeTab === 'my-team' && this.action === 'view-pending-request') {
+          this.triggerPendingRequestView();
+      }
+  });
   }
 
   ngAfterViewInit(): void {
@@ -52,6 +63,10 @@ export class UserTeamComponent implements OnInit {
 
   ngOnDestroy(): void {
     this.removeActiveTab();
+  }
+
+  isActive(tab: string): boolean {
+    return this.activeTab === tab;
   }
 
   //modified by priyadarshini
@@ -91,4 +106,7 @@ export class UserTeamComponent implements OnInit {
     tab?.classList.remove('active');
   }
 
+  triggerPendingRequestView(): void {
+    this.router.navigate(['/user-team'], { queryParams: { tab: 'my-team', action: 'view-pending-request' } });
+}
 }

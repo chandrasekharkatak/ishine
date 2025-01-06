@@ -2720,119 +2720,119 @@ public class EmployeeService {
 		return response;
 	}
 	
-	public ServiceResponse getEmployeeByAppreciationName(String name) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("get_employee_by_name");
-		apiLogInfo.setApiUrl("/api/getEmployeeByName");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("getALLEmployees size : "+employeeRepository.findByAppreciationByName(name).size());
-		try {
-			List<Object[]> allEmployeeList = employeeRepository.findByAppreciationByName(name);
-			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
-
-			if (allEmployeeList != null) {
-				allEmployeeList.forEach((object) -> {
-					EmployeeDTO empDTO = new EmployeeDTO();
-					if (object[0] instanceof Employee) {
-			            Employee employee = (Employee) object[0];
-			            empDTO.setEmployeementId(employee.getEmployeementId());
-			            empDTO.setAadhar(employee.getAadhar());
-			            empDTO.setAboutMe(employee.getAboutMe());
-			            empDTO.setAddress(employee.getAddress());
-			            empDTO.setBankAccountNo(employee.getBankAccountNo());
-			            empDTO.setBankIFSCCode(employee.getBankIFSCCode());
-			            empDTO.setBankName(employee.getBankName());
-			            empDTO.setBloodGroup(employee.getBloodGroup());
-			            empDTO.setCity(employee.getCity());
-			            empDTO.setCountry(employee.getCountry());
-			            empDTO.setCreatedBy(employee.getCreatedBy());
-			            empDTO.setCreatedOn(employee.getCreatedOn().toString());
-			            empDTO.setDateOfBirth(employee.getDateOfBirth().toString());
-			            empDTO.setDateOfJoining(employee.getDateOfJoining().toString());
-			            empDTO.setEmail(employee.getEmail());
-			            empDTO.setEmergencyContactMobile(employee.getEmergencyContactMobile());
-			            empDTO.setEmergencyContactPerson(employee.getEmergencyContactPerson());
-			            empDTO.setEmploymentstatus(employee.getEmploymentstatus());
-			            empDTO.setEsicNumber(employee.getEsicNumber());
-			            empDTO.setFatherName(employee.getFatherName());
-			            empDTO.setGender(employee.getGender());
-			            empDTO.setGraduationType(employee.getGraduationType());
-			            empDTO.setPursuing(employee.getPursuing());
-			            empDTO.setJobRoleId(employee.getJobRoleId());
-			            empDTO.setLandline(employee.getLandline());
-			            empDTO.setManagerId(employee.getManagerId());
-			            empDTO.setMaritalStatus(employee.getMaritalStatus());
-			            empDTO.setMobileNo(employee.getMobileNo());
-			            empDTO.setMotherTongue(employee.getMotherTongue());
-			            empDTO.setName(employee.getName());
-			            empDTO.setNoticePeriod(employee.getNoticePeriod());
-			            empDTO.setAlternateMobileNo(employee.getAlternateMobileNo());
-			            empDTO.setPanNumber(employee.getPanNumber());
-			            empDTO.setPassportNumber(employee.getPassportNumber());
-			            empDTO.setPermanentAddress(employee.getPermanentAddress());
-			            empDTO.setPfAccountNumber(employee.getPfAccountNumber());
-			            empDTO.setPincode(employee.getPincode());
-			            empDTO.setPlaceOfBirth(employee.getPlaceOfBirth());
-			            empDTO.setPassingGrade(employee.getPassingGrade());
-			            empDTO.setPreviousPfAccountNumber(employee.getPreviousPfAccountNumber());
-			            empDTO.setRelation(employee.getRelation());
-			            empDTO.setState(employee.getState());
-			            empDTO.setUan(employee.getUan());
-			            empDTO.setViewsOnOrganisation(employee.getViewsOnOrganisation());
-			            empDTO.setYearOfPassing(employee.getYearOfPassing());
-			            empDTO.setWorkLocation(employee.getWorkLocation());
-			            empDTO.setProbationPeriod(employee.getProbationPeriod());
-			            empDTO.setEmpId(employee.getEmpId());
-			            empDTO.setExperience(employee.getExperience());
-			            empDTO.setBillable(employee.getBillable());
-			            empDTO.setChild1(employee.getChild1());
-			            empDTO.setChild2(employee.getChild2());
-			            empDTO.setChild3(employee.getChild3());
-			            empDTO.setMothersName(employee.getMothersName());
-			            empDTO.setSpouse(employee.getSpouse());
-			            empDTO.setTotalExperience(employee.getTotalExperience());
-			            empDTO.setInvalidAccessAttempt(employee.getInvalidAccessAttempt());
-			            empDTO.setDateOfRelieving(employee.getDateOfRelieving());
-			            empDTO.setUpdatedOn(employee.getUpdatedOn().toString());
-			            empDTO.setIsTimesheetLockCheckEnable(employee.getIsTimesheetLockCheckEnable());
-			            empDTO.setEmploymentReleaseStatus(employee.getEmploymentReleaseStatus());
-			            empDTO.setPipId(employee.getPipId());
-			            empDTO.setBillableType(employee.getBillableType());
-			            empDTO.setIsConsultant(employee.getIsConsultant());
-					
-			        }
-				
-					ServiceResponse completionResponse = getEmployeeProfileCompletion(empDTO);
-					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
-					empDTO.setProfileCompletedPercent(emp != null ? emp.getProfileCompletedPercent() : 0.00);
-					dtoList.add(empDTO);
-				});
-				
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);
-				apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Employee List is null.");
-				apiLogInfo.setApiResponse("Employee List is null.");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			apiLogInfo.setLogLevel("ERROR");
-			response.setServiceError(e.getMessage());
-		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
-    }
+//	public ServiceResponse getEmployeeByAppreciationName(String name) {
+//		ServiceResponse response = new ServiceResponse();
+//		LogDTO apiLogInfo = new LogDTO();
+//		apiLogInfo.setSubFeatureName("get_employee_by_name");
+//		apiLogInfo.setApiUrl("/api/getEmployeeByName");
+//		apiLogInfo.setLogLevel("INFO");
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append("getALLEmployees size : "+employeeRepository.findByAppreciationByName(name).size());
+//		try {
+//			List<Object[]> allEmployeeList = employeeRepository.findByAppreciationByName(name);
+//			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+//
+//			if (allEmployeeList != null) {
+//				allEmployeeList.forEach((object) -> {
+//					EmployeeDTO empDTO = new EmployeeDTO();
+//					if (object[0] instanceof Employee) {
+//			            Employee employee = (Employee) object[0];
+//			            empDTO.setEmployeementId(employee.getEmployeementId());
+//			            empDTO.setAadhar(employee.getAadhar());
+//			            empDTO.setAboutMe(employee.getAboutMe());
+//			            empDTO.setAddress(employee.getAddress());
+//			            empDTO.setBankAccountNo(employee.getBankAccountNo());
+//			            empDTO.setBankIFSCCode(employee.getBankIFSCCode());
+//			            empDTO.setBankName(employee.getBankName());
+//			            empDTO.setBloodGroup(employee.getBloodGroup());
+//			            empDTO.setCity(employee.getCity());
+//			            empDTO.setCountry(employee.getCountry());
+//			            empDTO.setCreatedBy(employee.getCreatedBy());
+//			            empDTO.setCreatedOn(employee.getCreatedOn().toString());
+//			            empDTO.setDateOfBirth(employee.getDateOfBirth().toString());
+//			            empDTO.setDateOfJoining(employee.getDateOfJoining().toString());
+//			            empDTO.setEmail(employee.getEmail());
+//			            empDTO.setEmergencyContactMobile(employee.getEmergencyContactMobile());
+//			            empDTO.setEmergencyContactPerson(employee.getEmergencyContactPerson());
+//			            empDTO.setEmploymentstatus(employee.getEmploymentstatus());
+//			            empDTO.setEsicNumber(employee.getEsicNumber());
+//			            empDTO.setFatherName(employee.getFatherName());
+//			            empDTO.setGender(employee.getGender());
+//			            empDTO.setGraduationType(employee.getGraduationType());
+//			            empDTO.setPursuing(employee.getPursuing());
+//			            empDTO.setJobRoleId(employee.getJobRoleId());
+//			            empDTO.setLandline(employee.getLandline());
+//			            empDTO.setManagerId(employee.getManagerId());
+//			            empDTO.setMaritalStatus(employee.getMaritalStatus());
+//			            empDTO.setMobileNo(employee.getMobileNo());
+//			            empDTO.setMotherTongue(employee.getMotherTongue());
+//			            empDTO.setName(employee.getName());
+//			            empDTO.setNoticePeriod(employee.getNoticePeriod());
+//			            empDTO.setAlternateMobileNo(employee.getAlternateMobileNo());
+//			            empDTO.setPanNumber(employee.getPanNumber());
+//			            empDTO.setPassportNumber(employee.getPassportNumber());
+//			            empDTO.setPermanentAddress(employee.getPermanentAddress());
+//			            empDTO.setPfAccountNumber(employee.getPfAccountNumber());
+//			            empDTO.setPincode(employee.getPincode());
+//			            empDTO.setPlaceOfBirth(employee.getPlaceOfBirth());
+//			            empDTO.setPassingGrade(employee.getPassingGrade());
+//			            empDTO.setPreviousPfAccountNumber(employee.getPreviousPfAccountNumber());
+//			            empDTO.setRelation(employee.getRelation());
+//			            empDTO.setState(employee.getState());
+//			            empDTO.setUan(employee.getUan());
+//			            empDTO.setViewsOnOrganisation(employee.getViewsOnOrganisation());
+//			            empDTO.setYearOfPassing(employee.getYearOfPassing());
+//			            empDTO.setWorkLocation(employee.getWorkLocation());
+//			            empDTO.setProbationPeriod(employee.getProbationPeriod());
+//			            empDTO.setEmpId(employee.getEmpId());
+//			            empDTO.setExperience(employee.getExperience());
+//			            empDTO.setBillable(employee.getBillable());
+//			            empDTO.setChild1(employee.getChild1());
+//			            empDTO.setChild2(employee.getChild2());
+//			            empDTO.setChild3(employee.getChild3());
+//			            empDTO.setMothersName(employee.getMothersName());
+//			            empDTO.setSpouse(employee.getSpouse());
+//			            empDTO.setTotalExperience(employee.getTotalExperience());
+//			            empDTO.setInvalidAccessAttempt(employee.getInvalidAccessAttempt());
+//			            empDTO.setDateOfRelieving(employee.getDateOfRelieving());
+//			            empDTO.setUpdatedOn(employee.getUpdatedOn().toString());
+//			            empDTO.setIsTimesheetLockCheckEnable(employee.getIsTimesheetLockCheckEnable());
+//			            empDTO.setEmploymentReleaseStatus(employee.getEmploymentReleaseStatus());
+//			            empDTO.setPipId(employee.getPipId());
+//			            empDTO.setBillableType(employee.getBillableType());
+//			            empDTO.setIsConsultant(employee.getIsConsultant());
+//					
+//			        }
+//				
+//					ServiceResponse completionResponse = getEmployeeProfileCompletion(empDTO);
+//					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
+//					empDTO.setProfileCompletedPercent(emp != null ? emp.getProfileCompletedPercent() : 0.00);
+//					dtoList.add(empDTO);
+//				});
+//				
+//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//				response.setServiceResponse(dtoList);
+//				apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//			} else {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("Employee List is null.");
+//				apiLogInfo.setApiResponse("Employee List is null.");
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			}
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			apiLogInfo.setLogLevel("ERROR");
+//			response.setServiceError(e.getMessage());
+//		}
+//		apiLogInfo.setApiRequest(logBuilder.toString());
+//		logService.logMyInfo(httpRequest, apiLogInfo);
+//		return response;
+//    }
 	
 	public ServiceResponse previewImage(MultipartFile image) {
 		ServiceResponse response = new ServiceResponse();

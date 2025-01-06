@@ -31,6 +31,14 @@ export class LeaveService {
     return this.http.post(`${this.baseUrl}` + `api/getAllMyTeamsPendingLeaveApplicationsByManagerId`, leaveObj);
   }
 
+  getAllLeaveApplicationsByEmpId(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllLeaveApplicationsByEmpId`, leaveObj);
+  }
+
+  getAllLeaveApplicationsByTeamId(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllLeaveApplicationsByTeamId`, leaveObj);
+  }
+
   countAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj: Leave) {
     return this.http.post(`${this.baseUrl}` + `api/countAllMyTeamsPendingLeaveApplicationsByManagerId`, leaveObj);
   }
@@ -73,6 +81,10 @@ export class LeaveService {
 
   getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(leaveObj : Leave) {
     return this.http.post(`${this.baseUrl}` + `api/getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId`, leaveObj);
+  }
+
+  getAllMyTeamsPendingLeaveRevokeApplicationsByEmpId(leaveObj : Leave) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllMyTeamsPendingLeaveRevokeApplicationsByEmpId`, leaveObj);
   }
 
   updateRevokeLeaveStatus(leaveObj : Leave) {
@@ -135,6 +147,10 @@ export class LeaveService {
 
   getPendingCompOffRequestsByManagerId(compOffObj: Leave) {
     return this.http.post(`${this.baseUrl}` + `api/getPendingCompOffRequestsByManagerId`, compOffObj);
+  }
+
+  getPendingCompOffRequestsByEmpId(compOffObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `api/getPendingCompOffRequestsByEmpId`, compOffObj);
   }
 
   countPendingCompOffRequestsByManagerId(compOffObj: Leave) {
@@ -285,5 +301,9 @@ getDepartmentWiseBillableData(leaveObj: Leave){
 
 getPipDetailsByEmpId(leaveObj: Leave) {
   return this.http.post(`${this.baseUrl}` + `api/getPipDetailsByEmpId`, leaveObj);
+}
+
+isManager(leaveObj: Leave) {
+  return this.http.post(`${this.baseUrl}` + `api/isManager`, leaveObj);
 }
 }
