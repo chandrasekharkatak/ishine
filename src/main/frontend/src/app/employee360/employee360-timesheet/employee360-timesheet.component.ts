@@ -72,7 +72,7 @@ export class Employee360TimesheetComponent implements OnInit {
     private router: Router,
     private breadcrumbService: BreadcrumbService
   ) {
-    
+    this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
    }
   modalRef: BsModalRef = new BsModalRef();
   isProjectTeamClicked:boolean=false;
@@ -92,6 +92,9 @@ export class Employee360TimesheetComponent implements OnInit {
       this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
 
+    this.removeActiveTab();
+    this.setActiveTab();
+
     this.activeButton = 'Pending';
     this.currentUser=sessionStorage.getItem('currentUser');
     if (this.currentUser) {
@@ -99,9 +102,9 @@ export class Employee360TimesheetComponent implements OnInit {
       this.managerId = currentUserData.empId;
       console.log(this.managerId); 
     }
-    // this.empIdd=sessionStorage.getItem('employeeId');
-    this.empIdd=240065;
-    this.managerId = 21823;
+    this.empIdd=sessionStorage.getItem('employeeId');
+    // this.empIdd=240065;
+    // this.managerId = 21823;
     this.startDate = null;
     this.endDate = null;
     this.formattedStartDate = null;
@@ -111,8 +114,10 @@ export class Employee360TimesheetComponent implements OnInit {
 
   setActiveButton(button: string): void {
     this.activeButton = button;
-    this.empIdd=240065;
-    
+    // this.empIdd=240065;
+    if(button!=='Pending'){
+      this.allSelected=false;
+    }
     if(this.activeButton !=='Calendar'){
       this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
     }else{
@@ -132,7 +137,7 @@ export class Employee360TimesheetComponent implements OnInit {
 
     let timesheetObj = new Timesheet();
     timesheetObj.empId = sessionStorage.getItem('employeeId');
-    timesheetObj.empId = 21899;
+    // timesheetObj.empId = 21899;
     // 240065
     console.log(sessionStorage.getItem('employeeId'));
     console.log("timesheetObj.empId => " , timesheetObj.empId);
@@ -278,6 +283,15 @@ export class Employee360TimesheetComponent implements OnInit {
     this.updateStatus(status);
   }
 
+  update(status:string,empId: number, date: string){
+    for (const emp of this.result){
+      if(emp.empId == empId && emp.date == date){
+        this.timesheetIds.push(emp.timesheetId);            
+      }
+    }
+    this.updateStatus(status);
+  }
+
   toggleRowSelection(empId: number, date: string, selected: boolean) {
     this.bulkList.push(empId);
     for (const emp of this.result){
@@ -350,8 +364,7 @@ loading: boolean = false;
 updateStatus(status: string) {
   if (this.loading) return; 
   this.loading = true; 
-  status = "Pending";
-
+  // status = "Pending";
   this.employee360Service.updateStatus(status, this.timesheetIds, this.managerId).pipe(first()).subscribe(
     (response: any) => {
       this.loading = false; 
