@@ -12,16 +12,14 @@ import { BehaviorSubject } from 'rxjs';
 export class Employee360Service {
 
   private baseUrl:any = environment.baseUrl;
-<<<<<<< Updated upstream
+
   private navigationSubject = new Subject<void>();
   private employeeDataSource = new BehaviorSubject<any>(null);
 
   currentEmployeeData = this.employeeDataSource.asObservable();
 
-  constructor(
-=======
+
    constructor(
->>>>>>> Stashed changes
     private router: Router,
     private http: HttpClient
   ) {}
@@ -73,7 +71,7 @@ updateStatus(status: string, empId: number,date:string) {
   //   return this.http.get(`${this.baseUrl}` + `api/getAllLeaveTypes`);
   // }
 
-<<<<<<< Updated upstream
+
 
   get360TimesheetsForHomePageByEmpId(timesheetObj: Timesheet) {
     return this.http.post(`${this.baseUrl}` + `api/get360TimesheetsForHomePageByEmpId`, timesheetObj);
@@ -83,11 +81,10 @@ updateStatus(status: string, empId: number,date:string) {
     this.employeeDataSource.next(data);
   }
 
-=======
+
   getEmployeeDetailsForBiomax(startDate:String,endDate:String,employeeId:String){
     return this.http.get(`http://localhost:8080/api/biomax?startDate=${startDate}&endDate=${endDate}&employeeId=${employeeId}`);
   }
 
  
->>>>>>> Stashed changes
 }

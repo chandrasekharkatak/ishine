@@ -198,11 +198,11 @@ import { BreadcrumbComponent } from './helpers/breadcrumb/breadcrumb.component';
     Employee360BiomaxComponent,
     Employee360RewardsComponent,
     Employee360AppreciationComponent,
-<<<<<<< Updated upstream
-    BreadcrumbComponent
-=======
+
+    BreadcrumbComponent,
+
     Employee360BiomaxComponent
->>>>>>> Stashed changes
+
     //TestComponent
   ],
   imports: [
