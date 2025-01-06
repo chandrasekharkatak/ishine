@@ -55,6 +55,7 @@ export class Employee360AppreciationComponent implements OnInit {
     let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title == "Appreciation");
     if (findbreadcrumbObject >= 0) {
       this.currentBreadcrumbList.splice(findbreadcrumbObject + 1);
+      this.removeActiveTab();
       this.breadcrumbService.setBreadcrumbSubject(this.currentBreadcrumbList);
     } else {
       let breadcrumbObject = new Breadcrumb();
@@ -62,8 +63,6 @@ export class Employee360AppreciationComponent implements OnInit {
       breadcrumbObject.url = "/employee-360/appreciation";
       this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
-    this.removeActiveTab();
-    this.setActiveTab();
   }
   ngAfterViewInit(){
     this.setActiveTab();
