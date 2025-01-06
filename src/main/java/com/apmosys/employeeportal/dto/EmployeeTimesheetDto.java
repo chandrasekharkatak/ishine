@@ -14,6 +14,7 @@ public class EmployeeTimesheetDto {
 	private List<String> activities;
 	private String projectName;
 	private String teamName;
+	private Long timesheetId;
 	private Long projectId;
 	private Long activityId;
 }

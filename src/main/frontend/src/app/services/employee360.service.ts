@@ -49,12 +49,12 @@ export class Employee360Service {
     });
 }
 
-updateStatus(status: string, empId: number,date:string) {
+updateStatus(status: string, timesheetIds:number[],updatedBy: number) {
   return this.http.get(`${this.baseUrl}api/updateStatus`, {
       params: {
           status: status,
-          empId: empId.toString(),
-          date:date
+          timesheetIds: timesheetIds,
+          updatedBy:updatedBy.toString()
       }
   });
 }

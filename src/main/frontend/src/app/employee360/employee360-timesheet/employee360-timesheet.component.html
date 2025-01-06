@@ -117,9 +117,9 @@
 <!-- for pending , approved  and rejected  -->
 <div *ngIf="activeButton !== 'Calendar'" class="table-responsive">
   <div  class="form-group col-md-6">
-    <button class="btn btn-sm btn-outline-success" type="submit">Bulk
+    <button *ngIf="bulkList.length>=1" class="btn btn-sm btn-outline-success" type="submit" (click)="bulkClicked('Approved')">Bulk
       Approve</button>&nbsp;
-    <button type="submit" class="btn btn-sm btn-outline-danger ml-2"
+    <button *ngIf="bulkList.length>=1 " type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="bulkClicked('Rejected')"
       >Bulk Reject</button>
   </div>
   <table class="table table-bordered">
@@ -153,7 +153,7 @@
           </tr>
           <tr *ngFor="let item of result; let i = index">
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >
-                  <input type="checkbox" [(ngModel)]="item.selected" (change)="updateSelection(item.empId)" />
+                  <input type="checkbox" [(ngModel)]="item.selected" (change)="toggleRowSelection(item.empId,item.date,item.selected)" />
               </td>
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ i + 1 }}</td>
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.empId }}</td>
@@ -162,7 +162,7 @@
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.dayType }}</td>
               <!-- <td>{{ item.activity }}</td> -->
 
-              <td *ngIf="item.showProject" [attr.rowspan]="item.projectActivityCount" >
+              <td *ngIf="item.showProject," [attr.rowspan]="item.projectActivityCount" (click)="findByProject(item.projectId)" style="cursor: pointer; color: blue;">
                   <!-- <div *ngFor="let timeSheet of item.timeSheet; let j = index"> 
                     <span *ngIf="!isProjectTeamClicked" (click)="findByProject(timeSheet.projectId)" style="cursor: pointer; color: blue;">{{ timeSheet.projectName }}</span> 
                     <span *ngIf="isProjectTeamClicked" (click)="findByProject(timeSheet.projectId)">{{ timeSheet.projectName }}</span> 
@@ -170,8 +170,11 @@
                   </div> -->
                   {{item.projectName}}
               </td>
+              <!-- <td *ngIf="item.showProject" [attr.rowspan]="item.projectActivityCount">
+                {{item.projectName}}
+            </td> -->
 
-              <td *ngIf="item.showProject" [attr.rowspan]="item.projectActivityCount" >
+              <td *ngIf="item.showProject" [attr.rowspan]="item.projectActivityCount" (click)="findByTeam(item.teamName)" style="cursor: pointer; color: blue;">
                   <!-- <div *ngFor="let timeSheet of item.timeSheet;let j = index">
                       <span *ngIf="!isProjectTeamClicked" (click)="findByTeam(timeSheet.teamName)" style="cursor: pointer; color: blue;">
                           {{ timeSheet.teamName }}
@@ -214,10 +217,10 @@
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >
                   <button  *ngIf="activeButton === 'Pending'" class="btn btn-sm btn-outline-success"
                   type="submit" title="Approve"
-                  (click)="updateStatus('Approved',item.empId,item.date)"><em
+                  (click)="updateStatus('Approved')"><em
                     class="fa-solid fa-check"></em></button>&nbsp;
                 <button  *ngIf="activeButton === 'Pending'" class="btn btn-sm btn-outline-danger"
-                  type="submit" title="Reject" (click)="updateStatus('Approved',item.empId,item.date)"><em
+                  type="submit" title="Reject" (click)="updateStatus('Rejected')"><em
                     class="fa-solid fa-xmark"></em></button>
               </td>  
           </tr>

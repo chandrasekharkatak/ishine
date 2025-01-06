@@ -42,6 +42,10 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 	public List<Object[]> getTimesheetsForHomePageByEmpId(Long empId, LocalDate start, LocalDate end);
 
 	public Timesheet findByEmpIdAndDate(Long empId, LocalDate dateToday);
+	
+	List<Timesheet> findByEmpIdAndTimesheetIdIn(Long empId,List<Long> timesheetIds);
+
+	List<Timesheet> findByTimesheetIdIn(List<Long> timesheetIds);
 
 	@Query(nativeQuery = true, value =
 			"Select emp_Id,date,status "

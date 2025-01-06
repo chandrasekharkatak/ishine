@@ -28,7 +28,6 @@ export class Employee360TimesheetComponent implements OnInit {
   private thisMonthCalendar: CalendarComponent;
   @ViewChild("lastMonthCal")
   private lastMonthCalendar: CalendarComponent;
-  
   @ViewChild("alertTemplate") alertModal: TemplateRef<any>;
 
   showModal = false;
@@ -59,16 +58,11 @@ export class Employee360TimesheetComponent implements OnInit {
   breadcrumbs:any;
   mainRowSpam:any ;
   result:any [] = [];
+  timesheetIds:any []=[];
   responseCount:any;
 
   //Bulk approve-reject
-  isSelectAll: boolean = false;
-  isSelect: boolean = false;
-  bulkApprove: any = [];
-  bulkReject: any = [];
-  bulkTeamLeaveApprove:any=[];
-  bulkTeamLeaveReject:any=[];
-  allTeamTimesheetRequests: Timesheet[] = [];
+  bulkList: any = [];
   
   constructor(
     private employee360Service : Employee360Service,
@@ -83,10 +77,9 @@ export class Employee360TimesheetComponent implements OnInit {
   modalRef: BsModalRef = new BsModalRef();
   isProjectTeamClicked:boolean=false;
   header:String="";
-  // allSelected: any;
   empIds:[];
   currentBreadcrumbList: any[] = [];
-  
+
   ngOnInit(): void {
     let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title == "Timesheet");
     if (findbreadcrumbObject >= 0) {
@@ -98,7 +91,6 @@ export class Employee360TimesheetComponent implements OnInit {
       breadcrumbObject.url = "/employee-360/timesheet";
       this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
-
 
     this.activeButton = 'Pending';
     this.currentUser=sessionStorage.getItem('currentUser');
@@ -151,16 +143,12 @@ export class Employee360TimesheetComponent implements OnInit {
       const DAY_IN_MS = 24 * 60 * 60 * 1000;
       fromDate = new Date(currentDate.getTime() - (1 * DAY_IN_MS));
       toDate = new Date(currentDate.getTime() - (7 * DAY_IN_MS));
-
-      //console.log(`Last 7 Days : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
       timesheetObj.startDate = moment(toDate).format(dateFormat);
       timesheetObj.endDate = moment(fromDate).format(dateFormat);
     } else if (dateRange == 'This Month') {
       totaltimesheetDaysCount = moment(`${currentDate.getFullYear()}-${currentDate.getMonth()}`, "YYYY-MM").daysInMonth()
       fromDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
       toDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-
-      //console.log(`This Month : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
       timesheetObj.startDate = moment(fromDate).format(dateFormat);
       timesheetObj.endDate = moment(toDate).format(dateFormat);
     } else if (dateRange == 'Last Month') {
@@ -168,8 +156,6 @@ export class Employee360TimesheetComponent implements OnInit {
 
       fromDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
       toDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
-
-      //console.log(`Last Month : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
       timesheetObj.startDate = moment(fromDate).format(dateFormat);
       timesheetObj.endDate = moment(toDate).format(dateFormat);
     }
@@ -177,7 +163,6 @@ export class Employee360TimesheetComponent implements OnInit {
     this.timesheetService.getTimesheetsForHomePageByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         filledTimesheetDetails = response.serviceResponse;
-        //console.log("filledTimesheetDetails : ", filledTimesheetDetails);7, claimIds
       } else {
         console.error(response.serviceResponse);
       }
@@ -288,29 +273,61 @@ export class Employee360TimesheetComponent implements OnInit {
     return weekDay;
   }
 
-  onToggle(item: any) {
-      console.log('Toggled:', item);
+  bulkClicked(status:string){
+    console.log("status+++"+status);
+    this.updateStatus(status);
   }
 
-  toggleSelectAll() {
-    this.data.forEach(item => {
-      item.selected = this.allSelected; 
-    });
-  }
-
-  updateSelection(empId:any) {
-    console.log(empId);
-    this.allSelected = this.data.every(item => item.selected); 
-  }
-
-  saveSelected(status:String) {
-    console.log("save clicked :"+status);
-    console.log("=>allSelected: "+this.allSelected);
+  toggleRowSelection(empId: number, date: string, selected: boolean) {
+    this.bulkList.push(empId);
+    for (const emp of this.result){
+      if(emp.empId == empId && emp.date == date){
+        this.result.forEach(emp => {
+          emp.selected = selected;
+        });
+            if (selected) {
+                this.timesheetIds.push(emp.timesheetId);
+                if(!this.bulkList.includes(emp.date)){this.bulkList.push(emp.date);}
+            } else {
+              this.timesheetIds = this.timesheetIds.filter(id => id !== emp.timesheetId);
+              this.bulkList = this.bulkList.filter(date => date !== emp.date);
+            }
+      }
+    }
+    console.log("this.all",this.result);
+    console.log("timesheetID",this.timesheetIds);
+  
+    const allSelect = this.result.every(emp => emp.selected === true);
+    if (allSelect) {
+      this.allSelected = true;
+    }
+    const allDeselect = this.result.every(emp => emp.selected === false);
+    if (allDeselect) {
+      this.allSelected = false;
+    }
     
-    const selectedEmpIds = this.data
-      .filter(item => item.selected) 
-      .map(item => item .empId); 
-    console.log('Selected Employee IDs:', this.allSelected);
+  
+  }
+  
+  toggleSelectAll() {
+    console.log("this.allSelected", this.allSelected);
+    if (this.allSelected === true) {
+      for (const emp of this.result) {
+        if(emp.selected===false){
+        emp.selected = true;  
+        if(!this.bulkList.includes(emp.date)){this.bulkList.push(emp.date)}
+        this.timesheetIds.push(emp.timesheetId);  }
+      }
+    } else {
+      this.result.forEach(emp => {
+        emp.selected = false;  
+      });
+      this.timesheetIds = []; 
+      this.bulkList=[]; 
+    }
+    console.log("this.timesheetID all" , this.timesheetIds);
+    console.log("this.bulkList==>",this.bulkList);
+    
   }
 
   findByProject(projectId: number){
@@ -330,13 +347,12 @@ export class Employee360TimesheetComponent implements OnInit {
 
 loading: boolean = false; 
 
-updateStatus(status: string, empId: number, date: string) {
+updateStatus(status: string) {
   if (this.loading) return; 
   this.loading = true; 
-
   status = "Pending";
 
-  this.employee360Service.updateStatus(status, empId, date).pipe(first()).subscribe(
+  this.employee360Service.updateStatus(status, this.timesheetIds, this.managerId).pipe(first()).subscribe(
     (response: any) => {
       this.loading = false; 
 
@@ -391,20 +407,7 @@ updateStatus(status: string, empId: number, date: string) {
               this.data = Object.values(this.data);
               this.responseCount=this.data.length; 
               const activityCounts: number[] = [];
-
-              // Iterate over employee data
-              // for (const employee of this.data) {
-              //     // Calculate the total number of activities for each employee
-              //     const totalActivities = employee.timeSheet.reduce(
-              //         (count: number, timeSheet: any) => count + timeSheet.activities.length,
-              //         0
-              //     );
-              //     activityCounts.push(totalActivities);
-              // }
-
               console.log("=> Activity counts array", activityCounts);
-              
-              // this.mainRowSpam= activityCounts;
               this.result = this.transformData(response.serviceResponse);
               console.log("this.result =>", this.result )
 
@@ -492,129 +495,52 @@ updateStatus(status: string, empId: number, date: string) {
     let activeRouteLink = tab.getAttribute('routerLink');
   }
 
-transformData(originalData: any ) {
-  let transformedData = [];
-
-  Object.values(originalData).forEach((employee :any) => {
-    let isFirstActivity = true; // Track the first activity for each employee
-
-      // Calculate the total number of activities for the employee
-  const totalActivitiesCount = employee.timeSheet.reduce((total, item) => total + item.activities.length, 0);
-
-    employee.timeSheet.forEach(items => {
-      let showProject = true;
-      items.activities.forEach(activity => {
-        transformedData.push({
-          empId: employee.empId,
-          name: employee.name,
-          date: employee.date, 
-          officeInTime: employee.officeInTime,
-          officeOutTime: employee.officeOutTime,
-          totalWorkingHours: employee.totalWorkingHours,
-          nightShift: employee.nightShift,
-          status: employee.status,
-          createdOn: employee.createdOn,
-
-          activities: activity,
-          projectName: items.projectName,
-          teamName: items.teamName,
-          projectId: items.projectId,
-          activityId: items.activityId,
-          empActivitiesCountForDay: totalActivitiesCount, // Total activities count for the employee
-          projectActivityCount: items.activities.length,
-          showProject: showProject,  // Show project only for the first activity in the list
-          showEmpId: isFirstActivity, // Show employee ID only for the first activity
+  transformData(originalData: any ) {
+    let transformedData = [];
+  
+    Object.values(originalData).forEach((employee :any) => {
+      let isFirstActivity = true; // Track the first activity for each employee
+  
+        // Calculate the total number of activities for the employee
+    const totalActivitiesCount = employee.timeSheet.reduce((total, item) => total + item.activities.length, 0);
+  
+      employee.timeSheet.forEach(items => {
+        let showProject = true;
+        items.activities.forEach(activity => {
+          transformedData.push({
+            empId: employee.empId,
+            name: employee.name,
+            date: employee.date, 
+            officeInTime: employee.officeInTime,
+            officeOutTime: employee.officeOutTime,
+            totalWorkingHours: employee.totalWorkingHours,
+            nightShift: employee.nightShift,
+            status: employee.status,
+            createdOn: employee.createdOn,
+            dayType:employee.dayType,
+  
+            activities: activity,
+            projectName: items.projectName,
+            teamName: items.teamName,
+            projectId: items.projectId,
+            activityId: items.activityId,
+            timesheetId : items.timesheetId,
+            empActivitiesCountForDay: totalActivitiesCount, // Total activities count for the employee
+            projectActivityCount: items.activities.length,
+            showProject: showProject,  // Show project only for the first activity in the list
+            showEmpId: isFirstActivity,
+            selected: false, // Show employee ID only for the first activity
+          });
+          
+          // Set isFirstActivity to false after the first activity for the employee
+          isFirstActivity = false;
+          showProject = false;
         });
-        
-        // Set isFirstActivity to false after the first activity for the employee
-        isFirstActivity = false;
-        showProject = false;
       });
     });
-  });
-
-  return transformedData;
-}
-
-//Bulk Approve-Reject
-
-selectAll(event) {
-  this.bulkApprove = [];
-  this.bulkReject = [];
-
-  const checkboxes = document.querySelectorAll('.item-req-checkbox');
-  checkboxes.forEach((checkbox: any) => {
-    console.log("checkbox : ", checkbox);
-    let checkboxIndex = checkbox.getAttribute('id');
-    let checkedTimesheet = this.allTeamTimesheetRequests.find((item, index) => item.checkId == checkboxIndex);
-
-    if (event.target.checked) {
-      checkbox.checked = true;
-      this.bulkApprove.push(checkedTimesheet);
-      this.bulkReject.push(checkedTimesheet);
-    } else {
-      checkbox.checked = false;
-      this.bulkApprove.forEach((timesheet, index) => {
-        if (timesheet == checkedTimesheet) this.bulkApprove.splice(index, 1);
-      });
-      this.bulkReject.forEach((timesheet, index) => {
-        if (timesheet == checkedTimesheet) this.bulkReject.splice(index, 1);
-      });
-    }
-  });
-}
-
-select(timesheetObj, event) {
-  console.log("clicked on : ", timesheetObj);
-  if (event.target.checked) {
-    event.target.classList.add('checked');
-    this.bulkApprove.push(timesheetObj);
-    this.bulkReject.push(timesheetObj);
-  } else {
-    event.target.classList.remove('checked');
-    const checkboxes = document.querySelectorAll('.timesheet-req-checkbox');
-    if (checkboxes.length !== this.responseCount) this.isSelectAll = false
-    this.bulkApprove.forEach((timesheet, index) => {
-      if (timesheet == timesheetObj) this.bulkApprove.splice(index, 1);
-    });
-    this.bulkReject.forEach((timesheet, index) => {
-      if (timesheet == timesheetObj) this.bulkReject.splice(index, 1);
-    });
+  
+    return transformedData;
   }
-  console.log("=>>>this.bulkApprove+++"+this.bulkApprove.length);
-  console.log("=>>>this.bulkReject+++"+this.bulkReject.length);
-  console.log("Updated Bulk List : ", this.bulkApprove);
-}
-
-/* Approve / Reject Timesheet requests */
-updateTimesheetRequestById( timesheet: Timesheet, status: any) {
-  let timesheetObj = Object.assign({}, timesheet);
-  // timesheetObj.status = status;
-  timesheetObj.status = "Pending";
-  timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
-  timesheetObj.employeementId = timesheetObj.empId;
-  timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
-  // timesheetObj.timesheetId=timesheetObj.timesheetId;
-
-  this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
-    if (response.serviceStatus == "Success") {
-      this.alertMessage = response.serviceResponse;
-      this.showModal = true;
-      if (this.modalRef) {
-        this.modalRef.hide();
-        this.modalRef = null;
-      }
-
-      this.modalRef = this.modalService.show(this.alertModal, {
-        keyboard: false,
-        class: 'modal-sm',
-      });
-    } else {
-      this.alertMessage = response.serviceResponse;
-      this.showModal = true;
-    }
-  });
-}
 
 }
 

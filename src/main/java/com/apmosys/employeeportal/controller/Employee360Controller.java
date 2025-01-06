@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -58,9 +60,9 @@ public class Employee360Controller {
 	}
 	
 	@RequestMapping(value = "/updateStatus", method = RequestMethod.GET)
-	public ServiceResponse updateStatus(@RequestParam String status, @RequestParam long empId,@RequestParam String date) {
+	public ServiceResponse updateStatus(@RequestParam String status,@RequestParam List<Long> timesheetIds,@RequestParam Long updatedBy) {
 
-		ServiceResponse response = employee360Service.updateStatus(status,empId,date);
+		ServiceResponse response = employee360Service.updateStatus(status,timesheetIds,updatedBy);
 		return response;
 	}
 
