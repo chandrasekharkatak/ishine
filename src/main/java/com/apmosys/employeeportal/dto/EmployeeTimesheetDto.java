@@ -17,5 +17,4 @@ public class EmployeeTimesheetDto {
 	private Long timesheetId;
 	private Long projectId;
 	private Long activityId;
-	private Long timesheetId;
 }
