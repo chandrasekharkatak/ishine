@@ -126,7 +126,7 @@
   <table class="table table-bordered">
       <thead class="thead-light">
           <tr>
-              <th *ngIf="!(data === null || data.length === 0) && activeButton=='Pending'">
+              <th *ngIf="!(responseCount===0) && activeButton=='Pending'">
                   <input type="checkbox" [(ngModel)]="allSelected" (change)="toggleSelectAll()" />
               </th>
               <th>Sr No</th>

@@ -59,7 +59,7 @@ export class Employee360TimesheetComponent implements OnInit {
   mainRowSpam:any ;
   result:any [] = [];
   timesheetIds:any []=[];
-  responseCount:any;
+  responseCount:any=0;
 
   //Bulk approve-reject
   bulkList: any = [];
@@ -102,9 +102,6 @@ export class Employee360TimesheetComponent implements OnInit {
       this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
 
-    this.removeActiveTab();
-    this.setActiveTab();
-
     this.activeButton = 'Pending';
     this.currentUser=sessionStorage.getItem('currentUser');
     if (this.currentUser) {
@@ -112,7 +109,7 @@ export class Employee360TimesheetComponent implements OnInit {
       this.managerId = currentUserData.empId;
       console.log(this.managerId); 
     }
-    this.empIdd=sessionStorage.getItem('employeeId');
+    this.empIdd=sessionStorage.getItem('empId');
     // this.empIdd=240065;
     // this.managerId = 21823;
     this.startDate = null;
@@ -432,7 +429,8 @@ updateStatus(status: string) {
               console.log("=> serviceResponse", response.serviceResponse);
               this.data = response.serviceResponse;
               // this.data = Object.values(this.data);
-              this.responseCount=this.data.length; 
+              if(this.data.length!=undefined){
+              this.responseCount=this.data.length; }
               const activityCounts: number[] = [];
               console.log("=> Activity counts array", activityCounts);
               this.result = this.transformData(response.serviceResponse);
