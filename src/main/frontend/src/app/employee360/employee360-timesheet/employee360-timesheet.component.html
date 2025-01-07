@@ -23,35 +23,33 @@
   </div>
 </div>
 
-<div *ngIf="selectedOption == 4" class="form-group mb-1" style="display: inline-block; vertical-align: middle; position: relative;">
-  <!-- Date Range Input Field -->
-  <input readonly placeholder="Select Date Range:"
-    [style.width]="'200px'"
-    [style.height]="'29px'"
-    [(ngModel)]="dateTimeRange"
-    [selectMode]="'range'"
-    [owlDateTimeTrigger]="dtRange1" [owlDateTime]="dtRange1"
-    (ngModelChange)="getDateRange()"
-    [max]="todayDate"
-    class="custom-input">
-  
-  <!-- Owl Date Time Picker -->
-  <owl-date-time [pickerType]="'calendar'" [scrollStrategy]="scrollStrategy" #dtRange1></owl-date-time>
+<div class="d-flex justify-content-between align-items-center" style=" margin-bottom: 15px;">
+  <!-- Leftmost Button Group -->
+  <div class="form-group mb-0" style="margin-left: 15px;">
+    <button *ngIf="(bulkList.length>1||(bulkList.length==responseCount&&responseCount!=0))&& allSelected" class="btn btn-sm btn-outline-success" type="submit" (click)="bulkClicked('Approved')">Bulk Approve</button>&nbsp;
+    <button *ngIf="(bulkList.length>1||(bulkList.length==responseCount&&responseCount!=0))&& allSelected" type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="bulkClicked('Rejected')">Bulk Reject</button>
+  </div>
 
-  <!-- FontAwesome Cross Icon to Reset Date Range -->
-  <i *ngIf="dateTimeRange" class="fa fa-times reset-icon" (click)="resetDateRange()"></i>
+  <!-- Rightmost Date Range Picker -->
+  <div *ngIf="selectedOption == 4 && activeButton != 'Calendar'" class="form-group mb-0 d-flex align-items-center" style="position: relative;">
+    <!-- Date Range Input Field -->
+    <input readonly placeholder=" Select Date Range:"
+      [style.width]="'200px'"
+      [style.height]="'29px'"
+      [(ngModel)]="dateTimeRange"
+      [selectMode]="'range'"
+      [owlDateTimeTrigger]="dtRange1" [owlDateTime]="dtRange1"
+      (ngModelChange)="getDateRange()"
+      [max]="todayDate"
+      class="custom-input">
+
+    <!-- Owl Date Time Picker -->
+    <owl-date-time [pickerType]="'calendar'" [scrollStrategy]="scrollStrategy" #dtRange1></owl-date-time>
+
+    <!-- FontAwesome Cross Icon to Reset Date Range -->
+    <i *ngIf="dateTimeRange" class="fa fa-times reset-icon ml-2" (click)="resetDateRange()"></i>
+  </div>
 </div>
-
-<!-- <div *ngIf="activeButton === 'CompOff'">
-<li class="nav-item timesheet__tab-item">
-  <a class="nav-link timesheet__tab-item__link" id="thisMonth-tab" data-toggle="tab" role="tab"
-  href="#thisMonth-tabpanel" aria-controls="thisMonth" aria-selected="false" (click)="getTimesheetsForHomePageByEmpId('This Month')">EOD This Month</a>
-</li>
-</div> -->
-
-<!-- <div *ngIf="userMapping.view_timesheet_display" class="timesheet-display card mb-2"> -->
-
-<!-- for calender  -->
 
 <div *ngIf="activeButton === 'Calendar'">
   <ul class="nav nav-tabs" id="timesheetSummaryTab" role="tablist">
@@ -116,26 +114,20 @@
 
 <!-- for pending , approved  and rejected  -->
 <div *ngIf="activeButton !== 'Calendar'" class="table-responsive">
-  <div  class="form-group col-md-6">
-
-    <button *ngIf="(bulkList.length>1||(bulkList.length==responseCount&&responseCount!=0))&& activeButton=='Pending'" class="btn btn-sm btn-outline-success" type="submit" (click)="bulkClicked('Approved')">Bulk
-      Approve</button>&nbsp;
-    <button *ngIf="(bulkList.length>1||(bulkList.length==responseCount&&responseCount!=0))&& activeButton=='Pending'" type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="bulkClicked('Rejected')"
-      >Bulk Reject</button>
-  </div>
   <table class="table table-bordered">
       <thead class="thead-light">
           <tr>
-              <th *ngIf="!(responseCount===0) && activeButton=='Pending'">
-                  <input type="checkbox" [(ngModel)]="allSelected" (change)="toggleSelectAll()" />
+              <th *ngIf="(responseCount!=0) && activeButton=='Pending'">
+                <input type="checkbox" [(ngModel)]="allSelected" (change)="toggleSelectAll()" />
               </th>
               <th>Sr No</th>
-              <th >Emp Id</th>
+              <th >Employee Id</th>
               <th>Name</th>
               <th>Date</th>
               <th>Day Type</th>
               <th>Project</th>
               <th>Team Name</th>
+              <th>Activity Time</th>
               <th>Activity</th>
               <th>In Time</th>
               <th>Out Time</th>
@@ -153,15 +145,15 @@
               <td colspan="16" style="text-align: center;">No Data To Display.....</td>
           </tr>
           <tr *ngFor="let item of result; let i = index">
-            <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >
-                <input type="checkbox" [(ngModel)]="item.selected" (change)="toggleRowSelection(item.empId,item.date,item.selected)" />
-            </td>
+              <td *ngIf="item.showEmpId && activeButton == 'Pending'" [attr.rowspan]="item.empActivitiesCountForDay" >
+                  <input type="checkbox" [(ngModel)]="item.selected" (change)="toggleRowSelection(item.empId,item.date,item.selected)" />
+              </td>
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ i + 1 }}</td>
-              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.empId }}</td>
+              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.employmentId }}</td>
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" (click)="navigateToEmployee360()" style="cursor: pointer; color: blue;">{{ item.name }}</td>
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.date | date: 'yyyy-MM-dd' }}</td>
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.dayType }}</td>
-              <td *ngIf="item.showProject && !isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount" (click)="findByProject(item.projectId)" style="cursor: pointer; color: blue;">
+              <td *ngIf="item.showProject && !isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount" (click)="findByProject(item.projectId,item.projectName)" style="cursor: pointer; color: blue;">
                   {{item.projectName}}
               </td>
               <td *ngIf="item.showProject&& isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount">
@@ -169,6 +161,7 @@
             </td>
 
               <td *ngIf="item.showProject&& !isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount" (click)="findByTeam(item.teamName)" style="cursor: pointer; color: blue;">{{item.teamName}}</td>
+              <td *ngIf="item.showProject" [attr.rowspan]="item.projectActivityCount">{{item.totalTime}}</td>
               <td *ngIf="item.showProject&& isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount">{{item.teamName}}</td>
               <td [attr.rowspan]="1">{{item.activities}} </td>   
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.officeInTime | date: 'shortTime' }}</td>
@@ -181,7 +174,7 @@
                   <button  *ngIf="activeButton === 'Pending'" class="btn btn-sm btn-outline-success"
                   type="submit" title="Approve"
                   (click)="update('Approved',item.empId,item.date)"><em
-                    class="fa-solid fa-check"></em></button>&nbsp;
+                    class="fa-solid fa-check" style="margin-bottom: 2px;"></em></button>&nbsp;
                 <button  *ngIf="activeButton === 'Pending'" class="btn btn-sm btn-outline-danger"
                   type="submit" title="Reject" (click)="update('Rejected',item.empId,item.date)"><em
                     class="fa-solid fa-xmark"></em></button>
@@ -200,6 +193,7 @@
       <button *ngIf="showModal" type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
   </div>
 </ng-template>
+
 
 
 

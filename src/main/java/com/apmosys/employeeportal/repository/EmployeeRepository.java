@@ -338,13 +338,13 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 				            "et.office_in_time, et.office_out_time, et.total_working_hours, et.is_night_shift, " +
 				            "et.status, et.created_on, " +
 				            "a.activity, " +
-				            "p.project_name, t.team_name,et.remarks,et.timesheet_id " +
+				            "p.project_name, t.team_name,et.remarks,et.timesheet_id ,e.employeement_id,et.total_time " +
 				            "FROM employee_timesheets et " +
-				            "INNER JOIN employee e ON et.created_by = e.emp_id " +
-				            "INNER JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id " +
-				            "INNER JOIN activities a ON a.activity_id = etam.activity_id " +
-				            "INNER JOIN teams t ON t.team_id = a.team_id " +
-				            "INNER JOIN projects p ON p.project_id = t.project_id " +
+				            "LEFT JOIN employee e ON et.created_by = e.emp_id " +
+				            "LEFT JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id " +
+				            "LEFT JOIN activities a ON a.activity_id = etam.activity_id " +
+				            "LEFT JOIN teams t ON t.team_id = a.team_id " +
+				            "LEFT JOIN projects p ON p.project_id = t.project_id " +
 				            "WHERE et.status = :status " +
 				            "AND (:empId = 0 OR et.emp_id = :empId) " +
 				            "AND (:projectId = 0 OR p.project_id = :projectId) " +
