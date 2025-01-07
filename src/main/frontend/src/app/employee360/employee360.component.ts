@@ -64,13 +64,13 @@ export class Employee360Component implements OnInit {
       this.employeeData = history.state.data;
     }
     
-    let findBreadcrumbObject = this.breadcrumbUrl.findIndex(x => x.title === "Employee-360");
+    let findBreadcrumbObject = this.breadcrumbUrl.findIndex(x => x.title === "Employee-360-Profile");
     if (findBreadcrumbObject >= 0) {
       this.breadcrumbUrl.splice(findBreadcrumbObject + 1);
       this.breadcrumbService.setBreadcrumbSubject(this.breadcrumbUrl);
     } else {
       let breadcrumbObject = { title: "Employee-360-Profile", url: "/employee-360/profile" };
-      this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
+   this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
 
     console.log("employeeData   ",this.employeeData);
@@ -118,6 +118,7 @@ export class Employee360Component implements OnInit {
     if (tab) {
       tab.classList.add('active');
       const activeRouteLink = tab.getAttribute('routerLink');
+      console.log("router ",activeRouteLink)
       this.router.navigate(['./' + activeRouteLink], { relativeTo: this.route });
     }
   }
