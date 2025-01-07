@@ -6,10 +6,13 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -402,16 +405,31 @@ public class BioMaxService {
 	            bioMaTO.setBeginTime(resultSet.getString("InTime"));
 	            bioMaTO.setEndTime(resultSet.getString("OutTime"));
 	            bioMaTO.setStatus(resultSet.getString("EmployeeId"));
-	            TimesheetDTO timesheetdto=new TimesheetDTO();
-	            timesheetdto.setTimesheetId(Long.parseLong("10"));
-	            System.out.println(resultSet.getString("EmployeeId"));
-	            List<TimesheetDTO> timesh= TimesheetService.getAllProjectsByEmpIdForBioMax(resultSet.getString("AttendanceDateStr"),resultSet.getString("EmployeeId"));
+	            String outputDate = null;
+	            System.out.println(resultSet.getString("EmployeeId")+"=="+resultSet.getString("AttendanceDateStr"));
+	            SimpleDateFormat inputFormat = new SimpleDateFormat("dd-MMM-yyyy");
+	            SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+	            try {
+	                // Parse the input date
+	                Date date = inputFormat.parse(resultSet.getString("AttendanceDateStr"));
+	                // Format the date into the desired output format
+	                 outputDate = outputFormat.format(date);
+
+	                System.out.println("Converted Date: " + outputDate+"=="+resultSet.getString("EmployeeCode")+"=="+resultSet.getString("EmployeeId"));
+	            } catch (ParseException e) {
+	                e.printStackTrace();
+	            }
+	            List<TimesheetDTO> timesh= TimesheetService.getAllProjectsByEmpIdForBioMax(resultSet.getString("EmployeeId"),outputDate);
 	           System.out.println("----"+timesh.size());
 	            if(timesh.size()>0) {
 	        	  bioMaTO.setTimesheetdto(timesh);
 		          
 	          }else {
-	        	  bioMaTO.setTimesheetdto(null);
+	        	  TimesheetDTO timesheetDTO=new TimesheetDTO();
+	        	  timesheetDTO.setTeamName("Not Fill");
+	        	  timesh.add(timesheetDTO);
+	        	  bioMaTO.setTimesheetdto(timesh);
 	          }
 	            finalEmpBioData.add(bioMaTO);
 	        }
