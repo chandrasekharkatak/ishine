@@ -16,14 +16,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.transaction.Transactional;
 
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import com.apmosys.employeeportal.dto.BioMaTO;
 import com.apmosys.employeeportal.dto.BioMax360;
+import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -49,6 +58,9 @@ public class BioMaxService {
 
 	@Autowired
 	EmployeeRepository employeeRepository;
+	
+	@PersistenceContext
+    private EntityManager entityManager;
 
 	public Connection getConnection() {
 		
@@ -369,54 +381,9 @@ public class BioMaxService {
 	        Map<String, List<String>> empMapById = new HashMap<>();
 	        List<BioMax360> finalEmpBioData = new ArrayList();
 
-	        String Query = "WITH LatestLogDate AS ("
-	                + "    SELECT "
-	                + "        dl.UserId, "
-	                + "        MAX(dl.LogDate) AS LastLogDate "
-	                + "    FROM "
-	                + "        [SmartOfficedb].[dbo].[DeviceLogs_10_2024] dl "
-	                + "    INNER JOIN "
-	                + "        [SmartOfficedb].[dbo].[Employees] emp ON dl.UserId = emp.EmployeeCode "
-	                + "    INNER JOIN "
-	                + "        [SmartOfficedb].[dbo].[AttendanceLogs] adl ON emp.EmployeeId = adl.EmployeeId "
-	                + "    WHERE "
-	                + "        adl.AttendanceDateStr BETWEEN '" + startdate + "' AND '" + endDate + "' "
-	                + "        AND emp.EmployeeCode IN ( '" + employeeId + "' )"
-	                + "    GROUP BY "
-	                + "        dl.UserId "
-	                + ") "
-	                + "SELECT "
-	                + "   adl.AttendanceDateStr,"
-	                + "     dl.LogDate, "
-	                + "    emp.EmployeeCode, "
-	                + "    emp.EmployeeName, "
-	                + "    adl.TotalDuration, "
-	                + "    s.ShiftName, "
-	                + "    adl.BeginTime, "
-	                + "    adl.EndTime, "
-	                + "    adl.Status, "
-	                + "    adl.PunchRecords, "
-	                + "    adl.EarlyBy, "
-	                + "    adl.LateBy, "
-	                + "    adl.Duration, "
-	                + "    adl.InTime, "
-	                + "    adl.OutTime, "
-	                + "    adl.ShiftDuration "
-	                + "FROM "
-	                + "    LatestLogDate lld "
-	                + "INNER JOIN "
-	                + "    [SmartOfficedb].[dbo].[DeviceLogs_10_2024] dl ON lld.UserId = dl.UserId AND lld.LastLogDate = dl.LogDate "
-	                + "INNER JOIN "
-	                + "    [SmartOfficedb].[dbo].[Employees] emp ON dl.UserId = emp.EmployeeCode "
-	                + "INNER JOIN "
-	                + "    [SmartOfficedb].[dbo].[AttendanceLogs] adl ON emp.EmployeeId = adl.EmployeeId "
-	                + "INNER JOIN "
-	                + "    [SmartOfficedb].[dbo].[Shifts] s ON adl.ShiftId = s.ShiftId "
-	                + "WHERE "
-	                + "    adl.AttendanceDateStr BETWEEN '" + startdate + "' AND '" + endDate + "' "
-	                + "    AND emp.EmployeeCode IN( '" + employeeId + "' )"; // Direct values in the query
-System.out.println("Query"+Query);
-	        // Getting the database connection
+	        String Query="SELECT   AttendanceDate,al.EmployeeId as EmployeeId, AttendanceDateStr,EmployeeName,EmployeeCode, InTime, OutTime , OverTime ,OverTimeE , TotalDuration from AttendanceLogs al"
+	        		+ " JOIN Employees e on al.EmployeeId =e.EmployeeId  WHERE  al.EmployeeId ='"+employeeId+"' and al.AttendanceDate between '"+startdate+"' and '"+endDate+"'";
+	      
 	        con = getConnection();
 	        statement = con.prepareStatement(Query);
 
@@ -426,37 +393,26 @@ System.out.println("Query"+Query);
 	        // Process the result set
 	        while (resultSet.next()) {
 	            BioMax360 bioMaTO = new BioMax360();
-	            bioMaTO.setAttendanceDateStr(resultSet.getString("AttendanceDateStr"));
-	            bioMaTO.setLogDate(resultSet.getString("LogDate"));
+	            bioMaTO.setAttendanceDateStr(resultSet.getString("AttendanceDate"));
+	            bioMaTO.setLogDate(resultSet.getString("AttendanceDateStr"));
 	            bioMaTO.setEmployeeCode(resultSet.getString("EmployeeCode"));
 	            bioMaTO.setEmployeeName(resultSet.getString("EmployeeName"));
-	            bioMaTO.setTotalDuration(resultSet.getString("TotalDuration")); // Assuming TotalDuration is a String
-	            bioMaTO.setShiftName(resultSet.getString("ShiftName")); // Added shift name from your query
-	            bioMaTO.setBeginTime(resultSet.getString("BeginTime"));
-	            bioMaTO.setEndTime(resultSet.getString("EndTime"));
-	            bioMaTO.setStatus(resultSet.getString("Status"));
-	            bioMaTO.setPunchRecords(resultSet.getString("PunchRecords"));
-	            bioMaTO.setEarlyBy(resultSet.getString("EarlyBy"));
-	            bioMaTO.setLateBy(resultSet.getString("LateBy"));
-	            bioMaTO.setDuration(resultSet.getString("Duration")); // Assuming Duration is a String
-	            bioMaTO.setInTime(resultSet.getString("InTime"));
-	            bioMaTO.setOutTime(resultSet.getString("OutTime"));
-	            bioMaTO.setShiftDuration(resultSet.getString("ShiftDuration")); 
+	            bioMaTO.setTotalDuration(resultSet.getString("OverTime")); // Assuming TotalDuration is a String
+	            bioMaTO.setShiftName(resultSet.getString("OverTime")); // Added shift name from your query
+	            bioMaTO.setBeginTime(resultSet.getString("InTime"));
+	            bioMaTO.setEndTime(resultSet.getString("OutTime"));
+	            bioMaTO.setStatus(resultSet.getString("EmployeeId"));
 	            TimesheetDTO timesheetdto=new TimesheetDTO();
-	            timesheetdto.setTimesheetId(Long.parseLong("51058"));
-	        	TimesheetDTO ob=new TimesheetDTO();
-	        	ob.setClientId(1);
-	        	ob.setProjectId(1);
-	        	ob.setProjectName("Test");
-	        	TimesheetDTO ob1=new TimesheetDTO();
-	        	ob1.setClientId(1);
-	        	ob1.setProjectId(1);
-	        	ob1.setProjectName("Test2");
-	        	List<TimesheetDTO> dto=new ArrayList<>();
-	        	dto.add(ob);
-	        	dto.add(ob1);
-	        	bioMaTO.setTimesheetdto(dto);
-	          //  bioMaTO.setTimesheetdto(TimesheetService.getAllProjectsByEmpIdForBioMax(Long.parseLong("51058")));
+	            timesheetdto.setTimesheetId(Long.parseLong("10"));
+	            System.out.println(resultSet.getString("EmployeeId"));
+	            List<TimesheetDTO> timesh= TimesheetService.getAllProjectsByEmpIdForBioMax(resultSet.getString("AttendanceDateStr"),resultSet.getString("EmployeeId"));
+	           System.out.println("----"+timesh.size());
+	            if(timesh.size()>0) {
+	        	  bioMaTO.setTimesheetdto(timesh);
+		          
+	          }else {
+	        	  bioMaTO.setTimesheetdto(null);
+	          }
 	            finalEmpBioData.add(bioMaTO);
 	        }
 	        serviceResponse.setServiceResponse(finalEmpBioData);
@@ -693,6 +649,140 @@ System.out.println("Query"+Query);
 		    
 		    return finalEmpBioData;
 		}
+	 
+	 
+	 public ServiceResponse getBioOverTimeandState(EmployeeDTO employeedto) {
+		    HashMap<String, Object> res = new HashMap<>();
+		    HashMap<String, Object> stats = new HashMap<>();
+			ServiceResponse serviceResponse = new ServiceResponse();
+		    ArrayList<HashMap<String, Object>> AllDataList =new   ArrayList<HashMap<String, Object>>();
+		    
+//		    Long empId = employeedto.getEmpId();
+		    Long empId = (long) 21887;
+		    
+		    String strMYSQLQuery = "SELECT " +
+	                "(SELECT COUNT(emp_id) " +
+	                " FROM employee_leave " +
+	                " WHERE emp_id = :empId " +
+	                "   AND MONTH(created_on) = MONTH(CURRENT_DATE - INTERVAL 1 MONTH) " +
+	                "   AND YEAR(created_on) = YEAR(CURRENT_DATE - INTERVAL 1 MONTH)) AS leave_count, " +
+
+	                "(SELECT COUNT(reward_id) " +
+	                " FROM employee_rewards " +
+	                " WHERE created_by = :empId " +
+	                "   AND MONTH(created_on) = MONTH(CURRENT_DATE - INTERVAL 1 MONTH) " +
+	                "   AND YEAR(created_on) = YEAR(CURRENT_DATE - INTERVAL 1 MONTH)) AS rewards_count, " +
+
+	                "(SELECT COUNT(id) " +
+	                " FROM db_emp_portal.appreciation " +
+	                " WHERE appreciation_to = :empId " +
+	                "   AND MONTH(appreciation_date) = MONTH(CURRENT_DATE - INTERVAL 1 MONTH) " +
+	                "   AND YEAR(appreciation_date) = YEAR(CURRENT_DATE - INTERVAL 1 MONTH)) AS appreciation_count";
+
+	        // Execute the Query
+	        Query query = entityManager.createNativeQuery(strMYSQLQuery);
+	        query.setParameter("empId", empId);
+
+	        // Fetch the result
+	        Object[] result = (Object[]) query.getSingleResult();
+
+	        // Map the results
+	        
+	        stats.put("leave_count",   result[0]);
+	        stats.put("rewards_count", result[1]);
+	        stats.put("appreciation_count",  result[2]);
+
+	       
+	        System.out.println("data  --===="+ stats);
+	        
+
+		    try {
+		        // Fetch all employees from the repository
+		        List<Employee> AllEmpList = employeeRepository.findAll();
+
+		        // Loop through each employee and process
+		        AllEmpList.forEach(emp -> {
+		            if (emp.getEmpId().equals(employeedto.getEmpId())) {
+		                // SQL query to fetch total overtime and other relevant data
+		            	
+		            	String EmploymentId = "A" + emp.getEmployeementId();
+		            	
+		            	
+		            	String strMSSQLQuery = "SELECT "
+		            	        + "SUM(CAST(AttendanceLogs.OverTime AS INT)) AS total_OverTime, "
+		            	        + "CONCAT('-', ABS(SUM(CAST(AttendanceLogs.OverTimeE AS INT)))) AS total_UnderTimeE "
+		            	        + "FROM AttendanceLogs "
+		            	        + "INNER JOIN Employees ON AttendanceLogs.EmployeeId = Employees.EmployeeId "
+		            	        + "WHERE Employees.EmployeeCode = ? "
+		            	        + "AND MONTH(AttendanceLogs.AttendanceDate) = MONTH(DATEADD(MONTH, -1, GETDATE())) "
+		            	        + "AND YEAR(AttendanceLogs.AttendanceDate) = YEAR(DATEADD(MONTH, -1, GETDATE()))";
+
+
+
+		                try {
+		                    // Load the SQL Server JDBC driver
+		                    Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+
+		                    // Establish connection
+		                    Connection con = getConnection();
+
+		                    // Prepare the SQL statement
+		                    PreparedStatement statement = con.prepareStatement(strMSSQLQuery);
+		                    
+		                    
+		                    statement.setString(1, String.valueOf(EmploymentId)); 
+
+		                    // Execute the query
+		                    ResultSet resultSet = statement.executeQuery();
+
+		                    // Process the result set
+		                    if (resultSet.next()) {
+		                        int totalOverTime = resultSet.getInt("total_OverTime");
+		                        String totalOverTimeE = resultSet.getString("total_UnderTimeE");
+
+		                        // Add results to the response
+		                        res.put("totalOverTime", totalOverTime);
+		                        res.put("totalOverTimeE", totalOverTimeE);
+		                    }
+
+		                    // Close resources
+		                    resultSet.close();
+		                    statement.close();
+		                    con.close();
+		                } catch (ClassNotFoundException | SQLException e) {
+		                    e.printStackTrace();
+		                }
+		                
+		                
+		            }
+		        });
+		        
+		        System.out.println("data res --===="+ res);
+
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		    }
+
+		    
+		    
+		    AllDataList.add(res);
+		    AllDataList.add(stats);
+		  
+		    serviceResponse.setServiceResponse(AllDataList);
+		    serviceResponse.setServiceMessage("Success");
+		    serviceResponse.setServiceError("");
+	
+		    return serviceResponse; 
+		}
+	 
+	 
+
+	 
+	
+	   
+	   
+	   
+	 
 		
 	
 

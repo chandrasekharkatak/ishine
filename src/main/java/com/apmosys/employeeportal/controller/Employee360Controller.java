@@ -1,9 +1,9 @@
 package com.apmosys.employeeportal.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -71,10 +71,20 @@ public class Employee360Controller {
 	}
 	
 	@RequestMapping(value = "/updateStatus", method = RequestMethod.GET)
-	public ServiceResponse updateStatus(@RequestParam String status, @RequestParam long empId,@RequestParam String date) {
+	public ServiceResponse updateStatus(@RequestParam String status,@RequestParam List<Long> timesheetIds,@RequestParam Long updatedBy) {
 
-		ServiceResponse response = employee360Service.updateStatus(status,empId,date);
+		ServiceResponse response = employee360Service.updateStatus(status,timesheetIds,updatedBy);
 		return response;
+	}
+	
+	@PostMapping(value = "/employee360state")
+	public ServiceResponse getBioOverTimeandState(@RequestBody EmployeeDTO employeedto ) {
+		ServiceResponse response = bioMaxService.getBioOverTimeandState(employeedto);
+		return response;
+	}
+	@RequestMapping(value="/biomax",method=RequestMethod.GET)
+	public ServiceResponse getBioMax(@RequestParam String startDate,@RequestParam String endDate, @RequestParam String employeeId) {
+	return bioMaxService.getEmpBioData360(startDate, endDate, employeeId);
 	}
 
 	

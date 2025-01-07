@@ -203,7 +203,7 @@ public class Employee360Service {
 		        objectList = employeeRepository.getDynamicTimesheetData(status, empId, projectId, teamName, managerId, localStartDate, localEndDate);
 	        }
 	        System.out.println(objectList);
-			System.out.println(results);
+//			System.out.println(results);
 			Map<Long, Employee360DTO> employeeMap = new HashMap<>();
 
 		if (!objectList.isEmpty()) {
@@ -226,7 +226,6 @@ public class Employee360Service {
 	                dto.setTotalWorkingHours(row[8] != null ? row[8].toString() : null);
 			        dto.setStatus(row[10] != null ? row[10].toString() : null);
 			        dto.setRemarks(row[15] != null ? row[15].toString() : null);
-			        dto.setTimesheetId(row[16] != null ? Long.parseLong(row[16].toString()) : null);
 			        if (row[11] != null) {
 				           dto.setCreatedOn(((java.sql.Timestamp) row[11]).toLocalDateTime());}
 			        dto.setTimeSheet(new ArrayList<>());
@@ -243,6 +242,7 @@ public class Employee360Service {
 			            	EmployeeTimesheetDto newProject = new EmployeeTimesheetDto();
 			                newProject.setProjectName(projectName);
 			                newProject.setTeamName(!teamName.equals("null") ? teamName :(String) row[14]);
+			                newProject.setTimesheetId(row[16] != null ? Long.parseLong(row[16].toString()) : null);
 			                newProject.setProjectId(projectId != 0L ?projectId: Long.parseLong(row[1].toString()));
 			                newProject.setActivityId(row[2] != null ? Long.parseLong(row[2].toString()) : null);
 			                newProject.setActivities(new ArrayList<>());
@@ -273,31 +273,28 @@ public class Employee360Service {
 		return response;
 	}
 
-	public ServiceResponse updateStatus(String status,long empId, String date) {
+	public ServiceResponse updateStatus(String status,List<Long>timesheetId,Long updatedBy) {
 		ServiceResponse response = new ServiceResponse();
 		
 		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("getEmployeeDetails");
-		apiLogInfo.setApiUrl("/api/getEmployeeDetails");
+		apiLogInfo.setSubFeatureName("get360TimesheetDetails");
+		apiLogInfo.setApiUrl("/api/updateStatus");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("empId : " + empId);
+		logBuilder.append("timesheetId : " + timesheetId);
 		try {
 			
 			List<Employee360DTO> employeeDtoList = new ArrayList<>();
-			SimpleDateFormat formatedDate = new SimpleDateFormat("yyyy-MM-dd");
-			Date datee = formatedDate.parse(date);
-			LocalDate localDate = datee.toInstant()
-                    .atZone(ZoneId.systemDefault())
-                    .toLocalDate();
-
-			System.out.println("LocalDate: " + localDate);
+			List<Timesheet> timesheet = timesheetsRepository.findByTimesheetIdIn(timesheetId);
 			
-			Timesheet timesheet = timesheetsRepository.findByEmpIdAndDate(empId,localDate);
-			
-			if (timesheet!=null) {
-					timesheet.setStatus(status);
-		            timesheetsRepository.save(timesheet);
+			if (!timesheet.isEmpty()) {
+				for(Timesheet timesheetobj:timesheet){
+					timesheetobj.setStatus(status);
+					timesheetobj.setTimesheetStatusUpdatedBy(updatedBy);
+//					timesheetobj.setUpdatedOn(new Date());
+//					timesheetobj.setRemarks(timesheetDTO.getRejectReason());
+		            timesheetsRepository.save(timesheetobj);
+				}
 				}
 			
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
