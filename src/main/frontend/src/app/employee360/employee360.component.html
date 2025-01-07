@@ -61,38 +61,39 @@
         </div>
       </div>
   
-      <!-- Sidebar Profile Section (Moved to Right) -->
-      <div class="col-md-3 profile-section">
-        <div class="profile-card text-center">
-          <!-- Profile Picture -->
-          <div class="profile-picture">
-            <img src="assets/Images/default-user-image.jpeg" alt="Profile Picture" />
-          </div>
-          <!-- Name and Email -->
-          <h3 class="profile-name">{{employeeData.name}}</h3>
-          <p class="profile-email">{{employeeData.email}}</p>
-          <p class="profile-phone">{{employeeData.mobileNo}}</p>
-  
-          <!-- Employee Details -->
-          <div class="profile-details">
-            <p><strong>Employee ID:</strong> {{employeeData.employeementId}}</p>
-            <p><strong>Job Title:</strong> {{employeeData.designationName}}</p>
-            <p><strong>Department:</strong> {{employeeData.departmentName}}</p>
-            <p><strong>Office:</strong>{{employeeData.workLocation}}</p>
-            <p><strong>Employee Since:</strong> {{employeeData.dateOfJoining}}</p>
-            <p><strong>Manager Name</strong> {{employeeData.managerName}}</p>
-            <!-- <p><strong>Project Name</strong> {{employeeData.projectName}}</p> -->
-            <p><strong>Total OverTime</strong> {{responseOvertime.totalOverTime}}</p>
-            <p><strong>Total UnderTime</strong> {{responseOvertime.totalOverTimeE}}</p>
-            <p><strong>Total Appreciation Count</strong> {{responsestate.appreciation_count}}</p>
-            <p><strong>Total Leave Count</strong> {{responsestate.leave_count}}</p>
-            <p><strong>Total Rewards Count</strong> {{responsestate.rewards_count}}</p>
-            <p><strong>Billable Type</strong> {{employeeData.billableType}}</p>
-            <p><strong>Status</strong> {{employeeData.employmentstatus}}</p>
-            <p><strong>Total Experince</strong> {{employeeData.totalExperience}}</p>
-          </div>
-        </div>
-      </div>
+     
+     <!-- Sidebar Profile Section (Moved to Right) -->
+<div class="col-md-3 profile-section">
+  <div class="profile-card">
+    <!-- Profile Picture -->
+    <div class="profile-picture">
+      <img src="assets/Images/default-user-image.jpeg" alt="Profile Picture" />
+    </div>
+    <!-- Name and Email -->
+    <h3 class="profile-name">{{employeeData.name}}</h3>
+    <p class="profile-email">{{employeeData.email}}</p>
+    <p class="profile-phone">{{employeeData.mobileNo}}</p>
+
+    <!-- Employee Details -->
+    <div class="profile-details">
+      <p><strong>Employee ID:</strong> {{employeeData.employeementId}}</p>
+      <p><strong>Job Title:</strong> {{employeeData.designationName}}</p>
+      <p><strong>Department:</strong> {{employeeData.departmentName}}</p>
+      <p><strong>Office:</strong> {{employeeData.workLocation}}</p>
+      <p><strong>Employee Since:</strong> {{employeeData.dateOfJoining}}</p>
+      <p><strong>Manager Name:</strong> {{employeeData.managerName}}</p>
+      <p><strong>Total OverTime:</strong> {{responseOvertime.totalOverTime}}</p>
+      <p><strong>Total UnderTime:</strong> {{responseOvertime.totalOverTimeE}}</p>
+      <p><strong>Total Appreciation Count:</strong> {{responsestate.appreciation_count}}</p>
+      <p><strong>Total Leave Count:</strong> {{responsestate.leave_count}}</p>
+      <p><strong>Total Rewards Count:</strong> {{responsestate.rewards_count}}</p>
+      <p><strong>Billable Type:</strong> {{employeeData.billableType}}</p>
+      <p><strong>Status:</strong> {{employeeData.employmentstatus}}</p>
+      <p><strong>Total Experience:</strong> {{employeeData.totalExperience}}</p>
+    </div>
+  </div>
+</div>
+
     </div>
   </div>
   
