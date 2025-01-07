@@ -1,29 +1,26 @@
-import { state } from '@angular/animations';
+import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Sort } from '@angular/material/sort';
+import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { ClipboardService } from 'ngx-clipboard';
 import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
 import { Activity } from 'src/app/models/activity';
+import { Employee } from 'src/app/models/employee';
 import { Feature } from 'src/app/models/feature';
+import { Holiday } from 'src/app/models/holiday';
+import { Leave } from 'src/app/models/leave';
 import { Timesheet } from 'src/app/models/timesheet';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
+import { EmployeeService } from 'src/app/services/employee.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { HolidayService } from 'src/app/services/holiday.service';
+import { LeaveService } from 'src/app/services/leave.service';
+import { TeamViewService } from 'src/app/services/team-view.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { ExportExcelService } from 'src/app/services/export-excel.service';
-import { DatePipe, LocationStrategy } from '@angular/common';
-import * as moment from 'moment';
-import { Sort } from '@angular/material/sort';
-import { ClipboardService } from 'ngx-clipboard';
-import { Employee } from 'src/app/models/employee';
-import { TeamViewService } from 'src/app/services/team-view.service';
-import { LeaveService } from 'src/app/services/leave.service';
-import { Leave } from 'src/app/models/leave';
-import { Team } from 'src/app/models/team';
-import { ThemePalette } from '@angular/material/core';
-import { AppComponent } from 'src/app/app.component';
-import { EmployeeService } from 'src/app/services/employee.service';
-import { HolidayService } from 'src/app/services/holiday.service';
-import { Holiday } from 'src/app/models/holiday';
 
 @Component({
   selector: 'app-my-timesheet',
@@ -528,7 +525,9 @@ filterHolidayListByYear(year: number): void {
 customDateFilter: (date: Date) => boolean = (date: Date): boolean => {
 
   const dayType = this.timesheetObj.dayType;
+  console.log("daytype",dayType);
   const filteredDates = this.getFilteredDates(dayType);
+  // console.log("fitered",this.getFilteredDates(dayType));
   return filteredDates.some(filteredDate => 
     this.datePipe.transform(filteredDate, 'yyyy-MM-dd') === this.datePipe.transform(date, 'yyyy-MM-dd')
   );
@@ -540,7 +539,10 @@ customDateFilter: (date: Date) => boolean = (date: Date): boolean => {
 getFilteredDates(dayType: string): Date[] {
   
   
-console.log("date filter ",this.Allholidays);
+console.log("date filter ",dayType);
+console.log("date this.availableTimesheets ",this.availableTimesheets);
+
+
 
   const DAY_IN_MS = 24 * 60 * 60 * 1000;
   const currentDate = new Date();
@@ -549,30 +551,80 @@ console.log("date filter ",this.Allholidays);
 
   // const publicHolidays = ['2024-11-25', '2024-11-01']; // Add public holiday dates here.
 
-  if (dayType === 'Public Holiday') {
-    // Filter for Public Holidays
-
-    console.log("hodays ",this.Allholidays)
-
-    return this.Allholidays
-      .map(date => new Date(date))
-      .filter(holidayDate => holidayDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date === this.datePipe.transform(holidayDate, 'yyyy-MM-dd')));
-  }
-
-  if (dayType === 'Week Off') {
-    return this.AllWeekOfList
-    .map(date => new Date(date))
-    .filter(
-      weekOffDate =>
-        weekOffDate >= startDate &&
-        weekOffDate <= currentDate &&
-        !this.availableTimesheets.find(
-          timesheet => timesheet.date === this.datePipe.transform(weekOffDate, 'yyyy-MM-dd')
-        )
+  if (dayType === 'Public Holiday' || dayType ===  'Week Off') {
+    const year = new Date().getFullYear();
+    const allDatesInYear: Date[] = [];
+    
+    // Generate all dates in the year
+    for (let month = 0; month < 12; month++) {
+        for (let day = 1; day <= new Date(year, month + 1, 0).getDate(); day++) {
+            allDatesInYear.push(new Date(year, month, day));
+        }
+    }
+    
+    // Extract only `dateOfHoliday` from the `holiday` list and format it to "yyyy-MM-dd"
+    const holidayDates = this.holidayList.map(holiday => 
+        this.datePipe.transform(holiday.dateOfHoliday, 'yyyy-MM-dd')
     );
-  }
+    
+    // Filter out holidays from allDatesInYear
+    const filteredDates = allDatesInYear.filter(date => {
+        const transformedDate = this.datePipe.transform(date, 'yyyy-MM-dd'); // Transform date to "yyyy-MM-dd"
+        return date >= startDate && !holidayDates.includes(transformedDate); // Exclude dates present in the holiday list
+    });
+    
+    // Log results for debugging
+    // console.log("All dates in year (transformed):", allDatesInYear.map(date => this.datePipe.transform(date, 'yyyy-MM-dd')));
+    // console.log("Holiday dates:", holidayDates);
+    // console.log("Filtered dates:", filteredDates);
+    
+    return filteredDates;
+    
+}
 
-  return [];
+
+  // if (dayType === 'Week Off') {
+  //   console.log("Week Off Date:", this.AllWeekOfList);
+  //    this.AllWeekOfList
+  //   .map(date => new Date(date))
+  //   .filter(
+  //     weekOffDate =>
+  //       weekOffDate >= startDate &&
+  //       weekOffDate <= currentDate &&
+  //       !this.availableTimesheets.find(
+  //         timesheet => timesheet.date === this.datePipe.transform(weekOffDate, 'yyyy-MM-dd')
+  //       )
+      
+  //   );
+  //   return this.AllWeekOfList;
+
+    
+  // }
+
+  if (dayType === 'Non-working') {
+    console.log("Week Off Date:", this.AllWeekOfList);
+  
+    // Convert startDate to the same format for comparison (e.g., 'yyyy-MM-dd')
+    const transformedStartDate = this.datePipe.transform(startDate, 'yyyy-MM-dd');
+  
+    // Filter the holiday list to include only dates on or after startDate
+    const holidayDates = this.holidayList
+        .filter(holiday => {
+            // Transform the dateOfHoliday to match the 'yyyy-MM-dd' format
+            const transformedHolidayDate = this.datePipe.transform(holiday.dateOfHoliday, 'yyyy-MM-dd');
+            return transformedHolidayDate >= transformedStartDate; // Check if the date is on or after startDate
+        })
+        .map(holiday => holiday.dateOfHoliday); // Map to get only the 'dateOfHoliday' values
+  
+    // Log the holiday dates for debugging
+    console.log("Holiday Dates after startDate filter:", holidayDates);
+  
+    // Return only the filtered 'dateOfHoliday' values
+    return holidayDates;
+  }
+    
+
+   return [];
 }
 
 

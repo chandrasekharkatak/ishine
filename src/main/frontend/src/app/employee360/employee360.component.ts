@@ -48,6 +48,9 @@ export class Employee360Component implements OnInit {
   }
 
 
+  currentab:String;
+  leave:String;
+  othertab:any;
 
   ngOnInit(): void {
     this.navigationSubscription = this.employee360Service.getNavigationEvent().subscribe(() => {
@@ -158,5 +161,9 @@ export class Employee360Component implements OnInit {
      
 
   }
-
+ 
+  leave360viewtab(tab:any){  
+          this.currentab=tab;        
+          console.log(this.currentab);
+  }
 }
