@@ -77,7 +77,7 @@
                     <td scope="col" *ngIf="biomax.timesheetdto.length>0">
                     <ul>
                         <li *ngFor="let dtp of biomax.timesheetdto">
-                            <a class="timehseet"  >{{dtp.teamName}}</a>
+                            <a class="timehseet"  >{{dtp.teamName+" ( "+ dtp.activity +" ) "}}</a>
 
                         </li>
                     </ul>
@@ -92,7 +92,9 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-md-4 mb-0">
+                    
                     <canvas id="myChart"></canvas>
+                    
                 </div>
             </div>
         </div>

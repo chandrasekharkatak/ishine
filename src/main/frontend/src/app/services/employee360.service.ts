@@ -84,13 +84,13 @@ updateStatus(status: string, timesheetIds:number[],updatedBy: number) {
 
 
   getEmployeeDetailsForBiomax(startDate:String,endDate:String,employeeId:String){
-    return this.http.get(`http://localhost:8080/api/biomax?startDate=${startDate}&endDate=${endDate}&employeeId=${employeeId}`);
+    return this.http.get(`${this.baseUrl}` + `api/biomax?startDate=${startDate}&endDate=${endDate}&employeeId=${employeeId}`);
   }
 
 
-  getBioOverTimeandState(EmployeDTO: Employee) {
-    return this.http.post(`${this.baseUrl}` + `api/employee360state`, EmployeDTO);
-  }
+  // getBioOverTimeandState(EmployeDTO: Employee) {
+  //   return this.http.post(`${this.baseUrl}` + `api/employee360state`, EmployeDTO);
+  // }
 
  
 }
