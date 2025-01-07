@@ -1,6 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { AfterViewInit, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-
+import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 import * as moment from 'moment';
 import { Biomax } from 'src/app/models/biomax';
 import { Employee360Service } from 'src/app/services/employee360.service';
@@ -22,7 +22,7 @@ export class Employee360BiomaxComponent implements OnInit{
 filter={
   officestartTimePicker:'',
   officeendTimePicker:'',
-  employeeId:'012345',
+  employeeId:'740',
   viewfilter:'Weekly'
 }
 filter1={
@@ -32,7 +32,9 @@ filter1={
   viewfilter:'Weekly'
 }
 employeeData:any;
-constructor(private datePipe: DatePipe,private employee360:Employee360Service){
+constructor(private datePipe: DatePipe,
+  private employee360:Employee360Service,
+  private breadcrumbService: BreadcrumbService){
  
 }
 
@@ -40,7 +42,7 @@ ngOnInit(): void {
   this.filter1={
     officestartTimePicker:'',
     officeendTimePicker:'',
-    employeeId:'012345',
+    employeeId:'740',
     viewfilter:'Weekly'
   }
 
@@ -54,6 +56,8 @@ ngOnInit(): void {
     this.employeeData = history.state.data;
   }
  
+  const breadcrumbObject = { title: `Biomax`, url: "/employee-360/biomax" };
+  this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
 
   
  //this.filter.employeeId=this.employeeData.employeementId;
@@ -82,7 +86,7 @@ viewFilterdata(){
 }
 formatDate(dateString: string): string {
   const date = new Date(dateString); // Convert the string to a Date object
-  return this.datePipe.transform(date, 'dd-MMM-yyyy')!;
+  return this.datePipe.transform(date, 'yyyy-MM-dd 00:00:00.000')!;
 }
 fromDateFilter = (d: Date)=>{
   const DAY_IN_MS = 24 * 60 * 60 * 1000;

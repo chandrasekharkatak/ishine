@@ -175,8 +175,8 @@ public class TimesheetService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-	
-	public List<TimesheetDTO> getAllProjectsByEmpIdForBioMax(Long timesheetId) {
+	@Transactional
+	public List<TimesheetDTO> getAllProjectsByEmpIdForBioMax(String date,String employeeCode) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("add_timesheet");
@@ -190,8 +190,8 @@ public class TimesheetService {
 			//List<Object[]> projectList = employeeTeamMapRepository.findProjectsByTeamId(timesheetDTO.getEmpId());
 		
 			List<Object[]> objectList = timesheetActivityMapRepository
-					.activitiesByTimesheetId(timesheetId);
-			System.out.println("timesheetId"+timesheetId);
+					.activitiesByTimesheetIdforBiomax("21863","2024-09-19");
+			System.out.println("objectList"+objectList.size());
 			if (!objectList.isEmpty()) {
 				TimesheetDTO timesheetDto = new TimesheetDTO();
 
@@ -201,12 +201,13 @@ public class TimesheetService {
 					timesheetDto.setClientName(object[1] != null ? object[1].toString() : null);
 					timesheetDto.setClientLocationId(object[2] != null ? Integer.parseInt(object[2].toString()) : null);
 					timesheetDto.setClientLocation(object[3] != null ? object[3].toString() : null);
-					timesheetDto.setProjectId(object[4] != null ? Integer.parseInt(object[4].toString()) : null);
-					timesheetDto.setProjectName(object[5] != null ? object[5].toString() : null);
-	  				timesheetDto.setTeamName(object[6] != null ? object[6].toString() : null);
+					timesheetDto.setProjectId(object[10] != null ? Integer.parseInt(object[4].toString()) : null);
+					timesheetDto.setProjectName(object[6] != null ? object[5].toString() : null);
+	  				timesheetDto.setTeamName(object[5] != null ? object[6].toString() : null);
+	  				
 					timesheetDto.setTeamId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
-//					timesheetDto.setActivity(object[8] != null ? object[8].toString() : null);
-//					timesheetDto.setActivityId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+					timesheetDto.setActivity(object[8] != null ? object[8].toString() : null);
+					timesheetDto.setActivityId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
 					listDto.add(timesheetDto);
 				}
 				return listDto;
