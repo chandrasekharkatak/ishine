@@ -1,27 +1,27 @@
 <div class="row mb-3">
-  <div class="col-md-12 pl-4 pt-3 d-flex justify-content-between">
-      <div>
-          <button *ngIf="!isProjectTeamClicked" type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Pending'}" (click)="setActiveButton('Pending')">Pending</button>
-          <button *ngIf="!isProjectTeamClicked" type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Approved'}" (click)="setActiveButton('Approved')">Approved</button>
-          <button *ngIf="!isProjectTeamClicked" type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Rejected'}" (click)="setActiveButton('Rejected')">Rejected</button>
-          <button *ngIf="!isProjectTeamClicked" type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Calendar'}" (click)="setActiveButton('Calendar')">Calendar</button>
-      </div>
-
-      <button *ngIf="isProjectTeamClicked" class="btn btn-link back-button" (click)="goBack()">
-          <i class="fas fa-arrow-left"></i></button>
-
-      <h4 *ngIf="isProjectTeamClicked" class="text-center flex-grow-1 mb-0">{{header}}</h4>
+    <div class="col-md-12 pl-4 pt-3 d-flex justify-content-between">
+        <div>
+            <button *ngIf="!isProjectTeamClicked" type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Pending'}" (click)="setActiveButton('Pending')">Pending</button>
+            <button *ngIf="!isProjectTeamClicked" type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Approved'}" (click)="setActiveButton('Approved')">Approved</button>
+            <button *ngIf="!isProjectTeamClicked" type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Rejected'}" (click)="setActiveButton('Rejected')">Rejected</button>
+            <button *ngIf="!isProjectTeamClicked" type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Calendar'}" (click)="setActiveButton('Calendar')">Calendar</button>
+        </div>
   
-      <!-- Dropdown aligned to the right -->
-      <select *ngIf = "activeButton !='Calendar'" class="form-select-sm align-items-center mx-1 custom-select parent-container" aria-label="Default select example"
-          [(ngModel)]="selectedOption" (change)="onChangeOption(selectedOption)"> 
-          <option class="option-bg" value=1>All</option>
-          <option class="option-bg" value=2>Weekly</option>
-          <option class="option-bg" value=3>Monthly</option>
-          <option class="option-bg" value=4>Date range</option>
-      </select>
+        <button *ngIf="isProjectTeamClicked" class="btn btn-link back-button" (click)="goBack()">
+            <i class="fas fa-arrow-left"></i></button>
+  
+        <h4 *ngIf="isProjectTeamClicked" class="text-center flex-grow-1 mb-0">{{header}}</h4>
+    
+        <!-- Dropdown aligned to the right -->
+        <select *ngIf = "activeButton !='Calendar'" class="form-select-sm align-items-center mx-1 custom-select parent-container" aria-label="Default select example"
+            [(ngModel)]="selectedOption" (change)="onChangeOption(selectedOption)"> 
+            <option class="option-bg" value=1>All</option>
+            <option class="option-bg" value=2>Weekly</option>
+            <option class="option-bg" value=3>Monthly</option>
+            <option class="option-bg" value=4>Date range</option>
+        </select>
+    </div>
   </div>
-</div>
 
 <div class="d-flex justify-content-between align-items-center" style=" margin-bottom: 15px;">
   <!-- Leftmost Button Group -->

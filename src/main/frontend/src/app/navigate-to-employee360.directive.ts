@@ -20,14 +20,14 @@ export class NavigateToEmployee360Directive {
 
       let breadcrumbObject = new Breadcrumb();
       
-      breadcrumbObject.title = "Employee 360";
-      breadcrumbObject.url = "/employee-360";
+      breadcrumbObject.title = "";
+      breadcrumbObject.url = "";
       breadcrumbObject.object=this.data;
 
       const stringifiedData = typeof this.store === 'string' ? this.store : JSON.stringify(this.store);
       localStorage.setItem('employee360Data', stringifiedData);
       this.employee360Service.navigateToEmployee360(this.data);
-      this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
+      // this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
   }
 }

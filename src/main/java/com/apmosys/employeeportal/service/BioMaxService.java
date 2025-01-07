@@ -6,10 +6,13 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -381,54 +384,9 @@ public class BioMaxService {
 	        Map<String, List<String>> empMapById = new HashMap<>();
 	        List<BioMax360> finalEmpBioData = new ArrayList();
 
-	        String Query = "WITH LatestLogDate AS ("
-	                + "    SELECT "
-	                + "        dl.UserId, "
-	                + "        MAX(dl.LogDate) AS LastLogDate "
-	                + "    FROM "
-	                + "        [SmartOfficedb].[dbo].[DeviceLogs_10_2024] dl "
-	                + "    INNER JOIN "
-	                + "        [SmartOfficedb].[dbo].[Employees] emp ON dl.UserId = emp.EmployeeCode "
-	                + "    INNER JOIN "
-	                + "        [SmartOfficedb].[dbo].[AttendanceLogs] adl ON emp.EmployeeId = adl.EmployeeId "
-	                + "    WHERE "
-	                + "        adl.AttendanceDateStr BETWEEN '" + startdate + "' AND '" + endDate + "' "
-	                + "        AND emp.EmployeeCode IN ( '" + employeeId + "' )"
-	                + "    GROUP BY "
-	                + "        dl.UserId "
-	                + ") "
-	                + "SELECT "
-	                + "   adl.AttendanceDateStr,"
-	                + "     dl.LogDate, "
-	                + "    emp.EmployeeCode, "
-	                + "    emp.EmployeeName, "
-	                + "    adl.TotalDuration, "
-	                + "    s.ShiftName, "
-	                + "    adl.BeginTime, "
-	                + "    adl.EndTime, "
-	                + "    adl.Status, "
-	                + "    adl.PunchRecords, "
-	                + "    adl.EarlyBy, "
-	                + "    adl.LateBy, "
-	                + "    adl.Duration, "
-	                + "    adl.InTime, "
-	                + "    adl.OutTime, "
-	                + "    adl.ShiftDuration "
-	                + "FROM "
-	                + "    LatestLogDate lld "
-	                + "INNER JOIN "
-	                + "    [SmartOfficedb].[dbo].[DeviceLogs_10_2024] dl ON lld.UserId = dl.UserId AND lld.LastLogDate = dl.LogDate "
-	                + "INNER JOIN "
-	                + "    [SmartOfficedb].[dbo].[Employees] emp ON dl.UserId = emp.EmployeeCode "
-	                + "INNER JOIN "
-	                + "    [SmartOfficedb].[dbo].[AttendanceLogs] adl ON emp.EmployeeId = adl.EmployeeId "
-	                + "INNER JOIN "
-	                + "    [SmartOfficedb].[dbo].[Shifts] s ON adl.ShiftId = s.ShiftId "
-	                + "WHERE "
-	                + "    adl.AttendanceDateStr BETWEEN '" + startdate + "' AND '" + endDate + "' "
-	                + "    AND emp.EmployeeCode IN( '" + employeeId + "' )"; // Direct values in the query
-System.out.println("Query"+Query);
-	        // Getting the database connection
+	        String Query="SELECT   AttendanceDate,al.EmployeeId as EmployeeId, AttendanceDateStr,EmployeeName,EmployeeCode, InTime, OutTime , OverTime ,OverTimeE , TotalDuration from AttendanceLogs al"
+	        		+ " JOIN Employees e on al.EmployeeId =e.EmployeeId  WHERE  al.EmployeeId ='"+employeeId+"' and al.AttendanceDate between '"+startdate+"' and '"+endDate+"'";
+	      
 	        con = getConnection();
 	        statement = con.prepareStatement(Query);
 
@@ -438,37 +396,41 @@ System.out.println("Query"+Query);
 	        // Process the result set
 	        while (resultSet.next()) {
 	            BioMax360 bioMaTO = new BioMax360();
-	            bioMaTO.setAttendanceDateStr(resultSet.getString("AttendanceDateStr"));
-	            bioMaTO.setLogDate(resultSet.getString("LogDate"));
+	            bioMaTO.setAttendanceDateStr(resultSet.getString("AttendanceDate"));
+	            bioMaTO.setLogDate(resultSet.getString("AttendanceDateStr"));
 	            bioMaTO.setEmployeeCode(resultSet.getString("EmployeeCode"));
 	            bioMaTO.setEmployeeName(resultSet.getString("EmployeeName"));
-	            bioMaTO.setTotalDuration(resultSet.getString("TotalDuration")); // Assuming TotalDuration is a String
-	            bioMaTO.setShiftName(resultSet.getString("ShiftName")); // Added shift name from your query
-	            bioMaTO.setBeginTime(resultSet.getString("BeginTime"));
-	            bioMaTO.setEndTime(resultSet.getString("EndTime"));
-	            bioMaTO.setStatus(resultSet.getString("Status"));
-	            bioMaTO.setPunchRecords(resultSet.getString("PunchRecords"));
-	            bioMaTO.setEarlyBy(resultSet.getString("EarlyBy"));
-	            bioMaTO.setLateBy(resultSet.getString("LateBy"));
-	            bioMaTO.setDuration(resultSet.getString("Duration")); // Assuming Duration is a String
-	            bioMaTO.setInTime(resultSet.getString("InTime"));
-	            bioMaTO.setOutTime(resultSet.getString("OutTime"));
-	            bioMaTO.setShiftDuration(resultSet.getString("ShiftDuration")); 
-	            TimesheetDTO timesheetdto=new TimesheetDTO();
-	            timesheetdto.setTimesheetId(Long.parseLong("51058"));
-	        	TimesheetDTO ob=new TimesheetDTO();
-	        	ob.setClientId(1);
-	        	ob.setProjectId(1);
-	        	ob.setProjectName("Test");
-	        	TimesheetDTO ob1=new TimesheetDTO();
-	        	ob1.setClientId(1);
-	        	ob1.setProjectId(1);
-	        	ob1.setProjectName("Test2");
-	        	List<TimesheetDTO> dto=new ArrayList<>();
-	        	dto.add(ob);
-	        	dto.add(ob1);
-	        	bioMaTO.setTimesheetdto(dto);
-	          //  bioMaTO.setTimesheetdto(TimesheetService.getAllProjectsByEmpIdForBioMax(Long.parseLong("51058")));
+	            bioMaTO.setTotalDuration(resultSet.getString("OverTime")); // Assuming TotalDuration is a String
+	            bioMaTO.setShiftName(resultSet.getString("OverTime")); // Added shift name from your query
+	            bioMaTO.setBeginTime(resultSet.getString("InTime"));
+	            bioMaTO.setEndTime(resultSet.getString("OutTime"));
+	            bioMaTO.setStatus(resultSet.getString("EmployeeId"));
+	            String outputDate = null;
+	            System.out.println(resultSet.getString("EmployeeId")+"=="+resultSet.getString("AttendanceDateStr"));
+	            SimpleDateFormat inputFormat = new SimpleDateFormat("dd-MMM-yyyy");
+	            SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+	            try {
+	                // Parse the input date
+	                Date date = inputFormat.parse(resultSet.getString("AttendanceDateStr"));
+	                // Format the date into the desired output format
+	                 outputDate = outputFormat.format(date);
+
+	                System.out.println("Converted Date: " + outputDate+"=="+resultSet.getString("EmployeeCode")+"=="+resultSet.getString("EmployeeId"));
+	            } catch (ParseException e) {
+	                e.printStackTrace();
+	            }
+	            List<TimesheetDTO> timesh= TimesheetService.getAllProjectsByEmpIdForBioMax(resultSet.getString("EmployeeId"),outputDate);
+	           System.out.println("----"+timesh.size());
+	            if(timesh.size()>0) {
+	        	  bioMaTO.setTimesheetdto(timesh);
+		          
+	          }else {
+	        	  TimesheetDTO timesheetDTO=new TimesheetDTO();
+	        	  timesheetDTO.setTeamName("Not Fill");
+	        	  timesh.add(timesheetDTO);
+	        	  bioMaTO.setTimesheetdto(timesh);
+	          }
 	            finalEmpBioData.add(bioMaTO);
 	        }
 	        serviceResponse.setServiceResponse(finalEmpBioData);
@@ -713,8 +675,8 @@ System.out.println("Query"+Query);
 			ServiceResponse serviceResponse = new ServiceResponse();
 		    ArrayList<HashMap<String, Object>> AllDataList =new   ArrayList<HashMap<String, Object>>();
 		    
-//		    Long empId = employeedto.getEmpId();
-		    Long empId = (long) 21887;
+		    Long empId = employeedto.getEmpId();
+
 		    
 		    String strMYSQLQuery = "SELECT " +
 	                "(SELECT COUNT(emp_id) " +

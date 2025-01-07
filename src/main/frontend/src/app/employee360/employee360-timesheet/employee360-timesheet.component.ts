@@ -94,9 +94,7 @@ export class Employee360TimesheetComponent implements OnInit {
     }else{
       let breadcrumbObject = new Breadcrumb();
       breadcrumbObject.title = "Timesheet";
-      // this.removeActiveTab();
       breadcrumbObject.url = "/employee-360/timesheet";
-      // this.setActiveTab();
       this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
 
@@ -283,8 +281,6 @@ export class Employee360TimesheetComponent implements OnInit {
     return weekDay;
   }
 
-  
-
   bulkClicked(status:string){
     console.log("status+++"+status);
     this.updateStatus(status);
@@ -374,7 +370,6 @@ export class Employee360TimesheetComponent implements OnInit {
 
 loading: boolean = false; 
 
-
 updateStatus(status: string) {
   if (this.loading) return; 
   this.loading = true; 
@@ -443,7 +438,6 @@ updateStatus(status: string) {
               const activityCounts: number[] = [];
               console.log("=> Activity counts array", activityCounts);
               this.result = this.transformData(response.serviceResponse);
-              console.log("this.data",this.data);
               console.log("this.result =>", this.result )
 
           }
