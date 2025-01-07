@@ -82,6 +82,10 @@ public class Employee360Controller {
 		ServiceResponse response = bioMaxService.getBioOverTimeandState(employeedto);
 		return response;
 	}
+	@RequestMapping(value="/biomax",method=RequestMethod.GET)
+public ServiceResponse getBioMax(@RequestParam String startDate,@RequestParam String endDate, @RequestParam String employeeId) {
+	return bioMaxService.getEmpBioData360(startDate, endDate, employeeId);
+}
 
 	
 }
