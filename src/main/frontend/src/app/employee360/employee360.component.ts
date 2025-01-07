@@ -12,6 +12,7 @@ import { RoleConfigComponent } from '../configuration/role-config/role-config.co
 import { Subscription } from 'rxjs';
 import { Employee360Service } from '../services/employee360.service';
 import { BreadcrumbService } from '../services/breadcrumb.service';
+import { Employee } from '../models/employee';
 
 
 @Component({
@@ -74,11 +75,16 @@ export class Employee360Component implements OnInit {
 
     console.log("employeeData   ",this.employeeData);
 
+    this.getBioOverTimeandState();
+
   
 
     // Dynamic feature Flags 
     let featureMap:Feature[] = this.currentUser.userMapping.filter(userMap => userMap.tabName == this.tabName);
-    console.log("feature Name ",featureMap);
+
+    console.log("checked logs   ",this.currentUser.userMapping)
+
+    console.log("feature Name ",featureMap);featureMap
     featureMap?.forEach(feat => {
       let inActiveSubfeatures = feat.subFeatures.filter(sub => {
         if(sub.isActive === false)return sub;
@@ -122,6 +128,34 @@ export class Employee360Component implements OnInit {
     if (tab) {
       tab.classList.remove('active');
     }
+  }
+
+
+
+
+  responseOvertime:any
+  responsestate:any;
+
+  getBioOverTimeandState(){
+
+    let currentEmp = new Employee(); 
+    currentEmp.empId = this.employeeData.empId;
+    currentEmp.isDraft = false;
+
+    this.employee360Service.getBioOverTimeandState(currentEmp).subscribe((response:any) =>
+      
+      {
+       this.responseOvertime= response.serviceResponse[0];
+       this.responsestate = response.serviceResponse[1];
+      }
+    
+    );
+
+
+
+
+     
+
   }
 
 }

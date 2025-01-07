@@ -657,8 +657,8 @@ public class BioMaxService {
 			ServiceResponse serviceResponse = new ServiceResponse();
 		    ArrayList<HashMap<String, Object>> AllDataList =new   ArrayList<HashMap<String, Object>>();
 		    
-//		    Long empId = employeedto.getEmpId();
-		    Long empId = (long) 21887;
+		    Long empId = employeedto.getEmpId();
+
 		    
 		    String strMYSQLQuery = "SELECT " +
 	                "(SELECT COUNT(emp_id) " +
