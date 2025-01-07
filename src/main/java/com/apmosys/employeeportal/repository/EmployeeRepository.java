@@ -243,7 +243,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "d.name, e.billable_type\n"
 			+ "ORDER BY \n"
 			+ "d.name, e.billable_type")
-	@Query(nativeQuery = true )
+	
 	public List<Object[]> getEmployeesBillableDataDepartmentWise();
 	
 	@Query(nativeQuery = true)
