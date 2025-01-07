@@ -22,6 +22,7 @@ import { PreviousEmployer } from 'src/app/models/previousEmployer';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { DomainService } from 'src/app/services/domain.service';
 import { EmployeeService } from 'src/app/services/employee.service';
+import { Employee360Service } from 'src/app/services/employee360.service';
 import { ImageService } from 'src/app/services/image.service';
 import { OnBoardingService } from 'src/app/services/on-boarding.service';
 import { UtilityService } from 'src/app/services/utility.service';
@@ -79,7 +80,8 @@ export class Employee360ProfileComponent implements OnInit {
       private domainService:DomainService,
       private onBoardingService : OnBoardingService,
       public utilityService : UtilityService,
-      private router:Router
+      private router:Router,
+      
       ) {
        this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
       
@@ -102,7 +104,7 @@ export class Employee360ProfileComponent implements OnInit {
 
       console.log("ckekkkkk",this.employeeData);
 
-
+      
       this.onGetEmployeeInfo();
       this.getMyAssetList();
   
@@ -544,6 +546,9 @@ export class Employee360ProfileComponent implements OnInit {
       return true;
     }
   
+
+   
+
     async onGetEmployeeInfo(){
 
       this.domainSpecializationList = [];
