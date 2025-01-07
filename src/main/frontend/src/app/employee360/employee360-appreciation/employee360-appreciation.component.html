@@ -1,10 +1,12 @@
 <div class="d-flex justify-content-between mb-3">
   <div>
-    <label for="date-range-dropdown">Select Yearly Range:</label>
+    <label for="date-range-dropdown">Select Date Range:</label>
+  </div>
+  <div>
     <select 
-      id="date-range-dropdown" [value]="selectedDateRange" (change)="onSelectRange($event)" 
+      id="date-range-dropdown" class="form-control form-control-sm" [value]="selectedDateRange" (change)="onSelectRange($event)" 
       [disabled]="isTeamAppreciationView || isDateRangeDisabled">
-      <option value="" disabled>Select Date Range</option>
+      <option value="" disabled>Yearly</option>
       <option *ngFor="let range of formattedDateRanges" [value]="range">
         {{ range }}
       </option>
