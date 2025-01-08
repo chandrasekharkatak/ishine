@@ -3,6 +3,7 @@ import { ActivatedRoute, Router, Params } from '@angular/router';
 import { Feature } from '../models/feature';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
+import { BreadcrumbService } from '../services/breadcrumb.service';
 
 @Component({
   selector: 'app-user-team',
@@ -18,13 +19,17 @@ export class UserTeamComponent implements OnInit {
   activeTab: string = 'my-team';
   action: any;
 
+  currentBreadcrumbList: any[] = [];
+  employee360Tab: boolean = false;
 
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private authenticationService: AuthenticationService,
+    private breadcrumbService: BreadcrumbService,
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
   }
 
   ngOnInit(): void {
@@ -51,6 +56,13 @@ export class UserTeamComponent implements OnInit {
           this.triggerPendingRequestView();
       }
   });
+
+    if ((this.currentBreadcrumbList != undefined && this.currentBreadcrumbList != null) && this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.title.includes("Project")) {
+      this.employee360Tab = true;
+      this.setActiveTab('resource-management');
+    } else {
+      this.employee360Tab = false;
+    }
   }
 
   ngAfterViewInit(): void {
@@ -75,7 +87,7 @@ export class UserTeamComponent implements OnInit {
     let activeRouteLink:any;
     
     if (!rmgUrl) {
-      if (this.currentUser.employeeRole === 'RMG') {
+      if (this.currentUser.employeeRole === 'RMG' || this.employee360Tab) {
         activeRouteLink = 'resource-management';
       } else {
         const tab = document.getElementById('teamTab').querySelector('.nav-link');

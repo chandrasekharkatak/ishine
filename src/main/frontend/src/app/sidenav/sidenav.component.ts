@@ -5,6 +5,7 @@ import { AuthenticationService } from '../services/authentication.service';
 import { navbarData } from './nav-data';
 import { enableAppreciation } from '../models/enableAppreciation';
 import * as moment from 'moment';
+import { BreadcrumbService } from '../services/breadcrumb.service';
 
 interface SideNavToggle{
   screenWidth: number;
@@ -38,7 +39,8 @@ export class SidenavComponent implements OnInit, OnDestroy {
     }
   }
 
-  constructor(private authenticationService: AuthenticationService){
+  constructor(private authenticationService: AuthenticationService,
+    private breadcrumbService: BreadcrumbService,){
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
 
     this.menuItems = this.currentUser.tabList;   
@@ -103,6 +105,10 @@ export class SidenavComponent implements OnInit, OnDestroy {
     //console.log("false date");
     return false;
     }
+  }
+
+  onTabClick(){
+    this.breadcrumbService.setBreadcrumbSubject(null)
   }
   
 }
