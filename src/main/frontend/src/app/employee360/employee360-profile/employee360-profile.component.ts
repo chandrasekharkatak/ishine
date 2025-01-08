@@ -93,12 +93,15 @@ export class Employee360ProfileComponent implements OnInit {
 
 
         const navigation = this.router.getCurrentNavigation();
-        this.employeeData = navigation?.extras.state?.['employeeData'];
-        console.log("cheked",this.employeeData); 
+console.log("yes" ,navigation)
+     
+        this.employeeData = navigation?.extras.state.data;
+        
       }
   
     ngOnInit(): void {
 
+  
       const storedData = localStorage.getItem('employee360Data');
       const parsedData = storedData ? JSON.parse(storedData) : null;
       if(parsedData != null || parsedData != undefined ){
@@ -137,6 +140,8 @@ export class Employee360ProfileComponent implements OnInit {
       this.setYearOfPassingList();    
       this.preventBackButton();
     }
+
+    
     preventBackButton(){
       history.pushState(null, null, location.href);
       this.locationStrategy.onPopState(()=>{
@@ -570,6 +575,9 @@ export class Employee360ProfileComponent implements OnInit {
    
 
     async onGetEmployeeInfo(){
+
+
+      console.log("inner fuction");
 
       this.domainSpecializationList = [];
       this.currentEmployeeInfo = new Employee();
