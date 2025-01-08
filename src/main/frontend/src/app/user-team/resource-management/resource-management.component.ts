@@ -21,6 +21,7 @@ import { AppComponent } from 'src/app/app.component';
 import { ProjectService } from 'src/app/services/project.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { UtilityService } from 'src/app/services/utility.service';
+import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 
 @Component({
   selector: 'app-resource-management',
@@ -104,6 +105,7 @@ export class ResourceManagementComponent implements OnInit {
 
   projectDetails: any = [];
   copyDepartment : any = [];
+  currentBreadcrumbList: any[] = [];
 
 
 
@@ -120,8 +122,10 @@ export class ResourceManagementComponent implements OnInit {
     private projectService: ProjectService,
     private exportExcelService: ExportExcelService,
     private utilityService: UtilityService,
+    private breadcrumbService: BreadcrumbService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
   }
 
 
@@ -139,6 +143,10 @@ export class ResourceManagementComponent implements OnInit {
     });
     //console.log(this.currentProjectId, " : this.currentProjectId");
     this.sectionViewInit();
+
+    if ((this.currentBreadcrumbList != undefined && this.currentBreadcrumbList != null) && this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.title.includes("Project")) {
+      this.toggleSearch();
+    }
   }
 
   sectionViewInit() {

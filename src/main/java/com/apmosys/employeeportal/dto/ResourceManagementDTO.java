@@ -49,4 +49,6 @@ public class ResourceManagementDTO {
 	private Long employeementId;
 	private String departmentName;
 	
+	private String endDate;
+	
 }

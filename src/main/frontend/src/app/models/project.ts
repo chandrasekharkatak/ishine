@@ -47,4 +47,6 @@ export class Project{
 	resourceCount : any;
 	experience : any;
 	role : any;
+
+	endDate: any;
 }
