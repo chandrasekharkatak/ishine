@@ -206,7 +206,7 @@ public class TimesheetService {
 	  				timesheetDto.setTeamName(object[8] != null ? object[6].toString() : null);
 //	  				
 					//timesheetDto.setTeamId(object[5] != null ? Long.parseLong(object[7].toString()) : null);
-//					timesheetDto.setActivity(object[8] != null ? object[8].toString() : null);
+					timesheetDto.setActivity(object[10] != null ? object[8].toString() : null);
 //					timesheetDto.setActivityId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
 				listDto.add(timesheetDto);
 				}

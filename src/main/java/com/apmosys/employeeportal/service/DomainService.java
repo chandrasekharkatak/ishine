@@ -444,10 +444,11 @@ public class DomainService {
 		try {
 			
 			Domain domainObj = domainRepository.findByDomainName(domainDTO.getDomainName());
+			System.out.println("jbvjdfh"+domainObj.getIsActive());
 			if(domainObj != null) {
 				if(((domainDTO.getDomainId() != null) && (!domainObj.getDomainId().equals(domainDTO.getDomainId())))
 						|| domainDTO.getDomainId() == null) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceStatus(domainObj.getIsActive());
 					response.setServiceResponse("Duplicate Domain Name not allowed.");
 					apiLogInfo.setApiResponse("Duplicate Domain Name not allowed.");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);

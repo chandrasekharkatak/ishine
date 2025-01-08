@@ -1,21 +1,12 @@
 package com.apmosys.employeeportal.service;
 
 import java.io.File;
-
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -26,6 +17,7 @@ import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.Period;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
@@ -35,24 +27,22 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
 
 import org.dhatim.fastexcel.Workbook;
 import org.dhatim.fastexcel.Worksheet;
-import org.dhatim.fastexcel.reader.ReadableWorkbook;
-import org.dhatim.fastexcel.reader.Row;
-import org.dhatim.fastexcel.reader.Sheet;
+import org.hibernate.Session;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,9 +55,8 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import com.apmosys.employeeportal.dto.ActivityDTO;
-import com.apmosys.employeeportal.dto.BioMaTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
@@ -110,18 +99,9 @@ import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
-
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-
-import org.hibernate.Session;
-import javax.persistence.EntityManager;
-
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-
-import javax.transaction.Transactional;
 
 
 @Service
@@ -265,7 +245,7 @@ public class CronJobService {
 //	0 0/2 * ? * *
 //	@Scheduled(cron = "0 0 12 1 * ?")
 //    @Scheduled(cron = "0 02 18 * * ?")
-    @Scheduled(cron = "0 0 17 * * ?")
+    @Scheduled(cron = "0 08 10 * * ?")
 	public void monthlyLeaveIncrement() {
 		try {
 		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
@@ -347,11 +327,12 @@ public class CronJobService {
 		        									newBalance =  (float)(employeeLeaveMap.getBalance() + leavesForDays);
 		        									
 		        									employeeLeaveMap.setBalance(newBalance);
+		        									 System.out.println("chcjhdgh"+employeeLeaveMap);
 				        				        	 EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeaveMap);
 				        				        	 
 				        				        	 if(dbResponse != null) {
 															LeaveBalanceLog log = new LeaveBalanceLog();
-
+															
 															log.setBalance(newBalance);
 															log.setEmpId(employeeObj.getEmpId());
 															log.setLeaveTypeMasterId(ltm.getLeaveTypeMasterId());
@@ -445,41 +426,93 @@ public class CronJobService {
 	
 	
 	
-	
-	
-	
-	
+
 	
 
 	// Cron job to run the query at 12:00 AM on December 31st every year ........../
 //	   @Scheduled(cron = "0 0 0 31 12 ?")
 
-	   @Scheduled(cron = "0 0 17 * * ?")
-	@Transactional
-	public void executeQueryAtYearEnd() {
+	   @Scheduled(cron = "0 15 18 * * ?")
+	   @Transactional	public void executeQueryAtYearEnd() {
 	    // SQL query to update manager approval status and reason
-		String sql = "UPDATE employee_leave el " +
-                "JOIN employee e ON el.created_by = e.emp_id " +
-                "JOIN (" +
-                "    SELECT el.emp_id " +
-                "    FROM employee_leave el " +
-                "    WHERE el.leave_type_master_id = 4" +
-                ") subquery ON el.emp_id = subquery.emp_id " +
-                "SET " +
-                "    el.manager_approval_status = 'Rejected', " +
-                "    el.reason = 'Application rejected as CL exceeded its limit', " +
-                "    el.leave_status_id = 3, " +
-                "    el.leave_status_updated_by = el.manager_id " +
-                "WHERE " +
-                "    el.leave_type_master_id = 4";
-
-
+		   //to make pending rejected
+		   String sql = "UPDATE employee_leave el " +
+	                "JOIN employee e ON el.created_by = e.emp_id " +
+	                "JOIN (" +
+	                "    SELECT el.emp_id " +
+	                "    FROM employee_leave el " +
+	                "    WHERE el.leave_type_master_id = 4" +
+	                "	AND el.leave_status_id = 1 " +
+	                "	AND el.manager_approval_status = 'Approved'" +
+	                ") subquery ON el.emp_id = subquery.emp_id " +
+	                "SET " +
+	                "    el.manager_approval_status = 'Rejected', " +
+	                "    el.level2approval_status = 'NA', " +
+	                "    el.level3approval_status = 'NA', " +
+		   "    el.level2approver_id = null, " +
+		   "    el.level3approver_id = null, " +
+	                "    el.reason = 'Application rejected as CL exceeded its limit', " +
+	                "    el.leave_status_id = 3, " +
+	                "    el.leave_status_updated_by = el.manager_id, " +
+	                "    el.current_approval_level = 1, " +
+	                "    el.final_approval_level = 1 " +
+	                "WHERE " +
+	                "    el.leave_type_master_id = 4" +
+	                "	AND el.leave_status_id = 1 " +
+	                "	AND el.manager_approval_status = 'Approved' " ;
+//	   System.out.println("gdugdvhdfvjhdbvdfjhvdv");
+   
+   //to make cl balance 0
+   String sql1="UPDATE employee_leaves_mapping elm " +
+               "JOIN employee e  ON  elm.emp_id=e.emp_id " +
+		      "SET elm.balance=0 " +
+               "WHERE elm.leave_type_master_id=4 ";
+   
+   //logs to indicate 0
+   String sql2="UPDATE leave_balance_log lbl " +
+               "JOIN employee e ON lbl.emp_id=e.emp_id " +
+		       "SET lbl.balance=0 " +
+               "WHERE lbl.leave_type_master_id=4 ";
+   		 
+   String sql3 = "UPDATE employee_leave el " +
+		   "JOIN employee e ON el.created_by = e.emp_id " +
+		   "JOIN (" +
+		   "    SELECT el.emp_id " +
+		   "    FROM employee_leave el " +
+		   "    WHERE el.leave_type_master_id = 4" +
+		   "	AND el.leave_status_id = 2 " +
+		   "	AND el.manager_approval_status = 'Approved'" +
+		   ") subquery ON el.emp_id = subquery.emp_id " +
+		   "SET " +
+		   "    el.leave_status_id = 5, " +
+		   "    el.manager_approval_status = 'Revoked', " +
+		   "    el.level2approval_status = 'NA', " +
+		   "    el.level3approval_status = 'NA', " +
+		   "    el.level2approver_id = null, " +
+		   "    el.level3approver_id = null, " +
+		   "    el.reason = 'Application revoked by system as CL exceeded its limit', " +
+		   "    el.leave_status_updated_by = 3, " +
+		   "    el.current_approval_level = 1, " +
+		   "    el.final_approval_level = 1 " +
+		   "	WHERE " +
+		   "    el.leave_type_master_id = 4 " +
+		   "	AND el.manager_approval_status = 'Approved' " +
+		   "	AND el.leave_status_id = 2 " +
+		   "	AND (el.from_date > '2024-12-31' OR el.to_date > '2024-12-31')";
+//		   System.out.println("Priyadarshini");
+//   System.out.println("Priyadarshini");
+   		 
+   
+//System.out.println("gdugdvhdfvjhdbvdfjhvdv");
+     
 	    executeNativeQuery(sql);
+	    executeNativeQuery(sql1);
+	    executeNativeQuery(sql2);
+	    executeNativeQuery(sql3);
 	    System.out.println("Query executed at year-end!");
 	}
 
-	   
-
+   
 		public int executeNativeQuery(String query) {
 		    Session session = entityManager.unwrap(Session.class);
 		    javax.persistence.Query q = session.createNativeQuery(query);
@@ -634,7 +667,9 @@ public class CronJobService {
 	 
 	// At 11:20 AM, on day 02 of the month, only in January
 @Scheduled(cron = "0 50 15 09 01 ?")
-	
+
+//@Scheduled(cron = "0 35 18 * * ?")
+
 	public void YearlyLeaveCronJob() {
 		System.out.println("*************************************************************************");
 		
@@ -696,8 +731,121 @@ public class CronJobService {
 				              	            
 											if (lpm.getCarryForward().equals("No")) {
 												
-												float newBalance = 1; 	// if carry forward is NO then set the balance to Zero
+//												List<EmployeeLeave> employeeLeave = employeeLeaveRepository.findAll();
+												List<EmployeeLeave> employeeLeaveforApproved = employeeLeaveRepository.findByEmployeeforApproved();
+												List<EmployeeLeave> employeeLeaveforPending = employeeLeaveRepository.findByEmployeeforPending();
+
+												List<EmployeeLeave> updatedEmployeeLeaveList = new ArrayList<>(); // List to hold mapped EmployeeLeave entities
+
+												if(!employeeLeaveforApproved.isEmpty()) {
+													for(EmployeeLeave leave : employeeLeaveforApproved) {
+														if(leave != null) {
+															Date createdOnDate = leave.getCommonProperty().getCreatedOn(); // Assuming this returns java.util.Date
+															LocalDate createdOnLocalDate = createdOnDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+															System.out.println("Checking Year " + createdOnLocalDate.getYear());
+															if(createdOnLocalDate.getYear() == (currentYear - 1) && 
+																	leave.getFromDate().getYear() == currentYear) {
+																LeaveDTO leaveDTO = new LeaveDTO();
+																leaveDTO.setLeaveStatusId((short)5);
+																leaveDTO.setManagerApprovalStatus("Revoked");
+																leaveDTO.setLevel2ApprovalStatus("NA");
+																leaveDTO.setLevel3ApprovalStatus("NA");
+																leaveDTO.setLevel2ApproverId(null);		
+																leaveDTO.setLevel3ApproverId(null);
+																leaveDTO.setReason("Application revoked as CL exceeded its limit !!");
+																leaveDTO.setUpdatedBy(3);
+																leaveDTO.setCurrentApprovalLevel(1);
+																leaveDTO.setFinalApprovalLevel(1);
+																
+																leave.setLeaveStatusId(leaveDTO.getLeaveStatusId());
+												                leave.setManagerApprovalStatus(leaveDTO.getManagerApprovalStatus());
+												                leave.setLevel2ApprovalStatus(leaveDTO.getLevel2ApprovalStatus());
+												                leave.setLevel3ApprovalStatus(leaveDTO.getLevel3ApprovalStatus());
+												                leave.setLevel2ApproverId(leaveDTO.getLevel2ApproverId());
+												                leave.setLevel3ApproverId(leaveDTO.getLevel3ApproverId());
+												                leave.setReason(leaveDTO.getReason());
+												                leave.getCommonProperty().setUpdatedBy((Long.valueOf(leaveDTO.getUpdatedBy())));
+												                leave.setCurrentApprovalLevel(leaveDTO.getCurrentApprovalLevel());
+												                leave.setFinalApprovalLevel(leaveDTO.getFinalApprovalLevel());
+																
+												                updatedEmployeeLeaveList.add(leave);
+																
+															}
+														}
+										
+													}
+													
+												}
+												if(!employeeLeaveforPending.isEmpty()) {
+														for(EmployeeLeave leave : employeeLeaveforPending) {
+															if(leave != null) {
+																Date createdOnDate = leave.getCommonProperty().getCreatedOn(); // Assuming this returns java.util.Date
+																LocalDate createdOnLocalDate = createdOnDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+																System.out.println("Checking Year " + createdOnLocalDate.getYear());
+																if( createdOnLocalDate.getYear() == (currentYear - 1) && 
+																		leave.getFromDate().getYear() == currentYear) {
+																		
+																		LeaveDTO leaveDTO = new LeaveDTO();
+																		leaveDTO.setLeaveStatusId((short)3);
+																		leaveDTO.setManagerApprovalStatus("Rejected");
+																		leaveDTO.setLevel2ApprovalStatus("NA");
+																		leaveDTO.setLevel3ApprovalStatus("NA");
+																		leaveDTO.setLevel2ApproverId(null);		
+																		leaveDTO.setLevel3ApproverId(null);
+																		leaveDTO.setReason("Application rejected as CL exceeded its limit !!");
+																		leaveDTO.setUpdatedBy(leave.getManagerId());
+																		leaveDTO.setCurrentApprovalLevel(1);
+																		leaveDTO.setFinalApprovalLevel(1);
+																		
+																		leave.setLeaveStatusId(leaveDTO.getLeaveStatusId());
+														                leave.setManagerApprovalStatus(leaveDTO.getManagerApprovalStatus());
+														                leave.setLevel2ApprovalStatus(leaveDTO.getLevel2ApprovalStatus());
+														                leave.setLevel3ApprovalStatus(leaveDTO.getLevel3ApprovalStatus());
+														                leave.setLevel2ApproverId(leaveDTO.getLevel2ApproverId());
+														                leave.setLevel3ApproverId(leaveDTO.getLevel3ApproverId());
+														                leave.setReason(leaveDTO.getReason());
+														                leave.getCommonProperty().setUpdatedBy((Long.valueOf(leaveDTO.getUpdatedBy())));
+														                leave.setCurrentApprovalLevel(leaveDTO.getCurrentApprovalLevel());
+														                leave.setFinalApprovalLevel(leaveDTO.getFinalApprovalLevel());
+																		
+														                updatedEmployeeLeaveList.add(leave);
+																	}
+															}
+														}
+													}
+												employeeLeaveRepository.saveAll(updatedEmployeeLeaveList);	
+												System.out.println("Completed Successfully");
+
+													
+//												if(!employeeLeaveforApproved.isEmpty()) {
+//													for(EmployeeLeave empleave : employeeLeaveforApproved) {
+//														float newBalance = 1;
+//														Date createdOnDate = empleave.getCommonProperty().getCreatedOn(); 
+//														LocalDate createdOnLocalDate = createdOnDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+//														System.out.println("Checking Year " + createdOnLocalDate.getYear());
+//														if(createdOnLocalDate.getYear() == empleave.getFromDate().getYear()) {
+//															newBalance = 0;
+//														}		
+//														elm.setBalance(newBalance);
+//													}
+//													
+//												}
+
+//												if(!employeeLeaveforPending.isEmpty()) {
+//													for(EmployeeLeave empleave : employeeLeaveforPending) {
+//														float newBalance = 1;
+//														Date createdOnDate = empleave.getCommonProperty().getCreatedOn(); 
+//														LocalDate createdOnLocalDate = createdOnDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+//														System.out.println("Checking Year " + createdOnLocalDate.getYear());
+//														if(createdOnLocalDate.getYear() == empleave.getFromDate().getYear()) {
+//															newBalance = 0;
+//														}
+//														elm.setBalance(newBalance);
+//													}
+//													
+//												}
 //												elm.setBalance(newBalance);
+												float newBalance = 1;
 												EmployeeLeavesMap elm = new EmployeeLeavesMap();
 												elm.setEmployeeLeavesMapId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 												elm.setBalance(newBalance);
@@ -761,48 +909,48 @@ public class CronJobService {
 													leaveBalanceLogRepository.save(log);
 												}
 											}
-//											else if(dbBalance == carryForwardValue) {
-//												float newBalance = carryForwardValue;
-//												EmployeeLeavesMap elm = new EmployeeLeavesMap();
-//												elm.setEmployeeLeavesMapId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-//												
-//												System.err.println(" Plan leaved PL deduct and set increases value ");
-//												elm.setBalance(newBalance);
-//												elm.setEmpId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
-//												elm.setLeaveTypeMasterId(object[3] != null ? Short.parseShort(object[3].toString()) : null);
-//												elm.setPendingForApproval(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
-//												
-//												EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(elm);
-//
-//												if (dbResponse != null) {
-//													LeaveBalanceLog log = new LeaveBalanceLog();
-//
-//													log.setBalance(newBalance);
-//													log.setEmpId(elm.getEmpId());
-//													log.setLeaveTypeMasterId(ltm.getLeaveTypeMasterId());
-//													leaveBalanceLogRepository.save(log);
-//												}
-//											}else if(dbBalance < carryForwardValue) {
-//												float newBalance = dbBalance;
-//												EmployeeLeavesMap elm = new EmployeeLeavesMap();
-//												elm.setEmployeeLeavesMapId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-//												newBalance = (float) (newBalance+1.5);
-//												System.err.println(" Plan leaved PL deduct and set increases value ");
-//												elm.setBalance(newBalance);
-//												elm.setEmpId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
-//												elm.setLeaveTypeMasterId(object[3] != null ? Short.parseShort(object[3].toString()) : null);
-//												elm.setPendingForApproval(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
-//												
-//												EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(elm);
-//												if (dbResponse != null) {
-//													LeaveBalanceLog log = new LeaveBalanceLog();
-//
-//													log.setBalance(newBalance);
-//													log.setEmpId(elm.getEmpId());
-//													log.setLeaveTypeMasterId(ltm.getLeaveTypeMasterId());
-//													leaveBalanceLogRepository.save(log);
-//												}
-//											}
+											else if(dbBalance == carryForwardValue) {
+												float newBalance = carryForwardValue;
+												EmployeeLeavesMap elm = new EmployeeLeavesMap();
+												elm.setEmployeeLeavesMapId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+												
+												System.err.println(" Plan leaved PL deduct and set increases value ");
+												elm.setBalance(newBalance);
+												elm.setEmpId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+												elm.setLeaveTypeMasterId(object[3] != null ? Short.parseShort(object[3].toString()) : null);
+												elm.setPendingForApproval(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
+												
+												EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(elm);
+
+												if (dbResponse != null) {
+													LeaveBalanceLog log = new LeaveBalanceLog();
+
+													log.setBalance(newBalance);
+													log.setEmpId(elm.getEmpId());
+													log.setLeaveTypeMasterId(ltm.getLeaveTypeMasterId());
+													leaveBalanceLogRepository.save(log);
+												}
+											}else if(dbBalance < carryForwardValue) {
+												float newBalance = dbBalance;
+												EmployeeLeavesMap elm = new EmployeeLeavesMap();
+												elm.setEmployeeLeavesMapId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+												newBalance = (float) (newBalance+1.5);
+												System.err.println(" Plan leaved PL deduct and set increases value ");
+												elm.setBalance(newBalance);
+												elm.setEmpId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+												elm.setLeaveTypeMasterId(object[3] != null ? Short.parseShort(object[3].toString()) : null);
+												elm.setPendingForApproval(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
+												
+												EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(elm);
+												if (dbResponse != null) {
+													LeaveBalanceLog log = new LeaveBalanceLog();
+
+													log.setBalance(newBalance);
+													log.setEmpId(elm.getEmpId());
+													log.setLeaveTypeMasterId(ltm.getLeaveTypeMasterId());
+													leaveBalanceLogRepository.save(log);
+												}
+											}
 						              }
 					              }
 				          }
