@@ -12,6 +12,7 @@ import { RoleConfigComponent } from '../configuration/role-config/role-config.co
 import { Subscription } from 'rxjs';
 import { Employee360Service } from '../services/employee360.service';
 import { BreadcrumbService } from '../services/breadcrumb.service';
+import { Employee } from '../models/employee';
 
 
 @Component({
@@ -47,6 +48,9 @@ export class Employee360Component implements OnInit {
   }
 
 
+  currentab:String;
+  leave:String;
+  othertab:any;
 
   ngOnInit(): void {
     this.navigationSubscription = this.employee360Service.getNavigationEvent().subscribe(() => {
@@ -63,22 +67,27 @@ export class Employee360Component implements OnInit {
       this.employeeData = history.state.data;
     }
     
-    let findBreadcrumbObject = this.breadcrumbUrl.findIndex(x => x.title === "Employee-360");
+    let findBreadcrumbObject = this.breadcrumbUrl.findIndex(x => x.title === "Employee-360-Profile");
     if (findBreadcrumbObject >= 0) {
       this.breadcrumbUrl.splice(findBreadcrumbObject + 1);
       this.breadcrumbService.setBreadcrumbSubject(this.breadcrumbUrl);
     } else {
       let breadcrumbObject = { title: "Employee-360-Profile", url: "/employee-360/profile" };
-      this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
+   this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
 
     console.log("employeeData   ",this.employeeData);
+
+    this.getBioOverTimeandState();
 
   
 
     // Dynamic feature Flags 
     let featureMap:Feature[] = this.currentUser.userMapping.filter(userMap => userMap.tabName == this.tabName);
-    console.log("feature Name ",featureMap);
+
+    console.log("checked logs   ",this.currentUser.userMapping)
+
+    console.log("feature Name ",featureMap);featureMap
     featureMap?.forEach(feat => {
       let inActiveSubfeatures = feat.subFeatures.filter(sub => {
         if(sub.isActive === false)return sub;
@@ -112,6 +121,7 @@ export class Employee360Component implements OnInit {
     if (tab) {
       tab.classList.add('active');
       const activeRouteLink = tab.getAttribute('routerLink');
+      console.log("router ",activeRouteLink)
       this.router.navigate(['./' + activeRouteLink], { relativeTo: this.route });
     }
   }
@@ -124,4 +134,36 @@ export class Employee360Component implements OnInit {
     }
   }
 
+
+
+
+  responseOvertime:any
+  responsestate:any;
+
+  getBioOverTimeandState(){
+
+    let currentEmp = new Employee(); 
+    currentEmp.empId = this.employeeData.empId;
+    currentEmp.isDraft = false;
+
+    // this.employee360Service.getBioOverTimeandState(currentEmp).subscribe((response:any) =>
+      
+    //   {
+    //    this.responseOvertime= response.serviceResponse[0];
+    //    this.responsestate = response.serviceResponse[1];
+    //   }
+    
+    // );
+
+
+
+
+     
+
+  }
+ 
+  leave360viewtab(tab:any){  
+          this.currentab=tab;        
+          console.log(this.currentab);
+  }
 }

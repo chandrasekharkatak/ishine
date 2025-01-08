@@ -57,13 +57,13 @@ public interface CompOffLeaveRepository extends JpaRepository<CompOffLeave, Long
 
 	public List<CompOffLeave> findByCompOffStatusAndCreatedOnBefore(String status, Timestamp sevenDaysAgoTimestamp);
 
-	@Query(nativeQuery = true , value = "SELECT * FROM comp_off_leave cl WHERE cl.manager_id = :empId AND cl.comp_off_status='Pending'")
+	@Query(nativeQuery = true )
 	public Optional<List<CompOffLeave>> findCompOffByEmpId(Long empId);
 	
-	@Query(nativeQuery = true , value = "select * from comp_off_leave cl where cl.current_approval_level is null and cl.level2approval_status is null and cl.comp_off_status='Pending' and cl.leave_status_id=1")
+	@Query(nativeQuery = true )
 	public List<CompOffLeave> getAllHodsBucketPendingCompOff();
 
-	@Query(nativeQuery = true , value ="select * from comp_off_leave cl where cl.comp_off_status='Pending' and cl.emp_id= :empId AND leave_status_id=1")
+	@Query(nativeQuery = true )
 	public List<CompOffLeave> findPendingCompOffOffByEmpId(Long empId);
 	
 }

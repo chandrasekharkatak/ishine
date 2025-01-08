@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.apmosys.employeeportal.dto.BioMaTO;
 import com.apmosys.employeeportal.dto.BioMax360;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
 import com.apmosys.employeeportal.service.BioMaxService;
@@ -82,6 +83,16 @@ public class Employee360Controller {
 		ServiceResponse response = bioMaxService.getBioOverTimeandState(employeedto);
 		return response;
 	}
-
+	@RequestMapping(value="/biomax",method=RequestMethod.GET)
+	public ServiceResponse getBioMax(@RequestParam String startDate,@RequestParam String endDate, @RequestParam String employeeId) {
+	return bioMaxService.getEmpBioData360(startDate, endDate, employeeId);
+	}
+	
+	@RequestMapping(value = "/getAll360LeaveApplicationsByEmpId" ,method = RequestMethod.POST)
+	public ServiceResponse getAll360LeaveApplicationsByEmpId(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = employee360Service.getAll360LeaveApplicationsByEmpId(leaveDTO);
+		return response;
+	}
 	
 }

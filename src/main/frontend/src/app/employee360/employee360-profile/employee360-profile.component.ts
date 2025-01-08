@@ -13,6 +13,7 @@ import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { Asset } from 'src/app/models/asset';
+import { Breadcrumb } from 'src/app/models/breadcrumd';
 
 import { certification } from 'src/app/models/certification';
 import { Domain } from 'src/app/models/domain';
@@ -20,8 +21,10 @@ import { Employee } from 'src/app/models/employee';
 import { Feature } from 'src/app/models/feature';
 import { PreviousEmployer } from 'src/app/models/previousEmployer';
 import { AuthenticationService } from 'src/app/services/authentication.service';
+import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 import { DomainService } from 'src/app/services/domain.service';
 import { EmployeeService } from 'src/app/services/employee.service';
+import { Employee360Service } from 'src/app/services/employee360.service';
 import { ImageService } from 'src/app/services/image.service';
 import { OnBoardingService } from 'src/app/services/on-boarding.service';
 import { UtilityService } from 'src/app/services/utility.service';
@@ -52,6 +55,7 @@ export class Employee360ProfileComponent implements OnInit {
     //modal 
     alertMessage:any;
     modalRef: BsModalRef = new BsModalRef();
+    currentBreadcrumbList: any[] = [];
   
     allCertificationList:any[] = [];
     allPreviousEmployment:any[] = [];
@@ -79,19 +83,25 @@ export class Employee360ProfileComponent implements OnInit {
       private domainService:DomainService,
       private onBoardingService : OnBoardingService,
       public utilityService : UtilityService,
-      private router:Router
+       private breadcrumbService: BreadcrumbService,
+      private router:Router,
+      
       ) {
        this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+       this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
       
 
 
         const navigation = this.router.getCurrentNavigation();
-        this.employeeData = navigation?.extras.state?.['employeeData'];
-        console.log("cheked",this.employeeData); 
+console.log("yes" ,navigation)
+     
+        this.employeeData = navigation?.extras.state.data;
+        
       }
   
     ngOnInit(): void {
 
+  
       const storedData = localStorage.getItem('employee360Data');
       const parsedData = storedData ? JSON.parse(storedData) : null;
       if(parsedData != null || parsedData != undefined ){
@@ -103,6 +113,21 @@ export class Employee360ProfileComponent implements OnInit {
       console.log("ckekkkkk",this.employeeData);
 
 
+       let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title == "Employee-360-Profile");
+       console.log("ckecked breadcrums   ",findbreadcrumbObject)
+          if (findbreadcrumbObject >= 0) {
+            this.currentBreadcrumbList.splice(findbreadcrumbObject + 1);
+            this.breadcrumbService.setBreadcrumbSubject(this.currentBreadcrumbList);
+          } else {
+            let breadcrumbObject = new Breadcrumb();
+            breadcrumbObject.title = "Employee-360-Profile";
+            breadcrumbObject.url = "/employee-360/profile";
+            this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
+          }
+
+
+        
+      
       this.onGetEmployeeInfo();
       this.getMyAssetList();
   
@@ -115,6 +140,8 @@ export class Employee360ProfileComponent implements OnInit {
       this.setYearOfPassingList();    
       this.preventBackButton();
     }
+
+    
     preventBackButton(){
       history.pushState(null, null, location.href);
       this.locationStrategy.onPopState(()=>{
@@ -544,7 +571,13 @@ export class Employee360ProfileComponent implements OnInit {
       return true;
     }
   
+
+   
+
     async onGetEmployeeInfo(){
+
+
+      console.log("inner fuction");
 
       this.domainSpecializationList = [];
       this.currentEmployeeInfo = new Employee();

@@ -63,8 +63,6 @@ export class Employee360LeaveComponent implements OnInit {
   rejectedLeavesList: any[] = [];
   approvedLeavesList: any[] = [];
   pendingLeavesList: any[] = [];
-  activeButton: string = "Leave-Charts";
-  activeCompOffButton: string = 'Requests'; 
   formatedEmploymentID: any;
   leaveByMonth: Leave[] = [];
   Highcharts = Highcharts;
@@ -74,6 +72,10 @@ export class Employee360LeaveComponent implements OnInit {
   breadcrumbUrl:any[] = [];
   currentBreadcrumbList: any[] = [];
   currentUserr:any;
+
+  //Active Buttons
+  activeButton: string = "Leave-Charts";
+  activeCompOffButton: string = 'Requests'; 
 
   //boolean
   showTable:boolean=false;
@@ -90,7 +92,7 @@ export class Employee360LeaveComponent implements OnInit {
   isCompOffRequest: boolean = false;
 
   //date set up 
-  selectedOption:any;
+  selectedOption:any = 1;
   startDate: any;
   endDate:any; 
   dateTimeRange: any = null;
@@ -99,11 +101,16 @@ export class Employee360LeaveComponent implements OnInit {
   formattedStartDate:any;
   formattedEndDate:any;
   
-
-  // modal
+  //Modal
   alertMessage: any
   modalRef: BsModalRef = new BsModalRef();
   @ViewChild("alert_message") alertTemplate: TemplateRef<any>;
+
+  //Dropdown filter
+  year=new Date().getFullYear();
+  // selectedOption:any=1;
+  // startDate: any;
+  // endDate:any; 
 
   chartOptions: Highcharts.Options = {
     chart: {
@@ -113,9 +120,11 @@ export class Employee360LeaveComponent implements OnInit {
         text: "Leave Data Per Month"
     },
     xAxis: {
-        categories: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"],
+        categories: ["Jan", "Feb", "Mar", "Apr", "May", "June", "July", "Aug", "Sep", "Oct", "Nov", "Dec"],
         title: {
-            text: "Month"
+            text: "Month",
+            style: {
+              fontWeight: 'bold', },
         }
     },
     yAxis: {
@@ -260,6 +269,7 @@ export class Employee360LeaveComponent implements OnInit {
           this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
         }
     console.log("activeButton===>"+this.activeButton);
+    
     this.currentUserr=sessionStorage.getItem('currentUser');
     if (this.currentUserr) {
       const currentUserData = JSON.parse(this.currentUserr);
@@ -269,7 +279,9 @@ export class Employee360LeaveComponent implements OnInit {
     this.empId=sessionStorage.getItem('empId');
     this.getAllLeaveTypesByLeavePolicies();
     this.generateLeaveChart();
-    this.getLeaveDataPerMonthByEmpId(2024);
+    console.log(this.year);
+    
+    this.getLeaveDataPerMonthByEmpId(this.year);
     this.countMyApprovedLeaveApplicationsByLeaveType();
   }
 
@@ -312,7 +324,7 @@ export class Employee360LeaveComponent implements OnInit {
     this.showTable=false;
     this.isCompOffRequest=false;
     this.generateLeaveChart();
-    this.getLeaveDataPerMonthByEmpId(2024);
+    this.getLeaveDataPerMonthByEmpId(this.year);
     this.activeButton="Leave-Charts";   
   }
 
@@ -346,7 +358,7 @@ export class Employee360LeaveComponent implements OnInit {
         };
     leaveObj.empId = this.empId;
     // leaveObj.managerApprovalStatus=this.activeButton;
-    this.leaveService.getAllLeaveApplicationsByEmpId(leaveObj).pipe(first()).subscribe(
+    this.employee360Service.getAll360LeaveApplicationsByEmpId(leaveObj).pipe(first()).subscribe(
       (response: any) => {
           if (response.serviceStatus === "Success") {
             this.teamViewLeaveHistoryList=response.serviceResponse;
@@ -809,18 +821,24 @@ export class Employee360LeaveComponent implements OnInit {
                   type: 'column',
               },
               title: {
-                  text: 'Leave Data for 2024',
+                  text: `Leave Data for ${this.year}`,
+                  style: {
+                    fontWeight: 'bold', },
               },
               xAxis: {
-                  categories: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"],
+                  categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
                   title: {
                       text: "Month",
+                      style: {
+                        fontWeight: 'bold', },
                   },
               },
               yAxis: {
                   min: 0,
                   title: {
                       text: "Leave Count",
+                      style: {
+                        fontWeight: 'bold', },
                   },
               },
               tooltip: {
@@ -919,7 +937,6 @@ getLeaveStatusColor(status: string): string {
             return "#122f97";
     }
   }
-
 
   onChangeOption(arg: any) {
     if (arg == 1) {

@@ -12,11 +12,15 @@
             <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Applied For Revoke'}" (click)="setActiveButton('Applied For Revoke')">Applied For Revoke</button>
             <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'CompOff'}" (click)="setActiveButton('CompOff')">Comp-off</button>
         </div>
-
+        <div *ngIf="back">
         <select class="form-select-sm align-items-center mx-1 custom-select parent-container" aria-label="Default select example"
             [(ngModel)]="selectedOption" (change)="onChangeOption(selectedOption)"> 
-            <option class="option-bg" value="1">Date range</option>
+            <option class="option-bg" value="1">Yearly</option>
+            <option class="option-bg" value="2">Date range</option>
+            <!-- <option class="option-bg" value="3">Monthly</option>
+            <option class="option-bg" value="4">Date range</option> -->
         </select>
+    </div>
     </div>
 </div>
 
@@ -40,7 +44,7 @@
   </div>
 
 <div class="row" *ngIf="activeButton === 'CompOff'">
-    <div class="col-md-12 pl-4 pt-2" style="padding-left: 2rem;">
+    <div class="col-md-12 pl-4 pt-2 pb-3" style="padding-left: 2rem;">
         <button type="button" class="btn btn-outline-primary btn-sm active ng-star-inserted mx-1" [ngClass]="{'active': activeCompOffButton === 'Requests'}" (click)="setActiveCompOffButton('Requests')">Comp-off Requests</button>
         <button type="button" class="btn btn-outline-primary btn-sm active ng-star-inserted mx-1" [ngClass]="{'active': activeCompOffButton === 'Applications'}" (click)="setActiveCompOffButton('Applications')">Comp-off Applications</button>
     </div>

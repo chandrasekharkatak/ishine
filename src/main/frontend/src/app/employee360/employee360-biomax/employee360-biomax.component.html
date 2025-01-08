@@ -69,15 +69,15 @@
             <tbody>
                <tr *ngFor="let biomax of biomaxList;let i = index">
                       <td scope="col">{{ i + 1 }}</td>
-                      <td scope="col">{{ biomax.attendanceDateStr }}</td>
-                    <td scope="col">{{biomax.inTime}}</td>
-                    <td scope="col">{{biomax.outTime}}</td>
-                    <td scope="col">{{biomax.shiftDuration/60}} hours</td>
+                      <td scope="col">{{ biomax.logDate }}</td>
+                    <td scope="col">{{biomax.beginTime}}</td>
+                    <td scope="col">{{biomax.endTime}}</td>
+                    <td scope="col">{{biomax.shiftName}} Hours</td>
                     
                     <td scope="col" *ngIf="biomax.timesheetdto.length>0">
                     <ul>
                         <li *ngFor="let dtp of biomax.timesheetdto">
-                            <a class="timehseet" >{{dtp.projectName}}</a>
+                            <a class="timehseet"  >{{dtp.teamName+" ( "+ dtp.activity +" ) "}}</a>
 
                         </li>
                     </ul>
@@ -92,7 +92,9 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-md-4 mb-0">
+                    
                     <canvas id="myChart"></canvas>
+                    
                 </div>
             </div>
         </div>

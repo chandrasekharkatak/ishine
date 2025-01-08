@@ -1,26 +1,26 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
+import { ActivatedRoute, Params, Router } from '@angular/router';
+import * as moment from 'moment';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
+import { Department } from 'src/app/models/department';
+import { Employee } from 'src/app/models/employee';
 import { Feature } from 'src/app/models/feature';
 import { Project } from 'src/app/models/project';
-import { first } from 'rxjs/operators';
-import { User } from 'src/app/models/user';
-import { DepartmentService } from 'src/app/services/department.service';
 import { Team } from 'src/app/models/team';
-import { Employee } from 'src/app/models/employee';
-import { EmployeeService } from 'src/app/services/employee.service';
-import { Department } from 'src/app/models/department';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { TeamMember } from 'src/app/models/teamMember';
-import { ResourceManagementService } from 'src/app/services/resource-management.service';
+import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
-import { ValidationService } from 'src/app/services/validation.service';
-import { TeamService } from 'src/app/services/team.service';
-import { ActivatedRoute, Router, Params } from '@angular/router';
-import * as moment from 'moment';
-import { AppComponent } from 'src/app/app.component';
-import { ProjectService } from 'src/app/services/project.service';
+import { DepartmentService } from 'src/app/services/department.service';
+import { EmployeeService } from 'src/app/services/employee.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { ProjectService } from 'src/app/services/project.service';
+import { ResourceManagementService } from 'src/app/services/resource-management.service';
+import { TeamService } from 'src/app/services/team.service';
 import { UtilityService } from 'src/app/services/utility.service';
+import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
   selector: 'app-resource-management',
@@ -136,6 +136,7 @@ export class ResourceManagementComponent implements OnInit {
 
     this.route.params.subscribe((params: Params) => {
       this.currentProjectId = params['id'];
+     
     });
     //console.log(this.currentProjectId, " : this.currentProjectId");
     this.sectionViewInit();
@@ -762,7 +763,7 @@ export class ResourceManagementComponent implements OnInit {
         }
 
       } else {
-        console.error(response.serviceResponse);
+      //  console.error(response.serviceResponse);
 
         //Project Team List
         if (this.projectObj.teamList == undefined || this.projectObj.teamList.length == 0) {
@@ -776,9 +777,10 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   onApproveProject(project: any) {
+    
     project.empId = this.currentUser.empId;
-    project.projectId = this.projectObj.projectId;
-    //console.log("this.projectObj.projectId   ",project);
+    //project.projectId = this.projectObj.projectId;
+    //console.log("this.projectObj.projectId   ",project.projectId); 
     this.resourceManagementService.approvePendingProject(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.showViewProjects();
@@ -1372,6 +1374,7 @@ console.log("this.copyDepartment ",this.copyDepartment);
 
   getRefreshPage() {
     this.showEditProjectForm(this.projectObj);
+    console.log("this "+this.projectObj.projectId);
   }
 
 
