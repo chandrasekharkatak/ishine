@@ -13,7 +13,7 @@
         <h4 *ngIf="isProjectTeamClicked" class="text-center flex-grow-1 mb-0">{{header}}</h4>
     
         <!-- Dropdown aligned to the right -->
-        <select *ngIf = "activeButton !='Calendar'" class="form-select-sm align-items-center mx-1 custom-select parent-container" aria-label="Default select example"
+        <select *ngIf = "activeButton !='Calendar'" class="form-select-sm align-items-center mx-1 custom-select parent-container pr-30" aria-label="Default select example"
             [(ngModel)]="selectedOption" (change)="onChangeOption(selectedOption)"> 
             <option class="option-bg" value=1>All</option>
             <option class="option-bg" value=2>Weekly</option>
@@ -166,7 +166,7 @@
               <td [attr.rowspan]="1">{{item.activities}} </td>   
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.officeInTime | date: 'shortTime' }}</td>
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.officeOutTime | date: 'shortTime' }}</td>
-              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.totalWorkingHours }}</td>
+              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.totalWorkingHours}}</td>
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.nightShift == 'true' ? 'Night Shift' : 'Regular Shift' }}</td>
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.status }}</td>
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.createdOn | date: 'yyyy-MM-dd' }}</td>

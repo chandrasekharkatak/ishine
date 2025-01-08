@@ -10,9 +10,6 @@ import { Modal } from 'bootstrap';
 import { OwlDateTimeComponent } from 'ng-pick-datetime';
 import { ScrollStrategy } from '@angular/cdk/overlay';
 import { DatePipe } from '@angular/common';
-
-
-
 import { Router } from '@angular/router';
 import { Breadcrumb } from 'src/app/models/breadcrumd';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
@@ -106,8 +103,8 @@ export class Employee360TimesheetComponent implements OnInit {
       console.log(this.managerId); 
     }
     this.empId=sessionStorage.getItem('empId');
-    // this.empIdd=240065;
-    // this.managerId = 21823;
+    this.empId=240065;
+    this.managerId = 21823;
     this.startDate = null;
     this.endDate = null;
     this.formattedStartDate = null;
@@ -553,7 +550,7 @@ updateStatus(status: string) {
   
             activities: activity,
             projectName: items.projectName,
-            totalWorkingHours:items.totalWorkingHours,
+            totalWorkingHours:items.totalWorkingHours+" Hours",
             teamName: items.teamName,
             projectId: items.projectId,
             activityId: items.activityId,

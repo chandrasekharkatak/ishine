@@ -21,9 +21,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.apmosys.employeeportal.dto.Employee360DTO;
 import com.apmosys.employeeportal.dto.EmployeeTimesheetDto;
+import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.repository.Employee360Repository;
+import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -42,6 +44,9 @@ public class Employee360Service {
 	
 	@Autowired
 	private LogService logService;
+	
+	@Autowired
+	EmployeeLeaveRepository employeeLeaveRepository;
 	
 	@Autowired
 	private HttpServletRequest httpRequest;
@@ -298,5 +303,78 @@ public class Employee360Service {
 		return response;
 	}
 	
-	
+	public ServiceResponse getAll360LeaveApplicationsByEmpId(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getAllLeaveApplicationsByEmpId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Employee Emp Id : "+leaveDTO.getEmpId());
+		
+		try {
+			List<Object[]> list = employeeLeaveRepository
+					.getAllLeaveApplicationsByEmpId(leaveDTO.getEmpId());
+			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+			if (list.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No Leave Application found");
+
+				apiLogInfo.setApiResponse("No Leave Application found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			} else {
+
+				list.forEach((object) -> {LeaveDTO dto = new LeaveDTO();
+				dto.setCreatedByName(object[24] != null ? object[24].toString() : null);
+				dto.setFromDate(object[1] != null ? object[1].toString() : null);
+				dto.setToDate(object[2] != null ? object[2].toString() : null);
+				dto.setCreatedOn(object[3] != null ? object[3].toString() : null);
+				dto.setNoOfDays(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
+				dto.setStatus(object[5] != null ? object[5].toString() : null);
+				dto.setReason(object[6] != null ? object[6].toString() : null);
+				dto.setLeaveType(object[7] != null ? object[7].toString() : null);
+				dto.setLeaveStatusUpdatedByName(object[8] != null ? object[8].toString() : null);
+				dto.setLeaveId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+				dto.setRemark(object[10] != null ? object[10].toString() : null);dto.setApproverName(object[11] != null ? object[11].toString() : null);
+				dto.setApproverEmail(object[12] != null ? object[12].toString() : null);
+				dto.setManagerApprovalStatus(object[13] != null ? object[13].toString() : null);
+				dto.setLevel2ApproverId(object[14] != null ? Long.parseLong(object[14].toString()) : null);
+				dto.setLevel2ApproverName(object[15] != null ? object[15].toString() : null);
+				dto.setLevel2ApproverEmail(object[16] != null ? object[16].toString() : null);
+				dto.setLevel2ApprovalStatus(object[17] != null ? object[17].toString() : null);
+				dto.setLevel3ApproverId(object[18] != null ? Long.parseLong(object[18].toString()) : null);
+				dto.setLevel3ApproverName(object[19] != null ? object[19].toString() : null);
+				dto.setLevel3ApprovalStatus(object[20] != null ? object[20].toString() : null);
+				dto.setLevel3ApproverEmail(object[21] != null ? object[21].toString() : null);
+				dto.setCurrentApprovalLevel(object[22] != null ? Integer.parseInt(object[22].toString()) : null);
+				dto.setFinalApprovalLevel(object[23] != null ? Integer.parseInt(object[23].toString()) : null);
+				dto.setEmployeeName(object[0] != null ? object[0].toString() : null);
+				dto.setLeaveTypeMasterId(object[27] != null ? Short.parseShort(object[27].toString()) : null);
+				dto.setEmpId(object[28] != null ? Long.parseLong(object[28].toString()) : null);
+				dto.setEmployeementId(object[26] != null ? Long.parseLong(object[26].toString()) : null);
+				dto.setLeaveEmpId(object[25] != null ? Long.parseLong(object[25].toString()) : null);
+				dto.setManagerId(object[29] != null ? Integer.parseInt(object[29].toString()) : null);
+				
+				dtoList.add(dto);	
+				});
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				
+				apiLogInfo.setApiResponse(dtoList.size() + " Applications found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
 }
