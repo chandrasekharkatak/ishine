@@ -44,17 +44,17 @@
             </div>
         </div>        
         
-        <div class="overflow-auto">
+        <div class="overflow-auto" *ngIf="!isTeamTableVisible">
             <table class="table table-striped" id="rewardHistoryInfo">
-                <thead class="thead-light">
-                    <tr>
-                        <th scope="col">Sr No.</th>
-                        <th scope="col">Rewards Name</th>
-                        <th scope="col">Rewarded To</th>
-                        <th scope="col">Rewards Date</th>
-                        <th scope="col">Teams Name</th>
-                        <th scope="col">Description</th>
-                        <th scope="col">Updated By</th>
+                <thead class="thead-light" id="rewardHistoryInfoHead">
+                    <tr id="rewardHistoryInfoHeadTr">
+                        <th scope="col" class="info-label">Sr No.</th>
+                        <th scope="col" class="info-label">Rewards Name</th>
+                        <th scope="col" class="info-label">Rewarded To</th>
+                        <th scope="col" class="info-label">Rewards Date</th>
+                        <th scope="col" class="info-label">Teams Name</th>
+                        <th scope="col" class="info-label">Description</th>
+                        <th scope="col" class="info-label">Updated By</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -66,7 +66,12 @@
                         <td>{{ rewardHistory.rewardTypeName }}</td>
                         <td>{{ rewardHistory.name }}</td>
                         <td>{{ rewardHistory.createdOn }}</td>
-                        <td>{{ rewardHistory.teamName }}</td>
+                        <td><span
+                            class="info-label"
+                            style="cursor:pointer;"
+                            (click)="showTeamTable(rewardHistory.teamName)"
+                            >{{ rewardHistory.teamName }}
+                        </span></td>
                         <td>{{ rewardHistory.remark }}</td>
                         <td>{{ rewardHistory.updatedBy }}</td>
                     </tr>

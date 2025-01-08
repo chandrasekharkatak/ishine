@@ -12,6 +12,7 @@
             <a class="sidenav-nav-link" [routerLink]="[data.tabRouteName]" 
                 routerLinkActive="active"
                 [routerLinkActiveOptions]="{exact: false}"
+                (click)="onTabClick()"
             >
                 <i class="sidenav-link-icon" [class]="data.tabIcon"></i>
                 <span class="sidenav-link-text" *ngIf="collapsed">{{data.tabName}}</span>

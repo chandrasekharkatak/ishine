@@ -103,7 +103,6 @@ export class Employee360Component implements OnInit {
 
   ngAfterViewInit(): void {
     this.setActiveTab();
-    // setTimeout(this.setActiveTab,2000)
   }
 
   ngOnDestroy(): void {
@@ -113,17 +112,39 @@ export class Employee360Component implements OnInit {
   this.removeActiveTab();
   }
 
+  // setActiveTab(){
+
+  //   const tab = document.getElementById('Employee360Tab').querySelector('.nav-link');
+  //   //console.log(tab);
+
+  //   if (tab) {
+  //     tab.classList.add('active');
+  //     const activeRouteLink = tab.getAttribute('routerLink');
+  //     this.router.navigate(['./' + activeRouteLink], { relativeTo: this.route });
+  //   }
+  // }
+
   setActiveTab(){
+    const tabs = document.getElementById('Employee360Tab').querySelectorAll('.nav-link');
+    let activeRouteLink:any;
 
-    const tab = document.getElementById('Employee360Tab').querySelector('.nav-link');
-    //console.log(tab);
-
-    if (tab) {
-      tab.classList.add('active');
-      const activeRouteLink = tab.getAttribute('routerLink');
-      console.log("router ",activeRouteLink)
-      this.router.navigate(['./' + activeRouteLink], { relativeTo: this.route });
+    if ((this.breadcrumbUrl != undefined && this.breadcrumbUrl != null) && this.breadcrumbUrl[this.breadcrumbUrl.length - 1]?.title.includes("Project")) {
+      activeRouteLink = 'project';
+    } else {
+      const tab = document.getElementById('Employee360Tab').querySelector('.nav-link');
+        activeRouteLink = tab ? tab.getAttribute('routerLink') : 'profile';
     }
+
+    tabs.forEach(tab => {
+      let routeLink = tab.getAttribute('routerLink');
+      if (activeRouteLink === routeLink) {
+        tab.classList.add('active');
+      } else {
+        tab.classList.remove('active');
+      }
+    });
+    
+    this.router.navigate(['./' + activeRouteLink], { relativeTo: this.route });
   }
 
   removeActiveTab(){
