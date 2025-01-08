@@ -1,15 +1,43 @@
 
 <div class="row mb-3">
-    <div class="col-md-12 pl-4 pt-3">
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Pending'}" (click)="redirectToMyTeam('Pending')">Pending</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Revoked'}" (click)="redirectToMyTeam('Revoked')">Revoked</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Approved'}" (click)="redirectToMyTeam('Approved')">Approved</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Rejected'}" (click)="redirectToMyTeam('Rejected')">Rejected</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Applied For Revoke'}" (click)="redirectToMyTeam('Applied For Revoke')">Applied For Revoke</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'CompOff'}" (click)="setActiveButton('CompOff')">Comp-off</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'TeamLeave'}" (click)="redirectToMyTeam('TeamLeave')">Team Leave</button>
+    <div class="col-md-12 d-flex justify-content-between align-items-center pl-4 pt-3">
+        <div>
+            <button class="btn btn-link back-button" *ngIf="back" (click)="goBack()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Pending'}" (click)="setActiveButton('Pending')">Pending</button>
+            <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Approved'}" (click)="setActiveButton('Approved')">Approved</button>
+            <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Rejected'}" (click)="setActiveButton('Rejected')">Rejected</button>
+            <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Revoked'}" (click)="setActiveButton('Revoked')">Revoked</button>
+            <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Applied For Revoke'}" (click)="setActiveButton('Applied For Revoke')">Applied For Revoke</button>
+            <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'CompOff'}" (click)="setActiveButton('CompOff')">Comp-off</button>
+        </div>
+
+        <select class="form-select-sm align-items-center mx-1 custom-select parent-container" aria-label="Default select example"
+            [(ngModel)]="selectedOption" (change)="onChangeOption(selectedOption)"> 
+            <option class="option-bg" value="1">Date range</option>
+        </select>
     </div>
 </div>
+
+<div *ngIf="selectedOption == 4 && activeButton != 'Calendar'" class="form-group mb-0 d-flex align-items-center" style="position: relative;">
+    <!-- Date Range Input Field -->
+    <input readonly placeholder=" Select Date Range:"
+      [style.width]="'200px'"
+      [style.height]="'29px'"
+      [(ngModel)]="dateTimeRange"
+      [selectMode]="'range'"
+      [owlDateTimeTrigger]="dtRange1" [owlDateTime]="dtRange1"
+      (ngModelChange)="getDateRange()"
+      [max]="todayDate"
+      class="custom-input">
+
+    <!-- Owl Date Time Picker -->
+    <owl-date-time [pickerType]="'calendar'" [scrollStrategy]="scrollStrategy" #dtRange1></owl-date-time>
+
+    <!-- FontAwesome Cross Icon to Reset Date Range -->
+    <i *ngIf="dateTimeRange" class="fa fa-times reset-icon ml-2" (click)="resetDateRange()"></i>
+  </div>
 
 <div class="row" *ngIf="activeButton === 'CompOff'">
     <div class="col-md-12 pl-4 pt-2" style="padding-left: 2rem;">
@@ -18,41 +46,177 @@
     </div>
 </div>
 
-<div class="row">
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-md-4 mb-0" *ngIf="activeButton === 'Pending' || 'Approved' || 'Rejected' || 'TeamLeave'" >
-                            <div id="leaveChartContainer" style="width: 100%; height: 400px;"></div>
-                        </div>
-                        <div id="leaveByMonthContainer" style="width: 200%; height: 400px;"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row" *ngIf="activeButton === 'CompOff' && activeCompOffButton === 'Requests'">
-            <div class="col-md-12">
-                <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-md-4 mb-0">
-                            Comp Off Requests
+
+<!-- For Graphs-Charts -->
+<ng-container *ngIf="!showTable && !isCompOffRequest">
+    <div class="row">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-4 mb-0" >
+                                <div id="leaveChartContainer" style="width: 100%; height: 400px;"></div>
+                            </div>
+                            <div id="leaveByMonthContainer" style="width: 200%; height: 400px;"></div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="row" *ngIf="activeButton === 'CompOff' && activeCompOffButton === 'Applications'">
-            <div class="col-md-12">
-                <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-md-4 mb-0">
-                            Comp Off Applications
+            <!-- <div class="row" >
+                <div class="col-md-12">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-4 mb-0" >
+                                Comp Off Requests
+                            </div>
                         </div>
                     </div>
+                </div>
+            </div> -->
+            <div class="row">
+                <div class="col-md-12">
+                    <!-- <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-4 mb-0">
+                                Comp Off Applications
+                            </div>
+                        </div>
+                    </div> -->
                 </div>
             </div>
         </div>
     </div>
+</ng-container>
+
+<!-- for pending , approved  and rejected  -->
+<div *ngIf="showTable" class="table-responsive">
+    <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveHistoryInfo'" [tableTHeadId]="'leaveHistoryInfoTHead'"
+                    [tableTHeadTrId]="'leaveHistoryInfoTHeadTr'">
+                    <table class="table leave-history-table" id="leaveHistoryInfo" matSort >	
+                      <thead class="thead-light" id="leaveHistoryInfoTHead">	
+                        <tr id="leaveHistoryInfoTHeadTr">	
+                          <th scope="col" class="info-label"> Sr No.</th>	
+                          <th scope="col" class="info-label" mat-sort-header="createdByName|string">Employee </th>	
+                          <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>	
+                          <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>	
+                          <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Apply Date</th>	
+                          <!-- <th scope="col" class="info-label">Approver</th>	
+                          <th scope="col" class="info-label">Approval Date</th> -->	
+                          <th scope="col" class="info-label" mat-sort-header="noOfDays|number">Duration</th>	
+                          <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>	
+                          <th scope="col" class="info-label" mat-sort-header="leaveStatusUpdatedByName|string">Approved/Rejected By</th>	
+                          <th scope="col" class="info-label" mat-sort-header="reason|string">Leave Reason</th>	
+                          <th scope="col" class="info-label" mat-sort-header="leaveType|string">Type</th>
+                          <th scope="col" class="info-label" mat-sort-header="currentApprovalLevel|number">Current Approval Level</th>
+                          <th scope="col" class="info-label" mat-sort-header="approverName|string">Level 1 Approver Name</th>
+                          <th scope="col" class="info-label" mat-sort-header="managerApprovalStatus|string">Level 1 Approver Status</th>
+                          <th scope="col" class="info-label" mat-sort-header="level2ApproverName|string">Level 2 Approver Name</th>
+                          <th scope="col" class="info-label" mat-sort-header="level2ApprovalStatus|string">Level 2 Approver Status</th>
+                          <th scope="col" class="info-label" mat-sort-header="level3ApproverName|string">Level 3 Approver Name</th>
+                          <th scope="col" class="info-label" mat-sort-header="level3ApprovalStatus|string">Level 3 Approver Status</th>
+                          <th scope="col" class="info-label" mat-sort-header="remark|string">Remarks</th>
+                          <th scope="col" class="info-label">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngIf="teamViewLeaveHistoryList.length == 0">
+                            <th colspan="11" class="text-center info-label">No details to display...</th>
+                          </tr>
+                          <tr *ngFor="let leaveHistory of teamViewLeaveHistoryList;  let i = index">
+                            <td class="info-label">{{i+1}}</td>
+                            <td class="info-label">{{leaveHistory.createdByName}}</td>
+                            <td class="info-label">{{leaveHistory.fromDate}}</td>
+                            <td class="info-label">{{leaveHistory.toDate}}</td>
+                            <td class="info-label">{{leaveHistory.createdOn}}</td>
+                            <td class="info-label">{{leaveHistory.noOfDays}}</td>
+                            <td class="info-label">{{leaveHistory.status}}</td>
+                            <td class="info-label">{{leaveHistory.leaveStatusUpdatedByName}}</td>
+                            <td class="info-label">{{leaveHistory.reason}}</td>
+                            <td class="info-label">{{leaveHistory.leaveType}}</td>
+                            <td>{{leaveHistory.currentApprovalLevel}}
+                              <br>
+                              <h6 class="badge badge-pill primary-pill" *ngIf="leaveHistory.currentApprovalLevel == leaveHistory.finalApprovalLevel && leaveHistory.status == 'Pending'">Final</h6>
+                            </td>
+                            <td>{{leaveHistory.approverName}}</td>
+                            <td [ngStyle]="{'color': (leaveHistory.managerApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.managerApprovalStatus == 'Approved') ? 'green' : (leaveHistory.managerApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.managerApprovalStatus}}</td>
+                            <td>{{leaveHistory.level2ApproverName}}</td>
+                            <td [ngStyle]="{'color': (leaveHistory.level2ApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.level2ApprovalStatus == 'Approved') ? 'green' : (leaveHistory.level2ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.level2ApprovalStatus}}</td>
+                            <td>{{leaveHistory.level3ApproverName}}</td>
+                            <td [ngStyle]="{'color': (leaveHistory.level3ApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.level3ApprovalStatus == 'Approved') ? 'green' : (leaveHistory.level3ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.level3ApprovalStatus}}</td>
+                            <td class="info-label">{{leaveHistory.remark}}</td>
+                            <td>
+                              <!-- <button *ngIf="userMapping.revoke_reportee_leave && leaveHistory.status == 'Approved'" class="btn btn-sm btn-outline-danger mb-1" type="submit" (click)="openRevokeReporteeLeaveModal(revoke_approved_leave,leaveHistory)"><em>Revoke Leave</em></button> -->
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                </div>
 </div>
+
+<!-- CompOff Request table -->
+<div class="row" *ngIf="isCompOffRequest">
+    <div class="col-md-12">
+      <div class="row">
+        <div class="col-md-12">
+          <!-- <div class="selector-toggle" (click)="toggleSearch()">
+            <a href="javascript:void(0)">
+                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+            </a>
+          </div> -->
+          <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffRequestInfo'"
+            [tableTHeadId]="'compOffRequestInfoTHead'" [tableTHeadTrId]="'compOffRequestInfoTHeadTr'">
+            <table class="table compOffApplication-table" id="compOffApplication-table">
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col" class="info-label" >Sr No.</th>
+                  <th scope="col" class="info-label" >Applied By</th>
+                  <th scope="col" class="info-label" >Applied For</th>
+                  <th scope="col" class="info-label" >From Date</th>
+                  <th scope="col" class="info-label" >To Date</th>
+                  <th scope="col" class="info-label" >Duration</th>
+                  <th scope="col" class="info-label" >Description</th>
+                  <th scope="col" class="info-label" >Status</th>
+                  <th scope="col" class="info-label" >Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngIf="allCompOffApplications.length == 0">
+                  <th colspan="9" class="text-center info-label">No details to display...</th>
+                </tr>
+                <tr
+                  *ngFor="let compOffApp of allCompOffApplications; let i = index">
+                  <td>{{i+1}}</td>
+                  <td>{{compOffApp.createdByName}}</td>
+                  <td>{{compOffApp.compOffReasons}}</td>
+                  <td>{{compOffApp.fromDate}}</td>
+                  <td>{{compOffApp.toDate}}</td>
+                  <td>{{compOffApp.noOfDays}}</td>
+                  <td>{{compOffApp.description}}</td>
+                  <td>{{compOffApp.status}}</td>
+                  <td>
+                    <button *ngIf="userMapping.update_pending_req" class="btn btn-sm btn-outline-success"
+                      type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 2)" title="Approve"><em
+                        class="fa-solid fa-check"></em></button>&nbsp;
+                    <button *ngIf="userMapping.update_pending_req" class="btn btn-sm btn-outline-danger" type="submit"
+                      (click)="onUpdateCompOffStatus(alert_message, compOffApp, 3)" title="Reject"><em
+                        class="fa-solid fa-xmark"></em></button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- Modal Template -->
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+  </ng-template>
+
