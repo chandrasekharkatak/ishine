@@ -33,8 +33,9 @@ public class Employee360DTO {
 	private LocalDateTime officeInTime;
 	private LocalDateTime officeOutTime;
 	private boolean isNightShift;
-	private String totalWorkingHours;
+	private String totalTime;
 	private String status;
+	private Long employmentId;
 	private String remarks;
 	private Long timesheetId;
 	private LocalDateTime createdOn;

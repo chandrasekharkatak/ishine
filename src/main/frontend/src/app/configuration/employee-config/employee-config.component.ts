@@ -1,34 +1,36 @@
-import { Component, ElementRef, OnDestroy, OnInit, Pipe, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
-import { Employee } from 'src/app/models/employee';
-import { EmployeeService } from 'src/app/services/employee.service';
-import { ValidationService } from 'src/app/services/validation.service';
-import { first } from 'rxjs/operators';
 import { DatePipe, LocationStrategy } from '@angular/common';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import { AuthenticationService } from 'src/app/services/authentication.service';
-import { User } from 'src/app/models/user';
-import { Feature } from 'src/app/models/feature';
-import { JobRoleService } from 'src/app/services/job-role.service';
-import { certification } from 'src/app/models/certification';
-import { PreviousEmployer } from 'src/app/models/previousEmployer';
-import { DepartmentService } from 'src/app/services/department.service';
-import { ExportExcelService } from 'src/app/services/export-excel.service';
-import * as moment from 'moment';
+import { Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
-import { ImageService } from 'src/app/services/image.service';
 import { DomSanitizer } from '@angular/platform-browser';
+import * as moment from 'moment';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
+import { certification } from 'src/app/models/certification';
+import { Designation } from 'src/app/models/designation';
 import { Document } from 'src/app/models/document';
+import { Domain } from 'src/app/models/domain';
+import { Employee } from 'src/app/models/employee';
+import { Feature } from 'src/app/models/feature';
+import { Leave } from 'src/app/models/leave';
+import { PreviousEmployer } from 'src/app/models/previousEmployer';
+import { Query } from 'src/app/models/query';
+import { User } from 'src/app/models/user';
+import { AuthenticationService } from 'src/app/services/authentication.service';
+import { DepartmentService } from 'src/app/services/department.service';
+import { DestinationService } from 'src/app/services/destination.service';
+import { DomainService } from 'src/app/services/domain.service';
+import { EmployeeService } from 'src/app/services/employee.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { ImageService } from 'src/app/services/image.service';
+import { JobRoleService } from 'src/app/services/job-role.service';
+import { LeaveService } from 'src/app/services/leave.service';
 import { PortalService } from 'src/app/services/portal.service';
 import { UtilityService } from 'src/app/services/utility.service';
-import { AppComponent } from 'src/app/app.component';
+import { ValidationService } from 'src/app/services/validation.service';
 import { SortPipe } from 'src/app/sort.pipe';
-import { Domain } from 'src/app/models/domain';
-import { DomainService } from 'src/app/services/domain.service';
-import { Query } from 'src/app/models/query';
-import { DestinationService } from 'src/app/services/destination.service';
-import { Designation } from 'src/app/models/designation';
-import { LeaveService } from 'src/app/services/leave.service';
-import { Leave } from 'src/app/models/leave';
+
+
 import { SharedService } from 'src/app/services/shared.service';
 import { Subscription } from 'rxjs';
 class FilterData {
@@ -1464,7 +1466,7 @@ minDate: Date;
 
 
     employee.onbenchDate=this.billableBenchDate;
-
+    console.log("Apperentice"+employee);
     this.employeeService.createEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeService.deleteDraftEmployee(this.employeeObj); // deleting draft once employee is created
@@ -1791,7 +1793,11 @@ minDate: Date;
     }else if(this.employeeObj.employeementId.startsWith('A-')){
       employee.employeementId  = this.employeeObj.employeementId.substring(2);
       console.log("Employee :", this.employeeObj);
-    }else {
+    } else if(this.employeeObj.employeementId.startsWith('AP-')){
+      employee.employeementId  = this.employeeObj.employeementId.substring(3);
+      console.log("Employee :", this.employeeObj);
+    } 
+    else {
       employee.employeementId  = this.employeeObj.employeementId
     }
 

@@ -53,6 +53,6 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 	
 	List<Team> findByIsActiveNot(String status);
 	
-	@Query(value = "SELECT etm.emp_id FROM employee_team_mapping etm WHERE etm.team_id = :teamId AND etm.active != 0 ", nativeQuery = true)
+	@Query(nativeQuery = true)
     List<Long> findEmployeeIdsByTeamId(@Param("teamId") Long teamId);
 }

@@ -10,9 +10,6 @@ import { Modal } from 'bootstrap';
 import { OwlDateTimeComponent } from 'ng-pick-datetime';
 import { ScrollStrategy } from '@angular/cdk/overlay';
 import { DatePipe } from '@angular/common';
-
-
-
 import { Router } from '@angular/router';
 import { Breadcrumb } from 'src/app/models/breadcrumd';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
@@ -41,6 +38,7 @@ export class Employee360TimesheetComponent implements OnInit {
   projectName:any;
   teamName:any="null";
   empId:any=0;
+  empIdd:any=0;
   projectId:any=0;
   currentUser:any;
   time;
@@ -64,12 +62,11 @@ export class Employee360TimesheetComponent implements OnInit {
   bulkList: any = [];
   isSelectAll: boolean = false;
   isSelect: boolean = false;
-  bulkApprove: any = [];
-  bulkReject: any = [];
-  bulkTeamLeaveApprove:any=[];
-  bulkTeamLeaveReject:any=[];
   allTeamTimesheetRequests: Timesheet[] = [];
   timesheetID:any = [];
+
+  projectClicked:boolean=false;
+  teamClicked:boolean=false;
   
   constructor(
     private employee360Service : Employee360Service,
@@ -106,8 +103,8 @@ export class Employee360TimesheetComponent implements OnInit {
       console.log(this.managerId); 
     }
     this.empId=sessionStorage.getItem('empId');
-    // this.empIdd=240065;
-    // this.managerId = 21823;
+    this.empId=240065;
+    this.managerId = 21823;
     this.startDate = null;
     this.endDate = null;
     this.formattedStartDate = null;
@@ -347,18 +344,24 @@ export class Employee360TimesheetComponent implements OnInit {
     
   }
 
-  findByProject(projectId: number){
+  findByProject(projectId: number,projectName:string){
     this.isProjectTeamClicked=true;
-    this.header="Project Member Details";
+    this.projectClicked=true;
+    this.allSelected=false;
+    this.header=projectName+" : Member Details";
     console.log("project clicked =>  " + projectId );
-    this.get360TimesheetDetails(this.activeButton,this.empId,projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
+    this.projectId=projectId;
+    this.get360TimesheetDetails(this.activeButton,this.empIdd,projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
   }
 
   findByTeam(teamName: any){
     this.isProjectTeamClicked=true;
-    this.header="Team Member Details";
+    this.teamClicked=true;
+    this.allSelected=false;
+    this.teamName=teamName;
+    this.header=teamName+" : Member Details";
     console.log("team clicked => " + teamName);
-    this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
+    this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
   }
   
 
@@ -410,6 +413,11 @@ updateStatus(status: string) {
 
   goBack(){
     this.isProjectTeamClicked=false;
+    this.projectClicked=false;
+    this.teamClicked=false;
+    this.projectId=0;
+    this.teamName="null";
+    this.allSelected=false;
     this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
   }
 
@@ -421,9 +429,9 @@ updateStatus(status: string) {
           if (response.serviceStatus === "Success") {
               console.log("=> serviceResponse", response.serviceResponse);
               this.data = response.serviceResponse;
-              // this.data = Object.values(this.data);
-              if(this.data.length!=undefined){
-              this.responseCount=this.data.length; }
+              if (this.data) { 
+                this.responseCount = Object.keys(this.data).length;
+                console.log("this.data===>", this.responseCount);}
               const activityCounts: number[] = [];
               console.log("=> Activity counts array", activityCounts);
               this.result = this.transformData(response.serviceResponse);
@@ -486,9 +494,11 @@ updateStatus(status: string) {
 
   setDate(){
     if (this.startDate && this.endDate) {
-       this.formattedStartDate = this.datePipe.transform(this.startDate, 'dd-MM-yyyy');
+      this.formattedStartDate = this.datePipe.transform(this.startDate, 'dd-MM-yyyy');
       this.formattedEndDate = this.datePipe.transform(this.endDate, 'dd-MM-yyyy');
-      this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
+      if(this.isProjectTeamClicked){this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
+      }
+      else{this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);}
     }else{
       this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.managerId,this.startDate,this.endDate);
 
@@ -527,11 +537,12 @@ updateStatus(status: string) {
         items.activities.forEach(activity => {
           transformedData.push({
             empId: employee.empId,
+            employmentId:"A-"+employee.employmentId,
             name: employee.name,
             date: employee.date, 
             officeInTime: employee.officeInTime,
             officeOutTime: employee.officeOutTime,
-            totalWorkingHours: employee.totalWorkingHours,
+            totalTime: employee.totalTime,
             nightShift: employee.nightShift,
             status: employee.status,
             createdOn: employee.createdOn,
@@ -539,6 +550,7 @@ updateStatus(status: string) {
   
             activities: activity,
             projectName: items.projectName,
+            totalWorkingHours:items.totalWorkingHours+" Hours",
             teamName: items.teamName,
             projectId: items.projectId,
             activityId: items.activityId,

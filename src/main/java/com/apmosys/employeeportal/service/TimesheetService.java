@@ -176,7 +176,7 @@ public class TimesheetService {
 		return response;
 	}
 	@Transactional
-	public List<TimesheetDTO> getAllProjectsByEmpIdForBioMax(String date,String employeeCode) {
+	public List<TimesheetDTO> getAllProjectsByEmpIdForBioMax(String employeeCode,String date) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("add_timesheet");
@@ -190,25 +190,25 @@ public class TimesheetService {
 			//List<Object[]> projectList = employeeTeamMapRepository.findProjectsByTeamId(timesheetDTO.getEmpId());
 		
 			List<Object[]> objectList = timesheetActivityMapRepository
-					.activitiesByTimesheetIdforBiomax("21863","2024-09-19");
-			System.out.println("objectList"+objectList.size());
+					.activitiesByTimesheetIdforBiomax(employeeCode,date);
+			System.out.println("objectList"+objectList.size()+""+employeeCode+"=="+date);
 			if (!objectList.isEmpty()) {
 				TimesheetDTO timesheetDto = new TimesheetDTO();
 
 				for (Object[] object : objectList) {
 					timesheetDto = new TimesheetDTO();
-					timesheetDto.setClientId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
-					timesheetDto.setClientName(object[1] != null ? object[1].toString() : null);
-					timesheetDto.setClientLocationId(object[2] != null ? Integer.parseInt(object[2].toString()) : null);
+					//timesheetDto.setClientId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
+				timesheetDto.setClientName(object[8] != null ? object[1].toString() : null);
+				//timesheetDto.setClientLocationId(object[3] != null ? Integer.parseInt(object[2].toString()) : null);
 					timesheetDto.setClientLocation(object[3] != null ? object[3].toString() : null);
-					timesheetDto.setProjectId(object[10] != null ? Integer.parseInt(object[4].toString()) : null);
-					timesheetDto.setProjectName(object[6] != null ? object[5].toString() : null);
-	  				timesheetDto.setTeamName(object[5] != null ? object[6].toString() : null);
-	  				
-					timesheetDto.setTeamId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
-					timesheetDto.setActivity(object[8] != null ? object[8].toString() : null);
-					timesheetDto.setActivityId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
-					listDto.add(timesheetDto);
+//					timesheetDto.setProjectId(object[10] != null ? Integer.parseInt(object[4].toString()) : null);
+				timesheetDto.setProjectName(object[7] != null ? object[5].toString() : null);
+	  				timesheetDto.setTeamName(object[8] != null ? object[6].toString() : null);
+//	  				
+					//timesheetDto.setTeamId(object[5] != null ? Long.parseLong(object[7].toString()) : null);
+					timesheetDto.setActivity(object[10] != null ? object[8].toString() : null);
+//					timesheetDto.setActivityId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+				listDto.add(timesheetDto);
 				}
 				return listDto;
 			} else {

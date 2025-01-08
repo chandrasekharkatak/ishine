@@ -14,11 +14,10 @@ public interface TypeDocumentRepository extends JpaRepository<TypeDocument, Long
 
 	Optional<TypeDocument> findByTypeName(String typeName);
 	
-	@Query(nativeQuery = true , value="select td.type_name,td.created_on,td.created_by,e.name,td.type_id from type_document td\n"
-			+ "inner join employee e ON e.emp_id=td.created_by")
+	@Query(nativeQuery = true)
 	List<Object[]> findAllType();
 
-	@Query(nativeQuery = true , value = "select * from type_document td where td.type_id = :typeId")
+	@Query(nativeQuery = true )
 	TypeDocument findByTypeId(Long typeId);
 
 }

@@ -21,9 +21,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.apmosys.employeeportal.dto.Employee360DTO;
 import com.apmosys.employeeportal.dto.EmployeeTimesheetDto;
+import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.repository.Employee360Repository;
+import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -42,6 +44,9 @@ public class Employee360Service {
 	
 	@Autowired
 	private LogService logService;
+	
+	@Autowired
+	EmployeeLeaveRepository employeeLeaveRepository;
 	
 	@Autowired
 	private HttpServletRequest httpRequest;
@@ -165,19 +170,6 @@ public class Employee360Service {
 	        LocalDate localEndDate = null;
 	        SimpleDateFormat formatedDate = new SimpleDateFormat("dd-MM-yyyy", Locale.ENGLISH);
 	        
-	        // Debugging parameter values before making the repository call
-	        System.out.println("Parameters passed to employeeRepository.getDynamicTimesheetData:");
-	        System.out.println("status: " + status + " (Type: " + ((status != null) ? status.getClass().getSimpleName() : "null") + ")");
-	        System.out.println("empId: " + empId + " (Type: " + Long.TYPE.getSimpleName() + ")");
-	        System.out.println("projectId: " + projectId + " (Type: " + Long.TYPE.getSimpleName() + ")");
-	        System.out.println("teamName: " + teamName + " (Type: " + ((teamName != null) ? teamName.getClass().getSimpleName() : "null") + ")");
-	        System.out.println("managerId: " + managerId + " (Type: " + Long.TYPE.getSimpleName() + ")");
-	        System.out.println("localStartDate: " + localStartDate + " (Type: " + ((localStartDate != null) ? localStartDate.getClass().getSimpleName() : "null") + ")");
-	        System.out.println("localEndDate: " + localEndDate + " (Type: " + ((localEndDate != null) ? localEndDate.getClass().getSimpleName() : "null") + ")");
-	        System.out.println("startDate: " + startDate + " (Type: " + ((startDate != null) ? startDate.getClass().getSimpleName() : "null") + ")");
-	        System.out.println("endDate: " + endDate + " (Type: " + ((endDate != null) ? endDate.getClass().getSimpleName() : "null") + ")");
-
-
 	        if (startDate != null && !startDate.isEmpty() && !startDate.equalsIgnoreCase("null") &&
 	        	    endDate != null && !endDate.isEmpty() && !endDate.equalsIgnoreCase("null")) {
 	            Date startingDate = formatedDate.parse(startDate);
@@ -191,11 +183,6 @@ public class Employee360Service {
 	        System.out.println("localStartDate: " + localStartDate + " (Type: " + ((localStartDate != null) ? localStartDate.getClass().getSimpleName() : "null") + ")");
 	        System.out.println("localEndDate: " + localEndDate + " (Type: " + ((localEndDate != null) ? localEndDate.getClass().getSimpleName() : "null") + ")");
 
-	        // Example test call
-	        List<Object[]> results = employeeRepository.getDynamicTimesheetData(
-	                "Pending", 21899, 0, null, 0L, null, null);
-
-	        // Fetching data from repository
 	        List<Object[]> objectList = new ArrayList<>();
 	        if (teamName == null || teamName.isEmpty() || teamName.equalsIgnoreCase("null")) {
 	        	objectList = employeeRepository.getDynamicTimesheetData(status, empId, projectId, null, managerId, localStartDate, localEndDate);
@@ -203,7 +190,6 @@ public class Employee360Service {
 		        objectList = employeeRepository.getDynamicTimesheetData(status, empId, projectId, teamName, managerId, localStartDate, localEndDate);
 	        }
 	        System.out.println(objectList);
-//			System.out.println(results);
 			Map<Long, Employee360DTO> employeeMap = new HashMap<>();
 
 		if (!objectList.isEmpty()) {
@@ -212,7 +198,6 @@ public class Employee360Service {
 			    String activity = (String) row[12];
 			    String date = ((java.sql.Date) row[4]).toString();
 
-			    // Find or create Employee DTO
 			    Employee360DTO employee = employeeMap.computeIfAbsent(empId, id -> {
 			        Employee360DTO dto = new Employee360DTO();
 					dto.setEmpId(empId!=0?empId:Long.parseLong(row[1].toString()));
@@ -223,17 +208,17 @@ public class Employee360Service {
 			           dto.setOfficeInTime(((java.sql.Timestamp) row[6]).toLocalDateTime());}
 			        if (row[7] != null) {
 				           dto.setOfficeOutTime(((java.sql.Timestamp) row[7]).toLocalDateTime());}
-	                dto.setTotalWorkingHours(row[8] != null ? row[8].toString() : null);
+	                dto.setTotalTime(row[8] != null ? row[8].toString() : null);
 			        dto.setStatus(row[10] != null ? row[10].toString() : null);
 			        dto.setRemarks(row[15] != null ? row[15].toString() : null);
+			        dto.setEmploymentId (row[17] != null ? Long.parseLong(row[17].toString()) : null);
 			        if (row[11] != null) {
 				           dto.setCreatedOn(((java.sql.Timestamp) row[11]).toLocalDateTime());}
 			        dto.setTimeSheet(new ArrayList<>());
 			        return dto;
 			    });
 			    
-
-			    // Find or create Project DTO
+			    //Timesheet DTO
 			    List<EmployeeTimesheetDto> timeSheet = employee.getTimeSheet();
 			    EmployeeTimesheetDto project = timeSheet.stream()
 			            .filter(p -> p.getProjectName().equals(projectName))
@@ -242,6 +227,7 @@ public class Employee360Service {
 			            	EmployeeTimesheetDto newProject = new EmployeeTimesheetDto();
 			                newProject.setProjectName(projectName);
 			                newProject.setTeamName(!teamName.equals("null") ? teamName :(String) row[14]);
+			                newProject.setTotalWorkingHours(row[18] != null ? Float.parseFloat(row[18].toString()) : null);
 			                newProject.setTimesheetId(row[16] != null ? Long.parseLong(row[16].toString()) : null);
 			                newProject.setProjectId(projectId != 0L ?projectId: Long.parseLong(row[1].toString()));
 			                newProject.setActivityId(row[2] != null ? Long.parseLong(row[2].toString()) : null);
@@ -317,5 +303,78 @@ public class Employee360Service {
 		return response;
 	}
 	
-	
+	public ServiceResponse getAll360LeaveApplicationsByEmpId(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getAllLeaveApplicationsByEmpId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Employee Emp Id : "+leaveDTO.getEmpId());
+		
+		try {
+			List<Object[]> list = employeeLeaveRepository
+					.getAllLeaveApplicationsByEmpId(leaveDTO.getEmpId());
+			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+			if (list.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No Leave Application found");
+
+				apiLogInfo.setApiResponse("No Leave Application found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			} else {
+
+				list.forEach((object) -> {LeaveDTO dto = new LeaveDTO();
+				dto.setCreatedByName(object[24] != null ? object[24].toString() : null);
+				dto.setFromDate(object[1] != null ? object[1].toString() : null);
+				dto.setToDate(object[2] != null ? object[2].toString() : null);
+				dto.setCreatedOn(object[3] != null ? object[3].toString() : null);
+				dto.setNoOfDays(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
+				dto.setStatus(object[5] != null ? object[5].toString() : null);
+				dto.setReason(object[6] != null ? object[6].toString() : null);
+				dto.setLeaveType(object[7] != null ? object[7].toString() : null);
+				dto.setLeaveStatusUpdatedByName(object[8] != null ? object[8].toString() : null);
+				dto.setLeaveId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+				dto.setRemark(object[10] != null ? object[10].toString() : null);dto.setApproverName(object[11] != null ? object[11].toString() : null);
+				dto.setApproverEmail(object[12] != null ? object[12].toString() : null);
+				dto.setManagerApprovalStatus(object[13] != null ? object[13].toString() : null);
+				dto.setLevel2ApproverId(object[14] != null ? Long.parseLong(object[14].toString()) : null);
+				dto.setLevel2ApproverName(object[15] != null ? object[15].toString() : null);
+				dto.setLevel2ApproverEmail(object[16] != null ? object[16].toString() : null);
+				dto.setLevel2ApprovalStatus(object[17] != null ? object[17].toString() : null);
+				dto.setLevel3ApproverId(object[18] != null ? Long.parseLong(object[18].toString()) : null);
+				dto.setLevel3ApproverName(object[19] != null ? object[19].toString() : null);
+				dto.setLevel3ApprovalStatus(object[20] != null ? object[20].toString() : null);
+				dto.setLevel3ApproverEmail(object[21] != null ? object[21].toString() : null);
+				dto.setCurrentApprovalLevel(object[22] != null ? Integer.parseInt(object[22].toString()) : null);
+				dto.setFinalApprovalLevel(object[23] != null ? Integer.parseInt(object[23].toString()) : null);
+				dto.setEmployeeName(object[0] != null ? object[0].toString() : null);
+				dto.setLeaveTypeMasterId(object[27] != null ? Short.parseShort(object[27].toString()) : null);
+				dto.setEmpId(object[28] != null ? Long.parseLong(object[28].toString()) : null);
+				dto.setEmployeementId(object[26] != null ? Long.parseLong(object[26].toString()) : null);
+				dto.setLeaveEmpId(object[25] != null ? Long.parseLong(object[25].toString()) : null);
+				dto.setManagerId(object[29] != null ? Integer.parseInt(object[29].toString()) : null);
+				
+				dtoList.add(dto);	
+				});
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				
+				apiLogInfo.setApiResponse(dtoList.size() + " Applications found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
 }

@@ -48,6 +48,9 @@ export class Employee360Component implements OnInit {
   }
 
 
+  currentab:String;
+  leave:String;
+  othertab:any;
 
   ngOnInit(): void {
     this.navigationSubscription = this.employee360Service.getNavigationEvent().subscribe(() => {
@@ -64,13 +67,13 @@ export class Employee360Component implements OnInit {
       this.employeeData = history.state.data;
     }
     
-    let findBreadcrumbObject = this.breadcrumbUrl.findIndex(x => x.title === "Employee-360");
+    let findBreadcrumbObject = this.breadcrumbUrl.findIndex(x => x.title === "Employee-360-Profile");
     if (findBreadcrumbObject >= 0) {
       this.breadcrumbUrl.splice(findBreadcrumbObject + 1);
       this.breadcrumbService.setBreadcrumbSubject(this.breadcrumbUrl);
     } else {
       let breadcrumbObject = { title: "Employee-360-Profile", url: "/employee-360/profile" };
-      this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
+   this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
 
     console.log("employeeData   ",this.employeeData);
@@ -164,14 +167,14 @@ export class Employee360Component implements OnInit {
     currentEmp.empId = this.employeeData.empId;
     currentEmp.isDraft = false;
 
-    this.employee360Service.getBioOverTimeandState(currentEmp).subscribe((response:any) =>
+    // this.employee360Service.getBioOverTimeandState(currentEmp).subscribe((response:any) =>
       
-      {
-       this.responseOvertime= response.serviceResponse[0];
-       this.responsestate = response.serviceResponse[1];
-      }
+    //   {
+    //    this.responseOvertime= response.serviceResponse[0];
+    //    this.responsestate = response.serviceResponse[1];
+    //   }
     
-    );
+    // );
 
 
 
@@ -179,5 +182,9 @@ export class Employee360Component implements OnInit {
      
 
   }
-
+ 
+  leave360viewtab(tab:any){  
+          this.currentab=tab;        
+          console.log(this.currentab);
+  }
 }
