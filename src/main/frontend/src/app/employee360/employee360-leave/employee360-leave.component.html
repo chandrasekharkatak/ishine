@@ -15,7 +15,7 @@
         <div *ngIf="back">
         <select class="form-select-sm align-items-center mx-1 custom-select parent-container" aria-label="Default select example"
             [(ngModel)]="selectedOption" (change)="onChangeOption(selectedOption)"> 
-            <option class="option-bg" value="1">Yearly</option>
+            <option class="option-bg" value="1">All</option>
             <option class="option-bg" value="2">Date range</option>
             <!-- <option class="option-bg" value="3">Monthly</option>
             <option class="option-bg" value="4">Date range</option> -->
@@ -24,7 +24,7 @@
     </div>
 </div>
 
-<div *ngIf="selectedOption == 4 && activeButton != 'Calendar'" class="form-group mb-0 d-flex align-items-center" style="position: relative;">
+<div *ngIf="selectedOption == 2" class="form-group mb-0 d-flex align-items-center" style="position: relative;">
     <!-- Date Range Input Field -->
     <input readonly placeholder=" Select Date Range:"
       [style.width]="'200px'"

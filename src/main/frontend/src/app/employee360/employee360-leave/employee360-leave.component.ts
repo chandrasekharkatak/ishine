@@ -98,8 +98,8 @@ export class Employee360LeaveComponent implements OnInit {
   dateTimeRange: any = null;
   todayDate: Date = new Date();
   scrollStrategy: ScrollStrategy;
-  formattedStartDate:any;
-  formattedEndDate:any;
+  formattedStartDate:any = '';
+  formattedEndDate:any = '';
   
   //Modal
   alertMessage: any
@@ -357,6 +357,9 @@ export class Employee360LeaveComponent implements OnInit {
             }));
         };
     leaveObj.empId = this.empId;
+    leaveObj.fromDate = this.formattedStartDate;
+    leaveObj.toDate = this.formattedEndDate;
+
     // leaveObj.managerApprovalStatus=this.activeButton;
     this.employee360Service.getAll360LeaveApplicationsByEmpId(leaveObj).pipe(first()).subscribe(
       (response: any) => {
@@ -943,21 +946,8 @@ getLeaveStatusColor(status: string): string {
       // Handle "All"
       this.startDate = null;
       this.endDate = null;
-      // this.setDate();
-    } else if (arg == 2) {
-      // Handle "Weekly"
-      this.startDate = new Date();
-      this.endDate = new Date();
-      this.startDate.setDate(this.startDate.getDate() - 7);
-      // this.setDate();
-    } else if (arg == 3) {
-      // Handle "Monthly"
-      this.startDate = new Date();
-      this.endDate = new Date();
-      this.startDate.setDate(this.startDate.getDate() - 30);
-      // this.setDate();
+      this.setDate();
     } else if (arg == 4) {
-      // Handle "Date range"
       // start and end date will be handled by the owl-datepicker input fields
     }
     console.log("startDate" , this.startDate);
@@ -976,7 +966,7 @@ getLeaveStatusColor(status: string): string {
       this.endDate = toDate;
   
       // logic to filter data based on the selected range
-      // this.setDate();
+      this.setDate();
     }
   }
 
@@ -984,6 +974,7 @@ getLeaveStatusColor(status: string): string {
     this.dateTimeRange = null;
     this.startDate = null;
     this.endDate = null;
+    this.setDate();
     // Optionally, call your method to fetch data after reset
   }
 
@@ -991,7 +982,11 @@ getLeaveStatusColor(status: string): string {
     if (this.startDate && this.endDate) {
        this.formattedStartDate = this.datePipe.transform(this.startDate, 'dd-MM-yyyy');
       this.formattedEndDate = this.datePipe.transform(this.endDate, 'dd-MM-yyyy');
+      this.getAllLeaveApplicationsByEmpId();
     }else{
+      this.formattedStartDate='';
+      this.formattedEndDate='';
+      this.getAllLeaveApplicationsByEmpId();
 
     }
   }
