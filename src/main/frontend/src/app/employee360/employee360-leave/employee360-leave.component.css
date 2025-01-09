@@ -3,3 +3,17 @@
     height: 35px; 
     width: 100px;
   }
+
+.table-responsive {
+    overflow-x: hidden;
+}
+
+.table {
+    width: 100%;
+    table-layout: auto;
+}
+
+.row {
+    margin-left: 0;
+    margin-right: 0;
+}

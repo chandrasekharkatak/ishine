@@ -1,5 +1,5 @@
 
-<div class="row mb-3">
+<div class="row mb-2">
     <div class="col-md-12 d-flex justify-content-between align-items-center pl-4 pt-3">
         <div>
             <button class="btn btn-link back-button" *ngIf="back" (click)="goBack()">
@@ -24,7 +24,7 @@
     </div>
 </div>
 
-<div *ngIf="selectedOption == 2" class="form-group mb-0 d-flex align-items-center" style="position: relative;">
+<div *ngIf="selectedOption == 2 && showDropDown" class="form-group mt-0 mb-2 d-flex justify-content-end align-items-center" style="position: relative;">
     <!-- Date Range Input Field -->
     <input readonly placeholder=" Select Date Range:"
       [style.width]="'200px'"
@@ -106,10 +106,10 @@
                           </tr>
                         </thead>
                         <tbody>
-                          <tr *ngIf="teamViewLeaveHistoryList.length == 0">
+                          <tr *ngIf="leaveList.length == 0">
                             <th colspan="11" class="text-center info-label">No details to display...</th>
                           </tr>
-                          <tr *ngFor="let leaveHistory of teamViewLeaveHistoryList;  let i = index">
+                          <tr *ngFor="let leaveHistory of leaveList;  let i = index">
                             <td class="info-label">{{i+1}}</td>
                             <td class="info-label">{{leaveHistory.createdByName}}</td>
                             <td class="info-label">{{leaveHistory.fromDate}}</td>
@@ -132,10 +132,10 @@
                             <td [ngStyle]="{'color': (leaveHistory.level3ApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.level3ApprovalStatus == 'Approved') ? 'green' : (leaveHistory.level3ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.level3ApprovalStatus}}</td>
                             <td class="info-label">{{leaveHistory.remark}}</td>
                             <td>
-                              <button *ngIf="approveReject" class="btn btn-sm btn-outline-success" type="submit"
+                              <button *ngIf="approveReject && leaveHistory.isSelected" class="btn btn-sm btn-outline-success" type="submit"
                               (click)="onUpdateLeaveStatus(alert_message, leaveHistory, 2)" title="Approve"><em
                                 class="fa-solid fa-check"></em></button>&nbsp;
-                            <button *ngIf="approveReject" class="btn btn-sm btn-outline-danger" type="submit"
+                            <button *ngIf="approveReject && leaveHistory.isSelected" class="btn btn-sm btn-outline-danger" type="submit"
                               (click)="openLeaveRejectModal(reject_leave_modal, leaveHistory)" title="Reject"><em
                                 class="fa-solid fa-xmark"></em></button>
                             </td>

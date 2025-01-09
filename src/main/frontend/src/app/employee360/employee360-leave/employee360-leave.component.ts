@@ -90,6 +90,7 @@ export class Employee360LeaveComponent implements OnInit {
   empId:any=0;
   managerId:any=0;
   teamViewLeaveHistoryList: any[] = [];
+  leaveList: any[] = [];
   leaveApplicationList: any[] = [];
 
   //Comp-off
@@ -331,9 +332,11 @@ export class Employee360LeaveComponent implements OnInit {
     this.showDropDown=false;
     this.isCompOff=false;
     this.isLeaveRevokeRequest=false;
+    this.selectedOption = 1;
+    this.dateTimeRange = null;
     this.generateLeaveChart();
     this.getLeaveDataPerMonthByEmpId(this.year);
-    this.activeButton="Leave-Charts";   
+    this.activeButton="Leave-Charts";
   }
 
   setActiveButton(button: string): void {
@@ -395,6 +398,7 @@ export class Employee360LeaveComponent implements OnInit {
           if (response.serviceStatus === "Success") {
             this.teamViewLeaveHistoryList=response.serviceResponse;
             console.log("this.teamViewLeaveHistoryList====>",this.teamViewLeaveHistoryList);
+            this.LeaveListOnStatus(this.teamViewLeaveHistoryList)
             
               this.leaveApplicationList = processLeaveApplications(
                   response.serviceResponse.filter((leaveApp: any) => leaveApp.status === this.employeeData2.status)
@@ -422,6 +426,31 @@ export class Employee360LeaveComponent implements OnInit {
   );
   console.log("leaveApplicationList=>>>>",this.leaveApplicationList);
   }
+
+  LeaveListOnStatus(teamViewLeaveHistoryList: any) {
+    this.leaveList = [];
+    this.currentUserr=sessionStorage.getItem('currentUser');
+    if (this.currentUserr) {
+      const currentUserData = JSON.parse(this.currentUserr);
+      this.managerId = currentUserData.empId;
+      console.log(this.managerId); 
+    }
+    for (const emp of this.teamViewLeaveHistoryList){
+      if(emp.status == this.activeButton){
+        if(emp.managerId == this.managerId || emp.level2ApproverId == this.managerId || emp.level3ApproverId == this.managerId){
+          emp.isSelected = true;
+        }else{
+          emp.isSelected = false;
+        }
+          this.leaveList.push(emp);
+
+      }
+
+    }
+    
+
+    console.log("this.leavelist = >", this.leaveList)
+    }
 
   onUpdateLeaveStatus(template: TemplateRef<any>, leaveApplication, updatedLeaveStatusId) {
     // 1 = pending , 2 = Approved , 3= Rejected
