@@ -49,4 +49,5 @@ export class Project{
 	role : any;
 
 	endDate: any;
+	isAllProj: any;
 }

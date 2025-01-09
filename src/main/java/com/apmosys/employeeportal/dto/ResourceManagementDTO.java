@@ -50,5 +50,6 @@ public class ResourceManagementDTO {
 	private String departmentName;
 	
 	private String endDate;
+	private String isAllProj;
 	
 }

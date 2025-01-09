@@ -1801,8 +1801,15 @@ public class ResourceManagementService {
 	public ServiceResponse getExistingProjectsAndTeamsByEmployee(ResourceManagementDTO resourceManagementDTO) {
 		
 		ServiceResponse response = new ServiceResponse();
+		List<Object[]> getAllExistingProjectsAndTeams;
 		
-		List<Object[]> getAllExistingProjectsAndTeams = employeeTeamMapRepository.getAllProjectsAndTeamsDetails(resourceManagementDTO.getEmpId());
+		if(resourceManagementDTO.getIsAllProj() != null && resourceManagementDTO.getIsAllProj() == "true") {
+			getAllExistingProjectsAndTeams = employeeTeamMapRepository.getAllProjectsTeamsInfo(resourceManagementDTO.getEmpId());
+		}else {
+			getAllExistingProjectsAndTeams = employeeTeamMapRepository.getAllProjectsAndTeamsDetails(resourceManagementDTO.getEmpId());
+		}
+		
+		
 		List<ResourceManagementDTO> allData = new ArrayList<ResourceManagementDTO>();
 		getAllExistingProjectsAndTeams.forEach(obj ->{
 			ResourceManagementDTO dto = new ResourceManagementDTO();

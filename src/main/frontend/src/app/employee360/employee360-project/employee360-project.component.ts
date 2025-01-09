@@ -106,6 +106,7 @@ export class Employee360ProjectComponent implements OnInit {
   getExistingProjectsByUser() {
     let projectObj = new Project();
     projectObj.empId = this.employeeData.empId;
+    projectObj.isAllProj = true;
 
     // getExistingProjectsAndTeamsByEmployee service impl
     this.projectService.getExistingProjectsAndTeamsByEmployee(projectObj).pipe(first()).subscribe((response: any) => {
