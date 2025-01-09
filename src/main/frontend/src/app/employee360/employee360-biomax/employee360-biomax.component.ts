@@ -5,6 +5,8 @@ import * as moment from 'moment';
 import { Biomax } from 'src/app/models/biomax';
 import { Employee360Service } from 'src/app/services/employee360.service';
 import * as Highcharts from 'highcharts';
+import { Breadcrumb } from 'src/app/models/breadcrumd';
+
 @Component({
   selector: 'app-employee360-biomax',
   templateUrl: './employee360-biomax.component.html',
@@ -17,40 +19,55 @@ export class Employee360BiomaxComponent implements OnInit{
   currentDate1: Date = new Date(); // Current date
   biomaxList:Biomax[]=[];
   biomaxList1:Biomax[]=[];
+  currentBreadcrumbList: any[] = [];
+  chartdata={
+    workinghours:0,
+    lessthenworkinghours:0,
+    hovertime:0
+  }
+
+
+
+  chartOptions: Highcharts.Options = {
+    chart: {
+      type: 'pie'
+    },
+    title: {
+      text: 'Work Hours Distribution'
+    },
+    series: [
+      {
+        type: 'pie',
+        name: 'Work Hours',
+        data: []  
+      }
+    ]
+  };
    date = new Date();
 
 filter={
   officestartTimePicker:'',
   officeendTimePicker:'',
-  employeeId:'740',
+  employeeId:'',
   viewfilter:'Weekly'
 }
 filter1={
   officestartTimePicker:'',
   officeendTimePicker:'',
-  employeeId:'012345',
+  employeeId:'',
   viewfilter:'Weekly'
 }
-chartdata={
-  workinghours:0,
-  lessthenworkinghours:0,
-  hovertime:0
-}
+
 
 employeeData:any;
 constructor(private datePipe: DatePipe,
   private employee360:Employee360Service,
   private breadcrumbService: BreadcrumbService){
+    this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
  
 }
 
 ngOnInit(): void {
-  this.filter1={
-    officestartTimePicker:'',
-    officeendTimePicker:'',
-    employeeId:'740',
-    viewfilter:'Weekly'
-  }
 
   this.filter1.officeendTimePicker=this.filter.officeendTimePicker;
   this.filter1.officestartTimePicker=this.filter.officestartTimePicker;
@@ -61,9 +78,34 @@ ngOnInit(): void {
   }else{
     this.employeeData = history.state.data;
   }
+
+  this.filter1={
+    officestartTimePicker:'',
+    officeendTimePicker:'',
+    employeeId:this.employeeData.empId,
+    viewfilter:'Weekly'
+  }
+
+
  
-  const breadcrumbObject = { title: `Biomax`, url: "/employee-360/biomax" };
-  this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
+  // const breadcrumbObject = { title: `Biomax`, url: "/employee-360/biomax" };
+  // this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
+
+
+
+
+         let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title == "Biomax");
+         console.log("ckecked breadcrums   ",findbreadcrumbObject)
+            if (findbreadcrumbObject >= 0) {
+              this.currentBreadcrumbList.splice(findbreadcrumbObject + 1);
+              this.breadcrumbService.setBreadcrumbSubject(this.currentBreadcrumbList);
+            } else {
+              let breadcrumbObject = new Breadcrumb();
+              breadcrumbObject.title = "Biomax";
+              breadcrumbObject.url = "/employee-360/biomax";
+              this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
+            }
+
   this.viewFilterdata();
  
  //this.filter.employeeId=this.employeeData.employeementId;
@@ -129,34 +171,69 @@ searchBioMax(){
   this.getBiomatrixFilter();
 }
 
-getBiomatrixFilter(){
+getBiomatrixFilter() {
+  let workinghours2 = 0;
+  let lessthenworkinghours = 0;
+  let hovertime = 0;
 
+  this.employee360.getEmployeeDetailsForBiomax(this.filter1.officestartTimePicker, this.filter1.officeendTimePicker, this.filter1.employeeId)
+    .subscribe((response: any) => {
+      this.biomaxList = response.serviceResponse;
+      this.biomaxList.forEach((filter5) => {
+        let workinghours: number = parseInt(filter5.totalDuration);
+        if (workinghours !== 0) {
+          workinghours2 += 9; // Baseline working hours
+          if (workinghours > 9) {
+            hovertime += (workinghours - 9); // Overtime calculation
+          }
+          if (workinghours < 9) {
+            lessthenworkinghours += workinghours; // Less than working hours calculation
+          }
+        }
+      });
 
-  let workinghours2=0;
-  let lessthenworkinghours=0;
-  let hovertime=0;
-  this.employee360.getEmployeeDetailsForBiomax(this.filter1.officestartTimePicker,this.filter1.officeendTimePicker,this.filter1.employeeId).subscribe((response:any)=>{
-    this.biomaxList=response.serviceResponse;
-    this.biomaxList.forEach((filter5)=>{
-      let workinghours: number = parseInt(filter5.totalDuration);
-     if(workinghours!==0){
-      workinghours2=workinghours2+9;
-      if(workinghours>9){
-        hovertime=hovertime+hovertime;
-      } if(workinghours<9){
-        lessthenworkinghours=lessthenworkinghours+workinghours;
-   
-      }
-      console.log(workinghours);
-      this.chartdata.hovertime=hovertime;
-      this.chartdata.workinghours=workinghours2;
-      this.chartdata.lessthenworkinghours=lessthenworkinghours;
-     }
-    
-    })
-  })
-  console.log(this.chartdata);
+      // Set the chart data
+      this.chartdata.hovertime = hovertime;
+      this.chartdata.workinghours = workinghours2;
+      this.chartdata.lessthenworkinghours = lessthenworkinghours;
+
+      // Update the chart with new data
+      this.updateChartData(this.chartdata);
+    });
 }
-  
 
+private updateChartData(data: any): void {
+  this.chartOptions = {
+    chart: {
+      type: 'pie'
+    },
+    title: {
+      text: 'Work Hours Distribution'
+    },
+    credits: {
+      enabled: false
+    },
+    series: [
+      {
+        type: 'pie',
+        name: 'Work Hours',
+        data: [
+          { name: 'Working Hours', y: data.workinghours },
+          { name: 'Less Than Working Hours', y: data.lessthenworkinghours },
+          { name: 'Overtime', y: data.hovertime }
+        ]
+      }
+    ]
+  };
+
+  // Update chart with new options
+  Highcharts.chart('biomaxfiterContainer', this.chartOptions);
+}  
+  
+ngAfterViewInit(): void {
+  // Initialize the chart if not already initialized
+  if (this.chartdata) {
+    Highcharts.chart('biomaxfiterContainer', this.chartOptions);
+  }
+}
 }

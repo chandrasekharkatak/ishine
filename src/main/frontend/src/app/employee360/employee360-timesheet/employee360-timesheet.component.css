@@ -127,3 +127,26 @@ button:active {
   cursor: pointer; /* Pointer cursor on hover */
 }
 
+/* .table-responsive {
+  overflow-x: hidden; /* Prevent horizontal scrolling 
+}
+
+.table {
+  width: 100%; /* Ensure the table takes full width 
+  table-layout: auto; /* Allow the table to adjust its layout 
+}
+
+.row {
+  margin-left: 0; /* Remove left margin 
+  margin-right: 0; /* Remove right margin 
+} */
+
+
+.table-responsive {
+  overflow-x: auto; /* Allow horizontal scrolling */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+.table {
+  min-width: 800px; /* Set a minimum width for the table to ensure it can scroll */
+}

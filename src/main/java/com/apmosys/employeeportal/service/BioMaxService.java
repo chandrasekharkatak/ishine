@@ -427,7 +427,7 @@ public class BioMaxService {
 		          
 	          }else {
 	        	  TimesheetDTO timesheetDTO=new TimesheetDTO();
-	        	  timesheetDTO.setTeamName("Not Fill");
+	        	  timesheetDTO.setClientName("Not Fill");
 	        	  timesheetDTO.setActivity("0");
 	        	  timesh.add(timesheetDTO);
 	        	  bioMaTO.setTimesheetdto(timesh);

@@ -91,6 +91,10 @@ getAll360LeaveApplicationsByEmpId(leaveObj: Leave) {
     return this.http.get(`${this.baseUrl}` + `api/biomax?startDate=${startDate}&endDate=${endDate}&employeeId=${employeeId}`);
   }
 
+  get360PendingCompOffRequestsByEmpId(compOffObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `api/get360PendingCompOffRequestsByEmpId`, compOffObj);
+  }
+
 
   // getBioOverTimeandState(EmployeDTO: Employee) {
   //   return this.http.post(`${this.baseUrl}` + `api/employee360state`, EmployeDTO);

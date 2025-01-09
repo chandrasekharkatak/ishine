@@ -494,7 +494,7 @@ updateStatus(status: string) {
 
   setDate(){
     if (this.startDate && this.endDate) {
-      this.formattedStartDate = this.datePipe.transform(this.startDate, 'dd-MM-yyyy');
+       this.formattedStartDate = this.datePipe.transform(this.startDate, 'dd-MM-yyyy');
       this.formattedEndDate = this.datePipe.transform(this.endDate, 'dd-MM-yyyy');
       if(this.isProjectTeamClicked){this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
       }
