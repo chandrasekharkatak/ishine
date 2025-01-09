@@ -312,8 +312,24 @@ public class Employee360Service {
 		logBuilder.append("Employee Emp Id : "+leaveDTO.getEmpId());
 		
 		try {
+			
+			 LocalDate localFromDate = null;
+		     LocalDate localToDate = null;
+		     SimpleDateFormat formatedDate = new SimpleDateFormat("dd-MM-yyyy", Locale.ENGLISH);
+		        
+			
+			if (leaveDTO.getFromDate() != null && !leaveDTO.getFromDate().isEmpty() && !leaveDTO.getFromDate().equalsIgnoreCase("null") &&
+					leaveDTO.getToDate() != null && !leaveDTO.getToDate().isEmpty() && !leaveDTO.getToDate().equalsIgnoreCase("null")) {
+	            Date fromDate = formatedDate.parse(leaveDTO.getFromDate());
+	            Date toDate = formatedDate.parse(leaveDTO.getToDate());
+	            localFromDate = fromDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+	            localToDate = toDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+	        } else {
+	            System.out.println("No date range provided, sending null for dates.");
+	        }
+			
 			List<Object[]> list = employeeLeaveRepository
-					.getAllLeaveApplicationsByEmpId(leaveDTO.getEmpId());
+					.getAllLeaveApplicationsByEmpIdAndFromDate(leaveDTO.getEmpId(),localFromDate,localToDate);
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
 			if (list.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);

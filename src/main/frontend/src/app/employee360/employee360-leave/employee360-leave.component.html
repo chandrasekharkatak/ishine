@@ -15,7 +15,7 @@
         <div *ngIf="showDropDown">
         <select class="form-select-sm align-items-center mx-1 custom-select parent-container" aria-label="Default select example"
             [(ngModel)]="selectedOption" (change)="onChangeOption(selectedOption)"> 
-            <option class="option-bg" value="1">Yearly</option>
+            <option class="option-bg" value="1">All</option>
             <option class="option-bg" value="2">Date range</option>
             <!-- <option class="option-bg" value="3">Monthly</option>
             <option class="option-bg" value="4">Date range</option> -->
@@ -23,6 +23,25 @@
     </div>
     </div>
 </div>
+
+<div *ngIf="selectedOption == 2" class="form-group mb-0 d-flex align-items-center" style="position: relative;">
+    <!-- Date Range Input Field -->
+    <input readonly placeholder=" Select Date Range:"
+      [style.width]="'200px'"
+      [style.height]="'29px'"
+      [(ngModel)]="dateTimeRange"
+      [selectMode]="'range'"
+      [owlDateTimeTrigger]="dtRange1" [owlDateTime]="dtRange1"
+      (ngModelChange)="getDateRange()"
+      [max]="todayDate"
+      class="custom-input">
+
+    <!-- Owl Date Time Picker -->
+    <owl-date-time [pickerType]="'calendar'" [scrollStrategy]="scrollStrategy" #dtRange1></owl-date-time>
+
+    <!-- FontAwesome Cross Icon to Reset Date Range -->
+    <i *ngIf="dateTimeRange" class="fa fa-times reset-icon ml-2" (click)="resetDateRange()"></i>
+  </div>
 
 <div class="row" *ngIf="activeButton === 'CompOff'">
     <div class="col-md-12 pl-4 pt-2 pb-3 pl-8" style="padding-left: 2rem;">

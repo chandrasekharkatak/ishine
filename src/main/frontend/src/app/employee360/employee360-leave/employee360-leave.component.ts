@@ -17,6 +17,9 @@ import { Employee360Service } from 'src/app/services/employee360.service';
 import * as Highcharts from 'highcharts';
 import { Breadcrumb } from 'src/app/models/breadcrumd';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
+import { ScrollStrategy } from '@angular/cdk/overlay';
+import { DatePipe } from '@angular/common';
+
 import { ValidationService } from 'src/app/services/validation.service';
 
 declare module 'highcharts' {
@@ -102,6 +105,16 @@ export class Employee360LeaveComponent implements OnInit {
   reporteeLeaveRevokeApplicationList:any[] = [];
 
 
+  //date set up 
+  selectedOption:any = 1;
+  startDate: any;
+  endDate:any; 
+  dateTimeRange: any = null;
+  todayDate: Date = new Date();
+  scrollStrategy: ScrollStrategy;
+  formattedStartDate:any = '';
+  formattedEndDate:any = '';
+  
   //Modal
   alertMessage: any
   modalRef: BsModalRef = new BsModalRef();
@@ -109,9 +122,9 @@ export class Employee360LeaveComponent implements OnInit {
 
   //Dropdown filter
   year=new Date().getFullYear();
-  selectedOption:any=1;
-  startDate: any;
-  endDate:any; 
+  // selectedOption:any=1;
+  // startDate: any;
+  // endDate:any; 
 
   chartOptions: Highcharts.Options = {
     chart: {
@@ -233,6 +246,7 @@ export class Employee360LeaveComponent implements OnInit {
     private employee360Service: Employee360Service,
     private breadcrumbService: BreadcrumbService,
     private modalService: BsModalService,
+    private datePipe: DatePipe,
     public validationService:ValidationService,
   ) {
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
@@ -266,6 +280,7 @@ export class Employee360LeaveComponent implements OnInit {
           breadcrumbObject.url = "/employee-360/leave";
           this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
         }
+    console.log("activeButton===>"+this.activeButton);
     
     this.currentUserr=sessionStorage.getItem('currentUser');
     if (this.currentUserr) {
@@ -369,7 +384,10 @@ export class Employee360LeaveComponent implements OnInit {
                 finalApprovalLevel: leaveApp.finalApprovalLevel || 1,
             }));
         };
-        leaveObj.empId = this.empId;
+    leaveObj.empId = this.empId;
+    leaveObj.fromDate = this.formattedStartDate;
+    leaveObj.toDate = this.formattedEndDate;
+
     // leaveObj.managerApprovalStatus=this.activeButton;
     this.employee360Service.getAll360LeaveApplicationsByEmpId(leaveObj).pipe(first()).subscribe(
       (response: any) => {
@@ -978,25 +996,49 @@ getLeaveStatusColor(status: string): string {
       // Handle "All"
       this.startDate = null;
       this.endDate = null;
-      // this.setDate();
-    } else if (arg == 2) {
-      // Handle "Weekly"
-      this.startDate = new Date();
-      this.endDate = new Date();
-      this.startDate.setDate(this.startDate.getDate() - 7);
-      // this.setDate();
-    } else if (arg == 3) {
-      // Handle "Monthly"
-      this.startDate = new Date();
-      this.endDate = new Date();
-      this.startDate.setDate(this.startDate.getDate() - 30);
-      // this.setDate();
+      this.setDate();
     } else if (arg == 4) {
-      // Handle "Date range"
       // start and end date will be handled by the owl-datepicker input fields
     }
     console.log("startDate" , this.startDate);
     console.log("endDate" , this.endDate);
 
   }
+
+  getDateRange() {
+    if (this.dateTimeRange && this.dateTimeRange.length === 2) {
+      const fromDate = this.dateTimeRange[0];
+      const toDate = this.dateTimeRange[1];
+  
+      console.log('From Date:', fromDate);
+      console.log('To Date:', toDate);
+      this.startDate = fromDate;
+      this.endDate = toDate;
+  
+      // logic to filter data based on the selected range
+      this.setDate();
+    }
+  }
+
+  resetDateRange() {
+    this.dateTimeRange = null;
+    this.startDate = null;
+    this.endDate = null;
+    this.setDate();
+    // Optionally, call your method to fetch data after reset
+  }
+
+  setDate(){
+    if (this.startDate && this.endDate) {
+       this.formattedStartDate = this.datePipe.transform(this.startDate, 'dd-MM-yyyy');
+      this.formattedEndDate = this.datePipe.transform(this.endDate, 'dd-MM-yyyy');
+      this.getAllLeaveApplicationsByEmpId();
+    }else{
+      this.formattedStartDate='';
+      this.formattedEndDate='';
+      this.getAllLeaveApplicationsByEmpId();
+
+    }
+  }
+  
 }
