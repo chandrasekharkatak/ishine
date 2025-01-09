@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.service;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -432,7 +433,7 @@ public class CronJobService {
 	// Cron job to run the query at 12:00 AM on December 31st every year ........../
 //	   @Scheduled(cron = "0 0 0 31 12 ?")
 
-	   @Scheduled(cron = "0 15 18 * * ?")
+//	   @Scheduled(cron = "0 15 18 * * ?")
 	   @Transactional	public void executeQueryAtYearEnd() {
 	    // SQL query to update manager approval status and reason
 		   //to make pending rejected
@@ -734,8 +735,13 @@ public class CronJobService {
 //												List<EmployeeLeave> employeeLeave = employeeLeaveRepository.findAll();
 												List<EmployeeLeave> employeeLeaveforApproved = employeeLeaveRepository.findByEmployeeforApproved();
 												List<EmployeeLeave> employeeLeaveforPending = employeeLeaveRepository.findByEmployeeforPending();
+												EmployeeLeavesMap elm = new EmployeeLeavesMap();
+												EmployeeLeavesMap dbResponse = new EmployeeLeavesMap();
+
 
 												List<EmployeeLeave> updatedEmployeeLeaveList = new ArrayList<>(); // List to hold mapped EmployeeLeave entities
+												float newBalance = 0; 
+
 
 												if(!employeeLeaveforApproved.isEmpty()) {
 													for(EmployeeLeave leave : employeeLeaveforApproved) {
@@ -745,6 +751,8 @@ public class CronJobService {
 															System.out.println("Checking Year " + createdOnLocalDate.getYear());
 															if(createdOnLocalDate.getYear() == (currentYear - 1) && 
 																	leave.getFromDate().getYear() == currentYear) {
+																
+																newBalance=1;
 																LeaveDTO leaveDTO = new LeaveDTO();
 																leaveDTO.setLeaveStatusId((short)5);
 																leaveDTO.setManagerApprovalStatus("Revoked");
@@ -769,23 +777,197 @@ public class CronJobService {
 												                leave.setFinalApprovalLevel(leaveDTO.getFinalApprovalLevel());
 																
 												                updatedEmployeeLeaveList.add(leave);
-																
+												                elm.setBalance(newBalance);
+																elm.setEmpId(leave.getEmpId());
+																elm.setLeaveTypeMasterId(leave.getLeaveTypeMasterId());
+																List<Long> employeeLeaveMapIds = employeeLeaveforApproved.stream()
+																	    .map(record -> record.getEmpId())  
+																	    .collect(Collectors.toList());     
+
+																List<Object[]> matchingEmployeeIds = employeeLeaveMap.stream()
+																	    .filter(employeeLeave -> employeeLeaveMapIds.contains(((BigInteger) employeeLeave[2]).longValue())) 
+																	    .collect(Collectors.toList());
+														        
+																if (!matchingEmployeeIds.isEmpty()) {
+																    matchingEmployeeIds.forEach(list -> {
+																        if (list[0] instanceof BigInteger) {
+																            // Convert BigInteger to Long
+																            elm.setEmployeeLeavesMapId(((BigInteger) list[0]).longValue());
+																        } else if (list[0] instanceof Long) {
+																            // If it is already a Long, no conversion needed
+																            elm.setEmployeeLeavesMapId((Long) list[0]);
+																        } 
+																        if (list[4] instanceof Float) {
+																            elm.setPendingForApproval((Float) list[4]);
+																        } 
+																   });
+																}	
+																dbResponse = employeeLeavesMapRepository.save(elm);
 															}
+															
+//															float newBalance = 1; 
+												            if (createdOnLocalDate.getYear() == leave.getFromDate().getYear() &&
+												                leave.getNoOfDays() > 1) {
+												                newBalance = 1; 
+												                LeaveDTO leaveDTO = new LeaveDTO();
+												                leaveDTO.setLeaveStatusId((short) 5);
+												                leaveDTO.setManagerApprovalStatus("Revoked");
+												                leaveDTO.setLevel2ApprovalStatus("NA");
+												                leaveDTO.setLevel3ApprovalStatus("NA");
+												                leaveDTO.setLevel2ApproverId(null);
+												                leaveDTO.setLevel3ApproverId(null);
+												                leaveDTO.setReason("Application revoked as CL exceeded its limit !!");
+												                leaveDTO.setUpdatedBy(3);
+												                leaveDTO.setCurrentApprovalLevel(1);
+												                leaveDTO.setFinalApprovalLevel(1);
+
+												                leave.setLeaveStatusId(leaveDTO.getLeaveStatusId());
+												                leave.setManagerApprovalStatus(leaveDTO.getManagerApprovalStatus());
+												                leave.setLevel2ApprovalStatus(leaveDTO.getLevel2ApprovalStatus());
+												                leave.setLevel3ApprovalStatus(leaveDTO.getLevel3ApprovalStatus());
+												                leave.setLevel2ApproverId(leaveDTO.getLevel2ApproverId());
+												                leave.setLevel3ApproverId(leaveDTO.getLevel3ApproverId());
+												                leave.setReason(leaveDTO.getReason());
+												                leave.getCommonProperty().setUpdatedBy(Long.valueOf(leaveDTO.getUpdatedBy()));
+												                leave.setCurrentApprovalLevel(leaveDTO.getCurrentApprovalLevel());
+												                leave.setFinalApprovalLevel(leaveDTO.getFinalApprovalLevel());
+
+												                updatedEmployeeLeaveList.add(leave);
+												                elm.setBalance(newBalance);
+																elm.setEmpId(leave.getEmpId());
+																elm.setLeaveTypeMasterId(leave.getLeaveTypeMasterId());
+																List<Long> employeeLeaveMapIds = employeeLeaveforApproved.stream()
+																	    .map(record -> record.getEmpId())  
+																	    .collect(Collectors.toList());     
+
+																List<Object[]> matchingEmployeeIds = employeeLeaveMap.stream()
+																	    .filter(employeeLeave -> employeeLeaveMapIds.contains(((BigInteger) employeeLeave[2]).longValue())) 
+																	    .collect(Collectors.toList());
+														        
+																if (!matchingEmployeeIds.isEmpty()) {
+																    matchingEmployeeIds.forEach(list -> {
+																        if (list[0] instanceof BigInteger) {
+																            // Convert BigInteger to Long
+																            elm.setEmployeeLeavesMapId(((BigInteger) list[0]).longValue());
+																        } else if (list[0] instanceof Long) {
+																            // If it is already a Long, no conversion needed
+																            elm.setEmployeeLeavesMapId((Long) list[0]);
+																        }
+																        if (list[4] instanceof Float) {
+																            elm.setPendingForApproval((Float) list[4]);
+																        }
+																    });
+																}
+																dbResponse = employeeLeavesMapRepository.save(elm);
+												            }else if(createdOnLocalDate.getYear() == leave.getFromDate().getYear() &&
+													                leave.getNoOfDays() == 1){
+												            	newBalance = 0;
+												            	elm.setBalance(newBalance);
+																elm.setEmpId(leave.getEmpId());
+																elm.setLeaveTypeMasterId(leave.getLeaveTypeMasterId());
+																List<Long> employeeLeaveMapIds = employeeLeaveforApproved.stream()
+																	    .map(record -> record.getEmpId())  
+																	    .collect(Collectors.toList());     
+
+																List<Object[]> matchingEmployeeIds = employeeLeaveMap.stream()
+																	    .filter(employeeLeave -> employeeLeaveMapIds.contains(((BigInteger) employeeLeave[2]).longValue())) 
+																	    .collect(Collectors.toList());
+														        
+																if (!matchingEmployeeIds.isEmpty()) {
+																    matchingEmployeeIds.forEach(list -> {
+																        if (list[0] instanceof BigInteger) {
+																            // Convert BigInteger to Long
+																            elm.setEmployeeLeavesMapId(((BigInteger) list[0]).longValue());
+																        } else if (list[0] instanceof Long) {
+																            // If it is already a Long, no conversion needed
+																            elm.setEmployeeLeavesMapId((Long) list[0]);
+																        } 																       
+																        if (list[4] instanceof Float) {
+																            elm.setPendingForApproval((Float) list[4]);
+																        }
+																    });
+																}
+																
+																dbResponse = employeeLeavesMapRepository.save(elm);
+												            }
 														}
 										
 													}
 													
 												}
+//												float newBalance = 0;
 												if(!employeeLeaveforPending.isEmpty()) {
 														for(EmployeeLeave leave : employeeLeaveforPending) {
 															if(leave != null) {
-																Date createdOnDate = leave.getCommonProperty().getCreatedOn(); // Assuming this returns java.util.Date
-																LocalDate createdOnLocalDate = createdOnDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-																System.out.println("Checking Year " + createdOnLocalDate.getYear());
-																if( createdOnLocalDate.getYear() == (currentYear - 1) && 
-																		leave.getFromDate().getYear() == currentYear) {
+																	Date createdOnDate = leave.getCommonProperty().getCreatedOn(); // Assuming this returns java.util.Date
+																	LocalDate createdOnLocalDate = createdOnDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+																	System.out.println("Checking Year " + createdOnLocalDate.getYear());
+																	if( createdOnLocalDate.getYear() == (currentYear - 1) && 
+																			leave.getFromDate().getYear() == currentYear) {
 																		
-																		LeaveDTO leaveDTO = new LeaveDTO();
+																			newBalance=1;
+																			
+																			LeaveDTO leaveDTO = new LeaveDTO();
+																			leaveDTO.setLeaveStatusId((short)3);
+																			leaveDTO.setManagerApprovalStatus("Rejected");
+																			leaveDTO.setLevel2ApprovalStatus("NA");
+																			leaveDTO.setLevel3ApprovalStatus("NA");
+																			leaveDTO.setLevel2ApproverId(null);		
+																			leaveDTO.setLevel3ApproverId(null);
+																			leaveDTO.setReason("Application rejected as CL exceeded its limit !!");
+																			leaveDTO.setUpdatedBy(leave.getManagerId());
+																			leaveDTO.setCurrentApprovalLevel(1);
+																			leaveDTO.setFinalApprovalLevel(1);
+																			
+																			leave.setLeaveStatusId(leaveDTO.getLeaveStatusId());
+															                leave.setManagerApprovalStatus(leaveDTO.getManagerApprovalStatus());
+															                leave.setLevel2ApprovalStatus(leaveDTO.getLevel2ApprovalStatus());
+															                leave.setLevel3ApprovalStatus(leaveDTO.getLevel3ApprovalStatus());
+															                leave.setLevel2ApproverId(leaveDTO.getLevel2ApproverId());
+															                leave.setLevel3ApproverId(leaveDTO.getLevel3ApproverId());
+															                leave.setReason(leaveDTO.getReason());
+															                leave.getCommonProperty().setUpdatedBy((Long.valueOf(leaveDTO.getUpdatedBy())));
+															                leave.setCurrentApprovalLevel(leaveDTO.getCurrentApprovalLevel());
+															                leave.setFinalApprovalLevel(leaveDTO.getFinalApprovalLevel());
+																			
+															                updatedEmployeeLeaveList.add(leave);
+																			elm.setBalance(newBalance);
+																			elm.setEmpId(leave.getEmpId());
+																			elm.setLeaveTypeMasterId(leave.getLeaveTypeMasterId());
+																			
+																			List<Long> employeeLeaveMapIds = employeeLeaveforPending.stream()
+																				    .map(record -> record.getEmpId())  
+																				    .collect(Collectors.toList());     
+
+																			List<Object[]> matchingEmployeeIds = employeeLeaveMap.stream()
+																				    .filter(employeeLeave -> employeeLeaveMapIds.contains(((BigInteger) employeeLeave[2]).longValue())) 
+																				    .collect(Collectors.toList());
+																	        
+																			if (!matchingEmployeeIds.isEmpty()) {
+																			    matchingEmployeeIds.forEach(list -> {
+																			        if (list[0] instanceof BigInteger) {
+																			            // Convert BigInteger to Long
+																			            elm.setEmployeeLeavesMapId(((BigInteger) list[0]).longValue());
+																			        } else if (list[0] instanceof Long) {
+																			            // If it is already a Long, no conversion needed
+																			            elm.setEmployeeLeavesMapId((Long) list[0]);
+																			        }
+																			        if (list[4] instanceof Float) {
+																			            elm.setPendingForApproval((Float) list[4]);
+																			        }
+																			    });
+																			}
+
+
+																			
+																			dbResponse = employeeLeavesMapRepository.save(elm);
+																		}
+																	
+														            if (createdOnLocalDate.getYear() == leave.getFromDate().getYear() &&
+														                leave.getNoOfDays() > 1) {
+														                newBalance = 1; 
+
+														            	LeaveDTO leaveDTO = new LeaveDTO();
 																		leaveDTO.setLeaveStatusId((short)3);
 																		leaveDTO.setManagerApprovalStatus("Rejected");
 																		leaveDTO.setLevel2ApprovalStatus("NA");
@@ -809,56 +991,97 @@ public class CronJobService {
 														                leave.setFinalApprovalLevel(leaveDTO.getFinalApprovalLevel());
 																		
 														                updatedEmployeeLeaveList.add(leave);
-																	}
-															}
+															            elm.setBalance(newBalance);
+																		elm.setEmpId(leave.getEmpId());
+																		elm.setLeaveTypeMasterId(leave.getLeaveTypeMasterId());
+																		
+																		List<Long> employeeLeaveMapIds = employeeLeaveforPending.stream()
+																			    .map(record -> record.getEmpId())  
+																			    .collect(Collectors.toList());     
+
+																		List<Object[]> matchingEmployeeIds = employeeLeaveMap.stream()
+																			    .filter(employeeLeave -> employeeLeaveMapIds.contains(((BigInteger) employeeLeave[2]).longValue())) 
+																			    .collect(Collectors.toList());
+																        
+																		if (!matchingEmployeeIds.isEmpty()) {
+																		    matchingEmployeeIds.forEach(list -> {
+																		        if (list[0] instanceof BigInteger) {
+																		            // Convert BigInteger to Long
+																		            elm.setEmployeeLeavesMapId(((BigInteger) list[0]).longValue());
+																		        } else if (list[0] instanceof Long) {
+																		            // If it is already a Long, no conversion needed
+																		            elm.setEmployeeLeavesMapId((Long) list[0]);
+																		        }
+																		        if (list[4] instanceof Float) {
+																		            elm.setPendingForApproval((Float) list[4]);
+																		        }
+																		    });
+																		}																		
+																		dbResponse = employeeLeavesMapRepository.save(elm);
+//																		
+														            }else if(createdOnLocalDate.getYear() == leave.getFromDate().getYear() &&
+															                leave.getNoOfDays() == 1){
+														            	newBalance = 0;
+															            elm.setBalance(newBalance);elm.setBalance(newBalance);
+																		elm.setEmpId(leave.getEmpId());
+																		elm.setLeaveTypeMasterId(leave.getLeaveTypeMasterId());
+																		List<Long> employeeLeaveMapIds = employeeLeaveforPending.stream()
+																			    .map(record -> record.getEmpId())  
+																			    .collect(Collectors.toList());     
+
+																		List<Object[]> matchingEmployeeIds = employeeLeaveMap.stream()
+																			    .filter(employeeLeave -> employeeLeaveMapIds.contains(((BigInteger) employeeLeave[2]).longValue())) 
+																			    .collect(Collectors.toList());
+																        
+																		if (!matchingEmployeeIds.isEmpty()) {
+																		    matchingEmployeeIds.forEach(list -> {
+																		        if (list[0] instanceof BigInteger) {
+																		            // Convert BigInteger to Long
+																		            elm.setEmployeeLeavesMapId(((BigInteger) list[0]).longValue());
+																		        } else if (list[0] instanceof Long) {
+																		            // If it is already a Long, no conversion needed
+																		            elm.setEmployeeLeavesMapId((Long) list[0]);
+																		        }
+																		        if (list[4] instanceof Float) {
+																		            elm.setPendingForApproval((Float) list[4]);
+																		        }
+																		    });
+																		}
+																		dbResponse = employeeLeavesMapRepository.save(elm);
+														            }
+																}
+																
 														}
 													}
+												if(employeeLeaveforPending.isEmpty() && employeeLeaveforApproved.isEmpty()) {
+													newBalance=1;
+													elm.setBalance(newBalance);
+													elm.setEmployeeLeavesMapId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+													elm.setEmpId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+													elm.setLeaveTypeMasterId(object[3] != null ? Short.parseShort(object[3].toString()) : null);
+													elm.setPendingForApproval(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
+													
+													System.out.println("Check CL" + elm.getBalance());
+													dbResponse = employeeLeavesMapRepository.save(elm);
+												}
 												employeeLeaveRepository.saveAll(updatedEmployeeLeaveList);	
 												System.out.println("Completed Successfully");
-
-													
-//												if(!employeeLeaveforApproved.isEmpty()) {
-//													for(EmployeeLeave empleave : employeeLeaveforApproved) {
-//														float newBalance = 1;
-//														Date createdOnDate = empleave.getCommonProperty().getCreatedOn(); 
-//														LocalDate createdOnLocalDate = createdOnDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-//														System.out.println("Checking Year " + createdOnLocalDate.getYear());
-//														if(createdOnLocalDate.getYear() == empleave.getFromDate().getYear()) {
-//															newBalance = 0;
-//														}		
-//														elm.setBalance(newBalance);
-//													}
-//													
-//												}
-
-//												if(!employeeLeaveforPending.isEmpty()) {
-//													for(EmployeeLeave empleave : employeeLeaveforPending) {
-//														float newBalance = 1;
-//														Date createdOnDate = empleave.getCommonProperty().getCreatedOn(); 
-//														LocalDate createdOnLocalDate = createdOnDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-//														System.out.println("Checking Year " + createdOnLocalDate.getYear());
-//														if(createdOnLocalDate.getYear() == empleave.getFromDate().getYear()) {
-//															newBalance = 0;
-//														}
-//														elm.setBalance(newBalance);
-//													}
-//													
-//												}
 //												elm.setBalance(newBalance);
-												float newBalance = 1;
-												EmployeeLeavesMap elm = new EmployeeLeavesMap();
-												elm.setEmployeeLeavesMapId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-												elm.setBalance(newBalance);
-												elm.setEmpId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
-												elm.setLeaveTypeMasterId(object[3] != null ? Short.parseShort(object[3].toString()) : null);
-												elm.setPendingForApproval(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
+//												float newBalance = 1;
+//												EmployeeLeavesMap elm = new EmployeeLeavesMap();
+//												elm.setEmployeeLeavesMapId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+//												elm.setBalance(newBalance);
+//												elm.setEmpId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+//												elm.setLeaveTypeMasterId(object[3] != null ? Short.parseShort(object[3].toString()) : null);
+//												elm.setPendingForApproval(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
 												
-												EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(elm);
+//												System.out.println("Check CL" + elm.getBalance());
+//												dbResponse = employeeLeavesMapRepository.save(elm);
 												
 												if (dbResponse != null) {	//set the changes in log table after alter the leave
 													LeaveBalanceLog log = new LeaveBalanceLog();
 
-													log.setBalance(newBalance);
+													log.setBalance(elm.getBalance());
 													log.setEmpId(elm.getEmpId());
 													log.setLeaveTypeMasterId(ltm.getLeaveTypeMasterId());
 													log.setMessage(LeaveLogMessage.autoDeductLeave.replace("0.0",

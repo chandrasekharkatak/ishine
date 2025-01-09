@@ -124,14 +124,21 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
 	public List<Object[]> getDepartmentPendingLeaveHistoryStatusNotIn(Long deptId, List<String> jobRoles);
 	
 	@Query(value = "SELECT * FROM employee_leave " +
-            "WHERE leave_type_master_id = 4 AND leave_status_id = 2 AND manager_approval_status = 'Approved'", 
+            "WHERE leave_type_master_id = 4 AND leave_status_id = 2 AND manager_approval_status = 'Approved' AND from_date BETWEEN '2025-01-01' AND '2025-01-31'", 
     nativeQuery = true)
 public List<EmployeeLeave> findByEmployeeforApproved();
 	
 	@Query(value = "SELECT * FROM employee_leave " +
-            "WHERE leave_type_master_id = 4 AND leave_status_id = 1 AND manager_approval_status = 'Pending'", 
+            "WHERE leave_type_master_id = 4 AND leave_status_id = 1 AND manager_approval_status = 'Pending' AND from_date BETWEEN '2025-01-01' AND '2025-01-31'", 
     nativeQuery = true)
 public List<EmployeeLeave> findByEmployeeforPending();
+	
+//	@Query(value = "SELECT * FROM db_emp_portal.employee_leave el " +
+//            "INNER JOIN db_emp_portal.employee_leaves_mapping elm ON el.emp_id = elm.emp_id " +
+//            "WHERE el.leave_type_master_id = 4 AND el.leave_status_id = 1 AND elm.manager_approval_status = 'Pending' AND el.from_date BETWEEN '2025-01-01' AND '2025-01-31'", 
+//    nativeQuery = true)
+//public List<EmployeeLeave> findByEmployeeforPending();
+
 
 
 }
