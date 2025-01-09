@@ -9,10 +9,11 @@ import { EmployeeConfigComponent } from '../configuration/employee-config/employ
 import { DeptConfigComponent } from '../configuration/dept-config/dept-config.component';
 import { LeaveConfigComponent } from '../configuration/leave-config/leave-config.component';
 import { RoleConfigComponent } from '../configuration/role-config/role-config.component';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 import { Employee360Service } from '../services/employee360.service';
 import { BreadcrumbService } from '../services/breadcrumb.service';
 import { Employee } from '../models/employee';
+import { takeUntil } from 'rxjs/operators';
 
 
 @Component({
@@ -21,6 +22,8 @@ import { Employee } from '../models/employee';
   styleUrls: ['./employee360.component.css']
 })
 export class Employee360Component implements OnInit {
+
+  private unsubscribe$ = new Subject<void>();
 
   employeeData: any;
   emplId:any;
@@ -95,6 +98,10 @@ export class Employee360Component implements OnInit {
       this.userMapping[feat.featureName.replaceAll(' ', '_').toLowerCase()] = (inActiveSubfeatures.length === feat.subFeatures.length) ? false : true;
     });
   
+
+    this.breadcrumbService.currentMessage.pipe(takeUntil(this.unsubscribe$)).subscribe(message =>  {
+      this.setActiveTab();
+    });
   }
 
 
@@ -128,8 +135,27 @@ export class Employee360Component implements OnInit {
     const tabs = document.getElementById('Employee360Tab').querySelectorAll('.nav-link');
     let activeRouteLink:any;
 
-    if ((this.breadcrumbUrl != undefined && this.breadcrumbUrl != null) && this.breadcrumbUrl[this.breadcrumbUrl.length - 1]?.title.includes("Project")) {
-      activeRouteLink = 'project';
+    if ((this.breadcrumbUrl != undefined && this.breadcrumbUrl != null)) {
+      let employee360title = this.breadcrumbUrl[this.breadcrumbUrl.length - 1]?.title;
+
+      if(employee360title.includes("Employee-360-Profile")){
+        activeRouteLink = 'profile';
+      }else if(employee360title.includes("Leave")){
+        activeRouteLink = 'leave';
+      }else if(employee360title.includes("Project")){
+        activeRouteLink = 'project';
+      }else if(employee360title.includes("Timesheet")){
+        activeRouteLink = 'timesheet';
+      }else if(employee360title.includes("Biomax")){
+        activeRouteLink = 'biomax';
+      }else if(employee360title.includes("Rewards")){
+        activeRouteLink = 'rewards';
+      }else if(employee360title.includes("Appreciation")){
+        activeRouteLink = 'appreciation';
+      }else{
+        activeRouteLink = 'profile';
+      }
+      
     } else {
       const tab = document.getElementById('Employee360Tab').querySelector('.nav-link');
         activeRouteLink = tab ? tab.getAttribute('routerLink') : 'profile';
