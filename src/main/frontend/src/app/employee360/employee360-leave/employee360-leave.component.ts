@@ -466,7 +466,7 @@ export class Employee360LeaveComponent implements OnInit {
         this.allCompOffApplications = []
         let compOff = new Leave();
         compOff.empId = this.empId;
-        this.leaveService.getPendingCompOffRequestsByEmpId(compOff).pipe(first()).subscribe((response: any) => {
+        this.employee360Service.get360PendingCompOffRequestsByEmpId(compOff).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus == "Success") {
             this.allCompOffApplications = response.serviceResponse;
             this.allCompOffApplications.forEach(compOffApp => {

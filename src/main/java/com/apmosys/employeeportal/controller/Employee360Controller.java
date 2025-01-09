@@ -95,4 +95,11 @@ public class Employee360Controller {
 		return response;
 	}
 	
+	@RequestMapping(value = "/get360PendingCompOffRequestsByEmpId" ,method = RequestMethod.POST)
+	public ServiceResponse get360PendingCompOffRequestsByEmpId (@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = employee360Service.get360PendingCompOffRequestsByEmpId(leaveDTO);
+		return response;
+	}
+	
 }
