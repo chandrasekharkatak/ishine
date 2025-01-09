@@ -37,9 +37,9 @@
                         <td>{{ project.startDate }}</td>
                         <td>{{ project.endDate }}</td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary mt-1" title="Edit" (click)="editProjectInfo(project)" type="submit"><em class="fa fa-edit"></em></button>&nbsp;
+                            <button *ngIf="project.endDate == undefined || project.endDate == null" class="btn btn-sm btn-outline-primary mt-1" title="Edit" (click)="editProjectInfo(project)" type="submit"><em class="fa fa-edit"></em></button>&nbsp;
                             <button class="btn btn-sm btn-outline-primary mt-1" title="View" (click)="viewProjectInfo(project)" type="submit"><em class="fa fa-eye"></em></button>&nbsp;
-                            <button class="btn btn-sm btn-outline-danger mt-1" title="Delete" (click)="deleteResourceModal(delete_modal_template,project)" type="submit"><em class="fa fa-trash"></em></button>&nbsp;
+                            <button *ngIf="project.endDate == undefined || project.endDate == null" class="btn btn-sm btn-outline-danger mt-1" title="Delete" (click)="deleteResourceModal(delete_modal_template,project)" type="submit"><em class="fa fa-trash"></em></button>&nbsp;
                         </td>
                     </tr>
                 </tbody>

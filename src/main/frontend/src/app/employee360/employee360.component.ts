@@ -187,4 +187,43 @@ export class Employee360Component implements OnInit {
           this.currentab=tab;        
           console.log(this.currentab);
   }
+
+
+
+  setActiveTabByRoute(route: string) {
+    const tabsContainer = document.getElementById('Employee360Tab');
+    if (!tabsContainer) {
+      console.error("Tabs container not found!");
+      return;
+    }
+  
+    const tabs = tabsContainer.querySelectorAll('.nav-link');
+    if (!tabs || tabs.length === 0) {
+      console.error("No tabs found!");
+      return;
+    }
+  
+    console.log("Tabs: ", tabs);
+    console.log("Route: ", route);
+  
+    // Extract the last segment of the route
+    const lastRoute = route.split('/').filter(segment => segment).pop();
+    if (!lastRoute) {
+      console.error("Invalid route format: ", route);
+      return;
+    }
+    console.log("Last route segment: ", lastRoute);
+  
+    // Iterate over tabs and update active class
+    tabs.forEach(tab => {
+      const routerLink = tab.getAttribute('routerLink');
+      if (routerLink?.trim().toLowerCase() === lastRoute.toLowerCase()) {
+        tab.classList.add('active');
+        console.log(`Activated tab: ${routerLink}`);
+      } else {
+        tab.classList.remove('active');
+      }
+    });
+  }
+  
 }

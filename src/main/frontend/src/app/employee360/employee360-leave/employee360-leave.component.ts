@@ -271,10 +271,7 @@ export class Employee360LeaveComponent implements OnInit {
   ngOnInit(): void {  
     this.employeeData2 = history.state.data;
     console.log("Priyadarshini  Leave    ",this.employeeData);
-    // const employeeName = this.employeeData?.name || "Employee";
-    // const breadcrumbObject = { title: `${employeeName} - Leave`, url: "/employee-360/leave" };
-    // this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
-    let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title =="Leave");
+     let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title =="Leave");
         if (findbreadcrumbObject >= 0) {
           this.currentBreadcrumbList.splice(findbreadcrumbObject + 1);
           this.breadcrumbService.setBreadcrumbSubject(this.currentBreadcrumbList);
@@ -308,13 +305,13 @@ export class Employee360LeaveComponent implements OnInit {
       this.employee360Service.changeEmployeeData(dataToSend);
       this.isCompOffApplication=false;
       this.isCompOffRequest=true;
-      this.getPendingCompOffRequestsByManagerId();}
+      this.getPendingCompOffRequestsByEmpId();}
     if (button === 'Applications') {
       const dataToSend = { ...this.employeeData, status: 'comp-off-requests' };
       this.employee360Service.changeEmployeeData(dataToSend);
       this.isCompOffRequest=false;
       this.isCompOffApplication=true;
-      this.getPendingCompOffRequestsByManagerId();}
+      this.getPendingCompOffRequestsByEmpId();}
     }
 
   setCompOffStatus(){
@@ -350,10 +347,12 @@ export class Employee360LeaveComponent implements OnInit {
         this.getAllLeaveApplicationsByEmpId();}
     else if(["Requests","Applications", "CompOff"].includes(this.activeButton)){
         this.showTable=false;
+        this.isCompOffRequest=true;
+        this.isCompOffApplication=false;
         this.isLeaveRevokeRequest=false;
         this.isCompOffApplication=false;
         this.isCompOff=true;
-        this.getPendingCompOffRequestsByManagerId();}
+        this.getPendingCompOffRequestsByEmpId();}
     else if(["Applied For Revoke"].includes(this.activeButton)){
       this.showTable=false;
       this.isCompOff=false;
@@ -397,13 +396,9 @@ export class Employee360LeaveComponent implements OnInit {
       (response: any) => {
           if (response.serviceStatus === "Success") {
             this.teamViewLeaveHistoryList=response.serviceResponse;
+            this.LeaveListOnStatus(this.teamViewLeaveHistoryList);
             console.log("this.teamViewLeaveHistoryList====>",this.teamViewLeaveHistoryList);
-            this.LeaveListOnStatus(this.teamViewLeaveHistoryList)
-            
-              this.leaveApplicationList = processLeaveApplications(
-                  response.serviceResponse.filter((leaveApp: any) => leaveApp.status === this.employeeData2.status)
-              );
-              this.leaveApplicationList.forEach((leaveApplication) => {
+              this.teamViewLeaveHistoryList.forEach((leaveApplication) => {
                 this.leaveObj2.leaveId = leaveApplication.leaveId;
                 this.leaveObj2.currentUserEmpId = this.currentUser.empId
                 leaveApplication.isApprover = ((leaveApplication.managerId === this.currentUser.empId && leaveApplication.managerApprovalStatus === 'Pending') || (leaveApplication.level2ApproverId === this.currentUser.empId && leaveApplication.level2ApprovalStatus === 'Pending') || (leaveApplication.level3ApproverId === this.currentUser.empId && leaveApplication.level3ApprovalStatus === 'Pending'))? true : false;
@@ -416,8 +411,7 @@ export class Employee360LeaveComponent implements OnInit {
                     leaveApplication.isManagerFlag = false; 
                   }
                 });
-              });
-              
+              });      
           } else {
               console.error("Error fetching leave applications:", response.serviceResponse);
           }
@@ -468,7 +462,7 @@ export class Employee360LeaveComponent implements OnInit {
     });
   }
    //ComOff Applications
-  getPendingCompOffRequestsByManagerId() {
+   getPendingCompOffRequestsByEmpId() {
         this.allCompOffApplications = []
         let compOff = new Leave();
         compOff.empId = this.empId;
@@ -477,38 +471,22 @@ export class Employee360LeaveComponent implements OnInit {
             this.allCompOffApplications = response.serviceResponse;
             this.allCompOffApplications.forEach(compOffApp => {
               compOffApp.fromDate = (compOffApp.fromDate)? moment(compOffApp.fromDate).format(AppComponent.DATE_FORMAT) : null,
-              compOffApp.toDate = (compOffApp.toDate)? moment(compOffApp.toDate).format(AppComponent.DATE_FORMAT) : null,
-              this.compOffManagerId=compOff.managerId;
+              compOffApp.toDate = (compOffApp.toDate)? moment(compOffApp.toDate).format(AppComponent.DATE_FORMAT) : null
             });
+            
+            const managerIds = response.serviceResponse.map(item => item.managerId);
+            if(managerIds.includes(this.managerId)){this.showActiveButton=true;}
+            else{this.showActiveButton=false;}           
             this.setCompOffStatus();
             this.allCompOffApplications.forEach(compOffApp => {
               if(compOffApp.status==this.compOffStatus){
                 this.CompOffData.push(compOffApp);}
             });
-            console.log("this.CompOffData===>",this.CompOffData);
-            
-            if(this.compOffManagerId===this.managerId){
-              this.showActiveButton=true;}
-            else{this.showActiveButton=false;}
-            console.log("this.managerIdd======> : ", this.compOffManagerId);
+      
           } else {
             console.error(response.serviceResponse);
           }
         });
-        this.allCompOffApplications = []
-        compOff.managerId = this.currentUser.empId;
-        this.leaveService.getPendingCompOffRequestsByManagerId(compOff).pipe(first()).subscribe((response: any) => {
-          if (response.serviceStatus == "Success") {
-  
-            this.allCompOffApplications = response.serviceResponse;
-            this.allCompOffApplications.forEach(compOffApp => {
-              compOffApp.fromDate = (compOffApp.fromDate)? moment(compOffApp.fromDate).format(AppComponent.DATE_FORMAT) : null,
-              compOffApp.toDate = (compOffApp.toDate)? moment(compOffApp.toDate).format(AppComponent.DATE_FORMAT) : null
-            });
-          } else {
-            console.error(response.serviceResponse);
-          }
-        }); 
     }
 
     onUpdateCompOffStatus(template: TemplateRef<any>, compOffObj, updatedCompOffStatusId) {
@@ -522,7 +500,7 @@ export class Employee360LeaveComponent implements OnInit {
       this.leaveService.updateCompOffById(compOffObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.openAlertMod(template, response.serviceResponse);
-          this.getPendingCompOffRequestsByManagerId();
+          this.getPendingCompOffRequestsByEmpId();
         } else {
           this.openAlertMod(template, response.serviceResponse);
         }
