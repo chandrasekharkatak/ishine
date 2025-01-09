@@ -95,7 +95,7 @@ export class Employee360ProfileComponent implements OnInit {
         const navigation = this.router.getCurrentNavigation();
 console.log("yes" ,navigation)
      
-        this.employeeData = navigation?.extras.state.data;
+        this.employeeData = navigation?.extras?.state?.data;
         
       }
   
