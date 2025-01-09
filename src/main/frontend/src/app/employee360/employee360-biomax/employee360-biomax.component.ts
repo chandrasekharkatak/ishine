@@ -94,7 +94,7 @@ ngOnInit(): void {
 
 
 
-         let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title == "Employee-360-Profile");
+         let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title == "Biomax");
          console.log("ckecked breadcrums   ",findbreadcrumbObject)
             if (findbreadcrumbObject >= 0) {
               this.currentBreadcrumbList.splice(findbreadcrumbObject + 1);
