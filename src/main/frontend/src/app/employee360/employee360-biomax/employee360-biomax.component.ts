@@ -48,13 +48,13 @@ export class Employee360BiomaxComponent implements OnInit{
 filter={
   officestartTimePicker:'',
   officeendTimePicker:'',
-  employeeId:'740',
+  employeeId:'',
   viewfilter:'Weekly'
 }
 filter1={
   officestartTimePicker:'',
   officeendTimePicker:'',
-  employeeId:'012345',
+  employeeId:'',
   viewfilter:'Weekly'
 }
 
@@ -68,12 +68,6 @@ constructor(private datePipe: DatePipe,
 }
 
 ngOnInit(): void {
-  this.filter1={
-    officestartTimePicker:'',
-    officeendTimePicker:'',
-    employeeId:'740',
-    viewfilter:'Weekly'
-  }
 
   this.filter1.officeendTimePicker=this.filter.officeendTimePicker;
   this.filter1.officestartTimePicker=this.filter.officestartTimePicker;
@@ -84,6 +78,15 @@ ngOnInit(): void {
   }else{
     this.employeeData = history.state.data;
   }
+
+  this.filter1={
+    officestartTimePicker:'',
+    officeendTimePicker:'',
+    employeeId:this.employeeData.empId,
+    viewfilter:'Weekly'
+  }
+
+
  
   // const breadcrumbObject = { title: `Biomax`, url: "/employee-360/biomax" };
   // this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
