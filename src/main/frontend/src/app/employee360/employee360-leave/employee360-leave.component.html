@@ -12,10 +12,10 @@
             <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Applied For Revoke'}" (click)="setActiveButton('Applied For Revoke')">Applied For Revoke</button>
             <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'CompOff'}" (click)="setActiveButton('CompOff')">Comp-off</button>
         </div>
-        <div *ngIf="back">
+        <div *ngIf="showDropDown">
         <select class="form-select-sm align-items-center mx-1 custom-select parent-container" aria-label="Default select example"
             [(ngModel)]="selectedOption" (change)="onChangeOption(selectedOption)"> 
-            <option class="option-bg" value="1">Yearly</option>
+            <option class="option-bg" value="1">All</option>
             <option class="option-bg" value="2">Date range</option>
             <!-- <option class="option-bg" value="3">Monthly</option>
             <option class="option-bg" value="4">Date range</option> -->
@@ -24,8 +24,27 @@
     </div>
 </div>
 
+<div *ngIf="selectedOption == 2" class="form-group mb-0 d-flex align-items-center" style="position: relative;">
+    <!-- Date Range Input Field -->
+    <input readonly placeholder=" Select Date Range:"
+      [style.width]="'200px'"
+      [style.height]="'29px'"
+      [(ngModel)]="dateTimeRange"
+      [selectMode]="'range'"
+      [owlDateTimeTrigger]="dtRange1" [owlDateTime]="dtRange1"
+      (ngModelChange)="getDateRange()"
+      [max]="todayDate"
+      class="custom-input">
+
+    <!-- Owl Date Time Picker -->
+    <owl-date-time [pickerType]="'calendar'" [scrollStrategy]="scrollStrategy" #dtRange1></owl-date-time>
+
+    <!-- FontAwesome Cross Icon to Reset Date Range -->
+    <i *ngIf="dateTimeRange" class="fa fa-times reset-icon ml-2" (click)="resetDateRange()"></i>
+  </div>
+
 <div class="row" *ngIf="activeButton === 'CompOff'">
-    <div class="col-md-12 pl-4 pt-2 pb-3" style="padding-left: 2rem;">
+    <div class="col-md-12 pl-4 pt-2 pb-3 pl-8" style="padding-left: 2rem;">
         <button type="button" class="btn btn-outline-primary btn-sm active ng-star-inserted mx-1" [ngClass]="{'active': activeCompOffButton === 'Requests'}" (click)="setActiveCompOffButton('Requests')">Comp-off Requests</button>
         <button type="button" class="btn btn-outline-primary btn-sm active ng-star-inserted mx-1" [ngClass]="{'active': activeCompOffButton === 'Applications'}" (click)="setActiveCompOffButton('Applications')">Comp-off Applications</button>
     </div>
@@ -33,7 +52,7 @@
 
 
 <!-- For Graphs-Charts -->
-<ng-container *ngIf="!showTable && !isCompOffRequest">
+<ng-container *ngIf="!showTable &&!isCompOff &&!isLeaveRevokeRequest">
     <div class="row">
         <div class="card-body">
             <div class="row">
@@ -48,26 +67,8 @@
                     </div>
                 </div>
             </div>
-            <!-- <div class="row" >
-                <div class="col-md-12">
-                    <div class="container-fluid">
-                        <div class="row">
-                            <div class="col-md-4 mb-0" >
-                                Comp Off Requests
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div> -->
             <div class="row">
                 <div class="col-md-12">
-                    <!-- <div class="container-fluid">
-                        <div class="row">
-                            <div class="col-md-4 mb-0">
-                                Comp Off Applications
-                            </div>
-                        </div>
-                    </div> -->
                 </div>
             </div>
         </div>
@@ -131,7 +132,12 @@
                             <td [ngStyle]="{'color': (leaveHistory.level3ApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.level3ApprovalStatus == 'Approved') ? 'green' : (leaveHistory.level3ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.level3ApprovalStatus}}</td>
                             <td class="info-label">{{leaveHistory.remark}}</td>
                             <td>
-                              <!-- <button *ngIf="userMapping.revoke_reportee_leave && leaveHistory.status == 'Approved'" class="btn btn-sm btn-outline-danger mb-1" type="submit" (click)="openRevokeReporteeLeaveModal(revoke_approved_leave,leaveHistory)"><em>Revoke Leave</em></button> -->
+                              <button *ngIf="approveReject" class="btn btn-sm btn-outline-success" type="submit"
+                              (click)="onUpdateLeaveStatus(alert_message, leaveHistory, 2)" title="Approve"><em
+                                class="fa-solid fa-check"></em></button>&nbsp;
+                            <button *ngIf="approveReject" class="btn btn-sm btn-outline-danger" type="submit"
+                              (click)="openLeaveRejectModal(reject_leave_modal, leaveHistory)" title="Reject"><em
+                                class="fa-solid fa-xmark"></em></button>
                             </td>
                           </tr>
                         </tbody>
@@ -140,19 +146,14 @@
 </div>
 
 <!-- CompOff Request table -->
-<div class="row" *ngIf="isCompOffRequest">
+<div class="row" *ngIf="isCompOff">
     <div class="col-md-12">
       <div class="row">
         <div class="col-md-12">
-          <!-- <div class="selector-toggle" (click)="toggleSearch()">
-            <a href="javascript:void(0)">
-                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-            </a>
-          </div> -->
+            <h4 class="text-center flex-grow-1 mb-3">{{compOffStatus}} Applications</h4>
           <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffRequestInfo'"
             [tableTHeadId]="'compOffRequestInfoTHead'" [tableTHeadTrId]="'compOffRequestInfoTHeadTr'">
-            <table class="table compOffApplication-table" id="compOffApplication-table">
+            <table class="table compOffApplication-table" id="compOffApplication-table" >
               <thead class="thead-light">
                 <tr>
                   <th scope="col" class="info-label" >Sr No.</th>
@@ -163,15 +164,15 @@
                   <th scope="col" class="info-label" >Duration</th>
                   <th scope="col" class="info-label" >Description</th>
                   <th scope="col" class="info-label" >Status</th>
-                  <th scope="col" class="info-label" >Actions</th>
+                  <th scope="col" class="info-label" *ngIf="showActiveButton">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                <tr *ngIf="allCompOffApplications.length == 0">
+                <tr *ngIf="CompOffData.length == 0">
                   <th colspan="9" class="text-center info-label">No details to display...</th>
                 </tr>
                 <tr
-                  *ngFor="let compOffApp of allCompOffApplications; let i = index">
+                  *ngFor="let compOffApp of CompOffData; let i = index">
                   <td>{{i+1}}</td>
                   <td>{{compOffApp.createdByName}}</td>
                   <td>{{compOffApp.compOffReasons}}</td>
@@ -180,12 +181,72 @@
                   <td>{{compOffApp.noOfDays}}</td>
                   <td>{{compOffApp.description}}</td>
                   <td>{{compOffApp.status}}</td>
-                  <td>
-                    <button *ngIf="userMapping.update_pending_req" class="btn btn-sm btn-outline-success"
+                  <td *ngIf="showActiveButton">
+                    <button  class="btn btn-sm btn-outline-success"
                       type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 2)" title="Approve"><em
                         class="fa-solid fa-check"></em></button>&nbsp;
-                    <button *ngIf="userMapping.update_pending_req" class="btn btn-sm btn-outline-danger" type="submit"
+                    <button  class="btn btn-sm btn-outline-danger" type="submit"
                       (click)="onUpdateCompOffStatus(alert_message, compOffApp, 3)" title="Reject"><em
+                        class="fa-solid fa-xmark"></em></button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- start ::Reportee Leave Revoke Application Table -->
+  <div class="row" *ngIf="isLeaveRevokeRequest">
+    <div class="col-md-12">
+      <div class="row">
+        <div class="col-md-12 table-header">
+          <h4 class="text-center flex-grow-1 mb-0 pb-2"> Leave Revoke Applications</h4>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="overflow-auto" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
+            [tableTHeadTrId]="'holidayInfoTHeadTr'">
+            <table class="table leaveRevokeRequest-table" id="leaveRevokeRequest-table">
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col" class="info-label">Sr. No</th>
+                  <th scope="col" class="info-label" >Leave Type</th>
+                  <th scope="col" class="info-label" >From Date</th>
+                  <th scope="col" class="info-label" >To Date</th>
+                  <th scope="col" class="info-label" >Duration</th>
+                  <th scope="col" class="info-label" >Status</th>
+                  <th scope="col" class="info-label" >Applied By</th>
+                  <th scope="col" class="info-label" >Applied On</th>
+                  <th scope="col" class="info-label" >Revoke Reason</th>
+                  <th scope="col" class="info-label" >Action</th>
+                </tr>
+                </thead>
+              <tbody>
+                <tr
+                  *ngIf="reporteeLeaveRevokeApplicationList.length == 0">
+                  <th colspan="10" class="text-center info-label">No details to display...</th>
+                </tr>
+                <tr
+                  *ngFor="let leave of reporteeLeaveRevokeApplicationList; let i = index">
+                  <td>{{i+1}}</td>
+                  <td>{{leave.leaveType}}</td>
+                  <td>{{leave.fromDate}}</td>
+                  <td>{{leave.toDate}}</td>
+                  <td>{{leave.noOfDays}}</td>
+                  <td>{{leave.status}}</td>
+                  <td>{{leave.createdByName}}</td>
+                  <td>{{leave.createdOn}}</td>
+                  <td>{{leave.revokeReason}}</td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-success" type="submit"
+                      (click)="onUpdateRevokeLeaveStatus(alert_message, leave, 2)" title="Approve"><em
+                        class="fa-solid fa-check"></em></button>&nbsp;
+                    <button class="btn btn-sm btn-outline-danger" type="submit"
+                      (click)="openRevokeLeaveRejectModal(reject_revoke_leave, leave)" title="Reject"><em
                         class="fa-solid fa-xmark"></em></button>
                   </td>
                 </tr>
@@ -203,5 +264,25 @@
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
     </div>
-  </ng-template>
+</ng-template>
+
+<!-- for single rection modal -->
+<ng-template #reject_leave_modal>
+    <div class="modal-body text-center">
+        <p>Kindly provide reason(s) for rejecting application.</p>
+        <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.rejectReason"> </textarea><br>
+        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)" (click)="cancelRequest();onSingleReject(alert_message)">Reject</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<!-- RevokeLeave Reject modal   -->
+<ng-template #reject_revoke_leave>
+    <div class="modal-body text-center">
+        <p>Kindly provide reason(s) for rejecting application.</p>
+        <textarea rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.rejectReason"> </textarea><br>
+        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)" (click)="onUpdateRevokeLeaveStatus(alert_message,leaveObj,3)">Reject</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
 
