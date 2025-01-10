@@ -6,6 +6,7 @@ import { Biomax } from 'src/app/models/biomax';
 import { Employee360Service } from 'src/app/services/employee360.service';
 import * as Highcharts from 'highcharts';
 import { Breadcrumb } from 'src/app/models/breadcrumd';
+import { Team } from 'src/app/models/team';
 
 @Component({
   selector: 'app-employee360-biomax',
@@ -20,6 +21,11 @@ export class Employee360BiomaxComponent implements OnInit{
   biomaxList:Biomax[]=[];
   biomaxList1:Biomax[]=[];
   currentBreadcrumbList: any[] = [];
+  team=new Team();
+  employeeIdList:any[]=[];
+   employeeIdString = '';
+  teamList:Team[]=[];
+  defaultview:boolean=true;
   chartdata={
     workinghours:0,
     lessthenworkinghours:0,
@@ -78,14 +84,11 @@ ngOnInit(): void {
   }else{
     this.employeeData = history.state.data;
   }
-
-  this.filter1={
-    officestartTimePicker:'',
-    officeendTimePicker:'',
-    employeeId:this.employeeData.empId,
-    viewfilter:'Weekly'
-  }
-
+ 
+  this.filter1.employeeId=""+740;//this.employeeData.empId;
+  
+ 
+  console.log(this.filter1);
 
  
   // const breadcrumbObject = { title: `Biomax`, url: "/employee-360/biomax" };
@@ -95,7 +98,6 @@ ngOnInit(): void {
 
 
          let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title == "Biomax");
-         console.log("ckecked breadcrums   ",findbreadcrumbObject)
             if (findbreadcrumbObject >= 0) {
               this.currentBreadcrumbList.splice(findbreadcrumbObject + 1);
               this.breadcrumbService.setBreadcrumbSubject(this.currentBreadcrumbList);
@@ -113,12 +115,7 @@ ngOnInit(): void {
 
 viewFilterdata() {
   // Initialize filter1 object
-  this.filter1 = {
-    officestartTimePicker: '',
-    officeendTimePicker: '',
-    employeeId: '740',
-    viewfilter: 'Weekly'
-  };
+ 
 
   // Create a Date object for manipulation
   var  currentDate = new Date();
@@ -137,6 +134,8 @@ viewFilterdata() {
 
   this.filter1.officestartTimePicker = this.formatDate(""+currentDate);
   this.filter1.officeendTimePicker = this.formatDate(""+new Date());
+  this.filter.officestartTimePicker=this.filter1.officestartTimePicker;
+  this.filter.officeendTimePicker=this.filter1.officeendTimePicker;
   this.getBiomatrixFilter();
 
 }
@@ -172,6 +171,7 @@ searchBioMax(){
 }
 
 getBiomatrixFilter() {
+ 
   let workinghours2 = 0;
   let lessthenworkinghours = 0;
   let hovertime = 0;
@@ -179,6 +179,7 @@ getBiomatrixFilter() {
   this.employee360.getEmployeeDetailsForBiomax(this.filter1.officestartTimePicker, this.filter1.officeendTimePicker, this.filter1.employeeId)
     .subscribe((response: any) => {
       this.biomaxList = response.serviceResponse;
+     
       this.biomaxList.forEach((filter5) => {
         let workinghours: number = parseInt(filter5.totalDuration);
         if (workinghours !== 0) {
@@ -192,13 +193,15 @@ getBiomatrixFilter() {
         }
       });
 
-      // Set the chart data
-      this.chartdata.hovertime = hovertime;
-      this.chartdata.workinghours = workinghours2;
-      this.chartdata.lessthenworkinghours = lessthenworkinghours;
-
+     
+if(this.biomaxList.length>0){
+ // Set the chart data
+ this.chartdata.hovertime = hovertime;
+ this.chartdata.workinghours = workinghours2;
+ this.chartdata.lessthenworkinghours = lessthenworkinghours;
       // Update the chart with new data
       this.updateChartData(this.chartdata);
+}
     });
 }
 
@@ -213,6 +216,7 @@ private updateChartData(data: any): void {
     credits: {
       enabled: false
     },
+    colors: ['#FF5733', '#33FF57', '#3357FF'],
     series: [
       {
         type: 'pie',
@@ -235,5 +239,47 @@ ngAfterViewInit(): void {
   if (this.chartdata) {
     Highcharts.chart('biomaxfiterContainer', this.chartOptions);
   }
+}
+teamData(id:any){
+  let breadcrumbObject = new Breadcrumb();
+             
+  breadcrumbObject.title = "Team";
+              breadcrumbObject.url = "/employee-360/biomax";
+              this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
+  let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title == "Team");
+            if (findbreadcrumbObject >= 0) {
+              this.currentBreadcrumbList.splice(findbreadcrumbObject + 1);
+              this.breadcrumbService.setBreadcrumbSubject(this.currentBreadcrumbList);
+            } else {
+              breadcrumbObject.title = "Team";
+              breadcrumbObject.url = "/employee-360/biomax";
+              this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
+            }
+  this.defaultview=false;
+ this.team.teamId=id;
+ this.getTeamFromEmployeeMapping();
+ this.getBiomatrixFilter();
+
+  
+}
+goBack(){
+  this.defaultview=true;
+this.getBiomatrixFilter();
+}
+getTeamFromEmployeeMapping(){
+  
+  this.employee360.getTeamTImeSheet(this.team).subscribe((response: any) => {
+    this.teamList = response.serviceResponse;
+    console.log(this.teamList);
+    this.teamList.forEach((emp, index) => {
+     // If it's not the first element, add a comma before appending the empId
+      if (index > 0) {
+        this.employeeIdString += ',';
+      }
+      this.employeeIdString += emp.empId;
+    });
+   this.filter1.employeeId=this.employeeIdString;
+  });
+ 
 }
 }

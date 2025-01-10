@@ -378,15 +378,25 @@ public class BioMaxService {
 	    Connection con = null;
 	    PreparedStatement statement = null;
 	    ResultSet resultSet = null;
-
+//	    List<String> listEmployeeId=new ArrayList<>();
+//	    if(employeeId.contains(",")) {
+//	    	String[] listemployee=employeeId.split(",");
+//	    	for(String s:listemployee) {
+//	    		listEmployeeId.add(s);
+//	    	}
+//	    	
+//	    }
 	    try {
 	        Set<String> bioEmpIdSet = new HashSet<>();
 	        Map<String, List<String>> empMapById = new HashMap<>();
 	        List<BioMax360> finalEmpBioData = new ArrayList();
 
-	        String Query="SELECT   AttendanceDate,al.EmployeeId as EmployeeId, AttendanceDateStr,EmployeeName,EmployeeCode, InTime, OutTime , OverTime ,OverTimeE , TotalDuration from AttendanceLogs al"
-	        		+ " JOIN Employees e on al.EmployeeId =e.EmployeeId  WHERE  al.EmployeeId ='"+employeeId+"' and al.AttendanceDate between '"+startdate+"' and '"+endDate+"'";
-	      
+	        String Query = "SELECT AttendanceDate, al.EmployeeId as EmployeeId, AttendanceDateStr, EmployeeName, EmployeeCode, InTime, OutTime, OverTime, OverTimeE, TotalDuration "
+	                + "FROM AttendanceLogs al "
+	                + "JOIN Employees e ON al.EmployeeId = e.EmployeeId "
+	                + "WHERE al.EmployeeId IN (" + employeeId + ") "
+	                + "AND al.AttendanceDate BETWEEN '" + startdate + "' AND '" + endDate + "'";
+
 	        con = getConnection();
 	        statement = con.prepareStatement(Query);
 
