@@ -16,36 +16,36 @@
             <ul class="nav nav-tabs config__tabs" id="Employee360Tab" role="tablist">
             
               <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
-                <a class="nav-link report__tab-item__link" id="profile-tab" data-toggle="tab" routerLink="profile" role="tab" (click)="removeActiveTab()" [state]="{ employeeData: employeeData }"
+                <a class="nav-link report__tab-item__link" id="profile-tab" data-toggle="tab" routerLink="profile" role="tab" (click)="removeActiveTab()"  routerLinkActive="active"
                    aria-controls="profile" aria-selected="false">Profile</a>
              </li>
 
 
             <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
-              <a class="nav-link report__tab-item__link" id="leave-tab" data-toggle="tab" routerLink="leave" role="tab" (click)="removeActiveTab()"  [state]="{ employeeData: employeeData }"
+              <a class="nav-link report__tab-item__link" id="leave-tab" data-toggle="tab" routerLink="leave" role="tab" (click)="removeActiveTab()"   routerLinkActive="active"
                 aria-controls="leave" aria-selected="false">Leave</a>
             </li>
             
            <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
-              <a class="nav-link report__tab-item__link" id="projects-tab" data-toggle="tab" routerLink="project" role="tab" (click)="removeActiveTab()"
+              <a class="nav-link report__tab-item__link" id="projects-tab" data-toggle="tab" routerLink="project" role="tab" (click)="removeActiveTab()"  routerLinkActive="active"
                 aria-controls="projects" aria-selected="false">Project</a>
            </li>
             <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
-              <a class="nav-link report__tab-item__link" id="timesheet-tab" data-toggle="tab" routerLink="timesheet" role="tab" (click)="removeActiveTab()"
+              <a class="nav-link report__tab-item__link" id="timesheet-tab" data-toggle="tab" routerLink="timesheet" role="tab" (click)="removeActiveTab()"  routerLinkActive="active"
                 aria-controls="timesheet" aria-selected="false">Timesheet</a>
             </li>
             <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
-              <a class="nav-link report__tab-item__link" id="biomax-tab" data-toggle="tab" routerLink="biomax" role="tab" (click)="removeActiveTab()"
+              <a class="nav-link report__tab-item__link" id="biomax-tab" data-toggle="tab" routerLink="biomax" role="tab" (click)="removeActiveTab()"  routerLinkActive="active"
                 aria-controls="biomax" aria-selected="false">Biomax</a>
             </li>
 
             <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
-              <a class="nav-link report__tab-item__link" id="rewards-tab"  data-toggle="tab" routerLink="rewards" role="tab" (click)="removeActiveTab()"
+              <a class="nav-link report__tab-item__link" id="rewards-tab"  data-toggle="tab" routerLink="rewards" role="tab" (click)="removeActiveTab()"  routerLinkActive="active"
                 aria-controls="reward" aria-selected="false">Rewards</a>
             </li>
 
             <li *ngIf="userMapping.employee_360" class="nav-item report__tab-item">
-              <a class="nav-link report__tab-item__link" id="appreciation-tab" data-toggle="tab" routerLink="appreciation" role="tab"  (click)="removeActiveTab()"
+              <a class="nav-link report__tab-item__link" id="appreciation-tab" data-toggle="tab" routerLink="appreciation" role="tab"  (click)="removeActiveTab()"  routerLinkActive="active"
                 aria-controls="appreciation" aria-selected="false">Appreciation</a>
             </li>
 
