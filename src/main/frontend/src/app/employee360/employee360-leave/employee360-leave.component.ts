@@ -100,7 +100,7 @@ export class Employee360LeaveComponent implements OnInit {
   isCompOff: boolean = false;
   isCompOffRequest: boolean = true;
   isCompOffApplication: boolean = false;
-  compOffManagerId:any=0;
+  compOffManagerId:any[]=[];
   compOffStatus:string="";
 
   //Applied for Revoke
@@ -274,7 +274,7 @@ export class Employee360LeaveComponent implements OnInit {
         this.employeeData = history.state.data;
       }
     console.log("Priyadarshini  Leave    ",this.employeeData);
-     let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title =="Leave");
+    let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title =="Leave");
         if (findbreadcrumbObject >= 0) {
           this.currentBreadcrumbList.splice(findbreadcrumbObject + 1);
           this.breadcrumbService.setBreadcrumbSubject(this.currentBreadcrumbList);
@@ -379,17 +379,6 @@ export class Employee360LeaveComponent implements OnInit {
 
   getAllLeaveApplicationsByEmpId(){
     let leaveObj = new Leave();
-    const processLeaveApplications = (leaveApplications: any[]) => {
-            return leaveApplications.map((leaveApp, index) => ({
-                ...leaveApp,
-                checkId: `leave${index}`,
-                fromDate: leaveApp.fromDate ? moment(leaveApp.fromDate).format(AppComponent.DATE_FORMAT) : null,
-                toDate: leaveApp.toDate ? moment(leaveApp.toDate).format(AppComponent.DATE_FORMAT) : null,
-                createdOn: leaveApp.createdOn ? moment(leaveApp.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
-                currentApprovalLevel: leaveApp.currentApprovalLevel || 1,
-                finalApprovalLevel: leaveApp.finalApprovalLevel || 1,
-            }));
-        };
     leaveObj.empId = this.empId;
     leaveObj.fromDate = this.formattedStartDate;
     leaveObj.toDate = this.formattedEndDate;
@@ -458,7 +447,6 @@ export class Employee360LeaveComponent implements OnInit {
     this.leaveService.updateLeaveStatus(leaveApplication).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
-        // this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }

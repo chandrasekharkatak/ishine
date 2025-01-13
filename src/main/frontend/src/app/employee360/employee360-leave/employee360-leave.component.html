@@ -39,7 +39,7 @@
     <!-- Owl Date Time Picker -->
     <owl-date-time [pickerType]="'calendar'" [scrollStrategy]="scrollStrategy" #dtRange1></owl-date-time>
 
-    <!-- Icon to Reset Date Range -->
+    <!-- FontAwesome Cross Icon to Reset Date Range -->
     <i *ngIf="dateTimeRange" class="fa fa-times reset-icon ml-2" (click)="resetDateRange()"></i>
   </div>
 
@@ -101,8 +101,8 @@
                           <th scope="col" class="info-label" mat-sort-header="level2ApprovalStatus|string">Level 2 Approver Status</th>
                           <th scope="col" class="info-label" mat-sort-header="level3ApproverName|string">Level 3 Approver Name</th>
                           <th scope="col" class="info-label" mat-sort-header="level3ApprovalStatus|string">Level 3 Approver Status</th>
-                          <th scope="col" class="info-label" mat-sort-header="remark|string">Remarks</th>
-                          <th scope="col" class="info-label">Actions</th>
+                          <th scope="col" class="info-label" *ngIf="activeButton==='Rejected'">Remarks</th>
+                          <th scope="col" class="info-label" *ngIf="activeButton==='Pending'">Actions</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -130,8 +130,8 @@
                             <td [ngStyle]="{'color': (leaveHistory.level2ApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.level2ApprovalStatus == 'Approved') ? 'green' : (leaveHistory.level2ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.level2ApprovalStatus}}</td>
                             <td>{{leaveHistory.level3ApproverName}}</td>
                             <td [ngStyle]="{'color': (leaveHistory.level3ApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.level3ApprovalStatus == 'Approved') ? 'green' : (leaveHistory.level3ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.level3ApprovalStatus}}</td>
-                            <td class="info-label">{{leaveHistory.remark}}</td>
-                            <td>
+                            <td class="info-label" *ngIf="activeButton==='Rejected'">{{leaveHistory.remark}}</td>
+                            <td *ngIf="activeButton==='Pending'">
                               <button *ngIf="approveReject && leaveHistory.isSelected" class="btn btn-sm btn-outline-success mb-1" type="submit"
                               (click)="onUpdateLeaveStatus(alert_message, leaveHistory, 2)" title="Approve"><em
                                 class="fa-solid fa-check"></em></button>&nbsp;
@@ -183,15 +183,15 @@
                 <tr
                   *ngFor="let compOff of CompOffData; let i = index">
                   <td>{{i+1}}</td>
-                  <td>{{compOff.createdByName}}</td>
-                  <td>{{compOff.compOffReasons}}</td>
-                  <td>{{compOff.fromDate}}</td>
-                  <td>{{compOff.toDate}}</td>
-                  <td>{{compOff.noOfDays}} day(s)</td>
-                  <td>{{compOff.description}}</td>
-                  <td>{{compOff.currentApprovalLevel}}
+                  <td>{{compOffApp.createdByName}}</td>
+                  <td>{{compOffApp.compOffReasons}}</td>
+                  <td>{{compOffApp.fromDate}}</td>
+                  <td>{{compOffApp.toDate}}</td>
+                  <td>{{compOffApp.noOfDays}}</td>
+                  <td>{{compOffApp.description}}</td>
+                  <td>{{compOffApp.currentApprovalLevel}}
                     <br>
-                    <h6 class="badge badge-pill primary-pill" *ngIf="compOff.currentApprovalLevel == compOff.finalApprovalLevel">Final</h6>
+                    <h6 class="badge badge-pill primary-pill" *ngIf="compOffApp.currentApprovalLevel == compOffApp.finalApprovalLevel && compOffApp.status == 'Pending'">Final</h6>
                   </td>
                   <td>{{compOff.approverName}}</td>
                   <td [ngStyle]="{'color': (compOff.managerApprovalStatus == 'Pending') ? 'orange' : (compOff.managerApprovalStatus == 'Approved') ? 'green' : (compOff.managerApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{compOff.managerApprovalStatus}}</td>
@@ -202,8 +202,8 @@
                     <button *ngIf="showActiveButton" class="btn btn-sm btn-outline-success mb-1" type="submit"
                       (click)="onUpdateLeaveStatus(alert_message, compOff, 2)" title="Approve"><em
                         class="fa-solid fa-check"></em></button>&nbsp;
-                    <button *ngIf="showActiveButton" class="btn btn-sm btn-outline-danger" type="submit"
-                      (click)="openLeaveRejectModal(reject_leave_modal, compOff)" title="Reject"><em
+                    <button  class="btn btn-sm btn-outline-danger" type="submit"
+                      (click)="onUpdateCompOffStatus(alert_message, compOffApp, 3)" title="Reject"><em
                         class="fa-solid fa-xmark"></em></button>
                   </td>
                 </tr>
