@@ -162,21 +162,21 @@
             </td>
 
               <td *ngIf="item.showProject&& !isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount" (click)="findByTeam(item.teamName)" style="cursor: pointer; color: blue;">{{item.teamName}}</td>
-              <td *ngIf="item.showProject" [attr.rowspan]="item.projectActivityCount">{{item.totalTime}}</td>
+              <td *ngIf="item.showProject" [attr.rowspan]="item.projectActivityCount">{{item.completionTime}} hrs</td>
               <td *ngIf="item.showProject&& isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount">{{item.teamName}}</td>
               <td [attr.rowspan]="1">{{item.activities}} </td>   
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.officeInTime | date: 'shortTime' }}</td>
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.officeOutTime | date: 'shortTime' }}</td>
-              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.totalWorkingHours}}</td>
+              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.totalTime}} hrs</td>
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.nightShift == 'true' ? 'Night Shift' : 'Regular Shift' }}</td>
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.status }}</td>
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.createdOn | date: 'yyyy-MM-dd' }}</td>
-              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >
-                  <button  *ngIf="activeButton === 'Pending'" class="btn btn-sm btn-outline-success mb-1"
+              <td *ngIf="item.showEmpId && activeButton === 'Pending'" [attr.rowspan]="item.empActivitiesCountForDay" >
+                  <button *ngIf="actionButton"  class="btn btn-sm btn-outline-success mb-1"
                   type="submit" title="Approve"
                   (click)="update('Approved',item.empId,item.date)"><em
                     class="fa-solid fa-check" style="margin-bottom: 2px;"></em></button>&nbsp;
-                <button  *ngIf="activeButton === 'Pending'" class="btn btn-sm btn-outline-danger"
+                <button *ngIf="actionButton"  class="btn btn-sm btn-outline-danger"
                   type="submit" title="Reject" (click)="update('Rejected',item.empId,item.date)"><em
                     class="fa-solid fa-xmark"></em></button>
                     

@@ -67,6 +67,7 @@ export class Employee360TimesheetComponent implements OnInit {
 
   projectClicked:boolean=false;
   teamClicked:boolean=false;
+  actionButton:boolean=false;
   
   constructor(
     private employee360Service : Employee360Service,
@@ -317,9 +318,7 @@ export class Employee360TimesheetComponent implements OnInit {
     const allDeselect = this.result.every(emp => emp.selected === false);
     if (allDeselect) {
       this.allSelected = false;
-    }
-    
-  
+    } 
   }
   
   toggleSelectAll() {
@@ -369,7 +368,6 @@ loading: boolean = false;
 updateStatus(status: string) {
   if (this.loading) return; 
   this.loading = true; 
-  // status = "Pending";
   console.log("allSelected+++++++"+this.allSelected);
   this.employee360Service.updateStatus(status, this.timesheetIds, this.managerId).pipe(first()).subscribe(
     (response: any) => {
@@ -420,25 +418,19 @@ updateStatus(status: string) {
     this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
   }
 
-  
-
   get360TimesheetDetails(activeButton:string,empId:number,projectId:number,teamName:string,managerId:number,formattedStartDate:string,formattedEndDate:string) {
-      console.log(this.activeButton);
-      this.employee360Service.get360TimesheetDetails(activeButton,empId,projectId,teamName,managerId,formattedStartDate,formattedEndDate).pipe(first()).subscribe((response: any) => {
-          if (response.serviceStatus === "Success") {
-              console.log("=> serviceResponse", response.serviceResponse);
-              this.data = response.serviceResponse;
-              if (this.data) { 
-                this.responseCount = Object.keys(this.data).length;
-                console.log("this.data===>", this.responseCount);}
-              const activityCounts: number[] = [];
-              console.log("=> Activity counts array", activityCounts);
-              this.result = this.transformData(response.serviceResponse);
-              console.log("this.result =>", this.result )
-
-          }
-      });
-  }
+    console.log(this.activeButton);
+    this.employee360Service.get360TimesheetDetails(activeButton,empId,projectId,teamName,managerId,formattedStartDate,formattedEndDate).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus === "Success") {
+            console.log("=> serviceResponse", response.serviceResponse);
+            this.data = response.serviceResponse;
+            this.data = Object.values(this.data);
+            this.responseCount=this.data.length; 
+            this.result = this.transformData(this.data);
+            console.log("this.result =>", this.result )
+        }
+    });
+}
 
   
   onChangeOption(arg: any) {
@@ -472,7 +464,6 @@ updateStatus(status: string) {
     this.dateTimeRange = null;
     this.startDate = null;
     this.endDate = null;
-    // Optionally, call your method to fetch data after reset
     this.onChangeOption(1);
   }
 
@@ -526,14 +517,13 @@ updateStatus(status: string) {
     let transformedData = [];
   
     Object.values(originalData).forEach((employee :any) => {
-      let isFirstActivity = true; // Track the first activity for each employee
-  
-        // Calculate the total number of activities for the employee
-    const totalActivitiesCount = employee.timeSheet.reduce((total, item) => total + item.activities.length, 0);
-  
-      employee.timeSheet.forEach(items => {
+      let isFirstActivity = true; 
+      if(this.managerId==employee.managerId){
+        this.actionButton=true;
+      }else{this.actionButton=false;}
+      const totalActivitiesCount = employee.timeSheetlist.length;
+      employee.timeSheetlist.forEach(items => {
         let showProject = true;
-        items.activities.forEach(activity => {
           transformedData.push({
             empId: employee.empId,
             employmentId:"A-"+employee.employmentId,
@@ -546,30 +536,26 @@ updateStatus(status: string) {
             status: employee.status,
             createdOn: employee.createdOn,
             dayType:employee.dayType,
-  
-            activities: activity,
+            completionTime:items.completionTime,
+            activities: items.activity,
             projectName: items.projectName,
-            totalWorkingHours:items.totalWorkingHours+" Hours",
             teamName: items.teamName,
             projectId: items.projectId,
             activityId: items.activityId,
             timesheetId : items.timesheetId,
-            empActivitiesCountForDay: totalActivitiesCount, // Total activities count for the employee
-            projectActivityCount: items.activities.length,
-            showProject: showProject,  // Show project only for the first activity in the list
+            empActivitiesCountForDay: totalActivitiesCount, 
+            showProject: showProject,  
             showEmpId: isFirstActivity,
-            selected: false, // Show employee ID only for the first activity
-          });
-          
-          // Set isFirstActivity to false after the first activity for the employee
-          isFirstActivity = false;
-          showProject = false;
+            selected: false, 
         });
+        isFirstActivity = false;
+        showProject = false;
       });
     });
   
     return transformedData;
   }
+
 
 }
 

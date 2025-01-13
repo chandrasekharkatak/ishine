@@ -73,6 +73,7 @@ export class Employee360LeaveComponent implements OnInit {
   breadcrumbUrl:any[] = [];
   currentBreadcrumbList: any[] = [];
   currentUserr:any;
+  managerIds:any[]=[];
 
   //Active Buttons
   activeButton: string = "Leave-Charts";
@@ -91,18 +92,16 @@ export class Employee360LeaveComponent implements OnInit {
   managerId:any=0;
   teamViewLeaveHistoryList: any[] = [];
   leaveList: any[] = [];
-  LeaveList:any[]=[];
   leaveApplicationList: any[] = [];
 
   //Comp-off
   allCompOffApplications: any[] = [];
-  compOffRequest:any[]=[];
+  CompOffData: any[] = [];
   isCompOff: boolean = false;
-  isCompOffRequest: boolean = false;
+  isCompOffRequest: boolean = true;
   isCompOffApplication: boolean = false;
   compOffManagerId:any=0;
   compOffStatus:string="";
-  managerIds:any[]=[];
 
   //Applied for Revoke
   reporteeLeaveRevokeApplicationList:any[] = [];
@@ -264,14 +263,16 @@ export class Employee360LeaveComponent implements OnInit {
       this.log.tabName = this.feature;
       this.log.featureName = this.feature;
     });
-
-    const navigation = this.router.getCurrentNavigation();
-    this.employeeData = navigation?.extras.state?.['employeeData'];
-    this.employeeData2 = this.employeeData;
    }
 
   ngOnInit(): void {  
-    this.employeeData2 = history.state.data;
+    const storedData = localStorage.getItem('employee360Data');
+    const parsedData = storedData ? JSON.parse(storedData) : null;
+      if(parsedData != null || parsedData != undefined ){
+        this.employeeData =  parsedData;
+      }else{
+        this.employeeData = history.state.data;
+      }
     console.log("Priyadarshini  Leave    ",this.employeeData);
      let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title =="Leave");
         if (findbreadcrumbObject >= 0) {
@@ -296,7 +297,7 @@ export class Employee360LeaveComponent implements OnInit {
     this.generateLeaveChart();
     console.log(this.year);
     
-    this.getLeaveDataPerMonthByEmpId();
+    this.getLeaveDataPerMonthByEmpId(this.year);
     this.countMyApprovedLeaveApplicationsByLeaveType();
   }
 
@@ -306,13 +307,23 @@ export class Employee360LeaveComponent implements OnInit {
       const dataToSend = { ...this.employeeData, status: 'comp-off-requests' };
       this.employee360Service.changeEmployeeData(dataToSend);
       this.isCompOffApplication=false;
-      this.isCompOffRequest=true;}
+      this.isCompOffRequest=true;
+      this.getPendingCompOffRequestsByManagerId();}
     if (button === 'Applications') {
       const dataToSend = { ...this.employeeData, status: 'comp-off-requests' };
       this.employee360Service.changeEmployeeData(dataToSend);
       this.isCompOffRequest=false;
       this.isCompOffApplication=true;
-      this.getPendingCompOffRequestsByEmpId();}
+      this.getPendingCompOffRequestsByManagerId();}
+    }
+
+    setCompOffStatus(){
+      this.CompOffData=[];
+      if(this.isCompOffRequest){
+        this.compOffStatus="Compensatory Off Request";
+      }else if(this.isCompOffApplication){
+        this.compOffStatus="Compensatory Off";
+      }
     }
 
   goBack(){
@@ -320,13 +331,11 @@ export class Employee360LeaveComponent implements OnInit {
     this.showTable=false;
     this.showDropDown=false;
     this.isCompOff=false;
-    this.isCompOffRequest=false;
     this.isLeaveRevokeRequest=false;
     this.selectedOption = 1;
-    this.isCompOffApplication=false;
     this.dateTimeRange = null;
     this.generateLeaveChart();
-    this.getLeaveDataPerMonthByEmpId();
+    this.getLeaveDataPerMonthByEmpId(this.year);
     this.activeButton="Leave-Charts";
   }
 
@@ -338,20 +347,18 @@ export class Employee360LeaveComponent implements OnInit {
         this.isCompOff=false;
         this.isCompOffApplication=false;
         this.isLeaveRevokeRequest=false;
-        this.isCompOffRequest=false;
         this.getAllLeaveApplicationsByEmpId();}
-    else if(["CompOff"].includes(this.activeButton)){
+    else if(["Requests","Applications", "CompOff"].includes(this.activeButton)){
         this.showTable=false;
+        this.isCompOffRequest=true;
         this.isCompOffApplication=false;
         this.isLeaveRevokeRequest=false;
         this.isCompOffApplication=false;
         this.isCompOff=true;
-        this.isCompOffRequest=true;
-        this.getAllLeaveApplicationsByEmpId();}
+        this.getPendingCompOffRequestsByManagerId();}
     else if(["Applied For Revoke"].includes(this.activeButton)){
       this.showTable=false;
       this.isCompOff=false;
-      this.isCompOffRequest=false;
       this.isCompOffApplication=false;
       this.isLeaveRevokeRequest=true;
       this.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId();}
@@ -386,22 +393,35 @@ export class Employee360LeaveComponent implements OnInit {
     leaveObj.empId = this.empId;
     leaveObj.fromDate = this.formattedStartDate;
     leaveObj.toDate = this.formattedEndDate;
+
+    // leaveObj.managerApprovalStatus=this.activeButton;
     this.employee360Service.getAll360LeaveApplicationsByEmpId(leaveObj).pipe(first()).subscribe(
       (response: any) => {
           if (response.serviceStatus === "Success") {
             this.teamViewLeaveHistoryList=response.serviceResponse;
             this.LeaveListOnStatus(this.teamViewLeaveHistoryList);
-            this.compOffRequest=[];
-            this.teamViewLeaveHistoryList.forEach((leaveApplication) => {
-              if(leaveApplication.leaveType==='Compensatory Off') 
-                {this.compOffRequest.push(leaveApplication);}   
-            })               
+            console.log("this.teamViewLeaveHistoryList====>",this.teamViewLeaveHistoryList);
+              this.teamViewLeaveHistoryList.forEach((leaveApplication) => {
+                this.leaveObj2.leaveId = leaveApplication.leaveId;
+                this.leaveObj2.currentUserEmpId = this.currentUser.empId
+                leaveApplication.isApprover = ((leaveApplication.managerId === this.currentUser.empId && leaveApplication.managerApprovalStatus === 'Pending') || (leaveApplication.level2ApproverId === this.currentUser.empId && leaveApplication.level2ApprovalStatus === 'Pending') || (leaveApplication.level3ApproverId === this.currentUser.empId && leaveApplication.level3ApprovalStatus === 'Pending'))? true : false;
+                console.log("Leave id : ",leaveApplication.leaveId," isApprover: ",leaveApplication.isApprover);
+                this.leaveService.isManager(this.leaveObj2).subscribe((response: any) => {
+                  if (response.serviceStatus === "Success") {
+                    leaveApplication.isManagerFlag = response.serviceResponse;
+                  } else {
+                    console.error("Error in isManager API:", response.serviceResponse);
+                    leaveApplication.isManagerFlag = false; 
+                  }
+                });
+              });      
           } else {
               console.error("Error fetching leave applications:", response.serviceResponse);
           }
       },
-      (error) => console.error("API error:", error));
-    console.log("leaveApplicationList=>>>>",this.leaveApplicationList);
+      (error) => console.error("API error:", error)
+  );
+  console.log("leaveApplicationList=>>>>",this.leaveApplicationList);
   }
 
   LeaveListOnStatus(teamViewLeaveHistoryList: any) {
@@ -412,19 +432,21 @@ export class Employee360LeaveComponent implements OnInit {
       this.managerId = currentUserData.empId;
       console.log(this.managerId); 
     }
-    for (const emp of teamViewLeaveHistoryList){
+    for (const emp of this.teamViewLeaveHistoryList){
       if(emp.status == this.activeButton){
         if(emp.managerId == this.managerId || emp.level2ApproverId == this.managerId || emp.level3ApproverId == this.managerId){
-          emp.isSelected = true;}
-          else{emp.isSelected = false;}
-          // if(this.activeButton==='Pending' && !(emp.leaveType==='Compensatory Off')){
-          //   this.leaveList.push(emp);
-          // }else{
+          emp.isSelected = true;
+        }else{
+          emp.isSelected = false;
+        }
           this.leaveList.push(emp);
-        // }
+
       }
+
     }
-      console.log("this.leavelist = >", this.leaveList)
+    
+
+    console.log("this.leavelist = >", this.leaveList)
     }
 
   onUpdateLeaveStatus(template: TemplateRef<any>, leaveApplication, updatedLeaveStatusId) {
@@ -443,28 +465,39 @@ export class Employee360LeaveComponent implements OnInit {
     });
   }
    //ComOff Applications
-   getPendingCompOffRequestsByEmpId() {
-        this.allCompOffApplications = []
-        let compOff = new Leave();
-        compOff.empId = this.empId;
-        this.employee360Service.get360PendingCompOffRequestsByEmpId(compOff).pipe(first()).subscribe((response: any) => {
-          if (response.serviceStatus == "Success") {
-            this.allCompOffApplications = response.serviceResponse;
-            this.allCompOffApplications.forEach(compOffApp => {
-              compOffApp.fromDate = (compOffApp.fromDate)? moment(compOffApp.fromDate).format(AppComponent.DATE_FORMAT) : null,
-              compOffApp.toDate = (compOffApp.toDate)? moment(compOffApp.toDate).format(AppComponent.DATE_FORMAT) : null
-            });
-            // this.managerId=21829;
-            this.managerIds = response.serviceResponse.filter(item => item.managerApprovalStatus === 'Pending').map(item => item.managerId);
-            this.managerIds = response.serviceResponse.filter(item => (item.level2ApproverId != null && item.level2ApprovalStatus === 'Pending')).map(item => item.level2ApproverId);
-            // this.managerIds = response.serviceResponse.filter(item => (item.level3ApproverId != null && item.level3ApprovalStatus === 'Pending')).map(item => item.level3ApproverId);
-            if(this.managerIds.includes(this.managerId)){this.showActiveButton=true;}
-            else{this.showActiveButton=false;}           
-            } else {
-            console.error(response.serviceResponse);
-          }
+   getPendingCompOffRequestsByManagerId() {
+    this.allCompOffApplications = []
+    let compOff = new Leave();
+    compOff.empId = this.empId;
+    this.employee360Service.get360PendingCompOffRequestsByEmpId(compOff).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allCompOffApplications = response.serviceResponse;
+        this.allCompOffApplications.forEach(compOffApp => {
+          compOffApp.fromDate = (compOffApp.fromDate)? moment(compOffApp.fromDate).format(AppComponent.DATE_FORMAT) : null,
+          compOffApp.toDate = (compOffApp.toDate)? moment(compOffApp.toDate).format(AppComponent.DATE_FORMAT) : null
         });
-    }
+        this.setCompOffStatus();
+        this.compOffManagerId = response.serviceResponse.flatMap(item => [
+          item.managerApprovalStatus === 'Pending' && item.managerId != null ? item.managerId : null,
+          item.level2ApprovalStatus === 'Pending' && item.level2ApproverId != null ? item.level2ApproverId : null,
+          item.level3ApprovalStatus === 'Pending' && item.level3ApproverId != null ? item.level3ApproverId : null
+       ]).filter(id => id != null);
+       if(this.compOffManagerId.includes(this.managerId)){this.showActiveButton=true;}
+       else{this.showActiveButton=false;}
+      this.CompOffData=[];
+      if(this.isCompOffRequest){
+        this.allCompOffApplications.forEach(compOffApp => {
+          if(compOffApp.status==='Pending') 
+          this.CompOffData.push(compOffApp)});
+      }else if(this.isCompOffApplication){
+        this.allCompOffApplications.forEach(compOffApp => {
+          if(compOffApp.status==='Approved') 
+          this.CompOffData.push(compOffApp)});
+      }else{this.CompOffData=[];}
+      }
+    }); 
+}
+
 
     onUpdateCompOffStatus(template: TemplateRef<any>, compOffObj, updatedCompOffStatusId) {
       // 1 = pending , 2 = Approved , 3= Rejected
@@ -477,7 +510,7 @@ export class Employee360LeaveComponent implements OnInit {
       this.leaveService.updateCompOffById(compOffObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.openAlertMod(template, response.serviceResponse);
-          this.getPendingCompOffRequestsByEmpId();
+          this.getPendingCompOffRequestsByManagerId();
         } else {
           this.openAlertMod(template, response.serviceResponse);
         }
@@ -568,7 +601,7 @@ export class Employee360LeaveComponent implements OnInit {
     this.leaveTypes = [];
     let leaveObj = new Leave();
     leaveObj.employmentStatus = this.employeeData.employmentstatus;
-    leaveObj.gender = this.employeeData.gender;
+    leaveObj.gender =this.employeeData.gender;
     leaveObj.maritalStatus = this.employeeData.maritalStatus;
 
     this.leaveService.getAllLeaveTypesByLeavePolicies(leaveObj).pipe(first()).subscribe((response: any) => {
@@ -682,7 +715,7 @@ export class Employee360LeaveComponent implements OnInit {
   countMyApprovedLeaveApplicationsByLeaveType() {
     this.approvedLeavesList = [];
     let leaveObj = new Leave();
-    leaveObj.empId = this.employeeData.empId;
+    leaveObj.empId = this.empId;
     this.leaveService.countMyApprovedLeaveApplicationsByLeaveType(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.approvedLeavesList = response.serviceResponse;
@@ -701,7 +734,7 @@ export class Employee360LeaveComponent implements OnInit {
   countMyPendingLeaveApplicationsByLeaveType() {
     this.pendingLeavesList = [];
     let leaveObj = new Leave();
-    leaveObj.empId = this.employeeData.empId;
+    leaveObj.empId = this.empId;
     this.leaveService.countMyPendingLeaveApplicationsByLeaveType(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.pendingLeavesList = response.serviceResponse;
@@ -835,8 +868,8 @@ export class Employee360LeaveComponent implements OnInit {
     });
   }
 
-  getLeaveDataPerMonthByEmpId(): void {
-    this.employee360Service.getLeaveDataPerMonthByEmpId(this.employeeData.empId).pipe(first()).subscribe((response: any) => {
+  getLeaveDataPerMonthByEmpId(year: number): void {
+    this.employee360Service.getLeaveDataPerMonthByEmpId(this.empId).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
             const leaveData = response.serviceResponse;
             const dataByLeaveType: any = {
@@ -885,7 +918,7 @@ export class Employee360LeaveComponent implements OnInit {
                   type: 'column',
               },
               title: {
-                  text: `Leave Data for ${this.year-1}`,
+                  text: `Leave Data for ${this.year}`,
                   style: {
                     fontWeight: 'bold', },
               },
