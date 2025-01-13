@@ -4,6 +4,9 @@ import { Router } from '@angular/router';
 import { environment } from 'src/environments/environment';
 import { Timesheet } from '../models/timesheet';
 import { Subject } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
+import { Employee } from '../models/employee';
+import { Leave } from '../models/leave';
 
 @Injectable({
   providedIn: 'root'
@@ -11,11 +14,18 @@ import { Subject } from 'rxjs';
 export class Employee360Service {
 
   private baseUrl:any = environment.baseUrl;
+
   private navigationSubject = new Subject<void>();
-  constructor(
+  private employeeDataSource = new BehaviorSubject<any>(null);
+
+  currentEmployeeData = this.employeeDataSource.asObservable();
+
+
+   constructor(
     private router: Router,
     private http: HttpClient
   ) {}
+
   getNavigationEvent() {
     return this.navigationSubject.asObservable();
   }
@@ -49,23 +59,46 @@ export class Employee360Service {
     });
 }
 
-updateStatus(status: string, empId: number,date:string) {
+updateStatus(status: string, timesheetIds:number[],updatedBy: number) {
   return this.http.get(`${this.baseUrl}api/updateStatus`, {
       params: {
           status: status,
-          empId: empId.toString(),
-          date:date
+          timesheetIds: timesheetIds,
+          updatedBy:updatedBy.toString()
       }
   });
 }
 
+getAll360LeaveApplicationsByEmpId(leaveObj: Leave) {
+  return this.http.post(`${this.baseUrl}` + `api/getAll360LeaveApplicationsByEmpId`, leaveObj);
+}
   // getAllLeaveTypes() {
   //   return this.http.get(`${this.baseUrl}` + `api/getAllLeaveTypes`);
   // }
+
 
 
   get360TimesheetsForHomePageByEmpId(timesheetObj: Timesheet) {
     return this.http.post(`${this.baseUrl}` + `api/get360TimesheetsForHomePageByEmpId`, timesheetObj);
   }
 
+  changeEmployeeData(data: any) {
+    this.employeeDataSource.next(data);
+  }
+
+
+  getEmployeeDetailsForBiomax(startDate:String,endDate:String,employeeId:String){
+    return this.http.get(`${this.baseUrl}` + `api/biomax?startDate=${startDate}&endDate=${endDate}&employeeId=${employeeId}`);
+  }
+
+  get360PendingCompOffRequestsByEmpId(compOffObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `api/get360PendingCompOffRequestsByEmpId`, compOffObj);
+  }
+
+
+  // getBioOverTimeandState(EmployeDTO: Employee) {
+  //   return this.http.post(`${this.baseUrl}` + `api/employee360state`, EmployeDTO);
+  // }
+
+ 
 }

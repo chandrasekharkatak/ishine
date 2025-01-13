@@ -7,13 +7,30 @@ import { Leave } from 'src/app/models/leave';
 import { first } from 'rxjs/operators';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
-
+import * as moment from 'moment';
+import { AppComponent } from 'src/app/app.component';
 import { Log } from '../../models/log';
 import { LogService } from 'src/app/services/log.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { UtilityService } from 'src/app/services/utility.service';
 import { Employee360Service } from 'src/app/services/employee360.service';
 import * as Highcharts from 'highcharts';
+import { Breadcrumb } from 'src/app/models/breadcrumd';
+import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
+import { ScrollStrategy } from '@angular/cdk/overlay';
+import { DatePipe } from '@angular/common';
+
+import { ValidationService } from 'src/app/services/validation.service';
+
+declare module 'highcharts' {
+  interface Series {
+    status?: string; 
+    leaveType?: string; 
+  }
+  interface SeriesOptions {
+    status?: string; 
+  }
+}
 
 interface CustomChartPoint {
   name: string;
@@ -31,7 +48,9 @@ interface CustomChartPoint {
 export class Employee360LeaveComponent implements OnInit {
 
   leaveObj = new Leave();
+  leaveObj2: Leave = new Leave();
   employeeData: any;
+  employeeData2: any;
   employeeDetails: any;
   currentUserName = "";
   currentUser: User;
@@ -45,52 +64,179 @@ export class Employee360LeaveComponent implements OnInit {
   rejectedLeavesList: any[] = [];
   approvedLeavesList: any[] = [];
   pendingLeavesList: any[] = [];
-  activeButton: string = 'Pending';
-  activeCompOffButton: string = 'Requests'; 
   formatedEmploymentID: any;
   leaveByMonth: Leave[] = [];
   Highcharts = Highcharts;
   leaveData: any = [];
   years: number[] = [];
   selectedYear: number;
+  breadcrumbUrl:any[] = [];
+  currentBreadcrumbList: any[] = [];
+  currentUserr:any;
+
+  //Active Buttons
+  activeButton: string = "Leave-Charts";
+  activeCompOffButton: string = 'Requests'; 
+
+  //boolean
+  showActiveButton:boolean=false;
+  showTable:boolean=false;
+  back:boolean=false;
+  approveReject:boolean=false;
+  isLeaveRevokeRequest:boolean=false;
+  showDropDown:boolean=false;
+
+  //Leave 
+  empId:any=0;
+  managerId:any=0;
+  teamViewLeaveHistoryList: any[] = [];
+  leaveList: any[] = [];
+  leaveApplicationList: any[] = [];
+
+  //Comp-off
+  allCompOffApplications: any[] = [];
+  CompOffData: any[] = [];
+  isCompOff: boolean = false;
+  isCompOffRequest: boolean = true;
+  isCompOffApplication: boolean = false;
+  compOffManagerId:any[]=[];
+  compOffStatus:string="";
+
+  //Applied for Revoke
+  reporteeLeaveRevokeApplicationList:any[] = [];
+
+
+  //date set up 
+  selectedOption:any = 1;
+  startDate: any;
+  endDate:any; 
+  dateTimeRange: any = null;
+  todayDate: Date = new Date();
+  scrollStrategy: ScrollStrategy;
+  formattedStartDate:any = '';
+  formattedEndDate:any = '';
+  
+  //Modal
+  alertMessage: any
+  modalRef: BsModalRef = new BsModalRef();
+  @ViewChild("alert_message") alertTemplate: TemplateRef<any>;
+
+  //Dropdown filter
+  year=new Date().getFullYear();
+  // selectedOption:any=1;
+  // startDate: any;
+  // endDate:any; 
+
   chartOptions: Highcharts.Options = {
     chart: {
-      type: 'column'
+        type: "column"
     },
     title: {
-      text: 'Leave Data Per Month'
+        text: "Leave Data Per Month"
     },
-    xAxis: [{
-      categories: [],  // Populated dynamically by 'prepareChartData'
-      title: {
-        text: 'Month'
-      }
-    }] as Highcharts.XAxisOptions[],  // Explicitly cast to an array of XAxisOptions if multiple axes are used
-    yAxis: {
-      min: 0,
-      title: {
-        text: 'Total Days'
-      },
-      stackLabels: {
-        enabled: true,
-        style: {
-          fontWeight: 'bold',
-          color: 'gray'
+    xAxis: {
+        categories: ["Jan", "Feb", "Mar", "Apr", "May", "June", "July", "Aug", "Sep", "Oct", "Nov", "Dec"],
+        title: {
+            text: "Month",
+            style: {
+              fontWeight: 'bold', },
         }
-      }
+    },
+    yAxis: {
+        min: 0,
+        title: {
+            text: "Total Days"
+        },
+        stackLabels: {
+            enabled: true,
+            style: {
+                fontWeight: "bold",
+                color: "gray"
+            }
+        }
     },
     tooltip: {
-      shared: true,
-      valueSuffix: ' days'
+        shared: true,
+        valueSuffix: " days"
     },
     plotOptions: {
-      column: {
-        stacking: 'normal'
-      }
+        column: {
+            stacking: "normal"
+        }
     },
-    series: []  // Populated dynamically by 'prepareChartData'
-  };
-  
+    series: [
+        {
+            type: "column",
+            name: "Revoked",
+            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 17],
+            color: "#1b263b",
+            stack: "CO"
+        },
+        {
+            type: "column",
+            name: "Rejected",
+            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 14],
+            color: "#1b263b",
+            stack: "CO"
+        },
+        {
+            type: "column",
+            name: "Approved",
+            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 11],
+            color: "#1b263b",
+            stack: "CO"
+        },
+        {
+            type: "column",
+            name: "Pending",
+            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 13],
+            color: "#1b263b",
+            stack: "CO"
+        },
+        {
+            type: "column",
+            name: "Applied For Revoke",
+            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 12],
+            color: "#1b263b",
+            stack: "CO"
+        },
+        {
+            type: "column",
+            name: "Revoked",
+            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 17],
+            color: "#1b263b",
+            stack: "PL"
+        },
+        {
+            type: "column",
+            name: "Rejected",
+            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 14],
+            color: "#1b263b",
+            stack: "PL"
+        },
+        {
+            type: "column",
+            name: "Approved",
+            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 11],
+            color: "#1b263b",
+            stack: "PL"
+        },
+        {
+            type: "column",
+            name: "Pending",
+            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 13],
+            color: "#1b263b",
+            stack: "PL"
+        },
+        {
+            type: "column",
+            name: "Applied For Revoke",
+            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 12],
+            color: "#1b263b",
+            stack: "PL"
+        }
+    ]
+};
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -99,40 +245,318 @@ export class Employee360LeaveComponent implements OnInit {
     private router: Router,
     private utilityService: UtilityService,
     private employee360Service: Employee360Service,
+    private breadcrumbService: BreadcrumbService,
+    private modalService: BsModalService,
+    private datePipe: DatePipe,
+    public validationService:ValidationService,
   ) {
+    this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
     this.authenticationService.currentUser.subscribe(x => {
       this.currentUser = x;
       this.currentUserName = this.currentUser.name.split(" ")[0];
       this.currentUserName = this.currentUserName[0].toUpperCase() + this.currentUserName.slice(1).toLowerCase();
     });
+
     this.logService.log.subscribe(x => {
       this.log = x;
       this.log.tabName = this.feature;
       this.log.featureName = this.feature;
     });
+
     const navigation = this.router.getCurrentNavigation();
     this.employeeData = navigation?.extras.state?.['employeeData'];
+    this.employeeData2 = this.employeeData;
    }
 
   ngOnInit(): void {  
+    this.employeeData2 = history.state.data;
     console.log("Priyadarshini  Leave    ",this.employeeData);
+    let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title =="Leave");
+        if (findbreadcrumbObject >= 0) {
+          this.currentBreadcrumbList.splice(findbreadcrumbObject + 1);
+          this.breadcrumbService.setBreadcrumbSubject(this.currentBreadcrumbList);
+        }else{
+          let breadcrumbObject = new Breadcrumb();
+          breadcrumbObject.title = "Leave";
+          breadcrumbObject.url = "/employee-360/leave";
+          this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
+        }
+    console.log("activeButton===>"+this.activeButton);
+    
+    this.currentUserr=sessionStorage.getItem('currentUser');
+    if (this.currentUserr) {
+      const currentUserData = JSON.parse(this.currentUserr);
+      this.managerId = currentUserData.empId;
+      console.log(this.managerId); 
+    }
+    this.empId=sessionStorage.getItem('empId');
     this.getAllLeaveTypesByLeavePolicies();
     this.generateLeaveChart();
-    this.getLeaveDataPerMonthByEmpId(2023);
-    this.getEmployeeDetails();
-    this.renderChart();
-  }
-
-  setActiveButton(button: string): void {
-    this.activeButton = button;
-    if (button === 'CompOff') {
-      this.activeCompOffButton = 'Requests';
-    }
+    console.log(this.year);
+    
+    this.getLeaveDataPerMonthByEmpId(this.year);
+    this.countMyApprovedLeaveApplicationsByLeaveType();
   }
 
   setActiveCompOffButton(button: string): void {
     this.activeCompOffButton = button;
+    if (button === 'Requests') {
+      const dataToSend = { ...this.employeeData, status: 'comp-off-requests' };
+      this.employee360Service.changeEmployeeData(dataToSend);
+      this.isCompOffApplication=false;
+      this.isCompOffRequest=true;
+      this.getPendingCompOffRequestsByManagerId();
+      }
+    if (button === 'Applications') {
+      const dataToSend = { ...this.employeeData, status: 'comp-off-requests' };
+      this.employee360Service.changeEmployeeData(dataToSend);
+      this.isCompOffRequest=false;
+      this.isCompOffApplication=true;
+      this.getPendingCompOffRequestsByManagerId();
+      }
+    }
+
+  setCompOffStatus(){
+      this.CompOffData=[];
+      if(this.isCompOffRequest){
+        this.compOffStatus="Compensatory Off Request";
+      }else if(this.isCompOffApplication){
+        this.compOffStatus="Compensatory Off";
+      }
+    }
+
+  goBack(){
+    this.back=false;
+    this.showTable=false;
+    this.showDropDown=false;
+    this.isCompOff=false;
+    this.isLeaveRevokeRequest=false;
+    this.selectedOption = 1;
+    this.dateTimeRange = null;
+    this.generateLeaveChart();
+    this.getLeaveDataPerMonthByEmpId(this.year);
+    this.activeButton="Leave-Charts";
   }
+
+  setActiveButton(button: string): void {
+    this.activeButton = button;
+    console.log("button=====>",button);
+    if(["Revoked","Pending", "Approved", "Rejected"].includes(this.activeButton)){ 
+        this.showTable=true;
+        this.isCompOff=false;
+        this.isCompOffApplication=false;
+        this.isLeaveRevokeRequest=false;
+        this.getAllLeaveApplicationsByEmpId();}
+    else if(["Requests","Applications", "CompOff"].includes(this.activeButton)){
+        this.showTable=false;
+        this.isLeaveRevokeRequest=false;
+        this.isCompOffApplication=false;
+        this.isCompOff=true;
+        this.getPendingCompOffRequestsByManagerId();}
+    else if(["Applied For Revoke"].includes(this.activeButton)){
+      this.showTable=false;
+      this.isCompOff=false;
+      this.isCompOffApplication=false;
+      this.isLeaveRevokeRequest=true;
+      this.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId();}
+    if(this.activeButton!=="Leave-Charts"){this.back=true;}
+    this.setButtons();
+    // this.empIdd=240065;
+  }
+
+  setButtons(){
+    if(this.activeButton=="Pending"){
+      this.approveReject=true;}
+    else{ this.approveReject=false;}
+
+    if(["Revoked","Pending", "Approved", "Rejected"].includes(this.activeButton)){
+      this.showDropDown=true;}
+    else{this.showDropDown=false;}
+  }
+
+  getAllLeaveApplicationsByEmpId(){
+    let leaveObj = new Leave();
+    leaveObj.empId = this.empId;
+    leaveObj.fromDate = this.formattedStartDate;
+    leaveObj.toDate = this.formattedEndDate;
+    this.employee360Service.getAll360LeaveApplicationsByEmpId(leaveObj).pipe(first()).subscribe(
+      (response: any) => {
+          if (response.serviceStatus === "Success") {
+            this.teamViewLeaveHistoryList=response.serviceResponse;
+            this.LeaveListOnStatus(this.teamViewLeaveHistoryList);
+            console.log("this.teamViewLeaveHistoryList====>",this.teamViewLeaveHistoryList);   
+          } else {
+              console.error("Error fetching leave applications:", response.serviceResponse);
+          }
+      },
+      (error) => console.error("API error:", error));
+      console.log("leaveApplicationList=>>>>",this.leaveApplicationList);
+  }
+
+  LeaveListOnStatus(teamViewLeaveHistoryList: any) {
+    this.leaveList = [];
+    this.currentUserr=sessionStorage.getItem('currentUser');
+    if (this.currentUserr) {
+      const currentUserData = JSON.parse(this.currentUserr);
+      this.managerId = currentUserData.empId;
+      console.log(this.managerId); 
+    }
+    for (const emp of teamViewLeaveHistoryList){
+      if(emp.status == this.activeButton){
+        if(emp.managerId == this.managerId || emp.level2ApproverId == this.managerId || emp.level3ApproverId == this.managerId){
+          emp.isSelected = true;
+        }else{
+          emp.isSelected = false;}
+          this.leaveList.push(emp);
+      }}
+    console.log("this.leavelist = >", this.leaveList)
+    }
+
+  onUpdateLeaveStatus(template: TemplateRef<any>, leaveApplication, updatedLeaveStatusId) {
+    // 1 = pending , 2 = Approved , 3= Rejected
+    leaveApplication.leaveStatusId = updatedLeaveStatusId;
+    leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId;
+    leaveApplication.rejectReason = leaveApplication.rejectReason?.trim()	
+
+    this.leaveService.updateLeaveStatus(leaveApplication).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+   //ComOff Applications
+  getPendingCompOffRequestsByManagerId() {
+        this.allCompOffApplications = []
+        let compOff = new Leave();
+        compOff.empId = this.empId;
+        this.employee360Service.get360PendingCompOffRequestsByEmpId(compOff).pipe(first()).subscribe((response: any) => {
+          if (response.serviceStatus == "Success") {
+            this.allCompOffApplications = response.serviceResponse;
+            this.allCompOffApplications.forEach(compOffApp => {
+              compOffApp.fromDate = (compOffApp.fromDate)? moment(compOffApp.fromDate).format(AppComponent.DATE_FORMAT) : null,
+              compOffApp.toDate = (compOffApp.toDate)? moment(compOffApp.toDate).format(AppComponent.DATE_FORMAT) : null
+            });
+            this.setCompOffStatus();
+            this.compOffManagerId = response.serviceResponse.flatMap(item => [
+              item.managerApprovalStatus === 'Pending' && item.managerId != null ? item.managerId : null,
+              item.level2ApprovalStatus === 'Pending' && item.level2ApproverId != null ? item.level2ApproverId : null,
+              item.level3ApprovalStatus === 'Pending' && item.level3ApproverId != null ? item.level3ApproverId : null
+           ]).filter(id => id != null);
+           if(this.compOffManagerId.includes(this.managerId)){this.showActiveButton=true;}
+           else{this.showActiveButton=false;}
+          this.CompOffData=[];
+          if(this.isCompOffRequest){
+            this.allCompOffApplications.forEach(compOffApp => {
+              if(compOffApp.status==='Pending') 
+              this.CompOffData.push(compOffApp)});
+          }else if(this.isCompOffApplication){
+            this.allCompOffApplications.forEach(compOffApp => {
+              if(compOffApp.status==='Approved') 
+              this.CompOffData.push(compOffApp)});
+          }else{this.CompOffData=[];}
+          }
+        }); 
+    }
+
+    onUpdateCompOffStatus(template: TemplateRef<any>, compOffObj, updatedCompOffStatusId) {
+      // 1 = pending , 2 = Approved , 3= Rejected
+      compOffObj.leaveStatusId = updatedCompOffStatusId;
+      compOffObj.leaveStatusUpdatedBy = this.currentUser.empId;
+      compOffObj.hodEmail = this.currentUser.email;
+      compOffObj.hodName = this.currentUser.name;
+      compOffObj.employeeName = compOffObj.createdByName;
+  
+      this.leaveService.updateCompOffById(compOffObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.openAlertMod(template, response.serviceResponse);
+          this.getPendingCompOffRequestsByManagerId();
+        } else {
+          this.openAlertMod(template, response.serviceResponse);
+        }
+      });
+    }
+
+  // Leave Revoke 
+    getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(){
+        console.log("Fetching pending leave revoke applications...");
+        this.reporteeLeaveRevokeApplicationList = [];
+    
+        if(this.userMapping.employee_360_leave_view){
+          this.leaveObj.empId = this.employeeData2.empId;
+          this.leaveService.getAllMyTeamsPendingLeaveRevokeApplicationsByEmpId(this.leaveObj).pipe(first()).subscribe((response: any) => {
+            if (response.serviceStatus == "Success") {
+              this.reporteeLeaveRevokeApplicationList = response.serviceResponse;
+              this.reporteeLeaveRevokeApplicationList.forEach(leave => {
+                leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
+                leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
+                leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+              });
+            } else {
+              console.error(response.serviceResponse);
+            }
+          });
+        }else{
+          this.leaveObj.empId = this.currentUser.empId;
+          this.leaveService.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(this.leaveObj).pipe(first()).subscribe((response: any) => {
+            if (response.serviceStatus == "Success") {
+              this.reporteeLeaveRevokeApplicationList = response.serviceResponse;
+              this.reporteeLeaveRevokeApplicationList.forEach(leave => {
+                leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
+                leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
+                leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+              });
+            } else {
+              console.error(response.serviceResponse);
+            }
+          });
+        }
+      }
+
+  onUpdateRevokeLeaveStatus(template: TemplateRef<any>, leave, updatedLeaveStatusId){
+        this.cancelRequest();
+          leave.leaveRevokeStatusUpdatedBy = this.currentUser.empId;
+          leave.leaveRevokeStatusId = updatedLeaveStatusId;
+          leave.approverEmail = this.currentUser.email;	
+    
+          this.leaveService.updateRevokeLeaveStatus(leave).pipe(first()).subscribe((response: any) => {
+            if (response.serviceStatus == "Success") {
+              this.openAlertMod(template, response.serviceResponse);
+            } else {
+              this.openAlertMod(template, response.serviceResponse);
+            }
+            this.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId();
+          });
+      }
+
+  // Modals
+  openAlertMod(template: TemplateRef<any>, message: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
+  // openLeaveRejectModal
+  openLeaveRejectModal(template: TemplateRef<any>, leave: any){
+    this.cancelRequest();
+    this.leaveObj = leave
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
+
+  // single leave reject modal
+  onSingleReject(template: TemplateRef<any> , ){
+    this.onUpdateLeaveStatus(template, this.leaveObj,3);
+  }
+
+  openRevokeLeaveRejectModal(template: TemplateRef<any>, leave: any){
+    this.leaveObj.rejectReason = '';
+    this.cancelRequest();
+    this.leaveObj = leave;
+    this.modalRef = this.modalService.show(template);
+  }
+
+  cancelRequest() {
+      this.modalRef.hide();}
 
   getAllLeaveTypesByLeavePolicies() {
     this.leaveTypes = [];
@@ -144,7 +568,6 @@ export class Employee360LeaveComponent implements OnInit {
     this.leaveService.getAllLeaveTypesByLeavePolicies(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveTypes = response.serviceResponse;
-        // console.log("leaveTypes : ", this.leaveTypes);
         this.leaveBucketDetails = this.leaveTypes.map((leave: Leave) => {
           let leaveObj = new Leave();
           leaveObj.leaveTypeMasterId = leave.leaveTypeMasterId;
@@ -157,7 +580,6 @@ export class Employee360LeaveComponent implements OnInit {
 
           return leaveObj;
         });
-        // console.log("getAllLeaveTypesByLeavePolicies leaveBucketDetails : ", this.leaveBucketDetails);
       } else {
         console.error(response.serviceResponse);
       }
@@ -178,17 +600,12 @@ export class Employee360LeaveComponent implements OnInit {
     let leaveBalanceResponse:any = await this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).toPromise();
     if (leaveBalanceResponse.serviceStatus == "Success") {
       this.leaveBalanceList = leaveBalanceResponse.serviceResponse;
-      // console.log("leaveBalanceList : ", this.leaveBalanceList);
       this.leaveBucketDetails.forEach(data => {
-        // console.log("Priyadarshini Leave   ",data);
-        // console.log('Checking leave type match:', data.leaveTypeCode);
         let leaveDetail = this.leaveBalanceList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
-        // console.log('Matching detail:', leaveDetail);
         if (leaveDetail) {
           data.balance = (leaveDetail.balance) ? leaveDetail.balance : 0;
         }
       });
-      // console.log("leaveBucketDetails with Balance : ", this.leaveBucketDetails);
     } else {
       console.error(leaveBalanceResponse.serviceResponse);
     }
@@ -196,15 +613,12 @@ export class Employee360LeaveComponent implements OnInit {
     let approvedLeaveResponse:any = await this.leaveService.countMyApprovedLeaveApplicationsByLeaveType(leaveObj).pipe(first()).toPromise();
     if (approvedLeaveResponse.serviceStatus == "Success") {
       this.approvedLeavesList = approvedLeaveResponse.serviceResponse;
-      // console.log("approvedLeaves : ", this.approvedLeavesList);
-
       this.leaveBucketDetails.forEach(data => {
         let leaveDetail = this.approvedLeavesList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
         if (leaveDetail) {
           data.approvedApplicationsCount = (leaveDetail.applicationCount) ? leaveDetail.applicationCount : 0;
         }
       });
-      // console.log("leaveBucketDetails with Approved Leaves : ", this.leaveBucketDetails);
     } else {
       console.error(approvedLeaveResponse.serviceResponse);
     }
@@ -212,15 +626,12 @@ export class Employee360LeaveComponent implements OnInit {
     let rejectedLeaveResponse:any = await this.leaveService.countMyRejectedLeaveApplicationsByLeaveType(leaveObj).pipe(first()).toPromise();
     if (rejectedLeaveResponse.serviceStatus == 'Success') {
       this.rejectedLeavesList = rejectedLeaveResponse.serviceResponse;
-      // console.log("Rejected Leaves : ", this.rejectedLeavesList);
-
       this.leaveBucketDetails.forEach(data => {
         let leaveDetail = this.rejectedLeavesList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
         if (leaveDetail) {
           data.rejectedApplicationsCount = (leaveDetail.applicationCount) ? leaveDetail.applicationCount : 0;
         }
       });
-      // console.log("leaveBucketDetails with Rejected Leaves : ", this.leaveBucketDetails);
     } else {
       console.error(rejectedLeaveResponse.serviceResponse);
     }
@@ -228,16 +639,12 @@ export class Employee360LeaveComponent implements OnInit {
     let pendingLeaveResponse:any = await this.leaveService.countMyPendingLeaveApplicationsByLeaveType(leaveObj).pipe(first()).toPromise();
     if (pendingLeaveResponse.serviceStatus == "Success") {
       this.pendingLeavesList = pendingLeaveResponse.serviceResponse;
-      // console.log("pendingLeavesList : ", this.pendingLeavesList);
-
       this.leaveBucketDetails.forEach(data => {
         let leaveDetail = this.pendingLeavesList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
         if (leaveDetail) {
           data.pendingApplicationsCount = (leaveDetail.applicationCount) ? leaveDetail.applicationCount : 0;
         }
       });
-
-      // console.log("leaveBucketDetails with pending leaves : ", this.leaveBucketDetails);
     } else {
       console.error(pendingLeaveResponse.serviceResponse);
     }
@@ -252,8 +659,6 @@ export class Employee360LeaveComponent implements OnInit {
 
       if (response.serviceStatus == 'Success') {
         this.rejectedLeavesList = response.serviceResponse;
-        // console.log("Rejected Leaves : ", this.rejectedLeavesList);
-
         this.leaveBucketDetails.forEach(data => {
           let leaveDetail = this.rejectedLeavesList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
           if (leaveDetail) {
@@ -275,7 +680,6 @@ export class Employee360LeaveComponent implements OnInit {
     this.leaveService.countMyApprovedLeaveApplicationsByLeaveType(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.approvedLeavesList = response.serviceResponse;
-        // console.log("approvedLeaves : ", this.approvedLeavesList);
         this.leaveBucketDetails.forEach(data => {
           let leaveDetail = this.approvedLeavesList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
           if (leaveDetail) {
@@ -295,8 +699,6 @@ export class Employee360LeaveComponent implements OnInit {
     this.leaveService.countMyPendingLeaveApplicationsByLeaveType(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.pendingLeavesList = response.serviceResponse;
-        // console.log("pendingLeavesList : ", this.pendingLeavesList);
-
         this.leaveBucketDetails.forEach(data => {
           let leaveDetail = this.pendingLeavesList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
           if (leaveDetail) {
@@ -320,9 +722,6 @@ export class Employee360LeaveComponent implements OnInit {
       pendingApplicationsCount: leave.pendingApplicationsCount || 0, 
       rejectedApplicationsCount: leave.rejectedApplicationsCount || 0 
     }));
-
-    // console.log("Chart Data: ", this.chartData);
-
     this.renderPieSummaryChart(
       'Leave Balance Distribution', 
       'leaveChartContainer',       
@@ -405,11 +804,7 @@ export class Employee360LeaveComponent implements OnInit {
           allowPointSelect: true,
           cursor: 'pointer',
           events: {
-            click: function (event) {
-              // if(chartId == 'leaveSummaryChart'){
-              //   openMod(event.point.name);
-              // }
-            },
+            click: function (event) {},
           },
           dataLabels: {
             enabled: true,
@@ -433,147 +828,217 @@ export class Employee360LeaveComponent implements OnInit {
       }],
     });
   }
-  
+
   getLeaveDataPerMonthByEmpId(year: number): void {
-    this.leaveByMonth = [];
-    
     this.employee360Service.getLeaveDataPerMonthByEmpId(this.employeeData.empId).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus === "Success") {
+        if (response.serviceStatus === "Success") {
+            const leaveData = response.serviceResponse;
+            const dataByLeaveType: any = {
+                "PL": { "Revoked": Array(12).fill(0), "Approved": Array(12).fill(0), "Rejected": Array(12).fill(0), "Pending": Array(12).fill(0), "Applied for revoke": Array(12).fill(0) },
+                "CL": { "Revoked": Array(12).fill(0), "Approved": Array(12).fill(0), "Rejected": Array(12).fill(0), "Pending": Array(12).fill(0), "Applied for revoke": Array(12).fill(0) },
+                "CO": { "Revoked": Array(12).fill(0), "Approved": Array(12).fill(0), "Rejected": Array(12).fill(0), "Pending": Array(12).fill(0), "Applied for revoke": Array(12).fill(0) },
+                "LWP": { "Revoked": Array(12).fill(0), "Approved": Array(12).fill(0), "Rejected": Array(12).fill(0), "Pending": Array(12).fill(0), "Applied for revoke": Array(12).fill(0) },
+                "ML": { "Revoked": Array(12).fill(0), "Approved": Array(12).fill(0), "Rejected": Array(12).fill(0), "Pending": Array(12).fill(0), "Applied for revoke": Array(12).fill(0) }
+            };
 
-        this.leaveByMonth = response.serviceResponse;
-        console.log("getLeaveDataPerMonthByEmpId 1: ", this.leaveByMonth); 
-        this.leaveByMonth = this.leaveByMonth.filter((leave) => {
-          console.log("getLeaveDataPerMonthByEmpId 2: ", this.leaveByMonth);
+            leaveData.forEach(leave => {
+                const leaveType = leave.leaveType;
+                const leaveStatus = leave.leaveStatus;
+                const leaveMonth = parseInt(leave.leaveMonth, 10) - 1;
+                const totalDays = parseFloat(leave.totalDays);
+
+                if (dataByLeaveType[leaveType] && dataByLeaveType[leaveType][leaveStatus]) {
+                    dataByLeaveType[leaveType][leaveStatus][leaveMonth] += totalDays;
+                }
+            });
+
+            const seriesData = [];
+            const uniqueStatuses: Set<string> = new Set();
+            for (let leaveType in dataByLeaveType) {
+                for (let leaveStatus in dataByLeaveType[leaveType]) {
+                    seriesData.push({
+                        name: `${leaveType} - ${leaveStatus}`,
+                        data: dataByLeaveType[leaveType][leaveStatus],
+                        color: this.getLeaveStatusColor(leaveStatus),
+                        stack: leaveType,
+                        status: leaveStatus,
+                        leaveType: leaveType
+                    });
+                    uniqueStatuses.add(leaveStatus);
+                }
+            }
+
+            const legendItems = Array.from(uniqueStatuses).map(status => ({
+                name: status,
+                status: status,
+                color: this.getLeaveStatusColor(status) 
+            }));
+
+            Highcharts.chart('leaveByMonthContainer', {
+              chart: {
+                  type: 'column',
+              },
+              title: {
+                  text: `Leave Data for ${this.year-1}`,
+                  style: {
+                    fontWeight: 'bold', },
+              },
+              xAxis: {
+                  categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+                  title: {
+                      text: "Month",
+                      style: {
+                        fontWeight: 'bold', },
+                  },
+              },
+              yAxis: {
+                  min: 0,
+                  title: {
+                      text: "Leave Count",
+                      style: {
+                        fontWeight: 'bold', },
+                  },
+              },
+              tooltip: {
+                  shared: false,
+                  formatter: function (this: Highcharts.TooltipFormatterContextObject) {
+                      const seriesOptions = this.series.options as any; 
+                      return `<b>Month:</b> ${this.x}<br/>` +
+                          `<b>Status:</b> ${seriesOptions.status}<br/>` +
+                          `<b>Days:</b> ${this.y}`;
+                  },
+              },
+              legend: {
+                  enabled: false, 
+              },
+              plotOptions: {
+                  column: {
+                      stacking: 'normal',
+                  },
+                  series: {
+                      events: {
+                          legendItemClick: function () {
+                              const clickedStatus = (this.options as any).status;
+                              this.chart.series.forEach(series => {
+                                  if ((series.options as any).status === clickedStatus) {
+                                      series.visible ? series.hide() : series.show();
+                                  }
+                              });
+                              return false;
+                          },
+                      },
+                      showInLegend: false, 
+                  },
+              },
+              series: seriesData, 
+          },
+          function (chart) {
+              const uniqueStatuses = Array.from(new Set(seriesData.map(series => series.status)));
+              const legendContainer = document.createElement('div');
+              legendContainer.id = 'custom-legend';
+              legendContainer.style.textAlign = 'center';
+              legendContainer.style.marginTop = '10px';
           
-          const leaveYear = parseInt(leave.leaveYear, 10);  
-          return leaveYear === year;
-        });
-  
-        this.prepareChartData();
-        console.log("getLeaveDataPerMonthByEmpId : ", this.leaveByMonth);
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
-  }
-  
-  prepareChartData(): void {
-    let leaveTypes = {};
-    let months = Array.from({ length: 12 }, (_, i) => i + 1); 
-    let chartData = {
-      xAxisCategories: [],
-      seriesData: [] 
-    };
-  
-    chartData.xAxisCategories = months.map(month => month.toString());
-
-    this.leaveByMonth.forEach((leave) => {
-      const leaveMonth = parseInt(leave.leaveMonth, 10);
-      const leaveType = leave.leaveType; 
-      const leaveStatus = leave.leaveStatus; 
-  
-      if (!leaveTypes[leaveMonth]) {
-        leaveTypes[leaveMonth] = {}; 
-      }
-  
-      if (!leaveTypes[leaveMonth][leaveType]) {
-        leaveTypes[leaveMonth][leaveType] = { "Pending": 0, "Approved": 0, "Rejected": 0, 'Revoked': 0, 'Applied For Revoke': 0 }; 
-      }
-      const totalDays = parseFloat(leave.totalDays); 
-      if (!isNaN(totalDays)) {
-        leaveTypes[leaveMonth][leaveType][leaveStatus] += totalDays;
-      }
-    });
-
-    Object.keys(leaveTypes).forEach((month) => {
-      const dataForMonth = [];
-      
-      Object.keys(leaveTypes[month]).forEach((leaveType) => {
-        const leaveStatusData = leaveTypes[month][leaveType];
-        
-        Object.keys(leaveStatusData).forEach((status) => {
-          dataForMonth.push({
-            name: status,
-            data: [leaveStatusData[status]],
-            color: this.getColorForLeaveStatus(status), 
-            stack: leaveType, 
+              uniqueStatuses.forEach(status => {
+                  const color = seriesData.find(series => series.status === status)?.color || '#000';
+                  const legendItem = document.createElement('div');
+                  legendItem.style.display = 'inline-block';
+                  legendItem.style.margin = '0 15px';
+                  legendItem.style.cursor = 'pointer';
+          
+                  legendItem.innerHTML = `
+                      <span style="background-color: ${color}; width: 10px; height: 10px; display: inline-block; margin-right: 5px; border-radius: 2px;"></span>
+                      ${status}
+                  `;
+          
+                  legendItem.addEventListener('click', () => {
+                      chart.series.forEach(series => {
+                          if ((series.options as any).status === status) {
+                              series.visible ? series.hide() : series.show();
+                          }
+                      });
+                  });
+          
+                  legendContainer.appendChild(legendItem);
+              });
+          
+              const container = document.getElementById('leaveByMonthContainer');
+              if (container) {
+                  container.parentElement?.appendChild(legendContainer);
+              }
           });
-        });
-      });
-  
-      chartData.seriesData.push(...dataForMonth);
+                
+        } else {
+            console.error(response.serviceResponse);
+        }
     });
-  
-    this.chartOptions = {
-      chart: {
-        type: 'column'
-      },
-      title: {
-        text: 'Leave Data Per Month'
-      },
-      xAxis: {
-        categories: chartData.xAxisCategories,
-        title: {
-          text: 'Month'
-        }
-      },
-      yAxis: {
-        min: 0,
-        title: {
-          text: 'Total Days'
-        },
-        stackLabels: {
-          enabled: true,
-          style: {
-            fontWeight: 'bold',
-            color: 'gray'
-          }
-        }
-      },
-      tooltip: {
-        shared: true,
-        valueSuffix: ' days'
-      },
-      plotOptions: {
-        column: {
-          stacking: 'normal'
-        }
-      },
-      series: chartData.seriesData 
-    };
-  
-    console.log("Prepared Chart Data: ", this.chartOptions);
-  }
-  
-  getColorForLeaveStatus(status: string) {
-    const colorMap = {
-      'Pending': '#a2d2ff',
-      'Approved': '#778da9',
-      'Rejected': '#415a77',
-      'Revoked': '#0d1b2a',
-      'Applied For Revoke': '#1b263b'
-    };
-    return colorMap[status] || '#2a9d8f'; 
-  }
-  
-  
-  
-  getEmployeeDetails() {
-    this.employeeDetails = [];
-    this.formatedEmploymentID = Number(this.utilityService.getEmployeeIdSubstring2(this.employeeData));
-    console.log("formatedEmploymentID  : ", this.formatedEmploymentID);
+}
 
-    this.employee360Service.getEmployeeDetails(this.formatedEmploymentID).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.employeeDetails = response.serviceResponse;
-        console.log("getEmployeeDetails : ", this.employeeDetails);
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
+getLeaveStatusColor(status: string): string {
+    switch (status) {
+        case "Approved":
+            return "#c5d86d";
+        case "Rejected":
+            return "#e63946";
+        case "Pending":
+            return "#fde74c";
+        case "Revoked":
+            return "#4e878c";
+        case "Applied for revoke":
+            return "#f2bac9";
+        default:
+            return "#122f97";
+    }
   }
 
-  renderChart() {
-    Highcharts.chart('leaveByMonthContainer', this.chartOptions); 
+  onChangeOption(arg: any) {
+    if (arg == 1) {
+      // Handle "All"
+      this.startDate = null;
+      this.endDate = null;
+      this.setDate();
+    } else if (arg == 4) {
+      // start and end date will be handled by the owl-datepicker input fields
+    }
+    console.log("startDate" , this.startDate);
+    console.log("endDate" , this.endDate);
+
   }
+
+  getDateRange() {
+    if (this.dateTimeRange && this.dateTimeRange.length === 2) {
+      const fromDate = this.dateTimeRange[0];
+      const toDate = this.dateTimeRange[1];
+  
+      console.log('From Date:', fromDate);
+      console.log('To Date:', toDate);
+      this.startDate = fromDate;
+      this.endDate = toDate;
+  
+      // logic to filter data based on the selected range
+      this.setDate();
+    }
+  }
+
+  resetDateRange() {
+    this.dateTimeRange = null;
+    this.startDate = null;
+    this.endDate = null;
+    this.setDate();
+    // Optionally, call your method to fetch data after reset
+  }
+
+  setDate(){
+    if (this.startDate && this.endDate) {
+       this.formattedStartDate = this.datePipe.transform(this.startDate, 'dd-MM-yyyy');
+      this.formattedEndDate = this.datePipe.transform(this.endDate, 'dd-MM-yyyy');
+      this.getAllLeaveApplicationsByEmpId();
+    }else{
+      this.formattedStartDate='';
+      this.formattedEndDate='';
+      this.getAllLeaveApplicationsByEmpId();
+
+    }
+  }
+  
 }
