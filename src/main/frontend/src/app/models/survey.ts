@@ -1,3 +1,5 @@
+import { SurveySection } from "./survey-section";
+
 export class Survey {
     surveyId: any;
     empId:any;
@@ -9,9 +11,8 @@ export class Survey {
     updatedOn: any;
     updatedBy: any;
     surveyQuestionList:any;
-
     surveyTemplate:any;
     isAnswered:boolean = false;
-
     employeementId:any;
+    sections: SurveySection[] = [new SurveySection()];
 }

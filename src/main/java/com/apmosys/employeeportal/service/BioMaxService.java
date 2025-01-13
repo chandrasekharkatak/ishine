@@ -5,32 +5,49 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.transaction.Transactional;
 
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import com.apmosys.employeeportal.dto.BioMaTO;
+import com.apmosys.employeeportal.dto.BioMax360;
+import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @Service
 public class BioMaxService {
-
+	@Autowired
+	TimesheetService TimesheetService;
 	@Value("${BioDbIp}")
 	public String DBIp;
-	
+	Connection con = null;
+    PreparedStatement statement = null;
+    ResultSet resultSet = null;
 	
 //	@Value("${BioDbPort}")
 	//public String DBPort;
@@ -44,6 +61,9 @@ public class BioMaxService {
 
 	@Autowired
 	EmployeeRepository employeeRepository;
+	
+	@PersistenceContext
+    private EntityManager entityManager;
 
 	public Connection getConnection() {
 		
@@ -58,7 +78,7 @@ public class BioMaxService {
 //			Connection con = DriverManager.getConnection("jdbc:sqlserver://yourserver:1433;databaseName=yourdatabase;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;");
 //			Connection con = DriverManager.getConnection("jdbc:sqlserver://yourserver:1433;databaseName=yourdatabase;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;");
 //			 Connection con = DriverManager.getConnection("jdbc:sqlserver://192.168.0.126:1433;databaseName=SmartOfficedb;user=sa;password=biomax;");
-			 Connection con = DriverManager.getConnection("jdbc:sqlserver://192.168.0.126:1433;databaseName=smartofficedb;encrypt=true;trustServerCertificate=true;user=sa;password=biomax;sslProtocol=TLSv1.2");
+			  con = DriverManager.getConnection("jdbc:sqlserver://192.168.0.126:1433;databaseName=smartofficedb;encrypt=true;trustServerCertificate=true;user=sa;password=biomax;sslProtocol=TLSv1.2");
 
 			 
 			 if (con !=null) {
@@ -73,15 +93,81 @@ public class BioMaxService {
 		return null;
 	}
 
+	 public Connection getConnectionForProject() {
+	        String DB_URL = "jdbc:mysql://localhost:3306/db_emp_portal"; // Replace with your MySQL server info
+	        String DB_USER = "root"; // Replace with your MySQL username
+	        String DB_PASSWORD = "Welcome@2024"; // Replace with your MySQL password
+
+	        try {
+	            // Load MySQL JDBC driver
+	            Class.forName("com.mysql.cj.jdbc.Driver");
+
+	            // Establish connection
+	             con = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+
+	            if (con != null) {
+	                System.out.println("Connection made to MySQL database");
+	            }
+	            return con;
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+
+	        return null;
+	    }
+	 
+	public String getProjectTimeSheet(String date,String employeeId) {
+		String timesheetId="0";
+	
+		String Query="SELECT * FROM employee_timesheets AS e \n"
+				+ "WHERE \n"
+				+ "e.emp_id IN (\n"
+				+ "    SELECT employee.emp_id \n"
+				+ "    FROM db_emp_portal.employee \n"
+				+ "    WHERE employee.emp_id = '"+employeeId+"'"
+				+ ")\n"
+				+ "AND\n"
+				+ "e.date=DATE_FORMAT(STR_TO_DATE('"+date+"', '%d-%b-%Y'), '%Y-%m-%d')\n";
+		
+		try {
+			con = getConnectionForProject();
+			 statement=con.prepareStatement(Query);
+			 resultSet=statement.executeQuery();
+				 if(resultSet.next()) {
+					 
+				 timesheetId=resultSet.getString("timesheet_id");
+			 }else {
+				 timesheetId="0";
+			 }
+		}catch(Exception e) {
+			e.printStackTrace();
+		}finally {
+	        // Properly close the resources in the finally block
+	        try {
+	            if (resultSet != null) {
+	            	resultSet.close();
+	            }
+	            if (statement != null) {
+	                statement.close();
+	            }
+	            if (con != null) {
+	            	con.close();
+	            }
+	        } catch (SQLException ex) {
+	            ex.printStackTrace();
+	        }
+	    }
+		
+		
+		return timesheetId;
+				
+	}
 	public ServiceResponse getEmpBioData(String date) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		try {
 			Set<String> bioEmpIdSet = new HashSet<>();
 			Map<String, List<String>> empMapById = new HashMap<>();
 			List<BioMaTO> finalEmpBioData=new ArrayList();
-
-//			List<List<Object>> bioMaxAllList = new ArrayList();
-
 			 String Query = "WITH LatestLogDate AS (\n"
 			 		+ "    SELECT \n"
 			 		+ "        dl.UserId,\n"
@@ -127,7 +213,6 @@ public class BioMaxService {
 			 		+ "WHERE \n"
 			 		+ "    adl.AttendanceDateStr = ?"; // Use ? as a placeholder
 
-			
 			Connection con = getConnection();
 			PreparedStatement statement = con.prepareStatement(Query);
 			
@@ -288,6 +373,106 @@ public class BioMaxService {
 	}
 	
 
+	public ServiceResponse getEmpBioData360(String startdate, String endDate, String employeeId) {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    Connection con = null;
+	    PreparedStatement statement = null;
+	    ResultSet resultSet = null;
+//	    List<String> listEmployeeId=new ArrayList<>();
+//	    if(employeeId.contains(",")) {
+//	    	String[] listemployee=employeeId.split(",");
+//	    	for(String s:listemployee) {
+//	    		listEmployeeId.add(s);
+//	    	}
+//	    	
+//	    }
+	    try {
+	        Set<String> bioEmpIdSet = new HashSet<>();
+	        Map<String, List<String>> empMapById = new HashMap<>();
+	        List<BioMax360> finalEmpBioData = new ArrayList();
+
+	        String Query = "SELECT AttendanceDate, al.EmployeeId as EmployeeId, AttendanceDateStr, EmployeeName, EmployeeCode, InTime, OutTime, OverTime, OverTimeE, TotalDuration "
+	                + "FROM AttendanceLogs al "
+	                + "JOIN Employees e ON al.EmployeeId = e.EmployeeId "
+	                + "WHERE al.EmployeeId IN (" + employeeId + ") "
+	                + "AND al.AttendanceDate BETWEEN '" + startdate + "' AND '" + endDate + "'";
+
+	        con = getConnection();
+	        statement = con.prepareStatement(Query);
+
+	        // Execute the query and retrieve the result set
+	        resultSet = statement.executeQuery();
+
+	        // Process the result set
+	        while (resultSet.next()) {
+	            BioMax360 bioMaTO = new BioMax360();
+	            bioMaTO.setAttendanceDateStr(resultSet.getString("AttendanceDate"));
+	            bioMaTO.setLogDate(resultSet.getString("AttendanceDateStr"));
+	            bioMaTO.setEmployeeCode(resultSet.getString("EmployeeCode"));
+	            bioMaTO.setEmployeeName(resultSet.getString("EmployeeName"));
+	            bioMaTO.setTotalDuration(resultSet.getString("OverTime")); // Assuming TotalDuration is a String
+	            bioMaTO.setShiftName(resultSet.getString("OverTime")); // Added shift name from your query
+	            bioMaTO.setBeginTime(resultSet.getString("InTime"));
+	            bioMaTO.setEndTime(resultSet.getString("OutTime"));
+	            bioMaTO.setStatus(resultSet.getString("EmployeeId"));
+	            String outputDate = null;
+	            System.out.println(resultSet.getString("EmployeeId")+"=="+resultSet.getString("AttendanceDateStr"));
+	            SimpleDateFormat inputFormat = new SimpleDateFormat("dd-MMM-yyyy");
+	            SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+	            try {
+	                // Parse the input date
+	                Date date = inputFormat.parse(resultSet.getString("AttendanceDateStr"));
+	                // Format the date into the desired output format
+	                 outputDate = outputFormat.format(date);
+
+	                System.out.println("Converted Date: " + outputDate+"=="+resultSet.getString("EmployeeCode")+"=="+resultSet.getString("EmployeeId"));
+	            } catch (ParseException e) {
+	                e.printStackTrace();
+	            }
+	            List<TimesheetDTO> timesh= TimesheetService.getAllProjectsByEmpIdForBioMax(resultSet.getString("EmployeeId"),outputDate);
+	           System.out.println("----"+timesh.size());
+	            if(timesh.size()>0) {
+	        	  bioMaTO.setTimesheetdto(timesh);
+		          
+	          }else {
+	        	  TimesheetDTO timesheetDTO=new TimesheetDTO();
+	        	  timesheetDTO.setClientName("Not Fill");
+	        	  timesheetDTO.setActivity("0");
+	        	  timesh.add(timesheetDTO);
+	        	  bioMaTO.setTimesheetdto(timesh);
+	          }
+	            finalEmpBioData.add(bioMaTO);
+	        }
+	        serviceResponse.setServiceResponse(finalEmpBioData);
+	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+
+	        // Set the error in response
+	        serviceResponse.setServiceResponse("");
+	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        serviceResponse.setServiceError(e.getMessage());
+	    } finally {
+	        // Properly close the resources in the finally block
+	        try {
+	            if (resultSet != null) {
+	                resultSet.close();
+	            }
+	            if (statement != null) {
+	                statement.close();
+	            }
+	            if (con != null) {
+	                con.close();
+	            }
+	        } catch (SQLException ex) {
+	            ex.printStackTrace();
+	        }
+	    }
+
+	    return serviceResponse;
+	}
 
 	public long calculateTime(String startDateStr, String endDateStr) {
 
@@ -411,89 +596,223 @@ public class BioMaxService {
 //	
 //	
 //	
-//	 public List<BioMaTO> getBioInOut(TimesheetDTO timesheetdto) {
-//		    List<BioMaTO> finalEmpBioData = new ArrayList<>();
-//		    
-//		    try {
-//		        Set<String> bioEmpIdSet = new HashSet<>();
-//		        Map<String, List<String>> empMapById = new HashMap<>();
-//		        
-//		        String query = "SELECT " +
-//		            "adl.AttendanceDate, " +
-//		            "emp.EmployeeCode, " +
-//		            "emp.EmployeeName, " +
-//		            "adl.TotalDuration, " +
-//		            "s.ShiftName, " +
-//		            "adl.BeginTime, " +
-//		            "adl.EndTime, " +
-//		            "adl.Status, " +
-//		            "adl.PunchRecords, " +
-//		            "adl.EarlyBy, " +
-//		            "adl.LateBy, " +
-//		            "adl.Duration, " +
-//		            "adl.InTime, " +
-//		            "adl.OutTime, " +
-//		            "adl.ShiftDuration " +
-//		            "FROM [SmartOfficedb].[dbo].[AttendanceLogs] adl " +
-//		            "INNER JOIN [SmartOfficedb].[dbo].[Employees] emp ON adl.EmployeeId = emp.EmployeeId " +
-//		            "INNER JOIN [SmartOfficedb].[dbo].[Shifts] s ON adl.ShiftId = s.ShiftId " +
-//		            "WHERE YEAR(adl.AttendanceDate) = ? AND MONTH(adl.AttendanceDate) = ?;";
-//		        
-//		        
-//		        Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-//
-//				 Connection con = getConnection();
-//
-//		        PreparedStatement statement = con.prepareStatement(query);
-//		       
-//		        // Set the date parameters
-//		        statement.setString(1, String.valueOf(2024)); // Set the year
-//		        statement.setString(2, String.valueOf(9));    // Set the month
-//		        
-//		        System.out.println("Executing query: " + statement.toString());
-//		        
-//		        ResultSet resultSet = statement.executeQuery();
-//		        
-//		        if (!resultSet.next()) {
-//		            System.out.println("No results found.");
-//		        } else {
-//		        	 while (resultSet.next()){
-//		                BioMaTO bioMaTO = new BioMaTO();
-//		                
-//		                System.out.println(resultSet.getString("EmployeeCode"));
-//		                System.out.println(resultSet.getString("ShiftName"));
-//		                System.out.println(resultSet.getString("EmployeeName"));
-//		                System.out.println(resultSet.getString("TotalDuration"));
-//		               
-//		                // Populate bioMaTO object
-//		                bioMaTO.setEmployeeCode(resultSet.getString("EmployeeCode"));
-//		                bioMaTO.setEmployeeName(resultSet.getString("EmployeeName"));
-//		                bioMaTO.setTotalDuration(resultSet.getString("TotalDuration"));
-//		                bioMaTO.setShiftName(resultSet.getString("ShiftName"));
-//		                bioMaTO.setBeginTime(resultSet.getString("BeginTime"));
-//		                bioMaTO.setEndTime(resultSet.getString("EndTime"));
-//		                bioMaTO.setStatus(resultSet.getString("Status"));
-//		                bioMaTO.setPunchRecords(resultSet.getString("PunchRecords"));
-//		                bioMaTO.setEarlyBy(resultSet.getString("EarlyBy"));
-//		                bioMaTO.setLateBy(resultSet.getString("LateBy"));
-//		                bioMaTO.setDuration(resultSet.getString("Duration"));
-//		                bioMaTO.setInTime(resultSet.getString("InTime"));
-//		                bioMaTO.setOutTime(resultSet.getString("OutTime"));
-//		                bioMaTO.setShiftDuration(resultSet.getString("ShiftDuration"));
-//
-//		                finalEmpBioData.add(bioMaTO);
-//		                
-//		            }
-//		            
-//		        }
-//		        
-//		    } catch (Exception e) {
-//		        e.printStackTrace(); // Log the exception message
-//		    }
-//		    
-//		    return finalEmpBioData;
-//		}
-//		
+	 public List<BioMaTO> getBioInOut() {
+		    List<BioMaTO> finalEmpBioData = new ArrayList<>();
+		    
+		    try {
+		        Set<String> bioEmpIdSet = new HashSet<>();
+		        Map<String, List<String>> empMapById = new HashMap<>();
+		        
+		        String query = "SELECT " +
+		            "adl.AttendanceDate, " +
+		            "emp.EmployeeCode, " +
+		            "emp.EmployeeName, " +
+		            "adl.TotalDuration, " +
+		            "s.ShiftName, " +
+		            "adl.BeginTime, " +
+		            "adl.EndTime, " +
+		            "adl.Status, " +
+		            "adl.PunchRecords, " +
+		            "adl.EarlyBy, " +
+		            "adl.LateBy, " +
+		            "adl.Duration, " +
+		            "adl.InTime, " +
+		            "adl.OutTime, " +
+		            "adl.ShiftDuration " +
+		            "FROM [SmartOfficedb].[dbo].[AttendanceLogs] adl " +
+		            "INNER JOIN [SmartOfficedb].[dbo].[Employees] emp ON adl.EmployeeId = emp.EmployeeId " +
+		            "INNER JOIN [SmartOfficedb].[dbo].[Shifts] s ON adl.ShiftId = s.ShiftId " +
+		            "WHERE YEAR(adl.AttendanceDate) = ? AND MONTH(adl.AttendanceDate) = ?;";
+		        
+		        
+		        Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+
+				 Connection con = getConnection();
+
+		        PreparedStatement statement = con.prepareStatement(query);
+		       
+		        // Set the date parameters
+		        statement.setString(1, String.valueOf(2024)); // Set the year
+		        statement.setString(2, String.valueOf(9));    // Set the month
+		        
+		        System.out.println("Executing query: " + statement.toString());
+		        
+		        ResultSet resultSet = statement.executeQuery();
+		        
+		        if (!resultSet.next()) {
+		            System.out.println("No results found.");
+		        } else {
+		        	 while (resultSet.next()){
+		                BioMaTO bioMaTO = new BioMaTO();
+		                
+		                System.out.println(resultSet.getString("EmployeeCode"));
+		                System.out.println(resultSet.getString("ShiftName"));
+		                System.out.println(resultSet.getString("EmployeeName"));
+		                System.out.println(resultSet.getString("TotalDuration"));
+		               
+		                // Populate bioMaTO object
+		                bioMaTO.setEmployeeCode(resultSet.getString("EmployeeCode"));
+		                bioMaTO.setEmployeeName(resultSet.getString("EmployeeName"));
+		                bioMaTO.setTotalDuration(resultSet.getString("TotalDuration"));
+		                bioMaTO.setShiftName(resultSet.getString("ShiftName"));
+		                bioMaTO.setBeginTime(resultSet.getString("BeginTime"));
+		                bioMaTO.setEndTime(resultSet.getString("EndTime"));
+		                bioMaTO.setStatus(resultSet.getString("Status"));
+		                bioMaTO.setPunchRecords(resultSet.getString("PunchRecords"));
+		                bioMaTO.setEarlyBy(resultSet.getString("EarlyBy"));
+		                bioMaTO.setLateBy(resultSet.getString("LateBy"));
+		                bioMaTO.setDuration(resultSet.getString("Duration"));
+		                bioMaTO.setInTime(resultSet.getString("InTime"));
+		                bioMaTO.setOutTime(resultSet.getString("OutTime"));
+		                bioMaTO.setShiftDuration(resultSet.getString("ShiftDuration"));
+
+		                finalEmpBioData.add(bioMaTO);
+		                
+		            }
+		            
+		        }
+		        
+		    } catch (Exception e) {
+		        e.printStackTrace(); // Log the exception message
+		    }
+		    
+		    return finalEmpBioData;
+		}
+	 
+	 
+	 public ServiceResponse getBioOverTimeandState(EmployeeDTO employeedto) {
+		    HashMap<String, Object> res = new HashMap<>();
+		    HashMap<String, Object> stats = new HashMap<>();
+			ServiceResponse serviceResponse = new ServiceResponse();
+		    ArrayList<HashMap<String, Object>> AllDataList =new   ArrayList<HashMap<String, Object>>();
+		    
+		    Long empId = employeedto.getEmpId();
+
+		    
+		    String strMYSQLQuery = "SELECT " +
+	                "(SELECT COUNT(emp_id) " +
+	                " FROM employee_leave " +
+	                " WHERE emp_id = :empId " +
+	                "   AND MONTH(created_on) = MONTH(CURRENT_DATE - INTERVAL 1 MONTH) " +
+	                "   AND YEAR(created_on) = YEAR(CURRENT_DATE - INTERVAL 1 MONTH)) AS leave_count, " +
+
+	                "(SELECT COUNT(reward_id) " +
+	                " FROM employee_rewards " +
+	                " WHERE created_by = :empId " +
+	                "   AND MONTH(created_on) = MONTH(CURRENT_DATE - INTERVAL 1 MONTH) " +
+	                "   AND YEAR(created_on) = YEAR(CURRENT_DATE - INTERVAL 1 MONTH)) AS rewards_count, " +
+
+	                "(SELECT COUNT(id) " +
+	                " FROM db_emp_portal.appreciation " +
+	                " WHERE appreciation_to = :empId " +
+	                "   AND MONTH(appreciation_date) = MONTH(CURRENT_DATE - INTERVAL 1 MONTH) " +
+	                "   AND YEAR(appreciation_date) = YEAR(CURRENT_DATE - INTERVAL 1 MONTH)) AS appreciation_count";
+
+	        // Execute the Query
+	        Query query = entityManager.createNativeQuery(strMYSQLQuery);
+	        query.setParameter("empId", empId);
+
+	        // Fetch the result
+	        Object[] result = (Object[]) query.getSingleResult();
+
+	        // Map the results
+	        
+	        stats.put("leave_count",   result[0]);
+	        stats.put("rewards_count", result[1]);
+	        stats.put("appreciation_count",  result[2]);
+
+	       
+	        System.out.println("data  --===="+ stats);
+	        
+
+		    try {
+		        // Fetch all employees from the repository
+		        List<Employee> AllEmpList = employeeRepository.findAll();
+
+		        // Loop through each employee and process
+		        AllEmpList.forEach(emp -> {
+		            if (emp.getEmpId().equals(employeedto.getEmpId())) {
+		                // SQL query to fetch total overtime and other relevant data
+		            	
+		            	String EmploymentId = "A" + emp.getEmployeementId();
+		            	
+		            	
+		            	String strMSSQLQuery = "SELECT "
+		            	        + "SUM(CAST(AttendanceLogs.OverTime AS INT)) AS total_OverTime, "
+		            	        + "CONCAT('-', ABS(SUM(CAST(AttendanceLogs.OverTimeE AS INT)))) AS total_UnderTimeE "
+		            	        + "FROM AttendanceLogs "
+		            	        + "INNER JOIN Employees ON AttendanceLogs.EmployeeId = Employees.EmployeeId "
+		            	        + "WHERE Employees.EmployeeCode = ? "
+		            	        + "AND MONTH(AttendanceLogs.AttendanceDate) = MONTH(DATEADD(MONTH, -1, GETDATE())) "
+		            	        + "AND YEAR(AttendanceLogs.AttendanceDate) = YEAR(DATEADD(MONTH, -1, GETDATE()))";
+
+
+
+		                try {
+		                    // Load the SQL Server JDBC driver
+		                    Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+
+		                    // Establish connection
+		                    Connection con = getConnection();
+
+		                    // Prepare the SQL statement
+		                    PreparedStatement statement = con.prepareStatement(strMSSQLQuery);
+		                    
+		                    
+		                    statement.setString(1, String.valueOf(EmploymentId)); 
+
+		                    // Execute the query
+		                    ResultSet resultSet = statement.executeQuery();
+
+		                    // Process the result set
+		                    if (resultSet.next()) {
+		                        int totalOverTime = resultSet.getInt("total_OverTime");
+		                        String totalOverTimeE = resultSet.getString("total_UnderTimeE");
+
+		                        // Add results to the response
+		                        res.put("totalOverTime", totalOverTime);
+		                        res.put("totalOverTimeE", totalOverTimeE);
+		                    }
+
+		                    // Close resources
+		                    resultSet.close();
+		                    statement.close();
+		                    con.close();
+		                } catch (ClassNotFoundException | SQLException e) {
+		                    e.printStackTrace();
+		                }
+		                
+		                
+		            }
+		        });
+		        
+		        System.out.println("data res --===="+ res);
+
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		    }
+
+		    
+		    
+		    AllDataList.add(res);
+		    AllDataList.add(stats);
+		  
+		    serviceResponse.setServiceResponse(AllDataList);
+		    serviceResponse.setServiceMessage("Success");
+		    serviceResponse.setServiceError("");
+	
+		    return serviceResponse; 
+		}
+	 
+	 
+
+	 
+	
+	   
+	   
+	   
+	 
+		
 	
 
 

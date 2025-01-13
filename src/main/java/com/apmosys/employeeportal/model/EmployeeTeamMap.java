@@ -40,8 +40,12 @@ public class EmployeeTeamMap {
 	
 	private String employeeRole;
 	
+	private LocalDateTime endDate;
+	
 	@JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
 	private LocalDateTime updatedOn;
 	
 
+	//added by rahul singh
+	
 }

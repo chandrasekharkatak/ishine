@@ -660,7 +660,7 @@ public class ImageService {
 	
 	public ServiceResponse uploadEmployeeDocument(MultipartFile image, Long uploadedBy, Long employeementId,
 			Long empId) {
-
+         System.out.println("hvhdsvhds"+image+"hbhsvhsg"+ uploadedBy+"hgsdvhsd"+ employeementId + empId);
 		ServiceResponse response = new ServiceResponse();
 		List<File> savedFiles = new ArrayList<File>();
 		String errorMsg = "";
@@ -681,9 +681,10 @@ public class ImageService {
 //			if (employeeObject.isPresent()) {
 
 			if (image != null) {
+				
 				String newPath = Files.createDirectories(Paths.get(imageFileLocation + File.separator + "Documents"
 						+ File.separator + "Draft" + File.separator + employeementId)).toString();
-				
+				 System.out.println("hvhdsvhds"+image+"hbhsvhsg"+ uploadedBy+"hgsdvhsd"+ employeementId + empId);
 				byte[] bytes = image.getBytes();
 				String extension = FilenameUtils.getExtension(image.getOriginalFilename());
 				Path path = Paths.get(newPath + File.separator + image.getOriginalFilename());

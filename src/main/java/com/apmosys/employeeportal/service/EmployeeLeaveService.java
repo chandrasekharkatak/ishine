@@ -48,6 +48,7 @@ import com.apmosys.employeeportal.repository.CompOffMasterRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.HolidayRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
@@ -86,6 +87,9 @@ public class EmployeeLeaveService {
 	
 	@Autowired
 	LeaveRevokeApplicationRepository leaveRevokeApplicationRepository;
+	
+	@Autowired
+	EmployeeTeamMapRepository employeeTeamMapRepository;
 	
 	@Autowired
 	private MailService mailService;
@@ -308,29 +312,32 @@ public class EmployeeLeaveService {
 				
 				return response;
 			}else {
-//				if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("CL")) {
-//					Optional<List<EmployeeLeave>> recentLeavesForCL = Optional.ofNullable(employeeLeaveRepository.findRecentLeavesByEmpId(leaveDTO.getEmpId()));
-//					if(recentLeavesForCL.isPresent() && !recentLeavesForCL.get().isEmpty()) {
-//						EmployeeLeave getLeaves = recentLeavesForCL.get().get(0);
-//						LocalDate newFromDate = LocalDate.parse(leaveDTO.getFromDate());
-//						LocalDate prevToDate = getLeaves.getToDate();		
-//						
-//					boolean valid = this.isValidateCasualLeave(prevToDate, newFromDate, leaveDTO.getLeaveTypeCode());
-//					System.err.println(" valid "+valid);
-//					if(valid) {
-//						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
-//						response.setServiceResponse("Leave application submitted. Your timesheet will be automatically added by system");
-//					}else {
-//						response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
-//						response.setServiceResponse("Casual Leave Can't take Consecutively , another CL will be applicable after 15 days of your last CL applied !! ");
-//					return response;
-//					}
-//				}
-//				}
-//				else {
+				if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("CL")) {
+					
+					System.out.println("CL Validation"+ 313);
+					System.err.println(" valid  insidevalidation");
+					Optional<List<EmployeeLeave>> recentLeavesForCL = Optional.ofNullable(employeeLeaveRepository.findRecentLeavesByEmpId(leaveDTO.getEmpId()));
+					if(recentLeavesForCL.isPresent() && !recentLeavesForCL.get().isEmpty()) {
+						EmployeeLeave getLeaves = recentLeavesForCL.get().get(0);
+						LocalDate newFromDate = LocalDate.parse(leaveDTO.getFromDate());
+						LocalDate prevToDate = getLeaves.getToDate();		
+						
+					boolean valid = this.isValidateCasualLeave(prevToDate, newFromDate, leaveDTO.getLeaveTypeCode());
+					System.err.println(" valid "+valid);
+					if(valid) {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
+						response.setServiceResponse("Leave application submitted. Your timesheet will be automatically added by system");
+					}else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
+						response.setServiceResponse("Casual Leave Can't take Consecutively , another CL will be applicable after 7 days of your last CL applied !! ");
+					return response;
+					}
+				}
+				}
+				else {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
 					response.setServiceResponse("Leave application submitted. Your timesheet will be automatically added by system");
-//				}
+				}
 				
 		}
 			
@@ -683,19 +690,19 @@ public class EmployeeLeaveService {
  */
 
 public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, String leaveTypeCode) {
-
+    System.out.print("isValidateCasualLeave"+leaveTypeCode);
     System.err.println("Validation method toDate " + toDate);
 
     Optional<List<Object[]>> leaveRecords = employeeLeaveRepository.findClLeavesInBetweenDates(toDate, leaveTypeCode);
-    LocalDate after15Days = toDate.plusDays(15);
+    LocalDate after7Days = toDate.plusDays(7);
 
     System.out.println("Validation from date " + fromDate);
-    System.err.println("After 15 Days " + after15Days);
+    System.err.println("After 7 Days " + after7Days);
 
     if (leaveRecords.isPresent()) {
         List<Object[]> leaves = leaveRecords.get();
 
-        if (!leaves.isEmpty() && fromDate.isAfter(after15Days)) {
+        if (!leaves.isEmpty() && fromDate.isAfter(after7Days)) {
             return true;
         } else {
             return false;
@@ -1412,7 +1419,164 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 					dto.setCurrentApprovalLevel(object[25] != null ? Integer.parseInt(object[25].toString()) : null);
 					dto.setFinalApprovalLevel(object[26] != null ? Integer.parseInt(object[26].toString()) : null);
 					dto.setLeaveEmpId(object[27] != null ? Long.parseLong(object[27].toString()) : null);
+					dto.setManagerId(object[28] != null ? Integer.parseInt(object[28].toString()) : null);				
 					dtoList.add(dto);
+				});
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				
+				apiLogInfo.setApiResponse(dtoList.size() + " Applications found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+	
+	public ServiceResponse getAllLeaveApplicationsByEmpId(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getAllLeaveApplicationsByEmpId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Employee Emp Id : "+leaveDTO.getEmpId());
+		
+		try {
+			List<Object[]> list = employeeLeaveRepository
+					.getAllLeaveApplicationsByEmpId(leaveDTO.getEmpId());
+			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+			if (list.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No Leave Application found");
+
+				apiLogInfo.setApiResponse("No Leave Application found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			} else {
+
+				list.forEach((object) -> {LeaveDTO dto = new LeaveDTO();
+				dto.setCreatedByName(object[24] != null ? object[24].toString() : null);
+				dto.setFromDate(object[1] != null ? object[1].toString() : null);
+				dto.setToDate(object[2] != null ? object[2].toString() : null);
+				dto.setCreatedOn(object[3] != null ? object[3].toString() : null);
+				dto.setNoOfDays(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
+				dto.setStatus(object[5] != null ? object[5].toString() : null);
+				dto.setReason(object[6] != null ? object[6].toString() : null);
+				dto.setLeaveType(object[7] != null ? object[7].toString() : null);
+				dto.setLeaveStatusUpdatedByName(object[8] != null ? object[8].toString() : null);
+				dto.setLeaveId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+				dto.setRemark(object[10] != null ? object[10].toString() : null);dto.setApproverName(object[11] != null ? object[11].toString() : null);
+				dto.setApproverEmail(object[12] != null ? object[12].toString() : null);
+				dto.setManagerApprovalStatus(object[13] != null ? object[13].toString() : null);
+				dto.setLevel2ApproverId(object[14] != null ? Long.parseLong(object[14].toString()) : null);
+				dto.setLevel2ApproverName(object[15] != null ? object[15].toString() : null);
+				dto.setLevel2ApproverEmail(object[16] != null ? object[16].toString() : null);
+				dto.setLevel2ApprovalStatus(object[17] != null ? object[17].toString() : null);
+				dto.setLevel3ApproverId(object[18] != null ? Long.parseLong(object[18].toString()) : null);
+				dto.setLevel3ApproverName(object[19] != null ? object[19].toString() : null);
+				dto.setLevel3ApprovalStatus(object[20] != null ? object[20].toString() : null);
+				dto.setLevel3ApproverEmail(object[21] != null ? object[21].toString() : null);
+				dto.setCurrentApprovalLevel(object[22] != null ? Integer.parseInt(object[22].toString()) : null);
+				dto.setFinalApprovalLevel(object[23] != null ? Integer.parseInt(object[23].toString()) : null);
+				dto.setEmployeeName(object[0] != null ? object[0].toString() : null);
+				dto.setLeaveTypeMasterId(object[27] != null ? Short.parseShort(object[27].toString()) : null);
+				dto.setEmpId(object[28] != null ? Long.parseLong(object[28].toString()) : null);
+				dto.setEmployeementId(object[26] != null ? Long.parseLong(object[26].toString()) : null);
+				dto.setLeaveEmpId(object[25] != null ? Long.parseLong(object[25].toString()) : null);
+				dto.setManagerId(object[29] != null ? Integer.parseInt(object[29].toString()) : null);
+				
+				dtoList.add(dto);	
+				});
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				
+				apiLogInfo.setApiResponse(dtoList.size() + " Applications found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+	
+	public ServiceResponse getAllLeaveApplicationsByTeamId(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getAllLeaveApplicationsByTeamId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Employee Emp Id : "+leaveDTO.getEmpId());
+		
+		try {
+			
+			List<Long> teamIds = employeeLeaveRepository.findTeamIdsByEmpId( leaveDTO.getEmpId());
+
+			if (teamIds.isEmpty()) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("No teams found for the given employee.");
+                apiLogInfo.setApiResponse("No teams found.");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                return response;
+            }
+
+			List<Object[]> list = employeeLeaveRepository.getAllLeaveApplicationsByTeamId(teamIds);
+			
+			System.out.println ("team ids:"+ list);	        
+			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+			if (list.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No Leave Application found");
+
+				apiLogInfo.setApiResponse("No Leave Application found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			} else {
+
+				list.forEach((object) -> {LeaveDTO dto = new LeaveDTO();
+				dto.setCreatedByName(object[0] != null ? object[0].toString() : null);
+				dto.setFromDate(object[1] != null ? object[1].toString() : null);
+				dto.setToDate(object[2] != null ? object[2].toString() : null);
+				dto.setCreatedOn(object[3] != null ? object[3].toString() : null);
+				dto.setNoOfDays(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
+				dto.setStatus(object[5] != null ? object[5].toString() : null);
+				dto.setReason(object[6] != null ? object[6].toString() : null);
+				dto.setLeaveType(object[7] != null ? object[7].toString() : null);
+				dto.setLeaveStatusUpdatedByName(object[8] != null ? object[8].toString() : null);
+				dto.setLeaveId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+				dto.setRemark(object[10] != null ? object[10].toString() : null);dto.setApproverName(object[11] != null ? object[11].toString() : null);
+				dto.setApproverEmail(object[12] != null ? object[12].toString() : null);
+				dto.setManagerApprovalStatus(object[13] != null ? object[13].toString() : null);
+				dto.setLevel2ApproverId(object[14] != null ? Long.parseLong(object[14].toString()) : null);
+				dto.setLevel2ApproverName(object[15] != null ? object[15].toString() : null);
+				dto.setLevel2ApproverEmail(object[16] != null ? object[16].toString() : null);
+				dto.setLevel2ApprovalStatus(object[17] != null ? object[17].toString() : null);
+				dto.setLevel3ApproverId(object[18] != null ? Long.parseLong(object[18].toString()) : null);
+				dto.setLevel3ApproverName(object[19] != null ? object[19].toString() : null);
+				dto.setLevel3ApprovalStatus(object[20] != null ? object[20].toString() : null);
+				dto.setLevel3ApproverEmail(object[21] != null ? object[21].toString() : null);
+				dto.setCurrentApprovalLevel(object[22] != null ? Integer.parseInt(object[22].toString()) : null);
+				dto.setFinalApprovalLevel(object[23] != null ? Integer.parseInt(object[23].toString()) : null);
+				
+				dtoList.add(dto);	
 				});
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1855,6 +2019,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 				if(employee.getEmploymentstatus().equals("InActive")) {
 					employeeLeavesList = employeeLeavesMapRepository.getInActiveEmployeeLeaveBalance(employee.getEmpId());	
 				}else {
+					System.out.println("sdbsdjvhshbvsfhbdvbhbvhvfhjbvhb"+ employee.getEmploymentstatus());
 					employeeLeavesList = employeeLeavesMapRepository
 							.getMyLeaveBalancesByEmpId(employee.getEmpId(), employee.getEmploymentstatus(), employee.getGender());					
 				}
@@ -2934,6 +3099,63 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 			
 			List<Object[]> list = leaveRevokeApplicationRepository.
 					getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(leaveDTO.getEmpId());
+			
+			ArrayList<LeaveDTO> dtoList = new ArrayList<>();
+			
+			if(list.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No Revoke Leave Application found");
+
+				apiLogInfo.setApiResponse("No Revoke Leave Application found");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}else {
+				
+				list.forEach((object) -> {
+					LeaveDTO dto = new LeaveDTO();
+					dto.setLeaveRevokeId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					dto.setLeaveType(object[1] != null ? object[1].toString() : null);
+					dto.setFromDate(object[2] != null ? object[2].toString() : null);
+					dto.setToDate(object[3] != null ? object[3].toString() : null);
+					dto.setNoOfDays(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
+					dto.setStatus(object[5] != null ? object[5].toString() : null);
+					dto.setCreatedByName(object[6] != null ? object[6].toString() : null);
+					dto.setCreatedOn(object[7] != null ? object[7].toString() : null);
+					dto.setRevokeReason(object[8] != null ? object[8].toString() : null);
+					dto.setLeaveId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+					dto.setEmpId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+					dtoList.add(dto);
+				});
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				
+				apiLogInfo.setApiResponse(dtoList.size() + "Revoke Applications found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		return response;
+	}
+	
+	public ServiceResponse getAllMyTeamsPendingLeaveRevokeApplicationsByEmpId(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getAllMyTeamsPendingLeaveRevokeApplicationsByEmpId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId : "+leaveDTO.getEmpId());
+		try {
+			
+			List<Object[]> list = leaveRevokeApplicationRepository.
+					getAllMyTeamsPendingLeaveRevokeApplicationsByEmpId(leaveDTO.getEmpId());
 			
 			ArrayList<LeaveDTO> dtoList = new ArrayList<>();
 			
@@ -4485,5 +4707,65 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 		return response;
 	}
 
-	 
+	public ServiceResponse isManager(LeaveDTO leaveDto) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/isManager");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("Leave ID: ").append(leaveDto.getLeaveId()).append(", Current User ID: ").append(leaveDto.getCurrentUserEmpId());
+
+	    try {
+	    	List<Object[]> leaveDataList = employeeLeaveRepository.getAllLeaveApplicationsByLeaveId(leaveDto.getLeaveId());
+
+	    	if (leaveDataList.isEmpty()) {
+	    	    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	    	    response.setServiceResponse("No leave applications found for the given leaveId.");
+	    	    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	    	    apiLogInfo.setApiResponse("No leave applications found.");
+	    	    return response;
+	    	}
+
+	        Object[] leaveData = leaveDataList.get(0);
+	        Integer currentApprovalLevel = leaveData[22] instanceof Integer ? (Integer) leaveData[22] : 0;
+	        
+	        System.out.println("currentApprovalLevel : "+currentApprovalLevel);
+	        
+	        long approverId = 0;
+	        switch (currentApprovalLevel) {
+	            case 0:
+	                approverId = leaveData[14] != null ? Long.parseLong(leaveData[13].toString()) : 0;
+	                break;
+	            case 1:
+	                approverId = leaveData[15] != null ? Long.parseLong(leaveData[16].toString()) : 0;
+	                break;
+	            case 2:
+	                approverId = leaveData[19] != null ? Long.parseLong(leaveData[20].toString()) : 0;
+	                break;
+	            default:
+	                approverId = 0;
+	        }
+
+
+	        boolean isManager = approverId != 0 && approverId == leaveDto.getCurrentUserEmpId();
+	        
+	        System.out.println("isManager : "+isManager);
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(isManager);
+	        apiLogInfo.setApiResponse(isManager ? "User is the authorised approver." : "User is not the authorised approver.");
+
+	    } catch (Exception e) {
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
+	
 }

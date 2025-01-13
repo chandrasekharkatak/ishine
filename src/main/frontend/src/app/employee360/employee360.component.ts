@@ -9,8 +9,11 @@ import { EmployeeConfigComponent } from '../configuration/employee-config/employ
 import { DeptConfigComponent } from '../configuration/dept-config/dept-config.component';
 import { LeaveConfigComponent } from '../configuration/leave-config/leave-config.component';
 import { RoleConfigComponent } from '../configuration/role-config/role-config.component';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 import { Employee360Service } from '../services/employee360.service';
+import { BreadcrumbService } from '../services/breadcrumb.service';
+import { Employee } from '../models/employee';
+import { takeUntil } from 'rxjs/operators';
 
 
 @Component({
@@ -20,17 +23,19 @@ import { Employee360Service } from '../services/employee360.service';
 })
 export class Employee360Component implements OnInit {
 
+  private unsubscribe$ = new Subject<void>();
+
   employeeData: any;
   emplId:any;
   employeeConfig: EmployeeConfigComponent;
   departmentConfig: DeptConfigComponent;
   roleConfig: RoleConfigComponent;
   leaveConfig: LeaveConfigComponent;
-
+  
   tabName:any = 'Configurations';
   currentUser:User;
   userMapping:any = {};
-
+  breadcrumbUrl:any[] = [];
   
   private navigationSubscription: Subscription;
 
@@ -39,11 +44,18 @@ export class Employee360Component implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private employee360Service: Employee360Service,
+    private breadcrumbService: BreadcrumbService,
+    
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    this.breadcrumbService.currentBreadcrumb.subscribe(x => this.breadcrumbUrl = x);
+   
   }
 
 
+  currentab:String;
+  leave:String;
+  othertab:any;
 
   ngOnInit(): void {
     this.navigationSubscription = this.employee360Service.getNavigationEvent().subscribe(() => {
@@ -60,15 +72,27 @@ export class Employee360Component implements OnInit {
       this.employeeData = history.state.data;
     }
     
-   
+    let findBreadcrumbObject = this.breadcrumbUrl.findIndex(x => x.title === "Employee-360-Profile");
+    if (findBreadcrumbObject >= 0) {
+      this.breadcrumbUrl.splice(findBreadcrumbObject + 1);
+      this.breadcrumbService.setBreadcrumbSubject(this.breadcrumbUrl);
+    } else {
+      let breadcrumbObject = { title: "Employee-360-Profile", url: "/employee-360/profile" };
+   this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
+    }
 
     console.log("employeeData   ",this.employeeData);
+
+    this.getBioOverTimeandState();
 
   
 
     // Dynamic feature Flags 
     let featureMap:Feature[] = this.currentUser.userMapping.filter(userMap => userMap.tabName == this.tabName);
-    console.log("feature Name ",featureMap);
+
+    console.log("checked logs   ",this.currentUser.userMapping)
+
+    console.log("feature Name ",featureMap);featureMap
     featureMap?.forEach(feat => {
       let inActiveSubfeatures = feat.subFeatures.filter(sub => {
         if(sub.isActive === false)return sub;
@@ -76,6 +100,10 @@ export class Employee360Component implements OnInit {
       this.userMapping[feat.featureName.replaceAll(' ', '_').toLowerCase()] = (inActiveSubfeatures.length === feat.subFeatures.length) ? false : true;
     });
   
+
+    this.breadcrumbService.currentMessage.pipe(takeUntil(this.unsubscribe$)).subscribe(message =>  {
+      this.setActiveTab();
+    });
   }
 
 
@@ -84,7 +112,6 @@ export class Employee360Component implements OnInit {
 
   ngAfterViewInit(): void {
     this.setActiveTab();
-    // setTimeout(this.setActiveTab,2000)
   }
 
   ngOnDestroy(): void {
@@ -94,16 +121,58 @@ export class Employee360Component implements OnInit {
   this.removeActiveTab();
   }
 
+  // setActiveTab(){
+
+  //   const tab = document.getElementById('Employee360Tab').querySelector('.nav-link');
+  //   //console.log(tab);
+
+  //   if (tab) {
+  //     tab.classList.add('active');
+  //     const activeRouteLink = tab.getAttribute('routerLink');
+  //     this.router.navigate(['./' + activeRouteLink], { relativeTo: this.route });
+  //   }
+  // }
+
   setActiveTab(){
+    const tabs = document.getElementById('Employee360Tab').querySelectorAll('.nav-link');
+    let activeRouteLink:any;
 
-    const tab = document.getElementById('Employee360Tab').querySelector('.nav-link');
-    //console.log(tab);
+    if ((this.breadcrumbUrl != undefined && this.breadcrumbUrl != null)) {
+      let employee360title = this.breadcrumbUrl[this.breadcrumbUrl.length - 1]?.title;
 
-    if (tab) {
-      tab.classList.add('active');
-      const activeRouteLink = tab.getAttribute('routerLink');
-      this.router.navigate(['./' + activeRouteLink], { relativeTo: this.route });
+      if(employee360title.includes("Employee-360-Profile")){
+        activeRouteLink = 'profile';
+      }else if(employee360title.includes("Leave")){
+        activeRouteLink = 'leave';
+      }else if(employee360title.includes("Project")){
+        activeRouteLink = 'project';
+      }else if(employee360title.includes("Timesheet")){
+        activeRouteLink = 'timesheet';
+      }else if(employee360title.includes("Biomax")){
+        activeRouteLink = 'biomax';
+      }else if(employee360title.includes("Rewards")){
+        activeRouteLink = 'rewards';
+      }else if(employee360title.includes("Appreciation")){
+        activeRouteLink = 'appreciation';
+      }else{
+        activeRouteLink = 'profile';
+      }
+      
+    } else {
+      const tab = document.getElementById('Employee360Tab').querySelector('.nav-link');
+        activeRouteLink = tab ? tab.getAttribute('routerLink') : 'profile';
     }
+
+    tabs.forEach(tab => {
+      let routeLink = tab.getAttribute('routerLink');
+      if (activeRouteLink === routeLink) {
+        tab.classList.add('active');
+      } else {
+        tab.classList.remove('active');
+      }
+    });
+    
+    this.router.navigate(['./' + activeRouteLink], { relativeTo: this.route });
   }
 
   removeActiveTab(){
@@ -114,4 +183,36 @@ export class Employee360Component implements OnInit {
     }
   }
 
+
+
+
+  responseOvertime:any
+  responsestate:any;
+
+  getBioOverTimeandState(){
+
+    let currentEmp = new Employee(); 
+    currentEmp.empId = this.employeeData.empId;
+    currentEmp.isDraft = false;
+
+    // this.employee360Service.getBioOverTimeandState(currentEmp).subscribe((response:any) =>
+      
+    //   {
+    //    this.responseOvertime= response.serviceResponse[0];
+    //    this.responsestate = response.serviceResponse[1];
+    //   }
+    
+    // );
+     
+
+  }
+ 
+  leave360viewtab(tab:any){  
+          this.currentab=tab;        
+          console.log(this.currentab);
+  }
+
+
+
+   
 }

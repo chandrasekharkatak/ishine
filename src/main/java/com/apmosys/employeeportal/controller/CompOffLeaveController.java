@@ -45,6 +45,13 @@ public class CompOffLeaveController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getPendingCompOffRequestsByEmpId" ,method = RequestMethod.POST)
+	public ServiceResponse getPendingCompOffRequestsByEmpId (@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = compOffLeaveService.getPendingCompOffRequestsByEmpId(leaveDTO);
+		return response;
+	}
+	
 	@RequestMapping(value = "/countPendingCompOffRequestsByManagerId" ,method = RequestMethod.POST)
 	public ServiceResponse countPendingCompOffRequestsByManagerId (@RequestBody LeaveDTO leaveDTO) {
 		

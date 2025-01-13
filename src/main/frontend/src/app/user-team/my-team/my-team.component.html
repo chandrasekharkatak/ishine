@@ -1,8 +1,8 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
       <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_my_team || userMapping.enable_login_by_reporting_head" [ngClass]="{'active' : isViewTeam}" (click)="viewTeam()">View Team</button>
-      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_team_leave_history" [ngClass]="{'active' : isTeamLeaveHistory}" (click)="viewTeamLeaveHistory()">View Team Leave History</button>
-      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_team_all_requests || userMapping.update_pending_req" [ngClass]="{'active' : isTeamRequest}" (click)="viewTeamRequest()">View Team Pending Request</button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_team_leave_history || userMapping.employee_360_leave_view" [ngClass]="{'active' : isTeamLeaveHistory}" (click)="viewTeamLeaveHistory()">View Team Leave History</button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_team_all_requests || userMapping.update_pending_req || userMapping.employee_360_leave_view" [ngClass]="{'active' : isTeamRequest}" (click)="viewTeamRequest()">View Team Pending Request</button>
     </div>
 </div>
   
@@ -234,12 +234,12 @@
                           <th scope="col" class="info-label" mat-sort-header="reason|string">Leave Reason</th>	
                           <th scope="col" class="info-label" mat-sort-header="leaveType|string">Type</th>
                           <th scope="col" class="info-label" mat-sort-header="currentApprovalLevel|number">Current Approval Level</th>
-                            <th scope="col" class="info-label" mat-sort-header="approverName|string">Level 1 Approver Name</th>
-                            <th scope="col" class="info-label" mat-sort-header="managerApprovalStatus|string">Level 1 Approver Status</th>
-                            <th scope="col" class="info-label" mat-sort-header="level2ApproverName|string">Level 2 Approver Name</th>
-                            <th scope="col" class="info-label" mat-sort-header="level2ApprovalStatus|string">Level 2 Approver Status</th>
-                            <th scope="col" class="info-label" mat-sort-header="level3ApproverName|string">Level 3 Approver Name</th>
-                            <th scope="col" class="info-label" mat-sort-header="level3ApprovalStatus|string">Level 3 Approver Status</th>
+                          <th scope="col" class="info-label" mat-sort-header="approverName|string">Level 1 Approver Name</th>
+                          <th scope="col" class="info-label" mat-sort-header="managerApprovalStatus|string">Level 1 Approver Status</th>
+                          <th scope="col" class="info-label" mat-sort-header="level2ApproverName|string">Level 2 Approver Name</th>
+                          <th scope="col" class="info-label" mat-sort-header="level2ApprovalStatus|string">Level 2 Approver Status</th>
+                          <th scope="col" class="info-label" mat-sort-header="level3ApproverName|string">Level 3 Approver Name</th>
+                          <th scope="col" class="info-label" mat-sort-header="level3ApprovalStatus|string">Level 3 Approver Status</th>
                           <th scope="col" class="info-label" mat-sort-header="remark|string">Remarks</th>
                           <th scope="col" class="info-label">Actions</th>
                           </tr>
@@ -509,14 +509,15 @@
                 </thead>
                 <tbody>
                   <tr *ngIf="leaveApplicationList.length == 0 || (leaveApplicationList| colFilter:filters:false).length == 0">
-                    <th colspan="14" class="text-center info-label">No details to display...</th>
+                    <th colspan="14" class="text-center info-l abel">No details to display...</th>
                   </tr>
                   <tr
                     *ngFor="let leaveApplication of leaveApplicationList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
-                    <td><input class="leaveApplication-req-checkbox" id="{{leaveApplication.checkId}}" type="checkbox"
-                        [(ngModel)]="leaveApplication.isSelected" (change)="select(leaveApplication,$event)"></td>
+                    <td><input class="leaveApplication-req-checkbox" id="{{leaveApplication.checkId}}" type="checkbox" [disabled]="!leaveApplication.isManagerFlag || !leaveApplication.isApprover"
+                        [(ngModel)]="leaveApplication.isSelected" (change)="select(leaveApplication,$event)">
+                      </td>
                     <td>{{items*(page-1)+i+1}}</td>
-                    <td>{{leaveApplication.employeeName}}</td>
+                    <td  [navigateToEmployee360]="leaveApplication"  style="cursor: pointer;"  title="Click to view Employee 360" >{{leaveApplication.employeeName}}</td>
                     <td>{{leaveApplication.leaveType}}</td>
                     <td>{{leaveApplication.fromDate}}</td>
                     <td>{{leaveApplication.toDate}}</td>
@@ -536,10 +537,16 @@
                     <td>{{leaveApplication.level3ApproverName}}</td>
                     <td [ngStyle]="{'color': (leaveApplication.level3ApprovalStatus == 'Pending') ? 'orange' : (leaveApplication.level3ApprovalStatus == 'Approved') ? 'green' : (leaveApplication.level3ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveApplication.level3ApprovalStatus}}</td>
                     <td>
-                      <button *ngIf="userMapping.update_pending_req" class="btn btn-sm btn-outline-success" type="submit"
+                      <button *ngIf="userMapping.update_pending_req && userMapping.employee_360_leave_individual_action && leaveApplication.isManagerFlag && leaveApplication.isApprover" class="btn btn-sm btn-outline-success" type="submit"
                         (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em
                           class="fa-solid fa-check"></em></button>&nbsp;
-                      <button *ngIf="userMapping.update_pending_req" class="btn btn-sm btn-outline-danger" type="submit"
+                      <button *ngIf="userMapping.update_pending_req && userMapping.employee_360_leave_individual_action && leaveApplication.isManagerFlag && leaveApplication.isApprover" class="btn btn-sm btn-outline-danger" type="submit"
+                        (click)="openLeaveRejectModal(reject_leave_modal, leaveApplication)" title="Reject"><em
+                          class="fa-solid fa-xmark"></em></button>
+                      <button *ngIf="userMapping.update_pending_req && !userMapping.employee_360_leave_individual_action && leaveApplication.isManagerFlag && leaveApplication.isApprover" class="btn btn-sm btn-outline-success" type="submit"
+                        (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em
+                          class="fa-solid fa-check"></em></button>&nbsp;
+                      <button *ngIf="userMapping.update_pending_req && !userMapping.employee_360_leave_individual_action && leaveApplication.isManagerFlag && leaveApplication.isApprover" class="btn btn-sm btn-outline-danger" type="submit"
                         (click)="openLeaveRejectModal(reject_leave_modal, leaveApplication)" title="Reject"><em
                           class="fa-solid fa-xmark"></em></button>
                     </td>

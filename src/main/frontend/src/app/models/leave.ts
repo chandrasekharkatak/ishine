@@ -144,4 +144,6 @@ export class Leave{
 	leaveMonth:any;
 	totalDays:any;
 	leaveStatus:any;
+
+	currentUserEmpId:any;
 }

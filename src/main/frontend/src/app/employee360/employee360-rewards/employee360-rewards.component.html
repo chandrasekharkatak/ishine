@@ -1,95 +1,3 @@
-<!-- <app-breadcrumb></app-breadcrumb> -->
-
-<div class="col-md-2 mb-2">
-    <!-- Year Dropdown -->
-    <div class="form-inline input-group">
-        <select id="yearDropdown" class="form-control form-control-sm"
-            (change)="onYearChange($event)">
-            <option [value]="''" disabled selected>Select Year</option>
-            <option *ngFor="let year of availableYears" [value]="year">
-                {{ year }}
-            </option>
-        </select>
-    </div>
-</div>
-
-<div class="col-md-2 mb-2" *ngIf="selectedYear">
-    <!-- Period Dropdown -->
-    <div class="form-inline input-group">
-        <select id="periodDropdown" class="form-control form-control-sm"
-            (change)="onPeriodChange($event)">
-            <option [value]="''" disabled selected>Select Period</option>
-            <option value="monthly">Monthly</option>
-            <option value="halfYearly">Half-Yearly</option>
-        </select>
-    </div>
-</div>
-
-<div class="col-md-2 mb-2" *ngIf="rewardsCategories.length > 0">
-    <!-- Rewards Dropdown -->
-    <div class="form-inline input-group">
-        <select id="rewardsDropdown" class="form-control form-control-sm"
-            (change)="onCategoryChange($event)">
-            <option [value]="''" disabled selected>Select Category</option>
-            <option *ngFor="let category of rewardsCategories" [value]="category.rewardCategoryId">
-                {{ category.categoryName }}
-            </option>
-        </select>
-    </div>
-</div>
-
-
-
-
-<!-- <div class="col-md-2 mb-2">
-    <div class="form-inline input-group">
-        <select id="rewardsDropdown" class="form-control form-control-sm"
-            (change)="onCategoryChange($event, alertMessageTemplate)">
-            <option *ngFor="let category of rewardsCategories" 
-                [value]="category.rewardCategoryId"
-                [selected]="category.rewardCategoryId === activeCategoryId">
-                {{ category.categoryName }}
-            </option>
-        </select>
-    </div>
-</div> -->
-<!-- <div class="col-md-2 mb-2">
-    <div class="form-inline input-group">
-        <select id="rewardsDropdown" class="form-control form-control-sm"
-            (change)="onCategoryChange($event, alertMessageTemplate)">
-            <option *ngFor="let category of rewardsCategories" 
-                [value]="category.rewardCategoryId"
-                [selected]="category.rewardCategoryId === activeCategoryId">
-                {{ category.categoryName }}
-            </option>
-        </select>
-    </div>
-</div>
-
-<div *ngIf="subDropdownOptions.length > 0" class="col-md-2 mb-2">
-    <div class="form-inline input-group">
-        <select id="subRewardsDropdown" class="form-control form-control-sm" 
-            (change)="onSubCategoryChange($event)">
-            <option *ngFor="let option of subDropdownOptions" [value]="option">
-                {{ option }}
-            </option>
-        </select>
-    </div>
-</div> -->
-
-<!-- <div *ngIf="subDropdownOptions.length > 0" class="col-md-2 mb-2">
-    <div class="form-inline input-group">
-        <select id="subRewardsDropdown" class="form-control form-control-sm">
-            <option *ngFor="let option of subDropdownOptions" [value]="option">
-                {{ option }}
-            </option>
-        </select>
-    </div>
-</div> -->
-
-
-
-
 
 <div class="row">
     <div class="col-md-12">
@@ -99,126 +7,111 @@
             </div>
         </div>
 
-        <!-- <div class="row mb-2 p-3" >
-            <div class="col-md-12 px-7" style="padding-left: 2rem;">
-                <button *ngFor="let category of rewardsCategories" type="button"
-                    class="btn btn-outline-primary btn-sm active ng-star-inserted mx-1"
-                    [ngClass]="{'active': category.rewardCategoryId === activeCategoryId}"
-                    (click)="getRewardsByCategoryId(category.rewardCategoryId, alertMessageTemplate)">{{category.categoryName}}
-                </button>
-            </div>
-        </div> -->
-
         <div class="row">
-            <div class="col-md-12" style="text-align: center;">
-                <div class="overflow-auto" *ngIf="!isTeamTableVisible">
-                    <table class="table table-responsive" id="rewardHistoryInfo">
-                        <thead class="thead-light" id="rewardHistoryInfoTHead">
-                            <tr id="rewardHistoryInfoTHeadTr">
-                                <th scope="col" class="info-label">Sr No.</th>
-                                <th scope="col" class="info-label">Rewards Name</th>
-                                <th scope="col" class="info-label">Rewarded To</th>
-                                <th scope="col" class="info-label">Rewards Date</th>
-                                <th scope="col" class="info-label">Teams Name</th>
-                                <th scope="col" class="info-label">Description</th>
-                                <th scope="col" class="info-label">Updated By</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr
-                            *ngFor="let rewardHistory of  employee ;  let i = index">
-                            <th class="info-label">{{i+1}}</th>
-                            <td>{{rewardHistory.rewardTypeName}}</td>
-                            <td>{{rewardHistory.name}}</td>
-                            <td>{{rewardHistory.createdOn}}</td>
-                            <td><span
-                                class="info-label"
-                                style="cursor: pointer;"
-                                (click)="showTeamTable(rewardHistory.teamName)"
-                              >
-                                {{ rewardHistory.teamName }}
-                              </span></td>
-                            <td>{{rewardHistory.remark}}</td>
-                            <td>{{rewardHistory.updatedBy}}</td>
-                        </tr>
-                        </tbody>
-                    </table>
+            <!-- Year Dropdown -->
+            <div class="col-sm-3 col-4 mb-2 small-gap">
+                <div class="form-inline input-group">
+                    <select id="yearDropdown" class="form-control form-control-sm" (change)="onYearChange($event)">
+                        <option [value]="''" disabled selected>Select Year</option>
+                        <option *ngFor="let year of availableYears" [value]="year">
+                            {{ year }}
+                        </option>
+                    </select>
                 </div>
-                <div class="overflow-auto" *ngIf="isTeamTableVisible">
-                    <div class="d-flex align-items-center mb-2">
-                        <button class="btn btn-outline-primary btn-sm mx-1" (click)="goBack()">Back</button>
-                    </div>
-                    <table class="table table-striped" id="claimTbl">
-                      <thead>
-                        <tr>
-                          <th scope="col" class="info-label">Sr No.</th>
-                          <th scope="col" class="info-label">Rewards Name</th>
-                          <th scope="col" class="info-label">Rewarded To</th>
-                          <th scope="col" class="info-label">Rewarded By</th>
-                          <th scope="col" class="info-label">Rewarded Date</th>
-                        </tr>
-                      </thead>
-                      <tbody id="claimTBody">
-                        <tr *ngFor="let teamlist of teamRewardList; let i = index">
-                          <th class="info-label"><label>{{ i + 1 }}</label></th>
-                          <td><label>{{ teamlist.rewardTypeName }}</label></td>
-                          <td>
-                            <span style="cursor: pointer;" *ngIf="getMatchedEmployee(teamlist)">
-                                <a [navigateToEmployee360]="getMatchedEmployee(teamlist)">
-                                  {{ teamlist.name }}
-                                </a>
-                            </span>
-                          </td>
-                          <td><label>{{ teamlist.createdByName }}</label></td>
-                          <td><label>{{ teamlist.createdOn }}</label></td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>                
             </div>
+        
+            <!-- Period Dropdown -->
+            <div class="col-sm-3 col-4 mb-2" *ngIf="selectedYear">
+                <div class="form-inline input-group">
+                    <select id="periodDropdown" class="form-control form-control-sm" (change)="onPeriodChange($event)">
+                        <option [value]="''" disabled selected>Select Period</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="halfYearly">Half-Yearly</option>
+                    </select>
+                </div>
+            </div>
+        
+            <!-- Rewards Dropdown -->
+            <div class="col-sm-3 col-4 mb-2" *ngIf="rewardsCategories.length > 0">
+                <div class="form-inline input-group">
+                    <select id="rewardsDropdown" class="form-control form-control-sm" (change)="onCategoryChange($event)">
+                        <option [value]="''" disabled selected>Select Category</option>
+                        <option *ngFor="let category of rewardsCategories" [value]="category.rewardCategoryId">
+                            {{ category.categoryName }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>        
+        
+        <div class="overflow-auto" *ngIf="!isTeamTableVisible">
+            <table class="table table-striped" id="rewardHistoryInfo">
+                <thead class="thead-light" id="rewardHistoryInfoHead">
+                    <tr id="rewardHistoryInfoHeadTr">
+                        <th scope="col" class="info-label">Sr No.</th>
+                        <th scope="col" class="info-label">Rewards Name</th>
+                        <th scope="col" class="info-label">Rewarded To</th>
+                        <th scope="col" class="info-label">Rewards Date</th>
+                        <th scope="col" class="info-label">Teams Name</th>
+                        <th scope="col" class="info-label">Description</th>
+                        <th scope="col" class="info-label">Updated By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngIf="!employee || employee.length === 0">
+                        <td colspan="7" class="text-center">No Files to display...</td>
+                    </tr>
+                    <tr *ngFor="let rewardHistory of employee; let i = index">
+                        <td>{{ i + 1 }}</td>
+                        <td>{{ rewardHistory.rewardTypeName }}</td>
+                        <td>{{ rewardHistory.name }}</td>
+                        <td>{{ rewardHistory.createdOn }}</td>
+                        <td><span
+                            class="info-label"
+                            style="cursor:pointer;"
+                            (click)="showTeamTable(rewardHistory.teamName)"
+                            >{{ rewardHistory.teamName }}
+                        </span></td>
+                        <td>{{ rewardHistory.remark }}</td>
+                        <td>{{ rewardHistory.updatedBy }}</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
+        
+        <div class="overflow-auto" *ngIf="isTeamTableVisible">
+            <div class="d-flex align-items-center mb-2">
+                <button class="btn btn-outline-primary btn-sm mx-1" (click)="goBack()">Back</button>
+            </div>
+            <table class="table table-striped" id="claimTbl">
+                <thead>
+                <tr>
+                    <th scope="col" class="info-label">Sr No.</th>
+                    <th scope="col" class="info-label">Rewards Name</th>
+                    <th scope="col" class="info-label">Rewarded To</th>
+                    <th scope="col" class="info-label">Rewarded By</th>
+                    <th scope="col" class="info-label">Rewarded Date</th>
+                </tr>
+                </thead>
+                <tbody id="claimTBody">
+                <tr *ngIf="!teamRewardList || teamRewardList.length === 0">
+                    <th colspan="6" class="text-center info-label">No Files to display...</th>
+                    </tr>
+                <tr *ngFor="let teamlist of teamRewardList; let i = index">
+                    <th class="info-label"><label>{{ i + 1 }}</label></th>
+                    <td><label>{{ teamlist.rewardTypeName }}</label></td>
+                    <td>
+                    <span style="cursor: pointer;" *ngIf="getMatchedEmployee(teamlist)">
+                        <a [navigateToEmployee360]="getMatchedEmployee(teamlist)">
+                            {{ teamlist.name }}
+                        </a>
+                    </span>
+                    </td>
+                    <td><label>{{ teamlist.createdByName }}</label></td>
+                    <td><label>{{ teamlist.createdOn }}</label></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>                
     </div>
 </div>
-
-
-<ng-template #reward>
-    <div class="modal-body text-center">
-        <div class="row">
-            <div  class="col-12" style="text-align:center">
-                <label>Team Rewards</label>
-            </div>
-
-            <div *ngIf="rewards.length > 0" class="col-md-12" style="overflow: auto; height: 250px;">
-                <table class="table table-striped" id="claimTbl">
-                    <thead>
-                        <tr>
-                            <th scope="col" class="info-label">Sr No.</th>
-                            <th scope="col" class="info-label">Rewards Name</th>
-                            <th scope="col" class="info-label">Rewarded To</th>
-                            <th scope="col" class="info-label">Rewarded By</th>
-                            <th scope="col" class="info-label">Rewarded Date</th>
-                        </tr>
-                    </thead>
-                    <tbody id="claimTBody">
-                        <tr *ngFor="let teamlist of teamRewardList, let i = index">
-                            <th class="info-label"><label>{{i+1}}</label></th>
-                            <td>
-                                <span style="cursor: pointer;" *ngFor="let matchedEmployee of matchedEmployees">
-                                  <ng-container *ngIf="teamlist.rewardedTo === matchedEmployee.empId">
-                                    <span [navigateToEmployee360]="matchedEmployee">
-                                      {{ teamlist.name }}
-                                    </span>
-                                  </ng-container>
-                                </span>
-                            </td>
-                            <td><label>{{teamlist.rewardTypeName}}</label></td>
-                            <td><label>{{teamlist.createdByName }}</label></td>
-                            <td><label>{{teamlist.name}}</label></td>
-                            <td><label>{{teamlist.createdOn}}</label></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>    
-</ng-template>

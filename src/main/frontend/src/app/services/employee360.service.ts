@@ -7,6 +7,10 @@ import { Subject } from 'rxjs';
 import { BehaviorSubject } from 'rxjs';
 import { Employee } from '../models/employee';
 import { Leave } from '../models/leave';
+<<<<<<< HEAD
+=======
+import { Team } from '../models/team';
+>>>>>>> b0496cca8143a6d533c066e80bfe98c92adddebb
 
 @Injectable({
   providedIn: 'root'
@@ -86,11 +90,25 @@ getAll360LeaveApplicationsByEmpId(leaveObj: Leave) {
     this.employeeDataSource.next(data);
   }
 
+<<<<<<< HEAD
 
+=======
+//added by rahul
+>>>>>>> b0496cca8143a6d533c066e80bfe98c92adddebb
   getEmployeeDetailsForBiomax(startDate:String,endDate:String,employeeId:String){
     return this.http.get(`${this.baseUrl}` + `api/biomax?startDate=${startDate}&endDate=${endDate}&employeeId=${employeeId}`);
   }
 
+<<<<<<< HEAD
+=======
+
+///added by rahul singh
+getTeamTImeSheet(team:Team){
+
+  return this.http.post('http://localhost:8080/api/getTeamMembersByTeamId',team);
+ 
+}
+>>>>>>> b0496cca8143a6d533c066e80bfe98c92adddebb
   get360PendingCompOffRequestsByEmpId(compOffObj: Leave) {
     return this.http.post(`${this.baseUrl}` + `api/get360PendingCompOffRequestsByEmpId`, compOffObj);
   }

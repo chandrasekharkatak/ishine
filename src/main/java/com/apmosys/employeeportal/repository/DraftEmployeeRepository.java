@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.model.DraftEmployee;
@@ -22,14 +23,20 @@ public interface DraftEmployeeRepository extends JpaRepository<DraftEmployee,Lon
 
 	List<DraftEmployee> findByPanNumber(String panNumber);
 	
-	@Query(value = "FROM DraftEmployee e WHERE e.mobileNo = :mobileNo AND e.draftEmpId != :draftEmpId")
+//	@Query(value = "FROM DraftEmployee e WHERE e.mobileNo = :mobileNo AND e.draftEmpId != :draftEmpId")
 	List<DraftEmployee> findByMobileNoAndDraftEmpId(Long mobileNo, Long draftEmpId);
+    
 
-	@Query(value = "FROM DraftEmployee e WHERE e.aadhar = :aadhar AND e.draftEmpId != :draftEmpId")
+
+//	@Query(value = "FROM DraftEmployee e WHERE e.aadhar = :aadhar AND e.draftEmpId != :draftEmpId")
 	List<DraftEmployee> findByAadharAndDraftEmpId(Long aadhar, Long draftEmpId);
+	
 
-	@Query(value = "FROM DraftEmployee e WHERE e.panNumber = :panNumber AND e.draftEmpId != :draftEmpId")
+
+//	@Query(value = "FROM DraftEmployee e WHERE e.panNumber = :panNumber AND e.draftEmpId != :draftEmpId" )
 	List<DraftEmployee> findByPanNumberAndDraftEmpId(String panNumber, Long draftEmpId);
+
+
 
 	@Query(nativeQuery = true)
 	List<Object[]> getAllDraftEmployees(String status);

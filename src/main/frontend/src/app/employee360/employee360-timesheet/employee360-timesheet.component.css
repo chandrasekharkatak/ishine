@@ -6,40 +6,6 @@ background-color: white; /* To prevent transparency */
 box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Optional for better visibility */
 }
 
-/* Common button styles */
-/* button {
-padding: 10px 20px;
-font-size: 14px;
-font-weight: bold;
-border-radius: 5px;
-border: none;
-cursor: pointer;
-transition: background-color 0.3s ease, transform 0.3s ease;
-display: inline-block;
-margin: 5px;
-} */
-
-/* Pending buttons - Approve and Reject */
-/* .approve-button {
-background-color: #4CAF50; 
-color: white;
-} */
-
-/* .approve-button:hover {
-background-color: #45a049;
-transform: scale(1.05);
-} */
-
-/* .reject-button {
-background-color: #f44336; 
-color: white;
-} */
-
-/* .reject-button:hover {
-background-color: #e53935;
-transform: scale(1.05);
-} */
-
 /* Ok button */
 .ok-button {
 background-color: #348afa; 
@@ -72,22 +38,7 @@ border-radius: 4px;
 height: 35px; 
 width: 100px;
 }
-/* .custom-select {
-border-radius: 7px;
-padding-top: 500px; 
-height: 35px; 
-width: 100px; 
-padding: 0 10px; 
-border: 1px solid #ced4da; 
-} */
-/* .alert-overlay {
-position: fixed;
-top: 0;
-left: 50%;
-transform: translateX(-50%);
-width: 90%; 
-z-index: 1000;
-} */
+
 
 .alert-content {
 background-color: #f44336;
@@ -104,15 +55,6 @@ justify-content: space-between;
 align-items: center;
 }
 
-/* .close-button {
-background: none;
-border: none;
-color: white;
-font-size: 16px;
-cursor: pointer;
-margin-left: 10px;
-} */
-
 .back-button {
 position: absolute; /* Position it absolutely */
 top: 20px; /* Distance from the top */
@@ -127,26 +69,11 @@ text-decoration: underline; /* Underline on hover */
 cursor: pointer; /* Pointer cursor on hover */
 }
 
-/* .table-responsive {
-overflow-x: hidden; /* Prevent horizontal scrolling 
-}
-
-.table {
-width: 100%; /* Ensure the table takes full width 
-table-layout: auto; /* Allow the table to adjust its layout 
-}
-
-.row {
-margin-left: 0; /* Remove left margin 
-margin-right: 0; /* Remove right margin 
-} */
-
-
 .table-responsive {
-overflow-x: auto; 
--webkit-overflow-scrolling: touch; 
+  overflow-x: auto; 
+  -webkit-overflow-scrolling: touch; 
 }
 
 .table {
-min-width: 800px; 
+  min-width: 800px; 
 }

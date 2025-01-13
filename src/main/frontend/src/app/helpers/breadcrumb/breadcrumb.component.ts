@@ -69,6 +69,8 @@ export class BreadcrumbComponent implements OnInit {
     this.displayedBreadcrumbs = [...this.breadcrumbList];
     this.router.navigate([module.url], { queryParams: { }});
 
+    this.breadcrumbService.changeMessage(module.title);
+
     if(index == 0 && module.title == "Exit Employee 360"){
       this.isEmployee360Module = false;
     }
