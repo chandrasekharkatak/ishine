@@ -111,6 +111,8 @@ export class ReportListComponent implements OnInit {
   startDate:any;
 
   customQuery:any;
+  leaveReportFlag:boolean=false;
+  timesheetReportFlag:boolean=false;
 
   filters:any = {};
   isSearchEnabled:boolean = false;
@@ -164,6 +166,8 @@ export class ReportListComponent implements OnInit {
   }
 
   showLeaveReportTable() {
+    this.leaveReportFlag = true;
+    this.timesheetReportFlag = false;
     this.storedDataList = [];
     this.sortColumn=[];
     this.sortColumnType=[];
@@ -203,6 +207,8 @@ export class ReportListComponent implements OnInit {
   }
 
   showTimesheetReportTable() {
+    this.leaveReportFlag = false;
+    this.timesheetReportFlag = true;
     this.storedDataList=[];
     this.sortColumn=[];
     this.sortColumnType=[];
@@ -237,6 +243,8 @@ export class ReportListComponent implements OnInit {
   }
 
   showEmployeeReportTable() {
+    this.leaveReportFlag = false;
+    this.timesheetReportFlag = false;
     this.storedDataList=[];
   this.sortColumn=[];
     this.sortColumnType=[];
@@ -270,6 +278,8 @@ export class ReportListComponent implements OnInit {
   }
 
   showAccessControlListTable() {
+    this.leaveReportFlag = false;
+    this.timesheetReportFlag = false;
     this.isAccessControlListTable = true;
 
     this.isEmployeeReportTable = false;
@@ -287,6 +297,8 @@ export class ReportListComponent implements OnInit {
   }
 
   showLeaveTimesheetReportTable(){
+    this.leaveReportFlag = false;
+    this.timesheetReportFlag = false;
     this.sortColumn=[];
     this.sortColumnType=[];
     this.sortDirection='';
@@ -306,6 +318,8 @@ export class ReportListComponent implements OnInit {
   }
 
   showCustomQueryForm() {
+    this.leaveReportFlag = false;
+    this.timesheetReportFlag = false;
     this.isCustomQueryForm = true;
     this.customQuery = null;
 
@@ -818,10 +832,23 @@ export class ReportListComponent implements OnInit {
     this.filterData.title = title;
     this.filterData.columns = columns;
 
-    this.queryList = [
-      { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" }
-    ];
-
+    if(this.leaveReportFlag==true){
+      this.queryList = [
+        { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" },
+        {column: "From Date", operator: ">=", value: "", conjunction: "" },
+        {column: "To Date", operator: "<=", value: "", conjunction: "" }
+      ];
+    }
+    else if(this.timesheetReportFlag==true){
+      this.queryList = [
+        { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" },
+        {column: "Date", operator: "=", value: "", conjunction: "" }
+      ];
+    }else{
+      this.queryList = [
+        { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" }
+      ];
+    }
     this.storedDataList.forEach((data) => {
       if (data.filterName == title) {
         data.queryList.forEach((queryObj) => {

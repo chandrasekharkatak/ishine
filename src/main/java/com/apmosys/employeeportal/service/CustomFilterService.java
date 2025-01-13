@@ -116,7 +116,9 @@ public class CustomFilterService {
 
 	public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) {
 		StringBuilder query = new StringBuilder("");
-
+		boolean hasFromDate = false;
+	    boolean hasToDate = false;
+	    boolean dateConditionAppended = false; 
 		for (CustomFilterDTO dto : queryList) {
 			if (dto.getOperator() != null && dto.getOperator().equals("like")) {
 				dto.setValue("%" + dto.getValue() + "%");
@@ -142,11 +144,31 @@ public class CustomFilterService {
 			case "From Date": {
 				query = query.append(" el.from_date ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
 						.append(dto.getConjunction());
+				
+				hasFromDate = true;
+				if (dateConditionAppended) {
+                    int startRemove = query.lastIndexOf("AND el.from_date >= CURRENT_DATE - 1");
+                    int endRemove = query.lastIndexOf("AND el.to_date <= CURRENT_DATE");
+                    if (startRemove != -1 && endRemove != -1) {
+                        query.delete(startRemove, endRemove + "AND el.to_date <= CURRENT_DATE".length());
+                    }
+                    dateConditionAppended = false;
+                }
 				break;
 			}
 			case "To Date": {
 				query = query.append(" el.to_date ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
 						.append(dto.getConjunction());
+				
+				hasToDate = true;
+				if (dateConditionAppended) {
+                    int startRemove = query.lastIndexOf("AND el.from_date >= CURRENT_DATE - 1");
+                    int endRemove = query.lastIndexOf("AND el.to_date <= CURRENT_DATE");
+                    if (startRemove != -1 && endRemove != -1) {
+                        query.delete(startRemove, endRemove + "AND el.to_date <= CURRENT_DATE".length());
+                    }
+                    dateConditionAppended = false;
+                }
 				break;
 			}
 			case "No. of Days": {
@@ -212,6 +234,11 @@ public class CustomFilterService {
 			default:
 				break;
 			}
+			if (!hasFromDate && !hasToDate && !dateConditionAppended) {
+		        query.append(" AND el.from_date >= CURRENT_DATE - 1 ");
+		        query.append(" AND el.to_date <= CURRENT_DATE ");
+		        dateConditionAppended = true;
+		    }
 		}
 		return query;
 	}
@@ -1221,7 +1248,8 @@ public class CustomFilterService {
 
 	public StringBuilder createQueryForTimesheetReport(List<CustomFilterDTO> queryList) {
 		StringBuilder query = new StringBuilder("");
-
+		boolean hasToDate = false;
+	    boolean dateConditionAppended = false; 
 		for (CustomFilterDTO dto : queryList) {
 			if (dto.getOperator() != null && dto.getOperator().equals("like")) {
 				dto.setValue("%" + dto.getValue() + "%");
@@ -1241,6 +1269,15 @@ public class CustomFilterService {
 			case "Date": {
 				query = query.append(" et.date ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
 						.append(dto.getConjunction());
+				hasToDate = true;
+				if (dateConditionAppended) {
+                    int startRemove = query.lastIndexOf("AND et.date >= CURRENT_DATE - 1");
+                    int endRemove = query.lastIndexOf("AND et.date <= CURRENT_DATE");
+                    if (startRemove != -1 && endRemove != -1) {
+                        query.delete(startRemove, endRemove + "AND et.date <= CURRENT_DATE".length());
+                    }
+                    dateConditionAppended = false;
+                }
 				break;
 			}
 			case "Day Type": {
@@ -1316,6 +1353,11 @@ public class CustomFilterService {
 			default:
 				break;
 			}
+			if (!hasToDate && !dateConditionAppended) {
+		        query.append(" AND et.date >= CURRENT_DATE - 1 ");
+		        query.append(" AND et.date <= CURRENT_DATE ");
+		        dateConditionAppended = true;
+		    }
 		}
 		return query;
 	}
