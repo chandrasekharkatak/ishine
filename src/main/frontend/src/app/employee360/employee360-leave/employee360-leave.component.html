@@ -181,7 +181,7 @@
                   <th colspan="14" class="text-center info-l abel">No details to display...</th>
                 </tr>
                 <tr
-                  *ngFor="let compOff of CompOffData; let i = index">
+                  *ngFor="let compOffApp of CompOffData; let i = index">
                   <td>{{i+1}}</td>
                   <td>{{compOffApp.createdByName}}</td>
                   <td>{{compOffApp.compOffReasons}}</td>
@@ -193,14 +193,14 @@
                     <br>
                     <h6 class="badge badge-pill primary-pill" *ngIf="compOffApp.currentApprovalLevel == compOffApp.finalApprovalLevel && compOffApp.status == 'Pending'">Final</h6>
                   </td>
-                  <td>{{compOff.approverName}}</td>
-                  <td [ngStyle]="{'color': (compOff.managerApprovalStatus == 'Pending') ? 'orange' : (compOff.managerApprovalStatus == 'Approved') ? 'green' : (compOff.managerApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{compOff.managerApprovalStatus}}</td>
-                  <td>{{compOff.level2ApproverName}}</td>
-                  <td [ngStyle]="{'color': (compOff.level2ApprovalStatus == 'Pending') ? 'orange' : (compOff.level2ApprovalStatus == 'Approved') ? 'green' : (compOff.level2ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{compOff.level2ApprovalStatus}}</td>
-                  <td>{{compOff.status}}</td>
+                  <td>{{compOffApp.approverName}}</td>
+                  <td [ngStyle]="{'color': (compOffApp.managerApprovalStatus == 'Pending') ? 'orange' : (compOffApp.managerApprovalStatus == 'Approved') ? 'green' : (compOffApp.managerApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{compOffApp.managerApprovalStatus}}</td>
+                  <td>{{compOffApp.level2ApproverName}}</td>
+                  <td [ngStyle]="{'color': (compOffApp.level2ApprovalStatus == 'Pending') ? 'orange' : (compOffApp.level2ApprovalStatus == 'Approved') ? 'green' : (compOffApp.level2ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{compOffApp.level2ApprovalStatus}}</td>
+                  <td>{{compOffApp.status}}</td>
                   <td *ngIf="isCompOffRequest">
                     <button *ngIf="showActiveButton" class="btn btn-sm btn-outline-success mb-1" type="submit"
-                      (click)="onUpdateLeaveStatus(alert_message, compOff, 2)" title="Approve"><em
+                      (click)="onUpdateLeaveStatus(alert_message, compOffApp, 2)" title="Approve"><em
                         class="fa-solid fa-check"></em></button>&nbsp;
                     <button  class="btn btn-sm btn-outline-danger" type="submit"
                       (click)="onUpdateCompOffStatus(alert_message, compOffApp, 3)" title="Reject"><em

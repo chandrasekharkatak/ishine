@@ -537,7 +537,7 @@ updateStatus(status: string) {
             createdOn: employee.createdOn,
             dayType:employee.dayType,
             completionTime:items.completionTime,
-            activities: items.activity,
+            activity: items.activity,
             projectName: items.projectName,
             teamName: items.teamName,
             projectId: items.projectId,

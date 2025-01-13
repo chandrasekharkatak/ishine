@@ -146,45 +146,48 @@
                 <td colspan="16" style="text-align: center;">No Data To Display.....</td>
             </tr>
             <tr *ngFor="let item of result; let i = index">
-                <td *ngIf="item.showEmpId && activeButton == 'Pending'" [attr.rowspan]="item.empActivitiesCountForDay" >
-                  <input type="checkbox" [(ngModel)]="item.selected" (change)="toggleRowSelection(item.empId,item.date,item.selected)" />
+              <td *ngIf="item.showEmpId && activeButton == 'Pending'" [attr.rowspan]="item.empActivitiesCountForDay" >
+                <input type="checkbox" [(ngModel)]="item.selected" (change)="toggleRowSelection(item.empId,item.date,item.selected)" />
+            </td>
+              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ i + 1 }}</td>
+              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.empId }}</td>
+              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" (click)="navigateToEmployee360()" style="cursor: pointer; color: blue;">{{ item.name }}</td>
+              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.date | date: 'yyyy-MM-dd' }}</td>
+              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.dayType }}</td>
+              <td *ngIf="item.showProject && !isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount" (click)="findByProject(item.projectId,item.projectName)" style="cursor: pointer; color: blue;">
+                  {{item.projectName ? item.projectName : '-'}}
               </td>
               <td *ngIf="item.showProject&& isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount">
-                {{item.projectName}}
-            </td>
+                {{item.projectName ? item.projectName : '-'}} </td>
 
-              <td *ngIf="item.showProject&& !isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount" (click)="findByTeam(item.teamName)" style="cursor: pointer; color: blue;">{{item.teamName}}</td>
+              <td *ngIf="item.showProject&& !isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount" (click)="findByTeam(item.teamName)" style="cursor: pointer; color: blue;">{{item.teamName?item.teamName:'-'}}</td>
+              <td *ngIf="item.showProject&& isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount">{{item.teamName?item.teamName:'-'}}</td>
               <td *ngIf="item.showProject" [attr.rowspan]="item.projectActivityCount">{{item.completionTime}} hrs</td>
-              <td *ngIf="item.showProject&& isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount">{{item.teamName}}</td>
-              <td [attr.rowspan]="1">{{item.activities}} </td>   
+              <td *ngIf="item.showProject" [attr.rowspan]="item.projectActivityCount">{{item.activity}} </td>   
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.officeInTime | date: 'shortTime' }}</td>
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.officeOutTime | date: 'shortTime' }}</td>
-              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.totalTime}} hrs</td>
+              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.totalWorkingHours}} hrs</td>
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.nightShift == 'true' ? 'Night Shift' : 'Regular Shift' }}</td>
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.status }}</td>
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.createdOn | date: 'yyyy-MM-dd' }}</td>
               <td *ngIf="item.showEmpId && activeButton === 'Pending'" [attr.rowspan]="item.empActivitiesCountForDay" >
-                  <button *ngIf="actionButton"  class="btn btn-sm btn-outline-success mb-1"
+                  <button  *ngIf="item.showActionButton" class="btn btn-sm btn-outline-success mb-1"
                   type="submit" title="Approve"
                   (click)="update('Approved',item.empId,item.date)"><em
                     class="fa-solid fa-check" style="margin-bottom: 2px;"></em></button>&nbsp;
-                <button *ngIf="actionButton"  class="btn btn-sm btn-outline-danger"
+                <button  *ngIf="item.showActionButton" class="btn btn-sm btn-outline-danger"
                   type="submit" title="Reject" (click)="update('Rejected',item.empId,item.date)"><em
                     class="fa-solid fa-xmark"></em></button>
                     
               </td>  
           </tr>
-      </tbody>
 
+      </tbody>
 
   </table>
 </div>
-  
-  
-    </table>
-  </div>
-    
-    <!-- Modals -->
+      
+  <!-- Modals -->
     <ng-template #alertTemplate>
       <div class="modal-body text-center">
           <p *ngIf="showModal">{{alertMessage}}</p>
