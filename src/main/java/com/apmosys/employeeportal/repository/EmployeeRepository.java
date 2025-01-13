@@ -13,8 +13,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeTimesheetDto;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.Timesheet;
 
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
@@ -335,7 +337,36 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 				            @Param("endDate") LocalDate endDate
 				    );
 
-				
+
+				    @Query(nativeQuery = true, value = "SELECT et.timesheet_id,et.emp_id,e.name,et.date,et.day_type,\n"
+				    		+ "et.office_in_time,et.office_out_time,et.total_time,\n"
+				    		+ "et.status,et.remarks,e.employeement_id,e.created_on,et.current_manager_id\n"
+				    		+ "FROM db_emp_portal.employee_timesheets et  \n"
+				    		+ "left join employee e \n"
+				    		+ "ON et.created_by = e.emp_id " +
+				            "WHERE et.status = :status " +
+				            "AND (:empId = 0 OR et.emp_id = :empId) " +
+				            "AND (:managerId = 0 OR et.current_manager_id = :managerId) " +
+				            "AND ((:startDate IS NULL OR :endDate IS NULL) OR (et.date BETWEEN :startDate AND :endDate))")
+				    List<Object[]> getTimesheetData(
+				            @Param("status") String status,
+				            @Param("empId") long empId,
+				            @Param("managerId") Long managerId,
+				            @Param("startDate") LocalDate startDate,
+				            @Param("endDate") LocalDate endDate
+				    );
+				    
+				    @Query(nativeQuery = true, value = "select a.activity_id,etam.description,etam.timesheet_id,etam.completion_time,\n"
+				    		+ "t.team_id,t.team_name,p.project_id,p.project_name\n"
+				    		+ "from employee_timesheet_activities_mapping etam\n"
+				    		+ "LEFT JOIN activities a \n"
+				    		+ "ON a.activity_id = etam.activity_id\n"
+				    		+ "LEFT JOIN teams t \n"
+				    		+ "ON t.team_id = a.team_id \n"
+				    		+ "LEFT JOIN projects p \n"
+				    		+ "ON p.project_id = t.project_id \n"
+				    		+ "where timesheet_id =:timeSheetId")
+				    List<Object[]> getActivityData(@Param("timeSheetId") long timeSheetId);
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getDataByEmpId(@Param("empList") Set empList );

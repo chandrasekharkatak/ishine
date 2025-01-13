@@ -168,6 +168,7 @@ public class Employee360Service {
 		try {
 			
 			List<Employee360DTO> employeeDtoList = new ArrayList<>();
+			Map<Long, Employee360DTO> employeeMap = new HashMap<>();
 
 	        // Parse and convert date strings to LocalDate
 	        LocalDate localStartDate = null;
@@ -187,62 +188,32 @@ public class Employee360Service {
 	        System.out.println("localStartDate: " + localStartDate + " (Type: " + ((localStartDate != null) ? localStartDate.getClass().getSimpleName() : "null") + ")");
 	        System.out.println("localEndDate: " + localEndDate + " (Type: " + ((localEndDate != null) ? localEndDate.getClass().getSimpleName() : "null") + ")");
 
-	        List<Object[]> objectList = new ArrayList<>();
-	        if (teamName == null || teamName.isEmpty() || teamName.equalsIgnoreCase("null")) {
-	        	objectList = employeeRepository.getDynamicTimesheetData(status, empId, projectId, null, managerId, localStartDate, localEndDate);
-	        }else {
-		        objectList = employeeRepository.getDynamicTimesheetData(status, empId, projectId, teamName, managerId, localStartDate, localEndDate);
-	        }
-	        System.out.println(objectList);
-			Map<Long, Employee360DTO> employeeMap = new HashMap<>();
-
-		if (!objectList.isEmpty()) {
-			for (Object[] row : objectList) {
-			    String projectName = (String) row[13];
-			    String activity = (String) row[12];
-			    String date = ((java.sql.Date) row[4]).toString();
-
-			    Employee360DTO employee = employeeMap.computeIfAbsent(empId, id -> {
-			        Employee360DTO dto = new Employee360DTO();
-					dto.setEmpId(empId!=0?empId:Long.parseLong(row[1].toString()));
-			        dto.setName((String) row[3]);
-			        dto.setDate(date);
-			        dto.setDayType(row[5] != null ? row[5].toString() : null);
-			        if (row[6] != null) {
-			           dto.setOfficeInTime(((java.sql.Timestamp) row[6]).toLocalDateTime());}
-			        if (row[7] != null) {
-				           dto.setOfficeOutTime(((java.sql.Timestamp) row[7]).toLocalDateTime());}
-	                dto.setTotalTime(row[8] != null ? row[8].toString() : null);
-			        dto.setStatus(row[10] != null ? row[10].toString() : null);
-			        dto.setRemarks(row[15] != null ? row[15].toString() : null);
-			        dto.setEmploymentId (row[17] != null ? Long.parseLong(row[17].toString()) : null);
-			        if (row[11] != null) {
-				           dto.setCreatedOn(((java.sql.Timestamp) row[11]).toLocalDateTime());}
-			        dto.setTimeSheet(new ArrayList<>());
-			        return dto;
-			    });
-			    
-			    //Timesheet DTO
-			    List<EmployeeTimesheetDto> timeSheet = employee.getTimeSheet();
-			    EmployeeTimesheetDto project = timeSheet.stream()
-			            .filter(p -> p.getProjectName().equals(projectName))
-			            .findFirst()
-			            .orElseGet(() -> {
-			            	EmployeeTimesheetDto newProject = new EmployeeTimesheetDto();
-			                newProject.setProjectName(projectName);
-			                newProject.setTeamName(!teamName.equals("null") ? teamName :(String) row[14]);
-			                newProject.setTotalWorkingHours(row[18] != null ? Float.parseFloat(row[18].toString()) : null);
-			                newProject.setTimesheetId(row[16] != null ? Long.parseLong(row[16].toString()) : null);
-			                newProject.setProjectId(projectId != 0L ?projectId: Long.parseLong(row[1].toString()));
-			                newProject.setActivityId(row[2] != null ? Long.parseLong(row[2].toString()) : null);
-			                newProject.setActivities(new ArrayList<>());
-			                timeSheet.add(newProject);
-			                return newProject;
-			            });
-
-			    // Add activity to the project
-			    project.getActivities().add(activity);
-			}
+	        List<Object[]> timesheetData=employeeRepository.getTimesheetData(status,empId,managerId, localStartDate, localEndDate);
+	        if(!timesheetData.isEmpty()) {
+	        	for(Object[] sheet : timesheetData) {
+				        Employee360DTO dto = new Employee360DTO();
+						dto.setEmpId(Long.parseLong(sheet[1].toString()));
+				        dto.setName((String) sheet[2]);
+				        dto.setDate(sheet[3]!=null?((java.sql.Date)sheet[3]).toString():null);
+				        dto.setDayType(sheet[4] != null ? sheet[4].toString() : null);
+				        if (sheet[5] != null) {
+				           dto.setOfficeInTime(((java.sql.Timestamp) sheet[5]).toLocalDateTime());}
+				        if (sheet[6] != null) {
+					           dto.setOfficeOutTime(((java.sql.Timestamp) sheet[6]).toLocalDateTime());}
+		                dto.setTotalTime(sheet[7] != null ? sheet[7].toString() : null);
+				        dto.setStatus(sheet[8] != null ? sheet[8].toString() : null);
+				        dto.setTimesheetId(Long.parseLong(sheet[0].toString()));
+				        dto.setRemarks(sheet[9] != null ? sheet[9].toString() : null);
+				        dto.setEmploymentId (sheet[10] != null ? Long.parseLong(sheet[10].toString()) : null);
+				        if (sheet[11] != null) {
+					           dto.setCreatedOn(((java.sql.Timestamp) sheet[11]).toLocalDateTime());}
+				        dto.setManagerId(sheet[12]!=null?Long.parseLong(sheet[12].toString()):null);
+	        		List<Object[]> activityData=employeeRepository.getActivityData(Long.parseLong(sheet[0].toString()));
+	        		List<EmployeeTimesheetDto> activityList = mapActivityData(activityData);
+	        		// Set activity list in DTO
+	                dto.setTimeSheetlist(activityList);
+	                employeeMap.put(dto.getTimesheetId(), dto);
+	        	}
 		}
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(employeeMap);
@@ -263,6 +234,26 @@ public class Employee360Service {
 		return response;
 	}
 
+	
+	private List<EmployeeTimesheetDto> mapActivityData(List<Object[]> activityData) {
+	    List<EmployeeTimesheetDto> activityList = new ArrayList<>();
+	    if (!activityData.isEmpty()) {
+	        for (Object[] activityDto : activityData) {
+	            EmployeeTimesheetDto activity = new EmployeeTimesheetDto();
+	            activity.setActivityId(activityDto[0]!=null?Long.parseLong(activityDto[0].toString()):null);
+	            activity.setActivity(activityDto[1] != null ? activityDto[1].toString() : null);
+	            activity.setCompletionTime(activityDto[3] != null ?Float.parseFloat( activityDto[3].toString()) : null);
+	            activity.setTeamId(activityDto[4] != null ? Long.parseLong(activityDto[4].toString()) : null);
+	            activity.setTeamName(activityDto[5] != null ? activityDto[5].toString() : null);
+	            activity.setProjectId(activityDto[6] != null ?Long.parseLong( activityDto[6].toString()) : null);
+	            activity.setProjectName(activityDto[7] != null ? activityDto[7].toString() : null);
+	            activityList.add(activity);
+	        }
+	    }
+	    return activityList;
+	}
+
+	
 	public ServiceResponse updateStatus(String status,List<Long>timesheetId,Long updatedBy) {
 		ServiceResponse response = new ServiceResponse();
 		

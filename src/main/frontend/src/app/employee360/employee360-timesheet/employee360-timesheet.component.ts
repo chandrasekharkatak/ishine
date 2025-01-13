@@ -103,13 +103,12 @@ export class Employee360TimesheetComponent implements OnInit {
       console.log(this.managerId); 
     }
     this.empId=sessionStorage.getItem('empId');
-    this.empId=240065;
-    this.managerId = 21823;
+    
     this.startDate = null;
     this.endDate = null;
     this.formattedStartDate = null;
     this.formattedEndDate = null;
-    this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
+    this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,0,this.formattedStartDate,this.formattedEndDate);
   }
 
   setActiveButton(button: string): void {
@@ -119,7 +118,7 @@ export class Employee360TimesheetComponent implements OnInit {
       this.allSelected=false;
     }
     if(this.activeButton !=='Calendar'){
-      this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
+      this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,0,this.formattedStartDate,this.formattedEndDate);
     }else{
       this.getTimesheetsForHomePageByEmpId('Last 7 Days');
     }

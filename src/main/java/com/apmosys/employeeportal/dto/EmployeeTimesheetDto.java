@@ -11,12 +11,16 @@ import lombok.ToString;
 @ToString
 public class EmployeeTimesheetDto {
 
-	private List<String> activities;
+	private String activity;
 	private String projectName;
+	private String date; 
+	private String description; 
 	private String teamName;
 	private Float totalWorkingHours;
+	private Float completionTime;
 	private Long timesheetId;
+	private Long teamId;
 	private Long projectId;
 	private Long activityId;
-
+	
 }
