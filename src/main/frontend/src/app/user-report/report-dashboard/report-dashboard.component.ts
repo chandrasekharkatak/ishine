@@ -662,7 +662,7 @@ options:any;
       });
 
       if(tempFrom == "" && tempTo == ""){
-        this.openAlertMod(template,"Please Select Date Range.");
+        this.openAlertMod(template,"The date range should be mandatory for the employee.");
         this.get9DayTimesheetReport();
         return;
       }
