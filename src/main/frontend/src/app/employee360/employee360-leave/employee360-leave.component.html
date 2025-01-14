@@ -202,7 +202,7 @@
                     <button *ngIf="showActiveButton" class="btn btn-sm btn-outline-success mb-1" type="submit"
                       (click)="onUpdateLeaveStatus(alert_message, compOffApp, 2)" title="Approve"><em
                         class="fa-solid fa-check"></em></button>&nbsp;
-                    <button  class="btn btn-sm btn-outline-danger" type="submit"
+                    <button  *ngIf="showActiveButton" class="btn btn-sm btn-outline-danger" type="submit"
                       (click)="onUpdateCompOffStatus(alert_message, compOffApp, 3)" title="Reject"><em
                         class="fa-solid fa-xmark"></em></button>
                   </td>

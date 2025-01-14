@@ -415,7 +415,7 @@ updateStatus(status: string) {
     this.projectId=0;
     this.teamName="null";
     this.allSelected=false;
-    this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
+    this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,0,this.formattedStartDate,this.formattedEndDate);
   }
 
   get360TimesheetDetails(activeButton:string,empId:number,projectId:number,teamName:string,managerId:number,formattedStartDate:string,formattedEndDate:string) {
@@ -518,6 +518,7 @@ updateStatus(status: string) {
   
     Object.values(originalData).forEach((employee :any) => {
       let isFirstActivity = true; 
+      // this.managerId=21865;
       if(this.managerId==employee.managerId){
         this.actionButton=true;
       }else{this.actionButton=false;}
