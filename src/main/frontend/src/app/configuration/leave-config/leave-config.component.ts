@@ -579,6 +579,7 @@ export class LeaveConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showHoliaysTable();
+        this.getAllHolidays();
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }

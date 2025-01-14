@@ -1776,6 +1776,10 @@ console.log("date this.availableTimesheets ",this.availableTimesheets);
     //console.log("Updated Filter : ", this.filters);
   }
 
+  preventScroll(event: WheelEvent): void {
+    event.preventDefault();
+  }
+
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
