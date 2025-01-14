@@ -46,8 +46,8 @@
         
         <div class="overflow-auto" *ngIf="!isTeamTableVisible">
             <table class="table table-striped" id="rewardHistoryInfo">
-                <thead class="thead-light" id="rewardHistoryInfoHead">
-                    <tr id="rewardHistoryInfoHeadTr">
+                <thead class="thead-light" id="rewardHistoryInfoTHead">
+                    <tr id="rewardHistoryInfoTHeadTr">
                         <th scope="col" class="info-label">Sr No.</th>
                         <th scope="col" class="info-label">Rewards Name</th>
                         <th scope="col" class="info-label">Rewarded To</th>
@@ -59,7 +59,7 @@
                 </thead>
                 <tbody>
                     <tr *ngIf="!employee || employee.length === 0">
-                        <td colspan="7" class="text-center">No Files to display...</td>
+                        <td colspan="7" class="text-center info-label">No Files to display...</td>
                     </tr>
                     <tr *ngFor="let rewardHistory of employee; let i = index">
                         <td>{{ i + 1 }}</td>
@@ -68,10 +68,12 @@
                         <td>{{ rewardHistory.createdOn }}</td>
                         <td><span
                             class="info-label"
-                            style="cursor:pointer;"
+                            style="cursor: pointer;"
                             (click)="showTeamTable(rewardHistory.teamName)"
-                            >{{ rewardHistory.teamName }}
-                        </span></td>
+                          >
+                            {{ rewardHistory.teamName }}
+                          </span></td>
+
                         <td>{{ rewardHistory.remark }}</td>
                         <td>{{ rewardHistory.updatedBy }}</td>
                     </tr>

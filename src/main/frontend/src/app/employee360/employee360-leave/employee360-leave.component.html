@@ -101,8 +101,8 @@
                           <th scope="col" class="info-label" mat-sort-header="level2ApprovalStatus|string">Level 2 Approver Status</th>
                           <th scope="col" class="info-label" mat-sort-header="level3ApproverName|string">Level 3 Approver Name</th>
                           <th scope="col" class="info-label" mat-sort-header="level3ApprovalStatus|string">Level 3 Approver Status</th>
-                          <th scope="col" class="info-label" mat-sort-header="remark|string">Remarks</th>
-                          <th scope="col" class="info-label">Actions</th>
+                          <th scope="col" class="info-label" *ngIf="activeButton==='Rejected'">Remarks</th>
+                          <th scope="col" class="info-label" *ngIf="activeButton==='Pending'">Actions</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -130,9 +130,9 @@
                             <td [ngStyle]="{'color': (leaveHistory.level2ApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.level2ApprovalStatus == 'Approved') ? 'green' : (leaveHistory.level2ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.level2ApprovalStatus}}</td>
                             <td>{{leaveHistory.level3ApproverName}}</td>
                             <td [ngStyle]="{'color': (leaveHistory.level3ApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.level3ApprovalStatus == 'Approved') ? 'green' : (leaveHistory.level3ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.level3ApprovalStatus}}</td>
-                            <td class="info-label">{{leaveHistory.remark}}</td>
-                            <td>
-                              <button *ngIf="approveReject && leaveHistory.isSelected" class="btn btn-sm btn-outline-success" type="submit"
+                            <td class="info-label" *ngIf="activeButton==='Rejected'">{{leaveHistory.remark}}</td>
+                            <td *ngIf="activeButton==='Pending'">
+                              <button *ngIf="approveReject && leaveHistory.isSelected" class="btn btn-sm btn-outline-success mb-1" type="submit"
                               (click)="onUpdateLeaveStatus(alert_message, leaveHistory, 2)" title="Approve"><em
                                 class="fa-solid fa-check"></em></button>&nbsp;
                             <button *ngIf="approveReject && leaveHistory.isSelected" class="btn btn-sm btn-outline-danger" type="submit"
@@ -145,31 +145,40 @@
                 </div>
 </div>
 
-<!-- CompOff Request table -->
-<div class="row" *ngIf="isCompOff">
+<!-- CompOff Application table -->
+  <div class="row" *ngIf="isCompOff">
     <div class="col-md-12">
       <div class="row">
+      </div>
+      <div class="row">
         <div class="col-md-12">
-            <h4 class="text-center flex-grow-1 mb-3">{{compOffStatus}} Applications</h4>
-          <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffRequestInfo'"
-            [tableTHeadId]="'compOffRequestInfoTHead'" [tableTHeadTrId]="'compOffRequestInfoTHeadTr'">
-            <table class="table compOffApplication-table" id="compOffApplication-table" >
-              <thead class="thead-light">
-                <tr>
-                  <th scope="col" class="info-label" >Sr No.</th>
+        <h4 class="text-center flex-grow-1 mb-3">{{compOffStatus}} Applications</h4>
+          <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveRequestInfo'"
+            [tableTHeadId]="'leaveRequestInfoTHead'" [tableTHeadTrId]="'leaveRequestInfoTHeadTr'">
+            <table class="table leave-request-table" id="leaveRequestInfo" matSort>
+              <thead class="thead-light" id="leaveRequestInfoTHead">
+                <tr id="leaveRequestInfoTHeadTr">
+                  <!-- <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)"
+                      [(ngModel)]="isSelectAll"></th> -->
+                  <th scope="col" class="info-label">Sr No.</th>
                   <th scope="col" class="info-label" >Applied By</th>
                   <th scope="col" class="info-label" >Applied For</th>
                   <th scope="col" class="info-label" >From Date</th>
                   <th scope="col" class="info-label" >To Date</th>
                   <th scope="col" class="info-label" >Duration</th>
                   <th scope="col" class="info-label" >Description</th>
+                  <th scope="col" class="info-label" >Current Approval Level</th>
+                  <th scope="col" class="info-label" >Level 1 Approver Name</th>
+                  <th scope="col" class="info-label" >Level 1 Approver Status</th>
+                  <th scope="col" class="info-label" >Level 2 Approver Name</th>
+                  <th scope="col" class="info-label" >Level 2 Approver Status</th>
                   <th scope="col" class="info-label" >Status</th>
-                  <th scope="col" class="info-label" *ngIf="showActiveButton">Actions</th>
+                  <th scope="col" class="info-label" *ngIf="isCompOffRequest" >Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngIf="CompOffData.length == 0">
-                  <th colspan="9" class="text-center info-label">No details to display...</th>
+                  <th colspan="14" class="text-center info-l abel">No details to display...</th>
                 </tr>
                 <tr
                   *ngFor="let compOffApp of CompOffData; let i = index">
@@ -180,12 +189,20 @@
                   <td>{{compOffApp.toDate}}</td>
                   <td>{{compOffApp.noOfDays}}</td>
                   <td>{{compOffApp.description}}</td>
+                  <td>{{compOffApp.currentApprovalLevel}}
+                    <br>
+                    <h6 class="badge badge-pill primary-pill" *ngIf="compOffApp.currentApprovalLevel == compOffApp.finalApprovalLevel && compOffApp.status == 'Pending'">Final</h6>
+                  </td>
+                  <td>{{compOffApp.approverName}}</td>
+                  <td [ngStyle]="{'color': (compOffApp.managerApprovalStatus == 'Pending') ? 'orange' : (compOffApp.managerApprovalStatus == 'Approved') ? 'green' : (compOffApp.managerApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{compOffApp.managerApprovalStatus}}</td>
+                  <td>{{compOffApp.level2ApproverName}}</td>
+                  <td [ngStyle]="{'color': (compOffApp.level2ApprovalStatus == 'Pending') ? 'orange' : (compOffApp.level2ApprovalStatus == 'Approved') ? 'green' : (compOffApp.level2ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{compOffApp.level2ApprovalStatus}}</td>
                   <td>{{compOffApp.status}}</td>
-                  <td *ngIf="showActiveButton">
-                    <button  class="btn btn-sm btn-outline-success"
-                      type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 2)" title="Approve"><em
+                  <td *ngIf="isCompOffRequest">
+                    <button *ngIf="showActiveButton" class="btn btn-sm btn-outline-success mb-1" type="submit"
+                      (click)="onUpdateLeaveStatus(alert_message, compOffApp, 2)" title="Approve"><em
                         class="fa-solid fa-check"></em></button>&nbsp;
-                    <button  class="btn btn-sm btn-outline-danger" type="submit"
+                    <button  *ngIf="showActiveButton" class="btn btn-sm btn-outline-danger" type="submit"
                       (click)="onUpdateCompOffStatus(alert_message, compOffApp, 3)" title="Reject"><em
                         class="fa-solid fa-xmark"></em></button>
                   </td>

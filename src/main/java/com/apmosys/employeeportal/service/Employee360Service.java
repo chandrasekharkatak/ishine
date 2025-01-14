@@ -247,6 +247,7 @@ public class Employee360Service {
 	            activity.setTeamName(activityDto[5] != null ? activityDto[5].toString() : null);
 	            activity.setProjectId(activityDto[6] != null ?Long.parseLong( activityDto[6].toString()) : null);
 	            activity.setProjectName(activityDto[7] != null ? activityDto[7].toString() : null);
+	            activity.setTimesheetId(activityDto[2] != null ? Long.parseLong(activityDto[2].toString()) : 0);
 	            activityList.add(activity);
 	        }
 	    }
