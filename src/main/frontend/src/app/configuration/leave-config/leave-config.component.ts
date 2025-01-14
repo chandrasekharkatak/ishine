@@ -579,6 +579,7 @@ export class LeaveConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showHoliaysTable();
+        this.getAllHolidays();
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -695,6 +696,8 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   checkOccasion(template: TemplateRef<any>) {
+    this.holidayObj.currentYear = new Date().getFullYear();
+    // console.log("checkOccasion ",this.holidayObj.currentYear )
     this.holidayService.checkOccasionIfAlreadyExist(this.holidayObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.holidayObj.occasion = null;
