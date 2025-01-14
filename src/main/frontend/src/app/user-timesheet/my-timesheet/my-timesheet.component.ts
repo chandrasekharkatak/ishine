@@ -677,9 +677,9 @@ console.log("date this.availableTimesheets ",this.availableTimesheets);
 
     if(this.isTimesheetLockCheckEnable == "false"){
       startDate = new Date(endDate.getTime() - ((OPEN_BACKDATED_DAYS + CURRENT_DAY) * DAY_IN_MS));
-      return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "YYYY-MM-dd"))) ? true : false;
+      return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "yyyy-MM-dd"))) ? true : false;
     }else{
-      return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "YYYY-MM-dd"))) ? true : false;
+      return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "yyyy-MM-dd"))) ? true : false;
     }
   }
 
@@ -1774,6 +1774,10 @@ console.log("date this.availableTimesheets ",this.availableTimesheets);
   onSearch(searchData){
     this.filters = searchData;
     //console.log("Updated Filter : ", this.filters);
+  }
+
+  preventScroll(event: WheelEvent): void {
+    event.preventDefault();
   }
 
 }
