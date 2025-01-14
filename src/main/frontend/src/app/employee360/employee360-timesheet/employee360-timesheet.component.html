@@ -27,8 +27,8 @@
   <div class="d-flex justify-content-between align-items-center" style=" margin-bottom: 15px;">
       <!-- Leftmost Button Group -->
       <div class="form-group mb-0" style="margin-left: 15px;">
-      <button *ngIf="(bulkList.length>1||(bulkList.length==responseCount&&responseCount!=0))&& allSelected" class="btn btn-sm btn-outline-success" type="submit" (click)="bulkClicked('Approved')">Bulk Approve</button>&nbsp;
-      <button *ngIf="(bulkList.length>1||(bulkList.length==responseCount&&responseCount!=0))&& allSelected" type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="bulkClicked('Rejected')">Bulk Reject</button>
+      <button *ngIf="(bulkList.length>1) && activeButton =='Pending'" class="btn btn-sm btn-outline-success" type="submit" (click)="bulkClicked('Approved')">Bulk Approve</button>&nbsp;
+      <button *ngIf="(bulkList.length>1) && activeButton =='Pending'" type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="bulkClicked('Rejected')">Bulk Reject</button>
       </div>
     
       <!-- Rightmost Date Range Picker -->

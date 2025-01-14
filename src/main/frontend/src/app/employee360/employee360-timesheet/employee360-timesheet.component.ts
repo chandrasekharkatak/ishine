@@ -119,8 +119,10 @@ export class Employee360TimesheetComponent implements OnInit {
       this.allSelected=false;
     }
     if(this.activeButton !=='Calendar'){
+      this.empId=sessionStorage.getItem('empId');
       this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,0,this.formattedStartDate,this.formattedEndDate);
     }else{
+      this.empId=sessionStorage.getItem('empId');
       this.getTimesheetsForHomePageByEmpId('Last 7 Days');
     }
   }
@@ -136,7 +138,7 @@ export class Employee360TimesheetComponent implements OnInit {
     let filledTimesheetDetails = []
 
     let timesheetObj = new Timesheet();
-    timesheetObj.empId = sessionStorage.getItem('employeeId');
+    timesheetObj.empId = sessionStorage.getItem('empId');
     // timesheetObj.empId = 21899;
     // 240065
     console.log(sessionStorage.getItem('employeeId'));
@@ -293,33 +295,41 @@ export class Employee360TimesheetComponent implements OnInit {
   }
 
   toggleRowSelection(empId: number, date: string, selected: boolean) {
-    this.bulkList.push(empId);
-    for (const emp of this.result){
-      if(emp.empId == empId && emp.date == date){
-        this.result.forEach(emp => {
-          emp.selected = selected;
-        });
-            if (selected) {
-                this.timesheetIds.push(emp.timesheetId);
-                if(!this.bulkList.includes(emp.date)){this.bulkList.push(emp.date);}
-            } else {
-              this.timesheetIds = this.timesheetIds.filter(id => id !== emp.timesheetId);
-              this.bulkList = this.bulkList.filter(date => date !== emp.date);
-            }
+    // this.bulkList.push(empId);
+  
+    for (const emp of this.result) {
+      if (emp.empId === empId && emp.date === date) {
+        emp.selected = selected;
+  
+        if (selected) {
+          this.timesheetIds.push(emp.timesheetId);
+          if (!this.bulkList.includes(emp.date)) {
+            this.bulkList.push(emp.date);
+          }
+        } else {
+          this.timesheetIds = this.timesheetIds.filter(id => id !== emp.timesheetId);
+          this.bulkList = this.bulkList.filter(d => d !== emp.date);
+        }
       }
     }
-    console.log("this.all",this.result);
-    console.log("timesheetID",this.timesheetIds);
   
+    console.log("this.bulkList", this.bulkList);
+    
+    console.log("this.result", this.result);
+    console.log("timesheetID", this.timesheetIds);
+  
+    this.allSelected = false;
     const allSelect = this.result.every(emp => emp.selected === true);
     if (allSelect) {
       this.allSelected = true;
     }
+  
     const allDeselect = this.result.every(emp => emp.selected === false);
     if (allDeselect) {
       this.allSelected = false;
-    } 
+    }
   }
+  
   
   toggleSelectAll() {
     console.log("this.allSelected", this.allSelected);
@@ -368,7 +378,9 @@ loading: boolean = false;
 updateStatus(status: string) {
   if (this.loading) return; 
   this.loading = true; 
+  console.log("this.timesheet" , this.timesheetIds);
   console.log("allSelected+++++++"+this.allSelected);
+  
   this.employee360Service.updateStatus(status, this.timesheetIds, this.managerId).pipe(first()).subscribe(
     (response: any) => {
       this.loading = false; 
@@ -397,6 +409,9 @@ updateStatus(status: string) {
       this.showModal = true;
     }
   );
+  this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
+
+
 }
 
   cancelRequest() {
