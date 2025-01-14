@@ -7,18 +7,45 @@
       </div>
     </div>
 
+
     <div class="row">
-      <div class="form-group ml-auto col-md-6 col-lg-3">
-        <div class="row">
-          <div class="col-2 col-sm-2 col-md-2 col-lg-2">
-            <button type="button" id="buttonPosition" class="btn btn-sm btn-outline-primary mt-1"
-              (click)="openFilterModal(filter, AttendancereConciliation, 'Filter Attendance Reonciliation')">
-              <i class="fa-solid fa-filter"></i>
-            </button>
-          </div>
+
+      <div class="form-group d-flex justify-content-end align-items-center col-md-12">
+
+    
+        <div class="col-md-3 col-sm-6 custom-control custom-switch" style="margin-right: 700px;">
+          <input type="checkbox" class="custom-control-input" id="attendance-switch" (change)="toggleAttendanceDashboard($event)">
+          <label class="custom-control-label" for="attendance-switch">View Attendance dashboard</label>
         </div>
+        
+        <!-- Chart container -->
+        <div *ngIf="isAttendanceVisible">
+          <div id="biomaxfiterContainer"></div>
+        </div>
+        
+        <!-- Start Date -->
+        <input type="date" class="form-control form-control-sm mx-1" id="fromDate"  [(ngModel)]="startDate" [max]="currentDate"
+          placeholder="From Date" style="max-width: 180px;" />
+    
+        <!-- End Date -->
+        <input type="date" class="form-control form-control-sm mx-1" id="toDate"  [(ngModel)]="endDate" [max]="currentDate" placeholder="To Date"
+          style="max-width: 180px;" />
+    
+        <!-- Search Button -->
+        <button type="button" id="searchButton" class="btn btn-sm btn-outline-success mx-1" (click)="searchRecords()">
+          <i class="fa-solid fa-search"></i>
+        </button>
+    
+        <!-- Filter Button -->
+        <button type="button" id="buttonPosition" class="btn btn-sm btn-outline-primary mx-1"
+          (click)="openFilterModal(filter, timesheetColumns, 'Filter Attendance Reconciliation')">
+          <i class="fa-solid fa-filter"></i>
+        </button>
       </div>
     </div>
+    
+    
+    
 
     <div class="row">
       <div class="col-md-12">
@@ -87,7 +114,7 @@
 </div>
 <!-- end :: Attendance Report table -->
 
-<ng-template #filter>
+<!-- <ng-template #filter>
   <div class="modal-header">
     <b>{{filterData.title}}</b>
     <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
@@ -102,6 +129,18 @@
   <div class="modal-footer">
     <button type="button" class="btn btn-secondary" (click)="cancelRequest()">Close</button>
     <button type="button" class="btn btn-primary" (click)="getBioMatricData(date)">Sumbit</button>
+  </div>
+</ng-template> -->
+
+<ng-template #filter>
+  <div class="modal-header">
+      <b>{{filterData.title}}</b>
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+          <span aria-hidden="true">&times;</span>
+      </button>
+  </div>
+  <div class="modal-body ">
+    <app-custom-filter (filterSubmitted)="onFilterSubmit($event,alert_message)" [data]="filterData"></app-custom-filter>
   </div>
 </ng-template>
 

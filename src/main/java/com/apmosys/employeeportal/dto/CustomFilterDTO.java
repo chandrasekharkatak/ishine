@@ -16,4 +16,6 @@ public class CustomFilterDTO {
 	String value;
 	String conjunction;
 	String customQuery;
+	String startDate;
+	String endDate;
 }

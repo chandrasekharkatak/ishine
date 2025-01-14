@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.apmosys.employeeportal.dto.BioMaTO;
 import com.apmosys.employeeportal.dto.CustomFilterDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
@@ -2494,6 +2495,232 @@ public class CustomFilterService {
 		}
 		return new ArrayList<>();
 
+	}
+	
+	public StringBuilder createQueryForAttendanceReport(List<CustomFilterDTO> queryList) {
+		StringBuilder query = new StringBuilder("");
+
+		for (CustomFilterDTO dto : queryList) {
+			if (dto.getOperator() != null && dto.getOperator().equals("like")) {
+				dto.setValue("%" + dto.getValue() + "%");
+			}
+
+			switch (dto.getColumn()) {
+			case "Employee Id": {
+				query = query.append(" e.employeement_id ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
+				break;
+			}
+			case "Full Name": {
+				query = query.append(" e.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Leave Type": {
+				query = query.append(" ltm.leave_type ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+
+			case "From Date": {
+				query = query.append(" el.from_date ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "To Date": {
+				query = query.append(" el.to_date ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "No. of Days": {
+				query = query.append(" el.no_of_days ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Reason": {
+				query = query.append(" el.reason ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Status": {
+				query = query.append(" ls.status ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Manager Name": {
+				query = query.append(" e2.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Created On": {
+				query = query.append(" el.created_on ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Updated On": {
+				query = query.append(" el.updated_on ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Updated By": {
+				query = query.append(" e3.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Team Name": {
+				query = query.append(" t.team_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Project Name": {
+				query = query.append(" p.project_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Client Name": {
+				query = query.append(" p.client ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Department": {
+				query = query.append(" d.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+						.append(dto.getConjunction());
+				break;
+			}
+			case "Employment Status": {
+				query = query.append(" e.employmentstatus ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
+				break;
+			}
+			default:
+				break;
+			}
+		}
+		return query;
+	}
+	
+	public List<Object[]> getAttendanceReport(String customQuery) {
+		try {
+
+			Session session = entityManager.unwrap(Session.class);
+
+			try {
+
+				String q = "select e.employeement_id, e.name as employee, ltm.leave_type, el.from_date, el.to_date,el.no_of_days,el.reason, ls.status, e2.name as manager, el.created_on, "
+						+ "el.updated_on, e3.name as statusUpdateBy,d.name department,t.team_name,p.project_name,el.from_date_day_type, el.to_date_day_type,e.is_consultant,e.is_apprenticeship from employee_leave el "
+						+ "INNER JOIN employee e on el.emp_id = e.emp_id "
+						+ "INNER JOIN leave_type_master ltm on el.leave_type_master_id = ltm.leave_type_master_id "
+						+ "INNER JOIN leave_status ls on el.leave_status_id = ls.leave_status_id "
+						+ "INNER JOIN employee e2 on el.manager_id = e2.emp_id "
+						+ "LEFT JOIN employee e3 on el.leave_status_updated_by = e3.emp_id "
+						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
+						+ "INNER JOIN department d ON d.dept_id = jr.dept_id "
+						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = el.emp_id "
+						+ "LEFT JOIN teams t on t.team_id = etm.team_id "
+						+ "LEFT JOIN projects p on p.project_id = t.project_id where " + customQuery
+						+ " GROUP BY e.employeement_id, el.from_date";
+
+				System.out.println(q);
+				Query query = session.createSQLQuery(q);
+				System.out.println(query);
+				System.out.println(query.getResultList() + " ====");
+				return query.getResultList();
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				if (session != null && session.isOpen()) {
+					session.close();
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return new ArrayList<>();
+	}
+	
+	public ServiceResponse getCustomLAttendanceApplicationsList(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		System.out.println(leaveDTO.getQueryList());
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("getCustomLAttendanceApplicationsList");
+		apiLogInfo.setApiUrl("/api/getCustomLAttendanceApplicationsList");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("QueryList : " + leaveDTO.getQueryList().size());
+		String sDate="";
+		String eDate="";
+		try {
+			StringBuilder subQuery = createQueryForAttendanceReport(leaveDTO.getQueryList());
+			List<Object[]> list = getAttendanceReport(subQuery.toString());
+			System.out.println(leaveDTO.getQueryList());
+			for(CustomFilterDTO customFilterDTO : leaveDTO.getQueryList()) {
+				if(customFilterDTO.getStartDate()!=null){
+					sDate+=customFilterDTO.getStartDate();
+				}
+				if(customFilterDTO.getEndDate()!=null) {
+					eDate+=customFilterDTO.getEndDate();
+				}			}
+
+	        // Call getEmpBioData to fetch biometric data
+	        BioMaxService bioMaxService = new BioMaxService();
+	        ServiceResponse bioDataResponse = bioMaxService.getEmpBioData(sDate, eDate);
+	        List<BioMaTO> bioDataList = bioDataResponse.getServiceResponse() != null
+	            ? (List<BioMaTO>) bioDataResponse.getServiceResponse()
+	            : new ArrayList<>();
+			
+			System.out.println("SubQuery : "+subQuery);
+
+			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();	
+
+			if (list != null) {
+				list.forEach((object) -> {
+					LeaveDTO leavedto = new LeaveDTO();
+
+					leavedto.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					leavedto.setEmployeeName(object[1] != null ? object[1].toString() : null);
+					leavedto.setLeaveType(object[2] != null ? object[2].toString() : null);
+					leavedto.setFromDate(object[3] != null ? object[3].toString() : null);
+					leavedto.setToDate(object[4] != null ? object[4].toString() : null);
+					leavedto.setNoOfDays(object[5] != null ? Float.parseFloat(object[5].toString()) : null);
+					leavedto.setReason(object[6] != null ? object[6].toString() : null);
+					leavedto.setStatus(object[7] != null ? object[7].toString() : null);
+					leavedto.setManagerName(object[8] != null ? object[8].toString() : null);
+					leavedto.setCreatedOn(object[9] != null ? object[9].toString() : null);
+					leavedto.setUpdatedOn(object[10] != null ? object[10].toString() : null);
+					leavedto.setLeaveStatusUpdatedByName(object[11] != null ? object[11].toString() : null);
+					leavedto.setDepartmentName(object[12] != null ? object[12].toString() : null);
+					leavedto.setTeamName(object[13] != null ? object[13].toString() : null);
+					leavedto.setProjectName(object[14] != null ? object[14].toString() : null);
+					leavedto.setFromDateDayType(object[15] != null ? Float.parseFloat(object[15].toString()) : null);
+					leavedto.setToDateDayType(object[16] != null ? Float.parseFloat(object[16].toString()) : null);
+					leavedto.setIsConsultant(object[17] != null ? object[17].toString() : null);
+					leavedto.setIsApprenticeship(object[18] != null ? object[18].toString() : null);
+					dtoList.add(leavedto);
+				});
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse(" dtoList :" + dtoList);
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("leave Application list is empty.");
+				apiLogInfo.setApiResponse("leave Application list is empty");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
 	}
 
 }

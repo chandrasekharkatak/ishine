@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.controller;
 
+import java.sql.SQLException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -71,9 +73,9 @@ public class ReportController {
 	
 	//biomatric data link
 		@GetMapping(value = "/getBioData")
-		public ServiceResponse getBioData(@RequestParam String date) {
+		public ServiceResponse getBioData(@RequestParam String startDate,@RequestParam String endDate) throws SQLException {
 			System.out.println("getBioData api call....................");
-			ServiceResponse response = bioMaxService.getEmpBioData(date);
+			ServiceResponse response = bioMaxService.getEmpBioData(startDate,endDate);
 			
 			return response;
 		}
