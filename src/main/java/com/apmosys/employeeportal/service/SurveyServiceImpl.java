@@ -310,18 +310,29 @@ public class SurveyServiceImpl implements SurveyService {
 			List<SurveyEmployeeResponse> dtoList = new ArrayList<SurveyEmployeeResponse>();
 
 			surveyDTO.getSurveyQuestionList().forEach((question) -> {
+				
+				SurveyEmployeeResponse checkResponse = surveyEmployeeResponseRepository.findByEmpIdAndSurveyQuestionId(surveyDTO.getEmpId(),question.getSurveyQuestionId());
+				
+				SurveyEmployeeResponse surveyEmployeeResponse = new SurveyEmployeeResponse();	
+				
+				SurveyEmployeeResponse responseList = new SurveyEmployeeResponse();
 
-				SurveyEmployeeResponse surveyEmployeeResponse = new SurveyEmployeeResponse();
-
-				surveyEmployeeResponse.setEmpId(surveyDTO.getEmpId());
-				surveyEmployeeResponse.setSurveyQuestionId(question.getSurveyQuestionId());
-				surveyEmployeeResponse.setResponse(question.getResponse());
-				dtoList.add(surveyEmployeeResponse);
+				if (checkResponse != null) {
+					checkResponse.setResponse(question.getResponse());
+					dtoList.add(checkResponse);
+//					responseList = surveyEmployeeResponseRepository.save(checkResponse);		
+				}else {
+					
+					surveyEmployeeResponse.setEmpId(surveyDTO.getEmpId());
+					surveyEmployeeResponse.setSurveyQuestionId(question.getSurveyQuestionId());
+					surveyEmployeeResponse.setResponse(question.getResponse());
+					dtoList.add(surveyEmployeeResponse);
+				}
 			});
 
 			List<SurveyEmployeeResponse> responseList = surveyEmployeeResponseRepository.saveAll(dtoList);
 
-			if (responseList.size() > 0) {
+			if (responseList.size() > 0)  {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Responses stored successfully.");
 				apiLogInfo.setApiResponse("Responses stored successfully");			
