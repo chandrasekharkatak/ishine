@@ -210,6 +210,7 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   showHoliaysTable() {
+    console.log("yes   ",)
     this.employeeData = []
     this.isHolidayTable = true;
 
@@ -577,9 +578,11 @@ export class LeaveConfigComponent implements OnInit {
     //console.log("Add Holiday : ", this.holidayObj);
     this.holidayService.addHoliday(this.holidayObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
+        console.log("ckecked" ,response.serviceStatus)
         this.openAlertMod(template, response.serviceResponse);
         this.showHoliaysTable();
         this.getAllHolidays();
+        console.log("last in" ,this.holidayListFilter)
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -644,6 +647,8 @@ export class LeaveConfigComponent implements OnInit {
  
 
   getAllHolidays() {
+
+    console.log("yesss")
     this.sortColumn=[];
     this.sortColumnType=[];
     this.sortDirection='';
@@ -668,10 +673,11 @@ export class LeaveConfigComponent implements OnInit {
         // this.changeEvent(this.currentUser.workLocation);
         this.selectedState='Maharashtra';
         // this.selectedState=this.currentUser.workLocation;
-        //console.log(this.holidayListFilter, " : this.holidayListFilter");
+        console.log(this.holidayListFilter, " : this.holidayListFilter");
         this.filterHolidayListByYear(new Date().getFullYear());
         this.selectedHolidayType = "Festival";
         this.onHolidayTypeSelected();
+        
       } else {
         console.error(response.serviceResponse);
       }
@@ -692,7 +698,7 @@ export class LeaveConfigComponent implements OnInit {
     this.selectedHolidayType = "";
     this.selectedYear = value;
     this.holidayListFilter = this.holidayList.filter((holiday:Holiday)=> moment(holiday.dateOfHoliday, "DD-MM-YYYY").year() == value);
-    //console.log(this.holidayListFilter, "this.holidayListFilter")
+    console.log(this.holidayListFilter, "this.holidayListFilter")
   }
 
   checkOccasion(template: TemplateRef<any>) {

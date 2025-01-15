@@ -1704,6 +1704,14 @@ console.log("date this.availableTimesheets ",this.availableTimesheets);
       event.target.nextElementSibling.textContent = this.errorMsg
     }
   }
+
+
+  preventScroll(event: WheelEvent): void {
+    event.preventDefault();
+  }
+  
+
+
   validateClientLocation(event, data: any) {
 
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {

@@ -324,6 +324,7 @@
                                             <small>(hrs)</small></label>
                                         <input type="number" step="any" class="form-control" autocomplete="none" 
                                             [(ngModel)]="activityObj.completionTime"  (blur)="validateTime($event,activityObj.completionTime)" (keypress)="omit_special_char($event)" (wheel)="preventScroll($event)"  >
+                                            
                                             <small class="errorMsg text-danger"></small>
                                     </div>
                                 </div>
