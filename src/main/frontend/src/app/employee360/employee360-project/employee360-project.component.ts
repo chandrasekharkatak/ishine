@@ -115,18 +115,18 @@ export class Employee360ProjectComponent implements OnInit {
         console.log("this.projectDetails ", this.allProjectList);
 
         console.log("Existing project detauls fetched for employee",this.allProjectList);
-        if (this.allProjectList.length > 0) {
-          if (this.allProjectList[0].billableType == "TNM") {
-            this.openAlertMod(this.alertTemplate, "This Employee is already mapped to TNM project. Can't add to another project or Team !!");
-            this.getBillableType = this.allProjectList.find(employee => this.newteamMember.billableType = employee.billableType);
-          } else {
-            this.newMemberInProject = "NewMember";
-            this.newteamMember.billableType = this.newMemberInProject;
-          }
-        } else {
-          this.newMemberInProject = "NewMember";
-          this.newteamMember.billableType = this.newMemberInProject;
-        }
+        // if (this.allProjectList.length > 0) {
+        //   if (this.allProjectList[0].billableType == "TNM") {
+        //     this.openAlertMod(this.alertTemplate, "This Employee is already mapped to TNM project. Can't add to another project or Team !!");
+        //     this.getBillableType = this.allProjectList.find(employee => this.newteamMember.billableType = employee.billableType);
+        //   } else {
+        //     this.newMemberInProject = "NewMember";
+        //     this.newteamMember.billableType = this.newMemberInProject;
+        //   }
+        // } else {
+        //   this.newMemberInProject = "NewMember";
+        //   this.newteamMember.billableType = this.newMemberInProject;
+        // }
 
         console.log("this.allProjectList ", this.allProjectList);
         console.log("this.getBillableType ", this.getBillableType);
