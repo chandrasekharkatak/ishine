@@ -371,15 +371,19 @@ public class HolidayService {
 				
 		  try {
 			  Holiday checkOccasion = holidayRepository.findByOccasion(holidayDTO.getOccasion());
+			  Integer yearOfOccassion = holidayRepository.findYearOfOccassion(holidayDTO.getOccasion());
+//			  System.out.println(yearOfOccassion);
+//			  System.out.println(holidayDTO.getCurrentYear());
 			  
-			  if(checkOccasion!=null) {
-				  response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				  response.setServiceResponse("Occasion already exist!");
-				  
-				  apiLogInfo.setApiResponse("Occasion already exist!");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			  if(yearOfOccassion == holidayDTO.getCurrentYear()) {
+				  if(checkOccasion != null) {
+					  response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					  response.setServiceResponse("Occasion already exist!");
+					  
+					  apiLogInfo.setApiResponse("Occasion already exist!");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				  }
 			  }
-			
 		  } catch (Exception e) {
 			   e.printStackTrace();
 			   response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
