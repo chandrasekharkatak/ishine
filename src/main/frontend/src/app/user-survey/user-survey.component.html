@@ -3,7 +3,7 @@
 </div>
 
 <!-- start :: See all Surveys Table -->
-<div class="row" *ngIf="isSurveyList">
+<div class="row" *ngIf="isSurveyList && !isEdit">
     <div class="col-md-12">
         <div class="card">
             <div class="card-body">
@@ -61,7 +61,7 @@
 <!-- end :: see all Surveys table -->
 
 <!-- start :: Survey Form -->
-<div class="row" *ngIf="isSurveyForm">
+<div class="row" *ngIf="isSurveyForm && !isEdit">
     <div class="card col-md-12 px-0">
         <div class="card-header text-uppercase px-3">
             <strong>{{surveyObj.surveyName}}</strong>
@@ -82,6 +82,48 @@
 <!-- end :: Survey Form -->
 
 
+<!-- start :: Edit Survey Form -->
+
+<div *ngIf="isEdit" >
+
+<h5>Previous response</h5>
+<b class="modal-title" style="font-size: 1.3rem;">{{surveyObj.surveyName}} <small class="d-block text-secondary">{{surveyObj.description}}</small></b>
+<br>
+    <div class="row" *ngFor="let response of myResponseList">
+        <div class="col-md-4 mb-2">
+            <div class="info-wrapper">
+                <div class="info-text-wrapper">
+                    <h5 class="info-label mb-1"><i class="fa-solid fa-q question-icon"></i>.&nbsp;{{response.question}}</h5>
+                    <h5 class="info-text"><i class="fa-solid fa-a question-icon"></i>.&nbsp;{{response.response}}</h5>
+                </div>
+                <!-- Edit button aligned to the right -->
+            </div>
+        </div>
+    </div>
+    <hr>
+    <div>
+        <div class="card col-md-12 px-0">
+            <div class="card-header text-uppercase px-3">
+                <strong>{{surveyObj.surveyName}}</strong>
+                <small class="d-block text-secondary">{{surveyObj.description}}</small>
+            </div>
+            <div class="card-body px-5" id="surveyContainer">
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-primary btn-sm mx-1"
+                            (click)="onSubmit(alert_message)" [disabled]="!isSurveyLoaded">Submit</button>
+                        <button type="submit" class="btn btn-outline-primary btn-sm mx-1"
+                        [routerLink]="['/user-survey']" [disabled]="!isSurveyLoaded">Back</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- end :: Edit Survey Form -->
+
+
 <ng-template #alert_message>
     <div class="modal-body text-center">
         <p>{{alertMessage}}</p>
@@ -94,18 +136,32 @@
         <b class="modal-title">{{surveyObj.surveyName}} <small class="d-block text-secondary">{{surveyObj.description}}</small></b>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
             <span aria-hidden="true">&times;</span>
-        </button>
+    </button>
     </div>
     <div class="modal-body">
         <div class="container-fluid">
-            <div class="row" *ngFor="let response of myResponseList">
+            <div class="row" *ngFor="let response of myResponseList; let i = index">
                 <div class="col-md-4 mb-2">
                     <div class="info-wrapper">
-                        <h5 class="info-label mb-1"><i class="fa-solid fa-q question-icon"></i>.&nbsp;{{response.question}}</h5>
-                        <h5 class="info-text"><i class="fa-solid fa-a question-icon"></i>.&nbsp;{{response.response}}</h5>
+                        <div class="info-text-wrapper">
+                            <h5 class="info-label mb-1">
+                                <i class="fa-solid fa-q question-icon"></i>.&nbsp;{{response.question}}
+                            </h5>
+                            <h5 class="info-text">
+                                <i class="fa-solid fa-a question-icon"></i>.&nbsp;{{response.response}}
+                            </h5>
+                        </div>
                     </div>
                 </div>
             </div>
+            
+            <!-- Edit button that only appears for the first response -->
+            <button *ngIf="myResponseList.length > 0" class="btn btn-sm btn-outline-primary mb-1 edit-button" type="submit"
+                (click)="onClickEdit(surveyObj)" style="position: absolute; right: 10px; top: 10px;">
+                <em class="fa fa-edit"></em>
+            </button>
+            
         </div>
     </div>
 </ng-template>
+
