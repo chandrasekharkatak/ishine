@@ -4743,4 +4743,35 @@ try {
 			    logService.logMyInfo(request, apiLogInfo);
 			}
 		}
+		
+		/*
+		 * Deduct Leave cron job
+		 * 
+		 * if below condition for 3 consecutive days
+		 * 
+		 * conditions :
+		 * Confirmed
+		 * 1) Reporting to work on or before shift starting time and not completing 9 hours
+		 *    : Deduct ½ Day Leave
+		 * 2) Reporting late to work (after 30 minutes from shift starting time) and completing 9 hours
+		 *    : Deduct ½ Day Leave
+		 * 3) Reporting late to work (after 30 minutes from shift starting time) and not completing 9 hours
+		 *    : Deduct 1 full Day Leave
+		 * 
+		 * Probation
+		 * 1) Reporting to work on or before shift starting time and not completing 9 hours
+		 * 	  : Deduct ½ Day Salary
+		 * 2) Reporting late to work (after 30 minutes from shift starting time) and completing 9 hours
+		 *    : Deduct ½ Day Salary
+		 * 3) Reporting late to work (after 30 minutes from shift starting time) and not completing 9 hours
+		 *    : Deduct 1 Day Salary
+		 * */
+		
+		@Async
+		@Scheduled(cron = "0 0 9 ? * *")
+		public void leaveDeduct() {
+			
+			
+			
+		}
 }	
