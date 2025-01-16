@@ -666,10 +666,10 @@ public class CronJobService {
 	
 	
 	 
-	// At 11:20 AM, on day 02 of the month, only in January
-@Scheduled(cron = "0 50 15 09 01 ?")
+	// At 09:00 PM, on day 16th of the month, only in January
+@Scheduled(cron = "0 0 21 16 01 ?")
 
-//@Scheduled(cron = "0 35 18 * * ?")
+//@Scheduled(cron = "0 51 17 * * ?")
 
 	public void YearlyLeaveCronJob() {
 		System.out.println("*************************************************************************");
@@ -1157,7 +1157,7 @@ public class CronJobService {
 												float newBalance = dbBalance;
 												EmployeeLeavesMap elm = new EmployeeLeavesMap();
 												elm.setEmployeeLeavesMapId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-												newBalance = (float) (newBalance+1.5);
+												newBalance = (float) (newBalance);
 												System.err.println(" Plan leaved PL deduct and set increases value ");
 												elm.setBalance(newBalance);
 												elm.setEmpId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
