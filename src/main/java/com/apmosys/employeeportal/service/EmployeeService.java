@@ -423,6 +423,8 @@ public class EmployeeService {
 			employee.setJobRoleId(employeedto.getJobRoleId());
 			employee.setPassword(EncryptDecrypt.encrypt(defaultPaswword));
 			employee.setCreatedBy(employeedto.getCreatedBy());
+			employee.setReferedType(employeedto.getReferedType());
+			employee.setReferedName(employeedto.getReferedName());
 
 			if (employeedto.getExperience().equals("Fresher")) {
 				employee.setExperience(employeedto.getExperience());
@@ -1083,6 +1085,8 @@ public class EmployeeService {
 					empDTO.setBillableType(object[70] != null ? object[70].toString() : null);
 					empDTO.setIsConsultant(object[71] != null ? object[71].toString() : null);
 					empDTO.setIsApprenticeship(object[72] != null ? object[72].toString() : null);
+					empDTO.setReferedType(object[73] != null ? object[73].toString() : null);
+					empDTO.setReferedName(object[74] != null ? object[74].toString() : null);
 					if (object[42] != null) {
 
 						File actualFile = new File(
@@ -2094,6 +2098,10 @@ public class EmployeeService {
 				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				employee.setEmployeementId(employeedto.getEmployeementId());
 				employee.setName(employeedto.getName());
+				//added by rahul for reffered in employee
+				employee.setReferedType(employeedto.getReferedType());
+				employee.setReferedName(employeedto.getReferedName());
+				//end
 				employee.setDateOfBirth(employeedto.getDateOfBirth() != null
 						? stringToDateTimeParser.getDate(employeedto.getDateOfBirth(), "yyyy-MM-dd")
 						: null);
@@ -2686,8 +2694,10 @@ public class EmployeeService {
 					empDTO.setTeamName(object[74] != null ? object[74].toString() : null);
 					empDTO.setDesignationName(object[75] != null ? object[75].toString() : null);
 					empDTO.setIsConsultant(object[76] != null ? object[76].toString() : null);
-					empDTO.setIsApprenticeship(object[77] != null ? object[77].toString() : null);				
-				
+					empDTO.setIsApprenticeship(object[77] != null ? object[77].toString() : null);
+					//added by rahul
+					empDTO.setReferedType(object[78] != null ? object[78].toString() : null);
+					empDTO.setReferedName(object[79] != null ? object[79].toString() : null);
 					ServiceResponse completionResponse = getEmployeeProfileCompletion(empDTO);
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
 					

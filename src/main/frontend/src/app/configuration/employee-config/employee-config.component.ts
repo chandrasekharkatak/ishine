@@ -160,6 +160,11 @@ export class EmployeeConfigComponent implements OnInit {
     "Uttarakhand",
     "West Bengal",
   ];
+  //added by rahul for refered employee addition
+  referedType=[
+    "In Office",
+    "Out Office"
+  ]
   currDate:any;
   yearOfPassingList:any[] = [];
   revoke_template: any;
@@ -220,7 +225,7 @@ minDate: Date;
      'Bank Name', 'Created By', 'State', 'Created On'];
      departmentName: any;
      private subscription: Subscription = new Subscription();
-
+     referedTypeStatus:boolean=false;
 
   constructor(
 
@@ -303,7 +308,16 @@ minDate: Date;
       this.showDraftTable();
     }
   }
-
+//added by rahul for reffered
+  refferedChange(){
+    if(this.employeeObj.referedType=="InOffice"){
+this.referedTypeStatus=true;
+    }
+    if(this.employeeObj.referedType=="OutOffice"){
+      this.referedTypeStatus=true;
+   }
+  }
+  //end of the code
   addDemographiscInfo(){
     let path;
 
@@ -584,6 +598,7 @@ minDate: Date;
 
   showUpdateForm(employee: Employee) {
     this.isForm = true;
+    this.referedTypeStatus=true;
     this.isTable = false;
     this.isUpdation = true;
     this.isCreation = false;
@@ -1813,7 +1828,9 @@ minDate: Date;
     }
     employee.newManagerId = this.employeeObj.newManagerId;
     employee.reportiesFlag = this.employeeObj.reportiesFlag; 
-
+    employee.referedType==this.employeeObj.referedType;
+    employee.referedName==this.employeeObj.referedName;
+   
     console.log("employee update before call ",employee);
 
     employee.onbenchDate=this.billableBenchDate;

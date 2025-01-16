@@ -132,27 +132,27 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- <div class="col-md-4 mb-0">
-                                        <div class="info-wrapper">
-                                            <div class="form-group">
-                                                <label class="info-label">Blood Group</label>
-                                                <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.bloodGroup" disabled>
-                                            </div>
-                                        </div>
-                                    </div>
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
-                                                <label class="info-label">Marital Status</label>
-                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.maritalStatus" disabled>
+                                                <label class="info-label">Reffered Type</label>
+                                                <select class="form-control" aria-hidden="true" (change)="refferedChange()"  [(ngModel)]="employeeObj.referedType">
                                                     <option selected="selected" value="" disabled>Select</option>
-                                                    <option value="single">Single</option>
-                                                    <option value="married">Married</option>
-                                                    <option value="other">Other</option>
+                                                    <option value="InOffice">In Office</option>
+                                                    <option value="OutOffice">Out Office</option>
                                                   </select>
                                             </div>
                                         </div>
-                                    </div> -->
+                                    </div>
+                                    <div class="col-md-4 mb-0" *ngIf="referedTypeStatus">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label">Reffered Name</label>
+                                                <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.referedName">
+                                            </div>
+                                        </div>
+                                    </div>
+                                     
                                 </div>
                             </div>
                         </app-accordion-item>
@@ -977,6 +977,7 @@
                                             </div>
                                         </div>
                                     </div>
+                                    
                                 </div>
                             </div>
                         </app-accordion-item>
@@ -1238,7 +1239,7 @@
                                 <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="createdByName|string"> Created by</th>
                                 <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="updatedOn|datetime"> Updated On</th>
                                 <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="updatedByName|string"> Updated by</th>
-
+                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="referedName|string"> Reffered by</th>
                                 <th scope="col" class="info-label" *ngIf="isDraftTable">Profile Updation</th>
                                 <th *ngIf="userMapping.update_employee || userMapping.delete_employee || userMapping.update_draft"
                                     scope="col" class="info-label">Actions</th>
@@ -1272,7 +1273,7 @@
                                 <td *ngIf="isTable">{{employee.createdByName}}</td>
                                 <td *ngIf="isTable">{{employee.updatedOn}}</td>
                                 <td *ngIf="isTable">{{employee.updatedByName}}</td>
-
+                                <td *ngIf="isTable">{{employee.referedName}}</td>
                                 <td *ngIf="isDraftTable">{{employee.updateApplicationStatus}}</td>
                                 <td
                                 *ngIf="(isTable && userMapping.update_employee) || (isTable && userMapping.delete_employee)">
@@ -1718,6 +1719,7 @@
                                                 <p class="info-text">{{previewObj.emergencyContactMobile}}</p>
                                             </div>
                                         </div>
+                                        
                                     </div>
                                 </div>
                             </app-accordion-item>

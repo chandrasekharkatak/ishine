@@ -85,7 +85,7 @@ ngOnInit(): void {
     this.employeeData = history.state.data;
   }
  
-  this.filter1.employeeId=""+740;//this.employeeData.empId;
+  this.filter1.employeeId=this.employeeData.empId;
   
  
   console.log(this.filter1);
@@ -110,7 +110,7 @@ ngOnInit(): void {
 
   this.viewFilterdata();
  
- //this.filter.employeeId=this.employeeData.employeementId;
+ this.filter.employeeId=this.employeeData.employeementId;
 }
 
 viewFilterdata() {
