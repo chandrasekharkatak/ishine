@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild , ElementRef,Renderer2 } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import * as HighCharts from 'highcharts';
 import HC_exportData from "highcharts/modules/export-data";
@@ -123,122 +123,9 @@ export class Employee360LeaveComponent implements OnInit {
   @ViewChild("alert_message") alertTemplate: TemplateRef<any>;
 
   //Dropdown filter
-  year=new Date().getFullYear();
-  // selectedOption:any=1;
-  // startDate: any;
-  // endDate:any; 
-
-  chartOptions: Highcharts.Options = {
-    chart: {
-        type: "column"
-    },
-    title: {
-        text: "Leave Data Per Month"
-    },
-    xAxis: {
-        categories: ["Jan", "Feb", "Mar", "Apr", "May", "June", "July", "Aug", "Sep", "Oct", "Nov", "Dec"],
-        title: {
-            text: "Month",
-            style: {
-              fontWeight: 'bold', },
-        }
-    },
-    yAxis: {
-        min: 0,
-        title: {
-            text: "Total Days"
-        },
-        stackLabels: {
-            enabled: true,
-            style: {
-                fontWeight: "bold",
-                color: "gray"
-            }
-        }
-    },
-    tooltip: {
-        shared: true,
-        valueSuffix: " days"
-    },
-    plotOptions: {
-        column: {
-            stacking: "normal"
-        }
-    },
-    series: [
-        {
-            type: "column",
-            name: "Revoked",
-            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 17],
-            color: "#1b263b",
-            stack: "CO"
-        },
-        {
-            type: "column",
-            name: "Rejected",
-            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 14],
-            color: "#1b263b",
-            stack: "CO"
-        },
-        {
-            type: "column",
-            name: "Approved",
-            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 11],
-            color: "#1b263b",
-            stack: "CO"
-        },
-        {
-            type: "column",
-            name: "Pending",
-            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 13],
-            color: "#1b263b",
-            stack: "CO"
-        },
-        {
-            type: "column",
-            name: "Applied For Revoke",
-            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 12],
-            color: "#1b263b",
-            stack: "CO"
-        },
-        {
-            type: "column",
-            name: "Revoked",
-            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 17],
-            color: "#1b263b",
-            stack: "PL"
-        },
-        {
-            type: "column",
-            name: "Rejected",
-            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 14],
-            color: "#1b263b",
-            stack: "PL"
-        },
-        {
-            type: "column",
-            name: "Approved",
-            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 11],
-            color: "#1b263b",
-            stack: "PL"
-        },
-        {
-            type: "column",
-            name: "Pending",
-            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 13],
-            color: "#1b263b",
-            stack: "PL"
-        },
-        {
-            type: "column",
-            name: "Applied For Revoke",
-            data: [10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 12],
-            color: "#1b263b",
-            stack: "PL"
-        }
-    ]
-};
-
+  year:any;
+  
+   
   constructor(
     private authenticationService: AuthenticationService,
     private leaveService: LeaveService,
@@ -273,7 +160,6 @@ export class Employee360LeaveComponent implements OnInit {
       }else{
         this.employeeData = history.state.data;
       }
-    console.log("Priyadarshini  Leave    ",this.employeeData);
     let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title =="Leave");
         if (findbreadcrumbObject >= 0) {
           this.currentBreadcrumbList.splice(findbreadcrumbObject + 1);
@@ -295,9 +181,7 @@ export class Employee360LeaveComponent implements OnInit {
     this.empId=sessionStorage.getItem('empId');
     this.getAllLeaveTypesByLeavePolicies();
     this.generateLeaveChart();
-    console.log(this.year);
-    
-    this.getLeaveDataPerMonthByEmpId(this.year);
+    this.getLeaveDataPerMonthByEmpId();
     this.countMyApprovedLeaveApplicationsByLeaveType();
   }
 
@@ -335,7 +219,7 @@ export class Employee360LeaveComponent implements OnInit {
     this.selectedOption = 1;
     this.dateTimeRange = null;
     this.generateLeaveChart();
-    this.getLeaveDataPerMonthByEmpId(this.year);
+    this.getLeaveDataPerMonthByEmpId();
     this.activeButton="Leave-Charts";
   }
 
@@ -856,7 +740,7 @@ export class Employee360LeaveComponent implements OnInit {
     });
   }
 
-  getLeaveDataPerMonthByEmpId(year: number): void {
+  getLeaveDataPerMonthByEmpId(): void {
     this.employee360Service.getLeaveDataPerMonthByEmpId(this.empId).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
             const leaveData = response.serviceResponse;
@@ -871,9 +755,16 @@ export class Employee360LeaveComponent implements OnInit {
             leaveData.forEach(leave => {
                 const leaveType = leave.leaveType;
                 const leaveStatus = leave.leaveStatus;
-                const leaveMonth = parseInt(leave.leaveMonth, 10) - 1;
+                let leaveMonth = parseInt(leave.leaveMonth, 10) - 1;
+                if (leaveMonth < 3) {
+                  leaveMonth = leaveMonth + 9; // Jan (0)
+              } else {
+                  leaveMonth = leaveMonth - 3; // Apr (3)
+              }
                 const totalDays = parseFloat(leave.totalDays);
-
+                this.year=leave.year.split('-')[0];;
+                console.log("year=====>",this.year);
+                
                 if (dataByLeaveType[leaveType] && dataByLeaveType[leaveType][leaveStatus]) {
                     dataByLeaveType[leaveType][leaveStatus][leaveMonth] += totalDays;
                 }
@@ -894,24 +785,17 @@ export class Employee360LeaveComponent implements OnInit {
                     uniqueStatuses.add(leaveStatus);
                 }
             }
-
-            const legendItems = Array.from(uniqueStatuses).map(status => ({
-                name: status,
-                status: status,
-                color: this.getLeaveStatusColor(status) 
-            }));
-
             Highcharts.chart('leaveByMonthContainer', {
               chart: {
                   type: 'column',
               },
               title: {
-                  text: `Leave Data for ${this.year}`,
+                  text: `Leave Data for ${this.year-1} - ${this.year}`,
                   style: {
                     fontWeight: 'bold', },
               },
               xAxis: {
-                  categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+                  categories: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec","Jan", "Feb", "Mar"],
                   title: {
                       text: "Month",
                       style: {
@@ -932,6 +816,7 @@ export class Employee360LeaveComponent implements OnInit {
                       const seriesOptions = this.series.options as any; 
                       return `<b>Month:</b> ${this.x}<br/>` +
                           `<b>Status:</b> ${seriesOptions.status}<br/>` +
+                          `<b>Leave Type:</b> ${seriesOptions.leaveType}<br/>`+
                           `<b>Days:</b> ${this.y}`;
                   },
               },
@@ -1041,8 +926,6 @@ getLeaveStatusColor(status: string): string {
       console.log('To Date:', toDate);
       this.startDate = fromDate;
       this.endDate = toDate;
-  
-      // logic to filter data based on the selected range
       this.setDate();
     }
   }
@@ -1052,7 +935,6 @@ getLeaveStatusColor(status: string): string {
     this.startDate = null;
     this.endDate = null;
     this.setDate();
-    // Optionally, call your method to fetch data after reset
   }
 
   setDate(){
