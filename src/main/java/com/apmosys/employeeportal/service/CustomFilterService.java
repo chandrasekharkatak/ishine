@@ -6,18 +6,19 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.logging.log4j.LogBuilder;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -2606,19 +2607,23 @@ public class CustomFilterService {
 
 			try {
 
-				String q = "select e.employeement_id, e.name as employee, ltm.leave_type, el.from_date, el.to_date,el.no_of_days,el.reason, ls.status, e2.name as manager, el.created_on, "
-						+ "el.updated_on, e3.name as statusUpdateBy,d.name department,t.team_name,p.project_name,el.from_date_day_type, el.to_date_day_type,e.is_consultant,e.is_apprenticeship from employee_leave el "
-						+ "INNER JOIN employee e on el.emp_id = e.emp_id "
-						+ "INNER JOIN leave_type_master ltm on el.leave_type_master_id = ltm.leave_type_master_id "
-						+ "INNER JOIN leave_status ls on el.leave_status_id = ls.leave_status_id "
-						+ "INNER JOIN employee e2 on el.manager_id = e2.emp_id "
-						+ "LEFT JOIN employee e3 on el.leave_status_updated_by = e3.emp_id "
-						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
-						+ "INNER JOIN department d ON d.dept_id = jr.dept_id "
-						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = el.emp_id "
-						+ "LEFT JOIN teams t on t.team_id = etm.team_id "
-						+ "LEFT JOIN projects p on p.project_id = t.project_id where " + customQuery
-						+ " GROUP BY e.employeement_id, el.from_date";
+				String q = "SELECT e.employeement_id, e.name AS employee, et.date, et.day_type, et.description, et.status, "
+				        + "et.total_time, et.created_on, et.updated_on, e2.name AS statusUpdatedBy, t.team_name, "
+				        + "p.project_name, p.client_name, et.office_in_time, et.office_out_time, et.total_working_hours, "
+				        + "e.is_consultant, e.is_apprenticeship "
+				        + "FROM employee_timesheets et "
+				        + "INNER JOIN employee e ON et.emp_id = e.emp_id "
+				        + "LEFT JOIN employee e2 ON et.timesheet_status_updated_by = e2.emp_id "
+				        + "LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id "
+				        + "LEFT JOIN department d ON jr.dept_id = d.dept_id "
+				        + "LEFT JOIN employee_team_mapping etm ON etm.emp_id = et.emp_id "
+				        + "LEFT JOIN teams t ON t.team_id = etm.team_id "
+				        + "LEFT JOIN projects p ON p.project_id = t.project_id "
+				        + "WHERE "
+				        + customQuery
+				        + "AND t.is_active != 'N' AND p.active != 'false' "
+				        + "GROUP BY e.employeement_id, et.date";
+
 
 				System.out.println(q);
 				Query query = session.createSQLQuery(q);
@@ -2639,28 +2644,174 @@ public class CustomFilterService {
 		return new ArrayList<>();
 	}
 	
+//	public ServiceResponse getCustomLAttendanceApplicationsList(LeaveDTO leaveDTO) {
+//	    ServiceResponse response = new ServiceResponse();
+//	    System.out.println(leaveDTO.getQueryList());
+//	    LogDTO apiLogInfo = new LogDTO();
+//	    apiLogInfo.setSubFeatureName("getCustomLAttendanceApplicationsList");
+//	    apiLogInfo.setApiUrl("/api/getCustomLAttendanceApplicationsList");
+//	    apiLogInfo.setLogLevel("INFO");
+//	    StringBuilder logBuilder = new StringBuilder();
+//	    logBuilder.append("QueryList : " + leaveDTO.getQueryList().size());
+//	    String sDate = "";
+//	    String eDate = "";
+//
+//	    try {
+//	        StringBuilder subQuery = createQueryForAttendanceReport(leaveDTO.getQueryList());
+//	        List<Object[]> list = getAttendanceReport(subQuery.toString());
+//	        System.out.println(leaveDTO.getQueryList());
+//
+//	        for (CustomFilterDTO customFilterDTO : leaveDTO.getQueryList()) {
+//	            if (customFilterDTO.getStartDate() != null) {
+//	                sDate += customFilterDTO.getStartDate();
+//	            }
+//	            if (customFilterDTO.getEndDate() != null) {
+//	                eDate += customFilterDTO.getEndDate();
+//	            }
+//	        }
+//
+//	        // Call getEmpBioData to fetch biometric data
+//	        BioMaxService bioMaxService = new BioMaxService();
+//	        ServiceResponse bioDataResponse = bioMaxService.getEmpBioData(sDate, eDate);
+//	        List<BioMaTO> bioDataList = bioDataResponse.getServiceResponse() != null
+//	            ? (List<BioMaTO>) bioDataResponse.getServiceResponse()
+//	            : new ArrayList<>();
+//
+//	        System.out.println("SubQuery : " + subQuery);
+//
+//	        List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+//	        List<BioMaTO> biolist = new ArrayList<BioMaTO>();
+//
+//	        if (!bioDataList.isEmpty() && !list.isEmpty()) {
+//	            Set<Long> bioDataEmploymentIds = bioDataList.stream()
+//	                .map(bioMaTO -> {
+//	                    String employeeCode = bioMaTO.getEmployeeCode();
+//	                    if (employeeCode != null) {
+//	                        // Extract numeric part after the prefix
+//	                        String numericPart = employeeCode.replaceAll("\\D", ""); // Remove all non-digit characters
+//	                        if (!numericPart.isEmpty()) {
+//	                            return Long.parseLong(numericPart);
+//	                        } else {
+//	                            System.out.println("No numeric part found in employee code: " + employeeCode);
+//	                            return null;
+//	                        }
+//	                    } else {
+//	                        System.out.println("Null employee code found");
+//	                        return null;
+//	                    }
+//	                })
+//	                .filter(Objects::nonNull)
+//	                .collect(Collectors.toSet());
+//	            
+//	            // Check if any ID in the list matches with bioDataEmploymentIds
+//	            List<Object[]> matchedRecords = list.stream()
+//	                .filter(object -> {
+//	                    if (object[0] != null) {
+//	                        try {
+//	                            String objectCode = object[0].toString();
+//	                            if (!objectCode.isEmpty()) {
+//	                                return bioDataEmploymentIds.equals(Long.parseLong(objectCode));
+//	                            }
+//	                        } catch (NumberFormatException e) {
+//	                            System.out.println("Error parsing numeric part of object[0]: " + object[0]);
+//	                        }
+//	                    }
+//	                    return false;
+//	                })
+//	                .collect(Collectors.toList());
+//	            
+//	            if(!matchedRecords.isEmpty()) {
+//	            	for (Object[] matchedRecord : matchedRecords) {
+//	                    if (matchedRecord != null && matchedRecord.length > 0) {
+//	                        String employeeCodeFromRecord = matchedRecord[0].toString(); // Extracting the employee code or matching key
+//	                        
+//	                        Optional<BioMaTO> matchingBioData = bioDataList.stream()
+//	                            .filter(bioMaTO -> bioMaTO.getEmployeeCode() != null && bioMaTO.getEmployeeCode().equals(employeeCodeFromRecord))
+//	                            .findAny();
+//	                        
+//	                        if (matchingBioData.isPresent()) {
+//	                            BioMaTO bioMaTO = new BioMaTO();
+//	                            
+//	                            bioMaTO.setLogDate(bioDataList.get(0).getLogDate() != null ? bioDataList.get(0).getLogDate() : null); // Assuming first element is log date
+//	                            bioMaTO.setEmployeeCode(bioDataList.get(0).getEmployeeCode() != null ? bioDataList.get(0).getEmployeeCode() : null); // Assuming second element is employeeCode
+//	                            bioMaTO.setEmployeeName(bioDataList.get(0).getEmployeeName() != null ? bioDataList.get(0).getEmployeeName() : null); // Assuming third element is employeeName
+//	                            bioMaTO.setTotalDuration(bioDataList.get(0).getTotalDuration() != null ? bioDataList.get(0).getTotalDuration() : null); // Assuming fourth element is totalDuration
+//	                            bioMaTO.setShiftName(bioDataList.get(0).getShiftName() != null ? bioDataList.get(0).getShiftName() : null); // Assuming fifth element is shiftName
+//	                            bioMaTO.setBeginTime(bioDataList.get(0).getBeginTime() != null ? bioDataList.get(0).getBeginTime() : null); // and so on...
+//	                            bioMaTO.setEndTime(bioDataList.get(0).getEndTime() != null ? bioDataList.get(0).getEndTime() : null);
+//	                            bioMaTO.setStatus(bioDataList.get(0).getStatus() != null ? bioDataList.get(0).getStatus() : null);
+//	                            bioMaTO.setPunchRecords(bioDataList.get(0).getPunchRecords() != null ? bioDataList.get(0).getPunchRecords() : null);
+//	                            bioMaTO.setEarlyBy(bioDataList.get(0).getEarlyBy() != null ? bioDataList.get(0).getEarlyBy() : null);
+//	                            bioMaTO.setLateBy(bioDataList.get(0).getEarlyBy() != null ? bioDataList.get(0).getEarlyBy() : null);
+//	                            bioMaTO.setDuration(bioDataList.get(0).getDuration() != null ? bioDataList.get(0).getDuration() : null);
+//	                            bioMaTO.setInTime(bioDataList.get(0).getInTime() != null ? bioDataList.get(0).getInTime() : null);
+//	                            bioMaTO.setOutTime(bioDataList.get(0).getOutTime() != null ? bioDataList.get(0).getOutTime() : null);
+//	                            bioMaTO.setShiftDuration(bioDataList.get(0).getShiftDuration() != null ? bioDataList.get(0).getShiftDuration() : null);
+//
+//	                            // Add the populated BioMaTO object to the biolist
+//	                            biolist.add(bioMaTO);
+//	                        }
+//	                    }
+//	                }
+//	            }
+//
+//	            // Update the response with the populated biolist
+//	            if (!biolist.isEmpty()) {
+//	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	                response.setServiceResponse(biolist);
+//
+//	                // Log the successful API response
+//	                apiLogInfo.setApiResponse("dtoList: " + biolist);
+//	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//	            } else {
+//	                // Handle the no-match scenario
+//	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	                response.setServiceResponse("Attendance list is empty.");
+//
+//	                // Log the failure
+//	                apiLogInfo.setApiResponse("Attendance list is empty");
+//	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	            }
+//	        }
+//	    } catch (Exception e) {
+//	        e.printStackTrace();
+//	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//	        response.setServiceResponse("Something Went Wrong.");
+//	        response.setServiceError(e.getMessage());
+//	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	        apiLogInfo.setLogLevel("ERROR");
+//	    }
+//
+//	    apiLogInfo.setApiRequest(logBuilder.toString());
+//	    logService.logMyInfo(httpRequest, apiLogInfo);
+//	    return response;
+//	}
+	
 	public ServiceResponse getCustomLAttendanceApplicationsList(LeaveDTO leaveDTO) {
-		ServiceResponse response = new ServiceResponse();
-		System.out.println(leaveDTO.getQueryList());
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("getCustomLAttendanceApplicationsList");
-		apiLogInfo.setApiUrl("/api/getCustomLAttendanceApplicationsList");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("QueryList : " + leaveDTO.getQueryList().size());
-		String sDate="";
-		String eDate="";
-		try {
-			StringBuilder subQuery = createQueryForAttendanceReport(leaveDTO.getQueryList());
-			List<Object[]> list = getAttendanceReport(subQuery.toString());
-			System.out.println(leaveDTO.getQueryList());
-			for(CustomFilterDTO customFilterDTO : leaveDTO.getQueryList()) {
-				if(customFilterDTO.getStartDate()!=null){
-					sDate+=customFilterDTO.getStartDate();
-				}
-				if(customFilterDTO.getEndDate()!=null) {
-					eDate+=customFilterDTO.getEndDate();
-				}			}
+	    ServiceResponse response = new ServiceResponse();
+	    System.out.println(leaveDTO.getQueryList());
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("getCustomLAttendanceApplicationsList");
+	    apiLogInfo.setApiUrl("/api/getCustomLAttendanceApplicationsList");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("QueryList : " + leaveDTO.getQueryList().size());
+	    String sDate = "";
+	    String eDate = "";
+
+	    try {
+	        StringBuilder subQuery = createQueryForAttendanceReport(leaveDTO.getQueryList());
+	        List<Object[]> list = getAttendanceReport(subQuery.toString());
+	        System.out.println(leaveDTO.getQueryList());
+
+	        for (CustomFilterDTO customFilterDTO : leaveDTO.getQueryList()) {
+	            if (customFilterDTO.getStartDate() != null) {
+	                sDate += customFilterDTO.getStartDate();
+	            }
+	            if (customFilterDTO.getEndDate() != null) {
+	                eDate += customFilterDTO.getEndDate();
+	            }
+	        }
 
 	        // Call getEmpBioData to fetch biometric data
 	        BioMaxService bioMaxService = new BioMaxService();
@@ -2668,59 +2819,115 @@ public class CustomFilterService {
 	        List<BioMaTO> bioDataList = bioDataResponse.getServiceResponse() != null
 	            ? (List<BioMaTO>) bioDataResponse.getServiceResponse()
 	            : new ArrayList<>();
-			
-			System.out.println("SubQuery : "+subQuery);
 
-			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();	
+	        System.out.println("SubQuery : " + subQuery);
 
-			if (list != null) {
-				list.forEach((object) -> {
-					LeaveDTO leavedto = new LeaveDTO();
+	        List<BioMaTO> biolist = new ArrayList<BioMaTO>();
 
-					leavedto.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-					leavedto.setEmployeeName(object[1] != null ? object[1].toString() : null);
-					leavedto.setLeaveType(object[2] != null ? object[2].toString() : null);
-					leavedto.setFromDate(object[3] != null ? object[3].toString() : null);
-					leavedto.setToDate(object[4] != null ? object[4].toString() : null);
-					leavedto.setNoOfDays(object[5] != null ? Float.parseFloat(object[5].toString()) : null);
-					leavedto.setReason(object[6] != null ? object[6].toString() : null);
-					leavedto.setStatus(object[7] != null ? object[7].toString() : null);
-					leavedto.setManagerName(object[8] != null ? object[8].toString() : null);
-					leavedto.setCreatedOn(object[9] != null ? object[9].toString() : null);
-					leavedto.setUpdatedOn(object[10] != null ? object[10].toString() : null);
-					leavedto.setLeaveStatusUpdatedByName(object[11] != null ? object[11].toString() : null);
-					leavedto.setDepartmentName(object[12] != null ? object[12].toString() : null);
-					leavedto.setTeamName(object[13] != null ? object[13].toString() : null);
-					leavedto.setProjectName(object[14] != null ? object[14].toString() : null);
-					leavedto.setFromDateDayType(object[15] != null ? Float.parseFloat(object[15].toString()) : null);
-					leavedto.setToDateDayType(object[16] != null ? Float.parseFloat(object[16].toString()) : null);
-					leavedto.setIsConsultant(object[17] != null ? object[17].toString() : null);
-					leavedto.setIsApprenticeship(object[18] != null ? object[18].toString() : null);
-					dtoList.add(leavedto);
-				});
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);
-				apiLogInfo.setApiResponse(" dtoList :" + dtoList);
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        if (!bioDataList.isEmpty() && !list.isEmpty()) {
+	            // Stream through the list to get employment IDs
+	            Set<Long> bioDataEmploymentIds = bioDataList.stream()
+	                .map(bioMaTO -> {
+	                    String employeeCode = bioMaTO.getEmployeeCode();
+	                    if (employeeCode != null) {
+	                        // Extract numeric part after the prefix
+	                        String numericPart = employeeCode.replaceAll("\\D", ""); // Remove all non-digit characters
+	                        if (!numericPart.isEmpty()) {
+	                            return Long.parseLong(numericPart);
+	                        } else {
+	                            System.out.println("No numeric part found in employee code: " + employeeCode);
+	                            return null;
+	                        }
+	                    } else {
+	                        System.out.println("Null employee code found");
+	                        return null;
+	                    }
+	                })
+	                .filter(Objects::nonNull)
+	                .collect(Collectors.toSet());
 
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("leave Application list is empty.");
-				apiLogInfo.setApiResponse("leave Application list is empty");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            // Stream through the list and match with bioDataList
+	            list.stream()
+	                .filter(object -> object[0] != null) // Filter non-null objects in list
+	                .map(object -> {
+	                    String objectCode = object[0].toString();
+	                    Long employmentId = null;
+	                    try {
+	                        employmentId = Long.parseLong(objectCode);
+	                    } catch (NumberFormatException e) {
+	                        System.out.println("Error parsing employment ID: " + objectCode);
+	                    }
+	                    return employmentId;
+	                })
+	                .filter(Objects::nonNull) // Filter non-null employmentIds
+	                .forEach(employmentId -> {
+	                    // For each employmentId, find matching BioMaTO from bioDataList
+	                    bioDataList.stream()
+	                        .filter(bioMaTO -> {
+	                            String employeeCode = bioMaTO.getEmployeeCode();
+	                            if (employeeCode != null) {
+	                                // Extract numeric part from employeeCode and compare with employmentId
+	                                String numericPart = employeeCode.replaceAll("\\D", "");
+	                                return !numericPart.isEmpty() && Long.parseLong(numericPart)== employmentId;
+	                            }
+	                            return false;
+	                        })
+	                        .findFirst() // Find the first match
+	                        .ifPresent(matchingBioData -> {
+	                            BioMaTO bioMaTO = new BioMaTO();
+	                            bioMaTO.setLogDate(matchingBioData.getLogDate() != null ? matchingBioData.getLogDate() : null);
+	                            bioMaTO.setEmployeeCode(matchingBioData.getEmployeeCode() != null ? matchingBioData.getEmployeeCode() : null);
+	                            bioMaTO.setEmployeeName(matchingBioData.getEmployeeName() != null ? matchingBioData.getEmployeeName() : null);
+	                            bioMaTO.setTotalDuration(matchingBioData.getTotalDuration() != null ? matchingBioData.getTotalDuration() : null);
+	                            bioMaTO.setShiftName(matchingBioData.getShiftName() != null ? matchingBioData.getShiftName() : null);
+	                            bioMaTO.setBeginTime(matchingBioData.getBeginTime() != null ? matchingBioData.getBeginTime() : null);
+	                            bioMaTO.setEndTime(matchingBioData.getEndTime() != null ? matchingBioData.getEndTime() : null);
+	                            bioMaTO.setStatus(matchingBioData.getStatus() != null ? matchingBioData.getStatus() : null);
+	                            bioMaTO.setPunchRecords(matchingBioData.getPunchRecords() != null ? matchingBioData.getPunchRecords() : null);
+	                            bioMaTO.setEarlyBy(matchingBioData.getEarlyBy() != null ? matchingBioData.getEarlyBy() : null);
+	                            bioMaTO.setLateBy(matchingBioData.getLateBy() != null ? matchingBioData.getLateBy() : null);
+	                            bioMaTO.setDuration(matchingBioData.getDuration() != null ? matchingBioData.getDuration() : null);
+	                            bioMaTO.setInTime(matchingBioData.getInTime() != null ? matchingBioData.getInTime() : null);
+	                            bioMaTO.setOutTime(matchingBioData.getOutTime() != null ? matchingBioData.getOutTime() : null);
+	                            bioMaTO.setShiftDuration(matchingBioData.getShiftDuration() != null ? matchingBioData.getShiftDuration() : null);
 
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
+	                            // Add the populated BioMaTO object to the biolist
+	                            biolist.add(bioMaTO);
+	                        });
+	                });
+
+	            // Update the response with the populated biolist
+	            if (!biolist.isEmpty()) {
+	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	                response.setServiceResponse(biolist);
+
+	                // Log the successful API response
+	                apiLogInfo.setApiResponse("dtoList: " + biolist);
+	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	            } else {
+	                // Handle the no-match scenario
+	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                response.setServiceResponse("Attendance list is empty.");
+
+	                // Log the failure
+	                apiLogInfo.setApiResponse("Attendance list is empty");
+	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            }
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
 	}
+
+
 
 }
