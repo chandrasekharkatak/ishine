@@ -81,7 +81,37 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Blood Group</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.bloodGroup" (blur)="validateBloodGroup($event,employeeObj.bloodGroup)">
+                                            <input type="text"  class="form-control" autocomplete="none" [(ngModel)]="employeeObj.bloodGroup" (blur)="validateBloodGroup($event,employeeObj.bloodGroup)">
+                                           
+                                            <small class="errorMsg text-danger"></small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Reffered Type</label>
+                                           {{employeeObj | json}}
+                                            <select 
+                                            [disabled]="employeeObj.empId === currentUser.empId" 
+                                            class="form-control" 
+                                            aria-hidden="true" 
+                                            [(ngModel)]="employeeObj.referedType">
+                                            <option selected="selected" value="" disabled>Select</option>
+                                            <option value="InOffice">In Office</option>
+                                            <option value="OutOffice">Out Office</option>
+                                          </select>
+                                          
+                                            <small class="errorMsg text-danger"></small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            
+                                            <label class="info-label"><span class="text-danger">*</span>Reffered Name</label>
+                                            <input type="text" class="form-control" [disabled]="employeeObj.empId==currentUser.empId" autocomplete="none" [(ngModel)]="employeeObj.referedName">
                                             <small class="errorMsg text-danger"></small>
                                         </div>
                                     </div>

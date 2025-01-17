@@ -1741,7 +1741,7 @@ this.referedTypeStatus=true;
   //     if (response.serviceStatus == "Fail") {
   //       this.openAlertMod(template, response.serviceResponse);
   //       this.employeeObj.mobileNo = '';
-  //     }
+  //     }changeManagerMapping
   //   });
   // }
 
