@@ -189,4 +189,16 @@ export class Employee{
 	rewardId: any;
 	isConsultant: any;
 	onbenchDate : any;
+
+	//added by Priyadarshini
+	isApprenticeship: any;
+	employeeType:any;
+	isRegular: any;
+	isRetain:any
+	dateOfRetain:any
+	//added by rahul
+	referedType:any;
+	referedName:any;
+	employeeConfirmationDate:any;
+
 }

@@ -4152,9 +4152,10 @@ try {
 					ws.value(0, 8, "Shift");
 					ws.value(0, 9, "Total Working Hours");
 					ws.value(0, 10, "Activity"); //Comma seperated
-					ws.value(0, 11, "Client"); // comma seperated
-					ws.value(0, 12, "Project"); // comma seperated
-					ws.value(0, 13, "Status");
+					ws.value(0, 11, "Description");
+					ws.value(0, 12, "Client"); // comma seperated
+					ws.value(0, 13, "Project"); // comma seperated
+					ws.value(0, 14, "Status");
 //					ws.value(0, 14, "BiomaxInTime");
 //					ws.value(0, 15, "BiomaxOutTime");
 //					
@@ -4181,13 +4182,16 @@ try {
 										.activitiesByTimesheetId(timesheetObj.getTimesheetId());
 
 								StringBuilder activity = new StringBuilder();
+								StringBuilder description = new StringBuilder();
 								Set<String> project = new HashSet<>();
 								Set<String> clientName = new HashSet<>();
 								
 								if (!objectList.isEmpty()) {
 									for (Object[] object : objectList) {
 										activity.append(object[1] != null ? object[1].toString() : null).append(",");
+										description.append(object[3] != null ? object[3].toString() : null).append(",");							
 										project.add(object[5] != null ? object[5].toString() : null);
+										
 										clientName.add(object[6] != null ? object[6].toString() : null);
 									}
 									
@@ -4213,9 +4217,14 @@ try {
 									} else {
 										ws.value(rowNum, 10, timesheetObj.getDescription());
 									}
-									ws.value(rowNum, 11, String.join(",", clientName));
-									ws.value(rowNum, 12, String.join(",", project));
-									ws.value(rowNum, 13, timesheetObj.getStatus());
+									if(!objectList.isEmpty()) {
+										ws.value(rowNum,11, description.toString());
+										}else {
+											ws.value(rowNum, 11, (String)null); 
+										}
+									ws.value(rowNum, 12, String.join(",", clientName));
+									ws.value(rowNum, 13, String.join(",", project));
+									ws.value(rowNum, 14, timesheetObj.getStatus());
 
 									rowNum++;
 									
@@ -4262,8 +4271,9 @@ try {
 									ws.value(rowNum, 4, dayType);
 									ws.value(rowNum, 5, leaveType);
 									ws.value(rowNum, 9, timesheetObj.getTotalWorkingHours());
-									ws.value(rowNum, 10, timesheetObj.getDescription());
-									ws.value(rowNum, 13, timesheetObj.getStatus());
+								    ws.value(rowNum, 10, timesheetObj.getDescription());
+								    ws.value(rowNum, 11, (String)null); 
+									ws.value(rowNum, 14, timesheetObj.getStatus());
 									
 									 // Check if employeementId exists in finalEmpBioData
 //						            for (BioMaTO bio : finalEmpBioData) {
@@ -4314,6 +4324,11 @@ try {
 		return response;
 		
 		}
+		
+		
+	
+		
+
 		
 		
 		// To Remove any InActive / Blocked / Check Idle user within 1hr
