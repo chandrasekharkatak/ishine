@@ -123,6 +123,7 @@ export class AttendanceReconciliationComponent implements OnInit {
 
     this.attendanceReconciliationService.getBiomatricData(startdateformat, enddateformat).subscribe((response: any) => {
       this.attendanceReconciliationList = response.serviceResponse;
+      console.log("this.attendanceReconciliationList" , this.attendanceReconciliationList);
       this.attendanceReconciliationOriginaldata = [... this.attendanceReconciliationList];
       this.modalRef.hide();
     });
@@ -161,9 +162,11 @@ export class AttendanceReconciliationComponent implements OnInit {
 
     this.filterData.title = title;
     this.filterData.columns = columns;
+    const startdateformat = this.formatDate(this.startDate);
+    const enddateformat = this.formatDate(this.endDate);
 
     this.queryList = [
-      { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "",startDate : this.startDate,endDate : this.endDate},
+      { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "",startDate : startdateformat,endDate : enddateformat},
     ];
 
     this.storedDataList.forEach((data) => {
@@ -266,8 +269,9 @@ export class AttendanceReconciliationComponent implements OnInit {
     }
   }
 
-
+  clickFilter:boolean=false;
   onFilterSubmit(emittedArray: any, template: TemplateRef<any>) {
+    this.clickFilter = true;
     if (emittedArray[0].length != 0) {
       //console.log("queryList : ", emittedArray[0]);
       this.queryList = JSON.parse(JSON.stringify(emittedArray[0]));
@@ -334,6 +338,7 @@ export class AttendanceReconciliationComponent implements OnInit {
       this.leaveService.getCustomLAttendanceApplicationsList(queryObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allLeaveApplicationsList = response.serviceResponse;
+          console.log("this.allLeaveApplicationsList" , this.allLeaveApplicationsList);
 
           // this.allLeaveApplicationsList = this.allLeaveApplicationsList.filter((value, index, self) =>
           //   index === self.findIndex((t) => (
@@ -374,79 +379,154 @@ export class AttendanceReconciliationComponent implements OnInit {
   }
 
 
-  biomaxList:Biomax[]=[];
-  chartdata={
-    workinghours:0,
-    lessthenworkinghours:0,
-    hovertime:0
-  }
+  // biomaxList:Biomax[]=[];
+  // chartdata={
+  //   workinghours:0,
+  //   lessthenworkinghours:0,
+  //   hovertime:0
+  // }
 
-  getBiomatrixFilter() {
+  // getBiomatrixFilter() {
 
-    let workinghours2 = 0;
-    let lessthenworkinghours = 0;
-    let hovertime = 0;
+  //   let workinghours2 = 0;
+  //   let lessthenworkinghours = 0;
+  //   let hovertime = 0;
 
-    const startdateformat = this.formatDate(this.startDate);
-    const enddateformat = this.formatDate(this.endDate);
+  //   const startdateformat = this.formatDate(this.startDate);
+  //   const enddateformat = this.formatDate(this.endDate);
 
-    this.attendanceReconciliationService.getBiomatricData(startdateformat, enddateformat).subscribe((response: any) => {
-        this.biomaxList = response.serviceResponse;
-        console.log("Check ============>" , this.biomaxList);
+  //   this.attendanceReconciliationService.getBiomatricData(startdateformat, enddateformat).subscribe((response: any) => {
+  //       this.biomaxList = response.serviceResponse;
+  //       console.log("Check ============>" , this.biomaxList);
 
-        this.biomaxList.forEach((filter5) => {
-          let workinghours: number = parseInt(filter5.totalDuration);
-          if (workinghours !== 0) {
-            workinghours2 += 9; // Baseline working hours
-            if (workinghours > 9) {
-              hovertime += (workinghours - 9); // Overtime calculation
-            }
-            if (workinghours < 9) {
-              lessthenworkinghours += workinghours; // Less than working hours calculation
-            }
-          }
-        });
+  //       this.biomaxList.forEach((filter5) => {
+  //         let workinghours: number = parseInt(filter5.totalDuration);
+  //         if (workinghours !== 0) {
+  //           workinghours2 += 9; // Baseline working hours
+  //           if (workinghours > 9) {
+  //             hovertime += (workinghours - 9); // Overtime calculation
+  //           }
+  //           if (workinghours < 9) {
+  //             lessthenworkinghours += workinghours; // Less than working hours calculation
+  //           }
+  //         }
+  //       });
 
 
-        if (this.biomaxList.length > 0) {
-          // Set the chart data
-          this.chartdata.hovertime = hovertime;
-          this.chartdata.workinghours = workinghours2;
-          this.chartdata.lessthenworkinghours = lessthenworkinghours;
-          // Update the chart with new data
-          this.updateChartData(this.chartdata);
-        }
-      });
-  }
+  //       if (this.biomaxList.length > 0) {
+  //         // Set the chart data
+  //         this.chartdata.hovertime = hovertime;
+  //         this.chartdata.workinghours = workinghours2;
+  //         this.chartdata.lessthenworkinghours = lessthenworkinghours;
+  //         // Update the chart with new data
+  //         this.updateChartData(this.chartdata);
+  //       }
+  //     });
+  // }
 
-  private updateChartData(data: any): void {
-    this.chartOptions = {
-      chart: {
-        type: 'pie'
-      },
-      title: {
-        text: 'Work Hours Distribution'
-      },
-      credits: {
-        enabled: false
-      },
-      colors: ['#FF5733', '#33FF57', '#3357FF'],
-      series: [
-        {
-          type: 'pie',
-          name: 'Work Hours',
-          data: [
-            { name: 'Working Hours', y: data.workinghours },
-            { name: 'Less Than Working Hours', y: data.lessthenworkinghours },
-            { name: 'Overtime', y: data.hovertime }
-          ]
-        }
-      ]
-    };
+  // private updateChartData(data: any): void {
+  //   this.chartOptions = {
+  //     chart: {
+  //       type: 'pie'
+  //     },
+  //     title: {
+  //       text: 'Work Hours Distribution'
+  //     },
+  //     credits: {
+  //       enabled: false
+  //     },
+  //     colors: ['#FF5733', '#33FF57', '#3357FF'],
+  //     series: [
+  //       {
+  //         type: 'pie',
+  //         name: 'Work Hours',
+  //         data: [
+  //           { name: 'Working Hours', y: data.workinghours },
+  //           { name: 'Less Than Working Hours', y: data.lessthenworkinghours },
+  //           { name: 'Overtime', y: data.hovertime }
+  //         ]
+  //       }
+  //     ]
+  //   };
 
-    // Update chart with new options
-    Highcharts.chart('biomaxfiterContainer', this.chartOptions);
-  }
+  //   // Update chart with new options
+  //   Highcharts.chart('biomaxfiterContainer', this.chartOptions);
+  // }
+
+  biomaxList: Biomax[] = [];
+chartdata = {
+  completed9Hours: 0,
+  above9Hours: 0,
+  lessThan9Hours: 0
+};
+
+getBiomatrixFilter() {
+  let completed9HoursCount = 0;
+  let above9HoursCount = 0;
+  let lessThan9HoursCount = 0;
+
+  const startdateformat = this.formatDate(this.startDate);
+  const enddateformat = this.formatDate(this.endDate);
+
+  this.attendanceReconciliationService.getBiomatricData(startdateformat, enddateformat).subscribe((response: any) => {
+    this.biomaxList = response.serviceResponse;
+    console.log("Fetched Data ============>", this.biomaxList);
+
+    // Iterate through all records and classify by work hours
+    this.biomaxList.forEach((entry) => {
+      const workingHours = parseInt(entry.totalDuration, 9);
+
+      if (workingHours === 9) {
+        completed9HoursCount++; // Count employees with exactly 9 hours
+      } else if (workingHours > 9) {
+        above9HoursCount++; // Count employees with more than 9 hours
+      } else if (workingHours < 9) {
+        lessThan9HoursCount++; // Count employees with less than 9 hours
+      }
+    });
+
+    if (this.biomaxList.length > 0) {
+      // Set the chart data with counts
+      this.chartdata.completed9Hours = completed9HoursCount;
+      this.chartdata.above9Hours = above9HoursCount;
+      this.chartdata.lessThan9Hours = lessThan9HoursCount;
+
+      // Update the chart with new data
+      this.updateChartData(this.chartdata);
+    }
+  });
+}
+
+private updateChartData(data: any): void {
+  this.chartOptions = {
+    chart: {
+      type: 'pie'
+    },
+    title: {
+      text: 'Work Hours Distribution (All Employees)'
+    },
+    credits: {
+      enabled: false
+    },
+    colors: ['#33FF57','#FF5733', '#3357FF'],
+    series: [
+      {
+        type: 'pie',
+        name: 'Employee Count',
+        data: [
+          { name: 'Completed 9 Hours', y: data.completed9Hours },
+          { name: 'Above 9 Hours', y: data.above9Hours },
+          { name: 'Less Than 9 Hours', y: data.lessThan9Hours }
+        ]
+      }
+    ]
+  };
+
+  // Update chart with new options
+  Highcharts.chart('biomaxfiterContainer', this.chartOptions);
+}
+
+
 
   chartOptions: Highcharts.Options = {
     chart: {
