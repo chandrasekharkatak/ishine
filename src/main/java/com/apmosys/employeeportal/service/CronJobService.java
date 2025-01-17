@@ -23,6 +23,7 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
@@ -55,11 +56,13 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import com.apmosys.employeeportal.dto.BioMaTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.model.BiomaxDefaulter;
 import com.apmosys.employeeportal.model.BirthdayMail;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.CompOffLeave;
@@ -77,6 +80,7 @@ import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.UserSession;
+import com.apmosys.employeeportal.repository.BiomaxDefaulterRepository;
 import com.apmosys.employeeportal.repository.BirthdayMailRepository;
 import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
@@ -189,6 +193,9 @@ public class CronJobService {
 	
 	@Autowired
 	private UserSessionRepository userSessionRepository;
+	
+	@Autowired
+	BiomaxDefaulterRepository biomaxDefaulterRepository;
 
 	@Value("${po.db.url}")
 	private String url;
@@ -4768,10 +4775,36 @@ try {
 		 * */
 		
 		@Async
-		@Scheduled(cron = "0 0 9 ? * *")
+		@Scheduled(cron = "0 0 9 ? * *") //runs everyday at 9 pm
 		public void leaveDeduct() {
 			
+			//fetch data from biomax
+			List<BioMaTO> biomaxDataList = bioMaxService.getBiomaxDataForLeaveDeduct();
 			
+			if(!biomaxDataList.isEmpty()) {
+				List<BioMaTO> biomaxDataFilterList = biomaxDataList.stream()
+						.filter(obj -> Integer.parseInt(obj.getDeduct()) > 0).collect(Collectors.toList());
 			
+				if(!biomaxDataFilterList.isEmpty()) {
+					biomaxDataFilterList.forEach((object) -> {
+						
+						List<BiomaxDefaulter> defaulterList = biomaxDefaulterRepository.findByEmployeementId(Long.parseLong( object.getEmployeeCode().replaceAll("\\D", "") ));
+						
+						if(!defaulterList.isEmpty()) {
+							//check for 3 consecutive defaulter 
+							if(defaulterList.size()==3) {
+								/*
+								 * Deduct leave for confirmed employee
+								 * Deduct salary for probation employee
+								 * */
+							}else {
+								//Another defaulter entry
+							}
+						}else {
+							//New defaulter entry
+						}
+					});
+				}
+			}
 		}
 }	

@@ -18,8 +18,22 @@ public class BioMaTO {
     private String shiftDuration;
     private String totalOverTime;
     private String totalUnderTimeE;
+    private String attendanceDate;
+    private String deduct;
     
     
+    public void setDeduct(String deduct) {
+    	this.deduct = deduct;
+    }
+    public String getDeduct() {
+    	return deduct;
+    }
+    public void setAttendanceDate(String attendanceDate) {
+    	this.attendanceDate = attendanceDate;
+    }
+    public String getAttendanceDate() {
+    	return attendanceDate;
+    }
 	public String getLogDate() {
 		return logDate;
 	}

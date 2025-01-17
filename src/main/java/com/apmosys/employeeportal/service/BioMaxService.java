@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -807,16 +808,78 @@ public class BioMaxService {
 		    return serviceResponse; 
 		}
 	 
-	 
+	 public List<BioMaTO> getBiomaxDataForLeaveDeduct() {
+		    List<BioMaTO> finalEmpBioData = new ArrayList<>();
+		    try {
+		        String query = "SELECT \n"
+		        		+ "    e.EmployeeCode,  \n"
+		        		+ "    al.AttendanceDate, \n"
+		        		+ "    al.InTime, \n"
+		        		+ "    al.OutTime, \n"
+		        		+ "    al.TotalDuration, \n"
+		        		+ "    s.ShiftName, \n"
+		        		+ "    s.BeginTime, \n"
+		        		+ "    s.EndTime,\n"
+		        		+ "    CASE \n"
+		        		+ "        WHEN al.TotalDuration < 9 AND al.InTime > DATEADD(MINUTE, 30, CAST(s.BeginTime AS DATETIME)) THEN 1\n"
+		        		+ "        WHEN al.TotalDuration < 9 THEN 0.5\n"
+		        		+ "        WHEN al.InTime > DATEADD(MINUTE, 30, CAST(s.BeginTime AS DATETIME)) THEN 0.5\n"
+		        		+ "        ELSE 0\n"
+		        		+ "    END AS Deduct\n"
+		        		+ "FROM \n"
+		        		+ "    [SmartOfficedb].[dbo].[AttendanceLogs] al\n"
+		        		+ "INNER JOIN \n"
+		        		+ "    [SmartOfficedb].[dbo].[Employees] e ON al.EmployeeId = e.EmployeeId\n"
+		        		+ "INNER JOIN \n"
+		        		+ "    [SmartOfficedb].[dbo].[Shifts] s ON s.ShiftId = al.ShiftId\n"
+		        		+ "WHERE \n"
+		        		+ "    al.AttendanceDateStr = ? \n"
+		        		+ "ORDER BY \n"
+		        		+ "    al.AttendanceDateStr DESC;";
+		        
+		        
+		        Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
 
-	 
-	
-	   
-	   
-	   
-	 
-		
-	
+				 Connection con = getConnection();
 
-
+		        PreparedStatement statement = con.prepareStatement(query);
+		        
+		        LocalDate currentDate = LocalDate.now();
+		        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy");
+		        String currentDateString = currentDate.format(formatter);
+		       
+		        // Set the date parameters
+		        statement.setString(1, currentDateString);
+		        
+		        System.out.println("Executing query: " + statement.toString());
+		        
+		        ResultSet resultSet = statement.executeQuery();
+		        
+		        if (!resultSet.next()) {
+		            System.out.println("No results found.");
+		        } else {
+		        	 while (resultSet.next()){
+		                BioMaTO bioMaTO = new BioMaTO();
+		                
+		                bioMaTO.setEmployeeCode(resultSet.getString("EmployeeCode"));
+		                bioMaTO.setAttendanceDate(resultSet.getString("AttendanceDate"));
+		                bioMaTO.setInTime(resultSet.getString("InTime"));
+		                bioMaTO.setOutTime(resultSet.getString("OutTime"));
+		                bioMaTO.setTotalDuration(resultSet.getString("TotalDuration"));
+		                bioMaTO.setShiftName(resultSet.getString("ShiftName"));
+		                bioMaTO.setBeginTime(resultSet.getString("BeginTime"));
+		                bioMaTO.setEndTime(resultSet.getString("EndTime"));
+		                bioMaTO.setDeduct(resultSet.getString("Deduct"));
+		                
+		                finalEmpBioData.add(bioMaTO);
+		            }
+		            
+		        }
+		        
+		    } catch (Exception e) {
+		        e.printStackTrace(); // Log the exception message
+		    }
+		    
+		    return finalEmpBioData;
+		}
 } 
