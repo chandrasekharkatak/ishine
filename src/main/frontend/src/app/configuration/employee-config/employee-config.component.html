@@ -136,6 +136,7 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label">Reffered Type</label>
+
                                                 <select class="form-control" aria-hidden="true" (change)="refferedChange()"  [(ngModel)]="employeeObj.referedType">
                                                     <option selected="selected" value="" disabled>Select</option>
                                                     <option value="InOffice">In Office</option>
@@ -553,6 +554,8 @@
                 <option selected="selected" value="" disabled>Select</option>
                 <option value="Probation">Probation</option>
                 <option value="Confirmed">Confirmed</option>
+                <option value="Intern">Intern</option>
+               
                 <!-- <option value="Reinstate">Reinstate</option> -->
                 <option *ngIf="isUpdation" value="Resigned">Resigned</option>
                 <option *ngIf="isUpdation" value="Retain">Retain</option>
@@ -2111,6 +2114,18 @@
                                             <div class="info-wrapper">
                                                 <p class="info-label">Your views on our Organisation</p>
                                                 <p class="info-text">{{previewEmployeeObj.viewsOnOrganisation}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Reffered Type</p>
+                                                <p class="info-text">{{previewEmployeeObj.referedType}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-0">
+                                            <div class="info-wrapper">
+                                                <p class="info-label">Reffered Name</p>
+                                                <p class="info-text">{{previewEmployeeObj.referedName}}</p>
                                             </div>
                                         </div>
                                     </div>

@@ -6,8 +6,12 @@ export const environment = {
   production: false,
 
  baseUrl: "http://localhost:8080/",
+<<<<<<< Updated upstream
   //  baseUrl: "http://192.168.21.175:8081/employeeportal/"
 
+=======
+   //baseUrl: "http://192.168.21.175:8081/employeeportal/"
+>>>>>>> Stashed changes
   // baseUrl: "https://ishine.apmosys.com/"
 };
 
