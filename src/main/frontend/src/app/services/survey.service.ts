@@ -63,4 +63,18 @@ export class SurveyService {
         formData.append('file', file);
         return this.http.post(`${this.baseUrl}api/upload/uploadVideo`, formData);
     }
+
+    private _surveyObj: any;
+
+    setSurveyData(surveyObj: any) {
+        this._surveyObj = surveyObj;
+        console.log("this._surveyObj get", this._surveyObj );
+        
+    }
+
+    getSurveyData(): any {
+        console.log("this._surveyObj set", this._surveyObj );
+        return this._surveyObj;
+
+  }
 }

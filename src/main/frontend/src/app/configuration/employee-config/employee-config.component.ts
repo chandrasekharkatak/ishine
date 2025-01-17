@@ -160,6 +160,11 @@ export class EmployeeConfigComponent implements OnInit {
     "Uttarakhand",
     "West Bengal",
   ];
+  //added by rahul for refered employee addition
+  referedType=[
+    "In Office",
+    "Out Office"
+  ]
   currDate:any;
   yearOfPassingList:any[] = [];
   revoke_template: any;
@@ -220,7 +225,7 @@ minDate: Date;
      'Bank Name', 'Created By', 'State', 'Created On'];
      departmentName: any;
      private subscription: Subscription = new Subscription();
-
+     referedTypeStatus:boolean=false;
 
   constructor(
 
@@ -303,7 +308,16 @@ minDate: Date;
       this.showDraftTable();
     }
   }
-
+//added by rahul for reffered
+  refferedChange(){
+    if(this.employeeObj.referedType=="InOffice"){
+this.referedTypeStatus=true;
+    }
+    if(this.employeeObj.referedType=="OutOffice"){
+      this.referedTypeStatus=true;
+   }
+  }
+  //end of the code
   addDemographiscInfo(){
     let path;
 
@@ -584,6 +598,7 @@ minDate: Date;
 
   showUpdateForm(employee: Employee) {
     this.isForm = true;
+    this.referedTypeStatus=true;
     this.isTable = false;
     this.isUpdation = true;
     this.isCreation = false;
@@ -1773,6 +1788,7 @@ minDate: Date;
     // transform date formats to YYYY-MM-DD
     if(this.employeeObj.dateOfBirth) this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth ).format(dateFormat)
     if(this.employeeObj.dateOfJoining) this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat)
+    if(this.employeeObj.employeeConfirmationDate) this.employeeObj.employeeConfirmationDate = moment(this.employeeObj.employeeConfirmationDate).format(dateFormat)  
     if(this.employeeObj.dateOfResign) this.employeeObj.dateOfResign = moment(this.employeeObj.dateOfResign).format(dateFormat)
     if(this.employeeObj.dateOfRetain) this.employeeObj.dateOfRetain = moment(this.employeeObj.dateOfRetain).format(dateFormat) 
 
@@ -1813,7 +1829,9 @@ minDate: Date;
     }
     employee.newManagerId = this.employeeObj.newManagerId;
     employee.reportiesFlag = this.employeeObj.reportiesFlag; 
-
+    employee.referedType==this.employeeObj.referedType;
+    employee.referedName==this.employeeObj.referedName;
+   
     console.log("employee update before call ",employee);
 
     employee.onbenchDate=this.billableBenchDate;
@@ -1970,6 +1988,7 @@ minDate: Date;
           "Employment Status": x.employmentstatus,
           "Date of Joining": (x.dateOfJoining)? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null,
           "Date of Relieving" : (x.dateOfRelieving)? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null,
+          "Employee Release Status" : x.employmentReleaseStatus,
           "Department Name": x.departmentName,
           "Aadhar":x.aadhar,
           "About Me":x.aboutMe,

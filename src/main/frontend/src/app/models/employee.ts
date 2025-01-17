@@ -196,5 +196,9 @@ export class Employee{
 	isRegular: any;
 	isRetain:any
 	dateOfRetain:any
+	//added by rahul
+	referedType:any;
+	referedName:any;
+	employeeConfirmationDate:any;
 
 }

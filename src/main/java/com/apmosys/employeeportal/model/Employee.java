@@ -69,6 +69,14 @@ public class Employee {
 	private LocalDate dateOfJoining;
 	private String employmentstatus;
 	private Short noticePeriod;
+	
+	//added by rahul employee refred
+	@Column(length =50, nullable = true)
+	private String referedType;
+	@Column(length =100, nullable = true)
+	private String referedName;
+	
+	//end 
 
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
 	private Timestamp createdOn;

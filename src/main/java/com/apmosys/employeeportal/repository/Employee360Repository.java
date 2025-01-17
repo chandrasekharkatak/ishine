@@ -13,5 +13,10 @@ public interface Employee360Repository extends JpaRepository<EmployeeLeave, Long
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getLeaveDataPerMonthByEmpId(Long empId);
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getLeaveDataPerMonthByEmpIdFromTo(Long empId,String startDate,String endDate);
+	
+	
 
 }

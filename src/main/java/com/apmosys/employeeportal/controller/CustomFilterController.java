@@ -6,6 +6,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -29,6 +31,12 @@ public class CustomFilterController {
 	@RequestMapping(value = "/customQueryForLeaveReport", method = RequestMethod.POST)
 	public ServiceResponse customQueryForLeaveReport(@RequestBody LeaveDTO leaveDTO) {
 		ServiceResponse response = customFilterService.customQueryForLeaveReport(leaveDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getCustomLAttendanceApplicationsList", method = RequestMethod.POST)
+	public ServiceResponse getCustomLAttendanceApplicationsList(@RequestBody LeaveDTO leaveDTO) {
+		ServiceResponse response = customFilterService.getCustomLAttendanceApplicationsList(leaveDTO);
 		return response;
 	}
 	

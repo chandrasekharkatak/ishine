@@ -3,9 +3,11 @@ package com.apmosys.employeeportal.service;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.Month;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -69,8 +71,9 @@ public class Employee360Service {
 		try {
 			
 			List<Employee360DTO> employeeDtoList = new ArrayList<>();
-
-			List<Object[]> employee360 = employee360Repository.getLeaveDataPerMonthByEmpId(empId);
+			String[] financialYearDates=getFinancialYearDates();
+			System.out.println("financialYearDates====>"+financialYearDates[0]+" "+financialYearDates[1]);
+			List<Object[]> employee360 = employee360Repository.getLeaveDataPerMonthByEmpIdFromTo(empId,financialYearDates[0],financialYearDates[1]);
 			
 			if(!employee360.isEmpty()) {
 				
@@ -82,10 +85,14 @@ public class Employee360Service {
 		            dto.setLeaveType(employee360dto[2] != null ? employee360dto[2].toString() : null);
 		            dto.setLeaveStatus(employee360dto[3] != null ? employee360dto[3].toString() : null);
 		            dto.setTotalDays(employee360dto[4] != null ? employee360dto[4].toString() : null);
-		            
+		            dto.setYear(financialYearDates[1]!=null?financialYearDates[1]:null);
 				    employeeDtoList.add(dto);
 				}
-			}
+			}else {	
+				Employee360DTO dto = new Employee360DTO();
+				dto.setYear(financialYearDates[1]!=null?financialYearDates[1]:null);
+			    employeeDtoList.add(dto);
+				}
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(employeeDtoList);
 			apiLogInfo.setApiResponse("Employee leave details fetched.");
@@ -105,6 +112,24 @@ public class Employee360Service {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+	
+	public String[] getFinancialYearDates() {
+        Calendar calendar = Calendar.getInstance(); 
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH); // January is 0
+
+        // Determine the financial year
+        if (month < Calendar.APRIL) {
+            year--; // Move to the previous financial year
+        }
+        Calendar startDate = Calendar.getInstance();
+        startDate.set(year, Calendar.APRIL, 1);
+        Calendar endDate = Calendar.getInstance();
+        endDate.set(year+1 , Calendar.MARCH, 31);
+
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        return new String[]{formatter.format(startDate.getTime()), formatter.format(endDate.getTime())};
+    }
 	
 	public ServiceResponse getEmployeeDetails(Long empId) {
 		ServiceResponse response = new ServiceResponse();
@@ -247,6 +272,7 @@ public class Employee360Service {
 	            activity.setTeamName(activityDto[5] != null ? activityDto[5].toString() : null);
 	            activity.setProjectId(activityDto[6] != null ?Long.parseLong( activityDto[6].toString()) : null);
 	            activity.setProjectName(activityDto[7] != null ? activityDto[7].toString() : null);
+	            activity.setTimesheetId(activityDto[2] != null ? Long.parseLong(activityDto[2].toString()) : 0);
 	            activityList.add(activity);
 	        }
 	    }

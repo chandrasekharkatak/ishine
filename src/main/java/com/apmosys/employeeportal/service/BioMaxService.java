@@ -162,64 +162,73 @@ public class BioMaxService {
 		return timesheetId;
 				
 	}
-	public ServiceResponse getEmpBioData(String date) {
+	public ServiceResponse getEmpBioData(String startDate, String endDate) throws SQLException {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		try {
-			Set<String> bioEmpIdSet = new HashSet<>();
+//			Set<String> bioEmpIdSet = new HashSet<>();
 			Map<String, List<String>> empMapById = new HashMap<>();
 			List<BioMaTO> finalEmpBioData=new ArrayList();
-			 String Query = "WITH LatestLogDate AS (\n"
-			 		+ "    SELECT \n"
-			 		+ "        dl.UserId,\n"
-			 		+ "        MAX(dl.LogDate) AS LastLogDate\n"
-			 		+ "    FROM \n"
-			 		+ "        [SmartOfficedb].[dbo].[DeviceLogs_10_2024] dl\n"
-			 		+ "    INNER JOIN \n"
-			 		+ "        [SmartOfficedb].[dbo].[Employees] emp ON dl.UserId = emp.EmployeeCode\n"
-			 		+ "    INNER JOIN \n"
-			 		+ "        [SmartOfficedb].[dbo].[AttendanceLogs] adl ON emp.EmployeeId = adl.EmployeeId\n"
-			 		+ "    WHERE \n"
-			 		+ "        adl.AttendanceDateStr = ?"
-			 		+ "    GROUP BY \n"
-			 		+ "        dl.UserId\n"
-			 		+ ")\n"
-			 		+ "SELECT \n"
-			 		+ "    dl.LogDate,\n"
-			 		+ "    emp.EmployeeCode,\n"
-			 		+ "    emp.EmployeeName,\n"
-			 		+ "     adl.TotalDuration,\n"
-			 		+ "     s.ShiftName ,\n"
-			 		+ "    adl.BeginTime,\n"
-			 		+ "    adl.EndTime,\n"
-			 		+ "    adl.Status,\n"
-			 		+ "    adl.PunchRecords,\n"
-			 		+ "    adl.EarlyBy,\n"
-			 		+ "    adl.LateBy,\n"
-			 		+ "    adl.Duration,\n"
-			 		+ "    adl.InTime,\n"
-			 		+ "    adl.OutTime,\n"
-			 		+ "    adl.ShiftDuration\n"
-			 		+ "FROM \n"
-			 		+ "    LatestLogDate lld\n"
-			 		+ "INNER JOIN \n"
-			 		+ "    [SmartOfficedb].[dbo].[DeviceLogs_10_2024] dl ON lld.UserId = dl.UserId AND lld.LastLogDate = dl.LogDate\n"
-			 		+ "INNER JOIN \n"
-			 		+ "    [SmartOfficedb].[dbo].[Employees] emp ON dl.UserId = emp.EmployeeCode\n"
-			 		+ "INNER JOIN \n"
-			 		+ "    [SmartOfficedb].[dbo].[AttendanceLogs] adl ON emp.EmployeeId = adl.EmployeeId\n"
-			 		+ "INNER JOIN \n"
-			 		+ "    [SmartOfficedb].[dbo].[Shifts] s ON adl.ShiftId = s.ShiftId\n"
-			 		+ "    \n"
-			 		+ "WHERE \n"
-			 		+ "    adl.AttendanceDateStr = ?"; // Use ? as a placeholder
+			List<BioMaTO> tempBioDataList = new ArrayList<>();
+			String Query = "WITH LatestLogDate AS ("
+		            + "    SELECT "
+		            + "        dl.UserId, "
+		            + "        MAX(dl.LogDate) AS LastLogDate "
+		            + "    FROM "
+		            + "        [SmartOfficedb].[dbo].[DeviceLogs_10_2024] dl "
+		            + "    INNER JOIN "
+		            + "        [SmartOfficedb].[dbo].[Employees] emp ON dl.UserId = emp.EmployeeCode "
+		            + "    INNER JOIN "
+		            + "        [SmartOfficedb].[dbo].[AttendanceLogs] adl ON emp.EmployeeId = adl.EmployeeId "
+		            + "    WHERE "
+		            + "        CAST(adl.AttendanceDateStr AS DATE) >= ? AND CAST(adl.AttendanceDateStr AS DATE) <= ? "
+		            + "    GROUP BY "
+		            + "        dl.UserId "
+		            + ") "
+		            + "SELECT "
+		            + "    FORMAT(CAST(adl.AttendanceDateStr AS DATE), 'dd-MMM-yyyy') AS AttendanceDateStr, "
+		            + "    dl.LogDate, "
+		            + "    emp.EmployeeCode, "
+		            + "    emp.EmployeeName, "
+		            + "    adl.TotalDuration, "
+		            + "    s.ShiftName, "
+		            + "    adl.BeginTime, "
+		            + "    adl.EndTime, "
+		            + "    adl.Status, "
+		            + "    adl.PunchRecords, "
+		            + "    adl.EarlyBy, "
+		            + "    adl.LateBy, "
+		            + "    adl.Duration, "
+		            + "    adl.InTime, "
+		            + "    adl.OutTime, "
+		            + "    adl.ShiftDuration "
+		            + "FROM "
+		            + "    LatestLogDate lld "
+		            + "INNER JOIN "
+		            + "    [SmartOfficedb].[dbo].[DeviceLogs_10_2024] dl ON lld.UserId = dl.UserId AND lld.LastLogDate = dl.LogDate "
+		            + "INNER JOIN "
+		            + "    [SmartOfficedb].[dbo].[Employees] emp ON dl.UserId = emp.EmployeeCode "
+		            + "INNER JOIN "
+		            + "    [SmartOfficedb].[dbo].[AttendanceLogs] adl ON emp.EmployeeId = adl.EmployeeId "
+		            + "INNER JOIN "
+		            + "    [SmartOfficedb].[dbo].[Shifts] s ON adl.ShiftId = s.ShiftId "
+		            + "WHERE "
+		            + "    CAST(adl.AttendanceDateStr AS DATE) >= ? AND CAST(adl.AttendanceDateStr AS DATE) <= ?";
+
+//			String Query = "SELECT * " +
+//		               "FROM AttendanceLogs al " +
+//		               "INNER JOIN Employees e ON al.EmployeeId = e.EmployeeId " +
+//		               "WHERE al.AttendanceDateStr >= ? " +
+//		               "AND al.AttendanceDateStr <= ?";
+
 
 			Connection con = getConnection();
 			PreparedStatement statement = con.prepareStatement(Query);
 			
 			// Set the date parameter
-		    statement.setString(1, date); // Set the first placeholder
-		    statement.setString(2, date); // Set the second placeholder
-
+		    statement.setString(1, startDate); // Set the first placeholder
+		    statement.setString(2, endDate); // Set the second placeholder
+		    statement.setString(3, startDate);
+		    statement.setString(4, endDate);
 			
 			ResultSet resultSet = statement.executeQuery();
 
@@ -246,10 +255,13 @@ public class BioMaxService {
 			    bioMaTO.setOutTime(resultSet.getString("OutTime"));
 			    bioMaTO.setShiftDuration(resultSet.getString("ShiftDuration")); // Assuming ShiftDuration is a String
 
-			    finalEmpBioData.add(bioMaTO);
+			    tempBioDataList.add(bioMaTO);
 			} 	    
 				
-				
+			for (BioMaTO bioMaTO : tempBioDataList) {
+	            finalEmpBioData.add(bioMaTO);
+	        }
+
 				
 
 //				bioEmpIdSet.add(resultSet.getString(1).replace("A", "").trim());
@@ -366,6 +378,9 @@ public class BioMaxService {
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			serviceResponse.setServiceError(e.getMessage());
 		}
+//		finally {
+//			con.close();
+//		}
 
 		return serviceResponse;
 		

@@ -33,5 +33,8 @@ public interface HolidayRepository extends JpaRepository<Holiday, Short> {
 	
 	@Query(nativeQuery = true)
     List<Holiday> findWeekOffCountByFromAndToDate(LocalDate fromDate, String state);
+	
+	@Query(nativeQuery = true)
+	Integer findYearOfOccassion(String occasion);
 
 }
