@@ -22,6 +22,11 @@ public class EmployeeDTO {
 	private Long employeementId;
 	private Long draftEmpId;
 	private String name;
+	//added by rahul for reffredType
+	private String referedType;
+	private String referedName;
+	//end of the code
+	
 	private Long managerId;
 	private String dateOfJoining;
 	private String dateOfBirth;
@@ -74,6 +79,7 @@ public class EmployeeDTO {
 	private String pursuing;
 	private Short yearOfPassing;
 	private String passingGrade;
+	
 	private List<EmployeeCertificateDTO> certifications;
 	private List<PreviousEmploymentDTO> previousEmploymentList;
 	private String experience;
@@ -235,7 +241,7 @@ public class EmployeeDTO {
 	private Long count_of_employees;
 	private String reportiesFlag;
     
-	private LocalDate employeeConfirmationDate;
+	private String employeeConfirmationDate;
 	
 	private String isConsultant;
 	private String currentExperienceYear;

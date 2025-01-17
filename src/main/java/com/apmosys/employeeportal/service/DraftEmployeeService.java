@@ -163,8 +163,9 @@ public class DraftEmployeeService {
 						: null);
 				employee.setDateOfRelieving(employeedto.getDateOfRelieving());
 			}
-			
-			
+			//added by rahul for reffered type and reffered Name
+			employee.setReferedType(employeedto.getReferedType());
+			employee.setReferedName(employeedto.getReferedName());
 			DraftEmployee dbResponse = draftEmployeeRepository.save(employee);
 
 			Optional.ofNullable(employeedto.getPreviousEmploymentList()).ifPresent((previousEmployerList) -> {
@@ -574,7 +575,8 @@ public class DraftEmployeeService {
 				employee.setTotalExperience(employeedto.getTotalExperience());
 				employee.setViewsOnOrganisation(employeedto.getViewsOnOrganisation());
 				employee.setAboutMe(employeedto.getAboutMe());
-
+				employee.setReferedType(employeedto.getReferedType());
+				employee.setReferedName(employeedto.getReferedName());
 				// Certification
 				// Case 1 : Updating Existing certification
 				if (employeedto.getCertifications() != null && !employeedto.getCertifications().isEmpty()) {
@@ -904,6 +906,9 @@ public class DraftEmployeeService {
                     empDTO.setDateOfRelieving(object[66] != null ? format.format(format.parse(object[66].toString())) : null);
                     empDTO.setIsConsultant(object[67] != null ? object[67].toString() : null);
                     empDTO.setIsApprenticeship(object[68] != null ? object[68].toString() : null);
+                    empDTO.setReferedType(object[69] != null ? object[68].toString() : null);
+                    empDTO.setReferedName(object[70] != null ? object[68].toString() : null);
+                    
 //					if (object[42] != null) {
 //
 //						File actualFile = new File(

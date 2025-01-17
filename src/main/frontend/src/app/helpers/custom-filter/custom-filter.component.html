@@ -34,6 +34,7 @@
                 <ng-autocomplete
                 [data]="valueOptionList"
                 [searchKeyword]="keyword"
+                [placeholder]="getPlaceholder(query.column)"
                 (selected)='selectEvent($event)'
                 (inputChanged)='onChangeSearch($event)'
                 (inputFocused)="valueFocus(query.column)"

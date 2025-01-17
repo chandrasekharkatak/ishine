@@ -216,6 +216,10 @@ export class LeaveService {
     return this.http.post(`${this.baseUrl}` + `api/customQueryForLeaveReport`, queryObj);
   }
 
+  getCustomLAttendanceApplicationsList(queryObj: Query) {
+    return this.http.post(`${this.baseUrl}` + `api/getCustomLAttendanceApplicationsList`, queryObj);
+  }
+
   getValueOptionData(queryObj: Query) {
     return this.http.post(`${this.baseUrl}` + `api/getValueOptionData`, queryObj);
   }

@@ -29,6 +29,7 @@ public class Employee360DTO {
 	private int createdBy;
 	private String employeeName;
 	private String date;
+	private String year;
 	private String dayType;
 	private LocalDateTime officeInTime;
 	private LocalDateTime officeOutTime;
