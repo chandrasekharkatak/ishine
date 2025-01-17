@@ -90,8 +90,6 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 					dto.setLeaveType(object[6] != null ? object[6].toString() : null);
 					dto.setFromDateDayType(object[7] != null ? Float.parseFloat(object[7].toString()) : null);
 					dto.setToDateDayType(object[8] != null ? Float.parseFloat(object[8].toString()) : null);
-					dto.setIsConsultant(object[9] != null ? object[9].toString() : null);
-					dto.setIsApprenticeship(object[10] != null ? object[10].toString() : null);
 					dtoList.add(dto);
 				});
 
@@ -153,7 +151,6 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 					dto.setLegend("Pending By User");
 					dto.setEmploymentstatus(employee[17] != null ? employee[17].toString() : null);
 					dto.setIsConsultant(employee[76] != null? employee[76].toString() : null);
-					dto.setIsApprenticeship(employee[77] != null? employee[77].toString() : null);
 					timesheetList.forEach((timesheet) -> {
 
 						Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
@@ -324,8 +321,6 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 									dto.setClientLocation(object[7] != null ? object[7].toString() : null);
 									dto.setTeamName(object[8] != null ? object[8].toString() : null);
 									dto.setManagerName(object[10] != null ? object[10].toString() : null);
-									dto.setIsConsultant(object[17] != null ? object[17].toString() : null);
-									dto.setIsApprenticeship(object[18] != null ? object[18].toString() : null);
 									dto.setDate(timesheetObj.getDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
 									dto.setEmployeementId(employeementId);
 									
@@ -394,7 +389,6 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 				dto.setEmpId(object[21] != null ? Long.parseLong(object[21].toString()) : null);
 				dto.setTeamName(object[22] != null ? object[22].toString() : null);
 				dto.setIsConsultant(object[23] != null ? object[23].toString() : null);
-				dto.setIsApprenticeship(object[24] != null ? object[24].toString() : null);
 //				ServiceResponse completionResponse = profileCompletionReport(dto);
 //				EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
 //				

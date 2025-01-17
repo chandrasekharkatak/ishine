@@ -5,7 +5,6 @@ import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 import com.apmosys.employeeportal.model.DesignationDepartmentMap;
 
@@ -23,11 +22,7 @@ public interface DesignationDepartmentMapRepository extends JpaRepository<Design
 
 	List<DesignationDepartmentMap> findByDeptId(Long oldDeptId);
 	
-//	@Query("SELECT d.deptId FROM DesignationDepartmentMap d WHERE d.designationId = :designationId")
+	@Query("SELECT d.deptId FROM DesignationDepartmentMap d WHERE d.designationId = :designationId")
     List<Long> findDeptIdsByDesignationId(Long designationId);
-	
-//	@Query(nativeQuery = true)
-//	List<Long> findDeptIdsByDesignationId(@Param("designationId") Long designationId);
-
 
 }

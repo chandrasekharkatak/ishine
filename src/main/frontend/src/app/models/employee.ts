@@ -103,7 +103,7 @@ export class Employee{
     emailAppreciated:any;
 	updateChild: any;
   childLists: any;
-  
+;
     //employementID
 	appreciationBy:any;
 	appreciationTo:any;
@@ -179,7 +179,7 @@ export class Employee{
 	profileKycStatus :any;
 
 	extendReason : any;
-	reportiesFlag : any = "No";
+	reportiesFlag : any;
 
 	//for reward section
 	employeeNameForReward: any;
@@ -189,12 +189,4 @@ export class Employee{
 	rewardId: any;
 	isConsultant: any;
 	onbenchDate : any;
-
-	//added by Priyadarshini
-	isApprenticeship: any;
-	employeeType:any;
-	isRegular: any;
-	isRetain:any
-	dateOfRetain:any
-
 }

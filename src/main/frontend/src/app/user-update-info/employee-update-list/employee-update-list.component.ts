@@ -2,7 +2,6 @@ import { Component, OnInit, Output, EventEmitter, SecurityContext, Input, Templa
 import { DomSanitizer } from '@angular/platform-browser';
 import { Employee } from 'src/app/models/employee';
 import { ImageService } from 'src/app/services/image.service';
-import { UtilityService } from 'src/app/services/utility.service';
 
 @Component({
   selector: 'app-employee-update-list',
@@ -18,7 +17,7 @@ export class EmployeeUpdateListComponent implements OnInit {
 
 
 
-  constructor(public utilityService: UtilityService,) {
+  constructor() {
     
    }
 

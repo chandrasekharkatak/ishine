@@ -5,7 +5,6 @@ import java.util.List;
 import javax.persistence.Column;
 
 import com.apmosys.employeeportal.model.Notification;
-import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.time.LocalDate;	
 
@@ -241,11 +240,4 @@ public class EmployeeDTO {
 	private String currentExperienceYear;
 	private String dayOnbench;
 	private String onbenchDate;
-	
-	//by priyadarshini
-	private String isApprenticeship;
-
-     private String isRetain;
-
-	private String dateOfRetain;
 }

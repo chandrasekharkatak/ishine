@@ -266,7 +266,6 @@ public class EmployeeLeaveService {
 				System.out.println("Senior manager data :: "+findEmployee.getManagerId());
 				
 			Float availableCompOffBalance = 0.0F;
-			
 			if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("CO")) {
 				ServiceResponse compOffResponse = compOffLeaveService.getCompOffBalanceDetailsByEmpIdAndFromDate(leaveDTO);
 				
@@ -308,32 +307,29 @@ public class EmployeeLeaveService {
 				
 				return response;
 			}else {
-				if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("CL")) {
-					
-					System.out.println("CL Validation"+ 313);
-					System.err.println(" valid  insidevalidation");
-					Optional<List<EmployeeLeave>> recentLeavesForCL = Optional.ofNullable(employeeLeaveRepository.findRecentLeavesByEmpId(leaveDTO.getEmpId()));
-					if(recentLeavesForCL.isPresent() && !recentLeavesForCL.get().isEmpty()) {
-						EmployeeLeave getLeaves = recentLeavesForCL.get().get(0);
-						LocalDate newFromDate = LocalDate.parse(leaveDTO.getFromDate());
-						LocalDate prevToDate = getLeaves.getToDate();		
-						
-					boolean valid = this.isValidateCasualLeave(prevToDate, newFromDate, leaveDTO.getLeaveTypeCode());
-					System.err.println(" valid "+valid);
-					if(valid) {
-						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
-						response.setServiceResponse("Leave application submitted. Your timesheet will be automatically added by system");
-					}else {
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
-						response.setServiceResponse("Casual Leave Can't take Consecutively , another CL will be applicable after 7 days of your last CL applied !! ");
-					return response;
-					}
-				}
-				}
-				else {
+//				if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("CL")) {
+//					Optional<List<EmployeeLeave>> recentLeavesForCL = Optional.ofNullable(employeeLeaveRepository.findRecentLeavesByEmpId(leaveDTO.getEmpId()));
+//					if(recentLeavesForCL.isPresent() && !recentLeavesForCL.get().isEmpty()) {
+//						EmployeeLeave getLeaves = recentLeavesForCL.get().get(0);
+//						LocalDate newFromDate = LocalDate.parse(leaveDTO.getFromDate());
+//						LocalDate prevToDate = getLeaves.getToDate();		
+//						
+//					boolean valid = this.isValidateCasualLeave(prevToDate, newFromDate, leaveDTO.getLeaveTypeCode());
+//					System.err.println(" valid "+valid);
+//					if(valid) {
+//						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
+//						response.setServiceResponse("Leave application submitted. Your timesheet will be automatically added by system");
+//					}else {
+//						response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
+//						response.setServiceResponse("Casual Leave Can't take Consecutively , another CL will be applicable after 15 days of your last CL applied !! ");
+//					return response;
+//					}
+//				}
+//				}
+//				else {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
 					response.setServiceResponse("Leave application submitted. Your timesheet will be automatically added by system");
-				}
+//				}
 				
 		}
 			
@@ -686,19 +682,19 @@ public class EmployeeLeaveService {
  */
 
 public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, String leaveTypeCode) {
-    System.out.print("isValidateCasualLeave"+leaveTypeCode);
+
     System.err.println("Validation method toDate " + toDate);
 
     Optional<List<Object[]>> leaveRecords = employeeLeaveRepository.findClLeavesInBetweenDates(toDate, leaveTypeCode);
-    LocalDate after7Days = toDate.plusDays(7);
+    LocalDate after15Days = toDate.plusDays(15);
 
     System.out.println("Validation from date " + fromDate);
-    System.err.println("After 7 Days " + after7Days);
+    System.err.println("After 15 Days " + after15Days);
 
     if (leaveRecords.isPresent()) {
         List<Object[]> leaves = leaveRecords.get();
 
-        if (!leaves.isEmpty() && fromDate.isAfter(after7Days)) {
+        if (!leaves.isEmpty() && fromDate.isAfter(after15Days)) {
             return true;
         } else {
             return false;
@@ -1451,12 +1447,9 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 		
 		try {
 			Optional<EmployeeLeave> leaveApplication = employeeLeaveRepository.findById(leaveDTO.getLeaveId());
-			
 			EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
 					.findByEmpIdAndLeaveTypeMasterId(leaveDTO.getLeaveEmpId(), leaveDTO.getLeaveTypeMasterId());
-			
 			Optional<Employee> employee = employeeRepository.findById(leaveDTO.getEmpId());
-			
 			System.out.println("leaveDTO.getEmpId() : -- " +leaveDTO.getEmpId());
 			System.out.println("leaveDTO.getLeaveTypeMasterId() : -- " +leaveDTO.getLeaveTypeMasterId());
 			if (leaveApplication.isPresent()) {
@@ -1858,7 +1851,6 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 				if(employee.getEmploymentstatus().equals("InActive")) {
 					employeeLeavesList = employeeLeavesMapRepository.getInActiveEmployeeLeaveBalance(employee.getEmpId());	
 				}else {
-					System.out.println("sdbsdjvhshbvsfhbdvbhbvhvfhjbvhb"+ employee.getEmploymentstatus());
 					employeeLeavesList = employeeLeavesMapRepository
 							.getMyLeaveBalancesByEmpId(employee.getEmpId(), employee.getEmploymentstatus(), employee.getGender());					
 				}

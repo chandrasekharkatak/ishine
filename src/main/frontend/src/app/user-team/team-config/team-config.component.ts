@@ -119,14 +119,6 @@ export class TeamConfigComponent implements OnInit {
   viewActivityColumns:any[] = ['blank','activity','eta','employeeRole','createdByName','createdOn'];
   activityTemplateColumns:any[] = ['blank', 'employeeRole','activityDescription','departmentName'];
 
-  dataObj: Project = new Project();
-  projectDetails: any = [];
-  projectObj2: Project = new Project();
-  isActive: any;
-  temp: any
-  getBillableType: any;
-  newMemberInProject: any;
-
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -540,6 +532,8 @@ export class TeamConfigComponent implements OnInit {
     this.teamObj.allTeamMemberList = (this.allTeamMembers.length !== 0) ? this.allTeamMembers : null;
     this.teamObj.createdBy = this.currentUser.empId;
     //console.log("create teamObj : ", this.teamObj);
+
+    
 
     if(this.teamObj.allTeamMemberList == undefined || this.teamObj.allTeamMemberList.length === 0){
       this.alertMessage = "Please select atleast one Team member !!"
@@ -1416,80 +1410,6 @@ export class TeamConfigComponent implements OnInit {
     this.filters = searchData;
     //console.log("Updated Filter : ", this.filters);
   }
-
-  openProjectTemplateModal(template: TemplateRef<any>, employee) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
-    this.getExistingProjectsByUser(employee.empId);
-    this.dataObj = employee;
-
-    console.log("data employee newmenbfcg  ", employee)
-
-
-  }
-
-  getExistingProjectsByUser(employee) {
-    console.log("employee details in resoiurce mapping ", employee);
-
-    let projectObj = new Project();
-
-    projectObj.empId = employee;
-
-    // getExistingProjectsAndTeamsByEmployee service impl
-    this.projectService.getExistingProjectsAndTeamsByEmployee(projectObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.projectDetails = response.serviceResponse;
-        console.log("this.projectDetails ", this.projectDetails);
-
-        console.log("Existing project detauls fetched for employee",this.projectDetails);
-        if (this.projectDetails.length > 0) {
-          if (this.projectDetails[0].billableType == "TNM") {
-            this.openAlertMod(this.alertTemplate, "This Employee is already mapped to TNM project. Can't add to another project or Team !!");
-            this.getBillableType = this.projectDetails.find(employee => this.newteamMember.billableType = employee.billableType);
-          } else {
-            this.newMemberInProject = "NewMember";
-            this.newteamMember.billableType = this.newMemberInProject;
-          }
-        } else {
-          this.newMemberInProject = "NewMember";
-          this.newteamMember.billableType = this.newMemberInProject;
-        }
-
-        console.log("this.projectDetails ", this.projectDetails);
-        console.log("this.getBillableType ", this.getBillableType);
-        console.log(" newTeamMember   details   ", this.newteamMember)
-      }
-    })
-  }
-
-  deleteResourceModal(template: TemplateRef<any>, teamId) {
-    // let projectObj = Object.assign({},this.projectObj); for copy object
-    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
-    this.projectObj2 = teamId;
-
-  }
-
-  pageNo = 1;
-  handlePageChanges(event) {
-    this.pageNo = event;
-  }
-
-  deleteResourceFromProject(template: TemplateRef<any>) {
-
-
-    let projectObj = new Project();
-    projectObj.teamId = this.projectObj2.teamId;
-    projectObj.empId = this.projectObj2.empId;
-
-    console.log("team details ", projectObj)
-    this.projectService.updateProjectResourceAsInActive(projectObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-        this.getExistingProjectsByUser(this.projectObj2.empId)
-      }
-    })
-
-  }
-
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

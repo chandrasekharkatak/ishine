@@ -63,7 +63,7 @@
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let leave of leaveTypes" value="{{leave.leaveTypeMasterId}}">{{leave.leaveType}}</option>
                             </select>
-                            <small *ngIf="leaveObj.leaveTypeMasterId == 2">(Another CL will be applicable after 7 days)</small>
+                            <small *ngIf="leaveObj.leaveTypeMasterId == 2">(Another CL will be applicable after 15 days)</small>
                         </div>
                     </div>
                 </div>

@@ -208,7 +208,7 @@
                                   [multiple]="false"
                                   [(ngModel)]="newteamMember.empId"
                                   [disabled]="!teamObj.departmentList || teamObj.departmentList.length == 0"
-                                  (selectionChange)="openProjectTemplateModal(projectTemplate,newteamMember)"
+                                  (selectionChange)="newteamMember.employeeRole = ''"
                                   >
                                   <mat-option [value]="employee.empId" *ngFor="let employee of addMemberSelect.filteredSource" [disabled]="employee.isSelected">
                                     {{employee.name}}
@@ -231,7 +231,7 @@
                     </div>
                     <div class="m-0">
                         <button type="button" class="btn btn-outline-primary mx-1" (click)="resetSelectSearch(addMemberSelect);addTeamMember();updateEmployeeListAccordingToTeamMembers()"
-                        [disabled]="(newteamMember.empId == null) || (newteamMember.billableType != 'NewMember' && newteamMember.billableType == 'TNM') || !teamObj.departmentList || !newteamMember.employeeRole || newteamMember.employeeRole.length == 0"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                        [disabled]="!teamObj.departmentList || !newteamMember.employeeRole || newteamMember.employeeRole.length == 0"><i class="fa fa-plus" aria-hidden="true"></i></button>
                     </div>
                     <div class="m-0">
                             <button type="button" title="Preview Activity" class="btn btn-outline-primary mx-1" (click)="getMappedActivityPreview(newteamMember);openActivityPreviewModal(activity_preview,teamObj)"
@@ -815,60 +815,4 @@
         </table>
     </div>
 </div>
-</ng-template>
-
-<ng-template #projectTemplate>
-    <div class="modal-header">
-        <h1 class="table-header-title">Employee's Projects Details</h1>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <div class="modal-body ">
-        <table class="table project_table">
-            <thead class="thead-light">
-                <tr>
-                    <th>Sr.No</th>
-                    <th scope="col" class="info-label">Project Name</th>
-                    <th scope="col" class="info-label">Team Name</th>
-                    <th scope="col" class="info-label">Client Name</th>
-                    <th scope="col" class="info-label">Billable Type</th>
-                    <th scope="col" class="info-label">Start Date</th>
-                    <th scope="col" class="info-label">End Date</th>
-                    <th scope="col" class="info-label">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let userInfo of projectDetails; let i = index">
-                    <th>{{ i + 1 }}</th>
-                    <td>{{ userInfo.projectName }}</td>
-                    <td>{{ userInfo.teamName }}</td>
-                    <td>{{ userInfo.clientName }}</td>
-                    <td>{{ userInfo.billableType }}</td>
-                    <td>{{ userInfo.startDate }}</td>
-                    <td>{{ userInfo.updatedOn }}</td>
-                    <td>
-                        <button class="btn btn-danger btn-sm" (click)="deleteResourceModal(delete_modal_template,userInfo)"><em class="fa fa-trash"></em></button>
-                    </td>
-                  </tr>
-            </tbody>
-        </table>
-       <div class="row col-md-12">
-        <div class="my-buttons">
-            <pagination-controls id="projectEmployeeDetailsId" class="my-pagination" [hidden]="projectDetails.length == 0" (pageChange)="handlePageChanges($event)"></pagination-controls>&nbsp;&nbsp;
-            <!-- <button class="btn btn-sm btn-outline-primary" (click)="closeProjectModal()">Close</button> -->
-        </div>
-        <div class="modalC ml-auto" >
-            <!-- <button class="btn btn-sm btn-outline-primary" (click)="closeProjectModal()">Close</button> -->
-        </div>
-       </div>
-    </div>
-</ng-template>
-
-<ng-template #delete_modal_template>
-    <div class="modal-body text-center">
-        <p>Are you sure you want to delete Resource from team and project ?</p>
-        <button type="button" class="btn btn-success" (click)="deleteResourceFromProject(alert_message);cancelRequest()">Yes, proceed</button>&nbsp;
-        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
-    </div>
 </ng-template>

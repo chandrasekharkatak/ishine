@@ -797,7 +797,6 @@ public class TimesheetService {
 						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
 						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
 						dto.setIsConsultant(object[16] != null ? object[16].toString() : null);
-						dto.setIsApprenticeship(object[17] != null ? object[17].toString() : null);
 						dtoList.add(dto);
 					});
 
@@ -1237,8 +1236,6 @@ public class TimesheetService {
 						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
 						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
 						dto.setLeaveType(object[15] != null ? object[15].toString() : null);
-						dto.setIsConsultant(object[16] != null ? object[16].toString() : null);
-						dto.setIsApprenticeship(object[17] != null ? object[17].toString() : null);
 						
 						dtoList.add(dto);
 					});
@@ -1636,7 +1633,6 @@ public class TimesheetService {
 						timesheetDto.setUpdatedOn(object[10] != null ? object[10].toString() : null);
 						timesheetDto.setTimesheetStatusUpdatedByName(object[11] != null ? object[11].toString() : null);
 						timesheetDto.setIsConsultant(object[12] != null ? object[12].toString() : null);
-						timesheetDto.setIsApprenticeship(object[13] != null ? object[13].toString() : null);
 						
 						dtoList.add(timesheetDto);
 					});

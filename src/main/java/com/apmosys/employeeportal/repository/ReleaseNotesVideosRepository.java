@@ -10,9 +10,9 @@ import com.apmosys.employeeportal.model.ReleaseNotesVideos;
 
 public interface ReleaseNotesVideosRepository extends JpaRepository<ReleaseNotesVideos, Integer>{	
 
-    
+    @Query("SELECT r.notificationId FROM ReleaseNotesVideos r")
     ArrayList<Integer> getAllNotificationIds();
     
-    @Query( nativeQuery = true)
+    @Query(value = "SELECT * FROM release_notes_videos WHERE notification_id = :id", nativeQuery = true)
     ReleaseNotesVideos getReleaseNotesVideosByNotificationId(@Param("id") Integer id);
 }

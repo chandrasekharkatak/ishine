@@ -21,6 +21,9 @@ public interface NewsletterRepository extends JpaRepository<Newsletter, Long >{
 
 	public List<Newsletter> findByReadEnabled(String readEnabled);
 
-	@Query(nativeQuery = true )
+	@Query(nativeQuery = true , value = "select d.type_id ,d.display_name, d.created_on,d.created_by, e.name, d.document_id, d.file_name, td.type_name from documents d "
+			+ "inner join employee e on e.emp_id=d.created_by "
+			+ "inner join type_document td on td.type_id = d.type_id "
+			+ " where d.type_id = :typeId")
 	public List<Object[]> findByTypeId(Long typeId);
 }

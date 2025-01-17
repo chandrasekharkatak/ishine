@@ -12,7 +12,7 @@ import com.apmosys.employeeportal.model.TypeDocument;
 @Repository
 public interface RewardsCategoryRepository extends JpaRepository<RewardsCategory, Long> {
 	
-	@Query( nativeQuery = true)
+	@Query(value= "select * from rewards_category" , nativeQuery = true)
 	public List<Object[]> findAllRewardsCategory();
 	
 

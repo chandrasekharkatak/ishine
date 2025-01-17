@@ -18,7 +18,6 @@ import * as moment from 'moment';
 import { AppComponent } from 'src/app/app.component';
 import { Router } from '@angular/router';
 import { Team } from 'src/app/models/team';
-import { UtilityService } from 'src/app/services/utility.service';
 
 @Component({
   selector: 'app-my-team',
@@ -144,7 +143,6 @@ export class MyTeamComponent implements OnInit {
     public validationService:ValidationService,
     private locationStrategy: LocationStrategy,
     private router: Router,
-    public utilityService: UtilityService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -344,13 +342,12 @@ export class MyTeamComponent implements OnInit {
         this.teamViewList = response.serviceResponse;
 
         for(let y of this.teamViewList){
-          // if(y.isConsultant == 'true'){
-          //   y.employeementId = "A-CS-".concat(y.employeementId);
-          // }else{
-          //   y.employeementId = "A-".concat(y.employeementId);
-          // }
+          if(y.isConsultant == 'true'){
+            y.employeementId = "A-CS-".concat(y.employeementId);
+          }else{
+            y.employeementId = "A-".concat(y.employeementId);
+          }
           // y.employeementId = "A-".concat(y.employeementId);
-          y.employeementId = this.utilityService.getFormattedEmployeeId(y);
          
           y.isHierarchy = false;
           let temp = this.managerList.find(manager => manager.managerId == y.empId);
@@ -801,23 +798,13 @@ export class MyTeamComponent implements OnInit {
   myTeamHierarchyChart(employeeObj:Employee) {
     this.nodes = [];
     let employee = Object.assign({}, employeeObj);
-    console.log("Employement Id : ",this.currentUser.employeementId);
-
-    // if( employee.employeementId.startsWith('A-CS-')){
-    //   employee.employeementId = employee.employeementId?.substring(5);
-    // } else if( employee.employeementId.startsWith('AP-')){
-    //   employee.employeementId = employee.employeementId?.substring(3);
-    // }else if( employee.employeementId.startsWith('A-')){
-    //   employee.employeementId = employee.employeementId?.substring(2);
-    // }else{
-    //   employee.employeementId = employee.employeementId?.substring(2);
-    // }
+    employee.employeementId = employee.employeementId?.substring(2);
 
     this.employeeService.getHierarchyChartByEmpId(employee).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {
         this.teamViewList = response.serviceResponse;
         for(let teamMember of this.teamViewList){
-          teamMember.employeementId = this.utilityService.getFormattedEmployeeId(teamMember);
+          teamMember.employeementId = "A-".concat(teamMember.employeementId);
         }
         //console.log("teamViewList : ", this.teamViewList);
 

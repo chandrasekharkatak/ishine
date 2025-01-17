@@ -525,9 +525,7 @@ filterHolidayListByYear(year: number): void {
 customDateFilter: (date: Date) => boolean = (date: Date): boolean => {
 
   const dayType = this.timesheetObj.dayType;
-  console.log("daytype",dayType);
   const filteredDates = this.getFilteredDates(dayType);
-  // console.log("fitered",this.getFilteredDates(dayType));
   return filteredDates.some(filteredDate => 
     this.datePipe.transform(filteredDate, 'yyyy-MM-dd') === this.datePipe.transform(date, 'yyyy-MM-dd')
   );
@@ -539,10 +537,7 @@ customDateFilter: (date: Date) => boolean = (date: Date): boolean => {
 getFilteredDates(dayType: string): Date[] {
   
   
-console.log("date filter ",dayType);
-console.log("date this.availableTimesheets ",this.availableTimesheets);
-
-
+console.log("date filter ",this.Allholidays);
 
   const DAY_IN_MS = 24 * 60 * 60 * 1000;
   const currentDate = new Date();
@@ -551,80 +546,30 @@ console.log("date this.availableTimesheets ",this.availableTimesheets);
 
   // const publicHolidays = ['2024-11-25', '2024-11-01']; // Add public holiday dates here.
 
-  if (dayType === 'Public Holiday' || dayType ===  'Week Off') {
-    const year = new Date().getFullYear();
-    const allDatesInYear: Date[] = [];
-    
-    // Generate all dates in the year
-    for (let month = 0; month < 12; month++) {
-        for (let day = 1; day <= new Date(year, month + 1, 0).getDate(); day++) {
-            allDatesInYear.push(new Date(year, month, day));
-        }
-    }
-    
-    // Extract only `dateOfHoliday` from the `holiday` list and format it to "yyyy-MM-dd"
-    const holidayDates = this.holidayList.map(holiday => 
-        this.datePipe.transform(holiday.dateOfHoliday, 'yyyy-MM-dd')
-    );
-    
-    // Filter out holidays from allDatesInYear
-    const filteredDates = allDatesInYear.filter(date => {
-        const transformedDate = this.datePipe.transform(date, 'yyyy-MM-dd'); // Transform date to "yyyy-MM-dd"
-        return date >= startDate && !holidayDates.includes(transformedDate); // Exclude dates present in the holiday list
-    });
-    
-    // Log results for debugging
-    // console.log("All dates in year (transformed):", allDatesInYear.map(date => this.datePipe.transform(date, 'yyyy-MM-dd')));
-    // console.log("Holiday dates:", holidayDates);
-    // console.log("Filtered dates:", filteredDates);
-    
-    return filteredDates;
-    
-}
+  if (dayType === 'Public Holiday') {
+    // Filter for Public Holidays
 
+    console.log("hodays ",this.Allholidays)
 
-  // if (dayType === 'Week Off') {
-  //   console.log("Week Off Date:", this.AllWeekOfList);
-  //    this.AllWeekOfList
-  //   .map(date => new Date(date))
-  //   .filter(
-  //     weekOffDate =>
-  //       weekOffDate >= startDate &&
-  //       weekOffDate <= currentDate &&
-  //       !this.availableTimesheets.find(
-  //         timesheet => timesheet.date === this.datePipe.transform(weekOffDate, 'yyyy-MM-dd')
-  //       )
-      
-  //   );
-  //   return this.AllWeekOfList;
-
-    
-  // }
-
-  if (dayType === 'Non-working') {
-    console.log("Week Off Date:", this.AllWeekOfList);
-  
-    // Convert startDate to the same format for comparison (e.g., 'yyyy-MM-dd')
-    const transformedStartDate = this.datePipe.transform(startDate, 'yyyy-MM-dd');
-  
-    // Filter the holiday list to include only dates on or after startDate
-    const holidayDates = this.holidayList
-        .filter(holiday => {
-            // Transform the dateOfHoliday to match the 'yyyy-MM-dd' format
-            const transformedHolidayDate = this.datePipe.transform(holiday.dateOfHoliday, 'yyyy-MM-dd');
-            return transformedHolidayDate >= transformedStartDate; // Check if the date is on or after startDate
-        })
-        .map(holiday => holiday.dateOfHoliday); // Map to get only the 'dateOfHoliday' values
-  
-    // Log the holiday dates for debugging
-    console.log("Holiday Dates after startDate filter:", holidayDates);
-  
-    // Return only the filtered 'dateOfHoliday' values
-    return holidayDates;
+    return this.Allholidays
+      .map(date => new Date(date))
+      .filter(holidayDate => holidayDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date === this.datePipe.transform(holidayDate, 'yyyy-MM-dd')));
   }
-    
 
-   return [];
+  if (dayType === 'Week Off') {
+    return this.AllWeekOfList
+    .map(date => new Date(date))
+    .filter(
+      weekOffDate =>
+        weekOffDate >= startDate &&
+        weekOffDate <= currentDate &&
+        !this.availableTimesheets.find(
+          timesheet => timesheet.date === this.datePipe.transform(weekOffDate, 'yyyy-MM-dd')
+        )
+    );
+  }
+
+  return [];
 }
 
 
@@ -677,9 +622,9 @@ console.log("date this.availableTimesheets ",this.availableTimesheets);
 
     if(this.isTimesheetLockCheckEnable == "false"){
       startDate = new Date(endDate.getTime() - ((OPEN_BACKDATED_DAYS + CURRENT_DAY) * DAY_IN_MS));
-      return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "YYYY-MM-dd"))) ? true : false;
+      return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "yyyy-MM-dd"))) ? true : false;
     }else{
-      return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "YYYY-MM-dd"))) ? true : false;
+      return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "yyyy-MM-dd"))) ? true : false;
     }
   }
 

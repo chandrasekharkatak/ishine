@@ -165,5 +165,4 @@ public class LeaveDTO {
 	private String employeeRole;
 	
 	private String isConsultant;
-	private String isApprenticeship;
 }

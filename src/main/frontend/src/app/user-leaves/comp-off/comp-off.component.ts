@@ -167,7 +167,7 @@ export class CompOffComponent implements OnInit {
       this.leaveService.getAllCompOffReasons().pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.compOffReasons = response.serviceResponse;
-          // console.log("compOffReasons Shivtosh : ", this.compOffReasons);
+          //console.log("compOffReasons : ", this.compOffReasons);
         } else {
           console.error(response.serviceResponse);
         }

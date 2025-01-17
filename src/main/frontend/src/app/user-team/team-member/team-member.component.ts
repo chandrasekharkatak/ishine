@@ -12,7 +12,6 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { EmployeeService } from 'src/app/services/employee.service';
 import * as moment from 'moment';
 import { AppComponent } from 'src/app/app.component';
-import { UtilityService } from 'src/app/services/utility.service';
 
 @Component({
   selector: 'app-team-member',
@@ -67,7 +66,6 @@ export class TeamMemberComponent implements OnInit {
     private employeeService : EmployeeService,
     private locationStrategy: LocationStrategy,
     private modalService: BsModalService,
-    private utilityService: UtilityService,
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
    }
@@ -99,13 +97,12 @@ export class TeamMemberComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.viewTeamMemberList = response.serviceResponse;
         for(let x of this.viewTeamMemberList){
-          // if(x.isConsultant == 'true'){
-          //   x.employeementId="A-CS-".concat(x.employeementId)
-          // }else{
-          //   x.employeementId="A-".concat(x.employeementId)
-          // }
+          if(x.isConsultant == 'true'){
+            x.employeementId="A-CS-".concat(x.employeementId)
+          }else{
+            x.employeementId="A-".concat(x.employeementId)
+          }
           // x.employeementId="A-".concat(x.employeementId)
-          x.employeementId = this.utilityService.getFormattedEmployeeId(x);
         }
         //console.log("viewTeamMemberList : ", this.viewTeamMemberList);
       } else {
