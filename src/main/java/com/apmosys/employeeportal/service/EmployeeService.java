@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.service;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
@@ -1087,6 +1088,9 @@ public class EmployeeService {
 					empDTO.setIsApprenticeship(object[72] != null ? object[72].toString() : null);
 					empDTO.setReferedType(object[73] != null ? object[73].toString() : null);
 					empDTO.setReferedName(object[74] != null ? object[74].toString() : null);
+
+					empDTO.setEmployeeConfirmationDate(object[75] != null ? format.format(format.parse(object[75].toString())) : null);			
+					
 					if (object[42] != null) {
 
 						File actualFile = new File(
@@ -2171,7 +2175,12 @@ public class EmployeeService {
 					}
 				}
 			 
-			 
+			 if(employeedto.getEmploymentstatus().equals("Confirmed"))
+					 {	
+				 employee.setEmployeeConfirmationDate(employeedto.getEmployeeConfirmationDate() != null
+						? stringToDateTimeParser.getDate(employeedto.getEmployeeConfirmationDate(), "yyyy-MM-dd")
+						: null)		; 
+				 }
 			 
 			 if(employeedto.getEmploymentstatus().equals("Retain")) {
 					
@@ -2183,6 +2192,8 @@ public class EmployeeService {
 		     } else {
 					employee.setIsRetain(employeedto.getIsRetain());
 			 }
+			 
+			
 			 
 			 
 			 
@@ -2243,6 +2254,88 @@ public class EmployeeService {
 					
 					
 					if(employeedto.getEmploymentstatus().equals("InActive")) {
+						
+						
+						List<Employee> reporites= employeeRepository.findByManagerId(employeedto.getEmpId());
+						List<Object[]> reportees = employeeRepository.findReporteesOfManager(employeedto.getEmpId());
+//						   cronJobService.notificationformanagerstatusInActive(employeedto.getEmpId());
+							System.out.println("hbcsdh"+employeedto.getJobRoleId());
+							JobRole job= jobRoleRepository.findByjobRoleId(employeedto.getJobRoleId());
+							System.out.println("hbcsdh"+job.getEmployeeRole());
+						 
+						 if(job.getEmployeeRole().equals("Manager") || job.getEmployeeRole().equals("SuperAdmin") ) {
+							 
+							 
+							 if (!reportees.isEmpty()) {
+							 StringBuilder html = new StringBuilder();
+							    html.append("<html>\n" +
+							            "  <head>\n" +
+							            "    <style>\n" +
+							            "      table, th, td {\n" +
+							            "        border: 1px solid black;\n" +
+							            "        padding: 8px;\n" +
+							            "        text-align: left;\n" +
+							            "      }\n" +
+							            "      table {\n" +
+							            "        border-collapse: collapse;\n" +
+							            "        width: 100%;\n" +
+							            "      }\n" +
+							            "      th {\n" +
+							            "        background-color: #f2f2f2;\n" +
+							            "      }\n" +
+							            "    </style>\n" +
+							            "  </head>\n" +
+							            "  <body>\n" +
+							            "    <p>Dear team,</p>\n" +
+							            "    <p>Please find below the details of the reportees of the inactive manager:</p>\n" +
+							            "    <table>\n" +
+							            "      <tr>\n" +
+							            "        <th>Emp ID</th>\n" +
+							            "        <th>Name</th>\n" +
+							            "        <th>Department Name</th>\n" +
+							            "      </tr>\n");
+							    
+							    for (Object[] reportee : reportees) {
+							       
+							        BigInteger employmentIdBigInt = (BigInteger) reportee[0];
+							        String employmentId = employmentIdBigInt.toString();
+
+							       
+							        String isApprenticeship = (String) reportee[3];
+							        String isConsultant = (String) reportee[4];
+
+							        
+							        if ("true".equalsIgnoreCase(isConsultant)) {
+							            employmentId = "A-CS-" + employmentId;
+							        } else if ("true".equalsIgnoreCase(isApprenticeship)) {
+							            employmentId = "AP-" + employmentId;
+							        } else {
+							            employmentId = "A-" + employmentId;
+							        }
+
+							        // Append data to the HTML table
+							        html.append("      <tr>\n");
+							        html.append("        <td>").append(employmentId).append("</td>\n");
+							        html.append("        <td>").append(reportee[1]).append("</td>\n");
+							        html.append("        <td>").append(reportee[2]).append("</td>\n");
+							        html.append("      </tr>\n");
+							    }
+
+							    html.append("    </table>\n" +
+							                "    <p>Kindly take the necessary action to update the reportees under another active manager.</p>\n" +
+							                "  </body>\n" +
+							                "</html>");
+							    
+							    String subject = "Reminder for Manager Update of Reportees of Inactive Manager: " + employeedto.getName();
+							    String mailBody = html.toString();
+
+							    boolean flag = mailService.sendMailWithCC("prarthana.lenka@apmosys.com", "priyadarshini.singh@apmosys.com", subject, mailBody);
+							 }
+							    
+							    
+							 
+								
+						 }
 						// create logic for remove resource from team and projects
 						
 						List<EmployeeTeamMap> findAllActiveTeams = employeeTeamMapRepository.findByEmpId(employeedto.getEmpId());
@@ -2695,9 +2788,14 @@ public class EmployeeService {
 					empDTO.setDesignationName(object[75] != null ? object[75].toString() : null);
 					empDTO.setIsConsultant(object[76] != null ? object[76].toString() : null);
 					empDTO.setIsApprenticeship(object[77] != null ? object[77].toString() : null);
+
 					//added by rahul
 					empDTO.setReferedType(object[78] != null ? object[78].toString() : null);
 					empDTO.setReferedName(object[79] != null ? object[79].toString() : null);
+
+					
+				
+
 					ServiceResponse completionResponse = getEmployeeProfileCompletion(empDTO);
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
 					

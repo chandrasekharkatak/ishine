@@ -562,6 +562,20 @@
         </div>
     </div>
 </div> 
+<div class="col-md-4 mb-0" *ngIf="isUpdation && employeeObj.employmentstatus === 'Confirmed'">
+    <div class="info-wrapper">
+        <div class="form-group">
+            <label class="info-label"><span class="text-danger">*</span>Confirmation Date</label>
+            <div class="d-flex">
+                  <input class="form-control" matInput id="DOJ" #input1 (click)="DOJPicker.open()" [matDatepicker]="DOJPicker" (keydown)="disableMannualDateInput()"
+                  [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Confirmation" [(ngModel)]="employeeObj.employeeConfirmationDate" autocomplete="off">
+                <mat-datepicker-toggle matSuffix [for]="DOJPicker" style="margin-left: -40px;"></mat-datepicker-toggle>
+            </div>
+            <mat-datepicker  #DOJPicker (closed)="input1.blur()" disabled="false"></mat-datepicker>
+        </div>
+    </div>
+</div>
+
 
 <!-- <div class="col-md-4 mb-0" *ngIf="employeeObj.updateType == 'manual'">
     <div class="info-wrapper">
