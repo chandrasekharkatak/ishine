@@ -10,4 +10,6 @@ public interface BiomaxDefaulterRepository extends JpaRepository<BiomaxDefaulter
 
 	List<BiomaxDefaulter> findByEmployeementId(Long parseLong);
 
+	void deleteAllByEmployeementId(Long employmentId);
+
 }

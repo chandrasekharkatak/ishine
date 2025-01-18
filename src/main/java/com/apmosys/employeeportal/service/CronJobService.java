@@ -4775,36 +4775,141 @@ try {
 		 * */
 		
 		@Async
-		@Scheduled(cron = "0 0 9 ? * *") //runs everyday at 9 pm
+		@Scheduled(cron = "0 0 9 ? * *") // runs everyday at 9 pm
 		public void leaveDeduct() {
-			
-			//fetch data from biomax
+
+			// fetch data from biomax
 			List<BioMaTO> biomaxDataList = bioMaxService.getBiomaxDataForLeaveDeduct();
-			
-			if(!biomaxDataList.isEmpty()) {
-				List<BioMaTO> biomaxDataFilterList = biomaxDataList.stream()
-						.filter(obj -> Integer.parseInt(obj.getDeduct()) > 0).collect(Collectors.toList());
-			
-				if(!biomaxDataFilterList.isEmpty()) {
-					biomaxDataFilterList.forEach((object) -> {
-						
-						List<BiomaxDefaulter> defaulterList = biomaxDefaulterRepository.findByEmployeementId(Long.parseLong( object.getEmployeeCode().replaceAll("\\D", "") ));
-						
-						if(!defaulterList.isEmpty()) {
-							//check for 3 consecutive defaulter 
-							if(defaulterList.size()==3) {
-								/*
-								 * Deduct leave for confirmed employee
-								 * Deduct salary for probation employee
-								 * */
-							}else {
-								//Another defaulter entry
+			List<BioMaTO> probationEmployeeList = new ArrayList<>();
+
+			String fileName = "LeaveDeduct.xlsx";
+			var file = new File(fileName);
+
+			try (var fos = new FileOutputStream(file)) {
+
+				var wb = new Workbook(fos, "Application", "1.0");
+				Worksheet ws = wb.newWorksheet("Employee in Probation");
+
+				ws.value(0, 0, "EmpId");
+				ws.value(0, 1, "Emp Name");
+				ws.value(0, 2, "Date");
+				ws.value(0, 3, "In-Time");
+				ws.value(0, 4, "Out-Time");
+				ws.value(0, 5, "Total Working Hours");
+				ws.value(0, 6, "Salary to be deducted (In days)");
+
+				int rowNum = 1;
+
+				if (!biomaxDataList.isEmpty()) {
+					List<BioMaTO> biomaxDataFilterList = biomaxDataList.stream()
+							.filter(obj -> Integer.parseInt(obj.getDeduct()) > 0).collect(Collectors.toList());
+
+					if (!biomaxDataFilterList.isEmpty()) {
+						biomaxDataFilterList.forEach((object) -> {
+
+							Long employmentId = Long.parseLong(object.getEmployeeCode().replaceAll("\\D", ""));
+							List<BiomaxDefaulter> defaulterList = biomaxDefaulterRepository
+									.findByEmployeementId(employmentId);
+							Employee employeeObj = employeeRepository.findByEmployeementId(employmentId);
+
+							if (!defaulterList.isEmpty()) {
+								// check for 3 consecutive defaulter
+								if (defaulterList.size() == 3) {
+									/*
+									 * Deduct leave for confirmed employee Deduct salary for probation employee
+									 * (send mail to HR in excel format) Remove defaulter from BiomaxDefaulter after
+									 * Deduction
+									 */
+
+									if (employeeObj != null) {
+										// Deduct leave
+
+										if (employeeObj.getEmploymentstatus().equals("Confirmed")) {
+											EmployeeLeavesMap employeeLeaveMapObject = employeeLeavesMapRepository
+													.findByEmpIdAndLeaveTypeMasterId(employeeObj.getEmpId(), (short) 2);
+
+											if (employeeLeaveMapObject != null) {
+												Float newBalance = employeeLeaveMapObject.getBalance()
+														- Integer.parseInt(object.getDeduct());
+
+												employeeLeaveMapObject.setBalance(newBalance);
+												EmployeeLeavesMap dbResponse = employeeLeavesMapRepository
+														.save(employeeLeaveMapObject);
+
+												if (dbResponse != null) {
+													LeaveBalanceLog log = new LeaveBalanceLog();
+
+													log.setBalance(newBalance);
+													log.setEmpId(employeeObj.getEmpId());
+													log.setLeaveTypeMasterId((short) 2);
+													log.setMessage(LeaveLogMessage.autoDeductLeaveOnTimesheetDefaulter
+															.replace("0.0", object.getDeduct()));
+													log.setUpdateBalanceBy("-" + object.getDeduct());
+
+													LeaveBalanceLog leaveLogDbResponse = leaveBalanceLogRepository
+															.save(log);
+												}
+											}
+										} else if (employeeObj.getEmploymentstatus().equals("Probation")) {
+											// Deduct salary --> create excel and send to HR
+
+											ws.style(rowNum, 2).format("dd-MM-yyyy").set();
+											ws.style(rowNum, 3).format("dd-MM-yyyy HH:mm:ss").set();
+											ws.style(rowNum, 4).format("dd-MM-yyyy HH:mm:ss").set();
+
+
+											ws.value(rowNum, 0, "A-" + employmentId);
+											ws.value(rowNum, 1, employeeObj.getName());
+											ws.value(rowNum, 2, LocalDate.now());
+											ws.value(rowNum, 3, object.getInTime());
+											ws.value(rowNum, 4, object.getOutTime());
+											ws.value(rowNum, 5, object.getTotalDuration());
+											ws.value(rowNum, 6, object.getDeduct());
+
+										}
+									}
+
+									// delete employee from defaulter table
+									biomaxDefaulterRepository.deleteAllByEmployeementId(employmentId);
+								} else {
+									// Another defaulter entry
+									BiomaxDefaulter newDefaulterObj = new BiomaxDefaulter();
+									newDefaulterObj.setEmpId(employeeObj.getEmpId());
+									newDefaulterObj.setEmployeementId(employmentId);
+
+									BiomaxDefaulter defaulterNewEntry = biomaxDefaulterRepository.save(newDefaulterObj);
+								}
+							} else {
+								// New defaulter entry
+
+								BiomaxDefaulter newDefaulterObj = new BiomaxDefaulter();
+								newDefaulterObj.setEmpId(employeeObj.getEmpId());
+								newDefaulterObj.setEmployeementId(employmentId);
+
+								BiomaxDefaulter newDefaulter = biomaxDefaulterRepository.save(newDefaulterObj);
 							}
-						}else {
-							//New defaulter entry
-						}
-					});
+						});
+					}
 				}
+
+				// Send mail
+
+			 boolean mailSent = mailService.sendMailWithAttachment(hrMailAddress,
+					 hrMailAddress,
+					 "Salary to be deducted of Employees in probation due to defaulter in working time",
+					 "Dear Team, <br><br>"
+                   + "Please find Salary to be deducted of Employees in probation due to defaulter in working time attached below.",
+                   file);
+			
+			 if(mailSent) {
+				System.out.println("Salary to be deducted of Employees Mail sent successfully !!");
+			 }else {
+				 System.out.println("Unable to sent salary to be deducted of Employees Mail !!");
+			 }
+
+				wb.finish();
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 }	
