@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -19,6 +20,8 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 @RequestMapping(path = "/api")
 public class AuthenticationController {
 
+	  @Value("${lms.redirectionURL}")
+	  private String redirectionURL;
 	@Autowired
 	AuthenticationService authenticationService;
 
@@ -62,6 +65,11 @@ public class AuthenticationController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/IsValidateLMSPORTAL", method = RequestMethod.POST)
+	public ServiceResponse IsValidateLMSPORTAL(@RequestBody String email) {
+		//email="mohamed.owais@apmosys.com";
+		return authenticationService.LMSRedirection(email, redirectionURL);
+	}
 	@RequestMapping(value = "/checkOTPWhenForgotPassword", method = RequestMethod.POST)
 	public ServiceResponse checkOTPWhenForgotPassword(@RequestBody EmployeeDTO employeedto) {
 

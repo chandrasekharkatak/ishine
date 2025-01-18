@@ -224,7 +224,9 @@
                         <i class="fa-solid fa-user"></i>&nbsp;{{currentUserName}}
                     </a>
                     <div class="dropdown-menu dropdown-menu-right user-menu" aria-labelledby="user-dropdown">
-                      <a class="dropdown-item" (click)="openChangePassword(change_password)"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;Change Password</a>
+                        <a class="dropdown-item" (click)="LmsRedirection()"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;LMS</a>
+                     
+                        <a class="dropdown-item" (click)="openChangePassword(change_password)"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;Change Password</a>
                       <a class="dropdown-item" (click)="userLogout()"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;Logout</a>
                     </div>
                 </div>

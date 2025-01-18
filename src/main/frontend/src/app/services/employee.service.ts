@@ -311,6 +311,8 @@ isEmployeeOnBench(onbench: Employee) {
   return this.http.post(`${this.baseUrl}api/isEmployeeOnBench`, onbench);
 }
 
-
+IsValidateLMSPORTAL(email:any){
+  return this.http.post(`${this.baseUrl}api/IsValidateLMSPORTAL`, email);
+}
 
 }

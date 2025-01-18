@@ -6,6 +6,7 @@ export const environment = {
   production: false,
 
  baseUrl: "http://localhost:8080/",
+ lmsbaseurl :"http://192.168.12.114/academy-lms/",
   //  baseUrl: "http://192.168.21.175:8081/employeeportal/"
 
   // baseUrl: "https://ishine.apmosys.com/"

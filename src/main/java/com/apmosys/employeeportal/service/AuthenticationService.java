@@ -1,10 +1,16 @@
 package com.apmosys.employeeportal.service;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import com.apmosys.employeeportal.dto.AppreciationEventDTO;	
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,10 +20,16 @@ import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import com.apmosys.employeeportal.EncryptDecrypt;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.LMSDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.model.DraftEmployee;
 import com.apmosys.employeeportal.model.Employee;
@@ -25,13 +37,15 @@ import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class AuthenticationService {
 
 	@Value("${valid.attempt}")
 	private Integer failedAttempt;
-	
+	 @Autowired
+	    private RestTemplate restTemplate;
 	@Autowired
 	EmployeeRepository employeeRepository;
 
@@ -491,7 +505,35 @@ public class AuthenticationService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+//added by rahul for LMS Redirection
 
+	public ServiceResponse LMSRedirection(String email,String url) {
+		ServiceResponse response = new ServiceResponse();
+		LMSDTO lmsdto=new LMSDTO();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl(url);
+		 Map<String, String> request = new HashMap<>();
+	     request.put("email", email);
+	     String encodedData = null;
+	     try {
+	            encodedData = "email=" + URLEncoder.encode(email, StandardCharsets.UTF_8.name());
+	        } catch (UnsupportedEncodingException e) {
+	            e.printStackTrace();
+	        } 
+	     HttpHeaders headers = new HttpHeaders();
+	        headers.set("Content-Type", "application/x-www-form-urlencoded");
+
+	        // Create HttpEntity with encoded data and headers
+	        HttpEntity<String> entity = new HttpEntity<>(encodedData, headers);
+
+	        // Send POST request using RestTemplate
+	        RestTemplate restTemplate = new RestTemplate();
+	        ResponseEntity<String> response1 = restTemplate.exchange(URI.create(url), HttpMethod.POST, entity, String.class);
+
+	        response.setServiceResponse(response1.getBody());
+	    return response;
+		
+	}
 	public ServiceResponse checkOTPWhenForgotPassword(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();

@@ -29,6 +29,7 @@ import { NotificationService } from '../services/notification.service';
 import { RewardsServiceService } from '../services/rewards-service.service';
 import { TimesheetService } from '../services/timesheet.service';
 import { ValidationService } from '../services/validation.service';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-home',
@@ -36,7 +37,7 @@ import { ValidationService } from '../services/validation.service';
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit, AfterViewInit {
-
+ private lmsurl:any = environment.lmsbaseurl;
   lines:any=[];
   data: string;
   //modal
@@ -129,7 +130,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   leaveTypes: Leave[] = [];
   leaveBucketDetails: any[] = [];
-
+lmsauthentication={
+  "status":"",
+  "is_instructor":"",
+  "login_status":"",
+  "name":"",
+  "role":"",
+  "role_id":"",
+  "user_id":""
+};
   // stop modal to close
   config = {
     backdrop: true,
@@ -187,7 +196,19 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.log.featureName = this.feature;
     });
   }
+//added by rahul for lms redirection
+LmsRedirection(){
+  let emailValidation=this.currentUser.email;
+  this.employeeService.IsValidateLMSPORTAL(emailValidation).subscribe((response:any)=>{
+    this.lmsauthentication = JSON.parse(response.serviceResponse);
+     if(this.lmsauthentication.status==="success"){
+      window.open(`${this.lmsurl}`, '_blank');
+    }else{
+     window.open(`${this.lmsurl}index.php/home/sign_up`,'_blank');
+    }
+  })
 
+}
   ngOnInit(): void {
     this.getEmployeeProfileCompletion();
     this.logService.updateLogInfo(this.log);

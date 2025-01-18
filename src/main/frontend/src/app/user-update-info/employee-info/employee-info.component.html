@@ -91,15 +91,14 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Reffered Type</label>
-                                           {{employeeObj | json}}
                                             <select 
                                             [disabled]="employeeObj.empId === currentUser.empId" 
                                             class="form-control" 
                                             aria-hidden="true" 
                                             [(ngModel)]="employeeObj.referedType">
                                             <option selected="selected" value="" disabled>Select</option>
-                                            <option value="InOffice">In Office</option>
-                                            <option value="OutOffice">Out Office</option>
+                                            <option value="In Office">In Office</option>
+                                            <option value="Out Office">Out Office</option>
                                           </select>
                                           
                                             <small class="errorMsg text-danger"></small>
