@@ -833,8 +833,8 @@ public class BioMaxService {
 		        		+ "    s.BeginTime, \n"
 		        		+ "    s.EndTime,\n"
 		        		+ "    CASE \n"
-		        		+ "        WHEN al.TotalDuration < 9 AND al.InTime > DATEADD(MINUTE, 30, CAST(s.BeginTime AS DATETIME)) THEN 1\n"
-		        		+ "        WHEN al.TotalDuration < 9 THEN 0.5\n"
+		        		+ "        WHEN al.TotalDuration < 540 AND al.InTime > DATEADD(MINUTE, 30, CAST(s.BeginTime AS DATETIME)) THEN 1\n"
+		        		+ "        WHEN al.TotalDuration < 540 THEN 0.5\n"
 		        		+ "        WHEN al.InTime > DATEADD(MINUTE, 30, CAST(s.BeginTime AS DATETIME)) THEN 0.5\n"
 		        		+ "        ELSE 0\n"
 		        		+ "    END AS Deduct\n"
@@ -846,6 +846,7 @@ public class BioMaxService {
 		        		+ "    [SmartOfficedb].[dbo].[Shifts] s ON s.ShiftId = al.ShiftId\n"
 		        		+ "WHERE \n"
 		        		+ "    al.AttendanceDateStr = ? \n"
+		        		+ "    and s.ShiftName != 'NoShift' \n"
 		        		+ "ORDER BY \n"
 		        		+ "    al.AttendanceDateStr DESC;";
 		        

@@ -4890,23 +4890,24 @@ try {
 							}
 						});
 					}
+					
+					// Send mail
+
+					 boolean mailSent = mailService.sendMailWithAttachment(hrMailAddress,
+							 hrMailAddress,
+							 "Salary to be deducted of Employees in probation due to defaulter in working time",
+							 "Dear Team, <br><br>"
+		                   + "Please find Salary to be deducted of Employees in probation due to defaulter in working time attached below.",
+		                   file);
+					
+					 if(mailSent) {
+						System.out.println("Salary to be deducted of Employees Mail sent successfully !!");
+					 }else {
+						 System.out.println("Unable to sent salary to be deducted of Employees Mail !!");
+					 }
+
+					
 				}
-
-				// Send mail
-
-			 boolean mailSent = mailService.sendMailWithAttachment(hrMailAddress,
-					 hrMailAddress,
-					 "Salary to be deducted of Employees in probation due to defaulter in working time",
-					 "Dear Team, <br><br>"
-                   + "Please find Salary to be deducted of Employees in probation due to defaulter in working time attached below.",
-                   file);
-			
-			 if(mailSent) {
-				System.out.println("Salary to be deducted of Employees Mail sent successfully !!");
-			 }else {
-				 System.out.println("Unable to sent salary to be deducted of Employees Mail !!");
-			 }
-
 				wb.finish();
 			} catch (Exception e) {
 				e.printStackTrace();
