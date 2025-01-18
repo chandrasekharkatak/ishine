@@ -64,7 +64,11 @@ public class DraftEmployee {
 	private String employmentstatus;
 	private Short noticePeriod;
 	private Short probationPeriod;
-
+	//added by rahul for reffredType
+		private String referedType;
+		private String referedName;
+		//end of the code
+		
 
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
 	private Timestamp createdOn;
@@ -132,4 +136,5 @@ public class DraftEmployee {
 	
 	private String isConsultant;
 	private String isApprenticeship;
+	
 }

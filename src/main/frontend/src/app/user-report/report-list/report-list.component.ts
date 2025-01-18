@@ -15,7 +15,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 import { Employee } from 'src/app/models/employee';
 import { CdkDragDrop, moveItemInArray, CdkDragStart, CdkDragRelease } from "@angular/cdk/drag-drop";
 import { JobRole } from 'src/app/models/jobRole';
-import { LocationStrategy } from '@angular/common';
+import { formatDate, LocationStrategy } from '@angular/common';
 import { AppComponent } from 'src/app/app.component';
 import * as moment from 'moment';
 import { UtilityService } from 'src/app/services/utility.service';
@@ -831,18 +831,23 @@ export class ReportListComponent implements OnInit {
 
     this.filterData.title = title;
     this.filterData.columns = columns;
-
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+    const formattedToday = formatDate(today, 'dd-MM-yyyy', 'en-US');
+    const formattedYesterday = formatDate(yesterday, 'dd-MM-yyyy', 'en-US');
     if(this.leaveReportFlag==true){
       this.queryList = [
         { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" },
-        {column: "From Date", operator: ">=", value: "", conjunction: "" },
-        {column: "To Date", operator: "<=", value: "", conjunction: "" }
+        {column: "From Date", operator: ">=",value: formattedYesterday, conjunction: "" },
+        {column: "To Date", operator: "<=", value: formattedToday, conjunction: "" }
       ];
     }
     else if(this.timesheetReportFlag==true){
       this.queryList = [
         { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" },
-        {column: "Date", operator: "=", value: "", conjunction: "" }
+        {column: "Date", operator: "=", value: formattedYesterday, conjunction: "" },
+        {column: "Date", operator: "=", value: formattedToday, conjunction: "" }
       ];
     }else{
       this.queryList = [

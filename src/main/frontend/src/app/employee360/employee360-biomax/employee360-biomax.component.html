@@ -119,8 +119,17 @@
                     <td scope="col" *ngIf="biomax.timesheetdto.length>0">
                     <ul>
                         <li *ngFor="let dtp of biomax.timesheetdto">
-                            <a class="timehseet" (click)="teamData('908')"  >{{dtp.teamName+" ( "+ dtp.activity +" ) "}}</a>
-
+                            <li *ngFor="let dtp of biomax.timesheetdto">
+                                <!-- Check if teamId is null or not before displaying -->
+                                <a *ngIf="dtp.teamId !== null" class="timehseet" (click)="teamData(dtp.teamId)">
+                                  {{dtp.teamName + " ( " + dtp.activity + " ) "}}
+                                </a>
+                              
+                                <!-- Optional: If you want to show a different link when teamId is null -->
+                                <a *ngIf="dtp.teamId === null" class="timehseet">
+                                 No Timesheet Filled
+                                 </a>
+                              
                         </li>
                     </ul>
                    </td>

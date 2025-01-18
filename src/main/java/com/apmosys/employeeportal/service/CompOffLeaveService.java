@@ -502,6 +502,7 @@ public class CompOffLeaveService {
 						// added by anurag comp off two step verification   
 						
 						if(compOffLeave.getLeaveStatusUpdatedBy() != null) {
+							compOffLeave.setApproverDate(LocalDate.now());
 							compOffLeave.setLevel2ApprovalStatus("Approved");
 							compOffLeave.setManagerId(object[1] != null ? Integer.parseInt(object[1].toString()) : null);
 							compOffLeave.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
@@ -536,8 +537,8 @@ public class CompOffLeaveService {
 						
 						
 						if(dbResponse != null) {
-							compOffLeave.setCompOffStatus("Approved");
-//							compOffLeave.setCompOffStatus("Pending");
+//							compOffLeave.setCompOffStatus("Approved");
+							compOffLeave.setCompOffStatus("Pending");
 							response.setServiceResponse("Compoff request application approved.");
 						}
 						}

@@ -68,5 +68,7 @@ public interface CompOffLeaveRepository extends JpaRepository<CompOffLeave, Long
 
 	@Query(nativeQuery = true )
 	public List<CompOffLeave> findPendingCompOffOffByEmpId(Long empId);
+
+	public CompOffLeave findByCompOffLeaveId(Long compOffLeaveId);
 	
 }

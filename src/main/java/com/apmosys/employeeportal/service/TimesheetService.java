@@ -350,6 +350,7 @@ public class TimesheetService {
 					for (ActivityDTO activity : allTimesheetActivities) {
 
 						description = description.concat(activity.getActivity() + "<br>");
+					
 
 					}
 				}
@@ -358,6 +359,8 @@ public class TimesheetService {
 			newTimesheet.setStatus("Pending");
 			newTimesheet.setIsNightShift(timesheetDTO.getIsNightShift());
 			newTimesheet.getCommonProperty().setCreatedBy(timesheetDTO.getCreatedBy());
+			
+			System.err.println("Time sheet checked "+newTimesheet);
 
 			Timesheet newTimesheetCreated = timesheetsRepository.save(newTimesheet);
 
@@ -384,8 +387,13 @@ public class TimesheetService {
 						Float savedTime = newTimesheetCreated.getTotalTime() != null ? newTimesheetCreated.getTotalTime() : 0;
 						Float totalTime = activity.getCompletionTime() + savedTime;
 						newTimesheet.setTotalTime(totalTime);
+						
+						System.err.println("Time sheet checked2 "+newTimesheet);
 						timesheetsRepository.save(newTimesheet);
 					});
+					
+					
+					System.err.println("Time sheet mapList "+mapList);
 
 					List<TimesheetActivityMap> activityMapped = timesheetActivityMapRepository.saveAll(mapList);
 

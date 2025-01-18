@@ -63,6 +63,9 @@ import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
 public class EmployeeLeaveService {
+	
+	@Autowired
+	CompOffLeave compOffLeave;
 
 	@Autowired
 	EmployeeLeaveRepository employeeLeaveRepository;
@@ -792,8 +795,11 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 				if(leaveTypeObj.getLeaveTypeCode().equals("CO")) {
 					
 					List<CompOffLeave> compOffLeave = compOffLeaveRepository.findByLeaveId(leaveToBeDeleted.getLeaveId());
+					EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository.findByEmpIdAndLeaveTypeMasterId(
+							leaveToBeDeleted.getEmpId(), leaveToBeDeleted.getLeaveTypeMasterId());
 					
 					if(!compOffLeave.isEmpty()) {
+//					if(employeeLeavesMap.getPendingForApproval() > 0) {
 							
 							for(CompOffLeave leave: compOffLeave) {
 								
@@ -805,8 +811,8 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 								}else {
 									
 									//Update Leave Balance
-									EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository.findByEmpIdAndLeaveTypeMasterId(
-											leaveToBeDeleted.getEmpId(), leaveToBeDeleted.getLeaveTypeMasterId());
+//									EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository.findByEmpIdAndLeaveTypeMasterId(
+//											leaveToBeDeleted.getEmpId(), leaveToBeDeleted.getLeaveTypeMasterId());
 									
 									Float balance = employeeLeavesMap.getBalance();
 									balance = balance + leave.getNoOfDays();
@@ -2851,7 +2857,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 	  revoke leave Application methods start --
 	  */
 
-	
+	@Transactional
 	public ServiceResponse revokeApprovedLeaveApplication(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -3374,7 +3380,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 											pendingForApproval = pendingForApproval - leave.getNoOfDays();
 											
 											employeeLeavesMap.setBalance(balance);
-											employeeLeavesMap.setPendingForApproval(pendingForApproval);
+//											employeeLeavesMap.setPendingForApproval(pendingForApproval);
 											
 											System.out.println(employeeLeavesMap + " employee leave");
 											EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeavesMap);
