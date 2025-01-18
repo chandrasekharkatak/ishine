@@ -2655,6 +2655,8 @@ public class CustomFilterService {
 				        + "e.is_consultant, e.is_apprenticeship "
 				        + "FROM employee_timesheets et "
 				        + "INNER JOIN employee e ON et.emp_id = e.emp_id "
+				        + "LEFT JOIN employee_leave el on el.emp_id = e.emp_id "
+				        + "LEFT JOIN leave_type_master ltm on el.leave_type_master_id = el.leave_type_master_id "
 				        + "LEFT JOIN employee e2 ON et.timesheet_status_updated_by = e2.emp_id "
 				        + "LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id "
 				        + "LEFT JOIN department d ON jr.dept_id = d.dept_id "
@@ -2665,6 +2667,23 @@ public class CustomFilterService {
 				        + customQuery
 				        + "AND t.is_active != 'N' AND p.active != 'false' "
 				        + "GROUP BY e.employeement_id, et.date";
+				
+//				String q = "SELECT distinct "
+//		                + "e.employeement_id, e.name AS employee, e2.name AS statusUpdatedBy, "
+//		                + "t.team_name, p.project_name, p.client_name, e.is_consultant, e.is_apprenticeship "
+//		                + "FROM employee e "
+//		                + "LEFT JOIN employee_leave el ON el.emp_id = e.emp_id "
+//		                + "LEFT JOIN leave_type_master ltm ON el.leave_type_master_id = el.leave_type_master_id "
+//		                + "LEFT JOIN employee e2 ON e2.emp_id = e.emp_id "
+//		                + "LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id "
+//		                + "LEFT JOIN department d ON jr.dept_id = d.dept_id "
+//		                + "LEFT JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id "
+//		                + "LEFT JOIN teams t ON t.team_id = etm.team_id "
+//		                + "LEFT JOIN projects p ON p.project_id = t.project_id "
+//		                + "WHERE "
+//		                + customQuery // Use the custom query parameter here
+//		                + "AND t.is_active != 'N' AND p.active != 'false';";
+
 
 
 				System.out.println(q);

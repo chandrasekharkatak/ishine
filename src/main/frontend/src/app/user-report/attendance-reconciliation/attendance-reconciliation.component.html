@@ -107,11 +107,11 @@
             </tbody>
             <tbody *ngIf="clickFilter">
               <tr
-                *ngIf="allLeaveApplicationsList.length == 0 || (allLeaveApplicationsList | colFilter:filters:false).length == 0">
+                *ngIf="allAttendanceRepostList.length == 0 || (allAttendanceRepostList | colFilter:filters:false).length == 0">
                 <th colspan="16" class="text-center info-label">No details to display...</th>
               </tr>
               <tr 
-                *ngFor="let  attendance of allLeaveApplicationsList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                *ngFor="let  attendance of allAttendanceRepostList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{attendance.employeeCode}}</td>
                 <td>{{attendance.employeeName || 'NA'}}</td>
                 <td>{{attendance.inTime }}</td>

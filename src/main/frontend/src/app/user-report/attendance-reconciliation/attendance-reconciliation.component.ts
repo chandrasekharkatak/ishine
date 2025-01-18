@@ -325,7 +325,7 @@ export class AttendanceReconciliationComponent implements OnInit {
     }
   }
 
-  allLeaveApplicationsList: any[] = [];
+  allAttendanceRepostList: any[] = [];
 
   getCustomLAttendanceApplicationsList(queryObjList: any, template: TemplateRef<any>) {
     // this.allLeaveApplicationsList = [];
@@ -337,8 +337,8 @@ export class AttendanceReconciliationComponent implements OnInit {
     } else {
       this.leaveService.getCustomLAttendanceApplicationsList(queryObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
-          this.allLeaveApplicationsList = response.serviceResponse;
-          console.log("this.allLeaveApplicationsList" , this.allLeaveApplicationsList);
+          this.allAttendanceRepostList = response.serviceResponse;
+          console.log("this.allAttendanceRepostList" , this.allAttendanceRepostList);
 
           // this.allLeaveApplicationsList = this.allLeaveApplicationsList.filter((value, index, self) =>
           //   index === self.findIndex((t) => (
@@ -346,10 +346,10 @@ export class AttendanceReconciliationComponent implements OnInit {
           //   ))
           // )
 
-          if (this.allLeaveApplicationsList.length == 0) {
+          if (this.allAttendanceRepostList.length == 0) {
             this.openAlertMod(this.alertModal, "No Leave Application Report found ")
           }
-          this.allLeaveApplicationsList.forEach(leave => {
+          this.allAttendanceRepostList.forEach(leave => {
             // leave.employeementId = "A-".concat(leave.employeementId);
             // leave.employeementId = (leave.isConsultant === 'true' ? "A-CS-" : "A-").concat(leave.employeementId);
             leave.employeementId = this.utilityService.getFormattedEmployeeId(leave);
