@@ -9,6 +9,7 @@ import { EmployeeRewarsRequest } from 'src/app/models/employeeRewardRequest';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { User } from 'src/app/models/user';
 import { Router } from '@angular/router';
+import { Sort } from '@angular/material/sort';
 
 @Component({
   selector: 'app-employee360-rewards',
@@ -43,6 +44,17 @@ export class Employee360RewardsComponent implements OnInit {
   employeeList: any[] = [];
   isTeamTableVisible: boolean = false;
   matchedEmployees: any[] = [];
+  rewardsColumns: any[] = ['', 'rewardTypeName', 'name', 'createdOn','teamName', 'remark', 'updatedBy'];
+  rewardsTeamColumns:any[] = ['','rewardTypeName','name','createdByName','createdOn'];
+  page: number = 1;
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType: any;
+  isSearchEnabled: boolean = false;
+  filters: any = {};
+  items = 10;
+
+
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -473,6 +485,30 @@ export class Employee360RewardsComponent implements OnInit {
       (error) => {
         console.error('Error fetching employee data:', error);
       });
+  }
+
+  sortData(sort: Sort) {
+    //console.log(sort);
+    if (sort.active) {
+      let sortParams: any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;
+    }
+  }
+
+  toggleSearch() {
+    this.isSearchEnabled = !this.isSearchEnabled;
+    if (!this.isSearchEnabled) {
+      this.filters = {};
+    }
+  }
+
+  onSearch(searchData){
+    if(this.isSearchEnabled == true){
+      this.filters = searchData;
+      console.log("Check Filter : ", this.filters);
+    }
   }
 
 }
