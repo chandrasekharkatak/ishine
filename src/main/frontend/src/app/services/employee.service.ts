@@ -302,9 +302,10 @@ getManagerByEmpId(empId: string) {
   return this.http.get(`/api/employee/${empId}/manager`);
 }
 
-
-
-
+getReporteesListByManagerId(empObj: Employee){
+  // console.log("getReporteesListByManagerId ",empObj)
+  return this.http.post(`${this.baseUrl}`+`api/getReporteesListByManagerId`,empObj);
+}
 
 isEmployeeOnBench(onbench: Employee) {
   // const params = new HttpParams().set('empId', empId.toString());
@@ -313,6 +314,11 @@ isEmployeeOnBench(onbench: Employee) {
 
 IsValidateLMSPORTAL(email:any){
   return this.http.post(`${this.baseUrl}api/IsValidateLMSPORTAL`, email);
+}
+
+getReporteesListByReportingManagerId(empObj: Employee){
+  // console.log("getReporteesListByManagerId ",empObj)
+  return this.http.post(`${this.baseUrl}`+`api/getReporteesListByReportingManagerId`,empObj);
 }
 
 }

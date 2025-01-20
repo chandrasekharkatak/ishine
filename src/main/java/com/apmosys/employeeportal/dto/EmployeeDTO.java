@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.dto;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.Column;
 
@@ -253,5 +254,11 @@ public class EmployeeDTO {
 	
     private String isRetain;
 	private String dateOfRetain;
+	
+	private Set<String> projects;
+    private Set<String> teams;
+    
+    private Long reporteeCountManager;
+    private Long reporteeCountReportingManager;
 	
 }

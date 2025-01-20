@@ -217,7 +217,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query(nativeQuery = true )
 	public Long countReportiesByManagerId(Long empId);
-
+	
+	@Query(nativeQuery = true )
+	public Long countReportiesByReportingManagerId(Long empId);
+	
 	@Query(nativeQuery = true)
 	public List<Object[]> findManagerListByRole();
 
@@ -301,7 +304,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 						    + "    et.office_in_time, et.office_out_time, et.total_working_hours, et.is_night_shift, \n"
 						    + "    et.status, et.created_on,\n"
 						    + "    a.activity,\n"
-						    + "    p.project_name,t.team_name,et.remarks   \n"
+						    + "    p.project_name,et.remarks   \n"
 						    + "from employee_timesheets et \n"
 						    + "INNER JOIN employee e ON et.created_by = e.emp_id\n"
 						    + "inner join employee_timesheet_activities_mapping etam on et.timesheet_id = etam.timesheet_id\n"
@@ -374,6 +377,12 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 				    List<Object[]> getActivityData(@Param("timeSheetId") long timeSheetId);
 	
 	@Query(nativeQuery = true)
-	public List<Object[]> getDataByEmpId(@Param("empList") Set empList );
+	public List<Object[]> getReporteesListByManagerId(Long empId );
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getReporteesListByReportingManagerId(Long empId );
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getTeamProjectMappingsByEmpId(Long empId );
 
 }

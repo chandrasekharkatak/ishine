@@ -5503,14 +5503,17 @@ public class EmployeeService {
 		try {
 			Long id = Long.parseLong(empId);
 			Employee managerName = employeeRepository.findByEmpId(id);
-			Long findCount = employeeRepository.countReportiesByManagerId(id);
-			System.err.println(" count  "+findCount);
+			Long findManagerCount = employeeRepository.countReportiesByManagerId(id);
+			Long findReportingManagerCount = employeeRepository.countReportiesByReportingManagerId(id);
+//			System.err.println("findManagerCount "+findManagerCount);
+//			System.err.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% count  "+findManagerCount);
 			EmployeeDTO dto = new EmployeeDTO();
-			dto.setNoOfReporties(findCount);
+			dto.setReporteeCountManager(findManagerCount);
+			dto.setReporteeCountReportingManager(findReportingManagerCount);
 			System.err.println(" dto    "+dto);
 			
 			if(dto != null ) {
-				response.setServiceResponse(dto.getNoOfReporties()+" employees are reporting to "+managerName.getName());
+				response.setServiceResponse(managerName.getName()+ " is the manager of " +dto.getReporteeCountManager()+" and reporting manager of " + dto.getReporteeCountReportingManager()+" reportees.");
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				}else {
 					response.setServiceResponse("No reportees found !! ");
@@ -5829,6 +5832,85 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 
 		return response;
 
+	}
+	
+	public ServiceResponse getReporteesListByManagerId(EmployeeDTO employeeDTO) {
+		ServiceResponse response = new ServiceResponse();
+		
+		try {
+			
+			List<Object[]> reporteesList = employeeRepository.getReporteesListByManagerId(employeeDTO.getEmpId());
+			List<EmployeeDTO> listOfMembers = new ArrayList<EmployeeDTO>();
+
+	        if (reporteesList != null) {
+	            for (Object[] object : reporteesList) {
+	            	
+	                EmployeeDTO employeeDetail = new EmployeeDTO();
+	                
+	                employeeDetail.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+	                employeeDetail.setName(object[1] != null ? object[1].toString() : null);
+	                employeeDetail.setDepartmentName(object[2] != null ? object[2].toString() : null);
+	                employeeDetail.setManagerId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
+	                
+	                listOfMembers.add(employeeDetail);
+	            }
+	        }
+
+	        
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(listOfMembers);
+	        
+			System.err.println("teamName    listOfEmployees      "+listOfMembers.size());
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse(e.getMessage());
+		}
+		
+		return response;
+	}
+	
+	public ServiceResponse getReporteesListByReportingManagerId(EmployeeDTO employeeDTO) {
+		ServiceResponse response = new ServiceResponse();
+		
+		try {
+			
+			List<Object[]> listOfReportees = employeeRepository.getReporteesListByReportingManagerId(employeeDTO.getEmpId());
+			List<EmployeeDTO> listOfMembers = new ArrayList<EmployeeDTO>();
+
+	        if (listOfReportees != null) {
+	            for (Object[] object : listOfReportees) {
+
+	                EmployeeDTO employeeDetail = new EmployeeDTO();
+	                
+	                if (employeeDetail != null) {
+	                    employeeDetail = new EmployeeDTO();
+	                    employeeDetail.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+	                    employeeDetail.setName(object[1] != null ? object[1].toString() : null);
+	                    employeeDetail.setDepartmentName(object[2] != null ? object[2].toString() : null);
+	                    employeeDetail.setManagerId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
+	                    
+	                    listOfMembers.add(employeeDetail);
+	                    }
+	            }
+	        }
+	        
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(listOfMembers);
+				
+	        
+			System.err.println("teamName    listOfEmployees      "+listOfMembers.size());
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse(e.getMessage());
+		}
+		
+		return response;
 	}
 	
 }

@@ -472,6 +472,18 @@ public class EmployeeController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getReporteesListByManagerId", method = RequestMethod.POST)
+	public ServiceResponse getReporteesListByManagerId(@RequestBody EmployeeDTO employeeDto) {
+
+		ServiceResponse response = employeeService.getReporteesListByManagerId(employeeDto);
+		return response;
+	}
 	
+	@RequestMapping(value = "/getReporteesListByReportingManagerId", method = RequestMethod.POST)
+	public ServiceResponse getReporteesListByReportingManagerId(@RequestBody EmployeeDTO employeeDto) {
+
+		ServiceResponse response = employeeService.getReporteesListByReportingManagerId(employeeDto);
+		return response;
+	}
 	
 }

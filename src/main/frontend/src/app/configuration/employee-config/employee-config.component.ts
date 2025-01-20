@@ -215,7 +215,8 @@ minDate: Date;
   isActiveTable : boolean = false;
 
   managerId : any;
-  TeamMemberList : any = [];
+  reporteeList : any = [];
+  reporteeList2 : any = [];
   listOfDepartment : any[] =[];
 
   employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department','Designation',
@@ -449,7 +450,8 @@ this.referedTypeStatus=true;
     this.employeeService.setManagerToNewManager(emp).pipe(first()).subscribe((response :any)=>{
       if(response.serviceStatus == "Success"){
         //console.log(" teamName after manager changes done ",this.employeeObj.teamName)
-        this.getTeamMemberByTeamName(this.employeeObj);
+        this.getReporteesListByManagerId();
+        this.getReporteesListByReportingManagerId();
         this.openAlertMod(template," Employee's Manager has changed !!");
         //console.log(" Manager update ")
       }
@@ -459,10 +461,6 @@ this.referedTypeStatus=true;
     
     //console.log(" managerUpdate method call  employee name  :   ",employee.name);
     //console.log(" managerId   ::   ",employee.managerId);
-    
-
-
-
   }
 
   getTeamMemberByTeamName(employeeObj){
@@ -470,13 +468,11 @@ this.referedTypeStatus=true;
     // this.managerAndAbove = this.managerAndAbove.forEach(t=> t.managerId == ""); 
 
     let empObj = new Employee();
-    empObj.teamName = employeeObj.teamName;
     empObj.managerId = employeeObj.managerId;
-
 
     this.employeeService.getTeamMemberByTeamName(empObj).pipe(first()).subscribe((response : any)=>{
       if(response.serviceStatus == "Success"){
-        this.TeamMemberList = response.serviceResponse;
+        this.reporteeList = response.serviceResponse;
         this.getManagersList();
         // this.employeeObj.managerId = '';
         //console.log(" teamMember list   ",this.TeamMemberList)
@@ -829,20 +825,20 @@ this.referedTypeStatus=true;
   }
 
 
-  getTeamsByProjectName(projectName,template: TemplateRef<any>){
-    //console.log(" projectName   ",projectName);
-    this.employeeObj.teamName = "";
-    this.employeeService.getTeamByProjectName(projectName).pipe(first()).subscribe((response : any)=>{
-      if(response.serviceStatus == "Success"){
-        this.teamList = response.serviceResponse;
-        //console.log(" team list success   ",this.teamList);
-      }else{
-        this.openAlertMod(template , response.serviceResponse);
-        console.log(" in fail ")
-      }
-    });
+  // getTeamsByProjectName(projectName,template: TemplateRef<any>){
+  //   //console.log(" projectName   ",projectName);
+  //   this.employeeObj.teamName = "";
+  //   this.employeeService.getTeamByProjectName(projectName).pipe(first()).subscribe((response : any)=>{
+  //     if(response.serviceStatus == "Success"){
+  //       this.teamList = response.serviceResponse;
+  //       //console.log(" team list success   ",this.teamList);
+  //     }else{
+  //       this.openAlertMod(template , response.serviceResponse);
+  //       console.log(" in fail ")
+  //     }
+  //   });
 
-  }
+  // }
 
   validateEmployeeObj(employeeObj: Employee, template: TemplateRef<any>) {
 
@@ -2735,34 +2731,29 @@ return true;
     this.employeeObj.departmentId ="";
     this.employeeObj.projectName = "";
     this.employeeObj.teamName = "";
-    //console.log(" empId in manager UI change ",employeeId);
+    console.log(" empId in manager UI change ",this.employeeObj.name);
 
-    this.employeeService.getDepartmentByHodId(employeeId).pipe(first()).subscribe((response: any)=>{
-      if(response.serviceStatus == "Success"){
-
-        this.listOfDepartment = response.serviceResponse; 
-
-      //   const responseObj = response.serviceResponse;
-      //  console.log(" responseObj             ",responseObj);
-
-      //  responseObj.forEach((dept )=>{
-      //   this.deptId = dept[4];
-      //   this.departmentName = dept[3];
-      //   this.listOfDepartment.push(this.departmentName);
-      //  });
-
-
-        // this.listOfDepartment = response.serviceResponse;
-      }
-    })
-//console.log("this.deptId    ",this.deptId);
-
-//console.log("this.listOfDepartment        ",this.listOfDepartment    );
-
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl'});
+    this.getReporteesListByManagerId();
+    this.getReporteesListByReportingManagerId();
+    
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
   }
 
-  
+  getReporteesListByManagerId(){
+    console.log(" empId in manager UI change ",this.employeeObj.name);
+
+    this.employeeObj.employeementId = this.utilityService.getEmployeeIdSubstring2(this.employeeObj);
+
+    console.log("employment id",this.employeeObj.employeementId);
+    this.employeeService.getReporteesListByManagerId(this.employeeObj).pipe(first()).subscribe((response : any)=>{
+      if(response.serviceStatus == "Success"){
+        this.reporteeList = response.serviceResponse;
+        this.getManagersList();
+        // this.employeeObj.managerId = '';
+        //console.log(" teamMember list   ",this.TeamMemberList)
+      }
+    })
+  }
 
   updateNoticePeriod(employeeObj: Employee){
     const dateFormat = 'YYYY-MM-DD';
@@ -3779,6 +3770,22 @@ onEmployeeTypeChange(selectedType: string): void {
       this.employeeObj.isApprenticeship = null;
       this.employeeObj.isRegular = null;
   }
+}
+
+getReporteesListByReportingManagerId(){
+  console.log(" empId in manager UI change ",this.employeeObj.name);
+
+  this.employeeObj.employeementId = this.utilityService.getEmployeeIdSubstring2(this.employeeObj);
+
+  console.log("employment id",this.employeeObj.employeementId);
+  this.employeeService.getReporteesListByReportingManagerId(this.employeeObj).pipe(first()).subscribe((response : any)=>{
+    if(response.serviceStatus == "Success"){
+      this.reporteeList2 = response.serviceResponse;
+      this.getManagersList();
+      // this.employeeObj.managerId = '';
+      //console.log(" teamMember list   ",this.TeamMemberList)
+    }
+  })
 }
 
 }
