@@ -46,5 +46,7 @@ public class EmployeeRewards {
 	
 	@Column(length = 1000)
 	private String remark;
+	
+	private String ofmonthyear;
 
 }
