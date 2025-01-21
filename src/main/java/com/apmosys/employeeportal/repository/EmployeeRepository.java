@@ -384,5 +384,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getTeamProjectMappingsByEmpId(Long empId );
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> removeStaleMappingOfInactiveEmployees();
 
 }
