@@ -443,13 +443,20 @@ this.referedTypeStatus=true;
     }
   }
 
+  newEmployee = new Employee();
 
-  updateEmployeesManager(employee, template: TemplateRef<any>){
+  managerUpdate(employee,template: TemplateRef<any>){
+    this.newEmployee = employee;
+    employee.managerId = this.managerId;
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  }
+
+  updateEmployeesManager(template: TemplateRef<any>){
 
     let emp = new Employee();
-    emp.empId = employee.empId;
-    emp.managerId = employee.managerId
-    employee.managerId = this.managerId;
+    emp.empId = this.newEmployee.empId;
+    emp.managerId = this.newEmployee.managerId
+   
     this.employeeService.setManagerToNewManager(emp).pipe(first()).subscribe((response :any)=>{
       if(response.serviceStatus == "Success"){
         //console.log(" teamName after manager changes done ",this.employeeObj.teamName)
@@ -459,6 +466,8 @@ this.referedTypeStatus=true;
         //console.log(" Manager update ")
       }
     })
+
+    this.modalRef.hide();
 
     //console.log(" managerUpdate method call and employee id of reporties    :   ",employee.empId);
     
