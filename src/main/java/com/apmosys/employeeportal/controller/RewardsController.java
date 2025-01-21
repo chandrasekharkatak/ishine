@@ -116,10 +116,17 @@ public class RewardsController {
 		return serviceResponse;
 	}
 	
-	@RequestMapping(value = "/fetchEmployeesForHomepage", method = RequestMethod.GET)
-	 public ServiceResponse fetchEmployeesForHomepage() {
+//	@RequestMapping(value = "/fetchEmployeesForHomepage", method = RequestMethod.GET)
+//	 public ServiceResponse fetchEmployeesForHomepage() {
+//		ServiceResponse serviceResponse = new ServiceResponse();
+//		serviceResponse = rewardsService.fetchEmployeesForHomepage();
+//	        return serviceResponse;
+//	    }
+	
+	@RequestMapping(value = "/fetchEmployeesHomepagecurrentmonth/{currentmonth}", method = RequestMethod.GET)
+	 public ServiceResponse fetchEmployeesHomepagecurrentmonth(@PathVariable("currentmonth") String currentmonth ) {
 		ServiceResponse serviceResponse = new ServiceResponse();
-		serviceResponse = rewardsService.fetchEmployeesForHomepage();
+		serviceResponse = rewardsService.fetchEmployeesHomepagecurrentmonth(currentmonth);
 	        return serviceResponse;
 	    }
 	

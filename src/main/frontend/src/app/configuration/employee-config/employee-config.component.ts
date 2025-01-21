@@ -375,7 +375,10 @@ this.referedTypeStatus=true;
 
   }
 
-  
+  resetSelectSearch(managerSelect: any) {
+    managerSelect.searchValue = '';
+    managerSelect.filteredSource = managerSelect.source;
+  }
 
 
   getCurrentFormattedDate(): string {
@@ -497,6 +500,8 @@ this.referedTypeStatus=true;
   stringToNumber(year:any){
     this.employeeObj.yearOfPassing = Number.parseInt(year);
   }
+
+ 
 
 
   retainStatus(){
@@ -2642,6 +2647,10 @@ if (employeeObj.updateType !== 'automatic') {
   //   }
   // }
 
+
+
+  
+
   RestrictFullName(event){
     var k;
     k= event.charCode;
@@ -3789,6 +3798,9 @@ getReporteesListByReportingManagerId(){
 }
 
 }
+
+
+
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }
