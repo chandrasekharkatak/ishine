@@ -20,9 +20,8 @@ public class EmployeeRewardForHomeDTO {
     private String rewardTypeName;
     private Long departmentId;
     private String department;
-    private String categoryName;
 	public EmployeeRewardForHomeDTO(Long rewardId, int isActive, Long id, Long rewardedTo, String rewardedToByName,
-			int rewardTypeID, Integer categoryId, String rewardTypeName, Long departmentId, String department,String categoryName) {
+			int rewardTypeID, Integer categoryId, String rewardTypeName, Long departmentId, String department) {
 		super();
 		this.rewardId = rewardId;
 		this.isActive = isActive;
@@ -34,7 +33,6 @@ public class EmployeeRewardForHomeDTO {
 		this.rewardTypeName = rewardTypeName;
 		this.departmentId = departmentId;
 		this.department = department;
-		this.categoryName=categoryName;
 	}
    
     

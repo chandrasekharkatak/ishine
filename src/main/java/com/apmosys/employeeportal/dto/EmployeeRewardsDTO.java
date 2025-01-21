@@ -37,5 +37,4 @@ public class EmployeeRewardsDTO {
 	private String name;
 	private Long empId;
 	private String teamName;
-	private String ofmonthyear;
 }

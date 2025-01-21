@@ -32,5 +32,4 @@ export class Rewards{
     createdOn:any;
     teamId:any;
     selectedType:any;
-    ofmonthyear:any;
 }

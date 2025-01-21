@@ -34,7 +34,7 @@
 <!-- Start of employee-reward form -->
 <div *ngIf="isRewards || isEditing">
 
-    <!-- <div class="row mb-1 p-3">
+    <div class="row mb-1 p-3">
         <div class="col-md-4 px-7" style="padding-left: 2rem;">
             <div class="info-wrapper">
                 <div class="form-group">
@@ -52,58 +52,60 @@
                 </div>
             </div>
         </div>
-    </div> -->
-
-    <div class="row mb-1 ">
-        <div class="col-md-4 px-7" style="padding-left: 3rem;">
-            <div class="info-wrapper">
-                <div class="form-group">
-                    <label class="info-label"><span class="text-danger">*</span>Of Month-Year</label>
-                    <input id="startMonth" type="month" class="form-control" [(ngModel)]="ofmonthyear"
-                        style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px;" />
-                </div>
-            </div>
-        </div>
     </div>
 
     <div class="row mb-1">
         <div class="col-md-4 mt-3" style="padding-left: 3rem;">
-            <!-- Select Employee -->
-            <div *ngIf="rewards.length > 0 && isTeam === 0">
-                <label for="employeeSelect" class="d-block">Select Employee:</label>
-                <input id="employeeSelect" type="text" class="form-control" matInput [(ngModel)]="employeeSearchText"
-                    [matAutocomplete]="autoEmployee"
-                    style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px;" />
-                <mat-autocomplete #autoEmployee="matAutocomplete" (optionSelected)="onEmployeeChange($event)">
-                    <mat-option *ngFor="let employee of employees | rewardFilter:employeeSearchText"
-                        [value]="employee.employeeNameForReward">
-                        {{ employee.employeeNameForReward }}
-                    </mat-option>
-                </mat-autocomplete>
-            </div>
-
-            <!-- Select Team -->
-            <div *ngIf="isTeam === 1">
-                <label for="teamSelect" class="d-block">Select Team:</label>
-                <input id="teamSelect" type="text" class="form-control" matInput [(ngModel)]="teamSearchText"
-                    [matAutocomplete]="autoTeam" />
-                <mat-autocomplete #autoTeam="matAutocomplete"
-                    (optionSelected)="sumbitRewards.teamId = $event.option.value">
-                    <mat-option *ngFor="let team of teams | rewardFilter:teamSearchText" [value]="team.teamId">
-                        {{ team.teamName }}
-                    </mat-option>
-                </mat-autocomplete>
-            </div>
+          <!-- Select Employee -->
+          <div *ngIf="rewards.length > 0 && isTeam === 0">
+            <label for="employeeSelect" class="d-block">Select Employee:</label>
+            <input
+              id="employeeSelect"
+              type="text"
+              class="form-control"
+              matInput
+              [(ngModel)]="employeeSearchText"
+              [matAutocomplete]="autoEmployee" style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px;"
+            />
+            <mat-autocomplete #autoEmployee="matAutocomplete" (optionSelected)="onEmployeeChange($event)">
+              <mat-option
+                *ngFor="let employee of employees | rewardFilter:employeeSearchText"
+                [value]="employee.employeeNameForReward"
+              >
+                {{ employee.employeeNameForReward }}
+              </mat-option>
+            </mat-autocomplete>
+          </div>
+      
+          <!-- Select Team -->
+          <div *ngIf="isTeam === 1">
+            <label for="teamSelect" class="d-block">Select Team:</label>
+            <input
+              id="teamSelect"
+              type="text"
+              class="form-control"
+              matInput
+              [(ngModel)]="teamSearchText"
+              [matAutocomplete]="autoTeam"
+            />
+            <mat-autocomplete #autoTeam="matAutocomplete"  (optionSelected)="sumbitRewards.teamId = $event.option.value">
+              <mat-option
+                *ngFor="let team of teams | rewardFilter:teamSearchText"
+                [value]="team.teamId"
+              >
+                {{ team.teamName }}
+              </mat-option>
+            </mat-autocomplete>
+          </div>
         </div>
-    </div>
-
-
+      </div>
+         
+      
     <div class="row mb-1" *ngIf="selectedReward">
         <div class="col-md-12 mt-4" style="padding-left: 3rem;">
             <h5>Reward Types for {{ selectedReward.rewardName }}</h5>
             <div *ngFor="let type of selectedReward.rewardTypes" class="form-check">
-                <input type="radio" class="form-check-input" [name]="selectedReward.rewardName" [value]="type"
-                    [(ngModel)]="selectedReward.selectedType">
+                <input type="radio" class="form-check-input" [name]="selectedReward.rewardName" [value]="type" [(ngModel)]="selectedReward.selectedType">
                 <label class="form-check-label">{{ type }}</label>
             </div>
         </div>
@@ -164,29 +166,23 @@
 
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'rewardHistoryInfo'"
                     [tableTHeadId]="'rewardHistoryInfoTHead'" [tableTHeadTrId]="'rewardHistoryInfoTHeadTr'">
-                    <table class="table table-responsive" id="rewardHistoryInfo" matSort
-                        (matSortChange)="sortData($event)">
+                    <table class="table table-responsive" id="rewardHistoryInfo" matSort (matSortChange)="sortData($event)">
                         <thead class="thead-light" id="rewardHistoryInfoTHead">
                             <tr id="rewardHistoryInfoTHeadTr">
                                 <th scope="col" class="info-label">Sr No.</th>
-                                <th scope="col" class="info-label" mat-sort-header="rewardedToByName|string">Employee
-                                </th>
-                                <th scope="col" class="info-label" mat-sort-header="rewardTypeName|string">Reward Type
-                                </th>
+                                <th scope="col" class="info-label" mat-sort-header="rewardedToByName|string">Employee</th>
+                                <th scope="col" class="info-label" mat-sort-header="rewardTypeName|string">Reward Type</th>
                                 <th scope="col" class="info-label" mat-sort-header="createdByName|string">Reward By</th>
                                 <th scope="col" class="info-label" mat-sort-header="createdOn|date">Rewarded On</th>
-                                <th scope="col" class="info-label" mat-sort-header="managerName|string">Manager Name
-                                </th>
+                                <th scope="col" class="info-label" mat-sort-header="managerName|string">Manager Name</th>
                                 <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>
                                 <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>
-                                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
-                                </th>
+                                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By</th>
                                 <th scope="col" class="info-label" mat-sort-header="updatedOn|date">Updated On</th>
                                 <th scope="col" class="info-label" mat-sort-header="remark|string">Remarks</th>
                                 <th scope="col" class="info-label">Actions</th>
                             </tr>
-                            <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="rewardHistoryColumns"
-                                (onSearch)="onSearch($event); page=1"></tr>
+                            <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="rewardHistoryColumns" (onSearch)="onSearch($event); page=1"></tr>
                         </thead>
                         <tbody>
                             <!-- <tr
@@ -207,18 +203,10 @@
                                 <td>{{rewardHistory.updatedOn}}</td>
                                 <td>{{rewardHistory.remark}}</td>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-primary" type="submit"
-                                        (click)="editReward(rewardHistory.rewardId)"><em
-                                            class="fa fa-edit"></em></button>&nbsp;
-                                    <button class="btn btn-sm btn-outline-danger" type="button"
-                                        (click)="deleteEmployeeRewardByRewardId(rewardHistory.rewardId,alert_message)"><em
-                                            class="fa fa-trash"></em></button>&nbsp;
-                                    <button *ngIf="rewardHistory.isActive === 0" class="btn btn-sm btn-outline-success"
-                                        type="button" (click)="Approve(rewardHistory.rewardId, alert_message)"><em
-                                            class="fa fa-check"></em></button>
-                                    <button *ngIf="rewardHistory.isActive === 1" class="btn btn-sm btn-outline-warning"
-                                        type="button" (click)="undoApprove(rewardHistory.rewardId, alert_message)"><em
-                                            class="fa fa-undo"></em></button>
+                                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="editReward(rewardHistory.rewardId)"><em class="fa fa-edit"></em></button>&nbsp;
+                                    <button class="btn btn-sm btn-outline-danger" type="button"(click)="deleteEmployeeRewardByRewardId(rewardHistory.rewardId,alert_message)"><em class="fa fa-trash"></em></button>&nbsp;
+                                    <button *ngIf="rewardHistory.isActive === 0" class="btn btn-sm btn-outline-success" type="button" (click)="Approve(rewardHistory.rewardId, alert_message)"><em class="fa fa-check"></em></button>
+                                    <button *ngIf="rewardHistory.isActive === 1" class="btn btn-sm btn-outline-warning" type="button" (click)="undoApprove(rewardHistory.rewardId, alert_message)"><em class="fa fa-undo"></em></button>
                                 </td>
                             </tr>
                         </tbody>

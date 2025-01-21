@@ -668,7 +668,7 @@ public class RewardsService {
 	    employeeRewards.setToDate(employeeRewardsDTO.getToDate() != null ? employeeRewardsDTO.getToDate() : null);
 	    employeeRewards.setRemark(employeeRewardsDTO.getRemark() != null ? employeeRewardsDTO.getRemark() : null);
 	    employeeRewards.setRewardTypeName(employeeRewardsDTO.getRewardTypeName() != null ? employeeRewardsDTO.getRewardTypeName() : null);
-	    employeeRewards.setOfmonthyear(employeeRewardsDTO.getOfmonthyear()!=null ? employeeRewardsDTO.getOfmonthyear() : null);    
+	    
 	    CommonProperties commonProperties = new CommonProperties();
 	    commonProperties.setCreatedBy(employeeRewardsDTO.getCreatedBy() != null ? employeeRewardsDTO.getCreatedBy() : null);
 	    commonProperties.setUpdatedBy(employeeRewardsDTO.getUpdatedBy() != null ? employeeRewardsDTO.getUpdatedBy() : null);
@@ -866,63 +866,11 @@ public class RewardsService {
 	}
 
 	
-//	public ServiceResponse fetchEmployeesForHomepage() {
-//        ServiceResponse serviceResponse = new ServiceResponse();
-//        
-//        try {
-//            List<List<Object>> employeeRewards = employeeRewardsRepository.fetchEmployeesForHomepage();
-//            List<EmployeeRewardForHomeDTO> dtos = new ArrayList<>();
-//
-//            for (List<Object> rewardData : employeeRewards) {
-//            	
-//                Long rewardId = ((Number) rewardData.get(0)).longValue();
-//                int isActive = (Boolean) rewardData.get(1) ? 1 : 0;
-//                Long id = ((Number) rewardData.get(2)).longValue();
-//                Long rewardedTo = ((Number) rewardData.get(3)).longValue();
-//                String rewardedToByName = (String) rewardData.get(4);
-//                 int rewardTypeID = ((Number) rewardData.get(5)).intValue();
-//                Integer categoryId = (Integer) rewardData.get(6);
-//                String rewardTypeName = (String) rewardData.get(7);
-//                Long departmentId = ((Number) rewardData.get(8)).longValue();
-//                String department = (String) rewardData.get(9);
-//
-//                EmployeeRewardForHomeDTO dto = new EmployeeRewardForHomeDTO(
-//                    rewardId,
-//                    isActive,
-//                    id,
-//                    rewardedTo,
-//                    rewardedToByName,
-//                    rewardTypeID,
-//                    categoryId,
-//                    rewardTypeName,
-//                    departmentId,
-//                    department
-//                );
-//
-//                dtos.add(dto);
-//            }
-//
-//            if (dtos.isEmpty()) {
-//                serviceResponse.setServiceResponse("No data found");
-//                serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//            } else {
-//                serviceResponse.setServiceResponse(dtos);
-//                serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace(); 
-//            serviceResponse.setServiceResponse("Error occurred while fetching data");
-//            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//        }
-//        
-//        return serviceResponse;
-//    }
-	
-	public ServiceResponse fetchEmployeesHomepagecurrentmonth( String currentmonth) {
+	public ServiceResponse fetchEmployeesForHomepage() {
         ServiceResponse serviceResponse = new ServiceResponse();
         
         try {
-            List<List<Object>> employeeRewards = employeeRewardsRepository.fetchEmployeesHomepagecurrentmonth(currentmonth);
+            List<List<Object>> employeeRewards = employeeRewardsRepository.fetchEmployeesForHomepage();
             List<EmployeeRewardForHomeDTO> dtos = new ArrayList<>();
 
             for (List<Object> rewardData : employeeRewards) {
@@ -937,8 +885,6 @@ public class RewardsService {
                 String rewardTypeName = (String) rewardData.get(7);
                 Long departmentId = ((Number) rewardData.get(8)).longValue();
                 String department = (String) rewardData.get(9);
-                String categoryName = (String) rewardData.get(12);
-                
 
                 EmployeeRewardForHomeDTO dto = new EmployeeRewardForHomeDTO(
                     rewardId,
@@ -950,8 +896,7 @@ public class RewardsService {
                     categoryId,
                     rewardTypeName,
                     departmentId,
-                    department,
-                    categoryName
+                    department
                 );
 
                 dtos.add(dto);
@@ -972,7 +917,6 @@ public class RewardsService {
         
         return serviceResponse;
     }
-
 
 	
 	public ServiceResponse fetchEmployeesByTeamId(Long teamId) {

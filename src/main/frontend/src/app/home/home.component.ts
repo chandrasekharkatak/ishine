@@ -39,8 +39,6 @@ import { environment } from 'src/environments/environment';
 export class HomeComponent implements OnInit, AfterViewInit {
  private lmsurl:any = environment.lmsbaseurl;
   lines:any=[];
-
- 
   data: string;
   //modal
   alertMessage: any;
@@ -55,7 +53,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   sortDirection = 'asc';
   sortColumn: any;
-  sortColumnType: any;
+  sortColumnType:any;
 
   isReqPending: boolean = true;
   leaveApplicationCount: any = 0;
@@ -93,7 +91,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   bulkLeaveReject: any = [];
   bulkCompOffApprove: any = [];
   bulkCompOffReject: any = [];
-  overLapsLeaveForManager: any = [];
+  overLapsLeaveForManager : any = [];
 
 
   leaveObj = new Leave();
@@ -128,7 +126,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   empId: any;
   consentNotificationMessage: any;
   user: User = new User();
-  leaveApplication: any;
+  leaveApplication : any;
 
   leaveTypes: Leave[] = [];
   leaveBucketDetails: any[] = [];
@@ -152,19 +150,19 @@ lmsauthentication={
     backdrop: true,
     ignoreBackdropClick: true,
     keyboard: false,
-    class: 'modal-lg'
+    class : 'modal-lg'
   }
 
   profileCompletedPercentage: any = 0;
 
-  filters: any = {};
-  isSearchEnabled: boolean = false;
-  leaveApplicationColumns: any[] = ['blank', 'blank', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'noOfDays', 'status', 'createdByName', 'createdOn', 'reason', 'currentApprovalLevel', 'approverName', 'managerApprovalStatus', 'level2ApproverName', 'level2ApprovalStatus', 'level3ApproverName', 'level3ApprovalStatus'];
-  compOfApplicationColumns: any[] = ['blank', 'createdByName', 'compOffReasons', 'fromDate', 'toDate', 'noOfDays', 'description', 'status'];
-  timesheetApplicationsColumns: any[] = ['blank', 'blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status'];
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+  leaveApplicationColumns:any[] = ['blank','blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','reason','currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','level3ApproverName','level3ApprovalStatus'];
+  compOfApplicationColumns:any[] = ['blank','createdByName','compOffReasons','fromDate','toDate','noOfDays','description','status'];
+  timesheetApplicationsColumns:any[] = ['blank','blank','employeementId','employeeName','date','dayType','description','officeInTime','officeOutTime','totalWorkingOfficeHours','isNightShift','status'];
 
 
-  isShowReleaseNote: boolean = false;
+  isShowReleaseNote:boolean = false;
   releaseNoteText = "";
 
   constructor(
@@ -183,7 +181,7 @@ lmsauthentication={
     private logService: LogService,
     private locationStrategy: LocationStrategy,
     private rewardsService: RewardsServiceService,
-    public utilityService: UtilityService,
+    public  utilityService: UtilityService ,
     private cdr: ChangeDetectorRef
 
   ) {
@@ -213,11 +211,10 @@ LmsRedirection(){
 }
   ngOnInit(): void {
     this.getEmployeeProfileCompletion();
-    this.getCurrentMonthYear();
     this.logService.updateLogInfo(this.log);
     // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
-    console.log("feature Name ", featureMap);
+    console.log("feature Name ",featureMap);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
@@ -246,7 +243,7 @@ LmsRedirection(){
     this.preventBackButton();
     this.isEmployeeOnBench();
 
-    console.log('User Mapping', this.userMapping);
+   console.log('User Mapping',this.userMapping);
   }
 
   preventBackButton() {
@@ -262,7 +259,7 @@ LmsRedirection(){
       this.currentUser.updateFormCounter = 1;
     }
 
-    if (this.currentUser.isNew == "false") {
+    if(this.currentUser.isNew == "false"){
       //console.log("this.currentUser : ", this.currentUser);
       this.openConsentNotificationModal();
       this.setReleaseNote();
@@ -292,13 +289,13 @@ LmsRedirection(){
       if (response.serviceStatus == "Success") {
         this.leaveApplicationList = response.serviceResponse;
         this.leaveApplicationList.forEach((leave, index) => {
-          leave.checkId = "leave" + index;
-          leave.fromDate = (leave.fromDate) ? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
-          leave.toDate = (leave.toDate) ? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
-          leave.createdOn = (leave.createdOn) ? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          if (!leave.currentApprovalLevel && !leave.finalApprovalLevel) {
+          leave.checkId = "leave"+index;
+          leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          if(!leave.currentApprovalLevel && !leave.finalApprovalLevel){
             leave.currentApprovalLevel = 1;
-            leave.finalApprovalLevel = 1;
+            leave.finalApprovalLevel = 1; 
           }
         });
         //console.log("leaveApplicationList : ", this.leaveApplicationList);
@@ -385,15 +382,15 @@ LmsRedirection(){
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
-
+ 
 
   //comOff Applications
   getPendingCompOffRequestsByManagerId() {
     this.data = ''
     this.allCompOffApplications = []
     this.isSelectAll = false
-    this.bulkCompOffApprove = []
-    this.bulkCompOffReject = []
+    this.bulkCompOffApprove=[]
+    this.bulkCompOffReject=[]
 
     let compOff = new Leave();
     compOff.managerId = this.currentUser.empId;
@@ -401,10 +398,10 @@ LmsRedirection(){
       if (response.serviceStatus == "Success") {
         this.allCompOffApplications = response.serviceResponse;
         this.allCompOffApplications.forEach((compOff, index) => {
-          compOff.checkId = "compOff" + index;
-          compOff.fromDate = (compOff.fromDate) ? moment(compOff.fromDate).format(AppComponent.DATE_FORMAT) : null;
-          compOff.toDate = (compOff.toDate) ? moment(compOff.toDate).format(AppComponent.DATE_FORMAT) : null;
-          compOff.createdOn = (compOff.createdOn) ? moment(compOff.createdOn).format(AppComponent.DATE_FORMAT) : null;
+          compOff.checkId = "compOff"+index;
+          compOff.fromDate = (compOff.fromDate)? moment(compOff.fromDate).format(AppComponent.DATE_FORMAT) : null;
+          compOff.toDate = (compOff.toDate)? moment(compOff.toDate).format(AppComponent.DATE_FORMAT) : null;
+          compOff.createdOn = (compOff.createdOn)? moment(compOff.createdOn).format(AppComponent.DATE_FORMAT) : null;
         });
         //console.log("allCompOffApplications : ", this.allCompOffApplications);
       } else {
@@ -435,8 +432,8 @@ LmsRedirection(){
   onUpdateCompOffStatus(template: TemplateRef<any>, compOffObj, updatedCompOffStatusId) {
     this.cancelRequest();
     // 1 = pending , 2 = Approved , 3= Rejected
-    let compOff: Leave = new Leave();
-    compOff = Object.assign({}, compOffObj);
+    let compOff:Leave = new Leave();
+    compOff = Object.assign({},compOffObj);
     compOff.leaveStatusId = updatedCompOffStatusId;
     compOff.leaveStatusUpdatedBy = this.currentUser.empId
     // compOff.hodEmail = this.currentUser.email;
@@ -489,7 +486,7 @@ LmsRedirection(){
       if (response.serviceStatus == "Success") {
         this.allTeamTimesheetRequests = response.serviceResponse;
         this.allTeamTimesheetRequests.forEach((timesheet, index) => {
-          timesheet.checkId = "timesheet" + index;
+          timesheet.checkId = "timesheet"+index;
           // if(timesheet.isConsultant == 'true'){
           //   timesheet.employeementId = "A-CS-".concat(timesheet.employeementId);
           // }else{
@@ -560,14 +557,14 @@ LmsRedirection(){
 
 
 
-  isEmployeeOnBench() {
+  isEmployeeOnBench(){
     let obj = new Employee();
-    obj.empId = this.currentUser.empId;
-    obj.billableType = 'Bench';
+     obj.empId = this.currentUser.empId;
+     obj.billableType ='Bench';
     this.employeeService.isEmployeeOnBench(obj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         let dtoResponse = response.serviceResponse;
-        this.lines = dtoResponse[0];
+       this.lines=dtoResponse[0];
       }
     });
   }
@@ -633,9 +630,9 @@ LmsRedirection(){
     let leaveObj = new Leave();
     leaveObj.employeementId = this.currentUser.employeementId;
     leaveObj.empId = this.currentUser.empId;
-    leaveObj.employmentStatus = this.currentUser.employmentstatus;
-    console.log("sdnkvsvns" + leaveObj.employmentStatus);
-    let leaveBalanceResponse: any = await this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).toPromise();
+    leaveObj.employmentStatus=this.currentUser.employmentstatus;
+    console.log("sdnkvsvns"+ leaveObj.employmentStatus );
+    let leaveBalanceResponse:any = await this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).toPromise();
     if (leaveBalanceResponse.serviceStatus == "Success") {
       this.leaveBalanceList = leaveBalanceResponse.serviceResponse;
       //console.log("leaveBalanceList : ", this.leaveBalanceList);
@@ -650,7 +647,7 @@ LmsRedirection(){
       console.error(leaveBalanceResponse.serviceResponse);
     }
 
-    let approvedLeaveResponse: any = await this.leaveService.countMyApprovedLeaveApplicationsByLeaveType(leaveObj).pipe(first()).toPromise();
+    let approvedLeaveResponse:any = await this.leaveService.countMyApprovedLeaveApplicationsByLeaveType(leaveObj).pipe(first()).toPromise();
     if (approvedLeaveResponse.serviceStatus == "Success") {
       this.approvedLeavesList = approvedLeaveResponse.serviceResponse;
       //console.log("approvedLeaves : ", this.approvedLeavesList);
@@ -668,7 +665,7 @@ LmsRedirection(){
       console.error(approvedLeaveResponse.serviceResponse);
     }
 
-    let rejectedLeaveResponse: any = await this.leaveService.countMyRejectedLeaveApplicationsByLeaveType(leaveObj).pipe(first()).toPromise();
+    let rejectedLeaveResponse:any = await this.leaveService.countMyRejectedLeaveApplicationsByLeaveType(leaveObj).pipe(first()).toPromise();
     if (rejectedLeaveResponse.serviceStatus == 'Success') {
       this.rejectedLeavesList = rejectedLeaveResponse.serviceResponse;
       //console.log("Rejected Leaves : ", this.rejectedLeavesList);
@@ -685,7 +682,7 @@ LmsRedirection(){
       console.error(rejectedLeaveResponse.serviceResponse);
     }
 
-    let pendingLeaveResponse: any = await this.leaveService.countMyPendingLeaveApplicationsByLeaveType(leaveObj).pipe(first()).toPromise();
+    let pendingLeaveResponse:any = await this.leaveService.countMyPendingLeaveApplicationsByLeaveType(leaveObj).pipe(first()).toPromise();
     if (pendingLeaveResponse.serviceStatus == "Success") {
       this.pendingLeavesList = pendingLeaveResponse.serviceResponse;
       //console.log("pendingLeavesList : ", this.pendingLeavesList);
@@ -943,47 +940,19 @@ LmsRedirection(){
     });
   }
 
-  currentMonthYearDisplay:any; 
-  currentMonthYearApi: any; 
 
-getCurrentMonthYear(): void {
-  const now = new Date();
+  getAllEmployeesRewards(){
+    this.rewardsService.fetchEmployeesForHomepage().subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.rewardsList = response.serviceResponse;
+        console.log("Rewardslist : ", this.rewardsList);
 
-  
-  const displayOptions = { month: 'long', year: 'numeric' } as const;
-  this.currentMonthYearDisplay = now.toLocaleDateString('en-US', displayOptions);
-
-  // Format for API (e.g., "2024-01")
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0'); 
-  this.currentMonthYearApi = `${year}-${month}`;
-}
-
-getAllEmployeesRewards() {
-  this.rewardsService.fetchEmployeesHomepagecurrentmonth(this.currentMonthYearApi).subscribe((response: any) => {
-    if (response.serviceStatus == "Success") {
-      this.rewardsList = response.serviceResponse;
-      console.log("Rewardslist : ", this.rewardsList);
-
-    } else {
-      // this.compOffApplicationCount = 0;
-      console.error(response.serviceResponse);
-    }
-  });
-}
-
-  // getAllEmployeesRewards() {
-  //   this.rewardsService.fetchEmployeesForHomepage().subscribe((response: any) => {
-  //     if (response.serviceStatus == "Success") {
-  //       this.rewardsList = response.serviceResponse;
-  //       console.log("Rewardslist : ", this.rewardsList);
-
-  //     } else {
-  //       // this.compOffApplicationCount = 0;
-  //       console.error(response.serviceResponse);
-  //     }
-  //   });
-  // }
+      } else {
+        // this.compOffApplicationCount = 0;
+        console.error(response.serviceResponse);
+      }
+    });
+  }
 
 
 
@@ -1020,7 +989,7 @@ getAllEmployeesRewards() {
       if (response.serviceStatus == "Success") {
         this.eventImages = response.serviceResponse;
         //console.log("First image : ", this.eventImages);
-        setTimeout(() => {
+        setTimeout(() => { 
           this.loadImages(this.eventImages);
         }, 1000);
         this.getPhotosForHome();
@@ -1030,7 +999,7 @@ getAllEmployeesRewards() {
     });
   }
 
-  getPhotosForHome() {
+  getPhotosForHome(){
     this.imageService.getAllEventPhotosForHome().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         let images = response.serviceResponse;
@@ -1041,7 +1010,7 @@ getAllEmployeesRewards() {
       } else {
         console.error(response.serviceResponse);
       }
-    });
+    }); 
   }
 
   loadImages(eventImages) {
@@ -1171,8 +1140,8 @@ getAllEmployeesRewards() {
             newTimesheetObj.totalWorkingHoursPercentage = (newTimesheetObj.totalWorkingHours / TOTAL_WORKING_HOURS_IN_DAY) * 100 + "%";
 
             // For Chart Data
-            if (newTimesheetObj.status == "Pending") { pendingCount++; }
-            else if (newTimesheetObj.status == "Approved") { approvedCount++; }
+            if (newTimesheetObj.status == "Pending") {pendingCount++; }
+            else if (newTimesheetObj.status == "Approved") {approvedCount++;}
             else if (newTimesheetObj.status == "Rejected") rejectedCount++;
           } else {
             newTimesheetObj.totalWorkingHoursPercentage = "0%";
@@ -1212,7 +1181,7 @@ getAllEmployeesRewards() {
         this.lastMonthCalendar.addTimesheetDetails();
     });
 
-
+  
 
   }
 
@@ -1253,7 +1222,7 @@ getAllEmployeesRewards() {
         "Leave Type": x.leaveType,
         "From Date": x.fromDate,
         "To Date": x.toDate,
-        "Duration": (x.noOfDays + " day(s)"),
+        "Duration": (x.noOfDays+" day(s)"),
         "Status": x.status,
         "Applied By": x.createdByName,
         "Applied On": x.createdOn,
@@ -1397,9 +1366,9 @@ getAllEmployeesRewards() {
       }
 
     });
-
+    
   }
-  selectAllCompOff(event) {
+  selectAllCompOff(event){
     const compOffCheckBox = document.querySelectorAll('.compoff-req-checkbox');
 
     //console.log("select Data : ", compOffCheckBox);
@@ -1451,24 +1420,24 @@ getAllEmployeesRewards() {
     //console.log("Updated Bulk List : ", this.bulkApprove);
   }
 
-  selectCompOff(compOffObj, event) {
+  selectCompOff(compOffObj,event){
 
     // compoff-req-checkbox
     //console.log("compOff bulk method call clicked on ",compOffObj);
-    if (event.target.checked) {
+    if(event.target.checked){
       event.target.classList.add('checked');
       this.bulkCompOffApprove.push(compOffObj);
       this.bulkCompOffReject.push(compOffObj);
-    } else {
+    }else{
       event.target.classList.remove('checked');
       const compOffLeaveCheckBox = document.querySelectorAll('.compoff-req-checkbox.checked');
-      if (compOffLeaveCheckBox.length !== this.items) this.isSelectAll = false;
+      if(compOffLeaveCheckBox.length !== this.items) this.isSelectAll = false;
       //console.log("checkbox.length of comp off  ",compOffLeaveCheckBox.length);
-      this.bulkCompOffApprove.forEach((compOff, index) => {
-        if (compOff == compOffObj) this.bulkCompOffApprove.splice(index, 1);
+      this.bulkCompOffApprove.forEach((compOff,index)=>{
+        if(compOff == compOffObj) this.bulkCompOffApprove.splice(index, 1);
       });
-      this.bulkCompOffReject.forEach((compOff, index) => {
-        if (compOff == compOffObj) this.bulkCompOffReject.splice(index, 1);
+      this.bulkCompOffReject.forEach((compOff,index)=>{
+        if(compOff == compOffObj) this.bulkCompOffReject.splice(index, 1);
       });
       //console.log("Updated Bulk List : ", this.bulkCompOffApprove);
     }
@@ -1498,44 +1467,44 @@ getAllEmployeesRewards() {
     //console.log("Updated Bulk List : ", this.bulkLeaveApprove);
   }
 
-  openBulkApprovalModal(nightShiftTemplate: TemplateRef<any>, alertTemplate: TemplateRef<any>) {
+  openBulkApprovalModal(nightShiftTemplate:TemplateRef<any>, alertTemplate:TemplateRef<any>){
     const isNightShiftFound = this.bulkApprove.filter((x) => x.isNightShift == "true");
     //console.log(isNightShiftFound, " : isNightShiftFound");
 
-    if (isNightShiftFound.length != 0) {
+    if(isNightShiftFound.length != 0){
       this.modalRef = this.modalService.show(nightShiftTemplate, { class: 'modal-lg' });
-    } else {
+    }else{
       this.onBulkApproval(alertTemplate);
     }
   }
 
-  bulkApproveWithoutNightShiftRequest(template: TemplateRef<any>) {
+  bulkApproveWithoutNightShiftRequest(template:TemplateRef<any>){
     this.bulkApprove = this.bulkApprove.filter((x) => x.isNightShift == "false" || x.isNightShift == null);
-    if (this.bulkApprove.length !== 0) {
+    if(this.bulkApprove.length !== 0){
       this.onBulkApproval(template);
-    } else {
+    }else{
       this.cancelRequest();
       this.getMyReporteesTimesheetRequests();
     }
   }
 
-  openBulkRejectModal(nightShiftTemplate: TemplateRef<any>, bulkRejectTimesheet: TemplateRef<any>) {
+  openBulkRejectModal(nightShiftTemplate:TemplateRef<any>, bulkRejectTimesheet:TemplateRef<any>){
     const isNightShiftFound = this.bulkApprove.filter((x) => x.isNightShift == "true");
     //console.log(isNightShiftFound, " : isNightShiftFound");
 
-    if (isNightShiftFound.length != 0) {
+    if(isNightShiftFound.length != 0){
       this.modalRef = this.modalService.show(nightShiftTemplate, { class: 'modal-lg' });
-    } else {
+    }else{
       this.OnBulkReject(bulkRejectTimesheet);
     }
   }
 
-  bulkRejectWithoutNightShiftRequest(bulkRejectTimesheet: TemplateRef<any>) {
+  bulkRejectWithoutNightShiftRequest(bulkRejectTimesheet:TemplateRef<any>){
     this.timesheetObj.rejectReason = null;
     this.bulkReject = this.bulkApprove.filter((x) => x.isNightShift == "false" || x.isNightShift == null);
-    if (this.bulkReject.length !== 0) {
+    if(this.bulkReject.length !== 0){
       this.OnBulkReject(bulkRejectTimesheet);
-    } else {
+    }else{
       this.cancelRequest();
       this.getMyReporteesTimesheetRequests();
     }
@@ -1667,40 +1636,40 @@ getAllEmployeesRewards() {
 
   }
 
+  
 
 
-
-  onBulkCompOffReject(template: TemplateRef<any>, leave) {
+    onBulkCompOffReject(template: TemplateRef<any>, leave) {
     this.leaveObj.rejectCompOffReason = ''
     this.cancelRequest();
     this.leaveObj = leave
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
-
-  onBulkCompOffApprove(template: TemplateRef<any>) {
+  
+  onBulkCompOffApprove(template: TemplateRef<any>){
     //console.log(" bulk approve compoff call ::  ");
     let compOffObj = new Leave();
     compOffObj.bulkLeaveApprovedList = this.bulkCompOffApprove;
     compOffObj.leaveStatusUpdatedBy = this.currentUser.empId;
-    compOffObj.approverEmail = this.currentUser.email;
+    compOffObj.approverEmail= this.currentUser.email;
     compOffObj.leaveStatusId = 2;
-    this.leaveService.bulkCompOffApprove(compOffObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
+    this.leaveService.bulkCompOffApprove(compOffObj).pipe(first()).subscribe((response: any)=>{
+      if(response.serviceStatus == "Success"){
         this.openAlertMod(template, "All Selected CompOff Leaves Approved Successfully ");
         this.getPendingCompOffRequestsByManagerId();
         this.countPendingCompOffRequestsByManagerId();
         this.bulkCompOffApprove = [];
         this.bulkCompOffReject = [];
 
-      } else {
+      }else{
         console.error(response.serviceResponse);
       }
-    });
-  }
+  });
+}
 
 
 
-  bulkCompOffRejectLeave(template: TemplateRef<any>) {
+  bulkCompOffRejectLeave(template: TemplateRef<any>){
     this.leaveObj.rejectCompOffReason = this.leaveObj.rejectCompOffReason?.trim();
     if (!this.validationService.validateActivityTimesheetDiscription(this.leaveObj.rejectCompOffReason)) {
       this.alertMessage = "please enter valid reason !!"
@@ -1709,24 +1678,24 @@ getAllEmployeesRewards() {
     }
 
     let compOffObj = new Leave();
-    compOffObj.bulkLeaveRejectList = this.bulkCompOffReject;
+    compOffObj.bulkLeaveRejectList= this.bulkCompOffReject;
     //console.log("-------------------------n   ",compOffObj.bulkLeaveRejectList);
-    compOffObj.leaveStatusUpdatedBy = this.currentUser.empId;
+    compOffObj.leaveStatusUpdatedBy=this.currentUser.empId;
     compOffObj.leaveStatusId = 3;
-    compOffObj.approverEmail = this.currentUser.email;
+    compOffObj.approverEmail= this.currentUser.email;
     compOffObj.rejectCompOffReason = this.leaveObj.rejectCompOffReason?.trim();
-    compOffObj.bulkLeaveRejectList.forEach((compOff) => {
+    compOffObj.bulkLeaveRejectList.forEach((compOff)=>{
       compOff.employeementId = compOff.employeementId;
     });
-    this.leaveService.bulkCompOffReject(compOffObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
+    this.leaveService.bulkCompOffReject(compOffObj).pipe(first()).subscribe((response: any)=>{
+      if(response.serviceStatus == "Success"){
         this.openAlertMod(template, "All Selected CompOff Leaves Rejected Successfully ");
         this.getPendingCompOffRequestsByManagerId();
         this.countPendingCompOffRequestsByManagerId();
         this.bulkCompOffApprove = [];
         this.bulkCompOffReject = [];
 
-      } else {
+      }else{
         console.error(response.serviceResponse);
       }
     });
@@ -1792,7 +1761,7 @@ getAllEmployeesRewards() {
     this.isError = false;
     this.errorMsg = '';
 
-    if (this.password) {
+    if(this.password){
       this.user.empId = this.currentUser.empId;
       this.user.password = this.setEncryption("PkdtRsJidheGitvS", this.password);
 
@@ -1832,14 +1801,31 @@ getAllEmployeesRewards() {
   // }, 5000);
 
 
-  // TOP BAR
-  userLogout(template?: TemplateRef<any>) {
-    let user = new User();
-    user.empId = this.currentUser.empId;
-    this.authenticationService.logoutUser(user).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
+ // TOP BAR
+ userLogout(template?: TemplateRef<any>) {
+  let user = new User();
+  user.empId = this.currentUser.empId;
+  this.authenticationService.logoutUser(user).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      this.authenticationService.stopUserSessionCheck();
+      //console.log(response.serviceResponse);
+      sessionStorage.removeItem('currentUser');
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('logInfo');
+      sessionStorage.removeItem('maxFileSize');
+      sessionStorage.removeItem('maxRequestSize');
+      sessionStorage.removeItem('sessioncheck');
+      sessionStorage.removeItem('breadcrumb');
+      // delete method call for cookies
+      this.authenticationService.deleteCookies();
+      this.authenticationService.setcurrentUserSubject(null);
+
+      this.router.navigate(['/login']);
+      setTimeout(() => {location.reload();});
+
+    } else {
+      if (response.serviceResponse == "Session already destroyed") {
         this.authenticationService.stopUserSessionCheck();
-        //console.log(response.serviceResponse);
         sessionStorage.removeItem('currentUser');
         sessionStorage.removeItem('token');
         sessionStorage.removeItem('logInfo');
@@ -1850,31 +1836,14 @@ getAllEmployeesRewards() {
         // delete method call for cookies
         this.authenticationService.deleteCookies();
         this.authenticationService.setcurrentUserSubject(null);
-
         this.router.navigate(['/login']);
-        setTimeout(() => { location.reload(); });
-
-      } else {
-        if (response.serviceResponse == "Session already destroyed") {
-          this.authenticationService.stopUserSessionCheck();
-          sessionStorage.removeItem('currentUser');
-          sessionStorage.removeItem('token');
-          sessionStorage.removeItem('logInfo');
-          sessionStorage.removeItem('maxFileSize');
-          sessionStorage.removeItem('maxRequestSize');
-          sessionStorage.removeItem('sessioncheck');
-          sessionStorage.removeItem('breadcrumb');
-          // delete method call for cookies
-          this.authenticationService.deleteCookies();
-          this.authenticationService.setcurrentUserSubject(null);
-          this.router.navigate(['/login']);
-          setTimeout(() => { location.reload(); });
-        }
-        console.error(response.serviceResponse);
+        setTimeout(() => {location.reload();});
       }
-    });
+      console.error(response.serviceResponse);
+    }
+  });
 
-  }
+}
 
   updateEmployeePassword(template: TemplateRef<any>) {
     this.isError = false;
@@ -1944,16 +1913,16 @@ getAllEmployeesRewards() {
 
   //Notification Consent
 
-  getAllNotifications() {
+  getAllNotifications(){
     this.notificationObj = new NotificationMessage();
 
-    this.notificationService.getAllNotifications().pipe(first()).subscribe((response: any) => {
+    this.notificationService.getAllNotifications().pipe(first()).subscribe((response:any) => {
       if (response.serviceStatus == "Success") {
-        this.allNotification = response.serviceResponse;
+        this.allNotification =  response.serviceResponse;
 
         this.allNotification.forEach((notification) => {
-          notification.createdOn = (notification.createdOn) ? moment(notification.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          notification.updatedOn = (notification.updatedOn) ? moment(notification.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+          notification.createdOn = (notification.createdOn)? moment(notification.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          notification.updatedOn = (notification.updatedOn)? moment(notification.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
 
         this.allNotification = this.allNotification.filter(x => x.isActive == 'true' && x.notificationType != "consentNotification" && x.notificationType != "releaseNotes");
@@ -1965,7 +1934,7 @@ getAllEmployeesRewards() {
     });
   }
 
-  openConsentNotificationModal() {
+  openConsentNotificationModal(){
     //console.log(this.currentUser.notificationConsent, " : this.currentUser.notificationConsent");
 
     if (this.currentUser.notificationConsent != null || this.currentUser.notificationConsent != undefined) {
@@ -1974,7 +1943,7 @@ getAllEmployeesRewards() {
     }
   }
 
-  submitNotificationConsent() {
+  submitNotificationConsent(){
     // this.cancelRequest();
 
     let notificationObj = new NotificationMessage();
@@ -1995,7 +1964,7 @@ getAllEmployeesRewards() {
 
 
   // Release Note Consent 
-  setReleaseNote() {
+  setReleaseNote(){
     this.isShowReleaseNote = false;
 
     //console.log(this.currentUser.releaseNoteNotification, " : releaseNoteNotification");
@@ -2006,7 +1975,7 @@ getAllEmployeesRewards() {
     }
   }
 
-  submitReleaseNoteNotificationConsent() {
+  submitReleaseNoteNotificationConsent(){
     let notificationObj = new NotificationMessage();
 
     notificationObj.empId = this.currentUser.empId;
@@ -2022,38 +1991,38 @@ getAllEmployeesRewards() {
     });
   }
 
-  sortData(sort: Sort) {
+  sortData(sort: Sort){
     //console.log(sort);
-    if (sort.active) {
-      let sortParams: any[] = sort.active?.split("|");
+    if(sort.active){
+      let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
       this.sortDirection = sort.direction;
     }
   }
 
-  toggleSearch() {
+  toggleSearch(){
     this.isSearchEnabled = !this.isSearchEnabled;
-    if (!this.isSearchEnabled) {
-      this.filters = {};
+    if(!this.isSearchEnabled){
+    this.filters = {};
     }
   }
 
-  onSearch(searchData) {
+  onSearch(searchData){
     this.filters = searchData;
     //console.log("Updated Filter : ", this.filters);
   }
 
   // added by anurag
-  onUpdateLeave(template: TemplateRef<any>, leaveApplication) {
+  onUpdateLeave(template:TemplateRef<any>,leaveApplication){
     //console.log("leaveApplication ",leaveApplication);
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
     this.leaveApplication = leaveApplication;
     this.findOverLapsLeaveForManager();
   }
 
-  active: boolean = false;
-  findOverLapsLeaveForManager() {
+   active : boolean =false;
+  findOverLapsLeaveForManager(){
     let leaveApp = new Leave();
 
     const dateFormat = 'YYYY-MM-DD';
@@ -2068,15 +2037,15 @@ getAllEmployeesRewards() {
     leaveApp.status = this.leaveApplication.status;
 
     //console.log(leaveApp);
-    this.overLapsLeaveForManager = [];
+this.overLapsLeaveForManager=[];
 
-    this.leaveService.getOverLapsLeaveForManager(leaveApp).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.overLapsLeaveForManager = response.serviceResponse;
+this.leaveService.getOverLapsLeaveForManager(leaveApp).pipe(first()).subscribe((response : any)=>{
+  if(response.serviceStatus == "Success"){
+    this.overLapsLeaveForManager = response.serviceResponse;
 
-        //console.log("this.getOverLapsLeaveForManager ",this.overLapsLeaveForManager);
-      }
-    })
+    //console.log("this.getOverLapsLeaveForManager ",this.overLapsLeaveForManager);
+  }
+})
 
 
   }

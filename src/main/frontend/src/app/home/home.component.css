@@ -372,7 +372,7 @@
 .reward-content-container {
     display: flex;
     flex-direction: column;
-    height: 80%;
+    height: 100%;
 }
 
 .reward-content {
@@ -384,9 +384,6 @@
     margin-top: auto; 
     padding-top: 10px;
     color: none!important; 
-}
-.current-month-year{
-    color: black;
 }
 
 

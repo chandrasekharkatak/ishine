@@ -79,10 +79,6 @@ fetchEmployeesForHomepage(){
   return this.http.get(`${this.baseUrl}`+`api/fetchEmployeesForHomepage`);
 }
 
-fetchEmployeesHomepagecurrentmonth(currentMonthYearApi:any){
-  return this.http.get(`${this.baseUrl}`+`api/fetchEmployeesHomepagecurrentmonth/`+currentMonthYearApi);
-}
-
 getAllActiveTeams(rewards: any){
   return this.http.post(`${this.baseUrl}`+`api/getAllActiveTeams`, rewards);
 }

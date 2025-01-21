@@ -62,7 +62,6 @@ export class RewardsAndRecognisationComponent implements OnInit {
   rewardTypeOptions: string[] = [];
   employeeSearchText: any = '';
   teamSearchText: any = '';
-  ofmonthyear:any;
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -202,7 +201,6 @@ setSelectedReward(reward: Rewards) {
     this.sumbitRewards.teamLeadId = 12334;
     this.sumbitRewards.rewardTypeName = this.selectedReward.selectedType;
     this.sumbitRewards.id = this.selectedIDdprimiryKey;
-    this.sumbitRewards.ofmonthyear = this.ofmonthyear;
 
 
     console.log("yesss", this.rewardstypeName)
@@ -273,8 +271,7 @@ setSelectedReward(reward: Rewards) {
                   isTeam: rewardData.isTeam || null,
                   createdOn: rewardData.createdOn || null,
                   teamId:rewardData.teamId || null,
-                  selectedType:rewardData.selectedType || null,
-                  ofmonthyear:rewardData.ofmonthyear || null
+                  selectedType:rewardData.selectedType || null
               };
 
               this.isEditing = true;

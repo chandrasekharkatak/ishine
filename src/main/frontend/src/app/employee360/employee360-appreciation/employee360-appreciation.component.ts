@@ -30,8 +30,7 @@ export class Employee360AppreciationComponent implements OnInit {
   matchedEmployees: any[] = [];
   matchedEmployee: any;
   currentBreadcrumbList: any[] = [];
-  appreciationColumns: any[] = ['', 'appreciateType', 'appreciationByName', 'appreciationDate','fromDate', 'toDate'];
-  items = 10;
+
 
   constructor(
     private authenticationService: AuthenticationService,

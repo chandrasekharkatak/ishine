@@ -2,7 +2,6 @@
   <div class="small-gap">
     <label for="date-range-dropdown">Select Date Range :</label>
   </div>
-
   <div>
     <select 
       id="date-range-dropdown" class="form-control form-control-sm" [value]="selectedDateRange" (change)="onSelectRange($event)" 
@@ -19,36 +18,26 @@
     {{ isTeamAppreciationView ? 'View Employee Appreciation' : 'View Team Appreciation' }}</button>
   </div>
 </div>
-
-<div class="selector-toggle" (click)="toggleSearch()">
-  <a href="javascript:void(0)">
-      <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-      <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-  </a>
-</div>
-
 <div class="row-md-6">
   <table class="table" matSort (matSortChange)="sortData($event)">
     <thead class="thead-light">
       <tr>
         <th scope="col" class="info-label">Sr No.</th>
-        <th scope="col" class="info-label" mat-sort-header="appreciateType | string">Appreciation Type</th>
-        <th scope="col" class="info-label" mat-sort-header="appreciationByName | string">
+        <th scope="col" class="info-label">Appreciation Type</th>
+        <th scope="col" class="info-label">
           <span *ngIf="isTeamAppreciationView">Appreciation To</span>
           <span *ngIf="!isTeamAppreciationView">Appreciation By</span>
         </th>
-        <th scope="col" class="info-label" mat-sort-header="appreciationDate | string">Appreciation Date</th>
-        <th scope="col" class="info-label" mat-sort-header="fromDate | string">From</th>
-        <th scope="col" class="info-label" mat-sort-header="toDate | string">To</th>
+        <th scope="col" class="info-label">Appreciation Date</th>
+        <th scope="col" class="info-label">From</th>
+        <th scope="col" class="info-label">To</th>
       </tr>
-      <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="appreciationColumns" (onSearch)="onSearch($event); page=1"></tr>
-
     </thead>
     <tbody>
       <tr *ngIf="!employee || employee.length === 0">
         <th colspan="6" class="text-center info-label">No Files to display...</th>
       </tr>
-      <tr *ngFor="let event of employee | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }, let i = index">
+      <tr *ngFor="let event of employee | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
         <th class="info-label">{{ 10 * (page - 1) + i + 1 }}</th>
         <td>{{ event.appreciateType }}</td>
         <td *ngIf="isTeamAppreciationView">
@@ -65,8 +54,6 @@
         <td>{{ event.fromDate }}</td>
         <td>{{ event.toDate }}</td>
       </tr>
-
-
     </tbody>
   </table>
 
