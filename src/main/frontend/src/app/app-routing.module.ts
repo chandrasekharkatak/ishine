@@ -68,6 +68,7 @@ import { Employee360TimesheetComponent } from './employee360/employee360-timeshe
 import { Employee360BiomaxComponent } from './employee360/employee360-biomax/employee360-biomax.component';
 import { Employee360AppreciationComponent } from './employee360/employee360-appreciation/employee360-appreciation.component';
 import { Employee360RewardsComponent } from './employee360/employee360-rewards/employee360-rewards.component';
+import { AppreciationComponent } from './rewards/appreciation/appreciation.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -147,6 +148,7 @@ const routes: Routes = [
   {path:'rewards-tab', component: RewardsComponent, canActivate: [AuthGuard],
        children: [
       { path: 'rewards-and-recognisation', component: RewardsAndRecognisationComponent, },
+      { path: 'rewardsappreciation', component: AppreciationComponent,},
     ]
   },
   {path:'user-appreciation', component: UserAppreciationComponent, canActivate: [AuthGuard]},
