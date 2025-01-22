@@ -219,7 +219,7 @@ setSelectedReward(reward: Rewards) {
     this.sumbitRewards.ofmonthyear = this.ofmonthyear;
 
 
-    console.log("Team Reward Submit", this.sumbitRewards);
+    console.log("Team Reward Submit check", this.sumbitRewards);
 
 
     this.rewardsService.submitRewardForEmployee(this.sumbitRewards).subscribe(
