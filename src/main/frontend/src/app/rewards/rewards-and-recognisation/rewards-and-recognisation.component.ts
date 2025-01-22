@@ -79,6 +79,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
     this.preventBackButton();
     this.getRewardsCategories(this.alertMessageTemplate);
     this.fetchRewardHistory();
+    
   }
 
   preventBackButton() {
@@ -192,6 +193,19 @@ setSelectedReward(reward: Rewards) {
 
   rewardstypeName: any
 
+  onTeamSelected(event: any): void {
+   
+    const selectedTeam = this.teams.find((team) => team.teamId === event.option.value);
+  
+    if (selectedTeam) {
+      
+      this.teamSearchText = selectedTeam.teamName; 
+      this.sumbitRewards.teamId = selectedTeam.teamId; 
+      this.sumbitRewards.teamLeadId = selectedTeam.teamLeadId;
+      this.sumbitRewards.rewardedTo = null;
+    }
+  }
+
   submitRewardForEmployees(template: TemplateRef<any>) {
 
     this.sumbitRewards.remark = this.remarks;
@@ -199,13 +213,13 @@ setSelectedReward(reward: Rewards) {
     this.sumbitRewards.createdBy = this.currentUser.empId;
     this.sumbitRewards.fromDate = this.fromDatestr;
     this.sumbitRewards.toDate = this.todatestr;
-    this.sumbitRewards.teamLeadId = 12334;
+   
     this.sumbitRewards.rewardTypeName = this.selectedReward.selectedType;
     this.sumbitRewards.id = this.selectedIDdprimiryKey;
     this.sumbitRewards.ofmonthyear = this.ofmonthyear;
 
 
-    console.log("yesss", this.rewardstypeName)
+    console.log("Team Reward Submit", this.sumbitRewards);
 
 
     this.rewardsService.submitRewardForEmployee(this.sumbitRewards).subscribe(
@@ -307,6 +321,8 @@ setSelectedReward(reward: Rewards) {
       this.sumbitRewards.rewardType = latestReward.id;
       this.sumbitRewards.rewardTypeName = latestReward.rewardTypes[0];
       this.sumbitRewards.managerId = filterEMP.managerIdForReward;
+      this.sumbitRewards.teamId = null;
+      this.sumbitRewards.teamLeadId = null;
     }
 
     console.log('yessss', this.sumbitRewards);

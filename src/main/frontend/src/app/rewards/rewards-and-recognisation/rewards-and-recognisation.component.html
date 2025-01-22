@@ -69,7 +69,7 @@
     <div class="row mb-1">
         <div class="col-md-4 mt-3" style="padding-left: 3rem;">
             <!-- Select Employee -->
-            <div *ngIf="rewards.length > 0 && isTeam === 0">
+            <div *ngIf="rewards.length > 0 && selectedReward.isTeam === 0">
                 <label for="employeeSelect" class="d-block">Select Employee:</label>
                 <input id="employeeSelect" type="text" class="form-control" matInput [(ngModel)]="employeeSearchText"
                     [matAutocomplete]="autoEmployee"
@@ -83,12 +83,12 @@
             </div>
 
             <!-- Select Team -->
-            <div *ngIf="isTeam === 1">
+            <div *ngIf="selectedReward.isTeam === 1">
                 <label for="teamSelect" class="d-block">Select Team:</label>
                 <input id="teamSelect" type="text" class="form-control" matInput [(ngModel)]="teamSearchText"
                     [matAutocomplete]="autoTeam" />
                 <mat-autocomplete #autoTeam="matAutocomplete"
-                    (optionSelected)="sumbitRewards.teamId = $event.option.value">
+                    (optionSelected)="onTeamSelected($event)">
                     <mat-option *ngFor="let team of teams | rewardFilter:teamSearchText" [value]="team.teamId">
                         {{ team.teamName }}
                     </mat-option>
