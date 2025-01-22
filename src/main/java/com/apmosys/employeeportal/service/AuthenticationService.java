@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
@@ -23,6 +24,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -30,6 +32,8 @@ import org.springframework.web.client.RestTemplate;
 import com.apmosys.employeeportal.EncryptDecrypt;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LMSDTO;
+import com.apmosys.employeeportal.dto.LMSEmailSend;
+import com.apmosys.employeeportal.dto.LMSRedirect;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.model.DraftEmployee;
 import com.apmosys.employeeportal.model.Employee;
@@ -509,31 +513,40 @@ public class AuthenticationService {
 
 	public ServiceResponse LMSRedirection(String email,String url) {
 		ServiceResponse response = new ServiceResponse();
-		LMSDTO lmsdto=new LMSDTO();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setApiUrl(url);
-		 Map<String, String> request = new HashMap<>();
-	     request.put("email", email);
-	     String encodedData = null;
-	     try {
-	            encodedData = "email=" + URLEncoder.encode(email, StandardCharsets.UTF_8.name());
-	        } catch (UnsupportedEncodingException e) {
-	            e.printStackTrace();
-	        } 
-	     HttpHeaders headers = new HttpHeaders();
-	        headers.set("Content-Type", "application/x-www-form-urlencoded");
+		HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        LMSEmailSend email2=new LMSEmailSend();
+        email2.setEmail(email);
+        // Create the HttpEntity with the emailRequest body and headers
+        HttpEntity<String> request = new HttpEntity<>(email, headers);
 
-	        // Create HttpEntity with encoded data and headers
-	        HttpEntity<String> entity = new HttpEntity<>(encodedData, headers);
+        // Send the POST request and get the response
+        ResponseEntity<LMSDTO> responsefrom = restTemplate.exchange(
+        		url,
+                HttpMethod.POST,
+                request,
+                LMSDTO.class
+        );
+        LMSDTO dto1=responsefrom.getBody();
+        if(dto1.isStatus()) {
+        	
+        response.setServiceStatus("success");
+        response.setServiceMessage("Login");
+        response.setServiceResponse(dto1.getUrl());
+        
+        }else {
+        	Employee employee = employeeRepository.findByEmail(email);
 
-	        // Send POST request using RestTemplate
-	        RestTemplate restTemplate = new RestTemplate();
-	        ResponseEntity<String> response1 = restTemplate.exchange(URI.create(url), HttpMethod.POST, entity, String.class);
-
-	        response.setServiceResponse(response1.getBody());
-	    return response;
+        	 response.setServiceStatus(""+dto1.isStatus());
+             response.setServiceMessage("Login");
+             response.setServiceResponse(responsefrom.getBody());
+             
+        }
+        
+       return response;
+    }
 		
-	}
+	
 	public ServiceResponse checkOTPWhenForgotPassword(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();

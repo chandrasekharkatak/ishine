@@ -31,6 +31,18 @@ import { TimesheetService } from '../services/timesheet.service';
 import { ValidationService } from '../services/validation.service';
 import { environment } from 'src/environments/environment';
 
+interface objlms{
+  email:any
+}
+interface LmsRediredtion{
+  
+    email:any,
+    message:any,
+    url:any,
+    tokem:any
+  
+}
+
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -132,15 +144,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   leaveTypes: Leave[] = [];
   leaveBucketDetails: any[] = [];
-lmsauthentication={
-  "status":"",
-  "is_instructor":"",
-  "login_status":"",
-  "name":"",
-  "role":"",
-  "role_id":"",
-  "user_id":""
-};
+  lmsauthentication:any;
+
   // stop modal to close
   config = {
     backdrop: true,
@@ -200,13 +205,18 @@ lmsauthentication={
   }
 //added by rahul for lms redirection
 LmsRedirection(){
-  let emailValidation=this.currentUser.email;
-  this.employeeService.IsValidateLMSPORTAL(emailValidation).subscribe((response:any)=>{
-    this.lmsauthentication = JSON.parse(response.serviceResponse);
-     if(this.lmsauthentication.status==="success"){
-      window.open(`${this.lmsurl}`, '_blank');
-    }else{
-     window.open(`${this.lmsurl}index.php/home/sign_up`,'_blank');
+   let obj = new Object();
+ obj = { email: this.currentUser.email};
+ //obj = { email: "mohamed.owais@apmosys.com"};
+//obj = { email: "mohamed2.owais@apmosys.com"};
+  this.employeeService.IsValidateLMSPORTAL(obj).subscribe((response:any)=>{
+    //this.lmsauthentication = response.serviceResponse;
+    this.lmsauthentication = response.serviceResponse;
+     if(response.serviceStatus=="success"){
+      window.open(response.serviceResponse, '_blank');
+    }
+   else{
+      window.open(`${this.lmsurl}home/sign_up`,'_blank');
     }
   })
 

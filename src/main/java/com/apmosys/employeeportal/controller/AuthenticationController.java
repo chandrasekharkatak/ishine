@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.LMSDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.service.AuthenticationService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -68,6 +69,7 @@ public class AuthenticationController {
 	@RequestMapping(value = "/IsValidateLMSPORTAL", method = RequestMethod.POST)
 	public ServiceResponse IsValidateLMSPORTAL(@RequestBody String email) {
 		//email="mohamed.owais@apmosys.com";
+		
 		return authenticationService.LMSRedirection(email, redirectionURL);
 	}
 	@RequestMapping(value = "/checkOTPWhenForgotPassword", method = RequestMethod.POST)
