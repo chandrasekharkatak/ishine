@@ -15,44 +15,26 @@
     </div>
 </div>
 
-<div class="row mb-2 p-3" *ngIf="isRewards || isEditing">
-    <div class="col-md-12 px-7" style="padding-left: 2rem;">
-        <button *ngFor="let category of rewardsCategories" type="button"
-            class="btn btn-outline-primary btn-sm active ng-star-inserted mx-1"
-            [ngClass]="{'active': category.rewardCategoryId === activeCategoryId}"
-            (click)="getRewardsByCategoryId(category.rewardCategoryId, alertMessageTemplate)">{{category.categoryName}}
-        </button>
-    </div>
-    <div class="col-md-12 px-7" style="padding-left: 2rem; margin-top: 1rem;">
-        <button *ngFor="let reward of rewards" type="button"
-            class="btn btn-outline-primary btn-sm ng-star-inserted mx-1"
-            [ngClass]="{'active': selectedReward === reward}"
-            (click)="selectReward(reward)">{{reward.rewardName}}</button>
-    </div>
-</div>
+<div *ngIf="isRewards ">
 
-<!-- Start of employee-reward form -->
-<div *ngIf="isRewards || isEditing">
+    <div class="row mb-2 p-3">
+        <div class="col-md-12 px-7" style="padding-left: 2rem;">
+            <button *ngFor="let category of rewardsCategories" type="button"
+                class="btn btn-outline-primary btn-sm active ng-star-inserted mx-1"
+                [ngClass]="{'active': category.rewardCategoryId === activeCategoryId}"
+                (click)="getRewardsByCategoryId(category.rewardCategoryId, alertMessageTemplate)">{{category.categoryName}}
+            </button>
+        </div>
+        <div class="col-md-12 px-7" style="padding-left: 2rem; margin-top: 1rem;">
+            <button *ngFor="let reward of rewards" type="button"
+                class="btn btn-outline-primary btn-sm ng-star-inserted mx-1"
+                [ngClass]="{'active': selectedReward === reward}"
+                (click)="selectReward(reward)">{{reward.rewardName}}</button>
+        </div>
+    </div>
 
-    <!-- <div class="row mb-1 p-3">
-        <div class="col-md-4 px-7" style="padding-left: 2rem;">
-            <div class="info-wrapper">
-                <div class="form-group">
-                    <label class="info-label"><span class="text-danger">*</span> Start Date</label>
-                    <input id="startDate" type="date" class="form-control" [(ngModel)]="fromDatestr"
-                        autocomplete="none">
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 px-7" style="padding-right: 2rem;">
-            <div class="info-wrapper">
-                <div class="form-group">
-                    <label class="info-label"><span class="text-danger">*</span> End Date</label>
-                    <input id="endDate" type="date" class="form-control" [(ngModel)]="todatestr">
-                </div>
-            </div>
-        </div>
-    </div> -->
+    <!-- Start of employee-reward form -->
+
 
     <div class="row mb-1 ">
         <div class="col-md-4 px-7" style="padding-left: 3rem;">
@@ -69,7 +51,7 @@
     <div class="row mb-1">
         <div class="col-md-4 mt-3" style="padding-left: 3rem;">
             <!-- Select Employee -->
-            <div *ngIf="rewards.length > 0 && selectedReward.isTeam === 0">
+            <div>
                 <label for="employeeSelect" class="d-block">Select Employee:</label>
                 <input id="employeeSelect" type="text" class="form-control" matInput [(ngModel)]="employeeSearchText"
                     [matAutocomplete]="autoEmployee"
@@ -81,33 +63,35 @@
                     </mat-option>
                 </mat-autocomplete>
             </div>
-
-            <!-- Select Team -->
-            <div *ngIf="selectedReward.isTeam === 1">
-                <label for="teamSelect" class="d-block">Select Team:</label>
-                <input id="teamSelect" type="text" class="form-control" matInput [(ngModel)]="teamSearchText"
-                    [matAutocomplete]="autoTeam" />
-                <mat-autocomplete #autoTeam="matAutocomplete"
-                    (optionSelected)="onTeamSelected($event)">
-                    <mat-option *ngFor="let team of teams | rewardFilter:teamSearchText" [value]="team.teamId">
-                        {{ team.teamName }}
-                    </mat-option>
-                </mat-autocomplete>
-            </div>
         </div>
     </div>
 
 
+
+    
     <div class="row mb-1" *ngIf="selectedReward">
         <div class="col-md-12 mt-4" style="padding-left: 3rem;">
             <h5>Reward Types for {{ selectedReward.rewardName }}</h5>
             <div *ngFor="let type of selectedReward.rewardTypes" class="form-check">
-                <input type="radio" class="form-check-input" [name]="selectedReward.rewardName" [value]="type"
+                <input 
+                    type="radio" 
+                    class="form-check-input" 
+                    [id]="'type-' + type" 
+                    [name]="selectedReward.rewardName" 
+                    [value]="type" 
                     [(ngModel)]="selectedReward.selectedType">
-                <label class="form-check-label">{{ type }}</label>
+                <label class="form-check-label" [for]="'type-' + type">
+                    {{ type }}
+                </label>
             </div>
         </div>
     </div>
+    
+    
+
+
+
+
 
     <div class="row mb-1">
         <div class="col-md-12 mt-4" style="padding-left: 3rem;">
@@ -121,17 +105,26 @@
         </div>
     </div>
 
-    <div class="row mb-3">
+    <div *ngIf="!isEditing" class="row mb-3">
         <div class="col-md-12 mt-4" style="padding-left: 3rem;">
             <button type="submit" class="btn btn-primary btn-sm mx-1"
-                (click)="submitRewardForEmployees(alert_message)">Submit</button>
+                (click)="submitRewardForEmployees(alert_message)">Submit Reward</button>
+        </div>
+    </div>
+    <div *ngIf="isEditing" class="row mb-3">
+        <div class="col-md-12 mt-4" style="padding-left: 3rem;">
+            <button type="submit" class="btn btn-primary btn-sm mx-1">Update Reward </button>
         </div>
     </div>
 </div>
 <!-- End of employee-reward form -->
 
+
+
+
+
 <!-- Start of employee-reward history -->
-<div class="row" style="margin-left: 5px; margin-right: 5px;" *ngIf="isRewardshitory && !isEditing">
+<div class="row" style="margin-left: 5px; margin-right: 5px;" *ngIf="isRewardshitory && !isRewards">
     <div class="col-md-12">
         <div class="row p-3">
             <div class="col-md-12 table-header">

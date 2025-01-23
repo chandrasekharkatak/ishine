@@ -142,6 +142,18 @@ public interface EmployeeRewardsRepository extends JpaRepository <EmployeeReward
             "    WHERE rewarded_to = :empId)", nativeQuery = true)
 List<Object[]> getRewardByTeamAndDateRange(@Param("empId") Long empId);
 
+
+ @Query(nativeQuery = true , value = "SELECT rc.reward_category_id, rc.category_name, er.id ,r.reward_name,r.reward_type,er.reward_type_name,er.rewarded_to,\n"
+ 		+ "			   e.name AS rewarded_to_name,e.manager_id,er.ofmonthyear,er.remark\n"
+ 		+ "			FROM \n"
+ 		+ "			  employee_rewards er\n"
+ 		+ "			LEFT JOIN \n"
+ 		+ "			  employee e ON e.emp_id = er.rewarded_to\n"
+ 		+ "			INNER JOIN \n"
+ 		+ "			   reward_config r ON r.id = er.id\n"
+ 		+ "			INNER JOIN \n"
+ 		+ "			    rewards_category rc ON r.catagory_id = rc.reward_category_id where er.reward_id = :employeerewardId ;")
+ List<Object[]> getAllEmployeeRewardById(Long employeerewardId);
 	
 	
 

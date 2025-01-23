@@ -109,10 +109,12 @@ public class RewardsController {
 		return serviceResponse;
 	}
 	
+	
+	
 	@RequestMapping(value = "/getEmployeeRewardByRewardId/{id}", method = RequestMethod.GET)
-	public ServiceResponse getEmployeeRewardByRewardId(@PathVariable("id") Long id) { 
+	public ServiceResponse getEmployeeRewardByRewardId(@PathVariable("id") Long employeerewardId) { 
 		ServiceResponse serviceResponse = new ServiceResponse();
-		serviceResponse = rewardsService.getEmployeeRewardByRewardId(id);
+		serviceResponse = rewardsService.getEmployeeRewardByRewardIdd(employeerewardId);
 		return serviceResponse;
 	}
 	
@@ -149,6 +151,8 @@ public class RewardsController {
 		System.out.println("Request body" + request);
 		return rewardsService.getEmployeeRewardByEmpId(request);
 	}
+	
+	
 	
 	@PostMapping(value = "/getTeamRewardByEmpId")
 	public RewardsDetails getTeamRewardByEmpId(@RequestBody EmployeeRewardsRequest request) {

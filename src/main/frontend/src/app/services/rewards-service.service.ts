@@ -23,6 +23,10 @@ export class RewardsServiceService {
     return this.http.get(`${this.baseUrl}` + `api/getAllRewardsCategory`);
   }
 
+  getAllRewardDetailsById(rewardId:any){
+    return this.http.get(`${this.baseUrl}` + `api/getEmployeeRewardByRewardId/`+rewardId);
+  }
+
   saveRewardConfiguration(rewards: Rewards){
     return this.http.post(`${this.baseUrl}`+`api/saveRewardConfiguration`, rewards);
   }
