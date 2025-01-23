@@ -322,4 +322,8 @@ getReporteesListByReportingManagerId(empObj: Employee){
   return this.http.post(`${this.baseUrl}`+`api/getReporteesListByReportingManagerId`,empObj);
 }
 
+setReportingManagerToNewManager(employee : any){
+  return this.http.post(`${this.baseUrl}`+`api/setReportingManagerToNewManager`,employee);
+}
+
 }

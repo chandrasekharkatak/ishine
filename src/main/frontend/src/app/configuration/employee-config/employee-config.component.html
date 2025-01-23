@@ -3366,19 +3366,18 @@
                             </select> -->
                             <mat-select ngxMatSelect class="form-control"
                                   #managerSelect="ngxMatSelect"
-                                  [displayMember]="'name'"
-                                  [valueMember]="'empId'"
+                                  [displayMember]="'managerName'"
+                                  [valueMember]="'managerId'"
                                   [source]="managerAndAbove"
                                   [useInfiniteScroll]="true"
                                   [multiple]="false"
                                   [(ngModel)]="reportee.managerId"
                                   (selectionChange)="managerUpdate(reportee,update_manager_temp)"
                                   >
-                                  <mat-option [value]="manager.managerId" *ngFor="let manager of managerAndAbove" >
+                                  <mat-option [value]="manager.managerId" *ngFor="let manager of managerSelect.filteredSource" >
                                     {{manager.managerName}}
                                   </mat-option>
-                                </mat-select>
-                           
+                            </mat-select>
                         </td>
                     </tr>
                 </tbody>
@@ -3403,12 +3402,26 @@
                         <td>{{reportee.name}}</td>
                         <td>{{reportee.departmentName}}</td>
                         <td>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="reportee.managerId"
+                            <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="reportee.managerId"
                                 (change)="managerUpdate(reportee,alert_message)">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let manager of managerAndAbove " value="{{manager.managerId}}">
                                     {{manager.managerName}}</option>
-                            </select>
+                            </select> -->
+                            <mat-select ngxMatSelect class="form-control"
+                                  #managerSelect="ngxMatSelect"
+                                  [displayMember]="'managerName'"
+                                  [valueMember]="'managerId'"
+                                  [source]="managerAndAbove"
+                                  [useInfiniteScroll]="true"
+                                  [multiple]="false"
+                                  [(ngModel)]="reportee.reportingManagerId"
+                                  (selectionChange)="reportingManagerUpdate(reportee,update_reporting_manager_temp)"
+                                  >
+                                  <mat-option [value]="manager.managerId" *ngFor="let manager of managerSelect.filteredSource" >
+                                    {{manager.managerName}}
+                                  </mat-option>
+                            </mat-select>
                         </td>
                     </tr>
                 </tbody>
@@ -3623,11 +3636,18 @@
 
 </ng-template>
 
-
 <ng-template #update_manager_temp>
     <div class="modal-body text-center">
         <p>Are you sure you want to Update the manager ?</p>
         <button type="button" class="btn btn-success" (click)="updateEmployeesManager(alert_message);">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #update_reporting_manager_temp>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to Update the reporting manager ?</p>
+        <button type="button" class="btn btn-success" (click)="updateEmployeesReportingManager(alert_message);">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>

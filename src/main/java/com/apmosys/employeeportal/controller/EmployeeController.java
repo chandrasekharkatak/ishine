@@ -493,4 +493,11 @@ public class EmployeeController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/setReportingManagerToNewManager", method = RequestMethod.POST)
+	public ServiceResponse setReportingManagerToNewManager(@RequestBody EmployeeDTO employeeDto) {
+
+		System.out.println(" projectName  setManagerToNewManaager ");
+		ServiceResponse response = employeeService.setReportingManagerToNewManager(employeeDto);
+		return response;
+	}
 }

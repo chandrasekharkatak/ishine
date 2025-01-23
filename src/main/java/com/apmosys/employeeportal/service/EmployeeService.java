@@ -32,6 +32,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.EncryptDecrypt;
@@ -5954,5 +5956,28 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		return response;
 
 	} 
+	
+	public ServiceResponse setReportingManagerToNewManager(EmployeeDTO employeeDto) {
+	
+	ServiceResponse response = new ServiceResponse();
+	Long employeeId = employeeDto.getEmpId();
+	
+	Employee findEmployee = employeeRepository.findByEmpId(employeeId);
+	
+	if(findEmployee != null) {
+		findEmployee.setReportingManagerId(employeeDto.getReportingManagerId());
+		Employee dbResponse = employeeRepository.save(findEmployee);
+		if(dbResponse != null) {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			}
+		}else {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse(" Employee Not found !!  ");
+			}
+	
+	System.err.println("findEmployee   "+findEmployee);
+	
+	return response;
+}
 	
 }
