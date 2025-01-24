@@ -958,8 +958,6 @@ LmsRedirection(){
 
 getCurrentMonthYear(): void {
   const now = new Date();
-
-  
   const displayOptions = { month: 'long', year: 'numeric' } as const;
   this.currentMonthYearDisplay = now.toLocaleDateString('en-US', displayOptions);
 
@@ -970,7 +968,7 @@ getCurrentMonthYear(): void {
 }
 
 getAllEmployeesRewards() {
-  this.rewardsService.fetchEmployeesHomepagecurrentmonth(this.currentMonthYearApi).subscribe((response: any) => {
+  this.rewardsService.fetchEmployeesForHomepage().subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
       this.rewardsList = response.serviceResponse;
       console.log("Rewardslist : ", this.rewardsList);

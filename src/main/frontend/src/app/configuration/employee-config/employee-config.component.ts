@@ -445,9 +445,10 @@ this.referedTypeStatus=true;
 
   newEmployee = new Employee();
 
-  managerUpdate(employee,template: TemplateRef<any>){
-    this.newEmployee = employee;
-    employee.managerId = this.managerId;
+  managerUpdate(reportee,template: TemplateRef<any>){
+    this.newEmployee = reportee;
+    console.log("newEmployee",this.newEmployee.managerId);
+    
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
   }
 
@@ -473,6 +474,34 @@ this.referedTypeStatus=true;
     
     //console.log(" managerUpdate method call  employee name  :   ",employee.name);
     //console.log(" managerId   ::   ",employee.managerId);
+  }
+
+  newEmp = new Employee();
+
+  reportingManagerUpdate(reportee,template: TemplateRef<any>){
+    this.newEmp = reportee;
+    console.log("newEmployee",this.newEmp.reportingManagerId);
+    
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  }
+
+  updateEmployeesReportingManager(template: TemplateRef<any>){
+
+    let emp = new Employee();
+    emp.empId = this.newEmp.empId;
+    emp.reportingManagerId = this.newEmp.reportingManagerId
+   
+    this.employeeService.setReportingManagerToNewManager(emp).pipe(first()).subscribe((response :any)=>{
+      if(response.serviceStatus == "Success"){
+        //console.log(" teamName after manager changes done ",this.employeeObj.teamName)
+        this.getReporteesListByManagerId();
+        this.getReporteesListByReportingManagerId();
+        this.openAlertMod(template," Employee's Reporting Manager has changed !!");
+        //console.log(" Manager update ")
+      }
+    })
+
+    this.modalRef.hide();
   }
 
   getTeamMemberByTeamName(employeeObj){
@@ -1950,6 +1979,7 @@ this.referedTypeStatus=true;
         });
         this._allEmployeeList = this.allEmployeeList;
         this.changeEvent("Active");
+        this.onselectYes = false;
 
         // Default Sorting
         this.allEmployeeList = new SortPipe().transform(this.allEmployeeList, ['name','string', 'asc']);
@@ -3760,10 +3790,7 @@ onUpadateReportees(event:any){
 console.log('data printed ----',event.target.value);
 if(event.target.value == 'Yes' ){
   this.onselectYes=true;
-}else{
-  this.onselectYes=false;
 }
-
 }
 
 onEmployeeTypeChange(selectedType: string): void {
