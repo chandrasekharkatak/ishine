@@ -866,11 +866,56 @@ public class RewardsService {
 	}
 
 	
-//	public ServiceResponse fetchEmployeesForHomepage() {
+	public ServiceResponse fetchEmployeesForHomepage() {
+        ServiceResponse serviceResponse = new ServiceResponse();
+        
+        try {
+            List<Object[]> employeeRewards = employeeRewardsRepository.fetchEmployeesForHomepage();
+            List<EmployeeRewardForHomeDTO> dtos = new ArrayList<>();
+
+            if(!employeeRewards.isEmpty()) {
+            	employeeRewards.forEach((object) -> {
+            		
+            		EmployeeRewardForHomeDTO dto = new EmployeeRewardForHomeDTO();
+ 
+            		dto.setRewardId(object[0] != null ? Long.parseLong(object[0].toString()):null);
+            		dto.setIsActive(object[1] != null? Integer.parseInt(object[1].toString()) : null);
+            		dto.setId(object[2] != null ? Long.parseLong(object[2].toString()):null);
+            		dto.setRewardedTo(object[3] != null ? Long.parseLong(object[3].toString()):null);
+            		dto.setRewardedToByName(object[4] != null? object[4].toString() : null);
+            		dto.setRewardTypeID(object[5] != null? Integer.parseInt(object[5].toString()) : null);
+            		dto.setCategoryId(object[6] != null ? Integer.parseInt(object[6].toString()) : null);
+            		dto.setRewardTypeName(object[7] != null ? object[7].toString() : null);
+            		dto.setDepartmentId(object[8] != null ? Long.parseLong(object[8].toString()) : null);
+            		dto.setDepartment(object[9] != null ? object[9].toString() : null);
+            		dto.setOfMonthYear(object[10] != null ? object[10].toString() : null);
+            		dto.setCategoryName(object[11] != null ? object[11].toString() : null);
+            	
+            	dtos.add(dto);
+            	});
+            }
+
+            if (dtos.isEmpty()) {
+                serviceResponse.setServiceResponse("No data found");
+                serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            } else {
+                serviceResponse.setServiceResponse(dtos);
+                serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            }
+        } catch (Exception e) {
+            e.printStackTrace(); 
+            serviceResponse.setServiceResponse("Error occurred while fetching data");
+            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        }
+        
+        return serviceResponse;
+    }
+	
+//	public ServiceResponse fetchEmployeesHomepagecurrentmonth( String currentmonth) {
 //        ServiceResponse serviceResponse = new ServiceResponse();
 //        
 //        try {
-//            List<List<Object>> employeeRewards = employeeRewardsRepository.fetchEmployeesForHomepage();
+//            List<Object[]> employeeRewards = employeeRewardsRepository.fetchEmployeesHomepagecurrentmonth();
 //            List<EmployeeRewardForHomeDTO> dtos = new ArrayList<>();
 //
 //            for (List<Object> rewardData : employeeRewards) {
@@ -885,6 +930,8 @@ public class RewardsService {
 //                String rewardTypeName = (String) rewardData.get(7);
 //                Long departmentId = ((Number) rewardData.get(8)).longValue();
 //                String department = (String) rewardData.get(9);
+//                String categoryName = (String) rewardData.get(12);
+//                
 //
 //                EmployeeRewardForHomeDTO dto = new EmployeeRewardForHomeDTO(
 //                    rewardId,
@@ -896,7 +943,8 @@ public class RewardsService {
 //                    categoryId,
 //                    rewardTypeName,
 //                    departmentId,
-//                    department
+//                    department,
+//                    categoryName
 //                );
 //
 //                dtos.add(dto);
@@ -917,61 +965,6 @@ public class RewardsService {
 //        
 //        return serviceResponse;
 //    }
-	
-	public ServiceResponse fetchEmployeesHomepagecurrentmonth( String currentmonth) {
-        ServiceResponse serviceResponse = new ServiceResponse();
-        
-        try {
-            List<List<Object>> employeeRewards = employeeRewardsRepository.fetchEmployeesHomepagecurrentmonth(currentmonth);
-            List<EmployeeRewardForHomeDTO> dtos = new ArrayList<>();
-
-            for (List<Object> rewardData : employeeRewards) {
-            	
-                Long rewardId = ((Number) rewardData.get(0)).longValue();
-                int isActive = (Boolean) rewardData.get(1) ? 1 : 0;
-                Long id = ((Number) rewardData.get(2)).longValue();
-                Long rewardedTo = ((Number) rewardData.get(3)).longValue();
-                String rewardedToByName = (String) rewardData.get(4);
-                 int rewardTypeID = ((Number) rewardData.get(5)).intValue();
-                Integer categoryId = (Integer) rewardData.get(6);
-                String rewardTypeName = (String) rewardData.get(7);
-                Long departmentId = ((Number) rewardData.get(8)).longValue();
-                String department = (String) rewardData.get(9);
-                String categoryName = (String) rewardData.get(12);
-                
-
-                EmployeeRewardForHomeDTO dto = new EmployeeRewardForHomeDTO(
-                    rewardId,
-                    isActive,
-                    id,
-                    rewardedTo,
-                    rewardedToByName,
-                    rewardTypeID,
-                    categoryId,
-                    rewardTypeName,
-                    departmentId,
-                    department,
-                    categoryName
-                );
-
-                dtos.add(dto);
-            }
-
-            if (dtos.isEmpty()) {
-                serviceResponse.setServiceResponse("No data found");
-                serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-            } else {
-                serviceResponse.setServiceResponse(dtos);
-                serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            }
-        } catch (Exception e) {
-            e.printStackTrace(); 
-            serviceResponse.setServiceResponse("Error occurred while fetching data");
-            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-        }
-        
-        return serviceResponse;
-    }
 
 
 	
