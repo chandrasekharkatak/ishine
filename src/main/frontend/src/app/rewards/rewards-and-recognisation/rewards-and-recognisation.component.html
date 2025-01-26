@@ -33,9 +33,7 @@
         </div>
     </div>
 
-    <!-- Start of employee-reward form -->
-
-
+<!-- Start of employee-reward form -->
     <div class="row mb-1 ">
         <div class="col-md-4 px-7" style="padding-left: 3rem;">
             <div class="info-wrapper">
@@ -65,9 +63,6 @@
             </div>
         </div>
     </div>
-
-
-
     
     <div class="row mb-1" *ngIf="selectedReward">
         <div class="col-md-12 mt-4" style="padding-left: 3rem;">
@@ -86,12 +81,6 @@
             </div>
         </div>
     </div>
-    
-    
-
-
-
-
 
     <div class="row mb-1">
         <div class="col-md-12 mt-4" style="padding-left: 3rem;">
@@ -119,16 +108,19 @@
 </div>
 <!-- End of employee-reward form -->
 
-
-
-
-
 <!-- Start of employee-reward history -->
 <div class="row" style="margin-left: 5px; margin-right: 5px;" *ngIf="isRewardshitory && !isRewards">
     <div class="col-md-12">
         <div class="row p-3">
             <div class="col-md-12 table-header">
                 <h1 class="table-header-title">Rewards History</h1>
+            </div>
+        </div>
+
+
+        <div class="row p-3">
+            <div class="col-md-12">
+                <h3>Monthly History</h3>
             </div>
         </div>
 
@@ -147,6 +139,7 @@
         </div>
 
         <div class="row">
+            
             <div class="col-md-12">
                 <div class="selector-toggle" (click)="toggleSearch()">
                     <a href="javascript:void(0)">
@@ -170,8 +163,7 @@
                                 <th scope="col" class="info-label" mat-sort-header="createdOn|date">Rewarded On</th>
                                 <th scope="col" class="info-label" mat-sort-header="managerName|string">Manager Name
                                 </th>
-                                <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>
-                                <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>
+                                <th scope="col" class="info-label" mat-sort-header="ofmonthyear|string">Month-Year</th>
                                 <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
                                 </th>
                                 <th scope="col" class="info-label" mat-sort-header="updatedOn|date">Updated On</th>
@@ -194,8 +186,7 @@
                                 <td>{{rewardHistory.createdByName}}</td>
                                 <td>{{rewardHistory.createdOn}}</td>
                                 <td>{{rewardHistory.managerName}}</td>
-                                <td>{{rewardHistory.fromDate}}</td>
-                                <td>{{rewardHistory.toDate}}</td>
+                                <td>{{rewardHistory.ofmonthyear}}
                                 <td>{{rewardHistory.updatedByName || 'N/A'}}</td>
                                 <td>{{rewardHistory.updatedOn}}</td>
                                 <td>{{rewardHistory.remark}}</td>

@@ -24,9 +24,11 @@ import com.apmosys.employeeportal.dto.AppreciationDetails;
 import com.apmosys.employeeportal.dto.AppreciationDetailsDTO;
 import com.apmosys.employeeportal.dto.CustomFilterDTO;
 import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
+import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeRewardForHomeDTO;
 import com.apmosys.employeeportal.dto.EmployeeRewardsDTO;
 import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.RewardCategoryDTO;
 import com.apmosys.employeeportal.dto.RewardConfigurationDTO;
 import com.apmosys.employeeportal.dto.RewardsDetails;
@@ -742,46 +744,112 @@ public class RewardsService {
         return employee != null ? employee.getName() : null;
     }
 
+//	public ServiceResponse showAllEmployeeRewards() {
+//	    ServiceResponse serviceResponse = new ServiceResponse();
+//	    List<EmployeeRewardsDTO> rewardsDTOList = employeeRewardsRepository.findAll().stream()
+//	        .map(employeeRewards -> {
+//	        	
+//	            EmployeeRewardsDTO dto = new EmployeeRewardsDTO();
+//	            
+//	            dto.setRewardId(employeeRewards.getRewardId() != null ? employeeRewards.getRewardId() : 0L);
+//	            dto.setRewardedTo(employeeRewards.getRewardedTo() != null ? employeeRewards.getRewardedTo() : 0L);
+//	            dto.setRewardType(employeeRewards.getRewardType() != 0 ? employeeRewards.getRewardType() : 0);
+//	            dto.setRewardTypeName(employeeRewards.getRewardTypeName() != null ? employeeRewards.getRewardTypeName() : null);
+//	            dto.setManagerId(employeeRewards.getManagerId() != null ? employeeRewards.getManagerId() : null);
+//	            dto.setTeamLeadId(employeeRewards.getTeamLeadId() != null ? employeeRewards.getTeamLeadId() : null);
+//	            dto.setIsActive(employeeRewards.getIsActive() != 0 ? employeeRewards.getIsActive() : 0);
+//	            dto.setFromDate(employeeRewards.getFromDate() != null ? employeeRewards.getFromDate() : null);
+//	            dto.setToDate(employeeRewards.getToDate() != null ? employeeRewards.getToDate() : null);
+//	            dto.setRemark(employeeRewards.getRemark() != null ? employeeRewards.getRemark() : "");
+//
+//	            dto.setCreatedBy(employeeRewards.getCommonProperty().getCreatedBy() != null ? employeeRewards.getCommonProperty().getCreatedBy() : 0L);
+//	            dto.setUpdatedBy(employeeRewards.getCommonProperty().getUpdatedBy() != null ? employeeRewards.getCommonProperty().getUpdatedBy() : 0L);
+//	            dto.setUpdatedOn(employeeRewards.getCommonProperty().getUpdatedOn() != null ? employeeRewards.getCommonProperty().getUpdatedOn() : null);
+//	            dto.setCreatedOn(employeeRewards.getCommonProperty().getCreatedOn().toLocalDateTime() != null ? employeeRewards.getCommonProperty().getCreatedOn().toLocalDateTime() : null);
+//	            
+//	            dto.setCreatedByName(getEmployeeNameByEmpId(employeeRewards.getCommonProperty().getCreatedBy()));
+//	            dto.setUpdatedByName(getEmployeeNameByEmpId(employeeRewards.getCommonProperty().getUpdatedBy()));
+//	            dto.setManagerName(getEmployeeNameByEmpId(employeeRewards.getManagerId()) != null ? getEmployeeNameByEmpId(employeeRewards.getManagerId()) : null);
+//	            dto.setRewardedToByName(getEmployeeNameByEmpId(employeeRewards.getRewardedTo()) != null ? getEmployeeNameByEmpId(employeeRewards.getRewardedTo()) : null);
+//	            return dto;
+//	        })
+//	        .collect(Collectors.toList());
+//
+//	    if (!rewardsDTOList.isEmpty()) {
+//	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	        serviceResponse.setServiceResponse(rewardsDTOList);
+//	    } else {
+//	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	        serviceResponse.setServiceResponse("No rewards found");
+//	    }
+//
+//	    return serviceResponse;
+//	}
+	
 	public ServiceResponse showAllEmployeeRewards() {
-	    ServiceResponse serviceResponse = new ServiceResponse();
-	    List<EmployeeRewardsDTO> rewardsDTOList = employeeRewardsRepository.findAll().stream()
-	        .map(employeeRewards -> {
-	        	
-	            EmployeeRewardsDTO dto = new EmployeeRewardsDTO();
-	            
-	            dto.setRewardId(employeeRewards.getRewardId() != null ? employeeRewards.getRewardId() : 0L);
-	            dto.setRewardedTo(employeeRewards.getRewardedTo() != null ? employeeRewards.getRewardedTo() : 0L);
-	            dto.setRewardType(employeeRewards.getRewardType() != 0 ? employeeRewards.getRewardType() : 0);
-	            dto.setRewardTypeName(employeeRewards.getRewardTypeName() != null ? employeeRewards.getRewardTypeName() : null);
-	            dto.setManagerId(employeeRewards.getManagerId() != null ? employeeRewards.getManagerId() : null);
-	            dto.setTeamLeadId(employeeRewards.getTeamLeadId() != null ? employeeRewards.getTeamLeadId() : null);
-	            dto.setIsActive(employeeRewards.getIsActive() != 0 ? employeeRewards.getIsActive() : 0);
-	            dto.setFromDate(employeeRewards.getFromDate() != null ? employeeRewards.getFromDate() : null);
-	            dto.setToDate(employeeRewards.getToDate() != null ? employeeRewards.getToDate() : null);
-	            dto.setRemark(employeeRewards.getRemark() != null ? employeeRewards.getRemark() : "");
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("show All EmployeeRewards");
+		apiLogInfo.setApiUrl("/api/showAllEmployeeRewards");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("showAllEmployeeRewards size : "+employeeRewardsRepository.showAllEmployeeRewards());
 
-	            dto.setCreatedBy(employeeRewards.getCommonProperty().getCreatedBy() != null ? employeeRewards.getCommonProperty().getCreatedBy() : 0L);
-	            dto.setUpdatedBy(employeeRewards.getCommonProperty().getUpdatedBy() != null ? employeeRewards.getCommonProperty().getUpdatedBy() : 0L);
-	            dto.setUpdatedOn(employeeRewards.getCommonProperty().getUpdatedOn() != null ? employeeRewards.getCommonProperty().getUpdatedOn() : null);
-	            dto.setCreatedOn(employeeRewards.getCommonProperty().getCreatedOn().toLocalDateTime() != null ? employeeRewards.getCommonProperty().getCreatedOn().toLocalDateTime() : null);
-	            
-	            dto.setCreatedByName(getEmployeeNameByEmpId(employeeRewards.getCommonProperty().getCreatedBy()));
-	            dto.setUpdatedByName(getEmployeeNameByEmpId(employeeRewards.getCommonProperty().getUpdatedBy()));
-	            dto.setManagerName(getEmployeeNameByEmpId(employeeRewards.getManagerId()) != null ? getEmployeeNameByEmpId(employeeRewards.getManagerId()) : null);
-	            dto.setRewardedToByName(getEmployeeNameByEmpId(employeeRewards.getRewardedTo()) != null ? getEmployeeNameByEmpId(employeeRewards.getRewardedTo()) : null);
-	            return dto;
-	        })
-	        .collect(Collectors.toList());
+		try {
+			
+			 List<Object[]> rewardsDTOList = employeeRewardsRepository.showAllEmployeeRewards();
+			    List<EmployeeRewardsDTO> dtolist = new ArrayList<EmployeeRewardsDTO>();
+			        	
+			    	if(!rewardsDTOList.isEmpty()) {
+			    		
+			    		rewardsDTOList.forEach((object) -> {
+			    			
+			    			EmployeeRewardsDTO dto = new EmployeeRewardsDTO();
+			    		
+			    			dto.setRewardedTo(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+			    			dto.setRewardedToByName(object[0] != null ? getEmployeeNameByEmpId(Long.parseLong(object[0].toString())) : null);
+			    			dto.setRewardTypeName(object[1] != null ? object[1].toString() : null);
+			    			dto.setManagerId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+			    			dto.setManagerName(object[2] != null ? getEmployeeNameByEmpId(Long.parseLong(object[2].toString())) : null);
+			    			dto.setOfmonthyear(object[3] != null ? object[3].toString() : null);
+			    			dto.setRemark(object[4] != null ? object[4].toString() : null);
+			    			dto.setIsActive(object[5] != null ? Integer.parseInt(object[5].toString()) : null);
+			    			dto.setId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
+			    			dto.setCreatedBy(object[7] != null ? Long.parseLong(object[7].toString()) : null);
+			    			dto.setCreatedByName(object[7] != null ? getEmployeeNameByEmpId(Long.parseLong(object[7].toString())) : null);
+			    			dto.setCreatedOn(object[8] != null ? ((Timestamp) object[8]).toLocalDateTime() : null);
+			    			dto.setUpdatedBy(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+			    			dto.setUpdatedByName(object[9] != null ? getEmployeeNameByEmpId(Long.parseLong(object[9].toString())) : null);
+			    			dto.setUpdatedOn(object[10] != null ? ((Timestamp) object[8]).toLocalDateTime() : null);
+			    			dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);		
+			    			dto.setRewardId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
+			    			
+			    			dtolist.add(dto);
+			    		});
+			    	}
+			            
+			    if (!dtolist.isEmpty()) {
+			    	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			    	response.setServiceResponse(dtolist);
+			    	apiLogInfo.setApiResponse("List fetched of size : "+dtolist.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			    } else {
+			    	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			    	response.setServiceResponse("No rewards found");
+			    	apiLogInfo.setApiResponse("No rewards found");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 
-	    if (!rewardsDTOList.isEmpty()) {
-	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        serviceResponse.setServiceResponse(rewardsDTOList);
-	    } else {
-	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	        serviceResponse.setServiceResponse("No rewards found");
-	    }
+			    }
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
+			response.setServiceError(e.getMessage());
+		}
 
-	    return serviceResponse;
+	    return response;
 	}
 
 	@Transactional

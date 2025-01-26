@@ -463,10 +463,10 @@
         </div>
     </div> -->
 
-    <div *ngIf="userMapping.view_employee_rewards" class="timesheet-graph reward card mb-2">
+    <!-- <div *ngIf="userMapping.view_employee_rewards" class="timesheet-graph reward card mb-2">
         <div class="card-title px-1 pt-2">
             <p class="section-heading m-0 pl-2 p-3">Apmosys Wall Of Fame</p>
-            <!-- <p class="text-muted pl-3"><b>MONTHLY : <span class="current-month-year">{{ currentMonthYearDisplay }}</span></b></p> -->
+             <p class="text-muted pl-3"><b>MONTHLY : <span class="current-month-year">{{ currentMonthYearDisplay }}</span></b></p> 
         </div>
         
         <div class="reward-content-container">
@@ -489,9 +489,68 @@
                 <p class="section-heading m-0 pl-2 p-3"></p>
             </div>
         </div>
+
     </div>
     
-</div>
+</div> -->
+
+    <!-- <div *ngIf="userMapping.view_employee_rewards" class="timesheet-graph reward card mb-2">
+        <div class="card-title px-1 pt-2">
+            <p class="section-heading m-0 pl-2 p-3">Apmosys Wall Of Fame</p>
+            
+        </div>
+
+        <div class="reward-content-container">
+            <div *ngIf="rewardsList.length === 0" class="container-fluid placeholder">
+              <img class="placeholder-img" src="assets/Images/reward2.png" alt="Rewards Icon">
+              <h1 class="placeholder-text">No Rewards Today</h1>
+            </div>
+          
+            <ng-container *ngFor="let group of rewardsList">
+              <h3>{{ group.ofMonthYear }}</h3>
+              <marquee direction="up" scrolldelay="250" onmouseover="this.stop();" onmouseout="this.start();">
+                <mat-list class="reward-content">
+                  <mat-list-item *ngFor="let reward of group.rewards">
+                    <img matListAvatar src="assets/Images/reward2.png" alt="User Avatar">
+                    <h1 matLine style="font-size: smaller;">{{ reward.rewardedToByName }} || {{ reward.rewardTypeName }}</h1>
+                    <p matLine style="font-size: smaller;">{{ reward.department }}</p>
+                  </mat-list-item>
+                </mat-list>
+              </marquee>
+            </ng-container>
+          </div>
+        </div>
+    </div> -->
+
+    <div *ngIf="userMapping.view_employee_rewards" class="timesheet-graph reward card mb-2">
+        <div class="card-title px-1 pt-2">
+          <p class="section-heading m-0 pl-2 p-3">Apmosys Wall Of Fame</p>
+          <p class="text-muted pl-3">
+            <b>MONTHLY : <span class="current-month-year">{{ currentGroup?.ofMonthYear }}</span></b>
+          </p>
+        </div>
+      
+        <div class="reward-content-container">
+          <div *ngIf="currentGroup?.rewards?.length === 0" class="container-fluid placeholder">
+            <img class="placeholder-img" src="assets/Images/reward2.png" alt="Rewards Icon">
+            <h1 class="placeholder-text">No Rewards for {{ currentGroup?.ofMonthYear }}</h1>
+          </div>
+      
+          <div *ngIf="currentGroup?.rewards?.length > 0">
+            <marquee direction="up" scrolldelay="250" onmouseover="this.stop();" onmouseout="this.start();">
+              <mat-list class="reward-content">
+                <mat-list-item *ngFor="let reward of currentGroup.rewards">
+                  <img matListAvatar src="assets/Images/reward2.png" alt="User Avatar">
+                  <h1 matLine style="font-size: smaller;">{{ reward.rewardedToByName }} || {{ reward.rewardTypeName }}</h1>
+                  <p matLine style="font-size: smaller;">{{ reward.department }}</p>
+                </mat-list-item>
+              </mat-list>
+            </marquee>
+          </div>
+        </div>
+      </div>
+      
+      
 
 <!-- Modals templates -->
 <ng-template #alert_message>

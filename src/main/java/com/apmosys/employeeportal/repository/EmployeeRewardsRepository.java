@@ -134,7 +134,7 @@ List<Object[]> getRewardByTeamAndDateRange(@Param("empId") Long empId);
  		+ "			    rewards_category rc ON r.catagory_id = rc.reward_category_id where er.reward_id = :employeerewardId ;")
  List<Object[]> getAllEmployeeRewardById(Long employeerewardId);
 	
-	
-
+ @Query(nativeQuery = true)
+ List<Object[]> showAllEmployeeRewards();
 	
 }

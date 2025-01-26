@@ -172,6 +172,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
   isShowReleaseNote: boolean = false;
   releaseNoteText = "";
 
+  currentIndex: any = 0; 
+  currentGroup: any = null;
+  scrollDelay: number = 18500;
+
   constructor(
     private modalService: BsModalService,
     private authenticationService: AuthenticationService,
@@ -223,7 +227,6 @@ LmsRedirection(){
 }
   ngOnInit(): void {
     this.getEmployeeProfileCompletion();
-    this.getCurrentMonthYear();
     this.logService.updateLogInfo(this.log);
     // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -953,49 +956,53 @@ LmsRedirection(){
     });
   }
 
-  currentMonthYearDisplay:any; 
-  currentMonthYearApi: any; 
+  getAllEmployeesRewards() {
+    this.rewardsService.fetchEmployeesForHomepage().subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
-getCurrentMonthYear(): void {
-  const now = new Date();
-  const displayOptions = { month: 'long', year: 'numeric' } as const;
-  this.currentMonthYearDisplay = now.toLocaleDateString('en-US', displayOptions);
+        const groupedRewards = response.serviceResponse.reduce((acc: any, reward: any) => {
+          const key = reward.ofMonthYear;
+          if (!acc[key]) {
+            acc[key] = [];
+          }
+          acc[key].push(reward);
+          return acc;
+        }, {});
+  
+        this.rewardsList = Object.keys(groupedRewards)
+          .sort((a, b) => b.localeCompare(a))
+          .map((key) => {
+            const [year, month] = key.split("-");
+            const formattedMonthYear = `${monthNames[parseInt(month, 10) - 1]}-${year}`;
+            return {
+              ofMonthYear: formattedMonthYear, 
+              rewards: groupedRewards[key],
+            };
+          });
+  
+        this.startRewardCycle();
+  
+        console.log("Rewards List as Array (Formatted and Descending): ", this.rewardsList);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
 
-  // Format for API (e.g., "2024-01")
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0'); 
-  this.currentMonthYearApi = `${year}-${month}`;
-}
+  startRewardCycle(): void {
+    this.currentGroup = this.rewardsList[this.currentIndex];
 
-getAllEmployeesRewards() {
-  this.rewardsService.fetchEmployeesForHomepage().subscribe((response: any) => {
-    if (response.serviceStatus == "Success") {
-      this.rewardsList = response.serviceResponse;
-      console.log("Rewardslist : ", this.rewardsList);
+    setTimeout(() => {
+      this.moveToNextGroup();
+    }, this.scrollDelay);
+  }
 
-    } else {
-      // this.compOffApplicationCount = 0;
-      console.error(response.serviceResponse);
-    }
-  });
-}
+  moveToNextGroup(): void {
+    this.currentIndex = (this.currentIndex + 1) % this.rewardsList.length;
 
-  // getAllEmployeesRewards() {
-  //   this.rewardsService.fetchEmployeesForHomepage().subscribe((response: any) => {
-  //     if (response.serviceStatus == "Success") {
-  //       this.rewardsList = response.serviceResponse;
-  //       console.log("Rewardslist : ", this.rewardsList);
-
-  //     } else {
-  //       // this.compOffApplicationCount = 0;
-  //       console.error(response.serviceResponse);
-  //     }
-  //   });
-  // }
-
-
-
-
+    this.startRewardCycle();
+  }
 
   /* Quick Links */
   showApplyLeaveForm() {
