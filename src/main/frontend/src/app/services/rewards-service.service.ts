@@ -64,6 +64,10 @@ export class RewardsServiceService {
     return this.http.post(`${this.baseUrl}`+`api/submitRewardForEmployee`, rewards);
   }
 
+  updateRewardForEmployee(rewards: Rewards){
+    return this.http.post(`${this.baseUrl}`+`api/updateRewardsForEmployees`, rewards);
+  }
+
   getEmployeeRewardByRewardId(rewardId: number) {
     return this.http.get(`${this.baseUrl}api/getEmployeeRewardByRewardId/${rewardId}`);
   }
@@ -104,6 +108,15 @@ getEmployeeRewardByEmpId(request : any){
 getTeamRewardByEmpId(request : any){
   return this.http.post(`${this.baseUrl}`+`api/getTeamRewardByEmpId`,request);
 
+}
+
+bulkDisableRewards(){
+  return this.http.post(`${this.baseUrl}`+`api/bulkDisableRewards`,null);
+
+}
+
+bulkEnableMonthYear(listofmonthyear:any){
+  return this.http.post(`${this.baseUrl}`+`api/bulkEnableRewards`,listofmonthyear);
 }
 
 }

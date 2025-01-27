@@ -34,6 +34,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
   selectedRewardType: { [key: string]: string } = {};
   isRewards: boolean = true;
   isRewardshitory: boolean = false;
+  iswalloffame :boolean = false;
   activeCategoryId: number | null = null;
   sumbitRewards: Rewards = new Rewards();
   selectedSubReward: any;
@@ -48,7 +49,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
   isSearchEnabled: boolean = false;
   filters: any = {};
   isTeamRewardHistory: boolean = false;
-  rewardHistoryColumns: any[] = ['', 'rewardedToByName', 'rewardTypeName', 'createdByName','createdOn', 'managerName', 'fromDate', 'toDate', 'updatedByName', 'updatedOn', 'remark',''];
+  rewardHistoryColumns: any[] = ['blank','rewardedToByName','rewardTypeName','createdByName','createdOn','managerName','ofmonthyear','updatedByName','updatedOn','remark'];
   page: number = 1;
   HistoryList: any[] = [];
   isSelectAll: boolean = false;
@@ -63,6 +64,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
   employeeSearchText: any = '';
   teamSearchText: any = '';
   ofmonthyear:any;
+  editRewardssss: Rewards = new Rewards();
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -184,13 +186,21 @@ setSelectedReward(reward: Rewards) {
     this.isRewards = false;
     this.isRewardshitory = true;
     this.isEditing = false;
+    this.iswalloffame = false;
     this.fetchRewardHistory();
   }
 
   isRewardsfuc() {
     this.isRewards = true;
     this.isRewardshitory = false;
-    
+    this.iswalloffame = false;
+  }
+
+  wallOffame(){
+    this.isRewards = false;
+    this.isRewardshitory = false;
+    this.iswalloffame = true;
+    this.wallOfFameMonths = ['']; 
   }
 
   rewardstypeName: any
@@ -315,6 +325,98 @@ editReward(rewardId: number) {
   );
 }
 
+reloadPage() {
+  window.location.reload();
+}
+
+
+wallOfFameMonths: string[] = [''];
+  addMonthYear() {
+    this.wallOfFameMonths.push(''); // Add an empty month-year value.
+  }
+
+  removeMonthYear(index: number) {
+    if (this.wallOfFameMonths.length > 1) {
+      this.wallOfFameMonths.splice(index, 1); // Remove the selected month-year.
+    } else {
+      alert('At least one month-year must be selected.');
+    }
+  }
+
+
+updateRewards(template: TemplateRef<any>) {
+  
+  this.editRewardssss.rewardId =  this.selectedReward.rewardId;
+  this.editRewardssss.ofmonthyear = this.ofmonthyear;
+  this.editRewardssss.rewardedTo = this.sumbitRewards.rewardedTo || this.selectedReward.rewardedTo;
+  this.editRewardssss.rewardTypeName = this.selectedReward.selectedType;
+  this.editRewardssss.remark = this.remarks;
+  this.editRewardssss.updatedBy = this.currentUser.empId;
+  this.editRewardssss.managerId = this.sumbitRewards.managerId || this.selectedReward.managerId;
+
+  console.log("updateddddddddddddd--", this.editRewardssss);
+  this.rewardsService.updateRewardForEmployee(this.editRewardssss).subscribe(
+    (response: any) => {
+      if (response.serviceStatus === 'Success') {
+
+        console.log(response.serviceResponse);
+        this.openAlertMod(template, response.serviceResponse);
+        this.isRewards = false;
+        this.isRewardshitory = true;
+        this.fetchRewardHistory();
+
+      } else {
+        this.openAlertMod(template, 'No reward categories available at the moment.');
+      }
+    },
+    (error) => {
+      this.openAlertMod(template, 'Error while updating');
+    }
+  );
+  this.isEditing = false;
+}
+  
+
+bulkDisableRewards(template: TemplateRef<any>) {
+
+  this.rewardsService.bulkDisableRewards().subscribe(
+    (response: any) => {
+      if (response.serviceStatus === 'Success') {
+        console.log(response.serviceResponse);
+        this.openAlertMod(template, response.serviceResponse);
+        this.fetchRewardHistory(); // Refresh the reward history
+      } else {
+        this.openAlertMod(template, 'Bulk disable operation failed.');
+      }
+    },
+    (error) => {
+      this.openAlertMod(template, 'An error occurred while performing bulk disable.');
+    }
+  );
+}
+
+bulkEnable(template: TemplateRef<any>) {
+  
+  this.rewardsService.bulkEnableMonthYear(this.wallOfFameMonths).subscribe(
+    (response: any) => {
+      if (response.serviceStatus === 'Success') {
+        console.log(response.serviceResponse);
+        this.openAlertMod(template, response.serviceResponse);
+        this.isRewards = false;
+          this.isRewardshitory = true;
+          this.iswalloffame = false;
+        this.fetchRewardHistory(); 
+      } else {
+        this.openAlertMod(template, 'Bulk Enable for the following month-year failed.');
+      }
+    },
+    (error) => {
+      this.openAlertMod(template, 'An error occurred while performing bulk enable.');
+    }
+  );
+}
+
+
 
   remarks: string;
 
@@ -347,10 +449,7 @@ editReward(rewardId: number) {
   }
 
   onSearch(searchData){
-    if(this.isSearchEnabled == true){
-      this.filters = searchData;
-      console.log("Updated Filter : ", this.filters);
-    }
+    this.filters = searchData;
   }
 
   sortData(sort: Sort) {
@@ -380,9 +479,12 @@ editReward(rewardId: number) {
 
           console.log("Reward History", response);
           this.rewardHistoryList = response.serviceResponse;
+          this.rewardHistoryList.forEach(rewards => {
+            rewards.createdOn = (rewards.createdOn)? moment(rewards.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+            rewards.updatedOn = (rewards.updatedOn)? moment(rewards.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+          });
 
         } else {
-          this.rewardHistoryList = [];
           console.error('No rewards data available');
         }
       },

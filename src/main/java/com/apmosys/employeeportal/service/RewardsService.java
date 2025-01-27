@@ -33,6 +33,7 @@ import com.apmosys.employeeportal.dto.RewardCategoryDTO;
 import com.apmosys.employeeportal.dto.RewardConfigurationDTO;
 import com.apmosys.employeeportal.dto.RewardsDetails;
 import com.apmosys.employeeportal.model.CommonProperties;
+import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeRewards;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
@@ -45,6 +46,7 @@ import com.apmosys.employeeportal.repository.RewardConfigRepository;
 import com.apmosys.employeeportal.repository.RewardsCategoryRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -56,6 +58,9 @@ public class RewardsService {
 
 	@Autowired
 	RewardsCategoryRepository rewardsCategoryRepository;
+	
+	@Autowired
+	StringToDateTimeParser stringToDateTimeParser;
 
 	@Autowired
 	RewardConfigRepository rewardConfigRepository;
@@ -444,25 +449,26 @@ public class RewardsService {
 	        rewardDetailsById.forEach(object -> {
 	            EmployeeRewardsDTO rewardDto = new EmployeeRewardsDTO();
 	            
-	            // Map fields from the query result to the DTO
-	            rewardDto.setCategoryId(object[0] != null ? Long.valueOf(object[0].toString()) : null);
-	            rewardDto.setCategoryName(object[1] != null ? object[1].toString() : null);
-	            rewardDto.setId(object[2] != null ? Long.valueOf(object[2].toString()) : null);
-	            rewardDto.setRewardName(object[3] != null ? object[3].toString() : null);
+	            
+	            rewardDto.setRewardId(object[0] != null ? Long.valueOf(object[0].toString()) : null);
+	            rewardDto.setCategoryId(object[1] != null ? Long.valueOf(object[1].toString()) : null);
+	            rewardDto.setCategoryName(object[2] != null ? object[2].toString() : null);
+	            rewardDto.setId(object[3] != null ? Long.valueOf(object[3].toString()) : null);
+	            rewardDto.setRewardName(object[4] != null ? object[4].toString() : null);
 	            
 	           
-	            if (object[4] != null) {
-	                rewardDto.setRewardTypes(Arrays.asList(object[4].toString().split(",")));
+	            if (object[5] != null) {
+	                rewardDto.setRewardTypes(Arrays.asList(object[5].toString().split(",")));
 	            } else {
 	                rewardDto.setRewardTypes(Collections.emptyList());
 	            }
 	            
-	            rewardDto.setRewardTypeName(object[5] != null ? object[5].toString() : null);
-	            rewardDto.setRewardedTo(object[6] != null ? Long.valueOf(object[6].toString()) : null);
-	            rewardDto.setRewardedToByName(object[7] != null ? object[7].toString() : null);
-	            rewardDto.setManagerId(object[8] != null ? Long.valueOf(object[8].toString()) : null);
-	            rewardDto.setOfmonthyear(object[9] != null ? object[9].toString() : null);
-	            rewardDto.setRemark(object[10] != null ? object[10].toString() : null);
+	            rewardDto.setRewardTypeName(object[6] != null ? object[6].toString() : null);
+	            rewardDto.setRewardedTo(object[7] != null ? Long.valueOf(object[7].toString()) : null);
+	            rewardDto.setRewardedToByName(object[8] != null ? object[8].toString() : null);
+	            rewardDto.setManagerId(object[9] != null ? Long.valueOf(object[9].toString()) : null);
+	            rewardDto.setOfmonthyear(object[10] != null ? object[10].toString() : null);
+	            rewardDto.setRemark(object[11] != null ? object[11].toString() : null);
 	            
 	            rewardDtoList.add(rewardDto);
 	        });
@@ -693,7 +699,7 @@ public class RewardsService {
 		    CommonProperties commonProperties = new CommonProperties();
 		    commonProperties.setCreatedBy(employeeRewardsDTO.getCreatedBy() != null ? employeeRewardsDTO.getCreatedBy() : null);
 		    commonProperties.setUpdatedBy(employeeRewardsDTO.getUpdatedBy() != null ? employeeRewardsDTO.getUpdatedBy() : null);
-		    commonProperties.setUpdatedOn(LocalDateTime.now());
+		    
 		    
 		    employeeRewards.setCommonProperty(commonProperties);
 		    
@@ -714,6 +720,96 @@ public class RewardsService {
 
 	    return serviceResponse;
 	}
+	
+	public ServiceResponse updateRewardsForEmployees(EmployeeRewardsDTO employeeRewardsDTO) {
+	    ServiceResponse response = new ServiceResponse();
+	    try {
+	   Optional<EmployeeRewards> getemployeeRewardsById = employeeRewardsRepository.findById(employeeRewardsDTO.getRewardId());
+	    if(getemployeeRewardsById.isPresent()) {
+	    	EmployeeRewards employeeRwardToBeUpdated = getemployeeRewardsById.get();
+	    	employeeRwardToBeUpdated.setManagerId(employeeRewardsDTO.getManagerId());
+	    	employeeRwardToBeUpdated.setOfmonthyear(employeeRewardsDTO.getOfmonthyear());
+	    	employeeRwardToBeUpdated.setRemark(employeeRewardsDTO.getRemark());
+	    	employeeRwardToBeUpdated.setRewardedTo(employeeRewardsDTO.getRewardedTo());
+	    	employeeRwardToBeUpdated.setRewardTypeName(employeeRewardsDTO.getRewardTypeName());	
+	    	CommonProperties commonProperties = employeeRwardToBeUpdated.getCommonProperty();
+            if (commonProperties == null) {
+                commonProperties = new CommonProperties();
+            }
+            commonProperties.setUpdatedBy(employeeRewardsDTO.getUpdatedBy());
+            commonProperties.setUpdatedOn(LocalDateTime.now());
+
+            employeeRwardToBeUpdated.setCommonProperty(commonProperties);
+
+	    	EmployeeRewards dbResponse = employeeRewardsRepository.save(employeeRwardToBeUpdated);
+
+			if (dbResponse != null) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Rewards Updated Successfully");
+				
+				
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Rewards Updation Failed.");
+				
+				
+			}
+		} else {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Rewards Not Found");
+			
+		}
+	} catch (Exception e) {
+		e.printStackTrace();
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse("Something Went Wrong.");
+		response.setServiceError(e.getMessage());
+		
+	}
+	 return response;   	   
+	    
+	}
+	
+	public ServiceResponse bulkDisableRewards() {
+	    ServiceResponse response = new ServiceResponse();
+	    try {
+	        int updatedRows = employeeRewardsRepository.bulkDisableRewards();
+	        if (updatedRows > 0) {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse("Rewards have been disabled successfully.");
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No rewards were updated. Please try again.");
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+	    }
+	    return response;
+	}
+	
+	public ServiceResponse bulkEnableRewards(List<String> monthyears) {
+	    ServiceResponse response = new ServiceResponse();
+	    try {
+	        int updatedRows = employeeRewardsRepository.bulkEnableRewards(monthyears);
+	        if (updatedRows > 0) {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse("Rewards have been enabled for the following month-years.");
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No rewards were enabled. Please try again.");
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+	    }
+	    return response;
+	}
+
 
 		@Transactional
 		private EmployeeRewards createEmployeeReward(EmployeeRewardsDTO employeeRewardsDTO, Long empId) {
@@ -803,7 +899,7 @@ public class RewardsService {
 			    	if(!rewardsDTOList.isEmpty()) {
 			    		
 			    		rewardsDTOList.forEach((object) -> {
-			    			
+			    			 
 			    			EmployeeRewardsDTO dto = new EmployeeRewardsDTO();
 			    		
 			    			dto.setRewardedTo(object[0] != null ? Long.parseLong(object[0].toString()) : null);

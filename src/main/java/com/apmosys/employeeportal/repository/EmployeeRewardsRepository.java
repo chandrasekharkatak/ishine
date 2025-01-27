@@ -4,9 +4,11 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.EmployeeRewardsDTO;
 import com.apmosys.employeeportal.model.EmployeeRewards;
@@ -122,7 +124,7 @@ public interface EmployeeRewardsRepository extends JpaRepository <EmployeeReward
 List<Object[]> getRewardByTeamAndDateRange(@Param("empId") Long empId);
 
 
- @Query(nativeQuery = true , value = "SELECT rc.reward_category_id, rc.category_name, er.id ,r.reward_name,r.reward_type,er.reward_type_name,er.rewarded_to,\n"
+ @Query(nativeQuery = true , value = "SELECT er.reward_id,rc.reward_category_id, rc.category_name, er.id ,r.reward_name,r.reward_type,er.reward_type_name,er.rewarded_to,\n"
  		+ "			   e.name AS rewarded_to_name,e.manager_id,er.ofmonthyear,er.remark\n"
  		+ "			FROM \n"
  		+ "			  employee_rewards er\n"
@@ -136,5 +138,15 @@ List<Object[]> getRewardByTeamAndDateRange(@Param("empId") Long empId);
 	
  @Query(nativeQuery = true)
  List<Object[]> showAllEmployeeRewards();
+	
+ @Modifying
+ @Transactional
+ @Query("UPDATE EmployeeRewards er SET er.isActive = 0")
+ int bulkDisableRewards();
+ 
+ @Modifying
+ @Transactional
+ @Query("UPDATE EmployeeRewards er SET er.isActive = 1 WHERE er.ofmonthyear IN :monthyears")
+ int bulkEnableRewards(@Param("monthyears") List<String> monthyears);
 	
 }

@@ -174,7 +174,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   currentIndex: any = 0; 
   currentGroup: any = null;
-  scrollDelay: number = 18500;
+  scrollDelay: number = 18700;
 
   constructor(
     private modalService: BsModalService,

@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -48,6 +50,8 @@ public class RewardsController {
 		return rewardsService.editRewardConfiguration(rewardConfigurationDTO);
 	}
 	
+	
+	
 	@RequestMapping(value = "/getAllRewardsByCategoryId/{categoryId}", method = RequestMethod.GET)
 	public ServiceResponse getAllRewardsByCategoryId(@PathVariable("categoryId") Integer categoryId) {
 	    ServiceResponse serviceResponse = rewardsService.getAllRewardsByCategoryId(categoryId);
@@ -85,6 +89,23 @@ public class RewardsController {
 	{
 		ServiceResponse serviceResponse = rewardsService.submitRewardForEmployee(EmployeeRewardsDTO);
         return serviceResponse;
+	}
+	
+	@PostMapping("/updateRewardsForEmployees")
+	public ServiceResponse updateRewardsForEmployees (@RequestBody EmployeeRewardsDTO EmployeeRewardsDTO) {
+		ServiceResponse serviceResponse = rewardsService.updateRewardsForEmployees(EmployeeRewardsDTO);
+        return serviceResponse;
+	}
+	
+	@PostMapping("/bulkDisableRewards")
+	public ServiceResponse bulkDisableRewards() {
+	    ServiceResponse serviceResponse = rewardsService.bulkDisableRewards();
+	    return serviceResponse;
+	}
+	
+	@PostMapping("/bulkEnableRewards")
+	public ServiceResponse bulkEnableRewards(@RequestBody List<String> monthyears) {
+	    return rewardsService.bulkEnableRewards(monthyears);
 	}
 	
 	@RequestMapping(value = "/showAllEmployeeRewards", method = RequestMethod.GET)
