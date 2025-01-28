@@ -49,7 +49,7 @@ interface LmsRediredtion{
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit, AfterViewInit {
- private lmsurl:any = environment.lmsbaseurl;
+ private lmsurl:any = '';
   lines:any=[];
 
  
@@ -956,7 +956,52 @@ LmsRedirection(){
     });
   }
 
+  groupedRewards: { [key: string]: any[] } = {};
+  monthKeys: string[] = [];
+  currentMonthIndex: number = 0;
+  currentRewards: any[] = [];
+
   getAllEmployeesRewards() {
+    this.rewardsService.fetchEmployeesForHomepage().subscribe((response: any) => {
+      if (response.serviceStatus === 'Success') {
+        this.rewardsList = response.serviceResponse;
+        this.groupRewardsByMonth();
+        this.startScrolling();
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  groupRewardsByMonth() {
+    this.groupedRewards = this.rewardsList.reduce((groups: any, reward: any) => {
+      if (!groups[reward.ofMonthYear]) {
+        groups[reward.ofMonthYear] = [];
+      }
+      groups[reward.ofMonthYear].push(reward);
+      return groups;
+    }, {});
+
+    // Sort months in ascending order
+    this.monthKeys = Object.keys(this.groupedRewards).sort();
+    this.currentMonthIndex = 0;
+    this.updateCurrentRewards();
+  }
+
+  updateCurrentRewards() {
+    const currentMonth = this.monthKeys[this.currentMonthIndex];
+    this.currentRewards = this.groupedRewards[currentMonth] || [];
+  }
+
+  startScrolling() {
+    setInterval(() => {
+      this.currentMonthIndex = (this.currentMonthIndex + 1) % this.monthKeys.length;
+      this.updateCurrentRewards();
+    }, 30000); // Adjust time (10s) as needed
+  }
+
+
+  getAllEmployeesRewardss() {
     this.rewardsService.fetchEmployeesForHomepage().subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
