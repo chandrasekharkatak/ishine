@@ -4778,8 +4778,54 @@ try {
 		@Scheduled(cron = "0 0 9 ? * *") // runs everyday at 9 pm
 		public void leaveDeduct() {
 
+			List<BioMaTO> biomaxDataList = new ArrayList<BioMaTO>();
+			
+//			BioMaTO(logDate=null, employeeCode=A2380,
+//					employeeName=null, totalDuration=0, shiftName=NoShift,
+//					beginTime=00:00, endTime=00:00, status=null, punchRecords=null,
+//					earlyBy=null, lateBy=null, duration=null, inTime=00:00, outTime=00:00,
+//					shiftDuration=null, totalOverTime=null, totalUnderTimeE=null,
+//					attendanceDate=2025-01-18 00:00:00.0, deduct=0.5)
+			
+//			test code
+			BioMaTO biomatObj = new BioMaTO();
+			biomatObj.setEmployeeCode("A240419");
+			biomatObj.setAttendanceDate("2025-01-18 00:00:00.0");
+			biomatObj.setInTime("00:00");
+			biomatObj.setOutTime("00:00");
+			biomatObj.setTotalDuration("200");
+			biomatObj.setShiftName("General");
+			biomatObj.setBeginTime("00:00");
+			biomatObj.setEndTime("00:00");
+			biomatObj.setDeduct("0.5");
+			biomaxDataList.add(biomatObj);
+			
+			BioMaTO biomatObj1 = new BioMaTO();
+			biomatObj.setEmployeeCode("A240428");
+			biomatObj1.setAttendanceDate("2025-01-18 00:00:00.0");
+			biomatObj1.setInTime("00:00");
+			biomatObj1.setOutTime("00:00");
+			biomatObj1.setTotalDuration("200");
+			biomatObj1.setShiftName("General");
+			biomatObj1.setBeginTime("00:00");
+			biomatObj1.setEndTime("00:00");
+			biomatObj1.setDeduct("0.5");
+			biomaxDataList.add(biomatObj1);
+			
+			BioMaTO biomatObj2 = new BioMaTO();
+			biomatObj.setEmployeeCode("A654654");
+			biomatObj2.setAttendanceDate("2025-01-18 00:00:00.0");
+			biomatObj2.setInTime("00:00");
+			biomatObj2.setOutTime("00:00");
+			biomatObj2.setTotalDuration("200");
+			biomatObj2.setShiftName("General");
+			biomatObj2.setBeginTime("00:00");
+			biomatObj2.setEndTime("00:00");
+			biomatObj2.setDeduct("0.5");
+			biomaxDataList.add(biomatObj2);
+			
 			// fetch data from biomax
-			List<BioMaTO> biomaxDataList = bioMaxService.getBiomaxDataForLeaveDeduct();
+//			List<BioMaTO> biomaxDataList = bioMaxService.getBiomaxDataForLeaveDeduct();
 			List<BioMaTO> probationEmployeeList = new ArrayList<>();
 
 			String fileName = "LeaveDeduct.xlsx";
@@ -4890,25 +4936,23 @@ try {
 							}
 						});
 					}
-					
-					// Send mail
-
-					 boolean mailSent = mailService.sendMailWithAttachment(hrMailAddress,
-							 hrMailAddress,
-							 "Salary to be deducted of Employees in probation due to defaulter in working time",
-							 "Dear Team, <br><br>"
-		                   + "Please find Salary to be deducted of Employees in probation due to defaulter in working time attached below.",
-		                   file);
-					
-					 if(mailSent) {
-						System.out.println("Salary to be deducted of Employees Mail sent successfully !!");
-					 }else {
-						 System.out.println("Unable to sent salary to be deducted of Employees Mail !!");
-					 }
-
-					
 				}
 				wb.finish();
+				
+				// Send mail
+
+				 boolean mailSent = mailService.sendMailWithAttachment(hrMailAddress,
+						 hrMailAddress,
+						 "Salary to be deducted of Employees in probation due to defaulter in working time",
+						 "Dear Team, <br><br>"
+	                   + "Please find Salary to be deducted of Employees in probation due to defaulter in working time attached below.",
+	                   file);
+				
+				 if(mailSent) {
+					System.out.println("Salary to be deducted of Employees Mail sent successfully !!");
+				 }else {
+					 System.out.println("Unable to sent salary to be deducted of Employees Mail !!");
+				 }
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
