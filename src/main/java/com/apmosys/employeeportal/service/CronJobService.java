@@ -421,7 +421,7 @@ public class CronJobService {
 	// At 09:00 PM, on day 16th of the month, only in January
 //	@Scheduled(cron = "0 0 21 16 01 ?")
 
-	@Scheduled(cron = "0 51 17 * * ?")
+	@Scheduled(cron = "0 0 21 31 12 ?")
 
 		public void YearlyLeaveCronJob() {
 			System.out.println("*************************************************************************");

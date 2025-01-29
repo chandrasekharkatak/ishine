@@ -363,6 +363,7 @@ export class ResourceManagementComponent implements OnInit {
             // Process internal projects
             this.internalProjectList.forEach((proj) => {
               let selectedProj = this.teamCreatedProjectList.find((projTeam) => proj.projectId == projTeam.projectId);
+              console.log("Priyadarshini",proj.projectId," ",proj.projectName);
 
               if (selectedProj) {
                 proj.isTeamCreated = true;
@@ -404,7 +405,7 @@ export class ResourceManagementComponent implements OnInit {
 
 
             //console.log(_projectList, " all projects");
-            //console.log(this.internalProjectList, " this.internalProjectList");
+            console.log(this.internalProjectList, " this.internalProjectList");
 
             console.error("  allProject_Po_Internal   ", this.allProject_Po_Internal);
           } else {
@@ -775,8 +776,9 @@ export class ResourceManagementComponent implements OnInit {
 
   onApproveProject(project: any) {
     project.empId = this.currentUser.empId;
-    project.projectId = this.projectObj.projectId;
-    //console.log("this.projectObj.projectId   ",project);
+    // project.projectId = this.projectObj.projectId;
+    console.log("this.projectObj.projectId   ",this.projectObj.projectId);
+    console.log("this.projectObj.projectId   ",project.projectId);
     this.resourceManagementService.approvePendingProject(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.showViewProjects();
