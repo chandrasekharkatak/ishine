@@ -275,6 +275,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query(nativeQuery = true, value = "SELECT employeement_id,name FROM employee where employeement_id in :empList ")
 	public List<Object[]> getDataByEmpId(@Param("empList") Set empList );
 
-	
+	@Query(nativeQuery = true)
+	public List<Object[]> removeStaleMappingOfInactiveEmployees(); 
 	
 }

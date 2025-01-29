@@ -5537,4 +5537,46 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 
 	}
 	
+	public ServiceResponse removeStaleMappingOfInactiveEmployees() {
+		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("One time use api to remove stale mapping of inactive employees");
+		apiLogInfo.setApiUrl("/api/removeStaleMappingOfInactiveEmployees");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		try {
+			List<Object[]> inactiveEmployees = employeeRepository.removeStaleMappingOfInactiveEmployees();
+			if (inactiveEmployees.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("list is empty !!");
+			} else {
+				inactiveEmployees.forEach((object) -> {
+					Long key = object[0] != null ? Long.parseLong(object[0].toString()) : null;
+					employeeTeamMapRepository.updateActiveFieldToZero(key);
+				});
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Removed Stale Mapping of Inactive Employees");
+
+				apiLogInfo.setApiResponse("Removed Stale Mapping of Inactive Employees");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+
+	}
+	
+	
 }
