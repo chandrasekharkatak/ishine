@@ -1104,13 +1104,14 @@ public class CronJobService {
 	
 	//0 0 21 ? * * - At 21:00:00pm every day
 	
-		@Scheduled(cron = "0 0 21 ? * *")
+	@Scheduled(cron = "0 0 21 ? * *")
 		public void automaticTimesheetFiller() {
 			
 			try {
 				
+//				LocalDate dateToday = LocalDate.parse("2024-12-15");
 				LocalDate dateToday = LocalDate.now();
-				
+//				System.out.println("filling timesheet method started");
 				List<Object[]> allEmployee = employeeRepository.getEmployeeDetailForCron();
 				List<Holiday> publicHoliday = holidayRepository.findByDateOfHoliday(dateToday);
 				
@@ -1147,6 +1148,8 @@ public class CronJobService {
 									// For weekoff's managers don't have to approve the timesheet, if any employee worked on weekoff will revoke this ..
 									newTimesheet.setStatus("Approved");
 									
+//									System.out.println("filling weekoffs");
+									
 									timesheetsRepository.save(newTimesheet);
 								}				
 							}
@@ -1179,6 +1182,8 @@ public class CronJobService {
 									newTimesheet.setDescription("Public Holiday : " + holidays.getOccasion());
 									newTimesheet.setEmpId(empId);
 									newTimesheet.setStatus("Approved");
+									
+//									System.out.println("filling holiday");
 									
 									timesheetsRepository.save(newTimesheet);
 									
@@ -1235,7 +1240,9 @@ public class CronJobService {
 //						}					
 //					}
 //				}
-			}catch(Exception e) {
+				System.out.println("Method end reached");
+				}
+			catch(Exception e) {
 				e.printStackTrace();
 			}
 		}
