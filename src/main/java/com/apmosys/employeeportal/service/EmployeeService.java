@@ -1039,7 +1039,7 @@ public class EmployeeService {
 					empDTO.setBillableType(object[70] != null ? object[70].toString() : null);
 					empDTO.setIsConsultant(object[71] != null ? object[71].toString() : null);
 
-					empDTO.setEmployeeConfirmationDate(object[75] != null ? format.format(format.parse(object[75].toString())) : null);			
+//					empDTO.setEmployeeConfirmationDate(object[75] != null ? format.format(format.parse(object[75].toString())) : null);			
 					
 					if (object[42] != null) {
 
