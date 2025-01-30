@@ -2120,12 +2120,12 @@ public class EmployeeService {
 					}
 				}
 			 
-			 if(employeedto.getEmploymentstatus().equals("Confirmed"))
-					 {	
-				 employee.setEmployeeConfirmationDate(employeedto.getEmployeeConfirmationDate() != null
-						? stringToDateTimeParser.getDate(employeedto.getEmployeeConfirmationDate(), "yyyy-MM-dd")
-						: null)		; 
-				 }
+//			 if(employeedto.getEmploymentstatus().equals("Confirmed"))
+//					 {	
+//				 employee.setEmployeeConfirmationDate(employeedto.getEmployeeConfirmationDate() != null
+//						? stringToDateTimeParser.getDate(employeedto.getEmployeeConfirmationDate(), "yyyy-MM-dd")
+//						: null)		; 
+//				 }
 			 
 //			 if(employeedto.getEmploymentstatus().equals("Retain")) {
 //					
