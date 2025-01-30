@@ -884,7 +884,9 @@ console.log("date filter ",this.Allholidays);
     const dateFormat = 'YYYY-MM-DD';
     const dateTimeFormat = 'YYYY-MM-DD HH:mm:ss';
 
+    console.log( "test ",this.timesheetObj.description )
     this.timesheetObj.description = this.timesheetObj.description?.trim();
+    console.log( "test ",this.timesheetObj.description )
 
     let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template)
     if (!inputValidated) return;
