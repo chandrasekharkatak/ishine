@@ -366,11 +366,13 @@ AllWeekOfList:any[]=[];
       if (this.isTimesheetUpdateCounter === 0) this.isTimesheetUpdate = false;
     }
     selectedActivityObj.projectActivities = allActivityList;
+    // console.log('setAllProjectActivities',selectedActivityObj.projectActivities)
   }
 
   setActivity(activityObj) {
     this.allTimesheetActivities.find(activity => activity === activityObj).activity = activityObj.projectActivities.find(activity => activity.activityId == activityObj.activityId).activity;
     activityObj.description = null;
+    console.log('setActivity',activityObj.projectActivities)
     //console.log("Activity obj : ", activityObj)
     // //console.log("Activity : ",activity)
   }
@@ -1216,19 +1218,43 @@ console.log("date filter ",this.Allholidays);
     this.timesheetService.getAllActivitiesByProjectIdandEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         allActivityList = response.serviceResponse;
+        // console.log('getAllActivitiesByProjectIdandEmpId',allActivityList)
         allActivityList = allActivityList.sort((a, b) =>  a.activity.localeCompare(b.activity));
-        //console.log("Team name :  ", timesheetObj.teamName);
-        //console.log("allActivityList :", allActivityList);
+        // console.log('after sorting',allActivityList)
+        // console.log("Team name :  ", timesheetObj.teamId);
+        // console.log("allActivityList :", allActivityList);
         if(this.timesheetObj.timesheetAppliedFor == "team"){
           let teamMember = this.teamMemberList.find(employee => employee.empId == this.timesheetObj.empId)
           allActivityList = allActivityList.filter(x => x.departmentList?.map(x=>+x).includes(teamMember.departmentId));
+          // console.log('if',allActivityList)
         }else{
+          
           allActivityList = allActivityList.filter(x => x.departmentList?.map(x=>+x).includes(this.currentUser.departmentId));
+          // console.log('else',allActivityList)
         }
+
+        //added by priyadarshini for debugging purpose
+        // }else {
+        //   allActivityList = allActivityList.filter((x) => {
+        //     console.log("Processing Activity:", x);
+            
+        //     const departmentList = x.departmentList?.map((dep) => +dep);
+        //     console.log("Mapped departmentList to numbers:", departmentList);
+        
+        //     const isIncluded = departmentList?.includes(this.currentUser.departmentId);
+        //     console.log("Does it include currentUser.departmentId:", this.currentUser.departmentId, "=>", isIncluded);
+        
+        //     return isIncluded;
+        //   });
+        
+        //   console.log("Filtered allActivityList:", allActivityList);
+        // }
+        
       } else {
         console.error(response.serviceResponse)
       }
       this.setAllProjectActivities(activityObj, allActivityList);
+      // console.log("getAllActivitiesByProjectIdandEmpId",allActivityList);
     });
   }
 

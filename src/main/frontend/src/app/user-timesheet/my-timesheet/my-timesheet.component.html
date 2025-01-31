@@ -294,11 +294,13 @@
                                     <div class="form-group">
                                         <label class="info-label"><span class="text-danger">*</span>Activity</label>
                                         <select class="form-control" aria-hidden="true" id="dayTypeCursor"
+                                        
                                             [(ngModel)]="activityObj.activityId" (blur)="validateActivity($event,activityObj.activityId)" (change)="setActivity(activityObj)">
                                             <option selected="selected" value="" disabled>Select</option>
                                             <option *ngFor="let activity of activityObj.projectActivities"
                                                 value="{{activity.activityId}}">{{activity.activity}}</option>
                                         </select>
+                                        <!-- <pre>{{ activityObj.projectActivities | json }}</pre> -->
                                         <small class="errorMsg text-danger"></small>
 
                                     </div>

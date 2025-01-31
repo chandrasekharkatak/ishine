@@ -489,7 +489,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
     timesheetObj.timesheetId = timesheet.timesheetId;
     timesheetObj.email = timesheet.email;
     timesheetObj.rejectReason = timesheet.rejectReason?.trim();
-    timesheetObj.employeementId = timesheet.employeementId.substring(2);
+    if (timesheetObj.employeementId.startsWith('A-CS-')) {
+      timesheetObj.employeementId = timesheetObj.employeementId.substring(5);
+  } else if (timesheetObj.employeementId.startsWith('AP-')) {
+      timesheetObj.employeementId = timesheetObj.employeementId.substring(3);
+  } else if (timesheetObj.employeementId.startsWith('A-')) {
+      timesheetObj.employeementId = timesheetObj.employeementId.substring(2);
+  }else {
+    timesheetObj.employeementId = timesheetObj.employeementId.substring(2);
+  }
     timesheetObj.employeeName = timesheet.employeeName;
     timesheetObj.managerId = this.currentUser.empId;
     timesheetObj.managerEmail = this.currentUser.email;
@@ -1495,8 +1503,17 @@ export class HomeComponent implements OnInit, AfterViewInit {
     timesheetObj.status = "Approved"
     //console.log("For Bulk Update : ", timesheetObj);
     timesheetObj.bulkApprovedList.forEach((x) => {
-      x.employeementId = x.employeementId.substring(2);
-    })
+      if (x.employeementId.startsWith('A-CS-')) {
+        x.employeementId = x.employeementId.substring(5);
+      } else if (x.employeementId.startsWith('AP-')) {
+        x.employeementId = x.employeementId.substring(3);
+      } else if (x.employeementId.startsWith('A-')) {
+        x.employeementId = x.employeementId.substring(2);
+      } else {
+        x.employeementId = x.employeementId.substring(2);
+      }
+    });
+    
     this.timesheetService.bulkApproveTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, "All Selected Timesheets Approved Successfully ");
@@ -1528,8 +1545,17 @@ export class HomeComponent implements OnInit, AfterViewInit {
     timesheetObj.status = "Rejected"
     //console.log("For Bulk Update : ", timesheetObj);
     timesheetObj.bulkRejectList.forEach((item) => {
-      item.employeementId = item.employeementId.substring(2);
-    })
+      if (item.employeementId.startsWith('A-CS-')) {
+        item.employeementId = item.employeementId.substring(5);
+      } else if (item.employeementId.startsWith('AP-')) {
+        item.employeementId = item.employeementId.substring(3);
+      } else if (item.employeementId.startsWith('A-')) {
+        item.employeementId = item.employeementId.substring(2);
+      }else {
+        item.employeementId = item.employeementId.substring(2);
+      }
+    });
+    
     this.timesheetService.bulkRejectTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, "All Selected Timesheets Rejected Successfully ");
