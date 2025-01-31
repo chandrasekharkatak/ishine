@@ -4207,7 +4207,6 @@ public class EmployeeService {
 					managerObj.setManagerId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
 					managerObj.setReporteeCount(object[8] != null ? Integer.parseInt(object[8].toString()) : null);
 					managerObj.setIsConsultant(object[9] != null ? object[9].toString() : null);
-					
 					managerObj.setHierarchyType("Manager");
 					
 					dtoList.add(managerObj);
@@ -4228,7 +4227,6 @@ public class EmployeeService {
 					coWorker.setManagerId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
 					coWorker.setReporteeCount(object[8] != null ? Integer.parseInt(object[8].toString()) : null);
 					coWorker.setIsConsultant(object[9] != null ? object[9].toString() : null);
-					
 					if(coWorker.getEmpId().equals(employeedto.getEmpId())) {
 						coWorker.setHierarchyType("Self");
 					}else {
@@ -4253,7 +4251,7 @@ public class EmployeeService {
 					reportee.setManagerName(object[6] != null ? object[6].toString() : null);
 					reportee.setManagerId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
 					reportee.setReporteeCount(object[8] != null ? Integer.parseInt(object[8].toString()) : null);
-					reportee.setIsConsultant(object[9] != null ? object[9].toString() : null);					
+					reportee.setIsConsultant(object[9] != null ? object[9].toString() : null);
 					reportee.setHierarchyType("Reportee");
 					
 					dtoList.add(reportee);
@@ -4288,6 +4286,7 @@ public class EmployeeService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+
 
 	public ServiceResponse revokeAccount(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
