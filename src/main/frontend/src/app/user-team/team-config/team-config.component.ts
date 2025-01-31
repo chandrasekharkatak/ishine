@@ -65,6 +65,7 @@ export class TeamConfigComponent implements OnInit {
   //modal 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
+  modalRef2: BsModalRef = new BsModalRef();
 
   //Obj 
   teamObj: Team = new Team();
@@ -1381,6 +1382,10 @@ export class TeamConfigComponent implements OnInit {
     this.modalRef.hide();
   }
 
+  cancelRequest2() {
+    this.modalRef2.hide();
+  }
+
   openActivityPreviewModal(template: TemplateRef<any>,teamObj:any) {
     this.storedTeamObj = teamObj;
     //console.log(this.storedTeamObj, " this.storedTeamObj");
@@ -1418,13 +1423,11 @@ export class TeamConfigComponent implements OnInit {
   }
 
   openProjectTemplateModal(template: TemplateRef<any>, employee) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef2 = this.modalService.show(template, { class: 'modal-xl' });
     this.getExistingProjectsByUser(employee.empId);
     this.dataObj = employee;
 
     console.log("data employee newmenbfcg  ", employee)
-
-
   }
 
   getExistingProjectsByUser(employee) {

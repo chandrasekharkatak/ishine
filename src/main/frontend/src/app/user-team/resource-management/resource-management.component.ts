@@ -43,6 +43,7 @@ export class ResourceManagementComponent implements OnInit {
 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
+  modalRef2: BsModalRef = new BsModalRef();
   modalRef1: BsModalRef = new BsModalRef();
 
   projectObj: Project = new Project();
@@ -688,7 +689,7 @@ export class ResourceManagementComponent implements OnInit {
       //console.log(this.projectObj, " : this.projectObj");
       this.resourceManagementService.createDraftProjectInfo(this.projectObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
-          this.showViewProjects();
+          // this.showViewProjects();
           this.openAlertMod(template, response.serviceResponse);
         } else {
           this.openAlertMod(template, response.serviceResponse);
@@ -699,18 +700,18 @@ export class ResourceManagementComponent implements OnInit {
       console.log(this.projectObj, " : this.projectObj");
       this.resourceManagementService.createDraftProjectInfo(this.projectObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
-          this.showViewProjects();
-          this.openAlertMod(template, response.serviceResponse);
+          // this.showViewProjects();
+          // this.openAlertMod(template, response.serviceResponse);
 
-          this.resourceManagementService.sendProjectApproval(this.projectObj).pipe(first()).subscribe((response: any) => {
-            if (response.serviceStatus == "Success") {
-              this.cancelRequest();
-              this.openAlertMod(template, response.serviceResponse);
-            } else {
-              this.cancelRequest();
-              this.openAlertMod(template, response.serviceResponse);
-            }
-          });
+          // this.resourceManagementService.sendProjectApproval(this.projectObj).pipe(first()).subscribe((response: any) => {
+          //   if (response.serviceStatus == "Success") {
+          //     this.cancelRequest();
+          //     this.openAlertMod(template, response.serviceResponse);
+          //   } else {
+          //     this.cancelRequest();
+          //     this.openAlertMod(template, response.serviceResponse);
+          //   }
+          // });
         } else {
           this.openAlertMod(this.alertTemplate, response.serviceResponse);
         }
@@ -775,10 +776,12 @@ export class ResourceManagementComponent implements OnInit {
     });
   }
 
+
+
   onApproveProject(project: any) {
     project.empId = this.currentUser.empId;
     project.projectId = this.projectObj.projectId;
-    //console.log("this.projectObj.projectId   ",project);
+    console.log("this.projectObj.projectId   ", this.projectObj.projectId);
     this.resourceManagementService.approvePendingProject(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.showViewProjects();
@@ -1142,6 +1145,12 @@ export class ResourceManagementComponent implements OnInit {
     this.modalRef1.hide();
   }
 
+  cancelRequest2() {
+    console.log("cancel call ");
+
+    this.modalRef2.hide();
+  }
+
   previewTeamModal(template: TemplateRef<any>, teamObj: any, projectObj: any) {
     this.selectedProjectManager = '';
     this.previewTeamList = [];
@@ -1295,13 +1304,11 @@ export class ResourceManagementComponent implements OnInit {
   // }
 
   openProjectTemplateModal(template: TemplateRef<any>, employee) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef2 = this.modalService.show(template, { class: 'modal-xl' });
     this.getExistingProjectsByUser(employee.empId);
     this.dataObj = employee;
 
     console.log("data employee newmenbfcg  ", employee)
-
-
   }
 
 
