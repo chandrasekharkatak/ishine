@@ -4801,7 +4801,7 @@ try {
 			biomaxDataList.add(biomatObj);
 			
 			BioMaTO biomatObj1 = new BioMaTO();
-			biomatObj.setEmployeeCode("A240428");
+			biomatObj1.setEmployeeCode("A240428");
 			biomatObj1.setAttendanceDate("2025-01-18 00:00:00.0");
 			biomatObj1.setInTime("00:00");
 			biomatObj1.setOutTime("00:00");
@@ -4813,7 +4813,7 @@ try {
 			biomaxDataList.add(biomatObj1);
 			
 			BioMaTO biomatObj2 = new BioMaTO();
-			biomatObj.setEmployeeCode("A654654");
+			biomatObj2.setEmployeeCode("A654654");
 			biomatObj2.setAttendanceDate("2025-01-18 00:00:00.0");
 			biomatObj2.setInTime("00:00");
 			biomatObj2.setOutTime("00:00");
@@ -4827,6 +4827,7 @@ try {
 			// fetch data from biomax
 //			List<BioMaTO> biomaxDataList = bioMaxService.getBiomaxDataForLeaveDeduct();
 			List<BioMaTO> probationEmployeeList = new ArrayList<>();
+			List<Long> dataToBeDeleted = new ArrayList<>();
 
 			String fileName = "LeaveDeduct.xlsx";
 			var file = new File(fileName);
@@ -4848,7 +4849,7 @@ try {
 
 				if (!biomaxDataList.isEmpty()) {
 					List<BioMaTO> biomaxDataFilterList = biomaxDataList.stream()
-							.filter(obj -> Integer.parseInt(obj.getDeduct()) > 0).collect(Collectors.toList());
+							.filter(obj -> Double.parseDouble(obj.getDeduct()) > 0).collect(Collectors.toList());
 
 					if (!biomaxDataFilterList.isEmpty()) {
 						biomaxDataFilterList.forEach((object) -> {
@@ -4872,11 +4873,11 @@ try {
 
 										if (employeeObj.getEmploymentstatus().equals("Confirmed")) {
 											EmployeeLeavesMap employeeLeaveMapObject = employeeLeavesMapRepository
-													.findByEmpIdAndLeaveTypeMasterId(employeeObj.getEmpId(), (short) 2);
+													.findByEmpIdAndLeaveTypeMasterId(employeeObj.getEmpId(), (short) 3);
 
 											if (employeeLeaveMapObject != null) {
 												Float newBalance = employeeLeaveMapObject.getBalance()
-														- Integer.parseInt(object.getDeduct());
+														- Float.parseFloat(object.getDeduct());
 
 												employeeLeaveMapObject.setBalance(newBalance);
 												EmployeeLeavesMap dbResponse = employeeLeavesMapRepository
@@ -4916,7 +4917,7 @@ try {
 									}
 
 									// delete employee from defaulter table
-									biomaxDefaulterRepository.deleteAllByEmployeementId(employmentId);
+									dataToBeDeleted.add(employmentId);
 								} else {
 									// Another defaulter entry
 									BiomaxDefaulter newDefaulterObj = new BiomaxDefaulter();
@@ -4953,6 +4954,11 @@ try {
 				 }else {
 					 System.out.println("Unable to sent salary to be deducted of Employees Mail !!");
 				 }
+				 
+				 
+				 //Delete all the employee in defaulter by employeemnetId
+			      biomaxDefaulterRepository.deleteAllByEmployeementIds(dataToBeDeleted);
+				 
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
