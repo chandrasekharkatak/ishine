@@ -38,6 +38,6 @@ public interface EmployeeRewardsRepository extends JpaRepository <EmployeeReward
 			+ "WHERE \n"
 			+ "    er.is_active != 0", 
 			nativeQuery = true)
-	 List<List<Object>> fetchEmployeesForHomepage();
+	 List<Object[]> fetchEmployeesForHomepage();
 	
 }

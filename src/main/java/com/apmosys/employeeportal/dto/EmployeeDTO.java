@@ -234,7 +234,7 @@ public class EmployeeDTO {
 	private Long count_of_employees;
 	private String reportiesFlag;
     
-	private String employeeConfirmationDate;
+	private LocalDate employeeConfirmationDate;
 	
 	private String isConsultant;
 	private String currentExperienceYear;

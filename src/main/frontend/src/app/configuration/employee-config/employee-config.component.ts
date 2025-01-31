@@ -1648,7 +1648,6 @@ minDate: Date;
     // transform date formats to YYYY-MM-DD
     if(this.employeeObj.dateOfBirth) this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth ).format(dateFormat)
     if(this.employeeObj.dateOfJoining) this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat)
-    if(this.employeeObj.employeeConfirmationDate) this.employeeObj.employeeConfirmationDate = moment(this.employeeObj.employeeConfirmationDate).format(dateFormat)  
     if(this.employeeObj.dateOfResign) this.employeeObj.dateOfResign = moment(this.employeeObj.dateOfResign).format(dateFormat)
 
     if(this.employeeObj.employmentstatus == "Confirmed" || this.employeeObj.employmentstatus == "Probation" ){
@@ -1837,7 +1836,6 @@ minDate: Date;
           "Employment Status": x.employmentstatus,
           "Date of Joining": (x.dateOfJoining)? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null,
           "Date of Relieving" : (x.dateOfRelieving)? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null,
-          "Employee Release Status" : x.employmentReleaseStatus,
           "Department Name": x.departmentName,
           "Aadhar":x.aadhar,
           "About Me":x.aboutMe,

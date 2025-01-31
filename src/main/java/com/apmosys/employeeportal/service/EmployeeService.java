@@ -2120,12 +2120,12 @@ public class EmployeeService {
 					}
 				}
 			 
-			 if(employeedto.getEmploymentstatus().equals("Confirmed"))
-					 {	
-				 employee.setEmployeeConfirmationDate(employeedto.getEmployeeConfirmationDate() != null
-						? stringToDateTimeParser.getDate(employeedto.getEmployeeConfirmationDate(), "yyyy-MM-dd")
-						: null)		; 
-				 }
+//			 if(employeedto.getEmploymentstatus().equals("Confirmed"))
+//					 {	
+//				 employee.setEmployeeConfirmationDate(employeedto.getEmployeeConfirmationDate() != null
+//						? stringToDateTimeParser.getDate(employeedto.getEmployeeConfirmationDate(), "yyyy-MM-dd")
+//						: null)		; 
+//				 }
 			 
 //			 if(employeedto.getEmploymentstatus().equals("Retain")) {
 //					
@@ -4207,7 +4207,6 @@ public class EmployeeService {
 					managerObj.setManagerId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
 					managerObj.setReporteeCount(object[8] != null ? Integer.parseInt(object[8].toString()) : null);
 					managerObj.setIsConsultant(object[9] != null ? object[9].toString() : null);
-					
 					managerObj.setHierarchyType("Manager");
 					
 					dtoList.add(managerObj);
@@ -4228,7 +4227,6 @@ public class EmployeeService {
 					coWorker.setManagerId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
 					coWorker.setReporteeCount(object[8] != null ? Integer.parseInt(object[8].toString()) : null);
 					coWorker.setIsConsultant(object[9] != null ? object[9].toString() : null);
-					
 					if(coWorker.getEmpId().equals(employeedto.getEmpId())) {
 						coWorker.setHierarchyType("Self");
 					}else {
@@ -4253,7 +4251,7 @@ public class EmployeeService {
 					reportee.setManagerName(object[6] != null ? object[6].toString() : null);
 					reportee.setManagerId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
 					reportee.setReporteeCount(object[8] != null ? Integer.parseInt(object[8].toString()) : null);
-					reportee.setIsConsultant(object[9] != null ? object[9].toString() : null);					
+					reportee.setIsConsultant(object[9] != null ? object[9].toString() : null);
 					reportee.setHierarchyType("Reportee");
 					
 					dtoList.add(reportee);
@@ -4288,6 +4286,7 @@ public class EmployeeService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+
 
 	public ServiceResponse revokeAccount(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
@@ -5653,5 +5652,47 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		return response;
 
 	}
+	
+	public ServiceResponse removeStaleMappingOfInactiveEmployees() {
+		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("One time use api to remove stale mapping of inactive employees");
+		apiLogInfo.setApiUrl("/api/removeStaleMappingOfInactiveEmployees");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		try {
+			List<Object[]> inactiveEmployees = employeeRepository.removeStaleMappingOfInactiveEmployees();
+			if (inactiveEmployees.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("list is empty !!");
+			} else {
+				inactiveEmployees.forEach((object) -> {
+					Long key = object[0] != null ? Long.parseLong(object[0].toString()) : null;
+					employeeTeamMapRepository.updateActiveFieldToZero(key);
+				});
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Removed Stale Mapping of Inactive Employees");
+
+				apiLogInfo.setApiResponse("Removed Stale Mapping of Inactive Employees");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+
+	}
+	
 	
 }

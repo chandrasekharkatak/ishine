@@ -441,6 +441,11 @@ public class EmployeeController {
 		return response;
 	}
 	
-	
+	@RequestMapping(value = "/removeStaleMappingOfInactiveEmployees", method = RequestMethod.POST)
+	public ServiceResponse removeStaleMappingOfInactiveEmployees() {
+
+		ServiceResponse response = employeeService.removeStaleMappingOfInactiveEmployees();
+		return response;
+	}
 	
 }

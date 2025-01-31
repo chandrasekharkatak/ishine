@@ -80,7 +80,7 @@
                             <div class="d-flex">
                                 <input class="form-control" #input (focus)="timesheetDate.open()" matInput
                                     id="timesheetDate" [matDatepicker]="timesheetDate"
-                                    [matDatepickerFilter]="(timesheetObj.dayType === 'Week Off' || timesheetObj.dayType === 'Public Holiday') ? customDateFilter : timesheetDateFilter" placeholder="Choose a timesheet date"
+                                    [matDatepickerFilter]="timesheetDateFilter" placeholder="Choose a timesheet date"
                                     [(ngModel)]="timesheetObj.date" (keydown)="disableMannualDateInput()"
                                     autocomplete="off">
                                 <mat-datepicker-toggle matSuffix [for]="timesheetDate" style="margin-left: -44px; margin-top: 0px;"></mat-datepicker-toggle>
