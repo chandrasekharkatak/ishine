@@ -20,7 +20,6 @@ import * as moment from 'moment';
 import { AppComponent } from 'src/app/app.component';
 import { ProjectService } from 'src/app/services/project.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
-import { UtilityService } from 'src/app/services/utility.service';
 
 @Component({
   selector: 'app-resource-management',
@@ -120,7 +119,6 @@ export class ResourceManagementComponent implements OnInit {
     private router: Router,
     private projectService: ProjectService,
     private exportExcelService: ExportExcelService,
-    private utilityService: UtilityService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -366,6 +364,7 @@ export class ResourceManagementComponent implements OnInit {
             // Process internal projects
             this.internalProjectList.forEach((proj) => {
               let selectedProj = this.teamCreatedProjectList.find((projTeam) => proj.projectId == projTeam.projectId);
+              console.log("Priyadarshini",proj.projectId," ",proj.projectName);
 
               if (selectedProj) {
                 proj.isTeamCreated = true;
@@ -407,7 +406,7 @@ export class ResourceManagementComponent implements OnInit {
 
 
             //console.log(_projectList, " all projects");
-            //console.log(this.internalProjectList, " this.internalProjectList");
+            console.log(this.internalProjectList, " this.internalProjectList");
 
             console.error("  allProject_Po_Internal   ", this.allProject_Po_Internal);
           } else {
@@ -780,8 +779,9 @@ export class ResourceManagementComponent implements OnInit {
 
   onApproveProject(project: any) {
     project.empId = this.currentUser.empId;
-    project.projectId = this.projectObj.projectId;
-    console.log("this.projectObj.projectId   ", this.projectObj.projectId);
+    // project.projectId = this.projectObj.projectId;
+    console.log("this.projectObj.projectId   ",this.projectObj.projectId);
+    console.log("this.projectObj.projectId   ",project.projectId);
     this.resourceManagementService.approvePendingProject(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.showViewProjects();
@@ -815,8 +815,6 @@ export class ResourceManagementComponent implements OnInit {
     this.employeeObj.role = "Manager";
     if( this.employeeObj.isConsultant == 'true' ){
       this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(5)
-    }else if( this.employeeObj.isApprenticeship == 'true' ){
-      this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(3)
     }else{
       this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
     }
@@ -826,13 +824,12 @@ export class ResourceManagementComponent implements OnInit {
         this.managerList = response.serviceResponse;
 
         this.managerList.forEach((emp) => {
-          // if(emp.isConsultant == 'true'){
-          //   emp.employeementId = "A-CS-".concat(emp.employeementId);
-          // }else{
-          //   emp.employeementId = "A-".concat(emp.employeementId);
-          // }
+          if(emp.isConsultant == 'true'){
+            emp.employeementId = "A-CS-".concat(emp.employeementId);
+          }else{
+            emp.employeementId = "A-".concat(emp.employeementId);
+          }
           // emp.employeementId = "A-".concat(emp.employeementId);
-          emp.employeementId = this.utilityService.getFormattedEmployeeId(emp);
         });
 
         //console.log("managerList : ", this.managerList);

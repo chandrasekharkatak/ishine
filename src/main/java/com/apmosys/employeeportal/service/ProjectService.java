@@ -9,6 +9,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -206,6 +207,7 @@ public class ProjectService {
 		return response;
 	}
 	
+	@Transactional
 	public ServiceResponse createProject(PoProjectSyncDTO poProjectSyncDTO) {
 		ServiceResponse response = new ServiceResponse();
         LogDTO apiLogInfo = new LogDTO();
@@ -218,8 +220,9 @@ public class ProjectService {
 			//Find client (Inhouse : Apmosys)
 			String internalClient = "Apmosys";
 			Client firstClientOptional = clientsRepository.findByClientNameList(internalClient);
+			System.out.println("Pri 1 "+ firstClientOptional);
 			if (firstClientOptional != null) {
-			    
+				System.out.println("Pri 2 "+ firstClientOptional);
 			    Project projectObj = new Project();
 				projectObj.setProjectName(poProjectSyncDTO.getProjectName());
 				projectObj.setProjectManagerId(poProjectSyncDTO.getProjectManagerId());
@@ -229,7 +232,7 @@ public class ProjectService {
 				projectObj.setSyncProject("false");
 				projectObj.setCreatedBy(Long.parseLong(poProjectSyncDTO.getCreatedBy()));
 				Project projectDbResponse =  projectRepository.save(projectObj);
-				
+				System.out.println("Pri 3 "+ firstClientOptional);
 				if(projectDbResponse != null) {
 					// Add department mapping
 					for(String department: poProjectSyncDTO.getDepartmentList()) {
@@ -239,6 +242,7 @@ public class ProjectService {
 						projectDeptMap.setDeptId(departmentObj.getDeptId());
 						ProjectDepartmentMap projDeptMapDbResponse = projectDepartmentMapRepository.save(projectDeptMap);
 					}
+					System.out.println("Pri 4 "+ firstClientOptional);
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Project created successfully.");
                     apiLogInfo.setApiResponse("Project Created Successfully!");

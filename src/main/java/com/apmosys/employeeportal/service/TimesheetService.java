@@ -295,6 +295,7 @@ public class TimesheetService {
 					for (ActivityDTO activity : allTimesheetActivities) {
 
 						description = description.concat(activity.getActivity() + "<br>");
+					
 
 					}
 				}
@@ -303,6 +304,8 @@ public class TimesheetService {
 			newTimesheet.setStatus("Pending");
 			newTimesheet.setIsNightShift(timesheetDTO.getIsNightShift());
 			newTimesheet.getCommonProperty().setCreatedBy(timesheetDTO.getCreatedBy());
+			
+			System.err.println("Time sheet checked "+newTimesheet);
 
 			Timesheet newTimesheetCreated = timesheetsRepository.save(newTimesheet);
 
@@ -329,8 +332,13 @@ public class TimesheetService {
 						Float savedTime = newTimesheetCreated.getTotalTime() != null ? newTimesheetCreated.getTotalTime() : 0;
 						Float totalTime = activity.getCompletionTime() + savedTime;
 						newTimesheet.setTotalTime(totalTime);
+						
+						System.err.println("Time sheet checked2 "+newTimesheet);
 						timesheetsRepository.save(newTimesheet);
 					});
+					
+					
+					System.err.println("Time sheet mapList "+mapList);
 
 					List<TimesheetActivityMap> activityMapped = timesheetActivityMapRepository.saveAll(mapList);
 
@@ -797,7 +805,6 @@ public class TimesheetService {
 						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
 						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
 						dto.setIsConsultant(object[16] != null ? object[16].toString() : null);
-						dto.setIsApprenticeship(object[17] != null ? object[17].toString() : null);
 						dtoList.add(dto);
 					});
 
@@ -1237,8 +1244,6 @@ public class TimesheetService {
 						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
 						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
 						dto.setLeaveType(object[15] != null ? object[15].toString() : null);
-						dto.setIsConsultant(object[16] != null ? object[16].toString() : null);
-						dto.setIsApprenticeship(object[17] != null ? object[17].toString() : null);
 						
 						dtoList.add(dto);
 					});
@@ -1636,7 +1641,6 @@ public class TimesheetService {
 						timesheetDto.setUpdatedOn(object[10] != null ? object[10].toString() : null);
 						timesheetDto.setTimesheetStatusUpdatedByName(object[11] != null ? object[11].toString() : null);
 						timesheetDto.setIsConsultant(object[12] != null ? object[12].toString() : null);
-						timesheetDto.setIsApprenticeship(object[13] != null ? object[13].toString() : null);
 						
 						dtoList.add(timesheetDto);
 					});

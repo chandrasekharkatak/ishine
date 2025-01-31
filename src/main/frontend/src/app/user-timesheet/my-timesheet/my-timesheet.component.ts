@@ -1,29 +1,26 @@
-import { state } from '@angular/animations';
+import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Sort } from '@angular/material/sort';
+import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { ClipboardService } from 'ngx-clipboard';
 import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
 import { Activity } from 'src/app/models/activity';
+import { Employee } from 'src/app/models/employee';
 import { Feature } from 'src/app/models/feature';
+import { Holiday } from 'src/app/models/holiday';
+import { Leave } from 'src/app/models/leave';
 import { Timesheet } from 'src/app/models/timesheet';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
+import { EmployeeService } from 'src/app/services/employee.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { HolidayService } from 'src/app/services/holiday.service';
+import { LeaveService } from 'src/app/services/leave.service';
+import { TeamViewService } from 'src/app/services/team-view.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { ExportExcelService } from 'src/app/services/export-excel.service';
-import { DatePipe, LocationStrategy } from '@angular/common';
-import * as moment from 'moment';
-import { Sort } from '@angular/material/sort';
-import { ClipboardService } from 'ngx-clipboard';
-import { Employee } from 'src/app/models/employee';
-import { TeamViewService } from 'src/app/services/team-view.service';
-import { LeaveService } from 'src/app/services/leave.service';
-import { Leave } from 'src/app/models/leave';
-import { Team } from 'src/app/models/team';
-import { ThemePalette } from '@angular/material/core';
-import { AppComponent } from 'src/app/app.component';
-import { EmployeeService } from 'src/app/services/employee.service';
-import { HolidayService } from 'src/app/services/holiday.service';
-import { Holiday } from 'src/app/models/holiday';
 
 @Component({
   selector: 'app-my-timesheet',
@@ -627,9 +624,9 @@ console.log("date filter ",this.Allholidays);
 
     if(this.isTimesheetLockCheckEnable == "false"){
       startDate = new Date(endDate.getTime() - ((OPEN_BACKDATED_DAYS + CURRENT_DAY) * DAY_IN_MS));
-      return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "YYYY-MM-dd"))) ? true : false;
+      return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "yyyy-MM-dd"))) ? true : false;
     }else{
-      return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "YYYY-MM-dd"))) ? true : false;
+      return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "yyyy-MM-dd"))) ? true : false;
     }
   }
 
@@ -889,7 +886,9 @@ console.log("date filter ",this.Allholidays);
     const dateFormat = 'YYYY-MM-DD';
     const dateTimeFormat = 'YYYY-MM-DD HH:mm:ss';
 
+    console.log( "test ",this.timesheetObj.description )
     this.timesheetObj.description = this.timesheetObj.description?.trim();
+    console.log( "test ",this.timesheetObj.description )
 
     let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template)
     if (!inputValidated) return;

@@ -5,7 +5,6 @@ import { Document } from 'src/app/models/document';
 import { Employee } from 'src/app/models/employee';
 import { PreviousEmployer } from 'src/app/models/previousEmployer';
 import { UpdateUserInfoService } from 'src/app/services/updateUserInfo.service';
-import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
@@ -26,7 +25,6 @@ export class InformationPreviewComponent implements OnInit {
     private updateUserInfoService: UpdateUserInfoService,
     private validationService: ValidationService,
     private modalService: BsModalService,
-    public utilityService: UtilityService,
   ) { }
 
   ngOnInit(): void {

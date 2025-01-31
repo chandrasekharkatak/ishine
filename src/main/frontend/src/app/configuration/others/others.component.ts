@@ -33,13 +33,14 @@ export class OthersComponent implements OnInit {
   //modal
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
-  
   all:any;
   domainToBeDeleted:any;
   userMapping: any = {};
+
   currentUser: User;
   employeeObj: Employee = new Employee();
   domainObj: Domain = new Domain();
+
   isDomain: boolean = false;
   isDomainTable: boolean = false;
   isDomainCreation: boolean = false;
@@ -47,16 +48,25 @@ export class OthersComponent implements OnInit {
   isDomainForm: boolean = false;
   isfileUpload : boolean = false;
   file:any;
+
   allDomainList:any[] = [];
   specializationList:any[] = [];
   allSpecializationList:any[] = [];
-  availableColumns: string[] = ['Billable', 'Billable Type', 'Gender', 'Manager Name', 'Designation Name'];
-  selectedColumns: string[] = ['Employee Id'];  // 'Employee Id' is selected by default
-  selectedColumn: string = '';
-  availableColumn: string = '';
+
+  
+
+
+
+availableColumns: string[] = ['Billable', 'Billable Type', 'Gender', 'Manager Name', 'Designation Name'];
+selectedColumns: string[] = ['Employee Id'];  // 'Employee Id' is selected by default
+selectedColumn: string = '';
+availableColumn: string = '';
+
+
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType:any;
+
   filters:any = {};
   isSearchEnabled:boolean = false;
   domainColumns:any[] = ['blank','domainName','createdByName','createdOn']
@@ -107,14 +117,23 @@ export class OthersComponent implements OnInit {
       this.selectedColumns = selectedFormat.selectedColumns;
     }
   }
+  
+
+ 
+
+ 
 
   showFileUploadForm(){
+
     this.isfileUpload = true;
     this.isDomainTable = false;
+    
+  
     this.isDomain = false;
     this.isDomainForm = false;
+  
+  
   }
-
   openQueryModal(): void {
     this.modalRef = this.modalService.show(this.queryModal);
   }
@@ -127,6 +146,7 @@ export class OthersComponent implements OnInit {
         availableColumns: this.availableColumns, 
         selectedColumns: this.selectedColumns 
       };
+  
       this.domainService.saveCustomQueryDetails(customQueryObj).subscribe(
         (response: any) => {
           if (response.serviceStatus === 'Success') {
@@ -148,92 +168,193 @@ export class OthersComponent implements OnInit {
     }
   }
 
+  
+  
+  
+
+  
+
   resetForm() {
     this.queryName = '';
   }
   
+
   closeModal() {
     console.log("in closemodal.......");
+    
     if (this.modalRef) {
       this.modalRef.hide();
       this.resetForm();
     }
   }
 
-  selectColumn(column: string, listType: string): void {
-    if (listType === 'available') {
-      this.availableColumn = column;
-    } else {
-      this.selectedColumn = column;
-    }
+
+selectColumn(column: string, listType: string): void {
+  if (listType === 'available') {
+    this.availableColumn = column;
+  } else {
+    this.selectedColumn = column;
   }
+}
 
-  moveColumn(direction: string): void {
-    if (direction === 'right' && this.availableColumn) {
-      this.selectedColumns.push(this.availableColumn);
-      this.availableColumns = this.availableColumns.filter(col => col !== this.availableColumn);
-      this.availableColumn = '';  
-    } else if (direction === 'left' && this.selectedColumn) {
-      this.availableColumns.push(this.selectedColumn);
-      this.selectedColumns = this.selectedColumns.filter(col => col !== this.selectedColumn);
-      this.selectedColumn = '';  
-    }
+
+moveColumn(direction: string): void {
+  if (direction === 'right' && this.availableColumn) {
+    this.selectedColumns.push(this.availableColumn);
+    this.availableColumns = this.availableColumns.filter(col => col !== this.availableColumn);
+    this.availableColumn = '';  
+  } else if (direction === 'left' && this.selectedColumn) {
+    this.availableColumns.push(this.selectedColumn);
+    this.selectedColumns = this.selectedColumns.filter(col => col !== this.selectedColumn);
+    this.selectedColumn = '';  
   }
+}
 
-  downloadExcel(): void {
-    const headers = {};
-    this.selectedColumns.forEach(column => {
-      headers[column] = '';  
-    });
-    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet([headers], { skipHeader: false });
-    const wb: XLSX.WorkBook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-    XLSX.writeFile(wb, 'Selected_Columns_Excel.xlsx');
-  }
 
-  onEmployeeUpload(event: any, template: TemplateRef<any>) {
-    const uploadedFiles = event.target.files;
-    this.file = uploadedFiles[0];
-    
-    if (!this.file) {
-      this.openAlertMod(template, "Please upload a file.");
-      return;
-    }
 
-    const formData = new FormData();
-    formData.append('file', this.file);
+downloadExcel(): void {
+  const headers = {};
+  this.selectedColumns.forEach(column => {
+    headers[column] = '';  
+  });
 
-    this.domainService.employeeBulkUpload(formData).pipe(first()).subscribe(
-      (response: any) => {
-        if (response.serviceStatus === "Success") {
-          // Show success message using openAlertMod
-          this.openAlertMod(template, response.serviceResponse);
-        } else if (response.serviceStatus === "Fail") {
-          // Show alert with the inactive employees' IDs or row errors
-          this.openAlertMod(template, `Error found: ${response.serviceResponse}`);
-          // Optionally clear the file input for correction
-          event.target.value = '';  // Clear file input so user can upload a corrected file
-        } else {
-          this.openAlertMod(template, response.serviceResponse);
-        }
-      },
-      (error) => {
-        // Handle any error from the server
-        this.openAlertMod(template, "An error occurred while processing the upload.");
-        console.error(error);
+  
+  const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet([headers], { skipHeader: false });
+  const wb: XLSX.WorkBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+  XLSX.writeFile(wb, 'Selected_Columns_Excel.xlsx');
+}
+
+
+onBillableFileSelect(event: any, template: TemplateRef<any>){
+  const uploadedFiles = event.target.files;
+  console.log("uploadedFiles ", uploadedFiles);
+  this.file = uploadedFiles[0];
+  const formData = new FormData();
+  formData.append('file', this.file);
+
+  this.domainService.billableFile(formData).pipe(first()).subscribe(
+    (response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
       }
-    );
+    });
+}
+
+// onDesignationUpload(event: any, template: TemplateRef<any>){
+//   const uploadedFiles = event.target.files;
+//   console.log("uploadedFiles ", uploadedFiles);
+//   this.file = uploadedFiles[0];
+//   const formData = new FormData();
+//   formData.append('file', this.file);
+
+//   this.domainService.designationBulkUpload(formData).pipe(first()).subscribe(
+//     (response: any) => {
+//       if (response.serviceStatus == "Success") {
+//         this.openAlertMod(template, response.serviceResponse);
+//       } else {
+//         this.openAlertMod(template, response.serviceResponse);
+//       }
+//     });
+// }
+
+
+onDesignationUpload(event: any, template: TemplateRef<any>) {
+  const uploadedFiles = event.target.files;
+  this.file = uploadedFiles[0];
+  const formData = new FormData();
+  formData.append('file', this.file);
+
+  this.domainService.designationBulkUpload(formData).pipe(first()).subscribe(
+    (response: any) => {
+      if (response.serviceStatus === "Success") {
+        // Show success message using openAlertMod
+        this.openAlertMod(template, response.serviceResponse);
+      } else if (response.serviceStatus === "Fail") {
+        // Show alert with the inactive employees' IDs or row errors
+        this.openAlertMod(template, `Error found: ${response.serviceResponse}`);
+        // Optionally clear the file input for correction
+        event.target.value = '';  // Clear file input so user can upload a corrected file
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+}
+
+onEmployeeUpload(event: any, template: TemplateRef<any>) {
+  const uploadedFiles = event.target.files;
+  this.file = uploadedFiles[0];
+  
+  if (!this.file) {
+    this.openAlertMod(template, "Please upload a file.");
+    return;
   }
 
-  headers = [
-    { 'Employee Id': '', 'Billable': '', 'Billable Type': '', 'Gender': '', 'Manager Name': '' }
-  ];
-  downloadFileTemplate(): void {
-    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.headers, { skipHeader: false });
-    const wb: XLSX.WorkBook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Template');
-    XLSX.writeFile(wb, 'Manager_Mapping_Data_Template.xlsx');
-  }
+  const formData = new FormData();
+  formData.append('file', this.file);
+
+  this.domainService.employeeBulkUpload(formData).pipe(first()).subscribe(
+    (response: any) => {
+      if (response.serviceStatus === "Success") {
+        // Show success message using openAlertMod
+        this.openAlertMod(template, response.serviceResponse);
+      } else if (response.serviceStatus === "Fail") {
+        // Show alert with the inactive employees' IDs or row errors
+        this.openAlertMod(template, `Error found: ${response.serviceResponse}`);
+        // Optionally clear the file input for correction
+        event.target.value = '';  // Clear file input so user can upload a corrected file
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    },
+    (error) => {
+      // Handle any error from the server
+      this.openAlertMod(template, "An error occurred while processing the upload.");
+      console.error(error);
+    }
+  );
+}
+
+
+   
+
+
+
+
+headers = [
+  { 'Employee Id': '', 'Billable': '', 'Billable Type': '', 'Gender': '', 'Manager Name': '' }
+];
+downloadFileTemplate(): void {
+  const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.headers, { skipHeader: false });
+  const wb: XLSX.WorkBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Template');
+  XLSX.writeFile(wb, 'Manager_Mapping_Data_Template.xlsx');
+}
+
+headersBilliable = [
+  { 'Employee Id': '' , 'Billable': '', 'Billable Type': '', 'Gender': ''}
+];
+downloadBilliableFileTemplate():void{
+  const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.headersBilliable, { skipHeader: false });
+  const wb: XLSX.WorkBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Template');
+  XLSX.writeFile(wb, 'Billable_Related_Data_Template.xlsx');
+}
+
+headersDesignation = [
+  { 'Employee Id': '', 'Designation Name': '' }
+];
+downloadDeginationUploadFileTemplate(): void {
+  console.log("Designatin Template is downloaded");
+  const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.headersDesignation, { skipHeader: false });
+  const wb: XLSX.WorkBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Template');
+  XLSX.writeFile(wb, 'Bulk_Designation_Upload_Template.xlsx');
+}
+
+  
 
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
@@ -244,11 +365,18 @@ export class OthersComponent implements OnInit {
     this.modalRef.hide();
   }
 
+  
+
   //pagination
   page = 1;
   handlePageChange(event) {
     this.page = event;
   }
+
+  
+ 
+
+
 
   //sort & searching
   sortData(sort: Sort){
@@ -275,64 +403,3 @@ export class OthersComponent implements OnInit {
     }
   }
 }
-
-
-// onBillableFileSelect(event: any, template: TemplateRef<any>){
-//   const uploadedFiles = event.target.files;
-//   console.log("uploadedFiles ", uploadedFiles);
-//   this.file = uploadedFiles[0];
-//   const formData = new FormData();
-//   formData.append('file', this.file);
-
-//   this.domainService.billableFile(formData).pipe(first()).subscribe(
-//     (response: any) => {
-//       if (response.serviceStatus == "Success") {
-//         this.openAlertMod(template, response.serviceResponse);
-//       } else {
-//         this.openAlertMod(template, response.serviceResponse);
-//       }
-//     });
-// }
-
-// onDesignationUpload(event: any, template: TemplateRef<any>) {
-//   const uploadedFiles = event.target.files;
-//   this.file = uploadedFiles[0];
-//   const formData = new FormData();
-//   formData.append('file', this.file);
-
-//   this.domainService.designationBulkUpload(formData).pipe(first()).subscribe(
-//     (response: any) => {
-//       if (response.serviceStatus === "Success") {
-//         // Show success message using openAlertMod
-//         this.openAlertMod(template, response.serviceResponse);
-//       } else if (response.serviceStatus === "Fail") {
-//         // Show alert with the inactive employees' IDs or row errors
-//         this.openAlertMod(template, `Error found: ${response.serviceResponse}`);
-//         // Optionally clear the file input for correction
-//         event.target.value = '';  // Clear file input so user can upload a corrected file
-//       } else {
-//         this.openAlertMod(template, response.serviceResponse);
-//       }
-//     });
-// }
-
-// headersBilliable = [
-  //   { 'Employee Id': '' , 'Billable': '', 'Billable Type': '', 'Gender': ''}
-  // ];
-  // downloadBilliableFileTemplate():void{
-  //   const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.headersBilliable, { skipHeader: false });
-  //   const wb: XLSX.WorkBook = XLSX.utils.book_new();
-  //   XLSX.utils.book_append_sheet(wb, ws, 'Template');
-  //   XLSX.writeFile(wb, 'Billable_Related_Data_Template.xlsx');
-  // }
-  
-  // headersDesignation = [
-  //   { 'Employee Id': '', 'Designation Name': '' }
-  // ];
-  // downloadDeginationUploadFileTemplate(): void {
-  //   console.log("Designatin Template is downloaded");
-  //   const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.headersDesignation, { skipHeader: false });
-  //   const wb: XLSX.WorkBook = XLSX.utils.book_new();
-  //   XLSX.utils.book_append_sheet(wb, ws, 'Template');
-  //   XLSX.writeFile(wb, 'Bulk_Designation_Upload_Template.xlsx');
-  // }

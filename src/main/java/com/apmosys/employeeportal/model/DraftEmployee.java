@@ -131,5 +131,4 @@ public class DraftEmployee {
 	private String dateOfRelieving;
 	
 	private String isConsultant;
-	private String isApprenticeship;
 }

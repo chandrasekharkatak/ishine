@@ -240,7 +240,4 @@ public class EmployeeDTO {
 	private String currentExperienceYear;
 	private String dayOnbench;
 	private String onbenchDate;
-	
-	//by priyadarshini
-	private String isApprenticeship;
 }

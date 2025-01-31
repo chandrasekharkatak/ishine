@@ -16,7 +16,6 @@ import { EmployeeService } from '../services/employee.service';
 import { ImageService } from '../services/image.service';
 import { OnBoardingService } from '../services/on-boarding.service';
 import { ValidationService } from '../services/validation.service';
-import { UtilityService } from '../services/utility.service';
 
 @Component({
   selector: 'app-user-profile',
@@ -66,7 +65,6 @@ export class UserProfileComponent implements OnInit {
     private locationStrategy: LocationStrategy,
     private domainService:DomainService,
     private onBoardingService : OnBoardingService,
-    public utilityService : UtilityService,
     ) {
       this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     }
