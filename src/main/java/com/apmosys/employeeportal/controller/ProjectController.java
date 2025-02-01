@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.service.EmployeeService;
 import com.apmosys.employeeportal.service.ProjectService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -17,6 +18,9 @@ public class ProjectController {
 
 	@Autowired
 	ProjectService projectService;
+	
+	@Autowired
+	EmployeeService employeeService;
 	
 	@RequestMapping(value = "/getAllClients", method = RequestMethod.GET)
 	public ServiceResponse getAllClients() {
@@ -34,7 +38,7 @@ public class ProjectController {
 	
 	@RequestMapping(value = "/createProject", method = RequestMethod.POST)
 	public ServiceResponse createProject(@RequestBody PoProjectSyncDTO poProjectSyncDto) {
-		
+		employeeService.clearEmployeeCache();
 		ServiceResponse response = projectService.createProject(poProjectSyncDto);
 		return response;
 	}
@@ -48,14 +52,14 @@ public class ProjectController {
 	
 	@RequestMapping(value = "/updateProject", method = RequestMethod.POST)
 	public ServiceResponse updateProject(@RequestBody PoProjectSyncDTO poProjectSyncDto) {
-		
+		employeeService.clearEmployeeCache();
 		ServiceResponse response = projectService.updateProject(poProjectSyncDto);
 		return response;
 	}
 	
 	@RequestMapping(value = "/deleteProject", method = RequestMethod.POST)
 	public ServiceResponse deleteProject(@RequestBody PoProjectSyncDTO poProjectSyncDto) {
-		
+		employeeService.clearEmployeeCache();
 		ServiceResponse response = projectService.deleteProject(poProjectSyncDto);
 		return response;
 	}

@@ -117,6 +117,7 @@ export class ReportDashboardComponent implements OnInit {
 
   countOfAllEmployees:any;
   employeeInProbationAfter6MonthsCount = 0;
+  apprenticeCountForDisplay = 0;
   allResignEmployee:any;
 
   filterData:any = new FilterData();
@@ -1097,8 +1098,8 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
       if(employee.dateOfJoining != null && employee.employmentstatus != 'InActive'){
         if(moment(dateToday).diff(moment(employee.dateOfJoining), 'months', true) > 6 && employee.employmentstatus == 'Probation')this.employeeInProbationAfter6MonthsCount++;
       }
-    
-    
+      if(employee.employmentstatus != 'InActive' && employee.isApprenticeship === 'true')this.apprenticeCountForDisplay++;
+      
       if((employee.billable == 'Yes' && employee.billableType != null) && employee.employmentstatus !="InActive") billableCount++;
       if((employee.billable == 'No' && employee.billableType != null)  && employee.employmentstatus !="InActive") nonBillableCount++;
       if((employee.billable == "Yes" || employee.billable == "No" || employee.billable == null) && employee.billableType == null && employee.employmentstatus != 'InActive') otherBillableCount++;
@@ -2689,8 +2690,10 @@ exportGlobalData():void{
       //     obj.profileCompletedPercent = status;
       //   }
       // })
-    }else{
+    }else if (title == 'Employee In Probation(After 6 months)'){
       this.modalSummaryList = modalTableList.filter(x => moment(dateToday).diff(moment(x.dateOfJoining), 'months', true) > 6 && x.employmentstatus == 'Probation');
+    }else if (title =='Apprentice Count'){
+      this.modalSummaryList = modalTableList.filter(x =>  x.isApprenticeship === 'true' && x.employmentstatus != 'InActive');
     }
     this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
   }
