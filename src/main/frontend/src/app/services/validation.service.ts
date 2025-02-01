@@ -471,10 +471,9 @@ export class ValidationService {
   // }
 
  validateEmployeementId(text: any): boolean {
-    const regex = /^A-(CS-)?\d{6}$/;
-    if (text !== "" || text !== undefined || text !== null) {
+    const regex = /^\d{1,6}$/;
+    if (text != "" && text != undefined && text != null) {
       if (regex.test(text)) {
-        console.log("validateEmployeementId() text:", text, "isValid:", true);
         return true;
       }
       else {
