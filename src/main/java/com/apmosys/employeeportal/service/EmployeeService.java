@@ -72,6 +72,7 @@ import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.UploadPolicy;
 import com.apmosys.employeeportal.model.UserSession;
+import com.apmosys.employeeportal.repository.AppreciationRepository;
 import com.apmosys.employeeportal.repository.AuditCustomRepository;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
