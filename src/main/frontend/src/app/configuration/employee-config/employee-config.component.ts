@@ -546,6 +546,7 @@ minDate: Date;
     this.employeeObj.workLocation = '';
     this.employeeObj.dateOfBirth = '';
     this.employeeObj.billable = '';
+    this.employeeObj.employeeType = '';
 
     this.allEmployeeList = [];
     this.filteredJobRoleList = [];
@@ -572,8 +573,8 @@ minDate: Date;
     this.updatedCertificationList = [];
     this.updatedPreviousEmployment = [];
 
-    employee.employeementId = this.utilityService.substringEmployeementid(employee.isConsultant,employee.employeementId);
-    // employee.employeementId = employee.employeementId?.substring(2)
+    // employee.employeementId = this.utilityService.substringEmployeementid(employee.isConsultant,employee.employeementId);
+    employee.employeementId = employee.employeementId?.substring(2)
 
     this.employeeService.getEmployeeByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -585,12 +586,12 @@ minDate: Date;
         }
         // employee.employeementId = this.utilityService.appendEmployeementid(this.employeeObj.employeementId)
 
-        if (this.employeeObj.isConsultant == 'true'){
-          this.employeeObj.employeementId = "A-CS-".concat(this.employeeObj.employeementId);
-        }else{
-          this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
-        }
-        // this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
+        // if (this.employeeObj.isConsultant == 'true'){
+        //   this.employeeObj.employeementId = "A-CS-".concat(this.employeeObj.employeementId);
+        // }else{
+        //   this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
+        // }
+        this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
 
         console.log("employee :", this.employeeObj);
         // employee.employeementId = this.utilityService.appendEmployeementid(employee.employeementId);
@@ -1386,16 +1387,22 @@ minDate: Date;
    let employee = Object.assign({},this.employeeObj)
     employee.employeementId = this.utilityService.substringEmployeementid(this.employeeObj.isConsultant,this.employeeObj.employeementId);
 
-    if(this.employeeObj.employeementId.startsWith('A-CS-')){
-      employee.employeementId  = this.employeeObj.employeementId.substring(5);
-      console.log("Employee :", this.employeeObj);
-    }else if(this.employeeObj.employeementId.startsWith('A-')){
+    // if(this.employeeObj.employeementId.startsWith('A-CS-')){
+    //   employee.employeementId  = this.employeeObj.employeementId.substring(5);
+    //   console.log("Employee :", this.employeeObj);
+    // }else if(this.employeeObj.employeementId.startsWith('A-')){
+    //   employee.employeementId  = this.employeeObj.employeementId.substring(2);
+    //   console.log("Employee :", this.employeeObj);
+    // }else {
+    //   employee.employeementId  = this.employeeObj.employeementId
+    // }
+
+    if(this.employeeObj.employeementId.startsWith('A-')){
       employee.employeementId  = this.employeeObj.employeementId.substring(2);
       console.log("Employee :", this.employeeObj);
     }else {
       employee.employeementId  = this.employeeObj.employeementId
     }
-
 
     employee.onbenchDate=this.billableBenchDate;
 
@@ -1416,15 +1423,16 @@ minDate: Date;
     employee.empId = this.employeeObj.empId;
     employee.email = this.employeeObj.email;
 
-    if(this.employeeObj.employeementId.startsWith('A-CS-')){
-      if(!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)){
-        this.alertMessage = "Please enter Employee ID !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-      employee.employeementId  = this.employeeObj.employeementId.substring(2);
-      console.log("Employee :", this.employeeObj);
-    }else if(this.employeeObj.employeementId.startsWith('A-')){
+    // if(this.employeeObj.employeementId.startsWith('A-CS-')){
+    //   if(!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)){
+    //     this.alertMessage = "Please enter Employee ID !!"
+    //     this.openAlertMod(template, this.alertMessage);
+    //     return false;
+    //   }
+    //   employee.employeementId  = this.employeeObj.employeementId.substring(2);
+    //   console.log("Employee :", this.employeeObj);
+    // }else 
+    if(this.employeeObj.employeementId.startsWith('A-')){
       if(!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)){
         this.alertMessage = "Please enter Employee ID !!"
         this.openAlertMod(template, this.alertMessage);
@@ -1661,10 +1669,17 @@ minDate: Date;
     let employee = Object.assign({}, this.employeeObj);
     employee.updatedBy = this.currentUser.empId;
 
-    if(this.employeeObj.employeementId.startsWith('A-CS-')){
-      employee.employeementId  = this.employeeObj.employeementId.substring(5);
-      console.log("Employee :", this.employeeObj);
-    }else if(this.employeeObj.employeementId.startsWith('A-')){
+    // if(this.employeeObj.employeementId.startsWith('A-CS-')){
+    //   employee.employeementId  = this.employeeObj.employeementId.substring(5);
+    //   console.log("Employee :", this.employeeObj);
+    // }else if(this.employeeObj.employeementId.startsWith('A-')){
+    //   employee.employeementId  = this.employeeObj.employeementId.substring(2);
+    //   console.log("Employee :", this.employeeObj);
+    // }else {
+    //   employee.employeementId  = this.employeeObj.employeementId
+    // }
+
+    if(this.employeeObj.employeementId.startsWith('A-')){
       employee.employeementId  = this.employeeObj.employeementId.substring(2);
       console.log("Employee :", this.employeeObj);
     }else {
@@ -1700,12 +1715,12 @@ minDate: Date;
 
   onDeleteEmployee(updatetemplate: TemplateRef<any>, template: TemplateRef<any>) {
     this.cancelRequest();
-    if(this.employeeObj.isConsultant === true){
-      this.employeeObj.employeementId = this.employeeObj.employeementId.substring(5);
-    }else{
-      this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
-    }
-    // this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
+    // if(this.employeeObj.isConsultant === true){
+    //   this.employeeObj.employeementId = this.employeeObj.employeementId.substring(5);
+    // }else{
+    //   this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
+    // }
+    this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
     this.employeeService.deleteEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -1829,8 +1844,8 @@ minDate: Date;
       }
       const onlySpecificDataArr = this.employeeDataForExcel.map(
         x => ({
-          // "EmployeeId":"A-".concat(x.employeementId),
-          "EmployeeId":(x.isConsultant === 'true' ? 'A-CS-' : 'A-') + x.employeementId,
+          "EmployeeId":"A-".concat(x.employeementId),
+          // "EmployeeId":(x.isConsultant === 'true' ? 'A-CS-' : 'A-') + x.employeementId,
           "Full Name": x.name,
           "EmailId": x.email,
           "Employment Status": x.employmentstatus,
@@ -1893,12 +1908,12 @@ minDate: Date;
 
     console.log("Skip manager : ", employee)
     this.employeeObj.role = "Manager";
-    if(this.employeeObj.isConsultant == 'true'){
-      this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(5);
-    }else{
-      this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2);
-    }
-    // this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
+    // if(this.employeeObj.isConsultant == 'true'){
+    //   this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(5);
+    // }else{
+    //   this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2);
+    // }
+    this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
     this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         employeeList = response.serviceResponse;
@@ -2110,8 +2125,8 @@ if (employeeObj.updateType !== 'automatic') {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
         for(let x of this.allEmployeeList){
-          // x.employeementId = "A-".concat(x.employeementId)
-          x.employeementId = (x.isConsultant === 'true' ? 'A-CS-' : 'A-') + x.employeementId;
+          x.employeementId = "A-".concat(x.employeementId)
+          // x.employeementId = (x.isConsultant === 'true' ? 'A-CS-' : 'A-') + x.employeementId;
           x.dateOfJoining = (x.dateOfJoining)? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
           x.dateOfRelieving = (x.dateOfRelieving)? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
         }
@@ -2316,12 +2331,12 @@ if (employeeObj.updateType !== 'automatic') {
     console.log("employeeObj : ", employeeObj);
 
     let currentEmp = new Employee();
-    if (employeeObj.isConsultant == "true"){
-      currentEmp.employeementId = employeeObj.employeementId.substring(5);
-    }else{
-      currentEmp.employeementId = employeeObj.employeementId.substring(2);
-    }
-    // currentEmp.employeementId = employeeObj.employeementId.substring(2);
+    // if (employeeObj.isConsultant == "true"){
+    //   currentEmp.employeementId = employeeObj.employeementId.substring(5);
+    // }else{
+    //   currentEmp.employeementId = employeeObj.employeementId.substring(2);
+    // }
+    currentEmp.employeementId = employeeObj.employeementId.substring(2);
 
     console.log("employment id : ",currentEmp);
 
@@ -2336,6 +2351,7 @@ if (employeeObj.updateType !== 'automatic') {
     if (infoResponse.serviceStatus == "Success") {
       this.previewObj = infoResponse.serviceResponse;
       this.previewObj.isConsultant = employeeObj.isConsultant;
+      this.previewObj.isApprenticeship = employeeObj.isApprenticeship;
       console.log("this.previewObj : ", this.previewObj);
     } else {
       console.error(infoResponse.serviceResponse)
@@ -2368,12 +2384,12 @@ if (employeeObj.updateType !== 'automatic') {
     this.domainSpecializationList = [];
 
     let currentEmp = new Employee();
-    if (employeeObj.isConsultant == 'true') {
-      currentEmp.employeementId = currentEmp.employeementId?.substring(5);
-    }else{
-    currentEmp.employeementId = currentEmp.employeementId?.substring(2);
-    }
+    // if (employeeObj.isConsultant == 'true') {
+    //   currentEmp.employeementId = currentEmp.employeementId?.substring(5);
+    // }else{
     // currentEmp.employeementId = currentEmp.employeementId?.substring(2);
+    // }
+    currentEmp.employeementId = currentEmp.employeementId?.substring(2);
     currentEmp.empId = employeeObj.empId;
     currentEmp.isDraft = false;
 
@@ -2621,9 +2637,15 @@ return true;
     employee.isTimesheetLockCheckEnable = status;
     employee.updatedBy = this.currentUser.empId;
 
-    if(employee.employeementId.startsWith('A-CS-')){
-      employee.employeementId  = employee.employeementId.substring(5);
-    }else  if(employee.employeementId.startsWith('A-')){
+    // if(employee.employeementId.startsWith('A-CS-')){
+    //   employee.employeementId  = employee.employeementId.substring(5);
+    // }else  if(employee.employeementId.startsWith('A-')){
+    //   employee.employeementId  = employee.employeementId.substring(2);
+    // }else {
+    //   employee.employeementId  = employee.employeementId
+    // }
+
+    if(employee.employeementId.startsWith('A-')){
       employee.employeementId  = employee.employeementId.substring(2);
     }else {
       employee.employeementId  = employee.employeementId
@@ -3014,12 +3036,12 @@ return true;
             this.openAlertMod(this.alertTemplate, "No Data found")
           }
           this.allEmployeeList.forEach(employee => {
-            if (employee.isConsultant == 'true'){
-              employee.employeementId = "A-".concat(employee.employeementId);
-            }else {
-              employee.employeementId = "A-CS-".concat(employee.employeementId);
-            }
-            // employee.employeementId = "A-".concat(employee.employeementId);
+            // if (employee.isConsultant == 'true'){
+            //   employee.employeementId = "A-".concat(employee.employeementId);
+            // }else {
+            //   employee.employeementId = "A-CS-".concat(employee.employeementId);
+            // }
+            employee.employeementId = "A-".concat(employee.employeementId);
             employee.dateOfBirth = (employee.dateOfBirth) ? moment(employee.dateOfBirth).format(AppComponent.DATE_FORMAT) : null;
             employee.dateOfJoining = (employee.dateOfJoining) ? moment(employee.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
             employee.createdOn = (employee.createdOn) ? moment(employee.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
@@ -3158,12 +3180,12 @@ return true;
 
      onRevokeAccount(template: TemplateRef<any>) {
       this.cancelRequest();
-      if (this.employeeObj.isConsultant == 'true'){
-        this.employeeObj.employeementId = this.employeeObj.employeementId.substring(5);
-      }else {
-        this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
-      }
-      // this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
+      // if (this.employeeObj.isConsultant == 'true'){
+      //   this.employeeObj.employeementId = this.employeeObj.employeementId.substring(5);
+      // }else {
+      //   this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
+      // }
+      this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
       this.employeeService.revokeAccount(this.employeeObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.openAlertMod(template, response.serviceResponse);
@@ -3564,6 +3586,26 @@ if(event.target.value == 'Yes' ){
   this.onselectYes=false;
 }
 
+}
+
+onEmployeeTypeChange(selectedType: string): void {
+  switch (selectedType) {
+    case 'Regular':
+      this.employeeObj.isConsultant = 'false';
+      this.employeeObj.isApprenticeship = 'false';
+      break;
+    case 'Consultant':
+      this.employeeObj.isConsultant = 'true';
+      this.employeeObj.isApprenticeship = 'false';
+      break;
+    case 'Apprentice':
+      this.employeeObj.isConsultant = 'false';
+      this.employeeObj.isApprenticeship = 'true';
+      break;
+    default:
+      this.employeeObj.isConsultant = null;
+      this.employeeObj.isApprenticeship = null;
+  }
 }
 
 }

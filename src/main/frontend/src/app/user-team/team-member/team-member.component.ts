@@ -97,12 +97,12 @@ export class TeamMemberComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.viewTeamMemberList = response.serviceResponse;
         for(let x of this.viewTeamMemberList){
-          if(x.isConsultant == 'true'){
-            x.employeementId="A-CS-".concat(x.employeementId)
-          }else{
-            x.employeementId="A-".concat(x.employeementId)
-          }
-          // x.employeementId="A-".concat(x.employeementId)
+          // if(x.isConsultant == 'true'){
+          //   x.employeementId="A-CS-".concat(x.employeementId)
+          // }else{
+          //   x.employeementId="A-".concat(x.employeementId)
+          // }
+          x.employeementId="A-".concat(x.employeementId)
         }
         //console.log("viewTeamMemberList : ", this.viewTeamMemberList);
       } else {

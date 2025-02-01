@@ -464,12 +464,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
         this.allTeamTimesheetRequests = response.serviceResponse;
         this.allTeamTimesheetRequests.forEach((timesheet, index) => {
           timesheet.checkId = "timesheet"+index;
-          if(timesheet.isConsultant == 'true'){
-            timesheet.employeementId = "A-CS-".concat(timesheet.employeementId);
-          }else{
-            timesheet.employeementId = "A-".concat(timesheet.employeementId);
-          }
-          // timesheet.employeementId = "A-".concat(timesheet.employeementId);
+          // if(timesheet.isConsultant == 'true'){
+          //   timesheet.employeementId = "A-CS-".concat(timesheet.employeementId);
+          // }else{
+          //   timesheet.employeementId = "A-".concat(timesheet.employeementId);
+          // }
+          timesheet.employeementId = "A-".concat(timesheet.employeementId);
           timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
            timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
@@ -489,12 +489,17 @@ export class HomeComponent implements OnInit, AfterViewInit {
     timesheetObj.timesheetId = timesheet.timesheetId;
     timesheetObj.email = timesheet.email;
     timesheetObj.rejectReason = timesheet.rejectReason?.trim();
-    if (timesheetObj.employeementId.startsWith('A-CS-')) {
-      timesheetObj.employeementId = timesheetObj.employeementId.substring(5);
-  } else if (timesheetObj.employeementId.startsWith('AP-')) {
-      timesheetObj.employeementId = timesheetObj.employeementId.substring(3);
-  } else if (timesheetObj.employeementId.startsWith('A-')) {
-      timesheetObj.employeementId = timesheetObj.employeementId.substring(2);
+  //   if (timesheetObj.employeementId.startsWith('A-CS-')) {
+  //     timesheetObj.employeementId = timesheetObj.employeementId.substring(5);
+  // } else if (timesheetObj.employeementId.startsWith('AP-')) {
+  //     timesheetObj.employeementId = timesheetObj.employeementId.substring(3);
+  // } else if (timesheetObj.employeementId.startsWith('A-')) {
+  //     timesheetObj.employeementId = timesheetObj.employeementId.substring(2);
+  // }else {
+  //   timesheetObj.employeementId = timesheetObj.employeementId.substring(2);
+  // }
+  if (timesheetObj.employeementId.startsWith('A-')) {
+    timesheetObj.employeementId = timesheetObj.employeementId.substring(2);
   }else {
     timesheetObj.employeementId = timesheetObj.employeementId.substring(2);
   }
@@ -1503,11 +1508,16 @@ export class HomeComponent implements OnInit, AfterViewInit {
     timesheetObj.status = "Approved"
     //console.log("For Bulk Update : ", timesheetObj);
     timesheetObj.bulkApprovedList.forEach((x) => {
-      if (x.employeementId.startsWith('A-CS-')) {
-        x.employeementId = x.employeementId.substring(5);
-      } else if (x.employeementId.startsWith('AP-')) {
-        x.employeementId = x.employeementId.substring(3);
-      } else if (x.employeementId.startsWith('A-')) {
+      // if (x.employeementId.startsWith('A-CS-')) {
+      //   x.employeementId = x.employeementId.substring(5);
+      // } else if (x.employeementId.startsWith('AP-')) {
+      //   x.employeementId = x.employeementId.substring(3);
+      // } else if (x.employeementId.startsWith('A-')) {
+      //   x.employeementId = x.employeementId.substring(2);
+      // } else {
+      //   x.employeementId = x.employeementId.substring(2);
+      // }
+      if (x.employeementId.startsWith('A-')) {
         x.employeementId = x.employeementId.substring(2);
       } else {
         x.employeementId = x.employeementId.substring(2);
@@ -1545,11 +1555,16 @@ export class HomeComponent implements OnInit, AfterViewInit {
     timesheetObj.status = "Rejected"
     //console.log("For Bulk Update : ", timesheetObj);
     timesheetObj.bulkRejectList.forEach((item) => {
-      if (item.employeementId.startsWith('A-CS-')) {
-        item.employeementId = item.employeementId.substring(5);
-      } else if (item.employeementId.startsWith('AP-')) {
-        item.employeementId = item.employeementId.substring(3);
-      } else if (item.employeementId.startsWith('A-')) {
+      // if (item.employeementId.startsWith('A-CS-')) {
+      //   item.employeementId = item.employeementId.substring(5);
+      // } else if (item.employeementId.startsWith('AP-')) {
+      //   item.employeementId = item.employeementId.substring(3);
+      // } else if (item.employeementId.startsWith('A-')) {
+      //   item.employeementId = item.employeementId.substring(2);
+      // }else {
+      //   item.employeementId = item.employeementId.substring(2);
+      // }
+      if (item.employeementId.startsWith('A-')) {
         item.employeementId = item.employeementId.substring(2);
       }else {
         item.employeementId = item.employeementId.substring(2);

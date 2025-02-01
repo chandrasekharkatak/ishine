@@ -189,4 +189,6 @@ export class Employee{
 	rewardId: any;
 	isConsultant: any;
 	onbenchDate : any;
+	employeeType : any;
+	isApprenticeship : any;
 }
