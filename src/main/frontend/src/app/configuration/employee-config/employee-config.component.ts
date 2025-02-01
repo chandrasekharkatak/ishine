@@ -170,8 +170,8 @@ export class EmployeeConfigComponent implements OnInit {
   filters:any = {};
   filterOnhistory ={};
   isSearchEnabled:boolean = false;
-  employeeActiveColumns:any[] = ['employeementId','name','email','employmentstatus','managerName','departmentName','dateOfJoining','createdOn','createdByName','updatedOn','updatedByName'];
-  employeeInActiveColumns:any[] = ['employeementId','name','email','employmentstatus','managerName','departmentName','dateOfJoining','dateOfRelieving','createdOn','createdByName','updatedOn','updatedByName'];
+  employeeActiveColumns:any[] = ['employeementId','employeeType','name','email','employmentstatus','managerName','departmentName','dateOfJoining','createdOn','createdByName','updatedOn','updatedByName'];
+  employeeInActiveColumns:any[] = ['employeementId','employeeType','name','email','employmentstatus','managerName','departmentName','dateOfJoining','dateOfRelieving','createdOn','createdByName','updatedOn','updatedByName'];
   draftEmployeeColumns:any[] = ['employeementId','name','email','employmentstatus','managerName','departmentName','dateOfJoining','updateApplicationStatus']
   domainColumns:any[] = ['blank','domainName','createdByName','createdOn']
 
@@ -1802,6 +1802,12 @@ minDate: Date;
           employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving)? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
           employeeObj.updatedOn = (employeeObj.updatedOn)? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
           employeeObj.createdOn = (employeeObj.createdOn)? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          if (employeeObj.isConsultant == 'true') 
+            employeeObj.employeeType = 'Consultant';
+          else if (employeeObj.isApprenticeship == 'true')
+            employeeObj.employeeType =  'Apprentice';
+          else
+          employeeObj.employeeType = 'Regular';
         });
         this._allEmployeeList = this.allEmployeeList;
         this.changeEvent("Active");

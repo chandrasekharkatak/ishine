@@ -389,6 +389,7 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 				dto.setEmpId(object[21] != null ? Long.parseLong(object[21].toString()) : null);
 				dto.setTeamName(object[22] != null ? object[22].toString() : null);
 				dto.setIsConsultant(object[23] != null ? object[23].toString() : null);
+				dto.setIsApprenticeship(object[24] != null ? object[24].toString() : null);
 //				ServiceResponse completionResponse = profileCompletionReport(dto);
 //				EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
 //				

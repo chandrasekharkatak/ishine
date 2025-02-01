@@ -787,6 +787,7 @@ public class DraftEmployeeService {
 					empDTO.setManagerName(object[7] != null ? object[7].toString() : null);
 					empDTO.setDepartmentName(object[8] != null ? object[8].toString() : null);
 					empDTO.setIsConsultant(object[9] != null ? object[9].toString() : null);
+					empDTO.setIsApprenticeship(object[10] != null ? object[10].toString() : null);
 					dtoList.add(empDTO);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -901,6 +902,7 @@ public class DraftEmployeeService {
                     empDTO.setDateOfResign(object[65] != null ? format.format(format.parse(object[65].toString())) : null);
                     empDTO.setDateOfRelieving(object[66] != null ? format.format(format.parse(object[66].toString())) : null);
                     empDTO.setIsConsultant(object[67] != null ? object[67].toString() : null);
+					empDTO.setIsApprenticeship(object[68] != null ? object[68].toString() : null);
 //					if (object[42] != null) {
 //
 //						File actualFile = new File(

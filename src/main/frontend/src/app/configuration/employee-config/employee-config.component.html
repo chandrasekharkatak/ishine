@@ -1213,6 +1213,7 @@
                                 <!-- <th *ngIf="!isDraftTable" scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
                             <th *ngIf="isDraftTable" scope="col" class="info-label">Sr No.</th>	 -->
                                 <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Employee Id</th>
+                                <th scope="col" class="info-label" mat-sort-header="employeeType|string">Type</th>
                                 <th scope="col" class="info-label" mat-sort-header="name|string" >Full Name</th>
                                 <th scope="col" class="info-label" mat-sort-header="email|string" >Email Id</th>
                                 <th scope="col" class="info-label" mat-sort-header="employmentstatus|string">Employment Status</th>
@@ -1242,6 +1243,7 @@
                                 <!-- <th *ngIf="!isDraftTable" class="info-label">A-{{employee.employeementId}}</th>
                             <th *ngIf="isDraftTable" class="info-label">{{i+1}}</th> -->
                                 <td>{{employee.employeementId}}</td>
+                                <td >{{employee.employeeType}}</td>
                                 <td>{{employee.name}}</td>
                                 <td>{{employee.email}}</td>
                                 <td>{{employee.employmentstatus}}</td>

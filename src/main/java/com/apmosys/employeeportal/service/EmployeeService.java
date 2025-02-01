@@ -1046,6 +1046,7 @@ public class EmployeeService {
 					empDTO.setEmploymentReleaseStatus(object[69] != null ? object[69].toString() : null);
 					empDTO.setBillableType(object[70] != null ? object[70].toString() : null);
 					empDTO.setIsConsultant(object[71] != null ? object[71].toString() : null);
+					empDTO.setIsApprenticeship(object[72] != null ? object[72].toString() : null);
 
 //					empDTO.setEmployeeConfirmationDate(object[75] != null ? format.format(format.parse(object[75].toString())) : null);			
 					
@@ -2746,6 +2747,7 @@ public class EmployeeService {
 					empDTO.setTeamName(object[74] != null ? object[74].toString() : null);
 					empDTO.setDesignationName(object[75] != null ? object[75].toString() : null);
 					empDTO.setIsConsultant(object[76] != null ? object[76].toString() : null);
+					empDTO.setIsApprenticeship(object[77] != null ? object[77].toString() : null);
 
 					//added by rahul
 //					empDTO.setReferedType(object[78] != null ? object[78].toString() : null);
@@ -4419,7 +4421,10 @@ public class EmployeeService {
 					dto.setInvalidAccessAttempt(object[7] != null ? Integer.parseInt(object[7].toString()) : null);
 					dto.setIsTimesheetLockCheckEnable(object[8] != null ? object[8].toString() : null);
 					dto.setPipFlag(object[9] != null ? object[9].toString() : null);	
-					dto.setIsConsultant(object[10] != null ? object[10].toString() : null);					timesheetList.forEach((timesheet) -> {
+					dto.setIsConsultant(object[10] != null ? object[10].toString() : null);			
+					dto.setIsApprenticeship(object[11] != null ? object[11].toString() : null);
+					
+					timesheetList.forEach((timesheet) -> {
 
 						Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
 						Long employeeEmpId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
@@ -4496,6 +4501,7 @@ public class EmployeeService {
 					managerObj.setManagerId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
 					managerObj.setReporteeCount(object[8] != null ? Integer.parseInt(object[8].toString()) : null);
 					managerObj.setIsConsultant(object[9] != null ? object[9].toString() : null);
+					managerObj.setIsApprenticeship(object[10] != null ? object[10].toString() : null);
 					managerObj.setHierarchyType("Manager");
 					
 					dtoList.add(managerObj);
@@ -4516,6 +4522,7 @@ public class EmployeeService {
 					coWorker.setManagerId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
 					coWorker.setReporteeCount(object[8] != null ? Integer.parseInt(object[8].toString()) : null);
 					coWorker.setIsConsultant(object[9] != null ? object[9].toString() : null);
+					coWorker.setIsApprenticeship(object[10] != null ? object[10].toString() : null);
 					if(coWorker.getEmpId().equals(employeedto.getEmpId())) {
 						coWorker.setHierarchyType("Self");
 					}else {
@@ -4541,6 +4548,7 @@ public class EmployeeService {
 					reportee.setManagerId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
 					reportee.setReporteeCount(object[8] != null ? Integer.parseInt(object[8].toString()) : null);
 					reportee.setIsConsultant(object[9] != null ? object[9].toString() : null);
+					reportee.setIsApprenticeship(object[10] != null ? object[10].toString() : null);
 					reportee.setHierarchyType("Reportee");
 					
 					dtoList.add(reportee);

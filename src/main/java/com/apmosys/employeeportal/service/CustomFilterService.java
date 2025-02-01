@@ -224,7 +224,7 @@ public class CustomFilterService {
 			try {
 
 				String q = "select e.employeement_id, e.name as employee, ltm.leave_type, el.from_date, el.to_date,el.no_of_days,el.reason, ls.status, e2.name as manager, el.created_on, "
-						+ "el.updated_on, e3.name as statusUpdateBy,d.name department,t.team_name,p.project_name,el.from_date_day_type, el.to_date_day_type,e.is_consultant from employee_leave el "
+						+ "el.updated_on, e3.name as statusUpdateBy,d.name department,t.team_name,p.project_name,el.from_date_day_type, el.to_date_day_type,e.is_consultant,e.is_apprenticeship from employee_leave el "
 						+ "INNER JOIN employee e on el.emp_id = e.emp_id "
 						+ "INNER JOIN leave_type_master ltm on el.leave_type_master_id = ltm.leave_type_master_id "
 						+ "INNER JOIN leave_status ls on el.leave_status_id = ls.leave_status_id "
@@ -295,7 +295,9 @@ public class CustomFilterService {
 					leavedto.setProjectName(object[14] != null ? object[14].toString() : null);
 					leavedto.setFromDateDayType(object[15] != null ? Float.parseFloat(object[15].toString()) : null);
 					leavedto.setToDateDayType(object[16] != null ? Float.parseFloat(object[16].toString()) : null);
-					leavedto.setIsConsultant(object[17] != null ? object[17].toString() : null);					dtoList.add(leavedto);
+					leavedto.setIsConsultant(object[17] != null ? object[17].toString() : null);
+					leavedto.setIsApprenticeship(object[18] != null ? object[18].toString() : null);
+										dtoList.add(leavedto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
@@ -832,7 +834,7 @@ public class CustomFilterService {
 						+ "e.views_on_organisation, e.year_of_passing,\n" + "jr.dept_id, jr.name as jobrolename,\n"
 						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience,\n"
 						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,emp_proj_client.project_name, emp_proj_client.client_name, e.updated_on,e4.name as createdByName, e3.name as updatedByName,\n"
-						+ "e.designation_id,de.designation_name,e.updated_by,e.billable_type,emp_proj_client.team_name,e.is_consultant, \n"
+						+ "e.designation_id,de.designation_name,e.updated_by,e.billable_type,emp_proj_client.team_name,e.is_consultant,e.is_apprenticeship \n"
 						+ "(SELECT COUNT(*) * 100.0 / NULLIF(COUNT(*), 0) FROM\n"
 						+ "employee e_profile WHERE\n"
 						+ "e_profile.emp_id = e.emp_id) AS profile_completion_percentage \n" + "FROM employee e\n"
@@ -1180,6 +1182,7 @@ public class CustomFilterService {
 					empDTO.setBillableType(object[68] != null ? object[68].toString() : null);
 					empDTO.setTeamName(object[69] != null ? object[69].toString() : null);	
 					empDTO.setIsConsultant(object[70] != null ? object[70].toString() : null);
+					empDTO.setIsApprenticeship(object[71] != null ? object[71].toString() : null);
 					
 					ServiceResponse completionResponse = employeeService.getEmployeeProfileCompletion(empDTO);
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
@@ -1322,7 +1325,7 @@ public class CustomFilterService {
 			try {
 				String q = "SELECT e1.employeement_id,e1.name employee, et.date, et.day_type, et.description, et.status, \n"
 						+ "et.total_time, et.created_on, et.updated_on, e2.name statusUpdatedBy, t.team_name,p.project_name,p.client_name, \n"
-						+ "et.office_in_time, et.office_out_time, et.total_working_hours, ltm.leave_type, e1.is_consultant \n"
+						+ "et.office_in_time, et.office_out_time, et.total_working_hours, ltm.leave_type, e1.is_consultant,e.is_apprenticeship \n"
 						+ "FROM employee_timesheets et \n" + "INNER JOIN employee e1 on et.emp_id = e1.emp_id \n"
 						+ "LEFT JOIN employee e2 on et.timesheet_status_updated_by = e2.emp_id \n"
 						+ "LEFT JOIN job_role jr on e1.job_role_id=jr.job_role_id \n"
@@ -1386,6 +1389,7 @@ public class CustomFilterService {
 					timesheetDto.setTotalWorkingOfficeHours(object[15] != null ? object[15].toString() : null);
 					timesheetDto.setLeaveType(object[16] != null ? object[16].toString() : null);
 					timesheetDto.setIsConsultant(object[17] != null? object[17].toString() : null);
+					timesheetDto.setIsApprenticeship(object[18] != null? object[18].toString() : null);
 					dtoList.add(timesheetDto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

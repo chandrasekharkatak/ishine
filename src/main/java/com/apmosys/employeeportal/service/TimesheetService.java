@@ -805,6 +805,7 @@ public class TimesheetService {
 						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
 						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
 						dto.setIsConsultant(object[16] != null ? object[16].toString() : null);
+						dto.setIsApprenticeship(object[17] != null ? object[17].toString() : null);
 						dtoList.add(dto);
 					});
 
