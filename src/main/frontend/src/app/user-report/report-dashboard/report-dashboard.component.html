@@ -322,6 +322,7 @@
                     <tr>
                         <th scope="col" class="info-label wide-col">Sr No.</th>
                         <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|number">Emp ID</th>
+                        <th scope="col" class="info-label wide-col" mat-sort-header="employeeType|string">Employee Type</th>
                         <th scope="col" class="info-label wide-col" mat-sort-header="employeeName|string">Name</th>
                         <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department Name</th>
                         <!-- <th scope="col" class="info-label wide-col">Timesheet Date</th>
@@ -345,6 +346,7 @@
                         <th class="info-label">{{20*(page-1)+i+1}}</th>
                         <!-- <td>{{ leave.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{ leave.employeementId }}</td> -->
                         <td>A-{{ leave.employeementId }}</td>
+                        <td>{{leave.employeeType}}</td>
                         <td>{{leave.employeeName}}</td>
                         <td>{{leave.departmentName}}</td>
                         <!-- <td>{{leave.date}}</td>
@@ -388,6 +390,7 @@
                     <tr>
                         <th scope="col" class="info-label wide-col wide-col">Sr No.</th>
                         <th scope="col" class="info-label wide-col wide-col" mat-sort-header="employeementId|number">Emp ID</th>
+                        <th scope="col" class="info-label wide-col wide-col" mat-sort-header="employeeType|number">Employee Type</th>
                         <th scope="col" class="info-label wide-col wide-col" mat-sort-header="employeeName|string">Name</th>
                         <th scope="col" class="info-label wide-col wide-col" mat-sort-header="departmentName|string">Department Name</th>
                         <th scope="col" class="info-label wide-col wide-col" mat-sort-header="email|string">Email Id</th>
@@ -407,6 +410,7 @@
                         *ngFor="let leave of modalSummaryList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                         <th class="info-label">{{20*(page-1)+i+1}}</th>
                         <td>A-{{leave.employeementId}}</td>
+                        <td>{{leave.employeeType}}</td>
                         <td>{{leave.employeeName}}</td>
                         <td>{{leave.departmentName}}</td>
                         <td>{{leave.email}}</td>
@@ -450,8 +454,8 @@
                     <tr>
                         <th scope="col" class="info-label wide-col">Sr No.</th>
                         <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|empId">Emp ID</th>
+                        <th scope="col" class="info-label wide-col" mat-sort-header="employeeType|string">Employment Type</th>
                         <th scope="col" class="info-label wide-col" mat-sort-header="name|string">Name</th>
-                        <!-- <th scope="col" class="info-label wide-col" mat-sort-header="employmentstatus|string">Employment Status</th> -->
                         <th scope="col" class="info-label wide-col" mat-sort-header="experience|string">Experience</th>
                         <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department Name</th>
                         <th scope="col" class="info-label wide-col" mat-sort-header="email|string">Email Id</th>
@@ -484,8 +488,8 @@
                         *ngFor="let leave of modalSummaryList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                         <th class="info-label">{{20*(page-1)+i+1}}</th>
                         <td>{{leave.employeementId}}</td>
+                        <td>{{leave.employeeType}}</td>
                         <td class="text-capitalize">{{leave.name}}</td>
-                        <!-- <td>{{leave.employmentstatus}}</td> -->
                         <td>{{leave.experience}}</td>
                         <td class="text-capitalize">{{leave.departmentName}}</td>
                         <td>{{leave.email}}</td>
@@ -537,6 +541,7 @@
                 <tr>
                     <th scope="col" class="info-label wide-col" >Sr No.</th>
                     <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|empId">Emp Id</th>
+                    <th scope="col" class="info-label wide-col" mat-sort-header="employeeType|empId">Employee Type</th>
                     <th scope="col" class="info-label wide-col" mat-sort-header="employeeName|string">Employee Name</th>
                     <th scope="col" class="info-label wide-col" mat-sort-header="projectName|string">Project Name</th>
                     <th scope="col" class="info-label wide-col" mat-sort-header="clientName|string">Client Name</th>
@@ -554,6 +559,7 @@
                     *ngFor="let emp of modalSummaryList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
                     <th class="info-label">{{10*(page-1)+i+1}}</th>
                     <td>{{emp.employeementId}}</td>
+                    <td>{{emp.employeeType}}</td>
                     <td class="text-capitalize">{{emp.employeeName}}</td>
                     <td class="text-capitalize">{{emp.projectName}}</td>
                     <td class="text-capitalize">{{emp.clientName}}</td>
