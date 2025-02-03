@@ -592,6 +592,12 @@ minDate: Date;
         //   this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
         // }
         this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
+        if (this.employeeObj.isConsultant == 'true') 
+          this.employeeObj.employeeType = 'Consultant';
+        else if (this.employeeObj.isApprenticeship == 'true')
+          this.employeeObj.employeeType =  'Apprentice';
+        else
+        this.employeeObj.employeeType = 'Regular';
 
         console.log("employee :", this.employeeObj);
         // employee.employeementId = this.utilityService.appendEmployeementid(employee.employeementId);
@@ -1700,6 +1706,17 @@ minDate: Date;
     employee.reportiesFlag = this.employeeObj.reportiesFlag; 
 
     console.log("employee update before call ",employee);
+ 
+    if(this.employeeObj.employeeType === 'Consultant'){
+      employee.isConsultant='true';
+      employee.isApprenticeship='false';
+    }else if(this.employeeObj.employeeType === 'Apprentice'){
+      employee.isConsultant='false';
+      employee.isApprenticeship='true'
+    }else {
+      employee.isConsultant='false';
+      employee.isApprenticeship='false'; 
+    }
 
     employee.onbenchDate=this.billableBenchDate;
     

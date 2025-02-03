@@ -2112,7 +2112,7 @@ public class EmployeeService {
 				employee.setWorkLocation(employeedto.getWorkLocation());
 				employee.setProbationPeriod(employeedto.getProbationPeriod());
 				employee.setIsConsultant(employeedto.getIsConsultant());
-				
+				employee.setIsApprenticeship(employeedto.getIsApprenticeship());			
 				if ("No".equals(employeedto.getOnbenchDate())) {
 				    // Keep the existing value (no need to set it again)
 				} else {

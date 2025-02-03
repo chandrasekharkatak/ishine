@@ -185,4 +185,6 @@ public class Employee {
 	private String isConsultant;
 
 	private String onbenchDate;
+	@Column(name = "is_apprenticeship")
+	private String isApprenticeship;
 }
