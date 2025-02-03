@@ -1869,6 +1869,7 @@ minDate: Date;
         x => ({
           "EmployeeId":"A-".concat(x.employeementId),
           // "EmployeeId":(x.isConsultant === 'true' ? 'A-CS-' : 'A-') + x.employeementId,
+          "Employee Type":x.isConsultant ? 'Consultant' : (x.isApprenticeship ? 'Apprentice' : 'Regular'),
           "Full Name": x.name,
           "EmailId": x.email,
           "Employment Status": x.employmentstatus,
