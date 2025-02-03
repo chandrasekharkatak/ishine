@@ -815,7 +815,13 @@ options:any;
           for(let x of this.allEmployeeList){
             x.employeementId = "A-".concat(x.employeementId);
             // x.employeementId =x.isConsultant ? "A-CS-".concat(x.employeementId) : "A-".concat(x.employeementId);
-            x.employeeType =x.isConsultant ? "Consultant" :(x.isApprenticeship ? "Apprentice" : "Regular");
+            if(x.isConsultant == 'true'){
+              x.employeeType = "Consultant"
+            }else if(x.isApprenticeship == 'true'){
+              x.employeeType = "Apprentice"
+            }else {
+              x.employeeType = "Regular"
+            }
             x.dateOfRelieving = moment(x.dateOfResign).add(x.noticePeriod, 'days').format(this.dateFormat);
             x.relievingMonth = moment(x.dateOfRelieving).format('MMMM');
             x.joiningMonth = moment(x.dateOfJoining).format('MMMM');
@@ -857,7 +863,13 @@ options:any;
             // }else{
             //   employee.employeementId = "A-".concat(employee.employeementId);
             // }
-            employee.employeeType =employee.isConsultant ? "Consultant" :(employee.isApprenticeship ? "Apprentice" : "Regular");
+            if(employee.isConsultant == 'true'){
+              employee.employeeType = "Consultant"
+            }else if(employee.isApprenticeship == 'true'){
+              employee.employeeType = "Apprentice"
+            }else {
+              employee.employeeType = "Regular"
+            }
             employee.employeementId = "A-".concat(employee.employeementId);
             employee.dateOfRelieving = moment(employee.dateOfResign).add(employee.noticePeriod, 'days').format(this.dateFormat);
             employee.relievingMonth = moment(employee.dateOfRelieving).format('MMMM');
@@ -3132,7 +3144,7 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
             // if(queryObj.column == "Employee Id" && !queryObj.value.includes("A-CS-") && (data.isConsultant == 'true')){
             //   queryObj.value = "A-CS-".concat(queryObj.value);
             // }
-            // employee.employeeType =employee.isConsultant ? "Consultant" :(employee.isApprenticeship ? "Apprentice" : "Regular");
+            // queryObj.employeeType =(queryObj.isConsultant === 'true') ? "Consultant" :((queryObj.isApprenticeship === 'true') ? "Apprentice" : "Regular");
             if(queryObj.column == "Employee Id" && !queryObj.value.includes("A-")){
               queryObj.value = "A-".concat(queryObj.value);
             }
@@ -3216,7 +3228,7 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
       x => ({
         "Emp ID": "A-".concat(x.employeementId),
         // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
-        "Employee Type":(x.isApprenticeship? 'Apprentice' : (x.isConsultant ? 'Consultant': 'Regular')),
+        "Employee Type":((x.isApprenticeship === 'true') ? 'Apprentice' :  ((x.isConsultant === 'true')? 'Consultant': 'Regular')),
         "Name":x.employeeName,
         "Department Name": x.departmentName,
         "From Date": (x.fromDate)? moment(x.fromDate).format(AppComponent.DATE_FORMAT) : null,
@@ -3234,7 +3246,7 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
       x => ({
         "Emp ID": "A-".concat(x.employeementId),
         // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
-        "Employee Type":(x.isApprenticeship? 'Apprentice' : (x.isConsultant ? 'Consultant': 'Regular')),
+        "Employee Type":((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true')? 'Consultant': 'Regular')),
         "Name":x.employeeName,
         "Department Name": x.departmentName,
         "Timesheet Date":(x.date)? moment(x.date).format(AppComponent.DATE_FORMAT) : null,
@@ -3255,7 +3267,7 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
       x => ({
         "Emp ID": "A-".concat(x.employeementId),
         // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
-        "Employee Type":(x.isApprenticeship? 'Apprentice' : (x.isConsultant ? 'Consultant': 'Regular')),
+        "Employee Type":((x.isApprenticeship === 'true')? 'Apprentice' : ((x.isConsultant === 'true')? 'Consultant': 'Regular')),
         "Name":x.employeeName,
         "Department Name": x.departmentName,
         "Email Id": x.email,
@@ -3274,7 +3286,7 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
       x => ({
         "Emp ID": x.employeementId,
         // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
-        "Employee Type":(x.isApprenticeship? 'Apprentice' : (x.isConsultant ? 'Consultant': 'Regular')),
+        "Employee Type":((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true') ? 'Consultant': 'Regular')),
         "Name":x.name,
         "Department Name": x.departmentName,
         "Experience" : x.experience,
@@ -3303,7 +3315,7 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
       x => ({
         "Emp ID": x.employeementId,
         // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
-        "Employee Type":(x.isApprenticeship? 'Apprentice' : (x.isConsultant ? 'Consultant': 'Regular')),
+        "Employee Type":((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true') ? 'Consultant': 'Regular')),
         "Employee Name":x.employeeName,
         "Project Name":x.projectName,
         "Client Name":x.clientName,
@@ -3321,6 +3333,7 @@ exportGlobalData():void{
   const onlySpecificDataArr = this.allEmployeeList.map(
     x => ({
       "Emp ID": x.employeementId,
+      "Employee Type": x.employeeType,
       "Employee Name":x.name,
       "Department Name" : x.departmentName,
       "Date Of Resign":(x.dateOfResign)? moment(x.dateOfResign).format(AppComponent.DATE_FORMAT) : null,
@@ -3360,7 +3373,7 @@ exportGlobalData():void{
       x => ({
         "Emp ID": x.employeementId,
         // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
-        "Employee Type":(x.isApprenticeship? 'Apprentice' : (x.isConsultant ? 'Consultant': 'Regular')),
+        "Employee Type":((x.isApprenticeship  === 'true') ? 'Apprentice' : ( (x.isConsultant  === 'true') ? 'Consultant': 'Regular')),
         "Employee Name":x.name,
         "Department":x.departmentName,
         "Date Of Resign":(x.dateOfResign)? moment(x.dateOfResign).format(AppComponent.DATE_FORMAT) : null,
@@ -3471,7 +3484,7 @@ exportGlobalData():void{
         if(!this.countByLegend.find(employee => employee.employeementId == x.employeementId)){
           this.countByLegend.push({
             employeementId : x.employeementId,
-            employeeType:(x.isApprenticeship? 'Apprentice' : (x.isConsultant ? 'Consultant': 'Regular')),
+            employeeType: ((x.isApprenticeship  === 'true') ? 'Apprentice' : ((x.isConsultant  === 'true') ? 'Consultant' : 'Regular')),
             employeeName : x.employeeName,
             departmentName : x.departmentName,
             email : x.email,
