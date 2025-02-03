@@ -139,7 +139,7 @@ export class ReportDashboardComponent implements OnInit {
 
   billableChartByDepartmentColumns : any [] = ['Department'];
 
-  resignedColumns:any[] = ['blank','employeementId','name','departmentName','dateOfResign','dateOfRelieving','managerName'];
+  resignedColumns:any[] = ['blank','employeementId','employeeType','name','departmentName','dateOfResign','dateOfRelieving','managerName'];
   departmentIds :any[]=[];
   allDepartmentList : any [] =[];
   currentUser: User;
@@ -252,6 +252,13 @@ options:any;
           // }else{
           //   employee.employeementId = "A-".concat(employee.employeementId);
           // }
+          if(employee.isConsultant == 'true'){
+            employee.employeeType = "Consultant"
+          }else if(employee.isApprenticeship == 'true'){
+            employee.employeeType = "Apprentice"
+          }else {
+            employee.employeeType = "Regular"
+          }
           employee.dateOfRelieving = (employee.dateOfResign)? moment(employee.dateOfResign).add(employee.noticePeriod, 'days') : null;
 
           employee.dateOfResign = (employee.dateOfResign)? moment(employee.dateOfResign).format(AppComponent.DATE_FORMAT) : null;
@@ -735,6 +742,13 @@ options:any;
           // }else {
           //   data.employeementId = "A-".concat(data.employeementId)
           // }
+          if(data.isConsultant == 'true'){
+            data.employeeType = "Consultant"
+          }else if(data.isApprenticeship == 'true'){
+            data.employeeType = "Apprentice"
+          }else {
+            data.employeeType = "Regular"
+          }
         })
         console.log("Initial employeeWorkLocationList: ", this.employeeWorkLocationList);
 
@@ -3183,6 +3197,7 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
       x => ({
         "Emp ID": "A-".concat(x.employeementId),
         // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        "Employee Type":(x.isApprenticeship? 'Apprentice' : (x.isConsultant ? 'Consultant': 'Regular')),
         "Name":x.employeeName,
         "Department Name": x.departmentName,
         "From Date": (x.fromDate)? moment(x.fromDate).format(AppComponent.DATE_FORMAT) : null,
@@ -3323,6 +3338,7 @@ exportGlobalData():void{
         "Emp ID": x.employeementId,
         // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
         "Employee Name":x.name,
+        "Employee Type":(x.isApprenticeship? 'Apprentice' : (x.isConsultant ? 'Consultant': 'Regular')),
         "Department":x.departmentName,
         "Date Of Resign":(x.dateOfResign)? moment(x.dateOfResign).format(AppComponent.DATE_FORMAT) : null,
         "Date Of Relieving":(x.dateOfRelieving)? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null,
