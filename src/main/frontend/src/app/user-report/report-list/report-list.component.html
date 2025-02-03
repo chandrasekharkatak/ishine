@@ -49,6 +49,7 @@
             <thead class="thead-light" id="leaveReportInfoTHead">
               <tr id="leaveReportInfoTHeadTr">
                 <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|empId">Emp Id</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="employeeName|string">Employee Type</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="employeeName|string">Full Name</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="leaveType|string">Leave Type</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="fromDate|date">From Date</th>
@@ -73,6 +74,7 @@
               <tr
                 *ngFor="let leave of allLeaveApplicationsList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{leave.employeementId}}</td>
+                <td>{{leave.employeeType}}</td>
                 <td>{{leave.employeeName}}</td>
                 <td>{{leave.leaveType}}</td>
                 <td>{{leave.fromDate}}</td>
@@ -142,6 +144,7 @@
             <thead class="thead-light" id="timesheetReportTHead">
               <tr id="timesheetReportTHeadTr">
                 <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Emp Id</th>
+                <th scope="col" class="info-label" mat-sort-header="employeeType|empId">Employee Type</th>
                 <th scope="col" class="info-label" mat-sort-header="employeeName|string">Full Name</th>
                 <th scope="col" class="info-label" mat-sort-header="date|date">Date</th>
                 <th scope="col" class="info-label" mat-sort-header="dayType|string">Day Type</th>
@@ -165,6 +168,7 @@
               <tr
                 *ngFor="let timesheet of allTimesheetApplicationsList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{timesheet.employeementId}}</td>
+                <td>{{timesheet.employeeType}}</td>
                 <td>{{timesheet.employeeName}}</td>
                 <td>{{timesheet.date}}</td>
                 <td>{{timesheet.dayType}}</td>
@@ -233,6 +237,7 @@
             <thead class="thead-light">	
               <tr>	
                 <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|empId">Emp Id</th>
+                <th scope="col" class="info-label" mat-sort-header="employeeType|empId">Employee Type</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="name|string">Full Name</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="jobRoleName|string">Job Role</th>
@@ -303,6 +308,7 @@
                 </tr>
               <tr *ngFor="let employee of allEmployeeList | colFilter:filters: false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{employee.employeementId}}</td>
+                <td>{{employee.employeeType}}</td>
                 <td>{{employee.name}}</td>
                 <td>{{employee.departmentName}}</td>
                 <td>{{employee.jobRoleName}}</td>
@@ -671,6 +677,7 @@
             <thead class="thead-light" id="leaveTimesheetReportTHead">
               <tr id="leaveTimesheetReportTHeadTr">
                 <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Employee Id</th>
+                <th scope="col" class="info-label" mat-sort-header="employeeType|empId">Employee Type</th>
                 <th scope="col" class="info-label" mat-sort-header="employeeName|string">Full Name</th>
                 <th scope="col" class="info-label" mat-sort-header="date|date">Date</th>
                 <th scope="col" class="info-label" mat-sort-header="dayType|string">Day Type</th>
@@ -691,6 +698,7 @@
               <tr
                 *ngFor="let timesheet of allLeaveTimesheets | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{timesheet.employeementId}}</td>
+                <td>{{timesheet.employeeType}}</td>
                 <td>{{timesheet.employeeName}}</td>
                 <td>{{timesheet.date}}</td>
                 <td>{{timesheet.dayType}}</td>
