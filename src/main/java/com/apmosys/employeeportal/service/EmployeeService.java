@@ -2748,8 +2748,10 @@ public class EmployeeService {
 					empDTO.setDesignationName(object[75] != null ? object[75].toString() : null);
 					empDTO.setIsConsultant(object[76] != null ? object[76].toString() : null);
 					empDTO.setIsApprenticeship(object[77] != null ? object[77].toString() : null);
-
-					//added by rahul
+                    empDTO.setReportingManagerId(object[78] != null ? Long.parseLong(object[78].toString()) : null)	;
+                    empDTO.setReportingManagerName(object[79] != null ? object[79].toString() : null);
+                    empDTO.setEmployeeRole(object[80] != null ? object[80].toString() : null);                
+                    //added by rahul
 //					empDTO.setReferedType(object[78] != null ? object[78].toString() : null);
 //					empDTO.setReferedName(object[79] != null ? object[79].toString() : null);
 
