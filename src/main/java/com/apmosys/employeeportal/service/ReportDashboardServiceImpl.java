@@ -323,8 +323,8 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 									dto.setManagerName(object[10] != null ? object[10].toString() : null);
 									dto.setDate(timesheetObj.getDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
 									dto.setEmployeementId(employeementId);
-									
-									dtoList.add(dto);
+									dto.setIsConsultant(object[17] != null ? object[17].toString() : null);
+									dto.setIsApprenticeship(object[18] != null ? object[18].toString() : null);									dtoList.add(dto);
 								}
 								logBuilder.append("EmpId: " + empId);
 							}else {

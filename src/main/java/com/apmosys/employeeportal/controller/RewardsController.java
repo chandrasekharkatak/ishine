@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -43,6 +45,8 @@ public class RewardsController {
 		return rewardsService.editRewardConfiguration(rewardConfigurationDTO);
 	}
 	
+	
+	
 	@RequestMapping(value = "/getAllRewardsByCategoryId/{categoryId}", method = RequestMethod.GET)
 	public ServiceResponse getAllRewardsByCategoryId(@PathVariable("categoryId") Integer categoryId) {
 	    ServiceResponse serviceResponse = rewardsService.getAllRewardsByCategoryId(categoryId);
@@ -82,6 +86,23 @@ public class RewardsController {
         return serviceResponse;
 	}
 	
+	@PostMapping("/updateRewardsForEmployees")
+	public ServiceResponse updateRewardsForEmployees (@RequestBody EmployeeRewardsDTO EmployeeRewardsDTO) {
+		ServiceResponse serviceResponse = rewardsService.updateRewardsForEmployees(EmployeeRewardsDTO);
+        return serviceResponse;
+	}
+	
+	@PostMapping("/bulkDisableRewards")
+	public ServiceResponse bulkDisableRewards() {
+	    ServiceResponse serviceResponse = rewardsService.bulkDisableRewards();
+	    return serviceResponse;
+	}
+	
+	@PostMapping("/bulkEnableRewards")
+	public ServiceResponse bulkEnableRewards(@RequestBody List<String> monthyears) {
+	    return rewardsService.bulkEnableRewards(monthyears);
+	}
+	
 	@RequestMapping(value = "/showAllEmployeeRewards", method = RequestMethod.GET)
 	public ServiceResponse showAllEmployeeRewards() {
 		ServiceResponse serviceResponse = new ServiceResponse();
@@ -104,10 +125,12 @@ public class RewardsController {
 		return serviceResponse;
 	}
 	
+	
+	
 	@RequestMapping(value = "/getEmployeeRewardByRewardId/{id}", method = RequestMethod.GET)
-	public ServiceResponse getEmployeeRewardByRewardId(@PathVariable("id") Long id) { 
+	public ServiceResponse getEmployeeRewardByRewardId(@PathVariable("id") Long employeerewardId) { 
 		ServiceResponse serviceResponse = new ServiceResponse();
-		serviceResponse = rewardsService.getEmployeeRewardByRewardId(id);
+		serviceResponse = rewardsService.getEmployeeRewardByRewardIdd(employeerewardId);
 		return serviceResponse;
 	}
 	
@@ -117,6 +140,13 @@ public class RewardsController {
 		serviceResponse = rewardsService.fetchEmployeesForHomepage();
 	        return serviceResponse;
 	    }
+	
+//	@RequestMapping(value = "/fetchEmployeesHomepagecurrentmonth/{currentmonth}", method = RequestMethod.GET)
+//	 public ServiceResponse fetchEmployeesHomepagecurrentmonth(@PathVariable("currentmonth") String currentmonth ) {
+//		ServiceResponse serviceResponse = new ServiceResponse();
+//		serviceResponse = rewardsService.fetchEmployeesHomepagecurrentmonth(currentmonth);
+//	        return serviceResponse;
+//	    }
 	
 	@DeleteMapping("/deleteEmployeeRewardByRewardId/{id}")
 	public ServiceResponse deleteEmployeeRewardByRewardId(@PathVariable Long id) { 
@@ -131,4 +161,6 @@ public class RewardsController {
 	    serviceResponse = rewardsService.fetchEmployeesByTeamId(teamId);
 	    return serviceResponse;
 	}
+	
+	
 }

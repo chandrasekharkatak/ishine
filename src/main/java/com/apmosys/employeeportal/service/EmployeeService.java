@@ -455,7 +455,7 @@ public class EmployeeService {
 			employee.setIsTimesheetLockCheckEnable("true");
 			employee.setDesignationId(employeedto.getDesignationId());
 			employee.setIsConsultant(employeedto.getIsConsultant());
-			
+			employee.setIsApprenticeship(employeedto.getIsApprenticeship());
 			
 			if ("No".equals(employeedto.getOnbenchDate())) {
 			    // Keep the existing value (no need to set it again)

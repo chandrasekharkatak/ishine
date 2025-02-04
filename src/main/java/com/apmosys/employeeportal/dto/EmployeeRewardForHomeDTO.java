@@ -10,13 +10,15 @@ import lombok.ToString;
 @ToString
 public class EmployeeRewardForHomeDTO {
     private Long rewardId;
-    private int isActive;
+    private Integer isActive;
     private Long id; 
     private Long rewardedTo;
     private String rewardedToByName;  
-    private int rewardTypeID;
+    private Integer rewardTypeID;
     private Integer categoryId;
     private String rewardTypeName;
     private Long departmentId;
     private String department;
+    private String categoryName;
+    private String ofMonthYear;
 }

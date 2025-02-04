@@ -365,9 +365,9 @@
     color: #193d8a;
 }
 
-.reward{
+/* .reward{
     height: 21.5rem;
-}
+} */
 
 .reward-content-container {
     display: flex;
@@ -384,6 +384,9 @@
     margin-top: auto; 
     padding-top: 10px;
     color: none!important; 
+}
+.current-month-year{
+    color: black;
 }
 
 

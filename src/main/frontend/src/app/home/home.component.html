@@ -1,3 +1,5 @@
+
+
 <div *ngIf="isShowReleaseNote" class="alert alert-light alert-dismissible fade show release-notification pr-4" role="alert">
     <h4 class="alert-heading text-dark">Ishine Portal Release Note</h4>
     <button type="button" class="close" aria-label="Close" (click)="submitReleaseNoteNotificationConsent()">
@@ -97,7 +99,7 @@
     
     <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
         direction="left" 
-        style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop; width: calc(50vw - 255px);  overflow: hidden; display: inline-block;">
+        style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop;  overflow: hidden; display: inline-block;">
         <span>
             "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
         </span>
@@ -110,13 +112,18 @@
     style="display: flex; justify-content: space-between; width: 100%; position: relative;">
     
     <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
-        direction="left" 
+        direction="left" onmouseover="this.stop()" 
+        onmouseout="this.start()"
      
         style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop;   overflow: hidden; display: inline-block;">
         <span>
             {{consentNotificationMessage}}
         </span>
+        <button class="btn btn-sm btn-outline-success" (click)="submitNotificationConsent()" style="margin-left: 8px; height: 30px; width: 120px; font-size: 12px;">
+            I Agree
+        </button>
     </marquee>
+   
     
 </div>
 
@@ -217,7 +224,9 @@
                         <i class="fa-solid fa-user"></i>&nbsp;{{currentUserName}}
                     </a>
                     <div class="dropdown-menu dropdown-menu-right user-menu" aria-labelledby="user-dropdown">
-                      <a class="dropdown-item" (click)="openChangePassword(change_password)"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;Change Password</a>
+                        <!-- <a class="dropdown-item" (click)="LmsRedirection()"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;LMS</a> -->
+                     
+                        <a class="dropdown-item" (click)="openChangePassword(change_password)"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;Change Password</a>
                       <a class="dropdown-item" (click)="userLogout()"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;Logout</a>
                     </div>
                 </div>
@@ -454,9 +463,10 @@
         </div>
     </div> -->
 
-    <div *ngIf="userMapping.view_employee_rewards" class="timesheet-graph reward card mb-2">
+    <!-- <div *ngIf="userMapping.view_employee_rewards" class="timesheet-graph reward card mb-2">
         <div class="card-title px-1 pt-2">
             <p class="section-heading m-0 pl-2 p-3">Apmosys Wall Of Fame</p>
+             <p class="text-muted pl-3"><b>MONTHLY : <span class="current-month-year">{{ currentMonthYearDisplay }}</span></b></p> 
         </div>
         
         <div class="reward-content-container">
@@ -479,9 +489,72 @@
                 <p class="section-heading m-0 pl-2 p-3"></p>
             </div>
         </div>
+
     </div>
     
-</div>
+</div> -->
+
+    <!-- <div *ngIf="userMapping.view_employee_rewards" class="timesheet-graph reward card mb-2">
+        <div class="card-title px-1 pt-2">
+            <p class="section-heading m-0 pl-2 p-3">Apmosys Wall Of Fame</p>
+            
+        </div>
+
+        <div class="reward-content-container">
+            <div *ngIf="rewardsList.length === 0" class="container-fluid placeholder">
+              <img class="placeholder-img" src="assets/Images/reward2.png" alt="Rewards Icon">
+              <h1 class="placeholder-text">No Rewards Today</h1>
+            </div>
+          
+            <ng-container *ngFor="let group of rewardsList">
+              <h3>{{ group.ofMonthYear }}</h3>
+              <marquee direction="up" scrolldelay="250" onmouseover="this.stop();" onmouseout="this.start();">
+                <mat-list class="reward-content">
+                  <mat-list-item *ngFor="let reward of group.rewards">
+                    <img matListAvatar src="assets/Images/reward2.png" alt="User Avatar">
+                    <h1 matLine style="font-size: smaller;">{{ reward.rewardedToByName }} || {{ reward.rewardTypeName }}</h1>
+                    <p matLine style="font-size: smaller;">{{ reward.department }}</p>
+                  </mat-list-item>
+                </mat-list>
+              </marquee>
+            </ng-container>
+          </div>
+        </div>
+    </div> -->
+
+    <div *ngIf="userMapping.view_employee_rewards" class="timesheet-graph reward card mb-2">
+        <div class="card-title px-1 pt-2">
+          <p class="section-heading m-0 pl-2 p-3">Apmosys Wall Of Fame</p>
+          <p  *ngIf="rewardsList.length !== 0" class="text-muted pl-3">
+            <b>MONTHLY: <span>{{ monthKeys[currentMonthIndex] | date: 'MMMM yyyy' }}</span></b>
+          </p>
+        </div>
+      
+        <div class="reward-content-container">
+          <div *ngIf="rewardsList.length === 0" class="container-fluid placeholder">
+            <img class="placeholder-img" src="assets/Images/reward2.png" alt="Rewards Icon">
+            <h1 class="placeholder-text">No Rewards Today</h1>
+          </div>
+      
+          <marquee
+            *ngIf="rewardsList.length !== 0"
+            direction="up"
+            scrolldelay="250"
+            onmouseover="this.stop();"
+            onmouseout="this.start();">
+            <mat-list class="reward-content">
+              <mat-list-item *ngFor="let rewards of currentRewards">
+                <img matListAvatar src="assets/Images/reward2.png" alt="User Avatar">
+                <h1 matLine style="font-size: smaller;">{{ rewards.rewardedToByName }} || {{ rewards.rewardTypeName }}</h1>
+                <p matLine style="font-size: smaller;">{{ rewards.department }}</p>
+              </mat-list-item>
+            </mat-list>
+          </marquee>
+        </div>
+      </div>
+      
+      
+      
 
 <!-- Modals templates -->
 <ng-template #alert_message>

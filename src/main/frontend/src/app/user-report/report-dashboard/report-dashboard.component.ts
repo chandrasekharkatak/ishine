@@ -128,20 +128,20 @@ export class ReportDashboardComponent implements OnInit {
   isSearchEnabled:boolean = false;
 
 
-  leaveSummaryColumns:any[] = ['Employee Id', 'Full Name', 'Leave Type','Department','Team Name','Project Name','Client Name', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
-  timesheetSummaryColumns:any[] = ['Employee Id','Full Name','Department','Date','Day Type','Status','Total Working Hour','Team Name','Project Name','Client Name','From Date','To Date','Created On','Updated On','Updated By'];
+  leaveSummaryColumns:any[] = ['Employee Id','employeeType', 'Full Name', 'Leave Type','Department','Team Name','Project Name','Client Name', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
+  timesheetSummaryColumns:any[] = ['Employee Id','employeeType','Full Name','Department','Date','Day Type','Status','Total Working Hour','Team Name','Project Name','Client Name','From Date','To Date','Created On','Updated On','Updated By'];
   
-  employeeColumns:any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager','Team Name','Project Name','Client Name', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Experience'];
-  employeeSummaryColumns:any[] = ['blank','employeementId','name','experience','departmentName','email','managerName','billable','billableType','projectName','clientName','dateOfJoining','mobileNo','employmentstatus','totalExperience','gender','workLocation','age','profileKycStatus'];
-  workLocationSummaryColumns:any[]=['blank','employeementId','employeeName','projectName','clientName','teamName','clientLocation','date'];
-  LeaveTrendAnalysisGraphColumns:any[]=['blank','employeementId','employeeName','departmentName','fromDate','toDate','fromDateDayType','toDateDayType','status'];
-  leaveSummaryTableColumns:any[] =['blank','employeementId','employeeName','departmentName','fromDate','toDate','fromDateDayType','toDateDayType','status'];
-  timesheetSummaryTableColumns:any[] =['blank','employeementId','employeeName','departmentName','email','managerName','mobileNo','pendingEodCount','legend'];
-  eodSegregationTableColumns:any[]=['blank','employeementId','employeeName','departmentName','email','managerName','mobileNo','date','dayType','totalWorkingHours'];
+  employeeColumns:any[] = ['Employee Id','employeeType', 'Full Name', 'Department', 'Job Role', 'Manager','Team Name','Project Name','Client Name', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Experience'];
+  employeeSummaryColumns:any[] = ['blank','employeementId','employeeType','name','experience','departmentName','email','managerName','billable','billableType','projectName','clientName','dateOfJoining','mobileNo','employmentstatus','totalExperience','gender','workLocation','age','profileKycStatus'];
+  workLocationSummaryColumns:any[]=['blank','employeementId','employeeType','employeeName','projectName','clientName','teamName','clientLocation','date'];
+  LeaveTrendAnalysisGraphColumns:any[]=['blank','employeementId','employeeType','employeeName','departmentName','fromDate','toDate','fromDateDayType','toDateDayType','status'];
+  leaveSummaryTableColumns:any[] =['blank','employeementId','employeeType','employeeName','departmentName','fromDate','toDate','fromDateDayType','toDateDayType','status'];
+  timesheetSummaryTableColumns:any[] =['blank','employeementId','employeeType','employeeName','departmentName','email','managerName','mobileNo','pendingEodCount','legend'];
+  eodSegregationTableColumns:any[]=['blank','employeementId','employeeType','employeeName','departmentName','email','managerName','mobileNo','date','dayType','totalWorkingHours'];
 
   billableChartByDepartmentColumns : any [] = ['Department'];
 
-  resignedColumns:any[] = ['blank','employeementId','name','departmentName','dateOfResign','dateOfRelieving','managerName'];
+  resignedColumns:any[] = ['blank','employeementId','employeeType','name','departmentName','dateOfResign','dateOfRelieving','managerName'];
   departmentIds :any[]=[];
   allDepartmentList : any [] =[];
   currentUser: User;
@@ -254,6 +254,13 @@ options:any;
           // }else{
           //   employee.employeementId = "A-".concat(employee.employeementId);
           // }
+          if(employee.isConsultant == 'true'){
+            employee.employeeType = "Consultant"
+          }else if(employee.isApprenticeship == 'true'){
+            employee.employeeType = "Apprentice"
+          }else {
+            employee.employeeType = "Regular"
+          }
           employee.dateOfRelieving = (employee.dateOfResign)? moment(employee.dateOfResign).add(employee.noticePeriod, 'days') : null;
 
           employee.dateOfResign = (employee.dateOfResign)? moment(employee.dateOfResign).format(AppComponent.DATE_FORMAT) : null;
@@ -289,6 +296,13 @@ options:any;
           // }else{
           //   data.employeementId = "A-".concat(data.employeementId);
           // }
+          if(data.isConsultant == 'true'){
+            data.employeeType = "Consultant"
+          }else if(data.isApprenticeship == 'true'){
+            data.employeeType = "Apprentice"
+          }else {
+            data.employeeType = "Regular"
+          }
           let age = this.getAge(data.dateOfBirth);
           data.age = age;
 
@@ -737,6 +751,13 @@ options:any;
           // }else {
           //   data.employeementId = "A-".concat(data.employeementId)
           // }
+          if(data.isConsultant == 'true'){
+            data.employeeType = "Consultant"
+          }else if(data.isApprenticeship == 'true'){
+            data.employeeType = "Apprentice"
+          }else {
+            data.employeeType = "Regular"
+          }
         })
         console.log("Initial employeeWorkLocationList: ", this.employeeWorkLocationList);
 
@@ -796,6 +817,13 @@ options:any;
           for(let x of this.allEmployeeList){
             x.employeementId = "A-".concat(x.employeementId);
             // x.employeementId =x.isConsultant ? "A-CS-".concat(x.employeementId) : "A-".concat(x.employeementId);
+            if(x.isConsultant == 'true'){
+              x.employeeType = "Consultant"
+            }else if(x.isApprenticeship == 'true'){
+              x.employeeType = "Apprentice"
+            }else {
+              x.employeeType = "Regular"
+            }
             x.dateOfRelieving = moment(x.dateOfResign).add(x.noticePeriod, 'days').format(this.dateFormat);
             x.relievingMonth = moment(x.dateOfRelieving).format('MMMM');
             x.joiningMonth = moment(x.dateOfJoining).format('MMMM');
@@ -837,6 +865,13 @@ options:any;
             // }else{
             //   employee.employeementId = "A-".concat(employee.employeementId);
             // }
+            if(employee.isConsultant == 'true'){
+              employee.employeeType = "Consultant"
+            }else if(employee.isApprenticeship == 'true'){
+              employee.employeeType = "Apprentice"
+            }else {
+              employee.employeeType = "Regular"
+            }
             employee.employeementId = "A-".concat(employee.employeementId);
             employee.dateOfRelieving = moment(employee.dateOfResign).add(employee.noticePeriod, 'days').format(this.dateFormat);
             employee.relievingMonth = moment(employee.dateOfRelieving).format('MMMM');
@@ -879,7 +914,16 @@ this.departmentIds = departmentIds;
           //   employee.employeementId = employee.isConsultant 
           //     ? "A-CS-".concat(employee.employeementId) 
           //     : "A-".concat(employee.employeementId);
-          // });          
+          // }); 
+          this.departmentWiseBillableEmployeeList.forEach(employee => {
+            if(employee.isConsultant == 'true'){
+              employee.employeeType = "Consultant"
+            }else if(employee.isApprenticeship == 'true'){
+              employee.employeeType = "Apprentice"
+            }else {
+              employee.employeeType = "Regular"
+            }
+          });         
 
           this.extractDataForBillable();
           console.log("Department-wise Billable Employee List: ", this.departmentWiseBillableEmployeeList);
@@ -2673,6 +2717,7 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
             // if(queryObj.column == "Employee Id" && !queryObj.value.includes("A-CS-") && (data.isConsultant == 'true')){
             //   queryObj.value = "A-CS-".concat(queryObj.value);
             // }
+            // queryObj.employeeType =(queryObj.isConsultant === 'true') ? "Consultant" :((queryObj.isApprenticeship === 'true') ? "Apprentice" : "Regular");
             if(queryObj.column == "Employee Id" && !queryObj.value.includes("A-")){
               queryObj.value = "A-".concat(queryObj.value);
             }
@@ -2756,6 +2801,7 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
       x => ({
         "Emp ID": "A-".concat(x.employeementId),
         // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        "Employee Type":((x.isApprenticeship === 'true') ? 'Apprentice' :  ((x.isConsultant === 'true')? 'Consultant': 'Regular')),
         "Name":x.employeeName,
         "Department Name": x.departmentName,
         "From Date": (x.fromDate)? moment(x.fromDate).format(AppComponent.DATE_FORMAT) : null,
@@ -2773,6 +2819,7 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
       x => ({
         "Emp ID": "A-".concat(x.employeementId),
         // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        "Employee Type":((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true')? 'Consultant': 'Regular')),
         "Name":x.employeeName,
         "Department Name": x.departmentName,
         "Timesheet Date":(x.date)? moment(x.date).format(AppComponent.DATE_FORMAT) : null,
@@ -2793,6 +2840,7 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
       x => ({
         "Emp ID": "A-".concat(x.employeementId),
         // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        "Employee Type":((x.isApprenticeship === 'true')? 'Apprentice' : ((x.isConsultant === 'true')? 'Consultant': 'Regular')),
         "Name":x.employeeName,
         "Department Name": x.departmentName,
         "Email Id": x.email,
@@ -2811,6 +2859,7 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
       x => ({
         "Emp ID": x.employeementId,
         // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        "Employee Type":((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true') ? 'Consultant': 'Regular')),
         "Name":x.name,
         "Department Name": x.departmentName,
         "Experience" : x.experience,
@@ -2839,6 +2888,7 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
       x => ({
         "Emp ID": x.employeementId,
         // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        "Employee Type":((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true') ? 'Consultant': 'Regular')),
         "Employee Name":x.employeeName,
         "Project Name":x.projectName,
         "Client Name":x.clientName,
@@ -2856,6 +2906,7 @@ exportGlobalData():void{
   const onlySpecificDataArr = this.allEmployeeList.map(
     x => ({
       "Emp ID": x.employeementId,
+      "Employee Type": x.employeeType,
       "Employee Name":x.name,
       "Department Name" : x.departmentName,
       "Date Of Resign":(x.dateOfResign)? moment(x.dateOfResign).format(AppComponent.DATE_FORMAT) : null,
@@ -2895,6 +2946,7 @@ exportGlobalData():void{
       x => ({
         "Emp ID": x.employeementId,
         // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        "Employee Type":((x.isApprenticeship  === 'true') ? 'Apprentice' : ( (x.isConsultant  === 'true') ? 'Consultant': 'Regular')),
         "Employee Name":x.name,
         "Department":x.departmentName,
         "Date Of Resign":(x.dateOfResign)? moment(x.dateOfResign).format(AppComponent.DATE_FORMAT) : null,
@@ -3005,6 +3057,7 @@ exportGlobalData():void{
         if(!this.countByLegend.find(employee => employee.employeementId == x.employeementId)){
           this.countByLegend.push({
             employeementId : x.employeementId,
+            employeeType: ((x.isApprenticeship  === 'true') ? 'Apprentice' : ((x.isConsultant  === 'true') ? 'Consultant' : 'Regular')),
             employeeName : x.employeeName,
             departmentName : x.departmentName,
             email : x.email,
