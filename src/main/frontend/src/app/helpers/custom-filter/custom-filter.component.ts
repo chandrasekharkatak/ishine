@@ -24,7 +24,7 @@ export class CustomFilterComponent implements OnInit {
   
   columnList:any[]=[]
   operatorList:Operator[]=[{name:"Equal",symbol:"="},{name:"Contains",symbol:"like"},{name:"Less than",symbol:"<"},
-  {name:"Greator Than",symbol:">"},{name:"Less or Equal",symbol:"<="},{name:"Greator or equal",symbol:">="},
+  {name:"Greater Than",symbol:">"},{name:"Less or Equal",symbol:"<="},{name:"Greater or equal",symbol:">="},
   {name:" Not Equal",symbol:"!="}];
   conjunctionList:Operator[]=[{name:"AND",symbol:"AND"},{name:"OR",symbol:"OR"}];
   

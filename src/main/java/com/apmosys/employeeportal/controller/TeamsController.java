@@ -12,6 +12,7 @@ import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.service.EmployeeService;
 import com.apmosys.employeeportal.service.TeamsService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -21,6 +22,9 @@ public class TeamsController {
 
 	@Autowired
 	TeamsService teamsService;
+	
+	@Autowired
+	EmployeeService employeeService;
 
 	@RequestMapping(value = "/getAllProjectListByProjectManagerId", method = RequestMethod.POST)
 	public ServiceResponse getAllProjectListByProjectManagerId(@RequestBody TimesheetDTO timesheetDTO) {
@@ -31,7 +35,8 @@ public class TeamsController {
 
 	@RequestMapping(value = "/createTeam", method = RequestMethod.POST)
 	public ServiceResponse createTeam(@RequestBody TeamDTO teamDTO) {
-
+		
+		employeeService.clearEmployeeCache();
 		ServiceResponse response = teamsService.createTeam(teamDTO);
 		return response;
 	}
@@ -45,7 +50,8 @@ public class TeamsController {
 
 	@RequestMapping(value = "/deleteTeam", method = RequestMethod.POST)
 	public ServiceResponse deleteTeam(@RequestBody TeamDTO teamDTO) {
-
+		
+		employeeService.clearEmployeeCache();
 		ServiceResponse response = teamsService.deleteTeam(teamDTO);
 		return response;
 	}
@@ -59,7 +65,8 @@ public class TeamsController {
 	
 	@RequestMapping(value = "/updateTeam", method = RequestMethod.POST)
 	public ServiceResponse updateTeam(@RequestBody TeamDTO teamDTO) {
-
+		
+		employeeService.clearEmployeeCache();
 		ServiceResponse response = teamsService.updateTeam(teamDTO);
 		return response;
 	}
@@ -214,6 +221,7 @@ public class TeamsController {
 	public ServiceResponse updateProjectByList(@RequestBody ProjectDTO[] projectDTO) {
 
 		ServiceResponse response = null;
+		employeeService.clearEmployeeCache();
 
 		for (ProjectDTO project : projectDTO) {
 			response = teamsService.updateProjectByList(project);

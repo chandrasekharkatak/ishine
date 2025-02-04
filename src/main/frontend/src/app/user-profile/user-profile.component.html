@@ -31,9 +31,9 @@
                             <div class="row user-card__profile-info__container mt-4 mr-0">
                                 <div class="col-sm-5 col-md-4 col-lg-4 user-card__profile-info__container-blocks">
                                     <p class="user-card__profile-info__label">Employee ID</p>
-                                    <!-- <p class="user-card__profile-info__text" ngif>A-{{currentEmployeeInfo.employeementId}}</p> -->
-                                    <p class="user-card__profile-info__text" *ngIf="currentEmployeeInfo.isConsultant === 'true'">A-CS-{{currentEmployeeInfo.employeementId}}</p>
-                                      <p class="user-card__profile-info__text" *ngIf="currentEmployeeInfo.isConsultant !== 'true'"> A-{{currentEmployeeInfo.employeementId}}</p>
+                                    <p class="user-card__profile-info__text" ngif>A-{{currentEmployeeInfo.employeementId}}</p>
+                                    <!-- <p class="user-card__profile-info__text" *ngIf="currentEmployeeInfo.isConsultant === 'true'">A-CS-{{currentEmployeeInfo.employeementId}}</p> -->
+                                      <!-- <p class="user-card__profile-info__text" *ngIf="currentEmployeeInfo.isConsultant !== 'true'"> A-{{currentEmployeeInfo.employeementId}}</p> -->
                                 </div>
                                 <div class="col-sm-5 col-md-4 col-lg-4 user-card__profile-info__container-blocks">
                                     <p class="user-card__profile-info__label">Email ID</p>
@@ -144,8 +144,8 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Employee Id</p>
-                                            <!-- <p class="info-text info-highlight">A-{{currentEmployeeInfo.employeementId}}</p> -->
-                                            <p class="info-text info-highlight">{{ currentEmployeeInfo.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{currentEmployeeInfo.employeementId}}</p>                                              
+                                            <p class="info-text info-highlight">A-{{currentEmployeeInfo.employeementId}}</p>
+                                            <!-- <p class="info-text info-highlight">{{ currentEmployeeInfo.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{currentEmployeeInfo.employeementId}}</p>                                               -->
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">

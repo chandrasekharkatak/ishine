@@ -34,6 +34,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
   selectedRewardType: { [key: string]: string } = {};
   isRewards: boolean = true;
   isRewardshitory: boolean = false;
+  iswalloffame :boolean = false;
   activeCategoryId: number | null = null;
   sumbitRewards: Rewards = new Rewards();
   selectedSubReward: any;
@@ -48,7 +49,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
   isSearchEnabled: boolean = false;
   filters: any = {};
   isTeamRewardHistory: boolean = false;
-  rewardHistoryColumns: any[] = ['', 'rewardedToByName', 'rewardTypeName', 'createdByName','createdOn', 'managerName', 'fromDate', 'toDate', 'updatedByName', 'updatedOn', 'remark',''];
+  rewardHistoryColumns: any[] = ['blank','rewardedToByName','rewardTypeName','createdByName','createdOn','managerName','ofmonthyear','updatedByName','updatedOn','remark'];
   page: number = 1;
   HistoryList: any[] = [];
   isSelectAll: boolean = false;
@@ -62,6 +63,8 @@ export class RewardsAndRecognisationComponent implements OnInit {
   rewardTypeOptions: string[] = [];
   employeeSearchText: any = '';
   teamSearchText: any = '';
+  ofmonthyear:any;
+  editRewardssss: Rewards = new Rewards();
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -78,6 +81,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
     this.preventBackButton();
     this.getRewardsCategories(this.alertMessageTemplate);
     this.fetchRewardHistory();
+    
   }
 
   preventBackButton() {
@@ -181,29 +185,56 @@ setSelectedReward(reward: Rewards) {
   rewardsHistoryfun() {
     this.isRewards = false;
     this.isRewardshitory = true;
+    this.isEditing = false;
+    this.iswalloffame = false;
     this.fetchRewardHistory();
   }
 
   isRewardsfuc() {
     this.isRewards = true;
     this.isRewardshitory = false;
+    this.iswalloffame = false;
+  }
+
+  wallOffame(){
+    this.isRewards = false;
+    this.isRewardshitory = false;
+    this.iswalloffame = true;
+    this.wallOfFameMonths = ['']; 
   }
 
   rewardstypeName: any
 
+  onTeamSelected(event: any): void {
+   
+    const selectedTeam = this.teams.find((team) => team.teamId === event.option.value);
+  
+    if (selectedTeam) {
+      
+      this.teamSearchText = selectedTeam.teamName; 
+      this.sumbitRewards.teamId = selectedTeam.teamId; 
+      this.sumbitRewards.teamLeadId = selectedTeam.teamLeadId;
+      this.sumbitRewards.rewardedTo = null;
+    }
+  }
+
+  
   submitRewardForEmployees(template: TemplateRef<any>) {
 
+
+    //  this.selectedReward.selectedType = this.valuess;
     this.sumbitRewards.remark = this.remarks;
     this.sumbitRewards.isActive = 1;
     this.sumbitRewards.createdBy = this.currentUser.empId;
     this.sumbitRewards.fromDate = this.fromDatestr;
     this.sumbitRewards.toDate = this.todatestr;
-    this.sumbitRewards.teamLeadId = 12334;
+   
     this.sumbitRewards.rewardTypeName = this.selectedReward.selectedType;
     this.sumbitRewards.id = this.selectedIDdprimiryKey;
+    this.sumbitRewards.ofmonthyear = this.ofmonthyear;
 
 
-    console.log("yesss", this.rewardstypeName)
+    console.log("Team Reward Submit check", this.sumbitRewards);
 
 
     this.rewardsService.submitRewardForEmployee(this.sumbitRewards).subscribe(
@@ -227,66 +258,165 @@ setSelectedReward(reward: Rewards) {
     this.isEditing = false;
   }
 
-  editReward(rewardId: number) {
-    this.rewardsService.getEmployeeRewardByRewardId(rewardId).subscribe(
-        (response: any) => {
-            if (response.serviceStatus === 'Success' && response.serviceResponse.length > 0) {
-                const rewardData = response.serviceResponse[0];
-              
-                this.sumbitRewards.rewardId = rewardData.rewardId;
-                this.selectemmpName = rewardData.rewardedToByName;
-                this.selectedTeamId = rewardData.teamId;
-                this.rewardstypeName = rewardData.rewardTypeName;
-                this.remarks = rewardData.remark;
-                this.fromDatestr = rewardData.fromDate;
-                this.todatestr = rewardData.toDate;
-                this.selectedReward = {
-                  rewardName: rewardData.rewardName,
-                  categoryId: rewardData.categoryId || null,
-                  categoryName: rewardData.categoryName || null,
-                  rewardTypes: rewardData.rewardTypes || [],
-                  customFilterDTOList: rewardData.customFilterDTOList || [],
-                  rewardCategoryId: rewardData.rewardCategoryId || null,
-                  employeeName: rewardData.employeeName || null,
-                  managerName: rewardData.managerName || null,
-                  managerEmpId: rewardData.managerEmpId || null,
-                  id: rewardData.id || null,
-                  createdBy: rewardData.createdBy || null,
-                  updatedBy: rewardData.updatedBy || null,
-                  rewardId: rewardData.rewardId || null,
-                  rewardedTo: rewardData.rewardedTo || null,
-                  rewardedToByName: rewardData.rewardedToByName || null,
-                  rewardType: rewardData.rewardType || null,
-                  managerId: rewardData.managerId || null,
-                  teamLeadId: rewardData.teamLeadId || null,
-                  fromDate: rewardData.fromDate || null,
-                  toDate: rewardData.toDate || null,
-                  remark: rewardData.remark || null,
-                  createdByName: rewardData.createdByName || null,
-                  updatedByName: rewardData.updatedByName || null,
-                  updatedOn: rewardData.updatedOn || null,
-                  isActive: rewardData.isActive || null,
-                  rewardTypeName: rewardData.rewardTypeName || null,
-                  teamLeadName: rewardData.teamLeadName || null,
-                  isTeam: rewardData.isTeam || null,
-                  createdOn: rewardData.createdOn || null,
-                  teamId:rewardData.teamId || null,
-                  selectedType:rewardData.selectedType || null
+editReward(rewardId: number) {
+  this.isEditing = true;
+  this.isRewards = true;
+  this.isRewardshitory = false;
+
+  this.rewardsService.getEmployeeRewardByRewardId(rewardId).subscribe(
+      (response: any) => {
+          if (response.serviceStatus === 'Success' && response.serviceResponse.length > 0) {
+              const rewardData = response.serviceResponse[0];
+            
+              this.sumbitRewards.rewardId = rewardData.rewardId;
+              this.selectemmpName = rewardData.rewardedToByName;
+              this.selectedTeamId = rewardData.teamId;
+              this.rewardstypeName = rewardData.rewardTypeName;
+              this.remarks = rewardData.remark;
+              this.fromDatestr = rewardData.fromDate;
+              this.todatestr = rewardData.toDate;
+              this.ofmonthyear = rewardData.ofmonthyear;
+              this.employeeSearchText = rewardData.rewardedToByName;
+
+              this.selectedReward = {
+                rewardName: rewardData.rewardName,
+                                  categoryId: rewardData.categoryId || null,
+                                  categoryName: rewardData.categoryName || null,
+                                  rewardTypes: rewardData.rewardTypes || [],
+                                  customFilterDTOList: rewardData.customFilterDTOList || [],
+                                  rewardCategoryId: rewardData.rewardCategoryId || null,
+                                  employeeName: rewardData.employeeName || null,
+                                  managerName: rewardData.managerName || null,
+                                  managerEmpId: rewardData.managerEmpId || null,
+                                  id: rewardData.id || null,
+                                  createdBy: rewardData.createdBy || null,
+                                  updatedBy: rewardData.updatedBy || null,
+                                  rewardId: rewardData.rewardId || null,
+                                  rewardedTo: rewardData.rewardedTo || null,
+                                  rewardedToByName: rewardData.rewardedToByName || null,
+                                  rewardType: rewardData.rewardType || null,
+                                  managerId: rewardData.managerId || null,
+                                  teamLeadId: rewardData.teamLeadId || null,
+                                  fromDate: rewardData.fromDate || null,
+                                  toDate: rewardData.toDate || null,
+                                  remark: rewardData.remark || null,
+                                  createdByName: rewardData.createdByName || null,
+                                  updatedByName: rewardData.updatedByName || null,
+                                  updatedOn: rewardData.updatedOn || null,
+                                  isActive: rewardData.isActive || null,
+                                  rewardTypeName: rewardData.rewardTypeName || null,
+                                  teamLeadName: rewardData.teamLeadName || null,
+                                  isTeam: rewardData.isTeam || null,
+                                  createdOn: rewardData.createdOn || null,
+                                  teamId:rewardData.teamId || null,
+                                  selectedType:rewardData.rewardTypeName || null,
+                                  ofmonthyear:rewardData.ofmonthyear || null
               };
 
-              this.isEditing = true;
-                
-                this.sumbitRewards.managerName = rewardData.managerName;
-                this.sumbitRewards.teamLeadId = rewardData.teamLeadId;
-            } else {
-                console.log('Error: Reward data not found');
-            }
-        },
-        (error) => {
-            console.log('Error fetching reward data:', error);
-        }
-    );
+              this.sumbitRewards.managerName = rewardData.managerName;
+              this.sumbitRewards.teamLeadId = rewardData.teamLeadId;
+          } else {
+              console.log('Error: Reward data not found');
+          }
+      },
+      (error) => {
+          console.log('Error fetching reward data:', error);
+      }
+  );
 }
+
+reloadPage() {
+  window.location.reload();
+}
+
+
+wallOfFameMonths: string[] = [''];
+  addMonthYear() {
+    this.wallOfFameMonths.push(''); // Add an empty month-year value.
+  }
+
+  removeMonthYear(index: number) {
+    if (this.wallOfFameMonths.length > 1) {
+      this.wallOfFameMonths.splice(index, 1); // Remove the selected month-year.
+    } else {
+      alert('At least one month-year must be selected.');
+    }
+  }
+
+
+updateRewards(template: TemplateRef<any>) {
+  
+  this.editRewardssss.rewardId =  this.selectedReward.rewardId;
+  this.editRewardssss.ofmonthyear = this.ofmonthyear;
+  this.editRewardssss.rewardedTo = this.sumbitRewards.rewardedTo || this.selectedReward.rewardedTo;
+  this.editRewardssss.rewardTypeName = this.selectedReward.selectedType;
+  this.editRewardssss.remark = this.remarks;
+  this.editRewardssss.updatedBy = this.currentUser.empId;
+  this.editRewardssss.managerId = this.sumbitRewards.managerId || this.selectedReward.managerId;
+
+  console.log("updateddddddddddddd--", this.editRewardssss);
+  this.rewardsService.updateRewardForEmployee(this.editRewardssss).subscribe(
+    (response: any) => {
+      if (response.serviceStatus === 'Success') {
+
+        console.log(response.serviceResponse);
+        this.openAlertMod(template, response.serviceResponse);
+        this.isRewards = false;
+        this.isRewardshitory = true;
+        this.fetchRewardHistory();
+
+      } else {
+        this.openAlertMod(template, 'No reward categories available at the moment.');
+      }
+    },
+    (error) => {
+      this.openAlertMod(template, 'Error while updating');
+    }
+  );
+  this.isEditing = false;
+}
+  
+
+bulkDisableRewards(template: TemplateRef<any>) {
+
+  this.rewardsService.bulkDisableRewards().subscribe(
+    (response: any) => {
+      if (response.serviceStatus === 'Success') {
+        console.log(response.serviceResponse);
+        this.openAlertMod(template, response.serviceResponse);
+        this.fetchRewardHistory(); // Refresh the reward history
+      } else {
+        this.openAlertMod(template, 'Bulk disable operation failed.');
+      }
+    },
+    (error) => {
+      this.openAlertMod(template, 'An error occurred while performing bulk disable.');
+    }
+  );
+}
+
+bulkEnable(template: TemplateRef<any>) {
+  
+  this.rewardsService.bulkEnableMonthYear(this.wallOfFameMonths).subscribe(
+    (response: any) => {
+      if (response.serviceStatus === 'Success') {
+        console.log(response.serviceResponse);
+        this.openAlertMod(template, response.serviceResponse);
+        this.isRewards = false;
+          this.isRewardshitory = true;
+          this.iswalloffame = false;
+        this.fetchRewardHistory(); 
+      } else {
+        this.openAlertMod(template, 'Bulk Enable for the following month-year failed.');
+      }
+    },
+    (error) => {
+      this.openAlertMod(template, 'An error occurred while performing bulk enable.');
+    }
+  );
+}
+
+
 
   remarks: string;
 
@@ -301,9 +431,11 @@ setSelectedReward(reward: Rewards) {
       const latestReward = this.rewards[this.rewards.length - 1] || new Rewards();
       console.log('yessss', latestReward);
       this.sumbitRewards.rewardedTo = filterEMP.employeeIdForReward;
-      this.sumbitRewards.rewardType = latestReward.id;
+      this.sumbitRewards.rewardType = 0;
       this.sumbitRewards.rewardTypeName = latestReward.rewardTypes[0];
       this.sumbitRewards.managerId = filterEMP.managerIdForReward;
+      this.sumbitRewards.teamId = null;
+      this.sumbitRewards.teamLeadId = null;
     }
 
     console.log('yessss', this.sumbitRewards);
@@ -317,10 +449,7 @@ setSelectedReward(reward: Rewards) {
   }
 
   onSearch(searchData){
-    if(this.isSearchEnabled == true){
-      this.filters = searchData;
-      console.log("Updated Filter : ", this.filters);
-    }
+    this.filters = searchData;
   }
 
   sortData(sort: Sort) {
@@ -350,9 +479,12 @@ setSelectedReward(reward: Rewards) {
 
           console.log("Reward History", response);
           this.rewardHistoryList = response.serviceResponse;
+          this.rewardHistoryList.forEach(rewards => {
+            rewards.createdOn = (rewards.createdOn)? moment(rewards.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+            rewards.updatedOn = (rewards.updatedOn)? moment(rewards.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+          });
 
         } else {
-          this.rewardHistoryList = [];
           console.error('No rewards data available');
         }
       },
@@ -387,8 +519,7 @@ setSelectedReward(reward: Rewards) {
               "Reward Type": x.rewardTypeName ? x.rewardTypeName : "null",
               "Rewarded On": (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
               "Manager Name": x.managerName || 'N/A',
-              "From Date": x.fromDate || 'N/A',
-              "To Date": x.toDate || 'N/A',
+              "Month Year": x.ofmonthyear || 'N/A',
               "Updated By": x.updatedByName || 'N/A',
               "Updated On": (x.updatedOn) ? moment(x.updatedOn).format(AppComponent.DATETIME_FORMAT) : ' - ',
               "Remarks": x.remark || 'N/A',

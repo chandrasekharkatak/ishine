@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { Rewards } from '../models/rewards';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
@@ -10,10 +11,19 @@ export class RewardsServiceService {
 
   private baseUrl:any = environment.baseUrl;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient,    private router: Router,
+    ) { }
+
+  navigateToEmployee360(data: any) {
+    this.router.navigate(['/employee-360/rewards'], { state: { data } });
+  }
 
   getAllRewardsCategory(){
     return this.http.get(`${this.baseUrl}` + `api/getAllRewardsCategory`);
+  }
+
+  getAllRewardDetailsById(rewardId:any){
+    return this.http.get(`${this.baseUrl}` + `api/getEmployeeRewardByRewardId/`+rewardId);
   }
 
   saveRewardConfiguration(rewards: Rewards){
@@ -53,6 +63,10 @@ export class RewardsServiceService {
     return this.http.post(`${this.baseUrl}`+`api/submitRewardForEmployee`, rewards);
   }
 
+  updateRewardForEmployee(rewards: Rewards){
+    return this.http.post(`${this.baseUrl}`+`api/updateRewardsForEmployees`, rewards);
+  }
+
   getEmployeeRewardByRewardId(rewardId: number) {
     return this.http.get(`${this.baseUrl}api/getEmployeeRewardByRewardId/${rewardId}`);
   }
@@ -72,6 +86,10 @@ fetchEmployeesForHomepage(){
   return this.http.get(`${this.baseUrl}`+`api/fetchEmployeesForHomepage`);
 }
 
+// fetchEmployeesHomepagecurrentmonth(currentMonthYearApi:any){
+//   return this.http.get(`${this.baseUrl}`+`api/fetchEmployeesHomepagecurrentmonth/`+currentMonthYearApi);
+// }
+
 getAllActiveTeams(rewards: any){
   return this.http.post(`${this.baseUrl}`+`api/getAllActiveTeams`, rewards);
 }
@@ -81,5 +99,23 @@ deleteEmployeeRewardByRewardId(rewardId: any) {
   return this.http.delete(`${this.baseUrl}api/deleteEmployeeRewardByRewardId/${rewardId}`);
 }
 
+getEmployeeRewardByEmpId(request : any){
+  return this.http.post(`${this.baseUrl}`+`api/getEmployeeRewardByEmpId`,request);
+
+}
+
+getTeamRewardByEmpId(request : any){
+  return this.http.post(`${this.baseUrl}`+`api/getTeamRewardByEmpId`,request);
+
+}
+
+bulkDisableRewards(){
+  return this.http.post(`${this.baseUrl}`+`api/bulkDisableRewards`,null);
+
+}
+
+bulkEnableMonthYear(listofmonthyear:any){
+  return this.http.post(`${this.baseUrl}`+`api/bulkEnableRewards`,listofmonthyear);
+}
 
 }
