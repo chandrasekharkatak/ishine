@@ -114,10 +114,10 @@ export class ReportListComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  leaveReportColumns:any[] = ['employeementId','employeeName','leaveType','fromDate','toDate','fromDateDayType','toDateDayType','noOfDays','reason','status','managerName','departmentName','createdOn','updatedOn','leaveStatusUpdatedByName'];
-  timesheetReportColumns:any[] = ['employeementId','employeeName','date','dayType','description','status','totalWorkingHours','officeInTime','officeOutTime','totalWorkingOfficeHours','leaveType','createdOn','updatedOn','timesheetStatusUpdatedByName'];
-  employeeReportColumn:any[] = ['employeementId','name','departmentName','jobRoleName','managerName','mobileNo','email','employmentstatus','projectName','clientName','billable','billableType','dateOfJoining','aadhar','aboutMe','address','permanentAddress','city','bloodGroup','dateOfBirth','gender','fatherName','panNumber','placeOfBirth','workLocation','probationPeriod','noticePeriod','country','totalExperience','emergencyContactMobile','emergencyContactPerson','landline','maritalStatus','motherTongue','alternateMobileNo','pincode','relation','state','viewsOnOrganisation','passportNumber','bankAccountNo','bankIFSCCode','bankName','pfAccountNumber','previousPfAccountNumber','uan','esicNumber','graduationType','pursuing','passingGrade','yearOfPassing','updatedOn','updatedByName','createdByName','createdOn'];
-  leaveTimesheetReportColumn:any[] = ['employeementId','employeeName','date','dayType','description','status','managerName','departmentName','createdOn','updatedOn','timesheetStatusUpdatedByName'];
+  leaveReportColumns:any[] = ['employeementId','employeeType','employeeName','leaveType','fromDate','toDate','fromDateDayType','toDateDayType','noOfDays','reason','status','managerName','departmentName','createdOn','updatedOn','leaveStatusUpdatedByName'];
+  timesheetReportColumns:any[] = ['employeementId','employeeType','employeeName','date','dayType','description','status','totalWorkingHours','officeInTime','officeOutTime','totalWorkingOfficeHours','leaveType','createdOn','updatedOn','timesheetStatusUpdatedByName'];
+  employeeReportColumn:any[] = ['employeementId','employeeType','name','departmentName','jobRoleName','managerName','mobileNo','email','employmentstatus','projectName','clientName','billable','billableType','dateOfJoining','aadhar','aboutMe','address','permanentAddress','city','bloodGroup','dateOfBirth','gender','fatherName','panNumber','placeOfBirth','workLocation','probationPeriod','noticePeriod','country','totalExperience','emergencyContactMobile','emergencyContactPerson','landline','maritalStatus','motherTongue','alternateMobileNo','pincode','relation','state','viewsOnOrganisation','passportNumber','bankAccountNo','bankIFSCCode','bankName','pfAccountNumber','previousPfAccountNumber','uan','esicNumber','graduationType','pursuing','passingGrade','yearOfPassing','updatedOn','updatedByName','createdByName','createdOn'];
+  leaveTimesheetReportColumn:any[] = ['employeementId','employeeType','employeeName','date','dayType','description','status','managerName','departmentName','createdOn','updatedOn','timesheetStatusUpdatedByName'];
   defaultMappingColumns:any[] = ['tabName','featureName','subFeatureName'];
 
   constructor(
@@ -335,8 +335,9 @@ export class ReportListComponent implements OnInit {
         this.allLeaveApplicationsList = response.serviceResponse;
         // this.allLeaveApplicationsList = this.allLeaveApplicationsList.filter(x => x.employmentstatus != 'InActive');
         this.allLeaveApplicationsList.forEach(leave => {
-          // leave.employeementId = "A-".concat(leave.employeementId);
-          leave.employeementId = (leave.isConsultant === 'true' ? "A-CS-" : "A-").concat(leave.employeementId);
+          leave.employeementId = "A-".concat(leave.employeementId);
+          // leave.employeementId = (leave.isConsultant === 'true' ? "A-CS-" : "A-").concat(leave.employeementId);
+          leave.employeeType = ((leave.isApprenticeship === 'true') ? 'Apprentice' : ((leave.isConsultant === 'true') ? 'Consultant': 'Regular')),
           leave.fromDate = (leave.fromDate) ? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
           leave.toDate = (leave.toDate) ? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
           leave.createdOn = (leave.createdOn) ? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
@@ -378,8 +379,9 @@ export class ReportListComponent implements OnInit {
             this.openAlertMod(this.alertModal, "No Leave Application Report found ")
           }
           this.allLeaveApplicationsList.forEach(leave => {
-            // leave.employeementId = "A-".concat(leave.employeementId);
-            leave.employeementId = (leave.isConsultant === 'true' ? "A-CS-" : "A-").concat(leave.employeementId);
+            leave.employeementId = "A-".concat(leave.employeementId);
+            // leave.employeementId = (leave.isConsultant === 'true' ? "A-CS-" : "A-").concat(leave.employeementId);
+            leave.employeeType = ((leave.isApprenticeship === 'true') ? 'Apprentice' : ((leave.isConsultant === 'true') ? 'Consultant': 'Regular')),
             leave.fromDate = (leave.fromDate) ? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
             leave.toDate = (leave.toDate) ? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
             leave.createdOn = (leave.createdOn) ? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
@@ -410,8 +412,9 @@ export class ReportListComponent implements OnInit {
         // this.allTimesheetApplicationsList = this.allTimesheetApplicationsList.filter(x => x.employmentstatus != 'InActive');	
 
         this.allTimesheetApplicationsList.forEach(timesheet => {
-          // timesheet.employeementId = "A-".concat(timesheet.employeementId);
-          timesheet.employeementId = (timesheet.isConsultant === 'true' ? "A-CS-" : "A-").concat(timesheet.employeementId);
+          timesheet.employeementId = "A-".concat(timesheet.employeementId);
+          // timesheet.employeementId = (timesheet.isConsultant === 'true' ? "A-CS-" : "A-").concat(timesheet.employeementId);
+          timesheet.employeeType = ((timesheet.isApprenticeship === 'true') ? 'Apprentice' : ((timesheet.isConsultant === 'true') ? 'Consultant': 'Regular')),
           timesheet.description = timesheet.description?.replaceAll('<br>', '')
           timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
           timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
@@ -442,8 +445,9 @@ export class ReportListComponent implements OnInit {
             this.openAlertMod(this.alertModal, "No Timesheet Application Report found ");
           }
           this.allTimesheetApplicationsList.forEach(timesheet => {
-            // timesheet.employeementId = "A-".concat(timesheet.employeementId);
-            timesheet.employeementId = (timesheet.isConsultant === 'true' ? "A-CS-" : "A-").concat(timesheet.employeementId);
+            timesheet.employeementId = "A-".concat(timesheet.employeementId);
+            // timesheet.employeementId = (timesheet.isConsultant === 'true' ? "A-CS-" : "A-").concat(timesheet.employeementId);
+            timesheet.employeeType = ((timesheet.isApprenticeship === 'true') ? 'Apprentice' : ((timesheet.isConsultant === 'true') ? 'Consultant': 'Regular')),
             timesheet.description = timesheet.description?.replaceAll('<br>', '')
             timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
             timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
@@ -470,8 +474,9 @@ export class ReportListComponent implements OnInit {
         // this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');	
 
         this.allEmployeeList.forEach(employee => {
-          // employee.employeementId = "A-".concat(employee.employeementId);
-          employee.employeementId = (employee.isConsultant === 'true' ? "A-CS-" : "A-").concat(employee.employeementId);
+          employee.employeementId = "A-".concat(employee.employeementId);
+          // employee.employeementId = (employee.isConsultant === 'true' ? "A-CS-" : "A-").concat(employee.employeementId);
+          employee.employeeType = ((employee.isApprenticeship === 'true') ? 'Apprentice' : ((employee.isConsultant === 'true') ? 'Consultant': 'Regular')),
           employee.profileCompletedPercent = employee.profileCompletedPercent + "%";
           employee.dateOfBirth = (employee.dateOfBirth) ? moment(employee.dateOfBirth).format(AppComponent.DATE_FORMAT) : null;
           employee.dateOfJoining = (employee.dateOfJoining) ? moment(employee.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
@@ -508,8 +513,9 @@ export class ReportListComponent implements OnInit {
             this.openAlertMod(this.alertModal, "No Data found")
           }
           this.allEmployeeList.forEach(employee => {
-            // employee.employeementId = "A-".concat(employee.employeementId);
-            employee.employeementId = (employee.isConsultant === 'true' ? "A-CS-" : "A-").concat(employee.employeementId);
+            employee.employeementId = "A-".concat(employee.employeementId);
+            // employee.employeementId = (employee.isConsultant === 'true' ? "A-CS-" : "A-").concat(employee.employeementId);
+            employee.employeeType = ((employee.isApprenticeship === 'true') ? 'Apprentice' : ((employee.isConsultant === 'true') ? 'Consultant': 'Regular')),
             employee.profileCompletedPercent = employee.profileCompletedPercent + "%";
             employee.dateOfBirth = (employee.dateOfBirth) ? moment(employee.dateOfBirth).format(AppComponent.DATE_FORMAT) : null;
             employee.dateOfJoining = (employee.dateOfJoining) ? moment(employee.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
@@ -821,9 +827,9 @@ export class ReportListComponent implements OnInit {
           if(queryObj.column == "Employee Id" && !queryObj.value.includes("A-")){
             queryObj.value = "A-".concat(queryObj.value);
           }
-          if(queryObj.column == "Employee Id" && !queryObj.value.includes("A-") && (data.isConsultant == 'true')){
-            queryObj.value = "A-CS-".concat(queryObj.value);
-          }
+          // if(queryObj.column == "Employee Id" && !queryObj.value.includes("A-") && (data.isConsultant == 'true')){
+          //   queryObj.value = "A-CS-".concat(queryObj.value);
+          // }
 
           if (queryObj.column == 'From Date' || queryObj.column == 'To Date' || queryObj.column == 'Date' || queryObj.column == 'Date Of Joining') {
             queryObj.value = (queryObj.value) ? moment(queryObj.value).format("DD-MM-YYYY") : '';
@@ -925,8 +931,9 @@ export class ReportListComponent implements OnInit {
         this.allLeaveTimesheets = response.serviceResponse;
 
         for (let x of this.allLeaveTimesheets) {
-          // x.employeementId = "A-".concat(x.employeementId);
-          x.employeementId = (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId);
+          x.employeementId = "A-".concat(x.employeementId);
+          // x.employeementId = (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId);
+          x.employeeType = ((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true') ? 'Consultant': 'Regular')),
           x.date = (x.date) ? moment(x.date).format(AppComponent.DATE_FORMAT) : null;
           x.createdOn = (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           x.updatedOn = (x.updatedOn) ? moment(x.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
@@ -997,6 +1004,7 @@ export class ReportListComponent implements OnInit {
       const onlySpecificDataArr = this.allLeaveApplicationsList.map(
         x => ({
           "Employee Id": x.employeementId,
+          "Employee Type": x.employeeType,
           "Employee Name": x.employeeName,
           "Leave Type": x.leaveType,
           "From Date": x.fromDate,
@@ -1022,6 +1030,7 @@ export class ReportListComponent implements OnInit {
       const onlySpecificDataArr = this.allTimesheetApplicationsList.map(
         x => ({
           "Employeement Id": x.employeementId,
+          "Employee Type": x.employeeType,
           "Employee Name": x.employeeName,
           "date": x.date,
           "dayType": x.dayType,
@@ -1043,6 +1052,7 @@ export class ReportListComponent implements OnInit {
         const onlySpecificDataArr = this.allEmployeeList.map(
           x => ({
             "Employee Id": x.employeementId,
+            "Employee Type": x.employeeType,
             "Full Name": x.name,		
             "Email Id": x.email,		
             "Employment Status": x.employmentstatus,
@@ -1155,6 +1165,7 @@ export class ReportListComponent implements OnInit {
       const onlySpecificDataArr = this.allLeaveTimesheets.map(
         x => ({
           "Employeement Id": x.employeementId,
+          "Employee Type": x.employeeType,
           "Employee Name": x.employeeName,
           "date": x.date,
           "dayType": x.dayType,

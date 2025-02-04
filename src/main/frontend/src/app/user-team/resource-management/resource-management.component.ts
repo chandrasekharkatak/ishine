@@ -42,6 +42,7 @@ export class ResourceManagementComponent implements OnInit {
 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
+  modalRef2: BsModalRef = new BsModalRef();
   modalRef1: BsModalRef = new BsModalRef();
 
   projectObj: Project = new Project();
@@ -363,6 +364,7 @@ export class ResourceManagementComponent implements OnInit {
             // Process internal projects
             this.internalProjectList.forEach((proj) => {
               let selectedProj = this.teamCreatedProjectList.find((projTeam) => proj.projectId == projTeam.projectId);
+              console.log("Priyadarshini",proj.projectId," ",proj.projectName);
 
               if (selectedProj) {
                 proj.isTeamCreated = true;
@@ -404,7 +406,7 @@ export class ResourceManagementComponent implements OnInit {
 
 
             //console.log(_projectList, " all projects");
-            //console.log(this.internalProjectList, " this.internalProjectList");
+            console.log(this.internalProjectList, " this.internalProjectList");
 
             console.error("  allProject_Po_Internal   ", this.allProject_Po_Internal);
           } else {
@@ -686,7 +688,7 @@ export class ResourceManagementComponent implements OnInit {
       //console.log(this.projectObj, " : this.projectObj");
       this.resourceManagementService.createDraftProjectInfo(this.projectObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
-          this.showViewProjects();
+          // this.showViewProjects();
           this.openAlertMod(template, response.serviceResponse);
         } else {
           this.openAlertMod(template, response.serviceResponse);
@@ -697,18 +699,18 @@ export class ResourceManagementComponent implements OnInit {
       console.log(this.projectObj, " : this.projectObj");
       this.resourceManagementService.createDraftProjectInfo(this.projectObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
-          this.showViewProjects();
-          this.openAlertMod(template, response.serviceResponse);
+          // this.showViewProjects();
+          // this.openAlertMod(template, response.serviceResponse);
 
-          this.resourceManagementService.sendProjectApproval(this.projectObj).pipe(first()).subscribe((response: any) => {
-            if (response.serviceStatus == "Success") {
-              this.cancelRequest();
-              this.openAlertMod(template, response.serviceResponse);
-            } else {
-              this.cancelRequest();
-              this.openAlertMod(template, response.serviceResponse);
-            }
-          });
+          // this.resourceManagementService.sendProjectApproval(this.projectObj).pipe(first()).subscribe((response: any) => {
+          //   if (response.serviceStatus == "Success") {
+          //     this.cancelRequest();
+          //     this.openAlertMod(template, response.serviceResponse);
+          //   } else {
+          //     this.cancelRequest();
+          //     this.openAlertMod(template, response.serviceResponse);
+          //   }
+          // });
         } else {
           this.openAlertMod(this.alertTemplate, response.serviceResponse);
         }
@@ -773,10 +775,13 @@ export class ResourceManagementComponent implements OnInit {
     });
   }
 
+
+
   onApproveProject(project: any) {
     project.empId = this.currentUser.empId;
-    project.projectId = this.projectObj.projectId;
-    //console.log("this.projectObj.projectId   ",project);
+    // project.projectId = this.projectObj.projectId;
+    console.log("this.projectObj.projectId   ",this.projectObj.projectId);
+    console.log("this.projectObj.projectId   ",project.projectId);
     this.resourceManagementService.approvePendingProject(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.showViewProjects();
@@ -808,23 +813,23 @@ export class ResourceManagementComponent implements OnInit {
     this.managerList = [];
 
     this.employeeObj.role = "Manager";
-    if( this.employeeObj.isConsultant == 'true' ){
-      this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(5)
-    }else{
-      this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
-    }
-    // this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
+    // if( this.employeeObj.isConsultant == 'true' ){
+    //   this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(5)
+    // }else{
+    //   this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
+    // }
+    this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
     this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.managerList = response.serviceResponse;
 
         this.managerList.forEach((emp) => {
-          if(emp.isConsultant == 'true'){
-            emp.employeementId = "A-CS-".concat(emp.employeementId);
-          }else{
-            emp.employeementId = "A-".concat(emp.employeementId);
-          }
-          // emp.employeementId = "A-".concat(emp.employeementId);
+          // if(emp.isConsultant == 'true'){
+          //   emp.employeementId = "A-CS-".concat(emp.employeementId);
+          // }else{
+          //   emp.employeementId = "A-".concat(emp.employeementId);
+          // }
+          emp.employeementId = "A-".concat(emp.employeementId);
         });
 
         //console.log("managerList : ", this.managerList);
@@ -1137,6 +1142,12 @@ export class ResourceManagementComponent implements OnInit {
     this.modalRef1.hide();
   }
 
+  cancelRequest2() {
+    console.log("cancel call ");
+
+    this.modalRef2.hide();
+  }
+
   previewTeamModal(template: TemplateRef<any>, teamObj: any, projectObj: any) {
     this.selectedProjectManager = '';
     this.previewTeamList = [];
@@ -1290,13 +1301,11 @@ export class ResourceManagementComponent implements OnInit {
   // }
 
   openProjectTemplateModal(template: TemplateRef<any>, employee) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef2 = this.modalService.show(template, { class: 'modal-xl' });
     this.getExistingProjectsByUser(employee.empId);
     this.dataObj = employee;
 
     console.log("data employee newmenbfcg  ", employee)
-
-
   }
 
 

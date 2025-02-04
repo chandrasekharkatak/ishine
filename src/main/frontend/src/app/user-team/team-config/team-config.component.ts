@@ -65,6 +65,7 @@ export class TeamConfigComponent implements OnInit {
   //modal 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
+  modalRef2: BsModalRef = new BsModalRef();
 
   //Obj 
   teamObj: Team = new Team();
@@ -1373,6 +1374,10 @@ export class TeamConfigComponent implements OnInit {
 
   cancelRequest() {
     this.modalRef.hide();
+  }
+
+  cancelRequest2() {
+    this.modalRef2.hide();
   }
 
   openActivityPreviewModal(template: TemplateRef<any>,teamObj:any) {

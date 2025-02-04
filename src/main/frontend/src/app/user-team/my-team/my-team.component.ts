@@ -342,12 +342,12 @@ export class MyTeamComponent implements OnInit {
         this.teamViewList = response.serviceResponse;
 
         for(let y of this.teamViewList){
-          if(y.isConsultant == 'true'){
-            y.employeementId = "A-CS-".concat(y.employeementId);
-          }else{
-            y.employeementId = "A-".concat(y.employeementId);
-          }
-          // y.employeementId = "A-".concat(y.employeementId);
+          // if(y.isConsultant == 'true'){
+          //   y.employeementId = "A-CS-".concat(y.employeementId);
+          // }else{
+          //   y.employeementId = "A-".concat(y.employeementId);
+          // }
+          y.employeementId = "A-".concat(y.employeementId);
          
           y.isHierarchy = false;
           let temp = this.managerList.find(manager => manager.managerId == y.empId);

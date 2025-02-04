@@ -36,8 +36,16 @@ public class EmployeeRewards {
 	private LocalDate toDate;
 	private Long id;
 	private Long teamId;
+//	@Column(name = "created_on")
+//	private LocalDateTime createdOn;
+//	@Column(name = "updated_by")
+//	private Long updatedBy;
+
 	
 	@Column(length = 1000)
 	private String remark;
+	
+	private String ofmonthyear;
 
 }
+

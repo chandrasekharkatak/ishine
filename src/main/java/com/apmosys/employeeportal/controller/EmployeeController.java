@@ -27,6 +27,7 @@ public class EmployeeController {
 	public ServiceResponse createEmployee(@RequestBody EmployeeDTO employeedto) {
 
 		ServiceResponse response = employeeService.createEmployee(employeedto);
+		employeeService.clearEmployeeCache();
 		return response;
 	}
 
@@ -37,6 +38,7 @@ public class EmployeeController {
 
 		for (EmployeeDTO employee : employeedto) {
 			response = employeeService.createEmployeeByList(employee);
+			employeeService.clearEmployeeCache();
 		}
 		return response;
 	}
@@ -61,6 +63,7 @@ public class EmployeeController {
 //		System.out.println("updateEmployeeByEmpId =========================================================================");
 
 		ServiceResponse response = employeeService.updateEmployeeByEmpId(employeedto);
+		employeeService.clearEmployeeCache();
 		return response;
 	}
 
@@ -71,6 +74,8 @@ public class EmployeeController {
 
 		for (EmployeeDTO employee : employeedto) {
 			response = employeeService.updateEmployeeByEmpIdByList(employee);
+			employeeService.clearEmployeeCache();
+
 		}
 		return response;
 	}
@@ -79,6 +84,7 @@ public class EmployeeController {
 	public ServiceResponse deleteEmployeeByEmpId(@RequestBody EmployeeDTO employeedto) {
 
 		ServiceResponse response = employeeService.deleteEmployeeByEmpId(employeedto);
+		employeeService.clearEmployeeCache();
 		return response;
 	}
 	
@@ -441,6 +447,11 @@ public class EmployeeController {
 		return response;
 	}
 	
-	
+	@RequestMapping(value = "/removeStaleMappingOfInactiveEmployees", method = RequestMethod.POST)
+	public ServiceResponse removeStaleMappingOfInactiveEmployees() {
+
+		ServiceResponse response = employeeService.removeStaleMappingOfInactiveEmployees();
+		return response;
+	}
 	
 }

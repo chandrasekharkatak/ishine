@@ -43,7 +43,6 @@ const Accessibility = require('highcharts/modules/accessibility');
 Accessibility(Highcharts);
 import * as Highcharts from 'highcharts';
 
-
 HC_exportData(HighCharts);
 
 class FilterData{
@@ -117,6 +116,7 @@ export class ReportDashboardComponent implements OnInit {
 
   countOfAllEmployees:any;
   employeeInProbationAfter6MonthsCount = 0;
+  apprenticeCountForDisplay = 0;
   allResignEmployee:any;
 
   filterData:any = new FilterData();
@@ -126,20 +126,20 @@ export class ReportDashboardComponent implements OnInit {
   isSearchEnabled:boolean = false;
 
 
-  leaveSummaryColumns:any[] = ['Employee Id', 'Full Name', 'Leave Type','Department','Team Name','Project Name','Client Name', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
-  timesheetSummaryColumns:any[] = ['Employee Id','Full Name','Department','Date','Day Type','Status','Total Working Hour','Team Name','Project Name','Client Name','From Date','To Date','Created On','Updated On','Updated By'];
+  leaveSummaryColumns:any[] = ['Employee Id','employeeType', 'Full Name', 'Leave Type','Department','Team Name','Project Name','Client Name', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
+  timesheetSummaryColumns:any[] = ['Employee Id','employeeType','Full Name','Department','Date','Day Type','Status','Total Working Hour','Team Name','Project Name','Client Name','From Date','To Date','Created On','Updated On','Updated By'];
   
-  employeeColumns:any[] = ['Employee Id', 'Full Name', 'Department', 'Job Role', 'Manager','Team Name','Project Name','Client Name', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Experience'];
-  employeeSummaryColumns:any[] = ['blank','employeementId','name','experience','departmentName','email','managerName','billable','billableType','projectName','clientName','dateOfJoining','mobileNo','employmentstatus','totalExperience','gender','workLocation','age','profileKycStatus'];
-  workLocationSummaryColumns:any[]=['blank','employeementId','employeeName','projectName','clientName','teamName','clientLocation','date'];
-  LeaveTrendAnalysisGraphColumns:any[]=['blank','employeementId','employeeName','departmentName','fromDate','toDate','fromDateDayType','toDateDayType','status'];
-  leaveSummaryTableColumns:any[] =['blank','employeementId','employeeName','departmentName','fromDate','toDate','fromDateDayType','toDateDayType','status'];
-  timesheetSummaryTableColumns:any[] =['blank','employeementId','employeeName','departmentName','email','managerName','mobileNo','pendingEodCount','legend'];
-  eodSegregationTableColumns:any[]=['blank','employeementId','employeeName','departmentName','email','managerName','mobileNo','date','dayType','totalWorkingHours'];
+  employeeColumns:any[] = ['Employee Id','employeeType', 'Full Name', 'Department', 'Job Role', 'Manager','Team Name','Project Name','Client Name', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Experience'];
+  employeeSummaryColumns:any[] = ['blank','employeementId','employeeType','name','experience','departmentName','email','managerName','billable','billableType','projectName','clientName','dateOfJoining','mobileNo','employmentstatus','totalExperience','gender','workLocation','age','profileKycStatus'];
+  workLocationSummaryColumns:any[]=['blank','employeementId','employeeType','employeeName','projectName','clientName','teamName','clientLocation','date'];
+  LeaveTrendAnalysisGraphColumns:any[]=['blank','employeementId','employeeType','employeeName','departmentName','fromDate','toDate','fromDateDayType','toDateDayType','status'];
+  leaveSummaryTableColumns:any[] =['blank','employeementId','employeeType','employeeName','departmentName','fromDate','toDate','fromDateDayType','toDateDayType','status'];
+  timesheetSummaryTableColumns:any[] =['blank','employeementId','employeeType','employeeName','departmentName','email','managerName','mobileNo','pendingEodCount','legend'];
+  eodSegregationTableColumns:any[]=['blank','employeementId','employeeType','employeeName','departmentName','email','managerName','mobileNo','date','dayType','totalWorkingHours'];
 
   billableChartByDepartmentColumns : any [] = ['Department'];
 
-  resignedColumns:any[] = ['blank','employeementId','name','departmentName','dateOfResign','dateOfRelieving','managerName'];
+  resignedColumns:any[] = ['blank','employeementId','employeeType','name','departmentName','dateOfResign','dateOfRelieving','managerName'];
   departmentIds :any[]=[];
   allDepartmentList : any [] =[];
   currentUser: User;
@@ -246,11 +246,18 @@ options:any;
         this.allResignEmployee = response.serviceResponse;
         this.allResignEmployee = this.allResignEmployee.filter(x => x.employmentstatus == 'Resigned');
         this.allResignEmployee.forEach(employee => {
-          // employee.employeementId = "A-".concat(employee.employeementId);
+          employee.employeementId = "A-".concat(employee.employeementId);
+          // if(employee.isConsultant == 'true'){
+          //   employee.employeementId = "A-CS-".concat(employee.employeementId);
+          // }else{
+          //   employee.employeementId = "A-".concat(employee.employeementId);
+          // }
           if(employee.isConsultant == 'true'){
-            employee.employeementId = "A-CS-".concat(employee.employeementId);
-          }else{
-            employee.employeementId = "A-".concat(employee.employeementId);
+            employee.employeeType = "Consultant"
+          }else if(employee.isApprenticeship == 'true'){
+            employee.employeeType = "Apprentice"
+          }else {
+            employee.employeeType = "Regular"
           }
           employee.dateOfRelieving = (employee.dateOfResign)? moment(employee.dateOfResign).add(employee.noticePeriod, 'days') : null;
 
@@ -281,11 +288,18 @@ options:any;
       if(response.serviceStatus == "Success"){
         this.departmentWiseBillableEmployeeList = response.serviceResponse;
         this.departmentWiseBillableEmployeeList.forEach((data)=>{
-          // data.employeementId = "A-".concat(data.employeementId);
+          data.employeementId = "A-".concat(data.employeementId);
+          // if(data.isConsultant == 'true'){
+          //   data.employeementId = "A-CS-".concat(data.employeementId);
+          // }else{
+          //   data.employeementId = "A-".concat(data.employeementId);
+          // }
           if(data.isConsultant == 'true'){
-            data.employeementId = "A-CS-".concat(data.employeementId);
-          }else{
-            data.employeementId = "A-".concat(data.employeementId);
+            data.employeeType = "Consultant"
+          }else if(data.isApprenticeship == 'true'){
+            data.employeeType = "Apprentice"
+          }else {
+            data.employeeType = "Regular"
           }
           let age = this.getAge(data.dateOfBirth);
           data.age = age;
@@ -735,6 +749,13 @@ options:any;
           // }else {
           //   data.employeementId = "A-".concat(data.employeementId)
           // }
+          if(data.isConsultant == 'true'){
+            data.employeeType = "Consultant"
+          }else if(data.isApprenticeship == 'true'){
+            data.employeeType = "Apprentice"
+          }else {
+            data.employeeType = "Regular"
+          }
         })
         console.log("Initial employeeWorkLocationList: ", this.employeeWorkLocationList);
 
@@ -792,8 +813,15 @@ options:any;
         this.allEmployeeList = response.serviceResponse;
         // this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != "InActive");
           for(let x of this.allEmployeeList){
-            // x.employeementId = "A-".concat(x.employeementId);
-            x.employeementId =x.isConsultant ? "A-CS-".concat(x.employeementId) : "A-".concat(x.employeementId);
+            x.employeementId = "A-".concat(x.employeementId);
+            // x.employeementId =x.isConsultant ? "A-CS-".concat(x.employeementId) : "A-".concat(x.employeementId);
+            if(x.isConsultant == 'true'){
+              x.employeeType = "Consultant"
+            }else if(x.isApprenticeship == 'true'){
+              x.employeeType = "Apprentice"
+            }else {
+              x.employeeType = "Regular"
+            }
             x.dateOfRelieving = moment(x.dateOfResign).add(x.noticePeriod, 'days').format(this.dateFormat);
             x.relievingMonth = moment(x.dateOfRelieving).format('MMMM');
             x.joiningMonth = moment(x.dateOfJoining).format('MMMM');
@@ -830,12 +858,19 @@ options:any;
             this.openAlertMod(template, "No Data Found");
           }
           this.allEmployeeList.forEach(employee => {
+            // if(employee.isConsultant == 'true'){
+            //   employee.employeementId = "A-CS-".concat(employee.employeementId);
+            // }else{
+            //   employee.employeementId = "A-".concat(employee.employeementId);
+            // }
             if(employee.isConsultant == 'true'){
-              employee.employeementId = "A-CS-".concat(employee.employeementId);
-            }else{
-              employee.employeementId = "A-".concat(employee.employeementId);
+              employee.employeeType = "Consultant"
+            }else if(employee.isApprenticeship == 'true'){
+              employee.employeeType = "Apprentice"
+            }else {
+              employee.employeeType = "Regular"
             }
-            // employee.employeementId = "A-".concat(employee.employeementId);
+            employee.employeementId = "A-".concat(employee.employeementId);
             employee.dateOfRelieving = moment(employee.dateOfResign).add(employee.noticePeriod, 'days').format(this.dateFormat);
             employee.relievingMonth = moment(employee.dateOfRelieving).format('MMMM');
             employee.joiningMonth = moment(employee.dateOfJoining).format('MMMM');
@@ -869,15 +904,24 @@ this.departmentIds = departmentIds;
             this.openAlertMod(this.alertTemplate,"No Data Found");
           }
 
-          // this.departmentWiseBillableEmployeeList.forEach(employee => {
-          //   employee.employeementId = "A-".concat(employee.employeementId);
-          // });
-
           this.departmentWiseBillableEmployeeList.forEach(employee => {
-            employee.employeementId = employee.isConsultant 
-              ? "A-CS-".concat(employee.employeementId) 
-              : "A-".concat(employee.employeementId);
-          });          
+            employee.employeementId = "A-".concat(employee.employeementId);
+          });
+
+          // this.departmentWiseBillableEmployeeList.forEach(employee => {
+          //   employee.employeementId = employee.isConsultant 
+          //     ? "A-CS-".concat(employee.employeementId) 
+          //     : "A-".concat(employee.employeementId);
+          // }); 
+          this.departmentWiseBillableEmployeeList.forEach(employee => {
+            if(employee.isConsultant == 'true'){
+              employee.employeeType = "Consultant"
+            }else if(employee.isApprenticeship == 'true'){
+              employee.employeeType = "Apprentice"
+            }else {
+              employee.employeeType = "Regular"
+            }
+          });         
 
           this.extractDataForBillable();
           console.log("Department-wise Billable Employee List: ", this.departmentWiseBillableEmployeeList);
@@ -995,6 +1039,7 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
     let countAbove45 = 0;
 
     let experienceCountBetween0and1 = 0;
+    let experienceCountBetween0and1Apprentice = 0;
     let experienceCountBetween1and2 = 0;
     let experienceCountBetween2and5 = 0;
     let experienceCountBetween5and10 = 0;
@@ -1029,19 +1074,48 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
     let billableCount = 0;
     let nonBillableCount =0;
     let otherBillableCount =0;
-    
+
+    let joinApprenticeJanCount = 0;
+    let joinApprenticeFebCount = 0;
+    let joinApprenticeMarCount = 0;
+    let joinApprenticeAprCount = 0;
+    let joinApprenticeMayCount = 0;
+    let joinApprenticeJunCount = 0;
+    let joinApprenticeJulCount = 0;
+    let joinApprenticeAugCount = 0;
+    let joinApprenticeSepCount = 0;
+    let joinApprenticeOctCount = 0;
+    let joinApprenticeNovCount = 0;
+    let joinApprenticeDecCount = 0;
+
+    let joinConsultantJanCount = 0;
+    let joinConsultantFebCount = 0;
+    let joinConsultantMarCount = 0;
+    let joinConsultantAprCount = 0;
+    let joinConsultantMayCount = 0;
+    let joinConsultantJunCount = 0;
+    let joinConsultantJulCount = 0;
+    let joinConsultantAugCount = 0;
+    let joinConsultantSepCount = 0;
+    let joinConsultantOctCount = 0;
+    let joinConsultantNovCount = 0;
+    let joinConsultantDecCount = 0;
+
+
 
     this.allEmployeeList.forEach((employee)=>{
       let currentYear = moment().year();
       let dateToday = moment().format(this.dateFormat);
 
+
+      
       if(employee.experience == 'Fresher' && employee.employmentstatus != 'InActive') fresherCount++;
       else if (employee.experience == 'Experienced' && employee.employmentstatus != 'InActive') experienceCount++;
 
       if (employee.employmentstatus == "Probation") probationCount++;
-          else if (employee.employmentstatus == "Confirmed") confirmedCount++;
-          else if (employee.employmentstatus == "Resigned") resignedCount++;
-          else if (employee.employmentstatus == "InActive") inActiveCount++;
+      	else if (employee.employmentstatus == "Confirmed") confirmedCount++;
+      	else if (employee.employmentstatus == "Resigned") resignedCount++;
+      	else if (employee.employmentstatus == "InActive") inActiveCount++;
 
       if(employee.gender == 'male' && employee.employmentstatus != 'InActive') maleCount++;
       else if(employee.gender == 'female' && employee.employmentstatus != 'InActive') femaleCount++;
@@ -1057,30 +1131,152 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
        else if (age>45) countAbove45++;
       }
 
-      if(employee.dateOfJoining != null && employee.employmentstatus != 'InActive'){
-        if(employee.totalExperience == null)employee.totalExperience = 0;
+      // if(employee.dateOfJoining != null && employee.employmentstatus != 'InActive'){
+      //   if(employee.totalExperience == null)employee.totalExperience = 0;
+      //   let empTotalExperience = this.totalExperience(employee.dateOfJoining, employee.totalExperience);
+      //   employee.totalExperience = empTotalExperience.toFixed(1);
+      //   if(employee.totalExperience >= 0 && employee.totalExperience <= 1)experienceCountBetween0and1++
+      //   else if(employee.totalExperience > 1 && employee.totalExperience <= 2)experienceCountBetween1and2++;
+      //   else if(employee.totalExperience > 2 && employee.totalExperience <= 5)experienceCountBetween2and5++;
+      //   else if(employee.totalExperience > 5 && employee.totalExperience <= 10)experienceCountBetween5and10++;
+      //   else if(employee.totalExperience > 10)experienceCountAbove10++;
+      // }
+      if (employee.dateOfJoining != null && employee.employmentstatus != 'InActive') {
+        if (employee.totalExperience == null) employee.totalExperience = 0;
+      
         let empTotalExperience = this.totalExperience(employee.dateOfJoining, employee.totalExperience);
         employee.totalExperience = empTotalExperience.toFixed(1);
-        if(employee.totalExperience >= 0 && employee.totalExperience <= 1)experienceCountBetween0and1++
-        else if(employee.totalExperience > 1 && employee.totalExperience <= 2)experienceCountBetween1and2++;
-        else if(employee.totalExperience > 2 && employee.totalExperience <= 5)experienceCountBetween2and5++;
-        else if(employee.totalExperience > 5 && employee.totalExperience <= 10)experienceCountBetween5and10++;
-        else if(employee.totalExperience > 10)experienceCountAbove10++;
+      
+        // Check for apprentices in the "0 to 1" experience category
+        if ((employee.totalExperience >= 0 && employee.totalExperience <= 1) && (employee.isApprenticeship != 'true' || employee.isApprenticeship === null)) {
+          experienceCountBetween0and1++;
+        } else if(employee.totalExperience >= 0 && employee.totalExperience <= 1 && employee.isApprenticeship === 'true'){
+          experienceCountBetween0and1Apprentice++;
+        }else if (employee.totalExperience > 1 && employee.totalExperience <= 2) {
+          experienceCountBetween1and2++;
+        } else if (employee.totalExperience > 2 && employee.totalExperience <= 5) {
+          experienceCountBetween2and5++;
+        } else if (employee.totalExperience > 5 && employee.totalExperience <= 10) {
+          experienceCountBetween5and10++;
+        } else if (employee.totalExperience > 10) {
+          experienceCountAbove10++;
+        }
       }
+      
 
-      if(employee.joiningMonth == 'January' && moment(employee.dateOfJoining).year() == currentYear)joiningJanCount++;
-      else if(employee.joiningMonth == 'February' && moment(employee.dateOfJoining).year() == currentYear)joiningFebCount++;
-      else if(employee.joiningMonth == 'March' && moment(employee.dateOfJoining).year() == currentYear)joiningMarCount++;
-      else if(employee.joiningMonth == 'April' && moment(employee.dateOfJoining).year() == currentYear)joiningAprilCount++;
-      else if(employee.joiningMonth == 'May' && moment(employee.dateOfJoining).year() == currentYear)joiningMayCount++;
-      else if(employee.joiningMonth == 'June' && moment(employee.dateOfJoining).year() == currentYear)joiningJuneCount++;
-      else if(employee.joiningMonth == 'July' && moment(employee.dateOfJoining).year() == currentYear)joiningJulyCount++;
-      else if(employee.joiningMonth == 'August' && moment(employee.dateOfJoining).year() == currentYear)joiningAugCount++;
-      else if(employee.joiningMonth == 'September' && moment(employee.dateOfJoining).year() == currentYear)joiningSepCount++;
-      else if(employee.joiningMonth == 'October' && moment(employee.dateOfJoining).year() == currentYear)joiningOctoberCount++;
-      else if(employee.joiningMonth == 'November' && moment(employee.dateOfJoining).year() == currentYear)joiningNovCount++;
-      else if(employee.joiningMonth == 'December' && moment(employee.dateOfJoining).year() == currentYear)joiningDecCount++;
+      // if(employee.joiningMonth == 'January' && moment(employee.dateOfJoining).year() == currentYear)joiningJanCount++;
+      // else if(employee.joiningMonth == 'February' && moment(employee.dateOfJoining).year() == currentYear)joiningFebCount++;
+      // else if(employee.joiningMonth == 'March' && moment(employee.dateOfJoining).year() == currentYear)joiningMarCount++;
+      // else if(employee.joiningMonth == 'April' && moment(employee.dateOfJoining).year() == currentYear)joiningAprilCount++;
+      // else if(employee.joiningMonth == 'May' && moment(employee.dateOfJoining).year() == currentYear)joiningMayCount++;
+      // else if(employee.joiningMonth == 'June' && moment(employee.dateOfJoining).year() == currentYear)joiningJuneCount++;
+      // else if(employee.joiningMonth == 'July' && moment(employee.dateOfJoining).year() == currentYear)joiningJulyCount++;
+      // else if(employee.joiningMonth == 'August' && moment(employee.dateOfJoining).year() == currentYear)joiningAugCount++;
+      // else if(employee.joiningMonth == 'September' && moment(employee.dateOfJoining).year() == currentYear)joiningSepCount++;
+      // else if(employee.joiningMonth == 'October' && moment(employee.dateOfJoining).year() == currentYear)joiningOctoberCount++;
+      // else if(employee.joiningMonth == 'November' && moment(employee.dateOfJoining).year() == currentYear)joiningNovCount++;
+      // else if(employee.joiningMonth == 'December' && moment(employee.dateOfJoining).year() == currentYear)joiningDecCount++;
 
+      if (moment(employee.dateOfJoining).year() === currentYear && employee.employmentstatus != 'InActive') {
+        if (employee.joiningMonth === 'January') {
+          if (employee.isApprenticeship === 'true') {
+            joinApprenticeJanCount++;
+          } else if (employee.isConsultant === 'true') {
+            joinConsultantJanCount++;
+          } else {
+            joiningJanCount++;
+          }
+        } else if (employee.joiningMonth === 'February') {
+          if (employee.isApprenticeship === 'true') {
+            joinApprenticeFebCount++;
+          } else if (employee.isConsultant === 'true') {
+            joinConsultantFebCount++;
+          } else {
+            joiningFebCount++;
+          }
+        } else if (employee.joiningMonth === 'March') {
+          if (employee.isApprenticeship === 'true') {
+            joinApprenticeMarCount++;
+          } else if (employee.isConsultant === 'true') {
+            joinConsultantMarCount++;
+          } else {
+            joiningMarCount++;
+          }
+        } else if (employee.joiningMonth === 'April') {
+          if (employee.isApprenticeship === 'true') {
+            joinApprenticeAprCount++;
+          } else if (employee.isConsultant === 'true') {
+            joinConsultantAprCount++;
+          } else {
+            joiningAprilCount++;
+          }
+        } else if (employee.joiningMonth === 'May') {
+          if (employee.isApprenticeship === 'true') {
+            joinApprenticeMayCount++;
+          } else if (employee.isConsultant === 'true') {
+            joinConsultantMayCount++;
+          } else {
+            joiningMayCount++;
+          }
+        } else if (employee.joiningMonth === 'June') {
+          if (employee.isApprenticeship === 'true') {
+            joinApprenticeJunCount++;
+          } else if (employee.isConsultant === 'true') {
+            joinConsultantJunCount++;
+          } else {
+            joiningJuneCount++;
+          }
+        } else if (employee.joiningMonth === 'July') {
+          if (employee.isApprenticeship === 'true') {
+            joinApprenticeJulCount++;
+          } else if (employee.isConsultant === 'true') {
+            joinConsultantJulCount++;
+          } else {
+            joiningJulyCount++;
+          }
+        } else if (employee.joiningMonth === 'August') {
+          if (employee.isApprenticeship === 'true') {
+            joinApprenticeAugCount++;
+          } else if (employee.isConsultant === 'true') {
+            joinConsultantAugCount++;
+          } else {
+            joiningAugCount++;
+          }
+        } else if (employee.joiningMonth === 'September') {
+          if (employee.isApprenticeship === 'true') {
+            joinApprenticeSepCount++;
+          } else if (employee.isConsultant === 'true') {
+            joinConsultantSepCount++;
+          } else {
+            joiningSepCount++;
+          }
+        } else if (employee.joiningMonth === 'October') {
+          if (employee.isApprenticeship === 'true') {
+            joinApprenticeOctCount++;
+          } else if (employee.isConsultant === 'true') {
+            joinConsultantOctCount++;
+          } else {
+            joiningOctoberCount++;
+          }
+        } else if (employee.joiningMonth === 'November') {
+          if (employee.isApprenticeship === 'true') {
+            joinApprenticeNovCount++;
+          } else if (employee.isConsultant === 'true') {
+            joinConsultantNovCount++;
+          } else {
+            joiningNovCount++;
+          }
+        } else if (employee.joiningMonth === 'December') {
+          if (employee.isApprenticeship === 'true') {
+            joinApprenticeDecCount++;
+          } else if (employee.isConsultant === 'true') {
+            joinConsultantDecCount++;
+          } else {
+            joiningDecCount++;
+          }
+        }
+      }
+      
       if(employee.relievingMonth == 'January' && moment(employee.dateOfRelieving).year() == currentYear)resignJanCount++;
       else if(employee.relievingMonth == 'February' && moment(employee.dateOfRelieving).year() == currentYear)resignFebCount++;
       else if(employee.relievingMonth == 'March' && moment(employee.dateOfRelieving).year() == currentYear)resignMarCount++;
@@ -1097,8 +1293,8 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
       if(employee.dateOfJoining != null && employee.employmentstatus != 'InActive'){
         if(moment(dateToday).diff(moment(employee.dateOfJoining), 'months', true) > 6 && employee.employmentstatus == 'Probation')this.employeeInProbationAfter6MonthsCount++;
       }
-    
-    
+      if(employee.employmentstatus != 'InActive' && employee.isApprenticeship === 'true')this.apprenticeCountForDisplay++;
+      
       if((employee.billable == 'Yes' && employee.billableType != null) && employee.employmentstatus !="InActive") billableCount++;
       if((employee.billable == 'No' && employee.billableType != null)  && employee.employmentstatus !="InActive") nonBillableCount++;
       if((employee.billable == "Yes" || employee.billable == "No" || employee.billable == null) && employee.billableType == null && employee.employmentstatus != 'InActive') otherBillableCount++;
@@ -1115,18 +1311,67 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
       } 
 
     });
-
-
+    let departmentList = this.groupBy(
+      this.allEmployeeList.filter((x) => x.employmentstatus !== 'InActive'),
+      'departmentName'
+    );
     
-
-
+    let departmentListForApprentice = this.groupBy(
+      this.allEmployeeList.filter(
+        (x) => x.employmentstatus !== 'InActive' && x.isApprenticeship === 'true'
+      ),
+      'departmentName'
+    );
+    
+    console.log('departmentList -- ', departmentList);
+    console.log('departmentListForApprentice -- ', departmentListForApprentice);
+    
+    let employeeByDepartment = [];
+    
+    // Process each department only once
+    for (let department in departmentList) {
+      // Get the total employees in the current department
+      let employeeCount = departmentList[department].length;
+    
+      // Get the apprentice count for the department, defaulting to 0
+      let apprenticeCount = departmentListForApprentice[department]?.length || 0;
+    
+      // Push the data for the department
+      employeeByDepartment.push({
+        departmentName: department,
+        employeeCount: employeeCount,
+        apprenticeCount: apprenticeCount,
+      });
+    }
+    
+    console.log('employeeByDepartment -- ', employeeByDepartment);
 
     //Department wise Employee Count
-    let departmentList = this.groupBy(this.allEmployeeList.filter(x => x.employmentstatus != 'InActive'),'departmentName');
-    let employeeByDepartment = [];
-      for (let department in departmentList) {
-         employeeByDepartment.push({departmentName:department , employeeCount: departmentList[department].length})
-      }
+    // let departmentList = this.groupBy(this.allEmployeeList.filter(x => x.employmentstatus != 'InActive'),'departmentName');
+    // let departmentListForApprentice = this.groupBy(this.allEmployeeList.filter(x => x.employmentstatus != 'InActive' && x.isApprenticeship === 'true'),'departmentName');
+    // console.log('departmentListForApprentice -- ',departmentListForApprentice);
+
+    // let employeeByDepartment = [];
+    //   for (let department in departmentList) {
+    //      //employeeByDepartment.push({departmentName:department , employeeCount: departmentList[department].length})
+    //     for (let departmentApprentice in departmentListForApprentice){
+    //       if (department === departmentApprentice){
+    //         employeeByDepartment.push({departmentName:department , employeeCount: departmentList[department].length, apprenticeCount :departmentListForApprentice[departmentApprentice].length})
+    //       }else{
+    //         employeeByDepartment.push({departmentName:department , employeeCount: departmentList[department].length})
+    //       }                                                                                       ``
+    //     }
+    //   }
+    
+    // let employeeByDepartment = [];
+    //   for (let department in departmentList) {
+    //      //employeeByDepartment.push({departmentName:department , employeeCount: departmentList[department].length})
+    //     for (let departmentApprentice in departmentListForApprentice){
+    //         employeeByDepartment.push({departmentName:department , employeeCount: departmentList[department].length, apprenticeCount :departmentListForApprentice[departmentApprentice].length})
+    //         employeeByDepartment.push({departmentName:department , employeeCount: departmentList[department].length})
+    //     }
+    //   }
+    //   console.log('employeeByDepartment --- ',employeeByDepartment);
 
       
 
@@ -1164,7 +1409,6 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
 
 
     /*
-    
     Chart Data for - Employee Status Graph.
     */
     let employeeStatusData  = [{
@@ -1230,18 +1474,25 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
   // First, create an array of objects with both departmentName and employeeCount
   let departmentData = employeeByDepartment.map(dept => ({
     departmentName: dept.departmentName,
-    employeeCount: dept.employeeCount
+    employeeCount: dept.employeeCount,
+    apprenticeCount : dept.apprenticeCount || 0
   }));
   
   // Sort the departmentData array in descending order based on employeeCount
   departmentData.sort((a, b) => b.employeeCount - a.employeeCount);
   
   // Extract departmentWiseEmployeeData and departmentWiseEmployeeCategories after sorting
-  let departmentWiseEmployeeData = departmentData.map(dept => [dept.departmentName, dept.employeeCount]);
-  let departmentWiseEmployeeCategories = departmentData.map(dept => [dept.departmentName]);
-  
+  // let departmentWiseEmployeeData = departmentData.map(dept => [dept.departmentName, dept.employeeCount]);
+  // let departmentWiseEmployeeCategories = departmentData.map(dept => [dept.departmentName]);
+  // Prepare data and categories for the chart
+  let departmentWiseEmployeeData = departmentData.map(dept => ({
+    name: dept.departmentName,
+    data: [dept.employeeCount, dept.apprenticeCount], // Include both employee and apprentice counts
+  }));
+let departmentWiseEmployeeCategories = departmentData.map(dept => dept.departmentName);
+
   // Now use departmentWiseEmployeeData and departmentWiseEmployeeCategories in your chart rendering
-  this.renderColumnBarSummaryChart(
+  this.renderDepartmentWiseEmployeeChart(
     'Department Wise Employee',
     'departmentWiseEmployee',
     departmentWiseEmployeeData,
@@ -1249,6 +1500,7 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
     'Department',
     this.openDepartmentWiseEmployeeModalTable.bind(this)
   );
+  
   
   
         /*
@@ -1315,36 +1567,90 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
         Chart Data for - Employee Experience Graph Data.
        */
 
-        let experienceData = [{
-          name: "0 to 1",
-          y: experienceCountBetween0and1
-        },{
-          name: "1 to 2",
-          y: experienceCountBetween1and2
-        },
-        {
-          name: "2 to 5",
-          y: experienceCountBetween2and5
-        },
-        {
-          name: "5 to 10",
-          y: experienceCountBetween5and10
-        },
-        {
-          name: "10+",
-          y: experienceCountAbove10
-        }];
+        // let experienceData = [{
+        //   name: "0 to 1",
+        //   y: experienceCountBetween0and1
+        // },{
+        //   name: "1 to 2",
+        //   y: experienceCountBetween1and2
+        // },
+        // {
+        //   name: "2 to 5",
+        //   y: experienceCountBetween2and5
+        // },
+        // {
+        //   name: "5 to 10",
+        //   y: experienceCountBetween5and10
+        // },
+        // {
+        //   name: "10+",
+        //   y: experienceCountAbove10
+        // }];
+        
 
-        let totalExperienceData = experienceData.map(exp => {
-          return [exp.name, exp.y]
-        })
+        // let totalExperienceData = experienceData.map(exp => {
+        //   return [exp.name, exp.y]
+        // })
 
-        let totalExperienceCategories = experienceData.map(exp => {
-          return [exp.name]
-        })
+        // let totalExperienceCategories = experienceData.map(exp => {
+        //   return [exp.name]
+        // })
+
+        let experienceData = [
+          {
+            name: "0 to 1",
+            employeeCount: experienceCountBetween0and1, // Replace with actual employee count
+            apprenticeCount: experienceCountBetween0and1Apprentice, // Replace with actual apprentice count
+          },
+          {
+            name: "1 to 2",
+            employeeCount: experienceCountBetween1and2, // Employee count for 1 to 2
+            apprenticeCount: 0, // No apprentice data for other ranges
+          },
+          {
+            name: "2 to 5",
+            employeeCount: experienceCountBetween2and5,
+            apprenticeCount: 0,
+          },
+          {
+            name: "5 to 10",
+            employeeCount: experienceCountBetween5and10,
+            apprenticeCount: 0,
+          },
+          {
+            name: "10+",
+            employeeCount: experienceCountAbove10,
+            apprenticeCount: 0,
+          },
+        ];
+        
+        // Categories (Experience Ranges)
+        let totalExperienceCategories = experienceData.map(exp => exp.name);
+        
+        // Series Data (for employees and apprentices)
+        let employeeSeries = experienceData.map(exp => exp.employeeCount);
+        let apprenticeSeries = experienceData.map(exp => exp.apprenticeCount);
+        
         //console.log(" totalExperienceData :", totalExperienceData);
-        this.renderColumnBarSummaryChart('Employee Experience','employeeExperienceSummary',totalExperienceData,totalExperienceCategories,'Experience', this.openEmployeeExperienceModalTable.bind(this));
-
+        //this.renderColumnBarSummaryChart('Employee Experience','employeeExperienceSummary',totalExperienceData,totalExperienceCategories,'Experience', this.openEmployeeExperienceModalTable.bind(this));
+        // this.renderColumnBarSummaryChart(
+        //   'Employee Experience',
+        //   'employeeExperienceSummary', 
+        //   totalExperienceCategories, 
+        //   employeeSeries,
+        //   apprenticeSeries,
+        //   this.openEmployeeExperienceModalTable.bind(this) 
+        // );
+        this.plotEmployeeExperienceCylinderGraph(
+          'Employee Experience',
+          'employeeExperienceSummary',
+          totalExperienceCategories,
+          employeeSeries, 
+          apprenticeSeries,
+          this.openEmployeeExperienceModalTable.bind(this)
+        );
+        
+        
         /*
         Chart Data for - Employee Fresher - Lateral Graph Data.
        */
@@ -1373,20 +1679,165 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
         Chart Data for - Employee Join VS Resign
        */
 
-        let empJoinResignData = [{
-          name: "Joined",
-          y: [joiningJanCount,joiningFebCount,joiningMarCount,joiningAprilCount,joiningMayCount,joiningJuneCount,joiningJulyCount,joiningAugCount,joiningSepCount,joiningOctoberCount,joiningNovCount,joiningDecCount]
-        },
-        {
-          name: "Resigned",
-          y: [resignJanCount,resignFebCount,resignMarCount,resignAprilCount,resignMayCount,resignJuneCount,resignJulyCount,resignAugCount,resignSepCount,resignOctoberCount,resignNovCount,resignDecCount]
-        }]
+        // let empJoinResignData = [{
+        //   name: "Regular",
+        //   y: [joiningJanCount,joiningFebCount,joiningMarCount,joiningAprilCount,joiningMayCount,joiningJuneCount,joiningJulyCount,joiningAugCount,joiningSepCount,joiningOctoberCount,joiningNovCount,joiningDecCount]
+        // },
+        // {
+        //   name :"Apprentice",
+        //   stack : "Joined",
+        //   y: [joinApprenticeJanCount, joinApprenticeFebCount,joinApprenticeMarCount, joinApprenticeAprCount, joinApprenticeMayCount,joinApprenticeJunCount, joinApprenticeJulCount, joinApprenticeAugCount,joinApprenticeSepCount,joinApprenticeOctCount,joinApprenticeNovCount, joinApprenticeDecCount]
+        // },
+        // {
+        //   name : "Consultant",
+        //   stack:"joined",
+        //   y:[joinConsultantJanCount, joinConsultantFebCount,joinConsultantMarCount,joinConsultantAprCount,joinConsultantMayCount,joinConsultantJunCount,joinConsultantJulCount,joinConsultantAugCount,joinConsultantSepCount,joinConsultantOctCount,joinConsultantNovCount,joinConsultantDecCount]
+        // },
+        // {
+        //   name: "Resigned",
+        //   y: [resignJanCount,resignFebCount,resignMarCount,resignAprilCount,resignMayCount,resignJuneCount,resignJulyCount,resignAugCount,resignSepCount,resignOctoberCount,resignNovCount,resignDecCount]
+        // }]
 
-        let finalEmpJoinResignData = empJoinResignData.map(x => {
-          return {name : x.name, data : x.y}
-        })
-        //console.log("finalEmpJoinResignData :", finalEmpJoinResignData);
+        //----------------------------------------------------------------------------------------------------------
+
+        // let empJoinResignData = [
+        //   {
+        //     name: "Regular",
+        //     y: joinedRegularCount,  // Joined Regular
+        //     stack: "joined"
+        //   },
+        //   {
+        //     name: "Apprentice",
+        //     y: joinedApprenticeCount,  // Joined Apprentice
+        //     stack: "joined"
+        //   },
+        //   {
+        //     name: "Consultant",
+        //     y: joinedConsultantCount,  // Joined Consultant
+        //     stack: "joined"
+        //   },
+        //   {
+        //     name: "Resigned",
+        //     y: resignCounts,  // Resigned employees
+        //     stack: "resigned"
+        //   }
+        // ];
+        // let empJoinResignData = [
+        //   {
+        //     name: 'Joined',
+        //     data: [joinedRegularCount, joinedApprenticeCount, joinedConsultantCount] // Stack for Joined data
+        //   },
+        //   {
+        //     name: 'Resigned',
+        //     // data: [resignJanCount] // Single bar for Resigned data
+        //     data: [resignJanCount,resignFebCount,resignMarCount,resignAprilCount,resignMayCount,resignJuneCount,resignJulyCount,resignAugCount,resignSepCount,resignOctoberCount,resignNovCount,resignDecCount]
+        //   }
+        // ];
+
+        // let finalEmpJoinResignData = empJoinResignData.map(x => {
+        //   return {name : x.name, data : x.data}
+        // })
+
+        //for static data
+        // let joinedRegularCounts = [120, 150, 100, 140, 130, 160, 180, 170, 110, 200, 210, 220];
+        // let joinedApprenticeCounts = [50, 60, 40, 70, 50, 80, 90, 100, 60, 110, 120, 130];
+        // let joinedConsultantCounts = [30, 40, 20, 30, 40, 50, 60, 70, 40, 50, 60, 70];
+        // let resignCounts = [20, 25, 18, 23, 22, 30, 35, 40, 28, 45, 50, 55];
+
+        // let finalEmpJoinResignData = [
+        //   {
+        //     name: 'Joined Regular',
+        //     // data: joinedRegularCounts,
+        //     data: joinedRegularCount,
+        //     stack: 'joined',  // All "Joined" categories share the same stack
+        //     color: '#1f77b4'  // Color for Regular (optional)
+        //   },
+        //   {
+        //     name: 'Joined Apprentice',
+        //     data: joinedApprenticeCount,
+        //     stack: 'joined',  // Same stack for all "Joined" categories
+        //     color: '#ff7f0e'  // Color for Apprentice (optional)
+        //   },
+        //   {
+        //     name: 'Joined Consultant',
+        //     data: joinedConsultantCount,
+        //     stack: 'joined',  // Same stack for all "Joined" categories
+        //     color: '#2ca02c'  // Color for Consultant (optional)
+        //   },
+        //   {
+        //     name: 'Resigned',
+        //     data: resignCounts,
+        //     stack: 'resigned',  // Resigned has a separate stack
+        //     color: '#d62728'  // Color for Resigned (optional)
+        //   }
+        // ];
+
+        let finalEmpJoinResignData = [
+            {
+              name: 'Joined Regular',
+              // data: joinedRegularCounts,
+              // data: joinedRegularCount,
+              data: [
+                joiningJanCount, joiningFebCount, joiningMarCount, joiningAprilCount, joiningMayCount,
+                joiningJuneCount, joiningJulyCount, joiningAugCount, joiningSepCount, joiningOctoberCount,
+                joiningNovCount, joiningDecCount
+              ],
+              stack: 'joined',  // All "Joined" categories share the same stack
+              color: '#1f77b4'  // Color for Regular (optional)
+            },
+            {
+              name: 'Joined Apprentice',
+              // data: joinedApprenticeCount,
+              data: [
+                joinApprenticeJanCount, 
+                joinApprenticeFebCount, 
+                joinApprenticeMarCount, 
+                joinApprenticeAprCount, 
+                joinApprenticeMayCount, 
+                joinApprenticeJunCount, 
+                joinApprenticeJulCount, 
+                joinApprenticeAugCount, 
+                joinApprenticeSepCount, 
+                joinApprenticeOctCount, 
+                joinApprenticeNovCount, 
+                joinApprenticeDecCount
+              ],
+              stack: 'joined',  // Same stack for all "Joined" categories
+              color: '#ff7f0e'  // Color for Apprentice (optional)
+            },
+            {
+              name: 'Joined Consultant',
+              // data: joinedConsultantCount,
+              data: [
+                joinConsultantJanCount, 
+                joinConsultantFebCount, 
+                joinConsultantMarCount, 
+                joinConsultantAprCount, 
+                joinConsultantMayCount, 
+                joinConsultantJunCount, 
+                joinConsultantJulCount, 
+                joinConsultantAugCount, 
+                joinConsultantSepCount, 
+                joinConsultantOctCount, 
+                joinConsultantNovCount, 
+                joinConsultantDecCount
+              ],
+              stack: 'joined',  // Same stack for all "Joined" categories
+              color: '#2ca02c'  // Color for Consultant (optional)
+            },
+            {
+              name: 'Resigned',
+              // data: resignCounts,
+              data: [resignJanCount,resignFebCount,resignMarCount,resignAprilCount,resignMayCount,resignJuneCount,resignJulyCount,resignAugCount,resignSepCount,resignOctoberCount,resignNovCount,resignDecCount],
+              stack: 'resigned',  // Resigned has a separate stack
+              color: '#d62728'  // Color for Resigned (optional)
+            }
+          ];
+        
+
+        console.log("finalEmpJoinResignData :", finalEmpJoinResignData);
         this.renderMultiBarChart('Employee Join VS Resign','employeeJoinAndResign',finalEmpJoinResignData,'Employee', this.openEmployeeJoinResignModalTable.bind(this));
+        // this.renderMultiBarChart('Employee Join VS Resign','employeeJoinAndResign',empJoinResignData,'Employee', this.openEmployeeJoinResignModalTable.bind(this));
 
 
          /*
@@ -1485,39 +1936,39 @@ if (typeof departmentList === 'object' && departmentList !== null) {
     };
   });
 
-  // Sort departmentBillableData based on the sum of billableCounts in descending order
-  departmentBillableData.sort((dept1, dept2) => {
-    const sum1 = dept1.billableCounts.reduce((acc, val) => acc + val, 0);
-    const sum2 = dept2.billableCounts.reduce((acc, val) => acc + val, 0);
-    return sum2 - sum1; // Sort in descending order
-  });
+      // Sort departmentBillableData based on the sum of billableCounts in descending order
+      departmentBillableData.sort((dept1, dept2) => {
+        const sum1 = dept1.billableCounts.reduce((acc, val) => acc + val, 0);
+        const sum2 = dept2.billableCounts.reduce((acc, val) => acc + val, 0);
+        return sum2 - sum1; // Sort in descending order
+      });
 
-  console.log("departmentBillableData: ", departmentBillableData);
+      console.log("departmentBillableData: ", departmentBillableData);
 
-  // Update billableChartData with sorted data
-  departmentBillableData.forEach(dept => {
-    dept.billableCounts.forEach((count, index) => {
-      billableChartData[index].data.push(count);
-    });
-  });
+      // Update billableChartData with sorted data
+      departmentBillableData.forEach(dept => {
+        dept.billableCounts.forEach((count, index) => {
+          billableChartData[index].data.push(count);
+        });
+      });
 
-  // Update departmentCategoriesforbilabale with sorted department names
-  departmentCategoriesforbilabale = departmentBillableData.map(dept => [dept.departmentName]);
+      // Update departmentCategoriesforbilabale with sorted department names
+      departmentCategoriesforbilabale = departmentBillableData.map(dept => [dept.departmentName]);
 
-  console.log("billableChartData: ", billableChartData);
+      console.log("billableChartData: ", billableChartData);
 
-  // Render the chart with sorted data
-  this.renderStackBarChart(
-    'Employee Billable/Non-Billable Summary',
-    'billableEmployeeSummary',
-    billableChartData,
-    departmentCategoriesforbilabale,
-    'Employee',
-    this.openDepartmentWiseBillableEmployeeModalTable.bind(this)
-  );
-} else {
-  console.error("departmentList is not in expected format.");
-}
+      // Render the chart with sorted data
+      this.renderStackBarChart(
+        'Employee Billable/Non-Billable Summary',
+        'billableEmployeeSummary',
+        billableChartData,
+        departmentCategoriesforbilabale,
+        'Employee',
+        this.openDepartmentWiseBillableEmployeeModalTable.bind(this)
+      );
+    } else {
+      console.error("departmentList is not in expected format.");
+    }
 
 
   }
@@ -1856,10 +2307,336 @@ Highcharts.chart(chartId, this.options);
       ],
     });
   }
-
-
-
 }
+//sandeep
+
+// renderDepartmentWiseEmployeeChart(chartName:any, chartId:any, chartData:any, categories:any, labelName:any, openMod:any) {
+//   const employeeCounts = chartData.map((dept) => dept.data[0]); // Employee counts
+//   const apprenticeCounts = chartData.map((dept) => dept.data[1]); // Apprentice counts
+
+//   console.log('Id of chart --',chartId);
+  
+//   // Render the Highcharts column chart
+//   // var chart = Highcharts.chart(chartId, {
+//   //@ts-ignore
+//     // var chart = Highcharts.chart(chartId, {
+    
+//     // this.options = {
+//   //  HighCharts.chart(chartId, {
+//     (Highcharts as any).chart(chartId, {
+//       chart: { type: 'column' },
+
+//     // chart: {
+//     //   type: 'column', // Column chart type
+//     // },
+//     title: {
+//       text: chartName,
+//       style: {
+//         fontWeight: 'bold',
+//         color: '#000000',
+//       },
+//     },
+//     xAxis: {
+//       categories: categories, // X-axis labels (department names)
+//       labels: {
+//         overflow: 'justify',
+//         style: {
+//           fontWeight: 'bold',
+//           color: '#000000',
+//           fontSize: '12px',
+//         },
+//       },
+//     },
+//     yAxis: {
+//       min: 0,
+//       title: {
+//         text: 'No. Of Employees', // Y-axis title
+//         style: {
+//           fontWeight: 'bold',
+//           color: '#000000',
+//         },
+//       },
+//     },
+//     tooltip: {
+//       shared: true, // Combine tooltips for stacked columns
+//       valueSuffix: ' employees',
+//     },
+//     plotOptions: {
+//       column: {
+//         stacking: 'normal', // Stack employee and apprentice counts
+//         dataLabels: {
+//           enabled: true, // Show data labels on columns
+//         },
+//       },
+//       series: {
+//         cursor: 'pointer',
+//         point: {
+//           events: {
+//             click: function (event) {
+//               openMod(event.point.category); // Pass the clicked department name to the callback
+//             },
+//           },
+//         },
+//       },
+//     },
+//     credits: {
+//       enabled: false, // Disable the Highcharts watermark
+//     },
+//     legend: {
+//       enabled: true, // Enable legend to differentiate series
+//     },
+//     series: [
+//       {
+//         name: 'Employee Count',
+//         data: employeeCounts, // Employee counts for each department
+//         color: '#3498db', // Blue color for employees
+//       },
+//       {
+//         name: 'Apprentice Count',
+//         data: apprenticeCounts, // Apprentice counts for each department
+//         color: '#2ecc71', // Green color for apprentices
+//       },
+//     ],
+//   });
+// }
+renderDepartmentWiseEmployeeChart(chartName: any, chartId: any, chartData: any, categories: any, labelName: any, openMod: any) {
+  const employeeCounts = chartData.map((dept: any) => dept.data[0]); 
+  const apprenticeCounts = chartData.map((dept: any) => dept.data[1]); 
+
+  (Highcharts as any).chart(chartId, {
+    chart: {
+      type: 'column', 
+    },
+    title: {
+      text: chartName,
+      style: {
+        fontWeight: 'bold',
+        color: '#000000',
+      },
+    },
+    xAxis: {
+      categories: categories,
+      labels: {
+        overflow: 'justify',
+        style: {
+          fontWeight: 'bold',
+          color: '#000000',
+          fontSize: '12px',
+        },
+      },
+    },
+    yAxis: {
+      min: 0,
+      title: {
+        text: 'No. Of Employees',
+        style: {
+          fontWeight: 'bold',
+          color: '#000000',
+        },
+      },
+    },
+    tooltip: {
+      shared: true, 
+      valueSuffix: ' employees',
+    },
+    plotOptions: {
+      column: {
+        stacking: 'normal', 
+        dataLabels: {
+          enabled: true, 
+        },
+      },
+      series: {
+        cursor: 'pointer',
+        point: {
+          events: {
+            click: function (event: any) {
+              openMod(event.point.category); 
+            },
+          },
+        },
+      },
+    },
+    credits: {
+      enabled: false, 
+    },
+    legend: {
+      enabled: true, 
+    },
+    series: [
+      {
+        name: 'Employee Count',
+        data: employeeCounts, 
+        color: '#e74c3c',
+      },
+      {
+        name: 'Apprentice Count',
+        data: apprenticeCounts,
+        color: '#2ecc71',
+      },
+    ],
+  });
+}
+
+// plotEmployeeExperienceGraph(chartName, chartId, categories, employeeSeries, apprenticeSeries, openMod) {
+//   (Highcharts as any).chart(chartId, {
+//     chart: {
+//       type: 'cylinder', // Stacked column chart
+//     },
+//     title: {
+//       text: chartName,
+//       style: {
+//         fontWeight: 'bold',
+//         color: '#000000',
+//       },
+//     },
+//     xAxis: {
+//       categories: categories, // Experience ranges (e.g., "0 to 1", "1 to 2", etc.)
+//       labels: {
+//         overflow: 'justify',
+//         style: {
+//           fontWeight: 'bold',
+//           color: '#000000',
+//           fontSize: '12px',
+//         },
+//       },
+//     },
+//     yAxis: {
+//       min: 0,
+//       title: {
+//         text: 'No. Of Employees',
+//         style: {
+//           fontWeight: 'bold',
+//           color: '#000000',
+//         },
+//       },
+//     },
+//     tooltip: {
+//       shared: true, // Combine tooltips for stacked columns
+//       valueSuffix: ' employees',
+//     },
+//     plotOptions: {
+//       column: {
+//         stacking: 'normal', // Stack employee and apprentice counts
+//         dataLabels: {
+//           enabled: true, // Show data labels on columns
+//         },
+//       },
+//       series: {
+//         cursor: 'pointer',
+//         point: {
+//           events: {
+//             click: function (event) {
+//               openMod(event.point.category); // Pass clicked category to callback
+//             },
+//           },
+//         },
+//       },
+//     },
+//     credits: {
+//       enabled: false, // Disable Highcharts watermark
+//     },
+//     legend: {
+//       enabled: true, // Enable legend to differentiate series
+//     },
+//     series: [
+//       {
+//         name: 'Employees',
+//         data: employeeSeries, // Employee counts for each experience range
+//         color: '#3498db', // Blue color for employees
+//       },
+//       {
+//         name: 'Apprentices',
+//         data: apprenticeSeries, // Apprentice counts for each experience range
+//         color: '#2ecc71', // Green color for apprentices
+//       },
+//     ],
+//   });
+// }
+plotEmployeeExperienceCylinderGraph(chartName, chartId, categories, employeeSeries, apprenticeSeries, openMod) {
+ (Highcharts as any).chart(chartId, {
+  chart: {
+      type: 'cylinder', // Cylinder chart type
+      options3d: {
+        enabled: true,
+        alpha: 15,
+        beta: 15,
+        depth: 50,
+        viewDistance: 25,
+      },
+    },
+    title: {
+      text: chartName,
+      style: {
+        fontWeight: 'bold',
+        color: '#000000',
+      },
+    },
+    xAxis: {
+      categories: categories, // Experience ranges (e.g., "0 to 1", "1 to 2", etc.)
+      labels: {
+        overflow: 'justify',
+        style: {
+          fontWeight: 'bold',
+          color: '#000000',
+          fontSize: '12px',
+        },
+      },
+    },
+    yAxis: {
+      min: 0,
+      title: {
+        text: 'No. Of Employees',
+        style: {
+          fontWeight: 'bold',
+          color: '#000000',
+        },
+      },
+    },
+    tooltip: {
+      shared: true,
+      valueSuffix: ' employees',
+    },
+    plotOptions: {
+      cylinder: {
+        stacking: 'normal', // Stack employee and apprentice counts
+        depth: 25, // 3D depth for the cylinders
+        dataLabels: {
+          enabled: true, // Show data labels on cylinders
+        },
+      },
+      series: {
+        cursor: 'pointer',
+        point: {
+          events: {
+            click: function (event) {
+              openMod(event.point.category); // Pass clicked category to callback
+            },
+          },
+        },
+      },
+    },
+    credits: {
+      enabled: false,
+    },
+    legend: {
+      enabled: true,
+    },
+    series: [
+      {
+        name: 'Employees',
+        data: employeeSeries, 
+        color: '#3498db', 
+      },
+      {
+        name: 'Apprentices',
+        data: apprenticeSeries, 
+        color: '#e74c3c', 
+      },
+    ],
+  });
+}
+
 
 // added by anurag 
 
@@ -1918,9 +2695,9 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
               if(chartId == 'employeeExperienceSummary'){
                 openMod(event.point.name);
               }
-              if(chartId == 'departmentWiseEmployee'){
-                openMod(event.point.name);
-              }
+              // if(chartId == 'departmentWiseEmployee'){
+              //   openMod(event.point.name);
+              // }
               if(chartId == 'employeeWorkLocationSummary'){
                 openMod(event.point.name);
               }
@@ -1953,9 +2730,122 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
 
 
 
-  renderMultiBarChart(chartName:any, chartId:any, chartData:any, labelName:any, openMod:any){
+   renderMultiBarChart(chartName:any, chartId:any, chartData:any, labelName:any, openMod:any){
 
     HighCharts.chart(chartId, {
+  //   //   chart: {
+  //   //     type: 'column',
+  //   //   },
+  //   //   title: {
+  //   //     text: chartName,
+  //   //     style:{
+  //   //       fontWeight: 'bold',
+  //   //       color: '#000000'
+  //   //     }
+  //   //   },
+  //   //   xAxis: {
+  //   //     categories: [
+  //   //       "Jan",
+  //   //       "Feb",
+  //   //       "Mar",
+  //   //       "Apr",
+  //   //       "May",
+  //   //       "Jun",
+  //   //       "Jul",
+  //   //       "Aug",
+  //   //       "Sep",
+  //   //       "Oct",
+  //   //       "Nov",
+  //   //       "Dec"
+  //   //     ],
+  //   //     labels:{
+  //   //       style:{
+  //   //         fontWeight: 'bold',
+  //   //         color: '#000000'
+  //   //       }
+  //   //     }
+  //   //   },
+  //   //   yAxis: {
+  //   //     min: 0,
+  //   //     title: {
+  //   //       text: 'No. Of Employees',
+  //   //       align: 'high',
+  //   //       style:{
+  //   //         fontWeight: 'bold',
+  //   //         color: '#000000'
+  //   //       }
+  //   //     },
+  //   //     labels: {
+  //   //       overflow: 'justify',
+  //   //       style:{
+  //   //         fontWeight: 'bold',
+  //   //         color: '#000000'
+  //   //       }
+  //   //     },
+  //   //   },
+  //   //   tooltip: {
+  //   //     valuePrefix: 'No. ',
+  //   //   },
+  //   //   plotOptions: {
+  //   //     series: {
+  //   //       cursor: 'pointer',
+  //   //       point: {
+  //   //         events: {
+  //   //           click: function(event) {
+  //   //             if(chartId == 'employeeJoinAndResign'){
+  //   //               openMod(event.point.category, event.point.series.name);
+  //   //             }
+  //   //           }
+  //   //         },
+  //   //       },
+  //   //     },
+  //   //     bar: {
+  //   //       dataLabels: {
+  //   //         enabled: true,
+  //   //       },
+  //   //       showInLegend: true
+  //   //     },
+  //   //   },
+  //   //   credits: {
+  //   //     enabled: false,
+  //   //   },
+  //   //   legend: {
+  //   //     enabled: true
+  //   //   },
+  //   //   series: chartData
+  //   // });
+  //   Highcharts.chart('employeeJoinAndResign', {
+  //     chart: {
+  //       type: 'column'
+  //     },
+  //     title: {
+  //       text: 'Employee Join VS Resign'
+  //     },
+  //     xAxis: {
+  //       categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  //     },
+  //     yAxis: {
+  //       min: 0,
+  //       title: {
+  //         text: 'Number of Employees'
+  //       },
+  //       stackLabels: {
+  //         enabled: true
+  //       }
+  //     },
+  //     plotOptions: {
+  //       column: {
+  //         stacking: 'normal'
+  //       }
+  //     },
+  //     // series: finalEmpJoinResignData // Pass the formatted data
+  //     series: chartData // Pass the formatted data
+
+  //   });
+    
+  // }
+  //renderMultiBarChart(chartName, chartId, chartData, labelName, openMod) {
+    //Highcharts.chart(chartId, {
       chart: {
         type: 'column',
       },
@@ -1968,21 +2858,10 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
       },
       xAxis: {
         categories: [
-          "January",
-          "February",
-          "March",
-          "April",
-          "May",
-          "June",
-          "July",
-          "August",
-          "September",
-          "October",
-          "November",
-          "December"
+          'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
         ],
-        labels:{
-          style:{
+        labels: {
+          style: {
             fontWeight: 'bold',
             color: '#000000'
           }
@@ -2013,6 +2892,7 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
       plotOptions: {
         series: {
           cursor: 'pointer',
+          stacking: 'normal',  // Enable stacking for the 'Joined' categories
           point: {
             events: {
               click: function(event) {
@@ -2036,9 +2916,10 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
       legend: {
         enabled: true
       },
-      series: chartData
+      series: chartData  // Pass in the data (finalEmpJoinResignData)
     });
   }
+  
 
   renderLineGraphChart(chartName:any, chartId:any, chartData:any, labelName:any, category:any, openMod:any){
     HighCharts.chart(chartId, {
@@ -2257,12 +3138,13 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
       this.storedDataList.forEach((data) => {
         if(data.filterName == title){
           data.queryList.forEach((queryObj) => {
-            // if(queryObj.column == "Employee Id" && !queryObj.value.includes("A-")){
-            //   queryObj.value = "A-".concat(queryObj.value);
-            // }
-            if(queryObj.column == "Employee Id" && !queryObj.value.includes("A-CS-") && (data.isConsultant == 'true')){
-              queryObj.value = "A-CS-".concat(queryObj.value);
+            if(queryObj.column == "Employee Id" && !queryObj.value.includes("A-")){
+              queryObj.value = "A-".concat(queryObj.value);
             }
+            // if(queryObj.column == "Employee Id" && !queryObj.value.includes("A-CS-") && (data.isConsultant == 'true')){
+            //   queryObj.value = "A-CS-".concat(queryObj.value);
+            // }
+            // queryObj.employeeType =(queryObj.isConsultant === 'true') ? "Consultant" :((queryObj.isApprenticeship === 'true') ? "Apprentice" : "Regular");
             if(queryObj.column == "Employee Id" && !queryObj.value.includes("A-")){
               queryObj.value = "A-".concat(queryObj.value);
             }
@@ -2344,8 +3226,9 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
   exportToExcelLeaveSummary(): void {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
-        // "Emp ID": "A-".concat(x.employeementId),
-        "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        "Emp ID": "A-".concat(x.employeementId),
+        // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        "Employee Type":((x.isApprenticeship === 'true') ? 'Apprentice' :  ((x.isConsultant === 'true')? 'Consultant': 'Regular')),
         "Name":x.employeeName,
         "Department Name": x.departmentName,
         "From Date": (x.fromDate)? moment(x.fromDate).format(AppComponent.DATE_FORMAT) : null,
@@ -2361,8 +3244,9 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
   exportToExcelTimesheetSummary(): void {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
-        // "Emp ID": "A-".concat(x.employeementId),
-        "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        "Emp ID": "A-".concat(x.employeementId),
+        // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        "Employee Type":((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true')? 'Consultant': 'Regular')),
         "Name":x.employeeName,
         "Department Name": x.departmentName,
         "Timesheet Date":(x.date)? moment(x.date).format(AppComponent.DATE_FORMAT) : null,
@@ -2381,8 +3265,9 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
   exportToExcelEODSegregation(): void {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
-        // "Emp ID": "A-".concat(x.employeementId),
-        "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        "Emp ID": "A-".concat(x.employeementId),
+        // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        "Employee Type":((x.isApprenticeship === 'true')? 'Apprentice' : ((x.isConsultant === 'true')? 'Consultant': 'Regular')),
         "Name":x.employeeName,
         "Department Name": x.departmentName,
         "Email Id": x.email,
@@ -2401,6 +3286,7 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
       x => ({
         "Emp ID": x.employeementId,
         // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        "Employee Type":((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true') ? 'Consultant': 'Regular')),
         "Name":x.name,
         "Department Name": x.departmentName,
         "Experience" : x.experience,
@@ -2427,8 +3313,9 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
   exportToExcelWorkLocationSummary():void {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
-        // "Emp ID": x.employeementId,
-        "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        "Emp ID": x.employeementId,
+        // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        "Employee Type":((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true') ? 'Consultant': 'Regular')),
         "Employee Name":x.employeeName,
         "Project Name":x.projectName,
         "Client Name":x.clientName,
@@ -2446,6 +3333,7 @@ exportGlobalData():void{
   const onlySpecificDataArr = this.allEmployeeList.map(
     x => ({
       "Emp ID": x.employeementId,
+      "Employee Type": x.employeeType,
       "Employee Name":x.name,
       "Department Name" : x.departmentName,
       "Date Of Resign":(x.dateOfResign)? moment(x.dateOfResign).format(AppComponent.DATE_FORMAT) : null,
@@ -2485,6 +3373,7 @@ exportGlobalData():void{
       x => ({
         "Emp ID": x.employeementId,
         // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
+        "Employee Type":((x.isApprenticeship  === 'true') ? 'Apprentice' : ( (x.isConsultant  === 'true') ? 'Consultant': 'Regular')),
         "Employee Name":x.name,
         "Department":x.departmentName,
         "Date Of Resign":(x.dateOfResign)? moment(x.dateOfResign).format(AppComponent.DATE_FORMAT) : null,
@@ -2595,6 +3484,7 @@ exportGlobalData():void{
         if(!this.countByLegend.find(employee => employee.employeementId == x.employeementId)){
           this.countByLegend.push({
             employeementId : x.employeementId,
+            employeeType: ((x.isApprenticeship  === 'true') ? 'Apprentice' : ((x.isConsultant  === 'true') ? 'Consultant' : 'Regular')),
             employeeName : x.employeeName,
             departmentName : x.departmentName,
             email : x.email,
@@ -2689,8 +3579,10 @@ exportGlobalData():void{
       //     obj.profileCompletedPercent = status;
       //   }
       // })
-    }else{
+    }else if (title == 'Employee In Probation(After 6 months)'){
       this.modalSummaryList = modalTableList.filter(x => moment(dateToday).diff(moment(x.dateOfJoining), 'months', true) > 6 && x.employmentstatus == 'Probation');
+    }else if (title =='Apprentice Count'){
+      this.modalSummaryList = modalTableList.filter(x =>  x.isApprenticeship === 'true' && x.employmentstatus != 'InActive');
     }
     this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
   }

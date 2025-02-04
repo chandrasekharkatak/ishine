@@ -13,6 +13,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.servlet.http.HttpServletRequest;
 
+import org.hibernate.internal.build.AllowSysOut;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -126,6 +127,7 @@ public class ResourceManagementService {
 	private String rmgProjectApprovalLink;
 
 	public ServiceResponse createDraftProjectInfo(ResourceManagementDTO resourceManagementDTO) {
+		
 		ServiceResponse response = new ServiceResponse();
         LogDTO apiLogInfo = new LogDTO();
         apiLogInfo.setSubFeatureName("createDraftProjectInfo");
@@ -282,11 +284,79 @@ public class ResourceManagementService {
 					                    // Set active value as 2 for new added team members
 					                    teamMapDbResponse.forEach((newAddedMember) -> {
 					                    	if(resourceManagementDTO.getIsHOD().equals("true"))
-					                        newAddedMember.setActive(1L);
+					                    		newAddedMember.setActive(1L);
 					                    	else
 					                    		newAddedMember.setActive(2L);
 					                    	
 					                    	  System.out.println(" newTeamMember   "+newAddedMember);
+					                    	  
+					                    	// Add default activity for the new team member
+					                    	// Add default activity for the new team member
+					                    	  if (newAddedMember.getEmpId() != null) {
+					                    	      // Fetch the employee's job role and department ID
+					                    	      List<Object[]> employeeDetails = employeeRepository.getEmployeeByEmpId(newAddedMember.getEmpId());
+					                    	      System.out.println("New member added: " + employeeDetails.get(0));
+
+					                    	      if (employeeDetails != null && !employeeDetails.isEmpty()) {
+					                    	          // Assuming the first row contains the desired details
+					                    	          Object[] employeeDetailRow = employeeDetails.get(0);
+					                    	          String departmentId = employeeDetailRow[46] != null ? employeeDetailRow[46].toString() : null;
+					                    	          System.out.println("Department ID: " + departmentId);
+
+					                    	          if (departmentId != null) {
+					                    	              // Split employeeRole into a list of strings
+					                    	              List<String> employeeRoles = Arrays.asList(newAddedMember.getEmployeeRole().split(","));
+
+					                    	              for (String role : employeeRoles) {
+					                    	                  role = role.trim(); // Trim whitespace around each role
+					                    	                  System.out.println("Processing role: " + role);
+
+					                    	                  // Check if activities exist for the employee's department and role
+					                    	                  List<Activity> existingActivities = activitiesRepository.findByDeptIdsAndEmployeeRoleAndTeamId(
+					                    	                      departmentId,
+					                    	                      role,
+					                    	                      teamDbResponse.getTeamId()
+					                    	                  );
+
+					                    	                  if (existingActivities.isEmpty()) {
+					                    	                      System.out.println("No activities exist for Dept ID: " + departmentId + ", Role: " + role);
+
+					                    	                      // Fetch the activity templates for the given department and role
+					                    	                      List<ActivityTemplate> activityTemplateList = activityTemplateRepository.getByDeptIdAndEmployeeRoleType(
+					                    	                          Long.parseLong(departmentId),
+					                    	                          role
+					                    	                      );
+					                    	                      if (!activityTemplateList.isEmpty()) {
+					                    	                          for (ActivityTemplate activityTemplate : activityTemplateList) {
+					                    	                              // Create and save new activities
+					                    	                              Activity newActivity = new Activity();
+					                    	                              newActivity.setActivity(activityTemplate.getTemplateActivity());
+					                    	                              newActivity.setTeamId(teamDbResponse.getTeamId());
+					                    	                              newActivity.setEmployeeRole(activityTemplate.getEmployeeRole());
+					                    	                              newActivity.setDeptIds(activityTemplate.getDeptId().toString());
+					                    	                              newActivity.getCommonProperty().setCreatedBy(resourceManagementDTO.getCreatedBy());
+					                    	                              activitiesRepository.save(newActivity);
+
+					                    	                              System.out.println("New activity created: " + activityTemplate.getTemplateActivity());
+					                    	                          }
+					                    	                      } else {
+					                    	                          System.out.println("No activity templates found for Dept ID: " + departmentId + ", Role: " + role);
+					                    	                      }
+					                    	                  } else {
+					                    	                      System.out.println("Activities already exist for Dept ID: " + departmentId + ", Role: " + role);
+					                    	                  }
+					                    	              }
+					                    	          } else {
+					                    	              System.out.println("Department ID is null for Employee ID: " + newAddedMember.getEmpId());
+					                    	          }
+					                    	      } else {
+					                    	          System.out.println("No employee details found for Employee ID: " + newAddedMember.getEmpId());
+					                    	      }
+					                    	  }
+
+
+
+
 					                    	  
 //					                    	  find added employee's email
 					                    	  Employee  findEmp = employeeRepository.findByEmpId(newAddedMember.getEmpId());
@@ -300,7 +370,7 @@ public class ResourceManagementService {
 					              		    }
 					                    	  
 					                    	  try {
-												mailService.sendMailWithCC("ar731829@gmail.com", rmgMail, "Regarding Resource mapped to new Project", "Dear "
+												mailService.sendMailWithCC("dummy@gmail.com", rmgMail, "Regarding Resource mapped to new Project", "Dear "
 														+ findEmp.getName()+"<br>"
 														+ "You have been mapped to client name - "+resourceManagementDTO.getClientName()+" under the project "+projectFind.getProjectName()+"<br>"
 																+ "<br><br>"
@@ -317,6 +387,8 @@ public class ResourceManagementService {
 					                    	  
 					                    });
 					                    employeeTeamMapRepository.saveAll(teamMapDbResponse);
+					                    
+					                    
 					                }
 					            });
 					            
@@ -433,8 +505,10 @@ public class ResourceManagementService {
 					            // Add default activity
 					            Activity newActivityCreated = null;
 					            if (!teamMemberDbResponse.isEmpty()) {
+					            	System.out.println("Team member for Activity"+teamMemberDbResponse);
 					                for (String department : teamObj.getDepartmentList()) {
 					                    List<ActivityTemplate> activityTemplate = activityTemplateRepository.getByDeptId(Long.parseLong(department));
+					                    System.out.println("Activity template fetched "+activityTemplate);
 					                    if (!activityTemplate.isEmpty()) {
 
 					                        for (ActivityTemplate activityObject : activityTemplate) {
@@ -445,7 +519,7 @@ public class ResourceManagementService {
 					                            newActivity.setEmployeeRole(activityObject.getEmployeeRole());
 					                            newActivity.setDeptIds(activityObject.getDeptId().toString());
 					                            newActivity.getCommonProperty().setCreatedBy(resourceManagementDTO.getCreatedBy());
-
+					                            System.out.println("Activity created successfully with ID: {} for template ID: {}"+ newActivity.getActivityId()+ activityObject.getDeptId());
 					                            newActivityCreated = activitiesRepository.save(newActivity);
 					                        }
 					                    }

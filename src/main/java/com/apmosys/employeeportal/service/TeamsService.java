@@ -1153,6 +1153,7 @@ public class TeamsService {
 					dto.setPipFlag(object[11] != null ? object[11].toString() : null);
 					dto.setPipId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
 					dto.setIsConsultant(object[13] != null ? object[13].toString() : null);
+					dto.setIsApprenticeship(object[14] != null ? object[14].toString() : null);
 					dto.setFailedAttempt(failedAttempt);
 					if(dateOfRelieving != null && dateOfRelieving.isEqual(LocalDate.now())) {
 						dto.setIsDateOfRelievingToday("true");
@@ -1247,6 +1248,7 @@ public class TeamsService {
 					dto.setDateOfJoining(object[19] != null ? object[19].toString() : null);
 					dto.setProbationPeriod(object[20] != null ? Short.parseShort(object[20].toString()) : null);
 					dto.setIsConsultant(object[21] != null ? object[21].toString() : null);
+					dto.setIsApprenticeship(object[22] != null ? object[22].toString() : null);
 					
 					Long empId = object[0] != null ? Long.parseLong(object[0].toString()): null;
 					List<Object[]> timesheetFilledByMember = timesheetsRepository.getTimesheetFilledByMember(empId,date);

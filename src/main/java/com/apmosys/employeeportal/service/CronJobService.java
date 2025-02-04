@@ -421,7 +421,7 @@ public class CronJobService {
 	// At 09:00 PM, on day 16th of the month, only in January
 //	@Scheduled(cron = "0 0 21 16 01 ?")
 
-	@Scheduled(cron = "0 51 17 * * ?")
+	@Scheduled(cron = "0 0 21 31 12 ?")
 
 		public void YearlyLeaveCronJob() {
 			System.out.println("*************************************************************************");
@@ -498,6 +498,7 @@ public class CronJobService {
 													if(!employeeLeaveforApproved.isEmpty()) {
 														for(EmployeeLeave leave : employeeLeaveforApproved) {
 															if(leave != null) {
+																
 																Date createdOnDate = leave.getCommonProperty().getCreatedOn(); // Assuming this returns java.util.Date
 																LocalDate createdOnLocalDate = createdOnDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 																System.out.println("Checking Year " + createdOnLocalDate.getYear());
@@ -539,15 +540,17 @@ public class CronJobService {
 																	List<Object[]> matchingEmployeeIds = employeeLeaveMap.stream()
 																		    .filter(employeeLeave -> employeeLeaveMapIds.contains(((BigInteger) employeeLeave[2]).longValue())) 
 																		    .collect(Collectors.toList());
+																	EmployeeLeavesMap lst = employeeLeavesMapRepository.findByEmpIdAndLeaveTypeMasterId(elm.getEmpId(),elm.getLeaveTypeMasterId());
 															        
 																	if (!matchingEmployeeIds.isEmpty()) {
 																	    matchingEmployeeIds.forEach(list -> {
 																	        if (list[0] instanceof BigInteger) {
-																	            // Convert BigInteger to Long
-																	            elm.setEmployeeLeavesMapId(((BigInteger) list[0]).longValue());
+//																	            // Convert BigInteger to Long
+																	        	elm.setEmployeeLeavesMapId(lst.getEmployeeLeavesMapId());
+////																	            elm.setEmployeeLeavesMapId(((BigInteger) list[0]).longValue());
 																	        } else if (list[0] instanceof Long) {
 																	            // If it is already a Long, no conversion needed
-																	            elm.setEmployeeLeavesMapId((Long) list[0]);
+																	        	elm.setEmployeeLeavesMapId(lst.getEmployeeLeavesMapId());
 																	        } 
 																	        if (list[4] instanceof Float) {
 																	            elm.setPendingForApproval((Float) list[4]);
@@ -595,16 +598,17 @@ public class CronJobService {
 																	List<Object[]> matchingEmployeeIds = employeeLeaveMap.stream()
 																		    .filter(employeeLeave -> employeeLeaveMapIds.contains(((BigInteger) employeeLeave[2]).longValue())) 
 																		    .collect(Collectors.toList());
-															        
+																	EmployeeLeavesMap lst = employeeLeavesMapRepository.findByEmpIdAndLeaveTypeMasterId(elm.getEmpId(),elm.getLeaveTypeMasterId());
 																	if (!matchingEmployeeIds.isEmpty()) {
 																	    matchingEmployeeIds.forEach(list -> {
-																	        if (list[0] instanceof BigInteger) {
-																	            // Convert BigInteger to Long
-																	            elm.setEmployeeLeavesMapId(((BigInteger) list[0]).longValue());
+																	    	if (list[0] instanceof BigInteger) {
+//																	            // Convert BigInteger to Long
+																	        	elm.setEmployeeLeavesMapId(lst.getEmployeeLeavesMapId());
+////																	            elm.setEmployeeLeavesMapId(((BigInteger) list[0]).longValue());
 																	        } else if (list[0] instanceof Long) {
 																	            // If it is already a Long, no conversion needed
-																	            elm.setEmployeeLeavesMapId((Long) list[0]);
-																	        }
+																	        	elm.setEmployeeLeavesMapId(lst.getEmployeeLeavesMapId());
+																	        } 
 																	        if (list[4] instanceof Float) {
 																	            elm.setPendingForApproval((Float) list[4]);
 																	        }
@@ -624,16 +628,17 @@ public class CronJobService {
 																	List<Object[]> matchingEmployeeIds = employeeLeaveMap.stream()
 																		    .filter(employeeLeave -> employeeLeaveMapIds.contains(((BigInteger) employeeLeave[2]).longValue())) 
 																		    .collect(Collectors.toList());
-															        
+																	EmployeeLeavesMap lst = employeeLeavesMapRepository.findByEmpIdAndLeaveTypeMasterId(elm.getEmpId(),elm.getLeaveTypeMasterId());
 																	if (!matchingEmployeeIds.isEmpty()) {
 																	    matchingEmployeeIds.forEach(list -> {
-																	        if (list[0] instanceof BigInteger) {
-																	            // Convert BigInteger to Long
-																	            elm.setEmployeeLeavesMapId(((BigInteger) list[0]).longValue());
-																	        } else if (list[0] instanceof Long) {
-																	            // If it is already a Long, no conversion needed
-																	            elm.setEmployeeLeavesMapId((Long) list[0]);
-																	        } 																       
+																	       if (list[0] instanceof BigInteger) {
+//																            // Convert BigInteger to Long
+																        	elm.setEmployeeLeavesMapId(lst.getEmployeeLeavesMapId());
+////																            elm.setEmployeeLeavesMapId(((BigInteger) list[0]).longValue());
+																        } else if (list[0] instanceof Long) {
+																            // If it is already a Long, no conversion needed
+																        	elm.setEmployeeLeavesMapId(lst.getEmployeeLeavesMapId());
+																        } 															       
 																	        if (list[4] instanceof Float) {
 																	            elm.setPendingForApproval((Float) list[4]);
 																	        }
@@ -694,17 +699,18 @@ public class CronJobService {
 																				List<Object[]> matchingEmployeeIds = employeeLeaveMap.stream()
 																					    .filter(employeeLeave -> employeeLeaveMapIds.contains(((BigInteger) employeeLeave[2]).longValue())) 
 																					    .collect(Collectors.toList());
-																		        
+																				EmployeeLeavesMap lst = employeeLeavesMapRepository.findByEmpIdAndLeaveTypeMasterId(elm.getEmpId(),elm.getLeaveTypeMasterId());
 																				if (!matchingEmployeeIds.isEmpty()) {
 																				    matchingEmployeeIds.forEach(list -> {
-																				        if (list[0] instanceof BigInteger) {
-																				            // Convert BigInteger to Long
-																				            elm.setEmployeeLeavesMapId(((BigInteger) list[0]).longValue());
+																				    	if (list[0] instanceof BigInteger) {
+//																				            // Convert BigInteger to Long
+																				        	elm.setEmployeeLeavesMapId(lst.getEmployeeLeavesMapId());
+////																				            elm.setEmployeeLeavesMapId(((BigInteger) list[0]).longValue());
 																				        } else if (list[0] instanceof Long) {
 																				            // If it is already a Long, no conversion needed
-																				            elm.setEmployeeLeavesMapId((Long) list[0]);
-																				        }
-																				        if (list[4] instanceof Float) {
+																				        	elm.setEmployeeLeavesMapId(lst.getEmployeeLeavesMapId());
+																				        } 
+																			             if (list[4] instanceof Float) {
 																				            elm.setPendingForApproval((Float) list[4]);
 																				        }
 																				    });
@@ -754,16 +760,17 @@ public class CronJobService {
 																			List<Object[]> matchingEmployeeIds = employeeLeaveMap.stream()
 																				    .filter(employeeLeave -> employeeLeaveMapIds.contains(((BigInteger) employeeLeave[2]).longValue())) 
 																				    .collect(Collectors.toList());
-																	        
+																			EmployeeLeavesMap lst = employeeLeavesMapRepository.findByEmpIdAndLeaveTypeMasterId(elm.getEmpId(),elm.getLeaveTypeMasterId());
 																			if (!matchingEmployeeIds.isEmpty()) {
 																			    matchingEmployeeIds.forEach(list -> {
-																			        if (list[0] instanceof BigInteger) {
-																			            // Convert BigInteger to Long
-																			            elm.setEmployeeLeavesMapId(((BigInteger) list[0]).longValue());
+																			    	if (list[0] instanceof BigInteger) {
+//																			            // Convert BigInteger to Long
+																			        	elm.setEmployeeLeavesMapId(lst.getEmployeeLeavesMapId());
+////																			            elm.setEmployeeLeavesMapId(((BigInteger) list[0]).longValue());
 																			        } else if (list[0] instanceof Long) {
 																			            // If it is already a Long, no conversion needed
-																			            elm.setEmployeeLeavesMapId((Long) list[0]);
-																			        }
+																			        	elm.setEmployeeLeavesMapId(lst.getEmployeeLeavesMapId());
+																			        } 
 																			        if (list[4] instanceof Float) {
 																			            elm.setPendingForApproval((Float) list[4]);
 																			        }
@@ -774,7 +781,7 @@ public class CronJobService {
 															            }else if(createdOnLocalDate.getYear() == leave.getFromDate().getYear() &&
 																                leave.getNoOfDays() == 1){
 															            	newBalance = 0;
-																            elm.setBalance(newBalance);elm.setBalance(newBalance);
+																            elm.setBalance(newBalance);
 																			elm.setEmpId(leave.getEmpId());
 																			elm.setLeaveTypeMasterId(leave.getLeaveTypeMasterId());
 																			List<Long> employeeLeaveMapIds = employeeLeaveforPending.stream()
@@ -784,16 +791,17 @@ public class CronJobService {
 																			List<Object[]> matchingEmployeeIds = employeeLeaveMap.stream()
 																				    .filter(employeeLeave -> employeeLeaveMapIds.contains(((BigInteger) employeeLeave[2]).longValue())) 
 																				    .collect(Collectors.toList());
-																	        
+																			EmployeeLeavesMap lst = employeeLeavesMapRepository.findByEmpIdAndLeaveTypeMasterId(elm.getEmpId(),elm.getLeaveTypeMasterId());
 																			if (!matchingEmployeeIds.isEmpty()) {
 																			    matchingEmployeeIds.forEach(list -> {
-																			        if (list[0] instanceof BigInteger) {
-																			            // Convert BigInteger to Long
-																			            elm.setEmployeeLeavesMapId(((BigInteger) list[0]).longValue());
+																			    	if (list[0] instanceof BigInteger) {
+//																			            // Convert BigInteger to Long
+																			        	elm.setEmployeeLeavesMapId(lst.getEmployeeLeavesMapId());
+////																			            elm.setEmployeeLeavesMapId(((BigInteger) list[0]).longValue());
 																			        } else if (list[0] instanceof Long) {
 																			            // If it is already a Long, no conversion needed
-																			            elm.setEmployeeLeavesMapId((Long) list[0]);
-																			        }
+																			        	elm.setEmployeeLeavesMapId(lst.getEmployeeLeavesMapId());
+																			        } 
 																			        if (list[4] instanceof Float) {
 																			            elm.setPendingForApproval((Float) list[4]);
 																			        }
@@ -805,7 +813,8 @@ public class CronJobService {
 																	
 															}
 														}
-													if(employeeLeaveforPending.isEmpty() && employeeLeaveforApproved.isEmpty()) {
+													System.out.println("hjvbshv"+employeeLeaveforPending.isEmpty()+"nshjbv"+employeeLeaveforApproved.isEmpty());
+													if(!employeeLeaveforPending.isEmpty() && !employeeLeaveforApproved.isEmpty()) {
 														newBalance=1;
 														elm.setBalance(newBalance);
 														elm.setEmployeeLeavesMapId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
@@ -1104,14 +1113,16 @@ public class CronJobService {
 	
 	//0 0 21 ? * * - At 21:00:00pm every day
 	
-		@Scheduled(cron = "0 0 21 ? * *")
+	@Scheduled(cron = "0 0 21 ? * *")
 		public void automaticTimesheetFiller() {
 			
 			try {
 				
+//				LocalDate dateToday = LocalDate.parse("2024-12-15");
 				LocalDate dateToday = LocalDate.now();
-				
+//				System.out.println("filling timesheet method started");
 				List<Object[]> allEmployee = employeeRepository.getEmployeeDetailForCron();
+				System.err.println("vghgc"+dateToday);
 				List<Holiday> publicHoliday = holidayRepository.findByDateOfHoliday(dateToday);
 				
 			//	Timesheet filler for weekoff day : saturday & sunday
@@ -1147,6 +1158,8 @@ public class CronJobService {
 									// For weekoff's managers don't have to approve the timesheet, if any employee worked on weekoff will revoke this ..
 									newTimesheet.setStatus("Approved");
 									
+//									System.out.println("filling weekoffs");
+									
 									timesheetsRepository.save(newTimesheet);
 								}				
 							}
@@ -1157,30 +1170,33 @@ public class CronJobService {
 		   //	Timesheet filler for public Holiday
 				
 				if(!publicHoliday.isEmpty()) {
-					
+					System.out.println("vghgc"+publicHoliday.isEmpty());
 					for(Holiday holidays: publicHoliday) {
 						String holidayState = holidays.getState();
 						
 						for(Object[] employeeList: allEmployee) {
 							Long empId = employeeList[0] != null ? Long.parseLong(employeeList[0].toString()) : null;
 							String workLocation = employeeList[1] != null ? employeeList[1].toString() : null;
-							
+							System.out.println("vghgc"+empId);
 							Timesheet empTimesheet = timesheetsRepository.findByEmpIdAndDate(empId,dateToday);
 							if(empTimesheet == null) {
-							
+								System.out.println("vghgc"+publicHoliday.isEmpty());
 								if((holidayState.equals("all") && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))
 										|| (holidayState.equals(workLocation) && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))){
 									
 									Timesheet newTimesheet = new Timesheet();
-									
 									newTimesheet.getCommonProperty().setCreatedBy(empId);
 									newTimesheet.setDate(dateToday);
+												
 									newTimesheet.setDayType("Public Holiday");
 									newTimesheet.setDescription("Public Holiday : " + holidays.getOccasion());
 									newTimesheet.setEmpId(empId);
 									newTimesheet.setStatus("Approved");
 									
+//									System.out.println("filling holiday");
+									
 									timesheetsRepository.save(newTimesheet);
+									System.out.println("vghgc"+newTimesheet);
 									
 								}
 							}
@@ -1235,7 +1251,9 @@ public class CronJobService {
 //						}					
 //					}
 //				}
-			}catch(Exception e) {
+				System.out.println("Method end reached");
+				}
+			catch(Exception e) {
 				e.printStackTrace();
 			}
 		}
@@ -4152,9 +4170,10 @@ try {
 					ws.value(0, 8, "Shift");
 					ws.value(0, 9, "Total Working Hours");
 					ws.value(0, 10, "Activity"); //Comma seperated
-					ws.value(0, 11, "Client"); // comma seperated
-					ws.value(0, 12, "Project"); // comma seperated
-					ws.value(0, 13, "Status");
+					ws.value(0, 11, "Description");
+					ws.value(0, 12, "Client"); // comma seperated
+					ws.value(0, 13, "Project"); // comma seperated
+					ws.value(0, 14, "Status");
 //					ws.value(0, 14, "BiomaxInTime");
 //					ws.value(0, 15, "BiomaxOutTime");
 //					
@@ -4181,13 +4200,16 @@ try {
 										.activitiesByTimesheetId(timesheetObj.getTimesheetId());
 
 								StringBuilder activity = new StringBuilder();
+								StringBuilder description = new StringBuilder();
 								Set<String> project = new HashSet<>();
 								Set<String> clientName = new HashSet<>();
 								
 								if (!objectList.isEmpty()) {
 									for (Object[] object : objectList) {
 										activity.append(object[1] != null ? object[1].toString() : null).append(",");
+										description.append(object[3] != null ? object[3].toString() : null).append(",");							
 										project.add(object[5] != null ? object[5].toString() : null);
+										
 										clientName.add(object[6] != null ? object[6].toString() : null);
 									}
 									
@@ -4213,9 +4235,14 @@ try {
 									} else {
 										ws.value(rowNum, 10, timesheetObj.getDescription());
 									}
-									ws.value(rowNum, 11, String.join(",", clientName));
-									ws.value(rowNum, 12, String.join(",", project));
-									ws.value(rowNum, 13, timesheetObj.getStatus());
+									if(!objectList.isEmpty()) {
+										ws.value(rowNum,11, description.toString());
+										}else {
+											ws.value(rowNum, 11, (String)null); 
+										}
+									ws.value(rowNum, 12, String.join(",", clientName));
+									ws.value(rowNum, 13, String.join(",", project));
+									ws.value(rowNum, 14, timesheetObj.getStatus());
 
 									rowNum++;
 									
@@ -4262,8 +4289,9 @@ try {
 									ws.value(rowNum, 4, dayType);
 									ws.value(rowNum, 5, leaveType);
 									ws.value(rowNum, 9, timesheetObj.getTotalWorkingHours());
-									ws.value(rowNum, 10, timesheetObj.getDescription());
-									ws.value(rowNum, 13, timesheetObj.getStatus());
+								    ws.value(rowNum, 10, timesheetObj.getDescription());
+								    ws.value(rowNum, 11, (String)null); 
+									ws.value(rowNum, 14, timesheetObj.getStatus());
 									
 									 // Check if employeementId exists in finalEmpBioData
 //						            for (BioMaTO bio : finalEmpBioData) {
@@ -4314,6 +4342,11 @@ try {
 		return response;
 		
 		}
+		
+		
+	
+		
+
 		
 		
 		// To Remove any InActive / Blocked / Check Idle user within 1hr
