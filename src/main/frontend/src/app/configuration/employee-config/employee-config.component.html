@@ -29,14 +29,27 @@
                         <app-accordion-item class="acc-content" title="Basic Information" [showBody]="true">
                             <div class="container-fluid">
                                 <div class="row">
-                                    <div class="col-md-4 mb-0" *ngIf="!isUpdation">
+                                    <!-- <div class="col-md-4 mb-0"> -->
+                                        <!-- <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Is Employee a Consultant</label>
+                                            <select class="form-control" [(ngModel)]="employeeObj.isConsultant" 
+                                                    [disabled]="isUpdation && (employeeObj.isConsultant == null || isUpdation)">
+         
+                                                <option *ngIf="!isUpdation" value="true">Yes</option>
+                                                <option *ngIf="!isUpdation" value="false">No</option>
+                                                <option *ngIf="isUpdation && employeeObj.isConsultant === true" selected value="true">Yes</option>
+                                                <option *ngIf="isUpdation && employeeObj.isConsultant !== true  || (employeeObj.isConsultant == null || isUpdation)" selected value="false">No</option>
+                                            </select>
+                                        </div> -->
+                                    <!-- </div> -->
+                                    <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label">
                                                     <span class="text-danger">*</span>Employee Type</label>
 
                                                 <!-- Select for creation mode -->
-                                                <select *ngIf="!isUpdation" class="form-control"
+                                                <select class="form-control"
                                                     [(ngModel)]="employeeObj.employeeType"
                                                     (ngModelChange)="onEmployeeTypeChange($event)">
                                                     <option value="" disabled>Select</option>
@@ -54,29 +67,15 @@
                                                     Id</label>
 
                                                 <input type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8" autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)"> 
-                                                <!-- <input *ngIf="!isUpdation && employeeObj.employeeType === ''"
-                                                    type="text" class="form-control"
-                                                    [(ngModel)]="employeeObj.employeementId" disabled> -->
-                                                <!-- <input *ngIf="!isUpdation && employeeObj.employeeType === 'Regular'"
-                                                    type="text" (keypress)="fieldRestictCharacter($event)"
-                                                    class="form-control" maxlength="8" autocomplete="none"
-                                                    [(ngModel)]="employeeObj.employeementId"
-                                                    (blur)="checkEmployeementId(alert_message)">
-                                                <input *ngIf="!isUpdation && employeeObj.employeeType === 'Consultant'"
-                                                    type="text" (keypress)="fieldRestictCharacterCS($event)"
-                                                    class="form-control" maxlength="11" autocomplete="none"
-                                                    [(ngModel)]="employeeObj.employeementId"
-                                                    (blur)="checkEmployeementId(alert_message)">
-                                                <input *ngIf="!isUpdation && employeeObj.employeeType === 'Apprentice'"
-                                                    type="text" (keypress)="fieldRestictCharacterAP($event)"
-                                                    class="form-control" maxlength="9" autocomplete="none"
-                                                    [(ngModel)]="employeeObj.employeementId"
-                                                    (blur)="checkEmployeementId(alert_message)">
-
-                                                <input *ngIf="isUpdation" type="text" class="form-control"
-                                                    autocomplete="none" [(ngModel)]="employeeObj.employeementId"
-                                                    readonly> -->
+                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)" [disabled]="isUpdation">
+                                                <!-- <input *ngIf="!isUpdation && employeeObj.isConsultant == 'true'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
+                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">
+                                                <input *ngIf="!isUpdation && employeeObj.isConsultant != 'true'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
+                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">
+                                                <input *ngIf="isUpdation && employeeObj.isConsultant == 'true'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
+                                                [(ngModel)]="employeeObj.employeementId" readonly>
+                                                <input *ngIf="isUpdation && employeeObj.isConsultant != 'true'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
+                                                [(ngModel)]="employeeObj.employeementId" readonly> -->
                                             </div>
                                         </div>
                                     </div>
@@ -1446,9 +1445,13 @@
 
                                 <td>{{employee.email}}</td>
                                 <td>{{employee.employmentstatus}}</td>
+                                <!-- <td
+                                    *ngIf="isDraftTable == true && employee.employmentStatus=='InActive' ? '{{employee.employmentReleaseStatus}} ' : ' ' && !isActiveTable">
+                                    {{employee.employmentReleaseStatus}}</td> -->
                                 <td
                                     *ngIf="isDraftTable == true && employee.employmentStatus=='InActive' ? '{{employee.employmentReleaseStatus}} ' : ' ' && !isActiveTable">
                                     {{employee.employmentReleaseStatus}}</td>
+
                                 <td>{{employee.managerName}}</td>
                                 <td>{{employee.departmentName}}</td>
                                 <td>{{employee.dateOfJoining}}</td>
