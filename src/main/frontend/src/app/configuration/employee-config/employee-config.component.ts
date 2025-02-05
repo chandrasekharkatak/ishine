@@ -1955,6 +1955,7 @@ this.referedTypeStatus=true;
           "EmailId": x.email,
           "Employment Status": x.employmentstatus,
           "Date of Joining": (x.dateOfJoining)? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null,
+          "Date of Confirmation": (x.employeeConfirmationDate)? moment(x.employeeConfirmationDate).format(AppComponent.DATE_FORMAT) : null,
           "Date of Relieving" : (x.dateOfRelieving)? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null,
           "Employee Release Status" : x.employmentReleaseStatus,
           "Department Name": x.departmentName,

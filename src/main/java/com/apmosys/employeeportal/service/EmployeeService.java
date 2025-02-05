@@ -2795,10 +2795,10 @@ public class EmployeeService {
                     empDTO.setReportingManagerName(object[79] != null ? object[79].toString() : null);
                     empDTO.setEmployeeRole(object[80] != null ? object[80].toString() : null);                
                     
-					empDTO.setReferedType(object[78] != null ? object[78].toString() : null);
-					empDTO.setReferedName(object[79] != null ? object[79].toString() : null);
+					empDTO.setReferedType(object[81] != null ? object[81].toString() : null);
+					empDTO.setReferedName(object[82] != null ? object[82].toString() : null);
 
-					
+					empDTO.setEmployeeConfirmationDate(object[83] != null ? object[83].toString() : null);
 				
 
 					ServiceResponse completionResponse = getEmployeeProfileCompletion(empDTO);
