@@ -1572,7 +1572,7 @@ this.referedTypeStatus=true;
 
   checkEmail(template: TemplateRef<any>) {
     let employee = new Employee();
-    employee.employeementId = this.utilityService.substringEmployeementid2(this.employeeObj.isConsultant,this.employeeObj.employeementId);
+    employee.employeementId = this.utilityService.getEmployeeIdSubstring(this.employeeObj.isConsultant);
 
     employee.email = this.employeeObj.email;
     employee.empId = this.employeeObj.empId;
@@ -1661,7 +1661,7 @@ this.referedTypeStatus=true;
 
   checkEmployeeMobileNo(template: TemplateRef<any>) {
     let employee = new Employee();
-    employee.employeementId = this.utilityService.substringEmployeementid2(this.employeeObj.isConsultant,this.employeeObj.employeementId);
+    employee.employeementId = this.utilityService.getEmployeeIdSubstring(this.employeeObj.isConsultant);
     employee.mobileNo = this.employeeObj.mobileNo;
 
     if(!this.validationService.validateMobileNumber(employee.mobileNo))
@@ -3728,6 +3728,18 @@ getReporteesListByReportingManagerId(){
       //console.log(" teamMember list   ",this.TeamMemberList)
     }
   })
+}
+
+estimateDateOfRetain(employeeObj: Employee){
+  const dateFormat = 'YYYY-MM-DD';
+
+  if(this.employeeObj.dateOfRetain){
+    let estimateDateOfRetain = new Date(this.employeeObj.dateOfRetain);
+    this.employeeObj.dateOfRetain = moment(estimateDateOfRetain).format(dateFormat);
+    console.log(this.employeeObj.dateOfRetain, "this.employeeObj.dateOfRetain")
+  }
+
+  console.log(this.employeeObj.dateOfRetain);
 }
 
 }

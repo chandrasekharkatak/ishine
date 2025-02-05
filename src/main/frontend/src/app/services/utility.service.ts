@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Query } from '../models/query';
 import { environment } from 'src/environments/environment';
+import { Query } from '../models/query';
 
 @Injectable({
   providedIn: 'root'
@@ -13,36 +13,31 @@ export class UtilityService {
 
   constructor(private http: HttpClient) { }
 
-  // appendEmployeementid(isConsultant,emp): string {
-  //   if(isConsultant == "true")
-  //     return "A-CS-".concat(emp);
-  //   else
-  //     return "A-".concat(emp);
-  // }
-
   appendEmployeementid(isConsultant,emp): string {
-    if(isConsultant == "true")
+    if(isConsultant == "true"){
       return "A-".concat(emp);
-    else
+    }
+    else 
       return "A-".concat(emp);
   }
 
-  // substringEmployeementid(isConsultant,emp): string {
-  //   if(emp.startsWith("A-CS-")){
-  //     return emp.substring(5);
-  //   }
-  //   else if (emp.startsWith("A-")) {
-  //     return emp.substring(2);
-  //   }
-  //   else {
-  //     console.error("invalid data found");
-  //     //return emp;
-  //   }
-  // }
+  getFormattedEmployeeId(empObj: any): string {
+    return this.appendEmployeementid(
+      empObj.isConsultant,
+      empObj.employeementId
+    );
+  }
 
   substringEmployeementid(isConsultant,emp): string {
-    if (emp.startsWith("A-")) {
-      return emp.substring(2);
+    if(isConsultant == "true"){
+      if (emp.startsWith("A-")) {
+        return emp.substring(2); 
+      } else {
+        console.log("Invalid apprenticeship ID format");
+        return emp; 
+      }
+      // return emp.substring(5);
+      // return emp.substring(2);
     }
     else {
       console.error("invalid data found");
@@ -50,38 +45,39 @@ export class UtilityService {
     }
   }
 
-  // substringEmployeementid2(isConsultant,employeementId): string {
-  //   if(employeementId.startsWith("A-CS-")){
-  //     return employeementId.substring(5);
-  //   }
-  //   else if (employeementId.startsWith("A-")) {
-  //     return employeementId.substring(2);
-  //   }
-  //   else {
-  //     return employeementId;
-  //   }
-  // }
+  getEmployeeIdSubstring(empObj: any): string {  
 
-  substringEmployeementid2(isConsultant,employeementId): string {
-    if (employeementId.startsWith("A-")) {
-      return employeementId.substring(2);
-    }
-    else {
-      return employeementId;
-    }
+    console.log("yess",empObj)
+
+    return this.substringEmployeementid(
+      empObj.isConsultant,
+      empObj.isApprenticeship
+    );
   }
 
-  getCustomQueryData(query: Query) {
-    return this.http.post(`${this.baseUrl}` + `api/getCustomQueryData`, query);
+  substringEmploymentId2(isConsultant: string,  emp: string): string {
+      if (emp.startsWith("A-")) {
+        return emp.substring(5);
+      } else if (emp.startsWith("A-")) {
+        return emp.substring(3);
+      } else if (emp.startsWith("A-")) {
+        return emp.substring(2); // Regular employees
+      } else {
+        console.error("Invalid regular employee ID format");
+        return emp; // Return as-is if format is invalid
+      }
   }
 
-  setEmployee360ViewAccess(hasAccess: boolean): void {
-    this.employee360ViewUser = hasAccess;
-  }
+  getEmployeeIdSubstring2(empObj: any): string {  
 
-  getEmployee360ViewAccess(): boolean {
-    return this.employee360ViewUser;
+    console.log("yess",empObj)
+
+    return this.substringEmploymentId2(
+      empObj.isConsultant,
+      empObj.employeementId
+    );
   }
+  
 
   transformData(response: any): any {
     const groupedData: any = {};
@@ -103,6 +99,19 @@ export class UtilityService {
     });
   
     return groupedData;
+  }
+  
+
+  getCustomQueryData(query: Query) {
+    return this.http.post(`${this.baseUrl}` + `api/getCustomQueryData`, query);
+  }
+
+  setEmployee360ViewAccess(hasAccess: boolean): void {
+    this.employee360ViewUser = hasAccess;
+  }
+
+  getEmployee360ViewAccess(): boolean {
+    return this.employee360ViewUser;
   }
 
 }
