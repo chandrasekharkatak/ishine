@@ -2299,9 +2299,9 @@ public class EmployeeService {
 
 							        
 							        if ("true".equalsIgnoreCase(isConsultant)) {
-							            employmentId = "A-CS-" + employmentId;
+							            employmentId = "A-" + employmentId;
 							        } else if ("true".equalsIgnoreCase(isApprenticeship)) {
-							            employmentId = "AP-" + employmentId;
+							            employmentId = "A-" + employmentId;
 							        } else {
 							            employmentId = "A-" + employmentId;
 							        }
