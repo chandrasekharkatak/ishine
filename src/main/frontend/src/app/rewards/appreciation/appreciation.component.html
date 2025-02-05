@@ -1,7 +1,9 @@
 <br>
 <div class="row mb-3">
-    <div class="col-md-12 px-7" style="padding-left: 2rem;">
-        <button type="button" class="btn btn-outline-primary btn-sm active ng-star-inserted mx-1"  [ngClass]="{'active' : viewEventConfig}" (click)="viewAppreciationEventOnClick()">Appreciation</button>
+    <div class="col-md-12 px-7" style="padding-left: 1rem;">
+        <button type="button" class="btn btn-outline-primary btn-sm active ng-star-inserted mx-1"  [ngClass]="{'active' : viewEventConfig}" (click)="viewAppreciationEventOnClick()" *ngIf="!viewEventConfig" ><em><i
+            class="fa-solid fa-arrow-left-long"></i></em>
+        </button>
     </div>
 </div>
 

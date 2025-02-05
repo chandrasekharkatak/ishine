@@ -1,5 +1,4 @@
-import { Portal } from '@angular/cdk/portal';
-import { LocationStrategy, DatePipe } from '@angular/common';
+import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
@@ -12,6 +11,7 @@ import { enableAppreciation } from 'src/app/models/enableAppreciation';
 import { Feature } from 'src/app/models/feature';
 import { Help } from 'src/app/models/help';
 import { Holiday } from 'src/app/models/holiday';
+import { Query } from 'src/app/models/query';
 import { Timesheet } from 'src/app/models/timesheet';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
@@ -21,7 +21,8 @@ import { HelpService } from 'src/app/services/help.service';
 import { HolidayService } from 'src/app/services/holiday.service';
 import { PortalService } from 'src/app/services/portal.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { Query } from 'src/app/models/query';
+
+
 
 class FilterData {
   title: any;
@@ -34,6 +35,8 @@ class FilterData {
   styleUrls: ['./appreciation.component.css']
 })
 export class AppreciationComponent implements OnInit {
+
+ 
   viewEventConfig: boolean = false;
   [x: string]: any;
   feature = "Portal Config";

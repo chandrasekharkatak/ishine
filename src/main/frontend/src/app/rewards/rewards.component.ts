@@ -1,9 +1,8 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
-import { Feature } from '../models/feature';
-import { AuthenticationService } from '../services/authentication.service';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Feature } from '../models/feature';
 import { User } from '../models/user';
-import { RewardsAndRecognisationComponent } from './rewards-and-recognisation/rewards-and-recognisation.component';
+import { AuthenticationService } from '../services/authentication.service';
 
 @Component({
   selector: 'app-rewards',
@@ -33,6 +32,7 @@ export class RewardsComponent implements OnInit, AfterViewInit, OnDestroy  {
         if(sub.isActive === false)return sub;
       });
       this.userMapping[feat.featureName.replaceAll(' ', '_').toLowerCase()] = (inActiveSubfeatures.length === feat.subFeatures.length) ? false : true;
+      console.error("userMap",this.userMapping);
     });
 
     console.log("usermapping   ", this.userMapping);

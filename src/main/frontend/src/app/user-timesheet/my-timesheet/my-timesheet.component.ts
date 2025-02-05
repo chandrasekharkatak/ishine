@@ -601,24 +601,10 @@ console.log("date filter ",this.Allholidays);
     let OPEN_BACKDATED_DAYS = 30;
     const CURRENT_DAY = 1;
 
-    // Get the current date and format it as "YYYY-MM-DD"
-    // let currentDate1 = moment().format(dateFormat);
-
-  
     let dateOfJoining = moment(this.currentUser.dateOfJoining, dateFormat);
 
-   
-    // if (!dateOfJoining.isValid()) {
-    //   console.error('Invalid Date of Joining:', this.currentUser.dateOfJoining);
-    //   return;
-    // }
-
-   
     let daysDifference = moment(currentDate, dateFormat).diff(dateOfJoining, 'days');
-    
-    // console.log("hdbvdf",currentDate1);
-    console.log(`The difference between current date and date of joining is ${daysDifference} days.`);
-  
+
 
     if(this.currentUser.timesheetBackDatedDays>daysDifference){
      
@@ -628,6 +614,7 @@ console.log("date filter ",this.Allholidays);
     }else{
       OPEN_BACKDATED_DAYS = this.currentUser.timesheetBackDatedDays; 
     }
+
 
     const dateObj = new Date(this.serverDate + 'T23:59:59');
     let serverDate = dateObj;

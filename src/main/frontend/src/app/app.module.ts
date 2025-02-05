@@ -1,11 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
-import { AppRoutingModule } from './app-routing.module';
-import { AppComponent } from './app.component';
-import { SidenavComponent } from './sidenav/sidenav.component';
-import { BodyComponent } from './body/body.component';
-import { HomeComponent } from './home/home.component';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { DatePipe, HashLocationStrategy, LocationStrategy } from '@angular/common';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
@@ -30,13 +25,18 @@ import { BsModalService, ModalModule } from 'ngx-bootstrap/modal';
 import { ClipboardModule } from 'ngx-clipboard';
 import { NgxMatSelectModule } from 'ngx-mat-select';
 import { NgxOrgChartModule } from 'ngx-org-chart';
+import { AppRoutingModule } from './app-routing.module';
+import { AppComponent } from './app.component';
+import { BodyComponent } from './body/body.component';
+import { HomeComponent } from './home/home.component';
+import { SidenavComponent } from './sidenav/sidenav.component';
 
+import { ColFilterPipe } from './col-filter.pipe';
 import { ResourceManagementComponent } from './user-team/resource-management/resource-management.component';
-import {ColFilterPipe} from './col-filter.pipe';
 
-import { SortPipe } from './sort.pipe';
 import { ColumnFilterBarComponent } from './helpers/column-filter-bar/column-filter-bar.component';
 import { MultiColFilterPipe } from './multi-col-filter.pipe';
+import { SortPipe } from './sort.pipe';
 
 import { NgxPaginationModule } from 'ngx-pagination';
 import { AccordionModule } from './accordion/accordion.module';
@@ -74,16 +74,16 @@ import { NewsletterComponent } from './newsletter/newsletter.component';
 import { RecruitmentComponent } from './recruitment/recruitment.component';
 import { RewardFilterPipe } from './reward-filter.pipe';
 
-import { Employee360Component } from './employee360/employee360.component';
-import { NavigateToEmployee360Directive } from './navigate-to-employee360.directive';
-import { Employee360ProfileComponent } from './employee360/employee360-profile/employee360-profile.component';
-import { Employee360LeaveComponent } from './employee360/employee360-leave/employee360-leave.component';
-import { Employee360ProjectComponent } from './employee360/employee360-project/employee360-project.component';
-import { Employee360TimesheetComponent } from './employee360/employee360-timesheet/employee360-timesheet.component';
-import { Employee360BiomaxComponent } from './employee360/employee360-biomax/employee360-biomax.component';
-import { Employee360RewardsComponent } from './employee360/employee360-rewards/employee360-rewards.component';
 import { Employee360AppreciationComponent } from './employee360/employee360-appreciation/employee360-appreciation.component';
+import { Employee360BiomaxComponent } from './employee360/employee360-biomax/employee360-biomax.component';
+import { Employee360LeaveComponent } from './employee360/employee360-leave/employee360-leave.component';
+import { Employee360ProfileComponent } from './employee360/employee360-profile/employee360-profile.component';
+import { Employee360ProjectComponent } from './employee360/employee360-project/employee360-project.component';
+import { Employee360RewardsComponent } from './employee360/employee360-rewards/employee360-rewards.component';
+import { Employee360TimesheetComponent } from './employee360/employee360-timesheet/employee360-timesheet.component';
+import { Employee360Component } from './employee360/employee360.component';
 import { BreadcrumbComponent } from './helpers/breadcrumb/breadcrumb.component';
+import { NavigateToEmployee360Directive } from './navigate-to-employee360.directive';
 import { RewardsAndRecognisationComponent } from './rewards/rewards-and-recognisation/rewards-and-recognisation.component';
 import { RewardsComponent } from './rewards/rewards.component';
 
@@ -99,30 +99,29 @@ import { UserLeavesComponent } from './user-leaves/user-leaves.component';
 import { UserPerformanceComponent } from './user-performance/user-performance.component';
 import { UserPoliciesComponent } from './user-policies/user-policies.component';
 import { UserProfileComponent } from './user-profile/user-profile.component';
-import { UserSalaryComponent } from './user-salary/user-salary.component';
 import { UserRequestsComponent } from './user-requests/user-requests.component';
+import { UserSalaryComponent } from './user-salary/user-salary.component';
 import { UserSurveyComponent } from './user-survey/user-survey.component';
 import { MyTeamComponent } from './user-team/my-team/my-team.component';
 
+import { AppreciationComponent } from './rewards/appreciation/appreciation.component';
+import { UserReleasenotesComponent } from './user-releasenotes/user-releasenotes.component';
+import { AttendanceReconciliationComponent } from './user-report/attendance-reconciliation/attendance-reconciliation.component';
+import { QueryMasterComponent } from './user-report/query-master/query-master/query-master.component';
+import { ReportDashboardComponent } from './user-report/report-dashboard/report-dashboard.component';
+import { ReportListComponent } from './user-report/report-list/report-list.component';
+import { UserReportComponent } from './user-report/user-report.component';
 import { TeamConfigComponent } from './user-team/team-config/team-config.component';
 import { TeamMemberComponent } from './user-team/team-member/team-member.component';
 import { UserTeamComponent } from './user-team/user-team.component';
-import { UserTimesheetComponent } from './user-timesheet/user-timesheet.component';
 import { MyTimesheetComponent } from './user-timesheet/my-timesheet/my-timesheet.component';
 import { TeamTimesheetComponent } from './user-timesheet/team-timesheet/team-timesheet.component';
-import { MatSort } from '@angular/material/sort';
-import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
-import { EmployeeInfoComponent } from './user-update-info/employee-info/employee-info.component';
+import { UserTimesheetComponent } from './user-timesheet/user-timesheet.component';
 import { DocumentUploadComponent } from './user-update-info/document-upload/document-upload.component';
-import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
+import { EmployeeInfoComponent } from './user-update-info/employee-info/employee-info.component';
 import { EmployeeUpdateListComponent } from './user-update-info/employee-update-list/employee-update-list.component';
-import { UserReportComponent } from './user-report/user-report.component';
-import { ReportListComponent } from './user-report/report-list/report-list.component';
-import { ReportDashboardComponent } from './user-report/report-dashboard/report-dashboard.component';
-import { QueryMasterComponent } from './user-report/query-master/query-master/query-master.component';
-import { AttendanceReconciliationComponent } from './user-report/attendance-reconciliation/attendance-reconciliation.component';
-import { AppreciationComponent } from './rewards/appreciation/appreciation.component';
-import { UserReleasenotesComponent } from './user-releasenotes/user-releasenotes.component';
+import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
+import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
 
