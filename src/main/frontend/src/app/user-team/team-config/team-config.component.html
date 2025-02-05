@@ -381,6 +381,12 @@
 <!-- start :: Create & Update Activity -->
 <div class="row">
     <div class="card col-md-12 px-0" *ngIf="isActivityForm">
+
+        <div class="px-0">
+            <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="isCreation" (click)="showViewActivities()"><em><i
+               class="fa-solid fa-arrow-left-long"></i></em></button>
+        </div>
+
         <div class="card-header text-center text-uppercase">
             <strong *ngIf="isCreation">Create Activity</strong>
             <strong *ngIf="isUpdation">Update Activity</strong>
