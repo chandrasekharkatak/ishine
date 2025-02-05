@@ -46,21 +46,37 @@
                                                 </select>
                                             </div>
                                         </div>
-                                    </div>  
+                                    </div>
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
-                                                <label class="info-label"><span class="text-danger">*</span>Emp Id</label>
+                                                <label class="info-label"><span class="text-danger">*</span>Emp
+                                                    Id</label>
+
                                                 <input type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8" autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)" [disabled]="isUpdation">
-                                                <!-- <input *ngIf="!isUpdation && employeeObj.isConsultant == 'true'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">
-                                                <input *ngIf="!isUpdation && employeeObj.isConsultant != 'true'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">
-                                                <input *ngIf="isUpdation && employeeObj.isConsultant == 'true'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" readonly>
-                                                <input *ngIf="isUpdation && employeeObj.isConsultant != 'true'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" readonly> -->
+                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)"> 
+                                                <!-- <input *ngIf="!isUpdation && employeeObj.employeeType === ''"
+                                                    type="text" class="form-control"
+                                                    [(ngModel)]="employeeObj.employeementId" disabled> -->
+                                                <!-- <input *ngIf="!isUpdation && employeeObj.employeeType === 'Regular'"
+                                                    type="text" (keypress)="fieldRestictCharacter($event)"
+                                                    class="form-control" maxlength="8" autocomplete="none"
+                                                    [(ngModel)]="employeeObj.employeementId"
+                                                    (blur)="checkEmployeementId(alert_message)">
+                                                <input *ngIf="!isUpdation && employeeObj.employeeType === 'Consultant'"
+                                                    type="text" (keypress)="fieldRestictCharacterCS($event)"
+                                                    class="form-control" maxlength="11" autocomplete="none"
+                                                    [(ngModel)]="employeeObj.employeementId"
+                                                    (blur)="checkEmployeementId(alert_message)">
+                                                <input *ngIf="!isUpdation && employeeObj.employeeType === 'Apprentice'"
+                                                    type="text" (keypress)="fieldRestictCharacterAP($event)"
+                                                    class="form-control" maxlength="9" autocomplete="none"
+                                                    [(ngModel)]="employeeObj.employeementId"
+                                                    (blur)="checkEmployeementId(alert_message)">
+
+                                                <input *ngIf="isUpdation" type="text" class="form-control"
+                                                    autocomplete="none" [(ngModel)]="employeeObj.employeementId"
+                                                    readonly> -->
                                             </div>
                                         </div>
                                     </div>
@@ -542,14 +558,7 @@
                                         </div>
                                     </div>
 
-                                    <!--  added by anurag for Inactive manager -->                                    </div>
-                                        </div>
-                                    
-
                                     <!--  added by anurag for Inactive manager -->
-
-                                    <!-- added by priyadarshini  -->
-
 
                                     <!-- added by priyadarshini  -->
 
@@ -852,7 +861,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-4 mb-0" *ngIf="isUpdation && employeeObj.employmentstatus == 'InActive' || employeeObj.employmentstatus == 'Resigned' ">
 
 
 
@@ -1127,7 +1135,7 @@
                                         </div>
                                     </div>
 
-                                <!-- </div> -->
+                                </div>
                             </div>
                         </app-accordion-item>
 
@@ -1383,6 +1391,7 @@
                             <th *ngIf="isDraftTable" scope="col" class="info-label">Sr No.</th>	 -->
                                 <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Employee Id
                                 </th>
+                                <th scope="col" class="info-label" mat-sort-header="employeeType|string">Type</th>
                                 <th scope="col" class="info-label" mat-sort-header="name|string">Full Name</th>
                                 <th scope="col" class="info-label" mat-sort-header="email|string">Email Id</th>
                                 <th scope="col" class="info-label" mat-sort-header="employmentstatus|string">Employment
@@ -1428,8 +1437,7 @@
                                 <!-- <th *ngIf="!isDraftTable" class="info-label">A-{{employee.employeementId}}</th>
                             <th *ngIf="isDraftTable" class="info-label">{{i+1}}</th> -->
                                 <td>{{employee.employeementId}}</td>
-                                <td >{{employee.employeeType}}</td>
-
+                                <td>{{employee.employeeType}}</td>
                                 <td [navigateToEmployee360]="employee" style="cursor: pointer;"
                                     title="Click to view Employee 360">
                                     {{employee.name}}
@@ -1744,9 +1752,7 @@
                                             <div class="info-wrapper">
                                                 <p class="info-label">Employee Id</p>
                                                 <p class="info-text info-highlight">
-                                                    <!-- {{ previewObj.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{previewObj.employeementId}} -->
-                                                      A-{{previewObj.employeementId}}
-                                                </p>
+                                                    A-{{previewObj.employeementId}}</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">
@@ -2262,9 +2268,7 @@
                                             <div class="info-wrapper">
                                                 <p class="info-label">Employee Id</p>
                                                 <p class="info-text info-highlight">
-                                                    <!-- {{ previewEmployeeObj.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{previewEmployeeObj.employeementId}} -->
-                                                    A-{{previewEmployeeObj.employeementId}}
-                                                </p>
+                                                    A-{{ previewEmployeeObj.employeementId}}</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">
