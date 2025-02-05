@@ -402,7 +402,6 @@ public class AppreciationService {
 		eventDTO.setFromDate(allevents.getFromDate());	
 		eventDTO.setToDate(allevents.getToDate());;	
 		eventDTO.setCreatedOn(allevents.getCreatedOn()!= null ? allevents.getCreatedOn().toString():null);
-
 		eventDTO.setAppreciationEventType(allevents.getAppreciationEventType());
 		appreciationEventDTO.add(eventDTO);
 		

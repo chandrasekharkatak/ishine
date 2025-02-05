@@ -152,6 +152,10 @@ export class RewardsConfigComponent implements OnInit {
   selectEvent(value:any){
     //console.log(value, " : value");
   }
+  getPlaceholder(column: string): string {
+    const dateFields = ['From Date', 'To Date', 'Date', 'Date Of Joining'];
+    return dateFields.includes(column) ? 'DD-MM-YYYY' : 'Enter value';
+}
 
   onChangeSearch(a){
     //console.log(a, " : a");

@@ -66,7 +66,7 @@ export class TeamConfigComponent implements OnInit {
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
   modalRef2: BsModalRef = new BsModalRef();
-
+  modalRef5:  BsModalRef = new BsModalRef();
   //Obj 
   teamObj: Team = new Team();
   storedTeamObj: Team = new Team();
@@ -1380,6 +1380,12 @@ export class TeamConfigComponent implements OnInit {
     this.modalRef.hide();
   }
 
+  cancelRequest5(){
+    this.modalRef5.hide();
+  }
+
+  
+
   cancelRequest2() {
     this.modalRef2.hide();
   }
@@ -1445,7 +1451,7 @@ export class TeamConfigComponent implements OnInit {
   }
 
   openProjectTemplateModal(template: TemplateRef<any>, employee) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef5 = this.modalService.show(template, { class: 'modal-xl' });
     this.getExistingProjectsByUser(employee.empId);
     this.dataObj = employee;
 
