@@ -80,11 +80,12 @@ List<EmployeeTeamMap> findByProjectIdAndActive(Integer projectId,Long active);
 	 @Query(nativeQuery = true)
 	List<Object[]> findTeammembersByTeamIdAndManagerId(Long teamId, Long managerId);
 
-//	@Query(nativeQuery = true)
-//	List<Object[]> getResourceByTeamAndEmpId(Long empId, Long teamId);
+	 @Query(nativeQuery = true)
+	List<Object[]> getAllProjectsTeamsInfo(Long empId);
 
 	@Modifying
 	@Transactional
 	@Query(nativeQuery = true)
 	void updateActiveFieldToZero(Long key);
+
 }

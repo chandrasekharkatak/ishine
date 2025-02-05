@@ -601,8 +601,32 @@ console.log("date filter ",this.Allholidays);
     let OPEN_BACKDATED_DAYS = 30;
     const CURRENT_DAY = 1;
 
-    if(this.currentUser.timesheetBackDatedDays){
-      OPEN_BACKDATED_DAYS = this.currentUser.timesheetBackDatedDays;
+    // Get the current date and format it as "YYYY-MM-DD"
+    // let currentDate1 = moment().format(dateFormat);
+
+  
+    let dateOfJoining = moment(this.currentUser.dateOfJoining, dateFormat);
+
+   
+    // if (!dateOfJoining.isValid()) {
+    //   console.error('Invalid Date of Joining:', this.currentUser.dateOfJoining);
+    //   return;
+    // }
+
+   
+    let daysDifference = moment(currentDate, dateFormat).diff(dateOfJoining, 'days');
+    
+    // console.log("hdbvdf",currentDate1);
+    console.log(`The difference between current date and date of joining is ${daysDifference} days.`);
+  
+
+    if(this.currentUser.timesheetBackDatedDays>daysDifference){
+     
+      
+      OPEN_BACKDATED_DAYS = daysDifference;    
+    
+    }else{
+      OPEN_BACKDATED_DAYS = this.currentUser.timesheetBackDatedDays; 
     }
 
     const dateObj = new Date(this.serverDate + 'T23:59:59');
@@ -1286,11 +1310,14 @@ console.log("date filter ",this.Allholidays);
 
     if(this.currentUser.timesheetBackDatedDays){
       OPEN_BACKDATED_DAYS = this.currentUser.timesheetBackDatedDays;
+      // console.log("OPEN_BACKDATED_DAYS",this.currentUser.timesheetBackDatedDays);
     }
 
     if(this.isTimesheetLockCheckEnable == 'false'){
       endDate = currentDate;
       startDate = new Date(endDate.getTime() - ((OPEN_BACKDATED_DAYS + 1) * DAY_IN_MS));
+      // startDate=this.currentUser.dateOfJoining;
+      console.log("ch",this.currentUser.dateOfJoining);
     }else{
       endDate = currentDate;
       startDate = new Date(endDate.getTime() - ((this.currentUser.timesheetLockDays + 1) * DAY_IN_MS));
@@ -1305,7 +1332,7 @@ console.log("date filter ",this.Allholidays);
       this.timesheetService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.availableTimesheets = response.serviceResponse;
-          //console.log("availableTimesheets :", this.availableTimesheets);
+          console.log("availableTimesheets :", this.availableTimesheets);
         } else {
           console.error(response.serviceResponse)
         }
@@ -1491,6 +1518,7 @@ console.log("date filter ",this.Allholidays);
         this.currentUser.isTimesheetLockCheckEnable = JSON.parse(JSON.stringify(employeeInfo.isTimesheetLockCheckEnable));
         this.authenticationService.setcurrentUserSubject(this.currentUser);
         this.isTimesheetLockCheckEnable = employeeInfo.isTimesheetLockCheckEnable;
+        // console.log("doj",this.currentUser.dateOfJoining);
         //console.log("isTimesheetLockCheckEnable : ", this.isTimesheetLockCheckEnable);
 
         let userObj: User = new User();
@@ -1677,6 +1705,14 @@ console.log("date filter ",this.Allholidays);
       event.target.nextElementSibling.textContent = this.errorMsg
     }
   }
+
+
+  preventScroll(event: WheelEvent): void {
+    event.preventDefault();
+  }
+  
+
+
   validateClientLocation(event, data: any) {
 
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {

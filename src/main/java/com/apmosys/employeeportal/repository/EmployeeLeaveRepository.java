@@ -19,6 +19,21 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllMyTeamsPendingLeaveApplicationsByManagerId(Integer managerId);
 	
+	@Query(nativeQuery = true)
+	public List<Object[]> getAllLeaveApplicationsByEmpIdAndManagerApprovalStatus(Long empId,String status);
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getAllLeaveApplicationsByEmpId(Long empId);
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getAllLeaveApplicationsByEmpIdAndFromDate(Long empId,LocalDate localFromDate,LocalDate localToDate);
+	
+	@Query(nativeQuery = true)
+	public List<Long> findTeamIdsByEmpId(Long empId);
+
+    @Query(nativeQuery = true)
+    public List<Object[]> getAllLeaveApplicationsByTeamId(List<Long> teamIds);
+    
 	public List<EmployeeLeave> findAllByEmpIdAndLeaveTypeMasterIdAndLeaveStatusId(Long empId,Short leaveTypeMasterId,Short leaveStatusId);
 
 	@Query(nativeQuery = true)
@@ -29,6 +44,9 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllTeamCompOffHistoryView(Long managerId, LocalDate fromDate, LocalDate toDate);
+
+	@Query(nativeQuery = true)
+	public List<Object[]> getAllTeamCompOffHistoryViewByEmpId(Long empId, LocalDate fromDate, LocalDate toDate);
 
 	@Query(nativeQuery = true)
 	public Long countAllMyTeamsPendingLeaveApplicationsByManagerId(Integer managerId);
@@ -136,6 +154,8 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
 	public List<Object[]> getDepartmentPendingLeaveHistoryStatusNotIn(Long deptId, List<String> jobRoles);
 	
 	
+	@Query(nativeQuery = true)
+	public List<Object[]> getAllLeaveApplicationsByLeaveId(Long leaveId);
 	@Query(value = "SELECT * FROM employee_leave " +
             "WHERE leave_type_master_id = 2 AND leave_status_id = 2 AND manager_approval_status = 'Approved' ", 
     nativeQuery = true)

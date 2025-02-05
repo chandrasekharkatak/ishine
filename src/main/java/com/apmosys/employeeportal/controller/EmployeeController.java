@@ -1,9 +1,13 @@
 package com.apmosys.employeeportal.controller;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -11,6 +15,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.dto.AppreciationDetails;
+import com.apmosys.employeeportal.dto.AppreciationRequest;
+import com.apmosys.employeeportal.dto.DateRangeDTO;
+import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.service.EmployeeService;
@@ -42,6 +50,21 @@ public class EmployeeController {
 		}
 		return response;
 	}
+	@RequestMapping(value = "/getEmployeeAppreciationByEmpId", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public AppreciationDetails getEmployeeAppreciationByEmpId(@RequestBody EmployeeAppreciationRequest request) {
+	    return employeeService.getEmployeeAppreciationByEmpId(request);
+	}
+	
+	@RequestMapping(value = "/getDateRangesForDropdown", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<DateRangeDTO>> getDateRangesForDropdown(@RequestBody Long empId) {
+		List<DateRangeDTO> dateRanges =  employeeService.getDateRangesForDropdown(empId);
+        return ResponseEntity.ok(dateRanges);
+    }
+	
+	@RequestMapping(value = "/getTeamAppreciationByEmpId", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public AppreciationDetails getTeamAppreciationByEmpId(@RequestBody EmployeeAppreciationRequest request) {
+		return employeeService.getTeamAppreciationByEmpId(request);
+	}
 
 	@RequestMapping(value = "/getEmployeeByEmpId", method = RequestMethod.POST)
 	public ServiceResponse getEmployeeByEmpId(@RequestBody EmployeeDTO employeedto) {
@@ -56,7 +79,15 @@ public class EmployeeController {
 		ServiceResponse response = employeeService.getAllEmployees();
 		return response;
 	}
-
+	
+//	@PostMapping("/getEmployeeByAppreciationName")
+//    public ServiceResponse getEmployeeByAppreciationName(@RequestBody AppreciationRequest request) {
+//        String appreciationByName = request.getEmpName();
+//        ServiceResponse response = employeeService.getEmployeeByAppreciationName(appreciationByName);
+//        return response;
+//        
+//	}
+	
 	@RequestMapping(value = "/updateEmployeeByEmpId", method = RequestMethod.POST)
 	public ServiceResponse updateEmployeeByEmpId(@RequestBody EmployeeDTO employeedto) {
 		
@@ -447,6 +478,20 @@ public class EmployeeController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getReporteesListByManagerId", method = RequestMethod.POST)
+	public ServiceResponse getReporteesListByManagerId(@RequestBody EmployeeDTO employeeDto) {
+
+		ServiceResponse response = employeeService.getReporteesListByManagerId(employeeDto);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getReporteesListByReportingManagerId", method = RequestMethod.POST)
+	public ServiceResponse getReporteesListByReportingManagerId(@RequestBody EmployeeDTO employeeDto) {
+
+		ServiceResponse response = employeeService.getReporteesListByReportingManagerId(employeeDto);
+		return response;
+	}
+	
 	@RequestMapping(value = "/removeStaleMappingOfInactiveEmployees", method = RequestMethod.POST)
 	public ServiceResponse removeStaleMappingOfInactiveEmployees() {
 
@@ -454,4 +499,11 @@ public class EmployeeController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/setReportingManagerToNewManager", method = RequestMethod.POST)
+	public ServiceResponse setReportingManagerToNewManager(@RequestBody EmployeeDTO employeeDto) {
+
+		System.out.println(" projectName  setManagerToNewManaager ");
+		ServiceResponse response = employeeService.setReportingManagerToNewManager(employeeDto);
+		return response;
+	}
 }

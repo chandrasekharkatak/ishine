@@ -1,0 +1,23 @@
+.overflow-auto {
+    width: 100%;
+    overflow: hidden;
+}
+
+.table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+.table th, .table td {
+    word-wrap: break-word;
+    text-align: left;
+}
+
+thead th {
+    white-space: nowrap;
+}
+
+.small-gap {
+    margin-left: 10px; 
+}

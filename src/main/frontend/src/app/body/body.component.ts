@@ -77,6 +77,15 @@ export class BodyComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  getBreadcrumbClass(): string{
+    let styleClass = '';
+
+    if(!this.isHome){
+      styleClass= 'mt-5';
+    }
+    return styleClass;
+  }
+
   getBodyClass(): string{
     let styleClass = '';
 
@@ -120,6 +129,7 @@ export class BodyComponent implements OnInit {
           sessionStorage.removeItem('maxFileSize');
           sessionStorage.removeItem('maxRequestSize');
           sessionStorage.removeItem('sessioncheck');
+          sessionStorage.removeItem('breadcrumb');
         // delete method call for cookies
         this.authenticationService.deleteCookies();
         this.authenticationService.setcurrentUserSubject(null);
@@ -134,6 +144,7 @@ export class BodyComponent implements OnInit {
           sessionStorage.removeItem('maxFileSize');
           sessionStorage.removeItem('maxRequestSize');
           sessionStorage.removeItem('sessioncheck');
+          sessionStorage.removeItem('breadcrumb');
           // delete method call for cookies
           this.authenticationService.deleteCookies();
           this.authenticationService.setcurrentUserSubject(null);

@@ -29,6 +29,10 @@ import { DestinationService } from 'src/app/services/destination.service';
 import { Designation } from 'src/app/models/designation';
 import { LeaveService } from 'src/app/services/leave.service';
 import { Leave } from 'src/app/models/leave';
+
+
+import { SharedService } from 'src/app/services/shared.service';
+import { Subscription } from 'rxjs';
 class FilterData {
   title: any;
   columns: any;
@@ -156,6 +160,11 @@ export class EmployeeConfigComponent implements OnInit {
     "Uttarakhand",
     "West Bengal",
   ];
+  //added by rahul for refered employee addition
+  referedType=[
+    "In Office",
+    "Out Office"
+  ]
   currDate:any;
   yearOfPassingList:any[] = [];
   revoke_template: any;
@@ -205,7 +214,8 @@ minDate: Date;
   isActiveTable : boolean = false;
 
   managerId : any;
-  TeamMemberList : any = [];
+  reporteeList : any = [];
+  reporteeList2 : any = [];
   listOfDepartment : any[] =[];
 
   employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department','Designation',
@@ -214,7 +224,8 @@ minDate: Date;
      'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status',
      'Bank Name', 'Created By', 'State', 'Created On'];
      departmentName: any;
-
+     private subscription: Subscription = new Subscription();
+     referedTypeStatus:boolean=false;
 
   constructor(
 
@@ -233,7 +244,8 @@ minDate: Date;
     private locationStrategy:LocationStrategy,
     private domainService:DomainService,
     private destinationService:DestinationService,
-    private leaveService : LeaveService
+    private leaveService : LeaveService,
+    private sharedService : SharedService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -257,6 +269,7 @@ minDate: Date;
     this.employeeObj.approvalsTo = '';
     this.setYearOfPassingList();
     this.preventBackButton();
+    this.getAllEmployeeList();
   }
 
   preventBackButton(){
@@ -266,7 +279,11 @@ minDate: Date;
     })
   }
 
-
+  ngOnDestroy() {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+  }
   ngAfterViewInit() {
 
   }
@@ -291,7 +308,16 @@ minDate: Date;
       this.showDraftTable();
     }
   }
-
+//added by rahul for reffered
+  refferedChange(){
+    if(this.employeeObj.referedType=="InOffice"){
+this.referedTypeStatus=true;
+    }
+    if(this.employeeObj.referedType=="OutOffice"){
+      this.referedTypeStatus=true;
+   }
+  }
+  //end of the code
   addDemographiscInfo(){
     let path;
 
@@ -348,7 +374,10 @@ minDate: Date;
 
   }
 
-  
+  resetSelectSearch(managerSelect: any) {
+    managerSelect.searchValue = '';
+    managerSelect.filteredSource = managerSelect.source;
+  }
 
 
   getCurrentFormattedDate(): string {
@@ -413,30 +442,65 @@ minDate: Date;
     }
   }
 
+  newEmployee = new Employee();
 
-  updateEmployeesManager(employee, template: TemplateRef<any>){
+  managerUpdate(reportee,template: TemplateRef<any>){
+    this.newEmployee = reportee;
+    console.log("newEmployee",this.newEmployee.managerId);
+    
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  }
+
+  updateEmployeesManager(template: TemplateRef<any>){
 
     let emp = new Employee();
-    emp.empId = employee.empId;
-    emp.managerId = employee.managerId
-    employee.managerId = this.managerId;
+    emp.empId = this.newEmployee.empId;
+    emp.managerId = this.newEmployee.managerId
+   
     this.employeeService.setManagerToNewManager(emp).pipe(first()).subscribe((response :any)=>{
       if(response.serviceStatus == "Success"){
         //console.log(" teamName after manager changes done ",this.employeeObj.teamName)
-        this.getTeamMemberByTeamName(this.employeeObj);
+        this.getReporteesListByManagerId();
+        this.getReporteesListByReportingManagerId();
         this.openAlertMod(template," Employee's Manager has changed !!");
         //console.log(" Manager update ")
       }
     })
 
+    this.modalRef.hide();
+
     //console.log(" managerUpdate method call and employee id of reporties    :   ",employee.empId);
     
     //console.log(" managerUpdate method call  employee name  :   ",employee.name);
     //console.log(" managerId   ::   ",employee.managerId);
+  }
+
+  newEmp = new Employee();
+
+  reportingManagerUpdate(reportee,template: TemplateRef<any>){
+    this.newEmp = reportee;
+    console.log("newEmployee",this.newEmp.reportingManagerId);
     
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  }
 
+  updateEmployeesReportingManager(template: TemplateRef<any>){
 
+    let emp = new Employee();
+    emp.empId = this.newEmp.empId;
+    emp.reportingManagerId = this.newEmp.reportingManagerId
+   
+    this.employeeService.setReportingManagerToNewManager(emp).pipe(first()).subscribe((response :any)=>{
+      if(response.serviceStatus == "Success"){
+        //console.log(" teamName after manager changes done ",this.employeeObj.teamName)
+        this.getReporteesListByManagerId();
+        this.getReporteesListByReportingManagerId();
+        this.openAlertMod(template," Employee's Reporting Manager has changed !!");
+        //console.log(" Manager update ")
+      }
+    })
 
+    this.modalRef.hide();
   }
 
   getTeamMemberByTeamName(employeeObj){
@@ -444,13 +508,11 @@ minDate: Date;
     // this.managerAndAbove = this.managerAndAbove.forEach(t=> t.managerId == ""); 
 
     let empObj = new Employee();
-    empObj.teamName = employeeObj.teamName;
     empObj.managerId = employeeObj.managerId;
-
 
     this.employeeService.getTeamMemberByTeamName(empObj).pipe(first()).subscribe((response : any)=>{
       if(response.serviceStatus == "Success"){
-        this.TeamMemberList = response.serviceResponse;
+        this.reporteeList = response.serviceResponse;
         this.getManagersList();
         // this.employeeObj.managerId = '';
         //console.log(" teamMember list   ",this.TeamMemberList)
@@ -474,6 +536,19 @@ minDate: Date;
 
   stringToNumber(year:any){
     this.employeeObj.yearOfPassing = Number.parseInt(year);
+  }
+
+  retainStatus(){
+
+    if(this.employeeObj.employmentstatus =="Retain"){
+      this.employeeObj.isRetain ="Yes";
+    } else{
+      this.employeeObj.isRetain ="No";
+    }
+
+
+    console.log(this.employeeObj.employmentstatus)
+    console.log(this.employeeObj.isRetain)
   }
 
   showCreateForm() {
@@ -558,6 +633,7 @@ minDate: Date;
 
   showUpdateForm(employee: Employee) {
     this.isForm = true;
+    this.referedTypeStatus=true;
     this.isTable = false;
     this.isUpdation = true;
     this.isCreation = false;
@@ -784,20 +860,20 @@ minDate: Date;
   }
 
 
-  getTeamsByProjectName(projectName,template: TemplateRef<any>){
-    //console.log(" projectName   ",projectName);
-    this.employeeObj.teamName = "";
-    this.employeeService.getTeamByProjectName(projectName).pipe(first()).subscribe((response : any)=>{
-      if(response.serviceStatus == "Success"){
-        this.teamList = response.serviceResponse;
-        //console.log(" team list success   ",this.teamList);
-      }else{
-        this.openAlertMod(template , response.serviceResponse);
-        console.log(" in fail ")
-      }
-    });
+  // getTeamsByProjectName(projectName,template: TemplateRef<any>){
+  //   //console.log(" projectName   ",projectName);
+  //   this.employeeObj.teamName = "";
+  //   this.employeeService.getTeamByProjectName(projectName).pipe(first()).subscribe((response : any)=>{
+  //     if(response.serviceStatus == "Success"){
+  //       this.teamList = response.serviceResponse;
+  //       //console.log(" team list success   ",this.teamList);
+  //     }else{
+  //       this.openAlertMod(template , response.serviceResponse);
+  //       console.log(" in fail ")
+  //     }
+  //   });
 
-  }
+  // }
 
   validateEmployeeObj(employeeObj: Employee, template: TemplateRef<any>) {
 
@@ -1615,7 +1691,7 @@ minDate: Date;
   //     if (response.serviceStatus == "Fail") {
   //       this.openAlertMod(template, response.serviceResponse);
   //       this.employeeObj.mobileNo = '';
-  //     }
+  //     }changeManagerMapping
   //   });
   // }
 
@@ -1662,6 +1738,7 @@ minDate: Date;
     // transform date formats to YYYY-MM-DD
     if(this.employeeObj.dateOfBirth) this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth ).format(dateFormat)
     if(this.employeeObj.dateOfJoining) this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat)
+    if(this.employeeObj.employeeConfirmationDate) this.employeeObj.employeeConfirmationDate = moment(this.employeeObj.employeeConfirmationDate).format(dateFormat)  
     if(this.employeeObj.dateOfResign) this.employeeObj.dateOfResign = moment(this.employeeObj.dateOfResign).format(dateFormat)
 
     if(this.employeeObj.employmentstatus == "Confirmed" || this.employeeObj.employmentstatus == "Probation" ){
@@ -1704,7 +1781,9 @@ minDate: Date;
     }
     employee.newManagerId = this.employeeObj.newManagerId;
     employee.reportiesFlag = this.employeeObj.reportiesFlag; 
-
+    employee.referedType==this.employeeObj.referedType;
+    employee.referedName==this.employeeObj.referedName;
+   
     console.log("employee update before call ",employee);
  
     if(this.employeeObj.employeeType === 'Consultant'){
@@ -1828,10 +1907,12 @@ minDate: Date;
         });
         this._allEmployeeList = this.allEmployeeList;
         this.changeEvent("Active");
+        this.onselectYes = false;
 
         // Default Sorting
         this.allEmployeeList = new SortPipe().transform(this.allEmployeeList, ['name','string', 'asc']);
         // this.createEmployeeList(this.allEmployeeList)
+        sessionStorage.setItem('AllEmployees',JSON.stringify(this.allEmployeeList));
       } else {
         alert(response.serviceResponse);
       }
@@ -1875,6 +1956,7 @@ minDate: Date;
           "Employment Status": x.employmentstatus,
           "Date of Joining": (x.dateOfJoining)? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null,
           "Date of Relieving" : (x.dateOfRelieving)? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null,
+          "Employee Release Status" : x.employmentReleaseStatus,
           "Department Name": x.departmentName,
           "Aadhar":x.aadhar,
           "About Me":x.aboutMe,
@@ -2518,6 +2600,10 @@ if (employeeObj.updateType !== 'automatic') {
   //   }
   // }
 
+
+
+  
+
   RestrictFullName(event){
     var k;
     k= event.charCode;
@@ -2607,34 +2693,31 @@ return true;
     this.employeeObj.departmentId ="";
     this.employeeObj.projectName = "";
     this.employeeObj.teamName = "";
-    //console.log(" empId in manager UI change ",employeeId);
+    console.log(" empId in manager UI change ",this.employeeObj.name);
 
-    this.employeeService.getDepartmentByHodId(employeeId).pipe(first()).subscribe((response: any)=>{
-      if(response.serviceStatus == "Success"){
-
-        this.listOfDepartment = response.serviceResponse; 
-
-      //   const responseObj = response.serviceResponse;
-      //  console.log(" responseObj             ",responseObj);
-
-      //  responseObj.forEach((dept )=>{
-      //   this.deptId = dept[4];
-      //   this.departmentName = dept[3];
-      //   this.listOfDepartment.push(this.departmentName);
-      //  });
-
-
-        // this.listOfDepartment = response.serviceResponse;
-      }
-    })
-//console.log("this.deptId    ",this.deptId);
-
-//console.log("this.listOfDepartment        ",this.listOfDepartment    );
-
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl'});
+    this.getReporteesListByManagerId();
+    this.getReporteesListByReportingManagerId();
+    
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
   }
 
-  
+  getReporteesListByManagerId(){
+    console.log(" empId in manager UI change ",this.employeeObj.name);
+
+    if (this.employeeObj.employeementId.startsWith("A-")) {
+      this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
+    }
+
+    console.log("employment id",this.employeeObj.employeementId);
+    this.employeeService.getReporteesListByManagerId(this.employeeObj).pipe(first()).subscribe((response : any)=>{
+      if(response.serviceStatus == "Success"){
+        this.reporteeList = response.serviceResponse;
+        this.getManagersList();
+        // this.employeeObj.managerId = '';
+        //console.log(" teamMember list   ",this.TeamMemberList)
+      }
+    })
+  }
 
   updateNoticePeriod(employeeObj: Employee){
     const dateFormat = 'YYYY-MM-DD';
@@ -3606,10 +3689,7 @@ onUpadateReportees(event:any){
 console.log('data printed ----',event.target.value);
 if(event.target.value == 'Yes' ){
   this.onselectYes=true;
-}else{
-  this.onselectYes=false;
 }
-
 }
 
 onEmployeeTypeChange(selectedType: string): void {
@@ -3632,7 +3712,28 @@ onEmployeeTypeChange(selectedType: string): void {
   }
 }
 
+getReporteesListByReportingManagerId(){
+  console.log(" empId in manager UI change ",this.employeeObj.name);
+
+  if (this.employeeObj.employeementId.startsWith("A-")) {
+    this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
+  }
+
+  console.log("employment id",this.employeeObj.employeementId);
+  this.employeeService.getReporteesListByReportingManagerId(this.employeeObj).pipe(first()).subscribe((response : any)=>{
+    if(response.serviceStatus == "Success"){
+      this.reporteeList2 = response.serviceResponse;
+      this.getManagersList();
+      // this.employeeObj.managerId = '';
+      //console.log(" teamMember list   ",this.TeamMemberList)
+    }
+  })
 }
+
+}
+
+
+
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }

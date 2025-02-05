@@ -40,6 +40,7 @@ export class ConfigurationComponent implements OnInit, AfterViewInit, OnDestroy{
 
     // Dynamic feature Flags 
     let featureMap:Feature[] = this.currentUser.userMapping.filter(userMap => userMap.tabName == this.tabName);
+    console.log("feature Name ",featureMap);
     featureMap?.forEach(feat => {
       let inActiveSubfeatures = feat.subFeatures.filter(sub => {
         if(sub.isActive === false)return sub;

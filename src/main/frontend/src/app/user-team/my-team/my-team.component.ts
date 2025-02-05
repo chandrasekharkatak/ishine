@@ -16,8 +16,10 @@ import { HierarchyUser } from 'src/app/models/hierarchyUser';
 import { LocationStrategy } from '@angular/common';
 import * as moment from 'moment';
 import { AppComponent } from 'src/app/app.component';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Team } from 'src/app/models/team';
+import { UtilityService } from 'src/app/services/utility.service';
+import { Employee360Service } from 'src/app/services/employee360.service';
 
 @Component({
   selector: 'app-my-team',
@@ -55,6 +57,7 @@ export class MyTeamComponent implements OnInit {
 
   // Obj
   leaveObj: Leave = new Leave();
+  leaveObj2: Leave = new Leave();
   employeeObj: Employee = new Employee();
   teamViewList: any[] = [];
   teamViewLeaveHistoryList: any[] = [];
@@ -131,7 +134,9 @@ export class MyTeamComponent implements OnInit {
   maxDateForExtend : Date;
   minDateForExtend : Date;
   isDateChanged : boolean = false;
-
+  employeeData2: any;
+  isManagerFlag: any;
+  isApprover: boolean = false;
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -143,6 +148,9 @@ export class MyTeamComponent implements OnInit {
     public validationService:ValidationService,
     private locationStrategy: LocationStrategy,
     private router: Router,
+    public utilityService: UtilityService,
+    private route: ActivatedRoute,
+    private employee360Service: Employee360Service,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -153,10 +161,23 @@ export class MyTeamComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log("hii ",this.feature, this.userMapping);
-    this.sectionViewInit();    
+    // this.sectionViewInit();
+    console.log("my team feature mapping ",this.feature, this.userMapping); 
+    console.log("this.utilityService.getEmployee360ViewAccess()",this.utilityService.getEmployee360ViewAccess())  
+    // this.route.queryParams.subscribe(params => {
+    //   // console.log("Activating View Team Pending Request");
+    //   // console.log("Query Params received:", params);
+    //   const status = params['status'];
+    //   // console.log("Status from queryParams:", status);
+    //   if (params['action'] === 'view-pending-request') {
+    //     console.log("route")
+    //     this.sectionViewInit();
+    //   }
+    // });
     this.preventBackButton();
+    this.sectionViewInit(); 
   }
+
   preventBackButton(){
     history.pushState(null, null, location.href);
     this.locationStrategy.onPopState(()=>{
@@ -165,13 +186,35 @@ export class MyTeamComponent implements OnInit {
   }
 
   sectionViewInit() {
-    if(this.userMapping.view_my_team){
-      this.viewTeam();
-    }else if(this.userMapping.view_team_leave_history){
-      this.viewTeamLeaveHistory();
-    }else if (this.userMapping.view_team_all_requests || this.userMapping.update_pending_req){
-      this.viewTeamRequest();
-    }
+    if(this.utilityService.getEmployee360ViewAccess()){
+      this.employee360Service.currentEmployeeData.subscribe(data => {
+        this.employeeData2 = data;
+        console.log("Employee Data in My Team Leave History", this.employeeData2);
+        console.log("Emp ID:", this.employeeData2.empId);
+        console.log("Status:", this.employeeData2.status);
+      });
+      if(this.userMapping.employee_360_leave_view && this.employeeData2.status === 'comp-off-applications'){
+        this.viewTeamLeaveHistory();
+      }
+      else
+       if (this.userMapping.employee_360_leave_view && ((this.employeeData2.status === 'comp-off-requests') || (this.employeeData2.status === 'Pending') || (this.employeeData2.status === 'Revoked') || (this.employeeData2.status ==='Approved') || (this.employeeData2.status ==='Rejected') || (this.employeeData2.status === 'Applied For Revoke') || (this.employeeData2.status === 'TeamLeave'))){
+        // console.log("Pri")
+        this.viewTeamRequest();
+      }else{
+        console.log("Something went wrong");
+      }
+    }else{
+      if(this.userMapping.view_my_team){
+        this.viewTeam();}
+      else if(this.userMapping.view_team_leave_history){
+        this.viewTeamLeaveHistory();
+      }
+      else if (this.userMapping.view_team_all_requests || this.userMapping.update_pending_req){
+        this.viewTeamRequest();
+      }else{
+        console.log("Something went wrong");
+      }
+    } 
   }
 
   viewTeam() {
@@ -197,30 +240,56 @@ export class MyTeamComponent implements OnInit {
   }
 
   viewTeamLeaveHistory() {
-    this.sortColumn=[];
-    this.sortColumnType=[];
-    this.sortDirection='';
-    this.isTeamLeaveHistory = true;
-    this.isLeaveHistory = true;
-    this.isCompOffHistory = false;
+    if(this.userMapping.employee_360_leave_view && this.employeeData2.status === 'comp-off-applications'){
+      this.sortColumn=[];
+      this.sortColumnType=[];
+      this.sortDirection='';
+      this.isTeamLeaveHistory = true;
+      this.isLeaveHistory = false;
+      this.isCompOffHistory = true;
 
-    this.isLeaveRequest = false;
-    this.isCompOffRequest = false;
-    this.isLeaveRevokeRequest = false;
-    this.isViewTeam = false;
-    this.isTeamRequest = false;
-    this.page=1;
-    this.data=''
-    this.isHierarchyChart = false;
-    this.isHierarchyTable = false;
-    this.isLeaveHistoryOfDepartment = false;
-    this.fromDate = null;
-    this.toDate = null;
-    this.teamViewLeaveHistoryList = [];
-    this.departmentLeaveHistoryList = [];
-    this.filters = {};
-    this.isSearchEnabled = false;
+      this.isLeaveRequest = false;
+      this.isCompOffRequest = false;
+      this.isLeaveRevokeRequest = false;
+      this.isViewTeam = false;
+      this.isTeamRequest = false;
+      this.page=1;
+      this.data=''
+      this.isHierarchyChart = false;
+      this.isHierarchyTable = false;
+      this.isLeaveHistoryOfDepartment = false;
+      this.fromDate = null;
+      this.toDate = null;
+      this.teamViewLeaveHistoryList = [];
+      this.departmentLeaveHistoryList = [];
+      this.filters = {};
+      this.isSearchEnabled = false;
+    }else{
+      this.sortColumn=[];
+      this.sortColumnType=[];
+      this.sortDirection='';
+      this.isTeamLeaveHistory = true;
+      this.isLeaveHistory = true;
+      this.isCompOffHistory = false;
 
+      this.isLeaveRequest = false;
+      this.isCompOffRequest = false;
+      this.isLeaveRevokeRequest = false;
+      this.isViewTeam = false;
+      this.isTeamRequest = false;
+      this.page=1;
+      this.data=''
+      this.isHierarchyChart = false;
+      this.isHierarchyTable = false;
+      this.isLeaveHistoryOfDepartment = false;
+      this.fromDate = null;
+      this.toDate = null;
+      this.teamViewLeaveHistoryList = [];
+      this.departmentLeaveHistoryList = [];
+      this.filters = {};
+      this.isSearchEnabled = false;
+    }
+    
     this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
   }
 
@@ -253,30 +322,84 @@ export class MyTeamComponent implements OnInit {
   }
 
   viewTeamRequest() {
-    this.sortColumn=[];
-    this.sortColumnType=[];
-    this.sortDirection='';
-    this.isTeamRequest = true;
-    this.isLeaveRequest = true;
-    this.isCompOffRequest = false;
-    this.isLeaveRevokeRequest = false;
-    this.isLeaveHistoryOfDepartment = false;
+    console.log("View Team Pending Request triggered");
+    console.log("Employee data viewTeamRequest ",this.employeeData2)
+    console.log("this.userMapping.employee_360_leave_view ",this.userMapping.employee_360_leave_view)
+    if(this.userMapping.employee_360_leave_view){
+      this.sortColumn=[];
+      this.sortColumnType=[];
+      this.sortDirection='';
+      this.isTeamRequest = true;
+      // this.isLeaveRequest = true;
+      // this.isCompOffRequest = false;
+      // this.isLeaveRevokeRequest = false;
+      console.log("Employee data ",this.employeeData2)
+      if (this.employeeData2.status === 'comp-off-requests') {
+        this.isCompOffRequest = true;
+        this.isLeaveRevokeRequest = false;
+        this.isLeaveRequest = false;
+        // this.viewTeamCompOffRequest(); 
+        console.log("Pri Comp off ");
+      }
+      else if(this.employeeData2.status === 'Pending' || this.employeeData2.status === 'Revoked' || this.employeeData2.status ==='Approved' || this.employeeData2.status ==='Rejected'){
+        this.isCompOffRequest = false;
+        this.isLeaveRevokeRequest = false;
+        this.isLeaveRequest = true;
+        // this.viewTeamLeaveRequest();
+        console.log("Pri Leave Request ");
+      }else if(this.employeeData2.status === 'Applied For Revoke'){
+        this.isCompOffRequest = false;
+        this.isLeaveRevokeRequest = true;
+        this.isLeaveRequest = false;
+        // this.viewTeamLeaveRevokeRequest();
+        console.log("Pri Leave Revoke Request ");
+      }else if(this.employeeData2.status === 'TeamLeave'){
+        this.isCompOffRequest = false;
+        this.isLeaveRevokeRequest = false;
+        this.isLeaveRequest = true;
+        // this.viewTeamLeaveRequest();
+      console.log("View Team Request my wala")
+      }
+      this.isLeaveHistoryOfDepartment = false;
 
-    this.isLeaveHistory = false;
-    this.isCompOffHistory = false;
-    this.isTeamLeaveHistory = false;
-    this.isViewTeam = false;
-    this.page=1;
-    this.data='';
-    this.isHierarchyChart = false;
-    this.isHierarchyTable = false;
-    this.filters = {};
-    this.isSearchEnabled = false;
+      this.isLeaveHistory = false;
+      this.isCompOffHistory = false;
+      this.isTeamLeaveHistory = false;
+      this.isViewTeam = false;
+      this.page=1;
+      this.data='';
+      this.isHierarchyChart = false;
+      this.isHierarchyTable = false;
+      this.filters = {};
+      this.isSearchEnabled = false;
+    } else {
+      this.sortColumn=[];
+      this.sortColumnType=[];
+      this.sortDirection='';
+      this.isTeamRequest = true;
+      this.isLeaveRequest = true;
+      this.isCompOffRequest = false;
+      this.isLeaveRevokeRequest = false;
+      this.isLeaveHistoryOfDepartment = false;
+      console.log("else triggered viewTeamRequest ")
+      this.isLeaveHistory = false;
+      this.isCompOffHistory = false;
+      this.isTeamLeaveHistory = false;
+      this.isViewTeam = false;
+      this.page=1;
+      this.data='';
+      this.isHierarchyChart = false;
+      this.isHierarchyTable = false;
+      this.filters = {};
+      this.isSearchEnabled = false;
+    }
 
     this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
+    // console.log(" this.employeeData2.empId; ", this.employeeData2.empId);
     this.getPendingCompOffRequestsByManagerId();
     this.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId();
   }
+
 
   viewTeamLeaveRequest() {
     this.sortColumn=[];
@@ -456,51 +579,225 @@ export class MyTeamComponent implements OnInit {
     let leaveObj = new Leave();
     leaveObj.fromDate = this.fromDate;
     leaveObj.toDate = this.toDate;
-    leaveObj.empId = this.currentUser.empId;
-    //console.log("leaveObj: ", leaveObj)
-    this.teamViewService.getAllTeamCompOffHistoryView(leaveObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.teamViewCompOffHistoryList = response.serviceResponse;
-        this.teamViewCompOffHistoryList.forEach(compOffHistory => {
-          compOffHistory.fromDate = (compOffHistory.fromDate)? moment(compOffHistory.fromDate).format(AppComponent.DATE_FORMAT) : null,
-          compOffHistory.toDate = (compOffHistory.toDate)? moment(compOffHistory.toDate).format(AppComponent.DATE_FORMAT) : null,
-          compOffHistory.createdOn = (compOffHistory.createdOn)? moment(compOffHistory.createdOn).format(AppComponent.DATE_FORMAT) : null
-        });
+
+    if (this.userMapping.employee_360_leave_view){
+      leaveObj.empId = this.employeeData2.empId;
+      //console.log("leaveObj: ", leaveObj)
+      this.teamViewService.getAllTeamCompOffHistoryViewByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.teamViewCompOffHistoryList = response.serviceResponse;
+          this.teamViewCompOffHistoryList.forEach(compOffHistory => {
+            compOffHistory.fromDate = (compOffHistory.fromDate)? moment(compOffHistory.fromDate).format(AppComponent.DATE_FORMAT) : null,
+            compOffHistory.toDate = (compOffHistory.toDate)? moment(compOffHistory.toDate).format(AppComponent.DATE_FORMAT) : null,
+            compOffHistory.createdOn = (compOffHistory.createdOn)? moment(compOffHistory.createdOn).format(AppComponent.DATE_FORMAT) : null
+            });} else {
+            console.error(response.serviceResponse);
+            }
+      });
+    }else{
+      leaveObj.empId = this.currentUser.empId;
+      //console.log("leaveObj: ", leaveObj)
+      this.teamViewService.getAllTeamCompOffHistoryView(leaveObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.teamViewCompOffHistoryList = response.serviceResponse;
+          this.teamViewCompOffHistoryList.forEach(compOffHistory => {
+            compOffHistory.fromDate = (compOffHistory.fromDate)? moment(compOffHistory.fromDate).format(AppComponent.DATE_FORMAT) : null,
+            compOffHistory.toDate = (compOffHistory.toDate)? moment(compOffHistory.toDate).format(AppComponent.DATE_FORMAT) : null,
+            compOffHistory.createdOn = (compOffHistory.createdOn)? moment(compOffHistory.createdOn).format(AppComponent.DATE_FORMAT) : null
+            });} else {
+            console.error(response.serviceResponse);
+            }
+      });
+    }    
         //console.log("teamViewCompOffHistory : ", this.teamViewCompOffHistoryList);
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
+      
   }
 
+
+  // getAllMyTeamsPendingLeaveApplicationsByManagerId() {
+  //   console.log("Fetching pending leave applications...");
+  //   this.leaveApplicationList = []
+  //   this.bulkTeamLeaveApprove = []
+  //   this.bulkTeamLeaveReject = []
+  //   this.isSelectAll = false
+
+  //   let leaveObj = new Leave();
+  //   if (this.userMapping.employee_360_leave_view){
+      
+  //     console.log("New API calleddd ....");
+  //     console.log(this.employeeData2.empId);
+  //     leaveObj.empId = this.employeeData2.empId;
+  //     console.log("New API calleddd ....");
+      
+  //     this.leaveService.getAllLeaveApplicationsByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
+  //       if (response.serviceStatus == "Success") {
+  //         this.leaveApplicationList = response.serviceResponse.filter((leaveApp: any) => {
+  //           return leaveApp.status === this.employeeData2.status;
+  //       });
+
+  //       this.leaveApplicationList.forEach((leaveApp, index) => {
+  //           leaveApp.checkId = "leave" + index;
+  //           leaveApp.fromDate = leaveApp.fromDate ? moment(leaveApp.fromDate).format(AppComponent.DATE_FORMAT) : null;
+  //           leaveApp.toDate = leaveApp.toDate ? moment(leaveApp.toDate).format(AppComponent.DATE_FORMAT) : null;
+  //           leaveApp.createdOn = leaveApp.createdOn ? moment(leaveApp.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+  //           if (!leaveApp.currentApprovalLevel && !leaveApp.finalApprovalLevel) {
+  //               leaveApp.currentApprovalLevel = 1;
+  //               leaveApp.finalApprovalLevel = 1;
+  //           }
+  //       });
+  //         //console.log("leaveApplicationList : ", this.leaveApplicationList);
+  //       } else if(!this.userMapping.employee_360_leave_view){
+  //         leaveObj.managerId = this.currentUser.empId;
+  //         this.leaveService.getAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj).pipe(first()).subscribe((response: any) => {
+  //         if (response.serviceStatus == "Success") {
+  //           this.leaveApplicationList = response.serviceResponse;
+  //           this.leaveApplicationList.forEach((leaveApp, index) => {
+  //             leaveApp.checkId = "leave"+index;
+  //             leaveApp.fromDate = (leaveApp.fromDate)? moment(leaveApp.fromDate).format(AppComponent.DATE_FORMAT) : null;
+  //             leaveApp.toDate = (leaveApp.toDate)? moment(leaveApp.toDate).format(AppComponent.DATE_FORMAT) : null;
+  //             leaveApp.createdOn = (leaveApp.createdOn)? moment(leaveApp.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+  //             if(!leaveApp.currentApprovalLevel && !leaveApp.finalApprovalLevel){
+  //               leaveApp.currentApprovalLevel = 1;
+  //               leaveApp.finalApprovalLevel = 1; 
+  //             }
+  //           });
+  //           //console.log("leaveApplicationList : ", this.leaveApplicationList);
+  //         } else {
+  //         console.error(response.serviceResponse);
+  //       }
+  //     });
+  //         console.error(response.serviceResponse);
+  //       }
+  //     });
+  //   }
+  // }
 
   getAllMyTeamsPendingLeaveApplicationsByManagerId() {
-    this.leaveApplicationList = []
-    this.bulkTeamLeaveApprove = []
-    this.bulkTeamLeaveReject = []
-    this.isSelectAll = false
+    console.log("Fetching pending leave applications...");
+    this.leaveApplicationList = [];
+    this.bulkTeamLeaveApprove = [];
+    this.bulkTeamLeaveReject = [];
+    this.isSelectAll = false;
 
     let leaveObj = new Leave();
-    leaveObj.managerId = this.currentUser.empId;
-    this.leaveService.getAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.leaveApplicationList = response.serviceResponse;
-        this.leaveApplicationList.forEach((leaveApp, index) => {
-          leaveApp.checkId = "leave"+index;
-          leaveApp.fromDate = (leaveApp.fromDate)? moment(leaveApp.fromDate).format(AppComponent.DATE_FORMAT) : null;
-          leaveApp.toDate = (leaveApp.toDate)? moment(leaveApp.toDate).format(AppComponent.DATE_FORMAT) : null;
-          leaveApp.createdOn = (leaveApp.createdOn)? moment(leaveApp.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          if(!leaveApp.currentApprovalLevel && !leaveApp.finalApprovalLevel){
-            leaveApp.currentApprovalLevel = 1;
-            leaveApp.finalApprovalLevel = 1; 
-          }
-        });
-        //console.log("leaveApplicationList : ", this.leaveApplicationList);
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
-  }
+
+    const processLeaveApplications = (leaveApplications: any[]) => {
+        return leaveApplications.map((leaveApp, index) => ({
+            ...leaveApp,
+            checkId: `leave${index}`,
+            fromDate: leaveApp.fromDate ? moment(leaveApp.fromDate).format(AppComponent.DATE_FORMAT) : null,
+            toDate: leaveApp.toDate ? moment(leaveApp.toDate).format(AppComponent.DATE_FORMAT) : null,
+            createdOn: leaveApp.createdOn ? moment(leaveApp.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
+            currentApprovalLevel: leaveApp.currentApprovalLevel || 1,
+            finalApprovalLevel: leaveApp.finalApprovalLevel || 1,
+        }));
+    };
+
+    if (this.userMapping.employee_360_leave_view) {
+        if(this.employeeData2.status === 'Pending' || this.employeeData2.status === 'Revoked' || this.employeeData2.status ==='Approved' || this.employeeData2.status ==='Rejected'){
+          console.log("Using employee_360_leave_view API...");
+          leaveObj.empId = this.employeeData2.empId;
+
+          this.leaveService.getAllLeaveApplicationsByEmpId(leaveObj).pipe(first()).subscribe(
+              (response: any) => {
+                  if (response.serviceStatus === "Success") {
+                      this.leaveApplicationList = processLeaveApplications(
+                          response.serviceResponse.filter((leaveApp: any) => leaveApp.status === this.employeeData2.status)
+                      );
+                      this.leaveApplicationList.forEach((leaveApplication) => {
+                        this.leaveObj2.leaveId = leaveApplication.leaveId;
+                        this.leaveObj2.currentUserEmpId = this.currentUser.empId
+                        leaveApplication.isApprover = ((leaveApplication.managerId === this.currentUser.empId && leaveApplication.managerApprovalStatus === 'Pending') || (leaveApplication.level2ApproverId === this.currentUser.empId && leaveApplication.level2ApprovalStatus === 'Pending') || (leaveApplication.level3ApproverId === this.currentUser.empId && leaveApplication.level3ApprovalStatus === 'Pending'))? true : false;
+                        console.log("Leave id : ",leaveApplication.leaveId," isApprover: ",leaveApplication.isApprover);
+                        this.leaveService.isManager(this.leaveObj2).subscribe((response: any) => {
+                          if (response.serviceStatus === "Success") {
+                            leaveApplication.isManagerFlag = response.serviceResponse;
+                          } else {
+                            console.error("Error in isManager API:", response.serviceResponse);
+                            leaveApplication.isManagerFlag = false; 
+                          }
+                        });
+                      });
+                      
+                  } else {
+                      console.error("Error fetching leave applications:", response.serviceResponse);
+                  }
+              },
+              (error) => console.error("API error:", error)
+          );
+        }else if(this.employeeData2.status === 'TeamLeave'){
+          console.log("Using employee_360_leave_view API for TeamLeave...");
+          leaveObj.empId = this.employeeData2.empId;
+
+          this.leaveService.getAllLeaveApplicationsByTeamId(leaveObj).pipe(first()).subscribe(
+              (response: any) => {
+                  if (response.serviceStatus === "Success") {
+                      this.leaveApplicationList = processLeaveApplications(response.serviceResponse);
+                      this.leaveApplicationList.forEach((leaveApplication) => {
+                        this.leaveObj2.leaveId = leaveApplication.leaveId;
+                        this.leaveObj2.currentUserEmpId = this.currentUser.empId
+                        leaveApplication.isApprover = ((leaveApplication.managerId === this.currentUser.empId && leaveApplication.managerApprovalStatus === 'Pending') || (leaveApplication.level2ApproverId === this.currentUser.empId && leaveApplication.level2ApprovalStatus === 'Pending') || (leaveApplication.level3ApproverId === this.currentUser.empId && leaveApplication.level3ApprovalStatus === 'Pending'))? true : false;
+                        console.log("Leave id : ",leaveApplication.leaveId," isApprover: ",leaveApplication.isApprover);
+                        this.leaveService.isManager(this.leaveObj2).subscribe((response: any) => {
+                          if (response.serviceStatus === "Success") {
+                            leaveApplication.isManagerFlag = response.serviceResponse;
+                          } else {
+                            console.error("Error in isManager API:", response.serviceResponse);
+                            leaveApplication.isManagerFlag = false; 
+                          }
+                        });
+                      });
+                  } else {
+                      console.error("Error fetching leave applications:", response.serviceResponse);
+                  }
+              },
+              (error) => console.error("API error:", error)
+          );
+        }
+    }
+     else {
+        console.log("Using manager-specific API...");
+        leaveObj.managerId = this.currentUser.empId;
+
+        this.leaveService.getAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj).pipe(first()).subscribe(
+            (response: any) => {
+                if (response.serviceStatus === "Success") {
+                    this.leaveApplicationList = processLeaveApplications(response.serviceResponse);
+                    this.leaveApplicationList.forEach((leaveApplication) => {
+                      this.leaveObj2.leaveId = leaveApplication.leaveId;
+                      this.leaveObj2.currentUserEmpId = this.currentUser.empId
+                      this.leaveService.isManager(this.leaveObj2).subscribe((response: any) => {
+                        if (response.serviceStatus === "Success") {
+                          leaveApplication.isManagerFlag = response.serviceResponse;
+                          this.leaveApplicationList.forEach((leaveApplication) => {
+                            // this.leaveObj2.leaveId = leaveApplication.leaveId;
+                            // this.leaveObj2.currentUserEmpId = this.currentUser.empId
+                            leaveApplication.isApprover = ((leaveApplication.managerId === this.currentUser.empId && leaveApplication.managerApprovalStatus === 'Pending') || (leaveApplication.level2ApproverId === this.currentUser.empId && leaveApplication.level2ApprovalStatus === 'Pending') || (leaveApplication.level3ApproverId === this.currentUser.empId && leaveApplication.level3ApprovalStatus === 'Pending'))? true : false;
+                            console.log("Leave id : ",leaveApplication.leaveId," isApprover: ",leaveApplication.isApprover,"PRI",leaveApplication.managerId," ",this.currentUser.empId," ",leaveApplication.managerApprovalStatus);
+                            // this.leaveService.isManager(this.leaveObj2).subscribe((response: any) => {
+                            //   if (response.serviceStatus === "Success") {
+                            //     leaveApplication.isManagerFlag = response.serviceResponse;
+                            //   } else {
+                            //     console.error("Error in isManager API:", response.serviceResponse);
+                            //     leaveApplication.isManagerFlag = false; 
+                            //   }
+                            // });
+                          });
+                        } else {
+                          console.error("Error in isManager API:", response.serviceResponse);
+                          leaveApplication.isManagerFlag = false; 
+                        }
+                      });
+                    });
+                    console.log("leave obj pri ",this.leaveApplicationList)
+                } else {
+                    console.error("Error fetching team leave applications:", response.serviceResponse);
+                }
+            },
+            (error) => console.error("API error:", error)
+        );
+    }
+}
 
   onUpdateLeaveStatus(template: TemplateRef<any>, leaveApplication, updatedLeaveStatusId) {
     // 1 = pending , 2 = Approved , 3= Rejected
@@ -535,22 +832,47 @@ export class MyTeamComponent implements OnInit {
   
   //comOff Applications
   getPendingCompOffRequestsByManagerId() {
-    this.allCompOffApplications = []
+    if (this.userMapping.employee_360_leave_view){
+      // console.log("Fetching pending comp-off requests...");
+      this.allCompOffApplications = []
 
-    let compOff = new Leave();
-    compOff.managerId = this.currentUser.empId;
-    this.leaveService.getPendingCompOffRequestsByManagerId(compOff).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allCompOffApplications = response.serviceResponse;
-        this.allCompOffApplications.forEach(compOffApp => {
-          compOffApp.fromDate = (compOffApp.fromDate)? moment(compOffApp.fromDate).format(AppComponent.DATE_FORMAT) : null,
-          compOffApp.toDate = (compOffApp.toDate)? moment(compOffApp.toDate).format(AppComponent.DATE_FORMAT) : null
-        });
-        //console.log("allCompOffApplications : ", this.allCompOffApplications);
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
+      let compOff = new Leave();
+      compOff.empId = this.employeeData2.empId;
+      this.leaveService.getPendingCompOffRequestsByEmpId(compOff).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+
+          this.allCompOffApplications = response.serviceResponse;
+          this.allCompOffApplications.forEach(compOffApp => {
+            compOffApp.fromDate = (compOffApp.fromDate)? moment(compOffApp.fromDate).format(AppComponent.DATE_FORMAT) : null,
+            compOffApp.toDate = (compOffApp.toDate)? moment(compOffApp.toDate).format(AppComponent.DATE_FORMAT) : null
+          });
+          //console.log("allCompOffApplications : ", this.allCompOffApplications);
+        } else {
+          console.error(response.serviceResponse);
+        }
+      });
+    }else if(!this.userMapping.employee_360_leave_view){
+      // console.log("Fetching pending comp-off requests...");
+      this.allCompOffApplications = []
+
+      let compOff = new Leave();
+      compOff.managerId = this.currentUser.empId;
+      this.leaveService.getPendingCompOffRequestsByManagerId(compOff).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+
+          this.allCompOffApplications = response.serviceResponse;
+          this.allCompOffApplications.forEach(compOffApp => {
+            compOffApp.fromDate = (compOffApp.fromDate)? moment(compOffApp.fromDate).format(AppComponent.DATE_FORMAT) : null,
+            compOffApp.toDate = (compOffApp.toDate)? moment(compOffApp.toDate).format(AppComponent.DATE_FORMAT) : null
+          });
+          //console.log("allCompOffApplications : ", this.allCompOffApplications);
+        } else {
+          console.error(response.serviceResponse);
+        }
+      });
+    } else {
+      console.error("Something went wrong");
+    }    
   }
 
   onUpdateCompOffStatus(template: TemplateRef<any>, compOffObj, updatedCompOffStatusId) {
@@ -577,40 +899,74 @@ export class MyTeamComponent implements OnInit {
 
   // Leave Revoke 
   getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(){
+    console.log("Fetching pending leave revoke applications...");
     this.reporteeLeaveRevokeApplicationList = [];
 
-    this.leaveObj.empId = this.currentUser.empId;
-    this.leaveService.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(this.leaveObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.reporteeLeaveRevokeApplicationList = response.serviceResponse;
-        this.reporteeLeaveRevokeApplicationList.forEach(leave => {
-          leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
-          leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
-          leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-        });
-        //console.log(this.reporteeLeaveRevokeApplicationList, " : reporteeLeaveRevokeApplicationList");
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
+    if(this.userMapping.employee_360_leave_view){
+      this.leaveObj.empId = this.employeeData2.empId;
+      this.leaveService.getAllMyTeamsPendingLeaveRevokeApplicationsByEmpId(this.leaveObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.reporteeLeaveRevokeApplicationList = response.serviceResponse;
+          this.reporteeLeaveRevokeApplicationList.forEach(leave => {
+            leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
+            leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
+            leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          });
+          //console.log(this.reporteeLeaveRevokeApplicationList, " : reporteeLeaveRevokeApplicationList");
+        } else {
+          console.error(response.serviceResponse);
+        }
+      });
+    }else{
+      this.leaveObj.empId = this.currentUser.empId;
+      this.leaveService.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(this.leaveObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.reporteeLeaveRevokeApplicationList = response.serviceResponse;
+          this.reporteeLeaveRevokeApplicationList.forEach(leave => {
+            leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
+            leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
+            leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          });
+          //console.log(this.reporteeLeaveRevokeApplicationList, " : reporteeLeaveRevokeApplicationList");
+        } else {
+          console.error(response.serviceResponse);
+        }
+      });
+    }
   }
 
   onUpdateRevokeLeaveStatus(template: TemplateRef<any>, leave, updatedLeaveStatusId){
     this.cancelRequest();
 
-    leave.leaveRevokeStatusUpdatedBy = this.currentUser.empId;
-    leave.leaveRevokeStatusId = updatedLeaveStatusId;
-    leave.approverEmail = this.currentUser.email;	
-    //console.log(leave, " : RevokeLeaveObj");
+    // if(this.userMapping.employee_360_leave_view){
+    //   leave.leaveRevokeStatusUpdatedBy = this.currentUser.empId;
+    //   leave.leaveRevokeStatusId = updatedLeaveStatusId;
+    //   leave.approverEmail = this.currentUser.email;	
+    //   //console.log(leave, " : RevokeLeaveObj");
 
-    this.leaveService.updateRevokeLeaveStatus(leave).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
-      }
-      this.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId();
-    });
+    //   this.leaveService.updateRevokeLeaveStatus(leave).pipe(first()).subscribe((response: any) => {
+    //     if (response.serviceStatus == "Success") {
+    //       this.openAlertMod(template, response.serviceResponse);
+    //     } else {
+    //       this.openAlertMod(template, response.serviceResponse);
+    //     }
+    //     this.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId();
+    //   });
+    // }else{
+      leave.leaveRevokeStatusUpdatedBy = this.currentUser.empId;
+      leave.leaveRevokeStatusId = updatedLeaveStatusId;
+      leave.approverEmail = this.currentUser.email;	
+      //console.log(leave, " : RevokeLeaveObj");
+
+      this.leaveService.updateRevokeLeaveStatus(leave).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.openAlertMod(template, response.serviceResponse);
+        } else {
+          this.openAlertMod(template, response.serviceResponse);
+        }
+        this.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId();
+      });
+      // }
   }
 
   navigateToAssetConsent(teamView:any){
@@ -1051,7 +1407,6 @@ export class MyTeamComponent implements OnInit {
       this.sortDirection = sort.direction;      
     }
   }
-
   
   selectAll(event){
     this.bulkTeamLeaveApprove = [];
@@ -1059,48 +1414,50 @@ export class MyTeamComponent implements OnInit {
     
     const checkboxes = document.querySelectorAll('.leaveApplication-req-checkbox');
     checkboxes.forEach((checkbox:any) =>{
-     
+      
       let checkboxIndex = checkbox.getAttribute('id');
       let checkedLeave = this.leaveApplicationList.find((_leave, index) => _leave.checkId == checkboxIndex);
-
-      if (event.target.checked) {
-        checkbox.checked = true;
-        this.bulkTeamLeaveApprove.push(checkedLeave);
-        this.bulkTeamLeaveReject.push(checkedLeave);
-      } else {
-        checkbox.checked = false;
-        this.bulkTeamLeaveApprove.forEach((leave, index) => {
-          if (leave == checkedLeave) this.bulkTeamLeaveApprove.splice(index, 1);
-        });
-        this.bulkTeamLeaveReject.forEach((leave, index) => {
-          if (leave == checkedLeave) this.bulkTeamLeaveReject.splice(index, 1);
-        });
+      console.log("Leave id : ",checkedLeave.id," isApprover: ",checkedLeave.isApprover);
+      if(checkedLeave.isManagerFlag && checkedLeave.isApprover){
+        if (event.target.checked) {
+          checkbox.checked = true;
+          this.bulkTeamLeaveApprove.push(checkedLeave);
+          this.bulkTeamLeaveReject.push(checkedLeave);
+        } else {
+          checkbox.checked = false;
+          this.bulkTeamLeaveApprove.forEach((leave, index) => {
+            if (leave == checkedLeave) this.bulkTeamLeaveApprove.splice(index, 1);
+          });
+          this.bulkTeamLeaveReject.forEach((leave, index) => {
+            if (leave == checkedLeave) this.bulkTeamLeaveReject.splice(index, 1);
+          });
+        }
       }
     });
   }
 
-   select(leaveObj, event) {
-    //console.log("clicked on : ", leaveObj);
-      if(event.target.checked){
-        event.target.classList.add('checked');
-        this.bulkTeamLeaveApprove.push(leaveObj)
-        this.bulkTeamLeaveReject.push(leaveObj)
-      }else {
-        event.target.classList.remove('checked');
-        const checkboxes = document.querySelectorAll('.leaveApplication-req-checkbox.checked');
-        if(checkboxes.length !== this.items) this.isSelectAll = false
-        //console.log("length ",checkboxes.length);
-        //console.log("items ",this.items);
-        this.bulkTeamLeaveApprove.forEach((leave, index) => {
-          if (leave == leaveObj) this.bulkTeamLeaveApprove.splice(index, 1);
-        });
-        this.bulkTeamLeaveReject.forEach((leave , index)=> {
-          if(leave == leaveObj) this.bulkTeamLeaveReject.splice(index , 1);
-        })
-      }
-      //console.log("Updated Bulk List : ",  this.bulkTeamLeaveApprove);
-      
+  select(leaveObj, event) {
+  //console.log("clicked on : ", leaveObj);
+    if(event.target.checked){
+      event.target.classList.add('checked');
+      this.bulkTeamLeaveApprove.push(leaveObj)
+      this.bulkTeamLeaveReject.push(leaveObj)
+    }else {
+      event.target.classList.remove('checked');
+      const checkboxes = document.querySelectorAll('.leaveApplication-req-checkbox.checked');
+      if(checkboxes.length !== this.items) this.isSelectAll = false
+      //console.log("length ",checkboxes.length);
+      //console.log("items ",this.items);
+      this.bulkTeamLeaveApprove.forEach((leave, index) => {
+        if (leave == leaveObj) this.bulkTeamLeaveApprove.splice(index, 1);
+      });
+      this.bulkTeamLeaveReject.forEach((leave , index)=> {
+        if(leave == leaveObj) this.bulkTeamLeaveReject.splice(index , 1);
+      })
     }
+    //console.log("Updated Bulk List : ",  this.bulkTeamLeaveApprove);
+    
+  }
 
   onBulkTeamLeaveApproval(template:TemplateRef<any>){
     //console.log("Updated Bulk List : ",  this.bulkTeamLeaveApprove);
@@ -1497,8 +1854,6 @@ setPipExtendsDays(template:TemplateRef<any>){
       this.endDate = endDate.toISOString().split('T')[0];
     }
   }
-
-
 }
 
 function compare(a: number | string, b: number | string, isAsc: boolean) {	

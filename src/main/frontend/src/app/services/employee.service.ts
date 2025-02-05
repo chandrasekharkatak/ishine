@@ -39,10 +39,30 @@ export class EmployeeService {
     return this.http.get(`${this.baseUrl}` + `api/getAllEmployees`);
   }
 
+  // getEmployeeByAppreciationName(requestBody: any): Observable<any> {
+  //   return this.http.post(`${this.baseUrl}api/getEmployeeByAppreciationName`, requestBody,{
+  //     headers: { 'Content-Type': 'application/json' },
+  // });
+  // }
+
   getEmployeeByEmpId(employeeObj: Employee) {
     return this.http.post(`${this.baseUrl}` + `api/getEmployeeByEmpId`, employeeObj);
   }
-
+  getEmployeeAppreciationByEmpId(requestPayload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}api/getEmployeeAppreciationByEmpId`, requestPayload, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } 
+  getDateRangesForDropdown(currentEmp:any){
+    return this.http.post(`${this.baseUrl}` + `api/getDateRangesForDropdown`,currentEmp,{
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+  getTeamAppreciationByEmpId(requestPayload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}api/getTeamAppreciationByEmpId`, requestPayload, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
   updateEmployeeProfile(employeeObj: Employee) {
     return this.http.post(`${this.baseUrl}` + `api/updateEmployeeProfileByEmpId`, employeeObj);
   }
@@ -282,15 +302,28 @@ getManagerByEmpId(empId: string) {
   return this.http.get(`/api/employee/${empId}/manager`);
 }
 
-
-
-
+getReporteesListByManagerId(empObj: Employee){
+  // console.log("getReporteesListByManagerId ",empObj)
+  return this.http.post(`${this.baseUrl}`+`api/getReporteesListByManagerId`,empObj);
+}
 
 isEmployeeOnBench(onbench: Employee) {
   // const params = new HttpParams().set('empId', empId.toString());
   return this.http.post(`${this.baseUrl}api/isEmployeeOnBench`, onbench);
 }
 
+IsValidateLMSPORTAL(obj:any){
 
+  return this.http.post(`${this.baseUrl}api/IsValidateLMSPORTAL`, obj);
+}
+
+getReporteesListByReportingManagerId(empObj: Employee){
+  // console.log("getReporteesListByManagerId ",empObj)
+  return this.http.post(`${this.baseUrl}`+`api/getReporteesListByReportingManagerId`,empObj);
+}
+
+setReportingManagerToNewManager(employee : any){
+  return this.http.post(`${this.baseUrl}`+`api/setReportingManagerToNewManager`,employee);
+}
 
 }

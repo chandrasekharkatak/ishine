@@ -34,6 +34,8 @@ export class RewardsComponent implements OnInit, AfterViewInit, OnDestroy  {
       });
       this.userMapping[feat.featureName.replaceAll(' ', '_').toLowerCase()] = (inActiveSubfeatures.length === feat.subFeatures.length) ? false : true;
     });
+
+    console.log("usermapping   ", this.userMapping);
   }
   ngAfterViewInit(): void {
     this.setActiveTab();

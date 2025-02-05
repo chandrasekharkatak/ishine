@@ -51,6 +51,7 @@ export class EmployeeInfoComponent implements OnInit{
     private authenticationService: AuthenticationService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+
     this.updateUserInfoService.updateduserInfoObj.subscribe((employee:Employee)=>{
       this.sectionViewInit(employee);
     });
@@ -58,7 +59,8 @@ export class EmployeeInfoComponent implements OnInit{
 
   ngOnInit(): void {
 
-    const employee:Employee = this.updateUserInfoService.getUserInfoObj();
+    const employee:Employee = this.updateUserInfoService.getUserInfoObjwithEmpId();
+
     this.sectionViewInit(employee);
     this.setYearOfPassingList();
     //console.log("employeeObj :: ", this.employeeObj);
@@ -856,6 +858,31 @@ export class EmployeeInfoComponent implements OnInit{
       y.certificationName = y.certificationName?.trim();
       y.certificationNumber = y.certificationNumber?.trim();
     })
+
+
+    const regexaOrganisationMe = /^[a-zA-Z\s,!.]+$/;
+    if (!regexaOrganisationMe.test(this.employeeObj.viewsOnOrganisation )) { 
+        this.alertMessage = "Your views on our Organisation should only contain alphabets and spaces!";
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+    }
+
+
+  const regexaboutMe = /^[a-zA-Z\s,!.]+$/;
+if (!regexaboutMe.test(this.employeeObj.aboutMe )) { 
+    this.alertMessage = "About Me field should only contain alphabets and spaces!";
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+}
+
+    const regexbloodG = /^(A|B|AB|O)[+-]$/; 
+    if (!regexbloodG.test(this.employeeObj.bloodGroup)) { 
+        this.alertMessage = "Please enter a valid Blood Group (e.g., A+, B-, AB+, O+).";
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+    }
+    
+
 
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
     if (!inputValidated) return;

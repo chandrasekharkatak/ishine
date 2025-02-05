@@ -3,8 +3,9 @@ package com.apmosys.employeeportal.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,8 +14,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.dto.AppreciationDetails;
+import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeRewardsDTO;
+import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
 import com.apmosys.employeeportal.dto.RewardConfigurationDTO;
+import com.apmosys.employeeportal.dto.RewardsDetails;
 import com.apmosys.employeeportal.service.RewardsService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -163,4 +168,16 @@ public class RewardsController {
 	}
 	
 	
+	@PostMapping(value = "/getEmployeeRewardByEmpId")
+	public RewardsDetails getEmployeeRewardByEmpId(@RequestBody EmployeeRewardsRequest request) { 
+		System.out.println("Request body" + request);
+		return rewardsService.getEmployeeRewardByEmpId(request);
+	}
+	
+	
+	
+	@PostMapping(value = "/getTeamRewardByEmpId")
+	public RewardsDetails getTeamRewardByEmpId(@RequestBody EmployeeRewardsRequest request) {
+		return rewardsService.getTeamRewardByEmpId(request);
+	}
 }

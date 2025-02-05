@@ -1,6 +1,8 @@
 package com.apmosys.employeeportal.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -378,10 +380,6 @@ public class ResourceManagementService {
 																+ "Team RMG - ApMoSys Technologies"
 														);
 											} catch (AddressException e) {
-												// TODO Auto-generated catch block
-												e.printStackTrace();
-											} catch (MessagingException e) {
-												// TODO Auto-generated catch block
 												e.printStackTrace();
 											}
 					                    	  
@@ -426,12 +424,8 @@ public class ResourceManagementService {
 															+ "Team RMG - ApMoSys Technologies"
 													);
 										} catch (AddressException e) {
-											// TODO Auto-generated catch block
 											e.printStackTrace();
-										} catch (MessagingException e) {
-											// TODO Auto-generated catch block
-											e.printStackTrace();
-										}
+										} 
 					                });
 					                List<EmployeeTeamMap> inActiveDbResponse = employeeTeamMapRepository.saveAll(inActiveMember);
 					            }
@@ -772,12 +766,8 @@ public class ResourceManagementService {
 												+ "Team RMG - ApMoSys Technologies"
 										);
 							} catch (AddressException e) {
-								// TODO Auto-generated catch block
 								e.printStackTrace();
-							} catch (MessagingException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
+							} 
 
 			                // Add default activity
 			                Activity newActivityCreated = null;
@@ -1809,8 +1799,15 @@ public class ResourceManagementService {
 	public ServiceResponse getExistingProjectsAndTeamsByEmployee(ResourceManagementDTO resourceManagementDTO) {
 		
 		ServiceResponse response = new ServiceResponse();
+		List<Object[]> getAllExistingProjectsAndTeams;
 		
-		List<Object[]> getAllExistingProjectsAndTeams = employeeTeamMapRepository.getAllProjectsAndTeamsDetails(resourceManagementDTO.getEmpId());
+		if(resourceManagementDTO.getIsAllProj() != null && resourceManagementDTO.getIsAllProj() == "true") {
+			getAllExistingProjectsAndTeams = employeeTeamMapRepository.getAllProjectsTeamsInfo(resourceManagementDTO.getEmpId());
+		}else {
+			getAllExistingProjectsAndTeams = employeeTeamMapRepository.getAllProjectsAndTeamsDetails(resourceManagementDTO.getEmpId());
+		}
+		
+		
 		List<ResourceManagementDTO> allData = new ArrayList<ResourceManagementDTO>();
 		getAllExistingProjectsAndTeams.forEach(obj ->{
 			ResourceManagementDTO dto = new ResourceManagementDTO();
@@ -1822,7 +1819,8 @@ public class ResourceManagementService {
 			dto.setBillableType(obj[4] != null ? obj[4].toString() : null);
 			dto.setStartDate(obj[5] != null ? obj[5].toString() : null);
 			dto.setUpdatedOn(obj[6] != null ? obj[6].toString() : null);
-			dto.setEmpId(obj[7] != null ? Long.parseLong(obj[7].toString()) : null);			
+			dto.setEmpId(obj[7] != null ? Long.parseLong(obj[7].toString()) : null);	
+			dto.setEndDate(obj[8] != null ? obj[8].toString().toString() : null);	
 			allData.add(dto);
 		});
 		
@@ -1849,7 +1847,17 @@ public class ResourceManagementService {
 		System.out.println("findResource  "+findResource );
 		if(findResource != null) {
 			findResource.setActive(0l);	
-			findResource.setUpdatedOn(LocalDateTime.now());
+			
+			if(resourceManagementDTO.getEndDate() != null) {
+				String str = resourceManagementDTO.getEndDate();
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+				LocalDate date = LocalDate.parse(str, formatter);
+				LocalDateTime endDateTime = date.atStartOfDay();
+
+				findResource.setEndDate(endDateTime);
+			}else {
+				findResource.setEndDate(LocalDateTime.now());
+			}
 			
 			employeeTeamMapRepository.save(findResource);
 		

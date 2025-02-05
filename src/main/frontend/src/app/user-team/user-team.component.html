@@ -1,10 +1,14 @@
-  <div class="row px-0" style="margin-top: 50px;">
+<div class="mt-5">
+    <app-breadcrumb></app-breadcrumb>
+</div> 
+ 
+ <div class="row px-0">
       <div class="col-md-12">
           <div class="card">
             <ul class="nav nav-tabs team__tabs" id="teamTab" role="tablist">
                 <li *ngIf="userMapping.my_team" class="nav-item team__tab-item" (click)="removeActiveTab()">
                     <a class="nav-link team__tab-item__link" id="team-tab" data-toggle="tab" role="tab"
-                        aria-controls="employee" aria-selected="true" routerLink="my-team">My Team</a>
+                        aria-controls="employee" aria-selected="true" routerLink="my-team" [queryParams]="{tab: 'my-team'}">My Team</a>
                 </li>
                 <li *ngIf="userMapping.team_members" class="nav-item team__tab-item" (click)="removeActiveTab()">
                     <a class="nav-link team__tab-item__link" id="team-tab" data-toggle="tab" role="tab"

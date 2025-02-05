@@ -139,4 +139,11 @@ export class Leave{
 	extendDays : any;
 	extendReason : any;
 	employeeRole:any;
+
+	leaveYear:any;
+	leaveMonth:any;
+	totalDays:any;
+	leaveStatus:any;
+
+	currentUserEmpId:any;
 }

@@ -3,6 +3,7 @@ import { ActivatedRoute, Router, Params } from '@angular/router';
 import { Feature } from '../models/feature';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
+import { BreadcrumbService } from '../services/breadcrumb.service';
 
 @Component({
   selector: 'app-user-team',
@@ -15,13 +16,20 @@ export class UserTeamComponent implements OnInit {
   currentUser:User;
   userMapping:any = {};
   projectId:any;
+  activeTab: string = 'my-team';
+  action: any;
+
+  currentBreadcrumbList: any[] = [];
+  employee360Tab: boolean = false;
 
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private authenticationService: AuthenticationService,
+    private breadcrumbService: BreadcrumbService,
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
   }
 
   ngOnInit(): void {
@@ -40,6 +48,21 @@ export class UserTeamComponent implements OnInit {
     //console.log(this.tabName, this.userMapping);
 
     this.projectId = this.router.url.split("/")[3];
+
+    this.route.queryParams.subscribe(params => {
+      this.activeTab = params['tab'] || 'my-team';
+      this.action = params['action'] || null;
+      if (this.activeTab === 'my-team' && this.action === 'view-pending-request') {
+          this.triggerPendingRequestView();
+      }
+  });
+
+    if ((this.currentBreadcrumbList != undefined && this.currentBreadcrumbList != null) && this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.title.includes("Project")) {
+      this.employee360Tab = true;
+      this.setActiveTab('resource-management');
+    } else {
+      this.employee360Tab = false;
+    }
   }
 
   ngAfterViewInit(): void {
@@ -54,13 +77,17 @@ export class UserTeamComponent implements OnInit {
     this.removeActiveTab();
   }
 
+  isActive(tab: string): boolean {
+    return this.activeTab === tab;
+  }
+
   //modified by priyadarshini
   setActiveTab(rmgUrl?:any){
     const tabs = document.getElementById('teamTab').querySelectorAll('.nav-link');
     let activeRouteLink:any;
     
     if (!rmgUrl) {
-      if (this.currentUser.employeeRole === 'RMG') {
+      if (this.currentUser.employeeRole === 'RMG' || this.employee360Tab) {
         activeRouteLink = 'resource-management';
       } else {
         const tab = document.getElementById('teamTab').querySelector('.nav-link');
@@ -91,4 +118,7 @@ export class UserTeamComponent implements OnInit {
     tab?.classList.remove('active');
   }
 
+  triggerPendingRequestView(): void {
+    this.router.navigate(['/user-team'], { queryParams: { tab: 'my-team', action: 'view-pending-request' } });
+}
 }

@@ -18,6 +18,12 @@ public interface CompOffLeaveRepository extends JpaRepository<CompOffLeave, Long
 	public List<Object[]> getPendingCompOffRequestsByManagerId(Integer managerId);
 	
 	@Query(nativeQuery = true)
+	public List<Object[]> getPendingCompOffRequestsByEmpId(Long empId);
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getPendingCompOffRequestsByEmpIdAndStatus(Long empId);
+	
+	@Query(nativeQuery = true)
 	public List<Object[]> getAllCompOffRequestsByEmpId(Long empId);
 	
 	@Query(nativeQuery = true)
@@ -62,5 +68,7 @@ public interface CompOffLeaveRepository extends JpaRepository<CompOffLeave, Long
 
 	@Query(nativeQuery = true , value ="select * from comp_off_leave cl where cl.comp_off_status='Pending' and cl.emp_id= :empId AND leave_status_id=1")
 	public List<CompOffLeave> findPendingCompOffOffByEmpId(Long empId);
+
+	public CompOffLeave findByCompOffLeaveId(Long compOffLeaveId);
 	
 }

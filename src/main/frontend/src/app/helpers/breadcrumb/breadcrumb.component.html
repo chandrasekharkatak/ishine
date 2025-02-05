@@ -1,0 +1,14 @@
+<div class="container-fluid px-4" *ngIf="isEmployee360Module">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li 
+                id="employee-info" 
+                *ngFor="let module of displayedBreadcrumbs; let a = index" 
+                class="breadcrumb-item breadcrumb-link" 
+                [ngClass]="{'breadcrumb-blue': a === displayedBreadcrumbs.length - 1}" 
+                (click)="navigateToSelectedTab(module, a)">
+                <span style="cursor: pointer;">{{ module.title }}</span>
+            </li>
+        </ol>
+    </nav>
+</div>

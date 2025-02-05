@@ -4,36 +4,36 @@ body {
     background-color: #f5f5f5;
   }
   
-  .employee-container {
-    margin-top: 20px;
-  }
-  
   .employee-card {
     border: none;
     box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
     overflow: hidden;
+    /* height: 100%; */
   }
   
-  /* Profile Section */
-  .profile-section {
-    background-color: #122f97;
-    color: white;
-    padding: 20px;
-    text-align: center;
-    border-radius: 10px;
+ 
+  .profile-picture {
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+    height: 150px; 
+    width: 150px;
+    margin: 0 auto; 
+    overflow: hidden; 
   }
   
   .profile-picture img {
     width: 100px;
     height: 100px;
+    object-fit: cover;
     border-radius: 50%;
     border: 3px solid #fff;
   }
   
   .profile-name {
     font-size: 1.5rem;
-    margin: 10px 0;
+    margin: 5px 0;
   }
   
   .profile-email,
@@ -57,7 +57,7 @@ body {
     background-color: #17249f;
     color: white;
     text-align: center;
-    padding: 1.5rem;
+    padding: 1.2rem;
   }
   
   .employee-header h2 {
@@ -107,3 +107,265 @@ body {
     text-decoration: underline;
   }
   
+
+
+
+
+  /* Scrollable router-outlet */
+.config__tab-container {
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+ 
+}
+
+/* Sticky tabs */
+.config__tabs {
+  position: sticky;
+  top: 0;
+  z-index: 1000; /* Ensure it stays above other content */
+  background-color: white; /* To prevent transparency */
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Optional for better visibility */
+}
+
+
+
+/* Profile Section */
+.profile-section {
+  background-color: #122f97;
+  color: white;
+  padding: 20px;
+  text-align: center;
+  border-radius: 10px;
+  height: 100%; /* Make full height */
+  position: relative; /* Allows child elements to scroll */
+  overflow-y: auto; /* Enable scrolling for long content */
+  max-height: calc(100vh - 30px); /* Prevent overflow from viewport */
+}
+
+/* Profile Card */
+.profile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* Profile Picture */
+.profile-picture {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 120px;
+  width: 120px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.profile-picture img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid #fff;
+}
+
+/* Text Adjustments */
+.profile-name {
+  font-size: 1.5rem;
+  margin: 5px 0;
+}
+
+.profile-email,
+.profile-phone {
+  font-size: 0.9rem;
+  margin: 5px 0;
+}
+
+.profile-details {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.profile-details p {
+  margin: 5px 0;
+}
+
+/* Responsiveness */
+@media (max-width: 768px) {
+  .profile-section {
+    padding: 15px;
+    max-height: calc(100vh - 20px); /* Adjust for smaller viewports */
+  }
+
+  .profile-picture {
+    height: 100px;
+    width: 100px;
+  }
+
+  .profile-picture img {
+    width: 80px;
+    height: 80px;
+  }
+
+  .profile-name {
+    font-size: 1.2rem;
+  }
+
+  .profile-details {/* General Styling */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+    }
+    
+    .employee-card {
+      border: none;
+      box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      overflow: hidden;
+      /* height: 100%; */
+    }
+    
+    .profile-picture {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 150px;
+      width: 150px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+    
+    .profile-picture img {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 3px solid #fff;
+    }
+    
+    .profile-name {
+      font-size: 1.5rem;
+      margin: 5px 0;
+    }
+    
+    .profile-email,
+    .profile-phone {
+      font-size: 0.9rem;
+      margin: 5px 0;
+    }
+    
+    .profile-details {
+      margin-top: 15px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    
+    .profile-details p {
+      margin: 5px 0;
+    }
+    
+    /* Header */
+    .employee-header {
+      background-color: #17249f;
+      color: white;
+      text-align: center;
+      padding: 1.2rem;
+    }
+    
+    .employee-header h2 {
+      margin: 0;
+      font-size: 1.8rem;
+      font-weight: bold;
+    }
+    
+    .highlight-text {
+      color: #fff38d;
+    }
+    
+    /* Tabs */
+    .report__tabs {
+      border-bottom: 2px solid #ddd;
+    }
+    
+    .report__tab-item__link {
+      color: #888;
+      font-weight: bold;
+      padding: 1rem;
+    }
+    
+    .report__tab-item__link.active {
+      color: #182ca0;
+      border-bottom: 3px solid #163ea2;
+    }
+    
+    /* Table */
+    .project-table th {
+      background-color: #101e9c;
+      color: white;
+      text-align: center;
+    }
+    
+    .project-table td {
+      text-align: center;
+    }
+    
+    .see-more {
+      color: #1313b9;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    
+    .see-more:hover {
+      text-decoration: underline;
+    }
+    
+    /* Scrollable router-outlet */
+    .config__tab-container {
+      max-height: calc(100vh - 200px);
+      overflow-y: auto;
+    }
+    
+    /* Sticky tabs */
+    .config__tabs {
+      position: sticky;
+      top: 0;
+      z-index: 1000; /* Ensure it stays above other content */
+      background-color: white; /* To prevent transparency */
+      box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Optional for better visibility */
+    }
+    
+    /* Profile Section */
+    .profile-section {
+      background-color: #122f97;
+      color: white;
+      height: 100%; /* Take full height */
+      padding: 20px;
+      text-align: center;
+      border-radius: 10px;
+      position: relative; /* Allows scrolling for content */
+      overflow-y: auto; /* Enable scrolling for long content */
+      max-height: calc(100vh - 30px); /* Prevent overflow from viewport */
+    }
+    
+    .profile-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .row {
+      height: 100vh; /* Ensure the row takes full height of the viewport */
+    }
+    
+    font-size: 0.8rem;
+  }
+}
+
+
+.row {
+  height: 100vh; /* Ensure the row takes full height of the viewport */
+}

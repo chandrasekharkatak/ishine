@@ -25,6 +25,8 @@ export class UserSurveyComponent implements OnInit {
   userMapping: any = {};
 
   currentSurveyId:any;
+  currentSurveyIdedit:any;
+  isEdit: boolean = false;
 
   sortDirection = 'asc';
   sortColumn: any;
@@ -77,6 +79,22 @@ export class UserSurveyComponent implements OnInit {
       this.currentSurveyId = params['id'];
     });
 
+    this.route.params.subscribe((params: Params) => {
+      console.log("params", params);
+      
+      this.currentSurveyIdedit = params['id'];  // Get the survey ID
+      this.isEdit = params['id'] && params['id'].includes('edit'); // Check if 'edit' exists in the URL
+    
+      console.log('Survey ID:', this.currentSurveyIdedit);
+      console.log('Is Edit:', this.isEdit);
+    });
+    
+    this.isEdit = this.route.snapshot.url.some(segment => segment.path === 'edit');
+    console.log('Is Edit:', this.isEdit);
+
+
+  
+
     this.sectionViewInit();
 
     //console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
@@ -125,14 +143,23 @@ export class UserSurveyComponent implements OnInit {
 
           // Check if user has already taken survey
           currentSurvey.empId = this.currentUser.empId;
-          this.surveyService.getSurveyResponseByEmpIdAndSurveyId(currentSurvey).pipe(first()).subscribe((response: any) => {
-            if (response.serviceStatus == "Success") {
-              this.currentSurveyId = null;
-              this.router.navigate(['/user-survey']);
-            } else {
-              this.onTakeSurvey(currentSurvey);
-            }
-          });
+          if(this.isEdit){
+            this.surveyObj = this.surveyService.getSurveyData();
+            this.onViewMyResponse(this.surveyObj);
+            this.onTakeSurvey(currentSurvey);
+
+          }else {
+            this.surveyService.getSurveyResponseByEmpIdAndSurveyId(currentSurvey).pipe(first()).subscribe((response: any) => {
+              if (response.serviceStatus == "Success") {
+                this.currentSurveyId = null;
+                this.router.navigate(['/user-survey']);
+              } else {
+                this.onTakeSurvey(currentSurvey);
+              }
+            });
+
+          }
+
         }
         
         this.getAllAnsweredSurveys();
@@ -204,6 +231,8 @@ export class UserSurveyComponent implements OnInit {
   }
 
   onViewMyResponse(surveyObj: Survey) {
+    console.log("surveyObj", surveyObj);
+    
     this.myResponseList = [];
     this.surveyObj = surveyObj;
 
@@ -213,7 +242,9 @@ export class UserSurveyComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.myResponseList = response.serviceResponse;
         //console.log("this.myResponseList : ", this.myResponseList);
-        this.openSurveyPreviewMod(this.previewResponseTemplate);
+        if(!this.isEdit){
+          this.openSurveyPreviewMod(this.previewResponseTemplate);
+        }
       } else {
         console.error(response.serviceResponse);
       }
@@ -333,6 +364,17 @@ export class UserSurveyComponent implements OnInit {
 
     // //console.log("surveyTemplate : ", surveyTemplate);
     return surveyTemplate;
+  }
+
+  onClickEdit(surveyObj: Survey): void {
+    console.log("Survey", surveyObj);
+    this.modalRef.hide();
+    
+
+    this.surveyService.setSurveyData(surveyObj);
+    
+    // Navigate to the edit page
+    this.router.navigate(['/user-survey', surveyObj.surveyId, 'edit']);
   }
 
 
