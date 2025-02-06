@@ -865,7 +865,7 @@
 
 
                                     <div class="col-md-4 mb-0"
-                                        *ngIf="(isUpdation && employeeObj.employmentstatus == 'Retain') || (isUpdation && employeeObj.employmentstatus == 'InActive') ">
+                                        *ngIf="(isUpdation && employeeObj.employmentstatus == 'Retain') ">
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Date Of
@@ -875,7 +875,7 @@
                                                     <input class="form-control static-input" matInput id="DOR"
                                                         [matDatepicker]="DORePicker" #input2 (click)="DORePicker.open()"
                                                         (dateChange)="estimateDateOfRetain(employeeObj)"
-                                                        [matDatepickerFilter]="DateFilterForDOR"
+                                                        [matDatepickerFilter]="DateFilterForDofRetain"
                                                         placeholder="Choose date of Retain"
                                                         [(ngModel)]="employeeObj.dateOfRetain" autocomplete="off">
                                                     <mat-datepicker-toggle matSuffix [for]="DORePicker"

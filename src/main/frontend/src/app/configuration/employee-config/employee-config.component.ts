@@ -423,6 +423,22 @@ this.referedTypeStatus=true;
     return (moment(d).format(dateFormat) >= moment(dateOfJoining).format(dateFormat) && moment(d).format(dateFormat) <= moment(currentDate).format(dateFormat));
   }
 
+
+  DateFilterForDofRetain = (d: Date) => {
+    const dateFormat = 'YYYY-MM-DD';
+    const currentDate = new Date();
+    
+    // Use default date values in case the date fields are not defined
+    const resignDate = this.employeeObj.dateOfResign ? this.employeeObj.dateOfResign : new Date();
+    const relievingDate = this.employeeObj.dateOfRelieving ? this.employeeObj.dateOfRelieving : currentDate;
+    
+    return (
+      moment(d).format(dateFormat) >= moment(resignDate).format(dateFormat) &&
+      moment(d).format(dateFormat) <= moment(relievingDate).format(dateFormat)
+    );
+  };
+  
+
   relievingDateFilter = (d: Date)=>{
     const dateFormat = 'YYYY-MM-DD';
     const currentDate = new Date();
