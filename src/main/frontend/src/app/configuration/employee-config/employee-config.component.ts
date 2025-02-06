@@ -3709,6 +3709,10 @@ onUpadateReportees(event:any){
 console.log('data printed ----',event.target.value);
 if(event.target.value == 'Yes' ){
   this.onselectYes=true;
+}else if(event.target.value == 'No' ){
+  this.onselectYes=false;
+}else{
+  console.log('data printed ----',event.target.value);
 }
 }
 
