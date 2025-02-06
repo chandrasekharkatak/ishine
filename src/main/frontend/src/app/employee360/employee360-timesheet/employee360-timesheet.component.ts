@@ -445,10 +445,17 @@ updateStatus(status: string) {
             console.log("this.result =>", this.result )
         }
     });
+    this.currentUser=sessionStorage.getItem('currentUser');
+    if (this.currentUser) {
+      const currentUserData = JSON.parse(this.currentUser);
+      this.managerId = currentUserData.empId;
+      console.log(this.managerId); 
+    }
 }
 
   
   onChangeOption(arg: any) {
+    this.managerId =0;
     if (arg == 1) {
       // Handle "All"
       this.startDate = null;

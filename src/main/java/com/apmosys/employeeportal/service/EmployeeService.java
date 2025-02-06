@@ -150,6 +150,12 @@ public class EmployeeService {
 
 	@Value("${file.location.image}")
 	private String imageFileLocation;
+	
+	@Value("${hr.mail}")
+	private String hrMailAddress;
+	
+	@Value("${rmg.mail}")
+	private String rmgMail;
 
 	@Autowired
 	EmployeeLeavesMapRepository employeeLeavesMapRepository;
@@ -2346,7 +2352,7 @@ public class EmployeeService {
 							    String subject = "Reminder for Manager Update of Reportees of Inactive Manager: " + employeedto.getName();
 							    String mailBody = html.toString();
 
-							    boolean flag = mailService.sendMailWithCC("prarthana.lenka@apmosys.com", "priyadarshini.singh@apmosys.com", subject, mailBody);
+							    boolean flag = mailService.sendMailWithCC(rmgMail,hrMailAddress, subject, mailBody);
 							 }
 							    
 							    
