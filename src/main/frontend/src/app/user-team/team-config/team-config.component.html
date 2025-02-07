@@ -12,6 +12,11 @@
 <div class="row">
     <div class="card col-md-12 px-0" *ngIf="isTeamForm">
         <div class="card-header text-center text-uppercase">
+            
+                <button type="button" class="btn btn-outline-primary btn-sm active ng-star-inserted mx-1"  style="float: left;" *ngIf="isUpdation" (click)="showViewTeams1()"><em><i
+                    class="fa-solid fa-arrow-left-long"></i></em>
+                </button>
+           
             <strong *ngIf="isCreation">Create Team</strong>
             <strong *ngIf="isUpdation">Update Team</strong>
         </div>
@@ -308,6 +313,9 @@
                             <option *ngFor="let project of allProjectListByManagerId" value="{{project.projectId}}">{{project.projectName}}</option>
                         </select> -->
                     </div>
+                   
+                    
+                  
                 </div>
             </div>
             <div class=" ml-auto col-md-2 mt-4 pt-2 mb-2">
