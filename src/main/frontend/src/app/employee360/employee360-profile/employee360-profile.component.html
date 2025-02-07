@@ -571,16 +571,23 @@
                         </app-accordion-item>
 
                         <app-accordion-item class="acc-content" title="My Asset(s)">
-                            <div class="container-fluid">
-                                <div class="row flex-column px-4" *ngFor="let asset of allAssetList;let i = index">
+                            <div class="container-fluid" *ngIf="allAssetList && allAssetList.length > 0; else noData">
+                                <div class="row flex-column px-4" *ngFor="let asset of allAssetList; let i = index">
                                     <div class="info-wrapper">
-                                        <p class="info-label">{{asset.assestName}}</p>
-                                        <p *ngIf="asset.isAssigned == 'true'" class="info-text">Assigned - <span *ngIf="asset.assetDetail">{{asset.assetDetail}}</span><span *ngIf="!asset.assetDetail">Details not available</span></p>
+                                        <p class="info-label">{{ asset.assestName }}</p>
+                                        <p *ngIf="asset.isAssigned == 'true'" class="info-text">Assigned - <span *ngIf="asset.assetDetail">{{ asset.assetDetail }}</span><span *ngIf="!asset.assetDetail">Details not available</span></p>
                                         <p *ngIf="asset.isAssigned == 'false'" class="info-text">Not Assigned</p>
                                     </div>
                                 </div>
                             </div>
+                            <ng-template #noData>
+                                <div class="no-data-message">
+                                    <p>No data available</p>
+                                </div>
+                            </ng-template>
                         </app-accordion-item>
+                        
+                        
 
                     </app-accordion>
 
