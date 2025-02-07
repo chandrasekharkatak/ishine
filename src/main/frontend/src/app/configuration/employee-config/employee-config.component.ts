@@ -3668,11 +3668,15 @@ return true;
 onUpadateReportees(event:any){
 console.log('data printed ----',event.target.value);
 if(event.target.value == 'Yes' ){
+  this.employeeObj.updateType = '';
   this.onselectYes=true;
 }else if(event.target.value == 'No' ){
   this.onselectYes=false;
+  this.employeeObj.updateType = '';
 }else{
   console.log('data printed ----',event.target.value);
+  this.onselectYes=false;
+  this.employeeObj.updateType = '';
 }
 }
 
