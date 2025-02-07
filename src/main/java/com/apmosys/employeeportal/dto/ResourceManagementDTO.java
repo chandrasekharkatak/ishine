@@ -51,5 +51,6 @@ public class ResourceManagementDTO {
 	
 	private String endDate;
 	private String isAllProj;
+	private Integer active;
 	
 }

@@ -2554,7 +2554,10 @@ public class ResourceManagementService {
 			dto.setStartDate(obj[5] != null ? obj[5].toString() : null);
 			dto.setUpdatedOn(obj[6] != null ? obj[6].toString() : null);
 			dto.setEmpId(obj[7] != null ? Long.parseLong(obj[7].toString()) : null);	
-			dto.setEndDate(obj[8] != null ? obj[8].toString().toString() : null);	
+			dto.setEndDate(obj[8] != null ? obj[8].toString().toString() : null);
+//			dto.setActive(obj[9] != null ? obj[9].toString().toString() : null);
+			dto.setActive(obj[9] != null ? Integer.parseInt(obj[9].toString()) : null);
+			
 			allData.add(dto);
 		});
 		
