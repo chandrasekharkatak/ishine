@@ -1505,7 +1505,7 @@ export class EmployeeConfigComponent implements OnInit {
       this.alertMessage = "Please enter a valid Employment ID !!";
       this.openAlertMod(template, this.alertMessage);
       return;
-  }
+    }
 
     this.employeeService.createEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1537,36 +1537,36 @@ export class EmployeeConfigComponent implements OnInit {
       // employee.employeementId  = this.employeeObj.employeementId.substring(2);
       console.log("Employee :", this.employeeObj);
     } else if (this.employeeObj.employeementId.startsWith('A-')) {
-        if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)) {
-          this.alertMessage = "Please enter Employee ID !!"
-          this.openAlertMod(template, this.alertMessage);
-          return false;
-        }
-        employee.employeementId = this.employeeObj.employeementId.substring(2);
-        console.log("Employee :", this.employeeObj);
+      if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)) {
+        this.alertMessage = "Please enter Employee ID !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
       }
-      else {
-        employee.employeementId = this.employeeObj.employeementId
-        if (!this.validationService.validateNullUndefinedEmptyString(employee.employeementId)) {
-          this.alertMessage = "Please enter Employment ID !!";
-          this.openAlertMod(template, this.alertMessage);
-          return false;
-        }
+      employee.employeementId = this.employeeObj.employeementId.substring(2);
+      console.log("Employee :", this.employeeObj);
+    }
+    else {
+      employee.employeementId = this.employeeObj.employeementId
+      if (!this.validationService.validateNullUndefinedEmptyString(employee.employeementId)) {
+        this.alertMessage = "Please enter Employment ID !!";
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
 
-        if (!this.validationService.validateEmployeementId(employee.employeementId)) {
-          console.log("employeementid please enter valid employmentid", employee.employeementId, this.employeeObj.employeementId);
-          this.alertMessage = "Please enter valid Employment ID !!";
-          this.openAlertMod(template, this.alertMessage);
-          return false;
-        }
+      if (!this.validationService.validateEmployeementId(employee.employeementId)) {
+        console.log("employeementid please enter valid employmentid", employee.employeementId, this.employeeObj.employeementId);
+        this.alertMessage = "Please enter valid Employment ID !!";
+        this.openAlertMod(template, this.alertMessage);
+        return false;
       }
+    }
     this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.openAlertMod(template, response.serviceResponse);
         employee.employeementId = '';
       }
-      this.employeeObj.employeementId = 'A-'+this.employeeObj.employeementId;
-      console.log("checkEmployeementId response: ",response);
+      this.employeeObj.employeementId = 'A-' + this.employeeObj.employeementId;
+      console.log("checkEmployeementId response: ", response);
     });
   }
 
@@ -1698,13 +1698,22 @@ export class EmployeeConfigComponent implements OnInit {
       this.employeeObj.mobileNo = '';
     }
 
-    this.employeeService.checkEmployeeMobileNo(employee).pipe(first()).subscribe((response: any) => {
-      console.log("MOB No- response.serviceResponse: ", response.serviceResponse);
-      if (response.serviceStatus == "Fail") {
-        this.openAlertMod(template, response.serviceResponse);
-        this.employeeObj.mobileNo = '';
-      }
-    });
+    else if (!this.validationService.validateNullUndefinedEmptyString(employee.mobileNo)) {
+      this.alertMessage = "Please enter Mobile Number !!";
+      this.openAlertMod(template, this.alertMessage);
+      this.employeeObj.mobileNo = '';
+    }
+
+    else {
+
+      this.employeeService.checkEmployeeMobileNo(employee).pipe(first()).subscribe((response: any) => {
+        console.log("MOB No- response.serviceResponse: ", response.serviceResponse);
+        if (response.serviceStatus == "Fail") {
+          this.openAlertMod(template, response.serviceResponse);
+          this.employeeObj.mobileNo = '';
+        }
+      });
+    }
   }
 
   // checkEmployeeMobileNo(template: TemplateRef<any>) {
@@ -3674,20 +3683,20 @@ export class EmployeeConfigComponent implements OnInit {
 
 
 
-onUpadateReportees(event:any){
-console.log('data printed ----',event.target.value);
-if(event.target.value == 'Yes' ){
-  this.employeeObj.updateType = '';
-  this.onselectYes=true;
-}else if(event.target.value == 'No' ){
-  this.onselectYes=false;
-  this.employeeObj.updateType = '';
-}else{
-  console.log('data printed ----',event.target.value);
-  this.onselectYes=false;
-  this.employeeObj.updateType = '';
-}
-}
+  onUpadateReportees(event: any) {
+    console.log('data printed ----', event.target.value);
+    if (event.target.value == 'Yes') {
+      this.employeeObj.updateType = '';
+      this.onselectYes = true;
+    } else if (event.target.value == 'No') {
+      this.onselectYes = false;
+      this.employeeObj.updateType = '';
+    } else {
+      console.log('data printed ----', event.target.value);
+      this.onselectYes = false;
+      this.employeeObj.updateType = '';
+    }
+  }
 
 
   setPipExtendsDays(template: TemplateRef<any>) {
