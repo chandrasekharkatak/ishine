@@ -1556,6 +1556,7 @@ export class EmployeeConfigComponent implements OnInit {
         this.openAlertMod(template, response.serviceResponse);
         employee.employeementId = '';
       }
+      this.employeeObj.employeementId = 'A-'+this.employeeObj.employeementId;
       console.log("checkEmployeementId response: ",response);
     });
   }
