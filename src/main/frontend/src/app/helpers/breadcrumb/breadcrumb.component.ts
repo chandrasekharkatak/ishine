@@ -45,7 +45,7 @@ export class BreadcrumbComponent implements OnInit {
       }else{
         this.breadcrumbList = [
           {
-            "title": "Home",
+            "title": "Employee 360 Home",
             "url": "/home",
             "subtab": "",
             "object": {

@@ -586,7 +586,8 @@ export class Employee360ProfileComponent implements OnInit {
       //console.log("currentEmp : ", currentEmp);
       
       const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
-      sessionStorage.setItem('empId',response.serviceResponse.employeementId);
+      sessionStorage.setItem('empId',currentEmp.empId);
+      sessionStorage.setItem('empIdA',response.serviceResponse.employeementId);
       sessionStorage.setItem('eId',response.serviceResponse.empId);
       if (response.serviceStatus == "Success") {
         this.currentEmployeeInfo = response.serviceResponse;

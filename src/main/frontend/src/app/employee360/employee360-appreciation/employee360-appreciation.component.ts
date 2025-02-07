@@ -25,7 +25,7 @@ export class Employee360AppreciationComponent implements OnInit {
   selectedDateRange: string | null = null;
   selectedRange: string = '';
   page = 1;
-  currentEmpId: number = Number(sessionStorage.getItem('empId'));
+  currentEmpId: number = Number(sessionStorage.getItem('empIdA'));
   currentEId:number = Number(sessionStorage.getItem('eId'));
   employeeList: any[] = [];
   matchedEmployees: any[] = [];
