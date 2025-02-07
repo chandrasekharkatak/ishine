@@ -136,7 +136,7 @@
                 <th>Shift</th>
                 <th>Status</th>
                 <th>Applied On</th>
-                <th *ngIf="activeButton === 'Pending' && actionButton">Action</th>
+                <th *ngIf="activeButton === 'Pending'">Action</th>
                 <th *ngIf="activeButton === 'Rejected'">Reason</th>
             </tr>
         </thead>
@@ -152,7 +152,7 @@
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ i + 1 }}</td>
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.employmentId }}</td>
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" (click)="navigateToEmployee360()" style="cursor: pointer; color: blue;">{{ item.name }}</td>
-              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.date | date: 'yyyy-MM-dd' }}</td>
+              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.date | date: 'dd-MM-yyyy' }}</td>
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.dayType }}</td>
               <td *ngIf="item.showProject && !isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount" (click)="findByProject(item.projectId,item.projectName)" style="cursor: pointer; color: blue;">
                   {{item.projectName ? item.projectName : '-'}}
@@ -169,7 +169,7 @@
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.totalTime}} hrs</td>
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.nightShift == 'true' ? 'Night Shift' : 'Regular Shift' }}</td>
               <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.status }}</td>
-              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.createdOn | date: 'yyyy-MM-dd' }}</td>
+              <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.createdOn | date: 'dd-MM-yyyy' }}</td>
               <td *ngIf="item.showEmpId && activeButton === 'Pending'&& actionButton" [attr.rowspan]="item.empActivitiesCountForDay" >
                   <button class="btn btn-sm btn-outline-success mb-1"
                   type="submit" title="Approve"

@@ -23,7 +23,7 @@ export class Employee360RewardsComponent implements OnInit {
   currentEmpId: number = Number(sessionStorage.getItem('empId'));
   currentUser: User;
   currentBreadcrumbList: any[] = [];
-
+  rewardList: any[] = [];
   employeeData: any;
   activeCategoryId: number | null = null;
   rewards: Rewards[] = [];
@@ -54,7 +54,8 @@ export class Employee360RewardsComponent implements OnInit {
   filters: any = {};
   items = 10;
 
-
+  month: any;
+  ofMonthYear: any;
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -117,6 +118,20 @@ export class Employee360RewardsComponent implements OnInit {
     this.rewardsCategories = this.getCategoriesForPeriod(this.selectedPeriod);
 
     console.log('Selected Period:', this.selectedPeriod);
+    if (this.selectedPeriod === 'monthly') {
+      // Set month dynamically, assuming December if not previously set
+      this.month = new Date().getMonth(); // Current month (1-12)
+    } 
+    // else if (this.selectedPeriod === 'halfYearly') {
+    //   // Assume first half = June, second half = December
+    //   this.month = new Date().getMonth() < 6 ? '06' : '12';
+    // }
+  
+    // Ensure month is always in 'MM' format
+    const formattedMonth = this.month.toString().padStart(2, '0');
+  
+    // Construct `ofMonthYear`
+    this.ofMonthYear = `${this.selectedYear}-${formattedMonth}`;
   }
 
   changeEvent(value: string) {
@@ -155,34 +170,17 @@ export class Employee360RewardsComponent implements OnInit {
     const categoryId = +selectElement.value; // Convert value to number
 
     if (this.selectedYear && categoryId) {
-      let fromDate: string | null = null;
-      let toDate: string | null = null;
-
-      if (this.selectedPeriod === 'monthly') {
-        fromDate = this.getStartDateForMonth(this.selectedYear, categoryId);
-        toDate = this.getEndDateForMonth(this.selectedYear, categoryId);
-      } else if (this.selectedPeriod === 'halfYearly') {
-        if (categoryId === 101) { // H1 (Jan-Jun)
-          fromDate = `${this.selectedYear}-01-01`;
-          toDate = `${this.selectedYear}-06-30`;
-        } else if (categoryId === 102) { // H2 (Jul-Dec)
-          fromDate = `${this.selectedYear}-07-01`;
-          toDate = `${this.selectedYear}-12-31`;
-        }
-      }
-
-      if (fromDate && toDate) {
+      if (this.ofMonthYear) {
         // Prepare the API request payload
         const request = {
-          empId: this.currentEmpId, // Replace with actual employee ID
-          fromDate: fromDate,
-          toDate: toDate,
+          empId: sessionStorage.getItem('empId'),
+          ofMonthYear: this.ofMonthYear,
         };
 
         // Call the API
         this.rewardsService.getEmployeeRewardByEmpId(request).subscribe(
           (response: any) => {
-            this.employee = response.rewardsDTO;
+            this.rewardList = response.rewardsDTO;
             console.log('Rewards Details:', response);
           },
           (error: any) => {

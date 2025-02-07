@@ -47,6 +47,8 @@ import java.util.stream.Stream;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
 
 import org.dhatim.fastexcel.Workbook;
@@ -232,43 +234,73 @@ public class CronJobService {
 	@Value("${valid.attempt:5}")
 	private Long validAttempt;
 	
+	
+	
+	
+	 @PersistenceContext
+	 EntityManager entityManager;
+	 
+	 public CronJobService(EntityManager entityManager) {
+	        this.entityManager = entityManager;
+	    }
+
 		
 	//0 0 12 1 * ?  - Every month on the 1st, at noon
 //	0 0/2 * ? * *
-	@Scheduled(cron = "0 0 12 1 * ?")
+	@Scheduled(cron = "0 24 16 6 * ?")
 	public void monthlyLeaveIncrement() {
 		try {
 		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
+		     
 		     List<Employee> employeeList = employeeRepository.findAll();
-		     LocalDate dateToday = LocalDate.now();
-		     LocalDate prevMonthStart = dateToday.minusMonths(1).withDayOfMonth(1);
 		     
-		     YearMonth thisYearMonth = YearMonth.of(prevMonthStart.getYear(), prevMonthStart.getMonthValue());
+		     LocalDate dateToday = LocalDate.now(); 
 		     
-		     LocalDate prevMonthEnd = thisYearMonth.atEndOfMonth();
+		     LocalDate prevMonthStart = dateToday.minusMonths(1).withDayOfMonth(1);  //2024-11-01
+		     
+		     YearMonth thisYearMonth = YearMonth.of(prevMonthStart.getYear(), prevMonthStart.getMonthValue());  //2024, 11
+		     
+		     LocalDate prevMonthEnd = thisYearMonth.atEndOfMonth();   //2024-11-30
 		     
 		     if(!leaveType.isEmpty()) {
+		    	 
 		    	 for(LeaveTypeMaster ltm :leaveType) {
 		        	  for(Employee employeeObj : employeeList) {
 		        		  
+		        		  System.out.println("checked     "+employeeObj.getEmploymentstatus().equals("Retain"));
+		        		  
+		        		  if(employeeObj.getEmploymentstatus().equals("Retain")) {
+	        				  
+	        				  System.out.println("@@@  "+employeeObj.getName());
+	        				  
+	        				  System.out.println("@@@  "+employeeObj.getIsRetain());	
+	        				  
+	        				 
+	        				  }
+		        		 
 		        		  System.out.println(employeeObj.getEmploymentstatus() +"  "+ ltm.getLeaveTypeMasterId());
 		        		  
 		        		  Optional<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.
 		        				  findByEmployentStatusAndLeaveTypeMasterId(employeeObj.getEmploymentstatus(),ltm.getLeaveTypeMasterId());
-		        		  
-		        		  if(!leavePolicy.isEmpty()) {
+		        		  System.err.println("Red"+employeeObj.getEmpId() +"  "+ ltm.getLeaveTypeMasterId());
+		        		  if(!leavePolicy.isEmpty() ) {
+		        			 
 		        			  LeavePolicyMaster leavePolicyObj = leavePolicy.get();
+
 		        			  if(leavePolicyObj.getIncrement().equals("Yes")){
+		        				  
+		        				
 		        				  
 		        				  EmployeeLeavesMap employeeLeaveMap = employeeLeavesMapRepository.
 		        						  findByEmpIdAndLeaveTypeMasterId(employeeObj.getEmpId(),ltm.getLeaveTypeMasterId());
 		        				  
-		        				  System.out.println(employeeLeaveMap.getBalance() +"  "+ leavePolicyObj.getIncrementValue());
+		        				  System.err.println("Red"+employeeObj.getEmpId() +"  "+ ltm.getLeaveTypeMasterId());
 		        				  
 		        				          if(employeeLeaveMap != null) {
 		        				        	  
 		        				        	  // Manage Balance if user In-Between a month
 		        				        	  Boolean isContains = (employeeObj.getDateOfJoining().isBefore(prevMonthEnd) ) && (employeeObj.getDateOfJoining().isAfter(prevMonthStart));
+		        				        	  float retainValue = 0.0F;
 		        				        	  
 		        				        	  if(isContains) {
 		        				        		  Float newBalance = 0.0F;
@@ -298,7 +330,7 @@ public class CronJobService {
 		        									
 		        									employeeLeaveMap.setBalance(newBalance);
 				        				        	 EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeaveMap);
-				        				        	 
+				        				        	 System.out.println("bsjhsdh"+employeeObj.getEmpId() +"  "+ ltm.getLeaveTypeMasterId());
 				        				        	 if(dbResponse != null) {
 															LeaveBalanceLog log = new LeaveBalanceLog();
 
@@ -312,8 +344,61 @@ public class CronJobService {
 															leaveBalanceLogRepository.save(log);
 				        				        	  }
 		        				        		  
-		        				        	  }else {
+		        				        	  }
+		        				        	  else {
 		        				        		  
+		        				        		  
+
+		        				        		  
+		        				        		  LocalDate resignedDate = employeeObj.getDateOfResign();
+		        				        		  LocalDate retainedDate = employeeObj.getDateOfRetain();
+		        				        	      String  isRetain = employeeObj.getIsRetain();
+		        				        	      System.out.println("Yesssss     "+employeeObj);
+		        				        	      
+		        				        	      System.out.println("1    "+resignedDate); 
+		        				        	      System.out.println("2    "+retainedDate);
+		        				        	      System.out.println("3   "+isRetain);
+		        				        	      
+		        				        	      System.out.println("1    "+employeeObj.getDateOfResign()); 
+		        				        	      System.out.println("2    "+employeeObj.getDateOfRetain());
+		        				        	      System.out.println("3   "+employeeObj.getIsRetain());
+		        				        	      
+		        				        	      if ("Yes".equals(isRetain)) { 
+		        				        	    	  System.out.println("bsjhsdh"+employeeObj.getEmpId() +"  "+ ltm.getLeaveTypeMasterId());
+		        				        	    	  
+		        				        	    	    if (resignedDate != null && retainedDate != null) {
+		        				        	    	    	System.err.println("jhbshj"+employeeObj.getEmpId());
+		        				        	    	    	System.out.println("bsjhsdh"+employeeObj.getEmpId() +"  "+ ltm.getLeaveTypeMasterId());
+		        				        	    	        LocalDate startDate = resignedDate;
+		        				        	    	        LocalDate endDate = retainedDate;
+		        				        	    	        long totalDays = ChronoUnit.DAYS.between(startDate, endDate);
+
+		        				        	    	        long fullMonths = totalDays / 30;
+		        				        	    	        
+		        				        	    	        System.out.print("fullMonth  "+fullMonths);
+
+		        				        	    	        for (long i = 0; i < fullMonths; i++) {
+		        				        	    	            retainValue = retainValue + leavePolicyObj.getIncrementValue();
+		        				        	    	        }
+
+		        				        	    	        if (retainValue > 0.0F) {
+//		        				        	    	            executeQueryForRetain(employeeObj);
+		        				        	    	        	System.err.println("jhbshj"+employeeObj.getEmpId());
+		        				        	    	        	employeeRepository.updateIsRetain(employeeObj.getEmpId());
+		        				        	    	        }
+		        				        	    	    } else {
+		        				        	    	        // Handle the case where either date is null
+		        				        	    	        System.out.println("Warning: resignedDate or retainedDate is null. Skipping retain calculation.");
+		        				        	    	        // Proceed with further execution
+		        				        	    	    }
+		        				        	    	}
+
+		        			
+		        				        		  
+		        				        		  
+		        				        		  
+  
+
 		        				        		  float newBalance = employeeLeaveMap.getBalance() + leavePolicyObj.getIncrementValue();
 			        				        	  System.out.println(newBalance);
 			        				        	  employeeLeaveMap.setBalance(newBalance);
@@ -327,11 +412,17 @@ public class CronJobService {
 														log.setLeaveTypeMasterId(ltm.getLeaveTypeMasterId());
 														log.setMessage(LeaveLogMessage.autoAddLeave.replace("0.0",
 																leavePolicyObj.getIncrementValue().toString()));
-														log.setUpdateBalanceBy("+" + leavePolicyObj.getIncrementValue());
+														log.setUpdateBalanceBy("+" + retainValue);
 
 														leaveBalanceLogRepository.save(log);
 			        				        	  }
 		        				        		  
+			        				        	  
+			        				        	  
+			        				        	  
+			        				        	  
+			        				        	  
+			        				        	  
 		        				        	  }
 		        				          }
 		        			  }
@@ -345,6 +436,10 @@ public class CronJobService {
 			e.printStackTrace();
 		   }
 	}
+	
+	
+	
+		
 	
 	// 0 0 0 31 MAR ? - AT 00:00 AT 31 DAY AT MARCH MONTH
 	

@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -65,6 +66,7 @@ import com.apmosys.employeeportal.model.EmployeeSpecializationMap;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
+import com.apmosys.employeeportal.model.LeavePolicyMaster;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.Log;
 import com.apmosys.employeeportal.model.Newsletter;
@@ -95,6 +97,7 @@ import com.apmosys.employeeportal.repository.EmployeeSpecializationMapRepository
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
+import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.repository.LogsRepository;
 import com.apmosys.employeeportal.repository.NewsletterReadResponseRepository;
@@ -125,6 +128,8 @@ public class EmployeeService {
 
 	@Value("${valid.attempt}")
 	private Integer failedAttempt;
+	
+	
 
 	@Autowired
 	EmployeeRepository employeeRepository;
@@ -146,12 +151,21 @@ public class EmployeeService {
 
 	@Value("${file.location.image}")
 	private String imageFileLocation;
+	
+	@Value("${hr.mail}")
+	private String hrMailAddress;
+	
+	@Value("${rmg.mail}")
+	private String rmgMail;
 
 	@Autowired
 	EmployeeLeavesMapRepository employeeLeavesMapRepository;
 
 	@Autowired
 	LeaveTypeMasterRepository leaveTypeMasterRepository;
+	
+	@Autowired
+	private LeavePolicyMasterRepository leavePolicyMasterRepository;
 
 	@Autowired
 	LeaveBalanceLogRepository leaveBalanceLogRepository;
@@ -2189,7 +2203,24 @@ public class EmployeeService {
 				 }
 			 
 			
+			 if(employeedto.getEmploymentstatus().equals("Retain")) {
+					
+					employee.setDateOfRetain(employeedto.getDateOfRetain() != null
+							? stringToDateTimeParser.getDate(employeedto.getDateOfRetain(), "yyyy-MM-dd")
+							: null);
+					employee.setIsRetain(employeedto.getIsRetain());
+					
+//					this.cronJobService.isRetain(employee);
+					isRetain(employee);
+					
+					
+		     } else {
+					employee.setIsRetain(employeedto.getIsRetain());
+			 }
 			 
+			 
+			 
+
 			
 			 
 			 
@@ -2322,7 +2353,7 @@ public class EmployeeService {
 							    String subject = "Reminder for Manager Update of Reportees of Inactive Manager: " + employeedto.getName();
 							    String mailBody = html.toString();
 
-							    boolean flag = mailService.sendMailWithCC("prarthana.lenka@apmosys.com", "priyadarshini.singh@apmosys.com", subject, mailBody);
+							    boolean flag = mailService.sendMailWithCC(rmgMail,hrMailAddress, subject, mailBody);
 							 }
 							    
 							    
@@ -2357,10 +2388,10 @@ public class EmployeeService {
 						}
 					}
 					
-				}else if(employee.getEmploymentstatus().equals("Probation") || employee.getEmploymentstatus().equals("Confirmed")) {
+				}else if(employee.getEmploymentstatus().equals("Probation") || employee.getEmploymentstatus().equals("Confirmed") || employeedto.getEmploymentstatus().equals("Retain") ) {
 					employee.setDateOfResign(null);
 				}
-					if(employee.getEmploymentstatus().equals("Probation") || employee.getEmploymentstatus().equals("Confirmed") || employee.getEmploymentstatus().equals("Resigned")) {
+					if(employee.getEmploymentstatus().equals("Probation") || employee.getEmploymentstatus().equals("Confirmed") || employee.getEmploymentstatus().equals("Resigned") || employeedto.getEmploymentstatus().equals("Retain") ) {
 				
 					employee.setEmploymentReleaseStatus(null);
 				}else {
@@ -2593,6 +2624,128 @@ public class EmployeeService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+	
+	
+	
+
+	void isRetain(Employee employeeObj) {
+		
+		try {
+		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
+		      
+		     if(!leaveType.isEmpty()) {
+		    	 
+		    	 for(LeaveTypeMaster ltm :leaveType) {
+		    		 
+//		        		  Employee employeeObj = new Employee();
+		        		 
+		        		  System.out.println(employeeObj.getEmploymentstatus() +"  "+ ltm.getLeaveTypeMasterId());
+		        		  
+		        		  Optional<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.
+		        				  findByEmployentStatusAndLeaveTypeMasterId(employeeObj.getEmploymentstatus(),ltm.getLeaveTypeMasterId());
+		        		  System.err.println("Red"+employeeObj.getEmpId() +"  "+ ltm.getLeaveTypeMasterId());
+		        		  if(!leavePolicy.isEmpty() ) {
+		        			 
+		        			  LeavePolicyMaster leavePolicyObj = leavePolicy.get();
+
+		        			  if(leavePolicyObj.getIncrement().equals("Yes")){
+		        				  EmployeeLeavesMap employeeLeaveMap = employeeLeavesMapRepository.
+		        						  findByEmpIdAndLeaveTypeMasterId(employeeObj.getEmpId(),ltm.getLeaveTypeMasterId());
+		        				  
+		        				  System.err.println("Red"+employeeObj.getEmpId() +"  "+ ltm.getLeaveTypeMasterId());
+		        				  float retainValue = 0.0F;
+		        				        		  
+		        				        		  LocalDate resignedDate = employeeObj.getDateOfResign();
+		        				        		  LocalDate retainedDate = employeeObj.getDateOfRetain();
+		        				        	      String  isRetain = employeeObj.getIsRetain();
+		        				        	      System.out.println("Yesssss     "+employeeObj);
+		        				        	      
+		        				        	      System.out.println("1    "+resignedDate); 
+		        				        	      System.out.println("2    "+retainedDate);
+		        				        	      System.out.println("3   "+isRetain);
+		        				        	      
+		        				        	      System.out.println("1    "+employeeObj.getDateOfResign()); 
+		        				        	      System.out.println("2    "+employeeObj.getDateOfRetain());
+		        				        	      System.out.println("3   "+employeeObj.getIsRetain());
+		        				        	      
+		        				        	      if ("Yes".equals(isRetain)) { 
+		        				        	    	  System.out.println("bsjhsdh"+employeeObj.getEmpId() +"  "+ ltm.getLeaveTypeMasterId());
+		        				        	    	  
+		        				        	    	    if (resignedDate != null && retainedDate != null) {
+		        				        	    	    	System.err.println("jhbshj"+employeeObj.getEmpId());
+		        				        	    	    	System.out.println("bsjhsdh"+employeeObj.getEmpId() +"  "+ ltm.getLeaveTypeMasterId());
+		        				        	    	        LocalDate startDate = resignedDate;
+		        				        	    	        LocalDate endDate = retainedDate;
+		        				        	    	        long totalDays = ChronoUnit.DAYS.between(startDate, endDate);
+
+		        				        	    	        long fullMonths = totalDays / 30;
+		        				        	    	        
+		        				        	    	        System.out.print("fullMonth  "+fullMonths);
+
+		        				        	    	        for (long i = 0; i < fullMonths; i++) {
+		        				        	    	            retainValue = retainValue + leavePolicyObj.getIncrementValue();
+		        				        	    	        }
+
+		        				        	    	        if (retainValue > 0.0F) {
+//		        				        	    	            executeQueryForRetain(employeeObj);
+		        				        	    	        	System.err.println("jhbshj"+employeeObj.getEmpId());
+		        				        	    	        	employeeRepository.updateIsRetain(employeeObj.getEmpId());
+		        				        	    	        }
+		        				        	    	    } else {
+		        				        	    	        // Handle the case where either date is null
+		        				        	    	        System.out.println("Warning: resignedDate or retainedDate is null. Skipping retain calculation.");
+		        				        	    	        // Proceed with further execution
+		        				        	    	    }
+		        				        	    	}
+
+		        			
+		        				        		  float newBalance = employeeLeaveMap.getBalance() + leavePolicyObj.getIncrementValue() + retainValue;
+			        				        	  System.out.println(newBalance);
+			        				        	  employeeLeaveMap.setBalance(newBalance);
+			        				        	  EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeaveMap);
+			        				        	  
+			        				        	  if(dbResponse != null) {
+														LeaveBalanceLog log = new LeaveBalanceLog();
+
+														log.setBalance(newBalance);
+														log.setEmpId(employeeObj.getEmpId());
+														log.setLeaveTypeMasterId(ltm.getLeaveTypeMasterId());
+														log.setMessage(LeaveLogMessage.autoAddLeave.replace("0.0",
+																leavePolicyObj.getIncrementValue().toString()));
+														log.setUpdateBalanceBy("+" + retainValue);
+
+														leaveBalanceLogRepository.save(log);
+			        				        	  }
+		        				        		  
+//		        				        	  }
+//		        				          }
+		        			  }
+		        		  }else {
+		        			  System.out.println("Leave Policy not found");
+		        		  }
+		        		  
+		        		  
+		        	//  }
+		        	  
+		        	  
+		        	  
+		            }
+		     }
+		   }catch(Exception e) {
+			e.printStackTrace();
+		   }
+
+  
+
+		
+	}
+	
+	
+	
+	
+	
+	
+	
 
 	public ServiceResponse updateEmployeeByEmpIdByList(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
@@ -3906,12 +4059,14 @@ public class EmployeeService {
 
 		try {
 			Employee checkEmployeeEmail = employeeRepository.findByEmail(employeedto.getEmail());
+			System.err.println(checkEmployeeEmail);
+			System.err.println(employeedto);
 			DraftEmployee checkDraftEmployeementEmail = draftEmployeeRepository.findByEmail(employeedto.getEmail());
 			
 			//System.out.println(" checkEmployeeEmail.getEmployeementId()  :  "+checkEmployeeEmail.getEmployeementId() +"  =  employeedto.getEmployeementId() "+employeedto.getEmployeementId());
 
 			if(checkEmployeeEmail != null) {
-					if(employeedto.getEmployeementId().equals(checkEmployeeEmail.getEmployeementId())) {
+				if (Objects.equals(employeedto.getEmployeementId(), checkEmployeeEmail.getEmployeementId())) {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 					}else {

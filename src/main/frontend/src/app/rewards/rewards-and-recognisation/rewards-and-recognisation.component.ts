@@ -11,6 +11,7 @@ import { AppComponent } from 'src/app/app.component';
 import { Sort } from '@angular/material/sort';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { first } from 'rxjs/operators';
+import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
   selector: 'app-rewards-and-recognisation',
@@ -72,7 +73,8 @@ export class RewardsAndRecognisationComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private rewardsService: RewardsServiceService,
     private modalService: BsModalService,
-    private exportExcelService: ExportExcelService
+    private exportExcelService: ExportExcelService,
+    private validationService: ValidationService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -235,6 +237,9 @@ setSelectedReward(reward: Rewards) {
 
 
     console.log("Team Reward Submit check", this.sumbitRewards);
+    if (!this.validateRewardsWhileSubmit(template)) {
+      return; // Stop execution if validation fails
+  }
 
 
     this.rewardsService.submitRewardForEmployee(this.sumbitRewards).subscribe(
@@ -257,6 +262,35 @@ setSelectedReward(reward: Rewards) {
     );
     this.isEditing = false;
   }
+
+  validateRewardsWhileSubmit(template: TemplateRef<any>) {
+
+    if (!this.validationService.validateNullUndefinedEmptyString(this.sumbitRewards.ofmonthyear)) {
+      this.alertMessage = "Please select the Month for which Employee is to be rewarded!!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+  }
+    if (!this.validationService.validateNullUndefinedEmptyString(this.sumbitRewards.rewardedTo)) {
+        this.alertMessage = "Please select an Employee to reward !!";
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(this.sumbitRewards.rewardTypeName)) {
+        this.alertMessage = "Please select a Reward Type !!";
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(this.sumbitRewards.remark)) {
+        this.alertMessage = "Please enter a Remark !!";
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+    }
+
+    return true;
+}
+
 
 editReward(rewardId: number) {
   this.isEditing = true;

@@ -26,6 +26,7 @@ export class Employee360AppreciationComponent implements OnInit {
   selectedRange: string = '';
   page = 1;
   currentEmpId: number = Number(sessionStorage.getItem('empId'));
+  currentEId:number = Number(sessionStorage.getItem('eId'));
   employeeList: any[] = [];
   matchedEmployees: any[] = [];
   matchedEmployee: any;
@@ -129,7 +130,7 @@ export class Employee360AppreciationComponent implements OnInit {
 
   getTeamAppreciationData() {
     const requestPayload = {
-      empId: this.currentEmpId
+      empId: this.currentEId
     };
 
     this.isTeamAppreciationView = !this.isTeamAppreciationView;

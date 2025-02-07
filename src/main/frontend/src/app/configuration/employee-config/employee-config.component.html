@@ -69,13 +69,13 @@
                                                 <input type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8" autocomplete="none"
                                                 [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)" [disabled]="isUpdation">
                                                 <!-- <input *ngIf="!isUpdation && employeeObj.isConsultant == 'true'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">
-                                                <input *ngIf="!isUpdation && employeeObj.isConsultant != 'true'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">
-                                                <input *ngIf="isUpdation && employeeObj.isConsultant == 'true'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" readonly>
-                                                <input *ngIf="isUpdation && employeeObj.isConsultant != 'true'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
+                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)"> -->
+                                                <!-- <input *ngIf="!isUpdation && employeeObj.isConsultant != 'true'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
+                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)"> -->
+                                                <!-- <input *ngIf="isUpdation && employeeObj.isConsultant == 'true'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
                                                 [(ngModel)]="employeeObj.employeementId" readonly> -->
+                                                <!-- <input *ngIf="isUpdation && employeeObj.isConsultant != 'true'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
+                                                [(ngModel)]="employeeObj.employeementId" readonly>  -->
                                             </div>
                                         </div>
                                     </div>
@@ -561,7 +561,7 @@
 
                                     <!-- added by priyadarshini  -->
 
-                                    <div class="col-md-4 mb-0">
+                                    <div class="col-md-4 mb-0" *ngIf="isUpdation">
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Do you want
@@ -653,6 +653,8 @@
                                             </div>
                                         </div>
                                     </div>
+
+                                    
 
 
                                     <!-- <div class="col-md-4 mb-0" *ngIf="employeeObj.updateType == 'manual'">
@@ -865,7 +867,7 @@
 
 
                                     <div class="col-md-4 mb-0"
-                                        *ngIf="(isUpdation && employeeObj.employmentstatus == 'Retain') || (isUpdation && employeeObj.employmentstatus == 'InActive') ">
+                                        *ngIf="(isUpdation && employeeObj.employmentstatus == 'Retain') ">
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Date Of
@@ -875,7 +877,7 @@
                                                     <input class="form-control static-input" matInput id="DOR"
                                                         [matDatepicker]="DORePicker" #input2 (click)="DORePicker.open()"
                                                         (dateChange)="estimateDateOfRetain(employeeObj)"
-                                                        [matDatepickerFilter]="DateFilterForDOR"
+                                                        [matDatepickerFilter]="DateFilterForDofRetain"
                                                         placeholder="Choose date of Retain"
                                                         [(ngModel)]="employeeObj.dateOfRetain" autocomplete="off">
                                                     <mat-datepicker-toggle matSuffix [for]="DORePicker"

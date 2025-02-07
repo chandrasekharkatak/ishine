@@ -260,5 +260,8 @@ public class EmployeeDTO {
     
     private Long reporteeCountManager;
     private Long reporteeCountReportingManager;
+    
+   
+
 	
 }

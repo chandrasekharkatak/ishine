@@ -1,38 +1,38 @@
-import { Component, ElementRef, OnDestroy, OnInit, Pipe, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
-import { Employee } from 'src/app/models/employee';
-import { EmployeeService } from 'src/app/services/employee.service';
-import { ValidationService } from 'src/app/services/validation.service';
-import { first } from 'rxjs/operators';
 import { DatePipe, LocationStrategy } from '@angular/common';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import { AuthenticationService } from 'src/app/services/authentication.service';
-import { User } from 'src/app/models/user';
-import { Feature } from 'src/app/models/feature';
-import { JobRoleService } from 'src/app/services/job-role.service';
-import { certification } from 'src/app/models/certification';
-import { PreviousEmployer } from 'src/app/models/previousEmployer';
-import { DepartmentService } from 'src/app/services/department.service';
-import { ExportExcelService } from 'src/app/services/export-excel.service';
-import * as moment from 'moment';
+import { Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
-import { ImageService } from 'src/app/services/image.service';
 import { DomSanitizer } from '@angular/platform-browser';
+import * as moment from 'moment';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
+import { certification } from 'src/app/models/certification';
+import { Designation } from 'src/app/models/designation';
 import { Document } from 'src/app/models/document';
+import { Domain } from 'src/app/models/domain';
+import { Employee } from 'src/app/models/employee';
+import { Feature } from 'src/app/models/feature';
+import { Leave } from 'src/app/models/leave';
+import { PreviousEmployer } from 'src/app/models/previousEmployer';
+import { Query } from 'src/app/models/query';
+import { User } from 'src/app/models/user';
+import { AuthenticationService } from 'src/app/services/authentication.service';
+import { DepartmentService } from 'src/app/services/department.service';
+import { DestinationService } from 'src/app/services/destination.service';
+import { DomainService } from 'src/app/services/domain.service';
+import { EmployeeService } from 'src/app/services/employee.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { ImageService } from 'src/app/services/image.service';
+import { JobRoleService } from 'src/app/services/job-role.service';
+import { LeaveService } from 'src/app/services/leave.service';
 import { PortalService } from 'src/app/services/portal.service';
 import { UtilityService } from 'src/app/services/utility.service';
-import { AppComponent } from 'src/app/app.component';
+import { ValidationService } from 'src/app/services/validation.service';
 import { SortPipe } from 'src/app/sort.pipe';
-import { Domain } from 'src/app/models/domain';
-import { DomainService } from 'src/app/services/domain.service';
-import { Query } from 'src/app/models/query';
-import { DestinationService } from 'src/app/services/destination.service';
-import { Designation } from 'src/app/models/designation';
-import { LeaveService } from 'src/app/services/leave.service';
-import { Leave } from 'src/app/models/leave';
 
 
-import { SharedService } from 'src/app/services/shared.service';
 import { Subscription } from 'rxjs';
+import { SharedService } from 'src/app/services/shared.service';
 class FilterData {
   title: any;
   columns: any;
@@ -50,21 +50,21 @@ export class EmployeeConfigComponent implements OnInit {
 
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
-  @ViewChild('change_manager_template') 
+  @ViewChild('change_manager_template')
   changeManagerTemplate: TemplateRef<any>;
   feature = 'Employee Config';
-  managerFlag : boolean = false;
-  data:string;
+  managerFlag: boolean = false;
+  data: string;
   items = 10;
-  datas:string;
-  imployeeID:any;
+  datas: string;
+  imployeeID: any;
 
   sortDirection = 'asc';
   sortColumn: any;
-  sortColumnType:any;
+  sortColumnType: any;
 
-  teamList : any = [];
-  listOfProjectsByDeptId : any[] =[];
+  teamList: any = [];
+  listOfProjectsByDeptId: any[] = [];
 
   //flags
   isCreation: boolean = false;
@@ -81,14 +81,14 @@ export class EmployeeConfigComponent implements OnInit {
   isLifeCycleAccordianBody: boolean = false;
   isKycUpdateAccordianBody: boolean = false;
   isEmployeeInfoAccordianBody: boolean = false;
-  isEmployeeHistory:boolean = false;
+  isEmployeeHistory: boolean = false;
   isTeamProjectAccordianBody: boolean = false;
 
   //modal
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
   previewModalRef: BsModalRef = new BsModalRef();
-  all:any;
+  all: any;
   //Obj
   currentUser: User;
   employeeObj: Employee = new Employee();
@@ -97,27 +97,27 @@ export class EmployeeConfigComponent implements OnInit {
   _allEmployeeList: any;
   managerList: any = [];
 
-  managerAndAbove : any = [];
+  managerAndAbove: any = [];
   userMapping: any = {};
   allJobRoleList: any[] = [];
   allDeptList: any[] = [];
   filteredJobRoleList: any[] = [];
   employeeDataForExcel: any[] = [];
-  portalConfigList:any[] = [];
-  allDomainList:any[] = [];
-  specializationList:any[] = [];
+  portalConfigList: any[] = [];
+  allDomainList: any[] = [];
+  specializationList: any[] = [];
   // allSpecializationList:any[] = [];
-  storedDataList:any[] = [];
-  domainSpecializationList:any[] = [];
-  allDesignationList:any[] = [];
-  employeeAuditHistory:any[] = [];
-  filteredEmployeeAuditHistory:any[] = [];
-  lifeCycleChangeList:any[] = [];
-  teamProjectChangeList:any[] = [];
-  kycUpdateList:any[] = [];
-  employeeInfoChangeList:any[] = [];
+  storedDataList: any[] = [];
+  domainSpecializationList: any[] = [];
+  allDesignationList: any[] = [];
+  employeeAuditHistory: any[] = [];
+  filteredEmployeeAuditHistory: any[] = [];
+  lifeCycleChangeList: any[] = [];
+  teamProjectChangeList: any[] = [];
+  kycUpdateList: any[] = [];
+  employeeInfoChangeList: any[] = [];
 
-  employeeWorkingHistory: any [] = [];
+  employeeWorkingHistory: any[] = [];
   allCertificationList: any[] = [];
   allPreviousEmployment: any[] = [];
   updatedCertificationList: any[] = [];
@@ -161,71 +161,71 @@ export class EmployeeConfigComponent implements OnInit {
     "West Bengal",
   ];
   //added by rahul for refered employee addition
-  referedType=[
+  referedType = [
     "In Office",
     "Out Office"
   ]
-  currDate:any;
-  yearOfPassingList:any[] = [];
+  currDate: any;
+  yearOfPassingList: any[] = [];
   revoke_template: any;
 
-  deptId : any;
-  
+  deptId: any;
 
-  previewObj:Employee = new Employee();
-  previewEmployeeObj:Employee = new Employee();
-  listOfReporties : any;
 
-  filters:any = {};
-  filterOnhistory ={};
-  isSearchEnabled:boolean = false;
-  employeeActiveColumns:any[] = ['employeementId','employeeType','name','email','employmentstatus','managerName','departmentName','dateOfJoining','createdOn','createdByName','updatedOn','updatedByName','referedName'];
-  employeeInActiveColumns:any[] = ['employeementId','employeeType','name','email','employmentstatus','managerName','departmentName','dateOfJoining','dateOfRelieving','createdOn','createdByName','updatedOn','updatedByName'];
-  draftEmployeeColumns:any[] = ['employeementId','name','email','employmentstatus','managerName','departmentName','dateOfJoining','updateApplicationStatus']
-  domainColumns:any[] = ['blank','domainName','createdByName','createdOn']
+  previewObj: Employee = new Employee();
+  previewEmployeeObj: Employee = new Employee();
+  listOfReporties: any;
 
-  workHistoryFilters:any = {};
-  isworkHistorySearchEnabled:boolean = false;
-  employeeWorkhistoryColumns:any[] = ['occasion','dayOfTheWeek','dateOfHoliday','state','createdOn','createdbyName','updatedOn','updatedByName'];
+  filters: any = {};
+  filterOnhistory = {};
+  isSearchEnabled: boolean = false;
+  employeeActiveColumns: any[] = ['employeementId', 'employeeType', 'name', 'email', 'employmentstatus', 'managerName', 'departmentName', 'dateOfJoining', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName', 'referedName'];
+  employeeInActiveColumns: any[] = ['employeementId', 'employeeType', 'name', 'email', 'employmentstatus', 'managerName', 'departmentName', 'dateOfJoining', 'dateOfRelieving', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName'];
+  draftEmployeeColumns: any[] = ['employeementId', 'name', 'email', 'employmentstatus', 'managerName', 'departmentName', 'dateOfJoining', 'updateApplicationStatus']
+  domainColumns: any[] = ['blank', 'domainName', 'createdByName', 'createdOn']
 
-  auditFilter:any = {};
-  isAuditSearchEnabled:boolean = false;
-  employeeAuditColumns:any[] = ['blank', 'date', 'field', 'value', 'bucketName', 'updatedByName'];
-  employeehistoryColumns:any[]=['blank','name','teamName','projectName','startDate','endDate','teamLeadName','jobRole','clientLocation','clientName'];
+  workHistoryFilters: any = {};
+  isworkHistorySearchEnabled: boolean = false;
+  employeeWorkhistoryColumns: any[] = ['occasion', 'dayOfTheWeek', 'dateOfHoliday', 'state', 'createdOn', 'createdbyName', 'updatedOn', 'updatedByName'];
+
+  auditFilter: any = {};
+  isAuditSearchEnabled: boolean = false;
+  employeeAuditColumns: any[] = ['blank', 'date', 'field', 'value', 'bucketName', 'updatedByName'];
+  employeehistoryColumns: any[] = ['blank', 'name', 'teamName', 'projectName', 'startDate', 'endDate', 'teamLeadName', 'jobRole', 'clientLocation', 'clientName'];
 
 
   queryList: any[] = [];
   filterData: any = new FilterData();
 
-  startDate :any;
-endDate : any;
-isToggle : boolean = false;
-today : Date;
-minDate: Date;
+  startDate: any;
+  endDate: any;
+  isToggle: boolean = false;
+  today: Date;
+  minDate: Date;
   maxDate: Date;
-  isDateChanged : boolean = false;
-  tempValue : any;
-  maxDateForExtend : Date;
-  minDateForExtend : Date;
- isPipGenerate : boolean = false;
-  pipReasons : any =[];
-  isPipFlag : boolean = false;
+  isDateChanged: boolean = false;
+  tempValue: any;
+  maxDateForExtend: Date;
+  minDateForExtend: Date;
+  isPipGenerate: boolean = false;
+  pipReasons: any = [];
+  isPipFlag: boolean = false;
 
-  isActiveTable : boolean = false;
+  isActiveTable: boolean = false;
 
-  managerId : any;
-  reporteeList : any = [];
-  reporteeList2 : any = [];
-  listOfDepartment : any[] =[];
+  managerId: any;
+  reporteeList: any = [];
+  reporteeList2: any = [];
+  listOfDepartment: any[] = [];
 
-  employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department','Designation',
-   'Job Role', 'Manager', 'Team Name', 'Project Name', 'Client Name',
-    'Employment Status', 'Date Of Joining','Domain','Specialization', 'City', 'Blood Group',
-     'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status',
-     'Bank Name', 'Created By', 'State', 'Created On'];
-     departmentName: any;
-     private subscription: Subscription = new Subscription();
-     referedTypeStatus:boolean=false;
+  employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department', 'Designation',
+    'Job Role', 'Manager', 'Team Name', 'Project Name', 'Client Name',
+    'Employment Status', 'Date Of Joining', 'Domain', 'Specialization', 'City', 'Blood Group',
+    'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status',
+    'Bank Name', 'Created By', 'State', 'Created On'];
+  departmentName: any;
+  private subscription: Subscription = new Subscription();
+  referedTypeStatus: boolean = false;
 
   constructor(
 
@@ -237,15 +237,15 @@ minDate: Date;
     private jobRoleService: JobRoleService,
     private departmentService: DepartmentService,
     private exportExcelService: ExportExcelService,
-    private imageService : ImageService,
+    private imageService: ImageService,
     private sanitizer: DomSanitizer,
-    private portalService:PortalService,
-    private utilityService:UtilityService,
-    private locationStrategy:LocationStrategy,
-    private domainService:DomainService,
-    private destinationService:DestinationService,
-    private leaveService : LeaveService,
-    private sharedService : SharedService,
+    private portalService: PortalService,
+    private utilityService: UtilityService,
+    private locationStrategy: LocationStrategy,
+    private domainService: DomainService,
+    private destinationService: DestinationService,
+    private leaveService: LeaveService,
+    private sharedService: SharedService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -272,9 +272,9 @@ minDate: Date;
     this.getAllEmployeeList();
   }
 
-  preventBackButton(){
+  preventBackButton() {
     history.pushState(null, null, location.href);
-    this.locationStrategy.onPopState(()=>{
+    this.locationStrategy.onPopState(() => {
       history.pushState(null, null, location.href);
     })
   }
@@ -308,17 +308,17 @@ minDate: Date;
       this.showDraftTable();
     }
   }
-//added by rahul for reffered
-  refferedChange(){
-    if(this.employeeObj.referedType=="InOffice"){
-this.referedTypeStatus=true;
+  //added by rahul for reffered
+  refferedChange() {
+    if (this.employeeObj.referedType == "InOffice") {
+      this.referedTypeStatus = true;
     }
-    if(this.employeeObj.referedType=="OutOffice"){
-      this.referedTypeStatus=true;
-   }
+    if (this.employeeObj.referedType == "OutOffice") {
+      this.referedTypeStatus = true;
+    }
   }
   //end of the code
-  addDemographiscInfo(){
+  addDemographiscInfo() {
     let path;
 
     let data = []
@@ -327,29 +327,29 @@ this.referedTypeStatus=true;
       let pincode = empData.pincode;
       let empId = empData.employeeId;
 
-      if(pincode != null){
+      if (pincode != null) {
         fetch('https://api.postalpincode.in/pincode/' + pincode).then(r => r.json()).then(j => {
-        path = j[0].PostOffice[0];
-        console.log(path, " : path");
+          path = j[0].PostOffice[0];
+          console.log(path, " : path");
 
 
-        let empObj = new Employee();
-        empObj.state = path.State;
-        empObj.city = path.Name;
-        empObj.pincode = path.Pincode;
-        empObj.country = path.Country;
-        empObj.employeementId = empId;
+          let empObj = new Employee();
+          empObj.state = path.State;
+          empObj.city = path.Name;
+          empObj.pincode = path.Pincode;
+          empObj.country = path.Country;
+          empObj.employeementId = empId;
 
-        console.log(empObj, " empObj");
+          console.log(empObj, " empObj");
 
-        this.employeeService.addDemographicsInfo(empObj).pipe(first()).subscribe((response: any) => {
-          if (response.serviceStatus == "Success") {
-            console.log("Employee demographics updated");
-          } else {
-            console.log("Employee demographics updation failed");
-          }
+          this.employeeService.addDemographicsInfo(empObj).pipe(first()).subscribe((response: any) => {
+            if (response.serviceStatus == "Success") {
+              console.log("Employee demographics updated");
+            } else {
+              console.log("Employee demographics updation failed");
+            }
+          });
         });
-      });
       }
     });
   }
@@ -360,16 +360,16 @@ this.referedTypeStatus=true;
 
 
 
-  billableBenchDate:any
+  billableBenchDate: any
 
-  onBillablechange(){
+  onBillablechange() {
 
-    if(this.employeeObj.billableType =='Bench'){
+    if (this.employeeObj.billableType == 'Bench') {
 
-     this.billableBenchDate= this.getCurrentFormattedDate();
+      this.billableBenchDate = this.getCurrentFormattedDate();
 
-    }else{
-      this.billableBenchDate="No";
+    } else {
+      this.billableBenchDate = "No";
     }
 
   }
@@ -382,7 +382,7 @@ this.referedTypeStatus=true;
 
   getCurrentFormattedDate(): string {
     const now = new Date(); // Get the current date and time
-  
+
     // Manually format the date
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are 0-based
@@ -390,7 +390,7 @@ this.referedTypeStatus=true;
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
     const seconds = String(now.getSeconds()).padStart(2, '0');
-  
+
     // Format the date as a string
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   }
@@ -410,7 +410,7 @@ this.referedTypeStatus=true;
     DOC?.setAttribute('max', today);
   }
 
-  currentDateFilter = (d: Date)=>{
+  currentDateFilter = (d: Date) => {
     const dateFormat = 'YYYY-MM-DD';
     const currentDate = new Date();
     return (moment(d).format(dateFormat) <= moment(currentDate).format(dateFormat));
@@ -419,24 +419,40 @@ this.referedTypeStatus=true;
   DateFilterForDOR = (d: Date) => {
     const dateFormat = 'YYYY-MM-DD';
     const currentDate = new Date();
-    let dateOfJoining  = this.employeeObj.dateOfJoining != (null||undefined)? this.employeeObj.dateOfJoining : new Date();
+    let dateOfJoining = this.employeeObj.dateOfJoining != (null || undefined) ? this.employeeObj.dateOfJoining : new Date();
     return (moment(d).format(dateFormat) >= moment(dateOfJoining).format(dateFormat) && moment(d).format(dateFormat) <= moment(currentDate).format(dateFormat));
   }
 
-  relievingDateFilter = (d: Date)=>{
+
+  DateFilterForDofRetain = (d: Date) => {
+    const dateFormat = 'YYYY-MM-DD';
+    const currentDate = new Date();
+
+    // Use default date values in case the date fields are not defined
+    const resignDate = this.employeeObj.dateOfResign ? this.employeeObj.dateOfResign : new Date();
+    const relievingDate = this.employeeObj.dateOfRelieving ? this.employeeObj.dateOfRelieving : currentDate;
+
+    return (
+      moment(d).format(dateFormat) >= moment(resignDate).format(dateFormat) &&
+      moment(d).format(dateFormat) <= moment(relievingDate).format(dateFormat)
+    );
+  };
+
+
+  relievingDateFilter = (d: Date) => {
     const dateFormat = 'YYYY-MM-DD';
     const currentDate = new Date();
 
     let resignDate = this.employeeObj.dateOfResign;
 
-    if(resignDate){
+    if (resignDate) {
       return (moment(d).format(dateFormat) >= moment(resignDate).format(dateFormat));
-    }else{
+    } else {
       return false;
     }
   }
 
-  setYearOfPassingList(){
+  setYearOfPassingList() {
     for (let start = 1990; start < 2051; start++) {
       this.yearOfPassingList.push(start);
     }
@@ -444,25 +460,25 @@ this.referedTypeStatus=true;
 
   newEmployee = new Employee();
 
-  managerUpdate(reportee,template: TemplateRef<any>){
+  managerUpdate(reportee, template: TemplateRef<any>) {
     this.newEmployee = reportee;
-    console.log("newEmployee",this.newEmployee.managerId);
-    
+    console.log("newEmployee", this.newEmployee.managerId);
+
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
   }
 
-  updateEmployeesManager(template: TemplateRef<any>){
+  updateEmployeesManager(template: TemplateRef<any>) {
 
     let emp = new Employee();
     emp.empId = this.newEmployee.empId;
     emp.managerId = this.newEmployee.managerId
-   
-    this.employeeService.setManagerToNewManager(emp).pipe(first()).subscribe((response :any)=>{
-      if(response.serviceStatus == "Success"){
+
+    this.employeeService.setManagerToNewManager(emp).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
         //console.log(" teamName after manager changes done ",this.employeeObj.teamName)
         this.getReporteesListByManagerId();
         this.getReporteesListByReportingManagerId();
-        this.openAlertMod(template," Employee's Manager has changed !!");
+        this.openAlertMod(template, " Employee's Manager has changed !!");
         //console.log(" Manager update ")
       }
     })
@@ -470,32 +486,32 @@ this.referedTypeStatus=true;
     this.modalRef.hide();
 
     //console.log(" managerUpdate method call and employee id of reporties    :   ",employee.empId);
-    
+
     //console.log(" managerUpdate method call  employee name  :   ",employee.name);
     //console.log(" managerId   ::   ",employee.managerId);
   }
 
   newEmp = new Employee();
 
-  reportingManagerUpdate(reportee,template: TemplateRef<any>){
+  reportingManagerUpdate(reportee, template: TemplateRef<any>) {
     this.newEmp = reportee;
-    console.log("newEmployee",this.newEmp.reportingManagerId);
-    
+    console.log("newEmployee", this.newEmp.reportingManagerId);
+
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
   }
 
-  updateEmployeesReportingManager(template: TemplateRef<any>){
+  updateEmployeesReportingManager(template: TemplateRef<any>) {
 
     let emp = new Employee();
     emp.empId = this.newEmp.empId;
     emp.reportingManagerId = this.newEmp.reportingManagerId
-   
-    this.employeeService.setReportingManagerToNewManager(emp).pipe(first()).subscribe((response :any)=>{
-      if(response.serviceStatus == "Success"){
+
+    this.employeeService.setReportingManagerToNewManager(emp).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
         //console.log(" teamName after manager changes done ",this.employeeObj.teamName)
         this.getReporteesListByManagerId();
         this.getReporteesListByReportingManagerId();
-        this.openAlertMod(template," Employee's Reporting Manager has changed !!");
+        this.openAlertMod(template, " Employee's Reporting Manager has changed !!");
         //console.log(" Manager update ")
       }
     })
@@ -503,15 +519,15 @@ this.referedTypeStatus=true;
     this.modalRef.hide();
   }
 
-  getTeamMemberByTeamName(employeeObj){
+  getTeamMemberByTeamName(employeeObj) {
     //console.log(" teamName getTeamMemberByTeamName ",teamName);
     // this.managerAndAbove = this.managerAndAbove.forEach(t=> t.managerId == ""); 
 
     let empObj = new Employee();
     empObj.managerId = employeeObj.managerId;
 
-    this.employeeService.getTeamMemberByTeamName(empObj).pipe(first()).subscribe((response : any)=>{
-      if(response.serviceStatus == "Success"){
+    this.employeeService.getTeamMemberByTeamName(empObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
         this.reporteeList = response.serviceResponse;
         this.getManagersList();
         // this.employeeObj.managerId = '';
@@ -520,13 +536,13 @@ this.referedTypeStatus=true;
     })
   }
 
-  getManagersList(){
+  getManagersList() {
     // this.managerId = "";
     // this.managerAndAbove = [];
-    this.managerAndAbove = this.managerAndAbove.forEach(t=> t.managerId == ""); 
+    this.managerAndAbove = this.managerAndAbove.forEach(t => t.managerId == "");
     //console.log(" managers call ");
-    this.employeeService.getManagerList().pipe(first()).subscribe((response : any)=>{
-      if(response.serviceStatus == "Success"){
+    this.employeeService.getManagerList().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
         this.managerAndAbove = response.serviceResponse
         this.managerAndAbove = this.managerAndAbove.filter(empId => empId.managerId != this.employeeObj.empId);
         //console.log(" managersAndAbove list   ",this.managerAndAbove);
@@ -534,16 +550,16 @@ this.referedTypeStatus=true;
     });
   }
 
-  stringToNumber(year:any){
+  stringToNumber(year: any) {
     this.employeeObj.yearOfPassing = Number.parseInt(year);
   }
 
-  retainStatus(){
+  retainStatus() {
 
-    if(this.employeeObj.employmentstatus =="Retain"){
-      this.employeeObj.isRetain ="Yes";
-    } else{
-      this.employeeObj.isRetain ="No";
+    if (this.employeeObj.employmentstatus == "Retain") {
+      this.employeeObj.isRetain = "Yes";
+    } else {
+      this.employeeObj.isRetain = "No";
     }
 
 
@@ -559,7 +575,7 @@ this.referedTypeStatus=true;
     this.isUpdation = false;
     this.isDraft = false;
     this.isDraftTable = false;
-    this.page=1;
+    this.page = 1;
 
     this.reset();
     this.getManagerList();
@@ -578,15 +594,15 @@ this.referedTypeStatus=true;
     this.isDraft = false;
     this.isDraftTable = false;
     this.isDeletion = false;
-    this.page=1;
-    this.data='';
+    this.page = 1;
+    this.data = '';
     this.filters = {};
     this.workHistoryFilters = {};
-    this.filterOnhistory={};
+    this.filterOnhistory = {};
     this.isSearchEnabled = false;
     this.isworkHistorySearchEnabled = false;
     this.isAuditSearchEnabled = false;
-    
+
     this.managerList = [];
     this.getAllEmployeeList();
   }
@@ -600,8 +616,8 @@ this.referedTypeStatus=true;
     this.isCreation = false;
     this.isDraft = false;
     this.isDeletion = false;
-    this.page=1;
-    this.data='';
+    this.page = 1;
+    this.data = '';
     this.filters = {};
 
     this.getAllDraftEmployees();
@@ -633,7 +649,7 @@ this.referedTypeStatus=true;
 
   showUpdateForm(employee: Employee) {
     this.isForm = true;
-    this.referedTypeStatus=true;
+    this.referedTypeStatus = true;
     this.isTable = false;
     this.isUpdation = true;
     this.isCreation = false;
@@ -657,7 +673,7 @@ this.referedTypeStatus=true;
 
         this.employeeObj = Object.assign({}, response.serviceResponse);
 
-        if( this.employeeObj.domainList != null){
+        if (this.employeeObj.domainList != null) {
           this.getDomainSpecialization();
         }
         // employee.employeementId = this.utilityService.appendEmployeementid(this.employeeObj.employeementId)
@@ -668,12 +684,12 @@ this.referedTypeStatus=true;
         //   this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
         // }
         this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
-        if (this.employeeObj.isConsultant == 'true') 
+        if (this.employeeObj.isConsultant == 'true')
           this.employeeObj.employeeType = 'Consultant';
         else if (this.employeeObj.isApprenticeship == 'true')
-          this.employeeObj.employeeType =  'Apprentice';
+          this.employeeObj.employeeType = 'Apprentice';
         else
-        this.employeeObj.employeeType = 'Regular';
+          this.employeeObj.employeeType = 'Regular';
 
         console.log("employee :", this.employeeObj);
         // employee.employeementId = this.utilityService.appendEmployeementid(employee.employeementId);
@@ -702,7 +718,7 @@ this.referedTypeStatus=true;
     this.getAllDepartmentList();
     this.getAllDomain();
 
-    employee.employeementId = this.utilityService.substringEmployeementid(employee.isConsultant,employee.employeementId);
+    employee.employeementId = this.utilityService.substringEmployeementid(employee.isConsultant, employee.employeementId);
     this.employeeService.getDraftEmployeeByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeObj = Object.assign({}, response.serviceResponse);
@@ -1075,30 +1091,30 @@ this.referedTypeStatus=true;
       return false;
     }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.reportiesFlag)) {
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.reportiesFlag) && this.isUpdation) {
       this.alertMessage = "Please enter 'Do you want to change the reporting of your reportees ?' "
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
 
-   if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.billable)) {
-    this.alertMessage = "Please select a value for 'Billable'";
-    this.openAlertMod(template, this.alertMessage);
-    return false;
+    if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.billable)) {
+      this.alertMessage = "Please select a value for 'Billable'";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
 
-    if (this.employeeObj.billable === 'No' && 
-        !this.validationService.validateNullUndefinedEmptyString(this.employeeObj.billableType)) {
-        this.alertMessage = "Please select a value for 'Billable Type' when Billable is set to 'No'";
-        this.openAlertMod(template, this.alertMessage);
-        return false;
+    if (this.employeeObj.billable === 'No' &&
+      !this.validationService.validateNullUndefinedEmptyString(this.employeeObj.billableType)) {
+      this.alertMessage = "Please select a value for 'Billable Type' when Billable is set to 'No'";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
 
-    if (this.employeeObj.billable === 'Yes' && 
-        !this.validationService.validateNullUndefinedEmptyString(this.employeeObj.billableType)) {
-        this.alertMessage = "Please select a value for 'Billable Type' when Billable is set to 'Yes'";
-        this.openAlertMod(template, this.alertMessage);
-        return false;
+    if (this.employeeObj.billable === 'Yes' &&
+      !this.validationService.validateNullUndefinedEmptyString(this.employeeObj.billableType)) {
+      this.alertMessage = "Please select a value for 'Billable Type' when Billable is set to 'Yes'";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.employmentstatus)) {
@@ -1111,7 +1127,7 @@ this.referedTypeStatus=true;
       this.alertMessage = "Please enter Probation period !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }if (employeeObj.probationPeriod > 365 || employeeObj.probationPeriod < 0) {
+    } if (employeeObj.probationPeriod > 365 || employeeObj.probationPeriod < 0) {
       this.alertMessage = "Please enter value 0 to 365 in probation period field !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -1135,13 +1151,13 @@ this.referedTypeStatus=true;
       return false;
     }
 
-    if(employeeObj.employmentstatus == "Resigned"){
+    if (employeeObj.employmentstatus == "Resigned") {
       if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfResign)) {
         this.alertMessage = "Please enter date of Resign !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
-    }else if(employeeObj.employmentstatus == "InActive"){
+    } else if (employeeObj.employmentstatus == "InActive") {
       if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfResign)) {
         this.alertMessage = "Please enter date of Resign !!"
         this.openAlertMod(template, this.alertMessage);
@@ -1161,7 +1177,7 @@ this.referedTypeStatus=true;
       return false;
     }
 
-    if(employeeObj.reportingManagerId){
+    if (employeeObj.reportingManagerId) {
       if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.approvalsTo)) {
         this.alertMessage = "Please select Approvals To !!"
         this.openAlertMod(template, this.alertMessage);
@@ -1192,26 +1208,26 @@ this.referedTypeStatus=true;
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    if(employeeObj.experience =='Experienced'){
+    if (employeeObj.experience == 'Experienced') {
       if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.totalExperience)) {
         this.alertMessage = "Please enter total experience !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
-      if(employeeObj.totalExperience === 0){
+      if (employeeObj.totalExperience === 0) {
         this.alertMessage = "Please enter more than 0 number !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
-        if (!this.validationService.validateExperiencedNumber(employeeObj.totalExperience)) {
-          this.alertMessage = "Please enter valid experience in Format (Years.Months)  !!"
-          this.openAlertMod(template, this.alertMessage);
-          return false;
-        }	 if (employeeObj.totalExperience > 60) {
-          this.alertMessage = "Please enter value 1 to 60(yrs) in total experience field !!"
-          this.openAlertMod(template, this.alertMessage);
-          return false;
-        }
+      if (!this.validationService.validateExperiencedNumber(employeeObj.totalExperience)) {
+        this.alertMessage = "Please enter valid experience in Format (Years.Months)  !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      } if (employeeObj.totalExperience > 60) {
+        this.alertMessage = "Please enter value 1 to 60(yrs) in total experience field !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
 
     }
 
@@ -1226,7 +1242,7 @@ this.referedTypeStatus=true;
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    if(employeeObj.employmentstatus == 'Resigned'){
+    if (employeeObj.employmentstatus == 'Resigned') {
       if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfResign)) {
         this.alertMessage = "Please Enter Resign Date !!"
         this.openAlertMod(template, this.alertMessage);
@@ -1374,64 +1390,61 @@ this.referedTypeStatus=true;
     return true;
   }
 
-  omit_character(event){
+  omit_character(event) {
     var k;
     k = event.charCode;
-    if((k == 45) || (k == 69) || (k == 101 ))
-    {
+    if ((k == 45) || (k == 69) || (k == 101)) {
       return (false);
     }
     return (true);
   }
 
-  fieldRestictCharacter(event){
+  fieldRestictCharacter(event) {
     var k;
     k = event.charCode;
-    if((k == 33) || (k == 34) || (k == 35) || (k == 36 ) || (k == 37) ||
-    (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42 ) ||
-    (k == 43) || (k == 44) || (k == 46 ) || (k == 47) || (k == 58) ||
-     (k == 59) || (k == 60) || (k == 61) || (k == 62 ) || (k == 63) ||
-     (k == 64) || (k == 66 ) || (k == 67) || (k == 68) || (k == 69 ) ||
-      (k == 70) || (k == 71) || (k == 72 ) || (k == 73) || (k == 74) ||
-      (k == 75 ) || (k == 76) || (k == 77) || (k == 78) || (k == 79) ||
-      (k == 80) || (k == 81 ) || (k == 82) || (k == 83) || (k == 84) ||
-       (k == 85) ||  (k == 86) || (k == 87 ) || (k == 88) || (k == 89) ||
+    if ((k == 33) || (k == 34) || (k == 35) || (k == 36) || (k == 37) ||
+      (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42) ||
+      (k == 43) || (k == 44) || (k == 46) || (k == 47) || (k == 58) ||
+      (k == 59) || (k == 60) || (k == 61) || (k == 62) || (k == 63) ||
+      (k == 64) || (k == 66) || (k == 67) || (k == 68) || (k == 69) ||
+      (k == 70) || (k == 71) || (k == 72) || (k == 73) || (k == 74) ||
+      (k == 75) || (k == 76) || (k == 77) || (k == 78) || (k == 79) ||
+      (k == 80) || (k == 81) || (k == 82) || (k == 83) || (k == 84) ||
+      (k == 85) || (k == 86) || (k == 87) || (k == 88) || (k == 89) ||
       (k == 90) || (k == 91) || (k == 92) || (k == 93) || (k == 94) ||
-      (k == 95) || (k == 96) || (k == 97) || (k == 98 ) || (k == 99) ||
-    (k == 99) || (k == 100) || (k == 101) || (k == 102) || (k == 103 ) ||
-    (k == 104) || (k == 105) || (k == 106 ) || (k == 107) || (k == 108) ||
-     (k == 109) || (k == 110) || (k == 111) || (k == 112 ) || (k == 113) ||
-     (k == 114) || (k == 115 ) || (k == 116) || (k == 117) || (k == 118 ) ||
-       (k == 119) || (k == 120) || (k == 121) || (k == 122) || (k == 123) ||
-        (k == 124) || (k == 125) || (k == 126))
-    {
+      (k == 95) || (k == 96) || (k == 97) || (k == 98) || (k == 99) ||
+      (k == 99) || (k == 100) || (k == 101) || (k == 102) || (k == 103) ||
+      (k == 104) || (k == 105) || (k == 106) || (k == 107) || (k == 108) ||
+      (k == 109) || (k == 110) || (k == 111) || (k == 112) || (k == 113) ||
+      (k == 114) || (k == 115) || (k == 116) || (k == 117) || (k == 118) ||
+      (k == 119) || (k == 120) || (k == 121) || (k == 122) || (k == 123) ||
+      (k == 124) || (k == 125) || (k == 126)) {
       return (false);
     }
     return (true);
 
   }
- 
-  fieldRestictCharacterCS(event){
+
+  fieldRestictCharacterCS(event) {
     var k;
     k = event.charCode;
-    if((k == 33) || (k == 34) || (k == 35) || (k == 36 ) || (k == 37) ||
-    (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42 ) ||
-    (k == 43) || (k == 44) || (k == 46 ) || (k == 47) || (k == 58) ||
-     (k == 59) || (k == 60) || (k == 61) || (k == 62 ) || (k == 63) ||
-     (k == 64) || (k == 66 ) || (k == 68) || (k == 69 ) ||
-      (k == 70) || (k == 71) || (k == 72 ) || (k == 73) || (k == 74) ||
-      (k == 75 ) || (k == 76) || (k == 77) || (k == 78) || (k == 79) ||
-      (k == 80) || (k == 81 ) || (k == 82) || (k == 84) ||
-       (k == 85) ||  (k == 86) || (k == 87 ) || (k == 88) || (k == 89) ||
+    if ((k == 33) || (k == 34) || (k == 35) || (k == 36) || (k == 37) ||
+      (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42) ||
+      (k == 43) || (k == 44) || (k == 46) || (k == 47) || (k == 58) ||
+      (k == 59) || (k == 60) || (k == 61) || (k == 62) || (k == 63) ||
+      (k == 64) || (k == 66) || (k == 68) || (k == 69) ||
+      (k == 70) || (k == 71) || (k == 72) || (k == 73) || (k == 74) ||
+      (k == 75) || (k == 76) || (k == 77) || (k == 78) || (k == 79) ||
+      (k == 80) || (k == 81) || (k == 82) || (k == 84) ||
+      (k == 85) || (k == 86) || (k == 87) || (k == 88) || (k == 89) ||
       (k == 90) || (k == 91) || (k == 92) || (k == 93) || (k == 94) ||
-      (k == 95) || (k == 96) || (k == 97) || (k == 98 ) || (k == 99) ||
-    (k == 99) || (k == 100) || (k == 101) || (k == 102) || (k == 103 ) ||
-    (k == 104) || (k == 105) || (k == 106 ) || (k == 107) || (k == 108) ||
-     (k == 109) || (k == 110) || (k == 111) || (k == 112 ) || (k == 113) ||
-     (k == 114) || (k == 115 ) || (k == 116) || (k == 117) || (k == 118 ) ||
-       (k == 119) || (k == 120) || (k == 121) || (k == 122) || (k == 123) ||
-        (k == 124) || (k == 125) || (k == 126))
-    {
+      (k == 95) || (k == 96) || (k == 97) || (k == 98) || (k == 99) ||
+      (k == 99) || (k == 100) || (k == 101) || (k == 102) || (k == 103) ||
+      (k == 104) || (k == 105) || (k == 106) || (k == 107) || (k == 108) ||
+      (k == 109) || (k == 110) || (k == 111) || (k == 112) || (k == 113) ||
+      (k == 114) || (k == 115) || (k == 116) || (k == 117) || (k == 118) ||
+      (k == 119) || (k == 120) || (k == 121) || (k == 122) || (k == 123) ||
+      (k == 124) || (k == 125) || (k == 126)) {
       return (false);
     }
     return (true);
@@ -1453,12 +1466,12 @@ this.referedTypeStatus=true;
 
     this.employeeObj.isDraft = false;
     // transform date formats to YYYY-MM-DD
-    this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth ).format(dateFormat);
+    this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth).format(dateFormat);
     this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat);
 
 
     this.employeeObj.certifications = (Object.keys(this.allCertificationList[0]).length === 0) ? null : this.allCertificationList;
-    if(this.employeeObj.certifications){
+    if (this.employeeObj.certifications) {
       this.employeeObj.certifications.forEach(certificate => {
         certificate.dateOfCompletion = moment(certificate.dateOfCompletion).format(dateFormat);
       });
@@ -1466,8 +1479,8 @@ this.referedTypeStatus=true;
     this.employeeObj.previousEmploymentList = (Object.keys(this.allPreviousEmployment[0]).length === 0) ? null : this.allPreviousEmployment;
     this.employeeObj.createdBy = this.currentUser.empId;
     console.log("Create Employe : ", this.employeeObj);
-   let employee = Object.assign({},this.employeeObj)
-    employee.employeementId = this.utilityService.substringEmployeementid(this.employeeObj.isConsultant,this.employeeObj.employeementId);
+    let employee = Object.assign({}, this.employeeObj)
+    employee.employeementId = this.utilityService.substringEmployeementid(this.employeeObj.isConsultant, this.employeeObj.employeementId);
 
     // if(this.employeeObj.employeementId.startsWith('A-CS-')){
     //   employee.employeementId  = this.employeeObj.employeementId.substring(5);
@@ -1479,14 +1492,20 @@ this.referedTypeStatus=true;
     //   employee.employeementId  = this.employeeObj.employeementId
     // }
 
-    if(this.employeeObj.employeementId.startsWith('A-')){
-      employee.employeementId  = this.employeeObj.employeementId.substring(2);
+    if (this.employeeObj.employeementId.startsWith('A-')) {
+      employee.employeementId = this.employeeObj.employeementId.substring(2);
       console.log("Employee :", this.employeeObj);
-    }else {
-      employee.employeementId  = this.employeeObj.employeementId
+    } else {
+      employee.employeementId = this.employeeObj.employeementId
     }
 
-    employee.onbenchDate=this.billableBenchDate;
+    employee.onbenchDate = this.billableBenchDate;
+
+    if (!this.validationService.validateEmployeementId(employee.employeementId)) {
+      this.alertMessage = "Please enter a valid Employment ID !!";
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
 
     this.employeeService.createEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1505,43 +1524,49 @@ this.referedTypeStatus=true;
     employee.empId = this.employeeObj.empId;
     employee.email = this.employeeObj.email;
 
-    // if(this.employeeObj.employeementId.startsWith('A-CS-')){
-    //   if(!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)){
-    //     this.alertMessage = "Please enter Employee ID !!"
-    //     this.openAlertMod(template, this.alertMessage);
-    //     return false;
-    //   }
-    //   employee.employeementId  = this.employeeObj.employeementId.substring(2);
-    //   console.log("Employee :", this.employeeObj);
-    // }else 
-    if(this.employeeObj.employeementId.startsWith('A-')){
-      if(!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)){
+    console.log("employeeid with space", this.employeeObj.employeementId);
+
+    if (this.employeeObj.employeementId.startsWith('A-')) {
+      this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
+      if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)) {
+        this.alertMessage = "Please enter Employee ID !!"
+        this.openAlertMod(template, this.alertMessage);
+        // this.employeeObj.employeementId = 'A-'+this.employeeObj.employeementId;
+        return false;
+      }
+      // employee.employeementId  = this.employeeObj.employeementId.substring(2);
+      console.log("Employee :", this.employeeObj);
+    } else if (this.employeeObj.employeementId.startsWith('A-')) {
+      if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)) {
         this.alertMessage = "Please enter Employee ID !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
-      employee.employeementId  = this.employeeObj.employeementId.substring(2);
+      employee.employeementId = this.employeeObj.employeementId.substring(2);
       console.log("Employee :", this.employeeObj);
     }
     else {
-      employee.employeementId  = this.employeeObj.employeementId
-    if (!this.validationService.validateNullUndefinedEmptyString(employee.employeementId)) {
-      this.alertMessage = "Please enter Employment ID !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
+      employee.employeementId = this.employeeObj.employeementId
+      if (!this.validationService.validateNullUndefinedEmptyString(employee.employeementId)) {
+        this.alertMessage = "Please enter Employment ID !!";
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+
+      if (!this.validationService.validateEmployeementId(employee.employeementId)) {
+        console.log("employeementid please enter valid employmentid", employee.employeementId, this.employeeObj.employeementId);
+        this.alertMessage = "Please enter valid Employment ID !!";
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
     }
-    if (!this.validationService.validateEmployeementId(employee.employeementId)) {
-      this.alertMessage = "Please enter valid Employment ID !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-  }
     this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.openAlertMod(template, response.serviceResponse);
         employee.employeementId = '';
       }
-      console.log("checkEmployeementId response: ",response);
+      this.employeeObj.employeementId = 'A-' + this.employeeObj.employeementId;
+      console.log("checkEmployeementId response: ", response);
     });
   }
 
@@ -1571,16 +1596,19 @@ this.referedTypeStatus=true;
   // }
 
   checkEmail(template: TemplateRef<any>) {
-    let employee = new Employee();
-    employee.employeementId = this.utilityService.getEmployeeIdSubstring(this.employeeObj.isConsultant);
 
+    let employee = new Employee();
+    // employee.employeementId = this.utilityService.getEmployeeIdSubstring(this.employeeObj);
+    employee.employeementId = this.employeeObj.employeementId.substring(2);
+    console.error("employee.employeementId ", employee.employeementId);
     employee.email = this.employeeObj.email;
     employee.empId = this.employeeObj.empId;
+    console.log("checkEmail() triggered with email:", employee.email);
     if (!this.validationService.validateNullUndefinedEmptyString(employee.email)) {
       this.alertMessage = "Please Enter Email ID !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
-}
+    }
 
     if (!this.validationService.validateApmosysEmail(this.employeeObj.email)) {
       this.alertMessage = "Please Enter Valid Email ID !!"
@@ -1589,7 +1617,7 @@ this.referedTypeStatus=true;
       return false;
     }
     this.employeeService.checkEmployeeEmail(employee).pipe(first()).subscribe((response: any) => {
-      console.log("EMAIL-response.serviceResponse: ",response.serviceResponse);
+      console.log("EMAIL-response.serviceResponse: ", response.serviceResponse);
       if (response.serviceStatus == "Fail") {
         this.openAlertMod(template, response.serviceResponse);
         this.employeeObj.email = '';
@@ -1633,8 +1661,8 @@ this.referedTypeStatus=true;
   checkSecondaryEmail(template: TemplateRef<any>) {
 
     const regex = /^(?:[0-9]+[a-z_.]|[a-z_.])[a-z0-9_.]+@apmosys\.com$/i;
-   // const regex = /^[A-Za-z0-9._%+-]+@apmosys\.com$/;
-    if (this.validationService.validateNullUndefinedEmptyString(this.employeeObj.secondaryEmail)){
+    // const regex = /^[A-Za-z0-9._%+-]+@apmosys\.com$/;
+    if (this.validationService.validateNullUndefinedEmptyString(this.employeeObj.secondaryEmail)) {
       if (regex.test(this.employeeObj.secondaryEmail)) {
 
         this.openAlertMod(template, "Apmosys mail Id is not valid in secondary mail !!");
@@ -1645,7 +1673,7 @@ this.referedTypeStatus=true;
 
   // added by anurag on field validation
 
-  ValidateName(template:TemplateRef<any>){
+  ValidateName(template: TemplateRef<any>) {
     this.employeeObj.name = this.employeeObj.name?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.name)) {
       this.alertMessage = "Please enter Full Name !!";
@@ -1654,7 +1682,7 @@ this.referedTypeStatus=true;
     } else if (!this.validationService.validateAlphaWithSpace(this.employeeObj.name)) {
       this.alertMessage = "Please enter Valid Full Name !!";
       this.openAlertMod(template, this.alertMessage);
-      this.employeeObj.name='';
+      this.employeeObj.name = '';
       return false;
     }
   }
@@ -1664,20 +1692,28 @@ this.referedTypeStatus=true;
     employee.employeementId = this.utilityService.getEmployeeIdSubstring(this.employeeObj.isConsultant);
     employee.mobileNo = this.employeeObj.mobileNo;
 
-    if(!this.validationService.validateMobileNumber(employee.mobileNo))
-    {
+    if (!this.validationService.validateMobileNumber(employee.mobileNo)) {
       this.alertMessage = "Enter Valid Mobile Number !!";
       this.openAlertMod(template, this.alertMessage);
       this.employeeObj.mobileNo = '';
     }
 
-    this.employeeService.checkEmployeeMobileNo(employee).pipe(first()).subscribe((response: any) => {
-      console.log("MOB No- response.serviceResponse: ", response.serviceResponse);
-      if (response.serviceStatus == "Fail") {
-        this.openAlertMod(template, response.serviceResponse);
-        this.employeeObj.mobileNo = '';
-      }
-    });
+    else if (!this.validationService.validateNullUndefinedEmptyString(employee.mobileNo)) {
+      this.alertMessage = "Please enter Mobile Number !!";
+      this.openAlertMod(template, this.alertMessage);
+      this.employeeObj.mobileNo = '';
+    }
+
+    else {
+
+      this.employeeService.checkEmployeeMobileNo(employee).pipe(first()).subscribe((response: any) => {
+        console.log("MOB No- response.serviceResponse: ", response.serviceResponse);
+        if (response.serviceStatus == "Fail") {
+          this.openAlertMod(template, response.serviceResponse);
+          this.employeeObj.mobileNo = '';
+        }
+      });
+    }
   }
 
   // checkEmployeeMobileNo(template: TemplateRef<any>) {
@@ -1706,9 +1742,9 @@ this.referedTypeStatus=true;
   updateDesignationDropdown() {
     this.employeeObj.designationId = ''; // Set designation to 'Select' option
   }
-  
+
   isDesignationDisabled() {
-    return !this.employeeObj.departmentId || this.employeeObj.designationId ;
+    return !this.employeeObj.departmentId || this.employeeObj.designationId;
   }
 
   checkEmployeePanNumber(template: TemplateRef<any>) {
@@ -1720,12 +1756,12 @@ this.referedTypeStatus=true;
     });
   }
 
-  clearAfterChange(field, fieldname){
-    let element:any = document.getElementById(field);
-    if(element) element.value = '';
+  clearAfterChange(field, fieldname) {
+    let element: any = document.getElementById(field);
+    if (element) element.value = '';
 
     console.log("value : ", element.value);
-  
+
     this.employeeObj[fieldname] = '';
   }
 
@@ -1733,17 +1769,18 @@ this.referedTypeStatus=true;
     const dateFormat = 'YYYY-MM-DD';
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
     if (!inputValidated) return;
-    this.employeeObj.imageBytes=null;
+    this.employeeObj.imageBytes = null;
     this.employeeObj.isDraft = false;
     // transform date formats to YYYY-MM-DD
-    if(this.employeeObj.dateOfBirth) this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth ).format(dateFormat)
-    if(this.employeeObj.dateOfJoining) this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat)
-    if(this.employeeObj.employeeConfirmationDate) this.employeeObj.employeeConfirmationDate = moment(this.employeeObj.employeeConfirmationDate).format(dateFormat)  
-    if(this.employeeObj.dateOfResign) this.employeeObj.dateOfResign = moment(this.employeeObj.dateOfResign).format(dateFormat)
+    if (this.employeeObj.dateOfBirth) this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth).format(dateFormat)
+    if (this.employeeObj.dateOfJoining) this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat)
+    if (this.employeeObj.employeeConfirmationDate) this.employeeObj.employeeConfirmationDate = moment(this.employeeObj.employeeConfirmationDate).format(dateFormat)
+    if (this.employeeObj.dateOfResign) this.employeeObj.dateOfResign = moment(this.employeeObj.dateOfResign).format(dateFormat)
+    if (this.employeeObj.dateOfRetain) this.employeeObj.dateOfRetain = moment(this.employeeObj.dateOfRetain).format(dateFormat)
 
-    if(this.employeeObj.employmentstatus == "Confirmed" || this.employeeObj.employmentstatus == "Probation" ){
+    if (this.employeeObj.employmentstatus == "Confirmed" || this.employeeObj.employmentstatus == "Probation") {
       this.employeeObj.dateOfResign = null;
-      this.employeeObj.dateOfRelieving= null;
+      this.employeeObj.dateOfRelieving = null;
     }
 
     this.employeeObj.updatedBy = this.currentUser.empId;;
@@ -1762,43 +1799,43 @@ this.referedTypeStatus=true;
     //   employee.employeementId  = this.employeeObj.employeementId
     // }
 
-    if(this.employeeObj.employeementId.startsWith('A-')){
-      employee.employeementId  = this.employeeObj.employeementId.substring(2);
+    if (this.employeeObj.employeementId.startsWith('A-')) {
+      employee.employeementId = this.employeeObj.employeementId.substring(2);
       console.log("Employee :", this.employeeObj);
-    }else {
-      employee.employeementId  = this.employeeObj.employeementId
+    } else {
+      employee.employeementId = this.employeeObj.employeementId
     }
 
     employee.specializationList = this.employeeObj.specializationList;
-    if(this.employeeObj.reportingManagerId == null || this.employeeObj.reportingManagerId == ""){
+    if (this.employeeObj.reportingManagerId == null || this.employeeObj.reportingManagerId == "") {
       employee.reportingManagerId = null;
       employee.approvalsTo = null;
     }
 
-    if(this.employeeObj.reportingManagerId == null || this.employeeObj.reportingManagerId == ""){
+    if (this.employeeObj.reportingManagerId == null || this.employeeObj.reportingManagerId == "") {
       employee.reportingManagerId = null;
       employee.approvalsTo = null;
     }
     employee.newManagerId = this.employeeObj.newManagerId;
-    employee.reportiesFlag = this.employeeObj.reportiesFlag; 
-    employee.referedType==this.employeeObj.referedType;
-    employee.referedName==this.employeeObj.referedName;
-   
-    console.log("employee update before call ",employee);
- 
-    if(this.employeeObj.employeeType === 'Consultant'){
-      employee.isConsultant='true';
-      employee.isApprenticeship='false';
-    }else if(this.employeeObj.employeeType === 'Apprentice'){
-      employee.isConsultant='false';
-      employee.isApprenticeship='true'
-    }else {
-      employee.isConsultant='false';
-      employee.isApprenticeship='false'; 
+    employee.reportiesFlag = this.employeeObj.reportiesFlag;
+    employee.referedType == this.employeeObj.referedType;
+    employee.referedName == this.employeeObj.referedName;
+
+    console.log("employee update before call ", employee);
+
+    if (this.employeeObj.employeeType === 'Consultant') {
+      employee.isConsultant = 'true';
+      employee.isApprenticeship = 'false';
+    } else if (this.employeeObj.employeeType === 'Apprentice') {
+      employee.isConsultant = 'false';
+      employee.isApprenticeship = 'true'
+    } else {
+      employee.isConsultant = 'false';
+      employee.isApprenticeship = 'false';
     }
 
-    employee.onbenchDate=this.billableBenchDate;
-    
+    employee.onbenchDate = this.billableBenchDate;
+
     this.employeeService.updateEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -1831,7 +1868,7 @@ this.referedTypeStatus=true;
     });
   }
 
-  unlockAllTimesheet(template: TemplateRef<any>){
+  unlockAllTimesheet(template: TemplateRef<any>) {
     this.cancelRequest();
     let employeeObj = new Employee();
 
@@ -1874,7 +1911,7 @@ this.referedTypeStatus=true;
           if (response.serviceStatus == "Success") {
             this.openAlertMod(template, response.serviceResponse);
             this.showTable();
-            this.page=1;
+            this.page = 1;
           } else {
             this.openAlertMod(template, response.serviceResponse);
           }
@@ -1890,47 +1927,47 @@ this.referedTypeStatus=true;
     this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
-        console.log(this.allEmployeeList.dateOfRelieving,"dateofREleiving");
+        console.log(this.allEmployeeList.dateOfRelieving, "dateofREleiving");
         console.log("allEmployeeList : ", this.allEmployeeList)
         this.allEmployeeList.forEach(employeeObj => {
-          employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant,employeeObj.employeementId);
-          employeeObj.dateOfJoining = (employeeObj.dateOfJoining)? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-          employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving)? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-          employeeObj.updatedOn = (employeeObj.updatedOn)? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-          employeeObj.createdOn = (employeeObj.createdOn)? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          if (employeeObj.isConsultant == 'true') 
+          employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
+          employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+          employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+          employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+          employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          if (employeeObj.isConsultant == 'true')
             employeeObj.employeeType = 'Consultant';
           else if (employeeObj.isApprenticeship == 'true')
-            employeeObj.employeeType =  'Apprentice';
+            employeeObj.employeeType = 'Apprentice';
           else
-          employeeObj.employeeType = 'Regular';
+            employeeObj.employeeType = 'Regular';
         });
         this._allEmployeeList = this.allEmployeeList;
         this.changeEvent("Active");
         this.onselectYes = false;
 
         // Default Sorting
-        this.allEmployeeList = new SortPipe().transform(this.allEmployeeList, ['name','string', 'asc']);
+        this.allEmployeeList = new SortPipe().transform(this.allEmployeeList, ['name', 'string', 'asc']);
         // this.createEmployeeList(this.allEmployeeList)
-        sessionStorage.setItem('AllEmployees',JSON.stringify(this.allEmployeeList));
+        sessionStorage.setItem('AllEmployees', JSON.stringify(this.allEmployeeList));
       } else {
         alert(response.serviceResponse);
       }
     });
   }
-  changeEvent(value:string){
-    if(value=="Active"){
-        this.allEmployeeList = this._allEmployeeList.filter(x => x.employmentstatus != 'InActive');
-        this.dateOfReleivingshow= false;
-        this.managerFlag = false;
-        this.isActiveTable=true
-    }else if(value=="InActive"){
+  changeEvent(value: string) {
+    if (value == "Active") {
+      this.allEmployeeList = this._allEmployeeList.filter(x => x.employmentstatus != 'InActive');
+      this.dateOfReleivingshow = false;
+      this.managerFlag = false;
+      this.isActiveTable = true
+    } else if (value == "InActive") {
       this.allEmployeeList = this._allEmployeeList.filter(x => x.employmentstatus == 'InActive');
-      this.dateOfReleivingshow= true;
+      this.dateOfReleivingshow = true;
       this.managerFlag = true;
-      this.isActiveTable=false;
+      this.isActiveTable = false;
     }
-    this.page=1;
+    this.page = 1;
   }
   createEmployeeList(allEmployeeList: any) {
     this.managerList = allEmployeeList.map(employee => {
@@ -1948,60 +1985,60 @@ this.referedTypeStatus=true;
       }
       const onlySpecificDataArr = this.employeeDataForExcel.map(
         x => ({
-          "EmployeeId":"A-".concat(x.employeementId),
+          "EmployeeId": "A-".concat(x.employeementId),
           // "EmployeeId":(x.isConsultant === 'true' ? 'A-CS-' : 'A-') + x.employeementId,
-          "Employee Type":x.isConsultant ? 'Consultant' : (x.isApprenticeship ? 'Apprentice' : 'Regular'),
+          "Employee Type": x.isConsultant ? 'Consultant' : (x.isApprenticeship ? 'Apprentice' : 'Regular'),
           "Full Name": x.name,
           "EmailId": x.email,
           "Employment Status": x.employmentstatus,
-          "Date of Joining": (x.dateOfJoining)? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null,
-          "Date of Confirmation": (x.employeeConfirmationDate)? moment(x.employeeConfirmationDate).format(AppComponent.DATE_FORMAT) : null,
-          "Date of Relieving" : (x.dateOfRelieving)? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null,
-          "Employee Release Status" : x.employmentReleaseStatus,
+          "Date of Joining": (x.dateOfJoining) ? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null,
+          "Date of Confirmation": (x.employeeConfirmationDate) ? moment(x.employeeConfirmationDate).format(AppComponent.DATE_FORMAT) : null,
+          "Date of Relieving": (x.dateOfRelieving) ? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null,
+          "Employee Release Status": x.employmentReleaseStatus,
           "Department Name": x.departmentName,
-          "Aadhar":x.aadhar,
-          "About Me":x.aboutMe,
-          "Address":x.address,
-          "Permanent Address":x.permanentAddress,
-          "City":x.city,
-          "Blood Group":x.bloodGroup,
-          "Date Of Birth":(x.dateOfBirth)? moment(x.dateOfBirth).format(AppComponent.DATE_FORMAT) : null,
-          "Gender":x.gender,
-          "Father Name":x.fatherName,
-          "Mobile No":x.mobileNo,
-          "Pan Number":x.panNumber,
-          "Place Of Birth":x.placeOfBirth,
-          "Work Location":x.workLocation,
-          "Probation Period":x.probationPeriod,
-          "Notice Period":x.noticePeriod,
-          "Country":x.country,
-          "Emergency Contact Mobile":x.emergencyContactMobile,
-          "Emergency Contact Person":x.emergencyContactPerson,
-          "Landline":x.landline,
-          "Marital Status":x.maritalStatus,
-          "Mother Tongue":x.motherTongue,
-          "Alternate Mobile No":x.alternateMobileNo,
-          "Pincode":x.pincode,
-          "Relation":x.relation,
-          "State":x.state,
-          "Views On Organisation":x.viewsOnOrganisation,
-          "Passport Number":x.passportNumber,
-          "Bank Account No":x.bankAccountNo,
-          "Bank IFSC Code":x.bankIFSCCode,
-          "Bank Name":x.bankName,
-          "PF Account Number":x.pfAccountNumber,
-          "Previous PF AccountNumber":x.previousPfAccountNumber,
-          "UAN":x.uan,
-          "ESIC Number":x.esicNumber,
-          "Graduation Type":x.graduationType,
-          "Pursuing":x.pursuing,
-          "Passing Grade":x.passingGrade,
-          "Year Of Passing":x.yearOfPassing,
-          "Created By":x.createdBy,
-          "Created On":(x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
+          "Aadhar": x.aadhar,
+          "About Me": x.aboutMe,
+          "Address": x.address,
+          "Permanent Address": x.permanentAddress,
+          "City": x.city,
+          "Blood Group": x.bloodGroup,
+          "Date Of Birth": (x.dateOfBirth) ? moment(x.dateOfBirth).format(AppComponent.DATE_FORMAT) : null,
+          "Gender": x.gender,
+          "Father Name": x.fatherName,
+          "Mobile No": x.mobileNo,
+          "Pan Number": x.panNumber,
+          "Place Of Birth": x.placeOfBirth,
+          "Work Location": x.workLocation,
+          "Probation Period": x.probationPeriod,
+          "Notice Period": x.noticePeriod,
+          "Country": x.country,
+          "Emergency Contact Mobile": x.emergencyContactMobile,
+          "Emergency Contact Person": x.emergencyContactPerson,
+          "Landline": x.landline,
+          "Marital Status": x.maritalStatus,
+          "Mother Tongue": x.motherTongue,
+          "Alternate Mobile No": x.alternateMobileNo,
+          "Pincode": x.pincode,
+          "Relation": x.relation,
+          "State": x.state,
+          "Views On Organisation": x.viewsOnOrganisation,
+          "Passport Number": x.passportNumber,
+          "Bank Account No": x.bankAccountNo,
+          "Bank IFSC Code": x.bankIFSCCode,
+          "Bank Name": x.bankName,
+          "PF Account Number": x.pfAccountNumber,
+          "Previous PF AccountNumber": x.previousPfAccountNumber,
+          "UAN": x.uan,
+          "ESIC Number": x.esicNumber,
+          "Graduation Type": x.graduationType,
+          "Pursuing": x.pursuing,
+          "Passing Grade": x.passingGrade,
+          "Year Of Passing": x.yearOfPassing,
+          "Created By": x.createdBy,
+          "Created On": (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
           "Manager Name": x.managerName,
-          "Job Role":x.jobRoleName,
-          "Designation Name":x.designationName
+          "Job Role": x.jobRoleName,
+          "Designation Name": x.designationName
 
         })
       )
@@ -2009,7 +2046,7 @@ this.referedTypeStatus=true;
     });
   }
 
-  getManagerList(employee?:Employee) {
+  getManagerList(employee?: Employee) {
     this.managerList = [];
     let employeeList = [];
 
@@ -2026,9 +2063,9 @@ this.referedTypeStatus=true;
         employeeList = response.serviceResponse;
 
         console.log("employeeList By Role : ", employeeList)
-        if(this.isUpdation || this.isDeletion){
-          this.managerList = employeeList.filter((manager:Employee) => manager.empId !== employee.empId);
-        }else{
+        if (this.isUpdation || this.isDeletion) {
+          this.managerList = employeeList.filter((manager: Employee) => manager.empId !== employee.empId);
+        } else {
           this.managerList = employeeList;
         }
         console.log("managerList : ", this.managerList)
@@ -2038,83 +2075,83 @@ this.referedTypeStatus=true;
     });
   }
 
-//   onManagerChange(employeeObj: any) {
+  //   onManagerChange(employeeObj: any) {
 
-//     this.onChangeManagerSelection(employeeObj);
+  //     this.onChangeManagerSelection(employeeObj);
 
-//     this.onUpdateTypeChange(employeeObj);
+  //     this.onUpdateTypeChange(employeeObj);
 
-// }
-
-
-
-//   onChangeManagerSelection(employeeObj: any) {
-
-//     // Handle logic when "Do you want to change manager?" field changes
-
-//     if (employeeObj.changeManager === 'no') {
-
-//         employeeObj.employmentReleaseStatus = '';
-
-//         employeeObj.updateType = '';
-
-//         employeeObj.newManagerId = '';
-
-//     }
-
-// }
+  // }
 
 
 
-// onUpdateTypeChange(employeeObj: any) {
+  //   onChangeManagerSelection(employeeObj: any) {
 
-//   // const selectElement = event.target as HTMLSelectElement;
+  //     // Handle logic when "Do you want to change manager?" field changes
 
-//   //   const status = selectElement.value;
+  //     if (employeeObj.changeManager === 'no') {
 
-//   //   if (this.employeeObj.updateType === 'manual') {
+  //         employeeObj.employmentReleaseStatus = '';
 
-//   //     this.openModalForManagerChange(this.changeManagerTemplate, event, this.employeeObj.empId);
+  //         employeeObj.updateType = '';
 
-//   // }
+  //         employeeObj.newManagerId = '';
 
-//     if (this.employeeObj.updateType === 'manual') {
+  //     }
 
-//         this.openModalForManagerChange(this.changeManagerTemplate, event, this.employeeObj.empId);
-
-//     }
-
-// }
-
-// //added by priyadarshini
-
-// onMappingUpdateTypeChange(employeeObj: any) {
-
-//   // Handle logic when "Mapping Update Type" field changes
-
-//   if (employeeObj.updateType !== 'automatic') {
-
-//       employeeObj.newManagerId = '';
-
-//   }
-
-// }
-
-onManagerChange(employeeObj: any) {
-
-  this.onChangeManagerSelection(employeeObj);
-
-  this.onUpdateTypeChange(employeeObj);
-
-}
+  // }
 
 
 
-onChangeManagerSelection(employeeObj: any) {
+  // onUpdateTypeChange(employeeObj: any) {
 
-  // Handle logic when "Do you want to change manager?" field changes
+  //   // const selectElement = event.target as HTMLSelectElement;
 
-  if (employeeObj.changeManager === 'no') {
+  //   //   const status = selectElement.value;
+
+  //   //   if (this.employeeObj.updateType === 'manual') {
+
+  //   //     this.openModalForManagerChange(this.changeManagerTemplate, event, this.employeeObj.empId);
+
+  //   // }
+
+  //     if (this.employeeObj.updateType === 'manual') {
+
+  //         this.openModalForManagerChange(this.changeManagerTemplate, event, this.employeeObj.empId);
+
+  //     }
+
+  // }
+
+  // //added by priyadarshini
+
+  // onMappingUpdateTypeChange(employeeObj: any) {
+
+  //   // Handle logic when "Mapping Update Type" field changes
+
+  //   if (employeeObj.updateType !== 'automatic') {
+
+  //       employeeObj.newManagerId = '';
+
+  //   }
+
+  // }
+
+  onManagerChange(employeeObj: any) {
+
+    this.onChangeManagerSelection(employeeObj);
+
+    this.onUpdateTypeChange(employeeObj);
+
+  }
+
+
+
+  onChangeManagerSelection(employeeObj: any) {
+
+    // Handle logic when "Do you want to change manager?" field changes
+
+    if (employeeObj.changeManager === 'no') {
 
       employeeObj.employmentReleaseStatus = '';
 
@@ -2122,45 +2159,45 @@ onChangeManagerSelection(employeeObj: any) {
 
       employeeObj.newManagerId = '';
 
+    }
+
   }
 
-}
 
 
+  onUpdateTypeChange(employeeObj: any) {
 
-onUpdateTypeChange(employeeObj: any) {
+    // const selectElement = event.target as HTMLSelectElement;
 
-// const selectElement = event.target as HTMLSelectElement;
+    //   const status = selectElement.value;
 
-//   const status = selectElement.value;
+    //   if (this.employeeObj.updateType === 'manual') {
 
-//   if (this.employeeObj.updateType === 'manual') {
+    //     this.openModalForManagerChange(this.changeManagerTemplate, event, this.employeeObj.empId);
 
-//     this.openModalForManagerChange(this.changeManagerTemplate, event, this.employeeObj.empId);
+    // }
 
-// }
-
-  if (this.employeeObj.updateType === 'manual') {
+    if (this.employeeObj.updateType === 'manual') {
 
       this.openModalForManagerChange(this.changeManagerTemplate, event, this.employeeObj.empId);
 
+    }
+
   }
 
-}
 
 
+  onMappingUpdateTypeChange(employeeObj: any) {
 
-onMappingUpdateTypeChange(employeeObj: any) {
+    // Handle logic when "Mapping Update Type" field changes
 
-// Handle logic when "Mapping Update Type" field changes
+    if (employeeObj.updateType !== 'automatic') {
 
-if (employeeObj.updateType !== 'automatic') {
+      employeeObj.newManagerId = '';
 
-    employeeObj.newManagerId = '';
+    }
 
-}
-
-}
+  }
 
 
 
@@ -2172,7 +2209,7 @@ if (employeeObj.updateType !== 'automatic') {
 
     this.employeeObj.isDraft = true;
     // // transform date formats to dd-MM-yyyy
-    this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth ).format(dateFormat);
+    this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth).format(dateFormat);
     this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat);
 
     this.employeeObj.certifications = (Object.keys(this.allCertificationList[0]).length === 0) ? null : this.allCertificationList;
@@ -2193,7 +2230,7 @@ if (employeeObj.updateType !== 'automatic') {
     const dateFormat = 'YYYY-MM-DD';
     this.employeeObj.isDraft = true;
     // // transform date formats to dd-MM-yyyy
-    this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth ).format(dateFormat);
+    this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth).format(dateFormat);
     this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat);
 
     this.employeeObj.certifications = (Object.keys(this.allCertificationList[0]).length === 0) ? null : this.allCertificationList;
@@ -2231,11 +2268,11 @@ if (employeeObj.updateType !== 'automatic') {
     this.employeeService.getAllDraftEmployees(employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
-        for(let x of this.allEmployeeList){
+        for (let x of this.allEmployeeList) {
           x.employeementId = "A-".concat(x.employeementId)
           // x.employeementId = (x.isConsultant === 'true' ? 'A-CS-' : 'A-') + x.employeementId;
-          x.dateOfJoining = (x.dateOfJoining)? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-          x.dateOfRelieving = (x.dateOfRelieving)? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+          x.dateOfJoining = (x.dateOfJoining) ? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+          x.dateOfRelieving = (x.dateOfRelieving) ? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
         }
         console.log("allDraftEmployeeList : ", this.allEmployeeList)
       } else {
@@ -2258,14 +2295,14 @@ if (employeeObj.updateType !== 'automatic') {
     });
   }
 
-  getDesignationByDeptId(departmentId:any){
+  getDesignationByDeptId(departmentId: any) {
     let designationObj = new Designation();
     designationObj.deptId = departmentId;
 
     this.destinationService.getDesignationByDeptId(designationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-       this.allDesignationList = response.serviceResponse;
-       console.log(this.allDesignationList, " : allDesignationList");
+        this.allDesignationList = response.serviceResponse;
+        console.log(this.allDesignationList, " : allDesignationList");
       } else {
         console.error(response.serviceResponse)
       }
@@ -2285,17 +2322,17 @@ if (employeeObj.updateType !== 'automatic') {
     });
   }
 
-  getJobRolesByDept(departmentId: any, jobRoleId?:any) {
+  getJobRolesByDept(departmentId: any, jobRoleId?: any) {
     this.filteredJobRoleList = [];
     this.filteredJobRoleList = this.allJobRoleList.filter(jobRole => jobRole.departmentId == departmentId);
-    jobRoleId? this.employeeObj.jobRoleId = jobRoleId : this.employeeObj.jobRoleId = '';
+    jobRoleId ? this.employeeObj.jobRoleId = jobRoleId : this.employeeObj.jobRoleId = '';
   }
 
-  validateBirthDate(template: TemplateRef<any>){
+  validateBirthDate(template: TemplateRef<any>) {
     let birthdate = new Date(this.employeeObj.dateOfBirth);
     let dtCurrent = new Date();
     let flag = true;
-    let dobInput:any = document.getElementById('DOB');
+    let dobInput: any = document.getElementById('DOB');
 
     if (dtCurrent.getFullYear() - birthdate.getFullYear() > 60) {
       this.openAlertMod(template, 'Employee age cannot be more than 60 years.');
@@ -2314,14 +2351,14 @@ if (employeeObj.updateType !== 'automatic') {
       }
 
       if (dtCurrent.getMonth() == birthdate.getMonth()) {
-          //CD: 11/06/2018 and DB: 15/06/2000. Will turned 18 on 15/06/2018.
-          if (dtCurrent.getDate() < birthdate.getDate()) {
-            this.openAlertMod(template, 'Employee age cannot be less than 18 years.');
-            flag = false;
-          }
+        //CD: 11/06/2018 and DB: 15/06/2000. Will turned 18 on 15/06/2018.
+        if (dtCurrent.getDate() < birthdate.getDate()) {
+          this.openAlertMod(template, 'Employee age cannot be less than 18 years.');
+          flag = false;
+        }
       }
     }
-    if(!flag) {
+    if (!flag) {
       setTimeout(() => {
         dobInput.value = '';
         this.employeeObj.dateOfBirth = '';
@@ -2329,12 +2366,12 @@ if (employeeObj.updateType !== 'automatic') {
     }
   }
 
-  rejectDraftEmployeeApplication(template: TemplateRef<any>){
-    if(!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.remarks)){
+  rejectDraftEmployeeApplication(template: TemplateRef<any>) {
+    if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.remarks)) {
       this.alertMessage = "Please enter Reason for Rejecting !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    } if(!this.validationService.validateTeamName(this.employeeObj.remarks.trim())){
+    } if (!this.validationService.validateTeamName(this.employeeObj.remarks.trim())) {
       this.alertMessage = "Enter Valid Reason for Rejecting !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -2343,12 +2380,12 @@ if (employeeObj.updateType !== 'automatic') {
     this.cancelRequest();
     this.cancelApplication();
     this.employeeObj.updateApplicationStatus = 'Rejected';
-    this.employeeObj.updatedBy = this.currentUser.empId ;
-    if(this.employeeObj.documentList){
-      this.employeeObj.documentList.forEach((doc:Document) => doc.documentBytes = null);
+    this.employeeObj.updatedBy = this.currentUser.empId;
+    if (this.employeeObj.documentList) {
+      this.employeeObj.documentList.forEach((doc: Document) => doc.documentBytes = null);
     }
     this.employeeObj.remarks = this.employeeObj.remarks?.trim();
-    console.log(" reject KYC :  ",this.employeeObj)
+    console.log(" reject KYC :  ", this.employeeObj)
     this.employeeService.rejectDraftEmployeeApplication(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
@@ -2361,65 +2398,65 @@ if (employeeObj.updateType !== 'automatic') {
   }
 
   // Method to convert file to Base64
-// convertFileToBase64(file: File): Promise<string> {
-//   return new Promise((resolve, reject) => {
-//     const reader = new FileReader();
-//     reader.readAsDataURL(file);
-//     reader.onload = () => resolve(reader.result as string);
-//     reader.onerror = error => reject(error);
-//   });
-// }
+  // convertFileToBase64(file: File): Promise<string> {
+  //   return new Promise((resolve, reject) => {
+  //     const reader = new FileReader();
+  //     reader.readAsDataURL(file);
+  //     reader.onload = () => resolve(reader.result as string);
+  //     reader.onerror = error => reject(error);
+  //   });
+  // }
 
-// public getDocumentType(document: any): string {
-//   return document.documentType;
-// }
+  // public getDocumentType(document: any): string {
+  //   return document.documentType;
+  // }
 
 
-// async handleFileInput(event: any) {
-//   const files: FileList = event.target.files;
+  // async handleFileInput(event: any) {
+  //   const files: FileList = event.target.files;
 
-//   this.employeeObj.documentList = []; // Reset document list if needed
+  //   this.employeeObj.documentList = []; // Reset document list if needed
 
-//   for (let i = 0; i < files.length; i++) {
-//     const file = files[i];
-//     const base64String = await this.convertFileToBase64(file);
-    
-//     // Assuming documentList is an array of document objects
-//     this.employeeObj.documentList.push({
-//       documentName: file.name,
-//       documentBytes: base64String.split(',')[1], // Extract Base64 data without prefix
-//       documentType: this.getDocumentType(file.name), // Get document type based on your logic
-//       isDraft: 'true', // or any value you use
-//     });
-//   }
-// }
+  //   for (let i = 0; i < files.length; i++) {
+  //     const file = files[i];
+  //     const base64String = await this.convertFileToBase64(file);
 
-// approveDraftEmployeeApplication(template: TemplateRef<any>) {
-//   this.cancelRequest();
-//   this.cancelApplication();
-//   this.employeeObj.updateApplicationStatus = 'Approved';
-//   this.employeeObj.updatedBy = this.currentUser.empId;
+  //     // Assuming documentList is an array of document objects
+  //     this.employeeObj.documentList.push({
+  //       documentName: file.name,
+  //       documentBytes: base64String.split(',')[1], // Extract Base64 data without prefix
+  //       documentType: this.getDocumentType(file.name), // Get document type based on your logic
+  //       isDraft: 'true', // or any value you use
+  //     });
+  //   }
+  // }
 
-//   this.employeeService.approveDraftEmployeeApplication(this.employeeObj)
-//     .pipe(first())
-//     .subscribe((response: any) => {
-//       if (response.serviceStatus === "Success") {
-//         this.allEmployeeList = response.serviceResponse;
-//         this.openAlertMod(template, response.serviceResponse);
-//         this.showDraftTable();
-//       } else {
-//         this.openAlertMod(template, response.serviceResponse);
-//       }
-//     });
-// }
+  // approveDraftEmployeeApplication(template: TemplateRef<any>) {
+  //   this.cancelRequest();
+  //   this.cancelApplication();
+  //   this.employeeObj.updateApplicationStatus = 'Approved';
+  //   this.employeeObj.updatedBy = this.currentUser.empId;
 
-  approveDraftEmployeeApplication(template: TemplateRef<any>){
+  //   this.employeeService.approveDraftEmployeeApplication(this.employeeObj)
+  //     .pipe(first())
+  //     .subscribe((response: any) => {
+  //       if (response.serviceStatus === "Success") {
+  //         this.allEmployeeList = response.serviceResponse;
+  //         this.openAlertMod(template, response.serviceResponse);
+  //         this.showDraftTable();
+  //       } else {
+  //         this.openAlertMod(template, response.serviceResponse);
+  //       }
+  //     });
+  // }
+
+  approveDraftEmployeeApplication(template: TemplateRef<any>) {
     this.cancelRequest();
     this.cancelApplication();
     this.employeeObj.updateApplicationStatus = 'Approved';
-    this.employeeObj.updatedBy = this.currentUser.empId ;
-    if(this.employeeObj.documentList){
-      this.employeeObj.documentList.forEach((doc:Document) => doc.documentBytes = null);
+    this.employeeObj.updatedBy = this.currentUser.empId;
+    if (this.employeeObj.documentList) {
+      this.employeeObj.documentList.forEach((doc: Document) => doc.documentBytes = null);
     }
     this.employeeService.approveDraftEmployeeApplication(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -2445,12 +2482,12 @@ if (employeeObj.updateType !== 'automatic') {
     // }
     currentEmp.employeementId = employeeObj.employeementId.substring(2);
 
-    console.log("employment id : ",currentEmp);
+    console.log("employment id : ", currentEmp);
 
     currentEmp.empId = employeeObj.empId;
     currentEmp.isDraft = true;
 
-    console.log("employeeObj.isConsultant",employeeObj.isConsultant);
+    console.log("employeeObj.isConsultant", employeeObj.isConsultant);
 
     currentEmp.isConsultant = employeeObj.isConsultant;
 
@@ -2464,21 +2501,21 @@ if (employeeObj.updateType !== 'automatic') {
       console.error(infoResponse.serviceResponse)
     }
 
-    const docResponse:any = await this.imageService.getEmployeeDocuments(currentEmp).toPromise();
+    const docResponse: any = await this.imageService.getEmployeeDocuments(currentEmp).toPromise();
     if (docResponse.serviceStatus == 'Success') {
       this.previewObj.documentList = docResponse.serviceResponse;
       console.log("this.previewObj.documentList : ", this.previewObj.documentList);
     } else {
       console.log(docResponse.serviceResponse);
     }
-    this.previewModalRef = this.modalService.show(template, { class: 'modal-xl'});
-    setTimeout(()=>{
+    this.previewModalRef = this.modalService.show(template, { class: 'modal-xl' });
+    setTimeout(() => {
       this.previewObj.documentList.forEach((doc, index) => {
         if (doc.documentBytes) {
           let preview = document.getElementById(`docPreview${index + 1}`);
-            let objectURL = 'data:image/*;base64,' + doc.documentBytes;
-            let src: string = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(objectURL));
-            preview.setAttribute('src', src);
+          let objectURL = 'data:image/*;base64,' + doc.documentBytes;
+          let src: string = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(objectURL));
+          preview.setAttribute('src', src);
         }
       });
     }, 500)
@@ -2510,7 +2547,7 @@ if (employeeObj.updateType !== 'automatic') {
       console.error(infoResponse.serviceResponse)
     }
 
-    const docResponse:any = await this.imageService.getEmployeeDocuments(currentEmp).toPromise();
+    const docResponse: any = await this.imageService.getEmployeeDocuments(currentEmp).toPromise();
     if (docResponse.serviceStatus == 'Success') {
       this.previewEmployeeObj.documentList = docResponse.serviceResponse;
       console.log("this.previewObj.documentList : ", this.previewEmployeeObj.documentList);
@@ -2520,22 +2557,22 @@ if (employeeObj.updateType !== 'automatic') {
 
     let domainObj = new Domain();
     domainObj.empId = employeeObj.empId;
-    const domainResponse:any = await this.domainService.getDomainSpecializationByEmpId(domainObj).toPromise();
-      if (domainResponse.serviceStatus == "Success") {
-        this.domainSpecializationList = domainResponse.serviceResponse;
-        console.log(this.domainSpecializationList, " : this.domainSpecializationList");
-      } else {
-        console.error(domainResponse.serviceResponse);
-      }
+    const domainResponse: any = await this.domainService.getDomainSpecializationByEmpId(domainObj).toPromise();
+    if (domainResponse.serviceStatus == "Success") {
+      this.domainSpecializationList = domainResponse.serviceResponse;
+      console.log(this.domainSpecializationList, " : this.domainSpecializationList");
+    } else {
+      console.error(domainResponse.serviceResponse);
+    }
 
-    this.previewModalRef = this.modalService.show(template, { class: 'modal-xl'});
-    setTimeout(()=>{
+    this.previewModalRef = this.modalService.show(template, { class: 'modal-xl' });
+    setTimeout(() => {
       this.previewEmployeeObj.documentList && this.previewEmployeeObj.documentList.forEach((doc, index) => {
         if (doc.documentBytes) {
           let preview = document.getElementById(`docPreview${index + 1}`);
-            let objectURL = 'data:image/*;base64,' + doc.documentBytes;
-            let src: string = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(objectURL));
-            preview.setAttribute('src', src);
+          let objectURL = 'data:image/*;base64,' + doc.documentBytes;
+          let src: string = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(objectURL));
+          preview.setAttribute('src', src);
         }
       });
     }, 500)
@@ -2544,17 +2581,17 @@ if (employeeObj.updateType !== 'automatic') {
   openModalForManagerChange(template: TemplateRef<any>, event: Event, employeeId: string) {
     this.filters = {};
     const eventValue = (event.target as HTMLSelectElement).value;
-   // Open modal only if the updateType is 'manual'
-   if (this.employeeObj.updateType === 'manual') {
-    this.employeeService.getTotalNoOfreporties(employeeId).pipe(first()).subscribe((response: any) => {
+    // Open modal only if the updateType is 'manual'
+    if (this.employeeObj.updateType === 'manual') {
+      this.employeeService.getTotalNoOfreporties(employeeId).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === 'Success') {
-            this.listOfReporties = response.serviceResponse;
+          this.listOfReporties = response.serviceResponse;
         }
-    });
-    this.isSearchEnabled = false;
-        this.modalRef = this.modalService.show(template, { class: 'modal-sm', backdrop: 'static', keyboard: false });
+      });
+      this.isSearchEnabled = false;
+      this.modalRef = this.modalService.show(template, { class: 'modal-sm', backdrop: 'static', keyboard: false });
+    }
   }
-}
 
 
   // openModalForManagerChange(updateType,template: TemplateRef<any>, event,employeeId) {
@@ -2565,7 +2602,7 @@ if (employeeObj.updateType !== 'automatic') {
   //   // if(eventValue == 'InActive'){
   //   if(eventValue == 'manual'){
   //     var id = employeeId
-   
+
   //     this.employeeService.getTotalNoOfreporties(id).pipe(first()).subscribe((response : any)=>{
   //       if(response.serviceStatus == 'Success'){
   //         this.listOfReporties = response.serviceResponse;
@@ -2575,7 +2612,7 @@ if (employeeObj.updateType !== 'automatic') {
   //     //console.log(" empId    ",empId);
   //     this.isSearchEnabled = false;
   //     //console.log("Log    eventValue    ",eventValue);
-    
+
   //     this.modalRef = this.modalService.show(template, { class: 'modal-sm' ,  backdrop: 'static', keyboard: false });
   //   }
   // }
@@ -2586,7 +2623,7 @@ if (employeeObj.updateType !== 'automatic') {
   //   var eventValue = event.target.value;
   //   if(eventValue == 'InActive'){
   //     var id = employeeId
-   
+
   //     this.employeeService.getTotalNoOfreporties(id).pipe(first()).subscribe((response : any)=>{
   //       if(response.serviceStatus == 'Success'){
   //         this.listOfReporties = response.serviceResponse;
@@ -2596,65 +2633,64 @@ if (employeeObj.updateType !== 'automatic') {
   //     console.log(" empId    ",empId);
   //     this.isSearchEnabled = false;
   //     //console.log("Log    eventValue    ",eventValue);
-    
+
   //     this.modalRef = this.modalService.show(template, { class: 'modal-sm' ,  backdrop: 'static', keyboard: false });
   //   }
   // }
 
 
 
-  
 
-  RestrictFullName(event){
+
+  RestrictFullName(event) {
     var k;
-    k= event.charCode;
-    if((k == 33) || (k == 34) || (k == 35) || (k == 36 ) || (k == 37) ||
-    (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42 ) ||
-    (k == 43) || (k == 44) ||(k == 45) || (k == 46 ) || (k == 47) || (k == 48) ||
-    (k == 49) ||(k == 50) ||(k == 51) ||(k == 52) ||(k == 53) ||(k == 54) ||(k == 55) ||
-    (k == 56) ||(k == 57) || (k == 58) ||
-     (k == 59) || (k == 60) || (k == 61) || (k == 62 ) || (k == 63) ||
-     (k == 64) || (k == 91) || (k == 92) || (k == 93) || (k == 94) ||
+    k = event.charCode;
+    if ((k == 33) || (k == 34) || (k == 35) || (k == 36) || (k == 37) ||
+      (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42) ||
+      (k == 43) || (k == 44) || (k == 45) || (k == 46) || (k == 47) || (k == 48) ||
+      (k == 49) || (k == 50) || (k == 51) || (k == 52) || (k == 53) || (k == 54) || (k == 55) ||
+      (k == 56) || (k == 57) || (k == 58) ||
+      (k == 59) || (k == 60) || (k == 61) || (k == 62) || (k == 63) ||
+      (k == 64) || (k == 91) || (k == 92) || (k == 93) || (k == 94) ||
       (k == 95) || (k == 96) || (k == 123) ||
-        (k == 124) || (k == 125) || (k == 126) || (k == 127))
-        {
-          return (false);
-        }
-        return (true);
+      (k == 124) || (k == 125) || (k == 126) || (k == 127)) {
+      return (false);
+    }
+    return (true);
 
 
   }
 
-  fieldRestictCharacterForNumber(event){
+  fieldRestictCharacterForNumber(event) {
     var k;
     k = event.charCode;
-if((k == 32) || (k == 33) || (k == 34) || (k == 35) || (k == 36) || (k == 37) || (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42) || (k == 43) ||
-(k == 44) || (k == 45) || (k == 46) || (k == 47) ||(k == 97) || (k == 98 ) || (k == 99) ||
-(k == 99) || (k == 100) || (k == 101) || (k == 102) || (k == 103 ) ||
-(k == 104) || (k == 105) || (k == 106 ) || (k == 107) || (k == 108) ||
- (k == 109) || (k == 110) || (k == 111) || (k == 112 ) || (k == 113) ||
- (k == 114) || (k == 115 ) || (k == 116) || (k == 117) || (k == 118 ) ||
-   (k == 119) || (k == 120) || (k == 121) || (k == 122) || (k == 46) || (k == 65) || (k == 66 ) || (k == 67) || (k == 68) || (k == 69 ) ||
-   (k == 70) || (k == 71) || (k == 72 ) || (k == 73) || (k == 74) ||
-   (k == 75 ) || (k == 76) || (k == 77) || (k == 78) || (k == 79) ||
-   (k == 80) || (k == 81 ) || (k == 82) || (k == 83) || (k == 84) ||
-    (k == 85) ||  (k == 86) || (k == 87 ) || (k == 88) || (k == 89) ||
-   (k == 90) ){
-  return (false);
-}
-return true; 
- }
+    if ((k == 32) || (k == 33) || (k == 34) || (k == 35) || (k == 36) || (k == 37) || (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42) || (k == 43) ||
+      (k == 44) || (k == 45) || (k == 46) || (k == 47) || (k == 97) || (k == 98) || (k == 99) ||
+      (k == 99) || (k == 100) || (k == 101) || (k == 102) || (k == 103) ||
+      (k == 104) || (k == 105) || (k == 106) || (k == 107) || (k == 108) ||
+      (k == 109) || (k == 110) || (k == 111) || (k == 112) || (k == 113) ||
+      (k == 114) || (k == 115) || (k == 116) || (k == 117) || (k == 118) ||
+      (k == 119) || (k == 120) || (k == 121) || (k == 122) || (k == 46) || (k == 65) || (k == 66) || (k == 67) || (k == 68) || (k == 69) ||
+      (k == 70) || (k == 71) || (k == 72) || (k == 73) || (k == 74) ||
+      (k == 75) || (k == 76) || (k == 77) || (k == 78) || (k == 79) ||
+      (k == 80) || (k == 81) || (k == 82) || (k == 83) || (k == 84) ||
+      (k == 85) || (k == 86) || (k == 87) || (k == 88) || (k == 89) ||
+      (k == 90)) {
+      return (false);
+    }
+    return true;
+  }
 
 
   getAllPortalConfigData() {
     this.portalService.getPortalConfig().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.portalConfigList = response.serviceResponse;
-        for(let portal of this.portalConfigList){
-          if(portal.configName == 'Probation Period'){
+        for (let portal of this.portalConfigList) {
+          if (portal.configName == 'Probation Period') {
             this.employeeObj.probationPeriod = portal.configPeriod;
           }
-          if(portal.configName == 'Notice Period'){
+          if (portal.configName == 'Notice Period') {
             this.employeeObj.noticePeriod = portal.configPeriod;
           }
         }
@@ -2664,54 +2700,54 @@ return true;
     });
   }
 
-  getProjectsByDepartment(employeeObj,template: TemplateRef<any>){
+  getProjectsByDepartment(employeeObj, template: TemplateRef<any>) {
     // var newDept = employeeObj.departmentName?.trim();
     this.employeeObj.projectName = "";
     let empObj = new Employee();
-    
+
     empObj.departmentName = employeeObj.departmentId;
     empObj.managerId = employeeObj.empId;
 
-    console.log("empObj   ",empObj);
+    console.log("empObj   ", empObj);
 
-    this.employeeService.getProjectsByDepartmentName(empObj).pipe(first()).subscribe((response : any)=>{
-      if(response.serviceStatus == "Success"){
+    this.employeeService.getProjectsByDepartmentName(empObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
 
         this.listOfProjectsByDeptId = response.serviceResponse;
-        console.log( " success ",this.listOfProjectsByDeptId);
-      }else{
-        this.openAlertMod(template , response.serviceResponse);
+        console.log(" success ", this.listOfProjectsByDeptId);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
       }
     });
-    }
+  }
 
-    // added by anurag for manager changes incase of inactive
+  // added by anurag for manager changes incase of inactive
 
-  openManagerDetailsModal(template: TemplateRef<any>,employeeId) {
+  openManagerDetailsModal(template: TemplateRef<any>, employeeId) {
     this.filters = {};
     this.listOfDepartment = [];
     this.isSearchEnabled = false;
-    this.employeeObj.departmentId ="";
+    this.employeeObj.departmentId = "";
     this.employeeObj.projectName = "";
     this.employeeObj.teamName = "";
-    console.log(" empId in manager UI change ",this.employeeObj.name);
+    console.log(" empId in manager UI change ", this.employeeObj.name);
 
     this.getReporteesListByManagerId();
     this.getReporteesListByReportingManagerId();
-    
+
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
   }
 
-  getReporteesListByManagerId(){
-    console.log(" empId in manager UI change ",this.employeeObj.name);
+  getReporteesListByManagerId() {
+    console.log(" empId in manager UI change ", this.employeeObj.name);
 
     if (this.employeeObj.employeementId.startsWith("A-")) {
       this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
     }
 
-    console.log("employment id",this.employeeObj.employeementId);
-    this.employeeService.getReporteesListByManagerId(this.employeeObj).pipe(first()).subscribe((response : any)=>{
-      if(response.serviceStatus == "Success"){
+    console.log("employment id", this.employeeObj.employeementId);
+    this.employeeService.getReporteesListByManagerId(this.employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
         this.reporteeList = response.serviceResponse;
         this.getManagersList();
         // this.employeeObj.managerId = '';
@@ -2720,27 +2756,27 @@ return true;
     })
   }
 
-  updateNoticePeriod(employeeObj: Employee){
+  updateNoticePeriod(employeeObj: Employee) {
     const dateFormat = 'YYYY-MM-DD';
-    console.log(employeeObj,"employeeObj");
+    console.log(employeeObj, "employeeObj");
     this.employeeObj.dateOfRelieving = moment(this.employeeObj.dateOfRelieving).format(dateFormat);
     console.log(this.employeeObj.dateOfRelieving);
-    const diff =  Math.abs(Math.floor((new Date(this.employeeObj.dateOfRelieving).getTime() - new Date(employeeObj.dateOfResign).getTime()) / (1000 * 60 * 60 * 24)));
+    const diff = Math.abs(Math.floor((new Date(this.employeeObj.dateOfRelieving).getTime() - new Date(employeeObj.dateOfResign).getTime()) / (1000 * 60 * 60 * 24)));
     this.employeeObj.noticePeriod = diff;
     console.log(diff, "diffDaysdiffDays")
   }
 
-  estimateDateOfReleiving(employeeObj: Employee){
+  estimateDateOfReleiving(employeeObj: Employee) {
     const dateFormat = 'YYYY-MM-DD';
 
-    if(this.employeeObj.dateOfResign){
+    if (this.employeeObj.dateOfResign) {
       let estimateDateOfRelieving = new Date(this.employeeObj.dateOfResign);
       this.employeeObj.dateOfRelieving = moment(estimateDateOfRelieving).add(this.employeeObj.noticePeriod, "days").format(dateFormat);
       console.log(this.employeeObj.dateOfRelieving, "this.employeeObj.dateOfRelieving")
     }
   }
 
-  onUpdateTimesheetLockCheck(template: TemplateRef<any>,employeeObj:Employee,status: any){
+  onUpdateTimesheetLockCheck(template: TemplateRef<any>, employeeObj: Employee, status: any) {
     let employee = Object.assign({}, employeeObj);
     employee.isTimesheetLockCheckEnable = status;
     employee.updatedBy = this.currentUser.empId;
@@ -2753,10 +2789,10 @@ return true;
     //   employee.employeementId  = employee.employeementId
     // }
 
-    if(employee.employeementId.startsWith('A-')){
-      employee.employeementId  = employee.employeementId.substring(2);
-    }else {
-      employee.employeementId  = employee.employeementId
+    if (employee.employeementId.startsWith('A-')) {
+      employee.employeementId = employee.employeementId.substring(2);
+    } else {
+      employee.employeementId = employee.employeementId
     }
 
     console.log("updateTimesheetLockCheck : ", employee);
@@ -2772,79 +2808,79 @@ return true;
 
   // Employee Audit :: start
 
-  resetAuditSearchFilter(event, title?:any){
+  resetAuditSearchFilter(event, title?: any) {
     this.isAuditSearchEnabled = false;
     this.auditFilter = {};
-    this.filterOnhistory={};
+    this.filterOnhistory = {};
 
-    if(title == 'Full Journey'){
+    if (title == 'Full Journey') {
       this.isFullJourneyAccordianBody = true;
-    }else{
+    } else {
       this.isFullJourneyAccordianBody = false;
     }
-    if(title == 'Life Cycle Change'){
+    if (title == 'Life Cycle Change') {
       this.isLifeCycleAccordianBody = true;
-    }else{
+    } else {
       this.isLifeCycleAccordianBody = false;
     }
-    if(title == 'Kyc Update'){
+    if (title == 'Kyc Update') {
       this.isKycUpdateAccordianBody = true;
-    }else{
+    } else {
       this.isKycUpdateAccordianBody = false;
     }
-    if(title == 'Employee Info Change'){
+    if (title == 'Employee Info Change') {
       this.isEmployeeInfoAccordianBody = true;
-    }else{
+    } else {
       this.isEmployeeInfoAccordianBody = false;
     }
-    if(title == 'Team/Project Change'){
+    if (title == 'Team/Project Change') {
       this.isTeamProjectAccordianBody = true;
-    
-    } else{
+
+    } else {
       this.isTeamProjectAccordianBody = false;
     }
-    if(title == 'Project History'){
-     this.isEmployeeHistory=true;
-     this.employeehistory();
-    } else{
-      this.isEmployeeHistory=false;
+    if (title == 'Project History') {
+      this.isEmployeeHistory = true;
+      this.employeehistory();
+    } else {
+      this.isEmployeeHistory = false;
     }
-   
+
   }
 
-  
+
 
   employeehistory() {
     this.employeeWorkingHistory = [];
     let empObj = new Employee();
     empObj.empId = this.imployeeID;
-   this.employeeService.findEmployeeWorkingHistory(empObj).pipe(first()).subscribe((response: any) => {
+    this.employeeService.findEmployeeWorkingHistory(empObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.employeeWorkingHistory=response.serviceResponse;
+        this.employeeWorkingHistory = response.serviceResponse;
         console.log('emoloyee hist-----', this.employeeWorkingHistory);
       } else {
         console.error(response.serviceResponse);
       }
-     });
-   }
+    });
+  }
 
 
-  getEmployeeAuditInfo(employee:any, auditTemplate: TemplateRef<any>, template: TemplateRef<any>){
+  getEmployeeAuditInfo(employee: any, auditTemplate: TemplateRef<any>, template: TemplateRef<any>) {
 
     this.filteredEmployeeAuditHistory = [];
     this.employeeAuditHistory = [];
     this.filters = {};
-    this.filterOnhistory={};
+    this.filterOnhistory = {};
     this.isEmployeeInfoAccordianBody = false;
     this.isTeamProjectAccordianBody = false;
-    this.isKycUpdateAccordianBody  = false;
+    this.isKycUpdateAccordianBody = false;
     this.isLifeCycleAccordianBody = false;
     this.isFullJourneyAccordianBody = false;
-    this.isEmployeeHistory=false
+    this.isEmployeeHistory = false
 
     let employeeObj = new Employee();
     employeeObj.empId = employee.empId;
-    this.imployeeID=employee.empId;
+    this.imployeeID = employee.empId;
 
     this.employeeService.getEmployeeAuditInfo(employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -2853,7 +2889,7 @@ return true;
         Object.keys(this.employeeAuditHistory).forEach(key => {
           let obj = this.employeeAuditHistory[key];
           Object.keys(obj).forEach(innerKey => {
-            if(obj[innerKey] !== null){
+            if (obj[innerKey] !== null) {
               let newObj = {
                 "date": key,
                 "field": innerKey,
@@ -2864,38 +2900,38 @@ return true;
                 "color": '#FFFFFF'
               };
 
-              if(newObj.field !== 'bucketName' && newObj.field !== 'designationId' && newObj.field !== 'jobRoleId'
-               && newObj.field !== 'createdBy' && newObj.field !== 'updatedBy' &&  newObj.field !== 'departmentId'
-               &&  newObj.field !== 'updatedByName' &&  newObj.field !== 'createdOn' &&  newObj.field !== 'createdByName'
-               &&  newObj.field !== 'updatedOn' &&  newObj.field !== 'empId' &&  newObj.field !== 'teamId' &&  newObj.field !== 'employeeTeamMapId'
-               &&  newObj.field !== 'teamLeadId' && newObj.field !== 'reportingManagerId' && newObj.field !== 'managerId'){
+              if (newObj.field !== 'bucketName' && newObj.field !== 'designationId' && newObj.field !== 'jobRoleId'
+                && newObj.field !== 'createdBy' && newObj.field !== 'updatedBy' && newObj.field !== 'departmentId'
+                && newObj.field !== 'updatedByName' && newObj.field !== 'createdOn' && newObj.field !== 'createdByName'
+                && newObj.field !== 'updatedOn' && newObj.field !== 'empId' && newObj.field !== 'teamId' && newObj.field !== 'employeeTeamMapId'
+                && newObj.field !== 'teamLeadId' && newObj.field !== 'reportingManagerId' && newObj.field !== 'managerId') {
 
-                if(newObj.field == 'employmentstatus'){
+                if (newObj.field == 'employmentstatus') {
                   newObj.bucketName = 'Lifecycle Changes';
                 }
 
-                if(newObj.bucketName == 'Employment Info Changes'){
+                if (newObj.bucketName == 'Employment Info Changes') {
                   newObj.color = '#9FE2BF';
-                }else if(newObj.bucketName == 'Lifecycle Changes'){
+                } else if (newObj.bucketName == 'Lifecycle Changes') {
                   newObj.color = '#40E0D0';
-                }else if(newObj.bucketName == 'KYC Update'){
+                } else if (newObj.bucketName == 'KYC Update') {
                   newObj.color = '#CCCCFF';
-                }else if(newObj.bucketName == 'Team/Project Changes'){
+                } else if (newObj.bucketName == 'Team/Project Changes') {
                   newObj.color = '#F1948A';
                 }
 
-                if(newObj.field == 'active'){
+                if (newObj.field == 'active') {
                   newObj.value = newObj.value == '1' ? 'Yes' : 'No';
                 }
 
-                if(newObj.field == 'startDate'){
-                  newObj.value = (newObj.value)? moment(newObj.value).format(AppComponent.DATETIME_FORMAT) : null;
+                if (newObj.field == 'startDate') {
+                  newObj.value = (newObj.value) ? moment(newObj.value).format(AppComponent.DATETIME_FORMAT) : null;
                 }
 
-                newObj.date = ( newObj.date)? moment( newObj.date).format(AppComponent.DATETIME_FORMAT) : null;
+                newObj.date = (newObj.date) ? moment(newObj.date).format(AppComponent.DATETIME_FORMAT) : null;
 
-                if(newObj.field == 'dateOfRelieving' || newObj.field == 'dateOfResign'){
-                  newObj.value = (newObj.value)? moment(newObj.value).format(AppComponent.DATE_FORMAT) : null;
+                if (newObj.field == 'dateOfRelieving' || newObj.field == 'dateOfResign') {
+                  newObj.value = (newObj.value) ? moment(newObj.value).format(AppComponent.DATE_FORMAT) : null;
                 }
 
                 const fieldConversion = newObj.field.replace(/([A-Z])/g, " $1");
@@ -2913,14 +2949,14 @@ return true;
 
         this.filteredEmployeeAuditHistory.forEach((object) => {
           let date;
-          if(object.bucketName == 'Team/Project Changes'){
-            if(object.field == 'Active' && object.value == 'No'){
+          if (object.bucketName == 'Team/Project Changes') {
+            if (object.field == 'Active' && object.value == 'No') {
               date = object.date;
             }
             let updateField = this.filteredEmployeeAuditHistory.find(x => x.date == date && x.field == 'Start Date');
-              if(updateField){
-                updateField.field = 'End Date';
-              }
+            if (updateField) {
+              updateField.field = 'End Date';
+            }
           }
         });
 
@@ -2929,9 +2965,9 @@ return true;
         this.kycUpdateList = this.filteredEmployeeAuditHistory.filter(x => x.bucketName == 'KYC Update');
         this.employeeInfoChangeList = this.filteredEmployeeAuditHistory.filter(x => x.bucketName == 'Employment Info Changes');
 
-        this.modalRef =  this.modalService.show(auditTemplate, { class: 'modal-lg' });
+        this.modalRef = this.modalService.show(auditTemplate, { class: 'modal-lg' });
 
-        console.log(this.filteredEmployeeAuditHistory , " : this.filteredEmployeeAuditHistory ");
+        console.log(this.filteredEmployeeAuditHistory, " : this.filteredEmployeeAuditHistory ");
       } else {
         console.log(response.serviceResponse, " audit response");
       }
@@ -2942,13 +2978,13 @@ return true;
 
   // //Doamin & Specialization  :: start
 
-  getAllDomain(template?: TemplateRef<any>){
+  getAllDomain(template?: TemplateRef<any>) {
     this.domainService.getAllDomain().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allDomainList = response.serviceResponse;
 
         this.allDomainList.forEach((domain) => {
-          domain.createdOn = (domain.createdOn)? moment(domain.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          domain.createdOn = (domain.createdOn) ? moment(domain.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
 
         console.log(this.allDomainList, " : this.allDomainList");
@@ -2961,7 +2997,7 @@ return true;
 
 
 
-  getDomainSpecialization(){
+  getDomainSpecialization() {
     this.specializationList = [];
 
     let domainObj = new Domain();
@@ -3101,7 +3137,7 @@ return true;
     this.storedDataList.forEach((data) => {
       if (data.filterName == title) {
         data.queryList.forEach((queryObj) => {
-          if(queryObj.column == "Employee Id" && !queryObj.value.includes("A-")){
+          if (queryObj.column == "Employee Id" && !queryObj.value.includes("A-")) {
             queryObj.value = "A-".concat(queryObj.value);
           }
 
@@ -3194,7 +3230,7 @@ return true;
       if (this.filterData.title == 'Filter All Employee') {
         this.getCustomEmployeesList(emittedArray[0], template);
       }
-    }else{
+    } else {
       let clearedFilter = this.storedDataList.find((filter) => filter.filterName == emittedArray[1]);
       this.storedDataList.splice(clearedFilter);
 
@@ -3221,12 +3257,12 @@ return true;
     this.alertMessage = message;
   }
 
-  openApplicationRejectionMod(template: TemplateRef<any> , employee: any) {
+  openApplicationRejectionMod(template: TemplateRef<any>, employee: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-md' });
     this.employeeObj = employee;
   }
 
-  openApplicationApprovalMod(template: TemplateRef<any> , employee: any) {
+  openApplicationApprovalMod(template: TemplateRef<any>, employee: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-md' });
     this.employeeObj = employee;
   }
@@ -3236,7 +3272,7 @@ return true;
   //   this.modalRef = this.modalService.show(template);
   // }
 
-  cancelApplication(){
+  cancelApplication() {
     this.previewModalRef.hide();
   }
 
@@ -3269,101 +3305,101 @@ return true;
     this.pageNo = event;
   }
 
-  onPage(){
-    this.page=1;
+  onPage() {
+    this.page = 1;
   }
-       // implement Enable Account facilities by anurag
+  // implement Enable Account facilities by anurag
 
-      forEnableAccount(template: TemplateRef<any>, employee: any) {
-        this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
-        this.employeeObj = employee;
+  forEnableAccount(template: TemplateRef<any>, employee: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.employeeObj = employee;
+  }
+
+
+
+  findEmployeeWorkingHistory(template: TemplateRef<any>, employee: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.employeeObj = employee;
+  }
+
+  onRevokeAccount(template: TemplateRef<any>) {
+    this.cancelRequest();
+    // if (this.employeeObj.isConsultant == 'true'){
+    //   this.employeeObj.employeementId = this.employeeObj.employeementId.substring(5);
+    // }else {
+    //   this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
+    // }
+    this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
+    this.employeeService.revokeAccount(this.employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showTable();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
       }
+    });
+  }
 
 
-
-      findEmployeeWorkingHistory(template: TemplateRef<any>, employee: any){
-        this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
-       this.employeeObj = employee;
-     }
-
-     onRevokeAccount(template: TemplateRef<any>) {
-      this.cancelRequest();
-      // if (this.employeeObj.isConsultant == 'true'){
-      //   this.employeeObj.employeementId = this.employeeObj.employeementId.substring(5);
-      // }else {
-      //   this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
-      // }
-      this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
-      this.employeeService.revokeAccount(this.employeeObj).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.openAlertMod(template, response.serviceResponse);
-          this.showTable();
-        } else {
-          this.openAlertMod(template, response.serviceResponse);
-        }
-      });
-    }
-
-
-   onFindHistoryWorking(employee:Employee) {
+  onFindHistoryWorking(employee: Employee) {
     this.employeeWorkingHistory = [];
     let empObj = new Employee();
     empObj.empId = employee.empId;
 
-     this.cancelRequest();
-     this.employeeService.findEmployeeWorkingHistory(empObj).pipe(first()).subscribe((response: any) => {
+    this.cancelRequest();
+    this.employeeService.findEmployeeWorkingHistory(empObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.employeeWorkingHistory=response.serviceResponse;
+        this.employeeWorkingHistory = response.serviceResponse;
       } else {
         console.error(response.serviceResponse);
       }
-     });
-   }
+    });
+  }
 
-  sortData(sort: Sort){
+  sortData(sort: Sort) {
     console.log(sort);
-    if(sort.active){
-      let sortParams:any[] = sort.active?.split("|");
+    if (sort.active) {
+      let sortParams: any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
       this.sortDirection = sort.direction;
     }
   }
 
-  toggleSearch(){
-      this.isSearchEnabled = !this.isSearchEnabled;
-      if(!this.isSearchEnabled){
-        this.filters = {};
-      }
+  toggleSearch() {
+    this.isSearchEnabled = !this.isSearchEnabled;
+    if (!this.isSearchEnabled) {
+      this.filters = {};
+    }
   }
 
-  onSearch(searchData){
-    if(this.isSearchEnabled == true){
+  onSearch(searchData) {
+    if (this.isSearchEnabled == true) {
       this.filters = searchData;
       console.log("Updated Filter : ", this.filters);
     }
   }
 
   // Work History
-  toggleWorkHistorySearch(){
+  toggleWorkHistorySearch() {
     this.isworkHistorySearchEnabled = !this.isworkHistorySearchEnabled;
   }
 
-  onWorkHistorySearch(searchData){
+  onWorkHistorySearch(searchData) {
     this.filters = searchData;
     console.log("Updated Filter : ", this.filters);
   }
 
 
-  onsearchhistory(searchData){
-    this.filterOnhistory=searchData;
+  onsearchhistory(searchData) {
+    this.filterOnhistory = searchData;
   }
 
-  toggleAuditSearch(){
+  toggleAuditSearch() {
     this.isAuditSearchEnabled = !this.isAuditSearchEnabled;
   }
 
-  onAuditSearch(searchData){
+  onAuditSearch(searchData) {
     this.auditFilter = searchData;
     console.log("Audit Updated Filter : ", this.filters);
   }
@@ -3374,14 +3410,14 @@ return true;
     let data: any[] = [];
     switch (type) {
       case 'fullJourney':
-      data = this.filteredEmployeeAuditHistory.map(item => ({
-        Date: item.date,
-        Field: item.field,
-        Value: item.value,
-        Bucket: item.bucketName,
-        UpdatedBy: item.updatedByName
-      }));
-      break;
+        data = this.filteredEmployeeAuditHistory.map(item => ({
+          Date: item.date,
+          Field: item.field,
+          Value: item.value,
+          Bucket: item.bucketName,
+          UpdatedBy: item.updatedByName
+        }));
+        break;
       case 'lifeCycle':
         data = this.lifeCycleChangeList.map(item => ({
           Date: item.date,
@@ -3391,71 +3427,71 @@ return true;
           UpdatedBy: item.updatedByName
         }));
         break;
-        case 'teamProject':
-          data = this.teamProjectChangeList.map(item => ({
-            Date: item.date,
-            Field: item.field,
-            Value: item.value,
-            Bucket: item.bucketName,
-            UpdatedBy: item.updatedByName
-          }));
-          break;
-          case 'kycUpdate':
-            data = this.kycUpdateList.map(item => ({
-              Date: item.date,
-              Field: item.field,
-              Value: item.value,
-              Bucket: item.bucketName,
-              UpdatedBy: item.updatedByName
-            }));
-            break;
-          case 'employeeInfo':
-            data = this.employeeInfoChangeList.map(item => ({
-              Date: item.date,
-              Field: item.field,
-              Value: item.value,
-              Bucket: item.bucketName
-            }));
-            break;
-            case 'employeehistoryID':
-              data = this.employeeWorkingHistory.map(item => ({
-                EmployeeName:item.name,
-                TeamName:item.teamName,
-                ProjectName:item.projectName,
-                StartDate:item.startDate,
-                EndDate:item.updatedOn,
-                TeamLeadName:item.teamLeadName,
-                JobRole:item.jobRoleName,
-                ClientLocation:item.clientLocation,
-                ClientName:item.clientName,
-              }));
+      case 'teamProject':
+        data = this.teamProjectChangeList.map(item => ({
+          Date: item.date,
+          Field: item.field,
+          Value: item.value,
+          Bucket: item.bucketName,
+          UpdatedBy: item.updatedByName
+        }));
+        break;
+      case 'kycUpdate':
+        data = this.kycUpdateList.map(item => ({
+          Date: item.date,
+          Field: item.field,
+          Value: item.value,
+          Bucket: item.bucketName,
+          UpdatedBy: item.updatedByName
+        }));
+        break;
+      case 'employeeInfo':
+        data = this.employeeInfoChangeList.map(item => ({
+          Date: item.date,
+          Field: item.field,
+          Value: item.value,
+          Bucket: item.bucketName
+        }));
+        break;
+      case 'employeehistoryID':
+        data = this.employeeWorkingHistory.map(item => ({
+          EmployeeName: item.name,
+          TeamName: item.teamName,
+          ProjectName: item.projectName,
+          StartDate: item.startDate,
+          EndDate: item.updatedOn,
+          TeamLeadName: item.teamLeadName,
+          JobRole: item.jobRoleName,
+          ClientLocation: item.clientLocation,
+          ClientName: item.clientName,
+        }));
 
-              break;
-         default:
-            console.error('Unknown export type');
-         return;
+        break;
+      default:
+        console.error('Unknown export type');
+        return;
     }
     this.exportExcelService.exportTableDataToExcel(data, `${type}.xlsx`);
   }
 
   // by priyadarshini
-  resetField_OnChange(updateType){
+  resetField_OnChange(updateType) {
     updateType.employmentReleaseStatus = "";
     updateType.newManagerId = "";
-    this.employeeObj.newManagerId ='';
+    this.employeeObj.newManagerId = '';
   }
-  resetFieldOnChange(updateType){
+  resetFieldOnChange(updateType) {
     updateType.employmentstatus = "";
     updateType.newManagerId = "";
-    this.employeeObj.newManagerId ='';
-}
-resetField(updateType){
-  // updateType.employmentReleaseStatus = "";
-  updateType.newManagerId = "";
-  this.employeeObj.newManagerId ='';
-}
+    this.employeeObj.newManagerId = '';
+  }
+  resetField(updateType) {
+    // updateType.employmentReleaseStatus = "";
+    updateType.newManagerId = "";
+    this.employeeObj.newManagerId = '';
+  }
 
-// added by anurag 
+  // added by anurag 
 
   // mapLeavesAndCompOffToNewManager(employee){
   //   //console.log(" employee   ",employee);
@@ -3473,275 +3509,286 @@ resetField(updateType){
 
   //  added by anuarg
 
-  PIP_generate(template:TemplateRef<any>, employee){
+  PIP_generate(template: TemplateRef<any>, employee) {
     this.isPipGenerate = true;
     this.startDate = '';
     this.endDate = '';
     this.employeeObj.pipReason = ''
-    this.modalRef=this.modalService.show(template , { class : 'modal-md'});
+    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
     this.employeeObj = employee;
-    }
+  }
 
-    PIP_reverse_modal(template:TemplateRef<any> , team){
-      this.isToggle = false;
-      this.isPipGenerate = false;
-    this.modalRef=this.modalService.show(template , { class : 'modal-md'});
+  PIP_reverse_modal(template: TemplateRef<any>, team) {
+    this.isToggle = false;
+    this.isPipGenerate = false;
+    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
     this.employeeObj = team;
     this.getPipDetailsByEmpId(team);
-    }
-
-    getPipDetailsByEmpId(employee : any){
-      // console.log(" emp details  ",employee);
-      let leaveObj = new Leave();
-      leaveObj.empId = employee.empId;
-  
-      this.leaveService.getPipDetailsByEmpId(leaveObj).pipe(first()).subscribe((response : any)=>{
-        if(response.serviceStatus == "Success"){
-          
-          this.employeeObj = Object.assign({}, response.serviceResponse);
-  
-          this.startDate = this.employeeObj.startDate;
-          this.endDate = this.employeeObj.endDate;
-  
-          this.endDate = (this.endDate)? moment(this.endDate, AppComponent.DATE_FORMAT).toDate() : '';
-          this.startDate = (this.startDate)? moment(this.startDate, AppComponent.DATE_FORMAT).toDate() : '';
-  
-          if (this.endDate) {
-            this.tempValue = new Date(this.endDate);
-            this.minDateForExtend = new Date(this.endDate);
-            this.maxDateForExtend = new Date(this.endDate);
-            this.maxDateForExtend.setMonth(this.maxDateForExtend.getMonth() + 2);
-          }
-          
-          
-          console.log(" startDate   ",this.startDate);
-          console.log(" endDate   ",this.endDate);
-          
-        }
-      })
-  
-    }
-
-    PIP_reverse(template:TemplateRef<any>,teamObj,flag){
-      this.isPipGenerate = false;
-      console.log(teamObj);
-      let empObj = new Employee();
-      empObj.pipFlag = flag;
-      empObj.pipId = teamObj.pipId;
-      empObj.empId = teamObj.empId;
-      empObj.updatedBy = this.currentUser.empId;
-      empObj.updatedByName = this.currentUser.name;
-      empObj.revReason = teamObj.revReason;
-      empObj.startDate = moment(this.startDate).format(AppComponent.DATE_FORMAT);
-      if(this.isToggle){
-        empObj.endDate = moment(this.endDate).format(AppComponent.DATE_FORMAT);
-      }else{
-        let endDate : any = new Date();
-        endDate = moment(endDate).format(AppComponent.DATE_FORMAT);
-          console.log("endDate   ",endDate);
-        empObj.endDate = endDate;
-      }
-    
-      this.employeeService.pipReturnFromUser(empObj).pipe(first()).subscribe((response : any)=>{
-        if(response.serviceStatus == "Success"){
-          this.openAlertMod(template,response.serviceResponse);
-          this.getAllEmployeeList();
-        }else{
-          this.openAlertMod(template,response.serviceResponse);
-        }
-      })
-    }
-
-    PipGenerateToUser(template: TemplateRef<any>,leaveObj,flag){
-      console.log(" leaveObj   ",leaveObj);
-      let emp = new Employee();
-      emp.empId = leaveObj.empId;
-      emp.pipReason = leaveObj.pipReason;
-      emp.startDate = moment(this.startDate).format(AppComponent.DATE_FORMAT);
-      emp.endDate = moment(this.endDate).format(AppComponent.DATE_FORMAT);
-      emp.pipFlag = flag;
-      emp.createdBy = this.currentUser.empId;
-      emp.createdByName = this.currentUser.name;
-    
-      console.log(emp);
-      this.employeeService.pipGenerateToUser(emp).pipe(first()).subscribe((response : any)=>{
-        if(response.serviceStatus == "Success"){
-          this.openAlertMod(template,response.serviceResponse);
-          this.getAllEmployeeList();
-        }else{
-          this.openAlertMod(template,response.serviceResponse);
-        }
-      })
-    }
-
-togglePipView(event){
-  this.employeeObj.revReason = '';
-  this.isDateChanged = false;
-  if(event.target.checked){
-    this.isToggle = true;
-    this.employeeObj.extendReason = '';
-
-  }else{
-    this.isToggle = false;
-    // this.leaveObj.endDate = this.tempValue;
-    this.endDate = this.tempValue;
   }
-}
+
+  getPipDetailsByEmpId(employee: any) {
+    // console.log(" emp details  ",employee);
+    let leaveObj = new Leave();
+    leaveObj.empId = employee.empId;
+
+    this.leaveService.getPipDetailsByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+
+        this.employeeObj = Object.assign({}, response.serviceResponse);
+
+        this.startDate = this.employeeObj.startDate;
+        this.endDate = this.employeeObj.endDate;
+
+        this.endDate = (this.endDate) ? moment(this.endDate, AppComponent.DATE_FORMAT).toDate() : '';
+        this.startDate = (this.startDate) ? moment(this.startDate, AppComponent.DATE_FORMAT).toDate() : '';
+
+        if (this.endDate) {
+          this.tempValue = new Date(this.endDate);
+          this.minDateForExtend = new Date(this.endDate);
+          this.maxDateForExtend = new Date(this.endDate);
+          this.maxDateForExtend.setMonth(this.maxDateForExtend.getMonth() + 2);
+        }
 
 
-pipReason(teamObj){
-  let empObj = new Employee();
+        console.log(" startDate   ", this.startDate);
+        console.log(" endDate   ", this.endDate);
 
-  empObj.empId = teamObj.empId;
-  empObj.pipId = teamObj.pipId;
-  empObj.pipFlag = teamObj.pipFlag;
-
-
-this.employeeService.getPipReasons(empObj).pipe(first()).subscribe((response : any)=>{
-  if(response.serviceStatus == "Success"){
-    this.pipReasons = response.serviceResponse;
-    if(this.pipReasons.length == 0){
-      if(this.employeeObj.pipFlag == "true") this.isPipFlag=true;
-      else this.isPipFlag=false;
-    }
-    this.pipReasons.forEach(d=>{
-      d.createdOn = moment(d.createdOn).format(AppComponent.DATE_FORMAT);
-      d.updatedOn = moment(d.updatedOn).format(AppComponent.DATE_FORMAT);
-      console.log(" d ki value ",d)
-      if(d.pipFlag == "true"){
-        console.log("i am in true flag")
-        this.isPipFlag = true;
-      }else{
-        console.log(" I'm in false flag")
-        this.isPipFlag = false;
-      }
-      if(d.createdOn == 'Invalid date'){
-        d.createdOn = '';
-      }
-      if(d.updatedOn == 'Invalid date'){
-        d.updatedOn = '';
       }
     })
-    console.log("this.pipReasons  ",this.pipReasons);  
+
   }
-})
-  console.log(" team ",empObj);
-  console.log(empObj,"teamteamteamteam")
-}
 
-pipReasonModal(template:TemplateRef<any>,teamObj){
-  this.pageNo = 1;
-  this.modalRef=this.modalService.show(template , { class : 'modal-lg'});
-this.employeeObj = teamObj;
-this.pipReason(this.employeeObj);
-}
-
-extendPipModal(template : TemplateRef<any> , teamObj){
-  this.modalRef=this.modalService.show(template , { class : 'modal-sm'});
-  this.employeeObj = teamObj;
-}
-
-checkDateChange(){
-  this.isDateChanged = true;
-  } 
-
-
-
-setPipExtendsDays(template:TemplateRef<any>){
-
-  if(!this.isDateChanged){
-    this.alertMessage="End date must be change for extend PIP";
-    this.openAlertMod(template , this.alertMessage);
-    return;
-  }
-this.cancelRequest();
-  let leave = new Employee();
-  leave.pipId = this.employeeObj.pipId;
-  leave.empId = this.employeeObj.empId;
-  leave.updatedByName = this.currentUser.name;
-  leave.extendReason = this.employeeObj.extendReason;
-  // leave.extendDays = this.leaveObj.extendDays;
-  leave.startDate = moment(this.startDate).format(AppComponent.DATE_FORMAT);
-  leave.endDate = moment(this.endDate).format(AppComponent.DATE_FORMAT);
-  console.log("team in set extend modal",leave)
-  this.employeeService.setExtendPeriodByPipId(leave).pipe(first()).subscribe((response : any)=>{
-    if(response.serviceStatus == "Success"){
-      this.openAlertMod(template,response.serviceResponse);
-
-    }else{
-      this.openAlertMod(template,response.serviceResponse);
+  PIP_reverse(template: TemplateRef<any>, teamObj, flag) {
+    this.isPipGenerate = false;
+    console.log(teamObj);
+    let empObj = new Employee();
+    empObj.pipFlag = flag;
+    empObj.pipId = teamObj.pipId;
+    empObj.empId = teamObj.empId;
+    empObj.updatedBy = this.currentUser.empId;
+    empObj.updatedByName = this.currentUser.name;
+    empObj.revReason = teamObj.revReason;
+    empObj.startDate = moment(this.startDate).format(AppComponent.DATE_FORMAT);
+    if (this.isToggle) {
+      empObj.endDate = moment(this.endDate).format(AppComponent.DATE_FORMAT);
+    } else {
+      let endDate: any = new Date();
+      endDate = moment(endDate).format(AppComponent.DATE_FORMAT);
+      console.log("endDate   ", endDate);
+      empObj.endDate = endDate;
     }
-  })
 
-}
-
-estimateEndDate() {
-  if (this.startDate) {
-    const startDate = new Date(this.startDate);
-    const endDate = new Date(startDate.getTime() + (90 * 24 * 60 * 60 * 1000)); // Adding 90 days
-    this.endDate = endDate.toISOString().split('T')[0];
-  }
-}
-
-//added by priyadarshini
-onselectYes:boolean=false;
-
-onUpadateReportees(event:any){
-console.log('data printed ----',event.target.value);
-if(event.target.value == 'Yes' ){
-  this.onselectYes=true;
-}
-}
-
-onEmployeeTypeChange(selectedType: string): void {
-  switch (selectedType) {
-    case 'Regular':
-      this.employeeObj.isConsultant = 'false';
-      this.employeeObj.isApprenticeship = 'false';
-      break;
-    case 'Consultant':
-      this.employeeObj.isConsultant = 'true';
-      this.employeeObj.isApprenticeship = 'false';
-      break;
-    case 'Apprentice':
-      this.employeeObj.isConsultant = 'false';
-      this.employeeObj.isApprenticeship = 'true';
-      break;
-    default:
-      this.employeeObj.isConsultant = null;
-      this.employeeObj.isApprenticeship = null;
-  }
-}
-
-getReporteesListByReportingManagerId(){
-  console.log(" empId in manager UI change ",this.employeeObj.name);
-
-  if (this.employeeObj.employeementId.startsWith("A-")) {
-    this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
+    this.employeeService.pipReturnFromUser(empObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.getAllEmployeeList();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    })
   }
 
-  console.log("employment id",this.employeeObj.employeementId);
-  this.employeeService.getReporteesListByReportingManagerId(this.employeeObj).pipe(first()).subscribe((response : any)=>{
-    if(response.serviceStatus == "Success"){
-      this.reporteeList2 = response.serviceResponse;
-      this.getManagersList();
-      // this.employeeObj.managerId = '';
-      //console.log(" teamMember list   ",this.TeamMemberList)
+  PipGenerateToUser(template: TemplateRef<any>, leaveObj, flag) {
+    console.log(" leaveObj   ", leaveObj);
+    let emp = new Employee();
+    emp.empId = leaveObj.empId;
+    emp.pipReason = leaveObj.pipReason;
+    emp.startDate = moment(this.startDate).format(AppComponent.DATE_FORMAT);
+    emp.endDate = moment(this.endDate).format(AppComponent.DATE_FORMAT);
+    emp.pipFlag = flag;
+    emp.createdBy = this.currentUser.empId;
+    emp.createdByName = this.currentUser.name;
+
+    console.log(emp);
+    this.employeeService.pipGenerateToUser(emp).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.getAllEmployeeList();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    })
+  }
+
+  togglePipView(event) {
+    this.employeeObj.revReason = '';
+    this.isDateChanged = false;
+    if (event.target.checked) {
+      this.isToggle = true;
+      this.employeeObj.extendReason = '';
+
+    } else {
+      this.isToggle = false;
+      // this.leaveObj.endDate = this.tempValue;
+      this.endDate = this.tempValue;
     }
-  })
-}
-
-estimateDateOfRetain(employeeObj: Employee){
-  const dateFormat = 'YYYY-MM-DD';
-
-  if(this.employeeObj.dateOfRetain){
-    let estimateDateOfRetain = new Date(this.employeeObj.dateOfRetain);
-    this.employeeObj.dateOfRetain = moment(estimateDateOfRetain).format(dateFormat);
-    console.log(this.employeeObj.dateOfRetain, "this.employeeObj.dateOfRetain")
   }
 
-  console.log(this.employeeObj.dateOfRetain);
-}
+
+  pipReason(teamObj) {
+    let empObj = new Employee();
+
+    empObj.empId = teamObj.empId;
+    empObj.pipId = teamObj.pipId;
+    empObj.pipFlag = teamObj.pipFlag;
+
+
+    this.employeeService.getPipReasons(empObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.pipReasons = response.serviceResponse;
+        if (this.pipReasons.length == 0) {
+          if (this.employeeObj.pipFlag == "true") this.isPipFlag = true;
+          else this.isPipFlag = false;
+        }
+        this.pipReasons.forEach(d => {
+          d.createdOn = moment(d.createdOn).format(AppComponent.DATE_FORMAT);
+          d.updatedOn = moment(d.updatedOn).format(AppComponent.DATE_FORMAT);
+          console.log(" d ki value ", d)
+          if (d.pipFlag == "true") {
+            console.log("i am in true flag")
+            this.isPipFlag = true;
+          } else {
+            console.log(" I'm in false flag")
+            this.isPipFlag = false;
+          }
+          if (d.createdOn == 'Invalid date') {
+            d.createdOn = '';
+          }
+          if (d.updatedOn == 'Invalid date') {
+            d.updatedOn = '';
+          }
+        })
+        console.log("this.pipReasons  ", this.pipReasons);
+      }
+    })
+    console.log(" team ", empObj);
+    console.log(empObj, "teamteamteamteam")
+  }
+
+  pipReasonModal(template: TemplateRef<any>, teamObj) {
+    this.pageNo = 1;
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.employeeObj = teamObj;
+    this.pipReason(this.employeeObj);
+  }
+
+  extendPipModal(template: TemplateRef<any>, teamObj) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.employeeObj = teamObj;
+  }
+
+  checkDateChange() {
+    this.isDateChanged = true;
+  }
+
+
+
+  onUpadateReportees(event: any) {
+    console.log('data printed ----', event.target.value);
+    if (event.target.value == 'Yes') {
+      this.employeeObj.updateType = '';
+      this.onselectYes = true;
+    } else if (event.target.value == 'No') {
+      this.onselectYes = false;
+      this.employeeObj.updateType = '';
+    } else {
+      console.log('data printed ----', event.target.value);
+      this.onselectYes = false;
+      this.employeeObj.updateType = '';
+    }
+  }
+
+
+  setPipExtendsDays(template: TemplateRef<any>) {
+
+    if (!this.isDateChanged) {
+      this.alertMessage = "End date must be change for extend PIP";
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
+    this.cancelRequest();
+    let leave = new Employee();
+    leave.pipId = this.employeeObj.pipId;
+    leave.empId = this.employeeObj.empId;
+    leave.updatedByName = this.currentUser.name;
+    leave.extendReason = this.employeeObj.extendReason;
+    // leave.extendDays = this.leaveObj.extendDays;
+    leave.startDate = moment(this.startDate).format(AppComponent.DATE_FORMAT);
+    leave.endDate = moment(this.endDate).format(AppComponent.DATE_FORMAT);
+    console.log("team in set extend modal", leave)
+    this.employeeService.setExtendPeriodByPipId(leave).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    })
+
+  }
+
+  estimateEndDate() {
+    if (this.startDate) {
+      const startDate = new Date(this.startDate);
+      const endDate = new Date(startDate.getTime() + (90 * 24 * 60 * 60 * 1000)); // Adding 90 days
+      this.endDate = endDate.toISOString().split('T')[0];
+    }
+  }
+
+  //added by priyadarshini
+  onselectYes: boolean = false;
+
+
+
+  onEmployeeTypeChange(selectedType: string): void {
+    switch (selectedType) {
+      case 'Regular':
+        this.employeeObj.isConsultant = 'false';
+        this.employeeObj.isApprenticeship = 'false';
+        break;
+      case 'Consultant':
+        this.employeeObj.isConsultant = 'true';
+        this.employeeObj.isApprenticeship = 'false';
+        break;
+      case 'Apprentice':
+        this.employeeObj.isConsultant = 'false';
+        this.employeeObj.isApprenticeship = 'true';
+        break;
+      default:
+        this.employeeObj.isConsultant = null;
+        this.employeeObj.isApprenticeship = null;
+    }
+  }
+
+  getReporteesListByReportingManagerId() {
+    console.log(" empId in manager UI change ", this.employeeObj.name);
+
+    if (this.employeeObj.employeementId.startsWith("A-")) {
+      this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
+    }
+
+    console.log("employment id", this.employeeObj.employeementId);
+    this.employeeService.getReporteesListByReportingManagerId(this.employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.reporteeList2 = response.serviceResponse;
+        this.getManagersList();
+        // this.employeeObj.managerId = '';
+        //console.log(" teamMember list   ",this.TeamMemberList)
+      }
+    })
+  }
+
+  estimateDateOfRetain(employeeObj: Employee) {
+    const dateFormat = 'YYYY-MM-DD';
+
+    if (this.employeeObj.dateOfRetain) {
+      let estimateDateOfRetain = new Date(this.employeeObj.dateOfRetain);
+      this.employeeObj.dateOfRetain = moment(estimateDateOfRetain).format(dateFormat);
+      console.log(this.employeeObj.dateOfRetain, "this.employeeObj.dateOfRetain")
+    }
+
+    console.log(this.employeeObj.dateOfRetain);
+  }
 
 }
 
