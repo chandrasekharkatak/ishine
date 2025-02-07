@@ -1091,7 +1091,7 @@ export class EmployeeConfigComponent implements OnInit {
       return false;
     }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.reportiesFlag)) {
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.reportiesFlag) && this.isUpdation) {
       this.alertMessage = "Please enter 'Do you want to change the reporting of your reportees ?' "
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -1501,6 +1501,12 @@ export class EmployeeConfigComponent implements OnInit {
 
     employee.onbenchDate = this.billableBenchDate;
 
+    if (!this.validationService.validateEmployeementId(employee.employeementId)) {
+      this.alertMessage = "Please enter a valid Employment ID !!";
+      this.openAlertMod(template, this.alertMessage);
+      return;
+  }
+
     this.employeeService.createEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeService.deleteDraftEmployee(this.employeeObj); // deleting draft once employee is created
@@ -1518,9 +1524,11 @@ export class EmployeeConfigComponent implements OnInit {
     employee.empId = this.employeeObj.empId;
     employee.email = this.employeeObj.email;
 
-    if(this.employeeObj.employeementId.startsWith('A-')){
+    console.log("employeeid with space", this.employeeObj.employeementId);
+
+    if (this.employeeObj.employeementId.startsWith('A-')) {
       this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
-      if(!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)){
+      if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)) {
         this.alertMessage = "Please enter Employee ID !!"
         this.openAlertMod(template, this.alertMessage);
         // this.employeeObj.employeementId = 'A-'+this.employeeObj.employeementId;
@@ -1528,29 +1536,30 @@ export class EmployeeConfigComponent implements OnInit {
       }
       // employee.employeementId  = this.employeeObj.employeementId.substring(2);
       console.log("Employee :", this.employeeObj);
-    }else 
-    if(this.employeeObj.employeementId.startsWith('A-')){
-      if(!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)){
-        this.alertMessage = "Please enter Employee ID !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
+    } else if (this.employeeObj.employeementId.startsWith('A-')) {
+        if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)) {
+          this.alertMessage = "Please enter Employee ID !!"
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+        employee.employeementId = this.employeeObj.employeementId.substring(2);
+        console.log("Employee :", this.employeeObj);
       }
-      employee.employeementId  = this.employeeObj.employeementId.substring(2);
-      console.log("Employee :", this.employeeObj);
-    }
-    else {
-      employee.employeementId  = this.employeeObj.employeementId
-    if (!this.validationService.validateNullUndefinedEmptyString(employee.employeementId)) {
-      this.alertMessage = "Please enter Employment ID !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-    if (!this.validationService.validateEmployeementId(employee.employeementId)) {
-      this.alertMessage = "Please enter valid Employment ID !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-  }
+      else {
+        employee.employeementId = this.employeeObj.employeementId
+        if (!this.validationService.validateNullUndefinedEmptyString(employee.employeementId)) {
+          this.alertMessage = "Please enter Employment ID !!";
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+
+        if (!this.validationService.validateEmployeementId(employee.employeementId)) {
+          console.log("employeementid please enter valid employmentid", employee.employeementId, this.employeeObj.employeementId);
+          this.alertMessage = "Please enter valid Employment ID !!";
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+      }
     this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.openAlertMod(template, response.serviceResponse);
@@ -1587,11 +1596,11 @@ export class EmployeeConfigComponent implements OnInit {
   // }
 
   checkEmail(template: TemplateRef<any>) {
-   
+
     let employee = new Employee();
     // employee.employeementId = this.utilityService.getEmployeeIdSubstring(this.employeeObj);
     employee.employeementId = this.employeeObj.employeementId.substring(2);
-    console.error("employee.employeementId ",employee.employeementId );
+    console.error("employee.employeementId ", employee.employeementId);
     employee.email = this.employeeObj.email;
     employee.empId = this.employeeObj.empId;
     console.log("checkEmail() triggered with email:", employee.email);
@@ -1754,11 +1763,11 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.imageBytes = null;
     this.employeeObj.isDraft = false;
     // transform date formats to YYYY-MM-DD
-    if(this.employeeObj.dateOfBirth) this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth ).format(dateFormat)
-    if(this.employeeObj.dateOfJoining) this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat)
-    if(this.employeeObj.employeeConfirmationDate) this.employeeObj.employeeConfirmationDate = moment(this.employeeObj.employeeConfirmationDate).format(dateFormat)  
-    if(this.employeeObj.dateOfResign) this.employeeObj.dateOfResign = moment(this.employeeObj.dateOfResign).format(dateFormat)
-      if(this.employeeObj.dateOfRetain) this.employeeObj.dateOfRetain = moment(this.employeeObj.dateOfRetain).format(dateFormat) 
+    if (this.employeeObj.dateOfBirth) this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth).format(dateFormat)
+    if (this.employeeObj.dateOfJoining) this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat)
+    if (this.employeeObj.employeeConfirmationDate) this.employeeObj.employeeConfirmationDate = moment(this.employeeObj.employeeConfirmationDate).format(dateFormat)
+    if (this.employeeObj.dateOfResign) this.employeeObj.dateOfResign = moment(this.employeeObj.dateOfResign).format(dateFormat)
+    if (this.employeeObj.dateOfRetain) this.employeeObj.dateOfRetain = moment(this.employeeObj.dateOfRetain).format(dateFormat)
 
     if (this.employeeObj.employmentstatus == "Confirmed" || this.employeeObj.employmentstatus == "Probation") {
       this.employeeObj.dateOfResign = null;
@@ -2646,22 +2655,22 @@ export class EmployeeConfigComponent implements OnInit {
   fieldRestictCharacterForNumber(event) {
     var k;
     k = event.charCode;
-    if((k == 32) || (k == 33) || (k == 34) || (k == 35) || (k == 36) || (k == 37) || (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42) || (k == 43) ||
-    (k == 44) || (k == 45) || (k == 46) || (k == 47) ||(k == 97) || (k == 98 ) || (k == 99) ||
-    (k == 99) || (k == 100) || (k == 101) || (k == 102) || (k == 103 ) ||
-    (k == 104) || (k == 105) || (k == 106 ) || (k == 107) || (k == 108) ||
-    (k == 109) || (k == 110) || (k == 111) || (k == 112 ) || (k == 113) ||
-    (k == 114) || (k == 115 ) || (k == 116) || (k == 117) || (k == 118 ) ||
-    (k == 119) || (k == 120) || (k == 121) || (k == 122) || (k == 46) || (k == 65) || (k == 66 ) || (k == 67) || (k == 68) || (k == 69 ) ||
-    (k == 70) || (k == 71) || (k == 72 ) || (k == 73) || (k == 74) ||
-    (k == 75 ) || (k == 76) || (k == 77) || (k == 78) || (k == 79) ||
-    (k == 80) || (k == 81 ) || (k == 82) || (k == 83) || (k == 84) ||
-    (k == 85) ||  (k == 86) || (k == 87 ) || (k == 88) || (k == 89) ||
-    (k == 90) ){
-  return (false);
-}
-return true; 
- }
+    if ((k == 32) || (k == 33) || (k == 34) || (k == 35) || (k == 36) || (k == 37) || (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42) || (k == 43) ||
+      (k == 44) || (k == 45) || (k == 46) || (k == 47) || (k == 97) || (k == 98) || (k == 99) ||
+      (k == 99) || (k == 100) || (k == 101) || (k == 102) || (k == 103) ||
+      (k == 104) || (k == 105) || (k == 106) || (k == 107) || (k == 108) ||
+      (k == 109) || (k == 110) || (k == 111) || (k == 112) || (k == 113) ||
+      (k == 114) || (k == 115) || (k == 116) || (k == 117) || (k == 118) ||
+      (k == 119) || (k == 120) || (k == 121) || (k == 122) || (k == 46) || (k == 65) || (k == 66) || (k == 67) || (k == 68) || (k == 69) ||
+      (k == 70) || (k == 71) || (k == 72) || (k == 73) || (k == 74) ||
+      (k == 75) || (k == 76) || (k == 77) || (k == 78) || (k == 79) ||
+      (k == 80) || (k == 81) || (k == 82) || (k == 83) || (k == 84) ||
+      (k == 85) || (k == 86) || (k == 87) || (k == 88) || (k == 89) ||
+      (k == 90)) {
+      return (false);
+    }
+    return true;
+  }
 
 
   getAllPortalConfigData() {
@@ -3720,7 +3729,7 @@ if(event.target.value == 'Yes' ){
   //added by priyadarshini
   onselectYes: boolean = false;
 
- 
+
 
   onEmployeeTypeChange(selectedType: string): void {
     switch (selectedType) {
