@@ -1,24 +1,23 @@
-import { Component, OnInit, TemplateRef, ViewChild , ElementRef,Renderer2 } from '@angular/core';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import * as HighCharts from 'highcharts';
-import HC_exportData from "highcharts/modules/export-data";
-import { LeaveService } from '../../services/leave.service';
-import { Leave } from 'src/app/models/leave';
-import { first } from 'rxjs/operators';
-import { User } from 'src/app/models/user';
-import { AuthenticationService } from 'src/app/services/authentication.service';
-import * as moment from 'moment';
-import { AppComponent } from 'src/app/app.component';
-import { Log } from '../../models/log';
-import { LogService } from 'src/app/services/log.service';
-import { ActivatedRoute, Router } from '@angular/router';
-import { UtilityService } from 'src/app/services/utility.service';
-import { Employee360Service } from 'src/app/services/employee360.service';
-import * as Highcharts from 'highcharts';
-import { Breadcrumb } from 'src/app/models/breadcrumd';
-import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 import { ScrollStrategy } from '@angular/cdk/overlay';
 import { DatePipe } from '@angular/common';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
+import * as HighCharts from 'highcharts';
+import * as Highcharts from 'highcharts';
+import * as moment from 'moment';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
+import { Breadcrumb } from 'src/app/models/breadcrumd';
+import { Leave } from 'src/app/models/leave';
+import { User } from 'src/app/models/user';
+import { AuthenticationService } from 'src/app/services/authentication.service';
+import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
+import { Employee360Service } from 'src/app/services/employee360.service';
+import { LogService } from 'src/app/services/log.service';
+import { UtilityService } from 'src/app/services/utility.service';
+import { Log } from '../../models/log';
+import { LeaveService } from '../../services/leave.service';
 
 import { ValidationService } from 'src/app/services/validation.service';
 
@@ -324,13 +323,16 @@ export class Employee360LeaveComponent implements OnInit {
 
   onUpdateLeaveStatus(template: TemplateRef<any>, leaveApplication, updatedLeaveStatusId) {
     // 1 = pending , 2 = Approved , 3= Rejected
+    
     leaveApplication.leaveStatusId = updatedLeaveStatusId;
     leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId;
     leaveApplication.rejectReason = leaveApplication.rejectReason?.trim()	
+    // leaveApplication.leaveTypeMasterId = 2;
 
-    this.leaveService.updateLeaveStatus(leaveApplication).pipe(first()).subscribe((response: any) => {
+    this.leaveService.updateCompOffById(leaveApplication).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
+        this.getPendingCompOffRequestsByManagerId();
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
