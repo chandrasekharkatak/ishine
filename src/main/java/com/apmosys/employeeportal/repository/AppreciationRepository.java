@@ -132,7 +132,7 @@ List<Object[]> getMyAppreciationDetails(@Param("startDate") String startDate,
 		       "emp.empId, a.appreciateType, a.appreciationDate, emp.name, e.fromDate, e.toDate) " +
 		       "FROM com.apmosys.employeeportal.model.Appreciation a " +
 		       "JOIN com.apmosys.employeeportal.model.AppreciationEvent e ON a.appreciationEventId = e.appreciationEventid " +
-		       "JOIN com.apmosys.employeeportal.model.Employee emp ON a.appreciationBy = emp.empId " +
+		       "JOIN com.apmosys.employeeportal.model.Employee emp ON a.appreciationBy = emp.employeementId " +
 		       "WHERE a.appreciationTo = :empId")
 		List<AppreciationDetailsDTO> getAppreciationDetailsByEmpId(@Param("empId") Long empId);
 	
@@ -141,8 +141,8 @@ List<Object[]> getMyAppreciationDetails(@Param("startDate") String startDate,
 			"e.empId, a.appreciateType, a.appreciationDate, e.name, ae.fromDate, ae.toDate) " +
 			"FROM com.apmosys.employeeportal.model.Appreciation a " +
 			"JOIN com.apmosys.employeeportal.model.AppreciationEvent ae ON a.appreciationEventId = ae.appreciationEventid " +
-			"JOIN com.apmosys.employeeportal.model.EmployeeTeamMap etm ON a.appreciationTo = etm.empId " + 
-			"JOIN com.apmosys.employeeportal.model.Employee e ON e.empId=etm.empId " +
+			"JOIN com.apmosys.employeeportal.model.Employee e ON e.employeementId=a.appreciationTo "+
+			"JOIN com.apmosys.employeeportal.model.EmployeeTeamMap etm ON e.empId = etm.empId " + 
 			"WHERE a.appreciationTo in (SELECT empId FROM EmployeeTeamMap WHERE teamId IN " +
 			"(SELECT teamId FROM EmployeeTeamMap WHERE empId = :empId)) " +
 			"AND a.appreciateType IN (SELECT appreciateType FROM Appreciation WHERE appreciationTo = :empId) "
@@ -159,7 +159,7 @@ List<Object[]> getMyAppreciationDetails(@Param("startDate") String startDate,
 		       "emp.empId, a.appreciateType, a.appreciationDate, emp.name, e.fromDate, e.toDate) " +
 		       "FROM com.apmosys.employeeportal.model.Appreciation a " +
 		       "JOIN com.apmosys.employeeportal.model.AppreciationEvent e ON a.appreciationEventId = e.appreciationEventid " +
-		       "JOIN com.apmosys.employeeportal.model.Employee emp ON a.appreciationBy = emp.empId " +
+		       "JOIN com.apmosys.employeeportal.model.Employee emp ON a.appreciationBy = emp.employeementId " +
 		       "WHERE a.appreciationTo = :empId " +
 		       "AND (e.fromDate >= :fromDate OR :fromDate IS NULL) " +
 		       "AND (e.toDate <= :toDate OR :toDate IS NULL)")
