@@ -169,9 +169,11 @@ public class RewardsController {
 	
 	
 	@PostMapping(value = "/getEmployeeRewardByEmpId")
-	public RewardsDetails getEmployeeRewardByEmpId(@RequestBody EmployeeRewardsRequest request) { 
+	public ServiceResponse getEmployeeRewardByEmpId(@RequestBody EmployeeRewardsRequest request) { 
 		System.out.println("Request body" + request);
-		return rewardsService.getEmployeeRewardByEmpId(request);
+		ServiceResponse serviceResponse = new ServiceResponse();
+		serviceResponse = rewardsService.getEmployeeRewardByEmpId(request);
+		return serviceResponse;
 	}
 	
 	

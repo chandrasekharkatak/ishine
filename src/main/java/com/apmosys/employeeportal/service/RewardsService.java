@@ -1265,63 +1265,44 @@ public class RewardsService {
 //		rewardsDetails.setRewardsDTO(rewardlist);
 //		return rewardsDetails;
 //	}
-	public RewardsDetails getEmployeeRewardByEmpId(EmployeeRewardsRequest request) {
-	    List<EmployeeRewardsDTO> rewardList = new ArrayList<>();
+	public ServiceResponse getEmployeeRewardByEmpId(EmployeeRewardsRequest request) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+	    try {
+	    	List<EmployeeRewardsDTO> rewardList = new ArrayList<>();
 
-	    // Convert String dates to LocalDate
-	    LocalDate fromDate = null;
-	    LocalDate toDate = null;
+		    if (request.getEmpId() != null) {
+		      
+		        List<Object[]> result = employeeRewardsRepository.getRewardByEmpIdWithDateRange(request.getEmpId(), request.getOfMonthYear());
+		        if(result != null) {
+		        	for (Object[] row : result) {
+			            EmployeeRewardsDTO dto = new EmployeeRewardsDTO();
+			            dto.setRewardTypeName(row[1] != null ? row[1].toString() : null);
+			            dto.setRewardedTo(row[2] != null ? Long.parseLong(row[2].toString()) : null);
+			            dto.setCreatedOn(row[3] != null ?getLocalDateTime(row[3]) : null); 
+			            dto.setRemark(row[4] != null ? row[4].toString() : null);
+			            dto.setUpdatedByName(row[5] != null ? getEmployeeNameByEmpId(Long.parseLong(row[5].toString())) : null);
+			            dto.setName(row[0] != null ? row[0].toString() : null);
+			            dto.setTeamName(row[6] != null ? row[6].toString() : null);
 
-	    if (request.getFromDate() != null) {
-	        fromDate = LocalDate.parse(request.getFromDate());
-	    }
-	    if (request.getToDate() != null) {
-	        toDate = LocalDate.parse(request.getToDate());
-	    }
+			            rewardList.add(dto);
+			        }
+		        }
+		    }
 
-	    if (request.getEmpId() != null) {
-	      
-	        List<Object[]> result = employeeRewardsRepository.getRewardByEmpIdWithDateRange(
-	                request.getEmpId(), fromDate, toDate
-	        );
-	        for (Object[] row : result) {
-	           
-	        	String name = row[0].toString();
-	            String rewardTypeName = (String) row[1];
-	            Long rewardedTo = null;
-	            if (row[2] instanceof BigInteger) {
-	                rewardedTo = ((BigInteger) row[2]).longValue();  
-	            } else if (row[1] instanceof Long) {
-	                rewardedTo = (Long) row[2]; 
-	            }
-	            LocalDateTime createdOn = null;
-	            if (row[3] instanceof Timestamp) {
-	                createdOn = ((Timestamp) row[3]).toLocalDateTime();
-	            }
-	            String remark = row[4].toString();
-	            Long updatedBy = null;
-	            if (row[5] != null) {
-	                updatedBy = ((Number) row[5]).longValue();
-	            }
-	            String teamName = row[6].toString();
-	            EmployeeRewardsDTO dto = new EmployeeRewardsDTO();
-	            dto.setRewardTypeName(rewardTypeName);
-	            dto.setRewardedTo(rewardedTo);
-	            dto.setCreatedOn(createdOn);
-	            dto.setRemark(remark);
-	            dto.setUpdatedBy(updatedBy);
-	            dto.setName(name);
-	            dto.setTeamName(teamName);
-
-	            // Add DTO to the list
-	            rewardList.add(dto);
+		    if (rewardList.isEmpty()) {
+	            serviceResponse.setServiceResponse("No data found");
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        } else {
+	            serviceResponse.setServiceResponse(rewardList);
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        }
-	    }
-
-	    // Return rewards details with the list of DTOs
-	    RewardsDetails rewardsDetails = new RewardsDetails();
-	    rewardsDetails.setRewardsDTO(rewardList);
-	    return rewardsDetails;
+    } catch (Exception e) {
+        e.printStackTrace(); 
+        serviceResponse.setServiceResponse("Error occurred while fetching data");
+        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+    }
+    
+    return serviceResponse;
 	}
 
 
@@ -1386,10 +1367,6 @@ public class RewardsService {
 	
 	public RewardsDetails getTeamRewardByEmpId(EmployeeRewardsRequest request) {
 	    List<EmployeeRewardsDTO> rewardList = new ArrayList<>();
-
-	    // Convert String dates to LocalDate
-	    LocalDate fromDate = parseDate(request.getFromDate());
-	    LocalDate toDate = parseDate(request.getToDate());
 
 	    if (request.getEmpId() != null) {
 	        List<Object[]> result = employeeRewardsRepository.getRewardByTeamAndDateRange(request.getEmpId());
