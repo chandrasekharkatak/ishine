@@ -180,7 +180,7 @@ export class Employee360RewardsComponent implements OnInit {
         // Call the API
         this.rewardsService.getEmployeeRewardByEmpId(request).subscribe(
           (response: any) => {
-            this.rewardList = response;
+            this.rewardList = response.rewardsDTO;
             console.log('Rewards Details:', response);
           },
           (error: any) => {
