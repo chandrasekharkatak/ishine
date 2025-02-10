@@ -2700,13 +2700,13 @@ plotEmployeeExperienceCylinderGraph(chartName, chartId, categories, employeeSeri
   (Highcharts as any).chart(chartId, {
     chart: {
       type: 'cylinder', // Cylinder chart type
-      options3d: {
-        enabled: true,
-        alpha: 25,
-        beta: 20,
-        depth: 60,
-        viewDistance: 40,
-      },
+      // options3d: {
+      //   enabled: true,
+      //   alpha: 25,
+      //   beta: 20,
+      //   depth: 60,
+      //   viewDistance: 40,
+      // },
       backgroundColor: '#f4f6f7', // Light background color
     },
     title: {
