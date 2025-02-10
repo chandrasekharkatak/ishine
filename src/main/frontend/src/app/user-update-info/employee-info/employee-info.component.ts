@@ -884,12 +884,12 @@ if (!regexaboutMe.test(this.employeeObj.aboutMe )) {
     
 
 
-   const regexpassPort =/ ^[A-Za-z0-9]+$/; 
-   if (!regexpassPort.test(this.employeeObj.passportNumber)) { 
-       this.alertMessage = "Please enter a valid Passport Number";
-       this.openAlertMod(template, this.alertMessage);
-       return false;
-   }
+  //  const regexpassPort =/ ^[A-Za-z0-9]+$/; 
+  //  if (!regexpassPort.test(this.employeeObj.passportNumber)) { 
+  //      this.alertMessage = "Please enter a valid Passport Number";
+  //      this.openAlertMod(template, this.alertMessage);
+  //      return false;
+  //  }
    
 
 
