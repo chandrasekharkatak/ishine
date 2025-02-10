@@ -2696,10 +2696,11 @@ renderDepartmentWiseEmployeeChart(chartName: any, chartId: any, chartData: any, 
 //     ],
 //   });
 // }
+//sandeep
 plotEmployeeExperienceCylinderGraph(chartName, chartId, categories, employeeSeries, apprenticeSeries, consultantSeries, openMod) {
   (Highcharts as any).chart(chartId, {
     chart: {
-      type: 'cylinder', // Cylinder chart type
+      type: 'cylinder', 
       // options3d: {
       //   enabled: true,
       //   alpha: 25,
@@ -2707,7 +2708,7 @@ plotEmployeeExperienceCylinderGraph(chartName, chartId, categories, employeeSeri
       //   depth: 60,
       //   viewDistance: 40,
       // },
-      backgroundColor: '#f4f6f7', // Light background color
+      backgroundColor: '#f4f6f7', 
     },
     title: {
       text: chartName,
@@ -2718,7 +2719,7 @@ plotEmployeeExperienceCylinderGraph(chartName, chartId, categories, employeeSeri
       },
     },
     xAxis: {
-      categories: categories, // Experience ranges (e.g., "0 to 1", "1 to 2", etc.)
+      categories: categories, 
       labels: {
         style: {
           fontWeight: 'bold',
@@ -2740,7 +2741,7 @@ plotEmployeeExperienceCylinderGraph(chartName, chartId, categories, employeeSeri
     tooltip: {
       shared: true,
       valueSuffix: ' employees',
-      backgroundColor: 'rgba(0, 0, 0, 0.75)', // Dark tooltip background
+      backgroundColor: 'rgba(0, 0, 0, 0.75)', 
       style: {
         color: '#ffffff',
         fontSize: '14px',
@@ -2751,20 +2752,20 @@ plotEmployeeExperienceCylinderGraph(chartName, chartId, categories, employeeSeri
     },
     plotOptions: {
       cylinder: {
-        stacking: 'normal', // Stack employee and apprentice counts
-        depth: 30, // 3D depth for the cylinders
+        stacking: 'normal', 
+        depth: 30, 
         dataLabels: {
-          enabled: true, // Show data labels on cylinders
+          enabled: true, 
           color: '#ffffff',
           style: {
             fontWeight: 'bold',
             textOutline: 'none',
           },
           formatter: function () {
-            return this.y; // Display the value on top of the cylinders
+            return this.y; 
           },
         },
-        colorByPoint: true, // Use color for each series
+        colorByPoint: true, 
       },
       series: {
         cursor: 'pointer',
@@ -2804,17 +2805,17 @@ plotEmployeeExperienceCylinderGraph(chartName, chartId, categories, employeeSeri
       {
         name: 'Employees',
         data: employeeSeries,
-        color: 'url(#gradEmployee)', // Gradient color
+        color: 'url(#gradEmployee)', 
       },
       {
         name: 'Apprentices',
         data: apprenticeSeries,
-        color: 'url(#gradApprentice)', // Gradient color
+        color: 'url(#gradApprentice)', 
       },
       {
         name: 'Consultant',
         data: consultantSeries,
-        color: 'url(#gradConsultant)', // Gradient color
+        color: 'url(#gradConsultant)', 
       },
     ],
     defs: {
@@ -2822,22 +2823,22 @@ plotEmployeeExperienceCylinderGraph(chartName, chartId, categories, employeeSeri
         {
           id: 'gradEmployee',
           stops: [
-            [0, '#3498db'], // Blue start
-            [1, '#2980b9'], // Darker blue end
+            [0, '#3498db'], 
+            [1, '#2980b9'], 
           ],
         },
         {
           id: 'gradApprentice',
           stops: [
-            [0, '#e74c3c'], // Red start
-            [1, '#c0392b'], // Darker red end
+            [0, '#e74c3c'], 
+            [1, '#c0392b'], 
           ],
         },
         {
           id: 'gradConsultant',
           stops: [
-            [0, '#2d9687'], // Green start
-            [1, '#16a085'], // Darker green end
+            [0, '#2d9687'], 
+            [1, '#16a085'], 
           ],
         },
       ],
@@ -3916,19 +3917,19 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
       } else if (pointName == "1 to 2") {
         this.page = 1;
         this.modalTitle = "Employee(s) with 1 to 2 YOE";
-        filteredList = modalTableList.filter(x => x.totalExperience > 1 && x.totalExperience <= 2 && x.totalExperience <= 1 && x.isApprenticeship != 'true' && x.isConsultant!='true');
+        filteredList = modalTableList.filter(x => x.totalExperience > 1 && x.totalExperience <= 2  && x.isApprenticeship != 'true' && x.isConsultant!='true');
       } else if (pointName == "2 to 5") {
         this.page = 1;
         this.modalTitle = "Employee(s) with 2 to 5 YOE";
-        filteredList = modalTableList.filter(x => x.totalExperience > 2 && x.totalExperience <= 5 && x.totalExperience <= 1 && x.isApprenticeship != 'true' && x.isConsultant!='true');
+        filteredList = modalTableList.filter(x => x.totalExperience > 2 && x.totalExperience <= 5 && x.isApprenticeship != 'true' && x.isConsultant!='true');
       } else if (pointName == "5 to 10") {
         this.page = 1;
         this.modalTitle = "Employee(s) with 5 to 10 YOE";
-        filteredList = modalTableList.filter(x => x.totalExperience > 5 && x.totalExperience <= 10 && x.totalExperience <= 1 && x.isApprenticeship != 'true' && x.isConsultant!='true');
+        filteredList = modalTableList.filter(x => x.totalExperience > 5 && x.totalExperience <= 10 && x.isApprenticeship != 'true' && x.isConsultant!='true');
       } else if (pointName == "10+") {
         this.page = 1;
         this.modalTitle = "Employee(s) with 10+ YOE";
-        filteredList = modalTableList.filter(x => x.totalExperience > 10 && x.totalExperience <= 1 && x.isApprenticeship != 'true' && x.isConsultant!='true');
+        filteredList = modalTableList.filter(x => x.totalExperience > 10 && x.isApprenticeship != 'true' && x.isConsultant!='true');
       }
     } else if (type === 'apprentice') {
       // this.page = 1;
