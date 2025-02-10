@@ -1,6 +1,7 @@
 <app-breadcrumb></app-breadcrumb>
 
-<div *ngIf="isShowReleaseNote" class="alert alert-light alert-dismissible fade show release-notification pr-4" role="alert">
+<div *ngIf="isShowReleaseNote" class="alert alert-light alert-dismissible fade show release-notification pr-4"
+    role="alert">
     <h4 class="alert-heading text-dark">Ishine Portal Release Note</h4>
     <button type="button" class="close" aria-label="Close" (click)="submitReleaseNoteNotificationConsent()">
         <span aria-hidden="true">&times;</span>
@@ -9,15 +10,15 @@
 </div>
 
 <!-- <div class="sticky-marquee" *ngIf="lines && lines.length > 0"> -->
-    <!-- <div class="scrolling-text">
+<!-- <div class="scrolling-text">
       <span *ngFor="let line of lines">
         {{ line }}
       </span>
     </div> -->
-    <!-- <div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null" style="display: flex; justify-content: space-between; width: 100%; position: relative;"> -->
+<!-- <div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null" style="display: flex; justify-content: space-between; width: 100%; position: relative;"> -->
 
-        <!-- Left Side Marquee -->
-        <!-- <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
+<!-- Left Side Marquee -->
+<!-- <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
             
             direction="left" 
             style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 60%; background-color: #193d8a; scrolldelay: 50; behavior: loop; 
@@ -26,9 +27,9 @@
                 "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
             </span>
         </marquee> -->
-    
-        <!-- Right Side Marquee -->
-        <!-- <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
+
+<!-- Right Side Marquee -->
+<!-- <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
             *ngIf="consentNotificationMessage != null"
             direction="right" 
             style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 33.5%; background-color: #193d8a; scrolldelay: 50; behavior: loop;
@@ -37,11 +38,11 @@
                 {{consentNotificationMessage}}
             </span>
         </marquee> -->
-    
-    <!-- </div> -->
+
+<!-- </div> -->
 
 
-    <!-- <div  *ngIf="(lines.billableType === 'Bench' && lines.dayOnbench != null) &&   (consentNotificationMessage != null) "  style="display: flex; justify-content: space-between; width: 100%;">
+<!-- <div  *ngIf="(lines.billableType === 'Bench' && lines.dayOnbench != null) &&   (consentNotificationMessage != null) "  style="display: flex; justify-content: space-between; width: 100%;">
 
        
         <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
@@ -67,71 +68,68 @@
 
 
 <!-- First Div: Both conditions are true -->
-<div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null && consentNotificationMessage != null" 
+<div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null && consentNotificationMessage != null"
     style="display: flex; justify-content: space-between; width: 100%;">
 
-    <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
-        direction="left" 
+    <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="left"
         style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop; width: calc(55vw - 4px);   overflow: hidden; display: inline-block;">
         <span>
             "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
         </span>
     </marquee>
-    
-    <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
-        direction="right"   onmouseover="this.stop()" 
+
+    <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="right" onmouseover="this.stop()"
         onmouseout="this.start()"
         style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop; width: calc(50vw - 255px);  overflow: hidden; display: inline-block;">
         <span>
-            {{consentNotificationMessage}} 
+            {{consentNotificationMessage}}
         </span>
-       <button class="btn btn-sm btn-outline-success" (click)="submitNotificationConsent()" style="margin-left: 8px; height: 30px; width: 120px; font-size: 12px;">
-  I Agree
-</button>
+        <button class="btn btn-sm btn-outline-success" (click)="submitNotificationConsent()"
+            style="margin-left: 8px; height: 30px; width: 120px; font-size: 12px;">
+            I Agree
+        </button>
 
     </marquee>
 
 </div>
 
 <!-- Second Div: Only lines.billableType === 'Bench' && lines.dayOnbench != null is true -->
-<div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null && consentNotificationMessage == null" 
+<div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null && consentNotificationMessage == null"
     style="display: flex; justify-content: space-between; width: 100%; position: relative;">
-    
-    <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
-        direction="left" 
+
+    <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="left"
         style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop;  overflow: hidden; display: inline-block;">
         <span>
             "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
         </span>
     </marquee>
-    
+
 </div>
 
 <!-- Third Div: Only consentNotificationMessage != null is true -->
-<div *ngIf="consentNotificationMessage != null && (lines.billableType !== 'Bench' || lines.dayOnbench == null)" 
+<div *ngIf="consentNotificationMessage != null && (lines.billableType !== 'Bench' || lines.dayOnbench == null)"
     style="display: flex; justify-content: space-between; width: 100%; position: relative;">
-    
-    <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
-        direction="left" onmouseover="this.stop()" 
+
+    <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="left" onmouseover="this.stop()"
         onmouseout="this.start()"
-     
         style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop;   overflow: hidden; display: inline-block;">
         <span>
             {{consentNotificationMessage}}
         </span>
-        <button class="btn btn-sm btn-outline-success" (click)="submitNotificationConsent()" style="margin-left: 8px; height: 30px; width: 120px; font-size: 12px;">
+        <button class="btn btn-sm btn-outline-success" (click)="submitNotificationConsent()"
+            style="margin-left: 8px; height: 30px; width: 120px; font-size: 12px;">
             I Agree
         </button>
     </marquee>
-   
-    
+
+
 </div>
 
 
-   <!-- style="font-family: Calibri, sans-serif; color: #FFFFFF;  background-color: #193d8a; scrolldelay: 50; behavior: loop; "> -->
+<!-- style="font-family: Calibri, sans-serif; color: #FFFFFF;  background-color: #193d8a; scrolldelay: 50; behavior: loop; "> -->
 
 
-    <!-- <div style="display: flex; justify-content: space-between; width: 100%; position: relative;">
+<!-- <div style="display: flex; justify-content: space-between; width: 100%; position: relative;">
 
         <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
             *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null"
@@ -159,7 +157,7 @@
 
 
 
-    <!-- <div style="display: flex; justify-content: space-between; width: 100%; position: relative;">
+<!-- <div style="display: flex; justify-content: space-between; width: 100%; position: relative;">
 
       
         <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
@@ -184,34 +182,36 @@
         </marquee>
     
     </div> -->
-    
-    
 
 
 
 
-  
 
 
 
 
-    
-    
 
-  <!-- </div> -->
-  
+
+
+
+
+
+<!-- </div> -->
+
 <div class="home-container">
     <div class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" *ngIf="currentUser">
 
-     
+
 
         <ul class="navbar-nav">
             <li class="nav-item pt-1 mr-2">
                 <small class="nav-text">Profile Completed</small>
                 <div class="progress profileCompleted">
-                    <div class="progress-bar progress-bar-success" role="progressbar" [style.width]="profileCompletedPercentage" aria-valuemin="0" aria-valuemax="100" title="{{profileCompletedPercentage}}">{{profileCompletedPercentage}}</div>
+                    <div class="progress-bar progress-bar-success" role="progressbar"
+                        [style.width]="profileCompletedPercentage" aria-valuemin="0" aria-valuemax="100"
+                        title="{{profileCompletedPercentage}}">{{profileCompletedPercentage}}</div>
                     <!-- <small class="justify-content-center d-flex w-100 profileCompleted-value" >{{profileCompletedPercentage}}</small> -->
-                  </div>
+                </div>
             </li>
             <li class="nav-item">
                 <a class="nav-link nav-text notification_icon" (click)="openNotificationMod(notification_template)">
@@ -220,18 +220,21 @@
             </li>
             <li class="nav-item">
                 <div class="dropdown">
-                    <a class="nav-link nav-text dropdown-toggle" id="user-dropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                    <a class="nav-link nav-text dropdown-toggle" id="user-dropdown" role="button" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="true">
                         <i class="fa-solid fa-user"></i>&nbsp;{{currentUserName}}
                     </a>
                     <div class="dropdown-menu dropdown-menu-right user-menu" aria-labelledby="user-dropdown">
                         <!-- <a class="dropdown-item" (click)="LmsRedirection()"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;LMS</a> -->
-                     
-                        <a class="dropdown-item" (click)="openChangePassword(change_password)"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;Change Password</a>
-                      <a class="dropdown-item" (click)="userLogout()"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;Logout</a>
+
+                        <a class="dropdown-item" (click)="openChangePassword(change_password)"><i
+                                class="fa-solid fa-right-from-bracket"></i>&nbsp;Change Password</a>
+                        <a class="dropdown-item" (click)="userLogout()"><i
+                                class="fa-solid fa-right-from-bracket"></i>&nbsp;Logout</a>
                     </div>
                 </div>
             </li>
-          </ul>
+        </ul>
     </div>
     <div class="event-photos mb-2">
         <div *ngIf="userMapping.view_event_photos" class="event-photos-card card">
@@ -239,7 +242,8 @@
                 <div *ngIf="eventImages.length == 0" class="container-fluid placeholder">
                     <h1 class="placeholder-text">No Events to Display ...</h1>
                 </div>
-                <div *ngIf="eventImages.length !== 0 && !isImagesLoaded" class="d-flex justify-content-center align-items-center spinner-container">
+                <div *ngIf="eventImages.length !== 0 && !isImagesLoaded"
+                    class="d-flex justify-content-center align-items-center spinner-container">
                     <div class="spinner-border" role="status" style="height: 100px; width: 100px;">
                         <span class="sr-only">Loading...</span>
                     </div>
@@ -252,7 +256,10 @@
                                 title="{{image.eventName}}">
                             <div class="carousel-caption">
                                 <h5>{{image.eventName}}&nbsp;
-                                <a *ngIf="image.isExternalLink == 'true'" class="text-decoration-none" href="{{image.externalLink}}" target="_blank" ><i class="fa-solid fa-arrow-up-right-from-square"></i></a></h5>
+                                    <a *ngIf="image.isExternalLink == 'true'" class="text-decoration-none"
+                                        href="{{image.externalLink}}" target="_blank"><i
+                                            class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                                </h5>
                                 <p>{{image.eventCaption}}</p>
                             </div>
                         </div>
@@ -278,7 +285,8 @@
             <div class="team-requests-body">
                 <div class="text-center p-0">
                     <p class="request-title">Leave</p>
-                    <h4 class="req-card" (click)="openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()"><span
+                    <h4 class="req-card"
+                        (click)="openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()"><span
                             class="badge badge-secondary">{{leaveApplicationCount}}</span></h4>
                 </div>
                 <div class="text-center p-0">
@@ -299,27 +307,36 @@
             <div class="card-title px-1 pt-2 " style="margin-bottom: 0;">
                 <p class="section-heading m-0 pl-2">My Leave Details</p>
             </div>
-            <div class="leave-details-body"style="margin-bottom: 0;">
+            <div class="leave-details-body" style="margin-bottom: 0;">
                 <table class="table table-borderless leaveBucketTable">
                     <thead>
-                      <tr class="leaveBucketTableHdTr">
-                        <th scope="col">Type</th>
-                        <th scope="col">Balance</th>
-                        <th scope="col">Approved</th>
-                        <th scope="col">Pending</th>
-                        <th scope="col">Rejected</th>
-                      </tr>
+                        <tr class="leaveBucketTableHdTr">
+                            <th scope="col">Type</th>
+                            <th scope="col">Balance</th>
+                            <th scope="col">Approved</th>
+                            <th scope="col">Pending</th>
+                            <th scope="col">Rejected</th>
+                        </tr>
                     </thead>
-                    <tbody class="leave-body" [ngClass]="(userMapping.view_all_team_requests)? 'leave-body--scroll' : ''">
-                      <tr *ngFor="let leave of leaveBucketDetails ">
-                        <td scope="row">{{leave.leaveTypeCode}}</td>
-                        <td><h4><span class="badge badge-primary">{{leave.balance}}</span></h4></td>
-                        <td><h4><span class="badge badge-success">{{leave.approvedApplicationsCount}}</span></h4></td>
-                        <td><h4><span class="badge badge-warning">{{leave.pendingApplicationsCount}}</span></h4></td>
-                        <td><h4><span class="badge badge-danger">{{leave.rejectedApplicationsCount}}</span></h4></td>
-                      </tr>
+                    <tbody class="leave-body"
+                        [ngClass]="(userMapping.view_all_team_requests)? 'leave-body--scroll' : ''">
+                        <tr *ngFor="let leave of leaveBucketDetails ">
+                            <td scope="row">{{leave.leaveTypeCode}}</td>
+                            <td>
+                                <h4><span class="badge badge-primary">{{leave.balance}}</span></h4>
+                            </td>
+                            <td>
+                                <h4><span class="badge badge-success">{{leave.approvedApplicationsCount}}</span></h4>
+                            </td>
+                            <td>
+                                <h4><span class="badge badge-warning">{{leave.pendingApplicationsCount}}</span></h4>
+                            </td>
+                            <td>
+                                <h4><span class="badge badge-danger">{{leave.rejectedApplicationsCount}}</span></h4>
+                            </td>
+                        </tr>
                     </tbody>
-                  </table>
+                </table>
             </div>
 
         </div>
@@ -334,7 +351,8 @@
                     alt="Birthday Icon">
                 <h1 class="placeholder-text">No Birthday's Today</h1>
             </div>
-            <marquee *ngIf="birthdayList.length != 0" direction="up" scrolldelay="250 " onmouseover="this.stop();" onmouseout="this.start();">
+            <marquee *ngIf="birthdayList.length != 0" direction="up" scrolldelay="250 " onmouseover="this.stop();"
+                onmouseout="this.start();">
                 <mat-list class="p-0">
                     <mat-list-item *ngFor="let employee of birthdayList">
                         <img matListAvatar src="assets/Images/default-user-image.jpeg" alt="User Avatar">
@@ -353,15 +371,15 @@
         </div>
         <div class="text-center quick-link" (click)="showApplyCompOffForm()">
             <h5><span class="badge badge-secondary"> <i class="fa fa-calendar"></i></span></h5>
-            <p class="text-uppercase m-0 quick-link-text" >Apply Comp-off</p>
+            <p class="text-uppercase m-0 quick-link-text">Apply Comp-off</p>
         </div>
         <div class="text-center quick-link" (click)="showApplyTimesheetForm()">
             <h5><span class="badge badge-secondary"> <i class="fa-solid fa-calendar-check"></i></span></h5>
-            <p class="text-uppercase m-0 quick-link-text" >Apply Timesheet</p>
+            <p class="text-uppercase m-0 quick-link-text">Apply Timesheet</p>
         </div>
         <div class="text-center quick-link" (click)="showHolidayList()">
             <h5><span class="badge badge-secondary"> <i class="fa fa-calendar"></i></span></h5>
-            <p class="text-uppercase m-0 quick-link-text" >View Holidays</p>
+            <p class="text-uppercase m-0 quick-link-text">View Holidays</p>
         </div>
     </div>
     <!-- Timesheet Display -->
@@ -369,15 +387,18 @@
         <ul class="nav nav-tabs" id="timesheetSummaryTab" role="tablist">
             <li class="nav-item timesheet_tab-item">
                 <a class="nav-link active timesheet__tab-item__link" id="weekly-tab" data-toggle="tab" role="tab"
-                href="#weekly-tabpanel" aria-controls="weekly" aria-selected="true" (click)="getTimesheetsForHomePageByEmpId('Last 7 Days')">EOD Last 7 Days</a>
+                    href="#weekly-tabpanel" aria-controls="weekly" aria-selected="true"
+                    (click)="getTimesheetsForHomePageByEmpId('Last 7 Days')">EOD Last 7 Days</a>
             </li>
             <li class="nav-item timesheet__tab-item">
                 <a class="nav-link timesheet__tab-item__link" id="thisMonth-tab" data-toggle="tab" role="tab"
-                href="#thisMonth-tabpanel" aria-controls="thisMonth" aria-selected="false" (click)="getTimesheetsForHomePageByEmpId('This Month')">EOD This Month</a>
+                    href="#thisMonth-tabpanel" aria-controls="thisMonth" aria-selected="false"
+                    (click)="getTimesheetsForHomePageByEmpId('This Month')">EOD This Month</a>
             </li>
             <li class="nav-item timesheet__tab-item">
                 <a class="nav-link timesheet__tab-item__link" id="lastMonth-tab" data-toggle="tab" role="tab"
-                href="#lastMonth-tabpanel" aria-controls="lastMonth" aria-selected="false" (click)="getTimesheetsForHomePageByEmpId('Last Month')">EOD Last Month</a>
+                    href="#lastMonth-tabpanel" aria-controls="lastMonth" aria-selected="false"
+                    (click)="getTimesheetsForHomePageByEmpId('Last Month')">EOD Last Month</a>
             </li>
         </ul>
 
@@ -388,30 +409,32 @@
                 <div class="row col-md-12 p-0 m-0">
                     <table class="table table-sm timesheet-table">
                         <thead>
-                          <tr>
-                            <th scope="col">Sr.No</th>
-                            <th scope="col">Date</th>
-                            <th scope="col">Day</th>
-                            <th scope="col">Day Type</th>
-                            <th scope="col">Status</th>
-                            <th scope="col" colspan="3">Working Hours</th>
-                          </tr>
+                            <tr>
+                                <th scope="col">Sr.No</th>
+                                <th scope="col">Date</th>
+                                <th scope="col">Day</th>
+                                <th scope="col">Day Type</th>
+                                <th scope="col">Status</th>
+                                <th scope="col" colspan="3">Working Hours</th>
+                            </tr>
                         </thead>
                         <tbody>
-                          <tr *ngFor="let timesheet of timesheetDetails; let i = index">
-                            <th scope="row">{{i+1}}</th>
-                            <td>{{timesheet.date}}</td>
-                            <td>{{timesheet.weekDayName}}</td>
-                            <td>{{timesheet.dayType}}</td>
-                            <td>{{timesheet.status}}</td>
-                            <td colspan="3">
-                                <div class="progress">
-                                    <div class="progress-bar" role="progressbar" [style.width]="timesheet.totalWorkingHoursPercentage" aria-valuemin="0" aria-valuemax="100" >{{timesheet.totalWorkingHours}} hrs</div>
-                                  </div>
-                            </td>
-                          </tr>
+                            <tr *ngFor="let timesheet of timesheetDetails; let i = index">
+                                <th scope="row">{{i+1}}</th>
+                                <td>{{timesheet.date}}</td>
+                                <td>{{timesheet.weekDayName}}</td>
+                                <td>{{timesheet.dayType}}</td>
+                                <td>{{timesheet.status}}</td>
+                                <td colspan="3">
+                                    <div class="progress">
+                                        <div class="progress-bar" role="progressbar"
+                                            [style.width]="timesheet.totalWorkingHoursPercentage" aria-valuemin="0"
+                                            aria-valuemax="100">{{timesheet.totalWorkingHours}} hrs</div>
+                                    </div>
+                                </td>
+                            </tr>
                         </tbody>
-                      </table>
+                    </table>
                 </div>
             </div>
             <div class="tab-pane fade timesheet__tab-container pt-2" id="thisMonth-tabpanel" role="tabpanel"
@@ -524,601 +547,731 @@
 
     <div *ngIf="userMapping.view_employee_rewards" class="timesheet-graph reward card mb-2">
         <div class="card-title px-1 pt-2">
-          <p class="section-heading m-0 pl-2 p-3">Apmosys Wall Of Fame</p>
-          <p  *ngIf="rewardsList.length !== 0" class="text-muted pl-3">
-            <b>MONTHLY: <span>{{ monthKeys[currentMonthIndex] | date: 'MMMM yyyy' }}</span></b>
-          </p>
-        </div>
-      
-        <div class="reward-content-container">
-          <div *ngIf="rewardsList.length === 0" class="container-fluid placeholder">
-            <img class="placeholder-img" src="assets/Images/reward2.png" alt="Rewards Icon">
-            <h1 class="placeholder-text">No Rewards Today</h1>
-          </div>
-      
-          <marquee
-            *ngIf="rewardsList.length !== 0"
-            direction="up"
-            scrolldelay="250"
-            onmouseover="this.stop();"
-            onmouseout="this.start();">
-            <mat-list class="reward-content">
-              <mat-list-item *ngFor="let rewards of currentRewards">
-                <img matListAvatar src="assets/Images/reward2.png" alt="User Avatar">
-                <h1 matLine style="font-size: smaller;">{{ rewards.rewardedToByName }} || {{ rewards.rewardTypeName }}</h1>
-                <p matLine style="font-size: smaller;">{{ rewards.department }}</p>
-              </mat-list-item>
-            </mat-list>
-          </marquee>
-        </div>
-      </div>
-      
-      
-      
-
-<!-- Modals templates -->
-<ng-template #alert_message>
-    <div class="modal-body text-center">
-       <p>{{alertMessage}}</p>
-        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
-    </div>
-</ng-template>
-
-<ng-template #leave_success>
-    <div class="modal-body text-center">
-       <p>{{alertMessage}}</p>
-        <button type="button" class="btn btn-primary" (click)="cancelRequest();openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()">OK</button>&nbsp;
-    </div>
-</ng-template>
-
-<ng-template #compoff_success>
-    <div class="modal-body text-center">
-       <p>{{alertMessage}}</p>
-        <button type="button" class="btn btn-primary" (click)="cancelRequest();openReqMod(compOffReq);getPendingCompOffRequestsByManagerId()">OK</button>&nbsp;
-    </div>
-</ng-template>
-
-<ng-template #timesheet_success>
-    <div class="modal-body text-center">
-       <p>{{alertMessage}}</p>
-        <button type="button" class="btn btn-primary" (click)="cancelRequest();openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()">OK</button>&nbsp;
-    </div>
-</ng-template>
-
-<ng-template #timesheet_details>
-    <div class="modal-header">
-      <h5 class="modal-title">Timesheet Details</h5>
-      <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest();openReqMod(TimesheetReq);">
-        <span aria-hidden="true">&times;</span>
-    </button>
-    </div>
-    <div class="modal-body">
-      <div class="row">
-        <div class="col-md-2 mb-0">
-          <div class="info-wrapper">
-            <div class="form-group">
-              <label class="info-label">Date</label>
-              <input type="text" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" disabled>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-3 mb-0">
-          <div class="info-wrapper">
-            <div class="form-group">
-              <label class="info-label">Day Type</label>
-              <input type="text" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.dayType" disabled>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div *ngIf="timesheetObj.dayType == 'Holiday' || timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off' || timesheetObj.dayType == 'Leave'" class="row">
-        <div class="col-md-4 mb-0">
-            <div class="info-wrapper">
-                <div class="form-group">
-                    <label for="leaveDesc"><span class="text-danger">*</span>Description</label>
-                    <textarea class="form-control" id="dayTypeDesc" rows="3" [(ngModel)]="timesheetObj.description" disabled></textarea>
-                  </div>
-            </div>
-        </div>
-      </div>
-      <div *ngIf="timesheetObj.dayType != 'Holiday' && timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'" class="row px-3">
-
-        <table class="table timesheet-details-table">
-            <thead class="thead-light">
-              <tr>
-                <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" class="info-label">Project Name</th>
-                <th scope="col" class="info-label">Team Name</th>
-                <th scope="col" class="info-label">Activity</th>
-                <th scope="col" colspan="4" class="info-label">Description</th>
-                <th scope="col" class="info-label">Time<small>(Hrs)</small></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngIf="timesheetObj.allTimesheetActivities.length == 0">
-                <th colspan="8" class="text-center info-label">No details to display...</th>
-              </tr>
-              <tr *ngFor="let activity of timesheetObj.allTimesheetActivities; let i = index">
-                <td>{{10*(page-1)+i+1}}</td>
-                <td>{{activity.projectName}}</td>
-                <td>{{activity.teamName}}</td>
-                <td>{{activity.activity}}</td>
-                <td colspan="4">{{activity.description}}</td>
-                <td>{{activity.completionTime}}</td>
-              </tr>
-            </tbody>
-        </table>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button type="button" class="btn btn-primary" (click)="cancelRequest();openReqMod(TimesheetReq);">Close</button>
-    </div>
-  </ng-template>
-
-  <ng-template #reject_timesheet>
-    <div class="modal-body text-center">
-        <p>Kindly provide reason(s) for rejecting application.</p>
-        <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="timesheetObj.rejectReason"> </textarea><br>
-        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)" (click)="cancelRequest();rejectTimesheetRequest(timesheet_status)">Reject</button>&nbsp;
-        <button type="button" class="btn btn-danger" (click)="cancelRequest();openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()">No, Cancel</button>&nbsp;
-    </div>
-</ng-template>
-<!-- timesheet_reject_reason -->
-<ng-template #timesheet_status>
-    <div class="modal-body text-center">
-       <p>{{alertMessage}}</p>
-        <button type="button" class="btn btn-primary" (click)="cancelRequest();openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()">OK</button>&nbsp;
-    </div>
-</ng-template>
-
-<!-- Update Employee info  Modal -->
-<ng-template #updateInfo>
-    <div class="modal-header">
-        <h4 class="table-header-title">Update Employee Information</h4>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <div class="modal-body ">
-        <app-user-update-info (docSubmit)="onDocSubmit()" (draftDelete)="cancelRequest()"></app-user-update-info>
-    </div>
-</ng-template>
-
-<!-- Leaves Req Modal -->
-<ng-template #LeaveReq>
-    <div class="modal-header">
-        <h4 class="table-header-title">My Reportee Leave Applications</h4>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <div class="modal-body px-4">
-        <div *ngIf="bulkLeaveApprove.length > 1 && bulkLeaveReject.length > 1" class="form-group ml-4">
-            <button class="btn btn-sm btn-outline-success mt-2" type="submit" (click)="cancelRequest();onBulkLeaveApproval(leave_success)">Bulk
-                Approve</button>&nbsp;
-            <button type="submit" class="btn btn-sm btn-outline-danger ml-2 mt-2" (click)="cancelRequest();OnBulkLeaveReject(bulk_reject_leave, leaveObj)">Bulk Reject</button>
+            <p class="section-heading m-0 pl-2 p-3">Apmosys Wall Of Fame</p>
+            <p *ngIf="rewardsList.length !== 0" class="text-muted pl-3">
+                <b>MONTHLY: <span>{{ monthKeys[currentMonthIndex] | date: 'MMMM yyyy' }}</span></b>
+            </p>
         </div>
 
-
-        <div class="form-group d-flex flex-row justify-content-between">
-            <div class="form-inline ml-2">
-                <small>View</small>
-                <select class="form-select-sm align-items-center mx-1" aria-label="Default select example" [(ngModel)]="items"
-                    (change)="page=1">
-                    <option class="option-bg" value="10000">All</option>
-                    <option class="option-bg" selected value="10">10</option>
-                    <option class="option-bg" value="20">20</option>
-                    <option class="option-bg" value="50">50</option>
-                    <option class="option-bg" value="100">100</option>
-                    <option class="option-bg" value="10000">All</option>
-                </select>
-                <small>entries</small>
+        <div class="reward-content-container d-flex flex-column" style="max-height: 200px;">
+            <div *ngIf="rewardsList.length === 0" class="container-fluid text-center p-3">
+                <img class="placeholder-img" src="assets/Images/reward2.png" alt="Rewards Icon">
+                <h1 class="placeholder-text">No Rewards Today</h1>
             </div>
 
-            <!-- <div class="form-group ml-auto col-md-3 mt10">
+            <marquee *ngIf="rewardsList.length !== 0" direction="up" scrolldelay="250" onmouseover="this.stop();"
+                onmouseout="this.start();" class="h-100">
+                <mat-list class="reward-content">
+                    <mat-list-item *ngFor="let rewards of currentRewards">
+                        <img matListAvatar src="assets/Images/reward2.png" alt="User Avatar">
+                        <h1 matLine class="small">{{ rewards.rewardedToByName }} || {{ rewards.rewardTypeName }}</h1>
+                        <p matLine class="small">{{ rewards.department }}</p>
+                    </mat-list-item>
+                </mat-list>
+            </marquee>
+        </div>
+    </div>
+
+
+
+
+
+    <!-- Modals templates -->
+    <ng-template #alert_message>
+        <div class="modal-body text-center">
+            <p>{{alertMessage}}</p>
+            <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+        </div>
+    </ng-template>
+
+    <ng-template #leave_success>
+        <div class="modal-body text-center">
+            <p>{{alertMessage}}</p>
+            <button type="button" class="btn btn-primary"
+                (click)="cancelRequest();openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()">OK</button>&nbsp;
+        </div>
+    </ng-template>
+
+    <ng-template #compoff_success>
+        <div class="modal-body text-center">
+            <p>{{alertMessage}}</p>
+            <button type="button" class="btn btn-primary"
+                (click)="cancelRequest();openReqMod(compOffReq);getPendingCompOffRequestsByManagerId()">OK</button>&nbsp;
+        </div>
+    </ng-template>
+
+    <ng-template #timesheet_success>
+        <div class="modal-body text-center">
+            <p>{{alertMessage}}</p>
+            <button type="button" class="btn btn-primary"
+                (click)="cancelRequest();openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()">OK</button>&nbsp;
+        </div>
+    </ng-template>
+
+    <ng-template #timesheet_details>
+        <div class="modal-header">
+            <h5 class="modal-title">Timesheet Details</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                (click)="cancelRequest();openReqMod(TimesheetReq);">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="row">
+                <div class="col-md-2 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label">Date</label>
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date"
+                                disabled>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label">Day Type</label>
+                            <input type="text" class="form-control" autocomplete="none"
+                                [(ngModel)]="timesheetObj.dayType" disabled>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="timesheetObj.dayType == 'Holiday' || timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off' || timesheetObj.dayType == 'Leave'"
+                class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label for="leaveDesc"><span class="text-danger">*</span>Description</label>
+                            <textarea class="form-control" id="dayTypeDesc" rows="3"
+                                [(ngModel)]="timesheetObj.description" disabled></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="timesheetObj.dayType != 'Holiday' && timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'"
+                class="row px-3">
+
+                <table class="table timesheet-details-table">
+                    <thead class="thead-light">
+                        <tr>
+                            <th scope="col" class="info-label">Sr No.</th>
+                            <th scope="col" class="info-label">Project Name</th>
+                            <th scope="col" class="info-label">Team Name</th>
+                            <th scope="col" class="info-label">Activity</th>
+                            <th scope="col" colspan="4" class="info-label">Description</th>
+                            <th scope="col" class="info-label">Time<small>(Hrs)</small></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngIf="timesheetObj.allTimesheetActivities.length == 0">
+                            <th colspan="8" class="text-center info-label">No details to display...</th>
+                        </tr>
+                        <tr *ngFor="let activity of timesheetObj.allTimesheetActivities; let i = index">
+                            <td>{{10*(page-1)+i+1}}</td>
+                            <td>{{activity.projectName}}</td>
+                            <td>{{activity.teamName}}</td>
+                            <td>{{activity.activity}}</td>
+                            <td colspan="4">{{activity.description}}</td>
+                            <td>{{activity.completionTime}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary"
+                (click)="cancelRequest();openReqMod(TimesheetReq);">Close</button>
+        </div>
+    </ng-template>
+
+    <ng-template #reject_timesheet>
+        <div class="modal-body text-center">
+            <p>Kindly provide reason(s) for rejecting application.</p>
+            <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
+                [(ngModel)]="timesheetObj.rejectReason"> </textarea><br>
+            <button type="button" class="btn btn-success"
+                [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)"
+                (click)="cancelRequest();rejectTimesheetRequest(timesheet_status)">Reject</button>&nbsp;
+            <button type="button" class="btn btn-danger"
+                (click)="cancelRequest();openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()">No,
+                Cancel</button>&nbsp;
+        </div>
+    </ng-template>
+    <!-- timesheet_reject_reason -->
+    <ng-template #timesheet_status>
+        <div class="modal-body text-center">
+            <p>{{alertMessage}}</p>
+            <button type="button" class="btn btn-primary"
+                (click)="cancelRequest();openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()">OK</button>&nbsp;
+        </div>
+    </ng-template>
+
+    <!-- Update Employee info  Modal -->
+    <ng-template #updateInfo>
+        <div class="modal-header">
+            <h4 class="table-header-title">Update Employee Information</h4>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body ">
+            <app-user-update-info (docSubmit)="onDocSubmit()" (draftDelete)="cancelRequest()"></app-user-update-info>
+        </div>
+    </ng-template>
+
+    <!-- Leaves Req Modal -->
+    <ng-template #LeaveReq>
+        <div class="modal-header">
+            <h4 class="table-header-title">My Reportee Leave Applications</h4>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body px-4">
+            <div *ngIf="bulkLeaveApprove.length > 1 && bulkLeaveReject.length > 1" class="form-group ml-4">
+                <button class="btn btn-sm btn-outline-success mt-2" type="submit"
+                    (click)="cancelRequest();onBulkLeaveApproval(leave_success)">Bulk
+                    Approve</button>&nbsp;
+                <button type="submit" class="btn btn-sm btn-outline-danger ml-2 mt-2"
+                    (click)="cancelRequest();OnBulkLeaveReject(bulk_reject_leave, leaveObj)">Bulk Reject</button>
+            </div>
+
+
+            <div class="form-group d-flex flex-row justify-content-between">
+                <div class="form-inline ml-2">
+                    <small>View</small>
+                    <select class="form-select-sm align-items-center mx-1" aria-label="Default select example"
+                        [(ngModel)]="items" (change)="page=1">
+                        <option class="option-bg" value="10000">All</option>
+                        <option class="option-bg" selected value="10">10</option>
+                        <option class="option-bg" value="20">20</option>
+                        <option class="option-bg" value="50">50</option>
+                        <option class="option-bg" value="100">100</option>
+                        <option class="option-bg" value="10000">All</option>
+                    </select>
+                    <small>entries</small>
+                </div>
+
+                <!-- <div class="form-group ml-auto col-md-3 mt10">
                 <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">
             </div> -->
+            </div>
+
+            <div class="selector-toggle" (click)="toggleSearch()">
+                <a href="javascript:void(0)">
+                    <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                </a>
+
+            </div>
+            <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveApplication'"
+                [tableTHeadId]="'leaveApplicationTHead'" [tableTHeadTrId]="'leaveApplicationTHeadTr'">
+                <table class="table leaveApplication-table" matSort (matSortChange)="sortData($event)"
+                    id="leaveApplication">
+                    <thead class="thead-light text-center" id="leaveApplicationTHead">
+                        <tr id="leaveApplicationTHeadTr">
+                            <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)"
+                                    [(ngModel)]="isSelectAll"></th>
+                            <th scope="col" class="info-label">Sr No.</th>
+                            <th scope="col" class="info-label" mat-sort-header="employeeName|string">Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>
+                            <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>
+                            <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>
+                            <th scope="col" class="info-label" mat-sort-header="noOfDays|number">Duration</th>
+                            <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                            <th scope="col" class="info-label" mat-sort-header="createdByName|string">Applied By</th>
+                            <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Applied On</th>
+                            <th scope="col" class="info-label" mat-sort-header="reason|string">Reason</th>
+                            <th scope="col" class="info-label" mat-sort-header="currentApprovalLevel|number">Current
+                                Approval Level</th>
+                            <th scope="col" class="info-label" mat-sort-header="approverName|string">Level 1 Approver
+                                Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="managerApprovalStatus|string">Level 1
+                                Approver Status</th>
+                            <th scope="col" class="info-label" mat-sort-header="level2ApproverName|string">Level 2
+                                Approver Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="level2ApprovalStatus|string">Level 2
+                                Approver Status</th>
+                            <th scope="col" class="info-label" mat-sort-header="level3ApproverName|string">Level 3
+                                Approver Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="level3ApprovalStatus|string">Level 3
+                                Approver Status</th>
+                            <!-- <th scope="col" class="info-label">Comments</th> -->
+                            <th scope="col" class="info-label">Actions</th>
+                        </tr>
+                        <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="leaveApplicationColumns"
+                            (onSearch)="onSearch($event);page=1"></tr>
+                    </thead>
+                    <tbody class="text-center">
+                        <tr
+                            *ngIf=" leaveApplicationList.length == 0 || leaveApplicationCount.length == 0 || (leaveApplicationList | colFilter:filters:false).length == 0">
+                            <th colspan="12" class="text-center info-label">No details to display...</th>
+                        </tr>
+                        <tr
+                            *ngFor="let leaveApplication of leaveApplicationList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                            <td><input class="homeLeave-req-checkbox" id="{{leaveApplication.checkId}}" type="checkbox"
+                                    [(ngModel)]="leaveApplication.isSelected"
+                                    (change)="onSelect(leaveApplication,$event)"></td>
+                            <td>{{items*(page-1)+i+1}}</td>
+                            <td>{{leaveApplication.employeeName}}</td>
+                            <td>{{leaveApplication.leaveType}}</td>
+                            <td>{{leaveApplication.fromDate}} &nbsp;<em class="fa fa-eye eye-img"
+                                    (click)="onUpdateLeave(leave_success_method,leaveApplication)"></em></td>
+                            <td>{{leaveApplication.toDate }} &nbsp;<em class="fa fa-eye eye-img"
+                                    (click)="onUpdateLeave(leave_success_method,leaveApplication)"></em></td>
+                            <td>{{leaveApplication.noOfDays}} day(s)</td>
+                            <td>{{leaveApplication.status}}</td>
+                            <td>{{leaveApplication.createdByName}}</td>
+                            <td>{{leaveApplication.createdOn}}</td>
+                            <td>{{leaveApplication.reason}}</td>
+                            <td>{{leaveApplication.currentApprovalLevel}}
+                                <br>
+                                <h6 class="badge badge-pill primary-pill"
+                                    *ngIf="leaveApplication.currentApprovalLevel == leaveApplication.finalApprovalLevel">
+                                    Final</h6>
+                            </td>
+                            <td>{{leaveApplication.approverName}}</td>
+                            <td
+                                [ngStyle]="{'color': (leaveApplication.managerApprovalStatus == 'Pending') ? 'orange' : (leaveApplication.managerApprovalStatus == 'Approved') ? 'green' : (leaveApplication.managerApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">
+                                {{leaveApplication.managerApprovalStatus}}</td>
+                            <td>{{leaveApplication.level2ApproverName}}</td>
+                            <td
+                                [ngStyle]="{'color': (leaveApplication.level2ApprovalStatus == 'Pending') ? 'orange' : (leaveApplication.level2ApprovalStatus == 'Approved') ? 'green' : (leaveApplication.level2ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">
+                                {{leaveApplication.level2ApprovalStatus}}</td>
+                            <td>{{leaveApplication.level3ApproverName}}</td>
+                            <td
+                                [ngStyle]="{'color': (leaveApplication.level3ApprovalStatus == 'Pending') ? 'orange' : (leaveApplication.level3ApprovalStatus == 'Approved') ? 'green' : (leaveApplication.level3ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">
+                                {{leaveApplication.level3ApprovalStatus}}</td>
+                            <!-- <td>{{leaveApplication.description}}</td> -->
+                            <td>
+                                <button *ngIf="userMapping.update_request_status"
+                                    class="btn btn-sm btn-outline-success row mr-1 mb2" type="submit"
+                                    (click)="onUpdateLeaveStatus(leave_success, leaveApplication, 2)"
+                                    title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
+                                <button *ngIf="userMapping.update_request_status"
+                                    class="btn btn-sm btn-outline-danger mb2" type="submit"
+                                    (click)="openLeaveRejectModal(reject_leave_modal,leaveApplication)"
+                                    title="Reject"><em class="fa-solid fa-xmark"></em></button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="my-buttons">
+                <pagination-controls class="my-pagination" [hidden]="leaveApplicationCount == 0"
+                    (pageChange)="handlePageChange($event)"></pagination-controls>
+                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mb-2"
+                    [hidden]="leaveApplicationCount == 0" (click)="exportToExcelForLeave()"><em
+                        class="fa fa-file-arrow-down fa-2x"></em></button>
+            </div>
         </div>
+    </ng-template>
 
-        <div  class="selector-toggle" (click)="toggleSearch()">
-            <a href="javascript:void(0)">
-                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-            </a>
 
-      </div>
-        <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveApplication'" [tableTHeadId]="'leaveApplicationTHead'"
-            [tableTHeadTrId]="'leaveApplicationTHeadTr'">
-            <table class="table leaveApplication-table" matSort (matSortChange)="sortData($event)" id="leaveApplication">
-            <thead class="thead-light text-center" id="leaveApplicationTHead">
-              <tr id="leaveApplicationTHeadTr">
-                <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)" [(ngModel)]="isSelectAll"></th>
-                <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" class="info-label" mat-sort-header="employeeName|string">Name</th>
-                <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>
-                <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>
-                <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>
-                <th scope="col" class="info-label" mat-sort-header="noOfDays|number">Duration</th>
-                <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
-                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Applied By</th>
-                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Applied On</th>
-                <th scope="col" class="info-label" mat-sort-header="reason|string">Reason</th>
-                <th scope="col" class="info-label" mat-sort-header="currentApprovalLevel|number">Current Approval Level</th>
-                <th scope="col" class="info-label" mat-sort-header="approverName|string">Level 1 Approver Name</th>
-                <th scope="col" class="info-label" mat-sort-header="managerApprovalStatus|string">Level 1 Approver Status</th>
-                <th scope="col" class="info-label" mat-sort-header="level2ApproverName|string">Level 2 Approver Name</th>
-                <th scope="col" class="info-label" mat-sort-header="level2ApprovalStatus|string">Level 2 Approver Status</th>
-                <th scope="col" class="info-label" mat-sort-header="level3ApproverName|string">Level 3 Approver Name</th>
-                <th scope="col" class="info-label" mat-sort-header="level3ApprovalStatus|string">Level 3 Approver Status</th>
-                <!-- <th scope="col" class="info-label">Comments</th> -->
-                <th scope="col" class="info-label">Actions</th>
-              </tr>
-              <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="leaveApplicationColumns" (onSearch)="onSearch($event);page=1" ></tr>
-            </thead>
-            <tbody class="text-center">
-                <tr *ngIf=" leaveApplicationList.length == 0 || leaveApplicationCount.length == 0 || (leaveApplicationList | colFilter:filters:false).length == 0">
-                    <th colspan="12" class="text-center info-label">No details to display...</th>
-                </tr>
-                <tr *ngFor="let leaveApplication of leaveApplicationList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
-                    <td><input class="homeLeave-req-checkbox" id="{{leaveApplication.checkId}}" type="checkbox" [(ngModel)]="leaveApplication.isSelected" (change)="onSelect(leaveApplication,$event)"></td>
-                    <td>{{items*(page-1)+i+1}}</td>
-                    <td>{{leaveApplication.employeeName}}</td>
-                    <td>{{leaveApplication.leaveType}}</td>
-                    <td>{{leaveApplication.fromDate}} &nbsp;<em class="fa fa-eye eye-img" (click)="onUpdateLeave(leave_success_method,leaveApplication)"></em></td>
-                    <td>{{leaveApplication.toDate }} &nbsp;<em class="fa fa-eye eye-img" (click)="onUpdateLeave(leave_success_method,leaveApplication)"></em></td>
-                    <td>{{leaveApplication.noOfDays}} day(s)</td>
-                    <td>{{leaveApplication.status}}</td>
-                    <td>{{leaveApplication.createdByName}}</td>
-                    <td>{{leaveApplication.createdOn}}</td>
-                    <td>{{leaveApplication.reason}}</td>
-                    <td>{{leaveApplication.currentApprovalLevel}}
-                        <br>
-                        <h6 class="badge badge-pill primary-pill" *ngIf="leaveApplication.currentApprovalLevel == leaveApplication.finalApprovalLevel">Final</h6>
-                    </td>
-                    <td>{{leaveApplication.approverName}}</td>
-                    <td [ngStyle]="{'color': (leaveApplication.managerApprovalStatus == 'Pending') ? 'orange' : (leaveApplication.managerApprovalStatus == 'Approved') ? 'green' : (leaveApplication.managerApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveApplication.managerApprovalStatus}}</td>
-                    <td>{{leaveApplication.level2ApproverName}}</td>
-                    <td [ngStyle]="{'color': (leaveApplication.level2ApprovalStatus == 'Pending') ? 'orange' : (leaveApplication.level2ApprovalStatus == 'Approved') ? 'green' : (leaveApplication.level2ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveApplication.level2ApprovalStatus}}</td>
-                    <td>{{leaveApplication.level3ApproverName}}</td>
-                    <td [ngStyle]="{'color': (leaveApplication.level3ApprovalStatus == 'Pending') ? 'orange' : (leaveApplication.level3ApprovalStatus == 'Approved') ? 'green' : (leaveApplication.level3ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveApplication.level3ApprovalStatus}}</td>
-                    <!-- <td>{{leaveApplication.description}}</td> -->
-                    <td>
-                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success row mr-1 mb2" type="submit" (click)="onUpdateLeaveStatus(leave_success, leaveApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
-                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger mb2" type="submit" (click)="openLeaveRejectModal(reject_leave_modal,leaveApplication)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
-                    </td>
-                </tr>
-            </tbody>
-          </table>
+    <!-- compOff Req Modal -->
+    <ng-template #compOffReq>
+        <div class="modal-header">
+            <h1 class="table-header-title">My Reportee Compensatory off Applications</h1>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+                <span aria-hidden="true">&times;</span>
+            </button>
         </div>
-          <div class="my-buttons">
-            <pagination-controls class="my-pagination" [hidden]="leaveApplicationCount == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
-            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mb-2" [hidden]="leaveApplicationCount == 0" (click)="exportToExcelForLeave()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
-        </div>
-    </div>
-</ng-template>
-
-
-<!-- compOff Req Modal -->
-<ng-template #compOffReq>
-    <div class="modal-header">
-        <h1 class="table-header-title">My Reportee Compensatory off Applications</h1>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <!-- <div class="form-group ml-auto col-md-3 mt10">
+        <!-- <div class="form-group ml-auto col-md-3 mt10">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data">
         </div> -->
-    <div class="modal-body px-4">
-        <div *ngIf="bulkCompOffApprove.length > 1 && bulkCompOffReject.length > 1" class="form-group ml-4">
-            <button class="btn btn-sm btn-outline-success mt-2" type="submit" (click)="cancelRequest();onBulkCompOffApprove(compoff_success)">Bulk
-                Approve</button>&nbsp;
-            <button type="submit" class="btn btn-sm btn-outline-danger ml-2 mt-2" (click)="cancelRequest();onBulkCompOffReject(bulk_comp_off_reject, leaveObj)">Bulk Reject</button>
-        </div>
-        <div class="selector-toggle" (click)="toggleSearch()">
-            <a href="javascript:void(0)">
-                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-            </a>
-        </div>
-        <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffApplication'" [tableTHeadId]="'compOffApplicationTHead'"
-        [tableTHeadTrId]="'compOffApplicationTHeadTr'">
-        <table class="table compOffApplication-table" matSort (matSortChange)="sortData($event)" id="compOffApplication">
-            <thead class="thead-light" id="compOffApplicationTHead">
-              <tr id="compOffApplicationTHeadTr">
-                <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAllCompOff($event)" [(ngModel)]="isSelectAll"></th>
-                <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Applied By</th>
-                <th scope="col" class="info-label" mat-sort-header="compOffReasons|string">Applied For</th>
-                <th scope="col" class="info-label" mat-sort-header="createdOn|date">Applied On</th>
-                <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>
-                <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>
-                <th scope="col" class="info-label" mat-sort-header="noOfDays|number">Duration</th>
-                <th scope="col" class="info-label" mat-sort-header="description|string">Description</th>
-                <th scope="col" class="info-label" mat-sort-header="currentApprovalLevel|number">Current Approval Level</th>
-                <th scope="col" class="info-label" mat-sort-header="approverName|string">Level 1 Approver Name</th>
-                <th scope="col" class="info-label" mat-sort-header="managerApprovalStatus|string">Level 1 Approver Status</th>
-                <th scope="col" class="info-label" mat-sort-header="level2ApproverName|string">Level 2 Approver Name</th>
-                <th scope="col" class="info-label" mat-sort-header="level2ApprovalStatus|string">Level 2 Approver Status</th>
-                <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
-                <th scope="col" class="info-label">Actions</th>
-             </tr>
-             <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="compOfApplicationColumns" (onSearch)="onSearch($event);page=1" ></tr>
-            </thead>
-            <tbody>
-                <tr *ngIf="allCompOffApplications.length == 0 || compOffApplicationCount.length == 0 || (allCompOffApplications| colFilter:filters:false).length == 0">
-                    <th colspan="10" class="text-center info-label">No details to display...</th>
-                </tr>
-                <tr *ngFor="let compOffApplication of allCompOffApplications| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
-                    <td><input class="compoff-req-checkbox" id="{{compOffApplication.checkId}}" type="checkbox" [(ngModel)]="compOffApplication.isSelected" (change)="selectCompOff(compOffApplication,$event)"></td>
-                    <td>{{10*(page-1)+i+1}}</td>
-                    <td>{{compOffApplication.createdByName}}</td>
-                    <td>{{compOffApplication.compOffReasons}}</td>
-                    <td>{{compOffApplication.createdOn}}</td>
-                    <td>{{compOffApplication.fromDate}}</td>
-                    <td>{{compOffApplication.toDate}}</td>
-                    <td>{{compOffApplication.noOfDays}}</td>
-                    <td>{{compOffApplication.description}}</td>
-                    <td>{{compOffApplication.currentApprovalLevel}}
-                        <br>
-                        <h6 class="badge badge-pill primary-pill" *ngIf="compOffApplication.currentApprovalLevel == compOffApplication.finalApprovalLevel && compOffApplication.status == 'Pending'">Final</h6>
-                    </td>
-                    <td>{{compOffApplication.approverName}}</td>
-                    <td [ngStyle]="{'color': (compOffApplication.managerApprovalStatus == 'Pending') ? 'orange' : (compOffApplication.managerApprovalStatus == 'Approved') ? 'green' : (compOffApplication.managerApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{compOffApplication.managerApprovalStatus}}</td>
-                    <td>{{compOffApplication.level2ApproverName}}</td>
-                    <td [ngStyle]="{'color': (compOffApplication.level2ApprovalStatus == 'Pending') ? 'orange' : (compOffApplication.level2ApprovalStatus == 'Approved') ? 'green' : (compOffApplication.level2ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{compOffApplication.level2ApprovalStatus}}</td>
-                    <td>{{compOffApplication.status}}</td>
-                    <td>
-                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success mb2" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
-                        <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger mb2" type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApplication, 3)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
-                    </td>
-                </tr>
-            </tbody>
-          </table>
-        </div>
-          <div class="my-buttons">
-          <pagination-controls class="my-pagination" [hidden]="compOffApplicationCount == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
-          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mb-2" [hidden]="compOffApplicationCount == 0" (click)="exportToExcelForCompOff()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
-        </div>
-    </div>
-</ng-template>
-
-<!-- Timesheet Req Modal -->
-<ng-template #TimesheetReq>
-    <div class="modal-header">
-        <h1 class="table-header-title">My Reportee Timesheet Applications</h1>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <div class="modal-body px-4">
-        <div  *ngIf="bulkApprove.length > 1 && bulkReject.length > 1" class="form-group ml-4">
-            <button class="btn btn-sm btn-outline-success mt-2" type="submit" (click)="openBulkApprovalModal(night_shift_template,alert_message)">Bulk Approve</button>&nbsp;
-            <button type="submit" class="btn btn-sm btn-outline-danger ml-2 mt-2" (click)="openBulkRejectModal(night_shift_reject_template,timesheet_reject)">Bulk Reject</button>
-          </div>
-          <div class="form-group d-flex justify-content-between">
-            <div class="form-inline col-md-3">
-              <small>View</small>
-              <select class="form-select-sm align-items-center mx-1" aria-label="Default select example" [(ngModel)]="items" (change)="page=1">
-                <option class="option-bg" value="10000">All</option>
-                <option class="option-bg" selected value="10">10</option>
-                <option class="option-bg" value="20">20</option>
-                <option class="option-bg" value="50">50</option>
-                <option class="option-bg" value="100">100</option>
-                <option class="option-bg" value="10000">All</option>
-              </select>
-              <small>entries</small>
+        <div class="modal-body px-4">
+            <div *ngIf="bulkCompOffApprove.length > 1 && bulkCompOffReject.length > 1" class="form-group ml-4">
+                <button class="btn btn-sm btn-outline-success mt-2" type="submit"
+                    (click)="cancelRequest();onBulkCompOffApprove(compoff_success)">Bulk
+                    Approve</button>&nbsp;
+                <button type="submit" class="btn btn-sm btn-outline-danger ml-2 mt-2"
+                    (click)="cancelRequest();onBulkCompOffReject(bulk_comp_off_reject, leaveObj)">Bulk Reject</button>
             </div>
-            <!-- <div class="col-md-3 mt10">
+            <div class="selector-toggle" (click)="toggleSearch()">
+                <a href="javascript:void(0)">
+                    <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                </a>
+            </div>
+            <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffApplication'"
+                [tableTHeadId]="'compOffApplicationTHead'" [tableTHeadTrId]="'compOffApplicationTHeadTr'">
+                <table class="table compOffApplication-table" matSort (matSortChange)="sortData($event)"
+                    id="compOffApplication">
+                    <thead class="thead-light" id="compOffApplicationTHead">
+                        <tr id="compOffApplicationTHeadTr">
+                            <th><input class="select" type="checkbox" name="checkboxes"
+                                    (change)="selectAllCompOff($event)" [(ngModel)]="isSelectAll"></th>
+                            <th scope="col" class="info-label">Sr No.</th>
+                            <th scope="col" class="info-label" mat-sort-header="createdByName|string">Applied By</th>
+                            <th scope="col" class="info-label" mat-sort-header="compOffReasons|string">Applied For</th>
+                            <th scope="col" class="info-label" mat-sort-header="createdOn|date">Applied On</th>
+                            <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>
+                            <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>
+                            <th scope="col" class="info-label" mat-sort-header="noOfDays|number">Duration</th>
+                            <th scope="col" class="info-label" mat-sort-header="description|string">Description</th>
+                            <th scope="col" class="info-label" mat-sort-header="currentApprovalLevel|number">Current
+                                Approval Level</th>
+                            <th scope="col" class="info-label" mat-sort-header="approverName|string">Level 1 Approver
+                                Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="managerApprovalStatus|string">Level 1
+                                Approver Status</th>
+                            <th scope="col" class="info-label" mat-sort-header="level2ApproverName|string">Level 2
+                                Approver Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="level2ApprovalStatus|string">Level 2
+                                Approver Status</th>
+                            <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                            <th scope="col" class="info-label">Actions</th>
+                        </tr>
+                        <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="compOfApplicationColumns"
+                            (onSearch)="onSearch($event);page=1"></tr>
+                    </thead>
+                    <tbody>
+                        <tr
+                            *ngIf="allCompOffApplications.length == 0 || compOffApplicationCount.length == 0 || (allCompOffApplications| colFilter:filters:false).length == 0">
+                            <th colspan="10" class="text-center info-label">No details to display...</th>
+                        </tr>
+                        <tr
+                            *ngFor="let compOffApplication of allCompOffApplications| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
+                            <td><input class="compoff-req-checkbox" id="{{compOffApplication.checkId}}" type="checkbox"
+                                    [(ngModel)]="compOffApplication.isSelected"
+                                    (change)="selectCompOff(compOffApplication,$event)"></td>
+                            <td>{{10*(page-1)+i+1}}</td>
+                            <td>{{compOffApplication.createdByName}}</td>
+                            <td>{{compOffApplication.compOffReasons}}</td>
+                            <td>{{compOffApplication.createdOn}}</td>
+                            <td>{{compOffApplication.fromDate}}</td>
+                            <td>{{compOffApplication.toDate}}</td>
+                            <td>{{compOffApplication.noOfDays}}</td>
+                            <td>{{compOffApplication.description}}</td>
+                            <td>{{compOffApplication.currentApprovalLevel}}
+                                <br>
+                                <h6 class="badge badge-pill primary-pill"
+                                    *ngIf="compOffApplication.currentApprovalLevel == compOffApplication.finalApprovalLevel && compOffApplication.status == 'Pending'">
+                                    Final</h6>
+                            </td>
+                            <td>{{compOffApplication.approverName}}</td>
+                            <td
+                                [ngStyle]="{'color': (compOffApplication.managerApprovalStatus == 'Pending') ? 'orange' : (compOffApplication.managerApprovalStatus == 'Approved') ? 'green' : (compOffApplication.managerApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">
+                                {{compOffApplication.managerApprovalStatus}}</td>
+                            <td>{{compOffApplication.level2ApproverName}}</td>
+                            <td
+                                [ngStyle]="{'color': (compOffApplication.level2ApprovalStatus == 'Pending') ? 'orange' : (compOffApplication.level2ApprovalStatus == 'Approved') ? 'green' : (compOffApplication.level2ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">
+                                {{compOffApplication.level2ApprovalStatus}}</td>
+                            <td>{{compOffApplication.status}}</td>
+                            <td>
+                                <button *ngIf="userMapping.update_request_status"
+                                    class="btn btn-sm btn-outline-success mb2" type="submit"
+                                    (click)="onUpdateCompOffStatus(alert_message, compOffApplication, 2)"
+                                    title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
+                                <button *ngIf="userMapping.update_request_status"
+                                    class="btn btn-sm btn-outline-danger mb2" type="submit"
+                                    (click)="onUpdateCompOffStatus(alert_message, compOffApplication, 3)"
+                                    title="Reject"><em class="fa-solid fa-xmark"></em></button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="my-buttons">
+                <pagination-controls class="my-pagination" [hidden]="compOffApplicationCount == 0"
+                    (pageChange)="handlePageChange($event)"></pagination-controls>
+                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mb-2"
+                    [hidden]="compOffApplicationCount == 0" (click)="exportToExcelForCompOff()"><em
+                        class="fa fa-file-arrow-down fa-2x"></em></button>
+            </div>
+        </div>
+    </ng-template>
+
+    <!-- Timesheet Req Modal -->
+    <ng-template #TimesheetReq>
+        <div class="modal-header">
+            <h1 class="table-header-title">My Reportee Timesheet Applications</h1>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body px-4">
+            <div *ngIf="bulkApprove.length > 1 && bulkReject.length > 1" class="form-group ml-4">
+                <button class="btn btn-sm btn-outline-success mt-2" type="submit"
+                    (click)="openBulkApprovalModal(night_shift_template,alert_message)">Bulk Approve</button>&nbsp;
+                <button type="submit" class="btn btn-sm btn-outline-danger ml-2 mt-2"
+                    (click)="openBulkRejectModal(night_shift_reject_template,timesheet_reject)">Bulk Reject</button>
+            </div>
+            <div class="form-group d-flex justify-content-between">
+                <div class="form-inline col-md-3">
+                    <small>View</small>
+                    <select class="form-select-sm align-items-center mx-1" aria-label="Default select example"
+                        [(ngModel)]="items" (change)="page=1">
+                        <option class="option-bg" value="10000">All</option>
+                        <option class="option-bg" selected value="10">10</option>
+                        <option class="option-bg" value="20">20</option>
+                        <option class="option-bg" value="50">50</option>
+                        <option class="option-bg" value="100">100</option>
+                        <option class="option-bg" value="10000">All</option>
+                    </select>
+                    <small>entries</small>
+                </div>
+                <!-- <div class="col-md-3 mt10">
               <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
             </div> -->
-          </div>
-        <div class="selector-toggle" (click)="toggleSearch()">
-            <a href="javascript:void(0)">
-                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-            </a>
-        </div>
-        <div class="overflow-auto" bassHorizontalScroll [tableId]="'timesheetRequest'" [tableTHeadId]="'timesheetRequestTHead'"
-        [tableTHeadTrId]="'timesheetRequestTHeadTr'">
-        <table class="table teams-request-table" matSort (matSortChange)="sortData($event)" id="timesheetRequest">
-            <thead class="thead-light" id="timesheetRequestTHead">
-              <tr id="timesheetRequestTHeadTr">
-                <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)" [(ngModel)]="isSelectAll"></th>
-                <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Employee Id</th>
-                <th scope="col" class="info-label" mat-sort-header="employeeName|string">Name</th>
-                <th scope="col" class="info-label" mat-sort-header="date|date">Date</th>
-                <th scope="col" class="info-label" mat-sort-header="dayType|string">Day Type</th>
-                <th scope="col" style="min-width: 250px;" class="info-label" mat-sort-header="description|string">Activity</th>
-                <th scope="col" class="info-label" mat-sort-header="officeInTime|datetime">Office In Time</th>
-                <th scope="col" class="info-label" mat-sort-header="officeOutTime|datetime">Office Out Time</th>
-                <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours|string">Total Office Working Hours</th>
-                <th scope="col" class="info-label" mat-sort-header="isNightShift|string">Shift</th>
-                <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
-                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Applied on</th>
-                <th scope="col" class="info-label">Actions</th>
-              </tr>
-              <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="timesheetApplicationsColumns" (onSearch)="onSearch($event);page=1" ></tr>
-            </thead>
-            <tbody>
-              <tr *ngIf="allTeamTimesheetRequests.length == 0 || (allTeamTimesheetRequests | colFilter:filters:false).length == 0">
-                <th colspan="9" class="text-center info-label">No details to display...</th>
-              </tr>
-              <tr *ngFor="let timesheet of allTeamTimesheetRequests| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index" [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
-                <td><input class="timesheet-req-checkbox" id="{{timesheet.checkId}}" type="checkbox" [(ngModel)]="timesheet.isSelected" (change)="select(timesheet,$event)"></td>
-                <td>{{items*(page-1)+i+1}}</td>
-                <td>{{timesheet.employeementId}}</td>
-                <td>{{timesheet.employeeName}}</td>
-                <td>{{timesheet.date}}</td>
-                <td>{{timesheet.dayType}}</td>
-                <td style="min-width: 250px;" [innerHTML]="timesheet.description"></td>
-                <td>{{timesheet.officeInTime}}</td>
-                <td>{{timesheet.officeOutTime}}</td>
-                <td>{{timesheet.totalWorkingOfficeHours}}</td>
-                <td>{{timesheet.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift'}}</td>
-                <td>{{timesheet.status}}</td>
-                <td>{{timesheet.createdOn}}</td>
-                <td>
-                  <button class="btn btn-sm btn-outline-primary mb2" type="submit" title="view more"
-                    (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
-                  <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success mb2" type="submit" title="Approve"
-                    (click)="updateTimesheetRequestById(timesheet_status, timesheet, 'Approved')"><em
-                      class="fa-solid fa-check"></em></button>&nbsp;
-                  <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger mb2" type="submit" title="Reject"
-                  (click)="opnenRejectTimesheet(reject_timesheet, timesheet)"><em
-                      class="fa-solid fa-xmark"></em></button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-          <div class="my-buttons">
-            <pagination-controls class="my-pagination" [hidden]="allTeamTimesheetRequests.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
-            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allTeamTimesheetRequests.length == 0" (click)="exportToExcelForTimesheet()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
-        </div>
-    </div>
-</ng-template>
-
-<ng-template #bulk_reject_leave>
-    <div class="modal-body text-center">
-        <p>Kindly provide reason(s) for rejecting application.</p>
-        <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.rejectReason"> </textarea><br>
-        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)" (click)="cancelRequest();bulkRejectLeave(leave_reject)">Reject</button>&nbsp;
-        <button type="button" class="btn btn-danger" (click)="cancelRequest();openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()">No, Cancel</button>&nbsp;
-    </div>
-</ng-template>
-
-<ng-template #bulk_comp_off_reject>
-    <div class="modal-body text-center">
-        <p>Kindly provide reason(s) for rejecting application.</p>
-        <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.rejectCompOffReason"> </textarea><br>
-        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectCompOffReason)" (click)="cancelRequest();bulkCompOffRejectLeave(comp_off_reject)">Reject</button>&nbsp;
-        <button type="button" class="btn btn-danger" (click)="cancelRequest();openReqMod(compOffReq);getPendingCompOffRequestsByManagerId()">No, Cancel</button>&nbsp;
-    </div>
-</ng-template>
-
-<!-- openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId() -->
-<ng-template #leave_reject>
-    <div class="modal-body text-center">
-       <p>{{alertMessage}}</p>
-        <button type="button" class="btn btn-primary" (click)="cancelRequest();openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()">OK</button>&nbsp;
-    </div>
-</ng-template>
-
-<!-- comp_off_reject -->
-<ng-template #comp_off_reject>
-    <div class="modal-body text-center">
-       <p>{{alertMessage}}</p>
-        <button type="button" class="btn btn-primary" (click)="cancelRequest();openReqMod(compOffReq);getPendingCompOffRequestsByManagerId()">OK</button>&nbsp;
-    </div>
-</ng-template>
-
-<ng-template #timesheet_reject>
-    <div class="modal-body text-center">
-        <p>Kindly provide reason(s) for rejecting application.</p>
-        <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="this.timesheetObj.rejectReason"> </textarea><br>
-        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)" (click)="cancelRequest();onBulkRejectTimesheet(timesheet_status)">Reject</button>&nbsp;
-        <button type="button" class="btn btn-danger" (click)="cancelRequest();openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()">No, Cancel</button>&nbsp;
-    </div>
-</ng-template>
-
- <!-- for single rection modal -->
- <ng-template #reject_leave_modal>
-    <div class="modal-body text-center">
-        <p>Kindly provide reason(s) for rejecting application.</p>
-        <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.rejectReason"> </textarea><br>
-        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)" (click)="cancelRequest();onSingleReject(leave_success)">Reject</button>&nbsp;
-        <button type="button" class="btn btn-danger" (click)="cancelRequest();getAllMyTeamsPendingLeaveApplicationsByManagerId()">No, Cancel</button>&nbsp;
-    </div>
-  </ng-template>
-
-  <ng-template #change_password>
-    <div class="modal-body text-center">
-        <h4>Change Password</h4>
-        <div *ngIf="isError">
-          <p class="form-text text-danger">{{errorMsg}}</p>
-        </div>
-
-        <div class="form-group">
-          <label for="newPass" class="sr-only">Old Password</label>
-          <div class="d-flex pt-3">
-              <input class="form-control" (paste)="(false)" [type]="fieldTextTypeOldPass ? 'text' : 'password'" id="oldPass"
-              placeholder="Enter Old Password." (blur)="checkEmployeeOldPassword()" [(ngModel)]="password" autocomplete="off"/>
-              <span class="btn" id="passwordEye" (click)="toggleFieldTextTypeOldPass()">
-                  <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextTypeOldPass,'fa-eye': fieldTextTypeOldPass}"></em>
-              </span>
-          </div>
-      </div>
-        <div class="form-group">
-            <label for="newPass" class="sr-only">New Password</label>
-            <div class="d-flex">
-                <input class="form-control" (paste)="(false)" [disabled]="!oldPasswordValid" [type]="fieldTextType ? 'text' : 'password'" id="newPass"
-                placeholder="Enter New Password." [(ngModel)]="userNewPass" autocomplete="off"/>
-                <span class="btn" id="passwordEye" (click)="toggleFieldTextType()">
-                    <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextType,'fa-eye': fieldTextType}"></em>
-                </span>
+            </div>
+            <div class="selector-toggle" (click)="toggleSearch()">
+                <a href="javascript:void(0)">
+                    <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                </a>
+            </div>
+            <div class="overflow-auto" bassHorizontalScroll [tableId]="'timesheetRequest'"
+                [tableTHeadId]="'timesheetRequestTHead'" [tableTHeadTrId]="'timesheetRequestTHeadTr'">
+                <table class="table teams-request-table" matSort (matSortChange)="sortData($event)"
+                    id="timesheetRequest">
+                    <thead class="thead-light" id="timesheetRequestTHead">
+                        <tr id="timesheetRequestTHeadTr">
+                            <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)"
+                                    [(ngModel)]="isSelectAll"></th>
+                            <th scope="col" class="info-label">Sr No.</th>
+                            <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Employee Id</th>
+                            <th scope="col" class="info-label" mat-sort-header="employeeName|string">Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="date|date">Date</th>
+                            <th scope="col" class="info-label" mat-sort-header="dayType|string">Day Type</th>
+                            <th scope="col" style="min-width: 250px;" class="info-label"
+                                mat-sort-header="description|string">Activity</th>
+                            <th scope="col" class="info-label" mat-sort-header="officeInTime|datetime">Office In Time
+                            </th>
+                            <th scope="col" class="info-label" mat-sort-header="officeOutTime|datetime">Office Out Time
+                            </th>
+                            <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours|string">Total
+                                Office Working Hours</th>
+                            <th scope="col" class="info-label" mat-sort-header="isNightShift|string">Shift</th>
+                            <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                            <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Applied on</th>
+                            <th scope="col" class="info-label">Actions</th>
+                        </tr>
+                        <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="timesheetApplicationsColumns"
+                            (onSearch)="onSearch($event);page=1"></tr>
+                    </thead>
+                    <tbody>
+                        <tr
+                            *ngIf="allTeamTimesheetRequests.length == 0 || (allTeamTimesheetRequests | colFilter:filters:false).length == 0">
+                            <th colspan="9" class="text-center info-label">No details to display...</th>
+                        </tr>
+                        <tr *ngFor="let timesheet of allTeamTimesheetRequests| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index"
+                            [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
+                            <td><input class="timesheet-req-checkbox" id="{{timesheet.checkId}}" type="checkbox"
+                                    [(ngModel)]="timesheet.isSelected" (change)="select(timesheet,$event)"></td>
+                            <td>{{items*(page-1)+i+1}}</td>
+                            <td>{{timesheet.employeementId}}</td>
+                            <td>{{timesheet.employeeName}}</td>
+                            <td>{{timesheet.date}}</td>
+                            <td>{{timesheet.dayType}}</td>
+                            <td style="min-width: 250px;" [innerHTML]="timesheet.description"></td>
+                            <td>{{timesheet.officeInTime}}</td>
+                            <td>{{timesheet.officeOutTime}}</td>
+                            <td>{{timesheet.totalWorkingOfficeHours}}</td>
+                            <td>{{timesheet.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift'}}</td>
+                            <td>{{timesheet.status}}</td>
+                            <td>{{timesheet.createdOn}}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary mb2" type="submit" title="view more"
+                                    (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
+                                <button *ngIf="userMapping.update_request_status"
+                                    class="btn btn-sm btn-outline-success mb2" type="submit" title="Approve"
+                                    (click)="updateTimesheetRequestById(timesheet_status, timesheet, 'Approved')"><em
+                                        class="fa-solid fa-check"></em></button>&nbsp;
+                                <button *ngIf="userMapping.update_request_status"
+                                    class="btn btn-sm btn-outline-danger mb2" type="submit" title="Reject"
+                                    (click)="opnenRejectTimesheet(reject_timesheet, timesheet)"><em
+                                        class="fa-solid fa-xmark"></em></button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="my-buttons">
+                <pagination-controls class="my-pagination" [hidden]="allTeamTimesheetRequests.length == 0"
+                    (pageChange)="handlePageChange($event)"></pagination-controls>
+                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+                    [hidden]="allTeamTimesheetRequests.length == 0" (click)="exportToExcelForTimesheet()"><em
+                        class="fa fa-file-arrow-down fa-2x"></em></button>
             </div>
         </div>
-        <div class="form-group">
-            <label for="confirmPass" class="sr-only">Confirm New Password</label>
-            <div class="d-flex">
-                <input class="form-control" (paste)="(false)" [disabled]="!oldPasswordValid" [type]="fieldTextTypePassword ? 'text' : 'password'" id="confirmPass"
-                placeholder="Confirm New Password." [(ngModel)]="newpassword" autocomplete="off"/>
-                <span class="btn" id="passwordEye" (click)="toggleFieldChangePassword()">
-                    <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextTypePassword,'fa-eye': fieldTextTypePassword}"></em>
-                </span>
+    </ng-template>
+
+    <ng-template #bulk_reject_leave>
+        <div class="modal-body text-center">
+            <p>Kindly provide reason(s) for rejecting application.</p>
+            <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
+                [(ngModel)]="leaveObj.rejectReason"> </textarea><br>
+            <button type="button" class="btn btn-success"
+                [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)"
+                (click)="cancelRequest();bulkRejectLeave(leave_reject)">Reject</button>&nbsp;
+            <button type="button" class="btn btn-danger"
+                (click)="cancelRequest();openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()">No,
+                Cancel</button>&nbsp;
+        </div>
+    </ng-template>
+
+    <ng-template #bulk_comp_off_reject>
+        <div class="modal-body text-center">
+            <p>Kindly provide reason(s) for rejecting application.</p>
+            <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
+                [(ngModel)]="leaveObj.rejectCompOffReason"> </textarea><br>
+            <button type="button" class="btn btn-success"
+                [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectCompOffReason)"
+                (click)="cancelRequest();bulkCompOffRejectLeave(comp_off_reject)">Reject</button>&nbsp;
+            <button type="button" class="btn btn-danger"
+                (click)="cancelRequest();openReqMod(compOffReq);getPendingCompOffRequestsByManagerId()">No,
+                Cancel</button>&nbsp;
+        </div>
+    </ng-template>
+
+    <!-- openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId() -->
+    <ng-template #leave_reject>
+        <div class="modal-body text-center">
+            <p>{{alertMessage}}</p>
+            <button type="button" class="btn btn-primary"
+                (click)="cancelRequest();openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()">OK</button>&nbsp;
+        </div>
+    </ng-template>
+
+    <!-- comp_off_reject -->
+    <ng-template #comp_off_reject>
+        <div class="modal-body text-center">
+            <p>{{alertMessage}}</p>
+            <button type="button" class="btn btn-primary"
+                (click)="cancelRequest();openReqMod(compOffReq);getPendingCompOffRequestsByManagerId()">OK</button>&nbsp;
+        </div>
+    </ng-template>
+
+    <ng-template #timesheet_reject>
+        <div class="modal-body text-center">
+            <p>Kindly provide reason(s) for rejecting application.</p>
+            <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
+                [(ngModel)]="this.timesheetObj.rejectReason"> </textarea><br>
+            <button type="button" class="btn btn-success"
+                [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)"
+                (click)="cancelRequest();onBulkRejectTimesheet(timesheet_status)">Reject</button>&nbsp;
+            <button type="button" class="btn btn-danger"
+                (click)="cancelRequest();openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()">No,
+                Cancel</button>&nbsp;
+        </div>
+    </ng-template>
+
+    <!-- for single rection modal -->
+    <ng-template #reject_leave_modal>
+        <div class="modal-body text-center">
+            <p>Kindly provide reason(s) for rejecting application.</p>
+            <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
+                [(ngModel)]="leaveObj.rejectReason"> </textarea><br>
+            <button type="button" class="btn btn-success"
+                [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)"
+                (click)="cancelRequest();onSingleReject(leave_success)">Reject</button>&nbsp;
+            <button type="button" class="btn btn-danger"
+                (click)="cancelRequest();getAllMyTeamsPendingLeaveApplicationsByManagerId()">No, Cancel</button>&nbsp;
+        </div>
+    </ng-template>
+
+    <ng-template #change_password>
+        <div class="modal-body text-center">
+            <h4>Change Password</h4>
+            <div *ngIf="isError">
+                <p class="form-text text-danger">{{errorMsg}}</p>
+            </div>
+
+            <div class="form-group">
+                <label for="newPass" class="sr-only">Old Password</label>
+                <div class="d-flex pt-3">
+                    <input class="form-control" (paste)="(false)" [type]="fieldTextTypeOldPass ? 'text' : 'password'"
+                        id="oldPass" placeholder="Enter Old Password." (blur)="checkEmployeeOldPassword()"
+                        [(ngModel)]="password" autocomplete="off" />
+                    <span class="btn" id="passwordEye" (click)="toggleFieldTextTypeOldPass()">
+                        <em class="fa"
+                            [ngClass]="{'fa-eye-slash': !fieldTextTypeOldPass,'fa-eye': fieldTextTypeOldPass}"></em>
+                    </span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="newPass" class="sr-only">New Password</label>
+                <div class="d-flex">
+                    <input class="form-control" (paste)="(false)" [disabled]="!oldPasswordValid"
+                        [type]="fieldTextType ? 'text' : 'password'" id="newPass" placeholder="Enter New Password."
+                        [(ngModel)]="userNewPass" autocomplete="off" />
+                    <span class="btn" id="passwordEye" (click)="toggleFieldTextType()">
+                        <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextType,'fa-eye': fieldTextType}"></em>
+                    </span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="confirmPass" class="sr-only">Confirm New Password</label>
+                <div class="d-flex">
+                    <input class="form-control" (paste)="(false)" [disabled]="!oldPasswordValid"
+                        [type]="fieldTextTypePassword ? 'text' : 'password'" id="confirmPass"
+                        placeholder="Confirm New Password." [(ngModel)]="newpassword" autocomplete="off" />
+                    <span class="btn" id="passwordEye" (click)="toggleFieldChangePassword()">
+                        <em class="fa"
+                            [ngClass]="{'fa-eye-slash': !fieldTextTypePassword,'fa-eye': fieldTextTypePassword}"></em>
+                    </span>
+                </div>
+            </div>
+
+            <button type="button" *ngIf="this.currentUser.isNew == 'false'" class="btn btn-outline-primary btn-sm"
+                (click)="cancelRequest()">Close</button>&nbsp;
+            <button type="button" class="btn btn-outline-primary btn-sm" [disabled]="!oldPasswordValid"
+                (click)="updateEmployeePassword(alert_message)">Submit</button>&nbsp;
+        </div>
+    </ng-template>
+
+    <!--Loading page after password reset -->
+    <ng-template #LoadingLogin>
+        <div class="modal-body text-center">
+            <div>
+                <p>Password Update, You will be redirected to login page in a while... </p>
             </div>
         </div>
+    </ng-template>
 
-        <button type="button" *ngIf="this.currentUser.isNew == 'false'" class="btn btn-outline-primary btn-sm" (click)="cancelRequest()">Close</button>&nbsp;
-        <button type="button" class="btn btn-outline-primary btn-sm" [disabled]="!oldPasswordValid" (click)="updateEmployeePassword(alert_message)">Submit</button>&nbsp;
-    </div>
-  </ng-template>
 
-  <!--Loading page after password reset -->
-  <ng-template #LoadingLogin>
-    <div class="modal-body text-center">
-      <div>
-        <p>Password Update, You will be redirected to login page in a while... </p>
+    <!-- Notiication Modal -->
+    <ng-template #notification_template>
+        <div class="modal-header">
+            <b>Notification</b>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+                <span aria-hidden="true">&times;</span>
+            </button>
         </div>
-     </div>
-  </ng-template>
-
-
-  <!-- Notiication Modal -->
-  <ng-template #notification_template>
-    <div class="modal-header">
-        <b>Notification</b>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
         <ul class="list-group">
-            <li class="list-group-item" [innerHTML]="notification.notificationMessage" *ngFor="let notification of allNotification"></li>
+            <li class="list-group-item" [innerHTML]="notification.notificationMessage"
+                *ngFor="let notification of allNotification"></li>
         </ul>
-</ng-template>
+    </ng-template>
 
-<!-- Night shift confirmation template -->
-<ng-template #night_shift_template>
-    <div class="modal-body text-center">
-        <p>Are you sure you want to continue, your timesheet bulk update contain Night shift request(s) also?</p>
-        <button type="button" class="btn btn-outline-success" (click)="onBulkApproval(alert_message)">Yes, proceed</button>&nbsp;
-        <button type="button" class="btn btn-outline-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
-        <button type="button" class="btn btn-outline-primary" (click)="bulkApproveWithoutNightShiftRequest(alert_message)">Continue without Night Shift Request(s)</button>&nbsp;
-    </div>
-</ng-template>
+    <!-- Night shift confirmation template -->
+    <ng-template #night_shift_template>
+        <div class="modal-body text-center">
+            <p>Are you sure you want to continue, your timesheet bulk update contain Night shift request(s) also?</p>
+            <button type="button" class="btn btn-outline-success" (click)="onBulkApproval(alert_message)">Yes,
+                proceed</button>&nbsp;
+            <button type="button" class="btn btn-outline-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+            <button type="button" class="btn btn-outline-primary"
+                (click)="bulkApproveWithoutNightShiftRequest(alert_message)">Continue without Night Shift
+                Request(s)</button>&nbsp;
+        </div>
+    </ng-template>
 
-<ng-template #night_shift_reject_template>
-    <div class="modal-body text-center">
-        <p>Are you sure you want to continue, your timesheet bulk update contain Night shift request(s) also?</p>
-        <button type="button" class="btn btn-outline-success" (click)="OnBulkReject(timesheet_reject)">Yes, proceed</button>&nbsp;
-        <button type="button" class="btn btn-outline-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
-        <button type="button" class="btn btn-outline-primary" (click)="bulkRejectWithoutNightShiftRequest(timesheet_reject)">Continue without Night Shift Request(s)</button>&nbsp;
-    </div>
-  </ng-template>
+    <ng-template #night_shift_reject_template>
+        <div class="modal-body text-center">
+            <p>Are you sure you want to continue, your timesheet bulk update contain Night shift request(s) also?</p>
+            <button type="button" class="btn btn-outline-success" (click)="OnBulkReject(timesheet_reject)">Yes,
+                proceed</button>&nbsp;
+            <button type="button" class="btn btn-outline-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+            <button type="button" class="btn btn-outline-primary"
+                (click)="bulkRejectWithoutNightShiftRequest(timesheet_reject)">Continue without Night Shift
+                Request(s)</button>&nbsp;
+        </div>
+    </ng-template>
 
-  <!-- <ng-template #consent_notification_template>
+    <!-- <ng-template #consent_notification_template>
     <div class="modal-body text-center">
         <p>{{consentNotificationMessage}}</p>
         <button type="button" class="btn btn-outline-success" (click)="submitNotificationConsent()">I agree</button>&nbsp;
@@ -1126,7 +1279,7 @@
   </ng-template> -->
 
 
-  <!-- <ng-template #consent_notification_template>
+    <!-- <ng-template #consent_notification_template>
     <div class="modal-body">
         <div class="modal-header">
             <h5 class="modal-title">Notification</h5>
@@ -1141,34 +1294,35 @@
   </ng-template> -->
 
 
-  <ng-template #leave_success_method>
-    <div class="modal-body text-center">
-        <table class="table">
-            <thead class="thead-light">
-            <tr>
-                    <th scope="col">EmpId</th>
-                    <th scope="col">Employee Name</th>
-                    <th scope="col">from date</th>
-                    <th scope="col">to date</th>
-                    <th scope="col">status</th>
-                    <th scope="col">Manager</th>
-            </tr>
-        </thead>
-            <tbody>
-                <tr *ngFor="let leaves of overLapsLeaveForManager" [ngStyle]="{'background-color':(this.leaveApplication.empId== leaves.empId) ? 'rgb(193, 207, 246)' : ''}">
-                    <td >{{leaves.employeementId}}</td>
-                    <td >{{leaves.employeeName}}</td>
-                    <td >{{leaves.fromDate}}</td>
-                    <td >{{leaves.toDate}}</td>
-                    <td >{{leaves.status}}</td>
-                    <td >{{leaves.managerName}}</td>
-                </tr>
-            </tbody>
-        </table>
-        <!-- <div class="container">
+    <ng-template #leave_success_method>
+        <div class="modal-body text-center">
+            <table class="table">
+                <thead class="thead-light">
+                    <tr>
+                        <th scope="col">EmpId</th>
+                        <th scope="col">Employee Name</th>
+                        <th scope="col">from date</th>
+                        <th scope="col">to date</th>
+                        <th scope="col">status</th>
+                        <th scope="col">Manager</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let leaves of overLapsLeaveForManager"
+                        [ngStyle]="{'background-color':(this.leaveApplication.empId== leaves.empId) ? 'rgb(193, 207, 246)' : ''}">
+                        <td>{{leaves.employeementId}}</td>
+                        <td>{{leaves.employeeName}}</td>
+                        <td>{{leaves.fromDate}}</td>
+                        <td>{{leaves.toDate}}</td>
+                        <td>{{leaves.status}}</td>
+                        <td>{{leaves.managerName}}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <!-- <div class="container">
             <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-success row mr-1 mb2" type="submit" (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
             <button *ngIf="userMapping.update_request_status" class="btn btn-sm btn-outline-danger mb2" type="submit" (click)="openLeaveRejectModal(reject_leave_modal,leaveApplication)" title="Reject"><em class="fa-solid fa-xmark"></em></button>
 
         </div> -->
-    </div>
-  </ng-template>
+        </div>
+    </ng-template>

@@ -1131,17 +1131,49 @@ LmsRedirection(){
     this.updateCurrentRewards();
   }
 
+  // updateCurrentRewards() {
+  //   const currentMonth = this.monthKeys[this.currentMonthIndex];
+  //   this.currentRewards = this.groupedRewards[currentMonth] || [];
+
+  //   setTimeout(() => {
+  //     this.cdr.detectChanges(); 
+  //   });
+  // }
+
   updateCurrentRewards() {
     const currentMonth = this.monthKeys[this.currentMonthIndex];
-    this.currentRewards = this.groupedRewards[currentMonth] || [];
+    
+    // Prevent flicker: Store old data first
+    const newRewards = this.groupedRewards[currentMonth] || [];
+    
+    if (JSON.stringify(this.currentRewards) !== JSON.stringify(newRewards)) {
+      this.currentRewards = newRewards;
+      this.cdr.markForCheck();  
+    }
   }
+  
+
+  // startScrolling() {
+  //   let scrollTime = this.currentRewards.length * 5 * 1000;
+  //   setInterval(() => {
+  //     this.currentMonthIndex = (this.currentMonthIndex + 1) % this.monthKeys.length;
+  //     this.updateCurrentRewards();
+  //     this.cdr.detectChanges();
+  //   },  Math.max(scrollTime, 60000)); 
+  // }
 
   startScrolling() {
+    let scrollTime = Math.min(Math.max(this.currentRewards.length * 3 * 1000, 30000), 90000);
+  
+    this.updateCurrentRewards(); // Ensure immediate update on load
+  
     setInterval(() => {
       this.currentMonthIndex = (this.currentMonthIndex + 1) % this.monthKeys.length;
       this.updateCurrentRewards();
-    }, 30000); // Adjust time (10s) as needed
+    }, scrollTime);
   }
+  
+  
 
 
   getAllEmployeesRewardss() {
