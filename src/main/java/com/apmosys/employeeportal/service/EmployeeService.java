@@ -2699,12 +2699,16 @@ public class EmployeeService {
 		        				        	    	}
 
 		        			
-		        				        		  float newBalance = employeeLeaveMap.getBalance() + leavePolicyObj.getIncrementValue() + retainValue;
+		        				        		  float newBalance = employeeLeaveMap.getBalance() + retainValue;
 			        				        	  System.out.println(newBalance);
-			        				        	  employeeLeaveMap.setBalance(newBalance);
-			        				        	  EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeaveMap);
+			        				        	  EmployeeLeavesMap dbResponse=null;
+			        				        	  if(retainValue != 0) {
+			        				        		  employeeLeaveMap.setBalance(newBalance);
+				        				        	   dbResponse = employeeLeavesMapRepository.save(employeeLeaveMap);
+			        				        	  }
 			        				        	  
-			        				        	  if(dbResponse != null) {
+			        				        	  
+			        				        	  if(dbResponse != null && retainValue != 0) {
 														LeaveBalanceLog log = new LeaveBalanceLog();
 
 														log.setBalance(newBalance);
