@@ -1987,7 +1987,7 @@ export class EmployeeConfigComponent implements OnInit {
         x => ({
           "EmployeeId": "A-".concat(x.employeementId),
           // "EmployeeId":(x.isConsultant === 'true' ? 'A-CS-' : 'A-') + x.employeementId,
-          "Employee Type": x.isConsultant ? 'Consultant' : (x.isApprenticeship ? 'Apprentice' : 'Regular'),
+          "Employee Type": x.isApprenticeship == 'true'  ? 'Apprentice' : x.isConsultant == 'true' ? 'Consultant' : 'Regular',
           "Full Name": x.name,
           "EmailId": x.email,
           "Employment Status": x.employmentstatus,
