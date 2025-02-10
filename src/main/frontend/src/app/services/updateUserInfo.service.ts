@@ -156,9 +156,12 @@ export class UpdateUserInfoService {
             if(parsedData != null || parsedData != undefined ){
               this.employeeData =  parsedData;
             }
-            let employementid =  Number(this.utilityService.getEmployeeIdSubstring2(this.employeeData));
+            console.log("Employeement Id", this.employeeData)
 
+            let employementid =  Number(this.utilityService.getEmployeeIdSubstring2(this.employeeData));
+            // let employementid =  Number(this.employeeData.employeementid);
             currentEmp.employeementId = employementid;
+            console.log("Employeement Id", currentEmp.employeementId)
             currentEmp.isDraft = true;
         } else{
             

@@ -57,9 +57,9 @@ export class UtilityService {
 
   substringEmploymentId2(isConsultant: string,  emp: string): string {
       if (emp.startsWith("A-")) {
-        return emp.substring(5);
+        return emp.substring(2);
       } else if (emp.startsWith("A-")) {
-        return emp.substring(3);
+        return emp.substring(2);
       } else if (emp.startsWith("A-")) {
         return emp.substring(2); // Regular employees
       } else {
