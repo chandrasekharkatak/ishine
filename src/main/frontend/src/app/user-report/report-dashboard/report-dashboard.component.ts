@@ -1043,10 +1043,19 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
 
     let experienceCountBetween0and1 = 0;
     let experienceCountBetween0and1Apprentice = 0;
+    let experienceCountBetween0and1Consultant = 0;
     let experienceCountBetween1and2 = 0;
+    let experienceCountBetween1and2Apprentice=0;
+    let experienceCountBetween1and2Consultant=0;
     let experienceCountBetween2and5 = 0;
+    let experienceCountBetween2and5Apprentice=0;
+    let experienceCountBetween2and5Consultant=0;
     let experienceCountBetween5and10 = 0;
+    let experienceCountBetween5and10Apprentice=0;
+    let experienceCountBetween5and10Consultant=0;
     let experienceCountAbove10 = 0;
+    let experienceCountAbove10Apprentice=0;
+    let experienceCountAbove10Consultant=0;
 
     let joiningJanCount = 0;
     let joiningFebCount = 0;
@@ -1151,18 +1160,48 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
         employee.totalExperience = empTotalExperience.toFixed(1);
       
         // Check for apprentices in the "0 to 1" experience category
-        if ((employee.totalExperience >= 0 && employee.totalExperience <= 1) && (employee.isApprenticeship != 'true' || employee.isApprenticeship === null)) {
+        if ((employee.totalExperience >= 0 && employee.totalExperience <= 1) && (employee.isApprenticeship != 'true' || employee.isApprenticeship === null) && (employee.isConsultant != 'true' || employee.isConsultant === null)) {
           experienceCountBetween0and1++;
         } else if(employee.totalExperience >= 0 && employee.totalExperience <= 1 && employee.isApprenticeship === 'true'){
           experienceCountBetween0and1Apprentice++;
-        }else if (employee.totalExperience > 1 && employee.totalExperience <= 2) {
+        }else if (employee.totalExperience >= 0 && employee.totalExperience <= 1 && employee.isConsultant ==='true'){
+          experienceCountBetween0and1Consultant++;
+        }
+        else if ((employee.totalExperience > 1 && employee.totalExperience <= 2) && (employee.isApprenticeship != 'true' || employee.isApprenticeship === null) && (employee.isConsultant != 'true' || employee.isConsultant === null)) {
           experienceCountBetween1and2++;
-        } else if (employee.totalExperience > 2 && employee.totalExperience <= 5) {
+        }
+        else if (employee.totalExperience > 1 && employee.totalExperience <= 2 && employee.isApprenticeship==='true') {
+          experienceCountBetween1and2Apprentice++;
+        }
+        else if (employee.totalExperience > 1 && employee.totalExperience <= 2 && employee.isConsultant==='true') {
+          experienceCountBetween1and2Consultant++;
+        }
+         else if ((employee.totalExperience > 2 && employee.totalExperience <= 5) && (employee.isApprenticeship != 'true' || employee.isApprenticeship === null) && (employee.isConsultant != 'true' || employee.isConsultant === null)) {
           experienceCountBetween2and5++;
-        } else if (employee.totalExperience > 5 && employee.totalExperience <= 10) {
+        }
+        else if (employee.totalExperience > 2 && employee.totalExperience <= 5 && employee.isApprenticeship==='true') {
+          experienceCountBetween2and5Apprentice++;
+        }
+        else if (employee.totalExperience > 2 && employee.totalExperience <= 5 && employee.isConsultant==='true') {
+          experienceCountBetween2and5Consultant++;
+        }
+         else if ((employee.totalExperience > 5 && employee.totalExperience <= 10) && (employee.isApprenticeship != 'true' || employee.isApprenticeship === null) && (employee.isConsultant != 'true' || employee.isConsultant === null)) {
           experienceCountBetween5and10++;
-        } else if (employee.totalExperience > 10) {
+        } 
+        else if (employee.totalExperience > 5 && employee.totalExperience <= 10 && employee.isApprenticeship==='true') {
+          experienceCountBetween5and10Apprentice++;
+        } 
+        else if (employee.totalExperience > 5 && employee.totalExperience <= 10 && employee.isConsultant==='true') {
+          experienceCountBetween5and10Consultant++;
+        } 
+        else if ((employee.totalExperience > 10) && (employee.isApprenticeship != 'true' || employee.isApprenticeship === null) && (employee.isConsultant != 'true' || employee.isConsultant === null)) {
           experienceCountAbove10++;
+        }
+        else if (employee.totalExperience > 10 && employee.isApprenticeship==='true') {
+          experienceCountAbove10Apprentice++;
+        }
+        else if (employee.totalExperience > 10 && employee.isConsultant==='true') {
+          experienceCountAbove10Consultant++;
         }
       }
       
@@ -1598,28 +1637,33 @@ let departmentWiseEmployeeCategories = departmentData.map(dept => dept.departmen
         let experienceData = [
           {
             name: "0 to 1",
-            employeeCount: experienceCountBetween0and1, // Replace with actual employee count
-            apprenticeCount: experienceCountBetween0and1Apprentice, // Replace with actual apprentice count
+            employeeCount: experienceCountBetween0and1, 
+            apprenticeCount: experienceCountBetween0and1Apprentice, 
+            consultantCount:experienceCountBetween0and1Consultant,
           },
           {
             name: "1 to 2",
-            employeeCount: experienceCountBetween1and2, // Employee count for 1 to 2
-            apprenticeCount: 0, // No apprentice data for other ranges
+            employeeCount: experienceCountBetween1and2, 
+            apprenticeCount: experienceCountBetween1and2Apprentice, 
+            consultantCount:experienceCountBetween1and2Consultant,
           },
           {
             name: "2 to 5",
             employeeCount: experienceCountBetween2and5,
-            apprenticeCount: 0,
+            apprenticeCount: experienceCountBetween2and5Apprentice,
+            consultantCount:experienceCountBetween2and5Consultant,
           },
           {
             name: "5 to 10",
             employeeCount: experienceCountBetween5and10,
-            apprenticeCount: 0,
+            apprenticeCount: experienceCountBetween5and10Apprentice,
+            consultantCount:experienceCountBetween5and10Consultant,
           },
           {
             name: "10+",
             employeeCount: experienceCountAbove10,
-            apprenticeCount: 0,
+            apprenticeCount: experienceCountAbove10Apprentice,
+            consultantCount:experienceCountAbove10Consultant,
           },
         ];
         
@@ -1629,6 +1673,7 @@ let departmentWiseEmployeeCategories = departmentData.map(dept => dept.departmen
         // Series Data (for employees and apprentices)
         let employeeSeries = experienceData.map(exp => exp.employeeCount);
         let apprenticeSeries = experienceData.map(exp => exp.apprenticeCount);
+        let consultantSeries = experienceData.map(exp => exp.consultantCount);
         
         //console.log(" totalExperienceData :", totalExperienceData);
         //this.renderColumnBarSummaryChart('Employee Experience','employeeExperienceSummary',totalExperienceData,totalExperienceCategories,'Experience', this.openEmployeeExperienceModalTable.bind(this));
@@ -1646,6 +1691,7 @@ let departmentWiseEmployeeCategories = departmentData.map(dept => dept.departmen
           totalExperienceCategories,
           employeeSeries, 
           apprenticeSeries,
+          consultantSeries,
           this.openEmployeeExperienceModalTable.bind(this)
         );
         
@@ -2553,33 +2599,131 @@ renderDepartmentWiseEmployeeChart(chartName: any, chartId: any, chartData: any, 
 //     ],
 //   });
 // }
-plotEmployeeExperienceCylinderGraph(chartName, chartId, categories, employeeSeries, apprenticeSeries, openMod) {
- (Highcharts as any).chart(chartId, {
-  chart: {
+// plotEmployeeExperienceCylinderGraph(chartName, chartId, categories, employeeSeries, apprenticeSeries,consultantSeries, openMod) {
+//  (Highcharts as any).chart(chartId, {
+//   chart: {
+//       type: 'cylinder', // Cylinder chart type
+//       options3d: {
+//         enabled: true,
+//         alpha: 15,
+//         beta: 15,
+//         depth: 50,
+//         viewDistance: 25,
+//       },
+//     },
+//     title: {
+//       text: chartName,
+//       style: {
+//         fontWeight: 'bold',
+//         color: '#000000',
+//       },
+//     },
+//     xAxis: {
+//       categories: categories, // Experience ranges (e.g., "0 to 1", "1 to 2", etc.)
+//       labels: {
+//         overflow: 'justify',
+//         style: {
+//           fontWeight: 'bold',
+//           color: '#000000',
+//           fontSize: '12px',
+//         },
+//       },
+//     },
+//     yAxis: {
+//       min: 0,
+//       title: {
+//         text: 'No. Of Employees',
+//         style: {
+//           fontWeight: 'bold',
+//           color: '#000000',
+//         },
+//       },
+//     },
+//     tooltip: {
+//       shared: true,
+//       valueSuffix: ' employees',
+//     },
+//     plotOptions: {
+//       cylinder: {
+//         stacking: 'normal', // Stack employee and apprentice counts
+//         depth: 25, // 3D depth for the cylinders
+//         dataLabels: {
+//           enabled: true, // Show data labels on cylinders
+//         },
+//       },
+//       series: {
+//         cursor: 'pointer',
+//         point: {
+//           events: {
+//             click: function (event) {
+//               const clickedCategory = event.point.category;
+//               const clickedSeries = event.point.series.name;
+              
+//               if (clickedSeries === 'Employees') {
+//                 openMod(clickedCategory, 'employee');
+//               } else if (clickedSeries === 'Apprentices') {
+//                 openMod(clickedCategory, 'apprentice'); 
+//               }else if (clickedSeries === 'Consultant') {
+//                 openMod(clickedCategory, 'consultant'); 
+//               }
+//             },
+//           },
+//         },
+//       },
+//     },
+//     credits: {
+//       enabled: false,
+//     },
+//     legend: {
+//       enabled: true,
+//     },
+//     series: [
+//       {
+//         name: 'Employees',
+//         data: employeeSeries, 
+//         color: '#3498db', 
+//       },
+//       {
+//         name: 'Apprentices',
+//         data: apprenticeSeries, 
+//         color: '#e74c3c', 
+//       },
+//       {
+//         name: 'Consultant',
+//         data: consultantSeries,
+//         color: '#2d9687',
+//       },
+//     ],
+//   });
+// }
+plotEmployeeExperienceCylinderGraph(chartName, chartId, categories, employeeSeries, apprenticeSeries, consultantSeries, openMod) {
+  (Highcharts as any).chart(chartId, {
+    chart: {
       type: 'cylinder', // Cylinder chart type
       options3d: {
         enabled: true,
-        alpha: 15,
-        beta: 15,
-        depth: 50,
-        viewDistance: 25,
+        alpha: 25,
+        beta: 20,
+        depth: 60,
+        viewDistance: 40,
       },
+      backgroundColor: '#f4f6f7', // Light background color
     },
     title: {
       text: chartName,
       style: {
         fontWeight: 'bold',
-        color: '#000000',
+        color: '#34495e',
+        fontSize: '18px',
       },
     },
     xAxis: {
       categories: categories, // Experience ranges (e.g., "0 to 1", "1 to 2", etc.)
       labels: {
-        overflow: 'justify',
         style: {
           fontWeight: 'bold',
-          color: '#000000',
-          fontSize: '12px',
+          color: '#34495e',
+          fontSize: '14px',
         },
       },
     },
@@ -2589,21 +2733,38 @@ plotEmployeeExperienceCylinderGraph(chartName, chartId, categories, employeeSeri
         text: 'No. Of Employees',
         style: {
           fontWeight: 'bold',
-          color: '#000000',
+          color: '#34495e',
         },
       },
     },
     tooltip: {
       shared: true,
       valueSuffix: ' employees',
+      backgroundColor: 'rgba(0, 0, 0, 0.75)', // Dark tooltip background
+      style: {
+        color: '#ffffff',
+        fontSize: '14px',
+      },
+      // formatter: function () {
+      //   return <b>${this.point.category}</b><br>${this.series.name}: <b>${this.y}</b> employees;
+      // },
     },
     plotOptions: {
       cylinder: {
         stacking: 'normal', // Stack employee and apprentice counts
-        depth: 25, // 3D depth for the cylinders
+        depth: 30, // 3D depth for the cylinders
         dataLabels: {
           enabled: true, // Show data labels on cylinders
+          color: '#ffffff',
+          style: {
+            fontWeight: 'bold',
+            textOutline: 'none',
+          },
+          formatter: function () {
+            return this.y; // Display the value on top of the cylinders
+          },
         },
+        colorByPoint: true, // Use color for each series
       },
       series: {
         cursor: 'pointer',
@@ -2614,9 +2775,11 @@ plotEmployeeExperienceCylinderGraph(chartName, chartId, categories, employeeSeri
               const clickedSeries = event.point.series.name;
               
               if (clickedSeries === 'Employees') {
-                openMod(clickedCategory, 'employee'); // 'employee' type
+                openMod(clickedCategory, 'employee');
               } else if (clickedSeries === 'Apprentices') {
-                openMod(clickedCategory, 'apprentice'); // 'apprentice' type
+                openMod(clickedCategory, 'apprentice');
+              } else if (clickedSeries === 'Consultant') {
+                openMod(clickedCategory, 'consultant');
               }
             },
           },
@@ -2628,19 +2791,57 @@ plotEmployeeExperienceCylinderGraph(chartName, chartId, categories, employeeSeri
     },
     legend: {
       enabled: true,
+      itemStyle: {
+        fontWeight: 'bold',
+        fontSize: '14px',
+        color: '#34495e',
+      },
+      symbolHeight: 12,
+      symbolWidth: 12,
+      symbolRadius: 3,
     },
     series: [
       {
         name: 'Employees',
-        data: employeeSeries, 
-        color: '#3498db', 
+        data: employeeSeries,
+        color: 'url(#gradEmployee)', // Gradient color
       },
       {
         name: 'Apprentices',
-        data: apprenticeSeries, 
-        color: '#e74c3c', 
+        data: apprenticeSeries,
+        color: 'url(#gradApprentice)', // Gradient color
+      },
+      {
+        name: 'Consultant',
+        data: consultantSeries,
+        color: 'url(#gradConsultant)', // Gradient color
       },
     ],
+    defs: {
+      gradients: [
+        {
+          id: 'gradEmployee',
+          stops: [
+            [0, '#3498db'], // Blue start
+            [1, '#2980b9'], // Darker blue end
+          ],
+        },
+        {
+          id: 'gradApprentice',
+          stops: [
+            [0, '#e74c3c'], // Red start
+            [1, '#c0392b'], // Darker red end
+          ],
+        },
+        {
+          id: 'gradConsultant',
+          stops: [
+            [0, '#2d9687'], // Green start
+            [1, '#16a085'], // Darker green end
+          ],
+        },
+      ],
+    },
   });
 }
 
@@ -3711,29 +3912,74 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
       if (pointName == "0 to 1") {
         this.page = 1;
         this.modalTitle = "Employee(s) with 0 to 1 YOE";
-        filteredList = modalTableList.filter(x => x.totalExperience != null && x.totalExperience >= 0 && x.totalExperience <= 1 && x.isApprenticeship != 'true');
+        filteredList = modalTableList.filter(x => x.totalExperience != null && x.totalExperience >= 0 && x.totalExperience <= 1 && x.isApprenticeship != 'true' && x.isConsultant!='true');
       } else if (pointName == "1 to 2") {
         this.page = 1;
         this.modalTitle = "Employee(s) with 1 to 2 YOE";
-        filteredList = modalTableList.filter(x => x.totalExperience > 1 && x.totalExperience <= 2);
+        filteredList = modalTableList.filter(x => x.totalExperience > 1 && x.totalExperience <= 2 && x.totalExperience <= 1 && x.isApprenticeship != 'true' && x.isConsultant!='true');
       } else if (pointName == "2 to 5") {
         this.page = 1;
         this.modalTitle = "Employee(s) with 2 to 5 YOE";
-        filteredList = modalTableList.filter(x => x.totalExperience > 2 && x.totalExperience <= 5);
+        filteredList = modalTableList.filter(x => x.totalExperience > 2 && x.totalExperience <= 5 && x.totalExperience <= 1 && x.isApprenticeship != 'true' && x.isConsultant!='true');
       } else if (pointName == "5 to 10") {
         this.page = 1;
         this.modalTitle = "Employee(s) with 5 to 10 YOE";
-        filteredList = modalTableList.filter(x => x.totalExperience > 5 && x.totalExperience <= 10);
+        filteredList = modalTableList.filter(x => x.totalExperience > 5 && x.totalExperience <= 10 && x.totalExperience <= 1 && x.isApprenticeship != 'true' && x.isConsultant!='true');
       } else if (pointName == "10+") {
         this.page = 1;
         this.modalTitle = "Employee(s) with 10+ YOE";
-        filteredList = modalTableList.filter(x => x.totalExperience > 10);
+        filteredList = modalTableList.filter(x => x.totalExperience > 10 && x.totalExperience <= 1 && x.isApprenticeship != 'true' && x.isConsultant!='true');
       }
     } else if (type === 'apprentice') {
-      // Filter apprentice list (you can adjust this logic based on how you track apprentices)
-      this.page = 1;
-      this.modalTitle = "Apprentice(s)";
-      filteredList = modalTableList.filter(x => x.isApprenticeship === 'true'&& x.totalExperience >= 0 && x.totalExperience <= 1); // Assuming isApprentice is a flag
+      // this.page = 1;
+      // this.modalTitle = "Apprentice(s)";
+      // filteredList = modalTableList.filter(x => x.isApprenticeship === 'true'&& x.totalExperience >= 0 && x.totalExperience <= 1);
+      if (pointName == "0 to 1") {
+        this.page = 1;
+        this.modalTitle = "Apprentice(s) with 0 to 1 YOE";
+        filteredList = modalTableList.filter(x => x.totalExperience != null && x.totalExperience >= 0 && x.totalExperience <= 1 && x.isApprenticeship === 'true');
+      } else if (pointName == "1 to 2") {
+        this.page = 1;
+        this.modalTitle = "Apprentice(s) with 1 to 2 YOE";
+        filteredList = modalTableList.filter(x => x.totalExperience > 1 && x.totalExperience <= 2 && x.isApprenticeship === 'true');
+      } else if (pointName == "2 to 5") {
+        this.page = 1;
+        this.modalTitle = "Apprentice(s) with 2 to 5 YOE";
+        filteredList = modalTableList.filter(x => x.totalExperience > 2 && x.totalExperience <= 5 && x.isApprenticeship === 'true');
+      } else if (pointName == "5 to 10") {
+        this.page = 1;
+        this.modalTitle = "Apprentice(s) with 5 to 10 YOE";
+        filteredList = modalTableList.filter(x => x.totalExperience > 5 && x.totalExperience <= 10 && x.isApprenticeship === 'true');
+      } else if (pointName == "10+") {
+        this.page = 1;
+        this.modalTitle = "Apprentice(s) with 10+ YOE";
+        filteredList = modalTableList.filter(x => x.totalExperience > 10 && x.isApprenticeship === 'true');
+      }
+    } else if (type === 'consultant'){
+      // this.page = 1;
+      // this.modalTitle = "Consultant(s)";
+      // filteredList = modalTableList.filter(x => x.isConsultant === 'true'&& x.totalExperience >= 0 && x.totalExperience <= 1);
+      if (pointName == "0 to 1") {
+        this.page = 1;
+        this.modalTitle = "Consultant(s) with 0 to 1 YOE";
+        filteredList = modalTableList.filter(x => x.totalExperience != null && x.totalExperience >= 0 && x.totalExperience <= 1 && x.isConsultant === 'true');
+      } else if (pointName == "1 to 2") {
+        this.page = 1;
+        this.modalTitle = "Consultant(s) with 1 to 2 YOE";
+        filteredList = modalTableList.filter(x => x.totalExperience > 1 && x.totalExperience <= 2 && x.isConsultant === 'true');
+      } else if (pointName == "2 to 5") {
+        this.page = 1;
+        this.modalTitle = "Consultant(s) with 2 to 5 YOE";
+        filteredList = modalTableList.filter(x => x.totalExperience > 2 && x.totalExperience <= 5 && x.isConsultant === 'true');
+      } else if (pointName == "5 to 10") {
+        this.page = 1;
+        this.modalTitle = "Consultant(s) with 5 to 10 YOE";
+        filteredList = modalTableList.filter(x => x.totalExperience > 5 && x.totalExperience <= 10 && x.isConsultant === 'true');
+      } else if (pointName == "10+") {
+        this.page = 1;
+        this.modalTitle = "Consultant(s) with 10+ YOE";
+        filteredList = modalTableList.filter(x => x.totalExperience > 10 && x.isConsultant === 'true');
+      }
     }
   
     this.modalSummaryList = filteredList;
