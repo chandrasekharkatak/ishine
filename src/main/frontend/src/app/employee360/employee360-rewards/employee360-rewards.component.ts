@@ -128,10 +128,6 @@ export class Employee360RewardsComponent implements OnInit {
     // }
   
     // Ensure month is always in 'MM' format
-    const formattedMonth = this.month.toString().padStart(2, '0');
-  
-    // Construct `ofMonthYear`
-    this.ofMonthYear = `${this.selectedYear}-${formattedMonth}`;
   }
 
   changeEvent(value: string) {
@@ -168,6 +164,10 @@ export class Employee360RewardsComponent implements OnInit {
   onCategoryChange(event: Event): void {
     const selectElement = event.target as HTMLSelectElement;
     const categoryId = +selectElement.value; // Convert value to number
+    const formattedMonth = categoryId.toString().padStart(2, '0');
+    
+    this.ofMonthYear = `${this.selectedYear}-${formattedMonth}`;
+    console.log("ofMonthYear  ",this.ofMonthYear)
 
     if (this.selectedYear && categoryId) {
       if (this.ofMonthYear) {
@@ -180,8 +180,13 @@ export class Employee360RewardsComponent implements OnInit {
         // Call the API
         this.rewardsService.getEmployeeRewardByEmpId(request).subscribe(
           (response: any) => {
-            this.rewardList = response.rewardsDTO;
-            console.log('Rewards Details:', response);
+             if(response.serviceStatus == 'Success'){
+              this.rewardList = response.serviceResponse;
+              console.log('Rewards Details:', response);
+             }else{
+              this.rewardList=[];
+               console.error('No rewards to fetch');
+             }
           },
           (error: any) => {
             console.error('Error fetching rewards:', error);
