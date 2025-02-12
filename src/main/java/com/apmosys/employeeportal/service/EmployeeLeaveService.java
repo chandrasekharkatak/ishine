@@ -64,8 +64,8 @@ import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 @Service
 public class EmployeeLeaveService {
 	
-	@Autowired
-	CompOffLeave compOffLeave;
+//	@Autowired
+//	CompOffLeave compOffLeave;
 
 	@Autowired
 	EmployeeLeaveRepository employeeLeaveRepository;

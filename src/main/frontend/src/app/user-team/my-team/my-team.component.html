@@ -784,69 +784,81 @@
 </ng-template>
 
 <ng-template #leaveHistoryModal>
-  <div class="modal-header" >
+  <div class="modal-header">
     <h1 class="table-header-title">{{leaveObj.name}} Leaves History</h1>
     <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
-        <span aria-hidden="true">&times;</span>
+      <span aria-hidden="true">&times;</span>
     </button>
-</div>
-<div class="row" *ngIf="isLeavesHistory">
-  <div class="col-md-12">
-    <div class="selector-toggle" (click)="toggleLeaveHistorySearch()">
-      <a href="javascript:void(0)">
+  </div>
+  <div class="row" *ngIf="isLeavesHistory">
+    <div class="col-md-12">
+      <div class="selector-toggle" (click)="toggleLeaveHistorySearch()">
+        <a href="javascript:void(0)">
           <i *ngIf="!isSearchLeaveHistoryEnabled" class="fa fa-search"></i>
           <i *ngIf="isSearchLeaveHistoryEnabled" class="fa-solid fa-xmark"></i>
-      </a>
-  </div>
-<div class="modal-body"  style="overflow: scroll;">
-  <div class="container leave-history-table">
-    <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveHistoryTableId'" [tableTHeadId]="'leaveHistoryTableTHead'"
-                    [tableTHeadTrId]="'leaveHistoryTableTHeadTr'">
-    <table class="table leave_history_table">
-      <thead class="thead-light text-center">
-        <tr>
-          <th scope="col" style="min-width: 150px;">Sr no.</th>
-          <th scope="col">Name</th>
-          <th scope="col"style="min-width: 150px;">Leave Type</th>
-          <th scope="col"style="min-width: 150px;">From Date</th>
-          <th scope="col"style="min-width: 150px;">To Date</th>
-          <th scope="col"style="min-width: 150px;">No of days</th>
-          <th scope="col"style="min-width: 150px;">Created On</th>
-          <th scope="col" style="min-width: 150px;">Approver Name</th>
-          <th scope="col" style="min-width: 250px;">Manager Approval Status</th>
-          <th scope="col">Reason</th>
-          <th scope="col">Status</th>
-        </tr>
-        <tr app-column-filter-bar *ngIf="isLeavesHistory && isSearchLeaveHistoryEnabled" [columnList]="leaveHistoryColumns" (onSearch)="onLeaveSearch($event);pageNo=1" ></tr>
-      </thead>
-<tbody>
-  <tr *ngIf="leaveHistory.length == 0 || (leaveHistory| colFilter:leaveFilters:false).length == 0">
-    <th colspan="11" class="text-center info-label">No details to display...</th>
-</tr>
-  <tr class="text-center" *ngFor="let history of leaveHistory| colFilter:leaveFilters:false | paginate: { itemsPerPage: 10, currentPage: pageNo };let i = index">
-    <td>{{10*(pageNo-1)+i+1}}</td>
-    <td>{{history.createdByName}}</td>
-    <td>{{history.leaveType}}</td>
-    <td>{{history.fromDate}}</td>
-    <td>{{history.toDate}}</td>
-    <td>{{history.noOfDays}}</td>
-    <td>{{history.createdOn}}</td>
-    <td>{{history.approverName}}</td>
-    <td>{{history.managerApprovalStatus}}</td>
-    <td>{{history.reason}}</td>
-    <td>{{history.status}}</td>
-  </tr>
-</tbody>
-    </table>
+        </a>
+      </div>
+      <div class="modal-body" style="overflow: scroll;">
+        <div class="container leave-history-table">
+          <div class="overflow-auto" *ngIf="leaveHistory.length > 0" 
+            bassHorizontalScroll 
+            [tableId]="'leaveHistoryTableId'"
+            [tableTHeadId]="'leaveHistoryTableTHead'"
+            [tableTHeadTrId]="'leaveHistoryTableTHeadTr'">
+       
+            <table class="table leave_history_table" matSort (matSortChange)="sortData($event)">
+              <thead class="thead-light text-center"   id="leavehistorythead">
+                <tr  id="leavehistoryid">
+
+                  <th scope="col" class="info-label">Sr no.</th>
+                  <th scope="col" mat-sort-header="createdByName|string">Name</th>
+                  <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>
+                  <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>
+                  <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>
+                  <th scope="col" class="info-label" mat-sort-header="noOfDays|number">No of days</th>
+                  <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
+                  <th scope="col" class="info-label" mat-sort-header="approverName|string">Approver Name</th>
+                  <th scope="col" class="info-label" mat-sort-header="managerApprovalStatus|string">Manager Approval
+                    Status</th>
+                  <th scope="col" class="info-label" mat-sort-header="reason|string">Reason</th>
+                  <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                </tr>
+                <tr app-column-filter-bar *ngIf="isLeavesHistory && isSearchLeaveHistoryEnabled"
+                  [columnList]="leaveHistoryColumns" (onSearch)="onLeaveSearch($event);pageNo=1"></tr>
+              </thead>
+              <tbody>
+                <tr *ngIf="leaveHistory.length == 0 || (leaveHistory| colFilter:leaveFilters:false).length == 0">
+                  <th colspan="11" class="text-center info-label">No details to display...</th>
+                </tr>
+                <tr class="text-center"
+                  *ngFor="let history of leaveHistory | colFilter:leaveFilters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+
+                  <!-- *ngFor="let review of reviewTypelist| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index"> -->
+
+                  <td scope="col" class="info-label">{{10*(pageNo-1)+i+1}}</td>
+                  <td>{{history.createdByName}}</td>
+                  <td>{{history.leaveType}}</td>
+                  <td>{{history.fromDate}}</td>
+                  <td>{{history.toDate}}</td>
+                  <td>{{history.noOfDays}}</td>
+                  <td>{{history.createdOn}}</td>
+                  <td>{{history.approverName}}</td>
+                  <td>{{history.managerApprovalStatus}}</td>
+                  <td>{{history.reason}}</td>
+                  <td>{{history.status}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-</div>
-  </div>
-</div>
 
-<div class="my-buttons">
-  <pagination-controls class="my-pagination" [hidden]="leaveHistory.length == 0" (pageChange)="handlePageChanges($event)"></pagination-controls>
-</div>
+  <div class="my-buttons">
+    <pagination-controls class="my-pagination" [hidden]="leaveHistory.length == 0"
+      (pageChange)="handlePageChanges($event)"></pagination-controls>
+  </div>
 
 
 </ng-template>
