@@ -1,0 +1,888 @@
+<div class="row mb-3">
+    <div class="col-md-12 px-0">
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_team" [ngClass]="{'active' : isTeamForm && isCreation}" (click)="showCreateTeamForm()">Add New Team</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_teams || userMapping.update_team || userMapping.delete_team" [ngClass]="{'active' : isTeamTable}" (click)="showViewTeams()">View Teams</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_activities || userMapping.update_activity || userMapping.delete_activity" [ngClass]="{'active' : isActivityTable}" (click)="showViewActivities()">View Activities</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.activity_template" [ngClass]="{'active' : isActivityTemplate && isActivityCreate}" (click)="showActivityTemplate()">Activity Template</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_activity_template" [ngClass]="{'active' : isActivityTemplateTable}" (click)="showActivityTemplateTable()">View Activity Template</button>
+    </div>
+</div>
+
+<!-- start :: Create & Update Team -->
+<div class="row">
+    <div class="card col-md-12 px-0" *ngIf="isTeamForm">
+        <div class="card-header text-center text-uppercase">
+            
+                <button type="button" class="btn btn-outline-primary btn-sm active ng-star-inserted mx-1"  style="float: left;" *ngIf="isUpdation" (click)="showViewTeams1()"><em><i
+                    class="fa-solid fa-arrow-left-long"></i></em>
+                </button>
+           
+            <strong *ngIf="isCreation">Create Team</strong>
+            <strong *ngIf="isUpdation">Update Team</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <!-- <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Project Name</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="teamObj.projectId" [disabled]="isUpdation">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option *ngFor="let project of allProjectListByManagerId" value="{{project.projectId}}">{{project.projectName}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div> -->
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                              <label class="info-label"><span class="text-danger">*</span>Project Name</label>
+                              <mat-select ngxMatSelect class="form-control"
+                                  #createTeamProjects="ngxMatSelect"
+                                  [displayMember]="'projectName'"
+                                  [valueMember]="'projectId'"
+                                  [source]="allProjectListByManagerId"
+                                  [useInfiniteScroll]="true"
+                                  [multiple]="false"
+                                  [(ngModel)]="teamObj.projectId"
+                                  [disabled]="isUpdation"
+                                  >
+                                  <mat-option [value]="project.projectId" *ngFor="let project of createTeamProjects.filteredSource">
+                                    {{project.projectName}}
+                                  </mat-option>
+                                </mat-select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Team Name</label>
+                            <input type="text" class="form-control" maxlength="255" autocomplete="none" [(ngModel)]="teamObj.teamName"  (blur)="checkTeamName(alert_message)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Department</label>
+                            <!-- <mat-select class="form-control" multiple [(ngModel)]="teamObj.departmentList" (selectionChange)="getAllEmployeesByDepartmentIds();getAllEmployeesByRole()">
+                                <mat-option selected="selected" value="" disabled>Select</mat-option>
+                                <mat-option *ngFor="let dept of allDeptList" [value]="dept">{{dept.name}}</mat-option>
+                            </mat-select> -->
+
+                            <mat-select ngxMatSelect class="form-control"
+                                  #departmentSelect="ngxMatSelect"
+                                  [displayMember]="'name'"
+                                  [valueMember]="'deptId'"
+                                  [source]="allDeptList"
+                                  [useInfiniteScroll]="true"
+                                  [multiple]="true"
+                                  [(ngModel)]="teamObj.departmentList"
+                                  (selectionChange)="getAllEmployeesByRole();getAllEmployeesByDepartmentIds()"
+                                  >
+                                  <mat-option [value]="dept.deptId" *ngFor="let dept of departmentSelect.filteredSource">
+                                    {{dept.name}}
+                                  </mat-option>
+                            </mat-select>
+                                <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="teamObj.deptId" (change)="getAllEmployeesByDepartmentIds();getAllEmployeesByRole()">
+                                    <option selected="selected" value="" disabled>Select</option>
+                                    <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
+                                </select> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label">Team Lead</label>
+                            <mat-select ngxMatSelect class="form-control"
+                                  #selectTeamLead="ngxMatSelect"
+                                  [displayMember]="'name'"
+                                  [valueMember]="'empId'"
+                                  [source]="teamLeadsList"
+                                  [useInfiniteScroll]="true"
+                                  [multiple]="false"
+                                  [(ngModel)]="teamObj.teamLeadId"
+                                  [disabled]="!teamObj.departmentList"
+                                  >
+                                  <mat-option [value]="teamLead.empId" *ngFor="let teamLead of selectTeamLead.filteredSource">
+                                    {{teamLead.name}}
+                                  </mat-option>
+                                </mat-select>
+                            <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="teamObj.teamLeadId">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option *ngFor="let teamLead of teamLeadsList" value="{{teamLead.empId}}">{{teamLead.name}}</option>
+                            </select> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+             <!-- Update Existing Members -->
+            <div *ngIf="isUpdation && teamObj.allTeamMemberList[0]" class="container-fluid px-0">
+                <div class="row ml-1 mt-5">
+                    <h3>Existing Team Members</h3>
+                </div>
+                <div *ngFor="let teamMember of teamObj.allTeamMemberList; let i = index" class="row">
+                    <div class="col-md-4 mb-0">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <input type="text" class="form-control" autocomplete="none" disabled
+                                    [(ngModel)]="teamMember.teamMemberName">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex">
+                        <div class="mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <!-- <label class="info-label"><span class="text-danger">*</span></label> -->
+                                    <mat-select class="form-control" multiple [(ngModel)]="teamMember.employeeRole">
+                                        <mat-option selected="selected" value="" disabled>Select</mat-option>
+                                        <mat-option *ngFor="let role of employeeRole" [value]="role">{{role}}</mat-option>
+                                    </mat-select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="m-0">
+                            <button type="button" class="btn btn-outline-primary mx-1" (click)="removeTeamMember(teamMember)">
+                                <i class="fa fa-trash" aria-hidden="true"></i></button>
+                        </div>
+                        <div class="m-0">
+                            <button type="button" title="Activity Preview" class="btn btn-outline-primary mx-1" (click)="getActivityInUpdateTeam(teamMember);openActivityPreviewModal(activity_preview,teamObj)">
+                                <i class="fa-solid fa-circle-info fa-lg"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- New Team Members -->
+            <div *ngIf="allTeamMembers && allTeamMembers.length !== 0" class="container-fluid px-0">
+                <div class="row ml-1 mt-5">
+                    <h3>New Team Members</h3>
+                </div>
+                <div *ngFor="let teamMember of allTeamMembers; let i = index" class="row">
+                    <div class="col-md-4 mb-0">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <input type="text" class="form-control" autocomplete="none" disabled
+                                    [(ngModel)]="teamMember.name">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex">
+                        <div class="mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <!-- <label class="info-label"><span class="text-danger">*</span></label> -->
+                                    <mat-select class="form-control" multiple [(ngModel)]="teamMember.employeeRole">
+                                        <mat-option selected="selected" value="" disabled>Select</mat-option>
+                                        <mat-option *ngFor="let role of employeeRole" [value]="role" disabled>{{role}}</mat-option>
+                                    </mat-select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="m-0">
+                            <button type="button" class="btn btn-outline-primary mx-1" (click)="removeInputTeamMemberField(teamMember);updateEmployeeListAccordingToTeamMembers()"><i
+                                    class="fa fa-trash" aria-hidden="true"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Add New Team Members -->
+            <div class="row ml-1 mt-5">
+                <h3>Add Team Members</h3>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="newteamMember.empId">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option *ngFor="let employee of employeeListByDept" value="{{employee.empId}}" [disabled]="employee.isSelected">{{employee.name}}</option>
+                            </select> -->
+                            <mat-select ngxMatSelect class="form-control"
+                                  #addMemberSelect="ngxMatSelect"
+                                  [displayMember]="'name'"
+                                  [valueMember]="'empId'"
+                                  [source]="employeeListByDept"
+                                  [useInfiniteScroll]="true"
+                                  [multiple]="false"
+                                  [(ngModel)]="newteamMember.empId"
+                                  [disabled]="!teamObj.departmentList || teamObj.departmentList.length == 0"
+                                  (selectionChange)="openProjectTemplateModal(projectTemplate,newteamMember)"
+                                  >
+                                  <mat-option [value]="employee.empId" *ngFor="let employee of addMemberSelect.filteredSource" [disabled]="employee.isSelected">
+                                    {{employee.name}}
+                                  </mat-option>
+                                </mat-select>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex">
+                    <div class="mb-0">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <!-- <label class="info-label"><span class="text-danger">*</span></label> -->
+                                <mat-select class="form-control" multiple [(ngModel)]="newteamMember.employeeRole" [disabled]="!teamObj.departmentList">
+                                    <mat-option selected="selected" value="" disabled>Select</mat-option>
+                                    <mat-option *ngFor="let role of employeeRole" [value]="role">{{role}}</mat-option>
+                                </mat-select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="m-0">
+                        <button type="button" class="btn btn-outline-primary mx-1" (click)="resetSelectSearch(addMemberSelect);addTeamMember();updateEmployeeListAccordingToTeamMembers()"
+                        [disabled]="(newteamMember.empId == null) || (newteamMember.billableType != 'NewMember' && newteamMember.billableType == 'TNM') || !teamObj.departmentList || !newteamMember.employeeRole || newteamMember.employeeRole.length == 0"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                    </div>
+                    <div class="m-0">
+                            <button type="button" title="Preview Activity" class="btn btn-outline-primary mx-1" (click)="getMappedActivityPreview(newteamMember);openActivityPreviewModal(activity_preview,teamObj)"
+                            [disabled]="!newteamMember.employeeRole"><i class="fa-solid fa-circle-info fa-lg"></i></button>
+                    </div>
+                </div>
+            </div>
+        <!--
+            <div *ngFor="let teamMember of allTeamMembers; let i = index" class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="teamMember.empId">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option *ngFor="let employee of employeeListByDept" value="{{employee.empId}}" [disabled]="employee.isSelected">{{employee.name}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 d-flex">
+                    <div class="m-0">
+                        <button type="button" class="btn btn-outline-primary mx-1"
+                            (click)="addInputTeamMemberField();updateEmployeeListAccordingToTeamMembers()"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                        <button *ngIf="i != 0" type="button" class="btn btn-outline-primary mx-1"
+                            (click)="removeInputTeamMemberField(teamMember);updateEmployeeListAccordingToTeamMembers()"><i class="fa fa-trash"
+                                aria-hidden="true"></i></button>
+                    </div>
+                </div>
+            </div>
+        -->
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button *ngIf="isCreation && userMapping.add_team" type="submit" class="btn btn-primary btn-sm mx-1" [disabled]="allTeamMembers && allTeamMembers.length == 0" (click)="onCreateTeam(alert_message)">Create Team</button>
+                    <button *ngIf="isUpdation && userMapping.update_team" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateTeam(alert_message)" >Update Team</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end :: create & update Team -->
+
+<!-- start :: View Teams -->
+<div class="row" *ngIf="isTeamTable">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">All Teams</h1>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Project Name</label>
+                        <mat-select ngxMatSelect class="form-control"
+                                  #viewTeamProjects="ngxMatSelect"
+                                  [displayMember]="'projectName'"
+                                  [valueMember]="'projectId'"
+                                  [source]="allProjectListByManagerId"
+                                  [useInfiniteScroll]="true"
+                                  [multiple]="false"
+                                  [(ngModel)]="selectedProject"
+                                  (selectionChange)="getAllTeamsByProjectId(selectedProject)"
+                                  >
+                                  <mat-option value="{{project.projectId}}" *ngFor="let project of viewTeamProjects.filteredSource">
+                                    {{project.projectName}}
+                                  </mat-option>
+                                </mat-select>
+
+
+                        <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="selectedProject" (change)="getAllTeamsByProjectId(selectedProject)">
+                            <option selected="selected" value="" disabled>Select</option>
+                            <option *ngFor="let project of allProjectListByManagerId" value="{{project.projectId}}">{{project.projectName}}</option>
+                        </select> -->
+                    </div>
+                   
+                    
+                  
+                </div>
+            </div>
+            <div class=" ml-auto col-md-2 mt-4 pt-2 mb-2">
+                <div class="form-inline input-group">
+                    <label class="d-inline-block mr-2 mt-2"><strong>Status</strong></label>
+                    <select class="form-control" aria-hidden="true" [(ngModel)]="filterStatus"
+                        (change)="changeEvent()" [disabled]="!selectedProject">
+                        <option selected="selected" value="" disabled>Select</option>
+                        <option value="Active">Active</option>
+                        <option value="InActive">InActive</option>
+                    </select>
+                </div>
+            </div>
+            <!-- <div class="col-md-3 mt-4 pt-2 mb-2">
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
+            </div> -->
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="selector-toggle" (click)="toggleSearch()">
+                    <a href="javascript:void(0)">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                    </a>
+                </div>
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'teamInfo'" [tableTHeadId]="'teamInfoTHead'"
+                    [tableTHeadTrId]="'teamInfoTHeadTr'">
+                    <table class="table table-responsive" id="teamInfo" matSort (matSortChange)="sortData($event)">
+                        <thead class="thead-light" id="teamInfoTHead">
+                          <tr id="teamInfoTHeadTr">
+                            <th scope="col" class="info-label">Sr No.</th>
+                            <th scope="col" class="info-label" mat-sort-header="projectName|string">Project Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="teamName|string">Team Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="teamLeadName|string">Team Lead</th>
+                            <th scope="col" class="info-label" mat-sort-header="projectManagerName|string">Project Manager</th>
+                            <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
+                            <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
+                            <th scope="col" class="info-label">Actions</th>
+                          </tr>
+                          <tr app-column-filter-bar *ngIf="isTeamTable && isSearchEnabled" [columnList]="viewTeamColumns" (onSearch)="onSearch($event);page=1" ></tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="allTeamList.length == 0 || (allTeamList| colFilter:filters:false).length == 0">
+                                <th colspan="8" class="text-center info-label">No details to display...</th>
+                            </tr>
+                            <tr *ngFor="let team of allTeamList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                                <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
+                                <td>{{team.projectName}}</td>
+                                <td>{{team.teamName}}</td>
+                                <td>{{team.teamLeadName}}</td>
+                                <td>{{team.projectManagerName}}</td>
+                                <td>{{team.createdByName}}</td>
+                                <td>{{team.createdOn}}</td>
+                                <td>
+                                    <button *ngIf="userMapping.update_team" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateTeamForm(team)" [disabled]="team.isActive == 'N'"><em class="fa fa-edit"></em></button>&nbsp;
+                                    <button *ngIf="userMapping.delete_team" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteTeamMod(delete_team_template,team)" [disabled]="team.isActive == 'N'"><em class="fa fa-trash"></em></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                      </table>
+                      <pagination-controls class="my-pagination" [hidden]="allTeamList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+                      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="allTeamList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end :: View Teams -->
+
+
+<!-- start :: Create & Update Activity -->
+<div class="row">
+    <div class="card col-md-12 px-0" *ngIf="isActivityForm">
+
+        <div class="px-0">
+            <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="isCreation" (click)="showViewActivities()"><em><i
+               class="fa-solid fa-arrow-left-long"></i></em></button>
+        </div>
+
+        <div class="card-header text-center text-uppercase">
+            <strong *ngIf="isCreation">Create Activity</strong>
+            <strong *ngIf="isUpdation">Update Activity</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Project Name</label>
+                            <mat-select ngxMatSelect class="form-control"
+                                  #createTeamProjects="ngxMatSelect"
+                                  [displayMember]="'projectName'"
+                                  [valueMember]="'projectId'"
+                                  [source]="allProjectListByManagerId"
+                                  [useInfiniteScroll]="true"
+                                  (selectionChange)="getAllTeamsByProjectId(activityObj.projectId); isDisabled = true"
+                                  [multiple]="false"
+                                  [(ngModel)]="activityObj.projectId"
+                                  >
+                                  <mat-option [value]="project.projectId" *ngFor="let project of createTeamProjects.filteredSource">
+                                    {{project.projectName}}
+                                  </mat-option>
+                            </mat-select>
+                            <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.projectId"
+                                (change)="getAllTeamsByProjectId(activityObj.projectId); isDisabled = true;">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option *ngFor="let project of employeeSpecificProjectList"
+                                    value="{{project.projectId}}">{{project.projectName}}</option>
+                            </select> -->
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Team Name</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.teamId"
+                                [disabled]="(isDisabled) || (!activityObj.projectId)"
+                                (change)="getDepartmentByTeam(activityObj.teamId)">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option *ngFor="let team of allTeamList;" value="{{team.teamId}}">{{team.teamName}}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Department</label>
+                            <mat-select ngxMatSelect class="form-control"
+                                  #deptSelect="ngxMatSelect"
+                                  [displayMember]="'name'"
+                                  [valueMember]="'deptId'"
+                                  [source]="filteredDeptList"
+                                  [useInfiniteScroll]="true"
+                                  [multiple]="true"
+                                  [(ngModel)]="activityObj.departmentList"
+                                  [disabled]="!activityObj.teamId"
+                                  >
+                                  <mat-option [value]="dept.deptId" *ngFor="let dept of deptSelect.filteredSource" [disabled]="isUpdation">
+                                    {{dept.name}}
+                                  </mat-option>
+                            </mat-select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Activity</label>
+                            <input type="text" class="form-control" autocomplete="none"
+                                [(ngModel)]="activityObj.activity">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label">ETA
+                                <small>(Hours)</small></label>
+                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="activityObj.eta">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Employee Role</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.employeeRole">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="Employee">Employee</option>
+                                <option value="TeamLead">Team Lead</option>
+                                <option value="HOD">HOD</option>
+                                <option value="Manager">Manager</option>
+                                <option value="HR">HR</option>
+                                <option value="SuperAdmin">Super Admin</option>
+                                <option value="RMG">RMG</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button *ngIf="isCreation && userMapping.add_activity" type="submit"
+                        class="btn btn-primary btn-sm mx-1" (click)="onCreateActivity(alert_message)">Create
+                        Activity</button>
+                    <button *ngIf="isUpdation && userMapping.update_activity" type="submit"
+                        class="btn btn-primary btn-sm mx-1" (click)="onUpdateActivity(alert_message)">Update
+                        Activity</button>
+                </div>
+            </div>
+        </div>
+        <button type="button" *ngIf="isGoToTeamButton" class="btn btn-sm btn-primary go-to-team ml-auto" (click)="goToUpdateTeamPage()"><i class="fa-solid fa-arrow-left"></i> Go To Update Team</button>
+    </div>
+</div>
+<!-- end :: create & update Activity -->
+
+<!-- start :: View Activities -->
+<div class="row" *ngIf="isActivityTable">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">All Activities</h1>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-3">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Project Name</label>
+                        <mat-select ngxMatSelect class="form-control"
+                                  #createTeamProjects="ngxMatSelect"
+                                  [displayMember]="'projectName'"
+                                  [valueMember]="'projectId'"
+                                  [source]="allProjectListByManagerId"
+                                  [useInfiniteScroll]="true"
+                                  (selectionChange)="getAllTeamsByProjectId(selectedProject); isDisabled = true"
+                                  [multiple]="false"
+                                  [(ngModel)]="selectedProject"
+                                  >
+                                  <mat-option [value]="project.projectId" *ngFor="let project of createTeamProjects.filteredSource">
+                                    {{project.projectName}}
+                                  </mat-option>
+                            </mat-select>
+                        <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="selectedProject" (change)="getAllTeamsByProjectId(selectedProject); isDisabled = true;">
+                            <option selected="selected" value="" disabled>Select</option>
+                            <option *ngFor="let project of employeeSpecificProjectList" value="{{project.projectId}}">{{project.projectName}}</option>
+
+                        </select> -->
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label" ><span class="text-danger">*</span>Team Name</label>
+                        <select class="form-control" aria-hidden="true" [(ngModel)]="selectedTeam" [disabled]="(!selectedProject) || (isDisabled)" (change)="getAllActivitiesByProjectIdAndTeamId(selectedProject, selectedTeam)">
+                            <option selected="selected" value="" disabled>Select</option>
+                            <option *ngFor="let team of allTeamList;" value="{{team.teamId}}" >{{team.teamName}}</option>
+                          </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mt-4 pt-2 mb-2 ml-auto d-flex justify-content-end align-items-start">
+                <button type="button" class="btn btn-outline-primary btn-sm" *ngIf="userMapping.add_activity" [ngClass]="{'active' : isActivityForm && isCreation}" (click)="showCreateActivityForm()"><em class="fa-solid fa-plus"></em>Add New Activity</button>
+            </div>
+            <!-- <div class="col-md-3 ml-auto mt-4 pt-2 mb-2">
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
+            </div> -->
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="selector-toggle" (click)="toggleSearch()">
+                    <a href="javascript:void(0)">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                    </a>
+                </div>
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'activityInfo'" [tableTHeadId]="'activityInfoTHead'"
+                [tableTHeadTrId]="'activityInfoTHeadTr'">
+                <table class="table table-responsive" id="activities-table" matSort (matSortChange)="sortData($event)">
+                    <thead class="thead-light">
+                      <tr>
+                        <th scope="col" class="info-label">Sr No.</th>
+                        <th scope="col" class="info-label" mat-sort-header="activity|string">Activity</th>
+                        <th scope="col" class="info-label" mat-sort-header="eta|number">ETA</th>
+                        <th scope="col" class="info-label" mat-sort-header="employeeRole|string">Activity Role</th>
+                        <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
+                        <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
+                        <th scope="col" class="info-label">Actions</th>
+                      </tr>
+                      <tr app-column-filter-bar *ngIf="isActivityTable && isSearchEnabled" [columnList]="viewActivityColumns" (onSearch)="onSearch($event);page=1" ></tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngIf="allActivityList.length == 0 || (allActivityList| colFilter:filters:false).length == 0">
+                            <th colspan="8" class="text-center info-label">No details to display...</th>
+                        </tr>
+                      <tr *ngFor="let activity of allActivityList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" >
+                        <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
+                        <td>{{activity.activity}}</td>
+                        <td>{{activity.eta}} hr(s)</td>
+                        <td>{{activity.employeeRole}}</td>
+                        <td>{{activity.createdByName}}</td>
+                        <td>{{activity.createdOn}}</td>
+                        <td>
+                            <button *ngIf="userMapping.update_activity" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateActivityForm(activity)"><em class="fa fa-edit"></em></button>&nbsp;
+                            <button *ngIf="userMapping.delete_activity" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteActivityMod(delete_activity_template,activity)"><em class="fa fa-trash"></em></button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <pagination-controls class="my-pagination" [hidden]="allActivityList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="allActivityList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+            </div>
+        </div>
+    </div>
+    <button type="button" *ngIf="isGoToTeamButton" class="btn btn-sm btn-primary go-to-team ml-auto" (click)="goToUpdateTeamPage()"><i class="fa-solid fa-arrow-left"></i> Go To Update Team</button>
+</div>
+<!-- end :: View Activities -->
+
+
+<!-- start :: Activity Template -->
+
+<!-- create/ update Activity template-->
+<div class="row">
+    <div class="card col-md-12 px-0" *ngIf="isActivityTemplate">
+        <div class="card-header text-center text-uppercase">
+            <strong *ngIf="isActivityCreate">Add Activity</strong>
+            <strong *ngIf="isActivityUpdate">Update Activity</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Employee Role</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="activityTemplateObj.employeeRole" [disabled]="isActivityUpdate">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="Employee">Employee</option>
+                                <option value="TeamLead">Team Lead</option>
+                                <option value="HOD">HOD</option>
+                                <option value="Manager">Manager</option>
+                                <option value="HR">HR</option>
+                                <option value="SuperAdmin">Super Admin</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Department</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="activityTemplateObj.deptId" [disabled]="isActivityUpdate">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div *ngFor="let activity of allTemplateActivityList;let i = index" class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Activity - {{i+1}}</label>
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="activity.activity">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 d-flex align-items-center">
+                    <div class="form-group m-0 mt-3 mb-1">
+                        <button type="button" class="btn btn-outline-primary mx-1" (click)="addInputTemplateActivityField()" [disabled]="(allTemplateActivityList.length > 1 && i !== allTemplateActivityList.length-1)"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                        <button type="button" *ngIf="allTemplateActivityList.length > 1" class="btn btn-outline-primary mx-1" (click)="removeInputTemplateActivityField(activity)"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button type="submit" *ngIf="isActivityCreate" class="btn btn-primary btn-sm mx-1" (click)="createActivityTemplate(alert_message)">Create Activity Template</button>
+                    <button type="submit" *ngIf="isActivityUpdate" class="btn btn-primary btn-sm mx-1" (click)="updateActivityTemplate(alert_message)">Update Activity Template</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- view Activity template -->
+<div class="row" *ngIf="isActivityTemplateTable">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">All Activity Template</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Department</label>
+                        <select class="form-control" aria-hidden="true" [(ngModel)]="selectedDept" (change)="getActivityTemplate(alert_message)">
+                            <option selected="selected" value="" disabled>Select</option>
+                            <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <!-- <div class="col-md-3 ml-auto mt-4 pt-2 mb-2">
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
+            </div> -->
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="selector-toggle" (click)="toggleSearch()">
+                    <a href="javascript:void(0)">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                    </a>
+                </div>
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'activityTemplateInfo'" [tableTHeadId]="'activityTemplateInfoTHead'"
+                [tableTHeadTrId]="'activityTemplateInfoTHeadTr'">
+                <table class="table table-responsive" matSort (matSortChange)="sortData($event)" id="activityTemplateInfo">
+                    <thead class="thead-light" id="activityTemplateInfoTHead">
+                      <tr id="activityTemplateInfoTHeadTr">
+                        <th scope="col" class="info-label">Sr No.</th>
+                        <th scope="col" class="info-label" mat-sort-header="employeeRole|string">Employee Role</th>
+                        <th scope="col" class="info-label" mat-sort-header="activityDescription|string">Activities</th>
+                        <th scope="col" class="info-label" mat-sort-header="departmentName|string">Department</th>
+                        <th scope="col" class="info-label">Actions</th>
+                      </tr>
+                      <tr app-column-filter-bar *ngIf="isActivityTemplateTable && isSearchEnabled" [columnList]="activityTemplateColumns" (onSearch)="onSearch($event);page=1" ></tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngIf="templateActivityList.length == 0 || (templateActivityList| colFilter:filters:false).length == 0">
+                            <th colspan="8" class="text-center info-label">No details to display...</th>
+                        </tr>
+                      <tr *ngFor="let activity of templateActivityList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" >
+                        <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
+                        <td>{{activity.employeeRole}}</td>
+                        <td>{{activity.activityDescription}}</td>
+                        <td>{{activity.departmentName}}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateActivityTemplateForm(activity)"><em class="fa fa-edit"></em></button>&nbsp;
+                            <!-- <button class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteActivityMod(delete_activity_template,activity)"><em class="fa fa-trash"></em></button> -->
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <pagination-controls class="my-pagination" [hidden]="templateActivityList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+                <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="templateActivityList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> -->
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- end :: Activity Template -->
+
+
+<!-- Modals Template -->
+<ng-template #delete_team_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to delete the Team?</p>
+        <button type="button" class="btn btn-success" (click)="cancelRequest();onDeleteTeam(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #delete_activity_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to delete the Activity?</p>
+        <button type="button" class="btn btn-success" (click)="cancelRequest();onDeleteActivity(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #update_team_mapping_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to Update the team members for this Team?</p>
+        <button type="button" class="btn btn-success" (click)="cancelRequest();">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #activity_preview>
+    <div class="modal-header">
+        <b>Activities</b>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body d-flex">
+    <div class="row col-md-12">
+        <table class="table table-responsive scrollable-table">
+            <thead class="thead-light">
+                <tr>
+                    <th scope="col" class="info-label">Sr No.</th>
+                    <th scope="col" class="info-label">Actvity</th>
+                    <th scope="col" class="info-label">Employee Role</th>
+                    <th *ngIf="isUpdation" scope="col" class="info-label">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngIf="activityPreviewList.length == 0">
+                    <th colspan="8" class="text-center info-label">No details to display...</th>
+                </tr>
+                <tr
+                    *ngFor="let emp of activityPreviewList, let i = index">
+                    <th class="info-label">{{10*(page-1)+i+1}}</th>
+                    <td>{{emp.activity}}</td>
+                    <td>{{emp.employeeRole}}</td>
+                    <td *ngIf="isUpdation">
+                        <button class="btn btn-sm btn-outline-primary" (click)="navigateToUpdateActivityPage(emp.teamId)" type="submit"><em class="fa fa-edit"></em></button>&nbsp;
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</ng-template>
+
+<ng-template #projectTemplate>
+    <div class="modal-header">
+        <h1 class="table-header-title">Employee's Projects Details</h1>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest5()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body ">
+        <table class="table project_table">
+            <thead class="thead-light">
+                <tr>
+                    <th>Sr.No</th>
+                    <th scope="col" class="info-label">Project Name</th>
+                    <th scope="col" class="info-label">Team Name</th>
+                    <th scope="col" class="info-label">Client Name</th>
+                    <th scope="col" class="info-label">Billable Type</th>
+                    <th scope="col" class="info-label">Start Date</th>
+                    <th scope="col" class="info-label">End Date</th>
+                    <th scope="col" class="info-label">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let userInfo of projectDetails; let i = index">
+                    <th>{{ i + 1 }}</th>
+                    <td>{{ userInfo.projectName }}</td>
+                    <td>{{ userInfo.teamName }}</td>
+                    <td>{{ userInfo.clientName }}</td>
+                    <td>{{ userInfo.billableType }}</td>
+                    <td>{{ userInfo.startDate }}</td>
+                    <td>{{ userInfo.updatedOn }}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" (click)="deleteResourceModal(delete_modal_template,userInfo)"><em class="fa fa-trash"></em></button>
+                    </td>
+                  </tr>
+            </tbody>
+        </table>
+       <div class="row col-md-12">
+        <div class="my-buttons">
+            <pagination-controls id="projectEmployeeDetailsId" class="my-pagination" [hidden]="projectDetails.length == 0" (pageChange)="handlePageChanges($event)"></pagination-controls>&nbsp;&nbsp;
+            <!-- <button class="btn btn-sm btn-outline-primary" (click)="closeProjectModal()">Close</button> -->
+        </div>
+        <div class="modalC ml-auto" >
+            <!-- <button class="btn btn-sm btn-outline-primary" (click)="closeProjectModal()">Close</button> -->
+        </div>
+       </div>
+    </div>
+</ng-template>
+
+<ng-template #delete_modal_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to delete Resource from team and project ?</p>
+        <button type="button" class="btn btn-success" (click)="deleteResourceFromProject(alert_message);cancelRequest()">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>

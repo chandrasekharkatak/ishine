@@ -31,6 +31,14 @@ export class LeaveService {
     return this.http.post(`${this.baseUrl}` + `api/getAllMyTeamsPendingLeaveApplicationsByManagerId`, leaveObj);
   }
 
+  getAllLeaveApplicationsByEmpId(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllLeaveApplicationsByEmpId`, leaveObj);
+  }
+
+  getAllLeaveApplicationsByTeamId(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllLeaveApplicationsByTeamId`, leaveObj);
+  }
+
   countAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj: Leave) {
     return this.http.post(`${this.baseUrl}` + `api/countAllMyTeamsPendingLeaveApplicationsByManagerId`, leaveObj);
   }
@@ -73,6 +81,10 @@ export class LeaveService {
 
   getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(leaveObj : Leave) {
     return this.http.post(`${this.baseUrl}` + `api/getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId`, leaveObj);
+  }
+
+  getAllMyTeamsPendingLeaveRevokeApplicationsByEmpId(leaveObj : Leave) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllMyTeamsPendingLeaveRevokeApplicationsByEmpId`, leaveObj);
   }
 
   updateRevokeLeaveStatus(leaveObj : Leave) {
@@ -137,6 +149,10 @@ export class LeaveService {
     return this.http.post(`${this.baseUrl}` + `api/getPendingCompOffRequestsByManagerId`, compOffObj);
   }
 
+  getPendingCompOffRequestsByEmpId(compOffObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `api/getPendingCompOffRequestsByEmpId`, compOffObj);
+  }
+
   countPendingCompOffRequestsByManagerId(compOffObj: Leave) {
     return this.http.post(`${this.baseUrl}` + `api/countPendingCompOffRequestsByManagerId`, compOffObj);
   }
@@ -198,6 +214,10 @@ export class LeaveService {
 
   customQueryForLeaveReport(queryObj: Query) {
     return this.http.post(`${this.baseUrl}` + `api/customQueryForLeaveReport`, queryObj);
+  }
+
+  getCustomLAttendanceApplicationsList(queryObj: Query) {
+    return this.http.post(`${this.baseUrl}` + `api/getCustomLAttendanceApplicationsList`, queryObj);
   }
 
   getValueOptionData(queryObj: Query) {
@@ -285,5 +305,9 @@ getDepartmentWiseBillableData(leaveObj: Leave){
 
 getPipDetailsByEmpId(leaveObj: Leave) {
   return this.http.post(`${this.baseUrl}` + `api/getPipDetailsByEmpId`, leaveObj);
+}
+
+isManager(leaveObj: Leave) {
+  return this.http.post(`${this.baseUrl}` + `api/isManager`, leaveObj);
 }
 }

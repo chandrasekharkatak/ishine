@@ -11,9 +11,9 @@ export class AttendanceReconciliationService {
 
   constructor(private http: HttpClient) { }
  
-  getBiomatricData(date:string){
+  getBiomatricData(startDate:string,endDate:string){
     let httpParams = new HttpParams()
-    .append("date",date)
+    .append("startDate",startDate).append("endDate",endDate);
     return this.http.get(`${this.baseUrl}` + `api/getBioData`, {params: httpParams});
   }
 

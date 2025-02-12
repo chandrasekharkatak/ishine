@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { Rewards } from '../models/rewards';
+import { EmployeeRewarsRequest } from '../models/employeeRewardRequest';
 import { Router } from '@angular/router';
 
 @Injectable({

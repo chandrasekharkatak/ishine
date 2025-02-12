@@ -191,4 +191,14 @@ export class Employee{
 	onbenchDate : any;
 	employeeType : any;
 	isApprenticeship : any;
+
+	//added by Priyadarshini
+	isRegular: any;
+	isRetain:any
+	dateOfRetain:any
+	//added by rahul
+	referedType:any;
+	referedName:any;
+	employeeConfirmationDate:any;
+
 }

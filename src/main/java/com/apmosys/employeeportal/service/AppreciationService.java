@@ -24,6 +24,7 @@ import com.apmosys.employeeportal.repository.AppreciationRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EnableAppreciationRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
 public class AppreciationService {
@@ -33,6 +34,9 @@ public class AppreciationService {
 
 	@Autowired
 	private EmployeeRepository employeeRepository;
+	
+	@Autowired
+	StringToDateTimeParser stringToDateTimeParser;
 
 	@Autowired
 	private MailService mailService;
@@ -397,7 +401,7 @@ public class AppreciationService {
 		eventDTO.setAppreciationEventName(allevents.getAppreciationEventName());
 		eventDTO.setFromDate(allevents.getFromDate());	
 		eventDTO.setToDate(allevents.getToDate());;	
-		eventDTO.setCreatedOn(allevents.getCreatedOn().toString());
+		eventDTO.setCreatedOn(allevents.getCreatedOn()!= null ? allevents.getCreatedOn().toString():null);
 		eventDTO.setAppreciationEventType(allevents.getAppreciationEventType());
 		appreciationEventDTO.add(eventDTO);
 		

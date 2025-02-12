@@ -311,6 +311,78 @@ public class CompOffLeaveService {
 		return response;
 	}
 
+	public ServiceResponse getPendingCompOffRequestsByEmpId(LeaveDTO leaveDTO) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("view_reportee_comp_off_applications ");
+		apiLogInfo.setApiUrl("/api/getPendingCompOffRequestsByEmpId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("empId : " + leaveDTO.getEmpId() );
+		try {
+
+			List<Object[]> objectList = compOffLeaveRepository
+					.getPendingCompOffRequestsByEmpId(leaveDTO.getEmpId());
+
+			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
+			if (objectList.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No compoff request(s) found.");
+
+			} else {
+
+				objectList.forEach((object) -> {
+					LeaveDTO dto = new LeaveDTO();
+
+					dto.setCompOffLeaveId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					dto.setCompOffReasons(object[1] != null ? object[1].toString() : null);
+					dto.setDescription(object[2] != null ? object[2].toString() : null);
+					dto.setCreatedOn(object[3] != null ? object[3].toString() : null);
+					dto.setCreatedByName(object[4] != null ? object[4].toString() : null);
+					dto.setStatus(object[5] != null ? object[5].toString() : null);
+					dto.setFromDate(object[6] != null ? object[6].toString() : null);
+					dto.setToDate(object[7] != null ? object[7].toString() : null);
+					dto.setNoOfDays(object[8] != null ? Float.parseFloat(object[8].toString()) : null);
+					dto.setEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+					dto.setEmail(object[10] != null ? object[10].toString() : null) ;
+					dto.setEmployeementId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
+					dto.setManagerId(object[12] != null ? Integer.parseInt(object[12].toString()) : null);
+					dto.setManagerEmail(object[13] != null ? object[13].toString() : null);
+					dto.setFinalApprovalLevel(object[14] != null ? Integer.parseInt(object[14].toString()) : null);
+					dto.setLevel2ApproverId(object[15] != null ? Long.parseLong(object[15].toString()) : null);
+					dto.setManagerApprovalStatus(object[16] != null ? object[16].toString() : null);	
+					dto.setReportingManagerId(object[17] != null ? Long.parseLong(object[17].toString()) : null);
+					dto.setCurrentApprovalLevel(object[18] != null ? Integer.parseInt(object[18].toString()) : null);	
+					dto.setLevel2ApprovalStatus(object[19] != null ? object[19].toString() : null);
+					dto.setLevel2ApproverName(object[20] != null ? object[20].toString() : null);
+					dto.setApproverName(object[21] != null ? object[21].toString() : null);
+					dtoList.add(dto);
+				});
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				
+				apiLogInfo.setApiResponse("dtoList" +dtoList);			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			
+			
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+
+	
 	public ServiceResponse getAllCompOffRequestsByEmpId(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -430,6 +502,7 @@ public class CompOffLeaveService {
 						// added by anurag comp off two step verification   
 						
 						if(compOffLeave.getLeaveStatusUpdatedBy() != null) {
+							compOffLeave.setApproverDate(LocalDate.now());
 							compOffLeave.setLevel2ApprovalStatus("Approved");
 							compOffLeave.setManagerId(object[1] != null ? Integer.parseInt(object[1].toString()) : null);
 							compOffLeave.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
@@ -464,8 +537,8 @@ public class CompOffLeaveService {
 						
 						
 						if(dbResponse != null) {
-							compOffLeave.setCompOffStatus("Approved");
-//							compOffLeave.setCompOffStatus("Pending");
+//							compOffLeave.setCompOffStatus("Approved");
+							compOffLeave.setCompOffStatus("Pending");
 							response.setServiceResponse("Compoff request application approved.");
 						}
 						}

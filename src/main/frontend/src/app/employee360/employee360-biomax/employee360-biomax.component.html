@@ -1,0 +1,158 @@
+<div class="row" style="margin-top: 3%;margin-left: 2%;">
+    <!-- First Input Section -->
+    <div class="col-sm-2 mb-0">
+        <div class="info-wrapper">
+            <div class="form-group">
+                <select class="form-control" [(ngModel)]="filter.viewfilter" (change)="viewFilterdata()"  id="viewfilter" aria-hidden="true">
+                    <option value="Weekly" selected="selected">Weekly</option>
+                    <option value="Monthly">Monthly</option>
+                    <option value="Yearly">Yearly</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-sm-3 mb-0">
+        <div class="info-wrapper">
+            <div class="form-group input-wrapper">
+               <div class="d-flex">
+                    <input class="form-control" matInput id="fromDate" #input (focus)="filter.officestartTimePicker" [matDatepicker]="officestartTimePicker" [matDatepickerFilter]="fromDateFilter"
+                     placeholder="Choose a from date" [(ngModel)]="filter.officestartTimePicker"  autocomplete="off">
+                    <mat-datepicker-toggle matSuffix [for]="officestartTimePicker" style="margin-left: -40px;"></mat-datepicker-toggle>
+                </div>
+                <mat-datepicker  #officestartTimePicker (closed)="input.blur()"  disabled="false"></mat-datepicker>
+                            
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-3 mb-0">
+        <div class="info-wrapper">
+            <div class="form-group input-wrapper">
+                <div class="d-flex">
+                    <input class="form-control" matInput id="fromDate" #input (focus)="filter.officeendTimePicker" [matDatepicker]="officeendTimePicker" [matDatepickerFilter]="fromDateFilter"
+                     placeholder="Choose a from date" [(ngModel)]="filter.officeendTimePicker"  autocomplete="off">
+                    <mat-datepicker-toggle matSuffix [for]="officeendTimePicker" style="margin-left: -40px;"></mat-datepicker-toggle>
+                </div>
+                <mat-datepicker  #officeendTimePicker (closed)="input.blur()"  disabled="false"></mat-datepicker>
+                
+             
+            </div>
+        </div>
+           
+    </div>
+   
+    <div class="col-sm-2 mb-0">
+        <div class="info-wrapper">
+            <div class="form-group input-wrapper">
+               <button type="submit" (click)="searchBioMax()" class="btn btn-primary">Search</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row" *ngIf="!defaultview" style="margin-top: 2%; margin-left: 2%; margin-bottom: 2%;">
+   <div class="col-lg-12">
+    <button *ngIf="!defaultview" class="btn btn-link back-button" (click)="goBack()">
+        <i class="fas fa-arrow-left"></i></button>   
+      
+   </div>
+   
+   
+
+        
+        <div class="col-lg-8">
+            <table class="table history-table">
+                <thead class="thead-light">
+                    <tr>
+                        <th scope="col">Sr No.</th>
+                        <th scope="col">Date</th>
+                       <th scope="col" class="info-label">In Time</th>
+                        <th scope="col" class="info-label">Out Time</th>
+                        <th scope="col" class="info-label">Working Hours</th>
+                   </tr>
+                </thead>
+                <tbody>
+                   <tr *ngFor="let biomax of biomaxList;let i = index">
+                          <td scope="col">{{ i + 1 }}</td>
+                          <td scope="col">{{ biomax.logDate }}</td>
+                        <td scope="col">{{biomax.beginTime}}</td>
+                        <td scope="col">{{biomax.endTime}}</td>
+                        <td scope="col">{{biomax.shiftName}} Hours</td>
+                        
+                       
+                    </tr>
+                </tbody>
+            </table>
+        </div> 
+    <div class="col-lg-4">
+        <div class="col-md-4 mb-0">
+            <div id="biomaxfiterContainer" style="width: 300%; height: 600px;"></div>
+        
+            
+        </div>
+    </div>
+</div>
+<!-- Second Row for Tables -->
+<div class="row" *ngIf="defaultview" style="margin-top: 2%; margin-left: 2%; margin-bottom: 2%;">
+    <!-- Table Section 1 -->
+   
+    <div class="col-sm-7">
+        <table class="table history-table">
+            <thead class="thead-light">
+                <tr>
+                    <th scope="col">Sr No.</th>
+                    <th scope="col">Date</th>
+                   <th scope="col" class="info-label">In Time</th>
+                    <th scope="col" class="info-label">Out Time</th>
+                    <th scope="col" class="info-label">Working Hours</th>
+                    <th scope="col" class="info-label">TimeSheet</th>
+                </tr>
+            </thead>
+            <tbody>
+               <tr *ngFor="let biomax of biomaxList;let i = index">
+                      <td scope="col">{{ i + 1 }}</td>
+                      <td scope="col">{{ biomax.logDate }}</td>
+                    <td scope="col">{{biomax.beginTime}}</td>
+                    <td scope="col">{{biomax.endTime}}</td>
+                    <td scope="col">{{biomax.shiftName}} Hours</td>
+                    
+                    <td scope="col" *ngIf="biomax.timesheetdto.length>0">
+                    <ul>
+                        <li *ngFor="let dtp of biomax.timesheetdto">
+                            <li *ngFor="let dtp of biomax.timesheetdto">
+                                <!-- Check if teamId is null or not before displaying -->
+                                <a *ngIf="dtp.teamId !== null" class="timehseet" (click)="teamData(dtp.teamId)">
+                                  {{dtp.teamName + " ( " + dtp.activity + " ) "}}
+                                </a>
+                              
+                                <!-- Optional: If you want to show a different link when teamId is null -->
+                                <a *ngIf="dtp.teamId === null" class="timehseet">
+                                 No Timesheet Filled
+                                 </a>
+                              
+                        </li>
+                    </ul>
+                   </td>
+                </tr>
+            </tbody>
+        </table>
+    </div> 
+
+    <!-- Table Section 2 -->
+    <div class="col-sm-5">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div id="biomaxfiterContainer" style="width: 300%; height: 600px;"></div>
+                
+                    
+                </div>
+            </div>
+        </div>
+    </div> 
+</div>
+
+
+<!-- Second Row for Tables -->
+
+ 

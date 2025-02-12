@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,12 +34,19 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.EncryptDecrypt;
+import com.apmosys.employeeportal.dto.AppreciationDetails;
+import com.apmosys.employeeportal.dto.AppreciationDetailsDTO;
+import com.apmosys.employeeportal.dto.DateRangeDTO;
 import com.apmosys.employeeportal.dto.DepartmentDTO;
+import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeCertificateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
@@ -58,6 +66,7 @@ import com.apmosys.employeeportal.model.EmployeeSpecializationMap;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
+import com.apmosys.employeeportal.model.LeavePolicyMaster;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.Log;
 import com.apmosys.employeeportal.model.Newsletter;
@@ -88,6 +97,7 @@ import com.apmosys.employeeportal.repository.EmployeeSpecializationMapRepository
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
+import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.repository.LogsRepository;
 import com.apmosys.employeeportal.repository.NewsletterReadResponseRepository;
@@ -118,6 +128,8 @@ public class EmployeeService {
 
 	@Value("${valid.attempt}")
 	private Integer failedAttempt;
+	
+	
 
 	@Autowired
 	EmployeeRepository employeeRepository;
@@ -139,12 +151,21 @@ public class EmployeeService {
 
 	@Value("${file.location.image}")
 	private String imageFileLocation;
+	
+	@Value("${hr.mail}")
+	private String hrMailAddress;
+	
+	@Value("${rmg.mail}")
+	private String rmgMail;
 
 	@Autowired
 	EmployeeLeavesMapRepository employeeLeavesMapRepository;
 
 	@Autowired
 	LeaveTypeMasterRepository leaveTypeMasterRepository;
+	
+	@Autowired
+	private LeavePolicyMasterRepository leavePolicyMasterRepository;
 
 	@Autowired
 	LeaveBalanceLogRepository leaveBalanceLogRepository;
@@ -424,6 +445,8 @@ public class EmployeeService {
 			employee.setJobRoleId(employeedto.getJobRoleId());
 			employee.setPassword(EncryptDecrypt.encrypt(defaultPaswword));
 			employee.setCreatedBy(employeedto.getCreatedBy());
+			employee.setReferedType(employeedto.getReferedType());
+			employee.setReferedName(employeedto.getReferedName());
 
 			if (employeedto.getExperience().equals("Fresher")) {
 				employee.setExperience(employeedto.getExperience());
@@ -947,7 +970,44 @@ public class EmployeeService {
 
 		return (employeeCertificateRepository.saveAll(list).isEmpty()) ? false : true;
 	}
+	
+	public AppreciationDetails getEmployeeAppreciationByEmpId(EmployeeAppreciationRequest request) {
+	    List<AppreciationDetailsDTO> appreciationList;
 
+	    if (request.getFromDate() == null || request.getToDate() == null) {
+	        appreciationList = appreciationRepository.getAppreciationDetailsByEmpId(request.getEmpId());
+	    } else {
+	        appreciationList = appreciationRepository.getAppreciationDetailsByEmpIdAndDateRange(
+	            request.getEmpId(), request.getFromDate(), request.getToDate());
+	    }
+
+	    AppreciationDetails appreciationDetails = new AppreciationDetails();
+	    appreciationDetails.setAppreciationDto(appreciationList);
+	    return appreciationDetails;
+	}
+	
+	public List<DateRangeDTO> getDateRangesForDropdown(Long empId) {
+	    List<Object[]> dateRanges = appreciationRepository.getAllDateRangesByEmpId(empId);
+
+	    List<DateRangeDTO> dateRangeDTOs = new ArrayList<>();
+	    for (Object[] range : dateRanges) {
+	        String fromDate = (String) range[0];
+	        String toDate = (String) range[1];
+	        dateRangeDTOs.add(new DateRangeDTO(fromDate, toDate));
+	    }
+
+	    return dateRangeDTOs;
+	}
+	
+	public AppreciationDetails getTeamAppreciationByEmpId(EmployeeAppreciationRequest request) {
+		List<AppreciationDetailsDTO> appreciationList;
+
+	    appreciationList = appreciationRepository.getTeamAppreciationDetailsByEmpId(request.getEmpId());
+	    AppreciationDetails appreciationDetails = new AppreciationDetails();
+	    appreciationDetails.setAppreciationDto(appreciationList);
+	    return appreciationDetails;
+	}
+	
 	public ServiceResponse getEmployeeByEmpId(EmployeeDTO employeedto) {
 		
 		ServiceResponse response = new ServiceResponse();
@@ -1047,8 +1107,10 @@ public class EmployeeService {
 					empDTO.setBillableType(object[70] != null ? object[70].toString() : null);
 					empDTO.setIsConsultant(object[71] != null ? object[71].toString() : null);
 					empDTO.setIsApprenticeship(object[72] != null ? object[72].toString() : null);
+					empDTO.setReferedType(object[73] != null ? object[73].toString() : null);
+					empDTO.setReferedName(object[74] != null ? object[74].toString() : null);
 
-//					empDTO.setEmployeeConfirmationDate(object[75] != null ? format.format(format.parse(object[75].toString())) : null);			
+					empDTO.setEmployeeConfirmationDate(object[75] != null ? format.format(format.parse(object[75].toString())) : null);			
 					
 					if (object[42] != null) {
 
@@ -2061,6 +2123,10 @@ public class EmployeeService {
 				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				employee.setEmployeementId(employeedto.getEmployeementId());
 				employee.setName(employeedto.getName());
+				//added by rahul for reffered in employee
+				employee.setReferedType(employeedto.getReferedType());
+				employee.setReferedName(employeedto.getReferedName());
+				//end
 				employee.setDateOfBirth(employeedto.getDateOfBirth() != null
 						? stringToDateTimeParser.getDate(employeedto.getDateOfBirth(), "yyyy-MM-dd")
 						: null);
@@ -2129,24 +2195,32 @@ public class EmployeeService {
 					}
 				}
 			 
-//			 if(employeedto.getEmploymentstatus().equals("Confirmed"))
-//					 {	
-//				 employee.setEmployeeConfirmationDate(employeedto.getEmployeeConfirmationDate() != null
-//						? stringToDateTimeParser.getDate(employeedto.getEmployeeConfirmationDate(), "yyyy-MM-dd")
-//						: null)		; 
-//				 }
+			 if(employeedto.getEmploymentstatus().equals("Confirmed"))
+					 {	
+				 employee.setEmployeeConfirmationDate(employeedto.getEmployeeConfirmationDate() != null
+						? stringToDateTimeParser.getDate(employeedto.getEmployeeConfirmationDate(), "yyyy-MM-dd")
+						: null)		; 
+				 }
 			 
-//			 if(employeedto.getEmploymentstatus().equals("Retain")) {
-//					
-//					employee.setDateOfRetain(employeedto.getDateOfRetain() != null
-//							? stringToDateTimeParser.getDate(employeedto.getDateOfRetain(), "yyyy-MM-dd")
-//							: null);
-//					employee.setIsRetain(employeedto.getIsRetain());
-//					
-//		     } else {
-//					employee.setIsRetain(employeedto.getIsRetain());
-//			 }
+			
+			 if(employeedto.getEmploymentstatus().equals("Retain")) {
+					
+					employee.setDateOfRetain(employeedto.getDateOfRetain() != null
+							? stringToDateTimeParser.getDate(employeedto.getDateOfRetain(), "yyyy-MM-dd")
+							: null);
+					employee.setIsRetain(employeedto.getIsRetain());
+					
+//					this.cronJobService.isRetain(employee);
+					isRetain(employee);
+					
+					
+		     } else {
+					employee.setIsRetain(employeedto.getIsRetain());
+			 }
 			 
+			 
+			 
+
 			
 			 
 			 
@@ -2207,85 +2281,85 @@ public class EmployeeService {
 						
 						
 						List<Employee> reporites= employeeRepository.findByManagerId(employeedto.getEmpId());
-//						List<Object[]> reportees = employeeRepository.findReporteesOfManager(employeedto.getEmpId());
+						List<Object[]> reportees = employeeRepository.findReporteesOfManager(employeedto.getEmpId());
 //						   cronJobService.notificationformanagerstatusInActive(employeedto.getEmpId());
 							System.out.println("hbcsdh"+employeedto.getJobRoleId());
 							JobRole job= jobRoleRepository.findByjobRoleId(employeedto.getJobRoleId());
 							System.out.println("hbcsdh"+job.getEmployeeRole());
 						 
-//						 if(job.getEmployeeRole().equals("Manager") || job.getEmployeeRole().equals("SuperAdmin") ) {
-//							 
-//							 
-//							 if (!reportees.isEmpty()) {
-//							 StringBuilder html = new StringBuilder();
-//							    html.append("<html>\n" +
-//							            "  <head>\n" +
-//							            "    <style>\n" +
-//							            "      table, th, td {\n" +
-//							            "        border: 1px solid black;\n" +
-//							            "        padding: 8px;\n" +
-//							            "        text-align: left;\n" +
-//							            "      }\n" +
-//							            "      table {\n" +
-//							            "        border-collapse: collapse;\n" +
-//							            "        width: 100%;\n" +
-//							            "      }\n" +
-//							            "      th {\n" +
-//							            "        background-color: #f2f2f2;\n" +
-//							            "      }\n" +
-//							            "    </style>\n" +
-//							            "  </head>\n" +
-//							            "  <body>\n" +
-//							            "    <p>Dear team,</p>\n" +
-//							            "    <p>Please find below the details of the reportees of the inactive manager:</p>\n" +
-//							            "    <table>\n" +
-//							            "      <tr>\n" +
-//							            "        <th>Emp ID</th>\n" +
-//							            "        <th>Name</th>\n" +
-//							            "        <th>Department Name</th>\n" +
-//							            "      </tr>\n");
-//							    
-//							    for (Object[] reportee : reportees) {
-//							       
-//							        BigInteger employmentIdBigInt = (BigInteger) reportee[0];
-//							        String employmentId = employmentIdBigInt.toString();
-//
-//							       
-//							        String isApprenticeship = (String) reportee[3];
-//							        String isConsultant = (String) reportee[4];
-//
-//							        
-//							        if ("true".equalsIgnoreCase(isConsultant)) {
-//							            employmentId = "A-CS-" + employmentId;
-//							        } else if ("true".equalsIgnoreCase(isApprenticeship)) {
-//							            employmentId = "AP-" + employmentId;
-//							        } else {
-//							            employmentId = "A-" + employmentId;
-//							        }
-//
-//							        // Append data to the HTML table
-//							        html.append("      <tr>\n");
-//							        html.append("        <td>").append(employmentId).append("</td>\n");
-//							        html.append("        <td>").append(reportee[1]).append("</td>\n");
-//							        html.append("        <td>").append(reportee[2]).append("</td>\n");
-//							        html.append("      </tr>\n");
-//							    }
-//
-//							    html.append("    </table>\n" +
-//							                "    <p>Kindly take the necessary action to update the reportees under another active manager.</p>\n" +
-//							                "  </body>\n" +
-//							                "</html>");
-//							    
-//							    String subject = "Reminder for Manager Update of Reportees of Inactive Manager: " + employeedto.getName();
-//							    String mailBody = html.toString();
-//
-//							    boolean flag = mailService.sendMailWithCC("prarthana.lenka@apmosys.com", "priyadarshini.singh@apmosys.com", subject, mailBody);
-//							 }
-//							    
-//							    
-//							 
-//								
-//						 }
+						 if(job.getEmployeeRole().equals("Manager") || job.getEmployeeRole().equals("SuperAdmin") ) {
+							 
+							 
+							 if (!reportees.isEmpty()) {
+							 StringBuilder html = new StringBuilder();
+							    html.append("<html>\n" +
+							            "  <head>\n" +
+							            "    <style>\n" +
+							            "      table, th, td {\n" +
+							            "        border: 1px solid black;\n" +
+							            "        padding: 8px;\n" +
+							            "        text-align: left;\n" +
+							            "      }\n" +
+							            "      table {\n" +
+							            "        border-collapse: collapse;\n" +
+							            "        width: 100%;\n" +
+							            "      }\n" +
+							            "      th {\n" +
+							            "        background-color: #f2f2f2;\n" +
+							            "      }\n" +
+							            "    </style>\n" +
+							            "  </head>\n" +
+							            "  <body>\n" +
+							            "    <p>Dear team,</p>\n" +
+							            "    <p>Please find below the details of the reportees of the inactive manager:</p>\n" +
+							            "    <table>\n" +
+							            "      <tr>\n" +
+							            "        <th>Emp ID</th>\n" +
+							            "        <th>Name</th>\n" +
+							            "        <th>Department Name</th>\n" +
+							            "      </tr>\n");
+							    
+							    for (Object[] reportee : reportees) {
+							       
+							        BigInteger employmentIdBigInt = (BigInteger) reportee[0];
+							        String employmentId = employmentIdBigInt.toString();
+
+							       
+							        String isApprenticeship = (String) reportee[3];
+							        String isConsultant = (String) reportee[4];
+
+							        
+							        if ("true".equalsIgnoreCase(isConsultant)) {
+							            employmentId = "A-" + employmentId;
+							        } else if ("true".equalsIgnoreCase(isApprenticeship)) {
+							            employmentId = "A-" + employmentId;
+							        } else {
+							            employmentId = "A-" + employmentId;
+							        }
+
+							        // Append data to the HTML table
+							        html.append("      <tr>\n");
+							        html.append("        <td>").append(employmentId).append("</td>\n");
+							        html.append("        <td>").append(reportee[1]).append("</td>\n");
+							        html.append("        <td>").append(reportee[2]).append("</td>\n");
+							        html.append("      </tr>\n");
+							    }
+
+							    html.append("    </table>\n" +
+							                "    <p>Kindly take the necessary action to update the reportees under another active manager.</p>\n" +
+							                "  </body>\n" +
+							                "</html>");
+							    
+							    String subject = "Reminder for Manager Update of Reportees of Inactive Manager: " + employeedto.getName();
+							    String mailBody = html.toString();
+
+							    boolean flag = mailService.sendMailWithCC(rmgMail,hrMailAddress, subject, mailBody);
+							 }
+							    
+							    
+							 
+								
+						 }
 						// create logic for remove resource from team and projects
 						
 						List<EmployeeTeamMap> findAllActiveTeams = employeeTeamMapRepository.findByEmpId(employeedto.getEmpId());
@@ -2314,10 +2388,10 @@ public class EmployeeService {
 						}
 					}
 					
-				}else if(employee.getEmploymentstatus().equals("Probation") || employee.getEmploymentstatus().equals("Confirmed")) {
+				}else if(employee.getEmploymentstatus().equals("Probation") || employee.getEmploymentstatus().equals("Confirmed") || employeedto.getEmploymentstatus().equals("Retain") ) {
 					employee.setDateOfResign(null);
 				}
-					if(employee.getEmploymentstatus().equals("Probation") || employee.getEmploymentstatus().equals("Confirmed") || employee.getEmploymentstatus().equals("Resigned")) {
+					if(employee.getEmploymentstatus().equals("Probation") || employee.getEmploymentstatus().equals("Confirmed") || employee.getEmploymentstatus().equals("Resigned") || employeedto.getEmploymentstatus().equals("Retain") ) {
 				
 					employee.setEmploymentReleaseStatus(null);
 				}else {
@@ -2550,6 +2624,132 @@ public class EmployeeService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+	
+	
+	
+
+	void isRetain(Employee employeeObj) {
+		
+		try {
+		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
+		      
+		     if(!leaveType.isEmpty()) {
+		    	 
+		    	 for(LeaveTypeMaster ltm :leaveType) {
+		    		 
+//		        		  Employee employeeObj = new Employee();
+		        		 
+		        		  System.out.println(employeeObj.getEmploymentstatus() +"  "+ ltm.getLeaveTypeMasterId());
+		        		  
+		        		  Optional<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.
+		        				  findByEmployentStatusAndLeaveTypeMasterId(employeeObj.getEmploymentstatus(),ltm.getLeaveTypeMasterId());
+		        		  System.err.println("Red"+employeeObj.getEmpId() +"  "+ ltm.getLeaveTypeMasterId());
+		        		  if(!leavePolicy.isEmpty() ) {
+		        			 
+		        			  LeavePolicyMaster leavePolicyObj = leavePolicy.get();
+
+		        			  if(leavePolicyObj.getIncrement().equals("Yes")){
+		        				  EmployeeLeavesMap employeeLeaveMap = employeeLeavesMapRepository.
+		        						  findByEmpIdAndLeaveTypeMasterId(employeeObj.getEmpId(),ltm.getLeaveTypeMasterId());
+		        				  
+		        				  System.err.println("Red"+employeeObj.getEmpId() +"  "+ ltm.getLeaveTypeMasterId());
+		        				  float retainValue = 0.0F;
+		        				        		  
+		        				        		  LocalDate resignedDate = employeeObj.getDateOfResign();
+		        				        		  LocalDate retainedDate = employeeObj.getDateOfRetain();
+		        				        	      String  isRetain = employeeObj.getIsRetain();
+		        				        	      System.out.println("Yesssss     "+employeeObj);
+		        				        	      
+		        				        	      System.out.println("1    "+resignedDate); 
+		        				        	      System.out.println("2    "+retainedDate);
+		        				        	      System.out.println("3   "+isRetain);
+		        				        	      
+		        				        	      System.out.println("1    "+employeeObj.getDateOfResign()); 
+		        				        	      System.out.println("2    "+employeeObj.getDateOfRetain());
+		        				        	      System.out.println("3   "+employeeObj.getIsRetain());
+		        				        	      
+		        				        	      if ("Yes".equals(isRetain)) { 
+		        				        	    	  System.out.println("bsjhsdh"+employeeObj.getEmpId() +"  "+ ltm.getLeaveTypeMasterId());
+		        				        	    	  
+		        				        	    	    if (resignedDate != null && retainedDate != null) {
+		        				        	    	    	System.err.println("jhbshj"+employeeObj.getEmpId());
+		        				        	    	    	System.out.println("bsjhsdh"+employeeObj.getEmpId() +"  "+ ltm.getLeaveTypeMasterId());
+		        				        	    	        LocalDate startDate = resignedDate;
+		        				        	    	        LocalDate endDate = retainedDate;
+		        				        	    	        long totalDays = ChronoUnit.DAYS.between(startDate, endDate);
+
+		        				        	    	        long fullMonths = totalDays / 30;
+		        				        	    	        
+		        				        	    	        System.out.print("fullMonth  "+fullMonths);
+
+		        				        	    	        for (long i = 0; i < fullMonths; i++) {
+		        				        	    	            retainValue = retainValue + leavePolicyObj.getIncrementValue();
+		        				        	    	        }
+
+		        				        	    	        if (retainValue > 0.0F) {
+//		        				        	    	            executeQueryForRetain(employeeObj);
+		        				        	    	        	System.err.println("jhbshj"+employeeObj.getEmpId());
+		        				        	    	        	employeeRepository.updateIsRetain(employeeObj.getEmpId());
+		        				        	    	        }
+		        				        	    	    } else {
+		        				        	    	        // Handle the case where either date is null
+		        				        	    	        System.out.println("Warning: resignedDate or retainedDate is null. Skipping retain calculation.");
+		        				        	    	        // Proceed with further execution
+		        				        	    	    }
+		        				        	    	}
+
+		        			
+		        				        		  float newBalance = employeeLeaveMap.getBalance() + retainValue;
+			        				        	  System.out.println(newBalance);
+			        				        	  EmployeeLeavesMap dbResponse=null;
+			        				        	  if(retainValue != 0) {
+			        				        		  employeeLeaveMap.setBalance(newBalance);
+				        				        	   dbResponse = employeeLeavesMapRepository.save(employeeLeaveMap);
+			        				        	  }
+			        				        	  
+			        				        	  
+			        				        	  if(dbResponse != null && retainValue != 0) {
+														LeaveBalanceLog log = new LeaveBalanceLog();
+
+														log.setBalance(newBalance);
+														log.setEmpId(employeeObj.getEmpId());
+														log.setLeaveTypeMasterId(ltm.getLeaveTypeMasterId());
+														log.setMessage(LeaveLogMessage.autoAddLeave.replace("0.0",
+																leavePolicyObj.getIncrementValue().toString()));
+														log.setUpdateBalanceBy("+" + retainValue);
+
+														leaveBalanceLogRepository.save(log);
+			        				        	  }
+		        				        		  
+//		        				        	  }
+//		        				          }
+		        			  }
+		        		  }else {
+		        			  System.out.println("Leave Policy not found");
+		        		  }
+		        		  
+		        		  
+		        	//  }
+		        	  
+		        	  
+		        	  
+		            }
+		     }
+		   }catch(Exception e) {
+			e.printStackTrace();
+		   }
+
+  
+
+		
+	}
+	
+	
+	
+	
+	
+	
+	
 
 	public ServiceResponse updateEmployeeByEmpIdByList(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
@@ -2748,12 +2948,14 @@ public class EmployeeService {
 					empDTO.setDesignationName(object[75] != null ? object[75].toString() : null);
 					empDTO.setIsConsultant(object[76] != null ? object[76].toString() : null);
 					empDTO.setIsApprenticeship(object[77] != null ? object[77].toString() : null);
+                    empDTO.setReportingManagerId(object[78] != null ? Long.parseLong(object[78].toString()) : null)	;
+                    empDTO.setReportingManagerName(object[79] != null ? object[79].toString() : null);
+                    empDTO.setEmployeeRole(object[80] != null ? object[80].toString() : null);                
+                    
+					empDTO.setReferedType(object[81] != null ? object[81].toString() : null);
+					empDTO.setReferedName(object[82] != null ? object[82].toString() : null);
 
-					//added by rahul
-//					empDTO.setReferedType(object[78] != null ? object[78].toString() : null);
-//					empDTO.setReferedName(object[79] != null ? object[79].toString() : null);
-
-					
+					empDTO.setEmployeeConfirmationDate(object[83] != null ? object[83].toString() : null);
 				
 
 					ServiceResponse completionResponse = getEmployeeProfileCompletion(empDTO);
@@ -3861,12 +4063,14 @@ public class EmployeeService {
 
 		try {
 			Employee checkEmployeeEmail = employeeRepository.findByEmail(employeedto.getEmail());
+			System.err.println(checkEmployeeEmail);
+			System.err.println(employeedto);
 			DraftEmployee checkDraftEmployeementEmail = draftEmployeeRepository.findByEmail(employeedto.getEmail());
 			
 			//System.out.println(" checkEmployeeEmail.getEmployeementId()  :  "+checkEmployeeEmail.getEmployeementId() +"  =  employeedto.getEmployeementId() "+employeedto.getEmployeementId());
 
 			if(checkEmployeeEmail != null) {
-					if(employeedto.getEmployeementId().equals(checkEmployeeEmail.getEmployeementId())) {
+				if (Objects.equals(employeedto.getEmployeementId(), checkEmployeeEmail.getEmployeementId())) {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 					}else {
@@ -5477,10 +5681,12 @@ public class EmployeeService {
 					                        }
 					                    }
 					                }
-					            });
+								});
 					            teamAuditHistory.put(teamDtoList.get(currentIndex + 1).getStartDate(), teamDTO);
 					        }
+						
 				}
+			
 			}
 			
 			auditList.putAll(teamAuditHistory);
@@ -5622,14 +5828,17 @@ public class EmployeeService {
 		try {
 			Long id = Long.parseLong(empId);
 			Employee managerName = employeeRepository.findByEmpId(id);
-			Long findCount = employeeRepository.countReportiesByManagerId(id);
-			System.err.println(" count  "+findCount);
+			Long findManagerCount = employeeRepository.countReportiesByManagerId(id);
+			Long findReportingManagerCount = employeeRepository.countReportiesByReportingManagerId(id);
+//			System.err.println("findManagerCount "+findManagerCount);
+//			System.err.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% count  "+findManagerCount);
 			EmployeeDTO dto = new EmployeeDTO();
-			dto.setNoOfReporties(findCount);
+			dto.setReporteeCountManager(findManagerCount);
+			dto.setReporteeCountReportingManager(findReportingManagerCount);
 			System.err.println(" dto    "+dto);
 			
 			if(dto != null ) {
-				response.setServiceResponse(dto.getNoOfReporties()+" employees are reporting to "+managerName.getName());
+				response.setServiceResponse(managerName.getName()+ " is the manager of " +dto.getReporteeCountManager()+" and reporting manager of " + dto.getReporteeCountReportingManager()+" reportees.");
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				}else {
 					response.setServiceResponse("No reportees found !! ");
@@ -5763,7 +5972,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 				response.setServiceResponse("Team is not present in this project !!");
 			}
 		} catch (Exception e) {
-			// TODO: handle exception
+			
 		}
 		return response;
 	}
@@ -5940,7 +6149,6 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 			response.setServiceResponse(dtoList);
 
 		} catch (Exception e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse(e.getMessage());
@@ -5948,6 +6156,85 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 
 		return response;
 
+	}
+	
+	public ServiceResponse getReporteesListByManagerId(EmployeeDTO employeeDTO) {
+		ServiceResponse response = new ServiceResponse();
+		
+		try {
+			
+			List<Object[]> reporteesList = employeeRepository.getReporteesListByManagerId(employeeDTO.getEmpId());
+			List<EmployeeDTO> listOfMembers = new ArrayList<EmployeeDTO>();
+
+	        if (reporteesList != null) {
+	            for (Object[] object : reporteesList) {
+	            	
+	                EmployeeDTO employeeDetail = new EmployeeDTO();
+	                
+	                employeeDetail.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+	                employeeDetail.setName(object[1] != null ? object[1].toString() : null);
+	                employeeDetail.setDepartmentName(object[2] != null ? object[2].toString() : null);
+	                employeeDetail.setManagerId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
+	                
+	                listOfMembers.add(employeeDetail);
+	            }
+	        }
+
+	        
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(listOfMembers);
+	        
+			System.err.println("teamName    listOfEmployees      "+listOfMembers.size());
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse(e.getMessage());
+		}
+		
+		return response;
+	}
+	
+	public ServiceResponse getReporteesListByReportingManagerId(EmployeeDTO employeeDTO) {
+		ServiceResponse response = new ServiceResponse();
+		
+		try {
+			
+			List<Object[]> listOfReportees = employeeRepository.getReporteesListByReportingManagerId(employeeDTO.getEmpId());
+			List<EmployeeDTO> listOfMembers = new ArrayList<EmployeeDTO>();
+
+	        if (listOfReportees != null) {
+	            for (Object[] object : listOfReportees) {
+
+	                EmployeeDTO employeeDetail = new EmployeeDTO();
+	                
+	                if (employeeDetail != null) {
+	                    employeeDetail = new EmployeeDTO();
+	                    employeeDetail.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+	                    employeeDetail.setName(object[1] != null ? object[1].toString() : null);
+	                    employeeDetail.setDepartmentName(object[2] != null ? object[2].toString() : null);
+	                    employeeDetail.setManagerId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
+	                    
+	                    listOfMembers.add(employeeDetail);
+	                    }
+	            }
+	        }
+	        
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(listOfMembers);
+				
+	        
+			System.err.println("teamName    listOfEmployees      "+listOfMembers.size());
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse(e.getMessage());
+		}
+		
+		return response;
 	}
 	
 	public ServiceResponse removeStaleMappingOfInactiveEmployees() {
@@ -5989,7 +6276,29 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 
-	}
+	} 
 	
+	public ServiceResponse setReportingManagerToNewManager(EmployeeDTO employeeDto) {
+	
+	ServiceResponse response = new ServiceResponse();
+	Long employeeId = employeeDto.getEmpId();
+	
+	Employee findEmployee = employeeRepository.findByEmpId(employeeId);
+	
+	if(findEmployee != null) {
+		findEmployee.setReportingManagerId(employeeDto.getReportingManagerId());
+		Employee dbResponse = employeeRepository.save(findEmployee);
+		if(dbResponse != null) {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			}
+		}else {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse(" Employee Not found !!  ");
+			}
+	
+	System.err.println("findEmployee   "+findEmployee);
+	
+	return response;
+}
 	
 }

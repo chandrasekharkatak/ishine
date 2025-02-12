@@ -12,6 +12,7 @@ export class AuthenticationService {
 
   private baseUrl: any = environment.baseUrl;
   private currentUserSubject: BehaviorSubject<User>;
+  
   public currentUser: Observable<User>;
   sessionItem: string | null;
   timerId: any;
@@ -114,6 +115,7 @@ export class AuthenticationService {
     sessionStorage.removeItem('maxFileSize');
     sessionStorage.removeItem('maxRequestSize');
     sessionStorage.removeItem('sessioncheck');
+    sessionStorage.removeItem('breadcrumb');
     // delete method call for cookies
     this.deleteCookies();
     this.setcurrentUserSubject(null);

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.apmosys.employeeportal.dto.AppreciationDetailsDTO;
 import com.apmosys.employeeportal.model.Appreciation;
 
 @Repository
@@ -126,6 +127,44 @@ List<Object[]> getMyAppreciationDetails(@Param("startDate") String startDate,
 	@Query( nativeQuery=true, value="SELECT e.employeement_id FROM employee e where e.emp_id = :empId ;")
 	public Long findEmployeementIdByEmpId(@Param("empId")Long empId);
     
+	
+	@Query("SELECT new com.apmosys.employeeportal.dto.AppreciationDetailsDTO( " +
+		       "emp.empId, a.appreciateType, a.appreciationDate, emp.name, e.fromDate, e.toDate) " +
+		       "FROM com.apmosys.employeeportal.model.Appreciation a " +
+		       "JOIN com.apmosys.employeeportal.model.AppreciationEvent e ON a.appreciationEventId = e.appreciationEventid " +
+		       "JOIN com.apmosys.employeeportal.model.Employee emp ON a.appreciationBy = emp.employeementId " +
+		       "WHERE a.appreciationTo = :empId")
+		List<AppreciationDetailsDTO> getAppreciationDetailsByEmpId(@Param("empId") Long empId);
+	
+	@Query(
+			"SELECT new com.apmosys.employeeportal.dto.AppreciationDetailsDTO( " +
+			"e.empId, a.appreciateType, a.appreciationDate, e.name, ae.fromDate, ae.toDate) " +
+			"FROM com.apmosys.employeeportal.model.Appreciation a " +
+			"JOIN com.apmosys.employeeportal.model.AppreciationEvent ae ON a.appreciationEventId = ae.appreciationEventid " +
+			"JOIN com.apmosys.employeeportal.model.Employee e ON e.employeementId=a.appreciationTo "+
+			"JOIN com.apmosys.employeeportal.model.EmployeeTeamMap etm ON e.empId = etm.empId " + 
+			"WHERE a.appreciationTo in (SELECT empId FROM EmployeeTeamMap WHERE teamId IN " +
+			"(SELECT teamId FROM EmployeeTeamMap WHERE empId = :empId)) " +
+			"AND a.appreciateType IN (SELECT appreciateType FROM Appreciation WHERE appreciationTo = :empId) "
+			)
+		List<AppreciationDetailsDTO> getTeamAppreciationDetailsByEmpId(@Param("empId") Long empId);
+	
+	@Query("SELECT e.fromDate AS fromDate, e.toDate AS toDate " +
+		       "FROM Appreciation a " +
+		       "JOIN AppreciationEvent e ON a.appreciationEventId = e.appreciationEventid " +
+		       "WHERE a.appreciationTo = :empId")
+		List<Object[]> getAllDateRangesByEmpId(@Param("empId") Long empId);
 
+	@Query("SELECT new com.apmosys.employeeportal.dto.AppreciationDetailsDTO( " +
+		       "emp.empId, a.appreciateType, a.appreciationDate, emp.name, e.fromDate, e.toDate) " +
+		       "FROM com.apmosys.employeeportal.model.Appreciation a " +
+		       "JOIN com.apmosys.employeeportal.model.AppreciationEvent e ON a.appreciationEventId = e.appreciationEventid " +
+		       "JOIN com.apmosys.employeeportal.model.Employee emp ON a.appreciationBy = emp.employeementId " +
+		       "WHERE a.appreciationTo = :empId " +
+		       "AND (e.fromDate >= :fromDate OR :fromDate IS NULL) " +
+		       "AND (e.toDate <= :toDate OR :toDate IS NULL)")
+		List<AppreciationDetailsDTO> getAppreciationDetailsByEmpIdAndDateRange(@Param("empId") Long empId,
+		                                                                        @Param("fromDate") String fromDate,
+		                                                                        @Param("toDate") String toDate);
 
 }

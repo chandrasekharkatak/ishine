@@ -7,32 +7,33 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.servlet.http.HttpServletRequest;
 
-import org.hibernate.Session;
 import org.hibernate.Query;
-
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.apmosys.employeeportal.dto.AppreciationDetails;
+import com.apmosys.employeeportal.dto.AppreciationDetailsDTO;
 import com.apmosys.employeeportal.dto.CustomFilterDTO;
-import com.apmosys.employeeportal.dto.DocumentDTO;
+import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
+import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeRewardForHomeDTO;
 import com.apmosys.employeeportal.dto.EmployeeRewardsDTO;
+import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.RewardCategoryDTO;
 import com.apmosys.employeeportal.dto.RewardConfigurationDTO;
+import com.apmosys.employeeportal.dto.RewardsDetails;
 import com.apmosys.employeeportal.model.CommonProperties;
+import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeRewards;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
@@ -1264,7 +1265,47 @@ public class RewardsService {
 //		rewardsDetails.setRewardsDTO(rewardlist);
 //		return rewardsDetails;
 //	}
-	
+	public ServiceResponse getEmployeeRewardByEmpId(EmployeeRewardsRequest request) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+	    try {
+	    	List<EmployeeRewardsDTO> rewardList = new ArrayList<>();
+
+		    if (request.getEmpId() != null) {
+		      
+		        List<Object[]> result = employeeRewardsRepository.getRewardByEmpIdWithDateRange(request.getEmpId(), request.getOfMonthYear());
+		        if(result != null) {
+		        	for (Object[] row : result) {
+			            EmployeeRewardsDTO dto = new EmployeeRewardsDTO();
+			            dto.setRewardTypeName(row[1] != null ? row[1].toString() : null);
+			            dto.setRewardedTo(row[2] != null ? Long.parseLong(row[2].toString()) : null);
+			            dto.setCreatedOn(row[3] != null ?getLocalDateTime(row[3]) : null); 
+			            dto.setRemark(row[4] != null ? row[4].toString() : null);
+			            dto.setUpdatedByName(row[5] != null ? getEmployeeNameByEmpId(Long.parseLong(row[5].toString())) : null);
+			            dto.setName(row[0] != null ? row[0].toString() : null);
+			            dto.setTeamName(row[6] != null ? row[6].toString() : null);
+
+			            rewardList.add(dto);
+			        }
+		        }
+		    }
+
+		    if (rewardList.isEmpty()) {
+	            serviceResponse.setServiceResponse("No data found");
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        } else {
+	            serviceResponse.setServiceResponse(rewardList);
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        }
+    } catch (Exception e) {
+        e.printStackTrace(); 
+        serviceResponse.setServiceResponse("Error occurred while fetching data");
+        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+    }
+    
+    return serviceResponse;
+	}
+
+
 
 //	public RewardsDetails getTeamRewardByEmpId(EmployeeRewardsRequest request) {
 //	    List<EmployeeRewardsDTO> rewardList = new ArrayList<>();
@@ -1324,7 +1365,22 @@ public class RewardsService {
 //	    return rewardDetails;
 //	}
 	
-	
+	public RewardsDetails getTeamRewardByEmpId(EmployeeRewardsRequest request) {
+	    List<EmployeeRewardsDTO> rewardList = new ArrayList<>();
+
+	    if (request.getEmpId() != null) {
+	        List<Object[]> result = employeeRewardsRepository.getRewardByTeamAndDateRange(request.getEmpId());
+
+	        for (Object[] row : result) {
+	            EmployeeRewardsDTO dto = mapRowToDTO(row);
+	            rewardList.add(dto);
+	        }
+	    }
+
+	    RewardsDetails rewardDetails = new RewardsDetails();
+	    rewardDetails.setRewardsDTO(rewardList);
+	    return rewardDetails;
+	}
 
 	private LocalDate parseDate(String date) {
 	    return date != null ? LocalDate.parse(date) : null;

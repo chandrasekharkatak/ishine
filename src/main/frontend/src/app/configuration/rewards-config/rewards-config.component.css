@@ -79,3 +79,9 @@
 .info-label{
     width: 300px;
 }
+
+.table-header-sub-title{
+    padding: .2em;
+    margin-bottom: 0;
+    color: var(--raisin-black);
+}

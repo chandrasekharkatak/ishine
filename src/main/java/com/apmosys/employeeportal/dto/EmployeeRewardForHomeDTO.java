@@ -8,6 +8,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
+
 public class EmployeeRewardForHomeDTO {
     private Long rewardId;
     private Integer isActive;

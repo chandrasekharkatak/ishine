@@ -144,7 +144,7 @@ export class PortalConfigComponent implements OnInit {
     });
     //console.log(this.feature, " : ", this.userMapping);
     this.getYear();
-    this.getAllEvent();
+    // this.getAllEvent();
     this.sectionViewInit();
     this.preventBackButton();
     this.getAllHolidays();

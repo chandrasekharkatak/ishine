@@ -1,4 +1,8 @@
-<div class="container-fluid" style="margin-top: 50px;">
+<div class="mt-5">
+    <app-breadcrumb></app-breadcrumb>
+</div>
+
+<div class="container-fluid">
     <div class="row justify-content-between mb-3">
         <h3 class="profile__greetings">Welcome, {{currentEmployeeInfo.name}}</h3>
         <button *ngIf="!isUpdateProfile && userMapping.update_profile" type="submit" class="btn btn-primary btn-sm" (click)="showUpdateProfile()">Update Profile</button>
@@ -152,6 +156,18 @@
                                         <div class="info-wrapper">
                                             <p class="info-label">Blood group</p>
                                             <p class="info-text">{{currentEmployeeInfo.bloodGroup}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Reffered Type</p>
+                                            <p class="info-text">{{currentEmployeeInfo.referedType}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Reffered Name</p>
+                                            <p class="info-text">{{currentEmployeeInfo.referedName}}</p>
                                         </div>
                                     </div>
                                 </div>

@@ -347,11 +347,33 @@ export class DeptConfigComponent implements OnInit {
     });
   }
 
+
+  changesDeptId(event:any){
+    console.log("daprtment id ",event.target.value);
+    console.log("hodlist id ",this.hodList);
+  }
+
+
+  validateDepartmentName(): void {
+   
+    
+  }
   checkDepartmentName(deptName:any, template: TemplateRef<any>){
+
+    const regex = /^(?:[a-zA-Z]{2,8}|[a-zA-Z]{1,7}[0-9]{1,7})$/;
+    let check = regex.test(deptName);
+
+    if (check) {
+      console.log('');
+    } else {
+      this.openAlertMod(template, "Invalid department name");
+    }
 
     let deptObj = new Department();
     deptObj.name = deptName;
     deptObj.deptId = this.deptObj.deptId;
+
+    console.log("console",deptObj)
 
     this.departmentService.checkDepartmentName(deptObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {

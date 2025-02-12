@@ -13,8 +13,10 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { TeamMember } from 'src/app/models/teamMember';
 import { ResourceManagementService } from 'src/app/services/resource-management.service';
 import { AuthenticationService } from 'src/app/services/authentication.service';
-import { ValidationService } from 'src/app/services/validation.service';
 import { TeamService } from 'src/app/services/team.service';
+import { UtilityService } from 'src/app/services/utility.service';
+import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
+import { ValidationService } from 'src/app/services/validation.service';
 import { ActivatedRoute, Router, Params } from '@angular/router';
 import * as moment from 'moment';
 import { AppComponent } from 'src/app/app.component';
@@ -104,6 +106,7 @@ export class ResourceManagementComponent implements OnInit {
 
   projectDetails: any = [];
   copyDepartment : any = [];
+  currentBreadcrumbList: any[] = [];
 
 
 
@@ -119,8 +122,11 @@ export class ResourceManagementComponent implements OnInit {
     private router: Router,
     private projectService: ProjectService,
     private exportExcelService: ExportExcelService,
+    private utilityService: UtilityService,
+    private breadcrumbService: BreadcrumbService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
   }
 
 
@@ -138,6 +144,10 @@ export class ResourceManagementComponent implements OnInit {
     });
     //console.log(this.currentProjectId, " : this.currentProjectId");
     this.sectionViewInit();
+
+    if ((this.currentBreadcrumbList != undefined && this.currentBreadcrumbList != null) && this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.title.includes("Project")) {
+      this.toggleSearch();
+    }
   }
 
   sectionViewInit() {
@@ -688,7 +698,7 @@ export class ResourceManagementComponent implements OnInit {
       //console.log(this.projectObj, " : this.projectObj");
       this.resourceManagementService.createDraftProjectInfo(this.projectObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
-          // this.showViewProjects();
+          this.showViewProjects();
           this.openAlertMod(template, response.serviceResponse);
         } else {
           this.openAlertMod(template, response.serviceResponse);

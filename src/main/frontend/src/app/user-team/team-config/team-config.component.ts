@@ -1,29 +1,28 @@
-import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { LocationStrategy } from '@angular/common';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Sort } from '@angular/material/sort';
 import { Router } from '@angular/router';
+import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import { first, takeUntil } from 'rxjs/operators';
+import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
 import { Activity } from 'src/app/models/activity';
+import { Department } from 'src/app/models/department';
 import { Employee } from 'src/app/models/employee';
 import { Feature } from 'src/app/models/feature';
 import { Project } from 'src/app/models/project';
 import { Team } from 'src/app/models/team';
 import { TeamMember } from 'src/app/models/teamMember';
+import { Timesheet } from 'src/app/models/timesheet';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { DepartmentService } from 'src/app/services/department.service';
 import { EmployeeService } from 'src/app/services/employee.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ProjectService } from 'src/app/services/project.service';
 import { TeamService } from 'src/app/services/team.service';
-import { ValidationService } from 'src/app/services/validation.service';
-import { ExportExcelService } from 'src/app/services/export-excel.service';
-import * as XLSX from 'xlsx';
-import { Sort } from '@angular/material/sort';
-import { Timesheet } from 'src/app/models/timesheet';
 import { TimesheetService } from 'src/app/services/timesheet.service';
-import { Department } from 'src/app/models/department';
-import { LocationStrategy } from '@angular/common';
-import * as moment from 'moment';
-import { AppComponent } from 'src/app/app.component';
+import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
   selector: 'app-team-config',
@@ -43,7 +42,7 @@ export class TeamConfigComponent implements OnInit {
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType:any;
-
+  dataObj: Project = new Project();
   //flags 
   isCreation: boolean = false;
   isUpdation: boolean = false;
@@ -66,7 +65,7 @@ export class TeamConfigComponent implements OnInit {
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
   modalRef2: BsModalRef = new BsModalRef();
-
+  modalRef5:  BsModalRef = new BsModalRef();
   //Obj 
   teamObj: Team = new Team();
   storedTeamObj: Team = new Team();
@@ -119,6 +118,10 @@ export class TeamConfigComponent implements OnInit {
   viewTeamColumns:any[] = ['blank', 'projectName','teamName','teamLeadName','projectManagerName','createdByName','createdOn'];
   viewActivityColumns:any[] = ['blank','activity','eta','employeeRole','createdByName','createdOn'];
   activityTemplateColumns:any[] = ['blank', 'employeeRole','activityDescription','departmentName'];
+  projectObj2: Project = new Project();
+  projectDetails: any = [];
+  getBillableType: any;
+  newMemberInProject: any;
 
   constructor(
     private validationService: ValidationService,
@@ -217,6 +220,39 @@ export class TeamConfigComponent implements OnInit {
     this.getAllTeamsByProjectId(0);
   }
 
+  showViewTeams1() {
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
+    
+    this.selectedTeam = '';
+    this.isTeamTable = true;
+
+    this.isTeamForm = false;
+    this.isActivityForm = false;
+    this.isActivityTable = false;
+    this.isCreation = false;
+    this.isUpdation = false;
+    this.isActivityTemplate = false;
+    this.isActivityCreate = false;
+    this.isActivityUpdate = false;
+    this.isActivityTemplateTable = false;
+    this.page = 1;
+    this.data = '';
+    this.filterStatus= '';
+    this.selectedDept = '';
+    this.isGoToTeamButton = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
+
+    this.allTeamList = [];
+   
+    this.getAllProjectListByProjectManagerId();
+    this.getAllDepartmentList();
+    this.getAllTeamsByProjectId(this.teamObj.projectId);
+    
+  }
+
   showUpdateTeamForm(teamObj: Team) {
     this.isTeamForm = true;
     this.isUpdation = true;
@@ -231,7 +267,7 @@ export class TeamConfigComponent implements OnInit {
     this.isActivityTemplateTable = false;
     this.isGoToTeamButton = false;
     this.selectedDept = '';
-
+    
     // this.teamObj.departmentList = [];
     this.teamObj = Object.assign({}, teamObj);
     this.teamObj.updatedTeamMemberList = [];
@@ -661,13 +697,14 @@ export class TeamConfigComponent implements OnInit {
         this.openAlertMod(template, response.serviceResponse);
         this.showViewTeams();
         this.selectedProject = this.teamObj.projectId;
+        
         this.getAllTeamsByProjectId(this.selectedProject);
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
     });
   }
-
+ view:any;
   onDeleteTeam(template: TemplateRef<any>) {
     this.cancelRequest();
 
@@ -1376,6 +1413,12 @@ export class TeamConfigComponent implements OnInit {
     this.modalRef.hide();
   }
 
+  cancelRequest5(){
+    this.modalRef5.hide();
+  }
+
+  
+
   cancelRequest2() {
     this.modalRef2.hide();
   }
@@ -1414,6 +1457,79 @@ export class TeamConfigComponent implements OnInit {
   onSearch(searchData){
     this.filters = searchData;
     //console.log("Updated Filter : ", this.filters);
+  }
+
+  deleteResourceModal(template: TemplateRef<any>, teamId) {
+    // let projectObj = Object.assign({},this.projectObj); for copy object
+    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.projectObj2 = teamId;
+
+  }
+
+  deleteResourceFromProject(template: TemplateRef<any>) {
+
+
+    let projectObj = new Project();
+    projectObj.teamId = this.projectObj2.teamId;
+    projectObj.empId = this.projectObj2.empId;
+
+    console.log("team details ", projectObj)
+    this.projectService.updateProjectResourceAsInActive(projectObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.getExistingProjectsByUser(this.projectObj2.empId)
+      }
+    })
+
+  }
+
+  openProjectTemplateModal(template: TemplateRef<any>, employee) {
+    this.modalRef5 = this.modalService.show(template, { class: 'modal-xl' });
+    this.getExistingProjectsByUser(employee.empId);
+    this.dataObj = employee;
+
+    console.log("data employee newmenbfcg  ", employee)
+
+
+  }
+
+  getExistingProjectsByUser(employee) {
+    console.log("employee details in resoiurce mapping ", employee);
+
+    let projectObj = new Project();
+
+    projectObj.empId = employee;
+
+    // getExistingProjectsAndTeamsByEmployee service impl
+    this.projectService.getExistingProjectsAndTeamsByEmployee(projectObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.projectDetails = response.serviceResponse;
+        console.log("this.projectDetails ", this.projectDetails);
+
+        console.log("Existing project detauls fetched for employee",this.projectDetails);
+        if (this.projectDetails.length > 0) {
+          if (this.projectDetails[0].billableType == "TNM") {
+            this.openAlertMod(this.alertTemplate, "This Employee is already mapped to TNM project. Can't add to another project or Team !!");
+            this.getBillableType = this.projectDetails.find(employee => this.newteamMember.billableType = employee.billableType);
+          } else {
+            this.newMemberInProject = "NewMember";
+            this.newteamMember.billableType = this.newMemberInProject;
+          }
+        } else {
+          this.newMemberInProject = "NewMember";
+          this.newteamMember.billableType = this.newMemberInProject;
+        }
+
+        console.log("this.projectDetails ", this.projectDetails);
+        console.log("this.getBillableType ", this.getBillableType);
+        console.log(" newTeamMember   details   ", this.newteamMember)
+      }
+    })
+  }
+
+  pageNo = 1;
+  handlePageChanges(event) {
+    this.pageNo = event;
   }
 
 }

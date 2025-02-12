@@ -41,7 +41,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Head of Department</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="deptObj.hodId">
+                            <select class="form-control" aria-hidden="true"  (change)= "changesDeptId($event)" [(ngModel)]="deptObj.hodId" >
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let employee of hodList" value="{{employee.empId}}">{{employee.name}}</option>
                               </select>
@@ -186,3 +186,4 @@
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
     </div>
 </ng-template>
+

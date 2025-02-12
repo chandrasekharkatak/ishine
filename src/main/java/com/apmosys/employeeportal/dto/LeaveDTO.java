@@ -166,4 +166,6 @@ public class LeaveDTO {
 	
 	private String isConsultant;
 	private String isApprenticeship;
+	private long currentUserEmpId;
+	private long differenceInDays;
 }

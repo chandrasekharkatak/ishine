@@ -1,0 +1,139 @@
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="row p-3">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">Rewards</h1>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Year Dropdown -->
+            <div class="col-sm-3 col-4 mb-2 small-gap">
+                <div class="form-inline input-group">
+                    <select id="yearDropdown" class="form-control form-control-sm" (change)="onYearChange($event)">
+                        <option [value]="''" disabled selected>Select Year</option>
+                        <option *ngFor="let year of availableYears" [value]="year">
+                            {{ year }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+        
+            <!-- Period Dropdown -->
+            <div class="col-sm-3 col-4 mb-2" *ngIf="selectedYear">
+                <div class="form-inline input-group">
+                    <select id="periodDropdown" class="form-control form-control-sm" (change)="onPeriodChange($event)">
+                        <option [value]="''" disabled selected>Select Period</option>
+                        <option value="monthly">Monthly</option>
+                        <!-- <option value="halfYearly">Half-Yearly</option> -->
+                    </select>
+                </div>
+            </div>
+        
+            <!-- Rewards Dropdown -->
+            <div class="col-sm-3 col-4 mb-2" *ngIf="rewardsCategories.length > 0">
+                <div class="form-inline input-group">
+                    <select id="rewardsDropdown" class="form-control form-control-sm" (change)="onCategoryChange($event)">
+                        <option [value]="''" disabled selected>Select Category</option>
+                        <option *ngFor="let category of rewardsCategories" [value]="category.rewardCategoryId">
+                            {{ category.categoryName }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>        
+        
+        <div class="overflow-auto" *ngIf="!isTeamTableVisible">
+
+            <div class="selector-toggle" (click)="toggleSearch()">
+                <a href="javascript:void(0)">
+                    <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                </a>
+            </div>
+
+            <table class="table table-striped" id="rewardHistoryInfo" matSort (matSortChange)="sortData($event)">
+                <thead class="thead-light" id="rewardHistoryInfoTHead">
+                    <tr id="rewardHistoryInfoTHeadTr">
+                        <th scope="col" class="info-label">Sr No.</th>
+                        <th scope="col" class="info-label" mat-sort-header="rewardTypeName|string">Rewards Name</th>
+                        <th scope="col" class="info-label" mat-sort-header="name|string">Rewarded To</th>
+                        <th scope="col" class="info-label" mat-sort-header="createdOn|string">Rewards Date</th>
+                        <th scope="col" class="info-label" mat-sort-header="teamName|string">Teams Name</th>
+                        <th scope="col" class="info-label" mat-sort-header="remark|string">Description</th>
+                        <th scope="col" class="info-label" mat-sort-header="updatedBy|string">Updated By</th>
+                    </tr>
+                    <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="rewardsColumns" (onSearch)="onSearch($event); page=1"></tr>
+                </thead>
+                <tbody>
+                    <tr *ngIf="!rewardList || rewardList.length === 0">
+                        <td colspan="7" class="text-center info-label">No Files to display...</td>
+                    </tr>
+                    <tr *ngFor="let rewardHistory of rewardList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page },  let i = index">
+                        <td>{{ i + 1 }}</td>
+                        <td>{{ rewardHistory.rewardTypeName }}</td>
+                        <td>{{ rewardHistory.name }}</td>
+                        <td>{{ rewardHistory.createdOn }}</td>
+                        <td><span
+                            class="info-label"
+                            style="cursor: pointer;"
+                            (click)="showTeamTable(rewardHistory.teamName)"
+                          >
+                            {{ rewardHistory.teamName }}
+                          </span></td>
+
+                        <td>{{ rewardHistory.remark }}</td>
+                        <td>{{ rewardHistory.updatedBy }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="overflow-auto" *ngIf="isTeamTableVisible">
+
+            <div class="d-flex align-items-center mb-2">
+                <button class="btn btn-outline-primary btn-sm mx-1" (click)="goBack()">Back</button>
+            </div>
+
+            <div class="selector-toggle" (click)="toggleSearch()">
+                <a href="javascript:void(0)">
+                    <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                </a>
+            </div>
+            
+            <table class="table table-striped" id="claimTbl" matSort (matSortChange)="sortData($event)">
+                <thead>
+                <tr>
+                    <th scope="col" class="info-label">Sr No.</th>
+                    <th scope="col" class="info-label" mat-sort-header="rewardTypeName | string">Rewards Name</th>
+                    <th scope="col" class="info-label" mat-sort-header="name|string">Rewarded To</th>
+                    <th scope="col" class="info-label" mat-sort-header="createdByName|sring">Rewarded By</th>
+                    <th scope="col" class="info-label" mat-sort-header="createdOn|string">Rewarded Date</th>
+                </tr>
+                <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="rewardsTeamColumns" (onSearch)="onSearch($event); page=1"></tr>
+
+                </thead>
+                <tbody id="claimTBody">
+                <tr *ngIf="!teamRewardList || teamRewardList.length === 0">
+                    <th colspan="6" class="text-center info-label">No Files to display...</th>
+                    </tr>
+                <tr *ngFor="let teamlist of teamRewardList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }, let i = index">
+                    <th class="info-label"><label>{{ i + 1 }}</label></th>
+                    <td><label>{{ teamlist.rewardTypeName }}</label></td>
+                    <td>
+                    <span style="cursor: pointer;" *ngIf="getMatchedEmployee(teamlist)">
+                        <a [navigateToEmployee360]="getMatchedEmployee(teamlist)">
+                            {{ teamlist.name }}
+                        </a>
+                    </span>
+                    </td>
+                    <td><label>{{ teamlist.createdByName }}</label></td>
+                    <td><label>{{ teamlist.createdOn }}</label></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>                
+    </div>
+</div>

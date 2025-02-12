@@ -140,11 +140,15 @@
                 <div class="row text-center">
                     <div class="col-sm-12 col-md-6 col-lg-2 graph d-flex flex-column justify-content-center align-items-center">
                         <small class="chart-title mouse" (click)="openTotalCountModal('All Active Employee')">Employee Count</small>
-                        <h2 class="card-title mouse" (click)="openTotalCountModal('All Active Employee')">{{countOfAllEmployees}}</h2>
+                        <h4 class="card-title mouse" (click)="openTotalCountModal('All Active Employee')">{{countOfAllEmployees}}</h4>
                         <small class="chart-title mouse" (click)="openTotalCountModal('Employee In Probation(After 6 months)')">Employee In Probation<br>(After 6 months) Count</small>
-                        <h2 class="card-title mouse" (click)="openTotalCountModal('Employee In Probation(After 6 months)')">{{employeeInProbationAfter6MonthsCount}}</h2>
+                        <h4 class="card-title mouse" (click)="openTotalCountModal('Employee In Probation(After 6 months)')">{{employeeInProbationAfter6MonthsCount}}</h4>
                         <small class="chart-title mouse" (click)="openTotalCountModal('Apprentice Count')"> Apprentice Count </small>
-                        <h2 class="card-title mouse" (click)="openTotalCountModal('Apprentice Count')">{{apprenticeCountForDisplay}}</h2>
+                        <h4 class="card-title mouse" (click)="openTotalCountModal('Apprentice Count')">{{apprenticeCountForDisplay}}</h4>
+                        <small class="chart-title mouse" (click)="openTotalCountModal('Consultant Count')"> Consultant Count </small>
+                        <h4 class="card-title mouse" (click)="openTotalCountModal('Consultant Count')">{{consultantCountForDisplay}}</h4>
+                        <small class="chart-title mouse" (click)="openTotalCountModal('Regular Count')"> Regular Count </small>
+                        <h4 class="card-title mouse" (click)="openTotalCountModal('Regular Count')">{{regularCountForDisplay}}</h4>
                     </div>
                     <div class="col-sm-12 col-md-6 col-lg-5 graph">
                         <div id="departmentWiseEmployee" style="height: 300px;"></div>
