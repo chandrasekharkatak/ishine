@@ -397,12 +397,17 @@ LmsRedirection(){
 
 
    if (this.currentUser.isNew == "true") {
+    window.history.pushState(null, "", window.location.href); 
+    window.onpopstate = function() {
+      window.history.go(1);
+    };
+  
      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
    }
    this.preventBackButton();
    this.isEmployeeOnBench();
 
-    console.log('User Mapping', this.userMapping);
+    //console.log('User Mapping', this.userMapping);
   }
 
  preventBackButton() {
