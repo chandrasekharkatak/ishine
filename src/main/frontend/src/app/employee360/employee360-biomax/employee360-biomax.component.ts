@@ -84,11 +84,12 @@ ngOnInit(): void {
   }else{
     this.employeeData = history.state.data;
   }
- 
-  this.filter1.employeeId=this.employeeData.employeeId;
+  let empCOde=this.employeeData.employeementId;
+
+  let resultString = empCOde.replace("-", "");
   
- 
-  console.log(this.filter1);
+  this.filter1.employeeId=resultString;
+  
 
  
   // const breadcrumbObject = { title: `Biomax`, url: "/employee-360/biomax" };
@@ -110,7 +111,6 @@ ngOnInit(): void {
 
   this.viewFilterdata();
  
- this.filter.employeeId=this.employeeData.employeementId;
 }
 
 viewFilterdata() {

@@ -272,13 +272,13 @@ LmsRedirection(){
   ngOnInit(): void {
  console.log("current user", this.currentUser.isNew);
 if (this.currentUser.isNew === "true") {
-
+  sessionStorage.setItem('isFirstTimeLogin', 'true');
     window.history.pushState(null, "", window.location.href);
    window.onpopstate = function() {
         window.history.pushState(null, "", window.location.href); // Keep pushing new states
     };
    this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
-sessionStorage.setItem('isFirstTimeLogin', 'true');
+
 }
 
 if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
