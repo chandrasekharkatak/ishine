@@ -150,7 +150,7 @@
                                                         [matDatepickerFilter]="currentDateFilter"
                                                         placeholder="Choose a birth date"
                                                         [(ngModel)]="employeeObj.dateOfBirth"
-                                                        
+                                                        (dateChange)="validateBirthDate(alert_message)"
                                                         autocomplete="off">
                                                     <mat-datepicker-toggle matSuffix [for]="DOBPicker"
                                                         style="margin-left: -40px;"></mat-datepicker-toggle>
