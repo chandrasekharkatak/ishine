@@ -2328,43 +2328,6 @@ export class EmployeeConfigComponent implements OnInit {
     jobRoleId ? this.employeeObj.jobRoleId = jobRoleId : this.employeeObj.jobRoleId = '';
   }
 
-  validateBirthDate(template: TemplateRef<any>) {
-    let birthdate = new Date(this.employeeObj.dateOfBirth);
-    let dtCurrent = new Date();
-    let flag = true;
-    let dobInput: any = document.getElementById('DOB');
-
-    if (dtCurrent.getFullYear() - birthdate.getFullYear() > 60) {
-      this.openAlertMod(template, 'Employee age cannot be more than 60 years.');
-      flag = false;
-    }
-    else if (dtCurrent.getFullYear() - birthdate.getFullYear() < 18) {
-      this.openAlertMod(template, 'Employee age cannot be less than 18 years.');
-      flag = false;
-    }
-    else if (dtCurrent.getFullYear() - birthdate.getFullYear() == 18) {
-
-      //CD: 11/06/2018 and DB: 15/07/2000. Will turned 18 on 15/07/2018.
-      if (dtCurrent.getMonth() < birthdate.getMonth()) {
-        this.openAlertMod(template, 'Employee age cannot be less than 18 years.');
-        flag = false;
-      }
-
-      if (dtCurrent.getMonth() == birthdate.getMonth()) {
-        //CD: 11/06/2018 and DB: 15/06/2000. Will turned 18 on 15/06/2018.
-        if (dtCurrent.getDate() < birthdate.getDate()) {
-          this.openAlertMod(template, 'Employee age cannot be less than 18 years.');
-          flag = false;
-        }
-      }
-    }
-    if (!flag) {
-      setTimeout(() => {
-        dobInput.value = '';
-        this.employeeObj.dateOfBirth = '';
-      }, 10)
-    }
-  }
 
   rejectDraftEmployeeApplication(template: TemplateRef<any>) {
     if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.remarks)) {
