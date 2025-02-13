@@ -270,6 +270,23 @@ LmsRedirection(){
 
 }
   ngOnInit(): void {
+ console.log("current user", this.currentUser.isNew);
+if (this.currentUser.isNew === "true") {
+
+    window.history.pushState(null, "", window.location.href);
+   window.onpopstate = function() {
+        window.history.pushState(null, "", window.location.href); // Keep pushing new states
+    };
+   this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+sessionStorage.setItem('isFirstTimeLogin', 'true');
+}
+
+if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
+    this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+    sessionStorage.removeItem('isFirstTimeLogin');
+}
+
+  
     this.getEmployeeProfileCompletion();
     this.logService.updateLogInfo(this.log);
     // Dynamic Subfeature Flags
@@ -396,14 +413,7 @@ LmsRedirection(){
 
 
 
-   if (this.currentUser.isNew == "true") {
-    window.history.pushState(null, "", window.location.href); 
-    window.onpopstate = function() {
-      window.history.go(1);
-    };
-  
-     this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
-   }
+ 
    this.preventBackButton();
    this.isEmployeeOnBench();
 
