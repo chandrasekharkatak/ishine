@@ -310,6 +310,13 @@ export class LoginComponent implements OnInit{
       this.user.workLocation = user.workLocation;
       this.user.maritalStatus = user.maritalStatus;
       this.user.jobRoleName = user.jobRoleName;
+      if(user.isNew=="true"){
+        sessionStorage.setItem('FirstTimeLogin', "true");
+    
+      }else{
+        sessionStorage.setItem('FirstTimeLogin', "false");
+    
+      }
       sessionStorage.setItem('currentUser', JSON.stringify(this.user));
       this.authenticationService.setcurrentUserSubject(this.user);
       sessionStorage.setItem('logInfo', JSON.stringify(log));
