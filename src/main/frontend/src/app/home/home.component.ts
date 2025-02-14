@@ -269,22 +269,14 @@ LmsRedirection(){
   })
 
 }
+
   ngOnInit(): void {
- console.log("current user", this.currentUser.isNew);
 if (this.currentUser.isNew === "true") {
-  sessionStorage.setItem('isFirstTimeLogin', 'true');
-    window.history.pushState(null, "", window.location.href);
-   window.onpopstate = function() {
-        window.history.pushState(null, "", window.location.href); // Keep pushing new states
-    };
+  
    this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
 
 }
 
-if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
-    this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
-    sessionStorage.removeItem('isFirstTimeLogin');
-}
 
   
     this.getEmployeeProfileCompletion();
@@ -1241,23 +1233,48 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
 
   /* Quick Links */
   showApplyLeaveForm() {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }else{
     this.router.navigate(['/user-leaves'],
       { queryParams: { tabName: 'leave-tab' }, queryParamsHandling: '' });
+   }
+    
   }
 
   showApplyCompOffForm() {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }else{
     this.router.navigate(['/user-leaves'],
       { queryParams: { tabName: 'compOff-tab' }, queryParamsHandling: '' });
+    }
   }
 
   showApplyTimesheetForm() {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }else{
     this.router.navigate(['/user-timesheet'],
       { queryParams: { tabName: 'my-timesheet-tab' }, queryParamsHandling: '' });
+    }
   }
 
   showHolidayList() {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }else{
     this.router.navigate(['/user-leaves'],
       { queryParams: { tabName: 'holidays-tab' }, queryParamsHandling: '' });
+    }
   }
 
   /* carousal Images */
@@ -1356,6 +1373,11 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
   }
 
   getTimesheetsForHomePageByEmpId(dateRange: any) {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }
     this.timesheetDetails = [];
     const TOTAL_WORKING_HOURS_IN_DAY = 8;
     const currentDate = new Date();
@@ -1579,9 +1601,16 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
   }
 
   openReqMod(template: TemplateRef<any>) {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }else{
     this.filters = {};
     this.isSearchEnabled = false;
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+   }
+   
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
