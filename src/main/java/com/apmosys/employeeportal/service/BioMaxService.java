@@ -453,7 +453,7 @@ public class BioMaxService {
 	        String Query = "SELECT AttendanceDate, al.EmployeeId as EmployeeId, AttendanceDateStr, EmployeeName, EmployeeCode, InTime, OutTime, OverTime, OverTimeE, TotalDuration "
 	                + "FROM AttendanceLogs al "
 	                + "JOIN Employees e ON al.EmployeeId = e.EmployeeId "
-	                + "WHERE al.EmployeeCode IN (" + employeeId + ") "
+	                + "WHERE e.EmployeeCode IN (" + employeeId + ") "
 	                + "AND al.AttendanceDate BETWEEN '" + startdate + "' AND '" + endDate + "'";
 
 	        con = getConnection();
