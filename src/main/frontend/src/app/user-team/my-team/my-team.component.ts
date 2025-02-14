@@ -65,7 +65,7 @@ export class MyTeamComponent implements OnInit {
   leaveApplicationList: any[] = [];
   allCompOffApplications: any[] = [];
   breadCrumbs:any[] = [];
-
+  employeeList: any[] = [];
   //excel
   leaveApplicationDataForExcel: any[];
   allCompOffApplicationsDataForExcel: any[];
@@ -464,6 +464,13 @@ export class MyTeamComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.teamViewList = response.serviceResponse;
 
+        const empData = sessionStorage.getItem('AllEmployees');
+          if (empData) {
+              this.employeeList = JSON.parse(empData);
+          } else {
+              this.employeeList = []; // Handle case where no data is found
+          }
+
         for(let y of this.teamViewList){
           // if(y.isConsultant == 'true'){
           //   y.employeementId = "A-CS-".concat(y.employeementId);
@@ -475,8 +482,11 @@ export class MyTeamComponent implements OnInit {
           y.isHierarchy = false;
           let temp = this.managerList.find(manager => manager.managerId == y.empId);
           if(temp != undefined) y.isHierarchy = true;  
+
+          let matchingEmployee = this.employeeList.find(emp => emp.employeementId === y.employeementId);
+          y.emp360 = matchingEmployee ? matchingEmployee : {};
         }
-        //console.log("teamViewList : ", this.teamViewList);         
+        console.log("teamViewList : ", this.teamViewList);         
 
       } else {
         console.error(response.serviceResponse);
