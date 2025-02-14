@@ -3670,7 +3670,11 @@ exportGlobalData():void{
     this.data = ''
       this.page=1;
       this.modalTitle = statusName+" Leave Summary";
-      this.modalSummaryList = modalTableList.filter(x => x.status == statusName);
+      this.modalSummaryList = modalTableList.filter(x => x.status == statusName );
+      this.modalSummaryList.forEach(x=>{
+        x.employeeType=((x.isApprenticeship  === 'true') ? 'Apprentice' : ((x.isConsultant  === 'true') ? 'Consultant' : 'Regular'))
+      });
+      //console.log('modalSummaryList --',this.modalSummaryList)
       this.modalRef = this.modalService.show(this.leaveSummaryTemplate, { class: 'modal-lg' });
     }
 

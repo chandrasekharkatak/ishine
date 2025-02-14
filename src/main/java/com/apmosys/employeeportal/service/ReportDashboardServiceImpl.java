@@ -90,6 +90,8 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 					dto.setLeaveType(object[6] != null ? object[6].toString() : null);
 					dto.setFromDateDayType(object[7] != null ? Float.parseFloat(object[7].toString()) : null);
 					dto.setToDateDayType(object[8] != null ? Float.parseFloat(object[8].toString()) : null);
+					dto.setIsConsultant(object[9] != null ? object[9].toString() : null);
+					dto.setIsApprenticeship(object[10] != null ? object[10].toString() : null);
 					dtoList.add(dto);
 				});
 
