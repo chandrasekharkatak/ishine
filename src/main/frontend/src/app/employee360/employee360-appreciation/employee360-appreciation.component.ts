@@ -85,9 +85,16 @@ export class Employee360AppreciationComponent implements OnInit {
     this.employeeService.getDateRangesForDropdown(this.currentEmpId).subscribe(
       (data: any) => {
         this.formattedDateRanges = data.map((range: any) => {
-          const fromYear = new Date(range.fromDate).getFullYear();
+          console.log(range.fromDate,"==",range.toDate);
+          const fromYear = new Date(range.fromDate).getFullYear()-1;
           const toYear = new Date(range.toDate).getFullYear();
+          // if(toYear==fromYear){
+          //   return `${fromYear}`;
+          // }else{
+          //   return `${fromYear}-${toYear}`;
+          // }
           return `${fromYear}-${toYear}`;
+         
         });
       },
       (error) => {

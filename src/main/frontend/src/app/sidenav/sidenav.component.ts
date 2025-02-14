@@ -23,6 +23,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
   screenWidth = 0;
   navData=navbarData;
   currentUser:User;
+  firstTimeLogin="false";
   menuItems:any;
   menuItems1:any;
   appreciationEventInfo:enableAppreciation;
@@ -50,7 +51,8 @@ export class SidenavComponent implements OnInit, OnDestroy {
     this.screenWidth = window.innerWidth;
     //console.log("menuItems : ", this.menuItems);
     this.appreciationEventInfo = this.currentUser.appreciationEventInfo;
-    
+    this.firstTimeLogin=sessionStorage.getItem('FirstTimeLogin');
+   
     const dateFormat = 'YYYY-MM-DD';
 
     var currentDate = moment(new Date()).format(dateFormat);
@@ -107,8 +109,17 @@ export class SidenavComponent implements OnInit, OnDestroy {
     }
   }
 
-  onTabClick(){
-    this.breadcrumbService.setBreadcrumbSubject(null)
-  }
+  // onTabClick(){
+  //   this.breadcrumbService.setBreadcrumbSubject(null)
+  // }
+  onTabClick(event: Event): void {
+    if (this.firstTimeLogin === 'true') {
+      event.preventDefault();  // Prevent the click from triggering navigation
+      event.stopPropagation();  // Prevent further propagation of the event
+      console.log('Routing is disabled because firstTimeLogin is false');
+    }else{
+      this.breadcrumbService.setBreadcrumbSubject(null)
   
+    }
+  }
 }
