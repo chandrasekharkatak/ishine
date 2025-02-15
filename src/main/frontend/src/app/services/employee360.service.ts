@@ -18,7 +18,9 @@ export class Employee360Service {
 
   private navigationSubject = new Subject<void>();
   private employeeDataSource = new BehaviorSubject<any>(null);
+  private employeesFor360Source = new BehaviorSubject<any[]>([]); 
 
+  employeesFor360$ = this.employeesFor360Source.asObservable(); 
   currentEmployeeData = this.employeeDataSource.asObservable();
 
 
@@ -106,5 +108,8 @@ getAll360LeaveApplicationsByEmpId(leaveObj: Leave) {
  
 }
 
+  setEmployeesFor360(employees: any[]) {
+    this.employeesFor360Source.next(employees);
+  }
  
 }
