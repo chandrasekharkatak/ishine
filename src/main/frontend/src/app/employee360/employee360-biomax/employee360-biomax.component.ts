@@ -40,6 +40,8 @@ export class Employee360BiomaxComponent implements OnInit{
     },
     title: {
       text: 'Work Hours Distribution'
+    }, credits: {
+      enabled: false
     },
     series: [
       {
