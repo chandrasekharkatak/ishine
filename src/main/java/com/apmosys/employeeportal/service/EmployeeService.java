@@ -2947,6 +2947,7 @@ public class EmployeeService {
 					empDTO.setTeamName(object[74] != null ? object[74].toString() : null);
 					empDTO.setDesignationName(object[75] != null ? object[75].toString() : null);
 					empDTO.setIsConsultant(object[76] != null ? object[76].toString() : null);
+					
 					empDTO.setIsApprenticeship(object[77] != null ? object[77].toString() : null);
                     empDTO.setReportingManagerId(object[78] != null ? Long.parseLong(object[78].toString()) : null)	;
                     empDTO.setReportingManagerName(object[79] != null ? object[79].toString() : null);
@@ -2956,14 +2957,15 @@ public class EmployeeService {
 					empDTO.setReferedName(object[82] != null ? object[82].toString() : null);
 
 					empDTO.setEmployeeConfirmationDate(object[83] != null ? object[83].toString() : null);
-				
-
+					empDTO.setHodId(object[84] != null ? Long.parseLong(object[84].toString()) : null );
+				    empDTO.setHodName(object[85] != null ? object[85].toString() : null);
+				    empDTO.setHodDepartmentName(object[86] != null ? object[86].toString() : null);
+                    
 					ServiceResponse completionResponse = getEmployeeProfileCompletion(empDTO);
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
 					
 					empDTO.setProfileCompletedPercent(emp != null ? emp.getProfileCompletedPercent() : 0.00);
-					
-					
+
 					
 					dtoList.add(empDTO);
 				});
