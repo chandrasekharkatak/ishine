@@ -38,6 +38,9 @@ export class EmployeeService {
   getAllEmployees() {
     return this.http.get(`${this.baseUrl}` + `api/getAllEmployees`);
   }
+  getAllEmployeesFor360View() {
+    return this.http.get(`${this.baseUrl}` + `api/getAllEmployeesFor360View`);
+  }
 
   // getEmployeeByAppreciationName(requestBody: any): Observable<any> {
   //   return this.http.post(`${this.baseUrl}api/getEmployeeByAppreciationName`, requestBody,{
