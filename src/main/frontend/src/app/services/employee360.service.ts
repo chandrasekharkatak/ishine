@@ -111,5 +111,4 @@ getAll360LeaveApplicationsByEmpId(leaveObj: Leave) {
   setEmployeesFor360(employees: any[]) {
     this.employeesFor360Source.next(employees);
   }
- 
 }

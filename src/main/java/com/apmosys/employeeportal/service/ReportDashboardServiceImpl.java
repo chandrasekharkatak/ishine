@@ -92,6 +92,7 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 					dto.setToDateDayType(object[8] != null ? Float.parseFloat(object[8].toString()) : null);
 					dto.setIsConsultant(object[9] != null ? object[9].toString() : null);
 					dto.setIsApprenticeship(object[10] != null ? object[10].toString() : null);
+					dto.setEmpId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
 					dtoList.add(dto);
 				});
 
@@ -317,6 +318,7 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 								for(Object[] object : objectList) {
 									TimesheetDTO dto = new TimesheetDTO();
 									
+									dto.setEmpId(object[0] != null ? Long.parseLong(empObj[0].toString()): null);									
 									dto.setEmployeeName(object[9] != null ? object[9].toString() : null);
 									dto.setProjectName(object[5] != null ? object[5].toString() : null);
 									dto.setClientName(object[6] != null ? object[6].toString() : null);

@@ -373,6 +373,9 @@ LmsRedirection(){
             leave.currentApprovalLevel = 1;
             leave.finalApprovalLevel = 1;
           }
+          // let matchingEmployee = this.employeeList.find(emp => emp.empId === leave.empId);
+          // leave.emp360 = matchingEmployee ? matchingEmployee : {};
+
         });
         //console.log("leaveApplicationList : ", this.leaveApplicationList);
       } else {
@@ -478,8 +481,11 @@ LmsRedirection(){
           compOff.fromDate = (compOff.fromDate) ? moment(compOff.fromDate).format(AppComponent.DATE_FORMAT) : null;
           compOff.toDate = (compOff.toDate) ? moment(compOff.toDate).format(AppComponent.DATE_FORMAT) : null;
           compOff.createdOn = (compOff.createdOn) ? moment(compOff.createdOn).format(AppComponent.DATE_FORMAT) : null;
+          // let matchingEmployee = this.employeeList.find(emp => emp.empId === compOff.empId);
+          // compOff.emp360 = matchingEmployee ? matchingEmployee : {};
+
         });
-        //console.log("allCompOffApplications : ", this.allCompOffApplications);
+        console.log("allCompOffApplications : ", this.allCompOffApplications);
       } else {
         console.error(response.serviceResponse);
       }
@@ -574,6 +580,17 @@ LmsRedirection(){
           timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          
+          // const empData = sessionStorage.getItem('AllEmployees');
+          // if (empData) {
+          //     this.employeeList = JSON.parse(empData);
+          // } else {
+          //     this.employeeList = [];
+          // }
+
+          // let matchingEmployee = this.employeeList.find(emp => emp.employeementId === timesheet.employeementId);
+          // timesheet.emp360 = matchingEmployee ? matchingEmployee : {};
+
         });
         //console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
       } else {
@@ -2225,8 +2242,17 @@ LmsRedirection(){
     this.leaveService.getOverLapsLeaveForManager(leaveApp).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.overLapsLeaveForManager = response.serviceResponse;
-
-        //console.log("this.getOverLapsLeaveForManager ",this.overLapsLeaveForManager);
+        // const empData = sessionStorage.getItem('AllEmployees');
+        // if (empData) {
+        //   this.employeeList = JSON.parse(empData);
+        // } else {
+        //   this.employeeList = [];
+        // }
+        // for(let y of this.overLapsLeaveForManager){
+        //   let matchingEmployee = this.employeeList.find(emp => emp.employeementId === y.employeementId);
+        //   y.emp360 = matchingEmployee ? matchingEmployee : {};
+        // }
+        console.log("this.getOverLapsLeaveForManager ",this.overLapsLeaveForManager);
       }
     })
 
@@ -2254,7 +2280,6 @@ getAllEmployeeFor360View(){
         });
         this.allEmployeeList360 = this.allEmployeeList360;
         this.allEmployeeList360 = new SortPipe().transform(this.allEmployeeList360, ['name', 'string', 'asc']);
-        this.employee360Service.setEmployeesFor360(this.allEmployeeList360);
       } else {
         alert(response.serviceResponse);
       }
