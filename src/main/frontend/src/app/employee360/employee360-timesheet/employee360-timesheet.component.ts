@@ -1,18 +1,16 @@
-import { Component, OnInit, TemplateRef, Input, Output, ViewChild } from '@angular/core';
-import * as moment from 'moment';
-import { first } from 'rxjs/operators';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import { CalendarComponent } from 'src/app/helpers/calendar/calendar.component';
-import { Timesheet } from 'src/app/models/timesheet';
-import { Employee360Service } from 'src/app/services/employee360.service';
-import { TimesheetService } from 'src/app/services/timesheet.service';
-import { Modal } from 'bootstrap';
-import { OwlDateTimeComponent } from 'ng-pick-datetime';
 import { ScrollStrategy } from '@angular/cdk/overlay';
 import { DatePipe } from '@angular/common';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
+import * as moment from 'moment';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first } from 'rxjs/operators';
+import { CalendarComponent } from 'src/app/helpers/calendar/calendar.component';
 import { Breadcrumb } from 'src/app/models/breadcrumd';
+import { Timesheet } from 'src/app/models/timesheet';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
+import { Employee360Service } from 'src/app/services/employee360.service';
+import { TimesheetService } from 'src/app/services/timesheet.service';
 
 @Component({
   selector: 'app-employee360-timesheet',
@@ -471,7 +469,8 @@ updateStatus(status: string) {
       // Handle "Monthly"
       this.startDate = new Date();
       this.endDate = new Date();
-      this.startDate.setDate(this.startDate.getDate() - 30);
+      // this.startDate = new Date(this.endDate.getFullYear(), this.endDate.getMonth(), 1);
+      this.startDate.setDate(this.startDate.getMonth());
       this.setDate();
     } else if (arg == 4) {
       // Handle "Date range"
