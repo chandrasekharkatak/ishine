@@ -1355,14 +1355,15 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
       } 
 
     });
+
     let departmentList = this.groupBy(
-      this.allEmployeeList.filter((x) => x.employmentstatus !== 'InActive'),
+      this.allEmployeeList.filter((x) => x.employmentstatus !== 'InActive' && x.isConsultant != 'true' && x.isApprenticeship !='true'),
       'departmentName'
     );
     
     let departmentListForApprentice = this.groupBy(
       this.allEmployeeList.filter(
-        (x) => x.employmentstatus !== 'InActive' && x.isApprenticeship === 'true'
+        (x) => x.employmentstatus !== 'InActive' && x.isApprenticeship === 'true' && x.isConsultant !='true'
       ),
       'departmentName'
     );
