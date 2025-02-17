@@ -90,7 +90,8 @@
               </tr>
               <tr 
                 *ngFor="let  attendance of attendanceReconciliationList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-                <td>{{attendance.employeeCode}}</td>
+                <td>{{attendance.employeementId}}</td>
+                <td *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="attendance.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{attendance.employeeName || 'NA'}}</td>
                 <td>{{attendance.employeeName || 'NA'}}</td>
                 <td>{{attendance.inTime }}</td>
                 <td>{{attendance.outTime }}</td>
