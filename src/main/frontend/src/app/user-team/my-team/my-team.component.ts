@@ -20,6 +20,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Team } from 'src/app/models/team';
 import { UtilityService } from 'src/app/services/utility.service';
 import { Employee360Service } from 'src/app/services/employee360.service';
+import { SortPipe } from 'src/app/sort.pipe';
+
 
 @Component({
   selector: 'app-my-team',
@@ -65,7 +67,6 @@ export class MyTeamComponent implements OnInit {
   leaveApplicationList: any[] = [];
   allCompOffApplications: any[] = [];
   breadCrumbs:any[] = [];
-  employeeList: any[] = [];
   //excel
   leaveApplicationDataForExcel: any[];
   allCompOffApplicationsDataForExcel: any[];
@@ -137,6 +138,8 @@ export class MyTeamComponent implements OnInit {
   employeeData2: any;
   isManagerFlag: any;
   isApprover: boolean = false;
+  allEmployeeList360: any[] = [];
+  // employeesFor360: any[] = [];
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -175,7 +178,50 @@ export class MyTeamComponent implements OnInit {
     //   }
     // });
     this.preventBackButton();
-    this.sectionViewInit(); 
+    this.sectionViewInit();
+    this.getAllEmployeeFor360View();
+
+    // this.employee360Service.employeesFor360$.subscribe((employees) => {
+    //   this.employeesFor360 = employees;
+    //   console.log("Employee Data fetched by Shared service ",this.employeesFor360);
+    // });
+  }
+  onNameClick(teamView: any): void {
+    console.log('Name clicked:', teamView);
+  }
+  
+  onIconClick(teamView: any): void {
+    console.log('Icon clicked:', teamView);
+    if (teamView.isHierarchy) {
+      this.myTeamHierarchy(teamView);
+    }
+  }
+
+  getAllEmployeeFor360View(){
+    this.allEmployeeList360 = [];
+    this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allEmployeeList360 = response.serviceResponse;
+        console.log("allEmployeeListFor360 : ", this.allEmployeeList360)
+        this.allEmployeeList360.forEach(employeeObj => {
+          employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
+          employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+          employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+          employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+          employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          if (employeeObj.isConsultant == 'true')
+            employeeObj.employeeType = 'Consultant';
+          else if (employeeObj.isApprenticeship == 'true')
+            employeeObj.employeeType = 'Apprentice';
+          else
+            employeeObj.employeeType = 'Regular';
+          });
+          this.allEmployeeList360 = this.allEmployeeList360;
+          this.allEmployeeList360 = new SortPipe().transform(this.allEmployeeList360, ['name', 'string', 'asc']);
+        } else {
+          alert(response.serviceResponse);
+        }
+    });
   }
 
   preventBackButton(){
@@ -464,26 +510,21 @@ export class MyTeamComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.teamViewList = response.serviceResponse;
 
-        const empData = sessionStorage.getItem('AllEmployees');
-          if (empData) {
-              this.employeeList = JSON.parse(empData);
-          } else {
-              this.employeeList = []; // Handle case where no data is found
-          }
+        // const empData = sessionStorage.getItem('AllEmployees');
+        //   if (empData) {
+        //       this.employeeList = JSON.parse(empData);
+        //   } else {
+        //       this.employeeList = []; // Handle case where no data is found
+        //   }
 
         for(let y of this.teamViewList){
-          // if(y.isConsultant == 'true'){
-          //   y.employeementId = "A-CS-".concat(y.employeementId);
-          // }else{
-          //   y.employeementId = "A-".concat(y.employeementId);
-          // }
-          y.employeementId = "A-".concat(y.employeementId);
-         
+          y.employeementId = "A-".concat(y.employeementId);      
           y.isHierarchy = false;
           let temp = this.managerList.find(manager => manager.managerId == y.empId);
           if(temp != undefined) y.isHierarchy = true;  
 
-          let matchingEmployee = this.employeeList.find(emp => emp.employeementId === y.employeementId);
+          let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === y.employeementId);
+          console.log('matches++',matchingEmployee);
           y.emp360 = matchingEmployee ? matchingEmployee : {};
         }
         console.log("teamViewList : ", this.teamViewList);         
@@ -550,11 +591,20 @@ export class MyTeamComponent implements OnInit {
             if (revokeExpireDate > dateToday) {
               leaveHistory.isExpire = "true";
             }
-
+            leaveHistory.employeementId = 'A-'.concat(leaveHistory.employeementId);
             leaveHistory.fromDate = (leaveHistory.fromDate)? moment(leaveHistory.fromDate).format(AppComponent.DATE_FORMAT) : null,
             leaveHistory.toDate = (leaveHistory.toDate)? moment(leaveHistory.toDate).format(AppComponent.DATE_FORMAT) : null,
             leaveHistory.createdOn = (leaveHistory.createdOn)? moment(leaveHistory.createdOn).format(AppComponent.DATE_FORMAT) : null
+            let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === leaveHistory.employeementId);
+            console.log('matches++',matchingEmployee);
+            leaveHistory.emp360 = matchingEmployee ? matchingEmployee : {};
           });
+          // for (let y of this.teamViewLeaveHistoryList){
+          //   let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === y.employeementId);
+          //   console.log('matches++',matchingEmployee);
+          //   y.emp360 = matchingEmployee ? matchingEmployee : {};
+          // }
+
           console.log("teamViewLeaveHistory : ", this.teamViewLeaveHistoryList);
         } else {
           console.error(response.serviceResponse);
@@ -1287,12 +1337,27 @@ export class MyTeamComponent implements OnInit {
         if (response.serviceStatus == "Success") {
           this.departmentLeaveHistoryList = response.serviceResponse;
           this.teamViewLeaveHistoryList = response.serviceResponse;
-          //console.log("departmentLeaveHistoryList : ", this.departmentLeaveHistoryList);
+          console.log("departmentLeaveHistoryList : ", this.departmentLeaveHistoryList);
+          
         } else {
           console.error(response.serviceResponse);
         }
       });
     }
+    for(let y of this.teamViewLeaveHistoryList){
+      y.employeementId='A-'.concat(y.employeementId);
+      let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId == y.employeementId);
+      console.log('matches++',matchingEmployee);
+      y.emp360 = matchingEmployee ? matchingEmployee : {};
+    }
+    for(let y of this.departmentLeaveHistoryList){
+      y.employeementId='A-'.concat(y.employeementId);
+      let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId == y.employeementId);
+      console.log('matches++',matchingEmployee);
+      y.emp360 = matchingEmployee ? matchingEmployee : {};
+    }
+    console.log('teamViewLeaveHistoryList -- ',this.teamViewLeaveHistoryList);
+    console.log('departmentLeaveHistoryList -- ',this.departmentLeaveHistoryList);
   }
 
   onUpdateTimesheetLockCheck(template: TemplateRef<any>,employeeObj:Employee,status: any){

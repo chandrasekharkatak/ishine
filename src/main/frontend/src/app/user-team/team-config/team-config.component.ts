@@ -23,6 +23,10 @@ import { ProjectService } from 'src/app/services/project.service';
 import { TeamService } from 'src/app/services/team.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { Employee360Service } from 'src/app/services/employee360.service';
+import { UtilityService } from 'src/app/services/utility.service';
+import { SortPipe } from 'src/app/sort.pipe';
+
 
 @Component({
   selector: 'app-team-config',
@@ -122,6 +126,8 @@ export class TeamConfigComponent implements OnInit {
   projectDetails: any = [];
   getBillableType: any;
   newMemberInProject: any;
+  // employeesFor360: any[] = [];
+  allEmployeeList360: any[] = [];
 
   constructor(
     private validationService: ValidationService,
@@ -134,7 +140,9 @@ export class TeamConfigComponent implements OnInit {
     private departmentService: DepartmentService,
     private exportExcelService: ExportExcelService,
     private timesheetService: TimesheetService,
-    private locationStrategy: LocationStrategy
+    private locationStrategy: LocationStrategy,
+    private employee360Service: Employee360Service,
+    private utilityService: UtilityService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -150,7 +158,40 @@ export class TeamConfigComponent implements OnInit {
 
     this.sectionViewInit();
     this.preventBackButton();
+    // this.employee360Service.employeesFor360$.subscribe((employees) => {
+    //   this.employeesFor360 = employees;
+    //   console.log("Employee Data fetched by Shared service ",this.employeesFor360);
+    // });
+    console.log('userMapping --',this.userMapping)
+    this.getAllEmployeeFor360View();
   }
+  getAllEmployeeFor360View(){
+      this.allEmployeeList360 = [];
+      this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.allEmployeeList360 = response.serviceResponse;
+          console.log("allEmployeeListFor360 : ", this.allEmployeeList360)
+          this.allEmployeeList360.forEach(employeeObj => {
+            employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
+            employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+            employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+            employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+            employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+            if (employeeObj.isConsultant == 'true')
+              employeeObj.employeeType = 'Consultant';
+            else if (employeeObj.isApprenticeship == 'true')
+              employeeObj.employeeType = 'Apprentice';
+            else
+              employeeObj.employeeType = 'Regular';
+            });
+            this.allEmployeeList360 = this.allEmployeeList360;
+            this.allEmployeeList360 = new SortPipe().transform(this.allEmployeeList360, ['name', 'string', 'asc']);
+          } else {
+            alert(response.serviceResponse);
+          }
+      });
+    }
+  
   preventBackButton(){
     history.pushState(null, null, location.href);
     this.locationStrategy.onPopState(()=>{
@@ -785,10 +826,20 @@ export class TeamConfigComponent implements OnInit {
         this.allTeamList = response.serviceResponse;
         this.allTeamList.forEach(team => {
           team.createdOn = (team.createdOn)? moment(team.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+
+          let matchingTeamlead = this.allEmployeeList360.find(emp => emp.empId === team.teamLeadId);
+          console.log('matchingTeamlead -- ',matchingTeamlead);
+          let matchingManager = this.allEmployeeList360.find(emp => emp.empId === team.projectManagerId);
+          console.log('matchingManager --',matchingManager);
+
+          
+          team.emp360Teamlead = matchingTeamlead ? matchingTeamlead : {};
+          team.emp360Manager = matchingManager ? matchingManager : {};
+
         });
         this._allTeamList = this.allTeamList
         this.isDisabled = false;
-        //console.log("getAllMyTeamsByEmpId -- allTeamList :", this.allTeamList);
+        console.log("getAllMyTeamsByEmpId -- allTeamList :", this.allTeamList);
       } else {
         console.error(response.serviceResponse)
       }
