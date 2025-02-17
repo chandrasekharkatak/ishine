@@ -297,13 +297,13 @@
               <textarea id="justification" [(ngModel)]="hodRemarks"></textarea>
   
               <button type="button" class="btn btn-primary float-right"
-                (click)="submitReviewEmployee(quarter,alert_message,i)" *ngIf="!enableDisableSubmit">Submit</button>
-                <button type="button" class="btn btn-primary float-right" (click)="updateReviewEmployee(quarter,alert_message,i)" *ngIf="currentStatus == 'Rejected'">Update</button>
+                (click)="submitReviewEmployee(quarter,alert_message,i)" *ngIf="!enableDisableSubmit && userMapping.performance_action_by_hod">Submit</button>
+                <button type="button" class="btn btn-primary float-right" (click)="updateReviewEmployee(quarter,alert_message,i)" *ngIf="currentStatus == 'Rejected' && userMapping.performance_action_by_hod">Update</button>
   
               <div class="d-flex justify-content-end" *ngIf="currentStatus == 'Ongoing'">
-                <button type="button" class="btn btn-primary" *ngIf="enableDisableSubmit"
+                <button type="button" class="btn btn-primary" *ngIf="enableDisableSubmit && userMapping.performance_action_by_hr"
                   (click)="selectAction('accept')">Accept</button>
-                <button type="button" class="btn btn-danger ml-2" *ngIf="enableDisableSubmit"
+                <button type="button" class="btn btn-danger ml-2" *ngIf="enableDisableSubmit && userMapping.performance_action_by_hr"
                   (click)="selectAction('reject')">Reject</button>
               </div>
   
