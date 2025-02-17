@@ -432,106 +432,69 @@ public class BioMaxService {
 	}
 	
 
-	public ServiceResponse getEmpBioData360(String startdate, String endDate, String employeeId) {
-	    ServiceResponse serviceResponse = new ServiceResponse();
-	    Connection con = null;
-	    PreparedStatement statement = null;
-	    ResultSet resultSet = null;
-//	    List<String> listEmployeeId=new ArrayList<>();
-//	    if(employeeId.contains(",")) {
-//	    	String[] listemployee=employeeId.split(",");
-//	    	for(String s:listemployee) {
-//	    		listEmployeeId.add(s);
-//	    	}
-//	    	
-//	    }
-	    try {
-	        Set<String> bioEmpIdSet = new HashSet<>();
-	        Map<String, List<String>> empMapById = new HashMap<>();
-	        List<BioMax360> finalEmpBioData = new ArrayList();
+	 public ServiceResponse getEmpBioData360(String startDate, String endDate, String employeeId) {
+	        ServiceResponse serviceResponse = new ServiceResponse();
+	        List<BioMax360> finalEmpBioData = new ArrayList<>();
 
-	        String Query = "SELECT AttendanceDate, al.EmployeeId as EmployeeId, AttendanceDateStr, EmployeeName, EmployeeCode, InTime, OutTime, OverTime, OverTimeE, TotalDuration "
+	        String query = "SELECT AttendanceDate, al.EmployeeId AS EmployeeId, AttendanceDateStr, EmployeeName, EmployeeCode, InTime, OutTime, OverTime "
 	                + "FROM AttendanceLogs al "
 	                + "JOIN Employees e ON al.EmployeeId = e.EmployeeId "
-	                + "WHERE e.EmployeeCode IN (" + employeeId + ") "
-	                + "AND al.AttendanceDate BETWEEN '" + startdate + "' AND '" + endDate + "'";
+	                + "WHERE e.EmployeeCode IN (?) "
+	                + "AND al.AttendanceDate BETWEEN ? AND ?";
 
-	        con = getConnection();
-	        statement = con.prepareStatement(Query);
+	        try (Connection con = getConnection();
+	             PreparedStatement statement = con.prepareStatement(query)) {
 
-	        // Execute the query and retrieve the result set
-	        resultSet = statement.executeQuery();
+	            statement.setString(1, employeeId);
+	            statement.setString(2, startDate);
+	            statement.setString(3, endDate);
 
-	        // Process the result set
-	        while (resultSet.next()) {
-	            BioMax360 bioMaTO = new BioMax360();
-	            bioMaTO.setAttendanceDateStr(resultSet.getString("AttendanceDate"));
-	            bioMaTO.setLogDate(resultSet.getString("AttendanceDateStr"));
-	            bioMaTO.setEmployeeCode(resultSet.getString("EmployeeCode"));
-	            bioMaTO.setEmployeeName(resultSet.getString("EmployeeName"));
-	            bioMaTO.setTotalDuration(resultSet.getString("OverTime")); // Assuming TotalDuration is a String
-	            bioMaTO.setShiftName(resultSet.getString("OverTime")); // Added shift name from your query
-	            bioMaTO.setBeginTime(resultSet.getString("InTime"));
-	            bioMaTO.setEndTime(resultSet.getString("OutTime"));
-	            bioMaTO.setStatus(resultSet.getString("EmployeeId"));
-	            String outputDate = null;
-	            System.out.println(resultSet.getString("EmployeeId")+"=="+resultSet.getString("AttendanceDateStr"));
-	            SimpleDateFormat inputFormat = new SimpleDateFormat("dd-MMM-yyyy");
-	            SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
+	            try (ResultSet resultSet = statement.executeQuery()) {
+	                while (resultSet.next()) {
+	                    BioMax360 bioMaTO = new BioMax360();
+	                    bioMaTO.setAttendanceDateStr(resultSet.getString("AttendanceDate"));
+	                    bioMaTO.setLogDate(resultSet.getString("AttendanceDateStr"));
+	                    bioMaTO.setEmployeeCode(resultSet.getString("EmployeeCode"));
+	                    bioMaTO.setEmployeeName(resultSet.getString("EmployeeName"));
+	                    bioMaTO.setTotalDuration(resultSet.getString("OverTime"));
+	                    bioMaTO.setShiftName(resultSet.getString("OverTime"));
+	                    bioMaTO.setBeginTime(resultSet.getString("InTime"));
+	                    bioMaTO.setEndTime(resultSet.getString("OutTime"));
+	                    bioMaTO.setStatus(resultSet.getString("EmployeeId"));
 
-	            try {
-	                // Parse the input date
-	                Date date = inputFormat.parse(resultSet.getString("AttendanceDateStr"));
-	                // Format the date into the desired output format
-	                 outputDate = outputFormat.format(date);
+	                    SimpleDateFormat inputFormat = new SimpleDateFormat("dd-MMM-yyyy");
+	                    SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
+	                    String outputDate;
 
-	                System.out.println("Converted Date: " + outputDate+"=="+resultSet.getString("EmployeeCode")+"=="+resultSet.getString("EmployeeId"));
-	            } catch (ParseException e) {
-	                e.printStackTrace();
+	                    try {
+	                        Date date = inputFormat.parse(resultSet.getString("AttendanceDateStr"));
+	                        outputDate = outputFormat.format(date);
+	                    } catch (ParseException e) {
+	                        outputDate = resultSet.getString("AttendanceDateStr");
+	                    }
+
+	                    List<TimesheetDTO> timesh = TimesheetService.getAllProjectsByEmpIdForBioMax(resultSet.getString("EmployeeId"), outputDate);
+	                    if (timesh.isEmpty()) {
+	                        TimesheetDTO timesheetDTO = new TimesheetDTO();
+	                        timesheetDTO.setClientName("Not Fill");
+	                        timesheetDTO.setActivity("0");
+	                        timesh.add(timesheetDTO);
+	                    }
+	                    bioMaTO.setTimesheetdto(timesh);
+
+	                    finalEmpBioData.add(bioMaTO);
+	                }
 	            }
-	            List<TimesheetDTO> timesh= TimesheetService.getAllProjectsByEmpIdForBioMax(resultSet.getString("EmployeeId"),outputDate);
-	           System.out.println("----"+timesh.size());
-	            if(timesh.size()>0) {
-	        	  bioMaTO.setTimesheetdto(timesh);
-		          
-	          }else {
-	        	  TimesheetDTO timesheetDTO=new TimesheetDTO();
-	        	  timesheetDTO.setClientName("Not Fill");
-	        	  timesheetDTO.setActivity("0");
-	        	  timesh.add(timesheetDTO);
-	        	  bioMaTO.setTimesheetdto(timesh);
-	          }
-	            finalEmpBioData.add(bioMaTO);
+	            serviceResponse.setServiceResponse(finalEmpBioData);
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+
+	        } catch (Exception e) {
+	            serviceResponse.setServiceResponse("");
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            serviceResponse.setServiceError(e.getMessage());
 	        }
-	        serviceResponse.setServiceResponse(finalEmpBioData);
-	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-
-	    } catch (Exception e) {
-	        e.printStackTrace();
-
-	        // Set the error in response
-	        serviceResponse.setServiceResponse("");
-	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	        serviceResponse.setServiceError(e.getMessage());
-	    } finally {
-	        // Properly close the resources in the finally block
-	        try {
-	            if (resultSet != null) {
-	                resultSet.close();
-	            }
-	            if (statement != null) {
-	                statement.close();
-	            }
-	            if (con != null) {
-	                con.close();
-	            }
-	        } catch (SQLException ex) {
-	            ex.printStackTrace();
-	        }
+	        return serviceResponse;
 	    }
-
-	    return serviceResponse;
-	}
 
 	public long calculateTime(String startDateStr, String endDateStr) {
 

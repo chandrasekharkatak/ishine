@@ -195,14 +195,14 @@ export class Employee360Component implements OnInit {
     currentEmp.empId = this.employeeData.empId;
     currentEmp.isDraft = false;
 
-    // this.employee360Service.getBioOverTimeandState(currentEmp).subscribe((response:any) =>
+    this.employee360Service.getBioOverTimeandState(currentEmp).subscribe((response:any) =>
       
-    //   {
-    //    this.responseOvertime= response.serviceResponse[0];
-    //    this.responsestate = response.serviceResponse[1];
-    //   }
+      {
+       this.responseOvertime= response.serviceResponse[0];
+       this.responsestate = response.serviceResponse[1];
+      }
     
-    // );
+    );
      
 
   }

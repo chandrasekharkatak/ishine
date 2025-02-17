@@ -20,6 +20,7 @@ import { Log } from '../../models/log';
 import { LeaveService } from '../../services/leave.service';
 
 import { ValidationService } from 'src/app/services/validation.service';
+import { Sort } from '@angular/material/sort';
 
 declare module 'highcharts' {
   interface Series {
@@ -73,6 +74,34 @@ export class Employee360LeaveComponent implements OnInit {
   currentBreadcrumbList: any[] = [];
   currentUserr:any;
   managerIds:any[]=[];
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+
+
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
+
+  leaveColumns: any[] = [
+    'createdByName',
+    'fromDate',
+    'toDate',
+    'createdOn',
+    'noOfDays',
+    'status',
+    'leaveStatusUpdatedByName',
+    'reason',
+    'leaveType',
+    'currentApprovalLevel',
+    'approverName',
+    'managerApprovalStatus', // Added Level 1 Approver Status
+    'level2ApproverName',
+    'level2ApprovalStatus', // Added Level 2 Approver Status
+    'level3ApproverName',
+    'level3ApprovalStatus', // Added Level 3 Approver Status
+    'remark'
+  ];
+  
 
   //Active Buttons
   activeButton: string = "Leave-Charts";
@@ -221,6 +250,40 @@ export class Employee360LeaveComponent implements OnInit {
     this.getLeaveDataPerMonthByEmpId();
     this.activeButton="Leave-Charts";
   }
+
+
+
+   page = 1;
+    handlePageChange(event) {
+      this.page = event;
+    }
+  
+    toggleSearch(){
+      this.isSearchEnabled = !this.isSearchEnabled;
+      if(!this.isSearchEnabled){
+        this.filters = {};
+      }
+    }
+  
+    resetSearch(){
+      this.isSearchEnabled = false;
+      this.filters = {};
+    }
+  
+    onSearch(searchData){
+      this.filters = searchData;
+    }
+  
+      sortData(sort: Sort){
+        //console.log(sort);
+        if(sort.active){
+          let sortParams:any[] = sort.active?.split("|");
+          this.sortColumn = sortParams[0];
+          this.sortColumnType = sortParams[1];
+          this.sortDirection = sort.direction;
+        }
+      }
+
 
   setActiveButton(button: string): void {
     this.activeButton = button;
@@ -909,9 +972,10 @@ getLeaveStatusColor(status: string): string {
     if (arg == 1) {
       // Handle "All"
       this.startDate = null;
-      this.endDate = null;
-      this.setDate();
-    } else if (arg == 4) {
+      this.endDate = null; 
+       this.resetDateRange();
+    } else if (arg == 2) {
+     
       // start and end date will be handled by the owl-datepicker input fields
     }
     console.log("startDate" , this.startDate);
@@ -930,6 +994,7 @@ getLeaveStatusColor(status: string): string {
       this.endDate = toDate;
       this.setDate();
     }
+    
   }
 
   resetDateRange() {
@@ -944,6 +1009,7 @@ getLeaveStatusColor(status: string): string {
        this.formattedStartDate = this.datePipe.transform(this.startDate, 'dd-MM-yyyy');
       this.formattedEndDate = this.datePipe.transform(this.endDate, 'dd-MM-yyyy');
       this.getAllLeaveApplicationsByEmpId();
+      
     }else{
       this.formattedStartDate='';
       this.formattedEndDate='';

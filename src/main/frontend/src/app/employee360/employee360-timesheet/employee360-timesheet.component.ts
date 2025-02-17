@@ -1,18 +1,17 @@
-import { Component, OnInit, TemplateRef, Input, Output, ViewChild } from '@angular/core';
-import * as moment from 'moment';
-import { first } from 'rxjs/operators';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import { CalendarComponent } from 'src/app/helpers/calendar/calendar.component';
-import { Timesheet } from 'src/app/models/timesheet';
-import { Employee360Service } from 'src/app/services/employee360.service';
-import { TimesheetService } from 'src/app/services/timesheet.service';
-import { Modal } from 'bootstrap';
-import { OwlDateTimeComponent } from 'ng-pick-datetime';
 import { ScrollStrategy } from '@angular/cdk/overlay';
 import { DatePipe } from '@angular/common';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Sort } from '@angular/material/sort';
 import { Router } from '@angular/router';
+import * as moment from 'moment';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first } from 'rxjs/operators';
+import { CalendarComponent } from 'src/app/helpers/calendar/calendar.component';
 import { Breadcrumb } from 'src/app/models/breadcrumd';
+import { Timesheet } from 'src/app/models/timesheet';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
+import { Employee360Service } from 'src/app/services/employee360.service';
+import { TimesheetService } from 'src/app/services/timesheet.service';
 
 @Component({
   selector: 'app-employee360-timesheet',
@@ -58,6 +57,13 @@ export class Employee360TimesheetComponent implements OnInit {
   timesheetIds:any []=[];
   responseCount:any=0;
 
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+
+
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
   //Bulk approve-reject
   bulkList: any = [];
   isSelectAll: boolean = false;
@@ -68,6 +74,8 @@ export class Employee360TimesheetComponent implements OnInit {
   projectClicked:boolean=false;
   teamClicked:boolean=false;
   actionButton:boolean=false;
+
+  timesheetColumns:any[]=['employmentId','name','date','dayType','projectName','teamName','completionTime','activity','officeInTime','officeOutTime','totalTime','nightShift','status','createdOn'];
   
   constructor(
     private employee360Service : Employee360Service,
@@ -285,6 +293,38 @@ export class Employee360TimesheetComponent implements OnInit {
     this.updateStatus(status);
   }
 
+  page = 1;
+  handlePageChange(event) {
+    this.page = event;
+  }
+
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+    if(!this.isSearchEnabled){
+      this.filters = {};
+    }
+  }
+
+  resetSearch(){
+    this.isSearchEnabled = false;
+    this.filters = {};
+  }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    //console.log("Updated Filter : ", this.filters);
+  }
+
+    sortData(sort: Sort){
+      //console.log(sort);
+      if(sort.active){
+        let sortParams:any[] = sort.active?.split("|");
+        this.sortColumn = sortParams[0];
+        this.sortColumnType = sortParams[1];
+        this.sortDirection = sort.direction;
+      }
+    }
+
   update(status:string,empId: number, date: string){
     for (const emp of this.result){
       if(emp.empId == empId && emp.date == date){
@@ -460,7 +500,7 @@ updateStatus(status: string) {
       // Handle "All"
       this.startDate = null;
       this.endDate = null;
-      this.setDate();
+      this.resetDateRange();
     } else if (arg == 2) {
       // Handle "Weekly"
       this.startDate = new Date();
@@ -471,7 +511,8 @@ updateStatus(status: string) {
       // Handle "Monthly"
       this.startDate = new Date();
       this.endDate = new Date();
-      this.startDate.setDate(this.startDate.getDate() - 30);
+      // this.startDate = new Date(this.endDate.getFullYear(), this.endDate.getMonth(), 1);
+      this.startDate.setDate(this.startDate.getMonth());
       this.setDate();
     } else if (arg == 4) {
       // Handle "Date range"
@@ -486,7 +527,7 @@ updateStatus(status: string) {
     this.dateTimeRange = null;
     this.startDate = null;
     this.endDate = null;
-    this.onChangeOption(1);
+    this.setDate();
   }
 
   getDateRange() {
