@@ -45,7 +45,7 @@ export class Employee360RewardsComponent implements OnInit {
   isTeamTableVisible: boolean = false;
   matchedEmployees: any[] = [];
   rewardsColumns: any[] = ['', 'rewardTypeName', 'name', 'createdOn','teamName', 'remark', 'updatedBy'];
-  rewardsTeamColumns:any[] = ['','rewardTypeName','name','createdByName','createdOn'];
+  rewardsTeamColumns:any[] = ['','rewardTypeName','name','createdByName','remark','createdOn'];
   page: number = 1;
   sortDirection = 'asc';
   sortColumn: any;
@@ -102,10 +102,19 @@ export class Employee360RewardsComponent implements OnInit {
     const selectElement = event.target as HTMLSelectElement;
     this.selectedYear = +selectElement.value; // Convert to number
 
-    // Reset other selections when year changes
-    this.selectedPeriod = null;
+    
+
+    
+    this.selectedPeriod = '';
     this.activeCategoryId = null;
-    this.rewardsCategories = []; // Reset categories if applicable
+    this.rewardsCategories = [];
+    setTimeout(() => {
+      const periodDropdown = document.getElementById('periodDropdown') as HTMLSelectElement;
+      if (periodDropdown) {
+        periodDropdown.value = '';
+      }
+    });
+   
     console.log('Selected Year:', this.selectedYear);
   }
 
@@ -442,6 +451,8 @@ export class Employee360RewardsComponent implements OnInit {
 
     const request = new EmployeeRewarsRequest();
     request.empId = this.currentEmpId;
+    request.ofMonthYear = this.ofMonthYear;
+
     // request.fromDate = this.getFromDate(selectedOption);
     // request.toDate = this.getToDate(selectedOption);
 
@@ -459,11 +470,14 @@ export class Employee360RewardsComponent implements OnInit {
     return this.matchedEmployees.find(employee => employee.empId === event.rewardedTo);
   }
   
-  showTeamTable(teamName: string): void {
-    console.log(`Showing table for team: ${teamName}`);
+  showTeamTable(team: any): void {
+    console.log(`Showing table for team: ${team.teamName}`);
     this.isTeamTableVisible = true;
     const request = new EmployeeRewarsRequest();
     request.empId = this.currentEmpId;
+    request.ofMonthYear = this.ofMonthYear;
+    request.teamId = team.teamId;
+
     this.rewardsService.getTeamRewardByEmpId(request).subscribe(
       (response: any) => {
         this.teamRewardList = response.rewardsDTO;

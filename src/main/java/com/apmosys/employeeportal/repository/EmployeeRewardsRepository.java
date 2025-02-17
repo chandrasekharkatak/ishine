@@ -38,7 +38,17 @@ public interface EmployeeRewardsRepository extends JpaRepository <EmployeeReward
 		@Query(nativeQuery = true)
 		List<Object[]> getRewardByEmpIdWithDateRange(Long empId, String ofMonthYear);
 
-
+		@Query(nativeQuery = true,value="SELECT e.name,er.reward_type_name, er.rewarded_to, er.created_on, er.remark, er.created_by \n"
+				+ "FROM employee_rewards er \n"
+				+ "INNER JOIN employee e ON e.emp_id = er.rewarded_to \n"
+				+ "where er.rewarded_to = :empId and er.ofmonthyear = :ofMonthYear")
+		List<Object[]> getRewardDetailsByEmpId(Long empId, String ofMonthYear);
+		
+		@Query(nativeQuery = true, value="select t.team_id,t.team_name \n"
+				+ "from teams t \n"
+				+ "inner join employee_team_mapping etm on etm.team_id = t.team_id\n"
+				+ "where t.is_active != 'N' and etm.active != 0 and etm.emp_id = :empId")
+		List<Object[]> getTeamsByEmpId(Long empId);
 	
 	//  @Query(nativeQuery = true , value = "SELECT er.reward_id,rc.reward_category_id, rc.category_name, er.id ,r.reward_name,r.reward_type,er.reward_type_name,er.rewarded_to,\n"
 	// 	 		+ "			   e.name AS rewarded_to_name,e.manager_id,er.ofmonthyear,er.remark\n"
@@ -137,39 +147,13 @@ public interface EmployeeRewardsRepository extends JpaRepository <EmployeeReward
 //	List<Object[]> getRewardByTeamAndDateRange( @Param("empId") Long empId
 //														 );
 	
-	@Query(value = "SELECT " +
-            "    e.name AS employee_name, " +
-            "    a.reward_type_name, " +
-            "    a.rewarded_to, " +
-            "    a.created_on, " +
-            "    cb.name AS created_by_name " +
-            "FROM " +
-            "    employee_rewards a " +
-            "JOIN " +
-            "    employee_team_mapping etm ON a.rewarded_to = etm.emp_id " +
-            "JOIN " +
-            "    employee e ON e.emp_id = etm.emp_id " +
-            "JOIN " +
-            "    employee cb ON a.created_by = cb.emp_id " + // Joining again for created_by details
-            "WHERE a.rewarded_to IN ( " +
-            "    SELECT emp_id " +
-            "    FROM employee_team_mapping " +
-            "    WHERE team_id IN ( " +
-            "        SELECT etm.team_id " +
-            "        FROM employee_team_mapping etm " +
-            "        JOIN teams t ON t.team_id = etm.team_id " +
-            "        JOIN projects p ON t.project_id = p.project_id " +
-            "        WHERE etm.emp_id = :empId " +
-            "          AND etm.active != 0 " +
-            "          AND t.is_active != 'N' " +
-            "          AND p.active != 'false' " +
-            "    ) " +
-            ") " +
-            "AND a.reward_type IN ( " +
-            "    SELECT reward_type " +
-            "    FROM employee_rewards " +
-            "    WHERE rewarded_to = :empId)", nativeQuery = true)
-List<Object[]> getRewardByTeamAndDateRange(@Param("empId") Long empId);
+	@Query(value = "SELECT e.name,er.reward_type_name, er.rewarded_to, er.created_on, er.remark, er.created_by \n"
+			+ "FROM employee_rewards er \n"
+			+ "INNER JOIN employee e ON e.emp_id = er.rewarded_to\n"
+			+ "inner join employee_team_mapping etm on etm.emp_id = e.emp_id\n"
+			+ "inner join teams t on t.team_id = etm.team_id\n"
+			+ "where  etm.active != 0 and er.ofmonthyear = :ofMonthYear and t.team_id = :teamId", nativeQuery = true)
+List<Object[]> getRewardByTeamAndDateRange(String ofMonthYear,Long teamId);
 
 
  @Query(nativeQuery = true , value = "SELECT er.reward_id,rc.reward_category_id, rc.category_name, er.id ,r.reward_name,r.reward_type,er.reward_type_name,er.rewarded_to,\n"
