@@ -3888,8 +3888,8 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
   this.modalSummaryList = modalTableList.filter(x =>
     x.departmentName === pointName && 
     (
-        (seriesName === 'Employee Count' && x.isApprenticeship!='true') ||  
-        (seriesName === 'Apprentice Count' && x.isApprenticeship==='true')  
+        (seriesName === 'Employee Count' && x.isApprenticeship!='true' && x.isConsultant != 'true' && x.isApprenticeship != 'true') ||  
+        (seriesName === 'Apprentice Count' && x.isApprenticeship==='true' && x.isConsultant != 'true')  
     )
   );
 
