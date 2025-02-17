@@ -458,7 +458,7 @@ updateStatus(status: string) {
       // Handle "All"
       this.startDate = null;
       this.endDate = null;
-      this.setDate();
+      this.resetDateRange();
     } else if (arg == 2) {
       // Handle "Weekly"
       this.startDate = new Date();
@@ -485,7 +485,7 @@ updateStatus(status: string) {
     this.dateTimeRange = null;
     this.startDate = null;
     this.endDate = null;
-    this.onChangeOption(1);
+    this.setDate();
   }
 
   getDateRange() {

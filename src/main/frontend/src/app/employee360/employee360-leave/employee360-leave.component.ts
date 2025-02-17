@@ -909,9 +909,10 @@ getLeaveStatusColor(status: string): string {
     if (arg == 1) {
       // Handle "All"
       this.startDate = null;
-      this.endDate = null;
-      this.setDate();
-    } else if (arg == 4) {
+      this.endDate = null; 
+       this.resetDateRange();
+    } else if (arg == 2) {
+     
       // start and end date will be handled by the owl-datepicker input fields
     }
     console.log("startDate" , this.startDate);
@@ -930,6 +931,7 @@ getLeaveStatusColor(status: string): string {
       this.endDate = toDate;
       this.setDate();
     }
+    
   }
 
   resetDateRange() {
@@ -944,6 +946,7 @@ getLeaveStatusColor(status: string): string {
        this.formattedStartDate = this.datePipe.transform(this.startDate, 'dd-MM-yyyy');
       this.formattedEndDate = this.datePipe.transform(this.endDate, 'dd-MM-yyyy');
       this.getAllLeaveApplicationsByEmpId();
+      
     }else{
       this.formattedStartDate='';
       this.formattedEndDate='';
