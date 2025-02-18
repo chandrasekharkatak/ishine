@@ -85,7 +85,6 @@ export class TeamTimesheetComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    //console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
     this.preventBackButton();
@@ -93,7 +92,6 @@ export class TeamTimesheetComponent implements OnInit {
     //   this.employeesFor360 = employees;
     //   console.log("Employee Data fetched by Shared service ",this.employeesFor360);
     // });
-    console.log('userMapping -- ',this.userMapping)
     this.getAllEmployeeFor360View();
   }
   preventBackButton() {
@@ -107,7 +105,6 @@ export class TeamTimesheetComponent implements OnInit {
       this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allEmployeeList360 = response.serviceResponse;
-          console.log("allEmployeeListFor360 : ", this.allEmployeeList360)
           this.allEmployeeList360.forEach(employeeObj => {
             employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
             employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
@@ -198,12 +195,12 @@ export class TeamTimesheetComponent implements OnInit {
           x.officeOutTime = (x.officeOutTime) ? moment(x.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
           x.createdOn = (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === x.employeementId);
-          console.log('matches++',matchingEmployee);
+          // console.log('matches++',matchingEmployee);
           x.emp360 = matchingEmployee ? matchingEmployee : {};
 
         }
 
-        console.log("allTeamTimesheets :", this.allTeamTimesheets);
+        // console.log("allTeamTimesheets :", this.allTeamTimesheets);
       } else {
         console.error(response.serviceResponse)
       }
