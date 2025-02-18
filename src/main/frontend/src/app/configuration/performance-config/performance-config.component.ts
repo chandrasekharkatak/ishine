@@ -17,6 +17,9 @@ import { DomainService } from 'src/app/services/domain.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { PerformanceService } from 'src/app/services/performance.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { Log } from 'src/app/models/log';
+import { LogService } from 'src/app/services/log.service';
+import { Feature } from 'src/app/models/feature';
 
 @Component({
   selector: 'app-performance-config',
@@ -69,6 +72,8 @@ export class PerformanceConfigComponent implements OnInit {
 
   quarterCycleColumns: any[] = ['blank', 'financialYear', 'quarterCycle', 'createdByName', 'createdOn', 'updatedByName', 'updatedOn'];
 
+  log:Log;
+  tabName:any = 'Configurations';
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -78,10 +83,18 @@ export class PerformanceConfigComponent implements OnInit {
     private locationStrategy: LocationStrategy,
     private departmentService: DepartmentService,
     private domainService: DomainService,
-    private performanceService:PerformanceService
+    private performanceService:PerformanceService,
+    private logService:LogService
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit(): void {
+    this.logService.updateLogInfo(this.log);
+    
+    let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    featureMap.subFeatures?.forEach(sub => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    });
+    console.log(this.feature, this.userMapping);
 
     this.showQuaterTable();
     this.getAllDepartmentList();
