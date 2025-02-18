@@ -50,6 +50,7 @@ import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
+import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.SurveyDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.model.Asset;
@@ -2946,6 +2947,34 @@ public class EmployeeService {
 					empDTO.setReferedName(object[82] != null ? object[82].toString() : null);
 
 					empDTO.setEmployeeConfirmationDate(object[83] != null ? object[83].toString() : null);
+					
+					
+					if (object[84] != null && object[72] != null) {
+		                String projectIdStr = object[84].toString().trim();
+		                String projectNameStr = object[72].toString().trim();
+
+		                
+		                if (!projectIdStr.isEmpty() && !projectNameStr.isEmpty()) {
+		                    String[] projectIds = projectIdStr.split(",");
+		                    String[] projectNames = projectNameStr.split(",");
+
+		                    
+		                    List<ProjectDTO> projectList = new ArrayList<>();
+		                    int length = Math.min(projectIds.length, projectNames.length);
+		                    
+		                    for (int i = 0; i < length; i++) {
+		                        try {
+		                            ProjectDTO projectDTO = new ProjectDTO();
+		                            projectDTO.setProjectId(Integer.parseInt(projectIds[i].trim()));
+		                            projectDTO.setProjectName(projectNames[i].trim());
+		                            projectList.add(projectDTO);
+		                        } catch (NumberFormatException e) {
+		                            System.err.println("Invalid projectId: " + projectIds[i]);
+		                        }
+		                    }
+		                    empDTO.setProjectList(projectList);
+		                }
+		            }
 				
 
 					ServiceResponse completionResponse = getEmployeeProfileCompletion(empDTO);

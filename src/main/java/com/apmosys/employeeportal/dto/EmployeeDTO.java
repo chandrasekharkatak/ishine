@@ -172,6 +172,8 @@ public class EmployeeDTO {
 	private Long tabId;
 	private List<FeatureMasterDTO> permissionList;
 	
+	private List<ProjectDTO> projectList;
+	
 	private Integer reporteeCount;
 	private String hierarchyType;
 //	private String eventCreatedOn;
