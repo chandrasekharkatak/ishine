@@ -17,8 +17,8 @@ public interface ReviewTypeRepository extends JpaRepository<ReviewType, Long> {
     ReviewType findByReviewTypeId(@Param("reviewId") Long reviewId);
     
     @Query(value = "SELECT rt.review_label \n"
-    		+ "FROM db_emp_portal.review_type rt\n"
-    		+ "inner JOIN db_emp_portal.quater_cycle qc \n"
+    		+ "FROM review_type rt\n"
+    		+ "inner JOIN quater_cycle qc \n"
     		+ "  ON rt.quarter_id = qc.quarter_id \n"
     		+ "  AND qc.is_enable = 1\n"
     		+ "  AND rt.flag = 1", nativeQuery = true)

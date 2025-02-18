@@ -10,16 +10,16 @@ import { AppComponent } from 'src/app/app.component';
 
 import { QuarterCycle } from 'src/app/models/quarterCycle';
 
+import { Feature } from 'src/app/models/feature';
+import { Log } from 'src/app/models/log';
 import { review } from 'src/app/models/reviewType';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { DomainService } from 'src/app/services/domain.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { LogService } from 'src/app/services/log.service';
 import { PerformanceService } from 'src/app/services/performance.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { Log } from 'src/app/models/log';
-import { LogService } from 'src/app/services/log.service';
-import { Feature } from 'src/app/models/feature';
 
 @Component({
   selector: 'app-performance-config',
@@ -88,6 +88,8 @@ export class PerformanceConfigComponent implements OnInit {
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit(): void {
+    this.showQuaterTable();
+    this.getAllDepartmentList();
     this.logService.updateLogInfo(this.log);
     
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -96,8 +98,7 @@ export class PerformanceConfigComponent implements OnInit {
     });
     console.log(this.feature, this.userMapping);
 
-    this.showQuaterTable();
-    this.getAllDepartmentList();
+    
     
   }
 
@@ -512,6 +513,7 @@ export class PerformanceConfigComponent implements OnInit {
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allDeptList = response.serviceResponse;
+        
 
       } else {
         console.error(response.serviceResponse)

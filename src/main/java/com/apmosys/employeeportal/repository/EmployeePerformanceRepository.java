@@ -38,11 +38,11 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 			+ "			    ep.final_rating,\n"
 			+ "			    rt.dept_id,\n"
 			+ "             erp.performance_rating_id\n"
-			+ "			FROM db_emp_portal.employee_performance ep\n"
-			+ "			INNER JOIN db_emp_portal.employee_rating_performance erp \n"
+			+ "			FROM employee_performance ep\n"
+			+ "			INNER JOIN employee_rating_performance erp \n"
 			+ "			    ON ep.quarter_id = erp.quarter_id \n"
 			+ "			    AND ep.emp_id = erp.emp_id\n"
-			+ "			INNER JOIN db_emp_portal.review_type rt \n"
+			+ "			INNER JOIN review_type rt \n"
 			+ "			    ON ep.quarter_id = rt.quarter_id and\n"
 			+ "				erp.review_type_id=rt.review_type_id\n"
 			+ "			 where ep.emp_id = :empId and ep.quarter_id = :quarterId")
@@ -58,11 +58,11 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 			+ "COUNT(em.emp_id) AS filled_employees, \n"
 			+ "(COUNT(e.emp_id) - COUNT(em.emp_id)) AS unfilled_employees,\n"
 			+ " e7.name\n"
-			+ "FROM db_emp_portal.employee e \n"
-			+ "INNER JOIN db_emp_portal.job_role jr ON jr.job_role_id = e.job_role_id \n"
-			+ "INNER JOIN db_emp_portal.department d ON d.dept_id = jr.dept_id  \n"
+			+ "FROM employee e \n"
+			+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
+			+ "INNER JOIN department d ON d.dept_id = jr.dept_id  \n"
 			+ "INNER JOIN employee e7 ON d.hod_id = e7.emp_id \n"
-			+ "LEFT JOIN db_emp_portal.employee_performance em ON e.emp_id = em.emp_id\n"
+			+ "LEFT JOIN employee_performance em ON e.emp_id = em.emp_id\n"
 			+ "GROUP BY d.name")
 	List<Object[]> DepartmentbyEmployeecontquery();
 	
