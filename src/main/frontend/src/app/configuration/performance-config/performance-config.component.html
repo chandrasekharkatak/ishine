@@ -267,7 +267,7 @@
                             <tr>
                             <tr
                                 *ngFor="let review of reviewTypelist| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
-                                <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
+                                <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
                                 <td>{{review.reviewLabel}}</td>
                                 <td>{{review.reviewFieldType}}</td>
                                 <td>{{review.condition}}</td>
@@ -277,7 +277,7 @@
                                 <td>{{review.createdOn | date: 'yyyy-MM-dd hh:mm:ss'}}</td>
                                 <td>{{ review.updatedByName ?? 'NA' }}</td>
                                 <td>{{review.updatedOn ? (review.updatedOn | date: 'yyyy-MM-dd hh:mm:ss') : 'NA' }}</td>
-                                <td>
+                                <td *ngIf="!review.active == false">
                                     <button class="btn btn-sm btn-outline-primary" type="submit"
                                         (click)="showUpdateReviewForm(review)"><em
                                             class="fa fa-edit"></em></button>&nbsp;

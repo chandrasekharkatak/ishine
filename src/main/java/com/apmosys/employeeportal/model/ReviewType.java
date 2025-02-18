@@ -40,6 +40,9 @@ public class ReviewType {
 	@Transient
 	private String updatedByName;
 	
+	@Transient
+	private boolean active;
+	
 	 @Column(name = "`condition`")  // Using backticks to escape reserved keyword
 	 private String condition;
 	    private Long createdBy;

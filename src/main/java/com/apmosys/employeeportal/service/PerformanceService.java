@@ -330,6 +330,7 @@ public class PerformanceService {
 
 					            if (optionalQuarterCyles.isPresent()) {
 					            	QuaterCycle quaterCycle = optionalQuarterCyles.get();
+					            	reviewDetail.setActive(quaterCycle.getIsActive());
 					            	reviewDetail.setQuarterCycle(quaterCycle.getQuarterCycle());
 					            	
 					            }
