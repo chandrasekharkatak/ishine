@@ -9,7 +9,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 
 @Repository
@@ -50,9 +49,6 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 	@Query(nativeQuery = true)
 	List<Object[]> getAllProjectByEmpId(Long empId);
 
-	//added by rahul SIngh
-	@Query(nativeQuery = true)
-	List<Object[]> findEmployeeByTeamId(Long team_id);
 	@Query(nativeQuery = true)
 	List<EmployeeTeamMap> findTeamListByTeamIdAndStatus(Long teamId);
 	

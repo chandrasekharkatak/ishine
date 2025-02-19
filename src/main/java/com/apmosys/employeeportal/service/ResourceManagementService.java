@@ -127,31 +127,7 @@ public class ResourceManagementService {
 	
 	@Value("${rmg.project.approval.link}")
 	private String rmgProjectApprovalLink;
-public ServiceResponse getTeamMemberByTeamId(Long teamId) {
-	ServiceResponse response = new ServiceResponse();
-	List<Object[]> allEmployeeList = employeeTeamMapRepository.findEmployeeByTeamId(teamId);
-	List<EmployeeDTO> dtoList=new ArrayList();
-	allEmployeeList.forEach((object) -> {
-		EmployeeDTO empDTO = new EmployeeDTO();
 
-		empDTO.setEmpId(object[1] != null ? Long.parseLong(object[1].toString()) :null);
-		empDTO.setName(object[0] != null ? object[0].toString() : null);
-		
-		empDTO.setEmployeementId(object[2] != null ? Long.parseLong(object[2].toString()) :null);
-		empDTO.setTeamLeadName(object[5] != null ? object[5].toString() :null);
-		empDTO.setTeamName(object[4] != null ? object[4].toString() :null);
-		empDTO.setEmail(object[3] != null ? object[3].toString() :null);
-		
-		dtoList.add(empDTO);
-	});
-	
-    
-    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-    response.setServiceResponse(dtoList);
-
-	return response;
-}
-	
 	public ServiceResponse createDraftProjectInfo(ResourceManagementDTO resourceManagementDTO) {
 		ServiceResponse response = new ServiceResponse();
         LogDTO apiLogInfo = new LogDTO();
@@ -2581,7 +2557,7 @@ public ServiceResponse getTeamMemberByTeamId(Long teamId) {
 			dto.setEndDate(obj[8] != null ? obj[8].toString().toString() : null);
 //			dto.setActive(obj[9] != null ? obj[9].toString().toString() : null);
 			dto.setActive(obj[9] != null ? Integer.parseInt(obj[9].toString()) : null);
-			dto.setProjectId(obj[10] != null ? Integer.parseInt(obj[10].toString()) : null);
+			
 			allData.add(dto);
 		});
 		

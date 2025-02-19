@@ -105,8 +105,6 @@ getAll360LeaveApplicationsByEmpId(leaveObj: Leave) {
   return this.http.post(`${this.baseUrl}`+`api/getTeamMembersByTeamId`,team);
 
 }
-//added by rahul for project
-getTeamMemberByTeamId(teamId:any){
-  return this.http.get(`${this.baseUrl}`+`api/getTeamMemberByTeamId`+teamId);
-} 
+
+ 
 }

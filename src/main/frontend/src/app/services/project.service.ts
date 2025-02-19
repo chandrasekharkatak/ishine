@@ -60,8 +60,4 @@ export class ProjectService {
   deleteTeam(project: Project){
     return this.http.post(`${this.baseUrl}` + `api/deleteTeamByTeamId`, project);
   }
-  //added by rahul for project
-getTeamMemberByTeamId(teamId:any){
-  return this.http.get(`${this.baseUrl}`+`api/getTeamMemberByTeamId/`+teamId);
-} 
 }
