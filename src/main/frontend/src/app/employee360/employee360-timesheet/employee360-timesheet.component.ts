@@ -471,7 +471,7 @@ updateStatus(status: string) {
       // Handle "Monthly"
       this.startDate = new Date();
       this.endDate = new Date();
-      this.startDate.setDate(this.startDate.getDate() - 30);
+      this.startDate.setDate(this.startDate.getMonth());
       this.setDate();
     } else if (arg == 4) {
       // Handle "Date range"

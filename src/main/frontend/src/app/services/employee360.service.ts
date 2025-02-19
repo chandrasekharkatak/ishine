@@ -111,4 +111,8 @@ getAll360LeaveApplicationsByEmpId(leaveObj: Leave) {
   setEmployeesFor360(employees: any[]) {
     this.employeesFor360Source.next(employees);
   }
+//added by rahul for project
+getTeamMemberByTeamId(teamId:any){
+  return this.http.get(`${this.baseUrl}`+`api/getTeamMemberByTeamId`+teamId);
+} 
 }
