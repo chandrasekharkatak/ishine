@@ -180,7 +180,8 @@
                   (change)="select(timesheet,$event)"></td>
               <td>{{items*(page-1)+i+1}}</td>
               <td>{{timesheet.employeementId}}</td>
-              <td>{{timesheet.employeeName}}</td>
+              <td id="clickablefor360" *ngIf="userMapping.team_timesheet_employee_360" [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{timesheet.employeeName}}</td>
+              <td *ngIf="!userMapping.team_timesheet_employee_360">{{timesheet.employeeName}}</td>
               <td>{{timesheet.date}}</td>
               <td>{{timesheet.dayType}}</td>
               <td style="min-width: 250px;" [innerHTML]="timesheet.description"></td>

@@ -227,6 +227,17 @@ export class TeamTimesheetComponent implements OnInit {
           timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
+        // for (let x of this.allTeamTimesheetRequests) {
+        //   let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === x.employeementId);
+        //   console.log('matches++',matchingEmployee);
+        //   x.emp360 = matchingEmployee ? matchingEmployee : {};
+        // }
+        this.allTeamTimesheetRequests.forEach(timesheet => {
+          let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === timesheet.employeementId);
+          console.log('matches++',matchingEmployee);
+          timesheet.emp360 = matchingEmployee ? matchingEmployee : {};
+          });
+
         //console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
       } else {
         console.error(response.serviceResponse)

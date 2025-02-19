@@ -598,8 +598,13 @@ export class MyTeamComponent implements OnInit {
             leaveHistory.fromDate = (leaveHistory.fromDate)? moment(leaveHistory.fromDate).format(AppComponent.DATE_FORMAT) : null,
             leaveHistory.toDate = (leaveHistory.toDate)? moment(leaveHistory.toDate).format(AppComponent.DATE_FORMAT) : null,
             leaveHistory.createdOn = (leaveHistory.createdOn)? moment(leaveHistory.createdOn).format(AppComponent.DATE_FORMAT) : null
-            let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === ('A-' + leaveHistory.employeementId));
-            console.log('matches++',matchingEmployee);
+            // let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === leaveHistory.employeementId);
+            // console.log('matches++))',matchingEmployee);
+            // leaveHistory.emp360 = matchingEmployee ? matchingEmployee : {};
+          });
+          this.teamViewLeaveHistoryList.forEach(leaveHistory => {
+            let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === leaveHistory.employeementId);
+            console.log('matches++))',matchingEmployee);
             leaveHistory.emp360 = matchingEmployee ? matchingEmployee : {};
           });
           // for (let y of this.teamViewLeaveHistoryList){
