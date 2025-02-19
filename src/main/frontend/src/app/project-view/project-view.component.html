@@ -48,7 +48,8 @@
         <div class="card col-md-12 px-0">
             <div class="card-body">
                 <h5 class="card-name">Team Info</h5>
-                <div class="row" >
+                <!-- <pre>{{ teamMemberList | json }}</pre> -->
+                  <div class="row" >
                     <div class="col-md-12 mt-2">
                         <div class="selector-toggle" (click)="toggleSearch()">
                             <a href="javascript:void(0)">
@@ -71,32 +72,40 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr *ngIf="teamMemberList.length === 0">
+                                    <tr *ngIf="teamMemberList?.length === 0">
                                         <td colspan="7" class="text-center info-label">No details to display...</td>
                                     </tr>
                                     
                                     <ng-container *ngFor="let team of teamMemberList; let i = index">
-                                        <ng-container *ngFor="let member of team.employees; let j = index">
-                                            <tr>
-                                                <td *ngIf="j === 0" [attr.rowspan]="team.employees.length">{{ i + 1 }}</td>
-                                                <td *ngIf="j === 0" [attr.rowspan]="team.employees.length">{{ team.teamName }}</td>
-                                                <td [navigateToEmployee360]="member.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{ member.employeeName }}</td>
-                                                <td>{{ member.billableType || 'N/A' }}</td>
-                                                <td>{{ member.startDate | date:'dd-MM-yyyy HH:mm:ss' }}</td>
-                                                <td>{{ member.employeeRole }}</td>
-                                                <td>
-                                                    <button *ngIf="team.active != 0" class="btn btn-sm btn-outline-primary mt-1" title="Edit" (click)="editProjectInfo(team)" type="submit"><em class="fa fa-edit"></em></button>&nbsp;
-                                                    <button class="btn btn-sm btn-outline-primary mt-1" title="View" (click)="viewProjectInfo(team)" type="submit"><em class="fa fa-eye"></em></button>&nbsp;
-                                                    <button *ngIf="team.active != 0" class="btn btn-sm btn-outline-danger mt-1" title="Delete" (click)="deleteResourceModal(delete_modal_template,team,member)" type="submit"><em class="fa fa-trash"></em></button>&nbsp;
-                                                </td>
-                                            </tr>
+                                        <ng-container *ngIf="team.employees && team.employees.length > 0">
+                                            <ng-container *ngFor="let member of team.employees; let j = index">
+                                                <tr>
+                                                    <td *ngIf="j === 0" [attr.rowspan]="team.employees?.length">{{ i + 1 }}</td>
+                                                    <td *ngIf="j === 0" [attr.rowspan]="team.employees?.length">{{ team.teamName }}</td>
+                                                    <td [navigateToEmployee360]="member.emp360" style="cursor: pointer;" title="Click to view Employee 360">
+                                                        {{ member.employeeName }}
+                                                    </td>
+                                                    <td>{{ member.billableType || 'N/A' }}</td>
+                                                    <td>{{ member.startDate | date:'dd-MM-yyyy HH:mm:ss' }}</td>
+                                                    <td>{{ member.employeeRole }}</td>
+                                                    <td>
+                                                        <button *ngIf="team.active !== 0" class="btn btn-sm btn-outline-primary mt-1" title="Edit" (click)="editProjectInfo(team)" type="submit">
+                                                            <em class="fa fa-edit"></em>
+                                                        </button>&nbsp;
+                                                        <button class="btn btn-sm btn-outline-primary mt-1" title="View" (click)="viewProjectInfo(team)" type="submit">
+                                                            <em class="fa fa-eye"></em>
+                                                        </button>&nbsp;
+                                                        <button *ngIf="team.active !== 0" class="btn btn-sm btn-outline-danger mt-1" title="Delete" (click)="deleteResourceModal(delete_modal_template, team, member)" type="submit">
+                                                            <em class="fa fa-trash"></em>
+                                                        </button>&nbsp;
+                                                    </td>
+                                                </tr>
+                                            </ng-container>
                                         </ng-container>
-                                    </ng-container>
-                                </tbody>
+                                    </ng-container>                                    
+                                </tbody>                                
                             </table>                        
                         </div>
-                        <pagination-controls class="my-pagination" [hidden]="projectObj.teamList.length == 0"
-                            (pageChange)="handlePageChange($event)"></pagination-controls>
                     </div>
                 </div>
              </div>

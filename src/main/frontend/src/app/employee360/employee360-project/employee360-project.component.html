@@ -28,7 +28,8 @@
                     *ngFor="let project of filterTeamfromTeamId | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
                     <th class="info-label">{{17*(page-1)+i+1}}</th>
                     <td>A-{{ project.employeementId }}</td>
-                    <td id="clickablefor360" >{{ project.name }}</td>
+                    <!-- <td  >{{ project.name }}</td> -->
+                    <td id="clickablefor360" [navigateToEmployee360]="project.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{ project.name }}</td>
                     <td>{{ project.teamName }}</td>
                     <td>{{ project.teamLeadName }}</td>
                   

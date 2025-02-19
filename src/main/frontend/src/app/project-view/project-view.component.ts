@@ -175,6 +175,7 @@ export class ProjectViewComponent implements OnInit {
   //       console.error("Error fetching team info:", error);
   //   }
   // }
+  
   ngOnInit(): void {
     const storedData = localStorage.getItem('projectId');
     const parsedData = storedData ? JSON.parse(storedData) : null;
@@ -189,7 +190,8 @@ export class ProjectViewComponent implements OnInit {
     }
 
     this.getAllEmployeeFor360View();
-}
+    this.getProjectInfo(); 
+  }
 
 getAllEmployeeFor360View(): void {
     this.employeesFor360 = [];
@@ -214,7 +216,7 @@ getAllEmployeeFor360View(): void {
                 });
 
                 this.employeesFor360 = new SortPipe().transform(this.employeesFor360, ['name', 'string', 'asc']);
-                this.getProjectInfo(); // Call getProjectInfo() after employees are loaded
+                
             } else {
                 alert(response.serviceResponse);
             }
@@ -225,7 +227,7 @@ getAllEmployeeFor360View(): void {
     });
 }
 
-getProjectInfo(): void {
+  getProjectInfo(): void {
     this.projectObj.projectId = this.selectedProjectId;
     console.log("projectObj ", this.projectObj);
 
@@ -234,7 +236,7 @@ getProjectInfo(): void {
             if (response.serviceStatus === "Success") {
                 this.projectList = response.serviceResponse;
                 this.projectObj = this.projectList[0];
-                this.getTeamInfo(this.projectObj); // Call getTeamInfo() after project info is loaded
+                this.getTeamInfo(this.projectObj);
             } else {
                 console.warn("Failed to fetch project info");
             }
@@ -243,7 +245,7 @@ getProjectInfo(): void {
             console.error("Error fetching project info:", error);
         }
     });
-}
+  }
 
   getTeamInfo(project): void {
     this.employee360Service.getTeamInfo(project).subscribe({
@@ -276,6 +278,8 @@ getProjectInfo(): void {
                         active: member.active,
                         emp360: {}
                     });
+
+                    groupedData[teamKey].employees = groupedData[teamKey].employees || [];
                 });
 
                 this.teamMemberList = Object.values(groupedData);
@@ -293,6 +297,8 @@ getProjectInfo(): void {
                 });
 
                 console.log("Formatted Team Data: ", this.teamMemberList);
+                console.log("Final Team Data: ", JSON.stringify(this.teamMemberList, null, 2));
+
             } else {
                 console.warn("Failed to fetch team info");
             }
@@ -380,4 +386,5 @@ getProjectInfo(): void {
   cancelRequest() {
     this.modalRef.hide();
   }
+
 }
