@@ -2748,6 +2748,31 @@ public ServiceResponse getProjectInfo(ResourceManagementDTO resourceManagementDT
 	logService.logMyInfo(httpRequest, apiLogInfo);
 	return response;
 }
+public ServiceResponse getTeamMemberByTeamId(Long teamId) {
+	ServiceResponse response = new ServiceResponse();
+	List<Object[]> allEmployeeList = employeeTeamMapRepository.findEmployeeByTeamId(teamId);
+	List<EmployeeDTO> dtoList=new ArrayList();
+	allEmployeeList.forEach((object) -> {
+		EmployeeDTO empDTO = new EmployeeDTO();
+
+		empDTO.setEmpId(object[1] != null ? Long.parseLong(object[1].toString()) :null);
+		empDTO.setName(object[0] != null ? object[0].toString() : null);
+		
+		empDTO.setEmployeementId(object[2] != null ? Long.parseLong(object[2].toString()) :null);
+		empDTO.setTeamLeadName(object[5] != null ? object[5].toString() :null);
+		empDTO.setTeamName(object[4] != null ? object[4].toString() :null);
+		empDTO.setEmail(object[3] != null ? object[3].toString() :null);
+		
+		dtoList.add(empDTO);
+	});
+	
+    
+    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+    response.setServiceResponse(dtoList);
+
+	return response;
+}
+
 
 public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) {
 	

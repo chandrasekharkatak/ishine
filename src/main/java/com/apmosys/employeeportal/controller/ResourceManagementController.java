@@ -132,4 +132,11 @@ public class ResourceManagementController {
 		ServiceResponse response = resourceManagementService.getTeamInfo(resourceManagementDTO);
 		return response;
 	}
+	@RequestMapping(value = "/getTeamMemberByTeamId/{teamId}", method = RequestMethod.GET)
+	public ServiceResponse getTeamMemberByTeamId(@PathVariable("teamId") Long teamId) {
+		
+		ServiceResponse response = resourceManagementService.getTeamMemberByTeamId(teamId);
+		return response;
+	}
+
 }
