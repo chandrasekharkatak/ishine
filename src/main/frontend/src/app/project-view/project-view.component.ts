@@ -15,6 +15,12 @@ import { UtilityService } from 'src/app/services/utility.service';
 import { SortPipe } from 'src/app/sort.pipe';
 import { Location } from '@angular/common';
 
+
+class FilterData {
+  title: any;
+  columns: any;
+  queryList: any;
+}
 @Component({
   selector: 'app-project-view',
   templateUrl: './project-view.component.html',
@@ -31,7 +37,7 @@ export class ProjectViewComponent implements OnInit {
 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
-
+  page = 1;
   filters:any = {};
   isSearchEnabled:boolean = false;
 
@@ -40,7 +46,7 @@ export class ProjectViewComponent implements OnInit {
   sortColumnType:any;
 
   lastDate: any;
-
+  employeesColumns: any[] = ['blank', 'teamName', 'employeeName', 'billableType', 'startDate', 'employeeRole'];
   constructor(
     private breadcrumbService: BreadcrumbService,
     private modalService: BsModalService,
@@ -102,6 +108,10 @@ export class ProjectViewComponent implements OnInit {
     });
 }
 
+
+handlePageChange(event) {
+  this.page = event;
+}
   getProjectInfo(): void {
     this.projectObj.projectId = this.selectedProjectId;
     // console.log("projectObj ", this.projectObj);
