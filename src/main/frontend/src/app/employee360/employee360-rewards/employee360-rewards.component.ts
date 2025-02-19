@@ -99,6 +99,7 @@ export class Employee360RewardsComponent implements OnInit {
   }
 
   onYearChange(event: Event): void {
+    this.isTeamTableVisible = false;
     const selectElement = event.target as HTMLSelectElement;
     this.selectedYear = +selectElement.value; // Convert to number
 
