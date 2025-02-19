@@ -34,7 +34,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/createEmployee`,
     `${this.baseUrl}` + `api/updateEmployeeByEmpId`,
     `${this.baseUrl}` + `api/deleteEmployeeByEmpId`,
-    `${this.baseUrl}` + `api/getAllEmployees`,
+    // `${this.baseUrl}` + `api/getAllEmployees`,
     `${this.baseUrl}` + `api/getEmployeeByEmpId`,
     `${this.baseUrl}` + `api/updateEmployeeProfileByEmpId`,
     `${this.baseUrl}` + `api/previewImage`,
@@ -221,7 +221,9 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/fetchEmployeesFromRewardCondition`,
     `${this.baseUrl}`+`api/submitRewardForEmployee`,
     `${this.baseUrl}` + `api/showAllEmployeeRewards`,
-    `${this.baseUrl}` + `api/getReviewType`
+    `${this.baseUrl}` + `api/getReviewType`,
+    `${this.baseUrl}` + `api/getProjectInfo`,
+    `${this.baseUrl}` + `api/getTeamInfo`
   ]
 
   constructor(private loaderService: LoaderService) { }
