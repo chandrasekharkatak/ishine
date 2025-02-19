@@ -172,6 +172,7 @@ export class Employee360RewardsComponent implements OnInit {
   // }
 
   onCategoryChange(event: Event): void {
+    this.isTeamTableVisible = false;
     const selectElement = event.target as HTMLSelectElement;
     const categoryId = +selectElement.value; // Convert value to number
     const formattedMonth = categoryId.toString().padStart(2, '0');
