@@ -53,7 +53,7 @@
         <td>{{ event.appreciateType }}</td>
         <td *ngIf="isTeamAppreciationView">
           <span *ngIf="getMatchedEmployee(event)">
-            <a [navigateToEmployee360]="getMatchedEmployee(event)">
+            <a id="clickablefor360" [navigateToEmployee360]="getMatchedEmployee(event)">
               {{ event.appreciationByName }}
             </a>
           </span>

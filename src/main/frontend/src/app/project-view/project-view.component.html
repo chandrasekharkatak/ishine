@@ -82,7 +82,7 @@
                                                 <tr>
                                                     <td *ngIf="j === 0" [attr.rowspan]="team.employees?.length">{{ i + 1 }}</td>
                                                     <td *ngIf="j === 0" [attr.rowspan]="team.employees?.length">{{ team.teamName }}</td>
-                                                    <td [navigateToEmployee360]="member.emp360" style="cursor: pointer;" title="Click to view Employee 360">
+                                                    <td id="clickablefor360" [navigateToEmployee360]="member.emp360" style="cursor: pointer;" title="Click to view Employee 360">
                                                         {{ member.employeeName }}
                                                     </td>
                                                     <td>{{ member.billableType || 'N/A' }}</td>

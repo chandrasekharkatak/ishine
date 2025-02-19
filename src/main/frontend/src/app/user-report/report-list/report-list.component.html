@@ -75,7 +75,7 @@
                 *ngFor="let leave of allLeaveApplicationsList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{leave.employeementId}}</td>
                 <td>{{leave.employeeType}}</td>
-                <td *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="leave" style="cursor: pointer;" title="Click to view Employee 360">{{leave.employeeName}}</td>
+                <td id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="leave" style="cursor: pointer;" title="Click to view Employee 360">{{leave.employeeName}}</td>
                 <td *ngIf="!userMapping.reports_employee_360">{{leave.employeeName}}</td>
                 <td>{{leave.leaveType}}</td>
                 <td>{{leave.fromDate}}</td>
@@ -170,7 +170,7 @@
                 *ngFor="let timesheet of allTimesheetApplicationsList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{timesheet.employeementId}}</td>
                 <td>{{timesheet.employeeType}}</td> 
-                <td *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{timesheet.employeeName}}</td>
+                <td id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{timesheet.employeeName}}</td>
                 <td *ngIf="!userMapping.reports_employee_360">{{timesheet.employeeName}}</td>
                 <td>{{timesheet.date}}</td>
                 <td>{{timesheet.dayType}}</td>
@@ -311,7 +311,7 @@
               <tr *ngFor="let employee of allEmployeeList | colFilter:filters: false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{employee.employeementId}}</td>
                 <td>{{employee.employeeType}}</td>
-                <td *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="employee.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{employee.name}}</td>
+                <td id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="employee.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{employee.name}}</td>
                 <td *ngIf="!userMapping.reports_employee_360">{{employee.name}}</td>
                 <td>{{employee.departmentName}}</td>
                 <td>{{employee.jobRoleName}}</td>
@@ -702,7 +702,7 @@
                 *ngFor="let timesheet of allLeaveTimesheets | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{timesheet.employeementId}}</td>
                 <td>{{timesheet.employeeType}}</td>
-                <td *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{timesheet.employeeName}}</td>
+                <td id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{timesheet.employeeName}}</td>
                 <td *ngIf="!userMapping.reports_employee_360">{{timesheet.employeeName}}</td>
                 <td>{{timesheet.date}}</td>
                 <td>{{timesheet.dayType}}</td>
