@@ -527,7 +527,7 @@ export class MyTeamComponent implements OnInit {
           console.log('matches++',matchingEmployee);
           y.emp360 = matchingEmployee ? matchingEmployee : {};
         }
-        console.log("teamViewList : ", this.teamViewList);         
+        // console.log("teamViewList : ", this.teamViewList);         
 
       } else {
         console.error(response.serviceResponse);

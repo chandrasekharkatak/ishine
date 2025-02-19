@@ -8,6 +8,7 @@ import { BehaviorSubject } from 'rxjs';
 import { Employee } from '../models/employee';
 import { Leave } from '../models/leave';
 import { Team } from '../models/team';
+import { Project } from '../models/project';
 
 @Injectable({
   providedIn: 'root'
@@ -115,4 +116,12 @@ getAll360LeaveApplicationsByEmpId(leaveObj: Leave) {
 getTeamMemberByTeamId(teamId:any){
   return this.http.get(`${this.baseUrl}`+`api/getTeamMemberByTeamId`+teamId);
 } 
+
+  getProjectInfo(project:Project){
+    return this.http.post(`${this.baseUrl}`+`api/getProjectInfo`,project);
+  }
+
+  getTeamInfo(project:Project){
+    return this.http.post(`${this.baseUrl}`+`api/getTeamInfo`,project);
+  }
 }

@@ -67,6 +67,7 @@ import { DocumentUploadComponent } from './user-update-info/document-upload/docu
 import { EmployeeInfoComponent } from './user-update-info/employee-info/employee-info.component';
 import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
+import { ProjectViewComponent } from './project-view/project-view.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -160,10 +161,9 @@ const routes: Routes = [
       { path: 'biomax', component: Employee360BiomaxComponent, },
       { path: 'rewards', component: Employee360RewardsComponent, },
       { path: 'appreciation', component: Employee360AppreciationComponent, },
-
     ]
   },
-
+  {path:'project-view', component: ProjectViewComponent},
   {path:'user-policies', component: UserPoliciesComponent, canActivate: [AuthGuard]},
   {path:'user-survey', component: UserSurveyComponent, canActivate: [AuthGuard]},
   {path:'user-survey/:id', component: UserSurveyComponent, canActivate: [AuthGuard]},
