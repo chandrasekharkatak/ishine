@@ -373,11 +373,11 @@ LmsRedirection(){
             leave.currentApprovalLevel = 1;
             leave.finalApprovalLevel = 1;
           }
-          // let matchingEmployee = this.employeeList.find(emp => emp.empId === leave.empId);
-          // leave.emp360 = matchingEmployee ? matchingEmployee : {};
+          let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId === leave.empId);
+          leave.emp360 = matchingEmployee ? matchingEmployee : {};
 
         });
-        //console.log("leaveApplicationList : ", this.leaveApplicationList);
+        console.log("leaveApplicationList : ", this.leaveApplicationList);
       } else {
         console.error(response.serviceResponse);
       }
@@ -481,8 +481,8 @@ LmsRedirection(){
           compOff.fromDate = (compOff.fromDate) ? moment(compOff.fromDate).format(AppComponent.DATE_FORMAT) : null;
           compOff.toDate = (compOff.toDate) ? moment(compOff.toDate).format(AppComponent.DATE_FORMAT) : null;
           compOff.createdOn = (compOff.createdOn) ? moment(compOff.createdOn).format(AppComponent.DATE_FORMAT) : null;
-          // let matchingEmployee = this.employeeList.find(emp => emp.empId === compOff.empId);
-          // compOff.emp360 = matchingEmployee ? matchingEmployee : {};
+          let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId === compOff.empId);
+          compOff.emp360 = matchingEmployee ? matchingEmployee : {};
 
         });
         console.log("allCompOffApplications : ", this.allCompOffApplications);
@@ -588,8 +588,8 @@ LmsRedirection(){
           //     this.employeeList = [];
           // }
 
-          // let matchingEmployee = this.employeeList.find(emp => emp.employeementId === timesheet.employeementId);
-          // timesheet.emp360 = matchingEmployee ? matchingEmployee : {};
+          let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === timesheet.employeementId);
+          timesheet.emp360 = matchingEmployee ? matchingEmployee : {};
 
         });
         //console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);

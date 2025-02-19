@@ -344,8 +344,8 @@
               </tr>
               <tr *ngFor="let compOffHistory of teamViewCompOffHistoryList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
               <td class="info-label">{{10*(page-1)+i+1}}</td>
-              <td class="info-label">{{compOffHistory.createdByName}}</td>
-              <td class="info-label">{{compOffHistory.fromDate}}</td>
+              <td class="info-label" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="compOffHistory.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{compOffHistory.createdByName}}</td>
+              <td class="info-label" *ngIf="!userMapping.my_team_employee_360">{{compOffHistory.fromDate}}</td>
               <td class="info-label">{{compOffHistory.toDate}}</td>
               <td class="info-label">{{compOffHistory.createdOn}}</td>
               <!-- <td class="info-label"> {{teamLeaveHistory.toDate}}</td>
@@ -515,7 +515,8 @@
                         [(ngModel)]="leaveApplication.isSelected" (change)="select(leaveApplication,$event)">
                       </td>
                     <td>{{items*(page-1)+i+1}}</td>
-                    <td  [navigateToEmployee360]="leaveApplication"  style="cursor: pointer;"  title="Click to view Employee 360" >{{leaveApplication.employeeName}}</td>
+                    <td *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="leaveApplication.emp360" style="cursor: pointer;"  title="Click to view Employee 360" >{{leaveApplication.employeeName}}</td>
+                    <td *ngIf="!userMapping.my_team_employee_360">{{leaveApplication.employeeName}}</td>
                     <td>{{leaveApplication.leaveType}}</td>
                     <td>{{leaveApplication.fromDate}}</td>
                     <td>{{leaveApplication.toDate}}</td>
@@ -604,7 +605,8 @@
                   <tr
                     *ngFor="let compOffApp of allCompOffApplications| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
                     <td>{{10*(page-1)+i+1}}</td>
-                    <td>{{compOffApp.createdByName}}</td>
+                    <td *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="compOffApp.emp360" style="cursor: pointer;"  title="Click to view Employee 360">{{compOffApp.createdByName}}</td>
+                    <td *ngIf="!userMapping.my_team_employee_360">{{compOffApp.createdByName}}</td>
                     <td>{{compOffApp.compOffReasons}}</td>
                     <td>{{compOffApp.fromDate}}</td>
                     <td>{{compOffApp.toDate}}</td>
@@ -688,7 +690,8 @@
                     <td>{{leave.toDate}}</td>
                     <td>{{leave.noOfDays}}</td>
                     <td>{{leave.status}}</td>
-                    <td>{{leave.createdByName}}</td>
+                    <td *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="leave.emp360" style="cursor: pointer;"  title="Click to view Employee 360">{{leave.createdByName}}</td>
+                    <td *ngIf="!userMapping.my_team_employee_360">{{leave.createdByName}}</td>
                     <td>{{leave.createdOn}}</td>
                     <td>{{leave.revokeReason}}</td>
                     <td>
