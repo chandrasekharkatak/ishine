@@ -239,10 +239,15 @@ export class UserPerformanceComponent implements OnInit {
             const joiningDate = new Date(employee.dateOfJoining);
           
             // If the current user's role is HR or the HOD ID matches the current user
-            if (employee.hodId === this.currentUser.empId || this.currentUser.employeeRole === 'HR') {
+            if (employee.hodId === this.currentUser.empId) {
               // Check if the employee is confirmed and joined more than one year ago
               return joiningDate <= oneYearAgo && employee.employmentstatus === 'Confirmed';
             }
+            if (this.currentUser.employeeRole === 'HR') {
+              // Check if the employee is confirmed and joined more than one year ago
+              return joiningDate <= oneYearAgo && employee.employmentstatus === 'Confirmed';
+            }
+        
         
             // if (this.currentUser.employeeRole !== 'HR') {
             //   alert('You are not authorized..!!');
