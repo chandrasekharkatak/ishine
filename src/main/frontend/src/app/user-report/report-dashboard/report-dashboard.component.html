@@ -496,7 +496,7 @@
                         *ngFor="let leave of modalSummaryList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                         <th class="info-label">{{20*(page-1)+i+1}}</th>
                         <td>{{leave.employeementId}}</td>
-                        <td>prarthana{{leave.employeeType}}</td>
+                        <td>{{leave.employeeType}}</td>
                         <td id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="leave" style="cursor: pointer;" title="Click to view Employee 360" class="text-capitalize">{{leave.name}}</td>
                         <td *ngIf="!userMapping.reports_employee_360">{{leave.name}}</td>
                         <td>{{leave.experience}}</td>
@@ -509,7 +509,7 @@
 
                         <td  *ngIf="userMapping.report_project_view">
                             <span *ngFor="let project of leave.projectList; let last = last" class="info-label"
-                                style="cursor: pointer; color: blue;"  id="clickablefor360" [navigateToProjectView]="project.projectId" style="cursor: pointer;" title="Click to view Project Details"> 
+                                style="cursor: pointer; color: blue;"  id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.projectId" style="cursor: pointer;" title="Click to view Project Details"> 
                                 {{ project.projectName }}<span *ngIf="!last">, </span>
                             </span>
                         </td>
