@@ -507,7 +507,13 @@
                         <td>{{leave.billable}}</td>
                         <td>{{leave.billableType}}</td>
 
-                        <td>
+                        <td  *ngIf="userMapping.report_project_view">
+                            <span *ngFor="let project of leave.projectList; let last = last" class="info-label"
+                                style="cursor: pointer; color: blue;"  id="clickablefor360" [navigateToProjectView]="project.projectId" style="cursor: pointer;" title="Click to view Project Details"> 
+                                {{ project.projectName }}<span *ngIf="!last">, </span>
+                            </span>
+                        </td>
+                        <td *ngIf="!userMapping.report_project_view">
                             <span *ngFor="let project of leave.projectList; let last = last" class="info-label"
                                 style="cursor: pointer; color: blue;" >
                                 {{ project.projectName }}<span *ngIf="!last">, </span>

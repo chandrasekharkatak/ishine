@@ -363,10 +363,10 @@
                             </tr>
                             <tr *ngFor="let team of allTeamList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                 <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
-                                <!-- <td>ghghn {{team.projectName}}</td> -->
-                                <td [navigateToProjectView]="team.projectId" style="cursor: pointer;" title="Click to view Project Details">{{team.projectName}}</td>
-                                <td>{{team.teamName}}</td>
-                                <!-- <td [navigateToProjectView]="team.emp360Teamlead" style="cursor: pointer;" title="Click to view Employee 360">{{team.teamName}}</td> -->
+                                <td *ngIf="!userMapping.team_config_project_view">{{team.projectName}}</td>
+                                <td *ngIf="userMapping.team_config_project_view" id="clickablefor360" [navigateToProjectView]="team.projectId" title="Click to view Project Details">{{team.projectName}}</td>
+                                <td *ngIf="!userMapping.team_config_project_view">{{team.teamName}}</td>
+                                <td *ngIf="userMapping.team_config_project_view" id="clickablefor360" [navigateToProjectView]="team.projectId" style="cursor: pointer;" title="Click to view Project Details">{{team.teamName}}</td>
                                 <td id="clickablefor360" *ngIf="userMapping.my_team_team_config_employee_360" [navigateToEmployee360]="team.emp360Teamlead" style="cursor: pointer;" title="Click to view Employee 360">{{team.teamLeadName}}</td>
                                 <td *ngIf="!userMapping.my_team_team_config_employee_360">{{team.teamLeadName}}</td>
                                 <td id="clickablefor360" *ngIf="userMapping.my_team_team_config_employee_360" [navigateToEmployee360]="team.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{team.projectManagerName}}</td>

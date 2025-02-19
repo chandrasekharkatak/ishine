@@ -13,6 +13,7 @@ import { Employee360Service } from 'src/app/services/employee360.service';
 import { ProjectService } from 'src/app/services/project.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { SortPipe } from 'src/app/sort.pipe';
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-project-view',
@@ -48,6 +49,7 @@ export class ProjectViewComponent implements OnInit {
     private projectService: ProjectService,
     private employeeService: EmployeeService,
     public utilityService: UtilityService,
+    private location: Location
   ) { }
   
   ngOnInit(): void {
@@ -244,10 +246,13 @@ export class ProjectViewComponent implements OnInit {
     this.filters = searchData;
     //console.log("Updated Filter : ", this.filters);
   }
-  
 
   cancelRequest() {
     this.modalRef.hide();
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 
 }
