@@ -2949,8 +2949,8 @@ public class EmployeeService {
 					empDTO.setEmployeeConfirmationDate(object[83] != null ? object[83].toString() : null);
 					
 					
-					if (object[84] != null && object[72] != null) {
-		                String projectIdStr = object[84].toString().trim();
+					if (object[87] != null && object[72] != null) {
+		                String projectIdStr = object[87].toString().trim();
 		                String projectNameStr = object[72].toString().trim();
 
 		                

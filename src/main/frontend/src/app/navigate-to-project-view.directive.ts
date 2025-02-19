@@ -14,6 +14,7 @@ export class NavigateToProjectViewDirective {
 
   @HostListener('click') onClick() {
     if (this.data) {
+      alert(this.data);
       localStorage.setItem('projectId', this.data);
       this.projectViewService.navigateToProjectView(this.data);
     }
