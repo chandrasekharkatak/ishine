@@ -28,7 +28,7 @@
                     *ngFor="let project of filterTeamfromTeamId | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
                     <th class="info-label">{{17*(page-1)+i+1}}</th>
                     <td>A-{{ project.employeementId }}</td>
-                    <td >{{ project.name }}</td>
+                    <td id="clickablefor360" >{{ project.name }}</td>
                     <td>{{ project.teamName }}</td>
                     <td>{{ project.teamLeadName }}</td>
                   
@@ -70,7 +70,7 @@
                 <tr
                     *ngFor="let project of filterProjectByProjectId | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
                     <th class="info-label">{{17*(page-1)+i+1}}</th>
-                    <td><a (click)="redirecttoTeam(project.teamId)">{{ project.teamName }}</a></td>
+                    <td><a id="clickablefor360" (click)="redirecttoTeam(project.teamId)">{{ project.teamName }}</a></td>
                     <td>{{ project.clientName }}</td>
                     <td>{{ project.billableType }}</td>
                     <td>{{ project.startDate }}</td>
@@ -116,8 +116,8 @@
                     <tr
                         *ngFor="let project of allProjectList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
                         <th class="info-label">{{17*(page-1)+i+1}}</th>
-                        <td><a (click)="redirecttoProjectTeam(project.projectId)">{{project.projectName }}</a></td>
-                        <td><a (click)="redirecttoTeam(project.teamId)">{{ project.teamName }}</a></td>
+                        <td><a id="clickablefor360" (click)="redirecttoProjectTeam(project.projectId)">{{project.projectName }}</a></td>
+                        <td><a id="clickablefor360" (click)="redirecttoTeam(project.teamId)">{{ project.teamName }}</a></td>
                         <td>{{ project.clientName }}</td>
                         <td>{{ project.billableType }}</td>
                         <td>{{ project.startDate }}</td>
