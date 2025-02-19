@@ -49,139 +49,13 @@ export class ProjectViewComponent implements OnInit {
     private employeeService: EmployeeService,
     public utilityService: UtilityService,
   ) { }
-
-  // async ngOnInit(): Promise<void> {
-  //   const storedData = localStorage.getItem('projectId');
-  //   const parsedData = storedData ? JSON.parse(storedData) : null;
-
-  //   console.log("storedData ", storedData);
-  //   console.log("parsedData ", parsedData);
-
-  //   if (parsedData !== null && parsedData !== undefined) {
-  //       this.selectedProjectId = parsedData;
-  //   } else {
-  //       this.selectedProjectId = history.state.data;
-  //   }
-
-  //   await this.getAllEmployeeFor360View();
-  //   await this.getProjectInfo();
-  // }
-
-  // async getAllEmployeeFor360View() {
-  //   this.employeesFor360 = [];
-  //   try {
-  //       const response: any = await this.employeeService.getAllEmployeesFor360View().toPromise();
-
-  //       if (response.serviceStatus == "Success") {
-  //           this.employeesFor360 = response.serviceResponse;
-
-  //           this.employeesFor360.forEach(employeeObj => {
-  //               employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
-  //               employeeObj.dateOfJoining = employeeObj.dateOfJoining ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-  //               employeeObj.dateOfRelieving = employeeObj.dateOfRelieving ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-  //               employeeObj.updatedOn = employeeObj.updatedOn ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-  //               employeeObj.createdOn = employeeObj.createdOn ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-
-  //               if (employeeObj.isConsultant == 'true')
-  //                   employeeObj.employeeType = 'Consultant';
-  //               else if (employeeObj.isApprenticeship == 'true')
-  //                   employeeObj.employeeType = 'Apprentice';
-  //               else
-  //                   employeeObj.employeeType = 'Regular';
-  //           });
-
-  //           this.employeesFor360 = new SortPipe().transform(this.employeesFor360, ['name', 'string', 'asc']);
-  //       } else {
-  //           alert(response.serviceResponse);
-  //       }
-  //   } catch (error) {
-  //       console.error("Error fetching employees:", error);
-  //   }
-  // }
-
-  // async getProjectInfo(): Promise<void> {
-  //   this.projectObj.projectId = this.selectedProjectId;
-  //   console.log("projectObj ", this.projectObj);
-
-  //   try {
-  //       const response: any = await this.employee360Service.getProjectInfo(this.projectObj).toPromise();
-
-  //       if (response.serviceStatus === "Success") {
-  //           this.projectList = response.serviceResponse;
-  //           this.projectObj = this.projectList[0];
-  //       } else {
-  //           console.warn("Failed to fetch project info");
-  //       }
-
-  //       await this.getTeamInfo(this.projectObj);
-  //   } catch (error) {
-  //       console.error("Error fetching project info:", error);
-  //   }
-  // }
-
-  // async getTeamInfo(project): Promise<void> {
-  //   try {
-  //       const response: any = await this.employee360Service.getTeamInfo(project).toPromise();
-
-  //       if (response.serviceStatus === "Success") {
-  //           this.teamMemberList = response.serviceResponse;
-  //           console.log("getTeamInfo ", this.teamMemberList);
-
-  //           const groupedData = {};
-
-  //           this.teamMemberList.forEach((member) => {
-  //             const teamKey = member.teamId;
-
-  //             if (!groupedData[teamKey]) {
-  //                 groupedData[teamKey] = {
-  //                     teamId: member.teamId,
-  //                     teamName: member.teamName,
-  //                     employees: [],
-  //                     projectId: member.projectId,
-  //                     projectName: member.projectName
-  //                 };
-  //             }
-
-  //             groupedData[teamKey].employees.push({
-  //                 empId: member.empId,
-  //                 employeeName: member.employeeName,
-  //                 employeeRole: member.employeeRole ? member.employeeRole.split(',').filter(role => role.trim() !== '').join(', ') : "",
-  //                 startDate: member.startDate ? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null,
-  //                 billableType: member.billableType,
-  //                 active: member.active,
-  //                 emp360: {}
-  //             });
-  //         });
-
-  //         this.teamMemberList = Object.values(groupedData);
-
-  //         console.log("Before for each: ", this.teamMemberList);
-  //         console.log("employeesFor360 ", this.employeesFor360);
-
-  //         this.teamMemberList.forEach((team) => {
-  //             team.employees.forEach((employee) => {
-  //                 console.log("employee.empId ",employee.empId);
-  //                 let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
-  //                 console.log("matchingEmployee ", matchingEmployee);
-  //                 employee.emp360 = matchingEmployee ? matchingEmployee : {};
-  //             });
-  //         });
-
-  //         console.log("Formatted Team Data: ", this.teamMemberList);
-  //       } else {
-  //           console.warn("Failed to fetch team info");
-  //       }
-  //   } catch (error) {
-  //       console.error("Error fetching team info:", error);
-  //   }
-  // }
   
   ngOnInit(): void {
     const storedData = localStorage.getItem('projectId');
     const parsedData = storedData ? JSON.parse(storedData) : null;
 
-    console.log("storedData ", storedData);
-    console.log("parsedData ", parsedData);
+    // console.log("storedData ", storedData);
+    // console.log("parsedData ", parsedData);
 
     if (parsedData !== null && parsedData !== undefined) {
         this.selectedProjectId = parsedData;
@@ -190,10 +64,9 @@ export class ProjectViewComponent implements OnInit {
     }
 
     this.getAllEmployeeFor360View();
-    this.getProjectInfo(); 
   }
 
-getAllEmployeeFor360View(): void {
+  getAllEmployeeFor360View(): void {
     this.employeesFor360 = [];
     this.employeeService.getAllEmployeesFor360View().subscribe({
         next: (response: any) => {
@@ -216,7 +89,7 @@ getAllEmployeeFor360View(): void {
                 });
 
                 this.employeesFor360 = new SortPipe().transform(this.employeesFor360, ['name', 'string', 'asc']);
-                
+                this.getProjectInfo(); 
             } else {
                 alert(response.serviceResponse);
             }
@@ -229,7 +102,7 @@ getAllEmployeeFor360View(): void {
 
   getProjectInfo(): void {
     this.projectObj.projectId = this.selectedProjectId;
-    console.log("projectObj ", this.projectObj);
+    // console.log("projectObj ", this.projectObj);
 
     this.employee360Service.getProjectInfo(this.projectObj).subscribe({
         next: (response: any) => {
@@ -252,7 +125,7 @@ getAllEmployeeFor360View(): void {
         next: (response: any) => {
             if (response.serviceStatus === "Success") {
                 this.teamMemberList = response.serviceResponse;
-                console.log("getTeamInfo ", this.teamMemberList);
+                // console.log("getTeamInfo ", this.teamMemberList);
 
                 const groupedData = {};
 
@@ -284,21 +157,15 @@ getAllEmployeeFor360View(): void {
 
                 this.teamMemberList = Object.values(groupedData);
 
-                console.log("Before for each: ", this.teamMemberList);
-                console.log("employeesFor360 ", this.employeesFor360);
-
                 this.teamMemberList.forEach((team) => {
                     team.employees.forEach((employee) => {
-                        console.log("employee.empId ", employee.empId);
+                        // console.log("employee.empId ", employee.empId);
                         let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
-                        console.log("matchingEmployee ", matchingEmployee);
+                        // console.log("matchingEmployee ", matchingEmployee);
                         employee.emp360 = matchingEmployee ? matchingEmployee : {};
                     });
                 });
-
-                console.log("Formatted Team Data: ", this.teamMemberList);
-                console.log("Final Team Data: ", JSON.stringify(this.teamMemberList, null, 2));
-
+                // console.log("Formatted Team Data: ", this.teamMemberList);
             } else {
                 console.warn("Failed to fetch team info");
             }
@@ -331,18 +198,18 @@ getAllEmployeeFor360View(): void {
     this.modalRef = this.modalService.show(template, { class: 'modal-md' });
     this.projectObj = projObj;
     this.projectObj.empId = member.empId;
-    console.log(" member ",member.empId," ",member.employeeName);
+    // console.log(" member ",member.empId," ",member.employeeName);
   }
 
   deleteResourceFromProject(template: TemplateRef<any>) {
     this.cancelRequest();
-    console.log("Pri ",this.projectObj);
+    // console.log("Pri ",this.projectObj);
     let projectObj = new Project();
     projectObj.teamId = this.projectObj.teamId;
     projectObj.empId = this.projectObj.empId;
     projectObj.endDate = this.lastDate;
 
-    console.log("team details ", projectObj)
+    // console.log("team details ", projectObj)
     this.projectService.updateProjectResourceAsInActive(projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -378,10 +245,6 @@ getAllEmployeeFor360View(): void {
     //console.log("Updated Filter : ", this.filters);
   }
   
-  page = 1;
-  handlePageChange(event) {
-    this.page = event;
-  }
 
   cancelRequest() {
     this.modalRef.hide();
