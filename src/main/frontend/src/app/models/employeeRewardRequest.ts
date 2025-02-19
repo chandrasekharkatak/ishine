@@ -4,4 +4,5 @@ export class EmployeeRewarsRequest{
 	fromDate : any;
     toDate : any;
     ofMonthYear : any;
+    teamId:any;
 }

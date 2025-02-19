@@ -273,6 +273,7 @@ LmsRedirection(){
   })
 
 }
+
   ngOnInit(): void {
   console.log("current user", this.currentUser.isNew);
     if (this.currentUser.isNew === "true") {
@@ -1160,23 +1161,48 @@ LmsRedirection(){
 
   /* Quick Links */
   showApplyLeaveForm() {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }else{
     this.router.navigate(['/user-leaves'],
       { queryParams: { tabName: 'leave-tab' }, queryParamsHandling: '' });
+   }
+    
   }
 
   showApplyCompOffForm() {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }else{
     this.router.navigate(['/user-leaves'],
       { queryParams: { tabName: 'compOff-tab' }, queryParamsHandling: '' });
+    }
   }
 
   showApplyTimesheetForm() {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }else{
     this.router.navigate(['/user-timesheet'],
       { queryParams: { tabName: 'my-timesheet-tab' }, queryParamsHandling: '' });
+    }
   }
 
   showHolidayList() {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }else{
     this.router.navigate(['/user-leaves'],
       { queryParams: { tabName: 'holidays-tab' }, queryParamsHandling: '' });
+    }
   }
 
   /* carousal Images */
@@ -1275,6 +1301,11 @@ LmsRedirection(){
   }
 
   getTimesheetsForHomePageByEmpId(dateRange: any) {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }
     this.timesheetDetails = [];
     const TOTAL_WORKING_HOURS_IN_DAY = 8;
     const currentDate = new Date();
@@ -1498,9 +1529,16 @@ LmsRedirection(){
   }
 
   openReqMod(template: TemplateRef<any>) {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }else{
     this.filters = {};
     this.isSearchEnabled = false;
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+   }
+   
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {

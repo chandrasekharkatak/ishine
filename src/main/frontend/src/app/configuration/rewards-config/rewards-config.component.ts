@@ -1,18 +1,18 @@
 import { LocationStrategy } from '@angular/common';
-import { Component, OnInit, EventEmitter, Input, Output, TemplateRef } from '@angular/core';
-import { Query } from 'src/app/models/query';
-import { LeaveService } from 'src/app/services/leave.service';
+import { Component, EventEmitter, Input, OnInit, Output, TemplateRef } from '@angular/core';
+import { Sort } from '@angular/material/sort';
+import * as moment from 'moment';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
 import { Feature } from 'src/app/models/feature';
+import { Query } from 'src/app/models/query';
 import { Rewards } from 'src/app/models/rewards';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
-import { RewardsServiceService } from 'src/app/services/rewards-service.service';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
-import { Sort } from '@angular/material/sort';
-import * as moment from 'moment';
-import { AppComponent } from 'src/app/app.component';
+import { LeaveService } from 'src/app/services/leave.service';
+import { RewardsServiceService } from 'src/app/services/rewards-service.service';
 
 class Operator{
   name:string;
@@ -420,17 +420,20 @@ openForm(id:any,mode: string,template: TemplateRef<any> ) {
   }
 
   deleteRewardsByRewardId(template: TemplateRef<any>,id:any){
+    
+      this.rewardsService.deleteRewardsByRewardId(id).subscribe((response: any) => {
+        if (response.serviceStatus === 'Success') {
+          console.log(response)      
+          console.log('Reward deleted successfully', response);
+          this.openAlertMod(template, response.serviceResponse);
+          this.fetchAllRewards();
+        }else{
+          this.openAlertMod(template, response.serviceResponse);
+        }
+      });
+   
 
-    console.log(id)
-
-    this.rewardsService.deleteRewardsByRewardId(id).subscribe((response: any) => {
-      if (response.serviceStatus === 'Success') {
-        console.log(response)
-        this.fetchAllRewards();
-        console.log('Reward deleted successfully', response);
-        this.openAlertMod(template, response.serviceResponse);
-      }
-    });
+   
   }
   refresh(){
   }
@@ -456,4 +459,29 @@ openForm(id:any,mode: string,template: TemplateRef<any> ) {
     this.isEditMode = false;
   }
 
+
+  confirmResult: boolean = false;
+  selectedRewardId: any | null = null;
+
+  confirm(template: TemplateRef<any>) {
+    this.confirmResult = true;
+    this.modalRef?.hide();
+    this.deleteRewardsByRewardId(template,this.selectedRewardId);
+  }
+
+  // Cancel action
+  decline() {
+    this.confirmResult = false;
+    this.modalRef?.hide();
+
+    console.log("User clicked NO",this.selectedRewardId);
+  }
+
+
+  openConfirmationPopup(template: TemplateRef<any>,reward:any) {
+    this.selectedRewardId = reward;
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  }
+
+ 
 }

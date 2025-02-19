@@ -99,14 +99,14 @@ getAll360LeaveApplicationsByEmpId(leaveObj: Leave) {
   }
 
 
-  // getBioOverTimeandState(EmployeDTO: Employee) {
-  //   return this.http.post(`${this.baseUrl}` + `api/employee360state`, EmployeDTO);
-  // }
+  getBioOverTimeandState(EmployeDTO: Employee) {
+    return this.http.post(`${this.baseUrl}` + `api/employee360state`, EmployeDTO);
+  }
 
   //added by rahul singh
  getTeamTImeSheet(team:Team){
-  return this.http.post('http://localhost:8080/api/getTeamMembersByTeamId',team);
- 
+  return this.http.post(`${this.baseUrl}`+`api/getTeamMembersByTeamId`,team);
+
 }
 
   setEmployeesFor360(employees: any[]) {

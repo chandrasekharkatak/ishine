@@ -1393,14 +1393,15 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
       } 
 
     });
+
     let departmentList = this.groupBy(
-      this.allEmployeeList.filter((x) => x.employmentstatus !== 'InActive'),
+      this.allEmployeeList.filter((x) => x.employmentstatus !== 'InActive' && x.isConsultant != 'true' && x.isApprenticeship !='true'),
       'departmentName'
     );
     
     let departmentListForApprentice = this.groupBy(
       this.allEmployeeList.filter(
-        (x) => x.employmentstatus !== 'InActive' && x.isApprenticeship === 'true'
+        (x) => x.employmentstatus !== 'InActive' && x.isApprenticeship === 'true' && x.isConsultant !='true'
       ),
       'departmentName'
     );
@@ -3937,8 +3938,8 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
   this.modalSummaryList = modalTableList.filter(x =>
     x.departmentName === pointName && 
     (
-        (seriesName === 'Employee Count' && x.isApprenticeship!='true') ||  
-        (seriesName === 'Apprentice Count' && x.isApprenticeship==='true')  
+        (seriesName === 'Employee Count' && x.isApprenticeship!='true' && x.isConsultant != 'true' && x.isApprenticeship != 'true') ||  
+        (seriesName === 'Apprentice Count' && x.isApprenticeship==='true' && x.isConsultant != 'true')  
     )
   );
 

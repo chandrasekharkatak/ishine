@@ -8,4 +8,5 @@ import lombok.Setter;
 public class EmployeeRewardsRequest {
     private Long empId;
     private String ofMonthYear;
+    private Long teamId;
 }

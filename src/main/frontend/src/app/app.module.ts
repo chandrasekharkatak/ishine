@@ -124,6 +124,7 @@ import { InformationPreviewComponent } from './user-update-info/information-prev
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
 import { NavigateToProjectViewDirective } from './navigate-to-project-view.directive';
 import { ProjectViewComponent } from './project-view/project-view.component';
+import { PerformanceConfigComponent } from './configuration/performance-config/performance-config.component';
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
 
@@ -209,13 +210,14 @@ import { ProjectViewComponent } from './project-view/project-view.component';
     Employee360BiomaxComponent,
     Employee360RewardsComponent,
     Employee360AppreciationComponent,
-
+    
     BreadcrumbComponent,
 
     Employee360BiomaxComponent,
      AppreciationComponent,
      NavigateToProjectViewDirective,
      ProjectViewComponent,
+     PerformanceConfigComponent,
 
     //TestComponent
   ],
