@@ -25,6 +25,11 @@ export class Employee360ProjectComponent implements OnInit {
 
   isEditProject: boolean = false;
   isHideButton: boolean = false;
+//added by rahul
+
+isProjectVisible:boolean=true;
+isProjectTeamVisible:boolean=false;
+isProjectTeamMemberVisible:boolean=false;
 
   employeeData: any;
   getBillableType: any;
@@ -34,6 +39,10 @@ export class Employee360ProjectComponent implements OnInit {
   copyDepartment : any = [];
   currentBreadcrumbList: any[] = [];
   allProjectList: any[] = [];
+  //Rahul Singh
+  filterProjectByProjectId:any[]=[];
+  filterTeamfromTeamId: any; 
+  //end 
   filteredDeptList: any[] = [];
   allDeptList: any[] = [];
   allTeamList: any[] = [];
@@ -92,6 +101,65 @@ export class Employee360ProjectComponent implements OnInit {
     //get Project by Employee
     this.getExistingProjectsByUser();
   }
+//added by rahul singh
+backfromvisibility(type:any){
+  this.isProjectVisible=false;
+  this.isProjectTeamVisible=false;
+  this.isProjectTeamMemberVisible=false;
+  
+  if(type=="ProjectVisible"){
+    this.isProjectVisible=true;
+  }
+  if(type=="ProjectTeamVisible"){
+    this.isProjectTeamVisible=true;
+  }
+  if(type=="ProjectTeamMemberVisible"){
+    this.isProjectTeamVisible=true
+  }
+}
+redirecttoProjectTeam(id:any){
+  this.isProjectVisible=false;
+  this.isProjectTeamVisible=true;
+  this.isProjectTeamMemberVisible=false;
+  // filterProjectByProjectId:any[]=[];
+  // filterTeamfromTeamId:any[]=[];
+  this.filterProjects(id);
+}
+redirecttoTeam(id:any){
+  this.isProjectTeamMemberVisible=true;
+  this.isProjectVisible=false;
+  this.isProjectTeamVisible=false;
+  this.getTeamEmployeeByTeamId(id);
+ 
+
+}
+filterProjects(id) {
+  this.filterProjectByProjectId = this.allProjectList.filter(project =>
+    project.projectId==id
+  );
+}
+filterTeamMemberProjects(id) {
+  this.filterProjectByProjectId = this.allProjectList.filter(project =>
+    project.projectId==id
+  );
+}
+async getTeamEmployeeByTeamId(teamId: any) {
+  try {
+    const response: any = await this.projectService.getTeamMemberByTeamId(teamId).pipe(first()).toPromise();
+
+    if (response.serviceStatus === 'Success') {
+      this.filterTeamfromTeamId = response.serviceResponse;
+     
+    } else {
+      // Handle failure case, if needed
+      console.log('Service failed:', response);
+    }
+  } catch (error) {
+    // Handle error case
+    console.error('Error fetching team members:', error);
+  }
+}
+//end
 
   showEditProjectForm(project: any) {
     this.isEditProject = true;

@@ -2697,6 +2697,111 @@ public class ResourceManagementService {
 		return response;
 	}
 	
+public ServiceResponse getProjectInfo(ResourceManagementDTO resourceManagementDTO) {
 	
+	ServiceResponse response = new ServiceResponse();
+	LogDTO apiLogInfo = new LogDTO();
+    apiLogInfo.setSubFeatureName("Project 360");
+    apiLogInfo.setApiUrl("/api/getProjectInfo");
+    apiLogInfo.setLogLevel("INFO");
+    StringBuilder logBuilder = new StringBuilder();
+    logBuilder.append("projectInfo : "+ projectRepository.getAllInternalProject().size());
+    
+	try {
+		List<Object[]> projectInfo = projectRepository.getProjectInfo(resourceManagementDTO.getProjectId());
+		List<ResourceManagementDTO> result = new ArrayList<>();
+		if(!projectInfo.isEmpty()) {
+			projectInfo.forEach(object ->{
+				ResourceManagementDTO dto = new ResourceManagementDTO();
+				
+				dto.setProjectId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
+				dto.setProjectName(object[1] != null ? object[1].toString() : null);		
+				dto.setProjectManagerId(object[2] != null ?  Long.parseLong(object[2].toString()) : null);
+				dto.setProjectManagerName(object[3] != null ? object[3].toString() : null);	
+				dto.setClientName(object[4] != null ? object[4].toString().toString() : null);
+				dto.setClientState(object[5] != null? object[5].toString() : null);		
+				
+				result.add(dto);
+			});
+			
+			if(projectInfo != null) {
+				response.setServiceResponse(result);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				apiLogInfo.setApiResponse("projectInfoList fetched");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No project found.");
+				apiLogInfo.setApiResponse("No Project Found");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}
+		}
+	}catch(Exception e) {
+		e.printStackTrace();
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse("Something Went Wrong.");
+		response.setServiceError(e.getMessage());
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		apiLogInfo.setLogLevel("ERROR");
+	}
+	apiLogInfo.setApiRequest(logBuilder.toString());
+	logService.logMyInfo(httpRequest, apiLogInfo);
+	return response;
+}
+
+public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) {
+	
+	ServiceResponse response = new ServiceResponse();
+	LogDTO apiLogInfo = new LogDTO();
+    apiLogInfo.setSubFeatureName("Project 360");
+    apiLogInfo.setApiUrl("/api/getTeamInfo");
+    apiLogInfo.setLogLevel("INFO");
+    StringBuilder logBuilder = new StringBuilder();
+    logBuilder.append("TeamInfo : "+ projectRepository.getTeamInfo(resourceManagementDTO.getProjectId()).size());
+    
+	try {
+		List<Object[]> teamInfo = projectRepository.getTeamInfo(resourceManagementDTO.getProjectId());
+		List<ResourceManagementDTO> result = new ArrayList<>();
+		if(!teamInfo.isEmpty()) {
+			teamInfo.forEach(object ->{
+				ResourceManagementDTO dto = new ResourceManagementDTO();
+				
+				dto.setTeamId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+				dto.setTeamName(object[1] != null ? object[1].toString() : null);		
+				dto.setEmpId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+				dto.setEmployeeName(object[3] != null ? object[3].toString() : null);
+				dto.setEmployeeRole(object[4] != null ? object[4].toString().toString() : null);
+				dto.setBillableType(object[5] != null ? object[5].toString() : null);
+				dto.setStartDate(object[6] != null ? object[6].toString() : null);
+				dto.setActive(object[7] != null ? Integer.parseInt(object[7].toString()) : null);	
+				dto.setProjectId(object[8] != null ? Integer.parseInt(object[8].toString()) : null);
+				dto.setProjectName(object[9] != null ? object[9].toString() : null);
+				result.add(dto);
+			});
+			
+			if(teamInfo != null) {
+				response.setServiceResponse(result);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				apiLogInfo.setApiResponse("projectInfoList fetched");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No team found.");
+				apiLogInfo.setApiResponse("No team Found");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}
+		}
+	}catch(Exception e) {
+		e.printStackTrace();
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse("Something Went Wrong.");
+		response.setServiceError(e.getMessage());
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		apiLogInfo.setLogLevel("ERROR");
+	}
+	apiLogInfo.setApiRequest(logBuilder.toString());
+	logService.logMyInfo(httpRequest, apiLogInfo);
+	return response;
+}
 	
 }

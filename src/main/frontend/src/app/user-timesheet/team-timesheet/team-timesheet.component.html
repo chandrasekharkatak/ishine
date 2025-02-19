@@ -75,7 +75,8 @@
                   <tr *ngFor="let timesheet of allTeamTimesheets | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
                     <td>{{20*(page-1)+i+1}}</td>
                     <td>{{timesheet.employeementId}}</td>
-                    <td>{{timesheet.employeeName}}</td>
+                    <td *ngIf="userMapping.team_timesheet_employee_360" [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{timesheet.employeeName}}</td>
+                    <td *ngIf="!userMapping.team_timesheet_employee_360">{{timesheet.employeeName}}</td>
                     <td>{{timesheet.date}}</td>
                     <td>{{timesheet.dayType}}</td>
                     <td style="min-width: 250px;" [innerHTML]="timesheet.description"></td>

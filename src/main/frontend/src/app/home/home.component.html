@@ -814,7 +814,8 @@
                                     [(ngModel)]="leaveApplication.isSelected"
                                     (change)="onSelect(leaveApplication,$event)"></td>
                             <td>{{items*(page-1)+i+1}}</td>
-                            <td>{{leaveApplication.employeeName}}</td>
+                            <td *ngIf="userMapping.home_employee_360" [navigateToEmployee360]="leaveApplication.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{leaveApplication.employeeName}}</td>
+                            <td *ngIf="!userMapping.home_employee_360">{{leaveApplication.employeeName}}</td>
                             <td>{{leaveApplication.leaveType}}</td>
                             <td>{{leaveApplication.fromDate}} &nbsp;<em class="fa fa-eye eye-img"
                                     (click)="onUpdateLeave(leave_success_method,leaveApplication)"></em></td>
@@ -937,7 +938,8 @@
                                     [(ngModel)]="compOffApplication.isSelected"
                                     (change)="selectCompOff(compOffApplication,$event)"></td>
                             <td>{{10*(page-1)+i+1}}</td>
-                            <td>{{compOffApplication.createdByName}}</td>
+                            <td *ngIf="userMapping.home_employee_360" [navigateToEmployee360]="compOffApplication.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{compOffApplication.createdByName}}</td>
+                            <td *ngIf="!userMapping.home_employee_360">{{compOffApplication.createdByName}}</td>
                             <td>{{compOffApplication.compOffReasons}}</td>
                             <td>{{compOffApplication.createdOn}}</td>
                             <td>{{compOffApplication.fromDate}}</td>
@@ -1062,7 +1064,8 @@
                                     [(ngModel)]="timesheet.isSelected" (change)="select(timesheet,$event)"></td>
                             <td>{{items*(page-1)+i+1}}</td>
                             <td>{{timesheet.employeementId}}</td>
-                            <td>{{timesheet.employeeName}}</td>
+                            <td *ngIf="userMapping.home_employee_360" [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{timesheet.employeeName}}</td>
+                            <td *ngIf="!userMapping.home_employee_360">{{timesheet.employeeName}}</td>
                             <td>{{timesheet.date}}</td>
                             <td>{{timesheet.dayType}}</td>
                             <td style="min-width: 250px;" [innerHTML]="timesheet.description"></td>
@@ -1311,7 +1314,8 @@
                     <tr *ngFor="let leaves of overLapsLeaveForManager"
                         [ngStyle]="{'background-color':(this.leaveApplication.empId== leaves.empId) ? 'rgb(193, 207, 246)' : ''}">
                         <td>{{leaves.employeementId}}</td>
-                        <td>{{leaves.employeeName}}</td>
+                        <td *ngIf="userMapping.home_employee_360" [navigateToEmployee360]="leaves.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{leaves.employeeName}}</td>
+                        <td *ngIf="!userMapping.home_employee_360">{{leaves.employeeName}}</td>
                         <td>{{leaves.fromDate}}</td>
                         <td>{{leaves.toDate}}</td>
                         <td>{{leaves.status}}</td>

@@ -240,24 +240,57 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "where jr.name like '%VP%' and e.employmentstatus != 'InActive'")
 	public List<Object[]> findAllVPsEmail();
 
-	@Query(nativeQuery = true , value = "select e.employeement_id,e.email,e.name , em.name as managerName,d.name as departmentName, hd.name as hodName,e.billable,e.billable_type,"
-			+ "e.mobile_no,e.mothers_name,e.approvals_to,e.marital_status,emp_proj_client.project_name,"
-			+ " emp_proj_client.client_name,e.gender,e.employmentstatus,e.total_experience,e.date_of_birth,e.date_of_joining,e.work_location,e.experience,e.emp_id,emp_proj_client.team_name,e.is_consultant,e.is_apprenticeship from employee e\n"
-			+ "inner join job_role jr ON jr.job_role_id=e.job_role_id\n"
-			+ "inner join department d ON d.dept_id=jr.dept_id\n"
-			+ "Inner join employee em ON em.emp_id=e.manager_id\n"
-			+ "INNER JOIN employee hd ON hd.emp_id=d.hod_id\n"
-			+ "LEFT JOIN (SELECT etm.emp_id, GROUP_CONCAT(DISTINCT pr.project_name) AS project_name, GROUP_CONCAT(DISTINCT cl.client_name) AS client_name,GROUP_CONCAT(DISTINCT t.team_name) AS team_name \n"
-			+ "FROM employee_team_mapping etm \n"
-			+ "LEFT JOIN teams t ON t.team_id = etm.team_id \n"
-			+ "LEFT JOIN projects pr ON pr.project_id = t.project_id \n"
-			+ "LEFT JOIN clients cl ON cl.client_id = pr.client_id \n"
-			+ "WHERE etm.active != 0 "
-			+ "AND t.is_active != 'N' \n"
-			+ "AND pr.active != 'false'\n"
-			+ "GROUP BY etm.emp_id) emp_proj_client ON emp_proj_client.emp_id = e.emp_id \n"
-			+ "where e.employmentstatus != 'InActive'")
+//	@Query(nativeQuery = true , value = "select e.employeement_id,e.email,e.name , em.name as managerName,d.name as departmentName, hd.name as hodName,e.billable,e.billable_type,"
+//			+ "e.mobile_no,e.mothers_name,e.approvals_to,e.marital_status,emp_proj_client.project_name,"
+//			+ " emp_proj_client.client_name,e.gender,e.employmentstatus,e.total_experience,e.date_of_birth,e.date_of_joining,e.work_location,e.experience,e.emp_id,emp_proj_client.team_name,e.is_consultant,e.is_apprenticeship from employee e\n"
+//			+ "inner join job_role jr ON jr.job_role_id=e.job_role_id\n"
+//			+ "inner join department d ON d.dept_id=jr.dept_id\n"
+//			+ "Inner join employee em ON em.emp_id=e.manager_id\n"
+//			+ "INNER JOIN employee hd ON hd.emp_id=d.hod_id\n"
+//			+ "LEFT JOIN (SELECT etm.emp_id, GROUP_CONCAT(DISTINCT pr.project_name) AS project_name, GROUP_CONCAT(DISTINCT cl.client_name) AS client_name,GROUP_CONCAT(DISTINCT t.team_name) AS team_name \n"
+//			+ "FROM employee_team_mapping etm \n"
+//			+ "LEFT JOIN teams t ON t.team_id = etm.team_id \n"
+//			+ "LEFT JOIN projects pr ON pr.project_id = t.project_id \n"
+//			+ "LEFT JOIN clients cl ON cl.client_id = pr.client_id \n"
+//			+ "WHERE etm.active != 0 "
+//			+ "AND t.is_active != 'N' \n"
+//			+ "AND pr.active != 'false'\n"
+//			+ "GROUP BY etm.emp_id) emp_proj_client ON emp_proj_client.emp_id = e.emp_id \n"
+//			+ "where e.employmentstatus != 'InActive'")
+//	public List<Object[]> getBillableEmpWithDepartment();
+	
+	@Query(nativeQuery = true , value = "SELECT e.employeement_id, e.email, e.name, em.name AS managerName, d.name AS departmentName, \n"
+			+ "       hd.name AS hodName, e.billable, e.billable_type, e.mobile_no, e.mothers_name, \n"
+			+ "       e.approvals_to, e.marital_status, emp_proj_client.project_name, emp_proj_client.client_name, \n"
+			+ "       e.gender, e.employmentstatus, e.total_experience, e.date_of_birth, e.date_of_joining, \n"
+			+ "       e.work_location, e.experience, e.emp_id, emp_proj_client.team_name, e.is_consultant, \n"
+			+ "       e.is_apprenticeship,\n"
+			+ "       emp_proj_client.project_id \n"
+			+ "FROM employee e\n"
+			+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id\n"
+			+ "INNER JOIN department d ON d.dept_id = jr.dept_id\n"
+			+ "INNER JOIN employee em ON em.emp_id = e.manager_id\n"
+			+ "INNER JOIN employee hd ON hd.emp_id = d.hod_id\n"
+			+ "LEFT JOIN (\n"
+			+ "    SELECT etm.emp_id, \n"
+			+ "           GROUP_CONCAT(DISTINCT pr.project_id) AS project_id,\n"
+			+ "           GROUP_CONCAT(DISTINCT pr.project_name) AS project_name, \n"
+			+ "           GROUP_CONCAT(DISTINCT cl.client_name) AS client_name, \n"
+			+ "           GROUP_CONCAT(DISTINCT t.team_name) AS team_name \n"
+			+ "    FROM employee_team_mapping etm \n"
+			+ "    LEFT JOIN teams t ON t.team_id = etm.team_id \n"
+			+ "    LEFT JOIN projects pr ON pr.project_id = t.project_id \n"
+			+ "    LEFT JOIN clients cl ON cl.client_id = pr.client_id \n"
+			+ "    WHERE etm.active != 0 \n"
+			+ "      AND t.is_active != 'N' \n"
+			+ "      AND pr.active != 'false'\n"
+			+ "    GROUP BY etm.emp_id\n"
+			+ ") emp_proj_client ON emp_proj_client.emp_id = e.emp_id \n"
+			+ "WHERE e.employmentstatus != 'InActive'")
 	public List<Object[]> getBillableEmpWithDepartment();
+	
+	
+	
 	
 	
 	//	report data change , requirement given by pratima ma'am

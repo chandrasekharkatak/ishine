@@ -112,7 +112,7 @@ export class Employee360TimesheetComponent implements OnInit {
       console.log(this.managerId); 
     }
     this.empId=sessionStorage.getItem('empId');
-    
+
     this.startDate = null;
     this.endDate = null;
     this.formattedStartDate = null;
@@ -511,7 +511,9 @@ updateStatus(status: string) {
       // Handle "Monthly"
       this.startDate = new Date();
       this.endDate = new Date();
+
       // this.startDate = new Date(this.endDate.getFullYear(), this.endDate.getMonth(), 1);
+
       this.startDate.setDate(this.startDate.getMonth());
       this.setDate();
     } else if (arg == 4) {

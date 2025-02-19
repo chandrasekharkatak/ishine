@@ -65,7 +65,8 @@
                                                 (change)="onSelectProjectForSync(project,$event)"></span></td>
                                     <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
                                     <td>{{project.name}}</td>
-                                    <td>{{project.projectManagerName}}</td>
+                                    <td *ngIf="userMapping.my_team_resource_management_employee_360" [navigateToEmployee360]="project.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{project.projectManagerName}}</td>
+                                    <td *ngIf="!userMapping.my_team_resource_management_employee_360">{{project.projectManagerName}}</td>
                                     <td>{{project.clientName}}</td>
                                     <td>{{project.clientState}}</td>
                                     <td>{{project.createdOn}}</td>
@@ -783,7 +784,13 @@
                             </div>
                             <h5 class="card-name">Team Member Info</h5>
                             <ng-container *ngFor="let member of team.teamMemberList;let i = index">
-                                <div class="col-md-12 mb-0" *ngIf="member.name">
+                                <div class="col-md-12 mb-0" *ngIf="userMapping.my_team_resource_management_employee_360 && member.name" [navigateToEmployee360]="member.emp360" style="cursor: pointer;" title="Click to view Employee 360">
+                                    <div class="info-wrapper">
+                                        <p class="info-text">{{i + 1}} : {{member.name}} &nbsp;&nbsp;&nbsp;&nbsp; start
+                                            Date : {{member.startDate}}  &nbsp;&nbsp;&nbsp;&nbsp; |  Department Name :  {{member.departmentName}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-12 mb-0" *ngIf="!userMapping.my_team_resource_management_employee_360 && member.name">
                                     <div class="info-wrapper">
                                         <p class="info-text">{{i + 1}} : {{member.name}} &nbsp;&nbsp;&nbsp;&nbsp; start
                                             Date : {{member.startDate}}  &nbsp;&nbsp;&nbsp;&nbsp; |  Department Name :  {{member.departmentName}}</p>

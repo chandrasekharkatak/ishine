@@ -118,4 +118,18 @@ public class ResourceManagementController {
 		ServiceResponse response = resourceManagementService.deleteTeamByTeamId(teamDto);
 		return response;
 	}
+	
+	@RequestMapping(value = "/getProjectInfo", method = RequestMethod.POST)
+	public ServiceResponse getProjectInfo(@RequestBody ResourceManagementDTO resourceManagementDTO) {
+		
+		ServiceResponse response = resourceManagementService.getProjectInfo(resourceManagementDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getTeamInfo", method = RequestMethod.POST)
+	public ServiceResponse getTeamInfo(@RequestBody ResourceManagementDTO resourceManagementDTO) {
+		
+		ServiceResponse response = resourceManagementService.getTeamInfo(resourceManagementDTO);
+		return response;
+	}
 }
