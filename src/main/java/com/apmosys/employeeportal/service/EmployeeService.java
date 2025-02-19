@@ -2945,8 +2945,11 @@ public class EmployeeService {
                     
 					empDTO.setReferedType(object[81] != null ? object[81].toString() : null);
 					empDTO.setReferedName(object[82] != null ? object[82].toString() : null);
-
 					empDTO.setEmployeeConfirmationDate(object[83] != null ? object[83].toString() : null);
+					empDTO.setHodId(object[84] != null ? Long.parseLong(object[84].toString()) : null );
+				    empDTO.setHodName(object[85] != null ? object[85].toString() : null);
+				    empDTO.setHodDepartmentName(object[86] != null ? object[86].toString() : null);
+					
 					
 					
 					if (object[87] != null && object[72] != null) {
