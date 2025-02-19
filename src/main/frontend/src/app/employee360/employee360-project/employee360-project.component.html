@@ -1,12 +1,110 @@
 <div class="row">
-    <div class="col-md-12 mt-2">
+    <div  *ngIf="isProjectTeamMemberVisible"class="col-md-12 mt-2">
+        <div class="col-md-12 mt-2">
+            <button (click)="backfromvisibility('ProjectTeamMemberVisible')" class="btn btn-link back-button ng-star-inserted"><i class="fas fa-arrow-left"></i></button>
+         
+        </div>
+        <h3>Team Member</h3>
+      
+        <div  class="overflow-auto" bassHorizontalScroll [tableId]="'projectInfo'" [tableTHeadId]="'projectInfoTHead'"
+        [tableTHeadTrId]="'projectInfoTHeadTr'">
         <div class="selector-toggle" (click)="toggleSearch()">
             <a href="javascript:void(0)">
                 <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
         </div>
-        <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInfo'" [tableTHeadId]="'projectInfoTHead'"
+        <table class="table" id="projectInfo" matSort
+            (matSortChange)="sortData($event)">
+            <thead class="thead-light" id="projectInfoTHead">
+                <tr id="projectInfoTHeadTr">
+                    <th scope="col" class="info-label">Sr No.</th>
+                    <th scope="col" class="info-label" mat-sort-header="employeementId|string"> Employee Id</th>
+                    <th scope="col" class="info-label" mat-sort-header="name|string">Name</th>
+                    <th scope="col" class="info-label" mat-sort-header="teamName|string">Team Name</th>
+                    <th scope="col" class="info-label" mat-sort-header="teamLeadName|string">Team Lead Name</th>
+                </tr>
+                <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="projectColumns" (onSearch)="onSearch($event);page=1" ></tr>
+            </thead>
+            <tbody>
+                <tr *ngIf="filterTeamfromTeamId.length == 0 || (filterTeamfromTeamId | colFilter:filters:false).length == 0">
+                    <th colspan="8" class="text-center info-label">No details to display...</th>
+                </tr>
+                <tr
+                    *ngFor="let project of filterTeamfromTeamId | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
+                    <th class="info-label">{{17*(page-1)+i+1}}</th>
+                    <td>A-{{ project.employeementId }}</td>
+                    <td >{{ project.name }}</td>
+                    <td>{{ project.teamName }}</td>
+                    <td>{{ project.teamLeadName }}</td>
+                  
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <pagination-controls class="my-pagination" [hidden]="allProjectList.length == 0"
+        (pageChange)="handlePageChange($event)"></pagination-controls>
+
+    
+        </div>
+    <div  *ngIf="isProjectTeamVisible"class="col-md-12 mt-2">
+        <div class="col-md-12 mt-2">
+            <button (click)="backfromvisibility('ProjectVisible')" class="btn btn-link back-button ng-star-inserted"><i class="fas fa-arrow-left"></i></button>
+         
+        </div>
+        <h3>Project Team Details</h3>
+        <div  class="overflow-auto" bassHorizontalScroll [tableId]="'projectInfo'" [tableTHeadId]="'projectInfoTHead'"
+        [tableTHeadTrId]="'projectInfoTHeadTr'">
+        <div class="selector-toggle" (click)="toggleSearch()">
+            <a href="javascript:void(0)">
+                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+            </a>
+        </div>
+        <table class="table" id="projectInfo" matSort
+            (matSortChange)="sortData($event)">
+            <thead class="thead-light" id="projectInfoTHead">
+                <tr id="projectInfoTHeadTr">
+                    <th scope="col" class="info-label">Sr No.</th>
+                    <th scope="col" class="info-label" mat-sort-header="teamName|string">Team Name</th>
+                    <th scope="col" class="info-label" mat-sort-header="clientName|string">Client Name</th>
+                    <th scope="col" class="info-label" mat-sort-header="billableType|string">Billable Type</th>
+                    <th scope="col" class="info-label" mat-sort-header="startDate|datetime">Start Date</th>
+                    <th scope="col" class="info-label" mat-sort-header="endDate|datetime">End Date</th>
+                
+                </tr>
+                <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="projectColumns" (onSearch)="onSearch($event);page=1" ></tr>
+            </thead>
+            <tbody>
+                <tr *ngIf="filterProjectByProjectId.length == 0 || (filterProjectByProjectId | colFilter:filters:false).length == 0">
+                    <th colspan="8" class="text-center info-label">No details to display...</th>
+                </tr>
+                <tr
+                    *ngFor="let project of filterProjectByProjectId | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
+                    <th class="info-label">{{17*(page-1)+i+1}}</th>
+                    <td><a (click)="redirecttoTeam(project.teamId)">{{ project.teamName }}</a></td>
+                    <td>{{ project.clientName }}</td>
+                    <td>{{ project.billableType }}</td>
+                    <td>{{ project.startDate }}</td>
+                    <td>{{ project.endDate }}</td>
+                  
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <pagination-controls class="my-pagination" [hidden]="allProjectList.length == 0"
+        (pageChange)="handlePageChange($event)"></pagination-controls>
+
+    </div>
+
+    <div class="col-md-12 mt-2" *ngIf="isProjectVisible">
+       <div class="selector-toggle" (click)="toggleSearch()">
+            <a href="javascript:void(0)">
+                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+            </a>
+        </div>
+         <div  class="overflow-auto" bassHorizontalScroll [tableId]="'projectInfo'" [tableTHeadId]="'projectInfoTHead'"
             [tableTHeadTrId]="'projectInfoTHeadTr'">
             <table class="table" id="projectInfo" matSort
                 (matSortChange)="sortData($event)">
@@ -30,8 +128,8 @@
                     <tr
                         *ngFor="let project of allProjectList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
                         <th class="info-label">{{17*(page-1)+i+1}}</th>
-                        <td>{{ project.projectName }}</td>
-                        <td>{{ project.teamName }}</td>
+                        <td><a (click)="redirecttoProjectTeam(project.projectId)">{{project.projectName }}</a></td>
+                        <td><a (click)="redirecttoTeam(project.teamId)">{{ project.teamName }}</a></td>
                         <td>{{ project.clientName }}</td>
                         <td>{{ project.billableType }}</td>
                         <td>{{ project.startDate }}</td>

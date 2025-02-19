@@ -105,6 +105,12 @@ public class ResourceManagementController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getTeamMemberByTeamId/{teamId}", method = RequestMethod.GET)
+	public ServiceResponse getTeamMemberByTeamId(@PathVariable("teamId") Long teamId) {
+		
+		ServiceResponse response = resourceManagementService.getTeamMemberByTeamId(teamId);
+		return response;
+	}
 	@RequestMapping(value = "/updateProjectResourceAsInActive", method = RequestMethod.POST)
 	public ServiceResponse updateProjectResourceAsInActive(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 		
