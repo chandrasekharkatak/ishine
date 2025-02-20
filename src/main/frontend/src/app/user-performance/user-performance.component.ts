@@ -1,8 +1,8 @@
 
 import { LocationStrategy } from '@angular/common';
-import { AfterViewInit, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
-import * as HighCharts from 'highcharts';
+import * as Highcharts from 'highcharts';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
@@ -20,7 +20,6 @@ import { LogService } from '../services/log.service';
 import { PerformanceService } from '../services/performance.service';
 import { UtilityService } from '../services/utility.service';
 import { ValidationService } from '../services/validation.service';
-import * as Highcharts from 'highcharts';
 
 class FilterData {
   title: any;
@@ -228,7 +227,7 @@ export class UserPerformanceComponent implements OnInit {
           const currentDate = new Date();
           const oneYearAgo = new Date();
           oneYearAgo.setFullYear(currentDate.getFullYear() - 1);  // Get the date one year ago
-
+          this.allEmployee = this.allEmployee.filter(employee => employee.empId !== this.currentUser.empId);
           this.eligibleEmployees = this.allEmployee.filter(employee => {
             console.log("employee hod", employee.hodName);
             console.log("employee hod", employee.hodId);
