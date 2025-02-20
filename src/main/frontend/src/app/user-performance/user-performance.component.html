@@ -137,7 +137,8 @@
                       </tr>
                       <tr *ngFor="let eligiemployee of eligibleEmployees | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                         <td>{{ eligiemployee.employeementId }}</td>
-                        <td>{{ eligiemployee.name }}</td>
+                        <td id="clickablefor360" *ngIf="userMapping.performance_employee_360" [navigateToEmployee360]="eligiemployee.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{ eligiemployee.name }}</td>
+                        <td *ngIf="!userMapping.performance_employee_360">{{ eligiemployee.name }}</td>
                         <td>{{ eligiemployee.designationName }}</td>
                         <td>{{ eligiemployee.departmentName }}</td>
                         <td>{{ eligiemployee.billableType }}</td>
