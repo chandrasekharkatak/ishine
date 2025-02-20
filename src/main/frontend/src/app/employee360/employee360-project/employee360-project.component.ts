@@ -77,7 +77,7 @@ isProjectTeamMemberVisible:boolean=false;
     private departmentService: DepartmentService,
     private resourceManagementService: ResourceManagementService,
     private employeeService: EmployeeService,
-    private utilityService: UtilityService
+    private utilityService: UtilityService,
   ) {
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
     const navigation = this.router.getCurrentNavigation();
@@ -107,6 +107,11 @@ isProjectTeamMemberVisible:boolean=false;
 
     //get Project by Employee
     this.getExistingProjectsByUser();
+    this.getAllEmployeeFor360View();
+  }
+  clearBreadcrumbs(){
+    // this.breadcrumbService.setBreadcrumbSubject(null);
+    window.location.reload()
   }
 //added by rahul singh
 backfromvisibility(type:any){
@@ -158,10 +163,11 @@ async getTeamEmployeeByTeamId(teamId: any) {
       this.filterTeamfromTeamId = response.serviceResponse;
       
       this.filterTeamfromTeamId.forEach((employee) => {
-          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId == employee.empId);
           console.log("matchingEmployee ", matchingEmployee);
           employee.emp360 = matchingEmployee ? matchingEmployee : {};
       });
+      console.log('filterTeamfromTeamId = ',this.filterTeamfromTeamId);
      
     } else {
       // Handle failure case, if needed
