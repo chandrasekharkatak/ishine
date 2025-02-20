@@ -42,13 +42,13 @@ img{
 /* Added by rahul SIngh*/
 #clickablefor360{
     text-decoration: none; /* Remove default underline */
-  color: #007bff  !important; /* Text color, change it as you prefer */
+  color: #043870  !important; /* Text color, change it as you prefer */
   cursor: pointer; /* Change the cursor to pointer on hover */
   transition: all 0.3s ease;
 }
 #clickablefor360:hover{
     text-decoration: none; /* Remove default underline */
-  color: #007bff !important; /* Text color, change it as you prefer */
+  color: #043870 !important; /* Text color, change it as you prefer */
   cursor: pointer; /* Change the cursor to pointer on hover */
   transition: all 0.3s ease;
 }
