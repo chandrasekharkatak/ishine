@@ -58,7 +58,7 @@
             </a>
           </span>
         </td>
-        <td *ngIf="!isTeamAppreciationView">
+        <td *ngIf="!isTeamAppreciationView" id="clickablefor360" [navigateToEmployee360]="event.emp360" (click)="refresh()">
           {{ event.appreciationByName }}
         </td>
         <td>{{ event.appreciationDate | date: 'short' }}</td>

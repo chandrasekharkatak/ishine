@@ -54,7 +54,7 @@ export class Employee360AppreciationComponent implements OnInit {
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
     this.getAllEmployeeFor360View();
     this.getDateRanges();
-    this.getEmployeeInfo();
+    // this.getEmployeeInfo();
    }
 
   ngOnInit(): void {
@@ -76,6 +76,9 @@ export class Employee360AppreciationComponent implements OnInit {
   }
   ngOnDestroy(){
     this.removeActiveTab();
+  }
+  refresh(){
+    window.location.reload();
   }
   setActiveTab(){
     const tab = document.getElementById('Employee360Tab/appreciation').querySelector('.nav-link');
@@ -110,6 +113,7 @@ export class Employee360AppreciationComponent implements OnInit {
                 console.log("inside 360 employeesFor360",this.employeesFor360);
 
                 this.employeesFor360 = new SortPipe().transform(this.employeesFor360, ['name', 'string', 'asc']);
+                this.getEmployeeInfo();
             } else {
                 alert(response.serviceResponse);
             }
@@ -152,12 +156,13 @@ export class Employee360AppreciationComponent implements OnInit {
       (response: any) => {
         this.employee = response.appreciationDto;
         console.log('Employee appreciation data:', this.employee);
-        console.log(" employeesFor360 details",this.employeesFor360)
-        this.employee.forEach((y) => {
-          let matchingEmployee = this.employeesFor360.find(emp => emp.empId == y.employeementId);
+        console.log(" employeesFor360 details",this.employeesFor360);
+        this.employee.forEach(y => {
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === y.empId);
           console.log("matchingEmployee ", matchingEmployee);
           y.emp360 = matchingEmployee ? matchingEmployee : {};
       });
+      console.log('employee ** -- ', this.employee);
       },
       (error) => {
         console.error('Error fetching employee data:', error);
