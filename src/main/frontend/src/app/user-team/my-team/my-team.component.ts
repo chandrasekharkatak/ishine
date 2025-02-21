@@ -160,35 +160,50 @@ export class MyTeamComponent implements OnInit {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
-  ngOnInit(): void {
+  // ngOnInit(): void {
+  //   // Dynamic Subfeature Flags 
+  //   let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+  //   featureMap.subFeatures?.forEach(sub => {
+  //     this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+  //   });
+  //   // this.sectionViewInit();
+  //   // console.log("my team feature mapping ",this.feature, this.userMapping); 
+  //   // console.log("this.utilityService.getEmployee360ViewAccess()",this.utilityService.getEmployee360ViewAccess())  
+  //   // this.route.queryParams.subscribe(params => {
+  //   //   // console.log("Activating View Team Pending Request");
+  //   //   // console.log("Query Params received:", params);
+  //   //   const status = params['status'];
+  //   //   // console.log("Status from queryParams:", status);
+  //   //   if (params['action'] === 'view-pending-request') {
+  //   //     console.log("route")
+  //   //     this.sectionViewInit();
+  //   //   }
+  //   // });
+  //   this.preventBackButton();
+  //   this.getAllEmployeeFor360View();
+  //   //console.log('userMapping--', this.userMapping);
+
+  //   // this.employee360Service.employeesFor360$.subscribe((employees) => {
+  //   //   this.employeesFor360 = employees;
+  //   //   console.log("Employee Data fetched by Shared service ",this.employeesFor360);
+  //   // });
+  // } 
+
+  async ngOnInit(): Promise<void> {
     // Dynamic Subfeature Flags 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    // this.sectionViewInit();
-    // console.log("my team feature mapping ",this.feature, this.userMapping); 
-    // console.log("this.utilityService.getEmployee360ViewAccess()",this.utilityService.getEmployee360ViewAccess())  
-    // this.route.queryParams.subscribe(params => {
-    //   // console.log("Activating View Team Pending Request");
-    //   // console.log("Query Params received:", params);
-    //   const status = params['status'];
-    //   // console.log("Status from queryParams:", status);
-    //   if (params['action'] === 'view-pending-request') {
-    //     console.log("route")
-    //     this.sectionViewInit();
-    //   }
-    // });
+  
     this.preventBackButton();
+  
+    // Wait for employees to be fetched before moving to sectionViewInit()
+    await this.getAllEmployeeFor360View();
+  
     this.sectionViewInit();
-    this.getAllEmployeeFor360View();
-    //console.log('userMapping--', this.userMapping);
+  }
 
-    // this.employee360Service.employeesFor360$.subscribe((employees) => {
-    //   this.employeesFor360 = employees;
-    //   console.log("Employee Data fetched by Shared service ",this.employeesFor360);
-    // });
-  } 
   onNameClick(teamView: any): void {
     console.log('Name clicked:', teamView);
   }
@@ -200,32 +215,72 @@ export class MyTeamComponent implements OnInit {
     }
   }
 
-  getAllEmployeeFor360View(){
-    this.allEmployeeList360 = [];
-    this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allEmployeeList360 = response.serviceResponse;
-        console.log("allEmployeeListFor360 : ", this.allEmployeeList360)
-        this.allEmployeeList360.forEach(employeeObj => {
-          employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
-          employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-          employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-          employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-          employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          if (employeeObj.isConsultant == 'true')
-            employeeObj.employeeType = 'Consultant';
-          else if (employeeObj.isApprenticeship == 'true')
-            employeeObj.employeeType = 'Apprentice';
-          else
-            employeeObj.employeeType = 'Regular';
-          });
-          this.allEmployeeList360 = this.allEmployeeList360;
-          this.allEmployeeList360 = new SortPipe().transform(this.allEmployeeList360, ['name', 'string', 'asc']);
-        } else {
-          alert(response.serviceResponse);
+  // getAllEmployeeFor360View(){
+  //   this.allEmployeeList360 = [];
+  //   this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.allEmployeeList360 = response.serviceResponse;
+  //       console.log("allEmployeeListFor360 : ", this.allEmployeeList360)
+  //       this.allEmployeeList360.forEach(employeeObj => {
+  //         employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
+  //         employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+  //         employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+  //         employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+  //         employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+  //         if (employeeObj.isConsultant == 'true')
+  //           employeeObj.employeeType = 'Consultant';
+  //         else if (employeeObj.isApprenticeship == 'true')
+  //           employeeObj.employeeType = 'Apprentice';
+  //         else
+  //           employeeObj.employeeType = 'Regular';
+  //         });
+  //         this.allEmployeeList360 = this.allEmployeeList360;
+  //         this.allEmployeeList360 = new SortPipe().transform(this.allEmployeeList360, ['name', 'string', 'asc']);
+  //       } else {
+  //         alert(response.serviceResponse);
+  //       }
+  //   });
+  //   this.sectionViewInit();
+  // }
+  getAllEmployeeFor360View(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.allEmployeeList360 = [];
+      this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe(
+        (response: any) => {
+          if (response.serviceStatus == "Success") {
+            this.allEmployeeList360 = response.serviceResponse;
+            console.log("allEmployeeListFor360 : ", this.allEmployeeList360);
+  
+            this.allEmployeeList360.forEach(employeeObj => {
+              employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
+              employeeObj.dateOfJoining = employeeObj.dateOfJoining ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+              employeeObj.dateOfRelieving = employeeObj.dateOfRelieving ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+              employeeObj.updatedOn = employeeObj.updatedOn ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+              employeeObj.createdOn = employeeObj.createdOn ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+  
+              if (employeeObj.isConsultant == 'true') {
+                employeeObj.employeeType = 'Consultant';
+              } else if (employeeObj.isApprenticeship == 'true') {
+                employeeObj.employeeType = 'Apprentice';
+              } else {
+                employeeObj.employeeType = 'Regular';
+              }
+            });
+  
+            this.allEmployeeList360 = new SortPipe().transform(this.allEmployeeList360, ['name', 'string', 'asc']);
+            resolve();  
+          } else {
+            alert(response.serviceResponse);
+            reject(response.serviceResponse);  
+          }
+        },
+        (error) => {
+          console.error("Error fetching employees:", error);
+          reject(error);
         }
+      );
     });
-  }
+  }  
 
   preventBackButton(){
     history.pushState(null, null, location.href);
@@ -235,35 +290,16 @@ export class MyTeamComponent implements OnInit {
   }
 
   sectionViewInit() {
-    if(this.utilityService.getEmployee360ViewAccess()){
-      this.employee360Service.currentEmployeeData.subscribe(data => {
-        this.employeeData2 = data;
-        console.log("Employee Data in My Team Leave History", this.employeeData2);
-        console.log("Emp ID:", this.employeeData2.empId);
-        console.log("Status:", this.employeeData2.status);
-      });
-      if(this.userMapping.employee_360_leave_view && this.employeeData2.status === 'comp-off-applications'){
-        this.viewTeamLeaveHistory();
-      }
-      else
-       if (this.userMapping.employee_360_leave_view && ((this.employeeData2.status === 'comp-off-requests') || (this.employeeData2.status === 'Pending') || (this.employeeData2.status === 'Revoked') || (this.employeeData2.status ==='Approved') || (this.employeeData2.status ==='Rejected') || (this.employeeData2.status === 'Applied For Revoke') || (this.employeeData2.status === 'TeamLeave'))){
-        // console.log("Pri")
-        this.viewTeamRequest();
-      }else{
-        console.log("Something went wrong");
-      }
+    if(this.userMapping.view_my_team){
+      this.viewTeam();}
+    else if(this.userMapping.view_team_leave_history){
+      this.viewTeamLeaveHistory();
+    }
+    else if (this.userMapping.view_team_all_requests || this.userMapping.update_pending_req){
+      this.viewTeamRequest();
     }else{
-      if(this.userMapping.view_my_team){
-        this.viewTeam();}
-      else if(this.userMapping.view_team_leave_history){
-        this.viewTeamLeaveHistory();
-      }
-      else if (this.userMapping.view_team_all_requests || this.userMapping.update_pending_req){
-        this.viewTeamRequest();
-      }else{
-        console.log("Something went wrong");
-      }
-    } 
+      console.log("Something went wrong");
+    }
   }
 
   viewTeam() {
@@ -525,7 +561,7 @@ export class MyTeamComponent implements OnInit {
           y.isHierarchy = false;
           let temp = this.managerList.find(manager => manager.managerId == y.empId);
           if(temp != undefined) y.isHierarchy = true;  
-
+          console.log("allEmployeeList360 ",this.allEmployeeList360)
           let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === y.employeementId);
           console.log('matches++',matchingEmployee);
           y.emp360 = matchingEmployee ? matchingEmployee : {};

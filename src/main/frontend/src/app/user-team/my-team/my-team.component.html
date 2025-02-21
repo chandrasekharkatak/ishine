@@ -90,7 +90,11 @@
                   <tr>
                     <td class="info-label">{{10*(page-1)+i+1}}</td>
                     <td class="info-label">{{teamView.employeementId}}</td>
-                    <td id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="teamView.emp360" style="cursor: pointer;" title="Click to view Employee 360" class="info-label" [class.myTeam-hierarchy]="teamView.isHierarchy" (click)="teamView.isHierarchy && myTeamHierarchy(teamView)">{{teamView.name}} <i class="fa-solid fa-sitemap" *ngIf="teamView.isHierarchy"></i> &nbsp;<h6 class="badge badge-pill resign-pill" *ngIf="teamView.employmentstatus == 'Resigned'">Resigned</h6></td>
+                    <td *ngIf="userMapping.my_team_employee_360" class="info-label">
+                      <span id="clickablefor360" [navigateToEmployee360]="teamView.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{teamView.name}}&nbsp;</span>
+                      <span [class.myTeam-hierarchy]="teamView.isHierarchy" (click)="teamView.isHierarchy && myTeamHierarchy(teamView)"><i class="fa-solid fa-sitemap" *ngIf="teamView.isHierarchy"></i> &nbsp;<h6 class="badge badge-pill resign-pill" *ngIf="teamView.employmentstatus == 'Resigned'">Resigned</h6></span>
+                  </td>
+                  
                     <td *ngIf="!userMapping.my_team_employee_360" class="info-label" [class.myTeam-hierarchy]="teamView.isHierarchy" (click)="teamView.isHierarchy && myTeamHierarchy(teamView)">{{teamView.name}} <i class="fa-solid fa-sitemap" *ngIf="teamView.isHierarchy"></i> &nbsp;<h6 class="badge badge-pill resign-pill" *ngIf="teamView.employmentstatus == 'Resigned'">Resigned</h6></td>
                     <td class="info-label">{{teamView.email}}</td>
                     <td class="info-label">{{teamView.jobRoleName}}</td>
