@@ -2599,7 +2599,7 @@ public class ResourceManagementService {
 			employeeTeamMapRepository.save(findResource);
 		
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse("Resource mapped as InActive, Team Name - "+findTeam.getTeamName());
+			response.setServiceResponse("Resource removed successfully, from Team Name - "+findTeam.getTeamName());
 			
 		}
 		
