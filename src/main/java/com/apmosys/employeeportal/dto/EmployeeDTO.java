@@ -27,6 +27,7 @@ public class EmployeeDTO {
 	private String referedName;
 	//end of the code
 	
+	private Double performanceStatusPercentage;
 	private Long managerId;
 	private String dateOfJoining;
 	private String dateOfBirth;

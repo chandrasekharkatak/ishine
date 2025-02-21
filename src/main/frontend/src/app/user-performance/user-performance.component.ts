@@ -248,9 +248,9 @@ export class UserPerformanceComponent implements OnInit {
           console.log("allEmp", this.allEmployee);
 
           const currentDate = new Date();
-          const oneYearAgo = new Date();
-          oneYearAgo.setFullYear(currentDate.getFullYear() - 1);  // Get the date one year ago
-          this.allEmployee = this.allEmployee.filter(employee => employee.empId !== this.currentUser.empId);
+          const oneYearAgo = new Date(currentDate.getFullYear() - 1, 11, 31);
+         
+          // this.allEmployee = this.allEmployee.filter(employee => employee.empId !== this.currentUser.empId);
           this.eligibleEmployees = this.allEmployee.filter(employee => {
             console.log("employee hod", employee.hodName);
             console.log("employee hod", employee.hodId);
@@ -331,7 +331,14 @@ export class UserPerformanceComponent implements OnInit {
       const response: any = await this.performanceSerive.getALLdepartmentByEmployee().toPromise();
   
       if (response.serviceStatus === "Success") {
+
+
+
+        
+
+
         this.departmentData = response.serviceResponse;
+
         console.log("departmentData", this.departmentData);
         setTimeout(() => {
           this.renderPlaceholderChart("Rating", "performanceId",this.departmentData);
@@ -755,7 +762,7 @@ export class UserPerformanceComponent implements OnInit {
               // Access managerName through the departmentData array
               const managerName = departmentData[this.index].managerName;
               const TotalEmpcount = departmentData[this.index].TotalNumberofemp;
-              return `<b>Rating Percentage: ${this.y}%</b><br><b>Manager: ${managerName}</b><br><b>Total Emp Count: ${TotalEmpcount}</b>`;
+              return `<b>Rating Percentage: ${this.y}%</b><br><b>HOD: ${managerName}</b><br><b>Total Emp Count: ${TotalEmpcount}</b>`;
             }
           },
           series: [
@@ -820,7 +827,7 @@ export class UserPerformanceComponent implements OnInit {
             pointFormatter: function() {
               // Access managerName through the departmentData array
               const managerName = departmentData[this.index].managerName;
-              return `<b>Pending Percentage: ${this.y}%</b><br><b>Manager: ${managerName}</b>`;
+              return `<b>Pending Percentage: ${this.y}%</b><br><b>HOD: ${managerName}</b>`;
             }
           },
           series: [

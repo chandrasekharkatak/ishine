@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.service;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -109,6 +110,7 @@ import com.apmosys.employeeportal.repository.PolicyReadResponseRepository;
 import com.apmosys.employeeportal.repository.PreviousEmploymentRepository;
 import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.repository.QuarterCycleRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.repository.UploadPolicyRepository;
@@ -137,6 +139,9 @@ public class EmployeeService {
 
 	@Autowired
 	DraftEmployeeRepository draftEmployeeRepository;
+	
+	@Autowired
+	QuarterCycleRepository quarterCycleRepository;
 
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
@@ -2977,6 +2982,8 @@ public class EmployeeService {
 		                    }
 		                    empDTO.setProjectList(projectList);
 		                }
+		               
+
 		            }
 				
 
@@ -2985,8 +2992,16 @@ public class EmployeeService {
 					
 					empDTO.setProfileCompletedPercent(emp != null ? emp.getProfileCompletedPercent() : 0.00);
 					
-					
-					
+					 int totalEnabledQuarters = quarterCycleRepository.countByIsEnableAndIsActive();
+					 int completedQuarters = quarterCycleRepository.countByEmpIdAndCompletionStatusAndQuarterIdIn(
+				                empDTO.getEmpId(), quarterCycleRepository.findAllEnabledQuarterIds()
+				            );
+					 
+					 double performanceStatus = (totalEnabledQuarters > 0) 
+							    ? ((double) completedQuarters / totalEnabledQuarters) * 100 
+							    : 0.0;
+					 performanceStatus = Double.parseDouble(String.format("%.2f", performanceStatus));
+					 empDTO.setPerformanceStatusPercentage(performanceStatus);		 
 					dtoList.add(empDTO);
 				});
 
