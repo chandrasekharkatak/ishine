@@ -2849,6 +2849,16 @@ public class EmployeeService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("getALLEmployees size : "+employeeRepository.getAllEmployees().size());
 		
+		String cacheKey = "allEmployees";
+		
+		if (employeeCache.containsKey(cacheKey)) {
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse(employeeCache.get(cacheKey));
+            apiLogInfo.setApiResponse("Data fetched from cache. Size: " + employeeCache.get(cacheKey).size());
+            logService.logMyInfo(httpRequest, apiLogInfo);
+            return response;
+        }
+		
 		try {
 			List<Object[]> allEmployeeList = employeeRepository.getAllEmployees();
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
@@ -3004,11 +3014,15 @@ public class EmployeeService {
 					 empDTO.setPerformanceStatusPercentage(performanceStatus);		 
 					dtoList.add(empDTO);
 				});
+				 employeeCache.put(cacheKey, dtoList);
 
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);
-				apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	                response.setServiceResponse(dtoList);
+	                apiLogInfo.setApiResponse("List fetched from DB and stored in cache. Size: " + dtoList.size());
+//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//				response.setServiceResponse(dtoList);
+//				apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Employee List is null.");
@@ -3038,7 +3052,7 @@ public class EmployeeService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("getALLEmployees size : "+employeeRepository.getAllEmployees().size());
 		
-		String cacheKey = "allEmployees";
+		String cacheKey = "allEmployees360";
 		
 		if (employeeCache.containsKey(cacheKey)) {
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -3155,6 +3169,32 @@ public class EmployeeService {
 					empDTO.setHodId(object[84] != null ? Long.parseLong(object[84].toString()) : null );
 				    empDTO.setHodName(object[85] != null ? object[85].toString() : null);
 				    empDTO.setHodDepartmentName(object[86] != null ? object[86].toString() : null);
+				    if (object[87] != null && object[72] != null) {
+		                String projectIdStr = object[87].toString().trim();
+		                String projectNameStr = object[72].toString().trim();
+
+		                
+		                if (!projectIdStr.isEmpty() && !projectNameStr.isEmpty()) {
+		                    String[] projectIds = projectIdStr.split(",");
+		                    String[] projectNames = projectNameStr.split(",");
+
+		                    
+		                    List<ProjectDTO> projectList = new ArrayList<>();
+		                    int length = Math.min(projectIds.length, projectNames.length);
+		                    
+		                    for (int i = 0; i < length; i++) {
+		                        try {
+		                            ProjectDTO projectDTO = new ProjectDTO();
+		                            projectDTO.setProjectId(Integer.parseInt(projectIds[i].trim()));
+		                            projectDTO.setProjectName(projectNames[i].trim());
+		                            projectList.add(projectDTO);
+		                        } catch (NumberFormatException e) {
+		                            System.err.println("Invalid projectId: " + projectIds[i]);
+		                        }
+		                    }
+		                    empDTO.setProjectList(projectList);
+		                }
+		            }
                     
 					ServiceResponse completionResponse = getEmployeeProfileCompletion(empDTO);
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
