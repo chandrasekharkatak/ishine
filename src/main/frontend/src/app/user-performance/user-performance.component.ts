@@ -240,7 +240,7 @@ export class UserPerformanceComponent implements OnInit {
 
   getAllEmployee() {
 
-    this.performanceSerive.getAllEmployee().subscribe
+    this.performanceSerive.getAllEmployeesForPerformance().subscribe
       ((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allEmployee = response.serviceResponse;
@@ -479,7 +479,7 @@ export class UserPerformanceComponent implements OnInit {
 
   name = 'EmployeeSheet.xlsx';
   exportToExcel(): void {
-    this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
+    this.performanceService.getAllEmployeesForPerformance().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         //  this.employeeDataForExcel = response.serviceResponse;
 
@@ -645,6 +645,7 @@ export class UserPerformanceComponent implements OnInit {
   }
 
   back() {
+    this.getAllEmployee();
     this.isperformanceDsah = true;
     this.isreviewPage = false;
     setTimeout(() => {
