@@ -190,7 +190,7 @@ async getTeamEmployeeByTeamId(teamId: any) {
     this.getTeamListByProjectName(project);
   }
 
-  getExistingProjectsByUser() {
+  async getExistingProjectsByUser() {
     let projectObj = new Project();
     projectObj.empId = this.employeeData.empId;
     projectObj.isAllProj = true;
