@@ -235,6 +235,7 @@ export class PerformanceConfigComponent implements OnInit {
     this.performanceService.getQuartersByYear(financialYear).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.existingQuarters = response.serviceResponse;
+        console.log(this.existingQuarters);
         
       }
     });
@@ -312,22 +313,66 @@ export class PerformanceConfigComponent implements OnInit {
     }
   }
 
-  checkMonthExistencee(type: 'fromMonth' | 'toMonth', template: TemplateRef<any>) {
-    const selectedMonth = this.quarterCycle[type];
-    if (!selectedMonth) return;
+  // checkMonthExistencee(type: 'fromMonth' | 'toMonth', template: TemplateRef<any>) {
+  //   const selectedMonth = this.quarterCycle[type];
+  //   if (!selectedMonth) return;
 
-    const selectedMonthIndex = this.getMonthIndex(selectedMonth);
-    let existingQuarter = '';
+  //   const selectedMonthIndex = this.getMonthIndex(selectedMonth);
+  //   let existingQuarter = '';
+
+  //   const isOverlap = this.existingQuarters.some((quarter: any) => {
+  //     const [existingFrom, existingTo] = quarter.quarterCycle.split('-');
+  //     const existingFromIndex = this.getMonthIndex(existingFrom);
+  //     const existingToIndex = this.getMonthIndex(existingTo);
+
+  //     const overlaps = selectedMonthIndex >= existingFromIndex && selectedMonthIndex <= existingToIndex;
+
+  //     if (overlaps) {
+  //       existingQuarter = quarter.quarterCycle;
+  //     }
+
+  //     return overlaps;
+  //   });
+
+  //   if (isOverlap) {
+  //     setTimeout(() => {
+  //       this.quarterCycle[type] = '';
+  //     });
+
+  //     this.openAlertMod(template, `The selected month ${selectedMonth} already exists in the quarter cycle ${existingQuarter}.`);
+  //   }
+  // }
+  
+ 
+  checkMonthExistencee(type: 'fromMonth' | 'toMonth', template: TemplateRef<any>) {
+    const selectedFromMonth = this.quarterCycle.fromMonth;
+    const selectedToMonth = this.quarterCycle.toMonth;
+
+    if (!selectedFromMonth || !selectedToMonth) return;
+
+    const selectedFromIndex = this.getMonthIndex(selectedFromMonth);
+    const selectedToIndex = this.getMonthIndex(selectedToMonth);
+
+    let overlappingCycle = '';
+     
 
     const isOverlap = this.existingQuarters.some((quarter: any) => {
       const [existingFrom, existingTo] = quarter.quarterCycle.split('-');
       const existingFromIndex = this.getMonthIndex(existingFrom);
       const existingToIndex = this.getMonthIndex(existingTo);
+   
+      if (this.isQuaterUpdation && quarter.quarterId === this.quarterCycle.quarterId) {
+        return false;
+    }
 
-      const overlaps = selectedMonthIndex >= existingFromIndex && selectedMonthIndex <= existingToIndex;
+      // Check if new range overlaps with any existing cycle
+      const overlaps =
+        (selectedFromIndex >= existingFromIndex && selectedFromIndex <= existingToIndex) ||
+        (selectedToIndex >= existingFromIndex && selectedToIndex <= existingToIndex) ||
+        (selectedFromIndex <= existingFromIndex && selectedToIndex >= existingToIndex);
 
       if (overlaps) {
-        existingQuarter = quarter.quarterCycle;
+        overlappingCycle = quarter.quarterCycle;
       }
 
       return overlaps;
@@ -338,9 +383,10 @@ export class PerformanceConfigComponent implements OnInit {
         this.quarterCycle[type] = '';
       });
 
-      this.openAlertMod(template, `The selected month ${selectedMonth} already exists in the quarter cycle ${existingQuarter}.`);
+      this.openAlertMod(template, `The selected range ${selectedFromMonth}-${selectedToMonth} overlaps with an existing cycle ${overlappingCycle}.`);
     }
-  }
+}
+
 
 
   toggleSearch() {
@@ -413,6 +459,7 @@ export class PerformanceConfigComponent implements OnInit {
 
 
   getByQuarterById(quarterId: any) {
+    this.fetchExistingQuarters();
     this.isQuaterTable = false;
     this.isQuaterForm = true;
 
