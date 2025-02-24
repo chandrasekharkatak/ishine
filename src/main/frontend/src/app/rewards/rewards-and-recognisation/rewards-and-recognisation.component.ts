@@ -48,7 +48,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
   teams: any[] = [];
   selectedTeamId: any;
   selectedIDdprimiryKey: any;
-  @ViewChild('alert_message')
+  // @ViewChild('alert_message')
   rewardHistoryList: any = [];
   isSearchEnabled: boolean = false;
   filters: any = {};
