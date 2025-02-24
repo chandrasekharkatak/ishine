@@ -35,7 +35,7 @@ export class Employee360AppreciationComponent implements OnInit {
   matchedEmployees: any[] = [];
   matchedEmployee: any;
   currentBreadcrumbList: any[] = [];
-  appreciationColumns: any[] = ['', 'appreciateType', 'appreciationByName', 'appreciationDate','fromDate', 'toDate'];
+  appreciationColumns: any[] = ['blank', 'appreciateType', 'appreciationByName', 'appreciationDate','fromDate', 'toDate'];
   items = 10;
   employeesFor360:any[] = [];
 
@@ -151,7 +151,7 @@ export class Employee360AppreciationComponent implements OnInit {
       fromDate: fromDate || null,
       toDate: toDate || null
     };
-
+     
     this.employeeService.getEmployeeAppreciationByEmpId(requestPayload).subscribe(
       (response: any) => {
         this.employee = response.appreciationDto;
@@ -186,7 +186,7 @@ export class Employee360AppreciationComponent implements OnInit {
 
   getTeamAppreciationData() {
     const requestPayload = {
-      empId: this.currentEId
+      empId: this.currentEmpId
     };
 
     this.isTeamAppreciationView = !this.isTeamAppreciationView;
