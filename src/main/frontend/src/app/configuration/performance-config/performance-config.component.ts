@@ -96,7 +96,7 @@ export class PerformanceConfigComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
+   
 
     
     
@@ -180,21 +180,20 @@ export class PerformanceConfigComponent implements OnInit {
     this.isCreateReview = false;
     this.reviewObj = new review();
     this.getReviewType();
-    console.log("true" + this.isReviewTable);
+   
   }
 
   createQuarterCycle(template: TemplateRef<any>) {
 
     let inputValidated: boolean = this.validateQuarterCycleObj(this.quarterCycle, template)
-    console.log("Pr ", inputValidated);
+   
     if (!inputValidated) return;
-    console.log("Pr ", inputValidated);
     this.quarterCycle.createdBy = this.currentUser.empId;
     this.quarterCycle.financialYear = `${this.quarterCycle.fromYear}-${this.quarterCycle.toYear}`;
     this.quarterCycle.quarterCycle = `${this.quarterCycle.fromMonth}-${this.quarterCycle.toMonth}`;
     this.quarterCycle.isActive = true;
     this.quarterCycle.isEnable = false;
-    console.log("quartercycle", this.quarterCycle);
+   
     this.performanceService.createQuarterCycle(this.quarterCycle).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -209,14 +208,14 @@ export class PerformanceConfigComponent implements OnInit {
   updateQuarterCycle(template: TemplateRef<any>) {
 
     let inputValidated: boolean = this.validateQuarterCycleObj(this.quarterCycle, template)
-    console.log("Pr ", inputValidated);
+    
     if (!inputValidated) return;
-    console.log("Pr ", inputValidated);
+    
 
     this.quarterCycle.updatedBy = this.currentUser.empId;
     this.quarterCycle.financialYear = `${this.quarterCycle.fromYear}-${this.quarterCycle.toYear}`;
     this.quarterCycle.quarterCycle = `${this.quarterCycle.fromMonth}-${this.quarterCycle.toMonth}`;
-    console.log(this.quarterCycle, "updateeeeeee");
+  
     this.performanceService.updateQuarterCycle(this.quarterCycle).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -232,11 +231,11 @@ export class PerformanceConfigComponent implements OnInit {
   fetchExistingQuarters() {
     const financialYear = `${this.quarterCycle.fromYear}-${this.quarterCycle.toYear}`;
 
-    console.log(financialYear, "--------------------------");
+   
     this.performanceService.getQuartersByYear(financialYear).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.existingQuarters = response.serviceResponse;
-        console.log("lalal", this.existingQuarters);
+        
       }
     });
   }
@@ -369,7 +368,7 @@ export class PerformanceConfigComponent implements OnInit {
     this.isReviewForm = true;
     this.isCreateReview = true;
     this.getAllQuarterCycles();
-    console.log("quater", this.quarterCyclesList);
+    
     this.allSpecializationList = [];
 
     if (this.reviewObj.allSpecializationList == undefined || this.reviewObj.allSpecializationList.length == 0) {
@@ -403,7 +402,6 @@ export class PerformanceConfigComponent implements OnInit {
     obj.isActive = false;
     obj.quarterId = this.quarterIdToBeDeleted;
 
-    console.log(obj, "delete");
 
     this.performanceService.deleteQuarterCycle(obj).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -434,7 +432,7 @@ export class PerformanceConfigComponent implements OnInit {
 
         this.fetchExistingQuarters();
 
-        console.log(this.quarterCycle, "getquartercyclebyid");
+       
       } else {
         console.error(response.serviceResponse)
       }
@@ -471,11 +469,11 @@ export class PerformanceConfigComponent implements OnInit {
     this.allSpecializationList = [];
 
     this.reviewObj.reviewTypeId = review.reviewTypeId;
-    console.log("hhj", review.reviewTypeId);
+    
     this.reviewObj.deptId = [review.deptId];
     this.performanceService.getReviewTypeById(this.reviewObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.reviewObj = response.serviceResponse;
+        this.reviewObj = response.serviceResponse;      
         this.reviewObj.departmentName = review.departmentName;
         this.reviewObj.quarterCycle = review.quarterCycle;
         this.allSpecializationList.push(this.reviewObj);

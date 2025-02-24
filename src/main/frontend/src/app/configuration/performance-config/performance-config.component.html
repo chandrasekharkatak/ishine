@@ -336,7 +336,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 mb-0">
+                <div class="col-md-4 mb-0" *ngIf="isCreateReview">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Quarter Cycle</label>
@@ -352,7 +352,15 @@
                         </div>
                     </div>
                 </div>
-
+                <div class="col-md-4 mb-0" *ngIf="isReviewUpdation">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Quarter Cycle</label>
+                            <input #myInput type="text" class="form-control" autocomplete="none"
+                            [(ngModel)]="reviewObj.quarterCycle" disabled>
+                        </div>
+                    </div>
+                </div>
 
             </div>
             <div *ngFor="let spec of allSpecializationList;let i = index" class="row">
