@@ -189,9 +189,9 @@ export class Employee360AppreciationComponent implements OnInit {
       empId: this.currentEmpId
     };
 
-    this.isTeamAppreciationView = !this.isTeamAppreciationView;
-    this.selectedDateRange = '';
-    this.isDateRangeDisabled = this.isTeamAppreciationView;
+     this.isTeamAppreciationView = !this.isTeamAppreciationView;
+    // this.selectedDateRange = '';
+    // this.isDateRangeDisabled = this.isTeamAppreciationView;
 
     if (this.isTeamAppreciationView) {
       this.employeeService.getTeamAppreciationByEmpId(requestPayload).subscribe(

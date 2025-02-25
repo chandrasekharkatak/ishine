@@ -6,7 +6,7 @@
   <div>
     <select 
       id="date-range-dropdown" class="form-control form-control-sm" [value]="selectedDateRange" (change)="onSelectRange($event)" 
-      [disabled]="isTeamAppreciationView || isDateRangeDisabled">
+      >
       <option value="" disabled>Yearly</option>
       <option *ngFor="let range of formattedDateRanges" [value]="range">
         {{ range }}
@@ -52,7 +52,8 @@
         <th class="info-label">{{ 10 * (page - 1) + i + 1 }}</th>
         <td>{{ event.appreciateType }}</td>
         <td *ngIf="isTeamAppreciationView">
-          <span *ngIf="getMatchedEmployee(event)">
+          <!-- <span *ngIf="getMatchedEmployee(event)"> -->
+            <span>
             <a id="clickablefor360" [navigateToEmployee360]="getMatchedEmployee(event)">
               {{ event.appreciationByName }}
             </a>
