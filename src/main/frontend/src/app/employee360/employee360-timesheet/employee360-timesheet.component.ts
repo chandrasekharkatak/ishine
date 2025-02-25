@@ -1,18 +1,21 @@
-import { Component, OnInit, TemplateRef, Input, Output, ViewChild } from '@angular/core';
-import * as moment from 'moment';
-import { first } from 'rxjs/operators';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import { CalendarComponent } from 'src/app/helpers/calendar/calendar.component';
-import { Timesheet } from 'src/app/models/timesheet';
-import { Employee360Service } from 'src/app/services/employee360.service';
-import { TimesheetService } from 'src/app/services/timesheet.service';
-import { Modal } from 'bootstrap';
-import { OwlDateTimeComponent } from 'ng-pick-datetime';
 import { ScrollStrategy } from '@angular/cdk/overlay';
 import { DatePipe } from '@angular/common';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Sort } from '@angular/material/sort';
 import { Router } from '@angular/router';
+import * as moment from 'moment';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
+import { CalendarComponent } from 'src/app/helpers/calendar/calendar.component';
 import { Breadcrumb } from 'src/app/models/breadcrumd';
+import { Timesheet } from 'src/app/models/timesheet';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
+import { EmployeeService } from 'src/app/services/employee.service';
+import { Employee360Service } from 'src/app/services/employee360.service';
+import { TimesheetService } from 'src/app/services/timesheet.service';
+import { UtilityService } from 'src/app/services/utility.service';
+import { SortPipe } from 'src/app/sort.pipe';
 
 @Component({
   selector: 'app-employee360-timesheet',
@@ -58,6 +61,13 @@ export class Employee360TimesheetComponent implements OnInit {
   timesheetIds:any []=[];
   responseCount:any=0;
 
+  filters:any = {};
+  isSearchEnabled:boolean = false;
+
+
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
   //Bulk approve-reject
   bulkList: any = [];
   isSelectAll: boolean = false;
@@ -68,8 +78,13 @@ export class Employee360TimesheetComponent implements OnInit {
   projectClicked:boolean=false;
   teamClicked:boolean=false;
   actionButton:boolean=false;
+
+  timesheetColumns:any[]=['employmentId','name','date','dayType','projectName','teamName','completionTime','activity','officeInTime','officeOutTime','totalTime','nightShift','status','createdOn'];
+  employeesFor360:any[] = [];
   
   constructor(
+    private employeeService: EmployeeService,
+    private utilityService: UtilityService,
     private employee360Service : Employee360Service,
     private timesheetService : TimesheetService,
     private datePipe: DatePipe,
@@ -104,12 +119,13 @@ export class Employee360TimesheetComponent implements OnInit {
       console.log(this.managerId); 
     }
     this.empId=sessionStorage.getItem('empId');
-    
+
     this.startDate = null;
     this.endDate = null;
     this.formattedStartDate = null;
     this.formattedEndDate = null;
     this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,0,this.formattedStartDate,this.formattedEndDate);
+    this.getAllEmployeeFor360View();
   }
 
   setActiveButton(button: string): void {
@@ -285,6 +301,38 @@ export class Employee360TimesheetComponent implements OnInit {
     this.updateStatus(status);
   }
 
+  page = 1;
+  handlePageChange(event) {
+    this.page = event;
+  }
+
+  toggleSearch(){
+    this.isSearchEnabled = !this.isSearchEnabled;
+    if(!this.isSearchEnabled){
+      this.filters = {};
+    }
+  }
+
+  resetSearch(){
+    this.isSearchEnabled = false;
+    this.filters = {};
+  }
+
+  onSearch(searchData){
+    this.filters = searchData;
+    //console.log("Updated Filter : ", this.filters);
+  }
+
+    sortData(sort: Sort){
+      //console.log(sort);
+      if(sort.active){
+        let sortParams:any[] = sort.active?.split("|");
+        this.sortColumn = sortParams[0];
+        this.sortColumnType = sortParams[1];
+        this.sortDirection = sort.direction;
+      }
+    }
+
   update(status:string,empId: number, date: string){
     for (const emp of this.result){
       if(emp.empId == empId && emp.date == date){
@@ -442,9 +490,15 @@ updateStatus(status: string) {
             this.data = Object.values(this.data);
             this.responseCount=this.data.length; 
             this.result = this.transformData(this.data);
+            this.result.forEach((employee) => {
+              let matchingEmployee = this.employeesFor360.find(emp => emp.empId == employee.empId);
+              console.log("matchingEmployee ", matchingEmployee);
+              employee.emp360 = matchingEmployee ? matchingEmployee : {};
+          });
             console.log("this.result =>", this.result )
         }
     });
+
     this.currentUser=sessionStorage.getItem('currentUser');
     if (this.currentUser) {
       const currentUserData = JSON.parse(this.currentUser);
@@ -460,7 +514,7 @@ updateStatus(status: string) {
       // Handle "All"
       this.startDate = null;
       this.endDate = null;
-      this.setDate();
+      this.resetDateRange();
     } else if (arg == 2) {
       // Handle "Weekly"
       this.startDate = new Date();
@@ -471,7 +525,10 @@ updateStatus(status: string) {
       // Handle "Monthly"
       this.startDate = new Date();
       this.endDate = new Date();
-      this.startDate.setDate(this.startDate.getDate() - 30);
+
+      // this.startDate = new Date(this.endDate.getFullYear(), this.endDate.getMonth(), 1);
+
+      this.startDate.setDate(this.startDate.getMonth());
       this.setDate();
     } else if (arg == 4) {
       // Handle "Date range"
@@ -486,7 +543,7 @@ updateStatus(status: string) {
     this.dateTimeRange = null;
     this.startDate = null;
     this.endDate = null;
-    this.onChangeOption(1);
+    this.setDate();
   }
 
   getDateRange() {
@@ -579,6 +636,41 @@ updateStatus(status: string) {
     return transformedData;
   }
 
+  getAllEmployeeFor360View(): void {
+        this.employeesFor360 = [];
+        this.employeeService.getAllEmployeesFor360View().subscribe({
+            next: (response: any) => {
+                if (response.serviceStatus == "Success") {
+                    this.employeesFor360 = response.serviceResponse;
+    
+                    this.employeesFor360.forEach(employeeObj => {
+                        employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
+                        employeeObj.dateOfJoining = employeeObj.dateOfJoining ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+                        employeeObj.dateOfRelieving = employeeObj.dateOfRelieving ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+                        employeeObj.updatedOn = employeeObj.updatedOn ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+                        employeeObj.createdOn = employeeObj.createdOn ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+    
+                        if (employeeObj.isConsultant == 'true')
+                            employeeObj.employeeType = 'Consultant';
+                        else if (employeeObj.isApprenticeship == 'true')
+                            employeeObj.employeeType = 'Apprentice';
+                        else
+                            employeeObj.employeeType = 'Regular';
+                    });
+    
+                    this.employeesFor360 = new SortPipe().transform(this.employeesFor360, ['name', 'string', 'asc']);
+                } else {
+                    alert(response.serviceResponse);
+                }
+            },
+            error: (error) => {
+                console.error("Error fetching employees:", error);
+            }
+        });
+    }
 
+    clearBreadcrumbs(){
+      window.location.reload()
+    }
 }
 

@@ -2,6 +2,8 @@ ul li{
     text-decoration: none;
     display: block;
 }
-.timehseet{
-    
-}
+
+.search-icon {
+    font-size: 20px;
+    cursor: pointer;
+  }

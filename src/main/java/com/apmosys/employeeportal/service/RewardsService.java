@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.apmosys.employeeportal.dto.AppreciationDetails;
 import com.apmosys.employeeportal.dto.AppreciationDetailsDTO;
 import com.apmosys.employeeportal.dto.CustomFilterDTO;
+import com.apmosys.employeeportal.dto.Employee360RewardsDTO;
 import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeRewardForHomeDTO;
@@ -31,6 +32,7 @@ import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.RewardCategoryDTO;
 import com.apmosys.employeeportal.dto.RewardConfigurationDTO;
+import com.apmosys.employeeportal.dto.RewardTeamDTO;
 import com.apmosys.employeeportal.dto.RewardsDetails;
 import com.apmosys.employeeportal.model.CommonProperties;
 import com.apmosys.employeeportal.model.Department;
@@ -1268,22 +1270,23 @@ public class RewardsService {
 	public ServiceResponse getEmployeeRewardByEmpId(EmployeeRewardsRequest request) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 	    try {
-	    	List<EmployeeRewardsDTO> rewardList = new ArrayList<>();
+	    	List<Employee360RewardsDTO> rewardList = new ArrayList<>();
 
 		    if (request.getEmpId() != null) {
 		      
-		        List<Object[]> result = employeeRewardsRepository.getRewardByEmpIdWithDateRange(request.getEmpId(), request.getOfMonthYear());
+		        List<Object[]> result = employeeRewardsRepository.getRewardDetailsByEmpId(request.getEmpId(), request.getOfMonthYear());
 		        if(result != null) {
 		        	for (Object[] row : result) {
-			            EmployeeRewardsDTO dto = new EmployeeRewardsDTO();
+		        		Employee360RewardsDTO dto = new Employee360RewardsDTO();
 			            dto.setRewardTypeName(row[1] != null ? row[1].toString() : null);
 			            dto.setRewardedTo(row[2] != null ? Long.parseLong(row[2].toString()) : null);
 			            dto.setCreatedOn(row[3] != null ?getLocalDateTime(row[3]) : null); 
 			            dto.setRemark(row[4] != null ? row[4].toString() : null);
-			            dto.setUpdatedByName(row[5] != null ? getEmployeeNameByEmpId(Long.parseLong(row[5].toString())) : null);
+			            dto.setCreatedByName(row[5] != null ? getEmployeeNameByEmpId(Long.parseLong(row[5].toString())) : null);
 			            dto.setName(row[0] != null ? row[0].toString() : null);
-			            dto.setTeamName(row[6] != null ? row[6].toString() : null);
-
+			            dto.setCreatedBY(row[5] != null ? Long.parseLong(row[5].toString()) : null);
+			            List<RewardTeamDTO> teamList = getTeamsByEmpId(request.getEmpId());
+			            dto.setTeamlist(teamList);
 			            rewardList.add(dto);
 			        }
 		        }
@@ -1304,7 +1307,22 @@ public class RewardsService {
     
     return serviceResponse;
 	}
+	
+	
+	public List<RewardTeamDTO> getTeamsByEmpId(Long empId) {
+		 List<RewardTeamDTO> teamList = new ArrayList<>();
+		    List<Object[]> teamResults = employeeRewardsRepository.getTeamsByEmpId(empId); 
 
+		    if (teamResults != null) {
+		        for (Object[] row : teamResults) {
+		            RewardTeamDTO teamDTO = new RewardTeamDTO();
+		            teamDTO.setTeamId(row[0] != null ? Long.parseLong(row[0].toString()) : null);
+		            teamDTO.setTeamName(row[1] != null ? row[1].toString() : null);
+		            teamList.add(teamDTO);
+		        }
+		    }
+		    return teamList;
+		}
 
 
 //	public RewardsDetails getTeamRewardByEmpId(EmployeeRewardsRequest request) {
@@ -1369,8 +1387,7 @@ public class RewardsService {
 	    List<EmployeeRewardsDTO> rewardList = new ArrayList<>();
 
 	    if (request.getEmpId() != null) {
-	        List<Object[]> result = employeeRewardsRepository.getRewardByTeamAndDateRange(request.getEmpId());
-
+	        List<Object[]> result = employeeRewardsRepository.getRewardByTeamAndDateRange(request.getOfMonthYear(),request.getTeamId());
 	        for (Object[] row : result) {
 	            EmployeeRewardsDTO dto = mapRowToDTO(row);
 	            rewardList.add(dto);
@@ -1393,7 +1410,8 @@ public class RewardsService {
 	    dto.setRewardTypeName((String) row[1]);
 	    dto.setRewardedTo(getLongValue(row[2]));
 	    dto.setCreatedOn(getLocalDateTime(row[3]));
-	    dto.setCreatedByName(getStringValue(row[4]));
+	    dto.setRemark(getStringValue(row[4]));
+	    dto.setCreatedByName(getEmployeeNameByEmpId(getLongValue(row[5])));
 
 	    return dto;
 	}

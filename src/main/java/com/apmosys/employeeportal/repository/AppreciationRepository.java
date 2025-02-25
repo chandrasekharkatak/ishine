@@ -137,14 +137,14 @@ List<Object[]> getMyAppreciationDetails(@Param("startDate") String startDate,
 		List<AppreciationDetailsDTO> getAppreciationDetailsByEmpId(@Param("empId") Long empId);
 	
 	@Query(
-			"SELECT new com.apmosys.employeeportal.dto.AppreciationDetailsDTO( " +
+			"SELECT DISTINCT new com.apmosys.employeeportal.dto.AppreciationDetailsDTO( " +
 			"e.empId, a.appreciateType, a.appreciationDate, e.name, ae.fromDate, ae.toDate) " +
 			"FROM com.apmosys.employeeportal.model.Appreciation a " +
 			"JOIN com.apmosys.employeeportal.model.AppreciationEvent ae ON a.appreciationEventId = ae.appreciationEventid " +
 			"JOIN com.apmosys.employeeportal.model.Employee e ON e.employeementId=a.appreciationTo "+
 			"JOIN com.apmosys.employeeportal.model.EmployeeTeamMap etm ON e.empId = etm.empId " + 
-			"WHERE a.appreciationTo in (SELECT empId FROM EmployeeTeamMap WHERE teamId IN " +
-			"(SELECT teamId FROM EmployeeTeamMap WHERE empId = :empId)) " +
+			"WHERE a.appreciationTo in (SELECT employeementId FROM Employee WHERE empId  IN (SELECT empId FROM EmployeeTeamMap WHERE teamId IN " +
+			"(SELECT teamId FROM EmployeeTeamMap WHERE empId  IN( SELECT empId FROM Employee e3 WHERE  e3.employeementId = :empId) ))) " +
 			"AND a.appreciateType IN (SELECT appreciateType FROM Appreciation WHERE appreciationTo = :empId) "
 			)
 		List<AppreciationDetailsDTO> getTeamAppreciationDetailsByEmpId(@Param("empId") Long empId);

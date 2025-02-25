@@ -213,7 +213,8 @@
                             <tr
                                 *ngFor="let rewardHistory of rewardHistoryList  | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page },  let i = index">
                                 <th class="info-label">{{items *(page-1)+i+1}}</th>
-                                <td>{{rewardHistory.rewardedToByName}}</td>
+                                <td id="clickablefor360" *ngIf="userMapping.reward_employee_360" [navigateToEmployee360]="rewardHistory.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{rewardHistory.rewardedToByName}}</td>
+                                <td *ngIf="!userMapping.reward_employee_360">{{rewardHistory.rewardedToByName}}</td>
                                 <td>{{rewardHistory.rewardTypeName}}</td>
                                 <td>{{rewardHistory.createdByName}}</td>
                                 <td>{{rewardHistory.createdOn}}</td>

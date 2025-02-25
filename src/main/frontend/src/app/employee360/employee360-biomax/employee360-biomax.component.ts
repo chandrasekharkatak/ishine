@@ -1,13 +1,20 @@
 import { DatePipe } from '@angular/common';
-import { AfterViewInit, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Sort } from '@angular/material/sort';
+import * as Highcharts from 'highcharts';
 import * as moment from 'moment';
 import { Biomax } from 'src/app/models/biomax';
-import { Employee360Service } from 'src/app/services/employee360.service';
-import * as Highcharts from 'highcharts';
 import { Breadcrumb } from 'src/app/models/breadcrumd';
 import { Team } from 'src/app/models/team';
+import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
+import { Employee360Service } from 'src/app/services/employee360.service';
 
+
+class FilterData {
+  title: any;
+  columns: any;
+  queryList: any;
+}
 @Component({
   selector: 'app-employee360-biomax',
   templateUrl: './employee360-biomax.component.html',
@@ -23,23 +30,29 @@ export class Employee360BiomaxComponent implements OnInit{
   currentBreadcrumbList: any[] = [];
   team=new Team();
   employeeIdList:any[]=[];
+  filters: any = {};
    employeeIdString = '';
   teamList:Team[]=[];
+  filterData: any = new FilterData();
   defaultview:boolean=true;
   chartdata={
     workinghours:0,
     lessthenworkinghours:0,
     hovertime:0
   }
-
-
-
+  biomaxListColumns: any[] = ['blank', 'logDate', 'beginTime', 'endTime', 'shiftName'];
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType: any;
+  isSearchEnabled:boolean =false;
   chartOptions: Highcharts.Options = {
     chart: {
       type: 'pie'
     },
     title: {
       text: 'Work Hours Distribution'
+    }, credits: {
+      enabled: false
     },
     series: [
       {
@@ -112,6 +125,32 @@ ngOnInit(): void {
   this.viewFilterdata();
  
 }
+
+onSearch(searchData) {
+  this.filters = searchData;
+}
+toggleSearch() {
+  this.sortColumn = [];
+  this.sortColumnType = [];
+  this.sortDirection = '';
+  this.isSearchEnabled = !this.isSearchEnabled;
+  if (!this.isSearchEnabled) {
+    this.filters = {};
+  }
+}
+
+
+ sortData(sort: Sort) {
+
+    if (sort.active) {
+      let sortParams: any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;
+    }
+  }
+
+
 
 viewFilterdata() {
   // Initialize filter1 object

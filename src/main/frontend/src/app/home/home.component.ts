@@ -31,6 +31,8 @@ import { EventPhoto } from '../models/EventPhoto';
 import { RewardsServiceService } from '../services/rewards-service.service';
 import { UtilityService } from '../services/utility.service';
 import { environment } from 'src/environments/environment';
+import { Employee360Service } from '../services/employee360.service';
+import { SortPipe } from '../sort.pipe';
 
 interface objlms{
   email:any
@@ -219,6 +221,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   currentIndex: any = 0; 
   currentGroup: any = null;
   scrollDelay: number = 18700;
+  allEmployeeList360: any[] = [];
 
   constructor(
     private modalService: BsModalService,
@@ -237,7 +240,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
     private locationStrategy: LocationStrategy,
     private rewardsService: RewardsServiceService,
     public utilityService: UtilityService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    public employee360Service: Employee360Service,
 
   ) {
     this.authenticationService.currentUser.subscribe(x => {
@@ -269,24 +273,23 @@ LmsRedirection(){
   })
 
 }
+
   ngOnInit(): void {
- console.log("current user", this.currentUser.isNew);
-if (this.currentUser.isNew === "true") {
-  sessionStorage.setItem('isFirstTimeLogin', 'true');
-    window.history.pushState(null, "", window.location.href);
-   window.onpopstate = function() {
-        window.history.pushState(null, "", window.location.href); // Keep pushing new states
-    };
-   this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+  console.log("current user", this.currentUser.isNew);
+    if (this.currentUser.isNew === "true") {
+      sessionStorage.setItem('isFirstTimeLogin', 'true');
+        window.history.pushState(null, "", window.location.href);
+      window.onpopstate = function() {
+            window.history.pushState(null, "", window.location.href); // Keep pushing new states
+        };
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
 
-}
+    }
 
-if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
-    this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
-    sessionStorage.removeItem('isFirstTimeLogin');
-}
-
-  
+    if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
+        this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+        sessionStorage.removeItem('isFirstTimeLogin');
+    }
     this.getEmployeeProfileCompletion();
     this.logService.updateLogInfo(this.log);
     // Dynamic Subfeature Flags
@@ -295,106 +298,6 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    //console.log(this.feature, " : ", this.userMapping);
-
- // TOP BAR
-//  @ViewChild("change_password")
-//  changePasswordTemplate: TemplateRef<any>;
-
- //Loading login after setting new password
-//  @ViewChild("LoadingLogin") LoadingLoginTemplate: TemplateRef<any>;
-//  fieldTextType: boolean = false;
-//  fieldTextTypePassword: boolean = false;
-//  fieldTextTypeOldPass: boolean = false;
-//  isError: boolean = false;
-//  oldPasswordValid: boolean = false;
-
-//  password: any;
-//  userNewPass: any;
-//  newpassword: any;
-//  errorMsg: any;
-//  empId: any;
-//  consentNotificationMessage: any;
-//  user: User = new User();
-//  leaveApplication: any;
-
-//  leaveTypes: Leave[] = [];
-//  leaveBucketDetails: any[] = [];
-//  lmsauthentication:any;
-
- // stop modal to close
-//  config = {
-//    backdrop: true,
-//    ignoreBackdropClick: true,
-//    keyboard: false
-//  };
-// oldPasswordValid: boolean = false;
-
-//  consentModalConfig = {
-//    backdrop: true,
-//    ignoreBackdropClick: true,
-//    keyboard: false,
-//    class: 'modal-lg'
-//  }
-
-//  profileCompletedPercentage: any = 0;
-
-//  filters: any = {};
-//  isSearchEnabled: boolean = false;
-//  leaveApplicationColumns: any[] = ['blank', 'blank', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'noOfDays', 'status', 'createdByName', 'createdOn', 'reason', 'currentApprovalLevel', 'approverName', 'managerApprovalStatus', 'level2ApproverName', 'level2ApprovalStatus', 'level3ApproverName', 'level3ApprovalStatus'];
-//  compOfApplicationColumns: any[] = ['blank', 'createdByName', 'compOffReasons', 'fromDate', 'toDate', 'noOfDays', 'description', 'status'];
-//  timesheetApplicationsColumns: any[] = ['blank', 'blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status'];
-
-
-//  isShowReleaseNote: boolean = false;
-//  releaseNoteText = "";
-
-//  currentIndex: any = 0; 
-//  currentGroup: any = null;
-//  scrollDelay: number = 18700;
-
-//  constructor(
-//    private modalService: BsModalService,
-//    private authenticationService: AuthenticationService,
-//    private leaveService: LeaveService,
-//    private exportExcelService: ExportExcelService,
-//    private router: Router,
-//    private employeeService: EmployeeService,
-//    private timesheetService: TimesheetService,
-//    private imageService: ImageService,
-//    private sanitizer: DomSanitizer,
-//    private notificationService: NotificationService,
-//    private bodyComponent: BodyComponent,
-//    public validationService: ValidationService,
-//    private logService: LogService,
-//    private locationStrategy: LocationStrategy,
-//    private rewardsService: RewardsServiceService,
-//    public utilityService: UtilityService,
-//    private cdr: ChangeDetectorRef
-
-//  ) {
-//    this.authenticationService.currentUser.subscribe(x => {
-//      this.currentUser = x;
-//      this.currentUserName = this.currentUser.name.split(" ")[0];
-//      this.currentUserName = this.currentUserName[0].toUpperCase() + this.currentUserName.slice(1).toLowerCase();
-//    });
-//    this.logService.log.subscribe(x => {
-//      this.log = x;
-//      this.log.tabName = this.feature;
-//      this.log.featureName = this.feature;
-//    });
-//  }
-
-//  ngOnInit(): void {
-//    this.getEmployeeProfileCompletion();
-//    this.logService.updateLogInfo(this.log);
-//    // Dynamic Subfeature Flags
-//    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
-//    console.log("feature Name ", featureMap);
-//    featureMap.subFeatures?.forEach(sub => {
-//      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
-//    });
-   //console.log(this.feature, " : ", this.userMapping);
 
    this.getAllNotifications();
    this.getAllLeaveTypesByLeavePolicies(this.currentUser);
@@ -416,7 +319,7 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
  
    this.preventBackButton();
    this.isEmployeeOnBench();
-
+   this.getAllEmployeeFor360View();
     //console.log('User Mapping', this.userMapping);
   }
 
@@ -471,8 +374,11 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
             leave.currentApprovalLevel = 1;
             leave.finalApprovalLevel = 1;
           }
+          let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId === leave.empId);
+          leave.emp360 = matchingEmployee ? matchingEmployee : {};
+
         });
-        //console.log("leaveApplicationList : ", this.leaveApplicationList);
+        console.log("leaveApplicationList : ", this.leaveApplicationList);
       } else {
         console.error(response.serviceResponse);
       }
@@ -576,8 +482,11 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
           compOff.fromDate = (compOff.fromDate) ? moment(compOff.fromDate).format(AppComponent.DATE_FORMAT) : null;
           compOff.toDate = (compOff.toDate) ? moment(compOff.toDate).format(AppComponent.DATE_FORMAT) : null;
           compOff.createdOn = (compOff.createdOn) ? moment(compOff.createdOn).format(AppComponent.DATE_FORMAT) : null;
+          let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId === compOff.empId);
+          compOff.emp360 = matchingEmployee ? matchingEmployee : {};
+
         });
-        //console.log("allCompOffApplications : ", this.allCompOffApplications);
+        console.log("allCompOffApplications : ", this.allCompOffApplications);
       } else {
         console.error(response.serviceResponse);
       }
@@ -672,6 +581,17 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
           timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          
+          // const empData = sessionStorage.getItem('AllEmployees');
+          // if (empData) {
+          //     this.employeeList = JSON.parse(empData);
+          // } else {
+          //     this.employeeList = [];
+          // }
+
+          let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === timesheet.employeementId);
+          timesheet.emp360 = matchingEmployee ? matchingEmployee : {};
+
         });
         //console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
       } else {
@@ -1241,23 +1161,48 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
 
   /* Quick Links */
   showApplyLeaveForm() {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }else{
     this.router.navigate(['/user-leaves'],
       { queryParams: { tabName: 'leave-tab' }, queryParamsHandling: '' });
+   }
+    
   }
 
   showApplyCompOffForm() {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }else{
     this.router.navigate(['/user-leaves'],
       { queryParams: { tabName: 'compOff-tab' }, queryParamsHandling: '' });
+    }
   }
 
   showApplyTimesheetForm() {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }else{
     this.router.navigate(['/user-timesheet'],
       { queryParams: { tabName: 'my-timesheet-tab' }, queryParamsHandling: '' });
+    }
   }
 
   showHolidayList() {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }else{
     this.router.navigate(['/user-leaves'],
       { queryParams: { tabName: 'holidays-tab' }, queryParamsHandling: '' });
+    }
   }
 
   /* carousal Images */
@@ -1356,6 +1301,11 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
   }
 
   getTimesheetsForHomePageByEmpId(dateRange: any) {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }
     this.timesheetDetails = [];
     const TOTAL_WORKING_HOURS_IN_DAY = 8;
     const currentDate = new Date();
@@ -1579,9 +1529,16 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
   }
 
   openReqMod(template: TemplateRef<any>) {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }else{
     this.filters = {};
     this.isSearchEnabled = false;
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+   }
+   
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
@@ -2323,15 +2280,49 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
     this.leaveService.getOverLapsLeaveForManager(leaveApp).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.overLapsLeaveForManager = response.serviceResponse;
-
-        //console.log("this.getOverLapsLeaveForManager ",this.overLapsLeaveForManager);
+        // const empData = sessionStorage.getItem('AllEmployees');
+        // if (empData) {
+        //   this.employeeList = JSON.parse(empData);
+        // } else {
+        //   this.employeeList = [];
+        // }
+        // for(let y of this.overLapsLeaveForManager){
+        //   let matchingEmployee = this.employeeList.find(emp => emp.employeementId === y.employeementId);
+        //   y.emp360 = matchingEmployee ? matchingEmployee : {};
+        // }
+        console.log("this.getOverLapsLeaveForManager ",this.overLapsLeaveForManager);
       }
     })
 
 
  }
 
-
+getAllEmployeeFor360View(){
+  this.allEmployeeList360 = [];
+  this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      this.allEmployeeList360 = response.serviceResponse;
+      console.log("allEmployeeListFor360 : ", this.allEmployeeList360)
+      this.allEmployeeList360.forEach(employeeObj => {
+        employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
+        employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+        employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+        employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+        employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        if (employeeObj.isConsultant == 'true')
+          employeeObj.employeeType = 'Consultant';
+        else if (employeeObj.isApprenticeship == 'true')
+          employeeObj.employeeType = 'Apprentice';
+        else
+          employeeObj.employeeType = 'Regular';
+        });
+        this.allEmployeeList360 = this.allEmployeeList360;
+        this.allEmployeeList360 = new SortPipe().transform(this.allEmployeeList360, ['name', 'string', 'asc']);
+      } else {
+        alert(response.serviceResponse);
+      }
+  });
+}
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
