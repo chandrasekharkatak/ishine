@@ -265,7 +265,7 @@ export class UserPerformanceComponent implements OnInit {
               // Check if the employee is confirmed and joined more than one year ago
               return joiningDate <= oneYearAgo && employee.employmentstatus === 'Confirmed';
             }
-            if (this.currentUser.employeeRole === 'HR') {
+            if( this.userMapping.performance_action_by_hr === true){
               // Check if the employee is confirmed and joined more than one year ago
               return joiningDate <= oneYearAgo && employee.employmentstatus === 'Confirmed';
             }
