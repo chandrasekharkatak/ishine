@@ -10,6 +10,12 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { User } from 'src/app/models/user';
 import { Router } from '@angular/router';
 import { Sort } from '@angular/material/sort';
+import { EmployeeService } from 'src/app/services/employee.service';
+import { UtilityService } from 'src/app/services/utility.service';
+import * as moment from 'moment';
+import { AppComponent } from 'src/app/app.component';
+import { first } from 'rxjs/operators';
+import { SortPipe } from 'src/app/sort.pipe';
 
 @Component({
   selector: 'app-employee360-rewards',
@@ -56,12 +62,15 @@ export class Employee360RewardsComponent implements OnInit {
 
   month: any;
   ofMonthYear: any;
+  allEmployeeList360:any[]=[];
 
   constructor(
     private authenticationService: AuthenticationService,
     private rewardsService: RewardsServiceService,
     private modalService: BsModalService,
     private breadcrumbService: BreadcrumbService,
+    private employeeService: EmployeeService,
+    private utilityService: UtilityService,
     private router: Router,
   ) {
     const empData = sessionStorage.getItem('AllEmployees');
@@ -96,9 +105,38 @@ export class Employee360RewardsComponent implements OnInit {
     for (let i = currentYear; i >= currentYear - 10; i--) {
       this.availableYears.push(i);
     }
+    this.getAllEmployeeFor360View();
   }
+  getAllEmployeeFor360View(){
+    this.allEmployeeList360 = [];
+    this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allEmployeeList360 = response.serviceResponse;
+        console.log("allEmployeeListFor360 : ", this.allEmployeeList360)
+        this.allEmployeeList360.forEach(employeeObj => {
+          employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
+          employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+          employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+          employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+          employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          if (employeeObj.isConsultant == 'true')
+            employeeObj.employeeType = 'Consultant';
+          else if (employeeObj.isApprenticeship == 'true')
+            employeeObj.employeeType = 'Apprentice';
+          else
+            employeeObj.employeeType = 'Regular';
+          });
+          this.allEmployeeList360 = this.allEmployeeList360;
+          this.allEmployeeList360 = new SortPipe().transform(this.allEmployeeList360, ['name', 'string', 'asc']);
+        } else {
+          alert(response.serviceResponse);
+        }
+    });
+  }
+  
 
   onYearChange(event: Event): void {
+    this.isTeamTableVisible = false;
     const selectElement = event.target as HTMLSelectElement;
     this.selectedYear = +selectElement.value; // Convert to number
 
@@ -143,7 +181,7 @@ export class Employee360RewardsComponent implements OnInit {
 
   }
 
-  getRewardsCategories(template: TemplateRef<any>) {
+  async getRewardsCategories(template: TemplateRef<any>) {
     this.rewardsService.getAllRewardsCategory().subscribe(
       (response: any) => {
         if (response.serviceStatus === 'Success' && response.serviceResponse && response.serviceResponse.length > 0) {
@@ -169,8 +207,12 @@ export class Employee360RewardsComponent implements OnInit {
   //     const categoryId = +selectElement.value; // Convert value to number
   //     this.getRewardsByCategoryId(categoryId, template);
   // }
+  refresh(){
+    window.location.reload();
+  }
 
   onCategoryChange(event: Event): void {
+    this.isTeamTableVisible = false;
     const selectElement = event.target as HTMLSelectElement;
     const categoryId = +selectElement.value; // Convert value to number
     const formattedMonth = categoryId.toString().padStart(2, '0');
@@ -191,6 +233,11 @@ export class Employee360RewardsComponent implements OnInit {
           (response: any) => {
              if(response.serviceStatus == 'Success'){
               this.rewardList = response.serviceResponse;
+              this.rewardList.forEach(reward => {
+                let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId === reward.createdBY);
+                console.log('matches++',matchingEmployee);
+                reward.emp360 = matchingEmployee ? matchingEmployee : {};
+              });
               console.log('Rewards Details:', response);
              }else{
               this.rewardList=[];
@@ -298,7 +345,7 @@ export class Employee360RewardsComponent implements OnInit {
   //   // this.getRewardsByCategoryId(categoryId, template);
   // }
 
-  employee: any[] = [];
+  rewardlist: any[] = [];
 
   onSubCategoryChange(event: Event): void {
     const selectElement = event.target as HTMLSelectElement;
@@ -312,8 +359,14 @@ export class Employee360RewardsComponent implements OnInit {
 
     this.rewardsService.getEmployeeRewardByEmpId(request).subscribe(
       (response: any) => {
-        this.employee = response.rewardsDTO;
-        console.log('Rewards Details:', response);
+        console.log('*****************');
+        this.rewardList = response.rewardsDTO;
+        this.rewardList.forEach(reward => {
+          let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId === reward.createdBY);
+          console.log('matches++',matchingEmployee);
+          reward.emp360 = matchingEmployee ? matchingEmployee : {};
+        });
+        console.log('Rewards Details:', this.rewardList);
       });
   }
 

@@ -80,6 +80,20 @@ public class EmployeeController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getAllEmployeesForPerformance", method = RequestMethod.GET)
+	public ServiceResponse getAllEmployeesForPerformance() {
+
+		ServiceResponse response = employeeService.getAllEmployeesForPerformance();
+		return response;
+	}
+	
+	@RequestMapping(value = "/getAllEmployeesFor360View", method = RequestMethod.GET)
+	public ServiceResponse getAllEmployeesFor360View() {
+
+		ServiceResponse response = employeeService.getAllEmployeesFor360View();
+		return response;
+	}
+
 //	@PostMapping("/getEmployeeByAppreciationName")
 //    public ServiceResponse getEmployeeByAppreciationName(@RequestBody AppreciationRequest request) {
 //        String appreciationByName = request.getEmpName();

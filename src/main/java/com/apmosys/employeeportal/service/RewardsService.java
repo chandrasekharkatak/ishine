@@ -1284,6 +1284,7 @@ public class RewardsService {
 			            dto.setRemark(row[4] != null ? row[4].toString() : null);
 			            dto.setCreatedByName(row[5] != null ? getEmployeeNameByEmpId(Long.parseLong(row[5].toString())) : null);
 			            dto.setName(row[0] != null ? row[0].toString() : null);
+			            dto.setCreatedBY(row[5] != null ? Long.parseLong(row[5].toString()) : null);
 			            List<RewardTeamDTO> teamList = getTeamsByEmpId(request.getEmpId());
 			            dto.setTeamlist(teamList);
 			            rewardList.add(dto);

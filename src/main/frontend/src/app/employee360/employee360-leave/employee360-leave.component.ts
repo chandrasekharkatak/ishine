@@ -211,7 +211,7 @@ export class Employee360LeaveComponent implements OnInit {
     this.generateLeaveChart();
     this.getLeaveDataPerMonthByEmpId();
     this.countMyApprovedLeaveApplicationsByLeaveType();
-  }
+      }
 
   setActiveCompOffButton(button: string): void {
     this.activeCompOffButton = button;
@@ -454,13 +454,15 @@ export class Employee360LeaveComponent implements OnInit {
       });
     }
 
-  // Leave Revoke 
+  // Leave Revoke
     getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(){
         console.log("Fetching pending leave revoke applications...");
         this.reporteeLeaveRevokeApplicationList = [];
+
+        console.log('this.employeeData2 -- ', this.employeeData);
     
         if(this.userMapping.employee_360_leave_view){
-          this.leaveObj.empId = this.employeeData2.empId;
+          this.leaveObj.empId = this.employeeData.empId;
           this.leaveService.getAllMyTeamsPendingLeaveRevokeApplicationsByEmpId(this.leaveObj).pipe(first()).subscribe((response: any) => {
             if (response.serviceStatus == "Success") {
               this.reporteeLeaveRevokeApplicationList = response.serviceResponse;
@@ -474,7 +476,7 @@ export class Employee360LeaveComponent implements OnInit {
             }
           });
         }else{
-          this.leaveObj.empId = this.currentUser.empId;
+          this.leaveObj.empId = this.employeeData.managerId;
           this.leaveService.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(this.leaveObj).pipe(first()).subscribe((response: any) => {
             if (response.serviceStatus == "Success") {
               this.reporteeLeaveRevokeApplicationList = response.serviceResponse;

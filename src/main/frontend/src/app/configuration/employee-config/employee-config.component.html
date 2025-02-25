@@ -1439,7 +1439,7 @@
                             <th *ngIf="isDraftTable" class="info-label">{{i+1}}</th> -->
                                 <td>{{employee.employeementId}}</td>
                                 <td>{{employee.employeeType}}</td>
-                                <td *ngIf="userMapping.employee_360" [navigateToEmployee360]="employee" style="cursor: pointer;" title="Click to view Employee 360"> {{employee.name}}</td>
+                                <td id="clickablefor360" *ngIf="userMapping.employee_360" [navigateToEmployee360]="employee" style="cursor: pointer;" title="Click to view Employee 360"> {{employee.name}}</td>
                                 <td *ngIf="!userMapping.employee_360">{{employee.name}}</td>
                                 <td>{{employee.email}}</td>
                                 <td>{{employee.employmentstatus}}</td>

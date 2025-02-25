@@ -33,6 +33,7 @@ import { SortPipe } from 'src/app/sort.pipe';
 
 import { Subscription } from 'rxjs';
 import { SharedService } from 'src/app/services/shared.service';
+import { Employee360Service } from 'src/app/services/employee360.service';
 class FilterData {
   title: any;
   columns: any;
@@ -226,6 +227,7 @@ export class EmployeeConfigComponent implements OnInit {
   departmentName: any;
   private subscription: Subscription = new Subscription();
   referedTypeStatus: boolean = false;
+  employeesFor360: any[] = [];
 
   constructor(
 
@@ -246,6 +248,7 @@ export class EmployeeConfigComponent implements OnInit {
     private destinationService: DestinationService,
     private leaveService: LeaveService,
     private sharedService: SharedService,
+    private employee360Service: Employee360Service
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -270,6 +273,10 @@ export class EmployeeConfigComponent implements OnInit {
     this.setYearOfPassingList();
     this.preventBackButton();
     this.getAllEmployeeList();
+    this.employee360Service.employeesFor360$.subscribe((employees) => {
+      this.employeesFor360 = employees;
+      console.log("Employee Data fetched by Shared service ",this.employeesFor360);
+    });
   }
 
   preventBackButton() {

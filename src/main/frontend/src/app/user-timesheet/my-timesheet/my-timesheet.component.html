@@ -107,7 +107,7 @@
                     <div class="info-wrapper">
                         <div class="form-group input-wrapper">
                             <label class="info-label"><span class="text-danger">*</span>In Time</label>
-                            <input id="officeInTime" class="form-control static-input" autocomplete="none" [(ngModel)]="timesheetObj.officeInTime" [owlDateTimeTrigger]="officeInTimePicker" [owlDateTime]="officeInTimePicker" [owlDateTimeFilter]="timesheetDateFilter"
+                            <input id="officeInTime" class="form-control static-input" autocomplete="none" [(ngModel)]="timesheetObj.officeInTime" [owlDateTimeTrigger]="officeInTimePicker" [owlDateTime]="officeInTimePicker" [owlDateTimeFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetDateFilter"
                             (dateTimeChange)="resetTotalWorkingOfficeHours(alertTemplate)" (keydown)="disableMannualDateInput()" placeholder="Select In Time" autocomplete="off">
                             <owl-date-time class="picker" [hour12Timer]="true" #officeInTimePicker></owl-date-time>
                         </div>

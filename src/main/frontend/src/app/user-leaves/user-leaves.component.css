@@ -11,3 +11,6 @@
     font-weight: bold;
     border-bottom: 5px solid var(--dark-cornflower-blue);
 }
+.nav-tabs .nav-link {
+    margin-bottom: -3px !important;
+}

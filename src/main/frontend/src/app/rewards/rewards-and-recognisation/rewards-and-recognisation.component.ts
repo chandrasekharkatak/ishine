@@ -12,7 +12,10 @@ import { Sort } from '@angular/material/sort';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { first } from 'rxjs/operators';
 import { ValidationService } from 'src/app/services/validation.service';
-
+import { EmployeeService } from 'src/app/services/employee.service';
+import { UtilityService } from 'src/app/services/utility.service';
+import { SortPipe } from 'src/app/sort.pipe';
+import { Feature } from 'src/app/models/feature';
 @Component({
   selector: 'app-rewards-and-recognisation',
   templateUrl: './rewards-and-recognisation.component.html',
@@ -45,7 +48,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
   teams: any[] = [];
   selectedTeamId: any;
   selectedIDdprimiryKey: any;
-  @ViewChild('alert_message')
+  // @ViewChild('alert_message')
   rewardHistoryList: any = [];
   isSearchEnabled: boolean = false;
   filters: any = {};
@@ -66,6 +69,8 @@ export class RewardsAndRecognisationComponent implements OnInit {
   teamSearchText: any = '';
   ofmonthyear:any;
   editRewardssss: Rewards = new Rewards();
+  allEmployeeList360: any[] = [];
+  feature = "Rewards";
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -74,7 +79,10 @@ export class RewardsAndRecognisationComponent implements OnInit {
     private rewardsService: RewardsServiceService,
     private modalService: BsModalService,
     private exportExcelService: ExportExcelService,
-    private validationService: ValidationService
+    private validationService: ValidationService,
+    private employeeService: EmployeeService,
+    private utilityService: UtilityService
+
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -83,8 +91,43 @@ export class RewardsAndRecognisationComponent implements OnInit {
     this.preventBackButton();
     this.getRewardsCategories(this.alertMessageTemplate);
     this.fetchRewardHistory();
+    this.getAllEmployeeFor360View();
+        let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+        console.log("feature Name ", featureMap);
+        featureMap.subFeatures?.forEach(sub => {
+          this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+        });
     
+    console.log('usermapping -- ', this.userMapping);
   }
+
+  getAllEmployeeFor360View(){
+    this.allEmployeeList360 = [];
+    this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allEmployeeList360 = response.serviceResponse;
+        console.log("allEmployeeListFor360 : ", this.allEmployeeList360)
+        this.allEmployeeList360.forEach(employeeObj => {
+          employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
+          employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+          employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+          employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+          employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          if (employeeObj.isConsultant == 'true')
+            employeeObj.employeeType = 'Consultant';
+          else if (employeeObj.isApprenticeship == 'true')
+            employeeObj.employeeType = 'Apprentice';
+          else
+            employeeObj.employeeType = 'Regular';
+          });
+          this.allEmployeeList360 = this.allEmployeeList360;
+          this.allEmployeeList360 = new SortPipe().transform(this.allEmployeeList360, ['name', 'string', 'asc']);
+        } else {
+          alert(response.serviceResponse);
+        }
+    });
+  }
+  
 
   preventBackButton() {
     history.pushState(null, null, location.href);
@@ -516,8 +559,9 @@ bulkEnable(template: TemplateRef<any>) {
           this.rewardHistoryList.forEach(rewards => {
             rewards.createdOn = (rewards.createdOn)? moment(rewards.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
             rewards.updatedOn = (rewards.updatedOn)? moment(rewards.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+            let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId === rewards.empId);
+            rewards.emp360 = matchingEmployee ? matchingEmployee : {};
           });
-
         } else {
           console.error('No rewards data available');
         }

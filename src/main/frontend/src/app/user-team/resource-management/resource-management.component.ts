@@ -22,6 +22,8 @@ import * as moment from 'moment';
 import { AppComponent } from 'src/app/app.component';
 import { ProjectService } from 'src/app/services/project.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { Employee360Service } from 'src/app/services/employee360.service';
+import { SortPipe } from 'src/app/sort.pipe';
 
 @Component({
   selector: 'app-resource-management',
@@ -107,8 +109,8 @@ export class ResourceManagementComponent implements OnInit {
   projectDetails: any = [];
   copyDepartment : any = [];
   currentBreadcrumbList: any[] = [];
-
-
+  // employeesFor360: any[] = [];
+  allEmployeeList360: any[] = [];
 
   constructor(
     private departmentService: DepartmentService,
@@ -124,6 +126,7 @@ export class ResourceManagementComponent implements OnInit {
     private exportExcelService: ExportExcelService,
     private utilityService: UtilityService,
     private breadcrumbService: BreadcrumbService,
+    private employee360Service: Employee360Service,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
@@ -148,7 +151,40 @@ export class ResourceManagementComponent implements OnInit {
     if ((this.currentBreadcrumbList != undefined && this.currentBreadcrumbList != null) && this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.title.includes("Project")) {
       this.toggleSearch();
     }
+    // this.employee360Service.employeesFor360$.subscribe((employees) => {
+    //   this.employeesFor360 = employees;
+    //   console.log("Employee Data fetched by Shared service ",this.employeesFor360);
+    // });
+    console.log('userMapping',this.userMapping);
+    this.getAllEmployeeFor360View();
   }
+  getAllEmployeeFor360View(){
+      this.allEmployeeList360 = [];
+      this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.allEmployeeList360 = response.serviceResponse;
+          console.log("allEmployeeListFor360 : ", this.allEmployeeList360)
+          this.allEmployeeList360.forEach(employeeObj => {
+            employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
+            employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+            employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+            employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+            employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+            if (employeeObj.isConsultant == 'true')
+              employeeObj.employeeType = 'Consultant';
+            else if (employeeObj.isApprenticeship == 'true')
+              employeeObj.employeeType = 'Apprentice';
+            else
+              employeeObj.employeeType = 'Regular';
+            });
+            this.allEmployeeList360 = this.allEmployeeList360;
+            this.allEmployeeList360 = new SortPipe().transform(this.allEmployeeList360, ['name', 'string', 'asc']);
+          } else {
+            alert(response.serviceResponse);
+          }
+      });
+    }
+  
 
   sectionViewInit() {
     if (this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin') {
@@ -414,6 +450,11 @@ export class ResourceManagementComponent implements OnInit {
 
             this.allProject_Po_Internal = [...this.poPortalProjectList, ...this.internalProjectList];
 
+            for(let y of this.allProject_Po_Internal){
+              let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === y.projectManager);
+              console.log('matches++',matchingEmployee);
+              y.emp360 = matchingEmployee ? matchingEmployee : {};
+            }
 
             //console.log(_projectList, " all projects");
             console.log(this.internalProjectList, " this.internalProjectList");
@@ -751,6 +792,9 @@ export class ResourceManagementComponent implements OnInit {
               if (member) { // Check if member is not null
                 // Format the startDate if it exists, otherwise set it to null
                 member.startDate = member.startDate ? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null;
+                let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId === member.empId);
+                console.log('matches++',matchingEmployee);
+                member.emp360 = matchingEmployee ? matchingEmployee : {};
               }
             });
           } else {

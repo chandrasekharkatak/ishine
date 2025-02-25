@@ -77,7 +77,7 @@
                         <td>{{ i + 1 }}</td>
                         <td>{{ rewardHistory.rewardTypeName }}</td>
                         <td>{{ rewardHistory.name }}</td>
-                        <td>{{ rewardHistory.createdByName }}</td>
+                        <td id="clickablefor360" [navigateToEmployee360]="rewardHistory.emp360" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{ rewardHistory.createdByName }}</td>
                         <td>{{ rewardHistory.createdOn |date: 'dd-MM-yyyy' }}</td>
                         <td>
                             <span *ngFor="let team of rewardHistory.teamlist; let last = last" class="info-label"
@@ -96,7 +96,7 @@
         <div class="overflow-auto" *ngIf="isTeamTableVisible">
 
             <div class="d-flex align-items-center mb-2">
-                <button class="btn btn-outline-primary btn-sm mx-1" (click)="goBack()">Back</button>
+                <button class="btn btn-outline-primary btn-sm mx-1" (click)="goBack()"><i class="fas fa-arrow-left"></i></button>
             </div>
 
             <div class="selector-toggle" (click)="toggleSearch()">
@@ -135,7 +135,7 @@
                                 </a>
                             </span> -->
                         </td>
-                        <td><label>{{ teamlist.createdByName }}</label></td>
+                        <td ><label>{{ teamlist.createdByName }}</label></td>
                         <td><label>{{ teamlist.remark }}</label></td>
                         <td><label>{{ teamlist.createdOn | date: 'dd-MM-yyyy'}}</label></td>
                     </tr>
