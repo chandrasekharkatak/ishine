@@ -181,7 +181,7 @@ export class Employee360RewardsComponent implements OnInit {
 
   }
 
-  getRewardsCategories(template: TemplateRef<any>) {
+  async getRewardsCategories(template: TemplateRef<any>) {
     this.rewardsService.getAllRewardsCategory().subscribe(
       (response: any) => {
         if (response.serviceStatus === 'Success' && response.serviceResponse && response.serviceResponse.length > 0) {

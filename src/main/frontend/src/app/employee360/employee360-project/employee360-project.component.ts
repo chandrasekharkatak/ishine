@@ -15,6 +15,7 @@ import { ProjectService } from 'src/app/services/project.service';
 import { ResourceManagementService } from 'src/app/services/resource-management.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { SortPipe } from 'src/app/sort.pipe';
+import { ResourceManagementComponent } from 'src/app/user-team/resource-management/resource-management.component';
 
 @Component({
   selector: 'app-employee360-project',
@@ -66,7 +67,7 @@ isProjectTeamMemberVisible:boolean=false;
   sortColumn: any;
   sortColumnType:any;
   abbreviationError: string = '';
-
+  @ViewChild(ResourceManagementComponent) resourceManagementComponent: ResourceManagementComponent;
   employeesFor360:any[] = [];
 
   constructor(
@@ -105,9 +106,9 @@ isProjectTeamMemberVisible:boolean=false;
       this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
 
+    this.getAllEmployeeFor360View();
     //get Project by Employee
     this.getExistingProjectsByUser();
-    this.getAllEmployeeFor360View();
   }
   clearBreadcrumbs(){
     // this.breadcrumbService.setBreadcrumbSubject(null);
@@ -251,8 +252,11 @@ async getTeamEmployeeByTeamId(teamId: any) {
     breadcrumbObject.url = "/user-team/resource-management";
     breadcrumbObject.object = projectObj;
     this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
-
     this.router.navigate([breadcrumbObject.url], { queryParams: { }});
+   
+    this.resourceManagementComponent.showEditProjectForm(projectObj);
+    
+    
   }
 
   viewProjectInfo(projectObj :any){
@@ -367,36 +371,39 @@ async getTeamEmployeeByTeamId(teamId: any) {
     this.modalRef.hide();
   }
 
-  getAllEmployeeFor360View(): void {
-      this.employeesFor360 = [];
-      this.employeeService.getAllEmployeesFor360View().subscribe({
-          next: (response: any) => {
-              if (response.serviceStatus == "Success") {
-                  this.employeesFor360 = response.serviceResponse;
-  
-                  this.employeesFor360.forEach(employeeObj => {
-                      employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
-                      employeeObj.dateOfJoining = employeeObj.dateOfJoining ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-                      employeeObj.dateOfRelieving = employeeObj.dateOfRelieving ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-                      employeeObj.updatedOn = employeeObj.updatedOn ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-                      employeeObj.createdOn = employeeObj.createdOn ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-  
-                      if (employeeObj.isConsultant == 'true')
-                          employeeObj.employeeType = 'Consultant';
-                      else if (employeeObj.isApprenticeship == 'true')
-                          employeeObj.employeeType = 'Apprentice';
-                      else
-                          employeeObj.employeeType = 'Regular';
-                  });
-  
-                  this.employeesFor360 = new SortPipe().transform(this.employeesFor360, ['name', 'string', 'asc']);
-              } else {
-                  alert(response.serviceResponse);
-              }
-          },
-          error: (error) => {
-              console.error("Error fetching employees:", error);
-          }
-      });
-  }
+  async getAllEmployeeFor360View(): Promise<void> {
+    this.employeesFor360 = [];
+    
+    try {
+        const response: any = await this.employeeService.getAllEmployeesFor360View().toPromise();
+        
+        if (response.serviceStatus === "Success") {
+            this.employeesFor360 = response.serviceResponse;
+
+            this.employeesFor360.forEach(employeeObj => {
+                employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
+                employeeObj.dateOfJoining = employeeObj.dateOfJoining ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+                employeeObj.dateOfRelieving = employeeObj.dateOfRelieving ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+                employeeObj.updatedOn = employeeObj.updatedOn ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+                employeeObj.createdOn = employeeObj.createdOn ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+
+                if (employeeObj.isConsultant === 'true') {
+                    employeeObj.employeeType = 'Consultant';
+                } else if (employeeObj.isApprenticeship === 'true') {
+                    employeeObj.employeeType = 'Apprentice';
+                } else {
+                    employeeObj.employeeType = 'Regular';
+                }
+            });
+
+            // Sort the employees
+            this.employeesFor360 = new SortPipe().transform(this.employeesFor360, ['name', 'string', 'asc']);
+        } else {
+            alert(response.serviceResponse);
+        }
+    } catch (error) {
+        console.error("Error fetching employees:", error);
+    }
+}
+
 }

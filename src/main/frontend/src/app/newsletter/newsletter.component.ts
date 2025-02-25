@@ -305,6 +305,7 @@ openFilterModal(template: TemplateRef<any> , colums : any[], title: any){
   this.queryList = [];
   this.filterData.title = title;
   this.filterData.columns = colums;
+  
 
   this.queryList = [
     { column: "Document Name" , operator: "!=" , value: "", conjunction: "" }
