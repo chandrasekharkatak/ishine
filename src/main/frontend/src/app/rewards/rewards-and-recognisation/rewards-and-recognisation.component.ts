@@ -72,6 +72,9 @@ export class RewardsAndRecognisationComponent implements OnInit {
   allEmployeeList360: any[] = [];
   feature = "Rewards";
 
+  @ViewChild('confirmDelete')
+  delete_template: any;
+
   constructor(
     private cdr: ChangeDetectorRef,
     private locationStrategy: LocationStrategy,
@@ -665,25 +668,30 @@ bulkEnable(template: TemplateRef<any>) {
     console.log('Selected Team ID:', this.selectedTeamId);
   }
 
-  deleteEmployeeRewardByRewardId(rewardID: any, template: TemplateRef<any>) {
-    this.rewardsService.deleteEmployeeRewardByRewardId(rewardID).subscribe(
+  openConfirmDeleteModal(template: TemplateRef<any>, rewardID: any) {
+    this.selectedReward = rewardID;
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  }
+  confirmDeleteReward() {
+
+    if (!this.selectedReward) return;
+  
+    this.rewardsService.deleteEmployeeRewardByRewardId(this.selectedReward).subscribe(
       (response: any) => {
         if (response.serviceStatus === 'Success') {
-
           console.log(response.serviceResponse);
-          this.openAlertMod(template, response.serviceResponse);
+          // this.openAlertMod(this.modalRef?.content, response.serviceResponse);
           this.isRewards = false;
           this.isRewardshitory = true;
           this.fetchRewardHistory();
-
         } else {
-          this.openAlertMod(template, 'No reward categories available at the moment.');
+          this.openAlertMod(this.modalRef?.content, 'No reward categories available at the moment.');
         }
       },
       (error) => {
-        this.openAlertMod(template, 'Error fetching reward categories. Please try again later.');
+        this.openAlertMod(this.modalRef?.content, 'Error fetching reward categories. Please try again later.');
       }
     );
+    this.modalRef?.hide();
   }
-
 }

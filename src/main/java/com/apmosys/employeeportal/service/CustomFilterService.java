@@ -6,9 +6,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -2450,54 +2453,117 @@ public class CustomFilterService {
 		return response;
 	}
 
+//	public StringBuilder createQueryForDocument(List<CustomFilterDTO> queryList) {
+//		StringBuilder query = new StringBuilder("");
+//		System.out.println(" after query List   " + queryList);
+//		for (CustomFilterDTO dto : queryList) {
+//			if (dto.getOperator() != null && dto.getOperator().equals("like")) {
+//				dto.setValue("%" + dto.getValue() + "%");
+//			}
+//
+//			switch (dto.getColumn()) {
+//			case "Document Name": {
+//				query = query.append(" d.display_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+//						.append(dto.getConjunction());
+//				break;
+//			}
+//			case "Created On": {
+//				query = query.append(" d.created_on ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+//						.append(dto.getConjunction());
+//				break;
+//			}
+//			case "Created By": {
+//				query = query.append(" d.created_by ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+//						.append(dto.getConjunction());
+//				break;
+//			}
+//			case "Full Name": {
+//				query = query.append(" e.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+//						.append(dto.getConjunction());
+//				break;
+//			}
+//			case "Type": {
+//				query = query.append(" td.type_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+//						.append(dto.getConjunction());
+//				break;
+//			}
+//			case "File Name": {
+//				query = query.append(" d.file_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+//						.append(dto.getConjunction());
+//				break;
+//			}
+//
+//			default:
+//				break;
+//
+//			}
+//		}
+//
+//		return query;
+//	}
 	public StringBuilder createQueryForDocument(List<CustomFilterDTO> queryList) {
-		StringBuilder query = new StringBuilder("");
-		System.out.println(" after query List   " + queryList);
-		for (CustomFilterDTO dto : queryList) {
-			if (dto.getOperator() != null && dto.getOperator().equals("like")) {
-				dto.setValue("%" + dto.getValue() + "%");
-			}
+	    StringBuilder query = new StringBuilder("");
+	    System.out.println("After query List: " + queryList);
 
-			switch (dto.getColumn()) {
-			case "Document Name": {
-				query = query.append(" d.display_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				break;
-			}
-			case "Created On": {
-				query = query.append(" d.created_on ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				break;
-			}
-			case "Created By": {
-				query = query.append(" d.created_by ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				break;
-			}
-			case "Full Name": {
-				query = query.append(" e.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				break;
-			}
-			case "Type": {
-				query = query.append(" td.type_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				break;
-			}
-			case "File Name": {
-				query = query.append(" d.file_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				break;
-			}
+	    for (CustomFilterDTO dto : queryList) {
+	        if (dto.getOperator() != null && dto.getOperator().equalsIgnoreCase("like")) {
+	            dto.setValue("%" + dto.getValue() + "%");
+	        }
 
-			default:
-				break;
+	        String column = dto.getColumn();
+	        if (column == null) continue;
 
-			}
-		}
-
-		return query;
+	        switch (column.trim()) { 
+	            case "displayName": 
+	                query.append(" d.display_name ").append(dto.getOperator()).append(" '")
+	                        .append(dto.getValue()).append("' ").append(dto.getConjunction());
+	                break;
+//	            case "createdOn":
+//	                query.append(" d.created_on ").append(dto.getOperator()).append(" '")
+//	                        .append(dto.getValue()).append("' ").append(dto.getConjunction());
+//	                break;
+	            case "createdOn": {
+	                String formattedDate = formatDate(dto.getValue());
+	                query.append(" d.created_on ").append(dto.getOperator()).append(" '")
+	                     .append(formattedDate).append("' ").append(dto.getConjunction());
+	                break;
+	            }
+	            case "createdBy":
+	                query.append(" d.created_by ").append(dto.getOperator()).append(" '")
+	                        .append(dto.getValue()).append("' ").append(dto.getConjunction());
+	                break;
+	            case "fullName":
+	                query.append(" e.name ").append(dto.getOperator()).append(" '")
+	                        .append(dto.getValue()).append("' ").append(dto.getConjunction());
+	                break;
+	            case "type":
+	                query.append(" td.type_name ").append(dto.getOperator()).append(" '")
+	                        .append(dto.getValue()).append("' ").append(dto.getConjunction());
+	                break;
+	            case "fileName":
+	                query.append(" d.file_name ").append(dto.getOperator()).append(" '")
+	                        .append(dto.getValue()).append("' ").append(dto.getConjunction());
+	                break;
+	            default:
+	                System.out.println("Unexpected column: " + column);
+	                break;
+	        }
+	    }
+	    return query;
 	}
+	private String formatDate(String inputDate) {
+	    SimpleDateFormat inputFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss"); 
+	    SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	    try {
+	        Date date = inputFormat.parse(inputDate);
+	        return outputFormat.format(date);
+	    } catch (ParseException e) {
+	        e.printStackTrace();
+	        return inputDate;
+	    }
+	}
+
+
 
 	public List<Object[]> getCustomDocuments(String customQuery) {
 		try {
