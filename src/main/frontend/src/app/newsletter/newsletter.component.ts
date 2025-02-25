@@ -59,6 +59,7 @@ export class NewsletterComponent implements OnInit {
   filters:any = {};
   isSearchEnabled:boolean = false;
   newsletterColumns:any[] = ['blank','displayName','name','createdOn']; 
+  newsletterCol:any[] = ['displayName','createdOn']; 
 
   newsletterModalConfiguration = {
     backdrop: true,
