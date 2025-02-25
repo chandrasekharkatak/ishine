@@ -18,32 +18,16 @@
     </div>
     <div class="card col-md-12 px-0" *ngIf="isQuaterForm">
         <div class="card-header text-center text-uppercase">
-            <strong *ngIf="isQuaterCreation">Create Quarter Cycle</strong>
-            <strong *ngIf="isQuaterUpdation">Update Quarter Cycle</strong>
+            <strong *ngIf="isQuaterCreation">Create Cycle</strong>
+            <strong *ngIf="isQuaterUpdation">Update Cycle</strong>
         </div>
         <div class="card-body">
             <div class="row">
-                <!-- From Year -->
-                <div class="col-md-6 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label><span class="text-danger">*</span>From Year</label>
-                            <input type="number" class="form-control" min="1900" max="2099" step="1"
-                                [(ngModel)]="quarterCycle.fromYear" placeholder="YYYY" disabled>
-                        </div>
-                    </div>
-                </div>
-                <!-- To Year -->
-                <div class="col-md-6 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label><span class="text-danger">*</span>To Year</label>
-                            <input type="number" class="form-control" min="1900" max="2099" step="1"
-                                [(ngModel)]="quarterCycle.toYear" placeholder="YYYY" disabled>
-                        </div>
-                    </div>
+                <div class="col-md-12 mb-0 text-center">
+                    <h3 class="font-weight-bold"><i class="fa-solid fa-dollar-sign" style="color: #fb8b24;"></i> FINANCIAL YEAR : <span style="color: #00008b;">{{ quarterCycle.fromYear }} - {{ quarterCycle.toYear }}</span></h3>
                 </div>
             </div>
+            
             <div class="row">
                 <!-- From Month -->
                 <div class="col-md-6 mb-0">
