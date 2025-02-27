@@ -593,9 +593,46 @@ export class PerformanceConfigComponent implements OnInit {
     //console.log("Updated Filter : ", this.filters);
   }
 
+  validateReviewTypes(template: TemplateRef<any>,reviewObj:review,allSpecializationList:any[] ){
+
+    if(!this.validationService.validateNullUndefinedEmptyString(reviewObj.quarterId)){
+      this.alertMessage = "Please select Quarter Cycle !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    
+
+    let flag = true;
+    allSpecializationList.forEach((spec:any, index) => {
+      if(!this.validationService.validateNullUndefinedEmptyString(spec.reviewLabel)){
+         this.alertMessage = `Please enter Review Label ${index+1} !!`;
+         this.openAlertMod(template, this.alertMessage);
+         flag = false;
+         return;
+      }
+      if(!this.validationService.validateNullUndefinedEmptyString(spec.reviewFieldType)){
+        this.alertMessage = `Please select Review Field Type ${index+1} !!`;
+        this.openAlertMod(template, this.alertMessage);
+        flag = false;
+        return;
+      }
+      if(!this.validationService.validateNullUndefinedEmptyString(spec.condition)){
+        this.alertMessage = `Please enter Limit ${index+1} !!`;
+        this.openAlertMod(template, this.alertMessage);
+        flag = false;
+        return;
+     }
+
+    });
+    return flag;
+  }
+
 
   //pagination
   createReview(template: TemplateRef<any>) {
+
+    let inputValidated: boolean = this.validateReviewTypes(template, this.reviewObj, this.allSpecializationList);
+    if (!inputValidated) return;
 
     this.reviewObj.allSpecializationList = this.allSpecializationList;
     this.reviewObj.createdBy = this.currentUser.empId;
@@ -616,6 +653,8 @@ export class PerformanceConfigComponent implements OnInit {
 
 
   updateReview(template: TemplateRef<any>) {
+    let inputValidated: boolean = this.validateReviewTypes(template, this.reviewObj, this.allSpecializationList);
+    if (!inputValidated) return;
 
     let obj = {
       reviewTypeId: this.reviewObj.reviewTypeId,
