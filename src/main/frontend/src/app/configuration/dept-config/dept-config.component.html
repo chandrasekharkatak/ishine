@@ -85,10 +85,10 @@
         </div> -->
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" (click)="toggleSearch()">
+                <div class="selector-toggle" >
                     <a href="javascript:void(0)">
-                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
                     </a>
                 </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'departmentInfo'" [tableTHeadId]="'departmentInfoTHead'"
