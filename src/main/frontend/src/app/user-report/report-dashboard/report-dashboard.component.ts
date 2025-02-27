@@ -1395,13 +1395,20 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
     });
 
     let departmentList = this.groupBy(
-      this.allEmployeeList.filter((x) => x.employmentstatus !== 'InActive' && x.isConsultant != 'true' && x.isApprenticeship !='true'),
+      this.allEmployeeList.filter((x) => x.employmentstatus != 'InActive' && x.isConsultant != 'true' && x.isApprenticeship !='true'),
       'departmentName'
     );
     
     let departmentListForApprentice = this.groupBy(
       this.allEmployeeList.filter(
-        (x) => x.employmentstatus !== 'InActive' && x.isApprenticeship === 'true' && x.isConsultant !='true'
+        (x) => x.employmentstatus != 'InActive' && x.isApprenticeship === 'true' && x.isConsultant !='true'
+      ),
+      'departmentName'
+    );
+
+    let departmentListForConsultant = this.groupBy(
+      this.allEmployeeList.filter(
+        (x) => x.employmentstatus != 'InActive' && x.isApprenticeship != 'true' && x.isConsultant ==='true'
       ),
       'departmentName'
     );
@@ -1415,11 +1422,14 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
       let employeeCount = departmentList[department].length;
     
       let apprenticeCount = departmentListForApprentice[department]?.length || 0;
+
+      let consultantCount = departmentListForConsultant[department]?.length || 0;
     
       employeeByDepartment.push({
         departmentName: department,
         employeeCount: employeeCount,
         apprenticeCount: apprenticeCount,
+        consultantCount: consultantCount
       });
     }
     
@@ -1553,7 +1563,8 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
   let departmentData = employeeByDepartment.map(dept => ({
     departmentName: dept.departmentName,
     employeeCount: dept.employeeCount,
-    apprenticeCount : dept.apprenticeCount || 0
+    apprenticeCount: dept.apprenticeCount || 0,
+    consultantCount: dept.consultantCount ||0
   }));
   
   departmentData.sort((a, b) => b.employeeCount - a.employeeCount);
@@ -1564,11 +1575,10 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
   // Prepare data and categories for the chart
   let departmentWiseEmployeeData = departmentData.map(dept => ({
     name: dept.departmentName,
-    data: [dept.employeeCount, dept.apprenticeCount], // Include both employee and apprentice counts
+    data: [dept.employeeCount, dept.apprenticeCount, dept.consultantCount],
   }));
-let departmentWiseEmployeeCategories = departmentData.map(dept => dept.departmentName);
+  let departmentWiseEmployeeCategories = departmentData.map(dept => dept.departmentName);
 
-  // Now use departmentWiseEmployeeData and departmentWiseEmployeeCategories in your chart rendering
   this.renderDepartmentWiseEmployeeChart(
     'Department Wise Employee',
     'departmentWiseEmployee',
@@ -2484,7 +2494,8 @@ Highcharts.chart(chartId, this.options);
 // }
 renderDepartmentWiseEmployeeChart(chartName: any, chartId: any, chartData: any, categories: any, labelName: any, openMod: any) {
   const employeeCounts = chartData.map((dept: any) => dept.data[0]); 
-  const apprenticeCounts = chartData.map((dept: any) => dept.data[1]); 
+  const apprenticeCounts = chartData.map((dept: any) => dept.data[1]);
+  const consultantCounts = chartData.map((dept:any) => dept.data[2]);
 
   (Highcharts as any).chart(chartId, {
     chart: {
@@ -2558,6 +2569,11 @@ renderDepartmentWiseEmployeeChart(chartName: any, chartId: any, chartData: any, 
         name: 'Apprentice Count',
         data: apprenticeCounts,
         color: '#2ecc71',
+      },
+      {
+        name: 'Consultant Count',
+        data: consultantCounts,
+        color: '#2234bd',
       },
     ],
   });
@@ -3939,7 +3955,8 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
     x.departmentName === pointName && 
     (
         (seriesName === 'Employee Count' && x.isApprenticeship!='true' && x.isConsultant != 'true' && x.isApprenticeship != 'true') ||  
-        (seriesName === 'Apprentice Count' && x.isApprenticeship==='true' && x.isConsultant != 'true')  
+        (seriesName === 'Apprentice Count' && x.isApprenticeship==='true' && x.isConsultant != 'true')  ||
+        (seriesName === 'Consultant Count' && x.isConsultant === 'true' && x.isApprenticeship != 'true')
     )
   );
 
