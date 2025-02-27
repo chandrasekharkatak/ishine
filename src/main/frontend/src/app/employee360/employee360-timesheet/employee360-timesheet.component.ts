@@ -118,13 +118,16 @@ export class Employee360TimesheetComponent implements OnInit {
       this.managerId = currentUserData.empId;
       console.log(this.managerId); 
     }
-    this.empId=sessionStorage.getItem('empId');
+    // this.empId=sessionStorage.getItem('empId');
+    let employeeData = localStorage.getItem('employee360Data');
+      let employeeObject = JSON.parse(employeeData);
+        let empId = employeeObject.empId;
 
     this.startDate = null;
     this.endDate = null;
     this.formattedStartDate = null;
     this.formattedEndDate = null;
-    this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,0,this.formattedStartDate,this.formattedEndDate);
+    this.get360TimesheetDetails(this.activeButton,empId,this.projectId,this.teamName,0,this.formattedStartDate,this.formattedEndDate);
     this.getAllEmployeeFor360View();
   }
 
