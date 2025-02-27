@@ -285,7 +285,7 @@ setSelectedReward(reward: Rewards) {
     console.log("Team Reward Submit check", this.sumbitRewards);
     if (!this.validateRewardsWhileSubmit(template)) {
       return; // Stop execution if validation fails
-  }
+    }
 
 
     this.rewardsService.submitRewardForEmployee(this.sumbitRewards).subscribe(
@@ -296,7 +296,23 @@ setSelectedReward(reward: Rewards) {
           this.openAlertMod(template, response.serviceMessage);
           this.isRewards = false;
           this.isRewardshitory = true;
+               this.ofmonthyear = ''; 
+               this.employeeSearchText = '';
+               this.remarks = '';
+               this.selectedReward = null;
+               this.isEditing = false; 
+              //  this.activeCategoryId = null;
+
+              if (this.rewardsCategories && this.rewardsCategories.length > 0) {
+                this.activeCategoryId = this.rewardsCategories[0].rewardCategoryId;
+              }
+            
+              if (this.rewards && this.rewards.length > 0) {
+                this.selectedReward = this.rewards[0];
+                this.selectedReward.selectedType= null;
+              }
           this.fetchRewardHistory();
+
 
         } else {
           this.openAlertMod(template, 'No reward categories available at the moment.');
