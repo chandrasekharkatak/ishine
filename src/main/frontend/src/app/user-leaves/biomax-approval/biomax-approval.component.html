@@ -1,0 +1,279 @@
+<div class="row mb-3">
+    <div class="col-md-12 px-0">
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.apply_comp_off_req" [ngClass]="{'active' : isForm && isCreation}" (click)="showCreateForm()">Apply Bio Max Request</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_comp_off_req_status || userMapping.update_comp_off_req" [ngClass]="{'active' : isCompOffRequestsTable}" (click)="showBioMaxRequestTable()">My  Bio Max Request</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_comp_off_req_status || userMapping.update_comp_off_req" [ngClass]="{'active' : isApprovalRequest}" (click)="showBioMaxApprovalRequestTable()">Approval Request</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_comp_off_req_status || userMapping.update_comp_off_req" [ngClass]="{'active' : isApprovedRequest}" (click)="showBioMaxApprovedRequestTable()">Approved Request</button>
+ 
+    </div>
+</div>
+
+<!-- start :: Apply CompOff Form -->
+<div class="row">
+    <div class="card col-md-12 px-0" *ngIf="isForm">
+        <div class="card-header text-center text-uppercase">
+            <strong *ngIf="isCreation">Apply Bio Max Request</strong>
+            <strong *ngIf="isUpdation">view Bio Max Request</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Request Type</label>
+                            <input type="text" class="form-control" autocomplete="none" disabled [(ngModel)]="biomax.biomaxTitle">
+                            
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Date</label>
+                            <div class="d-flex">
+                                <input class="form-control" matInput id="fromDate" #input (focus)="fromDatePicker.open()" [matDatepicker]="fromDatePicker"  [matDatepickerFilter]="fromDateFilter" (keydown)="disableMannualDateInput()"
+                                placeholder="Bio Max Request Date" [(ngModel)]="biomax.biomaxrequestDate" (dateChange)="resetToDate()">
+                                <mat-datepicker-toggle matSuffix [for]="fromDatePicker" style="margin-left: -40px;" ></mat-datepicker-toggle>
+                            </div>
+                            <mat-datepicker [dateClass]="holidayHighlight" #fromDatePicker (closed)="input.blur()" disabled="false" ></mat-datepicker>
+                        </div>
+                    </div>
+                </div>
+            </div>
+          
+         
+            <div class="row">
+                <div class="col-md-8 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label for="leaveDesc"><span class="text-danger">*</span>Description</label>
+                            <textarea class="form-control" id="leaveDesc" rows="3" [(ngModel)]="biomax.requestRemark"></textarea>
+                          </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onApplyBioMaxRequest(alert_message)">Apply</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end :: Apply CompOff form -->
+
+<!-- start :: My compOff Request Table -->
+<div class="row" *ngIf="isCompOffRequestsTable">
+    <div class="card col-md-12 px-0" >
+        
+            <div class="card-header text-center text-uppercase">
+                <strong>Apply Bio Max Request</strong>
+              
+            </div>
+       <div class=" card-body">
+  <div class="row">
+            <div class="col-md-12">
+               
+                <div class="selector-toggle" (click)="toggleSearch()">
+                    <a href="javascript:void(0)">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                    </a>
+                </div>
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffRequestInfo'" [tableTHeadId]="'compOffRequestInfoTHead'"
+                    [tableTHeadTrId]="'compOffRequestInfoTHeadTr'">
+                    <table class="table table-responsive" id="compOffRequest-table" style="display: inline-table;" matSort (matSortChange)="sortData($event)">	
+                        <thead class="thead-light">	
+                          <tr>	
+                            <th scope="col" class="info-label">Sr No.</th>	
+                            <th scope="col" class="info-label" mat-sort-header="compOffReasons|string">Bio Applied For</th>	
+                            <th scope="col" class="info-label" mat-sort-header="fromDate|date">Date</th>	
+                            <th scope="col" class="info-label" mat-sort-header="description|string">Description</th>	
+                            <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                            <th scope="col" class="info-label" mat-sort-header="description|string">Reporting Manager</th>
+                            <th scope="col" class="info-label" >Actions</th>
+                         </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="biomaxListEmployeeId.length == 0 || (biomaxListEmployeeId | colFilter:filters:false).length == 0">
+                                <th colspan="14" class="text-center info-label">No details to display...</th>
+                            </tr>
+                            <tr *ngFor="let biomax of biomaxListEmployeeId | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                                <td>{{10*(page-1)+i+1}}</td>
+                                <td>{{biomax.biomaxTitle}}</td>
+                                <td>{{ biomax.biomaxrequestDate | date: 'yyyy-MM-dd' }}</td>
+
+                                <td>{{biomax.requestRemark}}</td>
+                                <td [ngStyle]="{'color': (biomax.biomaxStatus == 'Pending') ? 'orange' : (biomax.biomaxStatus == 'Approved') ? 'green' : (biomax.biomaxStatus == 'Rejected') ? 'red' : '#ababab'}">{{biomax.biomaxStatus}}</td>
+                               <td>{{biomax.reportingManagerName}}</td>
+                                <th scope="col" class="info-label" >
+                                    <button *ngIf="biomax.biomaxStatus == 'Pending'" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeletebiomaxRequest(delete_compoff_req,biomax.biomaxreequestId)"><em class="fa fa-trash"></em></button>&nbsp;
+                                    <button *ngIf="biomax.biomaxStatus == 'Approved' || biomax.biomaxStatus == 'Rejected'" class="btn btn-sm btn-outline-danger"  type="submit" disabled><em class="fa fa-trash"></em></button>&nbsp;
+                             
+                                </th>
+                            </tr>
+                        </tbody>
+ 
+                      </table>
+                </div>
+                <pagination-controls class="my-pagination" [hidden]="biomaxListEmployeeId.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+                        
+                        </div>
+        </div>
+    </div>
+    </div>       
+</div>
+<!-- end :: My compOff Request table -->
+ <!-- start ::Approval Request Table -->
+<div class="row" *ngIf="isApprovalRequest">
+    <div class="card col-md-12 px-0" >
+        
+        <div class="card-header text-center text-uppercase">
+            <strong>Approved Or Reject Bio Max Request</strong>
+          
+        </div>
+   <div class=" card-body">
+<div class="row">
+        <div class="col-md-12">
+           
+            <div class="selector-toggle" (click)="toggleSearch()">
+                <a href="javascript:void(0)">
+                    <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                </a>
+            </div>
+            <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffRequestInfo'" [tableTHeadId]="'compOffRequestInfoTHead'"
+                [tableTHeadTrId]="'compOffRequestInfoTHeadTr'">
+                <table class="table table-responsive" id="compOffRequest-table" style="display: inline-table;" matSort (matSortChange)="sortData($event)">	
+                    <thead class="thead-light">	
+                      <tr>	
+                        <th scope="col" class="info-label">Sr No.</th>	
+                        <th scope="col" class="info-label" mat-sort-header="compOffReasons|string">Bio Applied For</th>	
+                        <th scope="col" class="info-label" mat-sort-header="fromDate|date">Date</th>	
+                        <th scope="col" class="info-label" mat-sort-header="description|string">Description</th>	
+                        <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                        <th scope="col" class="info-label" mat-sort-header="description|string">Reporting Manager</th>
+                       </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngIf="biomaxListEmployeeId.length == 0 || (biomaxListEmployeeId | colFilter:filters:false).length == 0">
+                            <th colspan="14" class="text-center info-label">No details to display...</th>
+                        </tr>
+                        <tr *ngFor="let biomax of biomaxListEmployeeId | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                            <td>{{10*(page-1)+i+1}}</td>
+                            <td>{{biomax.biomaxTitle}}</td>
+                            <td>{{ biomax.biomaxrequestDate | date: 'yyyy-MM-dd' }}</td>
+                            <td>{{biomax.requestRemark}}</td>
+                        
+                            <td [ngStyle]="{'color': (biomax.biomaxStatus == 'Pending') ? 'orange' : (biomax.biomaxStatus == 'Approved') ? 'green' : (biomax.biomaxStatus == 'Rejected') ? 'red' : '#ababab'}">{{biomax.biomaxStatus}}</td>
+                            <td>{{biomax.reportingManagerName}}</td>
+                          
+                        </tr>
+                    </tbody>
+
+                  </table>
+            </div>
+            <pagination-controls class="my-pagination" [hidden]="biomaxListEmployeeId.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+                    
+                    </div>
+    </div>
+</div>
+</div> 
+</div>
+<!-- end :: Approval Request Request table -->
+
+<!-- start ::Approved Request Table -->
+<div class="row" *ngIf="isApprovedRequest">
+    <div class="card col-md-12 px-0" >
+       
+        <div class="card-header text-center text-uppercase">
+            <strong>Pending For Approval Bio Max Request</strong>
+          
+        </div>
+   <div class=" card-body">
+<div class="row">
+    
+        <div class="col-md-12">
+           
+            <div class="selector-toggle" (click)="toggleSearch()">
+                <a href="javascript:void(0)">
+                    <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                </a>
+            </div>
+            <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffRequestInfo'" [tableTHeadId]="'compOffRequestInfoTHead'"
+                [tableTHeadTrId]="'compOffRequestInfoTHeadTr'">
+                <table class="table table-responsive" id="compOffRequest-table" style="display: inline-table;" matSort (matSortChange)="sortData($event)">	
+                    <thead class="thead-light">	
+                      <tr>	
+                        <th scope="col" class="info-label">Sr No.</th>	
+                        <th scope="col" class="info-label" mat-sort-header="compOffReasons|string">Bio Applied For</th>	
+                        <th scope="col" class="info-label" mat-sort-header="status|string">Employee Name</th>
+                       
+                        <th scope="col" class="info-label" mat-sort-header="fromDate|date">Bio Request Date</th>	
+                        <th scope="col" class="info-label" mat-sort-header="fromDate|date">Created On</th>	
+                        <th scope="col" class="info-label" mat-sort-header="description|string">Description</th>	
+                        <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                        <th scope="col" class="info-label" mat-sort-header="description|string">Reporting Manager</th>
+                        <th scope="col" class="info-label" >Actions</th>
+                     </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngIf="biomaxListReportingManager.length == 0 || (biomaxListReportingManager | colFilter:filters:false).length == 0">
+                            <th colspan="14" class="text-center info-label">No details to display...</th>
+                        </tr>
+                        <tr *ngFor="let biomaxr of biomaxListReportingManager | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                            <td>{{10*(page-1)+i+1}}</td>
+                           
+                            <td>{{biomaxr.biomaxTitle}}</td>
+                            <td>{{biomaxr.empName}}</td>
+                            <td>{{ biomaxr.biomaxrequestDate | date: 'yyyy-MM-dd' }}</td>
+
+                            <td>{{ biomaxr.createdOn | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
+
+                            <td>{{biomaxr.requestRemark}}</td>
+                            <td [ngStyle]="{'color': (biomaxr.biomaxStatus == 'Pending') ? 'orange' : (biomaxr.biomaxStatus == 'Approved') ? 'green' : (biomaxr.biomaxStatus == 'Rejected') ? 'red' : '#ababab'}">{{biomaxr.biomaxStatus}}</td>
+                             
+                            <td>{{biomaxr.reportingManagerName}}</td>
+                            <th scope="col" class="info-label" >
+                                <button *ngIf="biomaxr.biomaxStatus == 'Pending'" class="btn btn-sm btn-outline-primary"  type="submit" (click)="openApprovedRequest(approved_rejected_Req,biomaxr.biomaxreequestId,'Approved')"><i class="fa fa-check"></i></button>&nbsp;
+                                <button *ngIf="biomaxr.biomaxStatus == 'Pending'" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openApprovedRequest(approved_rejected_Req,biomaxr.biomaxreequestId,'Rejected')"><i class="fa fa-times"></i></button>&nbsp;
+                      
+                            </th>
+                        </tr>
+                    </tbody>
+
+                  </table>
+            </div>
+            <pagination-controls class="my-pagination" [hidden]="biomaxListReportingManager.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+                    
+                    </div>
+    </div>
+</div>
+</div> 
+</div>
+<!-- end :: Approved Request Request table -->
+
+
+<!-- Modals Template -->
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #delete_compoff_req>	
+    <div class="modal-body text-center">	
+        <p>{{popupmessage}}</p>	
+        <button type="button" class="btn btn-success" (click)="deletebiomaxRequest(alert_message);">Yes, proceed</button>&nbsp;	
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;	
+    </div>	
+</ng-template>
+<ng-template #approved_rejected_Req>	
+    <div class="modal-body text-center">	
+        <p>{{popupmessage}}</p>	
+        <button type="button" class="btn btn-success" (click)="approvedOrRejected(alert_message);">Yes, proceed</button>&nbsp;	
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;	
+    </div>	
+</ng-template>
