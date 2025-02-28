@@ -98,8 +98,8 @@
     <!-- Table Section 1 -->
    
     <div class="col-sm-7">
-        <div class="selector-toggle" (click)="toggleSearch()">
-            <a href="javascript:void(0)">
+        <div class="selector-toggle" >
+            <a href="javascript:void(0)" (click)="toggleSearch()">
               <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
               <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>

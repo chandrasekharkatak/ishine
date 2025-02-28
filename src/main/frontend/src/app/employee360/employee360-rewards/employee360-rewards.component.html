@@ -46,8 +46,8 @@
 
         <div class="overflow-auto" *ngIf="!isTeamTableVisible">
 
-            <div class="selector-toggle" (click)="toggleSearch()">
-                <a href="javascript:void(0)">
+            <div class="selector-toggle" >
+                <a href="javascript:void(0)" (click)="toggleSearch()">
                     <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                     <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                 </a>
@@ -99,8 +99,8 @@
                 <button class="btn btn-outline-primary btn-sm mx-1" (click)="goBack()"><i class="fas fa-arrow-left"></i></button>
             </div>
 
-            <div class="selector-toggle" (click)="toggleSearch()">
-                <a href="javascript:void(0)">
+            <div class="selector-toggle" >
+                <a href="javascript:void(0)" (click)="toggleSearch()">
                     <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                     <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                 </a>
