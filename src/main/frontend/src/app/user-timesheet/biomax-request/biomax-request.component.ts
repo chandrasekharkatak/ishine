@@ -524,6 +524,12 @@ export class BiomaxRequestComponent implements OnInit {
   //console.log("Updated Filter : ", this.filters);
   }
 
+  cronjonvalidate(){
+    this.biomaxseviceService.cronjonvalidate().pipe(first()).subscribe((response:any)=>{
+      console.log(response);
+    })
+  }
+
 }
 
   
