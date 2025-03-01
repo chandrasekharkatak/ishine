@@ -19,8 +19,8 @@ import { UtilityService } from 'src/app/services/utility.service';
 import { Log } from '../../models/log';
 import { LeaveService } from '../../services/leave.service';
 
-import { ValidationService } from 'src/app/services/validation.service';
 import { Sort } from '@angular/material/sort';
+import { ValidationService } from 'src/app/services/validation.service';
 
 declare module 'highcharts' {
   interface Series {
@@ -325,7 +325,7 @@ export class Employee360LeaveComponent implements OnInit {
 
   getAllLeaveApplicationsByEmpId(){
     let leaveObj = new Leave();
-    leaveObj.empId = this.empId;
+    leaveObj.empId = this.employeeData.empId;
     leaveObj.fromDate = this.formattedStartDate;
     leaveObj.toDate = this.formattedEndDate;
 
@@ -405,7 +405,7 @@ export class Employee360LeaveComponent implements OnInit {
    getPendingCompOffRequestsByManagerId() {
     this.allCompOffApplications = []
     let compOff = new Leave();
-    compOff.empId = this.empId;
+    compOff.empId = this.employeeData.empId;
     this.employee360Service.get360PendingCompOffRequestsByEmpId(compOff).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allCompOffApplications = response.serviceResponse;
@@ -808,7 +808,7 @@ export class Employee360LeaveComponent implements OnInit {
   }
 
   getLeaveDataPerMonthByEmpId(): void {
-    this.employee360Service.getLeaveDataPerMonthByEmpId(this.empId).pipe(first()).subscribe((response: any) => {
+    this.employee360Service.getLeaveDataPerMonthByEmpId(this.employeeData.empId).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
             const leaveData = response.serviceResponse;
             const dataByLeaveType: any = {
