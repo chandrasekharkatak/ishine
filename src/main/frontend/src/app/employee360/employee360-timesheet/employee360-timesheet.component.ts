@@ -473,7 +473,6 @@ updateStatus(status: string) {
     }
   }
   
-
   goBack(){
     this.isProjectTeamClicked=false;
     this.projectClicked=false;
@@ -481,9 +480,12 @@ updateStatus(status: string) {
     this.projectId=0;
     this.teamName="null";
     this.allSelected=false;
-    this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,0,this.formattedStartDate,this.formattedEndDate);
+    console.log('goback id -- ',this.empId);
+    let employeeData = localStorage.getItem('employee360Data');
+    let employeeObject = JSON.parse(employeeData);
+    let emp_Id = employeeObject.empId;
+    this.get360TimesheetDetails(this.activeButton,emp_Id,this.projectId,this.teamName,0,this.formattedStartDate,this.formattedEndDate);
   }
-
   get360TimesheetDetails(activeButton:string,empId:number,projectId:number,teamName:string,managerId:number,formattedStartDate:string,formattedEndDate:string) {
     console.log(this.activeButton);
     this.employee360Service.get360TimesheetDetails(activeButton,empId,projectId,teamName,managerId,formattedStartDate,formattedEndDate).pipe(first()).subscribe((response: any) => {
