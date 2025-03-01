@@ -79,7 +79,7 @@ export class Employee360TimesheetComponent implements OnInit {
   teamClicked:boolean=false;
   actionButton:boolean=false;
 
-  timesheetColumns:any[]=['employmentId','name','date','dayType','projectName','teamName','completionTime','activity','officeInTime','officeOutTime','totalTime','nightShift','status','createdOn'];
+  timesheetColumns:any[]=['blank','employmentId','name','date','dayType','projectName','teamName','completionTime','activity','officeInTime','officeOutTime','totalTime','nightShift','status','createdOn'];
   employeesFor360:any[] = [];
   
   constructor(
