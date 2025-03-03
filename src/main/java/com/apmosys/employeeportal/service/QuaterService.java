@@ -29,18 +29,18 @@ public class QuaterService {
 		}
 		 return quarterRepository.save(quarter);
 	}
-	public Boolean checkcompletiontime(LocalDate actualCompletionDate, LocalDate expectedCompletionDate)
-	{
-		if(actualCompletionDate == null || expectedCompletionDate == null) {return false;}
-		
-		boolean isOnTime = !actualCompletionDate.isAfter(expectedCompletionDate);
-		
-		if(isOnTime)
-		{
-			System.out.print("Done");
-		}
-		return isOnTime;
-	}
+//	public Boolean checkcompletiontime(LocalDate actualCompletionDate, LocalDate expectedCompletionDate)
+//	{
+//		if(actualCompletionDate == null || expectedCompletionDate == null) {return false;}
+//		
+//		boolean isOnTime = !actualCompletionDate.isAfter(expectedCompletionDate);
+//		
+//		if(isOnTime)
+//		{
+//			System.out.print("Done");
+//		}
+//		return isOnTime;
+//	}
 	
 	
 	
