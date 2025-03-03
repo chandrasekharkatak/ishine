@@ -353,6 +353,7 @@
                         <label class="info-label"><span class="text-danger">*</span>Review Label - {{i+1}}</label>
                         <input #myInput type="text" class="form-control" autocomplete="none"
                             [(ngModel)]="spec.reviewLabel" (keypress)="fieldRestrictNumber($event)">
+                            
                         <!-- (blur)="ValidateInput($event.target,spec.specializationName)" -->
                     </div>
                 </div>
@@ -372,7 +373,6 @@
                         <label class="info-label"><span class="text-danger">*</span>Limit - {{i+1}}</label>
                         <input #myInput type="text" class="form-control" autocomplete="none"
                             (keypress)="fieldRestictCharacters($event)" [(ngModel)]="spec.condition">
-
                     </div>
                 </div>
 
@@ -380,7 +380,7 @@
                     <div class="form-group m-0 mt-3 mb-1">
                         <button type="button" class="btn btn-outline-primary mx-1"
                             (click)="addInputSpecializationField(alert_message)" *ngIf="!isReviewUpdation"
-                            [disabled]="(i !== allSpecializationList.length-1 || spec.reviewLabel == ''|| spec.reviewLabel == null )"><i
+                            [disabled]="(i !== allSpecializationList.length-1 || spec.reviewLabel == ''|| spec.reviewLabel == null ||spec.condition == ''|| spec.condition == null|| spec.reviewFieldType == ''|| spec.reviewFieldType == null )"><i
                                 class="fa fa-plus" aria-hidden="true"></i></button>
                         <button type="button" *ngIf="allSpecializationList.length > 1"
                             class="btn btn-outline-primary mx-1" (click)="removeInputSpecializationField(spec)"><i

@@ -634,11 +634,39 @@ export class PerformanceConfigComponent implements OnInit {
     let inputValidated: boolean = this.validateReviewTypes(template, this.reviewObj, this.allSpecializationList);
     if (!inputValidated) return;
 
+    if(this.reviewObj.deptId == null || this.reviewObj.deptId == '' || this.reviewObj.quarterId == null || this.reviewObj.quarterId=='' ){
+      this.openAlertMod(template, 'Please Select Department');
+      return;
+    }
+
+    const reviewLabels = this.allSpecializationList.map(spec => spec.reviewLabel);
+    const duplicateLabels = reviewLabels.filter((label, index) => reviewLabels.indexOf(label) !== index);
+
+    if (duplicateLabels.length > 0) {
+      this.openAlertMod(template, 'Review Labels must be unique.');
+      return;
+    }
+    for (let spec of this.allSpecializationList) {
+      if (spec.condition > 10 ) {
+        this.openAlertMod(template, 'Limit value must be less than or equal to 10  .');
+        return;
+      }
+      if( spec.condition <= 0){
+        this.openAlertMod(template, 'Limit value Be Greater Than 0  .');
+        return;
+      }
+      if(spec.condition == null || spec.condition == ''){
+        this.openAlertMod(template, 'Limit Cannot Be null  .');
+        return;
+      }
+     
+    }
+    // if()
     this.reviewObj.allSpecializationList = this.allSpecializationList;
     this.reviewObj.createdBy = this.currentUser.empId;
     this.reviewObj.deptId = this.reviewObj.deptId;
     this.reviewObj.quarterId = this.reviewObj.quarterId;
-    console.log(this.reviewObj);
+
     this.performanceService.addReviewType(this.reviewObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.reviewObj = new review();
@@ -655,6 +683,27 @@ export class PerformanceConfigComponent implements OnInit {
   updateReview(template: TemplateRef<any>) {
     let inputValidated: boolean = this.validateReviewTypes(template, this.reviewObj, this.allSpecializationList);
     if (!inputValidated) return;
+
+
+    if(this.reviewObj.deptId == null || this.reviewObj.deptId == '' || this.reviewObj.quarterId == null || this.reviewObj.quarterId=='' ){
+      this.openAlertMod(template, 'Please Select Department');
+      return;
+    }
+    for (let spec of this.allSpecializationList) {
+      if (spec.condition > 10) {
+        this.openAlertMod(template, 'Limit value must be less than or equal to 10  .');
+        return;
+      }
+      if( spec.condition <= 0){
+        this.openAlertMod(template, 'Limit value Be Greater Than 0  .');
+        return;
+      }
+      if(spec.condition == null || spec.condition == ''){
+        this.openAlertMod(template, 'Limit Cannot Be null  .');
+        return;
+      }
+     
+    }
 
     let obj = {
       reviewTypeId: this.reviewObj.reviewTypeId,

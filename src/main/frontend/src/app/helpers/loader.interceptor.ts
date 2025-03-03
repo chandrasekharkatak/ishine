@@ -1,16 +1,16 @@
-import { Injectable } from '@angular/core';
 import {
-  HttpRequest,
-  HttpHandler,
+  HttpErrorResponse,
   HttpEvent,
+  HttpHandler,
   HttpInterceptor,
-  HttpResponse,
-  HttpErrorResponse
+  HttpRequest,
+  HttpResponse
 } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { LoaderService } from '../services/loader.service';
 import { environment } from 'src/environments/environment';
+import { LoaderService } from '../services/loader.service';
 
 
 
@@ -226,7 +226,8 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getTeamInfo`,
     `${this.baseUrl}` + `api/getAllEmployeesForPerformance`,
     `${this.baseUrl}` + `api/get360TimesheetDetails`,
-    `${this.baseUrl}` + `api/submitEmployeePerformanceHOD`
+    `${this.baseUrl}` + `api/submitEmployeePerformanceHOD`,
+    `${this.baseUrl}` + `api/addReviewType`
   ]
 
   constructor(private loaderService: LoaderService) { }
