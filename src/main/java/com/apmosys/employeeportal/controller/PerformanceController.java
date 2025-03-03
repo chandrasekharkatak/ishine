@@ -151,6 +151,10 @@ public class PerformanceController {
 	    return response;
 	}
 	
-	
+	@RequestMapping(value = "/getReviewLabelForEveryDepartment", method = RequestMethod.GET)
+	public ServiceResponse getReviewLabelForEveryDepartment() {
+	    ServiceResponse response = performanceService.getReviewLabelForEveryDepartment();
+	    return response;
+	}
 	
 }

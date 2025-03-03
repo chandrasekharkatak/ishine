@@ -90,6 +90,7 @@ export class PerformanceConfigComponent implements OnInit {
   ngOnInit(): void {
     this.showQuaterTable();
     this.getAllDepartmentList();
+    this.getReviewLabelForEveryDepartment();
     this.logService.updateLogInfo(this.log);
     
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -627,20 +628,24 @@ export class PerformanceConfigComponent implements OnInit {
     return flag;
   }
 
-
+  reviewObj1:any[] = [];
   //pagination
-  createReview(template: TemplateRef<any>) {
+  createReview(reviewObj:any,template: TemplateRef<any>) {
 
-    let inputValidated: boolean = this.validateReviewTypes(template, this.reviewObj, this.allSpecializationList);
-    if (!inputValidated) return;
 
-    if(this.reviewObj.deptId == null || this.reviewObj.deptId == '' || this.reviewObj.quarterId == null || this.reviewObj.quarterId=='' ){
+    if(reviewObj.deptId == null || reviewObj.deptId == '' ||reviewObj.quarterId == null || reviewObj.quarterId=='' ){
       this.openAlertMod(template, 'Please Select Department');
       return;
     }
+    let inputValidated: boolean = this.validateReviewTypes(template, reviewObj, this.allSpecializationList);
+    if (!inputValidated) return;
+
+   
 
     const reviewLabels = this.allSpecializationList.map(spec => spec.reviewLabel);
     const duplicateLabels = reviewLabels.filter((label, index) => reviewLabels.indexOf(label) !== index);
+   
+    
 
     if (duplicateLabels.length > 0) {
       this.openAlertMod(template, 'Review Labels must be unique.');
@@ -656,16 +661,15 @@ export class PerformanceConfigComponent implements OnInit {
         return;
       }
       if(spec.condition == null || spec.condition == ''){
-        this.openAlertMod(template, 'Limit Cannot Be null  .');
+        this.openAlertMod(template, 'Limit Cannot Be null .');
         return;
       }
+     
      
     }
     // if()
     this.reviewObj.allSpecializationList = this.allSpecializationList;
     this.reviewObj.createdBy = this.currentUser.empId;
-    this.reviewObj.deptId = this.reviewObj.deptId;
-    this.reviewObj.quarterId = this.reviewObj.quarterId;
 
     this.performanceService.addReviewType(this.reviewObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -794,9 +798,38 @@ export class PerformanceConfigComponent implements OnInit {
     if ((k >= 65 && k <= 90) || (k >= 97 && k <= 122) || (k === 32)) {
       return true;
     }
+    
 
     return false;
   }
+
+
+
+  getReviewLabelForEveryDepartment(){
+    this.performanceService.getReviewLabelForEveryDepartment().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        this.reviewObj1 = response.serviceResponse;
+        console.log('Review Label changed:', this.reviewObj1 );
+      }
+    });
+  }
+  onReviewLabelChange(reviewLabel:any,template: TemplateRef<any>) {
+  
+    const re = this.reviewObj1.filter(res =>
+      res.reviewLabel == reviewLabel &&
+      (Array.isArray(this.reviewObj.deptId) ? this.reviewObj.deptId.includes(res.departmentId) : res.departmentId === this.reviewObj.deptId) &&
+      res.quarterId == this.reviewObj.quarterId 
+
+    );
+   
+    if (re.length > 0) {
+      this.openAlertMod(template, 'Review Labels Already Exist');
+      return;  
+    }
+  }
+
+
+
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

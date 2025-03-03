@@ -22,6 +22,8 @@ import com.apmosys.employeeportal.dto.PerformanceDTO;
 import com.apmosys.employeeportal.dto.PerformanceRatingDTO;
 import com.apmosys.employeeportal.dto.QuarterCycleDTO;
 import com.apmosys.employeeportal.dto.ReviewTypeDTO;
+import com.apmosys.employeeportal.model.Department;
+import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeePerformance;
 import com.apmosys.employeeportal.model.EmployeeRatingPerformance;
 import com.apmosys.employeeportal.model.QuaterCycle;
@@ -312,33 +314,42 @@ public class PerformanceService {
 			if(reviewDetails !=null) {
 				reviewDetails.forEach((reviewDetail)->{
 					
-					if(reviewDetail.getFlag()) {
-						
-						 if(reviewDetail.getDeptId()!=null) {
-							 reviewDetail.setDepartmentName(departmentRepository.findByDeptId(reviewDetail.getDeptId()).getName());
-							}
-							if(reviewDetail.getCreatedBy()!=null) {
-								reviewDetail.setEmployeeName(employeeRepository.findByEmpId(reviewDetail.getCreatedBy()).getName());
-							}
-							if(reviewDetail.getUpdatedBy()!=null) {
-								reviewDetail.setUpdatedByName(employeeRepository.findByEmpId(reviewDetail.getUpdatedBy()).getName());
-							}
-							
-							if(reviewDetail.getQuarterId()!=null) {
+					if (reviewDetail.getFlag()) {
 
-					            Optional<QuaterCycle> optionalQuarterCyles = quarterCycleRepository.findById(reviewDetail.getQuarterId());
+					    Optional.ofNullable(reviewDetail.getDeptId())
+					            .ifPresent(deptId -> {
+					                Optional<Department> department = Optional.ofNullable(departmentRepository.findByDeptId(deptId));
+					                department.ifPresent(dept -> reviewDetail.setDepartmentName(dept.getName()));
+					            });
 
-					            if (optionalQuarterCyles.isPresent()) {
-					            	QuaterCycle quaterCycle = optionalQuarterCyles.get();
-					            	reviewDetail.setActive(quaterCycle.getIsActive());
-					            	reviewDetail.setQuarterCycle(quaterCycle.getQuarterCycle());
-					            	
-					            }
-								
-							}
-							validReviewDetails.add(reviewDetail);
+					   
+					    Optional.ofNullable(reviewDetail.getCreatedBy())
+					            .ifPresent(empId -> {
+					                Optional<Employee> employee = Optional.ofNullable(employeeRepository.findByEmpId(empId));
+					                employee.ifPresent(emp -> reviewDetail.setEmployeeName(emp.getName()));
+					            });
+
+					   
+					    Optional.ofNullable(reviewDetail.getUpdatedBy())
+					            .ifPresent(empId -> {
+					                Optional<Employee> employee = Optional.ofNullable(employeeRepository.findByEmpId(empId));
+					                employee.ifPresent(emp -> reviewDetail.setUpdatedByName(emp.getName()));
+					            });
+
+					  
+					    Optional.ofNullable(reviewDetail.getQuarterId())
+					            .ifPresent(quarterId -> {
+					                Optional<QuaterCycle> optionalQuarterCycle = quarterCycleRepository.findById(quarterId);
+					                optionalQuarterCycle.ifPresent(quaterCycle -> {
+					                    reviewDetail.setActive(quaterCycle.getIsActive());
+					                    reviewDetail.setQuarterCycle(quaterCycle.getQuarterCycle());
+					                });
+					            });
+
+					   
+					    validReviewDetails.add(reviewDetail);
 					}
-					
+
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(validReviewDetails);
@@ -913,6 +924,54 @@ public class PerformanceService {
 				
 			}
 		    return response;
+	}
+
+
+
+
+	public ServiceResponse getReviewLabelForEveryDepartment() {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo=new LogDTO();
+		apiLogInfo.setSubFeatureName("getReviewLabelForEveryDepartment");
+		apiLogInfo.setApiUrl("/api/getReviewLabelForEveryDepartment");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("getReviewLabelForEveryDepartment  : ");
+		
+		try {
+			List<ReviewTypeDTO> reviewLabelList = new ArrayList<>();
+			List<Object[]> reviewLabelDetails= reviewTypeRepository.getReviewLabelForEveryDepartment();
+			
+			if(reviewLabelDetails !=null && !reviewLabelDetails.isEmpty() ) {
+				for(Object[] object:reviewLabelDetails) {
+					ReviewTypeDTO reviewTypeDTO = new ReviewTypeDTO();
+					reviewTypeDTO.setReviewLabel(object[0] != null ? object[0].toString() : null);
+					reviewTypeDTO.setQuarterId(object[1] != null ? Long.parseLong(object[1].toString()) : null);	
+					reviewTypeDTO.setDepartmentId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+					reviewLabelList.add(reviewTypeDTO);
+						
+				}
+				    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(reviewLabelList);
+					apiLogInfo.setApiResponse("getReviewLabelForEveryDepartment fetched successfully.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				
+			}
+			else {
+			    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Unable to fetch getReviewLabelForEveryDepartment.");
+				apiLogInfo.setApiResponse("Unable to fetch getReviewLabelForEveryDepartment.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		 }
+		}catch(Exception e){
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		
+		
+		return response;
 	}
 
 

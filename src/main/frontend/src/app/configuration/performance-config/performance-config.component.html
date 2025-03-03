@@ -352,7 +352,7 @@
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Review Label - {{i+1}}</label>
                         <input #myInput type="text" class="form-control" autocomplete="none"
-                            [(ngModel)]="spec.reviewLabel" (keypress)="fieldRestrictNumber($event)">
+                            [(ngModel)]="spec.reviewLabel" (blur)="onReviewLabelChange(spec.reviewLabel,alert_message)" (keypress)="fieldRestrictNumber($event)">
                             
                         <!-- (blur)="ValidateInput($event.target,spec.specializationName)" -->
                     </div>
@@ -391,7 +391,7 @@
 
             <div class="row mt-3">
                 <div class="col-md-12">
-                    <button type="submit" *ngIf="isCreateReview" (click)="createReview(alert_message)"
+                    <button type="submit" *ngIf="isCreateReview" (click)="createReview(reviewObj,alert_message)"
                         class="btn btn-primary btn-sm mx-1">Create
                         Review</button>
                     <!-- (click)="updateDomain(alert_message)" -->
