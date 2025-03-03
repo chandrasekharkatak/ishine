@@ -1,9 +1,9 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.apply_comp_off_req" [ngClass]="{'active' : isForm && isCreation}" (click)="showCreateForm()">Apply Bio Max Request</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_comp_off_req_status || userMapping.update_comp_off_req" [ngClass]="{'active' : isCompOffRequestsTable}" (click)="showBioMaxRequestTable()">My  Bio Max Request</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_comp_off_req_status || userMapping.update_comp_off_req" [ngClass]="{'active' : isApprovalRequest}" (click)="showBioMaxApprovalRequestTable()">Approved Request</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_comp_off_req_status || userMapping.update_comp_off_req" [ngClass]="{'active' : isApprovedRequest}" (click)="showBioMaxApprovedRequestTable()">Approval Request</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.apply_comp_off_req || userMapping.update_comp_off_req" [ngClass]="{'active' : isCompOffRequestsTable}" (click)="showBioMaxRequestTable()">My  Bio Max Request</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.apply_comp_off_req || userMapping.update_comp_off_req" [ngClass]="{'active' : isApprovalRequest}" (click)="showBioMaxApprovalRequestTable()">Approved Request</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.apply_comp_off_req || userMapping.update_comp_off_req" [ngClass]="{'active' : isApprovedRequest}" (click)="showBioMaxApprovedRequestTable()">Approval Request</button>
  
     </div>
 </div>
@@ -60,6 +60,7 @@
             </div>
             <div class="row mt-3">
                 <div class="col-md-12">
+                  
                     <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onApplyBioMaxRequest(alert_message)">Apply</button>
                 </div>
             </div>
@@ -103,10 +104,11 @@
                       
                         </thead>
                         <tbody>
-                            <tr *ngIf="biomaxListEmployeeId.length == 0 || (biomaxListEmployeeId | colFilter:filters:false).length == 0">
+                            <tr *ngIf="biomaxListEmployeeIdPending.length == 0 || (biomaxListEmployeeIdPending | colFilter:filters:false).length == 0">
                                 <th colspan="14" class="text-center info-label">No details to display...</th>
                             </tr>
-                            <tr *ngFor="let biomax of biomaxListEmployeeId | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                            <tr *ngFor="let biomax of biomaxListEmployeeIdPending | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index"
+                            >
                                 <td>{{10*(page-1)+i+1}}</td>
                                 <td>{{biomax.biomaxTitleValue}}</td>
                                 <td>{{ biomax.biomaxrequestDate | date: 'yyyy-MM-dd' }}</td>
@@ -124,7 +126,7 @@
  
                       </table>
                 </div>
-                <pagination-controls class="my-pagination" [hidden]="biomaxListEmployeeId.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+                <pagination-controls class="my-pagination" [hidden]="biomaxListEmployeeIdPending.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
                         
                         </div>
         </div>
@@ -166,10 +168,10 @@
                       
                     </thead>
                     <tbody>
-                        <tr *ngIf="biomaxListEmployeeId.length == 0 || (biomaxListEmployeeId | colFilter:filters:false).length == 0">
+                        <tr *ngIf="biomaxListEmployeeIdApprovedOrRejecr.length == 0 || (biomaxListEmployeeIdApprovedOrRejecr | colFilter:filters:false).length == 0">
                             <th colspan="14" class="text-center info-label">No details to display...</th>
                         </tr>
-                        <tr *ngFor="let biomax of biomaxListEmployeeId | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                        <tr *ngFor="let biomax of biomaxListEmployeeIdApprovedOrRejecr | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                             <td>{{10*(page-1)+i+1}}</td>
                             <td>{{biomax.biomaxTitleValue}}</td>
                             <td>{{ biomax.biomaxrequestDate | date: 'yyyy-MM-dd' }}</td>
@@ -183,7 +185,7 @@
 
                   </table>
             </div>
-            <pagination-controls class="my-pagination" [hidden]="biomaxListEmployeeId.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+            <pagination-controls class="my-pagination" [hidden]="biomaxListEmployeeIdApprovedOrRejecr.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
                     
                     </div>
     </div>

@@ -24,5 +24,9 @@ public class ProtalConfigDTO {
 	private Long updatedBy;
 	private List<PortalConfig> allPortalConfigData;
 	private String configValue;
+	private String empIdList;
+	private String departmentIdList;
+	private String empId;
+	private String departmentId;
 
 }

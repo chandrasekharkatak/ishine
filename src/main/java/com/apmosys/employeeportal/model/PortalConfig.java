@@ -33,5 +33,6 @@ public class PortalConfig {
 	private Long updatedBy;
 	
 	private String configValue;
-	
+	private String empId;
+	private String departmentId;
 }

@@ -15,7 +15,8 @@ import lombok.Setter;
 @Setter
 public class BioMaxRequestDTO {
 	private Long biomaxreequestId;
-	private String biomaxTitle;
+	private Long biomaxTitle;
+	private String biomaxTitleValue;
 	private Long empId;
 	private String empName;
 	private Long reportingManagerId;

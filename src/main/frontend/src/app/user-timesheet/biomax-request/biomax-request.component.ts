@@ -30,6 +30,8 @@ export class BiomaxRequestComponent implements OnInit {
 
   biomaxList:any[]=[];
   biomaxListEmployeeId:any[]=[];
+  biomaxListEmployeeIdPending:any[]=[];
+  biomaxListEmployeeIdApprovedOrRejecr:any[]=[];
   biomaxListReportingManager:any[]=[];
   biomaxFilterData=new biomaxRequest();
   biomaxRequestIssueData:biomaxRequestIssue[]=[];
@@ -94,8 +96,7 @@ export class BiomaxRequestComponent implements OnInit {
     this.biomax=new biomaxRequest();
     //console.log(this.feature, this.userMapping);
     this.biomax.biomaxTitle="Request For BioMax";
-    this.biomax.reportingManagerId=this.currentUser.reportingManagerId;
-    
+ 
     this.sectionViewInit();
     this.getAllBiomaxRequestForEmployee();
     this.preventBackButton();
@@ -112,7 +113,7 @@ export class BiomaxRequestComponent implements OnInit {
   getBioMaxRequestType(){
     this.biomaxseviceService.getBioMaxRequestType().pipe(first()).subscribe((response:any)=>{
       this.biomaxRequestIssueData=response.serviceResponse;
-      console.log(response.serviceResponse);
+     
 
     })
   }
@@ -170,6 +171,7 @@ export class BiomaxRequestComponent implements OnInit {
     this.isCreation = false;
     this.page=1;
     this.data=''
+   this.biomaxListEmployeeIdApprovedOrRejecr=this.biomaxListEmployeeId.filter((ap)=>ap.biomaxStatus!="Pending");
   }
   showBioMaxApprovedRequestTable(){
     this.sortColumn=[];
@@ -219,10 +221,12 @@ export class BiomaxRequestComponent implements OnInit {
       this.biomaxseviceService.getByEmployeeId(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
        if(response.serviceStatus=="true"){
         this.biomaxListEmployeeId=response.serviceResponse;
-        console.log("sdhbsdhvbsjdhvsjhbdvjhbshj",this.biomaxListEmployeeId);
+        this.biomaxListEmployeeIdPending=this.biomaxListEmployeeId.filter((ap)=>ap.biomaxStatus==="Pending");
+        console.log(this.biomaxListEmployeeIdApprovedOrRejecr);
        }
       });
     }
+
     getAllBioMaxRequestForReportingManager(){
       this.biomaxListReportingManager=[];
       this.biomaxseviceService.getByReportingManagerEmployeeId(this.currentUser.empId).pipe(first()).subscribe((response: any)=>{
@@ -248,6 +252,9 @@ export class BiomaxRequestComponent implements OnInit {
       this.page=1;
       this.data=''
       this.getAllBiomaxRequestForEmployee();
+      console.log(this.biomaxListEmployeeId);
+
+
     }
     openApprovedRequest(template: TemplateRef<any>,id:any,type:any){
     this.popupmessage="Are you sure to "+type+" that request ?";
@@ -263,13 +270,15 @@ export class BiomaxRequestComponent implements OnInit {
       })
     }
     approvedOrRejected(template: TemplateRef<any>){
-      this.cancelRequest();
+      
       this.biomaxFilterData.biomaxStatus=this.approvalType;
+      this.biomaxFilterData.statusBy=this.currentUser.empId;
       this.biomaxseviceService.updateBiomaxRequest(this.biomaxFilterData.biomaxreequestId,this.biomaxFilterData).pipe(first()).subscribe((response:any)=>{
         if(response.serviceStatus=="success"){
           this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
           this.alertMessage = response.serviceMessage;
-         this.showCreateForm();
+          this.cancelRequest();
+         
         }else{
           this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
           this.alertMessage = response.serviceMessage;
@@ -300,31 +309,14 @@ export class BiomaxRequestComponent implements OnInit {
       let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));
       let maxDate = new Date(currentDate.getTime()+ (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
 
-      // if (this.isUpdation) {
-      //   this.previousCompOffRequests = this.previousCompOffRequests.filter(compOff => this.datePipe.transform(compOff.fromDate, "yyyy-MM-dd") != this.datePipe.transform(this.compOffObj.fromDate, "yyyy-MM-dd"));
-      // }
-
-      // if(this.isUpdation == true){
-      //   this.biomaxListEmployeeId = this.biomaxListEmployeeId.filter(x => x.biomaxrequestDate != this.leaveObj.toDate);
-      // }
-      // if(this.leaveObj.leaveAppliedFor == 'self'){
-      //       if(this.leaveObj.leaveTypeCode == 'ML'){
-      //         return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.biomaxListEmployeeId.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.biomaxrequestDate).format(dateFormat) ));
-      //       }else
-      //         if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
-      //           return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.biomaxListEmployeeId.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.biomaxrequestDate).format(dateFormat) ) );
-      //         }else{
-      //           return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.biomaxListEmployeeId.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.biomaxrequestDate).format(dateFormat) ) );
-      //         }
-      //     }else{
-      //       let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
-      //       if(this.weekOffExcludedDepartmentList.find(deptId => deptId == teamMember.departmentId)){
-      //         return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.biomaxListEmployeeId.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.biomaxrequestDate).format(dateFormat) ));
-      //       }else{
-      //         return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.biomaxListEmployeeId.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.biomaxrequestDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.biomaxrequestDate).format(dateFormat)));
-      //       }
-      //     }
-     return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previousCompOffRequests.find(compOffApplication => moment(d).format(dateFormat) >= moment(compOffApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(compOffApplication.toDate).format(dateFormat)));
+    
+  
+   
+           
+              return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.biomaxListEmployeeId.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.biomaxrequestDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.biomaxrequestDate).format(dateFormat)));
+          
+       
+    
     }
 
 
@@ -338,13 +330,7 @@ export class BiomaxRequestComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.holidayList = response.serviceResponse;
         this.holidayDates = this.holidayList.map(holiday => new Date(this.datePipe.transform(holiday.dateOfHoliday, 'MM/dd/yyyy')));
-      //   this.holidayDates = this.holidayList.map(holiday => ({
-      //     date: new Date(this.datePipe.transform(holiday.dateOfHoliday, 'MM/dd/yyyy')),
-      //     state: holiday.state
-      // }));
-      
-        //console.log("holidayDates : ", this.holidayDates); 
-        console.log("holidayList : ", this.holidayList);
+     
       } else {
         console.error(response.serviceResponse);
       }
@@ -419,6 +405,11 @@ export class BiomaxRequestComponent implements OnInit {
 
     onApplyBioMaxRequest(template: TemplateRef<any>){
       this.biomax.empId=this.currentUser.empId;
+      if(!this.validationService.validateEmployerName(this.biomax.biomaxTitle)){
+        this.alertMessage = "Please Select the Request!!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
       if(!this.validationService.validateNullUndefinedEmptyString(this.biomax.biomaxrequestDate)){
         this.alertMessage = "Please fill the Date !!"
         this.openAlertMod(template, this.alertMessage);
@@ -431,9 +422,9 @@ export class BiomaxRequestComponent implements OnInit {
       }
       const dateFormat = "yyyy-MM-dd'T'HH:mm:ss"; // LocalDateTime format
       this.biomax.biomaxrequestDate = this.datePipe.transform(this.biomax.biomaxrequestDate, dateFormat);
-      
+      this.biomax.reportingManagerId=this.currentUser.managerId;
+    
      this.biomaxseviceService.createBiomaxRequest(this.biomax).pipe(first()).subscribe((response:any)=>{
-      console.log(response);
       if(response.serviceStatus=="success"){
         this.alertMessage = "Please fill the Date !!"
         this.openAlertMod(template, response.serviceMessage);

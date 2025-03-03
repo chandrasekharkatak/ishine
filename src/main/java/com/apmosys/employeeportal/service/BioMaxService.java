@@ -820,10 +820,11 @@ public class BioMaxService {
 		    return serviceResponse; 
 		}
 	 
+	 
 	 public List<BioMaTO> getBiomaxDataForLeaveDeduct() {
 		    List<BioMaTO> finalEmpBioData = new ArrayList<>();
 		    try {
-		        String query = "SELECT \n"
+		        String Query = "SELECT \n"
 		        		+ "    e.EmployeeCode,  \n"
 		        		+ "    al.AttendanceDate, \n"
 		        		+ "    al.InTime, \n"
@@ -849,23 +850,20 @@ public class BioMaxService {
 		        		+ "    and s.ShiftName != 'NoShift' \n"
 		        		+ "ORDER BY \n"
 		        		+ "    al.AttendanceDateStr DESC;";
-		        
+//		    
 		        
 		        Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
 
 				 Connection con = getConnection();
 
-		        PreparedStatement statement = con.prepareStatement(query);
-		        
+		        PreparedStatement statement = con.prepareStatement(Query);
 		        LocalDate currentDate = LocalDate.now();
 		        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy");
 		        String currentDateString = currentDate.format(formatter);
 		       
 		        // Set the date parameters
 		        statement.setString(1, currentDateString);
-		        
-		        System.out.println("Executing query: " + statement.toString());
-		        
+
 		        ResultSet resultSet = statement.executeQuery();
 		        
 		        if (!resultSet.next()) {
@@ -883,7 +881,7 @@ public class BioMaxService {
 		                bioMaTO.setBeginTime(resultSet.getString("BeginTime"));
 		                bioMaTO.setEndTime(resultSet.getString("EndTime"));
 		                bioMaTO.setDeduct(resultSet.getString("Deduct"));
-		                
+		             
 		                finalEmpBioData.add(bioMaTO);
 		            }
 		            

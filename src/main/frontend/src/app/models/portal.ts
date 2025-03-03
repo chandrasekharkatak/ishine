@@ -22,4 +22,9 @@ export class Portal {
     level2ApprovalTo:any;
 
     weekOffExcludedDepartmentList:any;
+    departmentIdList:any;
+    departmentId:any;
+    empIdList:any;
+    empId:any;
+
 }

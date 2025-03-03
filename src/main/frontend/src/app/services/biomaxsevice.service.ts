@@ -33,6 +33,12 @@ export class BiomaxseviceService {
   getById(id:number):Observable<any>{
     return this.http.get(`${this.apiUrl}/getById/${id}`);
   }
-  
+  getBioMaxRequestType():Observable<any>{
+    return this.http.get(`${this.apiUrl}/getBioMaxRequestType`);
+  }
+
+  cronjonvalidate():Observable<any>{
+    return this.http.get(`${this.apiUrl}/getBioMaxRequestTypeCronJon`);
+  }
 }
 

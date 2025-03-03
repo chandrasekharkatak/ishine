@@ -1,31 +1,67 @@
 package com.apmosys.employeeportal.service;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.apmosys.employeeportal.dto.BioMaTO;
 import com.apmosys.employeeportal.dto.BioMaxRequestDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.model.BioMaxRequestIssue;
 import com.apmosys.employeeportal.model.BiomaxRequest;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.EmployeeLeavesMap;
+import com.apmosys.employeeportal.model.LeaveBalanceLog;
+import com.apmosys.employeeportal.repository.BioMaxRequestIssueRepository;
 import com.apmosys.employeeportal.repository.BiomaxRequestRepository;
+import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
+import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
+import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.serviceInterface.BioMaxRequestService;
+import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.fasterxml.jackson.core.exc.StreamReadException;
+import com.fasterxml.jackson.databind.DatabindException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 @Service
 public class BioMaxRequestServiceImp implements BioMaxRequestService{
+	
+	@Value("${spring.biomax.jsonfile}")
+	private String jsonfile;
+	
+	@Autowired
+	private CronJobService cronJobService;
 
 	@Autowired
 	private BiomaxRequestRepository bioMaxRequestRepository;
 	@Autowired
 	private EmployeeRepository employeeRepository;
 	
+	@Autowired
+	private BioMaxRequestIssueRepository bioMaxRequestIssueRepository;
+	
+	@Autowired
+	private EmployeeLeaveRepository employeeLeaveRepository;
+	
+	@Autowired
+	private LeaveTypeMasterRepository leaveTypeMasterRepository;
+	
+	@Autowired
+	private EmployeeLeavesMapRepository employeeLeavesMapRepository;
+	
+	@Autowired
+	private LeaveBalanceLogRepository leaveBalanceLogRepository;
 	
 	@Override
 	public ServiceResponse createBioMaxRequest(BioMaxRequestDTO biomaxRequest) {
@@ -45,10 +81,11 @@ public class BioMaxRequestServiceImp implements BioMaxRequestService{
 			biomax.setBiomaxTitle(biomaxRequest.getBiomaxTitle());
 			biomax.setRequestRemark(biomaxRequest.getRequestRemark());
 			biomax.setReportingManagerId(biomaxRequest.getReportingManagerId());
-			bioMaxRequestRepository.save(biomax);
-			response.setServiceStatus("success");
-			response.setServiceMessage("Biomax Request Has been Raised assign to your Reporting Manager");
-			response.setServiceResponse(biomax);
+				bioMaxRequestRepository.save(biomax);
+				response.setServiceStatus("success");
+				response.setServiceMessage("Biomax Request Has been Raised assign to your Reporting Manager");
+				response.setServiceResponse(biomax);
+			
 			
 		}catch(Exception e) {
 			logBuilder.append("Error"+e.getMessage());
@@ -74,9 +111,45 @@ public class BioMaxRequestServiceImp implements BioMaxRequestService{
 				BiomaxRequest biomax=exitingBiomaxRequestForUpdate.get();
 				biomax.setBiomaxStatus(biomaxRequestDTO.getBiomaxStatus());
 				biomax.setEnabled(true);
-				//biomax.setStatusDate(LocalDateTime.now());
+				biomax.setStatusDate(LocalDateTime.now());
 				biomax.setStatusBy(biomaxRequestDTO.getStatusBy());
 				biomax.setBiomaxStatus(biomaxRequestDTO.getBiomaxStatus());
+				if(biomaxRequestDTO.getBiomaxStatus().equals("Approved")) {
+					Employee emp=employeeRepository.findByEmpId(biomaxRequestDTO.getEmpId());
+					
+				
+					if(emp.getEmploymentstatus().equals("Confirmed")) {
+					
+						EmployeeLeavesMap employeeLeaveMapObject = employeeLeavesMapRepository
+								.findByEmpIdAndLeaveTypeMasterId(emp.getEmpId(), (short) 1);
+						System.out.println("employeeLeaveMapObject"+employeeLeaveMapObject.getEmployeeLeavesMapId());
+						if (employeeLeaveMapObject != null) {
+							Float newBalance = employeeLeaveMapObject.getBalance()
+									+ Float.parseFloat("0.5");
+
+							employeeLeaveMapObject.setBalance(newBalance);
+							EmployeeLeavesMap dbResponse = employeeLeavesMapRepository
+									.save(employeeLeaveMapObject);
+							System.out.println("dbResponse EmployeeLeavesMap"+dbResponse.getBalance());
+							
+							if (dbResponse != null) {
+								LeaveBalanceLog log = new LeaveBalanceLog();
+		                        log.setBalance(newBalance);
+								log.setEmpId(emp.getEmpId());
+								log.setLeaveTypeMasterId((short) 1);
+								log.setMessage(LeaveLogMessage.BiomaxLeaveOnTimesheetDefaulter
+										.replace("0.0", "+0.5"));
+								log.setUpdateBalanceBy("+" + "0.5");
+
+								LeaveBalanceLog leaveLogDbResponse = leaveBalanceLogRepository
+										.save(log);
+								System.out.println("dbResponse LeaveBalanceLog"+leaveLogDbResponse.getLeaveLogId());
+								
+							}
+						}
+					}
+				}
+				
 				bioMaxRequestRepository.save(biomax);
 				response.setServiceStatus("success");
 				response.setServiceMessage("Biomax Request Has been "+biomaxRequestDTO.getBiomaxStatus()+" to your Reporting Manager");
@@ -97,6 +170,24 @@ public class BioMaxRequestServiceImp implements BioMaxRequestService{
 		return response;
 	}
 
+	public void LeaveDeductAfterApproval(Long empId) {
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("LeaveDeductAfterApproval");
+		apiLogInfo.setApiUrl("/api/LeaveDeductAfterApproval");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		try {
+			Employee emp=employeeRepository.findByEmpId(empId);
+			
+			
+			
+			
+		}catch(Exception e) {
+			logBuilder.append("Error"+e.getMessage());
+			
+		}
+	}
+	
 	@Override
 	public ServiceResponse getByEmployeeId(Long empid) {
 		ServiceResponse response = new ServiceResponse();
@@ -115,7 +206,12 @@ public class BioMaxRequestServiceImp implements BioMaxRequestService{
 				ob.setBiomaxreequestId(e.getBiomaxreequestId());
 				ob.setBiomaxStatus(ob.getBiomaxStatus());
 				ob.setBiomaxTitle(e.getBiomaxTitle());
+				Optional<BioMaxRequestIssue> requestType=bioMaxRequestIssueRepository.findById(e.getBiomaxTitle());
+				if(requestType.isPresent()) {
+					ob.setBiomaxTitleValue(requestType.get().getBioMaxRequestIssueName());
+				}
 				ob.setReportingManagerId(e.getReportingManagerId());
+				
 				Optional<Employee> emp=employeeRepository.findById(e.getReportingManagerId());
 				if(emp.isPresent()) {
 					ob.setReportingManagerName(emp.get().getName());
@@ -161,6 +257,10 @@ public class BioMaxRequestServiceImp implements BioMaxRequestService{
 					ob.setBiomaxStatus(ob.getBiomaxStatus());
 					ob.setBiomaxTitle(e.getBiomaxTitle());
 					ob.setReportingManagerId(e.getReportingManagerId());
+					Optional<BioMaxRequestIssue> requestType=bioMaxRequestIssueRepository.findById(e.getBiomaxTitle());
+					if(requestType.isPresent()) {
+						ob.setBiomaxTitleValue(requestType.get().getBioMaxRequestIssueName());
+					}
 					Optional<Employee> emp=employeeRepository.findById(e.getEmpId());
 					if(emp.isPresent()) {
 						ob.setEmpName(emp.get().getName());
@@ -240,6 +340,59 @@ public class BioMaxRequestServiceImp implements BioMaxRequestService{
 	}catch(Exception e) {
 		logBuilder.append("Exception found "+e.getMessage());
 	}
+		return response;
+	}
+
+	@Override
+	public ServiceResponse getBioMaxRequestType() {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("getBioMaxRequestType");
+		apiLogInfo.setApiUrl("/api/getBioMaxRequestType");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("BioMax Request Type Id :" );
+	try {
+		List<BioMaxRequestIssue> list=bioMaxRequestIssueRepository.findAll();
+		if(list.size()>0) {
+			
+			response.setServiceStatus("true");
+			response.setServiceMessage("Record Found has been deleted");
+			response.setServiceResponse(list);
+		}else {
+			response.setServiceStatus("true");
+			response.setServiceMessage("Not Record Found");
+		}
+	}catch(Exception e) {
+		logBuilder.append("Exception found "+e.getMessage());
+	}
+		return response;
+	}
+
+	@Override
+	public ServiceResponse getBioMaxRequestTypeCronJon() {
+		// TODO Auto-generated method stub
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("getById");
+		apiLogInfo.setApiUrl("/api/getById");
+		apiLogInfo.setLogLevel("INFO");
+		cronJobService.leaveDeduct();
+		System.out.println("Sdfdsg");
+		
+		return response;
+	}
+
+	@Override
+	public ServiceResponse leaveDeductRoleBackForEmloyee(BioMaxRequestDTO bioMaxRequestDTO) {
+		// TODO Auto-generated method stub
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("getById");
+		apiLogInfo.setApiUrl("/api/getById");
+		apiLogInfo.setLogLevel("INFO");
+		response.setServiceResponse(bioMaxRequestDTO);
+		
 		return response;
 	}
 

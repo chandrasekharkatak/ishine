@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.serviceInterface;
 
+import java.time.LocalDateTime;
+
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.BioMaxRequestDTO;
@@ -14,5 +16,7 @@ public interface BioMaxRequestService {
 	ServiceResponse  getByRepostingManager(Long reportingManagerId);
 	ServiceResponse deletedRequest(Long id);
 	ServiceResponse getById(Long id);
-	
+	ServiceResponse getBioMaxRequestTypeCronJon();
+	ServiceResponse getBioMaxRequestType();
+	ServiceResponse leaveDeductRoleBackForEmloyee(BioMaxRequestDTO bioMaxRequestDTO);
 }

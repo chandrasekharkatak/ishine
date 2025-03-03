@@ -68,6 +68,7 @@ import { Employee360TimesheetComponent } from './employee360/employee360-timeshe
 import { Employee360BiomaxComponent } from './employee360/employee360-biomax/employee360-biomax.component';
 import { Employee360AppreciationComponent } from './employee360/employee360-appreciation/employee360-appreciation.component';
 import { Employee360RewardsComponent } from './employee360/employee360-rewards/employee360-rewards.component';
+import { BiomaxRequestComponent } from './user-timesheet/biomax-request/biomax-request.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -112,6 +113,8 @@ const routes: Routes = [
     children: [
       { path: 'my-timesheet', component: MyTimesheetComponent, },
       { path: 'team-timesheet', component: TeamTimesheetComponent, },
+      { path: 'biomax-request', component: BiomaxRequestComponent, },
+    
     ]
   },
   {path:'user-leaves/:tabName', component: UserLeavesComponent, canActivate: [AuthGuard],

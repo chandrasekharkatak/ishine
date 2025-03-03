@@ -67,7 +67,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 //	@Query(value = "FROM Employee e WHERE e.mobileNo = :mobileNo AND e.empId != :empId")
 	public List<Employee> findByMobileNoAndEmpId(Long mobileNo, Long empId);
 	
-
+	@Query(value = "FROM Employee e WHERE e.employeementId = :employeementId")
+	public Optional<Employee> findByemployeementIdForBioMax(Long employeementId);
 
 //	@Query(value = "FROM Employee e WHERE e.aadhar = :aadhar AND e.empId != :empId")
 	public List<Employee> findByAadharAndEmpId(Long aadhar, Long empId);
