@@ -225,7 +225,8 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getProjectInfo`,
     `${this.baseUrl}` + `api/getTeamInfo`,
     `${this.baseUrl}` + `api/getAllEmployeesForPerformance`,
-    `${this.baseUrl}` + `api/get360TimesheetDetails`
+    `${this.baseUrl}` + `api/get360TimesheetDetails`,
+    `${this.baseUrl}` + `api/submitEmployeePerformanceHOD`
   ]
 
   constructor(private loaderService: LoaderService) { }
