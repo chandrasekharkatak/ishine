@@ -33,5 +33,4 @@ public class BiomaxRequest {
 	private boolean isEnabled;
 	
 	
-	
 }

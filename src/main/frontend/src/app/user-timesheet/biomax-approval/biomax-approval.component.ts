@@ -2,6 +2,7 @@ import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { MatCalendarCellClassFunction } from '@angular/material/datepicker';
 import { Sort } from '@angular/material/sort';
+import { Router, ActivatedRoute } from '@angular/router';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
@@ -16,25 +17,26 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { BiomaxseviceService } from 'src/app/services/biomaxsevice.service';
 import { HolidayService } from 'src/app/services/holiday.service';
 import { LeaveService } from 'src/app/services/leave.service';
+import { LogService } from 'src/app/services/log.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
-  selector: 'app-biomax-request',
-  templateUrl: './biomax-request.component.html',
-  styleUrls: ['./biomax-request.component.css']
+  selector: 'app-biomax-approval',
+  templateUrl: './biomax-approval.component.html',
+  styleUrls: ['./biomax-approval.component.css']
 })
-export class BiomaxRequestComponent implements OnInit {
+export class BiomaxApprovalComponent implements OnInit {
 
   data:string;
   biomax=new biomaxRequest();
 
   biomaxList:any[]=[];
   biomaxListEmployeeId:any[]=[];
-  biomaxListEmployeeIdPending:any[]=[];
-  biomaxListEmployeeIdApprovedOrRejecr:any[]=[];
+  biomaxListEmployeeIdPedning:any[]=[];
+  biomaxListEmployeeIdApproved:any[]=[];
+  biomaxRequestType:biomaxRequestIssue[]=[];
   biomaxListReportingManager:any[]=[];
   biomaxFilterData=new biomaxRequest();
-  biomaxRequestIssueData:biomaxRequestIssue[]=[];
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType:any;
@@ -65,7 +67,8 @@ export class BiomaxRequestComponent implements OnInit {
   allCompOffRequests:any[] = [];
   previousCompOffRequests:any[] = [];
   leaveObj:Leave= new Leave();
-  biomaxServiceRequest:biomaxRequestIssue[]=[];
+  
+
   filters:any = {};
   isSearchEnabled:boolean = false;
   compOffReqColumns:any[] = ['blank','compOffReasons','fromDate','noOfDays','description','status'];
@@ -95,26 +98,21 @@ export class BiomaxRequestComponent implements OnInit {
     });
     this.biomax=new biomaxRequest();
     //console.log(this.feature, this.userMapping);
-    this.biomax.biomaxTitle="Request For BioMax";
- 
-    this.sectionViewInit();
-    this.getAllBiomaxRequestForEmployee();
-    this.preventBackButton();
+   // this.biomax.biomaxTitle="Request For BioMax";
+    this.biomax.reportingManagerId=this.currentUser.reportingManagerId;
     this.getAllHolidays();
+    this.getAllBiomaxRequestForEmployee();
+    this.sectionViewInit();
+    
+    this.preventBackButton();
+    
     this.getBioMaxRequestType();
-  
+    console.log("Leave",this.leaveObj);
   }
   preventBackButton(){
     history.pushState(null, null, location.href);
     this.locationStrategy.onPopState(()=>{
       history.pushState(null, null, location.href);
-    })
-  }
-  getBioMaxRequestType(){
-    this.biomaxseviceService.getBioMaxRequestType().pipe(first()).subscribe((response:any)=>{
-      this.biomaxRequestIssueData=response.serviceResponse;
-     
-
     })
   }
 
@@ -125,7 +123,7 @@ export class BiomaxRequestComponent implements OnInit {
       this.showBioMaxRequestTable();
     }
   }
- 
+
   disableMannualDateInput(){
     return false;
   }
@@ -138,26 +136,9 @@ export class BiomaxRequestComponent implements OnInit {
     this.isCompOffRequestsTable = false;
     this.isApprovalRequest=false;
     this.isApprovedRequest=false;
-    this.reset();
+   
   }
 
-  showUpdateForm(compOff:Leave){	
-    this.isForm = true;	
-    this.isUpdation = true;	
-    this.isCreation = false;	
-  
-    this.isCompOffRequestsTable = false;
-
-    this.compOffObj = Object.assign({}, compOff);
-    this.compOffObj.leaveType = 'Compensatory Off'
-    this.compOffObj.fromDate = (this.compOffObj.fromDate)? moment(this.compOffObj.fromDate, AppComponent.DATE_FORMAT).format(AppComponent.DB_DATE_FORMAT) : null;
-    this.compOffObj.toDate = (this.compOffObj.toDate)? moment(this.compOffObj.toDate, AppComponent.DATE_FORMAT).format(AppComponent.DB_DATE_FORMAT) : null;
-
-    let selectedReason =  this.compOffReasons.find(compOffReson => compOffReson.compOffReasons == this.compOffObj.compOffReasons);
-    if(selectedReason) this.compOffObj.reasonId = selectedReason.compOffId;
-
-    //console.log("For Update Comp-Off : ", this.compOffObj, selectedReason);
-  }
 
  
   showBioMaxApprovalRequestTable(){
@@ -171,7 +152,6 @@ export class BiomaxRequestComponent implements OnInit {
     this.isCreation = false;
     this.page=1;
     this.data=''
-   this.biomaxListEmployeeIdApprovedOrRejecr=this.biomaxListEmployeeId.filter((ap)=>ap.biomaxStatus!="Pending");
   }
   showBioMaxApprovedRequestTable(){
     this.sortColumn=[];
@@ -189,13 +169,7 @@ export class BiomaxRequestComponent implements OnInit {
     
   }
 
-  reset(){
-    this.compOffObj = new Leave();
-    this.compOffObj.leaveType = 'Compensatory Off'
-    this.compOffObj.compOffId = '';
 
-    this.allCompOffRequests = [];
-  }
 
     // Modals
     openAlertMod(template: TemplateRef<any>, message: any) {
@@ -205,12 +179,6 @@ export class BiomaxRequestComponent implements OnInit {
   
     cancelRequest() {
       this.modalRef.hide();
-      this.isForm=true;
-      this.isCreation=true;
-      this.isCompOffRequestsTable=false;
-      this.isApprovalRequest=false;
-      this.isApprovedRequest=false;
-      this.reset();
     }
 
    
@@ -221,12 +189,13 @@ export class BiomaxRequestComponent implements OnInit {
       this.biomaxseviceService.getByEmployeeId(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
        if(response.serviceStatus=="true"){
         this.biomaxListEmployeeId=response.serviceResponse;
-        this.biomaxListEmployeeIdPending=this.biomaxListEmployeeId.filter((ap)=>ap.biomaxStatus==="Pending");
-        console.log(this.biomaxListEmployeeIdApprovedOrRejecr);
+        
+        this.biomaxListEmployeeIdPedning= this.biomaxListEmployeeId.filter((p)=>p.biomaxStatus==="Pending")
+     this.biomaxListEmployeeIdApproved=this.biomaxListEmployeeId.filter((p)=>p.biomaxStatus==="Approved" || p.biomaxStatus==="Rejected")
+
        }
       });
     }
-
     getAllBioMaxRequestForReportingManager(){
       this.biomaxListReportingManager=[];
       this.biomaxseviceService.getByReportingManagerEmployeeId(this.currentUser.empId).pipe(first()).subscribe((response: any)=>{
@@ -252,9 +221,7 @@ export class BiomaxRequestComponent implements OnInit {
       this.page=1;
       this.data=''
       this.getAllBiomaxRequestForEmployee();
-      console.log(this.biomaxListEmployeeId);
-
-
+     
     }
     openApprovedRequest(template: TemplateRef<any>,id:any,type:any){
     this.popupmessage="Are you sure to "+type+" that request ?";
@@ -270,15 +237,13 @@ export class BiomaxRequestComponent implements OnInit {
       })
     }
     approvedOrRejected(template: TemplateRef<any>){
-      
+      this.cancelRequest();
       this.biomaxFilterData.biomaxStatus=this.approvalType;
-      this.biomaxFilterData.statusBy=this.currentUser.empId;
       this.biomaxseviceService.updateBiomaxRequest(this.biomaxFilterData.biomaxreequestId,this.biomaxFilterData).pipe(first()).subscribe((response:any)=>{
         if(response.serviceStatus=="success"){
           this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
           this.alertMessage = response.serviceMessage;
-          this.cancelRequest();
-         
+          this.ngOnInit();
         }else{
           this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
           this.alertMessage = response.serviceMessage;
@@ -309,14 +274,39 @@ export class BiomaxRequestComponent implements OnInit {
       let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));
       let maxDate = new Date(currentDate.getTime()+ (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
 
-    
-  
+      if(this.isUpdation == true){
+        this.biomaxListEmployeeId = this.biomaxListEmployeeId.filter(x => x.biomaxrequestDate != this.leaveObj.toDate);
+      }
    
-           
+
+     
+      if(this.leaveObj.leaveAppliedFor == 'self'){
+      
+
+      
+            if(this.leaveObj.leaveTypeCode == 'ML'){
+              return (
+                (moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) &&
+                 moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && 
+                 !this.biomaxListEmployeeId.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.biomaxrequestDate).format(dateFormat) 
+                ));
+            }else
+              if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
+                return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.biomaxListEmployeeId.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.biomaxrequestDate).format(dateFormat) ) );
+              }else{
+                return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.biomaxListEmployeeId.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.biomaxrequestDate).format(dateFormat) ) );
+              }
+           }
+           else{
+            let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
+            if(this.weekOffExcludedDepartmentList.find(deptId => deptId == teamMember.departmentId)){
+              return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.biomaxListEmployeeId.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.biomaxrequestDate).format(dateFormat) ));
+            }else{
               return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.biomaxListEmployeeId.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.biomaxrequestDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.biomaxrequestDate).format(dateFormat)));
-          
-       
-    
+            }
+          }
+        
+   // return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previousCompOffRequests.find(compOffApplication => moment(d).format(dateFormat) >= moment(compOffApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(compOffApplication.toDate).format(dateFormat)));
     }
 
 
@@ -325,12 +315,12 @@ export class BiomaxRequestComponent implements OnInit {
     this.holidayDates = [];
     let holidayObj = new Holiday();
     holidayObj.state=this.currentUser.workLocation;
-    //console.log(" Worklocation ::  ",this.currentUser);
     this.holidayService.getAllHolidays(holidayObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.holidayList = response.serviceResponse;
         this.holidayDates = this.holidayList.map(holiday => new Date(this.datePipe.transform(holiday.dateOfHoliday, 'MM/dd/yyyy')));
-     
+      
+        console.log("holidayList : ", this.holidayList);
       } else {
         console.error(response.serviceResponse);
       }
@@ -338,8 +328,6 @@ export class BiomaxRequestComponent implements OnInit {
   }
 
       holidayHighlight: MatCalendarCellClassFunction<Date> = (cellDate, view) => {
-        // //console.log("leaveObj  ::  ",this.leaveObj);
-        // Only highligh dates inside the month view.
         if (view === 'month') {
           const time = cellDate.getTime()
           
@@ -371,32 +359,7 @@ export class BiomaxRequestComponent implements OnInit {
   
   
 
-    validateLeavetObj(compOffObj:Leave, template: TemplateRef<any>){
-      
-      if(!this.validationService.validateNullUndefinedEmptyString(compOffObj.reasonId)){
-        this.alertMessage = "Please select comp off reason !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-
-      if(!this.validationService.validateNullUndefinedEmptyString(compOffObj.fromDate)){
-        this.alertMessage = "Please select date !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-  
-      if(!this.validationService.validateNullUndefinedEmptyString(compOffObj.description?.trim())){
-        this.alertMessage = "Please enter description !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }else if(!this.validationService.validateActivityTimesheetDiscription(compOffObj.description?.trim())){
-        this.alertMessage = "Please enter valid description !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-
-      return true;
-    }
+   
 
     resetToDate(){
       this.compOffObj.toDate = ''
@@ -405,8 +368,8 @@ export class BiomaxRequestComponent implements OnInit {
 
     onApplyBioMaxRequest(template: TemplateRef<any>){
       this.biomax.empId=this.currentUser.empId;
-      if(!this.validationService.validateEmployerName(this.biomax.biomaxTitle)){
-        this.alertMessage = "Please Select the Request!!"
+      if(!this.validationService.validateNullUndefinedEmptyString(this.biomax.biomaxTitle)){
+        this.alertMessage = "Please Select Request Type !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
@@ -422,63 +385,36 @@ export class BiomaxRequestComponent implements OnInit {
       }
       const dateFormat = "yyyy-MM-dd'T'HH:mm:ss"; // LocalDateTime format
       this.biomax.biomaxrequestDate = this.datePipe.transform(this.biomax.biomaxrequestDate, dateFormat);
-      this.biomax.reportingManagerId=this.currentUser.managerId;
-    
+      
      this.biomaxseviceService.createBiomaxRequest(this.biomax).pipe(first()).subscribe((response:any)=>{
+      console.log(response);
       if(response.serviceStatus=="success"){
         this.alertMessage = "Please fill the Date !!"
         this.openAlertMod(template, response.serviceMessage);
       this.ngOnInit();
+      this.isCompOffRequestsTable=true;
+      this.isForm=false;
       }
      });
      
+     
     }
-
+    getBioMaxRequestType(){
+      this.biomaxseviceService.getBioMaxRequestType().pipe(first()).subscribe((response:any)=>{
+        this.biomaxRequestType=response.serviceResponse;
+       
+      })
+     }
 
    
-    // onUpdateCompOff(template: TemplateRef<any>){
-    //   const dateFormat = 'YYYY-MM-DD';
-    //   let inputValidated:boolean  = this.validateLeavetObj(this.compOffObj, template)
-    //   if(!inputValidated) return;
-
-    //   let compOff = new Leave();
-    //   compOff = Object.assign({}, this.compOffObj);
-    //   compOff.description = this.compOffObj.description?.trim();
-    //   compOff.fromDate = moment(this.compOffObj.fromDate).format(dateFormat);
-    //   // compOff.toDate = moment(this.compOffObj.toDate).format(dateFormat);
-    //   compOff.updatedBy = this.currentUser.empId;
-    //   // compOff.reportingManagerId = this.currentUser.reportingManagerId
-  
-    //   if(this.currentUser.reportingManagerId != null && this.currentUser.approvalsTo == "Reporting Manager"){
-    //     compOff.reportingManagerId = this.currentUser.reportingManagerId;
-    //     compOff.managerEmail = this.currentUser.reportingManagerEmail;
-    //     compOff.managerId = this.currentUser.reportingManagerId;
-    //     compOff.managerName = this.currentUser.reportingManagerName;
-    //   }else{
-    //     compOff.reportingManagerId = this.currentUser.managerId;
-    //     compOff.managerId = this.currentUser.managerId;
-    //     compOff.managerEmail = this.currentUser.managerEmail;
-    //     compOff.managerName = this.currentUser.managerName;
-    //   }
-
-
-    //   //console.log("Update comp off : ", compOff);
-    //   this.leaveService.updateCompOff(compOff).pipe(first()).subscribe((response: any) => {
-    //     if (response.serviceStatus == "Success") {
-    //       this.openAlertMod(template, response.serviceResponse);
-    //       this.showCompOffRequestTable();
-    //     } else {
-    //       this.openAlertMod(template, response.serviceResponse);
-    //     }
-    //   });
-    // }
 
     deletebiomaxRequest(template: TemplateRef<any>) {	
       this.cancelRequest();
+     
   this.biomaxseviceService.deletebiomaxRequest(this.biomax.biomaxreequestId).pipe(first()).subscribe((response: any) => {	
         if (response.serviceStatus == "Success") {	
-          this.openAlertMod(template, response.serviceMessage);	
-          this.showCreateForm();
+           this.openAlertMod(template, response.serviceMessage);	
+          
         } else {	
           this.openAlertMod(template, response.serviceMessage);	
         }	
@@ -513,12 +449,6 @@ export class BiomaxRequestComponent implements OnInit {
   onSearch(searchData){
   this.filters = searchData;
   //console.log("Updated Filter : ", this.filters);
-  }
-
-  cronjonvalidate(){
-    this.biomaxseviceService.cronjonvalidate().pipe(first()).subscribe((response:any)=>{
-      console.log(response);
-    })
   }
 
 }

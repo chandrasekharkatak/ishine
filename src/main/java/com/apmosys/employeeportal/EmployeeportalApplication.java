@@ -10,7 +10,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class EmployeeportalApplication {
 
 	public static void main(String[] args) {
+		
 		SpringApplication.run(EmployeeportalApplication.class, args);
+		
 	}
 
 	@Bean

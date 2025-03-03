@@ -20,11 +20,9 @@ export class Portal {
     level1ApprovalTo:any;
     level2MinNoOfDays:any;
     level2ApprovalTo:any;
-
+    departmentId:any;
+    empId:any;
     weekOffExcludedDepartmentList:any;
     departmentIdList:any;
-    departmentId:any;
     empIdList:any;
-    empId:any;
-
 }

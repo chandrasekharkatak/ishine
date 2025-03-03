@@ -36,9 +36,5 @@ export class BiomaxseviceService {
   getBioMaxRequestType():Observable<any>{
     return this.http.get(`${this.apiUrl}/getBioMaxRequestType`);
   }
-
-  cronjonvalidate():Observable<any>{
-    return this.http.get(`${this.apiUrl}/getBioMaxRequestTypeCronJon`);
-  }
 }
 

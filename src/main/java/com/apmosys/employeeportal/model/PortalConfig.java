@@ -30,9 +30,8 @@ public class PortalConfig {
 	@JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
 	private LocalDateTime updatedOn;
 	
-	private Long updatedBy;
-	
-	private String configValue;
+	private String updatedBy;
 	private String empId;
-	private String departmentId;
+	private Long departmentId;
+	private String configValue;
 }

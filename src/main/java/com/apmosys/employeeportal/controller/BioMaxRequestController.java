@@ -49,19 +49,11 @@ public class BioMaxRequestController {
 	public ResponseEntity<ServiceResponse> getById(@PathVariable("id") Long id) {
 		return ResponseEntity.ok(bioMaxRequestService.getById(id));
 	}
-	
 	@GetMapping("/getBioMaxRequestType")
 	public ResponseEntity<ServiceResponse> getBioMaxRequestType() {
 		return ResponseEntity.ok(bioMaxRequestService.getBioMaxRequestType());
 	}
 	
-	@GetMapping("/getBioMaxRequestTypeCronJon")
-	public ResponseEntity<ServiceResponse> getBioMaxRequestTypeCronJon() {
-		return ResponseEntity.ok(bioMaxRequestService.getBioMaxRequestTypeCronJon());
-	}
 	
-	@PostMapping("/leaveDeductRoleBackForEmloyee")
-	public ResponseEntity<ServiceResponse> leaveDeductRoleBackForEmloyee(@RequestBody BioMaxRequestDTO biomaxRequestDTO){
-		return ResponseEntity.ok(bioMaxRequestService.leaveDeductRoleBackForEmloyee(biomaxRequestDTO));
-	}
+
 }

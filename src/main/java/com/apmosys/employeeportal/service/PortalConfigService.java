@@ -138,7 +138,7 @@ public class PortalConfigService {
 					portalConfigToBeUpdate.setConfigValue(dto.getConfigValue());
 					portalConfigToBeUpdate.setDepartmentId(dto.getDepartmentId());
 					portalConfigToBeUpdate.setEmpId(dto.getEmpId());
-			
+					
 					PortalConfig dbResponse = portalConfigRepository.save(portalConfigToBeUpdate);
 					
 					if(dbResponse!=null) {

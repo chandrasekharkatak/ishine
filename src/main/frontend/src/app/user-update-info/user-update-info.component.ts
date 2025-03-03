@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, OnInit, Output, SecurityContext, TemplateRef, ViewChild, } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnInit, Output, SecurityContext, TemplateRef, ViewChild, } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -24,7 +24,7 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
   isInfoPreview: boolean = false;
 
   isPreview:boolean = false;
-
+  @Input() showBody: boolean = false;
   @ViewChild("draftTable") 
   private myDraftTable: EmployeeUpdateListComponent;
 

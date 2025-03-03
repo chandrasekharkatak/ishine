@@ -121,7 +121,7 @@ import { EmployeeInfoComponent } from './user-update-info/employee-info/employee
 import { EmployeeUpdateListComponent } from './user-update-info/employee-update-list/employee-update-list.component';
 import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
-import { BiomaxRequestComponent } from './user-timesheet/biomax-request/biomax-request.component';
+import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
 
@@ -211,8 +211,7 @@ import { BiomaxRequestComponent } from './user-timesheet/biomax-request/biomax-r
     BreadcrumbComponent,
 
     Employee360BiomaxComponent,
-    
-     BiomaxRequestComponent
+     BiomaxApprovalComponent
 
     //TestComponent
   ],

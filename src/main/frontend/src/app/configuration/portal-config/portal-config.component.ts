@@ -24,6 +24,7 @@ import { saveAs } from "file-saver";
 import { ClipboardService } from 'ngx-clipboard';
 import { HolidayService } from 'src/app/services/holiday.service';
 import { Holiday } from 'src/app/models/holiday';
+import { Project } from 'src/app/models/project';
 
 
 
@@ -566,11 +567,12 @@ export class PortalConfigComponent implements OnInit {
     }
 
 
-
+  
     let tempArray = JSON.parse(JSON.stringify(this.portalConfigList));
-
+   
     tempArray.forEach((portalConfig, index) => {
-       if (index == 0) {
+     
+      if (index == 0) {
         portalConfig.configPeriod = portalObj.probationPeriod;
         portalConfig.mailTrigger = portalObj.probationMailTrigger;
       }
@@ -604,9 +606,12 @@ export class PortalConfigComponent implements OnInit {
         portalConfig.configValue = portalObj.empIdList;
         portalObj.empId=portalObj.empIdList;
       }
+      
+     
+
     })
     portalObj.allPortalConfigData = tempArray;
-console.log(portalObj);
+
     this.portalService.updatePortalConfig(portalObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
