@@ -185,9 +185,9 @@ public class CompOffLeaveService {
 
 				if (leaveApplied != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Compoff Request applied.");
+					response.setServiceResponse("Comp off Request applied.");
 					
-					apiLogInfo.setApiResponse("Compoff Request applied.");			
+					apiLogInfo.setApiResponse("Comp off Request applied.");			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 					
 					CompOffMaster compOffObject = compOffMasterRepository.findByCompOffId(leaveDTO.getReasonId().shortValue());
@@ -212,9 +212,9 @@ public class CompOffLeaveService {
 
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Compoff Request creation failed.");
+					response.setServiceResponse("Comp off Request creation failed.");
 					
-					apiLogInfo.setApiResponse("Compoff Request creation failed.");			
+					apiLogInfo.setApiResponse("Comp off Request creation failed.");			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 				

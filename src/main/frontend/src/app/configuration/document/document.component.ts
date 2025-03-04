@@ -1,18 +1,17 @@
+import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
+import { saveAs } from "file-saver";
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Document } from 'src/app/models/document';
-import { Newsletter } from 'src/app/models/newsletter';
+import { Feature } from 'src/app/models/feature';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { NewsletterService } from 'src/app/services/newsletter.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { saveAs } from "file-saver";
-import { Feature } from 'src/app/models/feature';
-import { LocationStrategy } from '@angular/common';
 
 @Component({
   selector: 'app-document',
@@ -28,7 +27,7 @@ export class DocumentComponent implements OnInit {
   isCreation : boolean = false;
   isUpdation : boolean = false;
   isDocCheck : boolean = false;
-
+  isSearchEnableddocument:boolean = false;
   currentUser:User;
   documentObj= new Document();
 
@@ -42,6 +41,8 @@ export class DocumentComponent implements OnInit {
   file:any;
   documentName : any;
   documents :any = [];
+
+  isSearchEnabled:boolean= false;
    // Sorting 
    sortDirection = 'asc';
    sortColumn: any;
@@ -52,7 +53,8 @@ export class DocumentComponent implements OnInit {
     // Filter 
     filters:any = {};
     typeNames:any;
-
+    allTypeListColumns:any[]=['blank','typeName','createdOn','name'];
+    documentsColumns:any[]=['blank','displayName','fileName','typeName','createdOn','createdByName'];
   constructor(
     private newsletterService : NewsletterService,
     private modalService: BsModalService,
@@ -154,6 +156,22 @@ export class DocumentComponent implements OnInit {
     })
   }
 
+  toggleSearchDocument() {
+    this.isSearchEnableddocument = !this.isSearchEnableddocument;
+    if (!this.isSearchEnableddocument) {
+      this.filters = {};
+    }
+  }
+  toggleSearch() {
+    this.isSearchEnabled = !this.isSearchEnabled;
+    if (!this.isSearchEnabled) {
+      this.filters = {};
+    }
+  }
+  onSearch(searchData) {
+    this.filters = searchData;
+    //console.log("Updated Filter : ", this.filters);
+  }
   updateType(document : any,template:TemplateRef<any>){
    
     let doc = new Document();
