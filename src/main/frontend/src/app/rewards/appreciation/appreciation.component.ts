@@ -443,8 +443,9 @@ export class AppreciationComponent implements OnInit {
       this.isUpdation = false;
       this.isHelpConfiguration = false;
     }
-  
+    isEmployeeSelectionChanged: boolean = false;
     changeEvent(template: TemplateRef<any>, columns: any[], title: any, value: string) {
+      this.isEmployeeSelectionChanged = true;
       if (value == "all") {
         this.isTable = true;
         this.allEmployeeList = [];
@@ -983,15 +984,18 @@ export class AppreciationComponent implements OnInit {
       const dateFormat = 'YYYY-MM-DD';
       let inputValidated: boolean = this.validateEnableAppreciationObj(this.appreciationObj, template)
       if (!inputValidated) return;
-  
+      
+
+      if (this.isEmployeeSelectionChanged) {
       this.enableAppreciationList = this.allEmployeeList.map(employee => {
         return {
           empId: employee.empId,
           isAppreciationEnable: true
         }
       });
+    }
   
-  
+      
       this.appreciationObj.fromDate = moment(this.appreciationObj.fromDate).format(dateFormat)
       this.appreciationObj.toDate = moment(this.appreciationObj.toDate).format(dateFormat)
       this.appreciationObj.appreciationEventName = this.appreciationObj.appreciationEventName;
@@ -999,12 +1003,14 @@ export class AppreciationComponent implements OnInit {
   
   
       this.appreciationObj.updatedBy = this.currentUser.empId;;
+      alert("above update");
       //console.log("Update dept : ", this.appreciationObj);
       this.allAppreciationEvent = this.allAppreciationEvent.filter(x => x.appreciationEventId != this.appreciationObj.appreciationEventId);
       let checkEventDate = this.allAppreciationEvent.find(x => x.fromDate == this.appreciationObj.fromDate || x.toDate == this.appreciationObj.toDate || ((x.fromDate <= this.appreciationObj.toDate) && (this.appreciationObj.fromDate <= x.toDate)));
       if (checkEventDate != undefined) {
         this.openAlertMod(template, "Event is already exist on this date");
       } else {
+        alert("name update");
         this.portalService.updateAppreciationEvent(this.appreciationObj).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus == "Success") {
             this.openAlertMod(template, response.serviceResponse);
