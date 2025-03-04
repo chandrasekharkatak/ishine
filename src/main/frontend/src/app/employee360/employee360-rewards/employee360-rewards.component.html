@@ -1,3 +1,4 @@
+<div class="container-fluid">
 <div class="row">
     <div class="col-md-12">
         <div class="row p-3">
@@ -44,7 +45,7 @@
             </div>
         </div>
 
-        <div class="overflow-auto" *ngIf="!isTeamTableVisible">
+        <div  *ngIf="!isTeamTableVisible">
 
             <div class="selector-toggle" >
                 <a href="javascript:void(0)" (click)="toggleSearch()">
@@ -52,10 +53,11 @@
                     <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                 </a>
             </div>
-
-            <table class="table table-striped" id="rewardHistoryInfo" matSort (matSortChange)="sortData($event)">
-                <thead class="thead-light" id="rewardHistoryInfoTHead">
-                    <tr id="rewardHistoryInfoTHeadTr">
+            <div class="overflow-auto" bassHorizontalScroll [tableId]="'rewards360Info'"
+            [tableTHeadId]="'rewards360THead'" [tableTHeadTrId]="'rewards360THeadTr'">
+            <table class="table table-responsive" id="rewards360Info" matSort (matSortChange)="sortData($event)">
+                <thead class="thead-light" id="rewards360THead">
+                    <tr id="rewards360THeadTr">
                         <th scope="col" class="info-label">Sr No.</th>
                         <th scope="col" class="info-label" mat-sort-header="rewardTypeName|string">Rewards Name</th>
                         <th scope="col" class="info-label" mat-sort-header="name|string">Rewarded To</th>
@@ -91,6 +93,7 @@
                     </tr>
                 </tbody>
             </table>
+        </div>
         </div>
 
         <div class="overflow-auto" *ngIf="isTeamTableVisible">
@@ -143,4 +146,5 @@
             </table>
         </div>
     </div>
+</div>
 </div>
