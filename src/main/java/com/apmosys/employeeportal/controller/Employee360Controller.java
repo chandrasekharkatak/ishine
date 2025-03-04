@@ -15,6 +15,7 @@ import com.apmosys.employeeportal.dto.BioMax360;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.dto.biomaxFilter;
 import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
 import com.apmosys.employeeportal.service.BioMaxService;
 import com.apmosys.employeeportal.service.DraftEmployeeService;
@@ -83,9 +84,10 @@ public class Employee360Controller {
 		ServiceResponse response = bioMaxService.getBioOverTimeandState(employeedto);
 		return response;
 	}
-	@RequestMapping(value="/biomax",method=RequestMethod.GET)
-	public ServiceResponse getBioMax(@RequestParam String startDate,@RequestParam String endDate, @RequestParam String employeeId) {
-	return bioMaxService.getEmpBioData360(startDate, endDate, employeeId);
+	@RequestMapping(value="/biomax",method=RequestMethod.POST)
+	public ServiceResponse getBioMax(@RequestBody biomaxFilter filter) {
+		System.out.println("filter"+filter.toString());
+	return bioMaxService.getEmpBioData360(filter.getStartDate(), filter.getEndDate(), filter.getEmpId());
 	}
 	
 	@RequestMapping(value = "/getAll360LeaveApplicationsByEmpId" ,method = RequestMethod.POST)

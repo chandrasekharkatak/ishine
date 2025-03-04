@@ -451,6 +451,7 @@ public class BioMaxService {
 
 	            try (ResultSet resultSet = statement.executeQuery()) {
 	                while (resultSet.next()) {
+	                     
 	                    BioMax360 bioMaTO = new BioMax360();
 	                    bioMaTO.setAttendanceDateStr(resultSet.getString("AttendanceDate"));
 	                    bioMaTO.setLogDate(resultSet.getString("AttendanceDateStr"));
@@ -472,9 +473,10 @@ public class BioMaxService {
 	                    } catch (ParseException e) {
 	                        outputDate = resultSet.getString("AttendanceDateStr");
 	                    }
-
-	                    List<TimesheetDTO> timesh = TimesheetService.getAllProjectsByEmpIdForBioMax(resultSet.getString("EmployeeId"), outputDate);
-	                    if (timesh.isEmpty()) {
+	                    Long empid=Long.parseLong(employeeId.replace("A", ""));
+	                    Employee employee=employeeRepository.findByEmployeementId(Long.parseLong(resultSet.getString("EmployeeCode").replaceAll("A", "")));
+	                    List<TimesheetDTO> timesh = TimesheetService.getAllProjectsByEmpIdForBioMax(employee.getEmpId(), outputDate);
+	                   if (timesh.isEmpty()) {
 	                        TimesheetDTO timesheetDTO = new TimesheetDTO();
 	                        timesheetDTO.setClientName("Not Fill");
 	                        timesheetDTO.setActivity("0");

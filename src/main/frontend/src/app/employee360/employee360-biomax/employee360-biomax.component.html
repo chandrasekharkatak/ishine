@@ -1,5 +1,6 @@
 <div class="row" style="margin-top: 3%;margin-left: 2%;">
     <!-- First Input Section -->
+   
     <div class="col-sm-2 mb-0">
         <div class="info-wrapper">
             <div class="form-group">
@@ -61,11 +62,14 @@
 
    
         <div class="col-lg-8 table-responsive">
-            
+          
             <table class="table table-striped table-bordered"  matSort (matSortChange)="sortData($event)" id="biomaxID">
                 <thead class="thead-light" id="biomaxIDHead">
                     <tr id="biomaxIDHeadTr">
                         <th scope="col">Sr No.</th>
+                        <th scope="col" mat-sort-header="teamMemberName|string">Team Member Name</th>
+                 
+              
                         <th scope="col" mat-sort-header="logDate|string">Date</th>
                        <th scope="col" class="info-label" mat-sort-header="logDate|string">In Time</th>
                         <th scope="col" class="info-label" mat-sort-header="beginTime|string">Out Time</th>
@@ -75,6 +79,7 @@
                 <tbody>
                    <tr *ngFor="let biomax of biomaxList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] ,let i = index">
                           <td scope="col">{{ i + 1 }}</td>
+                          
                           <td scope="col">{{ biomax.logDate }}</td>
                         <td scope="col">{{biomax.beginTime}}</td>
                         <td scope="col">{{biomax.endTime}}</td>
@@ -108,8 +113,8 @@
             <thead class="thead-light">
                 <tr>
                     <th scope="col">Sr No.</th>
+                     <th scope="col" mat-sort-header="logDate|string">Date</th>
                    
-                    <th scope="col" mat-sort-header="logDate|string">Date</th>
                    <th scope="col" class="info-label" mat-sort-header="logDate|string">In Time</th>
                     <th scope="col" class="info-label" mat-sort-header="beginTime|string">Out Time</th>
                     <th scope="col" class="info-label" mat-sort-header="shiftName|string">Working Hours</th>
@@ -121,28 +126,28 @@
             <tbody>
                <tr *ngFor="let biomax of biomaxList;let i = index">
                       <td scope="col">{{ i + 1 }}</td>
+                      
                       <td scope="col">{{ biomax.logDate }}</td>
                     <td scope="col">{{biomax.beginTime}}</td>
                     <td scope="col">{{biomax.endTime}}</td>
                     <td scope="col">{{biomax.shiftName}} Hours</td>
                     
-                    <td scope="col" *ngIf="biomax.timesheetdto.length>0">
+                    <td scope="col" >
                     <ul>
                         <li *ngFor="let dtp of biomax.timesheetdto">
-                            <li *ngFor="let dtp of biomax.timesheetdto">
                                 <!-- Check if teamId is null or not before displaying -->
-                                <a *ngIf="dtp.teamId !== null" class="timehseet" (click)="teamData(dtp.teamId)">
-                                  {{dtp.teamName + " ( " + dtp.activity + " ) "}}
+                                <a *ngIf="dtp.clientName !== 'Not Fill'" class="timehseet" (click)="teamData(dtp.teamId)">
+                                  {{dtp.teamName + " ( " + dtp.officeInTime + " ) "}}
                                 </a>
+                                <a *ngIf="dtp.clientName == 'Not Fill'" class="timehseet" >
+                                    Timesheet Not Field
+                                  </a>
                               
-                                <!-- Optional: If you want to show a different link when teamId is null -->
-                                <a *ngIf="dtp.teamId === null" class="timehseet">
-                                 No Timesheet Filled
-                                 </a>
                               
                         </li>
                     </ul>
                    </td>
+                
                 </tr>
             </tbody>
         </table>

@@ -176,7 +176,7 @@ public class TimesheetService {
 		return response;
 	}
 	@Transactional
-	public List<TimesheetDTO> getAllProjectsByEmpIdForBioMax(String employeeCode,String date) {
+	public List<TimesheetDTO> getAllProjectsByEmpIdForBioMax(Long employeeCode,String date) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("add_timesheet");
@@ -191,25 +191,20 @@ public class TimesheetService {
 		
 			List<Object[]> objectList = timesheetActivityMapRepository
 					.activitiesByTimesheetIdforBiomax(employeeCode,date);
-			System.out.println("objectList"+objectList.size()+""+employeeCode+"=="+date);
 			if (!objectList.isEmpty()) {
 				TimesheetDTO timesheetDto = new TimesheetDTO();
 
 				for (Object[] object : objectList) {
 					timesheetDto = new TimesheetDTO();
-					//timesheetDto.setClientId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
-				timesheetDto.setClientName(object[7] != null ? object[7].toString() : null);
-				
-				//timesheetDto.setClientLocationId(object[3] != null ? Integer.parseInt(object[2].toString()) : null);
-					timesheetDto.setClientLocation(object[9] != null ? object[9].toString() : null);
-//					timesheetDto.setProjectId(object[10] != null ? Integer.parseInt(object[4].toString()) : null);
-				timesheetDto.setProjectName(object[6] != null ? object[6].toString() : null);
-	  				timesheetDto.setTeamName(object[8] != null ? object[8].toString() : null);
-//	  				
-					//timesheetDto.setTeamId(object[5] != null ? Long.parseLong(object[7].toString()) : null);
-					timesheetDto.setActivity(object[10] != null ? object[10].toString() : null);
-//					timesheetDto.setActivityId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
-				listDto.add(timesheetDto);
+					timesheetDto.setTimesheetId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					timesheetDto.setEmpId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+					timesheetDto.setTeamId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
+	  				timesheetDto.setTeamName(object[4] != null ? object[4].toString() : null);
+	  				timesheetDto.setClientId(object[5] != null ? Integer.parseInt(object[5].toString()) : null);
+					timesheetDto.setClientName(object[6] != null ? object[6].toString() : null);
+					timesheetDto.setOfficeInTime(object[10] != null ? object[10].toString() : null);
+					//timesheetDto.setTotalWorkingHours(object[7] != null ? Float.parseFloat(object[7].toString()) : null);
+					listDto.add(timesheetDto);
 				}
 				return listDto;
 			} else {
@@ -452,7 +447,6 @@ public class TimesheetService {
 
 	public ServiceResponse getAllMyTimesheetsByEmpId(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
-		
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("add_timesheet");
 		apiLogInfo.setApiUrl("/api/getAllMyTimesheetsByEmpId");

@@ -9,26 +9,19 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
 
-import org.hibernate.internal.build.AllowSysOut;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpServerErrorException.InternalServerError;
 import org.springframework.web.client.RestTemplate;
 
@@ -41,7 +34,6 @@ import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TeamMemberDTO;
-import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.ActivityTemplate;
 import com.apmosys.employeeportal.model.Client;
@@ -66,6 +58,7 @@ import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
+import com.apmosys.employeeportal.model.Designation;
 
 @Service
 public class ResourceManagementService {
@@ -117,6 +110,9 @@ public class ResourceManagementService {
 	
 	@Autowired
 	private JobRoleRepository jobRoleRepository;
+	
+	@PersistenceContext
+	private EntityManager entityManager;
 	 
 	
 	@Value("${rmg.mail}")
@@ -456,7 +452,7 @@ public class ResourceManagementService {
 
 					            for (TeamMemberDTO teamMember : teamObj.getTeamMemberList()) {
 					                EmployeeTeamMap newEmpTeamMap = new EmployeeTeamMap();
-
+					                
 					                // TeamLead
 					                if ((teamMember.getIsTeamLead() != null) && (teamMember.getIsTeamLead().equals("true"))) {
 					                    newEmpTeamMap.setEmpId(teamMember.getEmpId());
@@ -763,6 +759,7 @@ public class ResourceManagementService {
 												+ "<br><br>"
 												+ "Sincerely,"+"<br>"
 												+ "Team RMG - ApMoSys Technologies"
+												+generateHtmlTable(teamObj.getTeamMemberList())
 										);
 							} catch (AddressException e) {
 								// TODO Auto-generated catch block
@@ -860,9 +857,9 @@ public class ResourceManagementService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+	
 
-
-//	public ServiceResponse createDraftProjectInfo(ResourceManagementDTO resourceManagementDTO) {
+	//	public ServiceResponse createDraftProjectInfo(ResourceManagementDTO resourceManagementDTO) {
 //		
 //		ServiceResponse response = new ServiceResponse();
 //        LogDTO apiLogInfo = new LogDTO();
@@ -2605,12 +2602,13 @@ public class ResourceManagementService {
 		
 	return response;	
 	}
-
+	
 	private String generateHtmlTable(List<TeamMemberDTO> dtoList) {
 	    StringBuilder html = new StringBuilder();
 	    Employee empName = null;
 	    Department department = null;
 	    JobRole jobRole = null;
+	    String designation=null;
 	    
 	    html.append("<html>\n" +
   	            "  <head>\n" +
@@ -2629,17 +2627,27 @@ public class ResourceManagementService {
   	            "        <th>Employee Id</th>\n" +
   	            "        <th>Employee Name</th>\n" +
   	            "        <th>Department Name</th>\n" +
+  	            "		<th>Designation Name</th>\n" +
   	            "      </tr>\n");
 	    for(TeamMemberDTO obj : dtoList) {
 	    	empName = employeeRepository.findByEmpId(obj.getEmpId());
 	    	jobRole = jobRoleRepository.findByjobRoleId(empName.getJobRoleId());
 	    	department = departmentRepository.findByDeptId(jobRole.getDeptId());
+	    	Optional<Object[]> result = employeeRepository.getDesignationByEmpId(obj.getEmpId());
+
+	    	if (result.isPresent()) {
+	    	    Object[] data = result.get();
+	    	    designation = (String) data[0];  // Cast the first element to String
+//	    	    System.out.println("Designation Name: " + designationName);
+	    	}
+//	    	designation =employeeRepository.getDesignationByEmpId(obj.getEmpId());
 	    	
 	    
 	  	        html.append("      <tr>\n");
 	  	        html.append("        <td>").append(empName.getEmployeementId()).append("</td>\n");
 	  	        html.append("        <td>").append(empName.getName()).append("</td>\n");
 	  	        html.append("        <td>").append(department.getName()).append("</td>\n");
+	  	        html.append("        <td>").append(designation.toString()).append("</td>\n");
 	  	        html.append("      </tr>\n");
 	    }
 	    html.append("    </table>\n" +

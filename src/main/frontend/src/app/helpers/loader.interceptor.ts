@@ -18,6 +18,7 @@ import { LoaderService } from '../services/loader.service';
 export class LoaderInterceptor implements HttpInterceptor {
 
   private baseUrl:any = environment.baseUrl;
+  startDate:any;
 
   URL_whiteList = [
 
@@ -230,8 +231,11 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/submitEmployeePerformanceHR`,
     `${this.baseUrl}` + `api/addReviewType`,
     `${this.baseUrl}` + `api/updateReviewType`,
-    `${this.baseUrl}` + `getExistingProjectsAndTeamsByEmployee`
+    `${this.baseUrl}` + `getExistingProjectsAndTeamsByEmployee`,
 
+    `${this.baseUrl}` + `api/biomax`
+  
+    
   ]
 
   constructor(private loaderService: LoaderService) { }

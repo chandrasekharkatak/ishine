@@ -468,6 +468,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getTeamProjectMappingsByEmpId(Long empId );
 	
+	@Query(nativeQuery = true, value = "select d.designation_name from employee e\n"
+			+ "Inner join designation d on d.designation_id=e.designation_id\n"
+			+ "where e.emp_id=:empId")
+	public Optional<Object[]> getDesignationByEmpId(Long empId);
+	
 	
 	
 	@Transactional

@@ -614,6 +614,71 @@ public class TeamsService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+	public ServiceResponse getTeamMembersByTeamIdBiomax(TeamDTO teamDTO) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("");
+		apiLogInfo.setApiUrl("/api/getTeamMembersByTeamIdBiomax"); 
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("TeamId : " +  teamDTO.getTeamId());
+
+		try {
+
+			List<Object[]> objectList = employeeTeamMapRepository.getTeamMembersByTeamId(teamDTO.getTeamId());
+
+			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
+
+				if (list.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No team members found. Team members list is empty");
+                    apiLogInfo.setApiResponse("No team members found.team members list is empty");			
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				} else {
+					List<EmployeeTeamMapDTO> dtoList = new ArrayList<EmployeeTeamMapDTO>();
+
+					list.forEach((object) -> {
+
+						EmployeeTeamMapDTO dto = new EmployeeTeamMapDTO();
+						String[] employeeRole = (object[7] != null ? object[7].toString() : null).split(",");
+
+						dto.setEmployeeTeamMapId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						dto.setEmpId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+						dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+						dto.setEmployeeRole(employeeRole);
+						dto.setTeamMemberName(object[8] != null ? object[8].toString() : null);
+						dto.setTeamMemberDeptId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+						
+						dtoList.add(dto);
+					});
+
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+                    apiLogInfo.setApiResponse("TeamMembers List By TeamId fetched:" + dtoList.size());			
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				}
+
+			}, () -> {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No team members found. Team members list is null");
+                apiLogInfo.setApiResponse("No team members found. team members list is null");			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
+			
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
 
 	public ServiceResponse updateTeam(TeamDTO teamDTO) {
 		ServiceResponse response = new ServiceResponse();

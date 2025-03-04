@@ -90,8 +90,8 @@ getAll360LeaveApplicationsByEmpId(leaveObj: Leave) {
     this.employeeDataSource.next(data);
   }
 
-  getEmployeeDetailsForBiomax(startDate:String,endDate:String,employeeId:String){
-    return this.http.get(`${this.baseUrl}` + `api/biomax?startDate=${startDate}&endDate=${endDate}&employeeId=${employeeId}`);
+  getEmployeeDetailsForBiomax(biomaxFilter:any){
+    return this.http.post(`${this.baseUrl}` + `api/biomax`,biomaxFilter);
   }
 
   get360PendingCompOffRequestsByEmpId(compOffObj: Leave) {
@@ -105,7 +105,7 @@ getAll360LeaveApplicationsByEmpId(leaveObj: Leave) {
 
   //added by rahul singh
  getTeamTImeSheet(team:Team){
-  return this.http.post(`${this.baseUrl}`+`api/getTeamMembersByTeamId`,team);
+  return this.http.post(`${this.baseUrl}`+`api/getTeamMembersByTeamIdBiomax`,team);
 
 }
 
