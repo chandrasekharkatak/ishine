@@ -103,8 +103,26 @@ public class DepartmentService {
 		            logService.logMyInfo(httpRequest, apiLogInfo);
 		            return response;
 		        }
-			Department newDepartment = new Department();
-			newDepartment.setName(departmentDTO.getName());
+		        
+		        List<Department> existingDeptName = departmentRepository.findByDeptName(departmentDTO.getDeptName());
+		        System.err.println(existingDeptName) ;     
+		        if (existingDeptName != null) {
+		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceResponse("Department Name already exists.");
+		            
+		            apiLogInfo.setApiResponse("Department Name already exists.");            
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);  
+		            apiLogInfo.setLogLevel("ERROR");
+		            logService.logMyInfo(httpRequest, apiLogInfo);
+		            return response;
+		        }
+		        		
+		        		
+		        		
+		        		
+		    Department newDepartment = new Department();
+		        
+			newDepartment.setName(departmentDTO.getName()); 
 			newDepartment.setHodId(departmentDTO.getHodId());
 			newDepartment.setCreatedBy(departmentDTO.getCreatedBy());
 			newDepartment.setDeptAbbreviation(departmentDTO.getDeptAbbreviation());

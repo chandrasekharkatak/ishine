@@ -671,7 +671,7 @@ export class AppreciationComponent implements OnInit {
       }
     }
   
-  
+    isDataAVailableInFilter:boolean = false;
     getCustomEmployeeList(queryObjList: any, template: TemplateRef<any>) {
       this.allEmployeeList = [];
       let queryObj = new Query();
@@ -694,8 +694,10 @@ export class AppreciationComponent implements OnInit {
             )
   
             if (this.allEmployeeList.length != 0) {
+              this.isDataAVailableInFilter = true;
               this.openAlertMod(template, "Employee Record found")
             } else {
+              this.isDataAVailableInFilter = false;
               this.openAlertMod(template, "No Data found")
             }
             this.allEmployeeList.forEach(employee => {
@@ -766,6 +768,11 @@ export class AppreciationComponent implements OnInit {
       const dateFormat = 'YYYY-MM-DD';
       let inputValidated: boolean = this.validateAppreciation(this.appreciationObj, template)
       if (!inputValidated) return;
+
+      if (!this.isDataAVailableInFilter) {
+        this.openAlertMod(template, "No employee data found. Appreciation cannot be enabled.");
+        return;
+    }
       this.enableAppreciationList = [];
   
       this.enableAppreciationList = this.allEmployeeList.map(employee => {
