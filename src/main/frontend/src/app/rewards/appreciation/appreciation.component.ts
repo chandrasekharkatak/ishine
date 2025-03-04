@@ -1003,14 +1003,14 @@ export class AppreciationComponent implements OnInit {
   
   
       this.appreciationObj.updatedBy = this.currentUser.empId;;
-      alert("above update");
+     
       //console.log("Update dept : ", this.appreciationObj);
       this.allAppreciationEvent = this.allAppreciationEvent.filter(x => x.appreciationEventId != this.appreciationObj.appreciationEventId);
       let checkEventDate = this.allAppreciationEvent.find(x => x.fromDate == this.appreciationObj.fromDate || x.toDate == this.appreciationObj.toDate || ((x.fromDate <= this.appreciationObj.toDate) && (this.appreciationObj.fromDate <= x.toDate)));
       if (checkEventDate != undefined) {
         this.openAlertMod(template, "Event is already exist on this date");
       } else {
-        alert("name update");
+       
         this.portalService.updateAppreciationEvent(this.appreciationObj).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus == "Success") {
             this.openAlertMod(template, response.serviceResponse);
