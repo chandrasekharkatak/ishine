@@ -241,6 +241,7 @@ public class DepartmentService {
 					departmentDTO.setUpdatedOn(object[7] != null ? object[7].toString(): null);
 					departmentDTO.setUpdatedByName(object[8] != null ? object[8].toString() : null);
 					departmentDTO.setDeptAbbreviation(object[9] != null ? object[9].toString() : null);
+					departmentDTO.setUpdatedBy(object[10] != null ? Integer.parseInt(object[10].toString()) : null);
 					dtoList.add(departmentDTO);      
 				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

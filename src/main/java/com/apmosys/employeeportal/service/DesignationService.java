@@ -139,6 +139,8 @@ public class DesignationService {
 					dto.setDesignationName(object[3] != null ? object[3].toString() : null);
 					dto.setUpdatedByName(object[4] != null ? object[4].toString() : null);
 					dto.setUpdatedOn(object[5] != null ? object[5].toString() : null);
+					dto.setCreatedBy(object[6] != null ? Long.parseLong(object[6].toString()) : null);
+					dto.setUpdatedBy(object[7] != null ? Long.parseLong(object[7].toString()) : null);
 					
 					dtoList.add(dto);
 				});

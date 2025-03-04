@@ -172,8 +172,10 @@
                                 <td>{{jobRole.name}}</td>
                                 <td>{{jobRole.employeeRole}}</td>
                                 <td>{{jobRole.departmentName}}</td>
-                                <td>{{jobRole.createdBy}}</td>
+                                <td id="clickablefor360" [navigateToEmployee360]="jobRole.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{jobRole.createdByName}}</td>
+                                <td>{{jobRole.createdByName}}</td>
                                 <td>{{jobRole.createdOn}}</td>
+                                <td id="clickablefor360" [navigateToEmployee360]="jobRole.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{jobRole.updatedByName}}</td>
                                 <td>{{jobRole.updatedByName}}</td>
                                 <td>{{jobRole.updatedOn}}</td>
                                 <td

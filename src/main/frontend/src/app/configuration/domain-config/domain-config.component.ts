@@ -11,6 +11,7 @@ import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { DomainService } from 'src/app/services/domain.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import * as XLSX from 'xlsx';
 
@@ -66,16 +67,24 @@ export class DomainConfigComponent implements OnInit {
   domainDataForExcel: any[];
   name = 'Domain.xlsx';
 
+  employeesFor360: any[] = [];
+
   constructor(
     private domainService:DomainService,
     public validationService: ValidationService,
     private modalService: BsModalService,
     private authenticationService: AuthenticationService,
     private exportExcelService: ExportExcelService,
+    private utilityService: UtilityService,
   ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x);}
 
-  ngOnInit(): void {
-
+  async ngOnInit(): Promise<void> {
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
      // Dynamic Subfeature Flags
      let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
      featureMap.subFeatures?.forEach(sub => {
@@ -333,7 +342,18 @@ downloadConfirmationDateUpload(): void {
           domain.createdOn = (domain.createdOn)? moment(domain.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
 
-        //console.log(this.allDomainList, " : this.allDomainList");
+        this.allDomainList.forEach((employee) => {
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          // console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          // console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+        });
+
+        // console.log(this.allDomainList, " : this.allDomainList");
       } else {
         //this.openAlertMod(template, response.serviceResponse);
       }

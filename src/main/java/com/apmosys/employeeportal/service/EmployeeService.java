@@ -2996,6 +2996,7 @@ public class EmployeeService {
 
 		            }
 				
+					empDTO.setUpdatedBy(object[88] != null ? Long.parseLong(object[88].toString()) : null);
 
 					ServiceResponse completionResponse = getEmployeeProfileCompletion(empDTO);
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();

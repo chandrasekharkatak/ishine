@@ -1991,6 +1991,25 @@ export class EmployeeConfigComponent implements OnInit {
         // Default Sorting
         this.allEmployeeList = new SortPipe().transform(this.allEmployeeList, ['name', 'string', 'asc']);
         // this.createEmployeeList(this.allEmployeeList)
+        this.allEmployeeList.forEach((employee) => {
+          // console.log("employee.empId ", employee.empId);
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
+          // console.log("employee ", matchingEmployee);
+          employee.emp360 = matchingEmployee ? matchingEmployee : {};
+          // console.log("employee.managerId ", employee.managerId);
+          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === employee.managerId);
+          // console.log("manager ", matchingEmployee2);
+          employee.emp360Manger = matchingEmployee2 ? matchingEmployee2 : {};
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          // console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          // console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+        });
+
         sessionStorage.setItem('AllEmployees', JSON.stringify(this.allEmployeeList));
       } else {
         alert(response.serviceResponse);

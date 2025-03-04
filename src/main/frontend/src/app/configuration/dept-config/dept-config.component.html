@@ -117,11 +117,14 @@
                                 *ngFor="let dept of allDeptList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
                                 <th class="info-label">{{17*(page-1)+i+1}}</th>
                                 <td>{{dept.name}}</td>
-                                <td>{{dept.hodName}}</td>
-                                <td>{{dept.createdByName}}</td>
+                                <td *ngIf="userMapping.employee360_view_department_config" id="clickablefor360" [navigateToEmployee360]="dept.emp360HodId" style="cursor: pointer;" title="Click to view Employee 360">{{dept.hodName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_department_config">{{dept.hodName}}</td>
+                                <td *ngIf="userMapping.employee360_view_department_config" id="clickablefor360" [navigateToEmployee360]="dept.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{dept.createdByName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_department_config" >{{dept.createdByName}}</td>
                                 <td>{{dept.createdOn}}</td>
                                 <td>{{dept.updatedOn}}</td>
-                                <td>{{dept.updatedByName}}</td>
+                                <td *ngIf="userMapping.employee360_view_department_config" id="clickablefor360" [navigateToEmployee360]="dept.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{dept.updatedByName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_department_config">{{dept.updatedByName}}</td>
                                 <td *ngIf="userMapping.update_department || userMapping.delete_department">
                                     <button *ngIf="userMapping.update_department" class="btn btn-sm btn-outline-primary"
                                         type="submit" (click)="showUpdateForm(dept)"><em class="fa fa-edit"></em></button>&nbsp;

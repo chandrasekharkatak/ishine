@@ -134,8 +134,10 @@ public class DomainService {
 						
 						domain.setDomainId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 						domain.setDomainName(object[1] != null ? object[1].toString() : null);
+						domain.setCreatedBy(object[2] != null ? Long.parseLong(object[2].toString()) : null);
 						domain.setCreatedByName(object[3] != null ? object[3].toString() : null);
 						domain.setCreatedOn(object[4] != null ? object[4].toString() : null);
+						domain.setUpdatedBy(object[5] != null ? Long.parseLong(object[5].toString()) : null);
 						domain.setUpdatedByName(object[6] != null ? object[6].toString() : null);
 						domain.setUpdatedOn(object[7] != null ? object[7].toString() : null);
 						
