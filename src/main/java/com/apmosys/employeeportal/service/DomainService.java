@@ -445,11 +445,16 @@ public class DomainService {
 			
 			Domain domainObj = domainRepository.findByDomainName(domainDTO.getDomainName());
 			if(domainObj != null) {
-				if(((domainDTO.getDomainId() != null) && (!domainObj.getDomainId().equals(domainDTO.getDomainId())))
-						|| domainDTO.getDomainId() == null) {
+				if((domainDTO.getDomainId() != null) && !domainDTO.getDomainId().equals(domainObj.getDomainId())) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Duplicate Domain Name not allowed.");
-					apiLogInfo.setApiResponse("Duplicate Domain Name not allowed.");
+					response.setServiceResponse("Domain with same name already exists !!");
+					apiLogInfo.setApiResponse("Domain with same name already exists !!");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				}
+				if(domainDTO.getDomainId() == null) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Domain with same name already exists !!");
+					apiLogInfo.setApiResponse("Domain with same name already exists !!");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 			}

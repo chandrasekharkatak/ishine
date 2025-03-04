@@ -368,7 +368,7 @@ export class DeptConfigComponent implements OnInit {
     } else {
       this.openAlertMod(template, "Invalid department name");
     }
-
+   
     let deptObj = new Department();
     deptObj.name = deptName;
     deptObj.deptId = this.deptObj.deptId;

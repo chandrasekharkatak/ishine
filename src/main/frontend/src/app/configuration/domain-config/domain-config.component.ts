@@ -451,11 +451,12 @@ downloadConfirmationDateUpload(): void {
   }
 
   checkDomainName(domainName:any, template: TemplateRef<any>){
-
+    
     let domainObj = new Domain();
     domainObj.domainName = domainName;
     domainObj.domainId = this.domainObj.domainId;
-    this.domainService.checkDomainName(this.domainObj).pipe(first()).subscribe((response: any) => {
+    
+    this.domainService.checkDomainName(domainObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.domainObj.domainName = '';
         this.openAlertMod(template, response.serviceResponse);
