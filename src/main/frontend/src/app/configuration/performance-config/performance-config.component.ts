@@ -674,10 +674,10 @@ export class PerformanceConfigComponent implements OnInit {
     this.performanceService.addReviewType(this.reviewObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.reviewObj = new review();
-        this.openAlertMod(template, 'ReviewType Created Successfully');
+        this.openAlertMod(template, response.serviceResponse);
         this.showReviewTable();
       } else {
-        this.openAlertMod(template, 'ReviewType  Not Created ');
+        this.openAlertMod(template, response.serviceResponse);
         console.error("API Response", response.serviceResponse);
       }
     });
@@ -732,11 +732,11 @@ export class PerformanceConfigComponent implements OnInit {
         console.log("API response received:", response);
 
         if (response.serviceStatus === "Success") {
-          this.openAlertMod(template, 'Review Updated Successfully');
+          this.openAlertMod(template, response.serviceResponse);
           this.reviewObj = new review();
           this.showReviewTable();
         } else {
-          this.openAlertMod(template, 'ReviewType  Not Updated ');
+          this.openAlertMod(template, response.serviceResponse);
           console.error("API response error:", response.serviceResponse);
 
         }
@@ -760,8 +760,6 @@ export class PerformanceConfigComponent implements OnInit {
         // this.openAlertMod(template, 'ReviewType  Not Fetched ');
       }
 
-
-      console.log("vhgscvshdgc" + response.serviceResponse.quaterCycle);
     })
   }
 
@@ -770,11 +768,11 @@ export class PerformanceConfigComponent implements OnInit {
     this.performanceService.deleteReviewType(obj.reviewTypeId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         // this.reviewTypelist = response.serviceResponse;
-        this.openAlertMod(template, 'ReviewType Deleted Successfully');
+        this.openAlertMod(template,  response.serviceResponse);
         this.showReviewTable();
       }
       else {
-        this.openAlertMod(template, 'ReviewTypem Not Deleted ');
+        this.openAlertMod(template,  response.serviceResponse);
         console.log("API Response" + response.serviceResponse);
       }
     })

@@ -90,13 +90,13 @@ public class PerformanceService {
              			
 				if(dbResponse !=null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("ReviewType  Added successfully.");
-					apiLogInfo.setApiResponse("ReviewType  Added successfully.");
+					response.setServiceResponse("Review Type  Added successfully.");
+					apiLogInfo.setApiResponse("Review Type  Added successfully.");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Unable to add ReviewType.");
-					apiLogInfo.setApiResponse("Unable to add ReviewType.");
+					response.setServiceResponse("Unable to add Review Type.");
+					apiLogInfo.setApiResponse("Unable to add Review Type.");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 					
@@ -389,14 +389,14 @@ public class PerformanceService {
 				 reviewDetails.setFlag(false);
 				  reviewTypeRepository.save(reviewDetails);
 				    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("ReviewType Deleted successfully.");
-					apiLogInfo.setApiResponse("ReviewType Deleted successfully.");
+					response.setServiceResponse("Review Type Deleted successfully.");
+					apiLogInfo.setApiResponse("Review Type Deleted successfully.");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				 
 			 }else {
 				    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Unable to Delete ReviewType.");
-					apiLogInfo.setApiResponse("Unable to Delete ReviewType.");
+					response.setServiceResponse("Unable to Delete Review Type.");
+					apiLogInfo.setApiResponse("Unable to Delete Review Type.");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			 }
 		}catch(Exception e) {
@@ -474,20 +474,20 @@ public class PerformanceService {
 	            }
 				 if(dbResponse !=null) {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						response.setServiceResponse("ReviewType  updated successfully.");
-						apiLogInfo.setApiResponse("ReviewType  updated successfully.");
+						response.setServiceResponse("Review Type  updated successfully.");
+						apiLogInfo.setApiResponse("Review Type  updated successfully.");
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 					}else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-						response.setServiceResponse("Unable to update ReviewType.");
-						apiLogInfo.setApiResponse("Unable to update ReviewType.");
+						response.setServiceResponse("Unable to update Review Type.");
+						apiLogInfo.setApiResponse("Unable to update Review Type.");
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					}
 				
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse(" ReviewType Type Does Not Exit");
-				apiLogInfo.setApiResponse(" ReviewType Type Does Not Exit");
+				response.setServiceResponse(" Review Type Type Does Not Exit");
+				apiLogInfo.setApiResponse(" Review Type Type Does Not Exit");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 				
