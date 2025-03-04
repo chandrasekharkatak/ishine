@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { Query } from '../models/query';
-import { first } from 'rxjs/operators';
+import { first, map } from 'rxjs/operators';
 import * as moment from 'moment';
 import { AppComponent } from '../app.component';
 import { SortPipe } from '../sort.pipe';
@@ -14,8 +14,6 @@ export class UtilityService {
 
   private baseUrl:any = environment.baseUrl;
   private employee360ViewUser: boolean = false;
-
-  // private baseUrl = 'https://your-api-url/'; // Replace with actual base URL
 
   allEmployeeList360: any[] = [];
 
@@ -108,7 +106,6 @@ export class UtilityService {
   
     return groupedData;
   }
-  
 
   getCustomQueryData(query: Query) {
     return this.http.post(`${this.baseUrl}` + `api/getCustomQueryData`, query);
@@ -122,67 +119,40 @@ export class UtilityService {
     return this.employee360ViewUser;
   }
 
-  // getAllEmployeeFor360View(){
-  //     this.allEmployeeList360 = [];
-  //     this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
-  //       if (response.serviceStatus == "Success") {
-  //         this.allEmployeeList360 = response.serviceResponse;
-  //         console.log("allEmployeeListFor360 : ", this.allEmployeeList360)
-  //         this.allEmployeeList360.forEach(employeeObj => {
-  //           employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
-  //           employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-  //           employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-  //           employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-  //           employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-  //           if (employeeObj.isConsultant == 'true')
-  //             employeeObj.employeeType = 'Consultant';
-  //           else if (employeeObj.isApprenticeship == 'true')
-  //             employeeObj.employeeType = 'Apprentice';
-  //           else
-  //             employeeObj.employeeType = 'Regular';
-  //           });
-  //           this.allEmployeeList360 = this.allEmployeeList360;
-  //           this.allEmployeeList360 = new SortPipe().transform(this.allEmployeeList360, ['name', 'string', 'asc']);
-  //         } else {
-  //           alert(response.serviceResponse);
-  //         }
-  //     });
-  //   }
-  //   getAllEmployeesFor360View() {
-  //     return this.http.get(`${this.baseUrl}` + `api/getAllEmployeesFor360View`);
-  //   }
-  getAllEmployeesFor360View() {
-    return this.http.get('${this.baseUrl}' + 'api/this.getAllEmployeesFor360View');
-  }
-
   getEmployeeDetailsFor360View() {
-    this.allEmployeeList360 = [];
-    this.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allEmployeeList360 = response.serviceResponse;
-        console.log("allEmployeeListFor360 : ", this.allEmployeeList360);
-        
-        this.allEmployeeList360.forEach(employeeObj => {
-          employeeObj.employeementId = this.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
-          employeeObj.dateOfJoining = employeeObj.dateOfJoining ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-          employeeObj.dateOfRelieving = employeeObj.dateOfRelieving ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-          employeeObj.updatedOn = employeeObj.updatedOn ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-          employeeObj.createdOn = employeeObj.createdOn ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+    return this.getAllEmployeesFor360View().pipe(
+      first(),
+      map((response: any) => {
+        if (response.serviceStatus == "Success") {
+          let allEmployeeList360 = response.serviceResponse;
+          console.log("allEmployeeListFor360 : ", allEmployeeList360);
           
-          if (employeeObj.isConsultant === 'true') {
-            employeeObj.employeeType = 'Consultant';
-          } else if (employeeObj.isApprenticeship === 'true') {
-            employeeObj.employeeType = 'Apprentice';
-          } else {
-            employeeObj.employeeType = 'Regular';
-          }
-        });
-
-        // Sort employee list
-        this.allEmployeeList360 = new SortPipe().transform(this.allEmployeeList360, ['name', 'string', 'asc']);
-      } else {
-        alert(response.serviceResponse);
-      }
-    });
+          allEmployeeList360.forEach(employeeObj => {
+            employeeObj.employeementId = this.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
+            employeeObj.dateOfJoining = employeeObj.dateOfJoining ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+            employeeObj.dateOfRelieving = employeeObj.dateOfRelieving ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+            employeeObj.updatedOn = employeeObj.updatedOn ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+            employeeObj.createdOn = employeeObj.createdOn ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+            if (employeeObj.isConsultant === 'true') {
+              employeeObj.employeeType = 'Consultant';
+            } else if (employeeObj.isApprenticeship === 'true') {
+              employeeObj.employeeType = 'Apprentice';
+            } else {
+              employeeObj.employeeType = 'Regular';
+            }
+          });
+  
+          return new SortPipe().transform(allEmployeeList360, ['name', 'string', 'asc']);
+        } else {
+          alert(response.serviceResponse);
+          return [];
+        }
+      })
+    ).toPromise(); 
   }
+  
+  getAllEmployeesFor360View() {
+    return this.http.get(`${this.baseUrl}` + `api/getAllEmployeesFor360View`);
+  }
+  
 }

@@ -253,19 +253,18 @@ export class EmployeeConfigComponent implements OnInit {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.currDate = this.datePipe.transform(new Date(), 'YYYY-MM-dd');
     this.getAllJobRoleList();
-    // Dynamic Subfeature Flags
+  
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
     console.log(this.feature, this.userMapping);
-
+  
     this.sectionViewInit();
-
-    //Deafult values for dropdown
+  
     this.employeeObj.gender = '';
     this.employeeObj.maritalStatus = '';
     this.employeeObj.reportingManagerId = '';
@@ -273,10 +272,13 @@ export class EmployeeConfigComponent implements OnInit {
     this.setYearOfPassingList();
     this.preventBackButton();
     this.getAllEmployeeList();
-    this.employee360Service.employeesFor360$.subscribe((employees) => {
-      this.employeesFor360 = employees;
-      console.log("Employee Data fetched by Shared service ",this.employeesFor360);
-    });
+  
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
   }
 
   preventBackButton() {
