@@ -199,7 +199,13 @@ export class MyTeamComponent implements OnInit {
     this.preventBackButton();
   
     // Wait for employees to be fetched before moving to sectionViewInit()
-    await this.getAllEmployeeFor360View();
+    // await this.getAllEmployeeFor360View();
+    try {
+      this.allEmployeeList360 = await this.utilityService.getEmployeeDetailsFor360View();
+      //console.log("Priyadarshini ", this.allEmployeeList360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
   
     this.sectionViewInit();
   }
@@ -214,73 +220,6 @@ export class MyTeamComponent implements OnInit {
       this.myTeamHierarchy(teamView);
     }
   }
-
-  // getAllEmployeeFor360View(){
-  //   this.allEmployeeList360 = [];
-  //   this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
-  //     if (response.serviceStatus == "Success") {
-  //       this.allEmployeeList360 = response.serviceResponse;
-  //       console.log("allEmployeeListFor360 : ", this.allEmployeeList360)
-  //       this.allEmployeeList360.forEach(employeeObj => {
-  //         employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
-  //         employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-  //         employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-  //         employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-  //         employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-  //         if (employeeObj.isConsultant == 'true')
-  //           employeeObj.employeeType = 'Consultant';
-  //         else if (employeeObj.isApprenticeship == 'true')
-  //           employeeObj.employeeType = 'Apprentice';
-  //         else
-  //           employeeObj.employeeType = 'Regular';
-  //         });
-  //         this.allEmployeeList360 = this.allEmployeeList360;
-  //         this.allEmployeeList360 = new SortPipe().transform(this.allEmployeeList360, ['name', 'string', 'asc']);
-  //       } else {
-  //         alert(response.serviceResponse);
-  //       }
-  //   });
-  //   this.sectionViewInit();
-  // }
-  getAllEmployeeFor360View(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.allEmployeeList360 = [];
-      this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe(
-        (response: any) => {
-          if (response.serviceStatus == "Success") {
-            this.allEmployeeList360 = response.serviceResponse;
-            console.log("allEmployeeListFor360 : ", this.allEmployeeList360);
-  
-            this.allEmployeeList360.forEach(employeeObj => {
-              employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
-              employeeObj.dateOfJoining = employeeObj.dateOfJoining ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-              employeeObj.dateOfRelieving = employeeObj.dateOfRelieving ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-              employeeObj.updatedOn = employeeObj.updatedOn ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-              employeeObj.createdOn = employeeObj.createdOn ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-  
-              if (employeeObj.isConsultant == 'true') {
-                employeeObj.employeeType = 'Consultant';
-              } else if (employeeObj.isApprenticeship == 'true') {
-                employeeObj.employeeType = 'Apprentice';
-              } else {
-                employeeObj.employeeType = 'Regular';
-              }
-            });
-  
-            this.allEmployeeList360 = new SortPipe().transform(this.allEmployeeList360, ['name', 'string', 'asc']);
-            resolve();  
-          } else {
-            alert(response.serviceResponse);
-            reject(response.serviceResponse);  
-          }
-        },
-        (error) => {
-          console.error("Error fetching employees:", error);
-          reject(error);
-        }
-      );
-    });
-  }  
 
   preventBackButton(){
     history.pushState(null, null, location.href);
@@ -563,8 +502,11 @@ export class MyTeamComponent implements OnInit {
           if(temp != undefined) y.isHierarchy = true;  
           console.log("allEmployeeList360 ",this.allEmployeeList360)
           let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === y.employeementId);
-          console.log('matches++',matchingEmployee);
+          //console.log('matches++',matchingEmployee);
           y.emp360 = matchingEmployee ? matchingEmployee : {};
+          let matchingEmployeeMng = this.allEmployeeList360.find(emp => emp.empId === this.currentUser.empId);
+          //console.log('matches++',matchingEmployeeMng);
+          y.emp360Mng = matchingEmployeeMng ? matchingEmployeeMng : {};
         }
         // console.log("teamViewList : ", this.teamViewList);         
 

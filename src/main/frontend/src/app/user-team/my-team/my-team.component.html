@@ -99,7 +99,8 @@
                     <td class="info-label">{{teamView.email}}</td>
                     <td class="info-label">{{teamView.jobRoleName}}</td>
                     <td class="info-label">{{teamView.mobileNo}}</td>
-                    <td class="info-label">{{teamView.managerName}}</td>
+                    <td class="info-label" id="clickablefor360" [navigateToEmployee360]="teamView.emp360Mng" style="cursor: pointer;" title="Click to view Employee 360">{{teamView.managerName}}</td>
+                    <td class="info-label" *ngIf="!userMapping.my_team_employee_360">{{teamView.managerName}}</td>
                     <td [ngStyle]="{'color': (teamView.timesheetStatus == 'Defaulter') ? 'red' : (teamView.timesheetStatus == 'Timesheets upto date') ? 'green' :  'orange'}"><em>{{teamView.timesheetStatus}}</em></td>
                     <td>
                       <button
