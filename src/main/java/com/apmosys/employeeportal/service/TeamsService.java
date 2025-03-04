@@ -974,7 +974,7 @@ public class TeamsService {
 							dto.setIsActive(object[11] != null ? object[11].toString() : null);
 							dto.setTeamLeadDeptId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
 							dto.setDepartmentList(object[13] != null ? object[13].toString().split(",") : null);
-							
+							dto.setEmpId(object[14] != null ? Long.parseLong(object[14].toString()) : null);
 							dtoList.add(dto);
 						});
 						
@@ -1012,7 +1012,7 @@ public class TeamsService {
 				try {
 					
 					String q="SELECT distinctrow t.project_id, p.project_name, t.team_id, t.team_name, t.team_lead_id, t.team_lead_name, p.project_manager_id , pm.name as projectManager,\n"
-							+ "p.department_name,e1.name as teamCreatedByName,t.created_on, t.is_active, jr.dept_id as teamLeadDept, t.dept_ids \n"
+							+ "p.department_name,e1.name as teamCreatedByName,t.created_on, t.is_active, jr.dept_id as teamLeadDept, t.dept_ids,e1.emp_id \n"
 							+ "FROM teams t \n"
 							+ "LEFT JOIN employee e1 ON e1.emp_id = t.created_by \n"
 							+ "LEFT JOIN projects p ON p.project_id = t.project_id \n"

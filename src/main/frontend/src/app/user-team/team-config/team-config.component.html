@@ -371,8 +371,9 @@
                                 <td *ngIf="!userMapping.my_team_team_config_employee_360">{{team.teamLeadName}}</td>
                                 <td id="clickablefor360" *ngIf="userMapping.my_team_team_config_employee_360" [navigateToEmployee360]="team.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{team.projectManagerName}}</td>
                                 <td *ngIf="!userMapping.my_team_team_config_employee_360">{{team.projectManagerName}}</td>
-                                <td>{{team.createdByName}}</td>
-                                <td>{{team.createdOn}}</td>
+                                <td id="clickablefor360" *ngIf="userMapping.my_team_team_config_employee_360" [navigateToEmployee360]="team.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{team.createdByName}}</td>
+                                <td *ngIf="!userMapping.my_team_team_config_employee_360">{{team.createdByName}}</td>
+                                <td >{{team.createdOn}}</td>
                                 <td>
                                     <button *ngIf="userMapping.update_team" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateTeamForm(team)" [disabled]="team.isActive == 'N'"><em class="fa fa-edit"></em></button>&nbsp;
                                     <button *ngIf="userMapping.delete_team" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteTeamMod(delete_team_template,team)" [disabled]="team.isActive == 'N'"><em class="fa fa-trash"></em></button>
