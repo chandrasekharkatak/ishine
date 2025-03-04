@@ -180,7 +180,11 @@ export class BiomaxApprovalComponent implements OnInit {
     cancelRequest() {
       this.modalRef.hide();
     }
-
+    CronJobs(){
+      this.biomaxseviceService.getBioMaxRequestTypeCronJon().pipe(first()).subscribe((ressponse:any)=>{
+        console.log(ressponse);
+      })
+    }
    
 
     getAllBiomaxRequestForEmployee(){
