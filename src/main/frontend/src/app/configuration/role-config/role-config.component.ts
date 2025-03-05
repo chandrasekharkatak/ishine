@@ -1,22 +1,21 @@
+import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
-import { NgModel } from '@angular/forms';
+import { Sort } from '@angular/material/sort';
+import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
 import { Feature } from 'src/app/models/feature';
 import { JobRole } from 'src/app/models/jobRole';
 import { SubFeature } from 'src/app/models/subFeature';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { DepartmentService } from 'src/app/services/department.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { JobRoleService } from 'src/app/services/job-role.service';
 import { SubfeatureService } from 'src/app/services/subfeature.service';
-import { ValidationService } from 'src/app/services/validation.service';
-import { ExportExcelService } from 'src/app/services/export-excel.service';
-import { Sort } from '@angular/material/sort';
-import { LocationStrategy } from '@angular/common';
-import * as moment from 'moment';
-import { AppComponent } from 'src/app/app.component';
 import { UtilityService } from 'src/app/services/utility.service';
+import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
   selector: 'app-role-config',

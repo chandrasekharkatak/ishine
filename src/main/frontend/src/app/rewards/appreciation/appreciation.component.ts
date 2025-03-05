@@ -394,6 +394,7 @@ export class AppreciationComponent implements OnInit {
     }
   
     enableAppreciationOnclick() {
+     this.queryList=[];
       this.appreciationObj.fromDate = ''
       this.appreciationObj.toDate = ''
       this.appreciationObj.appreciationEventName = ''
@@ -448,6 +449,7 @@ export class AppreciationComponent implements OnInit {
       this.isEmployeeSelectionChanged = true;
       if (value == "all") {
         this.isTable = true;
+        this.isDataAVailableInFilter = true;
         this.allEmployeeList = [];
       }
       else if (value == "custom") {

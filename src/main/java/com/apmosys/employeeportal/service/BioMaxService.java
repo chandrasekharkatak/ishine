@@ -432,10 +432,14 @@ public class BioMaxService {
 	}
 	
 
-	 public ServiceResponse getEmpBioData360(String startDate, String endDate, String employeeId) {
+	 public ServiceResponse getEmpBioData360(String startDate, String endDate, List<String> employeeId) {
 	        ServiceResponse serviceResponse = new ServiceResponse();
 	        List<BioMax360> finalEmpBioData = new ArrayList<>();
-
+	       
+	        	for(String emp:employeeId)
+	        {
+	           
+	        
 	        String query = "SELECT AttendanceDate, al.EmployeeId AS EmployeeId, AttendanceDateStr, EmployeeName, EmployeeCode, InTime, OutTime, OverTime "
 	                + "FROM AttendanceLogs al "
 	                + "JOIN Employees e ON al.EmployeeId = e.EmployeeId "
@@ -445,7 +449,7 @@ public class BioMaxService {
 	        try (Connection con = getConnection();
 	             PreparedStatement statement = con.prepareStatement(query)) {
 
-	            statement.setString(1, employeeId);
+	            statement.setString(1, emp.toString());
 	            statement.setString(2, startDate);
 	            statement.setString(3, endDate);
 
@@ -473,7 +477,6 @@ public class BioMaxService {
 	                    } catch (ParseException e) {
 	                        outputDate = resultSet.getString("AttendanceDateStr");
 	                    }
-	                    Long empid=Long.parseLong(employeeId.replace("A", ""));
 	                    Employee employee=employeeRepository.findByEmployeementId(Long.parseLong(resultSet.getString("EmployeeCode").replaceAll("A", "")));
 	                    List<TimesheetDTO> timesh = TimesheetService.getAllProjectsByEmpIdForBioMax(employee.getEmpId(), outputDate);
 	                   if (timesh.isEmpty()) {
@@ -487,6 +490,7 @@ public class BioMaxService {
 	                    finalEmpBioData.add(bioMaTO);
 	                }
 	            }
+	            
 	            serviceResponse.setServiceResponse(finalEmpBioData);
 	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 
@@ -494,6 +498,7 @@ public class BioMaxService {
 	            serviceResponse.setServiceResponse("");
 	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	            serviceResponse.setServiceError(e.getMessage());
+	        }
 	        }
 	        return serviceResponse;
 	    }
