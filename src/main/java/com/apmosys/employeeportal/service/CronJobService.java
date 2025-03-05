@@ -64,6 +64,7 @@ import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.BiomaxDefaulter;
+import com.apmosys.employeeportal.model.BiomaxRequest;
 import com.apmosys.employeeportal.model.BirthdayMail;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.CompOffLeave;
@@ -72,6 +73,7 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.Holiday;
+import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.LeavePolicyMaster;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
@@ -82,6 +84,7 @@ import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.repository.BiomaxDefaulterRepository;
+import com.apmosys.employeeportal.repository.BiomaxRequestRepository;
 import com.apmosys.employeeportal.repository.BirthdayMailRepository;
 import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
@@ -90,6 +93,7 @@ import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.HolidayRepository;
+import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
@@ -112,12 +116,24 @@ import okhttp3.Response;
 @Service
 @EnableAsync
 public class CronJobService {
-
+	@Value("${biomaxleavedeductForEmployee}")
+	private String biomaxleavedeductForEmployee;
+	@Value("${biomaxleavedeductForDepartment}")
+	private String biomaxleavedeductForDepartment;
+	@Autowired
+	private BiomaxRequestRepository biomaxRequestRepository;
 	@Autowired
 	ProjectRepository projectRepository;
 	
 	@Autowired
 	BioMaxService bioMaxService;
+	
+	@Autowired
+	JobRoleRepository jobRoleRepository;
+	//added by rahul
+
+	
+	//end of rahul 
 	
 	@Autowired
 	LeaveTypeMasterRepository leaveTypeMasterRepository;
@@ -4773,14 +4789,67 @@ try {
 		 *    : Deduct 1 Day Salary
 		 * */
 		
-		@Async
-		@Scheduled(cron = "0 0 9 ? * *") // runs everyday at 9 pm
+	
+//		
+//		@Async
+//		@Scheduled(cron = "0 0 9 ? * *") // runs everyday at 9 pm
 		public void leaveDeduct() {
-
+			 String depart="";
+				String employee="";
+				//start the rahul code
+				List<Long> employeeNotleaveDeduct=new ArrayList<>();
+				List<Long> departmentNotLeaveDeduct=new ArrayList<>();
+				List<Long> ApprovedLeaveDeduct=new ArrayList<>();
+				
 			List<BioMaTO> biomaxDataList = bioMaxService.getBiomaxDataForLeaveDeduct();
+			System.out.println("TOtal Data COmming from Biomax"+biomaxDataList.size());
+			
+			List<BioMaTO> updateBioMaxDataList=new ArrayList<>();
 		    List<BioMaTO> probationEmployeeList = new ArrayList<>();
 			List<Long> dataToBeDeleted = new ArrayList<>();
+			List<BioMaTO> validatedData=new ArrayList<>(); 
+			    Optional<PortalConfig> department=portalConfigRepository.findByportalConfigById(Short.parseShort(biomaxleavedeductForDepartment));
+				if(department.isPresent()) {
+					PortalConfig PortalConfig1=department.get();
+					depart = PortalConfig1.getConfigValue().replace("[", "").replace("]", "");  // Remove the square brackets
+					String[] values = depart.split(",");  // Split the string into an array
 
+					// Iterate over the array
+					for (String value : values) {
+						departmentNotLeaveDeduct.add(Long.parseLong(value));
+						}
+				}
+					 
+				
+				Optional<PortalConfig> biomaxleavedeductForEmployee1=portalConfigRepository.findByportalConfigById(Short.parseShort(biomaxleavedeductForEmployee));
+				if(biomaxleavedeductForEmployee1.isPresent()) {
+					PortalConfig PortalConfigemp=biomaxleavedeductForEmployee1.get();
+					employee = PortalConfigemp.getConfigValue().replace("[", "").replace("]", "");  // Remove the square brackets
+					String[] employee1 = employee.split(",");  // Split the string into an array
+
+					// Iterate over the array
+					for (String value1 : employee1) {
+						
+						employeeNotleaveDeduct.add(Long.parseLong(value1));  // Output each value (e.g., 2, 4)
+					}
+				}
+				
+				List<BiomaxRequest> apprvedList=biomaxRequestRepository.findByEmployeementIdLeaveNotDeduct();
+				if(apprvedList.size()>0) {
+				apprvedList.forEach((appeoved)->{
+					System.out.println(appeoved.getEmpId()+"appeoved.getEmpId()");
+					ApprovedLeaveDeduct.add(appeoved.getEmpId());
+				});
+				biomaxDataList.removeIf(bio12 -> ApprovedLeaveDeduct.contains(bio12.getEmpId()));
+				
+				}
+				List<BioMaTO> finalEmpBioData = new ArrayList<>();
+			
+			
+			System.out.println("TOtal Data COmming from Biomax getEmployementId"+biomaxDataList.size());
+			
+			//end of the code
+//			
 			String fileName = "LeaveDeduct.xlsx";
 			var file = new File(fileName);
 
@@ -4798,22 +4867,31 @@ try {
 				ws.value(0, 6, "Salary to be deducted (In days)");
 
 				int rowNum = 1;
-
+				biomaxDataList.removeIf(bio -> departmentNotLeaveDeduct.contains(bio.getDepartmentId()));
+				biomaxDataList.removeIf(bio1 -> employeeNotleaveDeduct.contains(bio1.getEmployementId()));
+			
 				if (!biomaxDataList.isEmpty()) {
+					
 					List<BioMaTO> biomaxDataFilterList = biomaxDataList.stream()
 							.filter(obj -> Double.parseDouble(obj.getDeduct()) > 0).collect(Collectors.toList());
 
 					if (!biomaxDataFilterList.isEmpty()) {
+						
 						biomaxDataFilterList.forEach((object) -> {
 
 							Long employmentId = Long.parseLong(object.getEmployeeCode().replaceAll("\\D", ""));
 							List<BiomaxDefaulter> defaulterList = biomaxDefaulterRepository
-									.findByEmployeementId(employmentId);
+									.findByEmployeementIdForDefaulterBiomax(employmentId);
+							//For employee configuration in biomax
+							
+						
+							
 							Employee employeeObj = employeeRepository.findByEmployeementId(employmentId);
-
+							JobRole departmentjon=jobRoleRepository.findByjobRoleId(employeeObj.getJobRoleId());
+							
 							if (!defaulterList.isEmpty()) {
-								// check for 3 consecutive defaulter
-								if (defaulterList.size() == 3) {
+								
+								
 									/*
 									 * Deduct leave for confirmed employee Deduct salary for probation employee
 									 * (send mail to HR in excel format) Remove defaulter from BiomaxDefaulter after
@@ -4823,6 +4901,7 @@ try {
 									if (employeeObj != null) {
 										// Deduct leave
 
+										
 										if (employeeObj.getEmploymentstatus().equals("Confirmed")) {
 											EmployeeLeavesMap employeeLeaveMapObject = employeeLeavesMapRepository
 													.findByEmpIdAndLeaveTypeMasterId(employeeObj.getEmpId(), (short) 3);
@@ -4866,26 +4945,26 @@ try {
 											ws.value(rowNum, 6, object.getDeduct());
 
 										}
-									}
-
 									// delete employee from defaulter table
 									dataToBeDeleted.add(employmentId);
-								} else {
-									// Another defaulter entry
-									BiomaxDefaulter newDefaulterObj = new BiomaxDefaulter();
+								} else {//
+												BiomaxDefaulter newDefaulterObj = new BiomaxDefaulter();
 									newDefaulterObj.setEmpId(employeeObj.getEmpId());
 									newDefaulterObj.setEmployeementId(employmentId);
-
+									newDefaulterObj.setDepartmentId(departmentjon.getDeptId());
 									BiomaxDefaulter defaulterNewEntry = biomaxDefaulterRepository.save(newDefaulterObj);
-								}
+									
+									}
 							} else {
 								// New defaulter entry
-
-								BiomaxDefaulter newDefaulterObj = new BiomaxDefaulter();
-								newDefaulterObj.setEmpId(employeeObj.getEmpId());
-								newDefaulterObj.setEmployeementId(employmentId);
-
-								BiomaxDefaulter newDefaulter = biomaxDefaulterRepository.save(newDefaulterObj);
+								
+										BiomaxDefaulter newDefaulterObj = new BiomaxDefaulter();
+										newDefaulterObj.setEmpId(employeeObj.getEmpId());
+										newDefaulterObj.setEmployeementId(employmentId);
+										newDefaulterObj.setDepartmentId(departmentjon.getDeptId());
+										BiomaxDefaulter newDefaulter = biomaxDefaulterRepository.save(newDefaulterObj);
+									
+									
 							}
 						});
 					}

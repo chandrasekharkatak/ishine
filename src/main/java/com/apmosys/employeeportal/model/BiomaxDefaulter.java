@@ -21,6 +21,7 @@ public class BiomaxDefaulter {
 	private Long defaulterId;
 	private Long empId;
 	private Long employeementId;
+	private Long departmentId;
 	
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();

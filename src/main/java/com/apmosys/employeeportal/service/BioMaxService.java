@@ -13,12 +13,15 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -37,7 +40,11 @@ import com.apmosys.employeeportal.dto.BioMax360;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.JobRole;
+import com.apmosys.employeeportal.model.PortalConfig;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.JobRoleRepository;
+import com.apmosys.employeeportal.repository.PortalConfigRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @Service
@@ -46,9 +53,18 @@ public class BioMaxService {
 	TimesheetService TimesheetService;
 	@Value("${BioDbIp}")
 	public String DBIp;
+	@Value("${biomaxleavedeductForEmployee}")
+	private String biomaxleavedeductForEmployee;
+	@Value("${biomaxleavedeductForDepartment}")
+	private String biomaxleavedeductForDepartment;
 	Connection con = null;
     PreparedStatement statement = null;
     ResultSet resultSet = null;
+	
+	@Autowired
+	PortalConfigRepository portalConfigRepository;
+	@Autowired
+	private JobRoleRepository jobRoleRepository;
 	
 //	@Value("${BioDbPort}")
 	//public String DBPort;
@@ -822,7 +838,17 @@ public class BioMaxService {
 	 
 	 
 	 public List<BioMaTO> getBiomaxDataForLeaveDeduct() {
-		    List<BioMaTO> finalEmpBioData = new ArrayList<>();
+		 String depart="";
+			String employee="";
+			  List<BioMaTO> finalEmpBioData = new ArrayList<>();
+			  List<BioMaTO> finalEmpBioData1 = new ArrayList<>();
+					
+			//start the rahul code
+			List<Long> employeeNotleaveDeduct=new ArrayList<>();
+			List<Long> departmentNotLeaveDeduct=new ArrayList<>();
+			
+			   
+			
 		    try {
 		        String Query = "SELECT \n"
 		        		+ "    e.EmployeeCode,  \n"
@@ -870,9 +896,16 @@ public class BioMaxService {
 		            System.out.println("No results found.");
 		        } else {
 		        	 while (resultSet.next()){
-		                BioMaTO bioMaTO = new BioMaTO();
-		                
-		                bioMaTO.setEmployeeCode(resultSet.getString("EmployeeCode"));
+		        		 BioMaTO bioMaTO = new BioMaTO();
+			             Long employmentId = Long.parseLong(resultSet.getString("EmployeeCode").replaceAll("\\D", ""));
+						 Employee employee1=employeeRepository.findByEmployeementId(employmentId);
+						
+		               	bioMaTO.setEmployementId(employmentId);
+						if(employee1.getJobRoleId()!=null) {
+						JobRole departmentjon=jobRoleRepository.findByjobRoleId(employee1.getJobRoleId());
+						bioMaTO.setDepartmentId(departmentjon.getDeptId());
+						}
+						bioMaTO.setEmployeeCode(resultSet.getString("EmployeeCode"));
 		                bioMaTO.setAttendanceDate(resultSet.getString("AttendanceDate"));
 		                bioMaTO.setInTime(resultSet.getString("InTime"));
 		                bioMaTO.setOutTime(resultSet.getString("OutTime"));
@@ -887,10 +920,11 @@ public class BioMaxService {
 		            
 		        }
 		        
+		        
 		    } catch (Exception e) {
 		        e.printStackTrace(); // Log the exception message
 		    }
-		    
+		  
 		    return finalEmpBioData;
 		}
 } 

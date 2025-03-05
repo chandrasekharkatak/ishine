@@ -54,7 +54,7 @@ public class PortalConfigService {
 	
 	@Value("${hr.mail}")
 	private String hrMailAddress;
-	
+
 	@Autowired
 	MailService mailService;
 	

@@ -4,8 +4,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.apmosys.employeeportal.model.BiomaxDefaulter;
 import com.apmosys.employeeportal.model.BiomaxRequest;
 
 @Repository
@@ -24,5 +27,9 @@ public interface BiomaxRequestRepository extends JpaRepository<BiomaxRequest,Lon
 
     // Fetch by date range
     List<BiomaxRequest> findByBiomaxrequestDateBetween(LocalDateTime startDate, LocalDateTime endDate);
+	
+    @Query(value = "SELECT * FROM biomax_request WHERE biomax_status = 'Approved' AND   biomaxrequest_date=CURDATE()", nativeQuery = true)
+	List<BiomaxRequest> findByEmployeementIdLeaveNotDeduct();
+
 
 }

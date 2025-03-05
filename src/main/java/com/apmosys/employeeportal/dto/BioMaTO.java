@@ -27,6 +27,9 @@ public class BioMaTO {
     private String totalUnderTimeE;
     private String attendanceDate;
     private String deduct;
+    private Long employementId;
+    private Long departmentId;
+    private Long empId;
     
     
     public void setDeduct(String deduct) {
@@ -142,6 +145,24 @@ public class BioMaTO {
 	}
 	public void setTotalUnderTimeE(String totalUnderTimeE) {
 		this.totalUnderTimeE = totalUnderTimeE;
+	}
+	public Long getEmployementId() {
+		return employementId;
+	}
+	public void setEmployementId(Long employementId) {
+		this.employementId = employementId;
+	}
+	public Long getDepartmentId() {
+		return departmentId;
+	}
+	public void setDepartmentId(Long departmentId) {
+		this.departmentId = departmentId;
+	}
+	public Long getEmpId() {
+		return empId;
+	}
+	public void setEmpId(Long empId) {
+		this.empId = empId;
 	}
     
     
