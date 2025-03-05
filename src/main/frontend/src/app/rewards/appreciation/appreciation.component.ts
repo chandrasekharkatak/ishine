@@ -394,6 +394,7 @@ export class AppreciationComponent implements OnInit {
     }
   
     enableAppreciationOnclick() {
+     this.queryList=[];
       this.appreciationObj.fromDate = ''
       this.appreciationObj.toDate = ''
       this.appreciationObj.appreciationEventName = ''
