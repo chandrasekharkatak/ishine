@@ -3,16 +3,17 @@ package com.apmosys.employeeportal.dto;
 import lombok.*;
 import javax.persistence.*;
 
-
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class QuestionnaireDTO {
-
-	private Long goalId;
-	private Long questionId;
+    private Long questionId;
     private String questionTitle;
-    private String questiondescription;
+    private String questionDescription;
     private String createdBy;
     private Long quarterId;
-	
 }
+
+
+

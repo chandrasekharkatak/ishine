@@ -4,24 +4,22 @@ import lombok.*;
 import javax.persistence.*;
 
 @Entity
+@Table(name = "questionnaire")
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Questionnaire {
-	
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-private Long goalId;
 
-private Long questionId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long questionId;
 
-private String questionTitle;
+    private String questionTitle;
+    
+    @Column(name = "question_description")
+    private String questionDescription;
 
-private String questiondescription;
-
-private String createdBy;
-
-private Long quarterId;
-
-
-	
+    private String createdBy;
+    private Long quarterId;
 }
