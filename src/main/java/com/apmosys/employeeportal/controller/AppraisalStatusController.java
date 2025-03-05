@@ -1,6 +1,10 @@
 package com.apmosys.employeeportal.controller;
 
 import org.springframework.http.ResponseEntity;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
@@ -11,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import com.apmosys.employeeportal.dto.QuarterDto;
 import com.apmosys.employeeportal.service.QuaterService;
+import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.model.*;
 
 
@@ -19,21 +24,13 @@ import com.apmosys.employeeportal.model.*;
 public class AppraisalStatusController {
 	
 	@Autowired
-	private QuaterService quarterservice;
+	private QuaterService quarterService;
 
 	@PostMapping("/createQuarter")
-	public ResponseEntity<QuarterModel> createQuarter(@RequestBody QuarterDto quarterDto)
-	{
-		
-		try {
-			QuarterModel savedQuarter = quarterservice.saveQuarter(quarterDto);
-		    return new ResponseEntity<>(savedQuarter, HttpStatus.CREATED);
-		}catch(Exception e) {
-			e.printStackTrace();
-		}
-		return null;
+	public ServiceResponse createQuarter(@RequestBody QuarterDto quarterDto) {
+	    return quarterService.saveQuarter(quarterDto);
 	}
-	
+		
 	
 	
 }
