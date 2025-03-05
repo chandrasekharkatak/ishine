@@ -449,6 +449,7 @@ export class AppreciationComponent implements OnInit {
       this.isEmployeeSelectionChanged = true;
       if (value == "all") {
         this.isTable = true;
+        this.isDataAVailableInFilter = true;
         this.allEmployeeList = [];
       }
       else if (value == "custom") {

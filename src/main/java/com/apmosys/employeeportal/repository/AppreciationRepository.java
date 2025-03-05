@@ -92,7 +92,7 @@ public interface AppreciationRepository extends JpaRepository<Appreciation, Long
             "JOIN appreciation_event ae ON a.appreciation_event_id = ae.appreciation_eventid " +
             "JOIN employee eb ON a.appreciation_by = eb.employeement_id " +
             "JOIN employee et ON a.appreciation_to = et.employeement_id " +
-            "WHERE (a.appreciation_by = :employeementId OR a.appreciation_to = :employeementId) " +
+            "WHERE a.appreciation_to = :employeementId " +
             "AND DATE(a.appreciation_date) BETWEEN :startDate AND :endDate", 
     nativeQuery = true)
 List<Object[]> getMyAppreciationDetails(@Param("startDate") String startDate, 
@@ -113,8 +113,8 @@ List<Object[]> getMyAppreciationDetails(@Param("startDate") String startDate,
 	       "       ) " +
 	       "   ) " +
 	       ") " +
-	       "AND a.appreciation_to != :currentUserEmployeementId " + // Exclude the current user from being appreciated
-	       "AND a.appreciation_by != :currentUserEmployeementId " + // Exclude the current user from appreciating others
+	       "AND a.appreciation_to != :currentUserEmployeementId " + 
+	       "AND a.appreciation_by != :currentUserEmployeementId " + 
 	       "AND DATE(a.appreciation_date) BETWEEN :startDate AND :endDate",nativeQuery = true)
 	List<Object[]> getTeamAppreciationDetails(@Param("startDate") String startDate, 
 	                                          @Param("endDate") String endDate, 
