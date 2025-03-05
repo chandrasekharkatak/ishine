@@ -1,30 +1,89 @@
 package com.apmosys.employeeportal.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.*;
+
 
 import java.time.LocalDate;
 
-import javax.persistence.*;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-
 @Getter
 @Setter
-
 public class EmployeeGoalDTO {
-     
-	 private Long goalId;
-	 private Long empId;
-	 private String assignedBy;
-	 private Long kpiId;
-	 private Long quarterId;
-	 private Long templateId;
-	 private String goalTitle;
-	 private String reviewStatus;
-	 @JsonFormat(pattern="dd-MM-yyyy")
-	 private LocalDate expectedCompletionDate;
-	 @JsonFormat(pattern="dd-MM-yyyy")
-	 private LocalDate actualCompletionDate;
-	
 
+    private Long goalId;
+
+    
+    private Long empId;
+
+   
+    private String assignedBy;
+
+   
+    private String goalTitle;
+
+    
+    private String goalProgress;
+
+   
+    private String reviewStatus;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate expectedCompletionDate;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate actualCompletionDate;
+
+    private LocalDate createdDate;
+    private LocalDate updatedDate;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

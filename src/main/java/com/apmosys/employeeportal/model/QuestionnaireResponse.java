@@ -27,7 +27,6 @@ public class QuestionnaireResponse {
 	
 	private String remarks;
 	
+	private Float score;
 	
-	
-	
-}
+	}

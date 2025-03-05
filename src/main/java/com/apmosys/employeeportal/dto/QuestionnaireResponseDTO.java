@@ -6,7 +6,7 @@ import javax.persistence.*;
 @Getter
 @Setter
 public class QuestionnaireResponseDTO {
-private Long goalId;
+
 	
 	private Long empId;
 	
@@ -19,4 +19,6 @@ private Long goalId;
 	private String response;
 	
 	private String remarks;
+	
+	private Float score;
 }
