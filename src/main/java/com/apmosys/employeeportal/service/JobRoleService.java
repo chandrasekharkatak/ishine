@@ -751,16 +751,15 @@ public class JobRoleService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("name : " + jobRoleDto.getName()+ "departmentId :" +jobRoleDto.getDepartmentId());
 		try {
-			JobRole checkExistingRole = jobRoleRepository.findByNameAndDeptId(jobRoleDto.getName(), jobRoleDto.getDepartmentId());
-			System.out.println("  jobRoleDto.getDeptId()  : -- " +jobRoleDto.getDepartmentId());
-			System.out.println("  jobRoleDto.getName()  : --"+jobRoleDto.getName());
-			if(checkExistingRole == null) {
+			Integer checkExistingRole = jobRoleRepository.findByNameAndDeptId(jobRoleDto.getName(), jobRoleDto.getDepartmentId());
+			
+			if(Integer.valueOf(checkExistingRole).equals(0)) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("JobRole created !");
 				
 				apiLogInfo.setApiResponse("JobRole created !");			
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			}else if(checkExistingRole !=null) {
+			}else if(checkExistingRole != 0) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("JobRole already exist!");
 					
