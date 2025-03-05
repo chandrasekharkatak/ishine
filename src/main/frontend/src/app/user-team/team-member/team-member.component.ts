@@ -78,7 +78,7 @@ export class TeamMemberComponent implements OnInit {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
    }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     // Dynamic Subfeature Flags 
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -88,39 +88,12 @@ export class TeamMemberComponent implements OnInit {
     
     this.getAllTeamMemberView();
     this.preventBackButton();
-    // this.employee360Service.employeesFor360$.subscribe((employees) => {
-    //   this.employeesFor360 = employees;
-    //   console.log("Employee Data fetched by Shared service ",this.employeesFor360);
-    //   console.log('userMapping',this.userMapping);
-    // });
-    this.getAllEmployeeFor360View();
-  }
-  getAllEmployeeFor360View(){
-      this.allEmployeeList360 = [];
-      this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.allEmployeeList360 = response.serviceResponse;
-          console.log("allEmployeeListFor360 : ", this.allEmployeeList360)
-          this.allEmployeeList360.forEach(employeeObj => {
-            employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
-            employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-            employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-            employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-            employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-            if (employeeObj.isConsultant == 'true')
-              employeeObj.employeeType = 'Consultant';
-            else if (employeeObj.isApprenticeship == 'true')
-              employeeObj.employeeType = 'Apprentice';
-            else
-              employeeObj.employeeType = 'Regular';
-            });
-            this.allEmployeeList360 = this.allEmployeeList360;
-            this.allEmployeeList360 = new SortPipe().transform(this.allEmployeeList360, ['name', 'string', 'asc']);
-          } else {
-            alert(response.serviceResponse);
-          }
-      });
+    try {
+      this.allEmployeeList360 = await this.utilityService.getEmployeeDetailsFor360View();
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
     }
+  }
   preventBackButton(){
     history.pushState(null, null, location.href);
     this.locationStrategy.onPopState(()=>{

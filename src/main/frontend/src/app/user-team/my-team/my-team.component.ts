@@ -764,8 +764,16 @@ export class MyTeamComponent implements OnInit {
                         leaveApplication.isApprover = ((leaveApplication.managerId === this.currentUser.empId && leaveApplication.managerApprovalStatus === 'Pending') || (leaveApplication.level2ApproverId === this.currentUser.empId && leaveApplication.level2ApprovalStatus === 'Pending') || (leaveApplication.level3ApproverId === this.currentUser.empId && leaveApplication.level3ApprovalStatus === 'Pending'))? true : false;
                         console.log("Leave id : ",leaveApplication.leaveId," isApprover: ",leaveApplication.isApprover);
                         let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === ('A-' + leaveApplication.employeementId));
-                        console.log('matches++',matchingEmployee);
+                        //console.log('matches++',matchingEmployee);
                         leaveApplication.emp360 = matchingEmployee ? matchingEmployee : {};
+                        let matchingEmployeeAppLev1 = this.allEmployeeList360.find(emp => emp.empId == leaveApplication.level1ApproverId);
+                        let matchingEmployeeAppLev2 = this.allEmployeeList360.find(emp => emp.empId == leaveApplication.level2ApproverId);
+                        let matchingEmployeeAppLev3 = this.allEmployeeList360.find(emp => emp.empId == leaveApplication.level3ApproverId);
+                        leaveApplication.emp360AppLev1 = matchingEmployeeAppLev1 ? matchingEmployeeAppLev1 : {};
+                        leaveApplication.emp360AppLev2 = matchingEmployeeAppLev2 ? matchingEmployeeAppLev2 : {};
+                        leaveApplication.emp360AppLev3 = matchingEmployeeAppLev3 ? matchingEmployeeAppLev3 : {};
+    
+
                         this.leaveService.isManager(this.leaveObj2).subscribe((response: any) => {
                           if (response.serviceStatus === "Success") {
                             leaveApplication.isManagerFlag = response.serviceResponse;
@@ -775,6 +783,7 @@ export class MyTeamComponent implements OnInit {
                           }
                         });
                       });
+                      console.log('chk dta - ',this.leaveApplicationList);
                       
                   } else {
                       console.error("Error fetching leave applications:", response.serviceResponse);
@@ -794,10 +803,17 @@ export class MyTeamComponent implements OnInit {
                         this.leaveObj2.leaveId = leaveApplication.leaveId;
                         this.leaveObj2.currentUserEmpId = this.currentUser.empId
                         let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === ('A-' + leaveApplication.employeementId));
-                        console.log('matches++',matchingEmployee);
+                        //console.log('matches++',matchingEmployee);
                         leaveApplication.emp360 = matchingEmployee ? matchingEmployee : {};
+                        let matchingEmployeeAppLev1 = this.allEmployeeList360.find(emp => emp.empId == leaveApplication.level1ApproverId);
+                        let matchingEmployeeAppLev2 = this.allEmployeeList360.find(emp => emp.empId == leaveApplication.level2ApproverId);
+                        let matchingEmployeeAppLev3 = this.allEmployeeList360.find(emp => emp.empId == leaveApplication.level3ApproverId);
+                        leaveApplication.emp360AppLev1 = matchingEmployeeAppLev1 ? matchingEmployeeAppLev1 : {};
+                        leaveApplication.emp360AppLev2 = matchingEmployeeAppLev2 ? matchingEmployeeAppLev2 : {};
+                        leaveApplication.emp360AppLev3 = matchingEmployeeAppLev3 ? matchingEmployeeAppLev3 : {};
+    
                         leaveApplication.isApprover = ((leaveApplication.managerId === this.currentUser.empId && leaveApplication.managerApprovalStatus === 'Pending') || (leaveApplication.level2ApproverId === this.currentUser.empId && leaveApplication.level2ApprovalStatus === 'Pending') || (leaveApplication.level3ApproverId === this.currentUser.empId && leaveApplication.level3ApprovalStatus === 'Pending'))? true : false;
-                        console.log("Leave id : ",leaveApplication.leaveId," isApprover: ",leaveApplication.isApprover);
+                        //console.log("Leave id : ",leaveApplication.leaveId," isApprover: ",leaveApplication.isApprover);
                         this.leaveService.isManager(this.leaveObj2).subscribe((response: any) => {
                           if (response.serviceStatus === "Success") {
                             leaveApplication.isManagerFlag = response.serviceResponse;
@@ -807,6 +823,8 @@ export class MyTeamComponent implements OnInit {
                           }
                         });
                       });
+                      console.log('chk dta - ',this.leaveApplicationList);
+
                   } else {
                       console.error("Error fetching leave applications:", response.serviceResponse);
                   }
@@ -833,8 +851,18 @@ export class MyTeamComponent implements OnInit {
                             // this.leaveObj2.leaveId = leaveApplication.leaveId;
                             // this.leaveObj2.currentUserEmpId = this.currentUser.empId
                             let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === ('A-' + leaveApplication.employeementId));
-                            console.log('matches++',matchingEmployee);
+                            //console.log('matches++',matchingEmployee);
                             leaveApplication.emp360 = matchingEmployee ? matchingEmployee : {};
+                            let matchingEmpCreateBy = this.allEmployeeList360.find(emp => emp.empId === leaveApplication.empId);
+                            leaveApplication.emp360CreateBy = matchingEmpCreateBy ? matchingEmpCreateBy : {};
+
+                            let matchingEmployeeAppLev1 = this.allEmployeeList360.find(emp => emp.empId == leaveApplication.level1ApproverId);
+                            let matchingEmployeeAppLev2 = this.allEmployeeList360.find(emp => emp.empId == leaveApplication.level2ApproverId);
+                            let matchingEmployeeAppLev3 = this.allEmployeeList360.find(emp => emp.empId == leaveApplication.level3ApproverId);
+                            leaveApplication.emp360AppLev1 = matchingEmployeeAppLev1 ? matchingEmployeeAppLev1 : {};
+                            leaveApplication.emp360AppLev2 = matchingEmployeeAppLev2 ? matchingEmployeeAppLev2 : {};
+                            leaveApplication.emp360AppLev3 = matchingEmployeeAppLev3 ? matchingEmployeeAppLev3 : {};
+    
                             leaveApplication.isApprover = ((leaveApplication.managerId === this.currentUser.empId && leaveApplication.managerApprovalStatus === 'Pending') || (leaveApplication.level2ApproverId === this.currentUser.empId && leaveApplication.level2ApprovalStatus === 'Pending') || (leaveApplication.level3ApproverId === this.currentUser.empId && leaveApplication.level3ApprovalStatus === 'Pending'))? true : false;
                             console.log("Leave id : ",leaveApplication.leaveId," isApprover: ",leaveApplication.isApprover,"PRI",leaveApplication.managerId," ",this.currentUser.empId," ",leaveApplication.managerApprovalStatus);
                             // this.leaveService.isManager(this.leaveObj2).subscribe((response: any) => {

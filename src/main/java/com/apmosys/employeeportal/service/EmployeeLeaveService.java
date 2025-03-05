@@ -1408,22 +1408,25 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 					dto.setEmployeementId(object[13] != null ? Long.parseLong(object[13].toString()) : null);
 					
 					dto.setApproverName(object[14] != null ? object[14].toString() : null);
-					dto.setApproverEmail(object[15] != null ? object[15].toString() : null);
-					dto.setManagerApprovalStatus(object[16] != null ? object[16].toString() : null);
-					dto.setLevel2ApproverId(object[17] != null ? Long.parseLong(object[17].toString()) : null);
-					dto.setLevel2ApproverName(object[18] != null ? object[18].toString() : null);
-					dto.setLevel2ApproverEmail(object[19] != null ? object[19].toString() : null);
-					dto.setLevel2ApprovalStatus(object[20] != null ? object[20].toString() : null);
-					
-					dto.setLevel3ApproverId(object[21] != null ? Long.parseLong(object[21].toString()) : null);
-					dto.setLevel3ApproverName(object[22] != null ? object[22].toString() : null);
-					dto.setLevel3ApprovalStatus(object[23] != null ? object[23].toString() : null);
-					dto.setLevel3ApproverEmail(object[24] != null ? object[24].toString() : null);
-					
-					dto.setCurrentApprovalLevel(object[25] != null ? Integer.parseInt(object[25].toString()) : null);
-					dto.setFinalApprovalLevel(object[26] != null ? Integer.parseInt(object[26].toString()) : null);
-					dto.setLeaveEmpId(object[27] != null ? Long.parseLong(object[27].toString()) : null);
-					dto.setManagerId(object[28] != null ? Integer.parseInt(object[28].toString()) : null);				
+					//for approver level 1 empid emp 360
+					dto.setLevel1ApproverId(object[15] != null ? Long.parseLong(object[15].toString()) : null);
+					dto.setApproverEmail(object[16] != null ? object[16].toString() : null);
+					dto.setManagerApprovalStatus(object[17] != null ? object[17].toString() : null);
+					dto.setLevel2ApproverId(object[18] != null ? Long.parseLong(object[18].toString()) : null);
+					dto.setLevel2ApproverName(object[19] != null ? object[19].toString() : null);
+					dto.setLevel2ApproverEmail(object[20] != null ? object[20].toString() : null);
+					dto.setLevel2ApprovalStatus(object[21] != null ? object[21].toString() : null);
+
+					dto.setLevel3ApproverId(object[22] != null ? Long.parseLong(object[22].toString()) : null);
+					dto.setLevel3ApproverName(object[23] != null ? object[23].toString() : null);
+					dto.setLevel3ApprovalStatus(object[24] != null ? object[24].toString() : null);
+					dto.setLevel3ApproverEmail(object[25] != null ? object[25].toString() : null);
+
+					dto.setCurrentApprovalLevel(object[26] != null ? Integer.parseInt(object[26].toString()) : null);
+					dto.setFinalApprovalLevel(object[27] != null ? Integer.parseInt(object[27].toString()) : null);
+					dto.setLeaveEmpId(object[28] != null ? Long.parseLong(object[28].toString()) : null);
+					dto.setManagerId(object[29] != null ? Integer.parseInt(object[29].toString()) : null);
+				
 					dtoList.add(dto);
 				});
 

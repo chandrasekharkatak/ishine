@@ -136,6 +136,7 @@ public class LeaveDTO {
 	
 	private Integer managerId;
 	private String managerApprovalStatus;
+	private Long level1ApproverId;
 	
 	private Long level2ApproverId;
 	private String level2ApproverName;
