@@ -20,7 +20,7 @@ import { Employee360Service } from 'src/app/services/employee360.service';
 export class Employee360BiomaxComponent implements OnInit{
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
-  
+  employeementId:any[]=[]
   biomaxFilter=new biomaxFilter();
   currentDate1: Date = new Date(); // Current date
   biomaxList:Biomax[]=[];
@@ -98,7 +98,7 @@ ngOnInit(): void {
   let empCOde=this.employeeData.employeementId;
 
   let resultString = empCOde.replace("-", "");
-  this.biomaxFilter.empId=resultString;
+  this.biomaxFilter.empId.push(resultString);
 
 let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title == "Biomax");
             if (findbreadcrumbObject >= 0) {
@@ -284,7 +284,8 @@ teamData(id:any){
             }
   this.defaultview=false;
  this.team.teamId=id;
- this.getTeamFromEmployeeMapping();
+ alert(this.team.teamId);
+this.getTeamFromEmployeeMapping();
 // this.getBiomatrixFilter();
 
   
@@ -294,11 +295,15 @@ goBack(){
 //this.getBiomatrixFilter();
 }
 getTeamFromEmployeeMapping(){
-  
+  this.biomaxFilter.empId=[];
   this.employee360.getTeamTImeSheet(this.team).subscribe((response: any) => {
     //this.teamList = response.serviceResponse;
-  
-    console.log(response.serviceResponse);
+    let employeeIdListTeam;
+    response.serviceResponse.forEach((x)=>{
+    
+      this.biomaxFilter.empId.push(x.employeementId);
+    })
+   
   });
  
 }

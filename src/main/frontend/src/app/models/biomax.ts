@@ -22,7 +22,7 @@ export class Biomax {
     timesheetdto:Timesheet[]=[];
 }
 export class biomaxFilter{
-    empId:any;
+    empId:any[]=[];
     startDate:any;
     endDate:any;
     viewtype:any;

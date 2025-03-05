@@ -11,7 +11,7 @@ import lombok.ToString;
 @ToString
 public class biomaxFilter {
 	
-	private String empId;
+	private List<String> empId;
 	private String startDate;
 	private String endDate;
 	private String viewtype;

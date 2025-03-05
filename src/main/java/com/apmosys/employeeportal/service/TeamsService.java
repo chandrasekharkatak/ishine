@@ -625,7 +625,7 @@ public class TeamsService {
 
 		try {
 
-			List<Object[]> objectList = employeeTeamMapRepository.getTeamMembersByTeamId(teamDTO.getTeamId());
+			List<Object[]> objectList = employeeTeamMapRepository.getTeamMembersByTeamIdBioMax(teamDTO.getTeamId());
 
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
 
@@ -638,16 +638,16 @@ public class TeamsService {
 					List<EmployeeTeamMapDTO> dtoList = new ArrayList<EmployeeTeamMapDTO>();
 
 					list.forEach((object) -> {
-
+						Employee empid=employeeRepository.findByEmpId(Long.parseLong(object[0].toString()));
 						EmployeeTeamMapDTO dto = new EmployeeTeamMapDTO();
-						String[] employeeRole = (object[7] != null ? object[7].toString() : null).split(",");
-
-						dto.setEmployeeTeamMapId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-						dto.setEmpId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
-						dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
-						dto.setEmployeeRole(employeeRole);
-						dto.setTeamMemberName(object[8] != null ? object[8].toString() : null);
-						dto.setTeamMemberDeptId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+						//String[] employeeRole = (object[7] != null ? object[7].toString() : null).split(",");
+						//dto.setEmployeementId(hrMailAddress)
+						//dto.setEmployeeTeamMapId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						dto.setEmployeementId ("A"+empid.getEmployeementId() != null ? "A"+empid.getEmployeementId().toString() : null);
+						dto.setTeamId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+						//dto.setEmployeeRole(employeeRole);
+						dto.setTeamMemberName(object[2] != null ? object[2].toString() : null);
+						//dto.setTeamMemberDeptId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
 						
 						dtoList.add(dto);
 					});

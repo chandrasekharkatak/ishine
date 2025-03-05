@@ -86,8 +86,7 @@ public class Employee360Controller {
 	}
 	@RequestMapping(value="/biomax",method=RequestMethod.POST)
 	public ServiceResponse getBioMax(@RequestBody biomaxFilter filter) {
-		System.out.println("filter"+filter.toString());
-	return bioMaxService.getEmpBioData360(filter.getStartDate(), filter.getEndDate(), filter.getEmpId());
+		return bioMaxService.getEmpBioData360(filter.getStartDate(), filter.getEndDate(), filter.getEmpId());
 	}
 	
 	@RequestMapping(value = "/getAll360LeaveApplicationsByEmpId" ,method = RequestMethod.POST)

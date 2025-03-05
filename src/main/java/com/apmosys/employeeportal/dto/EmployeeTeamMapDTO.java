@@ -15,6 +15,7 @@ import lombok.ToString;
 public class EmployeeTeamMapDTO {
 
     private Long employeeTeamMapId;
+    private String EmployeementId;
 	private Long empId;
 	private Long teamId;
 	private Long jobRoleId;
