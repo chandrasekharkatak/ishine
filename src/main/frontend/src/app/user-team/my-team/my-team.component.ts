@@ -582,16 +582,21 @@ export class MyTeamComponent implements OnInit {
           });
           this.teamViewLeaveHistoryList.forEach(leaveHistory => {
             let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === leaveHistory.employeementId);
-            console.log('matches++))',matchingEmployee);
+            //console.log('matches++))',matchingEmployee);
             leaveHistory.emp360 = matchingEmployee ? matchingEmployee : {};
-          });
-          // for (let y of this.teamViewLeaveHistoryList){
-          //   let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === y.employeementId);
-          //   console.log('matches++',matchingEmployee);
-          //   y.emp360 = matchingEmployee ? matchingEmployee : {};
-          // }
+            let matchingEmployeeAppLev1 = this.allEmployeeList360.find(emp => emp.empId == this.currentUser.empId);
+            let matchingEmployeeAppLev2 = this.allEmployeeList360.find(emp => emp.empId == leaveHistory.level2ApproverId);
+            let matchingEmployeeAppLev3 = this.allEmployeeList360.find(emp => emp.empId == leaveHistory.level3ApproverId);
+            leaveHistory.emp360AppLev1 = matchingEmployeeAppLev1 ? matchingEmployeeAppLev1 : {};
+            leaveHistory.emp360AppLev2 = matchingEmployeeAppLev2 ? matchingEmployeeAppLev2 : {};
+            leaveHistory.emp360AppLev3 = matchingEmployeeAppLev3 ? matchingEmployeeAppLev3 : {};
+            let matchingleaveStatusUpdatedBy = this.allEmployeeList360.find(emp => emp.empId === leaveHistory.leaveStatusUpdatedBy);
+            leaveHistory.emp360leaveStatusUpdatedBy = matchingleaveStatusUpdatedBy ? matchingleaveStatusUpdatedBy : {};
 
-          console.log("teamViewLeaveHistory : ", this.teamViewLeaveHistoryList);
+            //leaveStatusUpdatedBy
+          });
+
+          //console.log("teamViewLeaveHistory : ", this.teamViewLeaveHistoryList);
         } else {
           console.error(response.serviceResponse);
         }
@@ -1389,6 +1394,15 @@ export class MyTeamComponent implements OnInit {
             let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === ('A-' + y.employeementId));
             console.log('matches++',matchingEmployee);
             y.emp360 = matchingEmployee ? matchingEmployee : {};
+            
+            let matchingEmployeeAppLev1 = this.allEmployeeList360.find(emp => emp.empId == y.approverId);
+            let matchingEmployeeAppLev2 = this.allEmployeeList360.find(emp => emp.empId == y.level2ApproverId);
+            let matchingEmployeeAppLev3 = this.allEmployeeList360.find(emp => emp.empId == y.level3ApproverId);
+            y.emp360AppLev1 = matchingEmployeeAppLev1 ? matchingEmployeeAppLev1 : {};
+            y.emp360AppLev2 = matchingEmployeeAppLev2 ? matchingEmployeeAppLev2 : {};
+            y.emp360AppLev3 = matchingEmployeeAppLev3 ? matchingEmployeeAppLev3 : {};
+            let matchingleaveStatusUpdatedBy = this.allEmployeeList360.find(emp => emp.empId === y.leaveStatusUpdatedBy);
+            y.emp360leaveStatusUpdatedBy = matchingleaveStatusUpdatedBy ? matchingleaveStatusUpdatedBy : {};
           }          
         } else {
           console.error(response.serviceResponse);

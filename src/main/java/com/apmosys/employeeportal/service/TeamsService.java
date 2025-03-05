@@ -1382,25 +1382,26 @@ public class TeamsService {
 					dto.setReason(object[7] != null ? object[7].toString() : null);
 					dto.setLeaveType(object[8] != null ? object[8].toString() : null);
 					dto.setLeaveStatusUpdatedByName(object[9] != null ? object[9].toString() : null);
-					dto.setLeaveId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
-					dto.setRemark(object[11] != null ? object[11].toString() : null);
+					dto.setLeaveStatusUpdatedBy(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+					dto.setLeaveId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
+					dto.setRemark(object[12] != null ? object[12].toString() : null);
 					
-					dto.setApproverName(object[12] != null ? object[12].toString() : null);
-					dto.setApproverEmail(object[13] != null ? object[13].toString() : null);
+					dto.setApproverName(object[13] != null ? object[13].toString() : null);
+					dto.setApproverEmail(object[14] != null ? object[14].toString() : null);
 
-					dto.setManagerApprovalStatus(object[14] != null ? object[14].toString() : null);
-					dto.setLevel2ApproverId(object[15] != null ? Long.parseLong(object[15].toString()) : null);
-					dto.setLevel2ApproverName(object[16] != null ? object[16].toString() : null);
-					dto.setLevel2ApproverEmail(object[17] != null ? object[17].toString() : null);
-					dto.setLevel2ApprovalStatus(object[18] != null ? object[18].toString() : null);
+					dto.setManagerApprovalStatus(object[15] != null ? object[15].toString() : null);
+					dto.setLevel2ApproverId(object[16] != null ? Long.parseLong(object[16].toString()) : null);
+					dto.setLevel2ApproverName(object[17] != null ? object[17].toString() : null);
+					dto.setLevel2ApproverEmail(object[18] != null ? object[18].toString() : null);
+					dto.setLevel2ApprovalStatus(object[19] != null ? object[19].toString() : null);
 					
-					dto.setLevel3ApproverId(object[19] != null ? Long.parseLong(object[19].toString()) : null);
-					dto.setLevel3ApproverName(object[20] != null ? object[20].toString() : null);
-					dto.setLevel3ApprovalStatus(object[21] != null ? object[21].toString() : null);
-					dto.setLevel3ApproverEmail(object[22] != null ? object[22].toString() : null);
+					dto.setLevel3ApproverId(object[20] != null ? Long.parseLong(object[20].toString()) : null);
+					dto.setLevel3ApproverName(object[21] != null ? object[21].toString() : null);
+					dto.setLevel3ApprovalStatus(object[22] != null ? object[22].toString() : null);
+					dto.setLevel3ApproverEmail(object[23] != null ? object[23].toString() : null);
 					
-					dto.setCurrentApprovalLevel(object[23] != null ? Integer.parseInt(object[23].toString()) : null);
-					dto.setFinalApprovalLevel(object[24] != null ? Integer.parseInt(object[24].toString()) : null);
+					dto.setCurrentApprovalLevel(object[24] != null ? Integer.parseInt(object[24].toString()) : null);
+					dto.setFinalApprovalLevel(object[25] != null ? Integer.parseInt(object[25].toString()) : null);
 					dtoList.add(dto);					
 					});
 
@@ -2228,31 +2229,31 @@ public class TeamsService {
 					dto.setReason(object[7] != null ? object[7].toString() : null);
 					dto.setLeaveType(object[8] != null ? object[8].toString() : null);
 					dto.setLeaveStatusUpdatedByName(object[9] != null ? object[9].toString() : null);
-					dto.setLeaveId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
-					dto.setRemark(object[11] != null ? object[11].toString() : null);
 					
-//					added by anurag
+					dto.setLeaveStatusUpdatedBy(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+					dto.setLeaveId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
+					dto.setRemark(object[12] != null ? object[12].toString() : null);
+										
+					dto.setApproverName(object[13] != null ? object[13].toString() : null);
 					
-					dto.setApproverName(object[12] != null ? object[12].toString() : null);
-					dto.setApproverEmail(object[13] != null ? object[13].toString() : null);
+					dto.setApproverId(object[14] != null ? Long.parseLong(object[14].toString()) : null);
 
-					dto.setManagerApprovalStatus(object[14] != null ? object[14].toString() : null);
-					dto.setLevel2ApproverId(object[15] != null ? Long.parseLong(object[15].toString()) : null);
-					dto.setLevel2ApproverName(object[16] != null ? object[16].toString() : null);
-					dto.setLevel2ApproverEmail(object[17] != null ? object[17].toString() : null);
-					dto.setLevel2ApprovalStatus(object[18] != null ? object[18].toString() : null);
-					
-					dto.setLevel3ApproverId(object[19] != null ? Long.parseLong(object[19].toString()) : null);
-					dto.setLevel3ApproverName(object[20] != null ? object[20].toString() : null);
-					dto.setLevel3ApprovalStatus(object[21] != null ? object[21].toString() : null);
-					dto.setLevel3ApproverEmail(object[22] != null ? object[22].toString() : null);
-					
-					dto.setCurrentApprovalLevel(object[23] != null ? Integer.parseInt(object[23].toString()) : null);
-					dto.setFinalApprovalLevel(object[24] != null ? Integer.parseInt(object[24].toString()) : null);
-					
-					
-					
-					
+					dto.setApproverEmail(object[15] != null ? object[15].toString() : null);
+
+					dto.setManagerApprovalStatus(object[16] != null ? object[16].toString() : null);
+					dto.setLevel2ApproverId(object[17] != null ? Long.parseLong(object[17].toString()) : null);
+					dto.setLevel2ApproverName(object[18] != null ? object[18].toString() : null);
+					dto.setLevel2ApproverEmail(object[19] != null ? object[19].toString() : null);
+					dto.setLevel2ApprovalStatus(object[20] != null ? object[20].toString() : null);
+
+					dto.setLevel3ApproverId(object[21] != null ? Long.parseLong(object[21].toString()) : null);
+					dto.setLevel3ApproverName(object[22] != null ? object[22].toString() : null);
+					dto.setLevel3ApprovalStatus(object[23] != null ? object[23].toString() : null);
+					dto.setLevel3ApproverEmail(object[24] != null ? object[24].toString() : null);
+
+					dto.setCurrentApprovalLevel(object[25] != null ? Integer.parseInt(object[25].toString()) : null);
+					dto.setFinalApprovalLevel(object[26] != null ? Integer.parseInt(object[26].toString()) : null);
+
 					dtoList.add(dto);					
 					});
 
@@ -2273,10 +2274,7 @@ public class TeamsService {
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
-	}
-
-//	added by anurag
-	
+	}	
 	
 	public ServiceResponse getDepartmentPendingLeaveHistory(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();

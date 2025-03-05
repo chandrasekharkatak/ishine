@@ -167,6 +167,7 @@ public class LeaveDTO {
 	
 	private String isConsultant;
 	private String isApprenticeship;
-	private long currentUserEmpId;
-	private long differenceInDays;
+	private Long currentUserEmpId;
+	private Long differenceInDays;
+	private Long approverId;
 }
