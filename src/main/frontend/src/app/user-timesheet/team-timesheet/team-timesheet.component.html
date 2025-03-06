@@ -185,7 +185,8 @@
               <td>{{timesheet.date}}</td>
               <td>{{timesheet.dayType}}</td>
               <td style="min-width: 250px;" [innerHTML]="timesheet.description"></td>
-              <td>{{timesheet.createdByName}}</td>
+              <td id="clickablefor360" *ngIf="userMapping.team_timesheet_employee_360" [navigateToEmployee360]="timesheet.emp360CreatedBy">{{timesheet.createdByName}}</td>
+              <td *ngIf="!userMapping.team_timesheet_employee_360">{{timesheet.createdByName}}</td>
               <td>{{timesheet.totalTime}}</td>
               <td>{{timesheet.officeInTime}}</td>
               <td>{{timesheet.officeOutTime}}</td>
