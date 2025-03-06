@@ -67,10 +67,9 @@
                 <thead class="thead-light" id="biomaxIDHead">
                     <tr id="biomaxIDHeadTr">
                         <th scope="col">Sr No.</th>
-                        <th scope="col" mat-sort-header="teamMemberName|string">Team Member Name</th>
+                        <th scope="col" mat-sort-header="employeeName|string">Employee Name</th>
                  
-              
-                        <th scope="col" mat-sort-header="logDate|string">Date</th>
+                     <th scope="col" mat-sort-header="logDate|string">Date</th>
                        <th scope="col" class="info-label" mat-sort-header="logDate|string">In Time</th>
                         <th scope="col" class="info-label" mat-sort-header="beginTime|string">Out Time</th>
                         <th scope="col" class="info-label" mat-sort-header="shiftName|string">Working Hours</th>
@@ -79,7 +78,7 @@
                 <tbody>
                    <tr *ngFor="let biomax of biomaxList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] ,let i = index">
                           <td scope="col">{{ i + 1 }}</td>
-                          
+                          <td scope="col">{{ biomax.employeeName }}</td>
                           <td scope="col">{{ biomax.logDate }}</td>
                         <td scope="col">{{biomax.beginTime}}</td>
                         <td scope="col">{{biomax.endTime}}</td>

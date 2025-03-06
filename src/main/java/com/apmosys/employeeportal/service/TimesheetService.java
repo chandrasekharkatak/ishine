@@ -203,6 +203,7 @@ public class TimesheetService {
 	  				timesheetDto.setClientId(object[5] != null ? Integer.parseInt(object[5].toString()) : null);
 					timesheetDto.setClientName(object[6] != null ? object[6].toString() : null);
 					timesheetDto.setOfficeInTime(object[10] != null ? object[10].toString() : null);
+					timesheetDto.setEmployeeName(object[11] != null ? object[11].toString() : null);
 					//timesheetDto.setTotalWorkingHours(object[7] != null ? Float.parseFloat(object[7].toString()) : null);
 					listDto.add(timesheetDto);
 				}
