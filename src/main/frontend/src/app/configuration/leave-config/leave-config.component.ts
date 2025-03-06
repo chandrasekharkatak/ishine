@@ -997,6 +997,48 @@ export class LeaveConfigComponent implements OnInit {
     return (true);
   }
 
+
+
+
+  fieldRestictCharacterForLeave(event) {
+    var k;
+    var inputField = event.target; // Get the input field where the event is triggered
+
+    // Restrict length to a maximum of 8 characters
+    if (inputField.value.length >= 8) {
+        // If the length is already 8 or more, prevent further input
+        event.preventDefault();
+        return false;
+    }
+
+    k = event.charCode;
+
+    // Check if the character code matches any of the restricted characters
+    if (
+      (k == 33) || (k == 34) || (k == 35) || (k == 36) || (k == 37) ||
+      (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42) ||
+      (k == 43) || (k == 44) || (k == 46) || (k == 47) || (k == 58) ||
+      (k == 59) || (k == 60) || (k == 61) || (k == 62) || (k == 63) ||
+      (k == 64) || (k == 66) || (k == 67) || (k == 68) || (k == 69) ||
+      (k == 70) || (k == 71) || (k == 72) || (k == 73) || (k == 74) ||
+      (k == 75) || (k == 76) || (k == 77) || (k == 78) || (k == 79) ||
+      (k == 80) || (k == 81) || (k == 82) || (k == 83) || (k == 84) ||
+      (k == 85) || (k == 86) || (k == 87) || (k == 88) || (k == 89) ||
+      (k == 90) || (k == 91) || (k == 92) || (k == 93) || (k == 94) ||
+      (k == 95) || (k == 96) || (k == 97) || (k == 98) || (k == 99) ||
+      (k == 100) || (k == 101) || (k == 102) || (k == 103) || (k == 104) ||
+      (k == 105) || (k == 106) || (k == 107) || (k == 108) || (k == 109) ||
+      (k == 110) || (k == 111) || (k == 112) || (k == 113) || (k == 114) ||
+      (k == 115) || (k == 116) || (k == 117) || (k == 118) || (k == 119) ||
+      (k == 120) || (k == 121) || (k == 122) || (k == 123) || (k == 124) ||
+      (k == 125) || (k == 126)
+    ) {
+        return false; // Disallow the character if it's a restricted character
+    }
+
+    return true; // Allow the character if it's not restricted
+}
+
   // Manage Leave Balance
   onGetEmpLeaveBalance(template: TemplateRef<any>) {
     this.leaveBalanceList = [];
