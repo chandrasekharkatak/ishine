@@ -262,9 +262,12 @@
                                 <td *ngIf="userMapping.employee360_view_performance_config"id="clickablefor360" [navigateToEmployee360]="review.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{review.employeeName}}</td>
                                 <td *ngIf="!userMapping.employee360_view_performance_config">{{review.employeeName}}</td>
                                 <td>{{review.createdOn | date: 'yyyy-MM-dd hh:mm:ss'}}</td>
-                                <td *ngIf="userMapping.employee360_view_performance_config" id="clickablefor360" [navigateToEmployee360]="review.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{ review.updatedByName }}</td>
-                                <td>{{ review.updatedByName ?? 'NA' }}</td>
-                                <td *ngIf="!userMapping.employee360_view_performance_config">{{review.updatedOn ? (review.updatedOn | date: 'yyyy-MM-dd hh:mm:ss') : 'NA' }}</td>
+                                <td *ngIf="!userMapping.employee360_view_performance_config">{{ review.updatedByName ?? 'NA' }}</td>
+                                <td *ngIf="userMapping.employee360_view_performance_config">
+                                    <span id="clickablefor360" [navigateToEmployee360]="review.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{ review.updatedByName }}
+                                    </span>|| {{ review.updatedByName ?? 'NA' }}
+                                </td>
+                                <td>{{review.updatedOn ? (review.updatedOn | date: 'yyyy-MM-dd hh:mm:ss') : 'NA' }}</td> 
                                 <td *ngIf="!review.active == false">
                                     <button class="btn btn-sm btn-outline-primary" type="submit"
                                         (click)="showUpdateReviewForm(review)"><em

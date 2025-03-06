@@ -4857,6 +4857,7 @@ public class EmployeeService {
 					EmployeeDTO empDTO = new EmployeeDTO();
 					empDTO.setName(object[0] != null ? object[0].toString() : null);
 					empDTO.setDepartmentName(object[1] != null ? object[1].toString() : null);
+					empDTO.setEmpId(object[3] != null ? Long.parseLong(object[3].toString()): null);
 					dtoList.add(empDTO);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
