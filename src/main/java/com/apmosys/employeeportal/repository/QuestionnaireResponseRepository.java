@@ -9,4 +9,6 @@ import java.util.List;
 public interface QuestionnaireResponseRepository extends JpaRepository<QuestionnaireResponse, Long> {
     List<QuestionnaireResponse> findByEmpId(Long empId);
     List<QuestionnaireResponse> findByGoalId(Long goalId);
+	List<QuestionnaireResponse> findByEmpIdAndQuarter(Long employeeId, Integer quarter);
+	
 }

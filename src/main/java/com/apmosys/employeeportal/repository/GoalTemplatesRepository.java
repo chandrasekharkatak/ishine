@@ -12,6 +12,7 @@ public interface GoalTemplatesRepository extends JpaRepository<GoalTemplates, Lo
     List<GoalTemplates> findByDepartment(String department);
     List<GoalTemplates> findByCreatedBy(Long createdById);
     List<GoalTemplates> findByIsApproved(Boolean isApproved);
+    List<GoalTemplates> findByTemplateId(Long templateId);
 //    List<GoalTemplates> findByDepartmentId(Long departmentId);
 
 }

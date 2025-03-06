@@ -24,31 +24,15 @@ public class Kpi {
     private String name;
 
     private String description;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private GoalType type;
-
-    @Enumerated(EnumType.STRING)
-    private GoalStatus status; 
-
-    private String assignedBy;
-
-    @Column(nullable = false)
-    private String createdBy; 
-
-    private String updatedBy; 
-    
-
+ 
     private String approvedBy;
     
     private String department;
 
-    private String rejectedBy;
-
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt; 
+    
     @UpdateTimestamp
     private LocalDateTime updatedAt; 
 

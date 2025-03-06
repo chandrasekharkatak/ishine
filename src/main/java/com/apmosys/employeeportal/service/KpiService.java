@@ -2,7 +2,7 @@ package com.apmosys.employeeportal.service;
 
 import com.apmosys.employeeportal.dto.KpiDTO;
 import com.apmosys.employeeportal.model.Kpi;
-import com.apmosys.employeeportal.model.GoalStatus;
+//import com.apmosys.employeeportal.model.GoalStatus;
 import com.apmosys.employeeportal.repository.KpiRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,20 +21,17 @@ public class KpiService {
     private KpiRepository kpiRepository;
 
     private KpiDTO toDTO(Kpi kpi) {
+    	
         return KpiDTO.builder()
                 .id(kpi.getId())
                 .name(kpi.getName())
                 .description(kpi.getDescription())
-                .type(kpi.getType())
-                .status(kpi.getStatus())
-                .assignedBy(kpi.getAssignedBy())
-                .createdBy(kpi.getCreatedBy())
-                .updatedBy(kpi.getUpdatedBy())
+//                .type(kpi.getType())
+//                .status(kpi.getStatus())
                 .createdAt(kpi.getCreatedAt())
                 .updatedAt(kpi.getUpdatedAt())
                 .department(kpi.getDepartment()) 
                 .approvedBy(kpi.getApprovedBy())
-                .rejectedBy(kpi.getRejectedBy())
                 .build();
     }
 
@@ -42,13 +39,9 @@ public class KpiService {
         Kpi kpi = new Kpi();
         kpi.setName(dto.getName());
         kpi.setDescription(dto.getDescription());
-        kpi.setType(dto.getType());
-        kpi.setStatus(dto.getStatus() != null ? dto.getStatus() : GoalStatus.PENDING);
-        kpi.setAssignedBy(dto.getAssignedBy());
-        kpi.setCreatedBy(dto.getCreatedBy());
-        kpi.setUpdatedBy(dto.getUpdatedBy());
+//        kpi.setType(dto.getType());
+//        kpi.setStatus(dto.getStatus() != null ? dto.getStatus() : GoalStatus.PENDING);
         kpi.setApprovedBy(dto.getApprovedBy());
-        kpi.setRejectedBy(dto.getRejectedBy());
         kpi.setDepartment(dto.getDepartment()); 
         return kpi;
     }
@@ -77,12 +70,9 @@ public class KpiService {
         return kpiRepository.findById(id).map(existingKpi -> {
             existingKpi.setName(updatedKpiDTO.getName());
             existingKpi.setDescription(updatedKpiDTO.getDescription());
-            existingKpi.setType(updatedKpiDTO.getType());
-            existingKpi.setAssignedBy(updatedKpiDTO.getAssignedBy());
-            existingKpi.setUpdatedBy(updatedKpiDTO.getUpdatedBy());
-            existingKpi.setStatus(updatedKpiDTO.getStatus() != null ? updatedKpiDTO.getStatus() : existingKpi.getStatus());
+//            existingKpi.setType(updatedKpiDTO.getType());
+//            existingKpi.setStatus(updatedKpiDTO.getStatus() != null ? updatedKpiDTO.getStatus() : existingKpi.getStatus());
             existingKpi.setApprovedBy(updatedKpiDTO.getApprovedBy());
-            existingKpi.setRejectedBy(updatedKpiDTO.getRejectedBy());
             existingKpi.setUpdatedAt(LocalDateTime.now()); 
             return toDTO(kpiRepository.save(existingKpi));
         }).orElseThrow(() -> new EntityNotFoundException("KPI not found with ID: " + id));
@@ -100,8 +90,7 @@ public class KpiService {
    
     public KpiDTO rejectKpi(Long id) {
         return kpiRepository.findById(id).map(kpi -> {
-            kpi.setStatus(GoalStatus.REJECTED);
-            kpi.setRejectedBy("HOD/Manager");  
+//            kpi.setStatus(GoalStatus.REJECTED);
             kpi.setUpdatedAt(LocalDateTime.now());
             return toDTO(kpiRepository.save(kpi));
         }).orElseThrow(() -> new EntityNotFoundException("KPI not found with ID: " + id));
@@ -110,7 +99,7 @@ public class KpiService {
    
     public KpiDTO approveKpi(Long id) {
         return kpiRepository.findById(id).map(kpi -> {
-            kpi.setStatus(GoalStatus.APPROVED);
+//            kpi.setStatus(GoalStatus.APPROVED);
             kpi.setApprovedBy("HOD/Manager"); 
             kpi.setUpdatedAt(LocalDateTime.now());
             return toDTO(kpiRepository.save(kpi));
@@ -120,7 +109,7 @@ public class KpiService {
    
     public List<KpiDTO> bulkApproveKpis(List<Long> kpiIds) {
         List<Kpi> kpis = kpiRepository.findAllById(kpiIds);
-        kpis.forEach(kpi -> kpi.setStatus(GoalStatus.APPROVED));
+//        kpis.forEach(kpi -> kpi.setStatus(GoalStatus.APPROVED));
         return kpiRepository.saveAll(kpis).stream().map(this::toDTO).collect(Collectors.toList());
     }
 

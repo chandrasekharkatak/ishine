@@ -11,10 +11,12 @@ public class QuestionnaireResponseDTO {
 	private Long empId;
 	
 	private Long questionId;
-	
+
 	private String questionTitle;
 	
 	private Long responseId;
+	
+	private Integer quarter;
 	
 	private String response;
 	

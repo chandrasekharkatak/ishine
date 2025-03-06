@@ -20,6 +20,7 @@ public class QuestionnaireResponseService {
         response.setQuestionId(dto.getQuestionId());
         response.setQuestionTitle(dto.getQuestionTitle());
         response.setResponse(dto.getResponse());
+        response.setQuarter(dto.getQuarter());
         response.setRemarks(dto.getRemarks());
         response.setScore(dto.getScore());
 
@@ -47,6 +48,7 @@ public class QuestionnaireResponseService {
         dto.setQuestionId(response.getQuestionId());
         dto.setQuestionTitle(response.getQuestionTitle());
         dto.setResponse(response.getResponse());
+        dto.setQuarter(response.getQuarter());
         dto.setRemarks(response.getRemarks());
         dto.setScore(response.getScore());
         return dto;

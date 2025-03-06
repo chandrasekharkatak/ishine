@@ -30,7 +30,4 @@ public class AppraisalStatusController {
 	public ServiceResponse createQuarter(@RequestBody QuarterDto quarterDto) {
 	    return quarterService.saveQuarter(quarterDto);
 	}
-		
-	
-	
 }

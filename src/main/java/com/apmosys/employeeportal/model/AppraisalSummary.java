@@ -19,8 +19,6 @@ public class AppraisalSummary {
 	
 	private Long employeeId;
 	
-	private Integer QuarterId;
-	
 	private Float finalRating;
 	
 	private String finalRemarks;
@@ -28,4 +26,5 @@ public class AppraisalSummary {
 	private Float appraisalScore;
 	
 	private String appraisalPercentage;
+
 }

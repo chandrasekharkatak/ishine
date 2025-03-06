@@ -16,12 +16,12 @@ public class QuestionnaireResponse {
 	private Long goalId;
 	
 	private Long empId;
-	
     
 	private Long questionId;
 	
 	private String questionTitle;
 
+	private Integer quarter; 
 	
 	private String response;
 	

@@ -5,8 +5,7 @@ import lombok.*;
 @Setter
 public class AppraisalSummaryDto {
 	private Long employeeId;
-	private Long quarterId;
-	private Integer finalRating;
+	private Float finalRating;
 	private String finalRemarks;
 	private Float appraisalScore;
 	private String appraisalPercentage;

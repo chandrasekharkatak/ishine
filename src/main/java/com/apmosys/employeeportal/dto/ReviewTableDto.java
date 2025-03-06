@@ -10,9 +10,9 @@ import lombok.*;
 @Setter
 public class ReviewTableDto {
 	private Long employeeId;
-	private Long goalId;
+//	private Long goalId;
 	private Long kpiId;
-	private Long reviewerId;
+	private Integer reviewerId;
 	private Integer quarterId;
 	private Float rating;
 	private String remarks;
@@ -20,6 +20,6 @@ public class ReviewTableDto {
 	@JsonFormat(pattern = "dd/MM/yyyy")
 	private LocalDate reviewDate;
 	
-	private Integer kpiScore;
+	private Float kpiScore;
 	
 }

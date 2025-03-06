@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.dto;
 
+//import com.apmosys.employeeportal.model.EmployeeGoals.ReviewStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,26 +9,29 @@ import lombok.*;
 
 import java.time.LocalDate;
 
-@Getter
-@Setter
+@Data
 public class EmployeeGoalDTO {
 
     private Long goalId;
 
     
     private Long empId;
+    
+    private Long templateId;
 
    
-    private String assignedBy;
+    private Long assignedBy;
 
    
     private String goalTitle;
 
     
     private String goalProgress;
+    
+    private String goalStatus;
 
    
-    private String reviewStatus;
+    private Long reviewStatus;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate expectedCompletionDate;
@@ -35,8 +39,9 @@ public class EmployeeGoalDTO {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate actualCompletionDate;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate createdDate;
-    private LocalDate updatedDate;
+    
 }
 
 

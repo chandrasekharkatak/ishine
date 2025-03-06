@@ -1,109 +1,161 @@
 package com.apmosys.employeeportal.service;
 
-import com.apmosys.employeeportal.dto.EmployeeGoalDTO;
-import com.apmosys.employeeportal.model.EmployeeGoals;
-import com.apmosys.employeeportal.repository.EmployeeGoalRepository;
-import com.apmosys.employeeportal.utility.ServiceResponse;
+import java.time.LocalDate;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import com.apmosys.employeeportal.dto.EmployeeGoalDTO;
+import com.apmosys.employeeportal.model.EmployeeGoals;
+import com.apmosys.employeeportal.model.GoalTemplates;
+import com.apmosys.employeeportal.repository.EmployeeGoalRepository;
+import com.apmosys.employeeportal.repository.GoalTemplatesRepository;
+import com.apmosys.employeeportal.utility.ServiceResponse;
+import java.util.*;
 
 @Service
 public class EmployeeGoalService {
 
     @Autowired
     private EmployeeGoalRepository employeeGoalRepository;
+    
+    @Autowired
+    private GoalTemplatesRepository goalTemplateRepo;
+    
+    @Autowired
+    private GoalTemplateService goalTemplateService;
+    
+    public EmployeeGoalDTO assignGoalToEmployee(Long empId, Long templateId, LocalDate expectedCompletionDate) {
+        ServiceResponse response = goalTemplateService.getGoalTemplateById(templateId);
 
-   
-    private EmployeeGoalDTO convertToDTO(EmployeeGoals goal) {
-        EmployeeGoalDTO dto = new EmployeeGoalDTO();
-        
-        dto.setGoalId(goal.getGoalId());
-        dto.setEmpId(goal.getEmpId());
-        dto.setAssignedBy(goal.getAssignedBy());
-        dto.setGoalTitle(goal.getGoalTitle());
-        dto.setGoalProgress(goal.getGoalProgress().name());
-        dto.setReviewStatus(goal.getReviewStatus().name());
-        dto.setExpectedCompletionDate(goal.getExpectedCompletionDate());
-        dto.setActualCompletionDate(goal.getActualCompletionDate());
-        dto.setCreatedDate(goal.getCreatedDate());
-        dto.setUpdatedDate(goal.getUpdatedDate());
-        
-        return dto;
+        if (!ServiceResponse.STATUS_SUCCESS.equals(response.getServiceStatus())) {
+            throw new RuntimeException("Goal template not found with ID: " + templateId);
+        }
+
+//        GoalTemplatesDto template = (GoalTemplatesDto) response.getServiceResponse();
+        Optional<GoalTemplates> vopt=goalTemplateRepo.findById(templateId);
+        GoalTemplates template=null;
+          if(vopt.isPresent()) template=vopt.get();
+//        System.out.println("Template: " + template.getTitle() + ", HOD ID: " + template.getCreatedById());
+
+        EmployeeGoalDTO employeeGoalDTO = new EmployeeGoalDTO();
+        employeeGoalDTO.setEmpId(empId);
+        employeeGoalDTO.setTemplateId(templateId);
+        employeeGoalDTO.setAssignedBy(template.getCreatedBy());
+        employeeGoalDTO.setGoalTitle(template.getTitle());
+//        employeeGoalDTO.setGoalTitle(template.getTitle());
+        employeeGoalDTO.setGoalProgress("Not Started"); // Default status
+        employeeGoalDTO.setGoalStatus("Pending"); // Default review status
+        employeeGoalDTO.setExpectedCompletionDate(expectedCompletionDate);
+        employeeGoalDTO.setCreatedDate(LocalDate.now());
+
+        // Convert DTO to entity, save, and convert back to DTO
+        EmployeeGoals savedGoal = employeeGoalRepository.save(convertToEntity(employeeGoalDTO));
+        return convertToDTO(savedGoal);
     }
-
-        private EmployeeGoals convertToEntity(EmployeeGoalDTO dto) {
-        EmployeeGoals goal = new EmployeeGoals();
+    
+    public ServiceResponse getGoalsByEmployeeId(Long empId) {
+        ServiceResponse response = new ServiceResponse();
         
-        goal.setGoalId(dto.getGoalId());
-        goal.setEmpId(dto.getEmpId());
-        goal.setAssignedBy(dto.getAssignedBy());
-        goal.setGoalTitle(dto.getGoalTitle());
+        try {
+            List<EmployeeGoals> goals = employeeGoalRepository.findByEmpId(empId);
+            
+            if (!goals.isEmpty()) {
+                List<EmployeeGoalDTO> dtoList = goals.stream()
+                        .map(this::convertToDTO)
+                        .collect(Collectors.toList());
+                
+                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(dtoList);
+                response.setServiceMessage("Employee goals retrieved successfully");
+            } else {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceMessage("No goals found for employee with ID: " + empId);
+            }
+        } catch (Exception e) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceError(e.getMessage());
+            response.setServiceMessage("Error retrieving employee goals");
+        }
         
-                goal.setGoalProgress(EmployeeGoals.GoalProgress.valueOf(dto.getGoalProgress()));
-        goal.setReviewStatus(EmployeeGoals.ReviewStatus.valueOf(dto.getReviewStatus()));
-        
-        goal.setExpectedCompletionDate(dto.getExpectedCompletionDate());
-        goal.setActualCompletionDate(dto.getActualCompletionDate());
-        
-        return goal;
+        return response;
     }
-
-        public ServiceResponse getAllEmployeeGoals() {
+    
+    public ServiceResponse getAllEmployeeGoals() {
         ServiceResponse response = new ServiceResponse();
         
         try {
             List<EmployeeGoals> goals = employeeGoalRepository.findAll();
+            List<EmployeeGoalDTO> dtoList = goals.stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList());
             
-            if (goals.isEmpty()) {
-            	
-                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-                response.setServiceMessage("No employee goals found.");
-                response.setServiceResponse(List.of());
-            } else {
-                List<EmployeeGoalDTO> goalDTOs = goals.stream()
-                                                      .map(this::convertToDTO)
-                                                      .collect(Collectors.toList());
-                
-                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-                response.setServiceMessage("Fetched all employee goals successfully.");
-                response.setServiceResponse(goalDTOs);
-            }
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse(dtoList);
+            response.setServiceMessage("Employee goals retrieved successfully");
         } catch (Exception e) {
             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-            response.setServiceMessage(ServiceResponse.SOMETHING_WENT_WRONG);
             response.setServiceError(e.getMessage());
+            response.setServiceMessage("Error retrieving employee goals");
         }
         
         return response;
     }
-        
-        
-    public ServiceResponse getEmployeeGoalById(Long id) {
+    
+    public ServiceResponse getEmployeeGoalById(Long goalId) {
         ServiceResponse response = new ServiceResponse();
         
         try {
-            Optional<EmployeeGoals> goal = employeeGoalRepository.findById(id);
+            Optional<EmployeeGoals> goalOpt = employeeGoalRepository.findById(goalId);
             
-            if (goal.isPresent()) {
+            if (goalOpt.isPresent()) {
+                EmployeeGoalDTO dto = convertToDTO(goalOpt.get());
+                
                 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-                response.setServiceMessage("Employee goal found.");
-                response.setServiceResponse(convertToDTO(goal.get()));
+                response.setServiceResponse(dto);
+                response.setServiceMessage("Employee goal retrieved successfully");
             } else {
                 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceMessage("Goal not found for ID: " + id);
+                response.setServiceMessage("Employee goal not found with ID: " + goalId);
             }
         } catch (Exception e) {
             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-            response.setServiceMessage(ServiceResponse.SOMETHING_WENT_WRONG);
             response.setServiceError(e.getMessage());
+            response.setServiceMessage("Error retrieving employee goal");
         }
         
         return response;
+    }
+    private EmployeeGoalDTO convertToDTO(EmployeeGoals entity) {
+        EmployeeGoalDTO dto = new EmployeeGoalDTO();
+        dto.setGoalId(entity.getGoalId());
+        dto.setEmpId(entity.getEmpId());
+        dto.setTemplateId(entity.getTemplateId());
+        dto.setAssignedBy(entity.getAssignedBy());
+        dto.setGoalTitle(entity.getGoalTitle());
+        dto.setGoalProgress(entity.getGoalProgress());
+        dto.setGoalStatus(entity.getGoalStatus());
+        dto.setExpectedCompletionDate(entity.getExpectedCompletionDate());
+        dto.setActualCompletionDate(entity.getActualCompletionDate());
+        dto.setCreatedDate(entity.getCreatedDate());
+        return dto;
+    }
+    
+    private EmployeeGoals convertToEntity(EmployeeGoalDTO dto) {
+        EmployeeGoals entity = new EmployeeGoals();
+        entity.setGoalId(dto.getGoalId());
+        entity.setEmpId(dto.getEmpId());
+        entity.setTemplateId(dto.getTemplateId());
+        entity.setAssignedBy(dto.getAssignedBy());
+        entity.setGoalTitle(dto.getGoalTitle());
+        entity.setGoalProgress(dto.getGoalProgress());
+        entity.setGoalStatus(dto.getGoalStatus());
+        entity.setExpectedCompletionDate(dto.getExpectedCompletionDate());
+        entity.setActualCompletionDate(dto.getActualCompletionDate());
+        entity.setCreatedDate(dto.getCreatedDate());
+        return entity;
     }
 
 }

@@ -17,6 +17,7 @@ public class ActivityController {
 	@Autowired
 	ActivitiesService activitiesService;
 	
+	
 	@RequestMapping(value="/createActivity" , method = RequestMethod.POST)
 	public ServiceResponse createActivity(@RequestBody ActivityDTO activityDTO) {		
 		

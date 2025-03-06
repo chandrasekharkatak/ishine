@@ -13,8 +13,8 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "employee_goals")
-@Getter
 @Setter
+@Getter
 public class EmployeeGoals {
     
     @Id
@@ -25,16 +25,16 @@ public class EmployeeGoals {
     private Long empId;
 
    
-    private String assignedBy;
+    private Long assignedBy;
 
+    private Long templateId;
     
     private String goalTitle;
 
-    @Enumerated(EnumType.STRING)
-    private GoalProgress goalProgress;
-
-    @Enumerated(EnumType.STRING)
-    private ReviewStatus reviewStatus;
+    private String goalProgress;
+    
+    private String goalStatus;
+   
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate expectedCompletionDate;
@@ -44,19 +44,10 @@ public class EmployeeGoals {
 
     @CreatedDate
     @Column(updatable = false)
-    private LocalDate createdDate;
-
-    @LastModifiedDate
-    private LocalDate updatedDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate createdDate;    
     
-    
-    public enum GoalProgress {
-        NOT_STARTED, IN_PROGRESS, COMPLETED, ON_HOLD
-    }
 
-    public enum ReviewStatus {
-        PENDING, APPROVED, REJECTED, UNDER_REVIEW
-    }
 
 	
 }

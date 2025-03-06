@@ -10,7 +10,6 @@ public class GoalTemplatesDto {
     private Long quarterId;
     private String description;
     private Long createdById;
-    private String createdByName;
     private Long departmentId;
     private String department;
     private Long approvedById;
