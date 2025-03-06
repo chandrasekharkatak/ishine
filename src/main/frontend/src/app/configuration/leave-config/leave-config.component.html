@@ -389,7 +389,8 @@
                     </div>
                     <div class="d-flex">
                         <h6 class="ml-3">JobRole : <span style=" color: #193d8a;">{{employee.jobRoleName}}</span></h6>
-                        <h6 class="ml-3">Manager Name : <span style=" color: #193d8a;">{{employee.managerName}}</span></h6>
+                        <h6 class="ml-3">Manager Name : <span *ngIf="!userMapping.employee360_view_leave_config"  style=" color: #193d8a;">{{employee.managerName}}</span></h6>
+                        <h6 class="ml-3">Manager Name : <span *ngIf="userMapping.employee360_view_leave_config" id="clickablefor360" [navigateToEmployee360]="employee.emp360ManagerId" style="cursor: pointer;">{{employee.managerName}}</span></h6>
                         <h6 class="ml-3">Employee Status : <span style=" color: #193d8a;">{{employee.employmentStatus}}</span></h6>
                     </div>
                 </div>

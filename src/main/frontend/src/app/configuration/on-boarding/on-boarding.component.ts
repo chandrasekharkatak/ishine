@@ -136,13 +136,17 @@ export class OnBoardingComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.employeeOnBoardingDetailList = response.serviceResponse;
         this.employeeDetailList = response.serviceResponse1;
-        //console.log(this.employeeOnBoardingDetailList, ' : employeeOnBoardingDetailList');
         this.employeeDetailList.forEach((employee) => {
-          // console.log("employee.empId ", employee.empId);
+          console.log("employee.empId ", employee.empId);
           let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
-          // console.log("empId ", matchingEmployee);
+          console.log("empId ", matchingEmployee);
           employee.emp360 = matchingEmployee ? matchingEmployee : {};
+          console.log("employee.managerId ", employee.managerId);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.managerId);
+          console.log("managerId ", matchingEmployee3);
+          employee.emp360ManagerId = matchingEmployee3 ? matchingEmployee3 : {};
         });
+        console.log(this.employeeOnBoardingDetailList, ' : employeeOnBoardingDetailList');
         const key = "deptId";
         this.departmentList = [...new Map(this.employeeOnBoardingDetailList.map((employee:Asset) => [employee[key], employee])).values()].map((employee:Asset) => {
           return { departmentName: employee.departmentName, deptId: employee.deptId}

@@ -1025,6 +1025,10 @@ export class LeaveConfigComponent implements OnInit {
           let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
           // console.log("empId ", matchingEmployee);
           employee.emp360 = matchingEmployee ? matchingEmployee : {};
+          // console.log("employee.managerId ", employee.managerId);
+          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === employee.managerId);
+          // console.log("managerId ", matchingEmployee);
+          employee.emp360ManagerId = matchingEmployee2 ? matchingEmployee2 : {};
         });
       } else {
         this.openAlertMod(template, response.serviceResponse);
