@@ -41,8 +41,10 @@
                 <tr>
                     <th scope="col" class="info-label"  >Sr.No</th>
                     <th scope="col" class="info-label"  mat-sort-header="typeName|string">Type</th>
-                    <th scope="col" class="info-label"  mat-sort-header="createdOn|datetime">created On</th>
+                    <th scope="col" class="info-label"  mat-sort-header="createdOn|datetime">Created On</th>
                     <th scope="col" class="info-label"  mat-sort-header="name|string">Created By</th>
+                    <th scope="col" class="info-label"  mat-sort-header="updatedOn|datetime">Updated On</th>
+                    <th scope="col" class="info-label"  mat-sort-header="updatedByName|string">Updated By</th>
                     <th scope="col" class="info-label"  >Action</th>
                 </tr>
                 <tr app-column-filter-bar *ngIf="type && isSearchEnabled"
@@ -56,7 +58,11 @@
                     <th class="info-label">{{10*(page-1)+i+1}}</th>
                     <td>{{type.typeName}}</td>
                     <td>{{type.createdOn}}</td>
-                    <td>{{type.name}}</td>
+                    <td *ngIf="userMapping.employee360_view_document_config" id="clickablefor360" [navigateToEmployee360]="type.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{type.name}}</td>
+                    <td *ngIf="!userMapping.employee360_view_document_config">{{type.name}}</td>
+                    <td>{{type.updatedOn}}</td>
+                    <td *ngIf="userMapping.employee360_view_document_config"id="clickablefor360" [navigateToEmployee360]="type.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{type.updatedByName}}</td>
+                    <td *ngIf="!userMapping.employee360_view_document_config">{{type.updatedByName}}</td>
                     <td>
                         <button *ngIf="userMapping.delete_newsletter" class="btn btn-outline-primary" type="button" (click)="showUpdateForm(type)"><em class="fa fa-edit"></em></button>&nbsp;
                             <button class="btn btn-outline-danger" type="button"  (click)="openDeleteModal(delete_type_modal,type)"><em class="fa fa-trash"></em></button>&nbsp;
@@ -89,6 +95,8 @@
                     <th scope="col" class="info-label" mat-sort-header="typeName|string">Type</th>
                     <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">created On</th>
                     <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By</th>
+                    <!-- <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
+                    <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By</th> -->
                     <th scope="col" class="info-label" >Action</th>
                 </tr>
                 <tr app-column-filter-bar *ngIf="document && isSearchEnableddocument"
@@ -104,7 +112,11 @@
                     <td>{{doc.fileName}}</td>
                     <td>{{doc.typeName}}</td>
                     <td>{{doc.createdOn}}</td>
-                    <td>{{doc.createdByName}}</td>
+                    <td *ngIf="!userMapping.employee360_view_document_config">{{doc.createdByName}}</td>
+                    <td *ngIf="userMapping.employee360_view_document_config" id="clickablefor360" [navigateToEmployee360]="doc.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{doc.createdByName}}</td>
+                    <!-- <td>{{doc.updatedOn}}</td>
+                    <td id="clickablefor360" [navigateToEmployee360]="doc.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{doc.updatedByName}}</td>
+                    <td>{{doc.updatedByName}}</td> -->
                     <td>
                             <!-- <button *ngIf="userMapping.delete_newsletter" class="btn btn-outline-primary" type="button"><em class="fa fa-edit"></em></button>&nbsp; -->
                             <button class="btn btn-outline-danger" type="button" (click)="deleteDoc(delete_template,doc)"><em class="fa fa-trash"></em></button>&nbsp;

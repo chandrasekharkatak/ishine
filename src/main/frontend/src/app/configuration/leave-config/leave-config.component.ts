@@ -13,6 +13,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { HolidayService } from 'src/app/services/holiday.service';
 import { LeaveService } from 'src/app/services/leave.service';
+import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
@@ -126,6 +127,7 @@ export class LeaveConfigComponent implements OnInit {
   leaveTypeColumns:any[] = ['leaveType', 'leaveTypeCode', 'gender', 'noOfDays','rules', 'updatedOn', 'updatedByName', 'description'];
   leavePolicyColumns:any[] = ['blank','leavePolicyName','leaveType','description','createdByName','createdOn','updatedOn','updatedByName'];
 
+  employeesFor360: any[] = [];
 
   constructor(
     private validationService: ValidationService,
@@ -135,11 +137,20 @@ export class LeaveConfigComponent implements OnInit {
     private datePipe: DatePipe,
     private leaveService: LeaveService,
     private exportExcelService: ExportExcelService,
-    private locationStrategy: LocationStrategy) {
+    private locationStrategy: LocationStrategy,
+    private utilityService: UtilityService,
+  ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
+
     // Dynamic Subfeature Flags 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -662,6 +673,16 @@ export class LeaveConfigComponent implements OnInit {
         this.holidayListFilter = response.serviceResponse;
         this.holidayList = response.serviceResponse;
         
+        this.holidayListFilter.forEach((employee) => {
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          // console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          // console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+        });
 
         this.holidayListFilter.forEach(holiday => {
           holiday.dateOfHoliday = (holiday.dateOfHoliday) ? moment(holiday.dateOfHoliday).format(AppComponent.DATE_FORMAT) : null;
@@ -829,6 +850,7 @@ export class LeaveConfigComponent implements OnInit {
     this.leaveTypeObj.leaveTypeCode = this.leaveTypeObj.leaveTypeCode?.trim();
     this.leaveTypeObj.description = this.leaveTypeObj.description?.trim();
     this.leaveTypeObj.rules = this.leaveTypeObj.rules?.trim();
+    this.leaveTypeObj.createdBy = this.currentUser.empId;
 
     let inputValidated: boolean = this.validateLeaveTypeObj(this.leaveTypeObj, template)
     if (!inputValidated) return;
@@ -877,7 +899,20 @@ export class LeaveConfigComponent implements OnInit {
         //console.log("leaveTypes : ", this.leaveTypes);
         this.leaveTypes.forEach((leaveObj)=>{
           leaveObj.updatedOn = (leaveObj.updatedOn) ? moment(leaveObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+          leaveObj.createdOn = (leaveObj.createdOn) ? moment(leaveObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         })
+        this.leaveTypes.forEach((employee) => {
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          // console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          // console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+        });
+        
+        console.log("leaveTypes : ", this.leaveTypes);
       } else {
         console.error(response.serviceResponse);
       }
@@ -985,6 +1020,12 @@ export class LeaveConfigComponent implements OnInit {
         this.employeeData = response.serviceResponse2;
         //console.log("employeeData : ", this.employeeData);
         //console.log("leaveBalanceList : ", this.leaveBalanceList);
+        this.employeeData.forEach((employee) => {
+          // console.log("employee.empId ", employee.empId);
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
+          // console.log("empId ", matchingEmployee);
+          employee.emp360 = matchingEmployee ? matchingEmployee : {};
+        });
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -1242,6 +1283,16 @@ export class LeaveConfigComponent implements OnInit {
         this.leavePolicyList.forEach(leavePolicy => {
           leavePolicy.createdOn = (leavePolicy.createdOn) ? moment(leavePolicy.createdOn).format(AppComponent.DATE_FORMAT) : null;
           leavePolicy.updatedOn = (leavePolicy.updatedOn) ? moment(leavePolicy.updatedOn).format(AppComponent.DATE_FORMAT) : null;
+        });
+        this.leavePolicyList.forEach((employee) => {
+         // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          // console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          // console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
         });
         //console.log("leavePolicyList : ", this.leavePolicyList);
       } else {

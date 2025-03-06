@@ -117,6 +117,7 @@
                           <tr *ngFor="let image of eventImages | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                             <td>{{image.eventName}}</td>
                             <td>{{image.eventCaption}}</td>
+                            <td *ngIf="userMapping.employee360_view_home_config" id="clickablefor360" [navigateToEmployee360]="image.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{image.createdByName}}</td>
                             <td>{{image.createdByName}}</td>
                             <td>{{image.createdOn}}</td>
                             <td>
@@ -289,8 +290,10 @@
                             <td [innerHTML]="notification.notificationMessage"></td>
                             <td>{{notification.notificationType == 'consentNotification' ? 'Consent Notification' : notification.notificationType == 'releaseNotes' ? 'Release Notes' : 'Notification'}}</td>
                             <td>{{notification.isActive == 'true' ? 'Yes' : 'No'}}</td>
+                            <td id="clickablefor360" [navigateToEmployee360]="notification.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{notification.createdByName}}</td>
                             <td>{{notification.createdByName}}</td>
                             <td>{{notification.createdOn}}</td>
+                            <td id="clickablefor360" [navigateToEmployee360]="notification.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{notification.updatedByName}}</td>
                             <td>{{notification.updatedByName}}</td>
                             <td>{{notification.updatedOn}}</td>
                             <td>

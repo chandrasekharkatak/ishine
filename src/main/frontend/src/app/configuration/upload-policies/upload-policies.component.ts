@@ -13,6 +13,7 @@ import { Sort } from '@angular/material/sort';
 import { LocationStrategy } from '@angular/common';
 import * as moment from 'moment';
 import { AppComponent } from 'src/app/app.component';
+import { UtilityService } from 'src/app/services/utility.service';
 
 
 
@@ -63,18 +64,27 @@ export class UploadPoliciesComponent implements OnInit {
   documentsColumns:any[] = ['blank','fileName','policyName','createdByName','createdOn'];
   readResponseColumns:any[] = ['blank','name','empId','policyName','readEnabled'];
 
+  employeesFor360: any[] = [];
+
   constructor(private uploadPoliciesService : UploadPoliciesService,
   private validationService: ValidationService,
   private modalService: BsModalService,
   private authenticationService: AuthenticationService,
   private notificationService: NotificationService,
-  private locationStrategy: LocationStrategy
+  private locationStrategy: LocationStrategy,
+  private utilityService: UtilityService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
 
    }
 
-  ngOnInit(): void {
+   async ngOnInit(): Promise<void> {
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -227,6 +237,12 @@ export class UploadPoliciesComponent implements OnInit {
         this.document =  response.serviceResponse;
         this.document.forEach(doc => {
           doc.createdOn = (doc.createdOn)? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
+        this.document.forEach((employee) => {
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
         });
         //console.log("DocumentList : ", this.document);
       } else {

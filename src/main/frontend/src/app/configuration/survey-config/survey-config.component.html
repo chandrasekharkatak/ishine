@@ -170,7 +170,8 @@
                       <tr *ngFor="let survey of allSurveyList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                         <td>{{survey.surveyName}}</td>
                         <td>{{survey.description}}</td>
-                        <td>{{(survey.isActive == 'true')? 'Active' : (survey.isActive == 'false')? 'In-Active' : 'Completed'}}</td>
+                        <td  *ngIf="!userMapping.employee360_view_survey_config">{{(survey.isActive == 'true')? 'Active' : (survey.isActive == 'false')? 'In-Active' : 'Completed'}}</td>
+                        <td  *ngIf="userMapping.employee360_view_survey_config" id="clickablefor360" [navigateToEmployee360]="survey.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{survey.createdByName}}</td>
                         <td>{{survey.createdByName}}</td>
                         <td>{{survey.createdOn}}</td>
                         <td>

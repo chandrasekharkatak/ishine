@@ -597,7 +597,8 @@ public class RewardsService {
 	                    if (commonProperties.getUpdatedBy() == null) {
 	                        rewardDTO.setUpdatedByName(null); // Assuming updatedByName is correct
 	                    } else {
-	                        rewardDTO.setUpdatedByName(getEmployeeNameByEmpId(commonProperties.getUpdatedBy()));   
+	                        rewardDTO.setUpdatedByName(getEmployeeNameByEmpId(commonProperties.getUpdatedBy()));  
+	                        rewardDTO.setUpdatedBy(commonProperties.getUpdatedBy());  
 	                    } 
 
 	                    if (commonProperties.getUpdatedOn() == null) {
@@ -610,6 +611,7 @@ public class RewardsService {
 	                        rewardDTO.setCreatedByName(null); 
 	                    } else {
 	                        rewardDTO.setCreatedByName(getEmployeeNameByEmpId(commonProperties.getCreatedBy()));
+	                        rewardDTO.setCreatedBy(commonProperties.getCreatedBy());
 	                    }
 
 	                	

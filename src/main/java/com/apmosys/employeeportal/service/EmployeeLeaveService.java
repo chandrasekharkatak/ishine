@@ -2068,6 +2068,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 						empDto.setDepartmentName(object[2] != null ? object[2].toString() : null);
 						empDto.setEmploymentStatus(object[3] != null ? object[3].toString() : null);
 						empDto.setEmployeeName(employee.getName());
+						empDto.setEmpId(employee.getEmpId());
 						employeeDataList.add(empDto);
 					});
 

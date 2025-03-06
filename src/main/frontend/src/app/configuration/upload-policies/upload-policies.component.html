@@ -101,7 +101,8 @@
                             <th class="info-label">{{10*(page-1)+i+1}}</th>
                             <td>{{doc.fileName}}</td>
                             <td>{{doc.policyName}}</td>
-                            <td>{{doc.createdByName}}</td>
+                            <td *ngIf="userMapping.employee360_view_survey_config" id="clickablefor360" [navigateToEmployee360]="doc.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{doc.createdByName}}</td>
+                            <td *ngIf="!userMapping.employee360_view_survey_config">{{doc.createdByName}}</td>
                             <td>{{doc.createdOn}}</td>
                             <td>
                                 <button  *ngIf="userMapping.delete_document" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteDocument(delete_template,doc)" ><em class="fa fa-trash"></em></button>&nbsp;

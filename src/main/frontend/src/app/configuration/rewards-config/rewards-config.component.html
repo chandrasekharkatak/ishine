@@ -239,8 +239,10 @@
                                 <td>{{reward.rewardName}}</td>
                                 <td>{{ reward.categoryName || 'N/A' }}</td>
                                 <td>{{ reward.rewardTypes?.join(', ') || 'N/A' }}</td>
+                                <td *ngIf="userMapping.employee360_view_reward_config" id="clickablefor360" [navigateToEmployee360]="reward.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{ reward.createdByName }}</td>
                                 <td>{{ reward.createdByName || 'N/A' }}</td>
                                 <td>{{ reward.createdOn || 'N/A' }}</td>
+                                <td *ngIf="userMapping.employee360_view_reward_config" id="clickablefor360" [navigateToEmployee360]="reward.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{ reward.updatedByName}}</td>
                                 <td>{{ reward.updatedByName || 'N/A' }}</td>
                                 <td>{{ reward.updatedOn || 'N/A' }}</td>
                                 <td>
