@@ -406,8 +406,10 @@ editReward(rewardId: number) {
                                   createdOn: rewardData.createdOn || null,
                                   teamId:rewardData.teamId || null,
                                   selectedType:rewardData.rewardTypeName || null,
-                                  ofmonthyear:rewardData.ofmonthyear || null
-              };
+                                  ofmonthyear:rewardData.ofmonthyear || null,
+                                  emp360CreatedBy: rewardData.emp360CreatedBy || null,
+                                  emp360UpdatedBy: rewardData.emp360UpdatedBy || null,
+              };                  
 
               this.sumbitRewards.managerName = rewardData.managerName;
               this.sumbitRewards.teamLeadId = rewardData.teamLeadId;

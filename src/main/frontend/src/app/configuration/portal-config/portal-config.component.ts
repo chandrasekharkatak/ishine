@@ -24,6 +24,7 @@ import { saveAs } from "file-saver";
 import { ClipboardService } from 'ngx-clipboard';
 import { HolidayService } from 'src/app/services/holiday.service';
 import { Holiday } from 'src/app/models/holiday';
+import { UtilityService } from 'src/app/services/utility.service';
 
 
 
@@ -120,6 +121,8 @@ export class PortalConfigComponent implements OnInit {
   appreciationTableColumns:any[] = ['appreciateType', 'appreciationToName', 'appreciationByName','appreciationDate', 'managerName', 'reason'];
   documentsColumns:any[] = ['blank','fileName','helpDocumentName','createdByName','createdOn'];
 
+  employeesFor360:any[] = [];
+
   constructor(
     private portalService: PortalService,
     private validationService: ValidationService,
@@ -132,11 +135,18 @@ export class PortalConfigComponent implements OnInit {
     private datePipe: DatePipe,
     private clipboardService: ClipboardService,
     private holidayService : HolidayService,
+    private utilityService: UtilityService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
     // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -1185,7 +1195,13 @@ export class PortalConfigComponent implements OnInit {
         this.document.forEach(doc => {
           doc.createdOn = (doc.createdOn)? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
-        //console.log("DocumentList : ", this.document);
+        this.document.forEach((employee) => {
+          console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+        });
+        console.log("DocumentList : ", this.document);
       } else {
         console.error(response.serviceResponse);
       }

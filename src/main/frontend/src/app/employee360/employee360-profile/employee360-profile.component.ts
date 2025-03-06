@@ -1768,7 +1768,7 @@ export class Employee360ProfileComponent implements OnInit {
     this.employeeService.updateEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
-        // this.showTable();
+         this.showViewProfile();
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }

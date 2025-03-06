@@ -221,7 +221,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   currentIndex: any = 0; 
   currentGroup: any = null;
   scrollDelay: number = 18700;
-  allEmployeeList360: any[] = [];
+  employeesFor360: any[] = [];
 
   constructor(
     private modalService: BsModalService,
@@ -242,7 +242,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
     public utilityService: UtilityService,
     private cdr: ChangeDetectorRef,
     public employee360Service: Employee360Service,
-
   ) {
     this.authenticationService.currentUser.subscribe(x => {
       this.currentUser = x;
@@ -274,7 +273,13 @@ LmsRedirection(){
 
 }
 
-  ngOnInit(): void {
+async ngOnInit(): Promise<void> {
+  try {
+    this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+    // console.log("Priyadarshini ", this.employeesFor360);
+  } catch (error) {
+    console.error("Error fetching employee details for 360 view", error);
+  }
   console.log("current user", this.currentUser.isNew);
     if (this.currentUser.isNew === "true") {
       sessionStorage.setItem('isFirstTimeLogin', 'true');
@@ -319,7 +324,6 @@ LmsRedirection(){
  
    this.preventBackButton();
    this.isEmployeeOnBench();
-   this.getAllEmployeeFor360View();
     //console.log('User Mapping', this.userMapping);
   }
 
@@ -374,7 +378,7 @@ LmsRedirection(){
             leave.currentApprovalLevel = 1;
             leave.finalApprovalLevel = 1;
           }
-          let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId === leave.empId);
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === leave.empId);
           leave.emp360 = matchingEmployee ? matchingEmployee : {};
 
         });
@@ -482,7 +486,7 @@ LmsRedirection(){
           compOff.fromDate = (compOff.fromDate) ? moment(compOff.fromDate).format(AppComponent.DATE_FORMAT) : null;
           compOff.toDate = (compOff.toDate) ? moment(compOff.toDate).format(AppComponent.DATE_FORMAT) : null;
           compOff.createdOn = (compOff.createdOn) ? moment(compOff.createdOn).format(AppComponent.DATE_FORMAT) : null;
-          let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId === compOff.empId);
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === compOff.empId);
           compOff.emp360 = matchingEmployee ? matchingEmployee : {};
 
         });
@@ -589,7 +593,7 @@ LmsRedirection(){
           //     this.employeeList = [];
           // }
 
-          let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === timesheet.employeementId);
+          let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === timesheet.employeementId);
           timesheet.emp360 = matchingEmployee ? matchingEmployee : {};
 
         });
@@ -1026,7 +1030,13 @@ LmsRedirection(){
     this.employeeService.getAllEmployeesBirthDayToday().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.birthdayList = response.serviceResponse;
-        //console.log("birthdayList : ", this.birthdayList);
+        this.birthdayList.forEach((employee) => {
+          // console.log("employee.empId ", employee.empId);
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
+          // console.log("empId ", matchingEmployee);
+          employee.emp360 = matchingEmployee ? matchingEmployee : {};
+        });
+        // console.log("birthdayList : ", this.birthdayList);
       } else {
         this.compOffApplicationCount = 0;
         console.error(response.serviceResponse);
@@ -1043,6 +1053,12 @@ LmsRedirection(){
     this.rewardsService.fetchEmployeesForHomepage().subscribe((response: any) => {
       if (response.serviceStatus === 'Success') {
         this.rewardsList = response.serviceResponse;
+        this.rewardsList.forEach((employee) => {
+          // console.log("employee.rewardedTo ", employee.rewardedTo);
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.rewardedTo);
+          // console.log("rewardedTo ", matchingEmployee);
+          employee.emp360 = matchingEmployee ? matchingEmployee : {};
+        });
         this.groupRewardsByMonth();
         this.startScrolling();
       } else {
@@ -2296,33 +2312,6 @@ LmsRedirection(){
 
 
  }
-
-getAllEmployeeFor360View(){
-  this.allEmployeeList360 = [];
-  this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
-    if (response.serviceStatus == "Success") {
-      this.allEmployeeList360 = response.serviceResponse;
-      console.log("allEmployeeListFor360 : ", this.allEmployeeList360)
-      this.allEmployeeList360.forEach(employeeObj => {
-        employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
-        employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-        employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-        employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-        employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-        if (employeeObj.isConsultant == 'true')
-          employeeObj.employeeType = 'Consultant';
-        else if (employeeObj.isApprenticeship == 'true')
-          employeeObj.employeeType = 'Apprentice';
-        else
-          employeeObj.employeeType = 'Regular';
-        });
-        this.allEmployeeList360 = this.allEmployeeList360;
-        this.allEmployeeList360 = new SortPipe().transform(this.allEmployeeList360, ['name', 'string', 'asc']);
-      } else {
-        alert(response.serviceResponse);
-      }
-  });
-}
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

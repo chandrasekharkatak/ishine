@@ -17,10 +17,10 @@ public class DocumentDTO {
 	private Long typeId;
 	private String typeName;
 	private LocalDate createdOn;
-	private String createdBy;
+	private Long createdBy;
 	private LocalDate updatedOn;
-	private String UpdatedBy;
+	private Long updatedBy;
 	private String name;
-
+	private String updatedByName;
 
 }

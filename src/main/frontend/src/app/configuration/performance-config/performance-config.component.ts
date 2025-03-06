@@ -20,6 +20,7 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { LogService } from 'src/app/services/log.service';
 import { PerformanceService } from 'src/app/services/performance.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { UtilityService } from 'src/app/services/utility.service';
 
 @Component({
   selector: 'app-performance-config',
@@ -71,7 +72,7 @@ export class PerformanceConfigComponent implements OnInit {
   quarterCycleUpdate = new QuarterCycle();
 
   quarterCycleColumns: any[] = ['blank', 'financialYear', 'quarterCycle', 'createdByName', 'createdOn', 'updatedByName', 'updatedOn'];
-
+  employeesFor360: any[] = [];
   log:Log;
   tabName:any = 'Configurations';
   constructor(
@@ -84,10 +85,18 @@ export class PerformanceConfigComponent implements OnInit {
     private departmentService: DepartmentService,
     private domainService: DomainService,
     private performanceService:PerformanceService,
-    private logService:LogService
+    private logService:LogService,
+    private utilityService: UtilityService,
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
+
     this.showQuaterTable();
     this.getAllDepartmentList();
     this.getReviewLabelForEveryDepartment();
@@ -249,6 +258,16 @@ export class PerformanceConfigComponent implements OnInit {
         this.quarterCyclesList.forEach(quarterCycleObj => {
           quarterCycleObj.updatedOn = (quarterCycleObj.updatedOn) ? moment(quarterCycleObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
           quarterCycleObj.createdOn = (quarterCycleObj.createdOn) ? moment(quarterCycleObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
+        this.quarterCyclesList.forEach((employee) => {
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          // console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          // console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
         });
       } else {
         alert(response.serviceResponse);
@@ -754,6 +773,16 @@ export class PerformanceConfigComponent implements OnInit {
         this.reviewTypelist = response.serviceResponse;
         this.reviewTypelist = response.serviceResponse.sort((a, b) => {
           return new Date(b.createdOn).getTime() - new Date(a.createdOn).getTime();
+        });
+        this.reviewTypelist.forEach((employee) => {
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          // console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          // console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
         });
       } else {
         console.error("API Response", response.serviceResponse);

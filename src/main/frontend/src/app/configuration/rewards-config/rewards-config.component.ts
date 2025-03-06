@@ -13,6 +13,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { LeaveService } from 'src/app/services/leave.service';
 import { RewardsServiceService } from 'src/app/services/rewards-service.service';
+import { UtilityService } from 'src/app/services/utility.service';
 
 class Operator{
   name:string;
@@ -75,7 +76,8 @@ export class RewardsConfigComponent implements OnInit {
   allDeptList: any;
   isEditMode: boolean = false;  // Flag to determine create or edit mode
   rewardIdToEdit: number;  
-  rewardTeams: number = 0; 
+  rewardTeams: number = 0;
+  employeesFor360: any[] = []; 
 
   @Input() data: any;
   @Output() filterSubmitted:EventEmitter<any> =  new EventEmitter<any>(); 
@@ -87,11 +89,18 @@ export class RewardsConfigComponent implements OnInit {
     private locationStrategy : LocationStrategy,
     private modalService: BsModalService,
     private exportExcelService: ExportExcelService,
+    private utilityService: UtilityService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
    }
 
-  ngOnInit(): void {
+   async ngOnInit(): Promise<void> {
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
     this.fetchAllRewards();
     this.showRewardSub();
     this.columnList = this.employeeColumns;
@@ -256,8 +265,7 @@ openForm(id:any,mode: string,template: TemplateRef<any> ) {
             rewardTypes: rewardData.rewardTypes,
             isTeam: rewardData.isTeam,
             id: rewardData.id,
-            createdBy:rewardData.createdBy
-            
+            createdBy:rewardData.createdBy,
           };
           this.rewardTypes = [...rewardData.rewardTypes];
 
@@ -358,6 +366,16 @@ openForm(id:any,mode: string,template: TemplateRef<any> ) {
     this.rewardsService.showAllRewards().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.rewardsList = response.serviceResponse;
+        this.rewardsList.forEach((employee) => {
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          // console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          // console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+        });
       } else {
         console.error("Error fetching rewards: ", response.serviceError);
       }

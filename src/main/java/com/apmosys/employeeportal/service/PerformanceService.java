@@ -187,7 +187,8 @@ public class PerformanceService {
 					quarDTO.setUpdatedBy(object[7] != null ? Long.parseLong(object[7].toString()) : null);
 					quarDTO.setUpdatedByName(object[8] != null ? object[8].toString() : null);
 					quarDTO.setIsActive(object[9] != null ? Boolean.parseBoolean(object[9].toString()) : false);
-					quarDTO.setIsEnable(object[10] != null ? Boolean.parseBoolean(object[10].toString()) : false);					
+					quarDTO.setIsEnable(object[10] != null ? Boolean.parseBoolean(object[10].toString()) : false);	
+					
 					dtoList.add(quarDTO);
 					
 					});

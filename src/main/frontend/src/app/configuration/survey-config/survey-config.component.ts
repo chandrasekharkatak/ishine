@@ -16,6 +16,7 @@ import { SurveyService } from 'src/app/services/survey.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { ClipboardService } from 'ngx-clipboard';
 import { Router } from '@angular/router';
+import { UtilityService } from 'src/app/services/utility.service';
 
 @Component({
   selector: 'app-survey-config',
@@ -70,7 +71,7 @@ export class SurveyConfigComponent implements OnInit {
   surveyColumns:any[] = ['surveyName','description','isActive','createdByName','createdOn'];
   surveyResponseColumns:any[] = ['0','1','2'];
 
-
+  employeesFor360: any[] = [];
 
   constructor(
     private validationService: ValidationService,
@@ -80,12 +81,19 @@ export class SurveyConfigComponent implements OnInit {
     private exportExcelService: ExportExcelService,
     private locationStrategy: LocationStrategy,
     private clipboardService: ClipboardService,
-    private router: Router
+    private router: Router,
+    private utilityService: UtilityService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
     // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -335,7 +343,17 @@ export class SurveyConfigComponent implements OnInit {
        this.allSurveyList.forEach(survey => {
          survey.createdOn = (survey.createdOn)? moment(survey.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
        });
-       //console.log("this.allSurveyList : ", this.allSurveyList);
+       this.allSurveyList.forEach((employee) => {
+        // console.log("employee.createdBy ", employee.createdBy);
+        let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+        // console.log("createdby ", matchingEmployee3);
+        employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+        // console.log("employee.updatedBy ", employee.updatedBy);
+        let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+        // console.log("updatedBy ", matchingEmployee4);
+        employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+      });
+      //  console.log("this.allSurveyList : ", this.allSurveyList);
       }else{
         console.error(response.serviceResponse);
       }

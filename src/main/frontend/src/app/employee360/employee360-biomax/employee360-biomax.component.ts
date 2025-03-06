@@ -286,7 +286,7 @@ teamData(id:any){
  this.team.teamId=id;
  alert(this.team.teamId);
 this.getTeamFromEmployeeMapping();
-// this.getBiomatrixFilter();
+//this.getBiomatrixFilter();
 
   
 }
@@ -294,7 +294,7 @@ goBack(){
   this.defaultview=true;
 //this.getBiomatrixFilter();
 }
-getTeamFromEmployeeMapping(){
+async getTeamFromEmployeeMapping(){
   this.biomaxFilter.empId=[];
   this.employee360.getTeamTImeSheet(this.team).subscribe((response: any) => {
     //this.teamList = response.serviceResponse;
@@ -303,7 +303,8 @@ getTeamFromEmployeeMapping(){
     
       this.biomaxFilter.empId.push(x.employeementId);
     })
-   
+    console.log(this.biomaxFilter);
+    this.getBiomatrixFilter();
   });
  
 }

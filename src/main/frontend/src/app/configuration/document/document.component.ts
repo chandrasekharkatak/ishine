@@ -11,6 +11,7 @@ import { Feature } from 'src/app/models/feature';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { NewsletterService } from 'src/app/services/newsletter.service';
+import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
@@ -55,15 +56,24 @@ export class DocumentComponent implements OnInit {
     typeNames:any;
     allTypeListColumns:any[]=['blank','typeName','createdOn','name'];
     documentsColumns:any[]=['blank','displayName','fileName','typeName','createdOn','createdByName'];
+  employeesFor360: any[] = [];
+
   constructor(
     private newsletterService : NewsletterService,
     private modalService: BsModalService,
     private authenticationService : AuthenticationService,
     private validationService : ValidationService,
-    private locationStrategy : LocationStrategy
+    private locationStrategy : LocationStrategy,
+    private utilityService: UtilityService,
   ) { }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
     this.getAllTypes();
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -177,6 +187,7 @@ export class DocumentComponent implements OnInit {
     let doc = new Document();
     doc.typeId = this.documentObj.typeId;
     doc.typeName = document.typeName;
+    doc.updatedBy = this.currentUser.empId;
     //console.log("Update method call   ",doc);
     this.newsletterService.updateType(doc).pipe(first()).subscribe((response : any)=>{
       if(response.serviceStatus == "Success"){
@@ -207,7 +218,17 @@ export class DocumentComponent implements OnInit {
         this.allTypeList.forEach(type =>{
           type.createdOn = moment(type.createdOn).format(AppComponent.DATE_FORMAT);
         })
-        //console.log("this.allTypeList   ::   ",this.allTypeList);
+        this.allTypeList.forEach((employee) => {
+          console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+        });
+        console.log("this.allTypeList   ::   ",this.allTypeList);
       }
     })
   }
@@ -309,6 +330,16 @@ export class DocumentComponent implements OnInit {
         this.documents =  response.serviceResponse;
         this.documents.forEach(doc => {
           doc.createdOn = (doc.createdOn)? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
+        this.documents.forEach((employee) => {
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          // console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          // console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
         });
         //console.log("this.documents List : ", this.documents);
       } else {

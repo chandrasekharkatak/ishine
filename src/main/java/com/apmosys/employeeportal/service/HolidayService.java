@@ -126,7 +126,7 @@ public class HolidayService {
 				holiday.setState(holidayDTO.getState());
 				holiday.setHolidayType(holidayDTO.getHolidayType());
 				holiday.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
-				holiday.setUpdatedBy(Integer.parseInt(holidayDTO.getUpdatedBy()));
+				holiday.setUpdatedBy(holidayDTO.getUpdatedBy());
 				Holiday dbResponse = holidayRepository.save(holiday);
 
 				if (dbResponse != null) {
@@ -291,6 +291,7 @@ public class HolidayService {
 					dto.setUpdatedByName(object[8] != null ? object[8].toString() : null);
 					dto.setCreatedBy(object[9] != null ? Integer.parseInt(object[9].toString()) : null);
 					dto.setState(object[10] != null ? object[10].toString() : null);
+					dto.setUpdatedBy(object[11] != null ? Integer.parseInt(object[11].toString()) : null);
 					
 					dtoList.add(dto);
 				});      

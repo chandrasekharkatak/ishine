@@ -26,7 +26,7 @@ public interface EmployeeRewardsRepository extends JpaRepository <EmployeeReward
 				+ "    er.rewarded_to,\n"
 				+ "    er.created_on, \n"
 				+ "    er.remark, \n"
-				+ "    e.updated_by, \n"
+				+ "    e.updated_by \n"
 				+ "FROM \n"
 				+ "    employee_rewards er \n"
 				+ "INNER JOIN \n"

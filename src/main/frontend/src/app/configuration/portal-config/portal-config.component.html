@@ -614,8 +614,9 @@
                                 *ngFor="let doc of document | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }, let i = index ">
                                 <th class="info-label">{{10*(page-1)+i+1}}</th>
                                 <td>{{doc.fileName}}</td>
-                                <td>{{doc.helpDocumentName}}</td>
-                                <td>{{doc.createdByName}}</td>
+                                <td>{{doc.helpDocumentName}}</td> 
+                                <td *ngIf="userMapping.employee360_view_portal_config"id="clickablefor360" [navigateToEmployee360]="doc.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{doc.createdByName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_portal_config">{{doc.createdByName}}</td>
                                 <td>{{doc.createdOn}}</td>
                                 <td>
                                 <button class="btn btn-sm btn-outline-danger" type="submit" (click)="openDeleteDocument(delete_helpDoc_template,doc)" ><em class="fa fa-trash"></em></button>&nbsp;
