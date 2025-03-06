@@ -27,21 +27,25 @@ export class Employee360AppreciationComponent implements OnInit {
   employeeData: any[] = [];
   myAppreciationList: any[] = [];
   teamAppreciationList: any[] = [];
+  accortoselectedList: any[] = [];
   formattedDateRanges: string[] = [];
   isTeamAppreciationView: boolean = false;
   isDateRangeDisabled: boolean = false;
   selectedDateRange: string | null = null;
   selectedRange: string = '';
   page = 1;
-  currentEmpId: number = Number(sessionStorage.getItem('empIdA'));
-  currentEId: number = Number(sessionStorage.getItem('eId'));
+  currentEmpId:any;
+  currentEId:any;
   employeeList: any[] = [];
   matchedEmployees: any[] = [];
   matchedEmployee: any;
   currentBreadcrumbList: any[] = [];
-  appreciationColumns: any[] = ['blank', 'appreciateType', 'appreciationByName', 'appreciationDate', 'fromDate', 'toDate'];
+  appreciationColumns: any[] = ['blank','appreciationEventName', 'appreciateType','appreciationByName', 'appreciationDate','comment'];
+  appreciationTeamColumns: any[] = ['blank','appreciationEventName','appreciateType','appreciationToName', 'appreciationByName', 'appreciationDate', 'comment'];
   items = 10;
   employeesFor360: any[] = [];
+
+  isTeam:boolean = true;
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -57,13 +61,17 @@ export class Employee360AppreciationComponent implements OnInit {
     }
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
-    this.getAllEmployeeFor360View();
     this.getDateRanges();
     // this.getEmployeeInfo();
   }
 
-  ngOnInit(): void {
-
+  async ngOnInit(): Promise<void> {
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
     let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title == "Appreciation");
     if (findbreadcrumbObject >= 0) {
       this.currentBreadcrumbList.splice(findbreadcrumbObject + 1);
@@ -76,8 +84,14 @@ export class Employee360AppreciationComponent implements OnInit {
       this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
 
+    let employeeData = localStorage.getItem('employee360Data');
+    let employeeObject = JSON.parse(employeeData);
+     this.currentEId = employeeObject.empId;
+     this.currentEmpId = Number(employeeObject.employeementId.replace(/\D/g, ''));
     this.calculateFinancialYear();
     this.getEmployeeAppreciationDetails();
+    this.getTeamAppreciationDetails();
+   
   }
   ngAfterViewInit() {
     this.setActiveTab();
@@ -97,40 +111,20 @@ export class Employee360AppreciationComponent implements OnInit {
     const tab = document.getElementById('Employee360Tab').querySelector('.nav-link.active');
     tab?.classList.remove('active');
   }
-  getAllEmployeeFor360View(): void {
-    this.employeesFor360 = [];
-    this.employeeService.getAllEmployeesFor360View().subscribe({
-      next: (response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.employeesFor360 = response.serviceResponse;
 
-          this.employeesFor360.forEach(employeeObj => {
-            // employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
-            employeeObj.dateOfJoining = employeeObj.dateOfJoining ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-            employeeObj.dateOfRelieving = employeeObj.dateOfRelieving ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-            employeeObj.updatedOn = employeeObj.updatedOn ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-            employeeObj.createdOn = employeeObj.createdOn ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+  getTeamAppreciationList(){
+    this.isTeam = false;
+    this.accortoselectedList = [];
+    this.accortoselectedList = this.teamAppreciationList;
 
-            if (employeeObj.isConsultant == 'true')
-              employeeObj.employeeType = 'Consultant';
-            else if (employeeObj.isApprenticeship == 'true')
-              employeeObj.employeeType = 'Apprentice';
-            else
-              employeeObj.employeeType = 'Regular';
-          });
-          console.log("inside 360 employeesFor360", this.employeesFor360);
-
-          this.employeesFor360 = new SortPipe().transform(this.employeesFor360, ['name', 'string', 'asc']);
-          this.getEmployeeInfo();
-        } else {
-          alert(response.serviceResponse);
-        }
-      },
-      error: (error) => {
-        console.error("Error fetching employees:", error);
-      }
-    });
   }
+
+  getEmployeeAppreciationList(){
+    this.isTeam = true;
+    this.accortoselectedList = [];
+    this.getEmployeeAppreciationDetails();
+  }
+ 
   getDateRanges() {
     this.employeeService.getDateRangesForDropdown(this.currentEmpId).subscribe(
       (data: any) => {
@@ -178,11 +172,11 @@ export class Employee360AppreciationComponent implements OnInit {
     this.appreciation.employeementId = this.currentEmpId;
     this.helpService.getMyAppreciationDetails(this.appreciation).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.myAppreciationList = response.serviceResponse;
-        this.myAppreciationList.forEach(appObj => {
-          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === appObj.empId);
+        this.accortoselectedList = response.serviceResponse;
+        this.accortoselectedList.forEach(appObj => {
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === appObj.appreciationByByEmpId);
           console.log("matchingEmployee ", matchingEmployee);
-          appObj.emp360 = matchingEmployee ? matchingEmployee : {};
+          appObj.emp360AppreciationBy = matchingEmployee ? matchingEmployee : {};
           appObj.appreciationDate = (appObj.appreciationDate)
             ? moment(appObj.appreciationDate).format(AppComponent.DATETIME_FORMAT)
             : null;
@@ -200,6 +194,13 @@ export class Employee360AppreciationComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.teamAppreciationList= response.serviceResponse;
         this.teamAppreciationList.forEach(appObj => {
+          console.log("appObj.appreciationByByEmpId ", appObj.appreciationBy);
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === appObj.appreciationByByEmpId);
+          console.log("matchingEmployee ", matchingEmployee);
+          appObj.emp360AppreciationBy = matchingEmployee ? matchingEmployee : {};
+          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === appObj.appreciationToByEmpId);
+          console.log("matchingEmployee ", matchingEmployee2);
+          appObj.emp360AppreciationTo = matchingEmployee2 ? matchingEmployee2 : {};
           appObj.appreciationDate = (appObj.appreciationDate) 
               ? moment(appObj.appreciationDate).format(AppComponent.DATETIME_FORMAT) 
               : null;
@@ -214,88 +215,88 @@ export class Employee360AppreciationComponent implements OnInit {
 
 
 
-  getEmployeeInfo(fromDate?: string, toDate?: string): void {
-    const requestPayload = {
-      empId: this.currentEmpId,
-      fromDate: fromDate || null,
-      toDate: toDate || null
-    };
+  // getEmployeeInfo(fromDate?: string, toDate?: string): void {
+  //   const requestPayload = {
+  //     empId: this.currentEmpId,
+  //     fromDate: fromDate || null,
+  //     toDate: toDate || null
+  //   };
 
-    this.employeeService.getEmployeeAppreciationByEmpId(requestPayload).subscribe(
-      (response: any) => {
-        this.employee = response.appreciationDto;
-        console.log('Employee appreciation data:', this.employee);
-        console.log(" employeesFor360 details", this.employeesFor360);
-        this.employee.forEach(y => {
-          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === y.empId);
-          console.log("matchingEmployee ", matchingEmployee);
-          y.emp360 = matchingEmployee ? matchingEmployee : {};
-        });
-        console.log('employee ** -- ', this.employee);
-      },
-      (error) => {
-        console.error('Error fetching employee data:', error);
-      }
-    );
-  }
+  //   this.employeeService.getEmployeeAppreciationByEmpId(requestPayload).subscribe(
+  //     (response: any) => {
+  //       this.employee = response.appreciationDto;
+  //       console.log('Employee appreciation data:', this.employee);
+  //       console.log(" employeesFor360 details", this.employeesFor360);
+  //       this.employee.forEach(y => {
+  //         let matchingEmployee = this.employeesFor360.find(emp => emp.empId === y.empId);
+  //         console.log("matchingEmployee ", matchingEmployee);
+  //         y.emp360 = matchingEmployee ? matchingEmployee : {};
+  //       });
+  //       console.log('employee ** -- ', this.employee);
+  //     },
+  //     (error) => {
+  //       console.error('Error fetching employee data:', error);
+  //     }
+  //   );
+  // }
 
-  onSelectRange(event: Event): void {
-    const target = event.target as HTMLSelectElement;
-    this.selectedRange = target.value;
+  // onSelectRange(event: Event): void {
+  //   const target = event.target as HTMLSelectElement;
+  //   this.selectedRange = target.value;
 
-    if (this.selectedRange) {
-      const selectedRange = this.selectedRange.split('-');
-      const fromDate = selectedRange[0] + '-01-01';
-      const toDate = selectedRange[1] + '-12-31';
-      this.getEmployeeInfo(fromDate, toDate);
-    } else {
-      this.getEmployeeInfo();
-    }
-  }
+  //   if (this.selectedRange) {
+  //     const selectedRange = this.selectedRange.split('-');
+  //     const fromDate = selectedRange[0] + '-01-01';
+  //     const toDate = selectedRange[1] + '-12-31';
+  //     this.getEmployeeInfo(fromDate, toDate);
+  //   } else {
+  //     this.getEmployeeInfo();
+  //   }
+  // }
 
-  getTeamAppreciationData() {
-    const requestPayload = {
-      empId: this.currentEmpId
-    };
+  // getTeamAppreciationData() {
+  //   const requestPayload = {
+  //     empId: this.currentEmpId
+  //   };
 
-    this.isTeamAppreciationView = !this.isTeamAppreciationView;
-    // this.selectedDateRange = '';
-    // this.isDateRangeDisabled = this.isTeamAppreciationView;
+  //   this.isTeamAppreciationView = !this.isTeamAppreciationView;
+  //   // this.selectedDateRange = '';
+  //   // this.isDateRangeDisabled = this.isTeamAppreciationView;
 
-    if (this.isTeamAppreciationView) {
-      this.employeeService.getTeamAppreciationByEmpId(requestPayload).subscribe(
-        (response: any) => {
-          this.employee = response.appreciationDto;
+  //   if (this.isTeamAppreciationView) {
+  //     this.employeeService.getTeamAppreciationByEmpId(requestPayload).subscribe(
+  //       (response: any) => {
+  //         this.employee = response.appreciationDto;
 
-          this.getMatchingEmployees();
-          console.log('Team appreciation data:', this.employee);
-        },
-        (error) => {
-          console.error('Error fetching team data:', error);
-        }
-      );
-    } else {
-      this.getEmployeeInfo();
-    }
-  }
+  //         this.getMatchingEmployees();
+  //         console.log('Team appreciation data:', this.employee);
+  //       },
+  //       (error) => {
+  //         console.error('Error fetching team data:', error);
+  //       }
+  //     );
+  //   } else {
+  //     this.getEmployeeInfo();
+  //   }
+  // }
 
-  getMatchingEmployees(): void {
-    this.employee.forEach((empObj: any) => {
-      this.employeeList.forEach((listObj: any) => {
-        if (empObj.empId === listObj.empId) {
-          this.matchedEmployees.push(listObj);
-        }
-      });
-      console.log('Matched Employees:', this.matchedEmployees);
-    },
-      (error) => {
-        console.error('Error fetching employee data:', error);
-      });
-  }
+  // getMatchingEmployees(): void {
+  //   this.employee.forEach((empObj: any) => {
+  //     this.employeeList.forEach((listObj: any) => {
+  //       if (empObj.empId === listObj.empId) {
+  //         this.matchedEmployees.push(listObj);
+  //       }
+  //     });
+  //     console.log('Matched Employees:', this.matchedEmployees);
+  //   },
+  //     (error) => {
+  //       console.error('Error fetching employee data:', error);
+  //     });
+  // }
 
-  getMatchedEmployee(event: any) {
-    return this.matchedEmployees.find(employee => employee.empId === event.empId);
-  }
+  // getMatchedEmployee(event: any) {
+  //   return this.matchedEmployees.find(employee => employee.empId === event.empId);
+  // }
 
   handlePageChange(event) {
     this.page = event;
