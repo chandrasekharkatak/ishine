@@ -18,6 +18,7 @@ import com.apmosys.employeeportal.dto.DomainDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.SpecializationDTO;
 import com.apmosys.employeeportal.model.ActivityTemplate;
+import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Domain;
 import com.apmosys.employeeportal.model.EmployeeSpecializationMap;
 import com.apmosys.employeeportal.model.Specialization;
@@ -58,6 +59,18 @@ public class DomainService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("domainId : "+domainDTO.getDomainId()+", domainName : "+domainDTO.getDomainName());
 		try {
+			
+			List<Domain> existingDomainName = domainRepository.findByDomainnName(domainDTO.getDomainName());
+	        if (existingDomainName != null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Domain Name already exists.");
+	            apiLogInfo.setApiResponse("Domain Name already exists.");            
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);  
+	            apiLogInfo.setLogLevel("ERROR");
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+			
 			
 			Domain domainObj = new Domain();
 			
