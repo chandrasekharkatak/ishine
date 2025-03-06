@@ -354,14 +354,16 @@
               <tr *ngFor="let compOffHistory of teamViewCompOffHistoryList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
               <td class="info-label">{{10*(page-1)+i+1}}</td>
               <td class="info-label" id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="compOffHistory.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{compOffHistory.createdByName}}</td>
-              <td class="info-label" *ngIf="!userMapping.my_team_employee_360">{{compOffHistory.fromDate}}</td>
+              <td class="info-label" *ngIf="!userMapping.my_team_employee_360">{{compOffHistory.createdByName}}</td>
+              <td class="info-label">{{compOffHistory.fromDate}}</td>
               <td class="info-label">{{compOffHistory.toDate}}</td>
               <td class="info-label">{{compOffHistory.createdOn}}</td>
               <!-- <td class="info-label"> {{teamLeaveHistory.toDate}}</td>
               <td class="info-label"> {{teamLeaveHistory.toDate}}</td> -->
               <td class="info-label">{{compOffHistory.noOfDays}}</td>
               <td class="info-label">{{compOffHistory.status}}</td>
-              <td class="info-label">{{compOffHistory.leaveStatusUpdatedByName}}</td>
+              <td class="info-label" id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="compOffHistory.emp360ApprovedBy" style="cursor: pointer;" title="Click to view Employee 360">{{compOffHistory.leaveStatusUpdatedByName}}</td>
+              <td class="info-label" *ngIf="!userMapping.my_team_employee_360">{{compOffHistory.leaveStatusUpdatedByName}}</td>
               <td class="info-label">{{compOffHistory.reason}}</td>
               </tr>
             </tbody>

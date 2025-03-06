@@ -642,8 +642,11 @@ export class MyTeamComponent implements OnInit {
             compOffHistory.toDate = (compOffHistory.toDate)? moment(compOffHistory.toDate).format(AppComponent.DATE_FORMAT) : null,
             compOffHistory.createdOn = (compOffHistory.createdOn)? moment(compOffHistory.createdOn).format(AppComponent.DATE_FORMAT) : null
             let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === ('A-' + compOffHistory.employeementId));
-            console.log('matches++',matchingEmployee);
+            //console.log('matches++',matchingEmployee);
             compOffHistory.emp360 = matchingEmployee ? matchingEmployee : {};
+            let matchingEmployeeApproverdBy = this.allEmployeeList360.find(emp => emp.empId === compOffHistory.leaveStatusUpdatedBy);
+            compOffHistory.emp360ApprovedBy = matchingEmployeeApproverdBy ? matchingEmployeeApproverdBy : {};
+
           });
         } else {
           console.error(response.serviceResponse);
@@ -660,8 +663,10 @@ export class MyTeamComponent implements OnInit {
             compOffHistory.toDate = (compOffHistory.toDate)? moment(compOffHistory.toDate).format(AppComponent.DATE_FORMAT) : null,
             compOffHistory.createdOn = (compOffHistory.createdOn)? moment(compOffHistory.createdOn).format(AppComponent.DATE_FORMAT) : null
             let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === ('A-' + compOffHistory.employeementId));
-            console.log('matches++',matchingEmployee);
+            //console.log('matches++',matchingEmployee);
             compOffHistory.emp360 = matchingEmployee ? matchingEmployee : {};
+            let matchingEmployeeApproverdBy = this.allEmployeeList360.find(emp => emp.empId === compOffHistory.leaveStatusUpdatedBy);
+            compOffHistory.emp360ApprovedBy = matchingEmployeeApproverdBy ? matchingEmployeeApproverdBy : {};
           });
         } else {
           console.error(response.serviceResponse);

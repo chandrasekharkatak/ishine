@@ -1,6 +1,8 @@
 package com.apmosys.employeeportal.service;
 
-import java.lang.reflect.Type;
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -18,7 +20,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -48,7 +49,6 @@ import com.apmosys.employeeportal.model.LeavePolicyMaster;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
-import com.apmosys.employeeportal.model.RoleFeatureMap;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
@@ -1451,15 +1451,17 @@ public class TeamsService {
 
 				list.forEach((object) -> {
 					LeaveDTO dto = new LeaveDTO();
-					dto.setCreatedByName(object[0] != null ? object[0].toString() : null);
-					dto.setFromDate(object[1] != null ? object[1].toString() : null);
-					dto.setToDate(object[2] != null ? object[2].toString() : null);
-					dto.setCreatedOn(object[3] != null ? object[3].toString() : null);
-					dto.setNoOfDays(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
-					dto.setStatus(object[5] != null ? object[5].toString() : null);
-					dto.setReason(object[6] != null ? object[6].toString() : null);
-					dto.setLeaveType(object[7] != null ? object[7].toString() : null);
-					dto.setLeaveStatusUpdatedByName(object[8] != null ? object[8].toString() : null);
+					dto.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					dto.setCreatedByName(object[1] != null ? object[1].toString() : null);
+					dto.setFromDate(object[2] != null ? object[2].toString() : null);
+					dto.setToDate(object[3] != null ? object[3].toString() : null);
+					dto.setCreatedOn(object[4] != null ? object[4].toString() : null);
+					dto.setNoOfDays(object[5] != null ? Float.parseFloat(object[5].toString()) : null);
+					dto.setStatus(object[6] != null ? object[6].toString() : null);
+					dto.setReason(object[7] != null ? object[7].toString() : null);
+					dto.setLeaveType(object[8] != null ? object[8].toString() : null);
+					dto.setLeaveStatusUpdatedByName(object[9] != null ? object[9].toString() : null);
+					dto.setLeaveStatusUpdatedBy(object[10] != null ? Long.parseLong(object[10].toString()) : null);
 					dtoList.add(dto);					
 					});
 
