@@ -239,16 +239,32 @@
                                 <td>{{reward.rewardName}}</td>
                                 <td>{{ reward.categoryName || 'N/A' }}</td>
                                 <td>{{ reward.rewardTypes?.join(', ') || 'N/A' }}</td>
-                                <td *ngIf="userMapping.employee360_view_reward_config" >
-                                    <span id="clickablefor360" [navigateToEmployee360]="reward.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{ reward.createdByName }}
-                                  </span>|| {{ reward.createdByName ?? 'N/A'}}
-                                </td>
+                                <td *ngIf="userMapping.employee360_view_reward_config">
+                                    <span *ngIf="reward.createdByName; else showNADisplay" 
+                                          id="clickablefor360" 
+                                          [navigateToEmployee360]="reward.emp360CreatedBy" 
+                                          style="cursor: pointer;" 
+                                          title="Click to view Employee 360">
+                                      {{ reward.createdByName }}
+                                    </span>
+                                    <ng-template #showNADisplay>
+                                      {{ reward.createdByName ?? 'N/A' }}
+                                    </ng-template>
+                                  </td>                                  
                                 <td *ngIf="!userMapping.employee360_view_reward_config">{{ reward.createdByName || 'N/A' }}</td>
                                 <td>{{ reward.createdOn || 'N/A' }}</td>
-                                <td *ngIf="userMapping.employee360_view_reward_config" >
-                                    <span id="clickablefor360" [navigateToEmployee360]="reward.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{ reward.updatedByName}}
-                                    </span>|| {{ reward.updatedByName ?? 'N/A'}}
-                                </td>
+                                <td *ngIf="userMapping.employee360_view_reward_config">
+                                    <span *ngIf="reward.updatedByName; else showNADisplay" 
+                                          id="clickablefor360" 
+                                          [navigateToEmployee360]="reward.emp360UpdatedBy" 
+                                          style="cursor: pointer;" 
+                                          title="Click to view Employee 360">
+                                      {{ reward.updatedByName }}
+                                    </span>
+                                    <ng-template #showNADisplay>
+                                      {{ reward.updatedByName ?? 'N/A' }}
+                                    </ng-template>
+                                  </td>                                  
                                 <td *ngIf="!userMapping.employee360_view_reward_config">{{ reward.updatedByName || 'N/A' }}</td>
                                 <td>{{ reward.updatedOn || 'N/A' }}</td>
                                 <td>

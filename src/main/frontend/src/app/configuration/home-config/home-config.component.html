@@ -118,7 +118,7 @@
                             <td>{{image.eventName}}</td>
                             <td>{{image.eventCaption}}</td>
                             <td *ngIf="userMapping.employee360_view_home_config" id="clickablefor360" [navigateToEmployee360]="image.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{image.createdByName}}</td>
-                            <td>{{image.createdByName}}</td>
+                            <td *ngIf="!userMapping.employee360_view_home_config">{{image.createdByName}}</td>
                             <td>{{image.createdOn}}</td>
                             <td>
                                 <button class="btn btn-sm btn-outline-primary" type="submit" (click)="openPreviewEventPhoto(preview_template,image)"><em>Preview</em></button>&nbsp;

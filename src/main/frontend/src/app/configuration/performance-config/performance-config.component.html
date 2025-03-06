@@ -264,9 +264,17 @@
                                 <td>{{review.createdOn | date: 'yyyy-MM-dd hh:mm:ss'}}</td>
                                 <td *ngIf="!userMapping.employee360_view_performance_config">{{ review.updatedByName ?? 'NA' }}</td>
                                 <td *ngIf="userMapping.employee360_view_performance_config">
-                                    <span id="clickablefor360" [navigateToEmployee360]="review.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{ review.updatedByName }}
-                                    </span>|| {{ review.updatedByName ?? 'NA' }}
-                                </td>
+                                    <span *ngIf="review.updatedByName; else showNADisplay" 
+                                          id="clickablefor360" 
+                                          [navigateToEmployee360]="review.emp360UpdatedBy" 
+                                          style="cursor: pointer;" 
+                                          title="Click to view Employee 360">
+                                      {{ review.updatedByName }}
+                                    </span>
+                                    <ng-template #showNADisplay>
+                                      {{ review.updatedByName ?? 'NA' }}
+                                    </ng-template>
+                                  </td>                                  
                                 <td>{{review.updatedOn ? (review.updatedOn | date: 'yyyy-MM-dd hh:mm:ss') : 'NA' }}</td> 
                                 <td *ngIf="!review.active == false">
                                     <button class="btn btn-sm btn-outline-primary" type="submit"
