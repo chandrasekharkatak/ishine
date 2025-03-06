@@ -216,11 +216,14 @@
                                 <td id="clickablefor360" *ngIf="userMapping.reward_employee_360" [navigateToEmployee360]="rewardHistory.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{rewardHistory.rewardedToByName}}</td>
                                 <td *ngIf="!userMapping.reward_employee_360">{{rewardHistory.rewardedToByName}}</td>
                                 <td>{{rewardHistory.rewardTypeName}}</td>
-                                <td>{{rewardHistory.createdByName}}</td>
+                                <td id="clickablefor360" *ngIf="userMapping.reward_employee_360" [navigateToEmployee360]="rewardHistory.emp360RewardBy" style="cursor: pointer;" title="Click to view Employee 360">{{rewardHistory.createdByName}}</td>
+                                <td *ngIf="!userMapping.reward_employee_360">{{rewardHistory.createdByName}}</td>
                                 <td>{{rewardHistory.createdOn}}</td>
-                                <td>{{rewardHistory.managerName}}</td>
+                                <td id="clickablefor360" *ngIf="userMapping.reward_employee_360" [navigateToEmployee360]="rewardHistory.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{rewardHistory.managerName}}</td>
+                                <td *ngIf="!userMapping.reward_employee_360">{{rewardHistory.managerName}}</td>
                                 <td>{{rewardHistory.ofmonthyear}}
-                                <td>{{rewardHistory.updatedByName || 'N/A'}}</td>
+                                <td id="clickablefor360" *ngIf="userMapping.reward_employee_360" [navigateToEmployee360]="rewardHistory.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{rewardHistory.updatedByName || 'N/A'}}</td>
+                                <td *ngIf="!userMapping.reward_employee_360">{{rewardHistory.updatedByName || 'N/A'}}</td>
                                 <td>{{rewardHistory.updatedOn}}</td>
                                 <td>{{rewardHistory.remark}}</td>
                                 <td>

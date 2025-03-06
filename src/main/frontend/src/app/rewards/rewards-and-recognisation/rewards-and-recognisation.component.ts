@@ -581,7 +581,16 @@ bulkEnable(template: TemplateRef<any>) {
             rewards.createdOn = (rewards.createdOn)? moment(rewards.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
             rewards.updatedOn = (rewards.updatedOn)? moment(rewards.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
             let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId === rewards.empId);
+            let matchingEmployeeRewardBy = this.allEmployeeList360.find(emp => emp.empId === rewards.createdBy);
+            let matchingEmployeeManager = this.allEmployeeList360.find(emp => emp.empId === rewards.managerId);
+            let matchingEmployeeUpdatedBy = this.allEmployeeList360.find(emp => emp.empId === rewards.updatedBy);
+
             rewards.emp360 = matchingEmployee ? matchingEmployee : {};
+            rewards.emp360RewardBy = matchingEmployeeRewardBy ? matchingEmployeeRewardBy : {};
+            rewards.emp360Manager = matchingEmployeeManager ? matchingEmployeeManager : {};
+            rewards.emp360UpdatedBy = matchingEmployeeUpdatedBy ? matchingEmployeeUpdatedBy : {};
+
+
           });
         } else {
           console.error('No rewards data available');
