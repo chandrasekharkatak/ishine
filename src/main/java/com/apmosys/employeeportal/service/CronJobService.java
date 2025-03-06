@@ -4837,7 +4837,15 @@ try {
 						biomaxDataList.removeIf(bio -> departmentNotLeaveDeduct.contains(bio.getDepartmentId()));
 						
 					}
-					 
+					//Leave not Deduct
+					List<EmployeeLeave> employeeLeave=employeeLeaveRepository.findEmployeeIsOnLeaveToday();
+					if(!employeeLeave.isEmpty()) {
+						employeeLeave.forEach((leave)->{
+							LeaveValidate.add(leave.getEmpId());
+						});
+						biomaxDataList.removeIf(leav -> LeaveValidate.contains(leav.getEmpId()));
+						
+					}
 					
 					Optional<PortalConfig> biomaxleavedeductForEmployee1=portalConfigRepository.findByportalConfigById(Short.parseShort(biomaxleavedeductForEmployee));
 					if(biomaxleavedeductForEmployee1.isPresent()) {
