@@ -20,7 +20,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Policy Name</label>
-                            <input type="text" class="form-control" (blur)="spaceTrimInpolicyName()" maxlength="50" autocomplete="none" [(ngModel)]="policyName">
+                            <input type="text" class="form-control" (blur)="spaceTrimInpolicyName()" (keypress)="RestrictFullName($event)" maxlength="50" autocomplete="none" [(ngModel)]="policyName">
                         </div>
                     </div>
                 </div>

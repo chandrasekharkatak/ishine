@@ -252,7 +252,9 @@
                                     </ng-template>
                                   </td>                                  
                                 <td *ngIf="!userMapping.employee360_view_reward_config">{{ reward.createdByName || 'N/A' }}</td>
-                                <td>{{ reward.createdOn || 'N/A' }}</td>
+                                <td>{{ reward.createdOn ? (reward.createdOn | date:'dd-MM-yyyy') : 'N/A' }}
+
+                                </td>
                                 <td *ngIf="userMapping.employee360_view_reward_config">
                                     <span *ngIf="reward.updatedByName; else showNADisplay" 
                                           id="clickablefor360" 
@@ -266,7 +268,8 @@
                                     </ng-template>
                                   </td>                                  
                                 <td *ngIf="!userMapping.employee360_view_reward_config">{{ reward.updatedByName || 'N/A' }}</td>
-                                <td>{{ reward.updatedOn || 'N/A' }}</td>
+                                <td>{{ reward.updatedOn ? (reward.createdOn | date:'dd-MM-yyyy') : 'N/A' }}
+                                </td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-primary" type="submit"
                                         (click)="openForm(reward.id,'edit',alert_message)"><em

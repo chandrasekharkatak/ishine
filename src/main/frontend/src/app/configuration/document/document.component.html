@@ -208,7 +208,7 @@
                        <div class="info-wrapper">
                            <div class="form-group">
                                <label class="info-label"><span class="text-danger">*</span>Type Name</label>
-                               <input type="text" placeholder="Please Enter Type" (blur)="checkTypeName(documentObj.typeName,alert_message)" [(ngModel)]="documentObj.typeName" class="form-control" autocomplete="off" maxlength="50">
+                               <input type="text" placeholder="Please Enter Type" (keypress)="RestrictFullName($event)" (blur)="checkTypeName(documentObj.typeName,alert_message)" [(ngModel)]="documentObj.typeName" class="form-control" autocomplete="off" maxlength="50">
                            </div>
                        </div>
                    </div>

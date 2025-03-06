@@ -121,6 +121,26 @@ export class DocumentComponent implements OnInit {
 
   }
 
+ 
+    RestrictFullName(event) {
+      var k;
+      k = event.charCode;
+      if ((k == 33) || (k == 34) || (k == 35) || (k == 36) || (k == 37) ||
+        (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42) ||
+        (k == 43) || (k == 44) || (k == 45) || (k == 46) || (k == 47) || (k == 48) ||
+        (k == 49) || (k == 50) || (k == 51) || (k == 52) || (k == 53) || (k == 54) || (k == 55) ||
+        (k == 56) || (k == 57) || (k == 58) ||
+        (k == 59) || (k == 60) || (k == 61) || (k == 62) || (k == 63) ||
+        (k == 64) || (k == 91) || (k == 92) || (k == 93) || (k == 94) ||
+        (k == 95) || (k == 96) || (k == 123) ||
+        (k == 124) || (k == 125) || (k == 126) || (k == 127)) {
+        return (false);
+      }
+      return (true);
+  
+  
+    }
+
   showTable(){
     this.document = true;
     this.upload = false;
