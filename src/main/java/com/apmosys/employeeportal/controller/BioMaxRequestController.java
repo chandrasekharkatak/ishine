@@ -53,7 +53,10 @@ public class BioMaxRequestController {
 	public ResponseEntity<ServiceResponse> getBioMaxRequestType() {
 		return ResponseEntity.ok(bioMaxRequestService.getBioMaxRequestType());
 	}
-	
+	@GetMapping("/getBioMaxRequestTypeCronJon")
+	public ResponseEntity<ServiceResponse> getBioMaxRequestTypeCronJon() {
+		return ResponseEntity.ok(bioMaxRequestService.getBioMaxRequestTypeCronJon());
+	}
 	
 
 }

@@ -88,7 +88,7 @@ public class PortalConfigService {
 					portaldto.setConfigPeriod(portal.getConfigPeriod());
 					portaldto.setMailTrigger(portal.getMailTrigger());
 					portaldto.setConfigValue(portal.getConfigValue());
-					portaldto.setEmpId(portal.getEmpId());
+					portaldto.setEmpId(Long.parseLong(portal.getEmpId()));
 					portaldto.setDepartmentId(portal.getDepartmentId());
 					dtoList.add(portaldto);
 					

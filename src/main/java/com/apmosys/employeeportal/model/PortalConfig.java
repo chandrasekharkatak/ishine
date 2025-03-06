@@ -1,7 +1,9 @@
 package com.apmosys.employeeportal.model;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -34,4 +36,6 @@ public class PortalConfig {
 	private String empId;
 	private Long departmentId;
 	private String configValue;
+	// Store as JSON
+
 }

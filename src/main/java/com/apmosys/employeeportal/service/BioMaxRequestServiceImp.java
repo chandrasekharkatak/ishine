@@ -30,7 +30,8 @@ public class BioMaxRequestServiceImp implements BioMaxRequestService{
 	
 	@Autowired
 	private BioMaxRequestIssueRepository bioMaxRequestIssueRepository;
-	
+	@Autowired
+	private CronJobService cronJobService;
 	
 	@Override
 	public ServiceResponse createBioMaxRequest(BioMaxRequestDTO biomaxRequest) {
@@ -282,5 +283,32 @@ public class BioMaxRequestServiceImp implements BioMaxRequestService{
 	}
 		return response;
 	}
+
+	@Override
+	public ServiceResponse getBioMaxRequestTypeCronJon() {
+		// TODO Auto-generated method stub
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("getById");
+		apiLogInfo.setApiUrl("/api/getById");
+		apiLogInfo.setLogLevel("INFO");
+		cronJobService.leaveDeduct();
+		System.out.println("Sdfdsg");
+		
+		return response;
+	}
+	@Override
+	public ServiceResponse leaveDeductRoleBackForEmloyee(BioMaxRequestDTO bioMaxRequestDTO) {
+		// TODO Auto-generated method stub
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("getById");
+		apiLogInfo.setApiUrl("/api/getById");
+		apiLogInfo.setLogLevel("INFO");
+		response.setServiceResponse(bioMaxRequestDTO);
+		
+		return response;
+	}
+
 
 }

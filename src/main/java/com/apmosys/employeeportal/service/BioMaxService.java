@@ -40,9 +40,11 @@ import com.apmosys.employeeportal.dto.BioMax360;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.Holiday;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.PortalConfig;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.HolidayRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.PortalConfigRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -57,6 +59,10 @@ public class BioMaxService {
 	private String biomaxleavedeductForEmployee;
 	@Value("${biomaxleavedeductForDepartment}")
 	private String biomaxleavedeductForDepartment;
+	
+	@Autowired
+	private HolidayRepository holidayRepository;
+	
 	Connection con = null;
     PreparedStatement statement = null;
     ResultSet resultSet = null;
@@ -838,16 +844,12 @@ public class BioMaxService {
 	 
 	 
 	 public List<BioMaTO> getBiomaxDataForLeaveDeduct() {
+		 
 		 String depart="";
 			String employee="";
 			  List<BioMaTO> finalEmpBioData = new ArrayList<>();
-			  List<BioMaTO> finalEmpBioData1 = new ArrayList<>();
-					
-			//start the rahul code
-			List<Long> employeeNotleaveDeduct=new ArrayList<>();
-			List<Long> departmentNotLeaveDeduct=new ArrayList<>();
-			
-			   
+			List<Holiday>  holiday= holidayRepository.currentDayHoliday();
+			 if(holiday.size()==0) {
 			
 		    try {
 		        String Query = "SELECT \n"
@@ -901,10 +903,13 @@ public class BioMaxService {
 						 Employee employee1=employeeRepository.findByEmployeementId(employmentId);
 						
 		               	bioMaTO.setEmployementId(employmentId);
-						if(employee1.getJobRoleId()!=null) {
-						JobRole departmentjon=jobRoleRepository.findByjobRoleId(employee1.getJobRoleId());
-						bioMaTO.setDepartmentId(departmentjon.getDeptId());
-						}
+		               	if (employee1.getJobRoleId() != null) {
+		               	    JobRole departmentjon = jobRoleRepository.findByjobRoleId(employee1.getJobRoleId());
+		               	    bioMaTO.setDepartmentId(departmentjon.getDeptId());
+		               	} else {
+		               	    throw new NullPointerException("JobRoleId is null, cannot proceed with the operation.");
+		               	}
+
 						bioMaTO.setEmployeeCode(resultSet.getString("EmployeeCode"));
 		                bioMaTO.setAttendanceDate(resultSet.getString("AttendanceDate"));
 		                bioMaTO.setInTime(resultSet.getString("InTime"));
@@ -924,7 +929,7 @@ public class BioMaxService {
 		    } catch (Exception e) {
 		        e.printStackTrace(); // Log the exception message
 		    }
-		  
+			 }
 		    return finalEmpBioData;
 		}
 } 

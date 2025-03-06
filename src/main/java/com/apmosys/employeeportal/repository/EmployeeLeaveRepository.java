@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.apmosys.employeeportal.model.EmployeeLeave;
 
@@ -152,6 +153,9 @@ public List<EmployeeLeave> findByEmployeeforApproved();
             "WHERE leave_type_master_id = 4 AND leave_status_id = 1 AND manager_approval_status = 'Pending'", 
     nativeQuery = true)
 public List<EmployeeLeave> findByEmployeeforPending();
+
+@Query(value = " FROM EmployeeLeave WHERE fromDate = CURRENT_DATE()")
+public List<EmployeeLeave> findEmployeeIsOnLeaveToday();
 
 
 }
