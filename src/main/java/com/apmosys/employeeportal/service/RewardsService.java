@@ -711,10 +711,10 @@ public class RewardsService {
 		    if(setemployeeRewards!=null) {
 
 	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        serviceResponse.setServiceMessage("Reward(s) submitted successfully.");
+	        serviceResponse.setServiceMessage("Rewards submitted successfully.");
 		    }else {
 		    	serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-		    	serviceResponse.setServiceResponse("Reward(s) not submitted ");
+		    	serviceResponse.setServiceResponse("Rewards not submitted ");
 		    }
 
 	    } catch (Exception e) {
