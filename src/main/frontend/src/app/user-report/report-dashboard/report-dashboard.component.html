@@ -58,12 +58,13 @@
                             <th class="info-label">{{10*(page-1)+i+1}}</th>
                             <td>{{emp.employeementId}}</td>
                             <td>{{emp.employeeType}}</td>
-                            <td id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="emp.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{emp.name}}</td>
+                            <td id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="emp.emp360" style="cursor: pointer;" title="Click to view Employee 360" (click)="cancelRequest()" >{{emp.name}}</td>
                             <td *ngIf="!userMapping.reports_employee_360">{{emp.name}}</td>
                             <td>{{emp.departmentName}}</td>
                             <td>{{emp.dateOfResign}}</td>
                             <td>{{emp.dateOfRelieving}}</td>
-                            <td>{{emp.managerName}}</td>
+                            <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{emp.managerName}}</td>
+                            <td class="text-capitalize" *ngIf="userMapping.reports_employee_360" (click)="cancelRequest()" id="clickablefor360" [navigateToEmployee360]="emp.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{emp.managerName}}</td>
                         </tbody>
                       </table>
                 </div>
@@ -289,7 +290,7 @@
                     <td>A-{{leave.employeementId}}</td>
                     <td>{{leave.employeeType}}</td>
                     <td *ngIf="!userMapping.reports_employee_360">{{leave.employeeName}}</td>
-                    <td id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="leave.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{leave.employeeName}}</td>
+                    <td id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="leave.emp360" style="cursor: pointer;" title="Click to view Employee 360"  (click)="cancelRequest()">{{leave.employeeName}}</td>
                     <td>{{leave.departmentName}}</td>
                     <td>{{leave.fromDate | date:'dd-MM-yyyy'}}</td>
                     <td>{{leave.toDate | date:'dd-MM-yyyy'}}</td>
@@ -353,13 +354,14 @@
                         <!-- <td>{{ leave.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{ leave.employeementId }}</td> -->
                         <td>A-{{ leave.employeementId }}</td>
                         <td>{{leave.employeeType}}</td>
-                        <td id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="leave.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{leave.employeeName}}</td>
-                        <td *ngIf="!userMapping.reports_employee_360">{{leave.employeeName}}</td>
+                        <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="leave.emp360" style="cursor: pointer;" title="Click to view Employee 360" (click)="cancelRequest()">{{leave.employeeName}}</td>
+                        <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{leave.employeeName}}</td>
                         <td>{{leave.departmentName}}</td>
                         <!-- <td>{{leave.date}}</td>
                         <td>{{leave.dayType}}</td> -->
                         <td>{{leave.email}}</td>
-                        <td>{{leave.managerName}}</td>
+                        <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{leave.managerName}}</td>
+                        <td class="text-capitalize" *ngIf="userMapping.reports_employee_360" (click)="cancelRequest()" id="clickablefor360" [navigateToEmployee360]="leave.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{leave.managerName}}</td>
                         <td>{{leave.mobileNo}}</td>
                         <td *ngIf="isPendingByUser">{{leave.pendingEodCount}}</td>
                         <!-- <td>{{leave.totalWorkingHours}}</td> -->
@@ -418,11 +420,12 @@
                         <th class="info-label">{{20*(page-1)+i+1}}</th>
                         <td>A-{{leave.employeementId}}</td>
                         <td>{{leave.employeeType}}</td>
-                        <td id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="leave" style="cursor: pointer;" title="Click to view Employee 360">{{leave.employeeName}}</td>
-                        <td *ngIf="!userMapping.reports_employee_360">{{leave.employeeName}}</td>
+                        <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="leave" style="cursor: pointer;" title="Click to view Employee 360" (click)="cancelRequest()">{{leave.employeeName}}</td>
+                        <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{leave.employeeName}}</td>
                         <td>{{leave.departmentName}}</td>
                         <td>{{leave.email}}</td>
-                        <td>{{leave.managerName}}</td>
+                        <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{leave.managerName}}</td>
+                        <td class="text-capitalize" *ngIf="userMapping.reports_employee_360" (click)="cancelRequest()" id="clickablefor360" [navigateToEmployee360]="leave.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{leave.managerName}}</td>
                         <td>{{leave.mobileNo}}</td>
                         <td>{{leave.date | date:'dd-MM-yyyy'}}</td>
                         <td>{{leave.dayType}}</td>
@@ -497,12 +500,13 @@
                         <th class="info-label">{{20*(page-1)+i+1}}</th>
                         <td>{{leave.employeementId}}</td>
                         <td>{{leave.employeeType}}</td>
-                        <td id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="leave" style="cursor: pointer;" title="Click to view Employee 360" class="text-capitalize">{{leave.name}}</td>
-                        <td *ngIf="!userMapping.reports_employee_360">{{leave.name}}</td>
+                        <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360" (click)="cancelRequest()" [navigateToEmployee360]="leave" style="cursor: pointer;" title="Click to view Employee 360" class="text-capitalize">{{leave.name}}</td>
+                        <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{leave.name}}</td>
                         <td>{{leave.experience}}</td>
                         <td class="text-capitalize">{{leave.departmentName}}</td>
                         <td>{{leave.email}}</td>
-                        <td class="text-capitalize" >{{leave.managerName}}</td>
+                        <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{leave.managerName}}</td>
+                        <td class="text-capitalize" *ngIf="userMapping.reports_employee_360" (click)="cancelRequest()" id="clickablefor360" [navigateToEmployee360]="leave.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{leave.managerName}}</td>
 
                         <td>{{leave.billable}}</td>
                         <td>{{leave.billableType}}</td>
@@ -581,8 +585,8 @@
                     <th class="info-label">{{10*(page-1)+i+1}}</th>
                     <td>{{emp.employeementId}}</td>
                     <td>{{emp.employeeType}}</td>
-                    <td id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="emp" style="cursor: pointer;" title="Click to view Employee 360" class="text-capitalize" class="text-capitalize">{{emp.employeeName}}</td>
-                    <td *ngIf="!userMapping.reports_employee_360" class="text-capitalize">{{emp.projectName}}</td>
+                    <td class="text-capitalize"id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="emp" style="cursor: pointer;" title="Click to view Employee 360" class="text-capitalize" class="text-capitalize">{{emp.employeeName}}</td>
+                    <td class="text-capitalize"*ngIf="!userMapping.reports_employee_360" class="text-capitalize">{{emp.projectName}}</td>
                     <td class="text-capitalize">{{emp.clientName}}</td>
                     <td class="text-capitalize">{{emp.teamName}}</td>
                     <td class="text-capitalize">{{emp.clientLocation}}</td>

@@ -1697,6 +1697,8 @@ public class TimesheetService {
 						timesheetDto.setTimesheetStatusUpdatedByName(object[11] != null ? object[11].toString() : null);
 						timesheetDto.setIsConsultant(object[12] != null ? object[12].toString() : null);
 						timesheetDto.setIsApprenticeship(object[13] != null ? object[13].toString() : null);
+						timesheetDto.setManagerId(object[14] != null ? Long.parseLong(object[14].toString()) : null);
+						timesheetDto.setTimesheetStatusUpdatedBy(object[15] != null ? Long.parseLong(object[15].toString()) : null);
 						
 						dtoList.add(timesheetDto);
 					});

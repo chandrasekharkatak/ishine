@@ -94,6 +94,7 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 					dto.setIsConsultant(object[9] != null ? object[9].toString() : null);
 					dto.setIsApprenticeship(object[10] != null ? object[10].toString() : null);
 					dto.setEmpId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
+					dto.setManagerId(object[12] != null ? Integer.parseInt(object[12].toString()) : null);
 					dtoList.add(dto);
 				});
 
@@ -155,6 +156,7 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 					dto.setLegend("Pending By User");
 					dto.setEmploymentstatus(employee[17] != null ? employee[17].toString() : null);
 					dto.setIsConsultant(employee[76] != null? employee[76].toString() : null);
+					dto.setManagerId(employee[25] != null ? Long.parseLong(employee[25].toString()) : null);
 					timesheetList.forEach((timesheet) -> {
 
 						Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
@@ -492,7 +494,7 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 	            dto.setTeamName(object[22] != null ? object[22].toString() : null);
 	            dto.setIsConsultant(object[23] != null ? object[23].toString() : null);
 	            dto.setIsApprenticeship(object[24] != null ? object[24].toString() : null);
-
+	            dto.setManagerId(object[26] != null ? Long.parseLong(object[26].toString()) : null);
 	           
 	            if (object[25] != null && object[12] != null) {
 	                String projectIdStr = object[25].toString().trim();

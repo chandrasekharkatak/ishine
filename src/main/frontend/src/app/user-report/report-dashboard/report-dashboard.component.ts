@@ -281,6 +281,10 @@ options:any;
 
           let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === employee.employeementId);
           employee.emp360 = matchingEmployee ? matchingEmployee : {};
+
+          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === employee.managerId);
+          // console.log("leave match ",matchingEmployee);
+          employee.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
         });
 
         // console.log("allResignEmployee : ", this.allResignEmployee)
@@ -323,6 +327,9 @@ options:any;
 
           let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === data.employeementId);
           data.emp360 = matchingEmployee ? matchingEmployee : {};
+          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === data.managerId);
+          // console.log("leave match ",matchingEmployee);
+          data.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {}
         })
         // console.log("this.departmentWiseBillableEmployeeList ",this.departmentWiseBillableEmployeeList );
       }
@@ -356,6 +363,9 @@ options:any;
           let matchingEmployee = this.employeesFor360.find(emp => emp.empId === leave.empId);
           // console.log("leave match ",matchingEmployee);
           leave.emp360 = matchingEmployee ? matchingEmployee : {};
+          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === leave.managerId);
+          // console.log("leave match ",matchingEmployee);
+          leave.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
         });
 
         //console.log("leaveSumarryList : ", this.leaveSumarryList);
@@ -634,6 +644,9 @@ options:any;
           let matchingEmployee = this.employeesFor360.find(emp => emp.empId === timesheet.empId);
           // console.log("extractTimesheetReportData ",matchingEmployee);
           timesheet.emp360 = matchingEmployee ? matchingEmployee : {};
+          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === timesheet.managerId);
+          console.log("extractTimesheetReportData ",matchingEmployee2);
+          timesheet.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
 
         });
 
@@ -863,6 +876,9 @@ options:any;
             let matchingEmployee = this.employeesFor360.find(emp => emp.empId === x.empId);
             // console.log("matching ",matchingEmployee)
             x.emp360 = matchingEmployee ? matchingEmployee : {};
+            let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === x.managerId);
+            // console.log("matching ",matchingEmployee)
+            x.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
           }
             // console.log("allEmployeeList : ", this.allEmployeeList)
             this.extractData();
@@ -915,6 +931,9 @@ options:any;
 
             let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === employee.employeementId);
             employee.emp360 = matchingEmployee ? matchingEmployee : {};
+            let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === employee.managerId);
+          // console.log("leave match ",matchingEmployee);
+          employee.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
           });
           this.extractData();
           //console.log("allEmployeeList : ", this.allEmployeeList)
@@ -3732,7 +3751,10 @@ exportGlobalData():void{
       this.modalSummaryList.forEach(y=>{
         let matchingEmployee = this.employeesFor360.find(emp => emp.empId === y.empId);
         // console.log("openLeaveSummaryTableModel ",matchingEmployee);
-        y.emp360 = matchingEmployee ? matchingEmployee : {};         
+        y.emp360 = matchingEmployee ? matchingEmployee : {};    
+        let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === y.managerId);
+        // console.log("openLeaveSummaryTableModel ",matchingEmployee);
+        y.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};         
       });
       console.log('modalSummaryList --',this.modalSummaryList)
       this.modalRef = this.modalService.show(this.leaveSummaryTemplate, { class: 'modal-lg' });
@@ -3778,6 +3800,8 @@ exportGlobalData():void{
       for(let y of this.modalSummaryList){
         let matchingEmployee = employee360.find(emp => emp.employeementId === y.employeementId);
         y.emp360 = matchingEmployee ? matchingEmployee : {};
+        let matchingEmployee2 = employee360.find(emp => emp.empId === y.managerId);
+        y.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
       }
       // console.log(this.modalSummaryList, "this.checked")
       this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });

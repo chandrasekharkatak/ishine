@@ -371,9 +371,16 @@ export class ReportListComponent implements OnInit {
         });
         this.allLeaveApplicationsList.forEach(leave => {
           let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === leave.employeementId);
-          console.log("allLeaveApplicationsList matchingEmployee",matchingEmployee);
+          // console.log("allLeaveApplicationsList matchingEmployee",matchingEmployee);
           leave.emp360 = matchingEmployee ? matchingEmployee : {};
           // console.log("allLeaveApplicationsList ",this.employeesFor360);
+          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === leave.managerId);
+          // console.log("allLeaveApplicationsList matchingEmployee2",matchingEmployee2);
+          leave.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
+          leave.emp360 = matchingEmployee ? matchingEmployee : {};
+            let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === leave.timesheetStatusUpdatedBy);
+            // console.log("timesheet ",matchingEmployee)
+            leave.emp360UpdatedBy = matchingEmployee3 ? matchingEmployee3 : {};
         });
         console.log("allLeaveApplicationsList : getAllLeaveApplicationsList", this.allLeaveApplicationsList)
       } else {
@@ -423,6 +430,14 @@ export class ReportListComponent implements OnInit {
               let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === y.employeementId);
               console.log("matchingEmployee",matchingEmployee)
               y.emp360 = matchingEmployee ? matchingEmployee : {};
+              let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === y.managerId);
+          // console.log("allLeaveApplicationsList matchingEmployee2",matchingEmployee2);
+          y.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
+          y.emp360 = matchingEmployee ? matchingEmployee : {};
+            let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === y.timesheetStatusUpdatedBy);
+            // console.log("timesheet ",matchingEmployee)
+            y.emp360UpdatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+       
             }
           console.log("allLeaveApplicationsList getCustomLeaveApplicationsList: ", this.allLeaveApplicationsList)
         } else {
@@ -451,6 +466,14 @@ export class ReportListComponent implements OnInit {
           timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.updatedOn = (timesheet.updatedOn) ? moment(timesheet.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
+        this.allTimesheetApplicationsList.forEach(timesheet => {
+          let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === timesheet.employeementId);
+          // console.log("timesheet ",matchingEmployee)
+          timesheet.emp360 = matchingEmployee ? matchingEmployee : {};
+          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === timesheet.timesheetStatusUpdatedBy);
+          // console.log("timesheet ",matchingEmployee)
+          timesheet.emp360UpdatedBy = matchingEmployee2 ? matchingEmployee2 : {};
         });
         //console.log("allTimesheetApplicationsList : ", this.allTimesheetApplicationsList)
       } else {
@@ -489,6 +512,9 @@ export class ReportListComponent implements OnInit {
             let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === timesheet.employeementId);
             // console.log("timesheet ",matchingEmployee)
             timesheet.emp360 = matchingEmployee ? matchingEmployee : {};
+            let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === timesheet.timesheetStatusUpdatedBy);
+            // console.log("timesheet ",matchingEmployee)
+            timesheet.emp360UpdatedBy = matchingEmployee2 ? matchingEmployee2 : {};
           });
           //console.log("allTimesheetApplicationsList : ", this.allTimesheetApplicationsList)
         } else {
@@ -561,7 +587,18 @@ export class ReportListComponent implements OnInit {
             let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === employee.employeementId);
             console.log("allEmployeeList matchingEmployee : ", matchingEmployee)
             employee.emp360 = matchingEmployee ? matchingEmployee : {};    
-             });
+            let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === employee.managerId);
+            // console.log("leave match ",matchingEmployee);
+            employee.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
+            // console.log("employee.createdBy ", employee.createdBy);
+            let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+            // console.log("createdby ", matchingEmployee3);
+            employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+            // console.log("employee.updatedBy ", employee.updatedBy);
+            let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+            // console.log("updatedBy ", matchingEmployee4);
+            employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+        });
           //console.log("allEmployeeList : ", this.allEmployeeList)
         } else {
           this.openAlertMod(template, response.serviceResponse)
@@ -1000,8 +1037,14 @@ export class ReportListComponent implements OnInit {
           let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === y.employeementId);
           // console.log("matchingEmployee  allLeaveTimesheets: ", matchingEmployee)
           y.emp360 = matchingEmployee ? matchingEmployee : {};
+          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === y.managerId);
+          // console.log("leave match ",matchingEmployee);
+          y.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === y.timesheetStatusUpdatedBy);
+          // console.log("leave match ",matchingEmployee);
+          y.emp360UpdatedBy = matchingEmployee3 ? matchingEmployee3 : {};
         }
-        console.log("allLeaveTimesheets :", this.allLeaveTimesheets);
+        // console.log("allLeaveTimesheets :", this.allLeaveTimesheets);
       } else {
         console.error(response.serviceResponse)
       }

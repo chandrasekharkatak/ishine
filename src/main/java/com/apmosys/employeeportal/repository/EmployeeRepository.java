@@ -285,7 +285,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "       e.gender, e.employmentstatus, e.total_experience, e.date_of_birth, e.date_of_joining, \n"
 			+ "       e.work_location, e.experience, e.emp_id, emp_proj_client.team_name, e.is_consultant, \n"
 			+ "       e.is_apprenticeship,\n"
-			+ "       emp_proj_client.project_id \n"
+			+ "       emp_proj_client.project_id, e.manager_id \n"
 			+ "FROM employee e\n"
 			+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id\n"
 			+ "INNER JOIN department d ON d.dept_id = jr.dept_id\n"
