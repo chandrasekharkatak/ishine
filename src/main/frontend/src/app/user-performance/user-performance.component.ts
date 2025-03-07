@@ -636,7 +636,9 @@ export class UserPerformanceComponent implements OnInit {
     this.isperformanceDsah = false;
     this.isreviewPage = true;
     this.selectedEmployee = eligiemployee;
-
+    console.log("eligiemployee",eligiemployee);
+    this.selectedEmployee.emp360 = eligiemployee.emp360;
+    console.log("eligiemployee.emp360",eligiemployee.emp360);
     this.myList = [];
     this.myRateList = [];
 

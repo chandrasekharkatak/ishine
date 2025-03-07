@@ -198,7 +198,8 @@
       </div>
   
       <div class="info">
-        <p>Name: {{selectedEmployee.name}}</p>
+        <p *ngIf="userMapping.performance_employee_360"><span>Name: </span><span id="clickablefor360" [navigateToEmployee360]="selectedEmployee.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{selectedEmployee.name}}</span></p>
+        <p *ngIf="!userMapping.performance_employee_360">Name: {{selectedEmployee.name}}</p>
         <p>Employee Since: {{selectedEmployee.dateOfJoining | date : 'yyyy-mm-dd'}}</p>
         <p>Reporting Manager: {{selectedEmployee.managerName}}</p>
         <p>Manager:{{selectedEmployee.managerName}}</p>

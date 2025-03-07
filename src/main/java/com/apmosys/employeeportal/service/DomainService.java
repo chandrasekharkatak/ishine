@@ -61,7 +61,7 @@ public class DomainService {
 		try {
 			
 			List<Domain> existingDomainName = domainRepository.findByDomainnName(domainDTO.getDomainName());
-	        if (existingDomainName != null) {
+	        if (existingDomainName != null && !existingDomainName.isEmpty()) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	            response.setServiceResponse("Domain Name already exists.");
 	            apiLogInfo.setApiResponse("Domain Name already exists.");            

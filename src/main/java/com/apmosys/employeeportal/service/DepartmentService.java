@@ -104,9 +104,10 @@ public class DepartmentService {
 		            return response;
 		        }
 		        
-		        List<Department> existingDeptName = departmentRepository.findByDeptName(departmentDTO.getDeptName());
+		        System.err.println(departmentDTO.getName()) ; 
+		        List<Department> existingDeptName = departmentRepository.findByDeptName(departmentDTO.getName());
 		        System.err.println(existingDeptName) ;     
-		        if (existingDeptName != null) {
+		        if (existingDeptName != null && !existingDeptName.isEmpty()) {
 		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 		            response.setServiceResponse("Department Name already exists.");
 		            

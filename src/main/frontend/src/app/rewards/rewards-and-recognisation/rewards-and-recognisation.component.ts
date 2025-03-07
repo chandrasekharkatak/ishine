@@ -1,21 +1,21 @@
 import { LocationStrategy } from '@angular/common';
-import { Component, OnInit, TemplateRef, ViewChild,ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Sort } from '@angular/material/sort';
+import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
+import { Employee } from 'src/app/models/employee';
+import { Feature } from 'src/app/models/feature';
 import { Rewards } from 'src/app/models/rewards';
 import { User } from 'src/app/models/user';
-import { Employee } from 'src/app/models/employee';
 import { AuthenticationService } from 'src/app/services/authentication.service';
-import { RewardsServiceService } from 'src/app/services/rewards-service.service';
-import * as moment from 'moment';
-import { AppComponent } from 'src/app/app.component';
-import { Sort } from '@angular/material/sort';
-import { ExportExcelService } from 'src/app/services/export-excel.service';
-import { first } from 'rxjs/operators';
-import { ValidationService } from 'src/app/services/validation.service';
 import { EmployeeService } from 'src/app/services/employee.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { RewardsServiceService } from 'src/app/services/rewards-service.service';
 import { UtilityService } from 'src/app/services/utility.service';
+import { ValidationService } from 'src/app/services/validation.service';
 import { SortPipe } from 'src/app/sort.pipe';
-import { Feature } from 'src/app/models/feature';
 @Component({
   selector: 'app-rewards-and-recognisation',
   templateUrl: './rewards-and-recognisation.component.html',
@@ -714,7 +714,7 @@ bulkEnable(template: TemplateRef<any>) {
     this.selectedReward = rewardID;
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
   }
-  confirmDeleteReward() {
+  confirmDeleteReward(template: TemplateRef<any>) {
 
     if (!this.selectedReward) return;
   
@@ -725,6 +725,7 @@ bulkEnable(template: TemplateRef<any>) {
           // this.openAlertMod(this.modalRef?.content, response.serviceResponse);
           this.isRewards = false;
           this.isRewardshitory = true;
+          this.openAlertMod(template, response.serviceResponse);
           this.fetchRewardHistory();
         } else {
           this.openAlertMod(this.modalRef?.content, 'No reward categories available at the moment.');
