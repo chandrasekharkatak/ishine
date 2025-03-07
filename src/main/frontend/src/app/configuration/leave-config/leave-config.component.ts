@@ -1055,6 +1055,12 @@ export class LeaveConfigComponent implements OnInit {
     } else {
       leaveObj.employeementId = this.leaveBalanceObj.employeementId
     }
+
+    if (!this.validationService.validateEmployeementId(leaveObj.employeementId)) {
+      this.alertMessage = "Please enter valid Employee ID !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
     this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveBalanceList = response.serviceResponse;
