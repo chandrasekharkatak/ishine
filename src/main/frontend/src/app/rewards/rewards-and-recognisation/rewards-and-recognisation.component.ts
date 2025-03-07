@@ -424,7 +424,22 @@ editReward(rewardId: number) {
 }
 
 reloadPage() {
-  window.location.reload();
+  // window.location.reload();
+  this.rewardsHistoryfun();
+  this.ofmonthyear = ''; 
+  this.employeeSearchText = '';
+  this.remarks = '';
+  this.selectedReward = null;
+  this.isEditing = false; 
+  //  this.activeCategoryId = 
+  if (this.rewardsCategories && this.rewardsCategories.length > 0) {
+    this.activeCategoryId = this.rewardsCategories[0].rewardCategoryId;
+  }
+
+  if (this.rewards && this.rewards.length > 0) {
+    this.selectedReward = this.rewards[0];
+    this.selectedReward.selectedType= null;
+  }
 }
 
 
