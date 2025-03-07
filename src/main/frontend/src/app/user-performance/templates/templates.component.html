@@ -1,0 +1,139 @@
+<div class=" mb-3">
+    <div class="col-md-12 px-0">
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+         [class.active]="activeTab === 'goals'" (click)="setActiveTab('goals')">Goals Template
+    </button>
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+         [class.active]="activeTab === 'kra-kpi'" (click)="setActiveTab('kra-kpi')">KRA/KPI Template
+    </button> 
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+         [class.active]="activeTab === 'questionnaire'" (click)="setActiveTab('questionnaire')">Questionnaire Template
+    </button> 
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+         [class.active]="activeTab === 'create-template'" (click)="setActiveTab('create-template')">Create Template
+    </button> 
+    </div>
+    
+    
+
+
+    <div class="tab-content mt-3">
+      <div *ngIf="activeTab === 'goals'">
+        <div class=" px-0" >
+          <div class="col-md-12 table-header">
+            <h1 class="table-header-title">Goals Template</h1>
+          </div>
+        </div>
+        <div class="row ml-2">
+          <div>
+                <label class="info-label"><span class="text-danger">*</span>Department</label>
+          <select class="form-control" aria-hidden="true" [(ngModel)]="selectedDept" (change)="fetchGoalTemplates()">
+            <option selected="selected" value="" disabled>Select</option>
+            <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
+          </select>
+
+          </div>
+        </div>
+       
+        <ul class="list-group">
+          <li class="list-group-item" *ngFor="let template of goalTemplates">
+            {{ template.name }} - {{ template.description }}
+          </li>
+        </ul>
+      </div>
+  
+
+
+      <div *ngIf="activeTab === 'kra-kpi'">
+        <div class=" px-0" >
+          <div class="col-md-12 table-header">
+            <h1 class="table-header-title">KRA/KPI Template</h1>
+          </div>
+        </div>
+        <div class="row ml-2">
+          <div>
+                <label class="info-label"><span class="text-danger">*</span>Department</label>
+          <select class="form-control" aria-hidden="true" [(ngModel)]="selectedDept" (change)="fetchKraKpiTemplates()">
+            <option selected="selected" value="" disabled>Select</option>
+            <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
+          </select>
+
+          </div>
+        </div>
+        <ul class="list-group">
+          <li class="list-group-item" *ngFor="let template of kraKpiTemplates">
+            {{ template.name }} - {{ template.metrics }}
+          </li>
+        </ul>
+      </div>
+
+
+
+      <div *ngIf="activeTab === 'questionnaire'">
+        <div class=" px-0" >
+          <div class="col-md-12 table-header">
+            <h1 class="table-header-title">QuestionnaireTemplate</h1>
+          </div>
+        </div>
+        <div class="row ml-2">
+          <div>
+                <label class="info-label"><span class="text-danger">*</span>Department</label>
+          <select class="form-control" aria-hidden="true" [(ngModel)]="selectedDept" (change)="fetchQuestionnaireTemplates()">
+            <option selected="selected" value="" disabled>Select</option>
+            <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
+          </select>
+
+          </div>
+        </div>
+        <ul class="list-group">
+          <li class="list-group-item" *ngFor="let template of questionnaireTemplates">
+            {{ template.name }} - {{ template.questions.length }} questions
+          </li>
+        </ul>
+      </div>
+  
+
+
+
+
+      <div *ngIf="activeTab === 'create-template'">
+        <div class=" px-0" >
+          <div class="col-md-12 table-header">
+            <h1 class="table-header-title">Create New Template</h1>
+          </div>
+        </div>
+        <div class="w-25">
+        <select class="form-control mb-3 " [(ngModel)]="selectedTemplateType" (change)="updateTemplateForm()">
+          <option value="goals">Goals Template</option>
+          <option value="kra-kpi">KRA/KPI Template</option>
+          <option value="questionnaire">Questionnaire Template</option>
+        </select>
+        </div>
+  
+        <form [formGroup]="templateForm" (ngSubmit)="createTemplate()">
+          <div class="form-group w-25">
+            <label>Name</label>
+            <input type="text" class="form-control" formControlName="name" required>
+          </div>
+  
+          <div *ngIf="selectedTemplateType === 'goals'" class="form-group w-25">
+            <label>Description</label>
+            <input type="text" class="form-control" formControlName="description">
+          </div>
+  
+          <div *ngIf="selectedTemplateType === 'kra-kpi'" class="form-group w-25">
+            <label>Metrics</label>
+            <input type="text" class="form-control" formControlName="metrics">
+          </div>
+  
+          <div *ngIf="selectedTemplateType === 'questionnaire'" class="form-group w-25">
+            <label>Questions </label>
+            <input type="text" class="form-control" formControlName="questions">
+          </div>
+  
+          <button type="submit" class="btn btn-primary mt-2">Create Template</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  

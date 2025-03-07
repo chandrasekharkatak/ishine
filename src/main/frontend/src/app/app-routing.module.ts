@@ -67,7 +67,10 @@ import { DocumentUploadComponent } from './user-update-info/document-upload/docu
 import { EmployeeInfoComponent } from './user-update-info/employee-info/employee-info.component';
 import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
-import { PerformanceConfigComponent } from './configuration/performance-config/performance-config.component';
+
+import { PerformanceDashboardComponent } from './user-performance/performance-dashboard/performance-dashboard.component';
+import { TeamDashboardComponent } from './user-performance/team-dashboard/team-dashboard.component';
+import { TemplatesComponent } from './user-performance/templates/templates.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -99,7 +102,6 @@ const routes: Routes = [
       { path: 'document', component: DocumentComponent, },
       { path: 'other', component: OthersComponent, },
       { path: 'rewards-config', component: RewardsConfigComponent, },
-      { path: 'performance-config' , component: PerformanceConfigComponent},
     ]
   },
   {path:'user-leaves', component: UserLeavesComponent, canActivate: [AuthGuard],
@@ -181,7 +183,13 @@ const routes: Routes = [
   {path:'user-attendance', component: UserAttendanceComponent, canActivate: [AuthGuard]},
   {path:'user-salary', component: UserSalaryComponent, canActivate: [AuthGuard]},
   {path:'user-requests', component: UserRequestsComponent, canActivate: [AuthGuard]},
-  {path:'user-performance', component: UserPerformanceComponent, canActivate: [AuthGuard]},
+  {path:'user-performance', component: UserPerformanceComponent, canActivate: [AuthGuard],
+    children: [
+      { path: 'performance-dashboard', component: PerformanceDashboardComponent, },
+      { path: 'team-dashboard', component: TeamDashboardComponent, },
+      { path: 'templates', component: TemplatesComponent, }
+    ]
+  },
   {path:'hr-policies', component: HrPoliciesComponent, canActivate: [AuthGuard]},
   {path:'helpdesk', component: HelpdeskComponent},
   {path:'helpdesk/:id', component: HelpdeskComponent, canActivate: [AuthGuard]},

@@ -1,0 +1,136 @@
+<div class="container m-0">
+  <div class="card p-4 shadow-sm">
+    <h3 class="text-center pb-4 ">Performance Dashboard</h3>
+    
+    <div class="row align-items-center">
+      <div class="col-md-6 d-flex align-items-center ">
+        <img src="assets/Images/default-user-image.jpeg" alt="profile" class="rounded-circle border" width="100" height="100">
+        <div class="ms-2 p-2">
+          <p><strong>Employee ID:</strong> 12345</p>
+          <p><strong>Name:</strong> John Doe</p>
+          <p><strong>Manager:</strong> James</p>
+        </div>
+      </div>
+      <div class="col-md-3 text-center">
+        <div class="stat-box bg-light p-2 rounded">Goals Completed: <strong>8</strong></div>
+        <div class="stat-box bg-light p-2 rounded">Goals Remaining: <strong>4</strong></div>
+      </div>
+      <div class="col-md-3 text-center">
+        <div class="stat-box bg-light p-2 rounded">KRA/KPI score: <strong>9/10</strong></div>
+        <div class="stat-box bg-light p-2 rounded">Questionnaire score: <strong>8/10</strong></div>
+      </div>
+    </div>
+    
+    <div class="row mt-4">
+      <div class="col-md-6">
+        <div class="graph-placeholder p-4 border rounded text-center">[Graphs Here]</div>
+      </div>
+      <div class="col-md-6">
+        
+        
+          <div class="goals-list p-2 border rounded d-flex flex-column" style="height: 100%;">
+            <h6 class="mb-1 text-center">Goals List</h6>
+            <div class="table-responsive flex-grow-1" style="max-height: 250px; overflow-y: auto;">
+              <table class="table table-sm table-bordered" style="font-size: 0.90rem;">
+                <thead>
+                  <tr class="bg-light " >
+                    <th scope="col" class="w-30">Goal</th>
+                    <th scope="col">Description</th>
+                    <th scope="col" class="text-center w-20">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let goal of goals">
+                    <td>{{ goal.name }}</td>
+                    <td class="text-truncate" style="max-width: 180px;">{{ goal.description }}</td>
+                    <td class="text-center">
+                      <button class="btn btn-sm btn-outline-primary py-1 px-2" (click)="openModal(viewGoalTemplate, goal)" style="font-size: 0.75rem;" >View</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+        
+      </div>
+    </div>
+    
+    <div class="row mt-4">
+      <div class="col-md-4">
+        <div class="info-card p-4 rounded">Appraisal Summary</div>
+      </div>
+      <div class="col-md-4">
+        <div class="info-card p-4 rounded">Skills</div>
+      </div>
+      <div class="col-md-4">
+        <div class="info-card p-4 rounded">Awards</div>
+      </div>
+    </div>
+    
+    <div class="mt-4 review-section p-4 border rounded">
+      <h4 class="text-center">Review</h4>
+      <div class="btn-group  align-items-center mb-3">
+        <button type="button" class="btn btn-outline-primary" [class.active]="activeTab === 'kra-kpi'" (click)="setActiveTab('kra-kpi')">KRA/KPI Review</button>
+        <button type="button" class="btn btn-outline-primary" [class.active]="activeTab === 'questionnaire'" (click)="setActiveTab('questionnaire')">Questionnaire Review</button>
+      </div>
+      <div class="form-group row gap-3 ">
+        <div class="text-center m-2 px-1" >
+        <label>Select Quarter:</label>
+        </div>
+        <select class="form-control w-25" [(ngModel)]="selectedQuarter" (change)="fetchReviewData()">
+          <option *ngFor="let quarter of quarters" [value]="quarter">{{ quarter }}</option>
+        </select>
+      </div>
+      <div class="tab-content mt-3">
+        <div *ngIf="activeTab === 'kra-kpi'">
+          <h4>KRA/KPI Review for Quarter {{ selectedQuarter }}</h4>
+          <form [formGroup]="kraKpiReviewForm" (ngSubmit)="submitKraKpiReview()">
+            <div *ngFor="let metric of kraKpiMetrics" class="form-group">
+              <label>{{ metric.name }} (Out of 10)</label>
+              <input type="number" class="form-control" formControlName="{{metric.id}}" min="0" max="10">
+            </div>
+            <button type="submit" class="btn btn-primary mt-3">Submit KRA/KPI Review</button>
+          </form>
+        </div>
+        <div *ngIf="activeTab === 'questionnaire'">
+          <h4>Questionnaire Review for Quarter {{ selectedQuarter }}</h4>
+          <form [formGroup]="questionnaireReviewForm" (ngSubmit)="submitQuestionnaireReview()">
+            <div *ngFor="let question of questionnaireQuestions" class="form-group">
+              <label>{{ question.text }} (Out of 10)</label>
+              <input type="number" class="form-control" formControlName="{{question.id}}" min="0" max="10">
+            </div>
+            <button type="submit" class="btn btn-primary mt-3">Submit Questionnaire Review</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- View Goal Modal -->
+<ng-template #viewGoalTemplate>
+  <div class="modal-header">
+    <h5 class="modal-title">{{ selectedGoal?.name }}</h5>
+    <button type="button" class="close" (click)="modalRef?.hide()">
+      <span>&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <p><strong>Goal Description:</strong> {{ selectedGoal?.description }}</p>
+    <p><strong>Assigned Date:</strong> {{ selectedGoal?.assignedDate }}</p>
+    <p><strong>Due Date:</strong> {{ selectedGoal?.dueDate }}</p>
+    <p><strong>Employee Name:</strong> {{ selectedGoal?.employeeName }}</p>
+    <p><strong>Assigned By:</strong> {{ selectedGoal?.assignedBy }}</p>
+    <p><strong>Status:</strong> {{ selectedGoal?.status }}</p>
+    <h6>Checkpoints:</h6>
+    <ul>
+      <li *ngFor="let checkpoint of selectedGoal?.checkpoints">{{ checkpoint }}</li>
+    </ul>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modalRef?.hide()">Close</button>
+  </div>
+</ng-template>
