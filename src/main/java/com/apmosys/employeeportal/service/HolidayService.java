@@ -66,8 +66,13 @@ public class HolidayService {
 			     newHoliday.setDateOfHoliday(stringToDateTimeParser.getDate(holidayDTO.getDateOfHoliday(),"yyyy-MM-dd"));
 			     newHoliday.setDayOfTheWeek(holidayDTO.getDayOfTheWeek());
 			     newHoliday.setOptionalHoliday(holidayDTO.getOptionalHoliday());
-			     newHoliday.setState(holidayDTO.getState());
+//			     newHoliday.setState(holidayDTO.getState());
 			     newHoliday.setHolidayType(holidayDTO.getHolidayType());
+			     if(holidayDTO.getHolidayType().equals("WeekOff") ) {
+			    	 newHoliday.setState("all");
+			     }else {
+			    	  newHoliday.setState(holidayDTO.getState());
+			     }
 //			     newHoliday.setCreatedOn(Timestamp.valueOf(stringToDateTimeParser.getCurrentDateTime()));
 			     newHoliday.setCreatedBy(holidayDTO.getCreatedBy());
 
