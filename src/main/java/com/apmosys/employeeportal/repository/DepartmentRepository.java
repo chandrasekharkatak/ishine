@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.dto.DepartmentDTO;
@@ -42,7 +43,9 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 	
 	public Department findByDeptAbbreviation(String deptAbbreviation);
 	
-	@Query(nativeQuery = true , value = "Select * from department where name = :name")
-	public List<Department> findByDeptName(String name);
+	@Query(nativeQuery = true , value = "select * from department where name = :deptname")
+	public List<Department> findByDeptName(String deptname);
+	
+
 	
 }
