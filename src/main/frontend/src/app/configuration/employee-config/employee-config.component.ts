@@ -1796,14 +1796,13 @@ export class EmployeeConfigComponent implements OnInit {
     });
   }
 
-  clearAfterChange(field, fieldname) {
-    let element: any = document.getElementById(field);
-    if (element) element.value = '';
-
-    console.log("value : ", element.value);
-
-    this.employeeObj[fieldname] = '';
-  }
+  // clearAfterChange(field, fieldname) {
+  //   let element: any = document.getElementById(field);
+  //   if (this.employeeObj.experience === 'Fresher') {
+  //     if (element) element.value = '';
+  //     this.employeeObj[fieldname] = '';
+  // }
+  // }
 
   onUpdateEmployee(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
