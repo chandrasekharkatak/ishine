@@ -247,8 +247,6 @@ export class EmployeeConfigComponent implements OnInit {
     private domainService: DomainService,
     private destinationService: DestinationService,
     private leaveService: LeaveService,
-    private sharedService: SharedService,
-    private employee360Service: Employee360Service
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -261,7 +259,7 @@ export class EmployeeConfigComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
+    // console.log(this.feature, this.userMapping);
   
     this.sectionViewInit();
   

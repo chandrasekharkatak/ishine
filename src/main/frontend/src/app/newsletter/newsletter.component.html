@@ -63,7 +63,8 @@
                         *ngFor="let doc of newsletters | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |  paginate: { itemsPerPage: 10, currentPage: page }, let i = index  ">
                         <th class="info-label">{{10*(page-1)+i+1}}</th>
                         <td>{{doc.displayName}}</td>
-                        <td>{{doc.name}}</td>
+                        <td *ngIf="userMapping.employee360_view_newsletter" id="clickablefor360" [navigateToEmployee360]="doc.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{doc.name}}</td>
+                        <td *ngIf="!userMapping.employee360_view_newsletter">{{doc.name}}</td>
                         <td>{{doc.createdOn}}</td>
                         <td>
                           <button class="btn btn-sm btn-outline-primary" *ngIf="doc.isRead" type="submit"
