@@ -254,7 +254,7 @@
                             <tr
                                 *ngFor="let review of reviewTypelist| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                                 <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
-                                <td>{{review.reviewLabel}}</td>
+                                <td>{{review.reviewLabel}} {{userMapping.employee360_view_performance_config}}</td>
                                 <td>{{review.reviewFieldType}}</td>
                                 <td>{{review.condition}}</td>
                                 <td>{{review.quarterCycle}}</td>

@@ -220,8 +220,8 @@ export class LeaveConfigComponent implements OnInit {
     setTimeout(this.setCurrentYearLimit, 500);
   }
 
-  showHoliaysTable() {
-    console.log("yes   ",)
+  async showHoliaysTable() {
+    
     this.employeeData = []
     this.isHolidayTable = true;
 
@@ -239,6 +239,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isSearchEnabled = false;
 
     this.getAllHolidays();
+    
   }
 
   showLeaveTypesTable() {
@@ -589,8 +590,7 @@ export class LeaveConfigComponent implements OnInit {
     //console.log("Add Holiday : ", this.holidayObj);
     this.holidayService.addHoliday(this.holidayObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        console.log("ckecked" ,response.serviceStatus)
-        this.openAlertMod(template, response.serviceResponse);
+         this.openAlertMod(template, response.serviceResponse);
         this.showHoliaysTable();
         this.getAllHolidays();
         console.log("last in" ,this.holidayListFilter)
@@ -657,9 +657,8 @@ export class LeaveConfigComponent implements OnInit {
 
  
 
-  getAllHolidays() {
+   getAllHolidays() {
 
-    console.log("yesss")
     this.sortColumn=[];
     this.sortColumnType=[];
     this.sortDirection='';
@@ -690,11 +689,8 @@ export class LeaveConfigComponent implements OnInit {
           holiday.updatedOn = (holiday.updatedOn) ? moment(holiday.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
         this._holidayList=this.holidayList;
-        this.changeEvent('Maharashtra');
         // this.changeEvent(this.currentUser.workLocation);
-        this.selectedState='Maharashtra';
-        // this.selectedState=this.currentUser.workLocation;
-        console.log(this.holidayListFilter, " : this.holidayListFilter");
+        this.selectedState='all';
         this.filterHolidayListByYear(new Date().getFullYear());
         this.selectedHolidayType = "Festival";
         this.onHolidayTypeSelected();
@@ -887,7 +883,8 @@ export class LeaveConfigComponent implements OnInit {
     });
   }
 
-  getAllLeaveTypes() {
+  async getAllLeaveTypes() {
+    
     this.sortColumn=[];
     this.sortColumnType=[];
     this.sortDirection='';
@@ -918,7 +915,8 @@ export class LeaveConfigComponent implements OnInit {
       }
     });
   }
-
+  
+  
   onDeleteLeaveType(template: TemplateRef<any>, alertTemplate: TemplateRef<any>) {
     this.cancelRequest();
 

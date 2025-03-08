@@ -150,6 +150,7 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
                     </a>
                 </div>
+               
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
                     [tableTHeadTrId]="'holidayInfoTHeadTr'">
                     <table class="table table-responsive" id="holidayInfo" matSort (matSortChange)="sortData($event)">	

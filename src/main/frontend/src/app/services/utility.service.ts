@@ -2,10 +2,11 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { Query } from '../models/query';
-import { first, map } from 'rxjs/operators';
+import { first, map, switchMap } from 'rxjs/operators';
 import * as moment from 'moment';
 import { AppComponent } from '../app.component';
 import { SortPipe } from '../sort.pipe';
+import { of } from 'rxjs/internal/observable/of';
 
 @Injectable({
   providedIn: 'root'
@@ -122,17 +123,19 @@ export class UtilityService {
   getEmployeeDetailsFor360View() {
     return this.getAllEmployeesFor360View().pipe(
       first(),
-      map((response: any) => {
+      switchMap((response: any) => {
         if (response.serviceStatus == "Success") {
           let allEmployeeList360 = response.serviceResponse;
           console.log("allEmployeeListFor360 : ", allEmployeeList360);
-          
+  
+          // Perform necessary formatting and data transformations
           allEmployeeList360.forEach(employeeObj => {
             employeeObj.employeementId = this.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
             employeeObj.dateOfJoining = employeeObj.dateOfJoining ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
             employeeObj.dateOfRelieving = employeeObj.dateOfRelieving ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
             employeeObj.updatedOn = employeeObj.updatedOn ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
             employeeObj.createdOn = employeeObj.createdOn ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+  
             if (employeeObj.isConsultant === 'true') {
               employeeObj.employeeType = 'Consultant';
             } else if (employeeObj.isApprenticeship === 'true') {
@@ -142,14 +145,17 @@ export class UtilityService {
             }
           });
   
-          return new SortPipe().transform(allEmployeeList360, ['name', 'string', 'asc']);
+          // Return an observable that waits for the next data load
+          const sortedEmployees = new SortPipe().transform(allEmployeeList360, ['name', 'string', 'asc']);
+          return of(sortedEmployees);  // Using 'of' to wrap the sorted result in an observable
         } else {
           alert(response.serviceResponse);
-          return [];
+          return of([]);  // Return an observable of an empty array if serviceStatus is not "Success"
         }
       })
-    ).toPromise(); 
+    ).toPromise();
   }
+  
   
   getAllEmployeesFor360View() {
     return this.http.get(`${this.baseUrl}` + `api/getAllEmployeesFor360View`);

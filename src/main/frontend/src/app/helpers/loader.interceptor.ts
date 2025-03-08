@@ -232,8 +232,9 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/addReviewType`,
     `${this.baseUrl}` + `api/updateReviewType`,
     `${this.baseUrl}` + `getExistingProjectsAndTeamsByEmployee`,
-
-    `${this.baseUrl}` + `api/biomax`
+    `${this.baseUrl}` + `api/getAllEmployeesFor360View`,
+   
+     `${this.baseUrl}` + `api/biomax`
   
     
   ]

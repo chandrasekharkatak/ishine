@@ -106,8 +106,8 @@ export class PerformanceConfigComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-   
-
+    console.log(this.feature, this.userMapping);
+    console.log("userMapping.employee360_view_performance_config",this.userMapping.employee360_view_performance_config)
     
     
   }
