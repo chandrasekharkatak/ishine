@@ -16,6 +16,7 @@ import { RewardsServiceService } from 'src/app/services/rewards-service.service'
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { SortPipe } from 'src/app/sort.pipe';
+import * as XLSX from 'xlsx';
 @Component({
   selector: 'app-rewards-and-recognisation',
   templateUrl: './rewards-and-recognisation.component.html',
@@ -37,6 +38,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
   selectedReward: Rewards | null = null;
   selectedRewardType: { [key: string]: string } = {};
   isRewards: boolean = true;
+  isRewardsExcel: boolean = false;
   isRewardshitory: boolean = false;
   iswalloffame :boolean = false;
   activeCategoryId: number | null = null;
@@ -71,6 +73,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
   editRewardssss: Rewards = new Rewards();
   allEmployeeList360: any[] = [];
   feature = "Rewards";
+
 
   @ViewChild('confirmDelete')
   delete_template: any;
@@ -232,6 +235,7 @@ setSelectedReward(reward: Rewards) {
 
   rewardsHistoryfun() {
     this.isRewards = false;
+    this.isRewardsExcel = false;
     this.isRewardshitory = true;
     this.isEditing = false;
     this.iswalloffame = false;
@@ -242,11 +246,20 @@ setSelectedReward(reward: Rewards) {
     this.isRewards = true;
     this.isRewardshitory = false;
     this.iswalloffame = false;
+    this.isRewardsExcel = false;
+  }
+
+  isRewardsExcelfuc(){
+    this.isRewardsExcel = true;
+    this.isRewards = false;
+    this.isRewardshitory = false;
+    this.iswalloffame = false;
   }
 
   wallOffame(){
     this.isRewards = false;
     this.isRewardshitory = false;
+    this.isRewardsExcel = false;
     this.iswalloffame = true;
     this.wallOfFameMonths = ['']; 
   }
@@ -616,6 +629,38 @@ bulkEnable(template: TemplateRef<any>) {
       }
     );
   }
+
+  headers = [
+    { 'Employee Id': '','Employee Name': '','Reward Category': '','Reward Type Name': '','Of Month-Year': '','Remarks': '', }
+  ];
+  downloadRewardFileTemplate(): void {
+    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.headers, { skipHeader: false });
+    const wb: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Template');
+    XLSX.writeFile(wb, 'Reward_Data_Template.xlsx');
+  }
+    
+
+  file:any;
+    onRewardFileSelect(event: any, template: TemplateRef<any>){
+      const uploadedFiles = event.target.files;
+      console.log("uploadedFiles ", uploadedFiles);
+      this.file = uploadedFiles[0];
+      const formData = new FormData();
+      formData.append('file', this.file);
+    
+      this.rewardsService.saveRewardsExcel(formData).pipe(first()).subscribe(
+        (response: any) => {
+          if (response.serviceStatus == "Success") {
+            this.openAlertMod(template, response.serviceResponse);
+          } else {
+            this.openAlertMod(template, response.serviceResponse);
+          }
+        });
+    }
+    
+  
+  
 
 
   exportToExcelList: any[] = [];

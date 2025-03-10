@@ -119,4 +119,8 @@ bulkEnableMonthYear(listofmonthyear:any){
   return this.http.post(`${this.baseUrl}`+`api/bulkEnableRewards`,listofmonthyear);
 }
 
+saveRewardsExcel(formData : FormData){
+  return this.http.post(`${this.baseUrl}`+`api/saveExcelDataForReward`,formData);
+}
+
 }

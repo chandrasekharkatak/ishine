@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.service;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -7,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -14,11 +16,18 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.AppreciationDetails;
 import com.apmosys.employeeportal.dto.AppreciationDetailsDTO;
@@ -1436,6 +1445,48 @@ public class RewardsService {
 	        return ((Timestamp) value).toLocalDateTime();
 	    }
 	    return null;
+	}
+	
+	public ServiceResponse saveExcelDataForReward(MultipartFile file) throws EncryptedDocumentException, InvalidFormatException {
+	    ServiceResponse response = new ServiceResponse();
+	    try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
+	        Sheet sheet = workbook.getSheetAt(0);
+	        Iterator<Row> rows = sheet.iterator();
+	        rows.next();
+
+	        while (rows.hasNext()) {
+	            Row currentRow = rows.next();
+
+	            Long employmentId = (long) currentRow.getCell(0).getNumericCellValue();
+	            String billable = currentRow.getCell(1).getStringCellValue();
+	            String billableType = currentRow.getCell(2).getStringCellValue();
+	            String gender = currentRow.getCell(3).getStringCellValue();
+	            String manager = currentRow.getCell(4).getStringCellValue().trim().toLowerCase(); // Convert to lowercase
+	            
+	            Optional<Employee> optionalEmployee = Optional.ofNullable(employeeRepository.findByEmployeementId(employmentId));
+	            Optional<Employee> findManager = Optional.ofNullable(employeeRepository.findByNameIgnoreCase(manager));
+	            
+	            if (optionalEmployee.isPresent()) {
+                	Employee employee = optionalEmployee.get();
+                	Employee getManager = findManager.get();
+                	employee.setBillable(billable);
+                    employee.setBillableType(billableType);
+                    employee.setGender(gender);
+                    if(manager != null)
+                    employee.setManagerId(getManager.getEmpId());
+
+                    employeeRepository.save(employee);
+	            }
+	        }
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse("File uploaded and processed successfully.");
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong");
+	    }
+	    return response;
 	}
 
 }
