@@ -46,8 +46,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Service
 public class AuthenticationService {
 
-	@Value("${valid.attempt}")
-	private Integer failedAttempt;
+	
 	 @Autowired
 	    private RestTemplate restTemplate;
 	@Autowired
@@ -64,6 +63,9 @@ public class AuthenticationService {
 
 	@Value("${portal.static.otp}")
 	private String portalStaticOtp;
+	
+	@Value("${valid.attempt}")
+	private Integer failedAttempt;
 
 	@Value("${idle.session.timeout}")
 	private Integer sessionTimeout;
