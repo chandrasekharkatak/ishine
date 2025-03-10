@@ -37,7 +37,8 @@
                 </div>
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
-                        <div class="form-group" *ngIf="holidayObj.holidayType !== 'WeekOff'">
+                        <div class="form-group">
+                            <!-- *ngIf="holidayObj.holidayType !== 'WeekOff'" -->
                             <label><span class="text-danger">*</span>Occasion</label>
                             <input type="text" class="form-control" (blur)="checkOccasion(alert_message)" autocomplete="none" [(ngModel)]="holidayObj.occasion">
                         </div>
