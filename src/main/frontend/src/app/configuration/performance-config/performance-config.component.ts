@@ -19,8 +19,8 @@ import { DomainService } from 'src/app/services/domain.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { LogService } from 'src/app/services/log.service';
 import { PerformanceService } from 'src/app/services/performance.service';
-import { ValidationService } from 'src/app/services/validation.service';
 import { UtilityService } from 'src/app/services/utility.service';
+import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
   selector: 'app-performance-config',
@@ -792,9 +792,15 @@ export class PerformanceConfigComponent implements OnInit {
     })
   }
 
-  deleteReviewForm(obj: any, template: TemplateRef<any>) {
 
-    this.performanceService.deleteReviewType(obj.reviewTypeId).pipe(first()).subscribe((response: any) => {
+  rewadardDeleteId:any;
+  openConfirmDeleteModal(template: TemplateRef<any>, rewardID: any) {
+    this.rewadardDeleteId=rewardID.reviewTypeId
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  }
+  deleteReviewForm(template: TemplateRef<any>) {
+
+    this.performanceService.deleteReviewType(this.rewadardDeleteId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         // this.reviewTypelist = response.serviceResponse;
         this.openAlertMod(template,  response.serviceResponse);
