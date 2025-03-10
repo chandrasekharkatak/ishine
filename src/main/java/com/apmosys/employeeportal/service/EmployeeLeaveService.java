@@ -1884,13 +1884,13 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 									+"<br>"+" Reason -: "+leaveDTO.getRejectReason());
 						}
 					}
-					 //Autofill timesheet delete on rejecting leave 
+					
 				    
-					DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-				    DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+					DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd"); 
+//					DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 				    
-				    String start =  LocalDate.parse(leaveDTO.getFromDate(), formatter).format(formatter2);
-				    String end =  LocalDate.parse(leaveDTO.getToDate(), formatter).format(formatter2);
+				    String start =  LocalDate.parse(leaveDTO.getFromDate(), formatter).format(formatter);
+				    String end =  LocalDate.parse(leaveDTO.getToDate(), formatter).format(formatter);
 					
 				    List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),start,end);
 

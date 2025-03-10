@@ -389,17 +389,34 @@ export class Employee360LeaveComponent implements OnInit {
     
     leaveApplication.leaveStatusId = updatedLeaveStatusId;
     leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId;
+    leaveApplication.rejectReason = leaveApplication.rejectReason?.trim();	
+    leaveApplication.leaveEmpId = this.employeeData.empId;
+    if(this.activeButton != "CompOff"){
+    this.leaveService.updateLeaveStatus(leaveApplication).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.getAllLeaveApplicationsByEmpId();
+        this.openAlertMod(template, response.serviceResponse);
+        
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }else{
+    leaveApplication.leaveStatusId = updatedLeaveStatusId;
+    leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId;
     leaveApplication.rejectReason = leaveApplication.rejectReason?.trim()	
     // leaveApplication.leaveTypeMasterId = 2;
 
     this.leaveService.updateCompOffById(leaveApplication).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
+        this.getAllLeaveApplicationsByEmpId();
         this.openAlertMod(template, response.serviceResponse);
-        this.getPendingCompOffRequestsByManagerId();
+        
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
     });
+  }
   }
    //ComOff Applications
    getPendingCompOffRequestsByManagerId() {
