@@ -290,11 +290,11 @@
                             <td [innerHTML]="notification.notificationMessage"></td>
                             <td>{{notification.notificationType == 'consentNotification' ? 'Consent Notification' : notification.notificationType == 'releaseNotes' ? 'Release Notes' : 'Notification'}}</td>
                             <td>{{notification.isActive == 'true' ? 'Yes' : 'No'}}</td>
-                            <td id="clickablefor360" [navigateToEmployee360]="notification.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{notification.createdByName}}</td>
-                            <td>{{notification.createdByName}}</td>
+                            <td *ngIf="userMapping.employee360_view_home_config"id="clickablefor360" [navigateToEmployee360]="notification.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{notification.createdByName}}</td>
+                            <td *ngIf="!userMapping.employee360_view_home_config">{{notification.createdByName}}</td>
                             <td>{{notification.createdOn}}</td>
-                            <td id="clickablefor360" [navigateToEmployee360]="notification.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{notification.updatedByName}}</td>
-                            <td>{{notification.updatedByName}}</td>
+                            <td *ngIf="userMapping.employee360_view_home_config" id="clickablefor360" [navigateToEmployee360]="notification.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{notification.updatedByName}}</td>
+                            <td *ngIf="!userMapping.employee360_view_home_config">{{notification.updatedByName}}</td>
                             <td>{{notification.updatedOn}}</td>
                             <td>
                                 <button *ngIf="userMapping.update_notification && notification.isActive == 'true'" class="btn btn-sm btn-outline-primary" type="submit" title="Update Notification" (click)="showUpdateNotificationForm(notification)"><em class="fa fa-edit"></em></button>&nbsp;
