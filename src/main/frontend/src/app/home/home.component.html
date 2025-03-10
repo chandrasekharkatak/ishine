@@ -830,7 +830,8 @@
                                     (click)="onUpdateLeave(leave_success_method,leaveApplication)"></em></td>
                             <td>{{leaveApplication.noOfDays}} day(s)</td>
                             <td>{{leaveApplication.status}}</td>
-                            <td>{{leaveApplication.createdByName}}</td>
+                            <td id="clickablefor360" *ngIf="userMapping.home_employee_360" (click)="cancelRequest()"[navigateToEmployee360]="leaveApplication.createdBy" style="cursor: pointer;" title="Click to view Employee 360">{{leaveApplication.createdByName}}</td>
+                            <td *ngIf="!userMapping.home_employee_360">{{leaveApplication.createdByName}}</td>
                             <td>{{leaveApplication.createdOn}}</td>
                             <td>{{leaveApplication.reason}}</td>
                             <td>{{leaveApplication.currentApprovalLevel}}
@@ -839,15 +840,18 @@
                                     *ngIf="leaveApplication.currentApprovalLevel == leaveApplication.finalApprovalLevel">
                                     Final</h6>
                             </td>
-                            <td>{{leaveApplication.approverName}}</td>
+                            <td id="clickablefor360" *ngIf="userMapping.home_employee_360" (click)="cancelRequest()"[navigateToEmployee360]="leaveApplication.emp360AppLev1" style="cursor: pointer;" title="Click to view Employee 360">{{leaveApplication.approverName}}</td>
+                            <td *ngIf="!userMapping.home_employee_360">{{leaveApplication.approverName}}</td>
                             <td
                                 [ngStyle]="{'color': (leaveApplication.managerApprovalStatus == 'Pending') ? 'orange' : (leaveApplication.managerApprovalStatus == 'Approved') ? 'green' : (leaveApplication.managerApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">
                                 {{leaveApplication.managerApprovalStatus}}</td>
-                            <td>{{leaveApplication.level2ApproverName}}</td>
+                            <td id="clickablefor360" *ngIf="userMapping.home_employee_360" (click)="cancelRequest()"[navigateToEmployee360]="leaveApplication.emp360AppLev2" style="cursor: pointer;" title="Click to view Employee 360">{{leaveApplication.level2ApproverName}}</td>
+                            <td *ngIf="!userMapping.home_employee_360">{{leaveApplication.level2ApproverName}}</td>
                             <td
                                 [ngStyle]="{'color': (leaveApplication.level2ApprovalStatus == 'Pending') ? 'orange' : (leaveApplication.level2ApprovalStatus == 'Approved') ? 'green' : (leaveApplication.level2ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">
                                 {{leaveApplication.level2ApprovalStatus}}</td>
-                            <td>{{leaveApplication.level3ApproverName}}</td>
+                            <td id="clickablefor360" *ngIf="userMapping.home_employee_360" (click)="cancelRequest()"[navigateToEmployee360]="leaveApplication.emp360AppLev3" style="cursor: pointer;" title="Click to view Employee 360">{{leaveApplication.level3ApproverName}}</td>
+                            <td *ngIf="!userMapping.home_employee_360">{{leaveApplication.level3ApproverName}}</td>
                             <td
                                 [ngStyle]="{'color': (leaveApplication.level3ApprovalStatus == 'Pending') ? 'orange' : (leaveApplication.level3ApprovalStatus == 'Approved') ? 'green' : (leaveApplication.level3ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">
                                 {{leaveApplication.level3ApprovalStatus}}</td>
@@ -959,11 +963,13 @@
                                     *ngIf="compOffApplication.currentApprovalLevel == compOffApplication.finalApprovalLevel && compOffApplication.status == 'Pending'">
                                     Final</h6>
                             </td>
-                            <td>{{compOffApplication.approverName}}</td>
+                            <td id="clickablefor360" *ngIf="userMapping.home_employee_360" (click)="cancelRequest()"[navigateToEmployee360]="compOffApplication.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{compOffApplication.approverName}}</td>
+                            <td *ngIf="!userMapping.home_employee_360">{{compOffApplication.approverName}}</td>
                             <td
                                 [ngStyle]="{'color': (compOffApplication.managerApprovalStatus == 'Pending') ? 'orange' : (compOffApplication.managerApprovalStatus == 'Approved') ? 'green' : (compOffApplication.managerApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">
                                 {{compOffApplication.managerApprovalStatus}}</td>
-                            <td>{{compOffApplication.level2ApproverName}}</td>
+                            <td id="clickablefor360" *ngIf="userMapping.home_employee_360" (click)="cancelRequest()"[navigateToEmployee360]="compOffApplication.emp360Level2Approver" style="cursor: pointer;" title="Click to view Employee 360">{{compOffApplication.level2ApproverName}}</td>
+                            <td *ngIf="!userMapping.home_employee_360">{{compOffApplication.level2ApproverName}}</td>
                             <td
                                 [ngStyle]="{'color': (compOffApplication.level2ApprovalStatus == 'Pending') ? 'orange' : (compOffApplication.level2ApprovalStatus == 'Approved') ? 'green' : (compOffApplication.level2ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">
                                 {{compOffApplication.level2ApprovalStatus}}</td>

@@ -378,11 +378,19 @@ async ngOnInit(): Promise<void> {
             leave.currentApprovalLevel = 1;
             leave.finalApprovalLevel = 1;
           }
-          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === leave.empId);
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === leave.leaveEmpId);
           leave.emp360 = matchingEmployee ? matchingEmployee : {};
+          let matchingEmployeeAppLev1 = this.employeesFor360.find(emp => emp.empId == leave.level1ApproverId);
+          let matchingEmployeeAppLev2 = this.employeesFor360.find(emp => emp.empId == leave.level2ApproverId);
+          let matchingEmployeeAppLev3 = this.employeesFor360.find(emp => emp.empId == leave.level3ApproverId);
+          let matchingEmployeeAppLev4 = this.employeesFor360.find(emp => emp.empId == leave.empId);
+          leave.emp360AppLev1 = matchingEmployeeAppLev1 ? matchingEmployeeAppLev1 : {};
+          leave.emp360AppLev2 = matchingEmployeeAppLev2 ? matchingEmployeeAppLev2 : {};
+          leave.emp360AppLev3 = matchingEmployeeAppLev3 ? matchingEmployeeAppLev3 : {};
+          leave.createdBy = matchingEmployeeAppLev4 ? matchingEmployeeAppLev4 : {};
 
         });
-        console.log("leaveApplicationList : ", this.leaveApplicationList);
+        // console.log("leaveApplicationList : ", this.leaveApplicationList);
       } else {
         console.error(response.serviceResponse);
       }
@@ -488,9 +496,12 @@ async ngOnInit(): Promise<void> {
           compOff.createdOn = (compOff.createdOn) ? moment(compOff.createdOn).format(AppComponent.DATE_FORMAT) : null;
           let matchingEmployee = this.employeesFor360.find(emp => emp.empId === compOff.empId);
           compOff.emp360 = matchingEmployee ? matchingEmployee : {};
-
+          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === compOff.managerId);
+          compOff.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === compOff.level2ApproverId);
+          compOff.emp360Level2Approver = matchingEmployee3 ? matchingEmployee3 : {};
         });
-        console.log("allCompOffApplications : ", this.allCompOffApplications);
+        // console.log("allCompOffApplications : ", this.allCompOffApplications);
       } else {
         console.error(response.serviceResponse);
       }

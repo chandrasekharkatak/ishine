@@ -1426,7 +1426,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 					dto.setFinalApprovalLevel(object[27] != null ? Integer.parseInt(object[27].toString()) : null);
 					dto.setLeaveEmpId(object[28] != null ? Long.parseLong(object[28].toString()) : null);
 					dto.setManagerId(object[29] != null ? Integer.parseInt(object[29].toString()) : null);
-				
+					
 					dtoList.add(dto);
 				});
 
