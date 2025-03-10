@@ -2849,15 +2849,15 @@ public class EmployeeService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("getALLEmployees size : "+employeeRepository.getAllEmployees().size());
 		
-		String cacheKey = "allEmployees";
-		
-		if (employeeCache.containsKey(cacheKey)) {
-            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            response.setServiceResponse(employeeCache.get(cacheKey));
-            apiLogInfo.setApiResponse("Data fetched from cache. Size: " + employeeCache.get(cacheKey).size());
-            logService.logMyInfo(httpRequest, apiLogInfo);
-            return response;
-        }
+//		String cacheKey = "allEmployees";
+//		
+//		if (employeeCache.containsKey(cacheKey)) {
+//            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//            response.setServiceResponse(employeeCache.get(cacheKey));
+//            apiLogInfo.setApiResponse("Data fetched from cache. Size: " + employeeCache.get(cacheKey).size());
+//            logService.logMyInfo(httpRequest, apiLogInfo);
+//            return response;
+//        }
 		
 		try {
 			List<Object[]> allEmployeeList = employeeRepository.getAllEmployees();
@@ -3003,27 +3003,27 @@ public class EmployeeService {
 					
 					empDTO.setProfileCompletedPercent(emp != null ? emp.getProfileCompletedPercent() : 0.00);
 					
-					 int totalEnabledQuarters = quarterCycleRepository.countByIsEnableAndIsActive();
-					 int completedQuarters = quarterCycleRepository.countByEmpIdAndCompletionStatusAndQuarterIdIn(
-				                empDTO.getEmpId(), quarterCycleRepository.findAllEnabledQuarterIds()
-				            );
-					 
-					 double performanceStatus = (totalEnabledQuarters > 0) 
-							    ? ((double) completedQuarters / totalEnabledQuarters) * 100 
-							    : 0.0;
-					 performanceStatus = Double.parseDouble(String.format("%.2f", performanceStatus));
-					 empDTO.setPerformanceStatusPercentage(performanceStatus);		 
+//					 int totalEnabledQuarters = quarterCycleRepository.countByIsEnableAndIsActive();
+//					 int completedQuarters = quarterCycleRepository.countByEmpIdAndCompletionStatusAndQuarterIdIn(
+//				                empDTO.getEmpId(), quarterCycleRepository.findAllEnabledQuarterIds()
+//				            );
+//					 
+//					 double performanceStatus = (totalEnabledQuarters > 0) 
+//							    ? ((double) completedQuarters / totalEnabledQuarters) * 100 
+//							    : 0.0;
+//					 performanceStatus = Double.parseDouble(String.format("%.2f", performanceStatus));
+//					 empDTO.setPerformanceStatusPercentage(performanceStatus);		 
 					dtoList.add(empDTO);
 				});
-				 employeeCache.put(cacheKey, dtoList);
+//				 employeeCache.put(cacheKey, dtoList);
 
-	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	                response.setServiceResponse(dtoList);
-	                apiLogInfo.setApiResponse("List fetched from DB and stored in cache. Size: " + dtoList.size());
-//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//				response.setServiceResponse(dtoList);
-//				apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
-//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	                response.setServiceResponse(dtoList);
+//	                apiLogInfo.setApiResponse("List fetched from DB and stored in cache. Size: " + dtoList.size());
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Employee List is null.");
