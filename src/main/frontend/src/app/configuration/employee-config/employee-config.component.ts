@@ -2918,11 +2918,12 @@ export class EmployeeConfigComponent implements OnInit {
                 "bucketName": obj["bucketName"],
                 "updatedByName": obj["updatedByName"] ? obj["updatedByName"] : null,
                 "createdByName": obj["createdByName"] ? obj["createdByName"] : null,
-                "color": '#FFFFFF'
+                "color": '#FFFFFF',
+                "updatedBy": obj["updatedBy"] ? obj["updatedBy"] : null
               };
 
               if (newObj.field !== 'bucketName' && newObj.field !== 'designationId' && newObj.field !== 'jobRoleId'
-                && newObj.field !== 'createdBy' && newObj.field !== 'updatedBy' && newObj.field !== 'departmentId'
+                && newObj.field !== 'createdBy' && newObj.field !== 'departmentId'
                 && newObj.field !== 'updatedByName' && newObj.field !== 'createdOn' && newObj.field !== 'createdByName'
                 && newObj.field !== 'updatedOn' && newObj.field !== 'empId' && newObj.field !== 'teamId' && newObj.field !== 'employeeTeamMapId'
                 && newObj.field !== 'teamLeadId' && newObj.field !== 'reportingManagerId' && newObj.field !== 'managerId') {
@@ -2979,6 +2980,13 @@ export class EmployeeConfigComponent implements OnInit {
               updateField.field = 'End Date';
             }
           }
+        });
+
+        this.filteredEmployeeAuditHistory.forEach(employee => {
+          console.log('employee.updatedBy++',employee.updatedBy);
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId ===  employee.updatedBy);
+          console.log('matches++',matchingEmployee);
+          employee.emp360updatedBy = matchingEmployee ? matchingEmployee : {};
         });
 
         this.lifeCycleChangeList = this.filteredEmployeeAuditHistory.filter(x => x.bucketName == 'Lifecycle Changes');

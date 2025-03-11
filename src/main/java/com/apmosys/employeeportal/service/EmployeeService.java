@@ -5920,7 +5920,7 @@ public class EmployeeService {
 			
 			
 			StringBuilder teamInfoQuery = new StringBuilder("SELECT etma.employee_team_map_id, etma.active, etma.emp_id, etma.employee_role, etma.start_date, etma.updated_on, etma.team_id, t.team_name, \n"
-					+ " t.team_lead_id, p.project_name, createdBy.name as createdByName, updatedBy.name as updateByName FROM employee_team_mapping_aud etma \n"
+					+ " t.team_lead_id, p.project_name, createdBy.name as createdByName, updatedBy.name as updateByName, t.updated_by FROM employee_team_mapping_aud etma \n"
 					+ "INNER JOIN teams t ON t.team_id = etma.team_id \n"
 					+ "INNER JOIN projects p ON p.project_id = t.project_id \n"
 					+ "LEFT JOIN employee createdBy ON t.created_by = createdBy.emp_id \n"
@@ -5946,7 +5946,8 @@ public class EmployeeService {
 					teamDTO.setProjectName(teamObject[9] != null ? teamObject[9].toString() : null);
 					
 					teamDTO.setCreatedByName(teamObject[10] != null ? teamObject[10].toString() : null);
-					teamDTO.setUpdatedByName(teamObject[11] != null ? teamObject[11].toString() : null);		
+					teamDTO.setUpdatedByName(teamObject[11] != null ? teamObject[11].toString() : null);
+					teamDTO.setUpdatedBy(teamObject[12] != null ? Long.parseLong(teamObject[12].toString()) : null);
 					
 					teamDtoList.add(teamDTO);
 				}
