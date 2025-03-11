@@ -47,7 +47,7 @@ export class PerformanceConfigComponent implements OnInit {
   reviewTypelist: any[] = [];
   reviewColumns: any[] = ['blank', 'reviewLabel', 'reviewFieldType', 'condition', 'quarterCycle', 'departmentName', 'employeeName', 'createdOn', 'updatedByName', 'updatedOn']
 
-  feature: "Performance Config";
+  feature= "Performance Config";
   isQuaterForm: boolean = false;
   isQuaterCreation: boolean = false;
   isQuaterUpdation: boolean = false;
@@ -58,7 +58,7 @@ export class PerformanceConfigComponent implements OnInit {
   items:any=10;
   quarterCycleDataForExcel: any[];
 
-  quarterCyclesList: any;
+  quarterCyclesList: any[]=[];
 
   sortColumn: any;
   sortColumnType: any;
@@ -102,14 +102,11 @@ export class PerformanceConfigComponent implements OnInit {
     this.getReviewLabelForEveryDepartment();
     this.logService.updateLogInfo(this.log);
     
-    let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
-    featureMap.subFeatures?.forEach(sub => {
-      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
-    });
-    console.log(this.feature, this.userMapping);
-    console.log("userMapping.employee360_view_performance_config",this.userMapping.employee360_view_performance_config)
-    
-    
+   let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+   featureMap.subFeatures?.forEach(sub => {
+     this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+   });
+  
   }
 
   months: { full: string, short: string }[] = [
