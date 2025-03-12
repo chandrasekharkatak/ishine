@@ -175,8 +175,8 @@
                                 <td *ngIf="userMapping.employee360_view_role_config" id="clickablefor360" [navigateToEmployee360]="jobRole.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{jobRole.createdByName}}</td>
                                 <td *ngIf="!userMapping.employee360_view_role_config" >{{jobRole.createdByName}}</td>
                                 <td>{{jobRole.createdOn}}</td>
-                                <td *ngIf="userMapping.employee360_view_role_config" id="clickablefor360" [navigateToEmployee360]="jobRole.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{jobRole.updatedByName}}</td>
-                                <td *ngIf="!userMapping.employee360_view_role_config" >{{jobRole.updatedByName}}</td>
+                                <td *ngIf="userMapping.employee360_view_role_config && jobRole.updatedByName" id="clickablefor360" [navigateToEmployee360]="jobRole.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{jobRole.updatedByName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_role_config || !jobRole.updatedByName" >{{jobRole.updatedByName}}</td>
                                 <td>{{jobRole.updatedOn}}</td>
                                 <td
                                     *ngIf="userMapping.update_role || userMapping.update_role_feature_mapping || userMapping.delete_role">

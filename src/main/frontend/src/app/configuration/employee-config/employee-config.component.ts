@@ -2331,6 +2331,12 @@ export class EmployeeConfigComponent implements OnInit {
           // x.employeementId = (x.isConsultant === 'true' ? 'A-CS-' : 'A-') + x.employeementId;
           x.dateOfJoining = (x.dateOfJoining) ? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
           x.dateOfRelieving = (x.dateOfRelieving) ? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+          if (x.isConsultant == 'true')
+            x.employeeType = 'Consultant';
+          else if (x.isApprenticeship == 'true')
+            x.employeeType = 'Apprentice';
+          else
+            x.employeeType = 'Regular';
         }
         console.log("allDraftEmployeeList : ", this.allEmployeeList)
       } else {

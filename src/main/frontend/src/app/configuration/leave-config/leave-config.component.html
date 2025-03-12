@@ -99,7 +99,7 @@
     <div class="col-md-12">
         <div class="row">
             <div class="col-md-12 table-header">
-                <h1 class="table-header-title">Holidays</h1>
+                <h1 class="table-header-title">Holiday(s)</h1>
             </div>
         </div>
         <div class="row">
@@ -186,8 +186,8 @@
                                 <td *ngIf="userMapping.employee360_view_leave_config" id="clickablefor360" [navigateToEmployee360]="holiday.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{holiday.createdbyName}}</td>
                                 <td *ngIf="!userMapping.employee360_view_leave_config">{{holiday.createdbyName}}</td>
                                 <td>{{holiday.updatedOn}}</td>
-                                <td *ngIf="userMapping.employee360_view_leave_config" id="clickablefor360" [navigateToEmployee360]="holiday.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{holiday.updatedByName}}</td>
-                                <td *ngIf="!userMapping.employee360_view_leave_config">{{holiday.updatedByName}}</td>
+                                <td *ngIf="userMapping.employee360_view_leave_config && holiday.updatedByName" id="clickablefor360" [navigateToEmployee360]="holiday.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{holiday.updatedByName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_leave_config || !holiday.updatedByName">{{holiday.updatedByName}}</td>
                                 <td>
                                     <button *ngIf="userMapping.update_holidays" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateHolidayForm(holiday)"><em class="fa fa-edit"></em></button>&nbsp;
                                     <button *ngIf="userMapping.delete_holiday" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteHoliday(delete_template,holiday)"><em class="fa fa-trash"></em></button>
@@ -288,7 +288,7 @@
     <div class="col-md-12">
         <div class="row">
             <div class="col-md-12 table-header">
-                <h1 class="table-header-title">Leave Types</h1>
+                <h1 class="table-header-title">Leave Type(s)</h1>
             </div>
         </div>
         <div class="row">
@@ -342,8 +342,8 @@
                                 <td *ngIf="userMapping.employee360_view_leave_config" id="clickablefor360" [navigateToEmployee360]="leaveType.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{leaveType.createdByName}}</td>
                                 <td *ngIf="!userMapping.employee360_view_leave_config">{{leaveType.createdByName}}</td>
                                 <td>{{leaveType.updatedOn}}</td>
-                                <td *ngIf="userMapping.employee360_view_leave_config" id="clickablefor360" [navigateToEmployee360]="leaveType.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{leaveType.updatedByName}}</td>
-                                <td *ngIf="!userMapping.employee360_view_leave_config">{{leaveType.updatedByName}}</td>
+                                <td *ngIf="userMapping.employee360_view_leave_config && leaveType.updatedByName" id="clickablefor360" [navigateToEmployee360]="leaveType.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{leaveType.updatedByName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_leave_config || !leaveType.updatedByName">{{leaveType.updatedByName}}</td>
                                 <td>{{leaveType.description}}</td>
                                 <td>
                                     <button *ngIf="userMapping.update_leave_type" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeaveTypeForm(leaveType)"><em class="fa fa-edit"></em></button>&nbsp;
@@ -783,8 +783,8 @@
                                     <td *ngIf="!userMapping.employee360_view_leave_config" >{{leavePolicy.createdByName}}</td>
                                     <td>{{leavePolicy.createdOn}}</td>
                                     <td>{{leavePolicy.updatedOn}}</td>
-                                    <td *ngIf="userMapping.employee360_view_leave_config" id="clickablefor360" [navigateToEmployee360]="leavePolicy.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{leavePolicy.updatedByName}}</td>
-                                    <td *ngIf="!userMapping.employee360_view_leave_config" >{{leavePolicy.updatedByName}}</td>
+                                    <td *ngIf="userMapping.employee360_view_leave_config && leavePolicy.updatedByName" id="clickablefor360" [navigateToEmployee360]="leavePolicy.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{leavePolicy.updatedByName}}</td>
+                                    <td *ngIf="!userMapping.employee360_view_leave_config || !leavePolicy.updatedByName" >{{leavePolicy.updatedByName}}</td>
                                     <td>
                                         <button *ngIf="userMapping.update_leave_policy" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeavePolicyForm(leavePolicy)"><em class="fa fa-edit"></em></button>&nbsp;
                                         <button *ngIf="userMapping.delete_leave_policy" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteLeavePolicy(delete_leave_policy, leavePolicy)"><em class="fa fa-trash"></em></button>
