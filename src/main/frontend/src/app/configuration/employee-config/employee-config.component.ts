@@ -277,6 +277,7 @@ export class EmployeeConfigComponent implements OnInit {
     } catch (error) {
       console.error("Error fetching employee details for 360 view", error);
     }
+    //console.log('user -- ', this.userMapping);
   }
 
   preventBackButton() {
@@ -2331,13 +2332,22 @@ export class EmployeeConfigComponent implements OnInit {
           // x.employeementId = (x.isConsultant === 'true' ? 'A-CS-' : 'A-') + x.employeementId;
           x.dateOfJoining = (x.dateOfJoining) ? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
           x.dateOfRelieving = (x.dateOfRelieving) ? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-          if (x.isConsultant == 'true')
-            x.employeeType = 'Consultant';
-          else if (x.isApprenticeship == 'true')
-            x.employeeType = 'Apprentice';
+          if (employeeObj.isConsultant == 'true')
+            employeeObj.employeeType = 'Consultant';
+          else if (employeeObj.isApprenticeship == 'true')
+            employeeObj.employeeType = 'Apprentice';
           else
-            x.employeeType = 'Regular';
+            employeeObj.employeeType = 'Regular';
         }
+        this.allEmployeeList.forEach(draftemp => {
+          let matchingEmployee = this.employeesFor360.find(emp =>emp.employeementId === draftemp.employeementId);
+          let matchingEmployeeMng = this.employeesFor360.find(emp =>emp.empId === draftemp.managerId);
+          //console.log('matches++',matchingEmployeeMng);
+          draftemp.emp360 = matchingEmployee ? matchingEmployee : {};
+          draftemp.emp360Mng = matchingEmployeeMng ? matchingEmployeeMng : {};
+
+          
+        });
         console.log("allDraftEmployeeList : ", this.allEmployeeList)
       } else {
         alert(response.serviceResponse)
