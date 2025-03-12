@@ -125,6 +125,7 @@ import { UserUpdateInfoComponent } from './user-update-info/user-update-info.com
 import { NavigateToProjectViewDirective } from './navigate-to-project-view.directive';
 import { ProjectViewComponent } from './project-view/project-view.component';
 import { PerformanceConfigComponent } from './configuration/performance-config/performance-config.component';
+import { ProjectInsightsConfigComponent } from './configuration/project-insights-config/project-insights-config.component';
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
 
@@ -218,6 +219,7 @@ import { PerformanceConfigComponent } from './configuration/performance-config/p
      NavigateToProjectViewDirective,
      ProjectViewComponent,
      PerformanceConfigComponent,
+     ProjectInsightsConfigComponent,
 
     //TestComponent
   ],

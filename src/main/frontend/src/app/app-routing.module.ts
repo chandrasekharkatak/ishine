@@ -69,6 +69,7 @@ import { InformationPreviewComponent } from './user-update-info/information-prev
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
 import { ProjectViewComponent } from './project-view/project-view.component';
 import { PerformanceConfigComponent } from './configuration/performance-config/performance-config.component';
+import { ProjectInsightsConfigComponent } from './configuration/project-insights-config/project-insights-config.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -101,6 +102,7 @@ const routes: Routes = [
       { path: 'other', component: OthersComponent, },
       { path: 'rewards-config', component: RewardsConfigComponent, },
       { path: 'performance-config' , component: PerformanceConfigComponent},
+      { path: 'project-insight-config' , component: ProjectInsightsConfigComponent}
     ]
   },
   {path:'user-leaves', component: UserLeavesComponent, canActivate: [AuthGuard],
