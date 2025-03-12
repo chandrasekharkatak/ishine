@@ -2554,6 +2554,8 @@ public class ResourceManagementService {
 			dto.setEndDate(obj[8] != null ? obj[8].toString().toString() : null);
 //			dto.setActive(obj[9] != null ? obj[9].toString().toString() : null);
 			dto.setActive(obj[9] != null ? Integer.parseInt(obj[9].toString()) : null);
+			dto.setProjectId(obj[10] != null ? Integer.parseInt(obj[10].toString()) : null);
+		
 			
 			allData.add(dto);
 		});
@@ -2770,6 +2772,7 @@ public ServiceResponse getTeamMemberByTeamId(Long teamId) {
 		empDTO.setTeamLeadName(object[5] != null ? object[5].toString() :null);
 		empDTO.setTeamName(object[4] != null ? object[4].toString() :null);
 		empDTO.setEmail(object[3] != null ? object[3].toString() :null);
+		empDTO.setTeamLeadId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
 		
 		dtoList.add(empDTO);
 	});
@@ -2809,6 +2812,9 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 				dto.setActive(object[7] != null ? Integer.parseInt(object[7].toString()) : null);	
 				dto.setProjectId(object[8] != null ? Integer.parseInt(object[8].toString()) : null);
 				dto.setProjectName(object[9] != null ? object[9].toString() : null);
+				dto.setClientId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+				dto.setClientName(object[11] != null ? object[11].toString() : null);
+				
 				result.add(dto);
 			});
 			
