@@ -183,8 +183,11 @@ async getTeamEmployeeByTeamId(teamId: any) {
           let matchingEmployee = this.employeesFor360.find(emp => emp.empId == employee.empId);
           console.log("matchingEmployee ", matchingEmployee);
           employee.emp360 = matchingEmployee ? matchingEmployee : {};
+          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId == employee.teamLeadId);
+          console.log("matchingEmployee2 ", matchingEmployee2);
+          employee.emp360teamLeadId = matchingEmployee2 ? matchingEmployee2 : {};
       });
-      console.log('filterTeamfromTeamId = ',this.filterTeamfromTeamId);
+      // console.log('filterTeamfromTeamId = ',this.filterTeamfromTeamId);
      
     } else {
       // Handle failure case, if needed

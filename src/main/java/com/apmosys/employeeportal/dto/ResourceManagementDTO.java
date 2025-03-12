@@ -54,4 +54,5 @@ public class ResourceManagementDTO {
 	private Integer active;
 	private String clientLocationName;
 	private String employeeRole;
+	private Long clientId;
 }

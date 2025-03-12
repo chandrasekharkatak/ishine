@@ -31,8 +31,9 @@
                     <!-- <td  >{{ project.name }}</td> -->
                     <td id="clickablefor360" [navigateToEmployee360]="project.emp360" style="cursor: pointer;" title="Click to view Employee 360" (click)="clearBreadcrumbs()">{{ project.name }}</td>
                     <td>{{ project.teamName }}</td>
-                    <td>{{ project.teamLeadName }}</td>
-                  
+                    <td *ngIf="project.teamLeadName" id="clickablefor360" [navigateToEmployee360]="project.emp360teamLeadId" style="cursor: pointer;" title="Click to view Employee 360" (click)="clearBreadcrumbs()">{{ project.teamLeadName }}</td>
+                    <td *ngIf="!project.teamLeadName">{{ project.teamLeadName }}</td>
+
                 </tr>
             </tbody>
         </table>

@@ -150,6 +150,15 @@ export class DocumentComponent implements OnInit {
     this.getAllDocuments();
   }
 
+  showTypeTable(){
+    this.document = false;
+    this.upload = false;
+    this.isForm= false;
+    this.type=true;
+    this.filters = {};
+    this.getAllTypeName();
+  }
+
     // Sorting 
     sortData(sort: Sort){	
       //console.log(sort);
@@ -212,7 +221,7 @@ export class DocumentComponent implements OnInit {
     this.newsletterService.updateType(doc).pipe(first()).subscribe((response : any)=>{
       if(response.serviceStatus == "Success"){
         this.openAlertMod(template,response.serviceResponse);
-        this.showTable();
+        this.showTypeTable();
       }else{
         this.openAlertMod(template,response.serviceResponse);
       }
