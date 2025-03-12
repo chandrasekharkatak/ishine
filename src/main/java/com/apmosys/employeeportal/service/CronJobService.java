@@ -22,6 +22,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -4797,9 +4798,6 @@ try {
 			 String depart="";
 				String employee="";
 				//start the rahul code
-				List<Long> employeeNotleaveDeduct=new ArrayList<>();
-				List<Long> departmentNotLeaveDeduct=new ArrayList<>();
-				List<Long> ApprovedLeaveDeduct=new ArrayList<>();
 				
 			List<BioMaTO> biomaxDataList = bioMaxService.getBiomaxDataForLeaveDeduct();
 			System.out.println("TOtal Data COmming from Biomax"+biomaxDataList.size());
@@ -4809,67 +4807,73 @@ try {
 			List<Long> dataToBeDeleted = new ArrayList<>();
 			List<BioMaTO> validatedData=new ArrayList<>(); 
 			List<Long> LeaveValidate=new ArrayList<>();
-		
+			List<Long> removeemployeeId=new ArrayList<>();
+			
 			//Current Holiday Leave
 			List<Holiday> holidayLeave=holidayRepository.currentDayHoliday();
 		
 				//end of the code
 				//leave for findEmployeeIsOnCompOffLeaveToday
-				List<CompOffLeave> compOffLeaveList=compOffLeaveRepository.findEmployeeIsOnCompOffLeaveToday();
-				if(compOffLeaveList.size()>0) {
-					List<Long> compOffEmployee = compOffLeaveList.stream()
-	                        .map(CompOffLeave::getEmpId)  // Extract empId from each CompOffLeave
-	                        .collect(Collectors.toList());
-					biomaxDataList.removeIf(CompOff -> compOffEmployee.contains(CompOff.getEmpId()));
-					
-				}
-				//end
-				 Optional<PortalConfig> department=portalConfigRepository.findByportalConfigById(Short.parseShort(biomaxleavedeductForDepartment));
-					if(department.isPresent()) {
-						PortalConfig PortalConfig1=department.get();
-						depart = PortalConfig1.getConfigValue().replace("[", "").replace("]", "");  // Remove the square brackets
-						String[] values = depart.split(",");  // Split the string into an array
+			// Fetch comp-off leave employees for today and filter biomaxDataList
+			List<CompOffLeave> compOffLeaveList = compOffLeaveRepository.findEmployeeIsOnCompOffLeaveToday();
+			if (!compOffLeaveList.isEmpty()) {
+			    List<Long> compOffEmployeeIds = compOffLeaveList.stream()
+			            .map(CompOffLeave::getEmpId)  // Extract empId from each CompOffLeave
+			            .collect(Collectors.toList());
+			    removeemployeeId.addAll(compOffEmployeeIds)	;
+			    biomaxDataList.removeIf(bio -> compOffEmployeeIds.contains(bio.getEmpId()));
+			}
 
-						// Iterate over the array
-						for (String value : values) {
-							departmentNotLeaveDeduct.add(Long.parseLong(value));
-							}
-						biomaxDataList.removeIf(bio -> departmentNotLeaveDeduct.contains(bio.getDepartmentId()));
-						
-					}
-					//Leave not Deduct
-					List<EmployeeLeave> employeeLeave=employeeLeaveRepository.findEmployeeIsOnLeaveToday();
-					if(!employeeLeave.isEmpty()) {
-						employeeLeave.forEach((leave)->{
-							LeaveValidate.add(leave.getEmpId());
-						});
-						biomaxDataList.removeIf(leav -> LeaveValidate.contains(leav.getEmpId()));
-						
-					}
-					
-					Optional<PortalConfig> biomaxleavedeductForEmployee1=portalConfigRepository.findByportalConfigById(Short.parseShort(biomaxleavedeductForEmployee));
-					if(biomaxleavedeductForEmployee1.isPresent()) {
-						PortalConfig PortalConfigemp=biomaxleavedeductForEmployee1.get();
-						employee = PortalConfigemp.getConfigValue().replace("[", "").replace("]", "");  // Remove the square brackets
-						String[] employee1 = employee.split(",");  // Split the string into an array
+			// Fetch department configuration and filter biomaxDataList for non-leave-deducted departments
+			Optional<PortalConfig> departmentConfig = portalConfigRepository.findByportalConfigById(Short.parseShort(biomaxleavedeductForDepartment));
+			if (departmentConfig.isPresent()) {
+			    PortalConfig portalConfig = departmentConfig.get();
+			    String departmentConfigValue = portalConfig.getConfigValue().replace("[", "").replace("]", "");  // Remove square brackets
+			    String[] departmentIds = departmentConfigValue.split(",");  // Split the string into an array
 
-						// Iterate over the array
-						for (String value1 : employee1) {
-							
-							employeeNotleaveDeduct.add(Long.parseLong(value1));  // Output each value (e.g., 2, 4)
-						}
-					}
-					biomaxDataList.removeIf(bio1 -> employeeNotleaveDeduct.contains(bio1.getEmployementId()));
-					
-					List<BiomaxRequest> apprvedList=biomaxRequestRepository.findByEmployeementIdLeaveNotDeduct();
-					if(apprvedList.size()>0) {
-					apprvedList.forEach((appeoved)->{
-						System.out.println(appeoved.getEmpId()+"appeoved.getEmpId()");
-						ApprovedLeaveDeduct.add(appeoved.getEmpId());
-					});
-					biomaxDataList.removeIf(bio12 -> ApprovedLeaveDeduct.contains(bio12.getEmpId()));
-					
-					}
+			    Set<Long> departmentNotLeaveDeduct = Arrays.stream(departmentIds)
+			            .map(Long::parseLong)
+			            .collect(Collectors.toSet());  // Store department IDs in a set for faster lookup
+			    biomaxDataList.removeIf(bio -> departmentNotLeaveDeduct.contains(bio.getDepartmentId()));
+			}
+
+			// Fetch employees on leave today and filter biomaxDataList for them
+			List<EmployeeLeave> employeeLeaveList = employeeLeaveRepository.findEmployeeIsOnLeaveToday();
+			if (!employeeLeaveList.isEmpty()) {
+			    Set<Long> leaveEmployeeIds = employeeLeaveList.stream()
+			            .map(EmployeeLeave::getEmpId)
+			            .collect(Collectors.toSet()); 
+			    removeemployeeId.addAll(leaveEmployeeIds)	;// Use a set for faster lookup
+			    biomaxDataList.removeIf(bio -> leaveEmployeeIds.contains(bio.getEmpId()));
+			}
+
+			// Fetch employees with leave deduction exemptions and filter biomaxDataList for them
+			Optional<PortalConfig> employeeLeaveDeductConfig = portalConfigRepository.findByportalConfigById(Short.parseShort(biomaxleavedeductForEmployee));
+			if (employeeLeaveDeductConfig.isPresent()) {
+			    PortalConfig portalConfig = employeeLeaveDeductConfig.get();
+			    String employeeConfigValue = portalConfig.getConfigValue().replace("[", "").replace("]", "");  // Remove square brackets
+			    String[] employeeIds = employeeConfigValue.split(",");  // Split the string into an array
+
+			    Set<Long> employeeNotLeaveDeduct = Arrays.stream(employeeIds)
+			            .map(Long::parseLong)
+			            .collect(Collectors.toSet());  // Use a set for faster lookup
+			    removeemployeeId.addAll(employeeNotLeaveDeduct);
+			    biomaxDataList.removeIf(bio -> employeeNotLeaveDeduct.contains(bio.getEmployementId()));
+			}
+
+			// Fetch employees with approved leave deduction and filter biomaxDataList for them
+			List<BiomaxRequest> approvedLeaveList = biomaxRequestRepository.findByEmployeementIdLeaveNotDeduct();
+			if (!approvedLeaveList.isEmpty()) {
+			    Set<Long> approvedLeaveEmployeeIds = approvedLeaveList.stream()
+			            .map(BiomaxRequest::getEmpId)
+			            .collect(Collectors.toSet());
+			    removeemployeeId.addAll(approvedLeaveEmployeeIds);
+				  // Use a set for faster lookup
+			    biomaxDataList.removeIf(bio -> approvedLeaveEmployeeIds.contains(bio.getEmpId()));
+			}
+			if(!removeemployeeId.isEmpty() || removeemployeeId.size()>0) {
+			biomaxDataList.removeIf(validate->removeemployeeId.contains(validate.getEmpId()));
+			}
 					List<BioMaTO> finalEmpBioData = new ArrayList<>();
 				
 				
@@ -4944,7 +4948,7 @@ try {
 
 														log.setBalance(newBalance);
 														log.setEmpId(employeeObj.getEmpId());
-														log.setLeaveTypeMasterId((short) 2);
+														log.setLeaveTypeMasterId((short) 3);
 														log.setMessage(LeaveLogMessage.autoDeductLeaveOnTimesheetDefaulter
 																.replace("0.0", object.getDeduct()));
 														log.setUpdateBalanceBy("-" + object.getDeduct());

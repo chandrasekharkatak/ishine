@@ -14,7 +14,7 @@ public class EmployeeportalApplication {
 		SpringApplication.run(EmployeeportalApplication.class, args);
 		
 	}
-@Bean
+	@Bean
 	public ModelMapper modelMapper() {
 		return new ModelMapper();
 	}

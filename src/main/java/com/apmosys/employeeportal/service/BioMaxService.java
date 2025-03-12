@@ -39,10 +39,12 @@ import com.apmosys.employeeportal.dto.BioMaTO;
 import com.apmosys.employeeportal.dto.BioMax360;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.model.BiomaxRequest;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.Holiday;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.PortalConfig;
+import com.apmosys.employeeportal.repository.BiomaxRequestRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.HolidayRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
@@ -59,6 +61,9 @@ public class BioMaxService {
 	private String biomaxleavedeductForEmployee;
 	@Value("${biomaxleavedeductForDepartment}")
 	private String biomaxleavedeductForDepartment;
+	
+	@Autowired
+	private BiomaxRequestRepository biomaxRequestRepository;
 	
 	@Autowired
 	private HolidayRepository holidayRepository;
@@ -850,7 +855,7 @@ public class BioMaxService {
 			  List<BioMaTO> finalEmpBioData = new ArrayList<>();
 			List<Holiday>  holiday= holidayRepository.currentDayHoliday();
 			 if(holiday.size()==0) {
-			
+					
 		    try {
 		        String Query = "SELECT \n"
 		        		+ "    e.EmployeeCode,  \n"
@@ -930,6 +935,16 @@ public class BioMaxService {
 		        e.printStackTrace(); // Log the exception message
 		    }
 			 }
+			 List<BiomaxRequest> approvedLeaveList = biomaxRequestRepository.findByEmployeementIdLeaveNotDeduct();
+				if (!approvedLeaveList.isEmpty()) {
+				  Set<Long>  approvedLeaveEmployeeIds = approvedLeaveList.stream()
+				            .map(BiomaxRequest::getEmpId)
+				            .collect(Collectors.toSet());  // Use a set for faster lookup
+				   // finalEmpBioData.removeIf((data)
+				    		finalEmpBioData.removeIf(bio -> approvedLeaveEmployeeIds.contains(bio.getEmpId()));
+					
+				}
+				
 		    return finalEmpBioData;
 		}
 } 

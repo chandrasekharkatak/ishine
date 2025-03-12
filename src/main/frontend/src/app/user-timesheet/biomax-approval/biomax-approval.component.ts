@@ -99,7 +99,7 @@ export class BiomaxApprovalComponent implements OnInit {
     this.biomax=new biomaxRequest();
     //console.log(this.feature, this.userMapping);
    // this.biomax.biomaxTitle="Request For BioMax";
-    this.biomax.reportingManagerId=this.currentUser.reportingManagerId;
+    this.biomax.reportingManagerId=this.currentUser.managerId;
     this.getAllHolidays();
     this.getAllBiomaxRequestForEmployee();
     this.sectionViewInit();
@@ -310,7 +310,7 @@ export class BiomaxApprovalComponent implements OnInit {
             }
           }
         
-   // return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previousCompOffRequests.find(compOffApplication => moment(d).format(dateFormat) >= moment(compOffApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(compOffApplication.toDate).format(dateFormat)));
+    return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previousCompOffRequests.find(compOffApplication => moment(d).format(dateFormat) >= moment(compOffApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(compOffApplication.toDate).format(dateFormat)));
     }
 
 
