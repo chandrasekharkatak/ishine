@@ -137,7 +137,7 @@
                             <td [ngStyle]="{'color': (leaveHistory.managerApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.managerApprovalStatus == 'Approved') ? 'green' : (leaveHistory.managerApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.managerApprovalStatus}}</td>
                             <td id="clickablefor360" [navigateToEmployee360]="leaveHistory.emp360AppLev2" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{leaveHistory.level2ApproverName}}</td>
                             <td [ngStyle]="{'color': (leaveHistory.level2ApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.level2ApprovalStatus == 'Approved') ? 'green' : (leaveHistory.level2ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.level2ApprovalStatus}}</td>
-                            <td id="clickablefor360" [navigateToEmployee360]="leaveHistory.emp360AppLev2" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{leaveHistory.level3ApproverName}}</td>
+                            <td id="clickablefor360" [navigateToEmployee360]="leaveHistory.emp360AppLev3" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{leaveHistory.level3ApproverName}}</td>
                             <td [ngStyle]="{'color': (leaveHistory.level3ApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.level3ApprovalStatus == 'Approved') ? 'green' : (leaveHistory.level3ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.level3ApprovalStatus}}</td>
                             <td class="info-label" *ngIf="activeButton==='Rejected'">{{leaveHistory.remark}}</td>
                             <td *ngIf="activeButton==='Pending'">
@@ -193,7 +193,7 @@
                 <tr
                   *ngFor="let compOffApp of CompOffData| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                   <td>{{i+1}}</td>
-                  <td>{{compOffApp.createdByName}}</td>
+                  <td id="clickablefor360" [navigateToEmployee360]="compOffApp.emp360" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{compOffApp.createdByName}}</td>
                   <td>{{compOffApp.compOffReasons}}</td>
                   <td>{{compOffApp.fromDate}}</td>
                   <td>{{compOffApp.toDate}}</td>
@@ -203,9 +203,9 @@
                     <br>
                     <h6 class="badge badge-pill primary-pill" *ngIf="compOffApp.currentApprovalLevel == compOffApp.finalApprovalLevel && compOffApp.status == 'Pending'">Final</h6>
                   </td>
-                  <td>{{compOffApp.approverName}}</td>
+                  <td id="clickablefor360" [navigateToEmployee360]="compOffApp.emp360Lev1" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{compOffApp.approverName}}</td>
                   <td [ngStyle]="{'color': (compOffApp.managerApprovalStatus == 'Pending') ? 'orange' : (compOffApp.managerApprovalStatus == 'Approved') ? 'green' : (compOffApp.managerApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{compOffApp.managerApprovalStatus}}</td>
-                  <td>{{compOffApp.level2ApproverName}}</td>
+                  <td id="clickablefor360" [navigateToEmployee360]="compOffApp.emp360Lev2" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{compOffApp.level2ApproverName}}</td>
                   <td [ngStyle]="{'color': (compOffApp.level2ApprovalStatus == 'Pending') ? 'orange' : (compOffApp.level2ApprovalStatus == 'Approved') ? 'green' : (compOffApp.level2ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{compOffApp.level2ApprovalStatus}}</td>
                   <td>{{compOffApp.status}}</td>
                   <td *ngIf="isCompOffRequest">

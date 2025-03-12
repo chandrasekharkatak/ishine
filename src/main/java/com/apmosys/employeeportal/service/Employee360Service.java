@@ -361,7 +361,7 @@ public class Employee360Service {
 			} else {
 
 				list.forEach((object) -> {LeaveDTO dto = new LeaveDTO();
-				dto.setCreatedByName(object[24] != null ? object[24].toString() : null);
+				dto.setEmployeeName(object[0] != null ? object[0].toString() : null);
 				dto.setFromDate(object[1] != null ? object[1].toString() : null);
 				dto.setToDate(object[2] != null ? object[2].toString() : null);
 				dto.setCreatedOn(object[3] != null ? object[3].toString() : null);
@@ -370,26 +370,27 @@ public class Employee360Service {
 				dto.setReason(object[6] != null ? object[6].toString() : null);
 				dto.setLeaveType(object[7] != null ? object[7].toString() : null);
 				dto.setLeaveStatusUpdatedByName(object[8] != null ? object[8].toString() : null);
-				dto.setLeaveId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
-				dto.setRemark(object[10] != null ? object[10].toString() : null);dto.setApproverName(object[11] != null ? object[11].toString() : null);
-				dto.setApproverEmail(object[12] != null ? object[12].toString() : null);
-				dto.setManagerApprovalStatus(object[13] != null ? object[13].toString() : null);
-				dto.setLevel2ApproverId(object[14] != null ? Long.parseLong(object[14].toString()) : null);
-				dto.setLevel2ApproverName(object[15] != null ? object[15].toString() : null);
-				dto.setLevel2ApproverEmail(object[16] != null ? object[16].toString() : null);
-				dto.setLevel2ApprovalStatus(object[17] != null ? object[17].toString() : null);
-				dto.setLevel3ApproverId(object[18] != null ? Long.parseLong(object[18].toString()) : null);
-				dto.setLevel3ApproverName(object[19] != null ? object[19].toString() : null);
-				dto.setLevel3ApprovalStatus(object[20] != null ? object[20].toString() : null);
-				dto.setLevel3ApproverEmail(object[21] != null ? object[21].toString() : null);
-				dto.setCurrentApprovalLevel(object[22] != null ? Integer.parseInt(object[22].toString()) : null);
-				dto.setFinalApprovalLevel(object[23] != null ? Integer.parseInt(object[23].toString()) : null);
-				dto.setEmployeeName(object[0] != null ? object[0].toString() : null);
+				dto.setLeaveStatusUpdatedBy(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+				dto.setLeaveId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+				dto.setRemark(object[11] != null ? object[11].toString() : null);
+				dto.setApproverName(object[12] != null ? object[12].toString() : null);
+				dto.setApproverId(object[13] != null ? Long.parseLong(object[13].toString()) : null);
+				dto.setApproverEmail(object[14] != null ? object[14].toString() : null);
+				dto.setManagerApprovalStatus(object[15] != null ? object[15].toString() : null);
+				
+				dto.setLevel2ApproverId(object[16] != null ? Long.parseLong(object[16].toString()) : null);
+				dto.setLevel2ApproverName(object[17] != null ? object[17].toString() : null);
+				dto.setLevel2ApproverEmail(object[18] != null ? object[18].toString() : null);
+				dto.setLevel2ApprovalStatus(object[19] != null ? object[19].toString() : null);
+				dto.setLevel3ApproverId(object[20] != null ? Long.parseLong(object[20].toString()) : null);
+				dto.setLevel3ApproverName(object[21] != null ? object[21].toString() : null);
+				dto.setLevel3ApprovalStatus(object[22] != null ? object[22].toString() : null);
+				dto.setLevel3ApproverEmail(object[23] != null ? object[23].toString() : null);
+				dto.setCurrentApprovalLevel(object[24] != null ? Integer.parseInt(object[24].toString()) : null);
+				dto.setFinalApprovalLevel(object[25] != null ? Integer.parseInt(object[25].toString()) : null);
+				dto.setCreatedByName(object[26] != null ? object[26].toString() : null);
 				dto.setLeaveTypeMasterId(object[27] != null ? Short.parseShort(object[27].toString()) : null);
-				dto.setEmpId(object[28] != null ? Long.parseLong(object[28].toString()) : null);
-				dto.setEmployeementId(object[26] != null ? Long.parseLong(object[26].toString()) : null);
-				dto.setLeaveEmpId(object[25] != null ? Long.parseLong(object[25].toString()) : null);
-				dto.setManagerId(object[29] != null ? Integer.parseInt(object[29].toString()) : null);
+				dto.setManagerId(object[28] != null ? Integer.parseInt(object[28].toString()) : null);
 				
 				dtoList.add(dto);	
 				});
