@@ -376,10 +376,16 @@
                 <td>{{employee.passingGrade}}</td>
                 <td>{{employee.yearOfPassing}}</td>
                 <td>{{employee.updatedOn}}</td>
-                <td *ngIf="userMapping.reports_employee_360"id="clickablefor360" [navigateToEmployee360]="employee.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{employee.updatedByName}}</td>
+                <td *ngIf="employee.updatedByName && userMapping.reports_employee_360"id="clickablefor360" [navigateToEmployee360]="employee.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{employee.updatedByName}}</td>
                 <td *ngIf="!userMapping.reports_employee_360">{{employee.updatedByName}}</td>
-                <td *ngIf="userMapping.reports_employee_360"id="clickablefor360" [navigateToEmployee360]="employee.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{employee.createdByName}}</td>
+                <td *ngIf="!employee.updatedByName">
+                  {{employee.updatedByName}}
+              </td>
+                <td *ngIf="employee.createdByName && userMapping.reports_employee_360"id="clickablefor360" [navigateToEmployee360]="employee.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{employee.createdByName}}</td>
                 <td *ngIf="!userMapping.reports_employee_360">{{employee.createdByName}}</td>
+                <td *ngIf="!employee.createdByName">
+                  {{employee.createdByName}}
+              </td>
                 <td>{{employee.createdOn}}</td>
                 <td>
                   <div class="progress profileCompleted">

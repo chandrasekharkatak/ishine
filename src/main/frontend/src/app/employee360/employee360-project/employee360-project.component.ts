@@ -11,6 +11,7 @@ import { TeamMember } from 'src/app/models/teamMember';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 import { DepartmentService } from 'src/app/services/department.service';
 import { EmployeeService } from 'src/app/services/employee.service';
+import { Employee360Service } from 'src/app/services/employee360.service';
 import { ProjectService } from 'src/app/services/project.service';
 import { ResourceManagementService } from 'src/app/services/resource-management.service';
 import { UtilityService } from 'src/app/services/utility.service';
@@ -79,6 +80,7 @@ isProjectTeamMemberVisible:boolean=false;
     private resourceManagementService: ResourceManagementService,
     private employeeService: EmployeeService,
     private utilityService: UtilityService,
+    private emp360Service:Employee360Service
   ) {
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
     const navigation = this.router.getCurrentNavigation();
@@ -136,20 +138,34 @@ redirecttoProjectTeam(id:any){
   this.isProjectTeamMemberVisible=false;
   // filterProjectByProjectId:any[]=[];
   // filterTeamfromTeamId:any[]=[];
+  console.log("this.projectDetails ", id);
   this.filterProjects(id);
 }
-redirecttoTeam(id:any){
+redirecttoTeam(id:any,projectId:any){
   this.isProjectTeamMemberVisible=true;
   this.isProjectVisible=false;
   this.isProjectTeamVisible=false;
   this.getTeamEmployeeByTeamId(id);
+  console.log("this.projectDetails ", projectId);
+  this.filterProjects(projectId);
  
 
 }
+
+projectteamInfo: Project = new Project();
+getTeamByProjectId(projectId:any){
+ 
+  this.projectteamInfo.projectId = projectId;
+  this.emp360Service.getTeamInfo(this.projectteamInfo).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      this.filterProjectByProjectId = response.serviceResponse;
+  
+    }
+  });
+}
 filterProjects(id) {
-  this.filterProjectByProjectId = this.allProjectList.filter(project =>
-    project.projectId==id
-  );
+  this.getTeamByProjectId(id);
+   
 }
 filterTeamMemberProjects(id) {
   this.filterProjectByProjectId = this.allProjectList.filter(project =>
