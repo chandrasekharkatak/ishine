@@ -120,24 +120,24 @@
 
                             <tr *ngFor="let leaveHistory of leaveList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                             <td class="info-label">{{i+1}}</td>
-                            <td class="info-label">{{leaveHistory.createdByName}}</td>
+                            <td class="info-label" id="clickablefor360" [navigateToEmployee360]="leaveHistory.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{leaveHistory.createdByName}}</td>
                             <td class="info-label">{{leaveHistory.fromDate}}</td>
                             <td class="info-label">{{leaveHistory.toDate}}</td>
                             <td class="info-label">{{leaveHistory.createdOn}}</td>
                             <td class="info-label">{{leaveHistory.noOfDays}}</td>
                             <td class="info-label">{{leaveHistory.status}}</td>
-                            <td class="info-label">{{leaveHistory.leaveStatusUpdatedByName}}</td>
+                            <td class="info-label" id="clickablefor360" [navigateToEmployee360]="leaveHistory.emp360leaveStatusUpdatedBy" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{leaveHistory.leaveStatusUpdatedByName}}</td>
                             <td class="info-label">{{leaveHistory.reason}}</td>
                             <td class="info-label">{{leaveHistory.leaveType}}</td>
                             <td>{{leaveHistory.currentApprovalLevel}}
                               <br>
                               <h6 class="badge badge-pill primary-pill" *ngIf="leaveHistory.currentApprovalLevel == leaveHistory.finalApprovalLevel && leaveHistory.status == 'Pending'">Final</h6>
                             </td>
-                            <td>{{leaveHistory.approverName}}</td>
+                            <td id="clickablefor360" [navigateToEmployee360]="leaveHistory.emp360AppLev1" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{leaveHistory.approverName}}</td>
                             <td [ngStyle]="{'color': (leaveHistory.managerApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.managerApprovalStatus == 'Approved') ? 'green' : (leaveHistory.managerApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.managerApprovalStatus}}</td>
-                            <td>{{leaveHistory.level2ApproverName}}</td>
+                            <td id="clickablefor360" [navigateToEmployee360]="leaveHistory.emp360AppLev2" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{leaveHistory.level2ApproverName}}</td>
                             <td [ngStyle]="{'color': (leaveHistory.level2ApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.level2ApprovalStatus == 'Approved') ? 'green' : (leaveHistory.level2ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.level2ApprovalStatus}}</td>
-                            <td>{{leaveHistory.level3ApproverName}}</td>
+                            <td id="clickablefor360" [navigateToEmployee360]="leaveHistory.emp360AppLev2" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{leaveHistory.level3ApproverName}}</td>
                             <td [ngStyle]="{'color': (leaveHistory.level3ApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.level3ApprovalStatus == 'Approved') ? 'green' : (leaveHistory.level3ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.level3ApprovalStatus}}</td>
                             <td class="info-label" *ngIf="activeButton==='Rejected'">{{leaveHistory.remark}}</td>
                             <td *ngIf="activeButton==='Pending'">

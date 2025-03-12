@@ -1226,6 +1226,8 @@ export class TeamConfigComponent implements OnInit {
         this.allActivityList = response.serviceResponse;
         this.allActivityList.forEach(activity => {
           activity.createdOn = (activity.createdOn)? moment(activity.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          let matchingCreatedBy = this.allEmployeeList360.find(emp => emp.empId === activity.createdBy);
+          activity.emp360CreatedBy = matchingCreatedBy ? matchingCreatedBy : {};
         });
         //console.log("allActivityList :", this.allActivityList);
       } else {

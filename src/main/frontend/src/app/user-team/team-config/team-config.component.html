@@ -608,7 +608,8 @@
                         <td>{{activity.activity}}</td>
                         <td>{{activity.eta}} hr(s)</td>
                         <td>{{activity.employeeRole}}</td>
-                        <td>{{activity.createdByName}}</td>
+                        <td id="clickablefor360" *ngIf="userMapping.my_team_team_config_employee_360" [navigateToEmployee360]="activity.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{activity.createdByName}}</td>
+                        <td *ngIf="!userMapping.my_team_team_config_employee_360">{{activity.createdByName}}</td>
                         <td>{{activity.createdOn}}</td>
                         <td>
                             <button *ngIf="userMapping.update_activity" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateActivityForm(activity)"><em class="fa fa-edit"></em></button>&nbsp;

@@ -200,6 +200,7 @@ public class ActivitiesService {
 						dto.setCreatedOn(object[9] != null ? object[9].toString() : null);
 						dto.setEmployeeRole(object[10] != null ? object[10].toString() : null);
 						dto.setDepartmentList(object[11] != null ? object[11].toString().split(",") : null);
+						dto.setCreatedBy(object[12] != null ? Long.parseLong(object[12].toString()) : null);
 
 						dtoList.add(dto);
 					});
