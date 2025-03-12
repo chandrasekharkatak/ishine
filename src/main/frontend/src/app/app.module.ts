@@ -218,6 +218,7 @@ import { PerformanceConfigComponent } from './configuration/performance-config/p
      NavigateToProjectViewDirective,
      ProjectViewComponent,
      PerformanceConfigComponent,
+   
 
     //TestComponent
   ],
@@ -274,6 +275,7 @@ import { PerformanceConfigComponent } from './configuration/performance-config/p
     { provide: LocationStrategy, useClass: HashLocationStrategy },
     { provide: HTTP_INTERCEPTORS, useClass: LoaderInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: EmployeePortalInterceptor, multi: true },
+   
   ],
   bootstrap: [AppComponent]
 })

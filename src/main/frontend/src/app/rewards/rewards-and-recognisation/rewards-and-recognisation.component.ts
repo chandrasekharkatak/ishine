@@ -17,16 +17,19 @@ import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { SortPipe } from 'src/app/sort.pipe';
 import * as XLSX from 'xlsx';
+
 @Component({
   selector: 'app-rewards-and-recognisation',
   templateUrl: './rewards-and-recognisation.component.html',
-  styleUrls: ['./rewards-and-recognisation.component.css']
+  styleUrls: ['./rewards-and-recognisation.component.css'],
+  
 })
 export class RewardsAndRecognisationComponent implements OnInit {
 
   @ViewChild('alert_message')
   alertMessageTemplate!: TemplateRef<any>;
   items = 10;
+  
   currentUser: User;
   userMapping: any = {};
   rewardsCategories: Rewards[] = [];
@@ -73,7 +76,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
   editRewardssss: Rewards = new Rewards();
   allEmployeeList360: any[] = [];
   feature = "Rewards";
-
+  annuallyreward: Date;
 
   @ViewChild('confirmDelete')
   delete_template: any;
@@ -106,7 +109,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
     
     console.log('usermapping -- ', this.userMapping);
   }
-
+  
   getAllEmployeeFor360View(){
     this.allEmployeeList360 = [];
     this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
@@ -134,7 +137,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
     });
   }
   
-
+ 
   preventBackButton() {
     history.pushState(null, null, location.href);
     this.locationStrategy.onPopState(() => {
@@ -145,6 +148,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
   getRewardsCategories(template: TemplateRef<any>) {
     this.rewardsService.getAllRewardsCategory().subscribe(
       (response: any) => {
+        console.log(response);
         if (response.serviceStatus === 'Success' && response.serviceResponse && response.serviceResponse.length > 0) {
           this.rewardsCategories = response.serviceResponse;
           const firstCategory = this.rewardsCategories[0];
@@ -164,6 +168,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
 
   getRewardsByCategoryId(categoryId: number, template: TemplateRef<any>) {
     this.activeCategoryId = categoryId;
+   
     this.rewardsService.getAllRewardsByCategoryId(categoryId).subscribe(
       (response: any) => {
         if (response.serviceStatus === 'Success') {
@@ -171,8 +176,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
             ...reward,
             rewardTypes: reward.rewardTypes[0].split(',').map((type: string) => type.trim())
           }));
-          console.log("Reward details fetched", this.rewards);
-
+        
           const firstReward = this.rewards[0];
           if (firstReward) {
             this.isTeam = firstReward.isTeam; 
@@ -195,12 +199,10 @@ setSelectedReward(reward: Rewards) {
 
   selectReward(reward: Rewards) {
     this.selectedReward = reward;
-    console.log('Selected reward:', reward);
-    this.selectedRewardType[reward.rewardName] = '';
+   this.selectedRewardType[reward.rewardName] = '';
     const rewardId = reward.id;
-    this.fetchEmployees(rewardId);
+   // this.fetchEmployees(rewardId);
     this.selectedIDdprimiryKey = rewardId;
-    console.log('Reward ID:', rewardId);
     this.getActiveTeams(reward);
   }
 
@@ -294,8 +296,6 @@ setSelectedReward(reward: Rewards) {
     this.sumbitRewards.id = this.selectedIDdprimiryKey;
     this.sumbitRewards.ofmonthyear = this.ofmonthyear;
 
-
-    console.log("Team Reward Submit check", this.sumbitRewards);
     if (!this.validateRewardsWhileSubmit(template)) {
       return; // Stop execution if validation fails
     }
@@ -314,6 +314,7 @@ setSelectedReward(reward: Rewards) {
                this.remarks = '';
                this.selectedReward = null;
                this.isEditing = false; 
+
               //  this.activeCategoryId = null;
 
               if (this.rewardsCategories && this.rewardsCategories.length > 0) {
@@ -324,6 +325,7 @@ setSelectedReward(reward: Rewards) {
                 this.selectedReward = this.rewards[0];
                 this.selectedReward.selectedType= null;
               }
+            
           this.fetchRewardHistory();
 
 

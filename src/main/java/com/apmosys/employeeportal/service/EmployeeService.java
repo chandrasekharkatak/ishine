@@ -2849,15 +2849,15 @@ public class EmployeeService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("getALLEmployees size : "+employeeRepository.getAllEmployees().size());
 		
-//		String cacheKey = "allEmployees";
-//		
-//		if (employeeCache.containsKey(cacheKey)) {
-//            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//            response.setServiceResponse(employeeCache.get(cacheKey));
-//            apiLogInfo.setApiResponse("Data fetched from cache. Size: " + employeeCache.get(cacheKey).size());
-//            logService.logMyInfo(httpRequest, apiLogInfo);
-//            return response;
-//        }
+		String cacheKey = "allEmployees";
+		
+		if (employeeCache.containsKey(cacheKey)) {
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse(employeeCache.get(cacheKey));
+            apiLogInfo.setApiResponse("Data fetched from cache. Size: " + employeeCache.get(cacheKey).size());
+            logService.logMyInfo(httpRequest, apiLogInfo);
+            return response;
+        }
 		
 		try {
 			List<Object[]> allEmployeeList = employeeRepository.getAllEmployees();

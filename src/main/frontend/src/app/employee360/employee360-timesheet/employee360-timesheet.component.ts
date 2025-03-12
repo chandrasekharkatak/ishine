@@ -39,7 +39,7 @@ export class Employee360TimesheetComponent implements OnInit {
   timesheetDetails: any;
   userMapping: any;
   projectName:any;
-  teamName:any="null";
+  teamName:any=0;
   empId:any=0;
   empIdd:any=0;
   projectId:any=0;
@@ -674,32 +674,35 @@ updateStatus(status: string) {
 //         });
 //     }
 async getAllEmployeeFor360View(): Promise<any> {
-  return new Promise((resolve, reject) => {
-    this.employeeService.getAllEmployeesFor360View().subscribe({
-      next: (response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.employeesFor360 = response.serviceResponse;
-          this.employeesFor360.forEach(employeeObj => {
-            employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
-            employeeObj.dateOfJoining = employeeObj.dateOfJoining ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-            employeeObj.dateOfRelieving = employeeObj.dateOfRelieving ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-            employeeObj.updatedOn = employeeObj.updatedOn ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-            employeeObj.createdOn = employeeObj.createdOn ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-            if (employeeObj.isConsultant == 'true') employeeObj.employeeType = 'Consultant';
-            else if (employeeObj.isApprenticeship == 'true') employeeObj.employeeType = 'Apprentice';
-            else employeeObj.employeeType = 'Regular';
-          });
-          this.employeesFor360 = new SortPipe().transform(this.employeesFor360, ['name', 'string', 'asc']);
-          resolve(this.employeesFor360); 
-        } else {
-          reject(response.serviceResponse); 
-        }
-      },
-      error: (error) => {
-        reject(error); 
-      }
-    });
-  });
+  try {
+    const response: any = await this.employeeService.getAllEmployeesFor360View().toPromise();
+
+    if (response.serviceStatus === "Success") {
+      this.employeesFor360 = response.serviceResponse;
+
+      // Process employees
+      this.employeesFor360 = this.employeesFor360.map(employeeObj => {
+        employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
+        employeeObj.dateOfJoining = employeeObj.dateOfJoining ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+        employeeObj.dateOfRelieving = employeeObj.dateOfRelieving ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+        employeeObj.updatedOn = employeeObj.updatedOn ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+        employeeObj.createdOn = employeeObj.createdOn ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        if (employeeObj.isConsultant === 'true') employeeObj.employeeType = 'Consultant';
+        else if (employeeObj.isApprenticeship === 'true') employeeObj.employeeType = 'Apprentice';
+        else employeeObj.employeeType = 'Regular';
+        return employeeObj;
+      });
+
+      // Sort employees
+      this.employeesFor360 = new SortPipe().transform(this.employeesFor360, ['name', 'string', 'asc']);
+      
+      return this.employeesFor360;
+    } else {
+      throw new Error(response.serviceResponse);
+    }
+  } catch (error) {
+    throw error;
+  }
 }
 
 async get360TimesheetDetails(

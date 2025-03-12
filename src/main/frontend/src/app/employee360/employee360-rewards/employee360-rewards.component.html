@@ -3,50 +3,141 @@
     <div class="col-md-12">
         <div class="row p-3">
             <div class="col-md-12 table-header">
-                <h1 class="table-header-title">Rewards</h1>
+                <h1 style="float:left" class="table-header-title">Rewards</h1>
+                <button  type="button" style="float:right"
+                class="btn btn-outline-primary btn-sm  ng-star-inserted mx-1"
+               
+                (click)="createReward(alertMessageTemplate)">{{btnstring}}
+            </button>
             </div>
         </div>
-
-        <div class="row">
-            <!-- Year Dropdown -->
-            <div class="col-sm-3 col-4 mb-2 small-gap">
-                <div class="form-inline input-group">
-                    <select id="yearDropdown" class="form-control form-control-sm" (change)="onYearChange($event)">
-                        <option [value]="''" disabled selected>Select Year</option>
-                        <option *ngFor="let year of availableYears" [value]="year">
-                            {{ year }}
-                        </option>
-                    </select>
+    </div>
+     
+        <div class="col-lg-12"  *ngIf="isrewardVisible">
+        
+                <div  class="row mb-2 p-3">
+                    <div class="col-md-12 px-7" style="padding-left: 2rem;">
+                    <label>Reward Category</label></div>
+                    <div class="col-md-12 px-7" style="padding-left: 2rem;">
+                        
+                        <button *ngFor="let category of rewardsCategories1" type="button"
+                            class="btn btn-outline-primary btn-sm  ng-star-inserted mx-1"
+                            [ngClass]="{'active': category.rewardCategoryId === activeCategoryId}"
+                            (click)="getRewardsByCategoryId(category.rewardCategoryId, alertMessageTemplate)">{{category.categoryName}}
+                        </button>
+                      
+            
+                    </div>
+                  
                 </div>
-            </div>
-
-            <!-- Period Dropdown -->
-            <div class="col-sm-3 col-4 mb-2" *ngIf="selectedYear">
-                <div class="form-inline input-group">
-                    <select id="periodDropdown" class="form-control form-control-sm" (change)="onPeriodChange($event)">
-                        <option [value]="''" disabled selected>Select Period</option>
-                        <option value="monthly">Monthly</option>
-                        <!-- <option value="halfYearly">Half-Yearly</option> -->
-                    </select>
+            
+                <!-- Start of employee-reward form -->
+                <!-- Start of employee-reward form -->
+            
+                
+            
+                <div class="row mb-1 ">
+                    <div class="col-md-4 px-7" style="padding-left: 3rem;">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label class="info-label"  *ngIf="activeCategoryId==1"><span class="text-danger">*</span>Of Month-Year</label>
+                                <label class="info-label"  *ngIf="activeCategoryId==2"><span class="text-danger">*</span>Annual award Year</label>
+                                <label class="info-label"  *ngIf="activeCategoryId==3"><span class="text-danger">*</span>Half Yearly</label>
+                             
+                               
+                                <input id="startMonth" type="month" class="form-control" [(ngModel)]="ofmonthyear"
+                                    style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px;" />
+                            </div>
+                           
+                        </div>
+                    </div>
                 </div>
-            </div>
-
-            <!-- Rewards Dropdown -->
-            <div class="col-sm-3 col-4 mb-2" *ngIf="rewardsCategories.length > 0">
-                <div class="form-inline input-group">
-                    <select id="rewardsDropdown" class="form-control form-control-sm"
-                        (change)="onCategoryChange($event)">
-                        <option [value]="''" disabled selected>Select Category</option>
-                        <option *ngFor="let category of rewardsCategories" [value]="category.rewardCategoryId">
-                            {{ category.categoryName }}
-                        </option>
-                    </select>
+            
+               
+            
+            
+            
+            
+            
+                <div class="row mb-1" *ngIf="selectedReward">
+                    <div class="col-md-12 mt-4" style="padding-left: 3rem;">
+                        <h5>Reward Types for {{ selectedReward.rewardName }}</h5>
+                        <div *ngFor="let type of selectedReward.rewardTypes" class="form-check">
+                            <input type="radio" class="form-check-input" [id]="'type-' + type" [name]="selectedReward.rewardName"
+                                [value]="type" [(ngModel)]="selectedReward.selectedType">
+                            <label class="form-check-label" [for]="'type-' + type">
+                                {{ type }}
+                            </label>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            
+            
+            
+            
+            
+            
+            
+                <div class="row mb-1">
+                    <div class="col-md-12 mt-4" style="padding-left: 3rem;">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label for="leaveDesc"><span class="text-danger">*</span> <strong>Remarks</strong></label>
+                                <textarea [(ngModel)]="remarks" class="form-control" id="Desc" rows="3"
+                                    style="width: 31%;"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="row mb-3">
+                    <div class="col-md-12 mt-4" style="padding-left: 3rem;">
+                        <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="rewardSubmit(alert_message)"
+                           >Submit Reward</button>
+                    </div>
+                </div>
+                
+          
+
         </div>
-
         <div  *ngIf="!isTeamTableVisible">
-
+            <div class="row">
+                <!-- Year Dropdown -->
+                <div class="col-sm-3 col-4 mb-2 small-gap">
+                    <div class="form-inline input-group">
+                        <select id="yearDropdown" class="form-control form-control-sm" (change)="onYearChange($event)">
+                            <option [value]="''" disabled selected>Select Year</option>
+                            <option *ngFor="let year of availableYears" [value]="year">
+                                {{ year }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+    
+                <!-- Period Dropdown -->
+                <div class="col-sm-3 col-4 mb-2" *ngIf="selectedYear">
+                    <div class="form-inline input-group">
+                        <select id="periodDropdown" class="form-control form-control-sm" (change)="onPeriodChange($event)">
+                            <option [value]="''" disabled selected>Select Period</option>
+                            <option value="monthly">Monthly</option>
+                            <!-- <option value="halfYearly">Half-Yearly</option> -->
+                        </select>
+                    </div>
+                </div>
+    
+                <!-- Rewards Dropdown -->
+                <div class="col-sm-3 col-4 mb-2" *ngIf="rewardsCategories.length > 0">
+                    <div class="form-inline input-group">
+                        <select id="rewardsDropdown" class="form-control form-control-sm"
+                            (change)="onCategoryChange($event)">
+                            <option [value]="''" disabled selected>Select Category</option>
+                            <option *ngFor="let category of rewardsCategories" [value]="category.rewardCategoryId">
+                                {{ category.categoryName }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+            </div>
             <div class="selector-toggle" >
                 <a href="javascript:void(0)" (click)="toggleSearch()">
                     <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
@@ -147,4 +238,10 @@
         </div>
     </div>
 </div>
-</div>
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>

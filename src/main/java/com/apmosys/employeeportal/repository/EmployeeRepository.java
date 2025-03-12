@@ -425,11 +425,15 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 				    @Query(nativeQuery = true, value = "SELECT et.timesheet_id,et.emp_id,e.name,et.date,et.day_type,\n"
 				    		+ "et.office_in_time,et.office_out_time,et.total_time,\n"
 				    		+ "et.status,et.remarks,e.employeement_id,e.created_on,et.current_manager_id\n"
-				    		+ "FROM db_emp_portal.employee_timesheets et  \n"
+				    		+ "FROM employee_timesheets et  \n"
+				    		+" left join projects as p ON p.emp_id=et.emp_id \n"
 				    		+ "left join employee e \n"
 				    		+ "ON et.created_by = e.emp_id " +
 				            "WHERE et.status = :status " +
-				            "AND (:empId = 0 OR et.emp_id = :empId) " +
+				    		"AND (:managerId = 0 OR et.current_manager_id = :managerId)\n"
+				            +" AND (:projectId = 0 OR p.project_id = :projectId) \n "
+				            +" AND (:teamName = 0 OR p.client_id = :teamName) \n "
+				            + "AND (:empId = 0 OR et.emp_id = :empId) " +
 				            "AND (:managerId = 0 OR et.current_manager_id = :managerId) " +
 				            "AND ((:startDate IS NULL OR :endDate IS NULL) OR (et.date BETWEEN :startDate AND :endDate))")
 				    List<Object[]> getTimesheetData(
@@ -437,7 +441,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 				            @Param("empId") long empId,
 				            @Param("managerId") Long managerId,
 				            @Param("startDate") LocalDate startDate,
-				            @Param("endDate") LocalDate endDate
+				            @Param("endDate") LocalDate endDate,
+				            @Param("projectId") long projectId,
+				            @Param("teamName") long teamName
 				    );
 				    
 				    @Query(nativeQuery = true, value = "select a.activity_id,etam.description,etam.timesheet_id,etam.completion_time,\n"

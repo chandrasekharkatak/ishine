@@ -23,13 +23,19 @@
 
     <div *ngIf="!isEditing" class="row mb-2 p-3">
         <div class="col-md-12 px-7" style="padding-left: 2rem;">
+        <label>Reward Category</label></div>
+        <div class="col-md-12 px-7" style="padding-left: 2rem;">
+            
             <button *ngFor="let category of rewardsCategories" type="button"
-                class="btn btn-outline-primary btn-sm active ng-star-inserted mx-1"
+                class="btn btn-outline-primary btn-sm  ng-star-inserted mx-1"
                 [ngClass]="{'active': category.rewardCategoryId === activeCategoryId}"
                 (click)="getRewardsByCategoryId(category.rewardCategoryId, alertMessageTemplate)">{{category.categoryName}}
             </button>
+          
+
         </div>
         <div class="col-md-12 px-7" style="padding-left: 2rem; margin-top: 1rem;">
+           
             <button *ngFor="let reward of rewards" type="button"
                 class="btn btn-outline-primary btn-sm ng-star-inserted mx-1"
                 [ngClass]="{'active': selectedReward === reward}"
@@ -57,10 +63,15 @@
         <div class="col-md-4 px-7" style="padding-left: 3rem;">
             <div class="info-wrapper">
                 <div class="form-group">
-                    <label class="info-label"><span class="text-danger">*</span>Of Month-Year</label>
+                    <label class="info-label"  *ngIf="activeCategoryId==1"><span class="text-danger">*</span>Of Month-Year</label>
+                    <label class="info-label"  *ngIf="activeCategoryId==2"><span class="text-danger">*</span>Annual award Year</label>
+                    <label class="info-label"  *ngIf="activeCategoryId==3"><span class="text-danger">*</span>Half Yearly</label>
+                 
+                   
                     <input id="startMonth" type="month" class="form-control" [(ngModel)]="ofmonthyear"
                         style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px;" />
                 </div>
+               
             </div>
         </div>
     </div>

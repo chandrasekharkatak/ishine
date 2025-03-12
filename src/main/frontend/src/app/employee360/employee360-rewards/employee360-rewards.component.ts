@@ -16,6 +16,7 @@ import * as moment from 'moment';
 import { AppComponent } from 'src/app/app.component';
 import { first } from 'rxjs/operators';
 import { SortPipe } from 'src/app/sort.pipe';
+import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
   selector: 'app-employee360-rewards',
@@ -39,8 +40,10 @@ export class Employee360RewardsComponent implements OnInit {
   selectedIDdprimiryKey: any;
   alertMessage: any;
   employees: Employee[] = [];
+  btnstring="create new";
   teams: any[] = [];
   rewardsCategories: Rewards[] = [];
+  rewardsCategories1: Rewards[] = [];
   isRewards: boolean = true;
   alertMessageTemplate!: TemplateRef<any>;
   teamRewardList: any[] = [];
@@ -48,7 +51,9 @@ export class Employee360RewardsComponent implements OnInit {
   selectedYear: number | null = null;
   selectedPeriod: string | null = null;
   employeeList: any[] = [];
+  employeeList360=new Employee();
   isTeamTableVisible: boolean = false;
+  isTeamTableVisible1: boolean = false;
   matchedEmployees: any[] = [];
   rewardsColumns: any[] = ['', 'rewardTypeName', 'name', 'createdOn','teamName', 'remark', 'updatedBy'];
   rewardsTeamColumns:any[] = ['','rewardTypeName','name','createdByName','remark','createdOn'];
@@ -59,11 +64,17 @@ export class Employee360RewardsComponent implements OnInit {
   isSearchEnabled: boolean = false;
   filters: any = {};
   items = 10;
-
+  isrewardVisible:boolean=false;
   month: any;
+  remarks: string;
+  fromDatestr: any;
+  todatestr: any;
   ofMonthYear: any;
+  ofmonthyear:any;
+  sumbitRewards: Rewards = new Rewards();
   allEmployeeList360:any[]=[];
-
+  selectemmpName: string;
+  employeeSearchText: any = '';
   constructor(
     private authenticationService: AuthenticationService,
     private rewardsService: RewardsServiceService,
@@ -71,19 +82,24 @@ export class Employee360RewardsComponent implements OnInit {
     private breadcrumbService: BreadcrumbService,
     private employeeService: EmployeeService,
     private utilityService: UtilityService,
+     private validationService: ValidationService,
     private router: Router,
   ) {
     const empData = sessionStorage.getItem('AllEmployees');
+    const empData360=localStorage.getItem("employee360Data");
+    this.employeeList360=JSON.parse(empData360);
+  
     if (empData) {
       this.employeeList = JSON.parse(empData);
-      console.log(this.employeeList);
+     
     }
+    
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
 
     const navigation = this.router.getCurrentNavigation();
     this.employeeData = navigation?.extras.state?.['employeeData'];
-    console.log("cheked", this.employeeData);
+  
 
   }
 
@@ -107,6 +123,124 @@ export class Employee360RewardsComponent implements OnInit {
     }
     this.getAllEmployeeFor360View();
   }
+  createReward(template: TemplateRef<any>){
+    
+    if(this.isrewardVisible){
+      this.isrewardVisible=false;
+      this.btnstring="create new";
+    }else{
+      this.isrewardVisible=true;
+      
+     
+      this.btnstring="close";
+    }
+   
+    
+   
+  
+  }
+  cancelRequest() {
+    this.modalRef.hide();
+  }
+
+  rewardSubmit(template: TemplateRef<any>){
+    this.sumbitRewards.remark = this.remarks;
+    this.sumbitRewards.isActive = 1;
+    this.sumbitRewards.createdBy = this.currentUser.empId;
+    this.sumbitRewards.fromDate = this.fromDatestr;
+    this.sumbitRewards.toDate = this.todatestr;
+  
+    this.sumbitRewards.rewardedTo=this.employeeList360.empId;
+    this.sumbitRewards.rewardTypeName = this.selectedReward.selectedType;
+    this.sumbitRewards.id = this.selectedIDdprimiryKey;
+    this.sumbitRewards.ofmonthyear = this.ofmonthyear;
+   
+    this.validateRewardsWhileSubmit(template);
+    this.rewardsService.submitRewardForEmployee(this.sumbitRewards).subscribe(
+      (response: any) => {
+        if (response.serviceStatus === 'Success') {
+
+          console.log(response.serviceResponse);
+          this.openAlertMod(template, response.serviceMessage);
+          this.isRewards = false;
+          this.isTeamTableVisible = true;
+          this.isTeamTableVisible1=false;
+               this.ofmonthyear = ''; 
+               this.employeeSearchText = '';
+               this.remarks = '';
+               this.selectedReward = null;
+              
+              //  this.activeCategoryId = null;
+
+              if (this.rewardsCategories && this.rewardsCategories.length > 0) {
+                this.activeCategoryId = this.rewardsCategories[0].rewardCategoryId;
+              }
+            
+              if (this.rewards && this.rewards.length > 0) {
+                this.selectedReward = this.rewards[0];
+                this.selectedReward.selectedType= null;
+              }
+              this.isrewardVisible=false;
+              this.isTeamTableVisible=false;
+              this.btnstring="create new";
+
+        } else {
+          this.openAlertMod(template, 'No reward categories available at the moment.');
+        }
+      },
+      (error) => {
+        this.openAlertMod(template, 'Error fetching reward categories. Please try again later.');
+      }
+    );
+  }
+  validateRewardsWhileSubmit(template: TemplateRef<any>) {
+
+    if (!this.validationService.validateNullUndefinedEmptyString(this.sumbitRewards.ofmonthyear)) {
+      this.alertMessage = "Please select the Month for which Employee is to be rewarded!!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+  }
+    if (!this.validationService.validateNullUndefinedEmptyString(this.sumbitRewards.rewardedTo)) {
+        this.alertMessage = "Please select an Employee to reward !!";
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(this.sumbitRewards.rewardTypeName)) {
+        this.alertMessage = "Please select a Reward Type !!";
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(this.sumbitRewards.remark)) {
+        this.alertMessage = "Please enter a Remark !!";
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+    }
+
+    return true;
+}
+  onEmployeeChange(event: any) {
+    this.selectemmpName = event?.option?.value;
+
+    console.log(' this.selectemmpName',  this.selectemmpName);
+
+    if (this.selectemmpName) {
+      const filterEMP = this.employees.find(employee => employee.employeeNameForReward === this.selectemmpName);
+      console.log('emp---', filterEMP);
+      const latestReward = this.rewards[this.rewards.length - 1] || new Rewards();
+      console.log('yessss', latestReward);
+      this.sumbitRewards.rewardedTo = filterEMP.employeeIdForReward;
+      this.sumbitRewards.rewardType = 0;
+      this.sumbitRewards.rewardTypeName = latestReward.rewardTypes[0];
+      this.sumbitRewards.managerId = filterEMP.managerIdForReward;
+      this.sumbitRewards.teamId = null;
+      this.sumbitRewards.teamLeadId = null;
+    }
+
+    console.log('yessss', this.sumbitRewards);
+  }
+
   getAllEmployeeFor360View(){
     this.allEmployeeList360 = [];
     this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
@@ -185,8 +319,8 @@ export class Employee360RewardsComponent implements OnInit {
     this.rewardsService.getAllRewardsCategory().subscribe(
       (response: any) => {
         if (response.serviceStatus === 'Success' && response.serviceResponse && response.serviceResponse.length > 0) {
-          this.rewardsCategories = response.serviceResponse;
-          const firstCategory = this.rewardsCategories[0];
+          this.rewardsCategories1 = response.serviceResponse;
+          const firstCategory = this.rewardsCategories1[0];
           if (firstCategory) {
             this.getRewardsByCategoryId(firstCategory.rewardCategoryId, template);
           }
@@ -445,7 +579,7 @@ export class Employee360RewardsComponent implements OnInit {
     console.log('Selected reward:', reward);
     this.selectedRewardType[reward.rewardName] = '';
     const rewardId = reward.id;
-    this.fetchEmployees(rewardId);
+   
     this.selectedIDdprimiryKey = rewardId;
     console.log('Reward ID:', rewardId);
     this.getActiveTeams(reward);
@@ -456,25 +590,7 @@ export class Employee360RewardsComponent implements OnInit {
     this.alertMessage = message;
   }
 
-  fetchEmployees(rewardId: number) {
-    this.rewardsService.fetchEmployeesFromRewardCondition(rewardId).subscribe(
-      (response: any) => {
-        this.employees = response.serviceResponse.map(emp => {
-          return {
-            employeeNameForReward: emp.employeeName,
-            employeeIdForReward: emp.employeeEmpId,
-            managerNameForReward: emp.managerName,
-            managerIdForReward: emp.managerEmpId,
-            rewardId: rewardId
-          } as Employee;
-        });
-        console.log(this.employees);
-      },
-      (error) => {
-        console.error('Error fetching employees:', error);
-      }
-    );
-  }
+
 
   getActiveTeams(rewards): void {
     const payload = { isTeam: rewards.isTeam };
@@ -524,7 +640,8 @@ export class Employee360RewardsComponent implements OnInit {
   }
   
   showTeamTable(team: any): void {
-    console.log(`Showing table for team: ${team.teamName}`);
+ 
+    this.isTeamTableVisible1 = true;
     this.isTeamTableVisible = true;
     const request = new EmployeeRewarsRequest();
     request.empId = this.currentEmpId;
@@ -535,7 +652,7 @@ export class Employee360RewardsComponent implements OnInit {
       (response: any) => {
         this.teamRewardList = response.rewardsDTO;
         this.getMatchingEmployees();
-        console.log('Team Rewards Details:', response);
+     
       });
   }
 
