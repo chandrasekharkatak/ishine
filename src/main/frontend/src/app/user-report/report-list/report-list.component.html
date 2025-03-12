@@ -75,7 +75,7 @@
                 *ngFor="let leave of allLeaveApplicationsList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{leave.employeementId}}</td>
                 <td>{{leave.employeeType}}</td>
-                <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="leave" style="cursor: pointer;" title="Click to view Employee 360" >{{leave.employeeName}}</td>
+                <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="leave.emp360" style="cursor: pointer;" title="Click to view Employee 360" >{{leave.employeeName}}</td>
                 <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{leave.employeeName}}</td>
                 <td>{{leave.leaveType}}</td>
                 <td>{{leave.fromDate}}</td>

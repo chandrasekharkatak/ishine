@@ -140,15 +140,21 @@ export class ReportListComponent implements OnInit {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
     // Dynamic Subfeature Flags 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
     //console.log(this.feature, this.userMapping);
-    this.getAllEmployeeFor360View();
     
+    this.sectionViewInit();
     this.preventBackButton();
   }
 
@@ -370,10 +376,12 @@ export class ReportListComponent implements OnInit {
           // console.log("allLeaveApplicationsList ",this.employeesFor360);
         });
         this.allLeaveApplicationsList.forEach(leave => {
-          let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === leave.employeementId);
+          // console.log("leave.empId ",leave.empId);
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === leave.empId);
           // console.log("allLeaveApplicationsList matchingEmployee",matchingEmployee);
           leave.emp360 = matchingEmployee ? matchingEmployee : {};
           // console.log("allLeaveApplicationsList ",this.employeesFor360);
+          // console.log("leave.managerId ",leave.managerId);
           let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === leave.managerId);
           // console.log("allLeaveApplicationsList matchingEmployee2",matchingEmployee2);
           leave.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
@@ -382,7 +390,7 @@ export class ReportListComponent implements OnInit {
             // console.log("timesheet ",matchingEmployee)
             leave.emp360UpdatedBy = matchingEmployee3 ? matchingEmployee3 : {};
         });
-        console.log("allLeaveApplicationsList : getAllLeaveApplicationsList", this.allLeaveApplicationsList)
+        // console.log("allLeaveApplicationsList : getAllLeaveApplicationsList", this.allLeaveApplicationsList)
       } else {
         alert(response.serviceResponse)
       }
@@ -427,19 +435,24 @@ export class ReportListComponent implements OnInit {
             }
           });
           for(let y of this.allLeaveApplicationsList){
-              let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === y.employeementId);
-              console.log("matchingEmployee",matchingEmployee)
+
+              // console.log("y.empId ",y.empId);
+              let matchingEmployee = this.employeesFor360.find(emp => emp.empId === y.empId);
+              // console.log("allLeaveApplicationsList matchingEmployee",matchingEmployee)
               y.emp360 = matchingEmployee ? matchingEmployee : {};
+
+              // console.log("y.managerId ",y.managerId);
               let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === y.managerId);
-          // console.log("allLeaveApplicationsList matchingEmployee2",matchingEmployee2);
-          y.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
-          y.emp360 = matchingEmployee ? matchingEmployee : {};
-            let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === y.timesheetStatusUpdatedBy);
-            // console.log("timesheet ",matchingEmployee)
-            y.emp360UpdatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+              // console.log("allLeaveApplicationsList matchingEmployee2",matchingEmployee2);
+              y.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
+
+              // console.log("y.timesheetStatusUpdatedBy ",y.leaveStatusUpdatedBy);
+              let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === y.leaveStatusUpdatedBy);
+              // console.log("timesheet ",matchingEmployee)
+              y.emp360UpdatedBy = matchingEmployee3 ? matchingEmployee3 : {};
        
             }
-          console.log("allLeaveApplicationsList getCustomLeaveApplicationsList: ", this.allLeaveApplicationsList)
+          // console.log("allLeaveApplicationsList getCustomLeaveApplicationsList: ", this.allLeaveApplicationsList)
         } else {
           this.openAlertMod(template, response.serviceResponse)
         }
@@ -1320,34 +1333,6 @@ export class ReportListComponent implements OnInit {
   onSearch(searchData){
     this.filters = searchData;
     //console.log("Updated Filter : ", this.filters);
-  }
-
-  getAllEmployeeFor360View(){
-    this.employeesFor360 = [];
-    this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.employeesFor360 = response.serviceResponse;
-        // console.log("allEmployeeListFor360 : ", this.employeesFor360)
-        this.employeesFor360.forEach(employeeObj => {
-          employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
-          employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-          employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-          employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-          employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          if (employeeObj.isConsultant == 'true')
-            employeeObj.employeeType = 'Consultant';
-          else if (employeeObj.isApprenticeship == 'true')
-            employeeObj.employeeType = 'Apprentice';
-          else
-            employeeObj.employeeType = 'Regular';
-          });
-          this.employeesFor360 = this.employeesFor360;
-          this.employeesFor360 = new SortPipe().transform(this.employeesFor360, ['name', 'string', 'asc']);
-        } else {
-          alert(response.serviceResponse);
-        }
-    });
-    this.sectionViewInit();
   }
 }
 

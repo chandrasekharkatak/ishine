@@ -256,7 +256,7 @@ public class CustomFilterService {
 			try {
 
 				String q = "select e.employeement_id, e.name as employee, ltm.leave_type, el.from_date, el.to_date,el.no_of_days,el.reason, ls.status, e2.name as manager, el.created_on, "
-						+ "el.updated_on, e3.name as statusUpdateBy,d.name department,t.team_name,p.project_name,el.from_date_day_type, el.to_date_day_type,e.is_consultant,e.is_apprenticeship, el.leave_status_updated_by from employee_leave el "
+						+ "el.updated_on, e3.name as statusUpdateBy,d.name department,t.team_name,p.project_name,el.from_date_day_type, el.to_date_day_type,e.is_consultant,e.is_apprenticeship, el.leave_status_updated_by, el.manager_id, el.emp_id from employee_leave el "
 						+ "INNER JOIN employee e on el.emp_id = e.emp_id "
 						+ "INNER JOIN leave_type_master ltm on el.leave_type_master_id = ltm.leave_type_master_id "
 						+ "INNER JOIN leave_status ls on el.leave_status_id = ls.leave_status_id "
@@ -330,6 +330,8 @@ public class CustomFilterService {
 					leavedto.setIsConsultant(object[17] != null ? object[17].toString() : null);
 					leavedto.setIsApprenticeship(object[18] != null ? object[18].toString() : null);
 					leavedto.setLeaveStatusUpdatedBy(object[19] != null ? Long.parseLong(object[19].toString()) : null);
+					leavedto.setManagerId(object[20] != null? Integer.parseInt(object[20].toString()) : null);
+					leavedto.setEmpId(object[21] != null? Long.parseLong(object[21].toString()):null);
 					
 					dtoList.add(leavedto);
 				});
