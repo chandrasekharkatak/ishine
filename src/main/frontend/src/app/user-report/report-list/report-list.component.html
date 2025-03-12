@@ -90,7 +90,7 @@
                 <td>{{leave.departmentName}}</td>
                 <td>{{leave.createdOn}}</td>
                 <td>{{leave.updatedOn}}</td>
-                <td class="text-capitalize" *ngIf="userMapping.reports_employee_360" id="clickablefor360" [navigateToEmployee360]="leave.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{leave.leaveStatusUpdatedByName}}</td>
+                <td class="text-capitalize" *ngIf="leave.leaveStatusUpdatedByName && userMapping.reports_employee_360" id="clickablefor360" [navigateToEmployee360]="leave.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{leave.leaveStatusUpdatedByName}}</td>
                 <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360" >{{leave.leaveStatusUpdatedByName}}</td>
               </tr>
             </tbody>
@@ -184,9 +184,9 @@
                 <td>{{timesheet.totalWorkingOfficeHours}}</td>
                 <td>{{timesheet.leaveType}}</td>
                 <td>{{timesheet.createdOn}}</td>
-                <td>{{timesheet.updatedOn}}</td>
-                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{timesheet.timesheetStatusUpdatedByName}}</td>
+                <td>{{timesheet.updatedOn}}</td>    
                 <td class="text-capitalize" *ngIf="userMapping.reports_employee_360" id="clickablefor360" [navigateToEmployee360]="timesheet.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{timesheet.timesheetStatusUpdatedByName}}</td>
+                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{timesheet.timesheetStatusUpdatedByName}}</td>
               </tr>
             </tbody>
           </table>
