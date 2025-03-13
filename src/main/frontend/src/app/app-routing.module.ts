@@ -71,6 +71,7 @@ import { UserUpdateInfoComponent } from './user-update-info/user-update-info.com
 import { PerformanceDashboardComponent } from './user-performance/performance-dashboard/performance-dashboard.component';
 import { TeamDashboardComponent } from './user-performance/team-dashboard/team-dashboard.component';
 import { TemplatesComponent } from './user-performance/templates/templates.component';
+import { QuarterCycleComponent } from './user-performance/quarter-cycle/quarter-cycle.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -102,6 +103,7 @@ const routes: Routes = [
       { path: 'document', component: DocumentComponent, },
       { path: 'other', component: OthersComponent, },
       { path: 'rewards-config', component: RewardsConfigComponent, },
+      
     ]
   },
   {path:'user-leaves', component: UserLeavesComponent, canActivate: [AuthGuard],
@@ -187,7 +189,8 @@ const routes: Routes = [
     children: [
       { path: 'performance-dashboard', component: PerformanceDashboardComponent, },
       { path: 'team-dashboard', component: TeamDashboardComponent, },
-      { path: 'templates', component: TemplatesComponent, }
+      { path: 'templates', component: TemplatesComponent,  },
+      {path: 'quarter-cycle', component: QuarterCycleComponent}
     ]
   },
   {path:'hr-policies', component: HrPoliciesComponent, canActivate: [AuthGuard]},

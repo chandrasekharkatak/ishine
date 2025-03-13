@@ -4,6 +4,8 @@ import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
+import { Employee } from 'src/app/models/employee';
+import { EmployeeService } from 'src/app/services/employee.service';
 
 
 interface Goal {
@@ -13,6 +15,10 @@ interface Goal {
   checkpoints: { id: number; remark: string }[];
   managerRemark: string;
   employeeRemark: string;
+  assignedBy: string;
+  employeeName: string;
+  dueDate: string;
+  assignedDate: string;
 }
 
 @Component({
@@ -39,14 +45,33 @@ export class PerformanceDashboardComponent implements OnInit {
     description: 'goalDescription',
     checkpoints: [],
     managerRemark: '',
-    employeeRemark: ''
+    employeeRemark: '',
+    assignedBy:'',
+    assignedDate: '',
+    dueDate: '',
+    employeeName: '',
+  },
+  {
+    id: 1,
+    name: 'Goalname2',
+    description: 'goalDescription',
+    checkpoints: [],
+    managerRemark: '',
+    employeeRemark: '',
+    assignedBy:'',
+    assignedDate: '',
+    dueDate: '',
+    employeeName: '',
   }];
+
+
+  currentEmployeeInfo:Employee = new Employee();
   selectedGoal: any;
   modalRef?: BsModalRef;
 
   constructor(
     private http: HttpClient, 
-    
+    private employeeService:EmployeeService,
     private modalService: BsModalService,
     private fb: FormBuilder,
     private authenticationService : AuthenticationService,
@@ -56,12 +81,27 @@ export class PerformanceDashboardComponent implements OnInit {
 
   ngOnInit(): void {
   //  this.fetchGoals();
+  this.onGetEmployeeInfo();
   }
 
   fetchGoals(): void {
     // this.goalService.getGoals().subscribe((data) => {
     //   this.goals = data;
     // });
+  }
+
+  async onGetEmployeeInfo(){
+    this.currentEmployeeInfo = new Employee();
+    let currentEmp = new Employee();
+    currentEmp.empId = this.currentUser.empId;
+
+    const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
+    if (response.serviceStatus == "Success") {
+      this.currentEmployeeInfo = response.serviceResponse;
+
+    } else {
+      console.error(response.serviceResponse);
+    }
   }
 
 
@@ -123,4 +163,18 @@ export class PerformanceDashboardComponent implements OnInit {
       .subscribe(response => console.log('Questionnaire Review submitted:', response));
   }
   
+  onQuarterChange(){
+    
+  }
+  submitRemarks(){}
+
+  getStatusClass(status: string) {
+    switch (status) {
+      case 'Completed': return 'badge bg-success';
+      case 'Pending': return 'badge bg-warning text-dark';
+      case 'In Progress': return 'badge bg-primary';
+      case 'Overdue': return 'badge bg-danger';
+      default: return 'badge bg-secondary';
+    }
+  }
 }

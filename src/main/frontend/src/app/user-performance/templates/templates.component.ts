@@ -44,8 +44,8 @@ export class TemplatesComponent implements OnInit {
   }
 
   fetchGoalTemplates() {
-    // this.http.get(`/api/goals/templates?department=${this.selectedDepartment}`)
-    //   .subscribe((data: any) => this.goalTemplates = data);
+    this.http.get(`/api/goals-templates/department/department=${this.selectedDept}`)
+      .subscribe((data: any) => this.goalTemplates = data);
   }
 
   fetchKraKpiTemplates() {
