@@ -108,8 +108,8 @@ throw new Error('Method not implemented.');
       // If no department is selected or "All Departments" is selected, fetch all templates
       this.fetchGoalTemplates();
     }
-    this.http.get(`/api/goals-templates/department/department=${this.selectedDept}`)
-      .subscribe((data: any) => this.goalTemplates = data);
+    // this.http.get(`/api/goals-templates/department/department=${this.selectedDept}`)
+    //   .subscribe((data: any) => this.goalTemplates = data);
   }
 
   fetchKraKpiTemplates() {
