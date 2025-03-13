@@ -120,8 +120,11 @@ public class BioMaxRequestServiceImp implements BioMaxRequestService{
 	}
 public void afterLeaveApprovedLeaveAdded(Long empid) {
 	try {
+	List<LeaveBalanceLog> log1=leaveBalanceLogRepository.findLogValidation(empid);
+	
 	Employee employee=employeeRepository.findByEmpId(empid);
-	System.out.println("Emp Id"+empid+"=="+employee.getEmploymentstatus());
+	System.out.println("log1"+log1.size());
+	if(log1.size()==0) {
 	
 	if(employee.getEmploymentstatus().equals("Confirmed")) {
 		EmployeeLeavesMap employeeLeaveMapObject = employeeLeavesMapRepository
@@ -143,6 +146,7 @@ public void afterLeaveApprovedLeaveAdded(Long empid) {
 
 		LeaveBalanceLog leaveLogDbResponse = leaveBalanceLogRepository
 				.save(log);
+	}
 	}
 	}catch(Exception e) {
 		e.printStackTrace();

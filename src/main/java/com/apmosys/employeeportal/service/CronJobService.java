@@ -4789,8 +4789,34 @@ try {
 		 * 3) Reporting late to work (after 30 minutes from shift starting time) and not completing 9 hours
 		 *    : Deduct 1 Day Salary
 		 * */
-		
-	
+public List<Holiday> getHolidayListTestData(){
+	List<Holiday> holi=new ArrayList<>();
+	Holiday holid=new Holiday();
+	holid.setDateOfHoliday(LocalDate.now());
+	holid.setDayOfTheWeek("1");
+	holi.add(holid);
+	return holi;
+}
+
+public List<BiomaxRequest> getBiomaxRequestTest(){
+	List<BiomaxRequest> biomax=new ArrayList<>();
+	BiomaxRequest bio=new BiomaxRequest();
+	bio.setBiomaxStatus("Approved");
+	bio.setBiomaxrequestDate(LocalDateTime.now());
+	bio.setEmpId(1993L);
+	biomax.add(bio);
+//	BiomaxRequest bio1=new BiomaxRequest();
+//	bio1.setBiomaxStatus("Approved");
+//	bio1.setBiomaxrequestDate(LocalDateTime.now().plusDays(-2));
+//	bio1.setEmpId(1993L);
+//	biomax.add(bio1);
+//	BiomaxRequest bio12=new BiomaxRequest();
+//	bio12.setBiomaxStatus("Approved");
+//	bio12.setBiomaxrequestDate(LocalDateTime.now().plusDays(4));
+//	bio12.setEmpId(1993L);
+//	biomax.add(bio12);
+	return biomax;
+}
 //		
 //		@Async
 //		@Scheduled(cron = "0 0 9 ? * *") // runs everyday at 9 pm
@@ -4799,7 +4825,7 @@ try {
 				String employee="";
 				//start the rahul code
 				
-			List<BioMaTO> biomaxDataList = bioMaxService.getBiomaxDataForLeaveDeduct();
+			List<BioMaTO> biomaxDataList =new ArrayList<>(); //bioMaxService.getBiomaxDataForLeaveDeduct();
 			System.out.println("TOtal Data COmming from Biomax"+biomaxDataList.size());
 			
 			List<BioMaTO> updateBioMaxDataList=new ArrayList<>();

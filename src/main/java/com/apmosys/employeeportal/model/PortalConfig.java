@@ -33,8 +33,7 @@ public class PortalConfig {
 	private LocalDateTime updatedOn;
 	
 	private String updatedBy;
-	private String empId;
-	private Long departmentId;
+
 	private String configValue;
 	// Store as JSON
 

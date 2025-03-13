@@ -88,8 +88,8 @@ public class PortalConfigService {
 					portaldto.setConfigPeriod(portal.getConfigPeriod());
 					portaldto.setMailTrigger(portal.getMailTrigger());
 					portaldto.setConfigValue(portal.getConfigValue());
-					portaldto.setEmpId(Long.parseLong(portal.getEmpId()));
-					portaldto.setDepartmentId(portal.getDepartmentId());
+					//portaldto.setEmpId(Long.parseLong(portal.getEmpId()));
+					//portaldto.setDepartmentId(portal.getDepartmentId());
 					dtoList.add(portaldto);
 					
 				});
@@ -136,8 +136,6 @@ public class PortalConfigService {
 					portalConfigToBeUpdate.setConfigPeriod(dto.getConfigPeriod());
 					portalConfigToBeUpdate.setMailTrigger(dto.getMailTrigger());
 					portalConfigToBeUpdate.setConfigValue(dto.getConfigValue());
-					portalConfigToBeUpdate.setDepartmentId(dto.getDepartmentId());
-					portalConfigToBeUpdate.setEmpId(dto.getEmpId());
 					
 					PortalConfig dbResponse = portalConfigRepository.save(portalConfigToBeUpdate);
 					
