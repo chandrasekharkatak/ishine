@@ -130,6 +130,7 @@ public class AppraisalSummaryService {
     }
 
     public ServiceResponse getAllAppraisalSummaries() {
+    	
         ServiceResponse response = new ServiceResponse();
         try {
             List<AppraisalSummary> appraisalSummaries = appraisalSummaryRepository.findAll();

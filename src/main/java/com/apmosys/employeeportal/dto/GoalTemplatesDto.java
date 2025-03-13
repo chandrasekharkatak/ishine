@@ -5,6 +5,7 @@ import lombok.*;
 @Getter
 @Setter
 public class GoalTemplatesDto {
+
     private Long templateId;
     private String title; 
     private Long quarterId;

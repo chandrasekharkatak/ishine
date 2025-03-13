@@ -219,7 +219,6 @@ public class ReportService {
         apiLogInfo.setLogLevel("INFO");
         StringBuilder logBuilder = new StringBuilder();
         logBuilder.append("AllSubFeatureList:" + employeeRoleMasterRepository.getAllSubFeatureList().size());
-
 		try {
 			
 			List<Object[]> accessControlList = employeeRoleMasterRepository

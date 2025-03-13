@@ -17,6 +17,7 @@ public class GoalTemplates {
     private String title;
     
     
+    
     @Column(name = "quarter_id")
     private Long quarterId;
     

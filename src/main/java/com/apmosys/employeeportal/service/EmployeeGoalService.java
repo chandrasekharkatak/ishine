@@ -56,6 +56,37 @@ public class EmployeeGoalService {
         return convertToDTO(savedGoal);
     }
     
+    public List<EmployeeGoalDTO> assignGoalToMultipleEmployees(List<Long> empIds, Long templateId, LocalDate expectedCompletionDate) {
+        ServiceResponse response = goalTemplateService.getGoalTemplateById(templateId);
+        if (!ServiceResponse.STATUS_SUCCESS.equals(response.getServiceStatus())) {
+            throw new RuntimeException("Goal template not found with ID: " + templateId);
+        }
+        Optional<GoalTemplates> vopt = goalTemplateRepo.findById(templateId);
+        if (!vopt.isPresent()) {
+            throw new RuntimeException("Goal template not found with ID: " + templateId);
+        }
+        GoalTemplates template = vopt.get();
+
+      
+        List<EmployeeGoalDTO> assignedGoals = new ArrayList<>();
+        for (Long empId : empIds) {
+            EmployeeGoalDTO employeeGoalDTO = new EmployeeGoalDTO();
+            employeeGoalDTO.setEmpId(empId);
+            employeeGoalDTO.setTemplateId(templateId);
+            employeeGoalDTO.setAssignedBy(template.getCreatedBy());
+            employeeGoalDTO.setGoalTitle(template.getTitle());
+            employeeGoalDTO.setGoalProgress("Not Started"); 
+            employeeGoalDTO.setGoalStatus("Pending"); 
+            employeeGoalDTO.setExpectedCompletionDate(expectedCompletionDate);
+            employeeGoalDTO.setCreatedDate(LocalDate.now());
+
+            EmployeeGoals savedGoal = employeeGoalRepository.save(convertToEntity(employeeGoalDTO));
+            assignedGoals.add(convertToDTO(savedGoal));
+        }
+
+        return assignedGoals;
+    }
+    
     public ServiceResponse getGoalsByEmployeeId(Long empId) {
         ServiceResponse response = new ServiceResponse();
         
@@ -124,6 +155,24 @@ public class EmployeeGoalService {
             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
             response.setServiceError(e.getMessage());
             response.setServiceMessage("Error retrieving employee goal");
+        }
+        
+        return response;
+    }
+    
+    public ServiceResponse bulkAssignGoals(List<Long> empIds, Long templateId, LocalDate expectedCompletionDate) {
+        ServiceResponse response = new ServiceResponse();
+        
+        try {
+            List<EmployeeGoalDTO> assignedGoals = assignGoalToMultipleEmployees(empIds, templateId, expectedCompletionDate);
+            
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse(assignedGoals);
+            response.setServiceMessage("Goals assigned successfully to " + assignedGoals.size() + " employees");
+        } catch (Exception e) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceError(e.getMessage());
+            response.setServiceMessage("Error assigning goals to employees");
         }
         
         return response;

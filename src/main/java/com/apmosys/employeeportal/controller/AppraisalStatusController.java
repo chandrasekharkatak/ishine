@@ -20,7 +20,7 @@ import com.apmosys.employeeportal.model.*;
 
 
 @RestController
-@RequestMapping("/employee")
+@RequestMapping("/api/quarter")
 public class AppraisalStatusController {
 	
 	@Autowired

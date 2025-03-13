@@ -366,7 +366,7 @@ public class ResourceManagementService {
 					              		    	projectFind = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
 					              		    }
 					                    	  
-					                    	  try {
+					                    	 try {
 												mailService.sendMailWithCC("tmp@gmail.com", rmgMail, "Regarding Resource mapped to new Project", "Dear "
 														+ findEmp.getName()+"<br>"
 														+ "You have been mapped to client name - "+resourceManagementDTO.getClientName()+" under the project "+projectFind.getProjectName()+"<br>"
@@ -1600,7 +1600,7 @@ public class ResourceManagementService {
         StringBuilder logBuilder = new StringBuilder();
         logBuilder.append("ProjectId : " + resourceManagementDTO.getProjectId()+ " ,ProjectName :" + resourceManagementDTO.getName() + " ,Id : " + resourceManagementDTO.getId());
 
-		try {
+		try { 
 			
 			Project projectObj = null;
 			if(resourceManagementDTO.getProjectType().equals("Internal")) {

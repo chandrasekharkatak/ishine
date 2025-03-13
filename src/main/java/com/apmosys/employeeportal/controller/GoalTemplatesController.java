@@ -37,6 +37,18 @@ public class GoalTemplatesController {
     public ServiceResponse getGoalTemplatesByDepartmentId(@PathVariable Long departmentId) {
         return goalTemplatesService.getGoalTemplatesByDepartmentId(departmentId);
     }
+    @GetMapping("/department/name/{departmentName}")
+    public ServiceResponse getGoalTemplatesByDepartmentName(@PathVariable String departmentName) {
+        return goalTemplatesService.getGoalTemplatesByDepartmentName(departmentName);
+    }
+    @PutMapping("/{id}")
+    public GoalTemplatesDto updateGoalTemplate(@PathVariable Long id, @RequestBody GoalTemplatesDto goalTemplatesDto) {
+        return goalTemplatesService.updateGoalTemplate1(id, goalTemplatesDto);
+    }
     
+    @DeleteMapping("/{id}")
+    public ServiceResponse deleteGoalTemplate(@PathVariable Long id) {
+        return goalTemplatesService.deleteGoalTemplate(id);
+    }
     
 }
