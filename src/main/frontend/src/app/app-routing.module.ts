@@ -67,6 +67,7 @@ import { DocumentUploadComponent } from './user-update-info/document-upload/docu
 import { EmployeeInfoComponent } from './user-update-info/employee-info/employee-info.component';
 import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
+import { QrCodeGeneratorComponent } from './qr-code-generator/qr-code-generator.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -185,6 +186,7 @@ const routes: Routes = [
   {path:'helpdesk/:id', component: HelpdeskComponent, canActivate: [AuthGuard]},
   {path:'release-notes', component: UserReleasenotesComponent, canActivate: [AuthGuard]},
   {path:'newsletters', component: NewsletterComponent, canActivate: [AuthGuard]},
+  {path:'qr-code', component: QrCodeGeneratorComponent, canActivate: [AuthGuard]},
   {path:'**', redirectTo:'home', pathMatch:'full'},
 ];
 
