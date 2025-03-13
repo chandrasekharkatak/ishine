@@ -31,7 +31,7 @@ export class Employee360ProjectComponent implements OnInit {
   isEditProject: boolean = false;
   isHideButton: boolean = false;
 //added by rahul
-
+flag:boolean=false;
 isProjectVisible:boolean=true;
 isProjectTeamVisible:boolean=false;
 isProjectTeamMemberVisible:boolean=false;
@@ -122,23 +122,28 @@ backfromvisibility(type:any){
   this.isProjectTeamVisible=false;
   this.isProjectTeamMemberVisible=false;
   
-  if(type=="ProjectVisible"){
+  if(type=="ProjectVisible" && this.flag == true){
     this.isProjectVisible=true;
+    this.flag = false;
+   
   }
-  if(type=="ProjectTeamVisible"){
+  else if(type=="ProjectTeamVisible"){
     this.isProjectTeamVisible=true;
   }
-  if(type=="ProjectTeamMemberVisible"){
-    this.isProjectTeamVisible=true
+ else if(type=="ProjectTeamMemberVisible" && this.flag == false){
+    this.isProjectVisible=true;
+    this.isProjectTeamVisible=false;
+  }else{
+    this.isProjectTeamVisible=true;
+    this.isProjectVisible=false;
   }
 }
 redirecttoProjectTeam(id:any){
   this.isProjectVisible=false;
   this.isProjectTeamVisible=true;
   this.isProjectTeamMemberVisible=false;
-  // filterProjectByProjectId:any[]=[];
-  // filterTeamfromTeamId:any[]=[];
-  console.log("this.projectDetails ", id);
+  this.flag= true;
+
   this.filterProjects(id);
 }
 redirecttoTeam(id:any,projectId:any){
@@ -146,16 +151,17 @@ redirecttoTeam(id:any,projectId:any){
   this.isProjectVisible=false;
   this.isProjectTeamVisible=false;
   this.getTeamEmployeeByTeamId(id);
-  console.log("this.projectDetails ", projectId);
   this.filterProjects(projectId);
  
 
 }
 
 projectteamInfo: Project = new Project();
+
 getTeamByProjectId(projectId:any){
  
   this.projectteamInfo.projectId = projectId;
+
   this.emp360Service.getTeamInfo(this.projectteamInfo).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
       this.filterProjectByProjectId = response.serviceResponse;
