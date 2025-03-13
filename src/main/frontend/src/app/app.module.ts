@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { LOCALE_ID, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { DragDropModule } from '@angular/cdk/drag-drop';
@@ -125,9 +125,27 @@ import { UserUpdateInfoComponent } from './user-update-info/user-update-info.com
 import { NavigateToProjectViewDirective } from './navigate-to-project-view.directive';
 import { ProjectViewComponent } from './project-view/project-view.component';
 import { PerformanceConfigComponent } from './configuration/performance-config/performance-config.component';
+import { OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
+import { registerLocaleData } from '@angular/common';
+import localeGb from '@angular/common/locales/en-GB';
+registerLocaleData(localeGb);
+// import { OwlDateTimeModule, OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
+// 
+
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
 
+
+  export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
+    parseInput: 'DD/MM/YYYY hh:mm A',
+    fullPickerInput: 'DD/MM/YYYY hh:mm A',
+    datePickerInput: 'DD/MM/YYYY',
+    timePickerInput: 'hh:mm A',
+    monthYearLabel: 'MMM YYYY',
+    dateA11yLabel: 'DD/MM/YYYY',
+    monthYearA11yLabel: 'MMMM YYYY',
+  };
+  
 @NgModule({
   declarations: [
     AppComponent,
@@ -218,7 +236,7 @@ import { PerformanceConfigComponent } from './configuration/performance-config/p
      NavigateToProjectViewDirective,
      ProjectViewComponent,
      PerformanceConfigComponent,
-   
+  
 
     //TestComponent
   ],
@@ -268,6 +286,9 @@ import { PerformanceConfigComponent } from './configuration/performance-config/p
     MatInputModule,
     MatFormFieldModule,
     MatOptionModule,
+    OwlNativeDateTimeModule,
+    OwlDateTimeModule
+
   ],
   providers: [
     BsModalService,
@@ -275,6 +296,9 @@ import { PerformanceConfigComponent } from './configuration/performance-config/p
     { provide: LocationStrategy, useClass: HashLocationStrategy },
     { provide: HTTP_INTERCEPTORS, useClass: LoaderInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: EmployeePortalInterceptor, multi: true },
+    { provide: OWL_DATE_TIME_FORMATS, useValue: MY_CUSTOM_FORMATS },
+    { provide: LOCALE_ID, useValue: 'en-GB' } // Force UK locale for DD/MM/YYYY
+
    
   ],
   bootstrap: [AppComponent]
