@@ -211,31 +211,7 @@
                     <button type="button" class="btn btn-outline-primary btn-sm mx-1 dsr-button" (click)="reconsileHolidayTimesheet(alert_message)">Reconsile Holiday/ WeekOff Timesheet</button>
                 </div>
             </div>
-            <div class="row">
-                
-                <div class="col-md-4 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Leave deduction relaxation in the department.</label>
-                            <mat-select class="form-control"  multiple [(ngModel)]="portalObj.departmentIdList">
-                                <mat-option selected="selected"  value="" disabled>Select</mat-option>
-                                <mat-option *ngFor="let dept1 of allDeptList" [value]="dept1.deptId">{{dept1.name}}</mat-option>
-                            </mat-select>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Leave deduction relaxation in the employee.</label>
-                            <mat-select class="form-control" multiple  [(ngModel)]="portalObj.empIdList">
-                                <mat-option selected="selected"  value="" disabled>Select</mat-option>
-                                <mat-option *ngFor="let emp of employeeList" [value]="emp.empId">{{emp.name}}</mat-option>
-                            </mat-select>
-                        </div>
-                    </div>
-                </div>
-            </div>
+           
             <!-- <div class="row">
                 <div class="col-md-5 mb-0">
                     <div class="info-wrapper">

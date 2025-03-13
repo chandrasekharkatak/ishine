@@ -103,9 +103,7 @@ export class BiomaxApprovalComponent implements OnInit {
     this.getAllHolidays();
     this.getAllBiomaxRequestForEmployee();
     this.sectionViewInit();
-    
     this.preventBackButton();
-    
     this.getBioMaxRequestType();
     console.log("Leave",this.leaveObj);
   }
@@ -277,7 +275,7 @@ export class BiomaxApprovalComponent implements OnInit {
       // const FUTUREDATED_LEAVE_PERIOD = 180;
       let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));
       let maxDate = new Date(currentDate.getTime()+ (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
-
+      
       if(this.isUpdation == true){
         this.biomaxListEmployeeId = this.biomaxListEmployeeId.filter(x => x.biomaxrequestDate != this.leaveObj.toDate);
       }

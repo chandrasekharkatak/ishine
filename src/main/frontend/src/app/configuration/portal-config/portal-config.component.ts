@@ -135,6 +135,7 @@ export class PortalConfigComponent implements OnInit {
     private holidayService : HolidayService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    this.getEmployeeList();
   }
 
   ngOnInit(): void {
@@ -314,7 +315,7 @@ export class PortalConfigComponent implements OnInit {
 
     this.getAllPortalConfigData();
     this.getAllDepartmentList();
-    this.getEmployeeList();
+
   }
 
   holidayDateFilter = (d: Date)=>{
