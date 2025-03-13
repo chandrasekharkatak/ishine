@@ -16,11 +16,11 @@ public class QuestionnaireController {
     @Autowired
     private QuestionnaireService questionnaireService;
 
-    @PostMapping("/createQuestionnaire")
-    public ServiceResponse createQuestionnaire(@RequestBody QuestionnaireDTO questionnaireDTO) {
+    @PostMapping("/createQuestionnaireTemplate")
+    public ServiceResponse createQuestionnaireTemplate(@RequestBody QuestionnaireDTO questionnaireDTO) {
         ServiceResponse response = new ServiceResponse();
         try {
-            Questionnaire createdQuestionnaire = questionnaireService.createQuestionnaire(questionnaireDTO);
+            Questionnaire createdQuestionnaire = questionnaireService.createQuestionnaireTemplate(questionnaireDTO);
             response.setServiceResponse(createdQuestionnaire);
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceMessage("Questionnaire created successfully");

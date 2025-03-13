@@ -19,6 +19,7 @@ public class KpiResponseController {
     public ServiceResponse saveResponse(@RequestBody KpiResponseDTO dto) {
         ServiceResponse response = new ServiceResponse();
         try {
+//        	System.out.println("EMP Id in controller ==="+empId);
             KpiResponseDTO savedDto = service.saveResponse(dto);
             response.setServiceResponse(savedDto);
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

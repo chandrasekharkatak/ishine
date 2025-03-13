@@ -421,6 +421,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Modifying
 	@Query("UPDATE Employee e SET e.isRetain = 'No' WHERE e.empId = :empId")
 	void updateIsRetain(@Param("empId") Long empId);
+	
+	@Query(nativeQuery = true,value = "select e.emp_id from employee e \n"
+			+ " inner join user_session u on e.emp_id = u.emp_id")
+	public Long findByEmpId();
 
 
 }

@@ -2,11 +2,14 @@ package com.apmosys.employeeportal.controller;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.KpiDTO;
+import com.apmosys.employeeportal.model.KpiResponse;
+import com.apmosys.employeeportal.service.KpiResponseService;
 import com.apmosys.employeeportal.service.KpiService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import javax.persistence.EntityNotFoundException;
 
@@ -24,8 +27,10 @@ public class KpiController {
 
     @Autowired
     KpiService kpiService;
-
-   
+    
+    @Autowired
+    KpiResponseService kpiResponseService;
+    
     @PostMapping(value = "/createKpi")
     public ServiceResponse createKpi(@RequestBody KpiDTO kpiDTO) {
         ServiceResponse response = new ServiceResponse();

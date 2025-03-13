@@ -14,10 +14,10 @@ public class QuestionnaireService {
     @Autowired
     private QuestionnaireRepository questionnaireRepository;
 
-    public Questionnaire createQuestionnaire(QuestionnaireDTO dto) {
+    public Questionnaire createQuestionnaireTemplate(QuestionnaireDTO dto) {
         Questionnaire questionnaire = new Questionnaire();
         questionnaire.setQuestionTitle(dto.getQuestionTitle());
-        questionnaire.setQuestionDescription(dto.getQuestionDescription());
+//        questionnaire.setQuestionDescription(dto.getQuestionDescription());
         questionnaire.setCreatedBy(dto.getCreatedBy());
         questionnaire.setQuarterId(dto.getQuarterId());
         return questionnaireRepository.save(questionnaire);

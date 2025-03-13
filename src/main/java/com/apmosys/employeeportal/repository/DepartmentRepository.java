@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.dto.DepartmentDTO;
@@ -18,13 +19,11 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 	public List<Object[]> getAllDepartments();
 
 	public Department findByName(String department);
-
+	
 	@Query(nativeQuery = true)
 	public List<Object[]> getMappedDepartment(Integer projectId);
 
 	public List<Department> findByDeptIdIn(List<Long> deptIds);
-
-	public List<Department> findByHodId(Long hodId);
 
 	public boolean existsByHodId(Long empId);
 
@@ -41,4 +40,17 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 	public Optional<List<Object>> getDepartmentsByHodId(Long empId);
 	
 	public Department findByDeptAbbreviation(String deptAbbreviation);
+	
+//	@Query(nativeQuery = true, value="SELECT d.name FROM department d WHERE d.hod_id = :empId")
+//	public Object findbyEmpId(@Param("empId") Long empId);
+	
+	
+	@Query(nativeQuery = true,value = "select d.name from department d \n"
+			+ "inner join job_role j on j.dept_id = d.dept_id\n"
+			+ "inner join employee e on e.job_role_id = j.job_role_id\n"
+			+ "inner join user_session u on e.emp_id = u.emp_id")
+	public Object findbyEmpId();
+
+	
+	
 }
