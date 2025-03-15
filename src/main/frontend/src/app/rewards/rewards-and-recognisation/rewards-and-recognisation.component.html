@@ -162,13 +162,6 @@
             </div>
         </div>
 
-
-        <div class="row p-3">
-            <div class="col-md-12">
-                <h3>Monthly History</h3>
-            </div>
-        </div>
-
         <div class="col-md-6 d-flex justify-content-start align-items-center">
             <div class="form-inline">
                 <small>View</small>
@@ -202,6 +195,8 @@
                                 <th scope="col" class="info-label">Sr No.</th>
                                 <th scope="col" class="info-label" mat-sort-header="rewardedToByName|string">Employee
                                 </th>
+                                <th scope="col" class="info-label" mat-sort-header="rewardCategoryName|string">Reward Category
+                                </th>
                                 <th scope="col" class="info-label" mat-sort-header="rewardTypeName|string">Reward Type
                                 </th>
                                 <th scope="col" class="info-label" mat-sort-header="createdByName|string">Reward By</th>
@@ -230,6 +225,7 @@
                                     [navigateToEmployee360]="rewardHistory.emp360" style="cursor: pointer;"
                                     title="Click to view Employee 360">{{rewardHistory.rewardedToByName}}</td>
                                 <td *ngIf="!userMapping.reward_employee_360">{{rewardHistory.rewardedToByName}}</td>
+                                <td>{{rewardHistory.rewardCategoryName}}</td>
                                 <td>{{rewardHistory.rewardTypeName}}</td>
                                 <td id="clickablefor360" *ngIf="userMapping.reward_employee_360"
                                     [navigateToEmployee360]="rewardHistory.emp360RewardBy" style="cursor: pointer;"
@@ -240,7 +236,7 @@
                                     [navigateToEmployee360]="rewardHistory.emp360Manager" style="cursor: pointer;"
                                     title="Click to view Employee 360">{{rewardHistory.managerName}}</td>
                                 <td *ngIf="!userMapping.reward_employee_360">{{rewardHistory.managerName}}</td>
-                                <td>{{rewardHistory.ofmonthyear}}
+                                <td>{{rewardHistory.ofmonthyear | date: 'MMMM yyyy'}}
                                 <td id="clickablefor360" *ngIf="userMapping.reward_employee_360"
                                     [navigateToEmployee360]="rewardHistory.emp360UpdatedBy" style="cursor: pointer;"
                                     title="Click to view Employee 360">{{rewardHistory.updatedByName || 'N/A'}}</td>
@@ -339,7 +335,7 @@
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Download Sheet Format</label>
                             <button class="btn btn-outline-danger" ><em
-                                    class="fa fa-download" (click)="downloadRewardFileTemplate()"></em></button>
+                                    class="fa fa-download" (click)="downloadRewardFileTemplatee()"></em></button>
                         </div>
                     </div>
                 </div>

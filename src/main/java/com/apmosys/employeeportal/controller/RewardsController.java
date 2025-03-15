@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -191,15 +192,21 @@ public class RewardsController {
 	}
 	
 	 @PostMapping("/saveExcelDataForReward")
-	    public ServiceResponse saveExcelDataForReward(@RequestParam("file") MultipartFile file) throws EncryptedDocumentException, InvalidFormatException {
+	    public ServiceResponse saveExcelDataForReward(@RequestParam("file") MultipartFile file,@ModelAttribute EmployeeRewardsDTO employeeRewardsDTO) throws EncryptedDocumentException, InvalidFormatException {
 	    	ServiceResponse response = new ServiceResponse();
 	    	if (file.isEmpty()) {
 	    		response.setServiceResponse("Please upload a file.");
 	    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	    		return response;
 	        }
+	        try {
+	            response = rewardsService.saveExcelDataForReward(file,employeeRewardsDTO);
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	            response.setServiceResponse("Error occurred while processing the file.");
+	        }
 
-	        response = rewardsService.saveExcelDataForReward(file);
 	        return response;
 	    }
 }

@@ -5,11 +5,17 @@ import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -18,6 +24,7 @@ import javax.persistence.PersistenceContext;
 
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -49,6 +56,7 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeRewards;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.RewardConfig;
+import com.apmosys.employeeportal.model.RewardsCategory;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeRewardsRepository;
@@ -699,6 +707,7 @@ public class RewardsService {
 	    	EmployeeRewards employeeRewards = new EmployeeRewards();
 		    employeeRewards.setRewardedTo(employeeRewardsDTO.getRewardedTo() != null ? employeeRewardsDTO.getRewardedTo() : null);
 		    employeeRewards.setId(employeeRewardsDTO.getId() != null ? employeeRewardsDTO.getId() : null);
+		    employeeRewards.setRewardCategoryId(employeeRewardsDTO.getRewardCategoryId() != null ? employeeRewardsDTO.getRewardCategoryId():null);	    
 		    employeeRewards.setTeamId(employeeRewardsDTO.getTeamId() != null ? employeeRewardsDTO.getTeamId() : null);
 		    employeeRewards.setRewardType(employeeRewardsDTO.getRewardType() != 0 ? employeeRewardsDTO.getRewardType() : 0);
 		    employeeRewards.setManagerId(employeeRewardsDTO.getManagerId() != null ? employeeRewardsDTO.getManagerId() : null);
@@ -915,7 +924,7 @@ public class RewardsService {
 			    			 
 			    			EmployeeRewardsDTO dto = new EmployeeRewardsDTO();
 			    		
-			    			dto.setRewardedTo(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+			    			dto.setRewardedTo(object[0] != null ? Long.parseLong(object[0].toString()) : null);  			
 			    			dto.setRewardedToByName(object[0] != null ? getEmployeeNameByEmpId(Long.parseLong(object[0].toString())) : null);
 			    			dto.setRewardTypeName(object[1] != null ? object[1].toString() : null);
 			    			dto.setManagerId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
@@ -932,7 +941,8 @@ public class RewardsService {
 			    			dto.setUpdatedOn(object[10] != null ? ((Timestamp) object[8]).toLocalDateTime() : null);
 			    			dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);		
 			    			dto.setRewardId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
-			    			
+			    			dto.setRewardCategoryId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
+			    			dto.setRewardCategoryName(object[13] != null ? object[13].toString() : null);		    			
 			    			dtolist.add(dto);
 			    		});
 			    	}
@@ -1447,46 +1457,147 @@ public class RewardsService {
 	    return null;
 	}
 	
-	public ServiceResponse saveExcelDataForReward(MultipartFile file) throws EncryptedDocumentException, InvalidFormatException {
+	public ServiceResponse saveExcelDataForReward(MultipartFile file , EmployeeRewardsDTO employeeRewardsDTO) throws EncryptedDocumentException, InvalidFormatException {
 	    ServiceResponse response = new ServiceResponse();
+	    List<String> errorMessages = new ArrayList<>();
+	    List<Long> inactiveEmployees = new ArrayList<>();
+
 	    try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
 	        Sheet sheet = workbook.getSheetAt(0);
 	        Iterator<Row> rows = sheet.iterator();
-	        rows.next();
 
-	        while (rows.hasNext()) {
-	            Row currentRow = rows.next();
+	        if (!rows.hasNext()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("The uploaded file is empty.");
+	            return response;
+	        }
 
-	            Long employmentId = (long) currentRow.getCell(0).getNumericCellValue();
-	            String billable = currentRow.getCell(1).getStringCellValue();
-	            String billableType = currentRow.getCell(2).getStringCellValue();
-	            String gender = currentRow.getCell(3).getStringCellValue();
-	            String manager = currentRow.getCell(4).getStringCellValue().trim().toLowerCase(); // Convert to lowercase
-	            
-	            Optional<Employee> optionalEmployee = Optional.ofNullable(employeeRepository.findByEmployeementId(employmentId));
-	            Optional<Employee> findManager = Optional.ofNullable(employeeRepository.findByNameIgnoreCase(manager));
-	            
-	            if (optionalEmployee.isPresent()) {
-                	Employee employee = optionalEmployee.get();
-                	Employee getManager = findManager.get();
-                	employee.setBillable(billable);
-                    employee.setBillableType(billableType);
-                    employee.setGender(gender);
-                    if(manager != null)
-                    employee.setManagerId(getManager.getEmpId());
-
-                    employeeRepository.save(employee);
+	        Row headerRow = rows.next();
+	        Map<String, Integer> columnIndexMap = new HashMap<>();
+	        List<String> requiredColumns = Arrays.asList("Employee Id", "Employee Name", "Reward Category", "Reward Type Name", "Of Month-Year", "Remarks");
+	        for (Cell cell : headerRow) {
+	            String headerName = cell.getStringCellValue().trim();
+	            if (requiredColumns.contains(headerName)) {
+	                columnIndexMap.put(headerName, cell.getColumnIndex());
 	            }
 	        }
 
-	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        response.setServiceResponse("File uploaded and processed successfully.");
+	        int rowNum = 1;
+	        while (rows.hasNext()) {
+	            Row currentRow = rows.next();
+	            rowNum++;
+
+	            Long employeeId = null;
+	            try {
+	                Cell employeeIdCell = currentRow.getCell(columnIndexMap.get("Employee Id"));
+	                if (employeeIdCell == null) {
+	                    errorMessages.add("Row " + rowNum + ": Employee Id is missing.");
+	                    continue;
+	                }
+	                employeeId = (long) employeeIdCell.getNumericCellValue();
+	            } catch (Exception e) {
+	                errorMessages.add("Row " + rowNum + ": Invalid EmployeeId.");
+	                continue;
+	            }
+
+	            Optional<Employee> optionalEmployee = Optional.ofNullable(employeeRepository.findByEmployeementId(employeeId));
+	            if (!optionalEmployee.isPresent()) {
+	                errorMessages.add("Row " + rowNum + ": Employee with ID '" + employeeId + "' not found.");
+	                continue;
+	            }
+
+	            Employee employee = optionalEmployee.get();
+
+	            if ("InActive".equalsIgnoreCase(employee.getEmploymentstatus())) {
+	                inactiveEmployees.add(employeeId);
+	                continue;
+	            }
+
+	            String rewardCategoryName = null;
+	            if (columnIndexMap.containsKey("Reward Category")) {
+	                Cell rewardCategoryCell = currentRow.getCell(columnIndexMap.get("Reward Category"));
+	                if (rewardCategoryCell == null || rewardCategoryCell.getStringCellValue().trim().isEmpty()) {
+	                    errorMessages.add("Row " + rowNum + ": Reward Category is missing.");
+	                    continue;
+	                }
+	                rewardCategoryName = rewardCategoryCell.getStringCellValue().trim();
+	            }
+
+	            Optional<RewardsCategory> rewardCategory = Optional.ofNullable(rewardsCategoryRepository.findByCategoryNameIgnoreCase(rewardCategoryName));
+	            if (!rewardCategory.isPresent()) {
+	                errorMessages.add("Row " + rowNum + ": Invalid Reward Category '" + rewardCategoryName + "'. Allowed values are 'Monthly', 'HalfYearly', 'Annual'.");
+	                continue;
+	            }
+
+	            String rewardTypeName = null;
+	            if (columnIndexMap.containsKey("Reward Type Name")) {
+	                Cell rewardTypeCell = currentRow.getCell(columnIndexMap.get("Reward Type Name"));
+	                if (rewardTypeCell == null || rewardTypeCell.getStringCellValue().trim().isEmpty()) {
+	                    errorMessages.add("Row " + rowNum + ": Reward Type Name is missing.");
+	                    continue;
+	                }
+	                rewardTypeName = rewardTypeCell.getStringCellValue().trim();
+	            }
+
+	            String monthYear = null;
+	            if (columnIndexMap.containsKey("Of Month-Year")) {
+	                Cell monthYearCell = currentRow.getCell(columnIndexMap.get("Of Month-Year"));
+	                if (monthYearCell == null || monthYearCell.getStringCellValue().trim().isEmpty()) {
+	                    errorMessages.add("Row " + rowNum + ": Of Month-Year is missing.");
+	                    continue;
+	                }
+	                monthYear = monthYearCell.getStringCellValue().trim();
+	            }
+
+	            String formattedMonthYear = formatMonthYear(monthYear, rowNum, errorMessages);
+	            if (formattedMonthYear == null) continue;
+
+	            String remarks = null;
+	            if (columnIndexMap.containsKey("Remarks")) {
+	                Cell remarksCell = currentRow.getCell(columnIndexMap.get("Remarks"));
+	                if (remarksCell != null && !remarksCell.getStringCellValue().trim().isEmpty()) {
+	                    remarks = remarksCell.getStringCellValue().trim();
+	                }
+	            }
+
+	            EmployeeRewards reward = new EmployeeRewards();
+	            reward.setRewardedTo(employee.getEmpId());
+	            reward.setManagerId(employee.getManagerId());
+	            reward.setRewardCategoryId(rewardCategory.get().getRewardCategoryId());
+	            reward.setRewardTypeName(rewardTypeName);
+	            reward.setOfmonthyear(formattedMonthYear);
+	            reward.setRemark(remarks);
+	            CommonProperties commonProperties = new CommonProperties();
+	            commonProperties.setCreatedBy(employeeRewardsDTO.getCreatedBy() != null ? employeeRewardsDTO.getCreatedBy() : null);
+	            reward.setCommonProperty(commonProperties);	            
+	            reward.setIsActive(0);
+	            reward.setRewardType(0);	            
+	            employeeRewardsRepository.save(reward);
+	        }
+
+	        if (!errorMessages.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse(String.join(", ", errorMessages));
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse("File uploaded and processed successfully.");
+	        }
 	    } catch (IOException e) {
-	        e.printStackTrace();
 	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	        response.setServiceResponse("Something went wrong");
+	        response.setServiceResponse("Something went wrong.");
 	    }
 	    return response;
+	}
+	
+	private String formatMonthYear(String input, int rowNum, List<String> errorMessages) {
+	    try {
+	        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH);
+	        DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM");
+	        return YearMonth.parse(input, inputFormatter).format(outputFormatter);
+	    } catch (Exception e) {
+	        errorMessages.add("Row " + rowNum + ": Invalid date format. Expected format is e.g 'January 2025'.");
+	        return null;
+	    }
 	}
 
 }
