@@ -1460,7 +1460,7 @@
                                 <td *ngIf="isTable && (!userMapping.employee_360 || !employee.createdByName)">{{employee.createdByName}}</td>
                                 <td *ngIf="isTable">{{employee.updatedOn}}</td>
                                 <td id="clickablefor360" [navigateToEmployee360]="employee.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360" *ngIf="isTable && userMapping.employee_360 && employee.updatedByName">{{employee.updatedByName}}</td>
-                                <td *ngIf="isTable && !userMapping.employee_360 || !employee.updatedByName">{{employee.updatedByName}}</td>
+                                <td *ngIf="isTable && (!userMapping.employee_360 || !employee.updatedByName)">{{employee.updatedByName}}</td>
                                 <td *ngIf="isTable">{{employee.referedName}}</td>
                                 <td *ngIf="isDraftTable">{{employee.updateApplicationStatus}}</td>
                                 <td

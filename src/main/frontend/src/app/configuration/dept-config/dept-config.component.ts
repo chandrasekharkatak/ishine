@@ -386,12 +386,16 @@ export class DeptConfigComponent implements OnInit {
   }
   checkDepartmentName(deptName:any, template: TemplateRef<any>){
 
-    const regex = /^(?:[a-zA-Z]{2,8}|[a-zA-Z]{1,7}[0-9]{1,7})$/;
+    // const regex = /^(?:[a-zA-Z]{2,8}|[a-zA-Z]{1,7}[0-9]{1,7})$/;
+    const regex = /^[a-zA-Z]+(?:\s[a-zA-Z]+)*\d*$/;
     let check = regex.test(deptName);
 
     if (check) {
       console.log('');
-    } else {
+    } else if(this.deptObj.name == null) {
+      this.openAlertMod(template, "Department name is empty!");
+      this.deptObj.name = '';
+    } else{
       this.openAlertMod(template, "Invalid department name");
       this.deptObj.name = '';
     }

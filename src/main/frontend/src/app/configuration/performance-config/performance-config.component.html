@@ -137,11 +137,11 @@
                                 <th class="info-label">{{17*(page-1)+i+1}}</th>
                                 <td>{{quarter.financialYear}}</td>
                                 <td>{{quarter.quarterCycle}}</td>
-                                <td *ngIf="userMapping.employee360_view_performance_config" id="clickablefor360" [navigateToEmployee360]="quarter.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{quarter.createdByName}}</td>
-                                <td *ngIf="!userMapping.employee360_view_performance_config">{{quarter.createdByName}}</td>
+                                <td *ngIf="userMapping.employee360_view_performance_config && quarter.createdByName" id="clickablefor360" [navigateToEmployee360]="quarter.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{quarter.createdByName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_performance_config || !quarter.createdByName">{{quarter.createdByName}}</td>
                                 <td>{{quarter.createdOn}}</td>
-                                <td *ngIf="userMapping.employee360_view_performance_config" id="clickablefor360" [navigateToEmployee360]="quarter.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{quarter.updatedByName}}</td>
-                                <td *ngIf="!userMapping.employee360_view_performance_config">{{quarter.updatedByName}}</td>
+                                <td *ngIf="userMapping.employee360_view_performance_config && quarter.updatedByName" id="clickablefor360" [navigateToEmployee360]="quarter.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{quarter.updatedByName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_performance_config || !quarter.updatedByName">{{quarter.updatedByName}}</td>
                                 <td>{{quarter.updatedOn}}</td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-primary" type="submit"><em
@@ -254,16 +254,16 @@
                             <tr
                                 *ngFor="let review of reviewTypelist| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                                 <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
-                                <td>{{review.reviewLabel}} {{userMapping.employee360_view_performance_config}}</td>
+                                <td>{{review.reviewLabel}}</td>
                                 <td>{{review.reviewFieldType}}</td>
                                 <td>{{review.condition}}</td>
                                 <td>{{review.quarterCycle}}</td>
                                 <td>{{review.departmentName}}</td>
-                                <td *ngIf="userMapping.employee360_view_performance_config"id="clickablefor360" [navigateToEmployee360]="review.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{review.employeeName}}</td>
-                                <td *ngIf="!userMapping.employee360_view_performance_config">{{review.employeeName}}</td>
+                                <td *ngIf="userMapping.employee360_view_performance_config && review.employeeName"id="clickablefor360" [navigateToEmployee360]="review.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{review.employeeName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_performance_config || !review.employeeName">{{review.employeeName}}</td>
                                 <td>{{review.createdOn | date: 'yyyy-MM-dd hh:mm:ss'}}</td>
-                                <td *ngIf="!userMapping.employee360_view_performance_config">{{ review.updatedByName ?? 'NA' }}</td>
-                                <td *ngIf="userMapping.employee360_view_performance_config">
+                                <td *ngIf="!userMapping.employee360_view_performance_config || !review.updatedByName">{{ review.updatedByName ?? 'NA' }}</td>
+                                <td *ngIf="userMapping.employee360_view_performance_config && review.updatedByName">
                                     <span *ngIf="review.updatedByName; else showNADisplay" 
                                           id="clickablefor360" 
                                           [navigateToEmployee360]="review.emp360UpdatedBy" 

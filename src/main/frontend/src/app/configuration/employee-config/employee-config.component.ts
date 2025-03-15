@@ -2332,12 +2332,12 @@ export class EmployeeConfigComponent implements OnInit {
           // x.employeementId = (x.isConsultant === 'true' ? 'A-CS-' : 'A-') + x.employeementId;
           x.dateOfJoining = (x.dateOfJoining) ? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
           x.dateOfRelieving = (x.dateOfRelieving) ? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-          if (employeeObj.isConsultant == 'true')
-            employeeObj.employeeType = 'Consultant';
-          else if (employeeObj.isApprenticeship == 'true')
-            employeeObj.employeeType = 'Apprentice';
+          if (x.isConsultant == 'true')
+            x.employeeType = 'Consultant';
+          else if (x.isApprenticeship == 'true')
+            x.employeeType = 'Apprentice';
           else
-            employeeObj.employeeType = 'Regular';
+            x.employeeType = 'Regular';
         }
         this.allEmployeeList.forEach(draftemp => {
           let matchingEmployee = this.employeesFor360.find(emp =>emp.employeementId === draftemp.employeementId);

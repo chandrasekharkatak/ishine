@@ -201,9 +201,9 @@ setSelectedReward(reward: Rewards) {
     this.selectedReward = reward;
    this.selectedRewardType[reward.rewardName] = '';
     const rewardId = reward.id;
-   // this.fetchEmployees(rewardId);
+   this.fetchEmployees(rewardId);
     this.selectedIDdprimiryKey = rewardId;
-    this.getActiveTeams(reward);
+    // this.getActiveTeams(reward);
   }
 
   fetchEmployees(rewardId: number) {

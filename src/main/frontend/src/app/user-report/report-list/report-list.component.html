@@ -318,8 +318,8 @@
                 <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{employee.name}}</td>
                 <td>{{employee.departmentName}}</td>
                 <td>{{employee.jobRoleName}}</td>
-                <td class="text-capitalize" *ngIf="userMapping.reports_employee_360"  id="clickablefor360" [navigateToEmployee360]="employee.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{employee.managerName}}</td>
-                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{employee.managerName}}</td>
+                <td class="text-capitalize" *ngIf="userMapping.reports_employee_360 && employee.managerName"  id="clickablefor360" [navigateToEmployee360]="employee.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{employee.managerName}}</td>
+                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360 || !employee.managerName">{{employee.managerName}}</td>
                 <td>{{employee.mobileNo}}</td>
                 <td>{{employee.email}}</td>
                 <td>{{employee.employmentstatus}}</td>
@@ -377,15 +377,9 @@
                 <td>{{employee.yearOfPassing}}</td>
                 <td>{{employee.updatedOn}}</td>
                 <td *ngIf="employee.updatedByName && userMapping.reports_employee_360"id="clickablefor360" [navigateToEmployee360]="employee.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{employee.updatedByName}}</td>
-                <td *ngIf="!userMapping.reports_employee_360">{{employee.updatedByName}}</td>
-                <td *ngIf="!employee.updatedByName">
-                  {{employee.updatedByName}}
-              </td>
+                <td *ngIf="!userMapping.reports_employee_360 || !employee.updatedByName">{{employee.updatedByName}}</td>
                 <td *ngIf="employee.createdByName && userMapping.reports_employee_360"id="clickablefor360" [navigateToEmployee360]="employee.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{employee.createdByName}}</td>
-                <td *ngIf="!userMapping.reports_employee_360">{{employee.createdByName}}</td>
-                <td *ngIf="!employee.createdByName">
-                  {{employee.createdByName}}
-              </td>
+                <td *ngIf="!userMapping.reports_employee_360 || !employee.createdByName">{{employee.createdByName}}</td>
                 <td>{{employee.createdOn}}</td>
                 <td>
                   <div class="progress profileCompleted">
@@ -721,8 +715,8 @@
                 <td>{{timesheet.dayType}}</td>
                 <td style="min-width: 250px;">{{timesheet.description}}</td>
                 <td>{{timesheet.status}}</td>
-                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{timesheet.managerName}}</td>
-                <td class="text-capitalize" *ngIf="userMapping.reports_employee_360" id="clickablefor360" [navigateToEmployee360]="timesheet.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{timesheet.managerName}}</td>
+                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360 || !timesheet.managerName">{{timesheet.managerName}}</td>
+                <td class="text-capitalize" *ngIf="userMapping.reports_employee_360 && timesheet.managerName" id="clickablefor360" [navigateToEmployee360]="timesheet.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{timesheet.managerName}}</td>
                 <td>{{timesheet.departmentName}}</td>
                 <td>{{timesheet.createdOn}}</td>
                 <td>{{timesheet.updatedOn}}</td>
