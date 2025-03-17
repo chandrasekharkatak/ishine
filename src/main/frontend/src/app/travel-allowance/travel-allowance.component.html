@@ -1,0 +1,144 @@
+<div class="row mb-3">
+    <!-- <div class="col-md-12 px-0">
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_timesheet"
+            [ngClass]="{'active' : isTimesheetForm && isCreation}" (click)="showCreateTimesheetForm()">Create New
+            Timesheet</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+            *ngIf="userMapping.view_my_timesheets || userMapping.update_timesheet"
+            [ngClass]="{'active' : isTimesheetTable}" (click)="showViewMyTimesheets()">View My Timesheets</button>
+    </div> -->
+    <div class="col-md-12 px-0">
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" >Create New Timesheet</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" >View My Timesheets</button>
+    </div>
+</div>
+
+<!-- start :: Create & Update Team -->
+<div class="row" >
+    <div class="card col-md-12 px-0">
+        <div class="card-header text-center text-uppercase">
+            <strong >Create New Request</strong>
+            <!-- <strong *ngIf="isUpdation">Update Timesheet</strong> -->
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="d-block info-label"><span class="text-danger">*</span>Timesheet Application
+                                For</label>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="leaveFor" id="forSelf" value="self">
+                                <label class="form-check-label" for="forSelf">Self</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="leaveFor" id="forTeamMember"
+                                    value="team" >
+                                <label class="form-check-label" for="forTeamMember">Team member</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- <div *ngIf="this.timesheetObj.timesheetAppliedFor == 'team'" class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Team Member</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.empId"
+                                [disabled]="isUpdation" (change)="getTimesheetMetadata($event.target)">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option *ngFor="let teamMember of teamMemberList" value="{{teamMember.empId}}">
+                                    {{teamMember.name}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div> -->
+            <div class="row">
+                <div class="col-md-3 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Day Type</label>
+                            <select class="form-control" id="dayTypeCursor" aria-hidden="true" [(ngModel)]="timesheetObj.dayType" (change)="onTimesheetDescriptionChange();resetTimeonDayTypeChange()" >
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value="Working">Working</option>
+                                <option value="Public Holiday">Public Holiday</option>
+                                <option value="Week Off">Week Off</option>
+                                <!-- <option value="Leave">Leave</option> -->
+                                <option value="Non-working">Working on non-working day</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off' || timesheetObj.dayType == 'Leave'" class="row">
+                <div class="col-md-3 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Date</label>
+                            <!-- <input id="timesheetDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" [disabled]="isUpdation"> -->
+                            <div class="d-flex">
+                                <input class="form-control" #input (focus)="timesheetDate.open()" matInput
+                                    id="timesheetDate" [matDatepicker]="timesheetDate"
+                                    [matDatepickerFilter]="timesheetDateFilter" placeholder="Choose a timesheet date"
+                                    [(ngModel)]="timesheetObj.date" (keydown)="disableMannualDateInput()"
+                                    autocomplete="off">
+                                <mat-datepicker-toggle matSuffix [for]="timesheetDate" style="margin-left: -44px; margin-top: 0px;"></mat-datepicker-toggle>
+                            </div>
+                            <mat-datepicker #timesheetDate (closed)="input.blur()"></mat-datepicker>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off' || timesheetObj.dayType == 'Leave'" class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label for="leaveDesc"><span class="text-danger">*</span>Description</label>
+                            <textarea class="form-control" id="dayTypeDesc" rows="3"
+                                [(ngModel)]="timesheetObj.description"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- IN/OUT Time-->
+            <div *ngIf="timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'" class="row">
+                <div class="col-md-3 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group input-wrapper">
+                            <label class="info-label"><span class="text-danger">*</span>In Time</label>
+                            <input id="officeInTime" class="form-control static-input" autocomplete="none" [(ngModel)]="timesheetObj.officeInTime" [owlDateTimeTrigger]="officeInTimePicker" [owlDateTime]="officeInTimePicker" [owlDateTimeFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetDateFilter"
+                            (dateTimeChange)="resetTotalWorkingOfficeHours(alertTemplate)" (keydown)="disableMannualDateInput()" placeholder="Select In Time" autocomplete="off">
+                            <owl-date-time class="picker" [hour12Timer]="true" #officeInTimePicker></owl-date-time> 
+
+                            <!-- <p><span style="color:#193d8a; font-weight: bolder;">In Time:</span> {{ timesheetObj.officeInTime | date:'hh:mm a' }}</p> -->
+                            <p *ngIf="timesheetObj.officeInTime">
+                                <span style="color:#193d8a; font-weight: bolder;">In Time:</span> 
+                                {{ timesheetObj.officeInTime | date:'hh:mm a' }}
+                            </p>
+                            
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group input-wrapper">
+                            <label class="info-label"><span class="text-danger">*</span>Out Time</label>
+                            <input id="officeOutTime" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.officeOutTime" [owlDateTimeTrigger]="officeOutTimePicker" [owlDateTime]="officeOutTimePicker"
+                            (dateTimeChange)="setTotalWorkingOfficeHours()" (keydown)="disableMannualDateInput()" placeholder="Select Out Time" autocomplete="off" [disabled]="!timesheetObj.officeInTime" [owlDateTimeFilter]="outTimeFilter" [max]="this.maxOutTimeDate">
+                            <owl-date-time class="picker" [startAt]="timesheetObj.officeInTime" [hour12Timer]="true" #officeOutTimePicker></owl-date-time>
+                            
+                            <p *ngIf="timesheetObj.officeOutTime"><span style="color:#193d8a; font-weight: bolder;">Out Time:</span> {{ timesheetObj.officeOutTime | date:'hh:mm a' }}</p>
+
+                        </div>
+                    </div>
+                </div>
+               
+            <!-- end :: Add & Update Activities -->
+         
+        </div>
+    </div>
+</div>
+<!-- end :: create & update Team -->
+
