@@ -1,5 +1,5 @@
 import { LocationStrategy } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild ,ElementRef} from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -31,6 +31,11 @@ export class RewardsAndRecognisationComponent implements OnInit {
   items = 10;
 
   currentUser: User;
+
+  @ViewChild('fileInput') fileInput!: ElementRef; 
+  file: File | null = null;
+
+
   userMapping: any = {};
   rewardsCategories: Rewards[] = [];
   rewards: Rewards[] = [];
@@ -680,10 +685,14 @@ export class RewardsAndRecognisationComponent implements OnInit {
     return JSON.stringify(uploadedHeaders) === JSON.stringify(this.expectedHeaders);
   }
 
+  clearFileInput() {
+    if (this.fileInput) {
+      this.fileInput.nativeElement.value = ''; 
+    }
+  }
 
 
-
-  file: any;
+  
   onRewardFileSelect(event: any, template: TemplateRef<any>) {
     
     const uploadedFiles = event.target.files;
@@ -705,6 +714,8 @@ export class RewardsAndRecognisationComponent implements OnInit {
           } else {
             this.openAlertMod(template, response.serviceResponse);
           }
+
+          this.clearFileInput();
         });
     }
   

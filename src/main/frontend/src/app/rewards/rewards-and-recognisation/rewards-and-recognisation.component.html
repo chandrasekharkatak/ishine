@@ -325,7 +325,7 @@
                                 </label><br>
                             <small class="text-danger">Kindly ensure to fill appropriate data according to
                                 template</small>
-                            <input type="file" class="form-control p-1" (change)="onRewardFileSelect($event, alert_message)" >
+                            <input type="file" class="form-control p-1" #fileInput (change)="onRewardFileSelect($event, alert_message)" >
                         </div>
                     </div>
                 </div>
