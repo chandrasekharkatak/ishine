@@ -140,6 +140,96 @@
           <option value="kra-kpi">KRA/KPI Template</option>
           <option value="questionnaire">Questionnaire Template</option>
         </select>
+<<<<<<< Updated upstream
+=======
+        </div>
+  
+        <form [formGroup]="templateForm" (ngSubmit)="createTemplate()">
+          
+  
+          <div *ngIf="selectedTemplateType === 'goals'" class="form-group w-25">
+            <div class="form-group w-25">
+              <label>Name</label>
+              <input type="text" class="form-control" formControlName="name" required>
+            </div>
+            <label>Description</label>
+            <input type="text" class="form-control" formControlName="description">
+          </div>
+  
+          <div *ngIf="selectedTemplateType === 'kra-kpi'" class="form-group w-25">
+            <div class="form-group w-25">
+              <label>Name</label>
+              <input type="text" class="form-control" formControlName="name" required>
+            </div>
+            <label>Metrics</label>
+            <input type="text" class="form-control" formControlName="metrics">
+          </div>
+  
+          <div *ngIf="selectedTemplateType === 'questionnaire'" class="card-body mx-0">
+            
+            
+              <form [formGroup]="questionnaireForm" (ngSubmit)="onSubmit()">
+                
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <label for="title"><span class="text-danger">*</span>Questionnaire Title</label>
+                    <input
+                      id="title"
+                      type="text"
+                      class="form-control"
+                      formControlName="title"
+                      placeholder="Enter questionnaire title"
+                      required
+                    />
+                    <div *ngIf="questionnaireForm.get('title')?.invalid && questionnaireForm.get('title')?.touched" class="text-danger">
+                      Title is required.
+                    </div>
+                  </div>
+                </div>
+            
+                
+                <div formArrayName="questions">
+                  <div *ngFor="let question of questions.controls; let i = index" [formGroupName]="i" class="form-group row mb-3">
+                    
+                    <div class="col-md-6">
+                      <label for="question-{{ i }}"><span class="text-danger">*</span>Question {{ i + 1 }}</label>
+                      <input
+                        id="question-{{ i }}"
+                        type="text"
+                        class="form-control"
+                        formControlName="question"
+                        placeholder="Enter question {{ i + 1 }}"
+                        required
+                      />
+                      <div *ngIf="question.get('question')?.invalid && question.get('question')?.touched" class="text-danger">
+                        Question is required.
+                      </div>
+                    </div>
+            
+                    
+                    <div class="col-md-2 d-flex align-items-center mt-4">
+                      <button type="button" class="btn btn-outline-primary btn-sm me-2 m-1" (click)="addQuestion()" [disabled]="!questions.at(questions.length - 1)?.valid || questions.length >= 10">
+                        <i class="fa fa-plus" aria-hidden="true"></i>
+                      </button>
+                      <button type="button" class="btn btn-outline-primary btn-sm" (click)="removeQuestion(i)" *ngIf="questions.length > 1">
+                        <i class="fa fa-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+            
+               
+                <button type="submit" class="btn btn-success mt-3" [disabled]="!questionnaireForm.valid">Submit</button>
+              </form>
+           
+ 
+
+
+          </div>
+  
+          <button type="submit" class="btn btn-primary mt-3">Create Template</button>
+        </form>
+>>>>>>> Stashed changes
       </div>
 
       <form [formGroup]="templateForm" (ngSubmit)="createOrUpdateTemplate()">
@@ -195,4 +285,15 @@
       </form>
     </div>
   </div>
+<<<<<<< Updated upstream
 </div>
+=======
+  
+
+  <ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+>>>>>>> Stashed changes

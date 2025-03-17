@@ -1,8 +1,18 @@
+<<<<<<< Updated upstream
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+=======
+import { Component, OnInit, TemplateRef } from '@angular/core';
+import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+>>>>>>> Stashed changes
 import { DepartmentService } from 'src/app/services/department.service';
 import { UserPerformanceService } from 'src/app/services/user-performance.service';
 import { first } from 'rxjs/operators';
+import { question } from 'src/app/models/question';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { Domain } from 'src/app/models/domain';
+import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
   selector: 'app-templates',
@@ -30,12 +40,19 @@ throw new Error('Method not implemented.');
 }
   activeTab: string = 'goals';
   selectedTemplateType: string = 'goals';
+<<<<<<< Updated upstream
   
   selectedDept: any = null;
+=======
+
+  questionnaireForm!: FormGroup;
+  selectedDept:any;
+>>>>>>> Stashed changes
   allDeptList: any[] = [];
   goalTemplates: any[] = [];
   kraKpiTemplates: any[] = [];
   questionnaireTemplates: any[] = [];
+<<<<<<< Updated upstream
   
   templateForm: FormGroup;
   isEditing: boolean = false;
@@ -45,6 +62,25 @@ throw new Error('Method not implemented.');
     private fb: FormBuilder, 
     private departmentService: DepartmentService,
     private userPerformanceService: UserPerformanceService
+=======
+  allQuesList: any[] = [];
+  // allSpecializationList:any[] = [];
+  allSpecializationList: Domain[] = [new Domain()];
+
+  templateForm: FormGroup;
+  alertMessage: string;
+  modalRef: BsModalRef = new BsModalRef();
+
+  quesObj: question = new question();
+  domainObj: Domain = new Domain();
+
+  constructor(
+    private fb: FormBuilder, 
+    private http: HttpClient,
+    public validationService: ValidationService,
+    private departmentService: DepartmentService,
+    private modalService: BsModalService,
+>>>>>>> Stashed changes
   ) {
     this.templateForm = this.fb.group({
       title: ['', Validators.required],
@@ -59,6 +95,48 @@ throw new Error('Method not implemented.');
   ngOnInit(): void {
     this.fetchGoalTemplates();
     this.getAllDepartmentList();
+
+    this.questionnaireForm = this.fb.group({
+      title: ['', Validators.required],
+      questions: this.fb.array([this.createQuestionField()])
+    });
+    
+  }
+
+  createQuestionField(): FormGroup {
+    return this.fb.group({
+      question: ['', Validators.required]
+    });
+  }
+
+  get questions(): FormArray {
+    return this.questionnaireForm.get('questions') as FormArray;
+  }
+
+  addQuestion(): void {
+    if (this.questions.length < 10 && this.questions.at(this.questions.length - 1).valid) {
+      this.questions.push(this.createQuestionField());
+    }
+  }
+
+  removeQuestion(index: number): void {
+    if (this.questions.length > 1) {
+      this.questions.removeAt(index);
+    }
+  }
+
+  onSubmit(): void {
+    if (this.questionnaireForm.valid) {
+      const formData = this.questionnaireForm.value;
+      this.http.post('YOUR_BACKEND_URL', formData).subscribe(
+        response => {
+          console.log('Form submitted successfully:', response);
+        },
+        error => {
+          console.error('Error submitting form:', error);
+        }
+      );
+    }
   }
 
   setActiveTab(tab: string) {
@@ -207,6 +285,7 @@ throw new Error('Method not implemented.');
       });
       return;
     }
+<<<<<<< Updated upstream
     
     const formValue = { ...this.templateForm.value };
     
@@ -274,3 +353,49 @@ throw new Error('Method not implemented.');
       });
   }
 }
+=======
+
+    addInputSpecializationField(template?: TemplateRef<any>, currentSpecializationName?: any) {
+  
+      // Check validation (Optional)
+      if(this.validationService && !this.validationService.validateTeamActivity(currentSpecializationName)) {
+        let selectedSpec = this.allSpecializationList.find(spec => spec.specializationName === currentSpecializationName);
+        if(selectedSpec) selectedSpec.specializationName = '';
+        
+        this.alertMessage = "Please Enter Valid Specialization Name !!";
+        this.openAlertMod(template, this.alertMessage);
+        return;
+      }
+    
+      // Add new empty specialization field
+      const newDomainObj = new Domain();
+      
+      // Explicitly trigger change detection by assigning a new array reference
+      this.allSpecializationList = [...this.allSpecializationList, newDomainObj];
+    }
+    
+  
+    removeInputSpecializationField(spec:any){
+      this.allSpecializationList.forEach((value, index) => {
+        if (value == spec) {
+          this.allSpecializationList.splice(index, 1);
+        }
+      });
+      //console.log(this.allSpecializationList, " :this.allSpecializationList");
+    }
+ 
+
+  
+
+  openAlertMod(template: TemplateRef<any>, message: any) {
+      this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+      this.alertMessage = message;
+    }
+  
+    cancelRequest() {
+      this.modalRef.hide();
+    }
+
+    
+}
+>>>>>>> Stashed changes

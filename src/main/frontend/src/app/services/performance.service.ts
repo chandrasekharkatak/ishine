@@ -59,7 +59,11 @@ export class PerformanceService {
 
   }
 
-
+  getPerformanceStats(empId: string, quarter: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}api/performance-stats`, {
+      params: { empId, quarter },
+    });
+  }
 
 
 

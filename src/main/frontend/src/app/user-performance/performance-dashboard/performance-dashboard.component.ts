@@ -6,7 +6,8 @@ import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { Employee } from 'src/app/models/employee';
 import { EmployeeService } from 'src/app/services/employee.service';
-
+import { PerformanceService } from 'src/app/services/performance.service';
+import { GoalService } from 'src/app/services/goal.service';
 
 interface Goal {
   id: number;
@@ -38,6 +39,13 @@ export class PerformanceDashboardComponent implements OnInit {
 
   kraKpiReviewForm: FormGroup;
   questionnaireReviewForm: FormGroup;
+
+  stats: {
+    goalsCompleted: number;
+    goalsRemaining: number;
+    kraKpiScore: string;
+    questionnaireScore: string;
+  };
 
   goals: Goal[] = [{
     id: 1,
@@ -75,6 +83,8 @@ export class PerformanceDashboardComponent implements OnInit {
     private modalService: BsModalService,
     private fb: FormBuilder,
     private authenticationService : AuthenticationService,
+    private performanceService:PerformanceService,
+    private goalService:GoalService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -82,6 +92,7 @@ export class PerformanceDashboardComponent implements OnInit {
   ngOnInit(): void {
   //  this.fetchGoals();
   this.onGetEmployeeInfo();
+  this.loadPerformanceStats();
   }
 
   fetchGoals(): void {
@@ -89,6 +100,24 @@ export class PerformanceDashboardComponent implements OnInit {
     //   this.goals = data;
     // });
   }
+
+  loadPerformanceStats(): void {
+    const empId = this.currentUser?.empId;
+    const quarter = this.selectedQuarter;
+
+    if (!empId || !quarter) return;
+
+    this.performanceService.getPerformanceStats(empId, quarter).subscribe({
+      next: (data) => {
+        this.stats = data;
+      },
+      error: (err) => {
+        console.error('Error fetching performance stats:', err);
+      },
+    });
+  }
+
+  
 
   async onGetEmployeeInfo(){
     this.currentEmployeeInfo = new Employee();
@@ -166,15 +195,33 @@ export class PerformanceDashboardComponent implements OnInit {
   onQuarterChange(){
     
   }
-  submitRemarks(){}
+  
 
-  getStatusClass(status: string) {
-    switch (status) {
-      case 'Completed': return 'badge bg-success';
-      case 'Pending': return 'badge bg-warning text-dark';
-      case 'In Progress': return 'badge bg-primary';
-      case 'Overdue': return 'badge bg-danger';
-      default: return 'badge bg-secondary';
-    }
+  addCheckpoint() {
+    this.selectedGoal.checkpoints.push('');
   }
+  
+  removeCheckpoint(index: number) {
+    this.selectedGoal.checkpoints.splice(index, 1);
+  }
+  
+  saveUpdates() {
+    const payload = {
+      statusPercentage: this.selectedGoal.statusPercentage,
+      checkpoints: this.selectedGoal.checkpoints,
+      employeeRemark: this.selectedGoal.employeeRemark,
+      managerRemark: this.selectedGoal.managerRemark,
+    };
+  
+    this.goalService.updateGoal(this.selectedGoal.id, payload).subscribe(
+      (response) => {
+        alert('Updates saved successfully!');
+        this.modalRef.hide();
+      },
+      (error) => {
+        console.error('Error saving updates:', error);
+      }
+    );
+  }
+  
 }

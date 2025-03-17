@@ -28,8 +28,8 @@
         </div>
       </div>
       <div class="col-md-3 text-center">
-        <div class="stat-box bg-light p-2 rounded">Goals Completed: <strong>8</strong></div>
-        <div class="stat-box bg-light p-2 rounded">Goals Remaining: <strong>4</strong></div>
+        <div class="stat-box bg-light p-2 rounded">Goals Completed: <strong> </strong></div>
+        <div class="stat-box bg-light p-2 rounded">Goals Remaining: <strong> </strong></div>
       </div>
       <div class="col-md-3 text-center">
         <div class="stat-box bg-light p-2 rounded">KRA/KPI score: <strong>9/10</strong></div>
@@ -133,12 +133,15 @@
 <!-- View Goal Modal -->
 <ng-template #viewGoalTemplate>
   <div class="modal-content rounded-lg shadow-lg">
-    <div class="modal-header  ">
-      <h5 class="modal-title fw-bold align-items-center">{{ selectedGoal?.name }}</h5>
-      <button type="button" class="close" aria-label="Close" (click)="modalRef.hide()"><span aria-hidden="true">&times;</span></button>
+    <!-- Modal Header -->
+    <div class="modal-header bg-primary text-white">
+      <h5 class="modal-title fw-bold">{{ selectedGoal?.name }}</h5>
+      <button type="button" class="btn-close text-white" aria-label="Close" (click)="modalRef.hide()"></button>
     </div>
 
+    <!-- Modal Body -->
     <div class="modal-body p-4">
+      <!-- Goal Details -->
       <div class="row mb-3">
         <div class="col-md-6">
           <p><strong>Goal Description:</strong></p>
@@ -146,10 +149,11 @@
         </div>
         <div class="col-md-6">
           <p><strong>Status:</strong></p>
-          <span class="badge" [ngClass]="getStatusClass(selectedGoal?.status)">{{ selectedGoal?.status }}</span>
+          <span class="badge" >{{ selectedGoal?.status }}</span>
         </div>
       </div>
 
+      <!-- Dates -->
       <div class="row mb-3">
         <div class="col-md-6">
           <p><strong>Assigned Date:</strong> {{ selectedGoal?.assignedDate | date:'mediumDate' }}</p>
@@ -159,6 +163,7 @@
         </div>
       </div>
 
+      <!-- Employee and Manager Details -->
       <div class="row mb-3">
         <div class="col-md-6">
           <p><strong>Employee:</strong> {{ selectedGoal?.employeeName }}</p>
@@ -168,25 +173,50 @@
         </div>
       </div>
 
+      <!-- Status Update -->
       <div class="mb-3">
-        <h6 class="fw-bold">Checkpoints:</h6>
-        <ul class="list-group">
-          <li *ngFor="let checkpoint of selectedGoal?.checkpoints" class="list-group-item">
-            {{ checkpoint }}
-          </li>
-        </ul>
+        <label for="goalStatus" class="form-label"><strong>Update Status (% Completed):</strong></label>
+        <input type="number" id="goalStatus" [(ngModel)]="selectedGoal.statusPercentage" min="0" max="100" step="1" 
+               class="form-control" placeholder="Enter percentage (0-100)" />
       </div>
 
+      <!-- Checkpoints -->
+      <div class="mb-3">
+        <h6 class="fw-bold">Checkpoints:</h6>
+        <ul class="list-group mb-2">
+          <li *ngFor="let checkpoint of selectedGoal?.checkpoints; let i = index" 
+              class="list-group-item d-flex justify-content-between align-items-center">
+            <input type="text" [(ngModel)]="selectedGoal.checkpoints[i]" 
+                   class="form-control form-control-sm border-0 bg-light" />
+            <button type="button" class="btn btn-danger btn-sm ms-2" (click)="removeCheckpoint(i)">Remove</button>
+          </li>
+        </ul>
+        <button type="button" class="btn btn-outline-primary btn-sm" (click)="addCheckpoint()">Add Checkpoint</button>
+      </div>
+
+      <!-- Remarks -->
       <div class="mb-3">
         <h6 class="fw-bold">Remarks:</h6>
-        <textarea class="form-control" [(ngModel)]="selectedGoal.employeeRemark" rows="3" placeholder="Enter remarks..."></textarea>
+        <!-- Employee Remark -->
+        <label for="employeeRemark" class="form-label"><strong>Your Remark:</strong></label>
+        <textarea id="employeeRemark" [(ngModel)]="selectedGoal.employeeRemark.text"
+                  rows="3" placeholder="{{ 'Last updated by: ' + selectedGoal.employeeRemark.updatedBy }}"
+                  class="form-control"></textarea>
+
+        <!-- Manager Remark -->
+        <label for="managerRemark" class="form-label mt-3"><strong>Manager's Remark:</strong></label>
+        <textarea id="managerRemark" [(ngModel)]="selectedGoal.managerRemark.text"
+                  rows="3" placeholder="{{ 'Last updated by: ' + selectedGoal.managerRemark.updatedBy }}"
+                  class="form-control"></textarea>
       </div>
     </div>
 
+    <!-- Modal Footer -->
     <div class="modal-footer d-flex justify-content-between">
       <button type="button" class="btn btn-secondary" (click)="modalRef?.hide()">Close</button>
-      <button type="button" class="btn btn-primary" (click)="submitRemarks()">Save Remarks</button>
+      <button type="button" class="btn btn-primary" (click)="saveUpdates()">Save Changes</button>
     </div>
   </div>
 </ng-template>
+
 
