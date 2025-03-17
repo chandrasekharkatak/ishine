@@ -938,7 +938,7 @@ public class RewardsService {
 			    			dto.setCreatedOn(object[8] != null ? ((Timestamp) object[8]).toLocalDateTime() : null);
 			    			dto.setUpdatedBy(object[9] != null ? Long.parseLong(object[9].toString()) : null);
 			    			dto.setUpdatedByName(object[9] != null ? getEmployeeNameByEmpId(Long.parseLong(object[9].toString())) : null);
-			    			dto.setUpdatedOn(object[10] != null ? ((Timestamp) object[8]).toLocalDateTime() : null);
+			    			dto.setUpdatedOn(object[10] != null ? ((Timestamp) object[10]).toLocalDateTime() : null);
 			    			dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);		
 			    			dto.setRewardId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
 			    			dto.setRewardCategoryId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
