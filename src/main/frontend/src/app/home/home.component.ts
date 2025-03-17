@@ -387,7 +387,7 @@ async ngOnInit(): Promise<void> {
           leave.emp360AppLev1 = matchingEmployeeAppLev1 ? matchingEmployeeAppLev1 : {};
           leave.emp360AppLev2 = matchingEmployeeAppLev2 ? matchingEmployeeAppLev2 : {};
           leave.emp360AppLev3 = matchingEmployeeAppLev3 ? matchingEmployeeAppLev3 : {};
-          leave.createdBy = matchingEmployeeAppLev4 ? matchingEmployeeAppLev4 : {};
+          leave.createdBy360 = matchingEmployeeAppLev4 ? matchingEmployeeAppLev4 : {};
 
         });
         // console.log("leaveApplicationList : ", this.leaveApplicationList);

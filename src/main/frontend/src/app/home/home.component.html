@@ -830,7 +830,7 @@
                                     (click)="onUpdateLeave(leave_success_method,leaveApplication)"></em></td>
                             <td>{{leaveApplication.noOfDays}} day(s)</td>
                             <td>{{leaveApplication.status}}</td>
-                            <td id="clickablefor360" *ngIf="userMapping.home_employee_360" (click)="cancelRequest()"[navigateToEmployee360]="leaveApplication.createdBy" style="cursor: pointer;" title="Click to view Employee 360">{{leaveApplication.createdByName}}</td>
+                            <td id="clickablefor360" *ngIf="userMapping.home_employee_360" (click)="cancelRequest()"[navigateToEmployee360]="leaveApplication.createdBy360" style="cursor: pointer;" title="Click to view Employee 360">{{leaveApplication.createdByName}}</td>
                             <td *ngIf="!userMapping.home_employee_360">{{leaveApplication.createdByName}}</td>
                             <td>{{leaveApplication.createdOn}}</td>
                             <td>{{leaveApplication.reason}}</td>
