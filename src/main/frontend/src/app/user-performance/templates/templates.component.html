@@ -1,299 +1,208 @@
-<div class="mb-3">
+<div class=" mb-3">
   <div class="col-md-12 px-0">
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1"
-      [class.active]="activeTab === 'goals'" (click)="setActiveTab('goals')">Goals Template
-    </button>
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1"
-      [class.active]="activeTab === 'kra-kpi'" (click)="setActiveTab('kra-kpi')">KRA/KPI Template
-    </button> 
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1"
-      [class.active]="activeTab === 'questionnaire'" (click)="setActiveTab('questionnaire')">Questionnaire Template
-    </button> 
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1"
-      [class.active]="activeTab === 'create-template'" (click)="setActiveTab('create-template')">Create Template
-    </button> 
+  <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+       [class.active]="activeTab === 'goals'" (click)="setActiveTab('goals')">Goals Template
+  </button>
+  <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+       [class.active]="activeTab === 'kra-kpi'" (click)="setActiveTab('kra-kpi')">KRA/KPI Template
+  </button> 
+  <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+       [class.active]="activeTab === 'questionnaire'" (click)="setActiveTab('questionnaire')">Questionnaire Template
+  </button> 
+  <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+       [class.active]="activeTab === 'create-template'" (click)="setActiveTab('create-template')">Create Template
+  </button> 
   </div>
   
+  
+
+
   <div class="tab-content mt-3">
     <div *ngIf="activeTab === 'goals'">
-      <div class="px-0">
+      <div class=" px-0" >
         <div class="col-md-12 table-header">
           <h1 class="table-header-title">Goals Template</h1>
         </div>
       </div>
       <div class="row ml-2">
-        <div class="col-md-4">
-          <label class="info-label"><span class="text-danger">*</span>Department</label>
-          <select class="form-control" aria-hidden="true" [(ngModel)]="selectedDept" (change)="onDepartmentChange()">
-            <option selected="selected" [ngValue]="null" disabled>Select</option>
-            <option [ngValue]="'all'">All Departments</option>
-            <option *ngFor="let dept of allDeptList" [ngValue]="dept">{{dept.name}}</option>
-          </select>
+        <div>
+              <label class="info-label"><span class="text-danger">*</span>Department</label>
+        <select class="form-control" aria-hidden="true" [(ngModel)]="selectedDept" (change)="fetchGoalTemplates()">
+          <option selected="selected" value="" disabled>Select</option>
+          <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
+        </select>
+
         </div>
       </div>
-
-      <div class="mt-3">
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Description</th>
-              <th>Department</th>
-              <!-- <th>Quarter</th>
-              <th>Status</th>
-              <th>Actions</th> -->
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let template of goalTemplates">
-              <td>{{ template.title }}</td>
-              <td>{{ template.description }}</td>
-              <td>{{ template.department }}</td>
-              <!-- <td>Q{{ template.quarterId }}</td> -->
-              <!-- <td>
-                <span class="badge" [ngClass]="template.isApproved ? 'badge-success' : 'badge-warning'">
-                  {{ template.isApproved ? 'Approved' : 'Pending' }}
-                </span>
-              </td> -->
-              <td>
-                <button class="btn btn-sm btn-primary mr-1" (click)="editTemplate(template)">Edit</button>
-                <button class="btn btn-sm btn-danger" (click)="deleteTemplate(template.templateId)">Delete</button>
-              </td>
-            </tr>
-            <tr *ngIf="goalTemplates.length === 0">
-              <td colspan="6" class="text-center">No goal templates found</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+     
+      <ul class="list-group">
+        <li class="list-group-item" *ngFor="let template of goalTemplates">
+          {{ template.name }} - {{ template.description }}
+        </li>
+      </ul>
     </div>
 
+
+
     <div *ngIf="activeTab === 'kra-kpi'">
-      <div class="px-0">
+      <div class=" px-0" >
         <div class="col-md-12 table-header">
           <h1 class="table-header-title">KRA/KPI Template</h1>
         </div>
       </div>
       <div class="row ml-2">
-        <div class="col-md-4">
-          <label class="info-label"><span class="text-danger">*</span>Department</label>
-          <select class="form-control" aria-hidden="true" [(ngModel)]="selectedDept" (change)="fetchKraKpiTemplates()">
-            <option selected="selected" [ngValue]="null" disabled>Select</option>
-            <option [ngValue]="'all'">All Departments</option>
-            <option *ngFor="let dept of allDeptList" [ngValue]="dept">{{dept.name}}</option>
-          </select>
+        <div>
+              <label class="info-label"><span class="text-danger">*</span>Department</label>
+        <select class="form-control" aria-hidden="true" [(ngModel)]="selectedDept" (change)="fetchKraKpiTemplates()">
+          <option selected="selected" value="" disabled>Select</option>
+          <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
+        </select>
+
         </div>
       </div>
-      <ul class="list-group mt-3">
+      <ul class="list-group">
         <li class="list-group-item" *ngFor="let template of kraKpiTemplates">
           {{ template.name }} - {{ template.metrics }}
-          <div class="float-right">
-            <button class="btn btn-sm btn-primary mr-1">Edit</button>
-            <button class="btn btn-sm btn-danger">Delete</button>
-          </div>
-        </li>
-        <li *ngIf="kraKpiTemplates.length === 0" class="list-group-item text-center">
-          No KRA/KPI templates found
         </li>
       </ul>
     </div>
 
+
+
     <div *ngIf="activeTab === 'questionnaire'">
-      <div class="px-0">
+      <div class=" px-0" >
         <div class="col-md-12 table-header">
-          <h1 class="table-header-title">Questionnaire Template</h1>
+          <h1 class="table-header-title">QuestionnaireTemplate</h1>
         </div>
       </div>
       <div class="row ml-2">
-        <div class="col-md-4">
-          <label class="info-label"><span class="text-danger">*</span>Department</label>
-          <select class="form-control" aria-hidden="true" [(ngModel)]="selectedDept" (change)="fetchQuestionnaireTemplates()">
-            <option selected="selected" [ngValue]="null" disabled>Select</option>
-            <option [ngValue]="'all'">All Departments</option>
-            <option *ngFor="let dept of allDeptList" [ngValue]="dept">{{dept.name}}</option>
-          </select>
+        <div>
+              <label class="info-label"><span class="text-danger">*</span>Department</label>
+        <select class="form-control" aria-hidden="true" [(ngModel)]="selectedDept" (change)="fetchQuestionnaireTemplates()">
+          <option selected="selected" value="" disabled>Select</option>
+          <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
+        </select>
+
         </div>
       </div>
-      <ul class="list-group mt-3">
+      <ul class="list-group">
         <li class="list-group-item" *ngFor="let template of questionnaireTemplates">
           {{ template.name }} - {{ template.questions.length }} questions
-          <div class="float-right">
-            <button class="btn btn-sm btn-primary mr-1">Edit</button>
-            <button class="btn btn-sm btn-danger">Delete</button>
-          </div>
-        </li>
-        <li *ngIf="questionnaireTemplates.length === 0" class="list-group-item text-center">
-          No questionnaire templates found
         </li>
       </ul>
     </div>
 
+
+
+
+
     <div *ngIf="activeTab === 'create-template'">
-      <div class="px-0">
+      <div class=" px-0" >
         <div class="col-md-12 table-header">
-          <h1 class="table-header-title">{{ isEditing ? 'Edit' : 'Create New' }} Template</h1>
+          <h1 class="table-header-title">Create New Template</h1>
         </div>
       </div>
-      <div class="w-25 mb-3">
-        <select class="form-control" [(ngModel)]="selectedTemplateType" (change)="updateTemplateForm()" [disabled]="isEditing">
-          <option value="goals">Goals Template</option>
-          <option value="kra-kpi">KRA/KPI Template</option>
-          <option value="questionnaire">Questionnaire Template</option>
-        </select>
-<<<<<<< Updated upstream
-=======
-        </div>
-  
-        <form [formGroup]="templateForm" (ngSubmit)="createTemplate()">
-          
-  
-          <div *ngIf="selectedTemplateType === 'goals'" class="form-group w-25">
-            <div class="form-group w-25">
-              <label>Name</label>
-              <input type="text" class="form-control" formControlName="name" required>
-            </div>
-            <label>Description</label>
-            <input type="text" class="form-control" formControlName="description">
-          </div>
-  
-          <div *ngIf="selectedTemplateType === 'kra-kpi'" class="form-group w-25">
-            <div class="form-group w-25">
-              <label>Name</label>
-              <input type="text" class="form-control" formControlName="name" required>
-            </div>
-            <label>Metrics</label>
-            <input type="text" class="form-control" formControlName="metrics">
-          </div>
-  
-          <div *ngIf="selectedTemplateType === 'questionnaire'" class="card-body mx-0">
-            
-            
-              <form [formGroup]="questionnaireForm" (ngSubmit)="onSubmit()">
-                
-                <div class="row mb-3">
-                  <div class="col-md-6">
-                    <label for="title"><span class="text-danger">*</span>Questionnaire Title</label>
-                    <input
-                      id="title"
-                      type="text"
-                      class="form-control"
-                      formControlName="title"
-                      placeholder="Enter questionnaire title"
-                      required
-                    />
-                    <div *ngIf="questionnaireForm.get('title')?.invalid && questionnaireForm.get('title')?.touched" class="text-danger">
-                      Title is required.
-                    </div>
-                  </div>
-                </div>
-            
-                
-                <div formArrayName="questions">
-                  <div *ngFor="let question of questions.controls; let i = index" [formGroupName]="i" class="form-group row mb-3">
-                    
-                    <div class="col-md-6">
-                      <label for="question-{{ i }}"><span class="text-danger">*</span>Question {{ i + 1 }}</label>
-                      <input
-                        id="question-{{ i }}"
-                        type="text"
-                        class="form-control"
-                        formControlName="question"
-                        placeholder="Enter question {{ i + 1 }}"
-                        required
-                      />
-                      <div *ngIf="question.get('question')?.invalid && question.get('question')?.touched" class="text-danger">
-                        Question is required.
-                      </div>
-                    </div>
-            
-                    
-                    <div class="col-md-2 d-flex align-items-center mt-4">
-                      <button type="button" class="btn btn-outline-primary btn-sm me-2 m-1" (click)="addQuestion()" [disabled]="!questions.at(questions.length - 1)?.valid || questions.length >= 10">
-                        <i class="fa fa-plus" aria-hidden="true"></i>
-                      </button>
-                      <button type="button" class="btn btn-outline-primary btn-sm" (click)="removeQuestion(i)" *ngIf="questions.length > 1">
-                        <i class="fa fa-trash"></i>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-            
-               
-                <button type="submit" class="btn btn-success mt-3" [disabled]="!questionnaireForm.valid">Submit</button>
-              </form>
-           
- 
-
-
-          </div>
-  
-          <button type="submit" class="btn btn-primary mt-3">Create Template</button>
-        </form>
->>>>>>> Stashed changes
+      <div class="w-25">
+      <select class="form-control mb-3 " [(ngModel)]="selectedTemplateType" (change)="updateTemplateForm()">
+        <option value="goals">Goals Template</option>
+        <option value="kra-kpi">KRA/KPI Template</option>
+        <option value="questionnaire">Questionnaire Template</option>
+      </select>
       </div>
 
-      <form [formGroup]="templateForm" (ngSubmit)="createOrUpdateTemplate()">
-        <div class="form-group w-25">
-          <label>Title <span class="text-danger">*</span></label>
-          <input type="text" class="form-control" formControlName="title" required>
-        </div>
+      <form [formGroup]="templateForm" (ngSubmit)="createTemplate()">
+        
 
         <div *ngIf="selectedTemplateType === 'goals'" class="form-group w-25">
-          <label>Description <span class="text-danger">*</span></label>
-          <textarea class="form-control" formControlName="description" rows="3"></textarea>
+          <div class="form-group w-25">
+            <label>Name</label>
+            <input type="text" class="form-control" formControlName="name" required>
+          </div>
+          <label>Description</label>
+          <input type="text" class="form-control" formControlName="description">
         </div>
-
-        <div class="form-group w-25">
-          <label>Department <span class="text-danger">*</span></label>
-          <select class="form-control" formControlName="departmentId" required>
-            <option [ngValue]="null" disabled>Select Department</option>
-            <option *ngFor="let dept of allDeptList" [ngValue]="dept.deptId">{{dept.name}}</option>
-          </select>
-        </div>
-
-        <!-- <div *ngIf="selectedTemplateType === 'goals'" class="form-group w-25">
-          <label>Quarter <span class="text-danger">*</span></label>
-          <select class="form-control" formControlName="quarterId" required>
-            <option [ngValue]="null" disabled>Select Quarter</option>
-            <option [ngValue]="1">Q1</option>
-            <option [ngValue]="2">Q2</option>
-            <option [ngValue]="3">Q3</option>
-            <option [ngValue]="4">Q4</option>
-          </select>
-        </div> -->
 
         <div *ngIf="selectedTemplateType === 'kra-kpi'" class="form-group w-25">
-          <label>Metrics <span class="text-danger">*</span></label>
-          <textarea class="form-control" formControlName="metrics" rows="3"></textarea>
+          <div class="form-group w-25">
+            <label>Name</label>
+            <input type="text" class="form-control" formControlName="name" required>
+          </div>
+          <label>Metrics</label>
+          <input type="text" class="form-control" formControlName="metrics">
         </div>
 
-        <div *ngIf="selectedTemplateType === 'questionnaire'" class="form-group w-25">
-          <label>Questions <span class="text-danger">*</span></label>
-          <textarea class="form-control" formControlName="questions" rows="3" 
-                   placeholder="Enter comma-separated questions"></textarea>
-          <small class="form-text text-muted">Enter questions separated by commas</small>
+        <div *ngIf="selectedTemplateType === 'questionnaire'" class="card-body mx-0">
+          
+          
+            <form [formGroup]="questionnaireForm" (ngSubmit)="onSubmit()">
+              
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label for="title"><span class="text-danger">*</span>Questionnaire Title</label>
+                  <input
+                    id="title"
+                    type="text"
+                    class="form-control"
+                    formControlName="title"
+                    placeholder="Enter questionnaire title"
+                    required
+                  />
+                  <div *ngIf="questionnaireForm.get('title')?.invalid && questionnaireForm.get('title')?.touched" class="text-danger">
+                    Title is required.
+                  </div>
+                </div>
+              </div>
+          
+              
+              <div formArrayName="questions">
+                <div *ngFor="let question of questions.controls; let i = index" [formGroupName]="i" class="form-group row mb-3">
+                  
+                  <div class="col-md-6">
+                    <label for="question-{{ i }}"><span class="text-danger">*</span>Question {{ i + 1 }}</label>
+                    <input
+                      id="question-{{ i }}"
+                      type="text"
+                      class="form-control"
+                      formControlName="question"
+                      placeholder="Enter question {{ i + 1 }}"
+                      required
+                    />
+                    <div *ngIf="question.get('question')?.invalid && question.get('question')?.touched" class="text-danger">
+                      Question is required.
+                    </div>
+                  </div>
+          
+                  
+                  <div class="col-md-2 d-flex align-items-center mt-4">
+                    <button type="button" class="btn btn-outline-primary btn-sm me-2 m-1" (click)="addQuestion()" [disabled]="!questions.at(questions.length - 1)?.valid || questions.length >= 10">
+                      <i class="fa fa-plus" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" (click)="removeQuestion(i)" *ngIf="questions.length > 1">
+                      <i class="fa fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+          
+             
+              <button type="submit" class="btn btn-success mt-3" [disabled]="!questionnaireForm.valid">Submit</button>
+            </form>
+         
+
+
+
         </div>
 
-        <div class="mt-3">
-          <button type="submit" class="btn btn-primary" [disabled]="templateForm.invalid">
-            {{ isEditing ? 'Update' : 'Create' }} Template
-          </button>
-          <button type="button" class="btn btn-secondary ml-2" (click)="resetForm()">
-            Cancel
-          </button>
-        </div>
+        <button type="submit" class="btn btn-primary mt-3">Create Template</button>
       </form>
     </div>
   </div>
-<<<<<<< Updated upstream
 </div>
-=======
-  
 
-  <ng-template #alert_message>
-    <div class="modal-body text-center">
-        <p>{{alertMessage}}</p>
-        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
-    </div>
+
+<ng-template #alert_message>
+  <div class="modal-body text-center">
+      <p>{{alertMessage}}</p>
+      <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+  </div>
 </ng-template>
->>>>>>> Stashed changes
