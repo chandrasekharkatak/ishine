@@ -25,6 +25,7 @@ public class BiomaxRequest {
 	private Long empId;
 	private Long reportingManagerId;
 	private LocalDateTime biomaxrequestDate;
+	private LocalDateTime tobiomaxrequestDate;
 	private String biomaxStatus;
 	private LocalDateTime createdOn;
 	private Long statusBy;

@@ -60,6 +60,7 @@ public class BioMaxRequestServiceImp implements BioMaxRequestService{
 			biomax.setEmpId(biomaxRequest.getEmpId());
 			biomax.setBiomaxStatus("Pending");
 			biomax.setCreatedOn(LocalDateTime.now());
+			biomax.setTobiomaxrequestDate(biomaxRequest.getTobiomaxrequestDate());
 			biomax.setBiomaxTitle(biomaxRequest.getBiomaxTitle());
 			biomax.setRequestRemark(biomaxRequest.getRequestRemark());
 			biomax.setReportingManagerId(biomaxRequest.getReportingManagerId());
@@ -172,6 +173,7 @@ public void afterLeaveApprovedLeaveAdded(Long empid) {
 				ob.setBiomaxreequestId(e.getBiomaxreequestId());
 				ob.setBiomaxStatus(ob.getBiomaxStatus());
 				ob.setBiomaxTitle(e.getBiomaxTitle());
+				ob.setTobiomaxrequestDate(e.getTobiomaxrequestDate());
 				Optional<BioMaxRequestIssue> requestType=bioMaxRequestIssueRepository.findById(e.getBiomaxTitle());
 				if(requestType.isPresent()) {
 					ob.setBiomaxTitleValue(requestType.get().getBioMaxRequestIssueName());
@@ -222,6 +224,8 @@ public void afterLeaveApprovedLeaveAdded(Long empid) {
 					ob.setBiomaxreequestId(e.getBiomaxreequestId());
 					ob.setBiomaxStatus(ob.getBiomaxStatus());
 					ob.setBiomaxTitle(e.getBiomaxTitle());
+					ob.setTobiomaxrequestDate(e.getTobiomaxrequestDate());
+					
 					ob.setReportingManagerId(e.getReportingManagerId());
 					Optional<BioMaxRequestIssue> requestType=bioMaxRequestIssueRepository.findById(e.getBiomaxTitle());
 					if(requestType.isPresent()) {

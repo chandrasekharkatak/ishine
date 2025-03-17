@@ -69,6 +69,6 @@ public interface CompOffLeaveRepository extends JpaRepository<CompOffLeave, Long
 
 	@Query(nativeQuery = true )
 	public List<CompOffLeave> findPendingCompOffOffByEmpId(Long empId);
-	@Query(value = " FROM CompOffLeave WHERE fromDate = CURRENT_DATE()")
+	@Query(value = " FROM CompOffLeave WHERE current_date() BETWEEN  fromDate and toDate")
 	public List<CompOffLeave> findEmployeeIsOnCompOffLeaveToday();
 }

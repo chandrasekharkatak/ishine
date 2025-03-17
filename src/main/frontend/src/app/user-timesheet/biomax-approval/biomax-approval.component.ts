@@ -125,7 +125,9 @@ export class BiomaxApprovalComponent implements OnInit {
   disableMannualDateInput(){
     return false;
   }
-
+  disableMannualDateInput1(){
+    return false;
+  }
   showCreateForm(){
     this.isForm = true;
     this.isCreation = true;
@@ -260,57 +262,85 @@ export class BiomaxApprovalComponent implements OnInit {
     biomaxrequestDate:Date;
     // Allow Only Past 1 month Days for Comp-off Application
     fromDateFilter = (d: Date)=>{
+        const dateFormat = 'YYYY-MM-DD';
+        const currentDate = new Date();
+        const DAY_IN_MS = 24 * 60 * 60 * 1000;
+        let BACKDATED_LEAVE_PERIOD = 30;
+        let FUTUREDATED_LEAVE_PERIOD = 180;
+        const time=d?.getTime();
+    
+        if(this.currentUser.leaveBackdatedLockDays){
+          BACKDATED_LEAVE_PERIOD = this.currentUser.leaveBackdatedLockDays;
+        }
+        if(this.currentUser.leaveFuturedatedLockDays){
+          FUTUREDATED_LEAVE_PERIOD = this.currentUser.leaveFuturedatedLockDays;
+        }
+    
+        let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));
+        let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
+    
+       
+        if(this.leaveObj.leaveAppliedFor == 'self'){
+          if(this.leaveObj.leaveTypeCode == 'ML'){
+            return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.biomaxListEmployeeIdPedning.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
+          }else
+            if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
+              return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.biomaxListEmployeeIdPedning.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
+            }else{
+              return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.biomaxListEmployeeIdPedning.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
+            }
+        }else{
+          let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
+          if(this.weekOffExcludedDepartmentList.find(deptId => deptId == teamMember.departmentId)){
+            return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.biomaxListEmployeeIdPedning.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
+          }else{
+            return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.biomaxListEmployeeIdPedning.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
+          }
+        }
+    
+        
+      }
+    tobiomaxrequestDate:Date;
+    // Allow Only Past 1 month Days for Comp-off Application
+    tofromDateFilter = (d: Date)=>{
       const dateFormat = 'YYYY-MM-DD';
-      biomaxrequestDate:Date;
       const currentDate = new Date();
       const DAY_IN_MS = 24 * 60 * 60 * 1000;
-      let BACKDATED_LEAVE_PERIOD = 5;
-      let FUTUREDATED_LEAVE_PERIOD = 30;
+      let BACKDATED_LEAVE_PERIOD = 30;
+      let FUTUREDATED_LEAVE_PERIOD = 180;
       const time=d?.getTime();
-
-      // if(this.currentUser.compOffLockDays){
-      //   BACKDATED_LEAVE_PERIOD = this.currentUser.compOffLockDays;
-      // }
-
-      // const FUTUREDATED_LEAVE_PERIOD = 180;
-      let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));
-      let maxDate = new Date(currentDate.getTime()+ (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
-      
-      if(this.isUpdation == true){
-        this.biomaxListEmployeeId = this.biomaxListEmployeeId.filter(x => x.biomaxrequestDate != this.leaveObj.toDate);
+  
+      if(this.currentUser.leaveBackdatedLockDays){
+        BACKDATED_LEAVE_PERIOD = this.currentUser.leaveBackdatedLockDays;
       }
-   
-
+      if(this.currentUser.leaveFuturedatedLockDays){
+        FUTUREDATED_LEAVE_PERIOD = this.currentUser.leaveFuturedatedLockDays;
+      }
+  
+      let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));
+      let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
+  
      
       if(this.leaveObj.leaveAppliedFor == 'self'){
-      
-
-      
-            if(this.leaveObj.leaveTypeCode == 'ML'){
-              return (
-                (moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) &&
-                 moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && 
-                 !this.biomaxListEmployeeId.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.biomaxrequestDate).format(dateFormat) 
-                ));
-            }else
-              if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
-                return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.biomaxListEmployeeId.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.biomaxrequestDate).format(dateFormat) ) );
-              }else{
-                return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.biomaxListEmployeeId.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.biomaxrequestDate).format(dateFormat) ) );
-              }
-           }
-           else{
-            let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
-            if(this.weekOffExcludedDepartmentList.find(deptId => deptId == teamMember.departmentId)){
-              return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.biomaxListEmployeeId.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.biomaxrequestDate).format(dateFormat) ));
-            }else{
-              return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.biomaxListEmployeeId.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.biomaxrequestDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.biomaxrequestDate).format(dateFormat)));
-            }
+        if(this.leaveObj.leaveTypeCode == 'ML'){
+          return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.biomaxListEmployeeIdPedning.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
+        }else
+          if(this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)){
+            return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.biomaxListEmployeeIdPedning.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
+          }else{
+            return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.biomaxListEmployeeIdPedning.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
           }
-        
-    return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previousCompOffRequests.find(compOffApplication => moment(d).format(dateFormat) >= moment(compOffApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(compOffApplication.toDate).format(dateFormat)));
+      }else{
+        let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
+        if(this.weekOffExcludedDepartmentList.find(deptId => deptId == teamMember.departmentId)){
+          return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.biomaxListEmployeeIdPedning.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
+        }else{
+          return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.biomaxListEmployeeIdPedning.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
+        }
+      }
+  
+      
     }
-
 
  getAllHolidays(){
     this.holidayList = [];
@@ -376,7 +406,12 @@ export class BiomaxApprovalComponent implements OnInit {
         return false;
       }
       if(!this.validationService.validateNullUndefinedEmptyString(this.biomax.biomaxrequestDate)){
-        this.alertMessage = "Please fill the Date !!"
+        this.alertMessage = "Please fill from Date !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+      if(!this.validationService.validateNullUndefinedEmptyString(this.biomax.tobiomaxrequestDate)){
+        this.alertMessage = "Please fill to  Date !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
@@ -387,7 +422,8 @@ export class BiomaxApprovalComponent implements OnInit {
       }
       const dateFormat = "yyyy-MM-dd'T'HH:mm:ss"; // LocalDateTime format
       this.biomax.biomaxrequestDate = this.datePipe.transform(this.biomax.biomaxrequestDate, dateFormat);
-      
+      this.biomax.tobiomaxrequestDate = this.datePipe.transform(this.biomax.tobiomaxrequestDate, dateFormat);
+     
      this.biomaxseviceService.createBiomaxRequest(this.biomax).pipe(first()).subscribe((response:any)=>{
       console.log(response);
       if(response.serviceStatus=="success"){
@@ -416,7 +452,7 @@ export class BiomaxApprovalComponent implements OnInit {
   this.biomaxseviceService.deletebiomaxRequest(this.biomax.biomaxreequestId).pipe(first()).subscribe((response: any) => {	
         if (response.serviceStatus == "Success") {	
            this.openAlertMod(template, response.serviceMessage);	
-          
+          this.ngOnInit();
         } else {	
           this.openAlertMod(template, response.serviceMessage);	
         }	

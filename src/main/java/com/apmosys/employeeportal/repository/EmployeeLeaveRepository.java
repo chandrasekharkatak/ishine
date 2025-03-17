@@ -154,7 +154,7 @@ public List<EmployeeLeave> findByEmployeeforApproved();
     nativeQuery = true)
 public List<EmployeeLeave> findByEmployeeforPending();
 
-@Query(value = " FROM EmployeeLeave WHERE fromDate = CURRENT_DATE()")
+@Query(value = " FROM EmployeeLeave WHERE current_date() between fromDate AND toDate")
 public List<EmployeeLeave> findEmployeeIsOnLeaveToday();
 
 

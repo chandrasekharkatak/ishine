@@ -31,13 +31,26 @@
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Date</label>
+                            <label class="info-label"><span class="text-danger">*</span>From Date</label>
                             <div class="d-flex">
                                 <input class="form-control" matInput id="fromDate" #input (focus)="fromDatePicker.open()" [matDatepicker]="fromDatePicker"  [matDatepickerFilter]="fromDateFilter" (keydown)="disableMannualDateInput()"
-                                placeholder="Bio Max Request Date" [(ngModel)]="biomax.biomaxrequestDate" (dateChange)="resetToDate()">
+                                placeholder="From Bio Max Request Date" [(ngModel)]="biomax.biomaxrequestDate" (dateChange)="resetToDate()">
                                 <mat-datepicker-toggle matSuffix [for]="fromDatePicker" style="margin-left: -40px;" ></mat-datepicker-toggle>
                             </div>
                             <mat-datepicker [dateClass]="holidayHighlight" #fromDatePicker (closed)="input.blur()" disabled="false" ></mat-datepicker>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>To Date</label>
+                            <div class="d-flex">
+                                <input class="form-control" matInput id="fromDate" #input (focus)="tofromDatePicker.open()" [matDatepicker]="tofromDatePicker"  [matDatepickerFilter]="tofromDateFilter" (keydown)="disableMannualDateInput1()"
+                                placeholder="To Bio Max Request Date" [(ngModel)]="biomax.tobiomaxrequestDate" (dateChange)="resetToDate()">
+                                <mat-datepicker-toggle matSuffix [for]="tofromDatePicker" style="margin-left: -40px;" ></mat-datepicker-toggle>
+                            </div>
+                            <mat-datepicker [dateClass]="holidayHighlight" #tofromDatePicker (closed)="input.blur()" disabled="false" ></mat-datepicker>
                         </div>
                     </div>
                 </div>
@@ -89,7 +102,8 @@
                           <tr>	
                             <th scope="col" class="info-label">Sr No.</th>	
                             <th scope="col" class="info-label" mat-sort-header="biomaxTitleValue|string">Request Type</th>	
-                            <th scope="col" class="info-label" mat-sort-header="biomaxrequestDate|date">Date</th>	
+                            <th scope="col" class="info-label" mat-sort-header="biomaxrequestDate|date">From Date</th>	
+                            <th scope="col" class="info-label" mat-sort-header="biomaxrequestDate|date">To Date</th>
                             <th scope="col" class="info-label" mat-sort-header="requestRemark|string">Description</th>	
                             <th scope="col" class="info-label" mat-sort-header="biomaxStatus|string">Status</th>
                             <th scope="col" class="info-label" mat-sort-header="reportingManagerName|string">Reporting Manager</th>
@@ -106,6 +120,7 @@
                                 <td>{{10*(page-1)+i+1}}</td>
                                 <td>{{biomax.biomaxTitleValue}}</td>
                                 <td>{{ biomax.biomaxrequestDate | date: 'yyyy-MM-dd' }}</td>
+                                <td>{{ biomax.tobiomaxrequestDate | date: 'yyyy-MM-dd' }}</td>
 
                                 <td>{{biomax.requestRemark}}</td>
                                 <td [ngStyle]="{'color': (biomax.biomaxStatus == 'Pending') ? 'orange' : (biomax.biomaxStatus == 'Approved') ? 'green' : (biomax.biomaxStatus == 'Rejected') ? 'red' : '#ababab'}">{{biomax.biomaxStatus}}</td>

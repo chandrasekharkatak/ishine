@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -905,9 +906,10 @@ public class BioMaxService {
 		        	 while (resultSet.next()){
 		        		 BioMaTO bioMaTO = new BioMaTO();
 			             Long employmentId = Long.parseLong(resultSet.getString("EmployeeCode").replaceAll("\\D", ""));
-						 Employee employee1=employeeRepository.findByEmployeementId(employmentId);
-						
-		               	bioMaTO.setEmployementId(employmentId);
+			             Employee employee1=employeeRepository.findByEmployeementId(employmentId);
+						 if(employee1!=null) {
+						bioMaTO.setEmployementId(employmentId);
+					
 		               	if (employee1.getJobRoleId() != null) {
 		               	    JobRole departmentjon = jobRoleRepository.findByjobRoleId(employee1.getJobRoleId());
 		               	    bioMaTO.setDepartmentId(departmentjon.getDeptId());
@@ -926,6 +928,7 @@ public class BioMaxService {
 		                bioMaTO.setDeduct(resultSet.getString("Deduct"));
 		             
 		                finalEmpBioData.add(bioMaTO);
+							}
 		            }
 		            
 		        }
@@ -935,16 +938,35 @@ public class BioMaxService {
 		        e.printStackTrace(); // Log the exception message
 		    }
 			 }
-			 List<BiomaxRequest> approvedLeaveList = biomaxRequestRepository.findByEmployeementIdLeaveNotDeduct();
-				if (!approvedLeaveList.isEmpty()) {
-				  Set<Long>  approvedLeaveEmployeeIds = approvedLeaveList.stream()
-				            .map(BiomaxRequest::getEmpId)
-				            .collect(Collectors.toSet());  // Use a set for faster lookup
-				   // finalEmpBioData.removeIf((data)
-				    		finalEmpBioData.removeIf(bio -> approvedLeaveEmployeeIds.contains(bio.getEmpId()));
-					
-				}
-				
-		    return finalEmpBioData;
+			 
+			 return finalEmpBioData;
+		}
+	 
+	 
+	 public List<BioMaTO> listFilter(List<BioMaTO> list1, List<Long> removedId) {
+		    // Handle null inputs
+		 System.out.println("List Size"+list1.size());
+		    if (list1 == null || removedId == null) {
+		        return new ArrayList<>(); // Return an empty list if inputs are null
+		    }
+
+		    // Convert removedId to a Set for faster lookups
+		  //  Set<Long> removedIdSet = new HashSet<>(removedId);
+		    
+		    Set<Long> removedIdSet = removedId.stream()
+		    	    .filter(Objects::nonNull) // Remove null values
+		    	    .collect(Collectors.toSet());
+		    // Filter the list
+		    List<BioMaTO> newList = new ArrayList<>();
+		    for (BioMaTO item : list1) {
+		    	System.out.println("EmpId="+item.getEmpId());
+		        if (item != null && !removedIdSet.contains(item.getEmployementId().toString())) {
+		            newList.add(item);
+		        }
+		    	
+		    }
+		    System.out.println("newList Size"+newList.size());
+			
+		    return newList;
 		}
 } 

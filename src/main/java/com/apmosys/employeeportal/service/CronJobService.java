@@ -4825,29 +4825,40 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 				String employee="";
 				//start the rahul code
 				
-			List<BioMaTO> biomaxDataList =new ArrayList<>(); //bioMaxService.getBiomaxDataForLeaveDeduct();
+			List<BioMaTO> biomaxDataList =bioMaxService.getBiomaxDataForLeaveDeduct();
 			System.out.println("TOtal Data COmming from Biomax"+biomaxDataList.size());
 			
 			List<BioMaTO> updateBioMaxDataList=new ArrayList<>();
 		    List<BioMaTO> probationEmployeeList = new ArrayList<>();
 			List<Long> dataToBeDeleted = new ArrayList<>();
-			List<BioMaTO> validatedData=new ArrayList<>(); 
-			List<Long> LeaveValidate=new ArrayList<>();
-			List<Long> removeemployeeId=new ArrayList<>();
-			
-			//Current Holiday Leave
-			List<Holiday> holidayLeave=holidayRepository.currentDayHoliday();
 		
-				//end of the code
+			List<Long> removeemployeeId=new ArrayList<>();
 				//leave for findEmployeeIsOnCompOffLeaveToday
+			if(!biomaxDataList.isEmpty()) {
+				
+				 
+				 List<BiomaxRequest> approvedLeaveList = biomaxRequestRepository.findByEmployeementIdLeaveNotDeduct();
+					
+				 if (!approvedLeaveList.isEmpty()) {
+					 approvedLeaveList.forEach((empId)->{
+						 Employee emp=employeeRepository.findByEmpId(empId.getEmpId());
+						// empId.setEmpId(emp.getEmployeementId());
+						  removeemployeeId.add(emp.getEmployeementId());
+							
+					 });
+					    		
+				 }
+				
+					
+				 }
 			// Fetch comp-off leave employees for today and filter biomaxDataList
 			List<CompOffLeave> compOffLeaveList = compOffLeaveRepository.findEmployeeIsOnCompOffLeaveToday();
 			if (!compOffLeaveList.isEmpty()) {
-			    List<Long> compOffEmployeeIds = compOffLeaveList.stream()
-			            .map(CompOffLeave::getEmpId)  // Extract empId from each CompOffLeave
-			            .collect(Collectors.toList());
-			    removeemployeeId.addAll(compOffEmployeeIds)	;
-			    biomaxDataList.removeIf(bio -> compOffEmployeeIds.contains(bio.getEmpId()));
+				compOffLeaveList.forEach((comof)->{
+					 Employee empcomof=employeeRepository.findByEmpId(comof.getEmpId());
+					  removeemployeeId.add(empcomof.getEmployeementId());
+						
+				});
 			}
 
 			// Fetch department configuration and filter biomaxDataList for non-leave-deducted departments
@@ -4866,12 +4877,12 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 			// Fetch employees on leave today and filter biomaxDataList for them
 			List<EmployeeLeave> employeeLeaveList = employeeLeaveRepository.findEmployeeIsOnLeaveToday();
 			if (!employeeLeaveList.isEmpty()) {
-			    Set<Long> leaveEmployeeIds = employeeLeaveList.stream()
-			            .map(EmployeeLeave::getEmpId)
-			            .collect(Collectors.toSet()); 
-			    removeemployeeId.addAll(leaveEmployeeIds)	;// Use a set for faster lookup
-			    biomaxDataList.removeIf(bio -> leaveEmployeeIds.contains(bio.getEmpId()));
-			}
+				employeeLeaveList.forEach((empleave)->{
+					 Employee empcomof=employeeRepository.findByEmpId(empleave.getEmpId());
+					 removeemployeeId.add(empcomof.getEmployeementId())	;// Use a set for faster lookup
+					   	
+				});
+			  	}
 
 			// Fetch employees with leave deduction exemptions and filter biomaxDataList for them
 			Optional<PortalConfig> employeeLeaveDeductConfig = portalConfigRepository.findByportalConfigById(Short.parseShort(biomaxleavedeductForEmployee));
@@ -4883,27 +4894,15 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 			    Set<Long> employeeNotLeaveDeduct = Arrays.stream(employeeIds)
 			            .map(Long::parseLong)
 			            .collect(Collectors.toSet());  // Use a set for faster lookup
-			    removeemployeeId.addAll(employeeNotLeaveDeduct);
-			    biomaxDataList.removeIf(bio -> employeeNotLeaveDeduct.contains(bio.getEmployementId()));
-			}
-
-			// Fetch employees with approved leave deduction and filter biomaxDataList for them
-			List<BiomaxRequest> approvedLeaveList = biomaxRequestRepository.findByEmployeementIdLeaveNotDeduct();
-			if (!approvedLeaveList.isEmpty()) {
-			    Set<Long> approvedLeaveEmployeeIds = approvedLeaveList.stream()
-			            .map(BiomaxRequest::getEmpId)
-			            .collect(Collectors.toSet());
-			    removeemployeeId.addAll(approvedLeaveEmployeeIds);
-				  // Use a set for faster lookup
-			    biomaxDataList.removeIf(bio -> approvedLeaveEmployeeIds.contains(bio.getEmpId()));
-			}
-			if(!removeemployeeId.isEmpty() || removeemployeeId.size()>0) {
-			biomaxDataList.removeIf(validate->removeemployeeId.contains(validate.getEmpId()));
-			}
-					List<BioMaTO> finalEmpBioData = new ArrayList<>();
+			    
+			   // removeemployeeId.addAll(employeeNotLeaveDeduct);
+			    biomaxDataList.removeIf(bio -> employeeNotLeaveDeduct.contains(bio.getEmpId()));
 				
-				
-				System.out.println("TOtal Data COmming from Biomax getEmployementId"+biomaxDataList.size());
+			}
+			biomaxDataList.removeIf(bio -> removeemployeeId.contains(bio.getEmployementId()));
+				List<BioMaTO> finalEmpBioData = new ArrayList<>();
+						
+					
 				
 				//end of the code
 //				
@@ -4924,7 +4923,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 					ws.value(0, 6, "Salary to be deducted (In days)");
 
 					int rowNum = 1;
-					
+					//biomaxDataList=new ArrayList();
 					if (!biomaxDataList.isEmpty()) {
 						
 						List<BioMaTO> biomaxDataFilterList = biomaxDataList.stream()

@@ -28,7 +28,7 @@ public interface BiomaxRequestRepository extends JpaRepository<BiomaxRequest,Lon
     // Fetch by date range
     List<BiomaxRequest> findByBiomaxrequestDateBetween(LocalDateTime startDate, LocalDateTime endDate);
 	
-    @Query(value = "SELECT * FROM biomax_request WHERE biomax_status = 'Approved' AND   biomaxrequest_date=CURDATE()", nativeQuery = true)
+    @Query(value = "SELECT * FROM biomax_request WHERE biomax_status = 'Approved' AND current_date() BETWEEN biomaxrequest_date and tobiomaxrequest_date", nativeQuery = true)
 	List<BiomaxRequest> findByEmployeementIdLeaveNotDeduct();
 
 

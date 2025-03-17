@@ -22,6 +22,7 @@ public class BioMaxRequestDTO {
 	private Long reportingManagerId;
 	private String reportingManagerName;
 	private LocalDateTime biomaxrequestDate;
+	private LocalDateTime tobiomaxrequestDate;
 	private String biomaxStatus;
 	private LocalDateTime createdOn;
 	private Long statusBy;

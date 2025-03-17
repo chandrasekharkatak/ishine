@@ -5,6 +5,7 @@ export class biomaxRequest{
     empId:any;
     reportingManagerId:any;
     biomaxrequestDate:any;
+    tobiomaxrequestDate:any;
     biomaxStatus:any;
     createdOn:any;
     statusBy:any;
