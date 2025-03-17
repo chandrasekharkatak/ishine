@@ -691,14 +691,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
     this.file = uploadedFiles[0];
       const formData = new FormData();
       formData.append('file', this.file);
-
-  
-      this.rewardsExcel.createdBy = this.currentUser.empId;
-      alert(this.rewardsExcel.createdBy);
-      const jsonBlob = new Blob([JSON.stringify(this.rewardsExcel)]);
-      formData.append('employeeRewardsDTO', jsonBlob);
-      
-
+      formData.append('createdBy', this.currentUser.empId.toString());
       this.rewardsService.saveRewardsExcel(formData).pipe(first()).subscribe(
         (response: any) => {
           if (response.serviceStatus === "Success") {
