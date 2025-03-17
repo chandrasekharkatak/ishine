@@ -34,18 +34,7 @@ export class GoalsTemplateComponent implements OnInit {
   }
 
   fetchGoals() {
-    // this.http.get<any[]>(this.apiUrl).subscribe(
-    //   (data) => {
-    //     this.goals = data.map(goal => ({
-    //       ...goal,
-    //       completionDate: '',
-    //       selected: false
-    //     }));
-    //   },
-    //   (error) => {
-    //     console.error('Error fetching goals:', error);
-    //   }
-    // );
+    
   }
 
   addGoal() {
@@ -71,15 +60,7 @@ export class GoalsTemplateComponent implements OnInit {
       assignedGoals: selectedGoals
     };
 
-    // this.http.post(`${this.apiUrl}/assign`, requestBody).subscribe(
-    //   (response) => {
-    //     console.log('Goals assigned successfully:', response);
-    //     this.modalRef.hide(); 
-    //   },
-    //   (error) => {
-    //     console.error('Error assigning goals:', error);
-    //   }
-    // );
+    
   }
 }
 

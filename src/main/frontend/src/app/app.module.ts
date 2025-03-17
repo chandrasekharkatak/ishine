@@ -128,6 +128,7 @@ import { TemplatesComponent } from './user-performance/templates/templates.compo
 import { AssignGoalsGroupComponent } from './user-performance/assign-goals-group/assign-goals-group.component';
 import { GoalsTemplateComponent } from './user-performance/goals-template/goals-template.component';
 import { QuarterCycleComponent } from './user-performance/quarter-cycle/quarter-cycle.component';
+import { ViewPerformanceComponent } from './user-performance/view-performance/view-performance.component';
 
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
@@ -225,6 +226,7 @@ import { QuarterCycleComponent } from './user-performance/quarter-cycle/quarter-
     AssignGoalsGroupComponent,
     GoalsTemplateComponent,
     QuarterCycleComponent,
+    ViewPerformanceComponent,
 
     //TestComponent
   ],

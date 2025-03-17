@@ -8,6 +8,8 @@ import { User } from 'src/app/models/user';
 import { TeamViewService } from 'src/app/services/team-view.service';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { Employee } from 'src/app/models/employee';
+import { EmployeeService } from 'src/app/services/employee.service';
+
 
 @Component({
   selector: 'app-team-dashboard',
@@ -16,7 +18,6 @@ import { Employee } from 'src/app/models/employee';
 })
 export class TeamDashboardComponent implements OnInit {
   currentUser:User;
-  viewTeamMemberList: any[] = []; 
   teamMemberColumns:any[] = ['blank','name','department','totalGoals','goalsCompleted'];
 
   isSearchEnabled:boolean = false;
@@ -25,12 +26,21 @@ export class TeamDashboardComponent implements OnInit {
   sortColumn: any;
   sortColumnType:any;
 
+  viewTeamMemberList = []; 
+  selectedEmployees = []; 
+  goalTemplates = []; 
+  selectedGoalTemplate: string = ''; 
+  isSelectAll = false; 
+  
+
   constructor(
     private router: Router,
     private http: HttpClient,
     private modalService: BsModalService,
     private teamViewService : TeamViewService,
     private authenticationService : AuthenticationService,
+    private employeeService:EmployeeService,
+
   ) {    
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -42,7 +52,35 @@ export class TeamDashboardComponent implements OnInit {
   modalRef?: BsModalRef;
 
   ngOnInit() {
+    this.fetchTeamMembers(); 
+    this.fetchGoalTemplates();
+  }
+
+  fetchTeamMembers() {
     
+  }
+
+  fetchGoalTemplates() {
+    
+  }
+
+  selectAll(event: any) {
+    this.isSelectAll = event.target.checked;
+    this.viewTeamMemberList.forEach((member) => {
+      member.isSelected = this.isSelectAll;
+    });
+    this.updateSelectedEmployees();
+  }
+
+  updateSelectedEmployees() {
+    this.selectedEmployees = this.viewTeamMemberList.filter((member) => member.isSelected);
+  }
+
+  openBulkAssignModal(template: any) {
+    this.updateSelectedEmployees();
+    if (this.selectedEmployees.length > 0) {
+      this.modalRef = this.modalService.show(template);
+    }
   }
 
   getAllTeamPerformance(){
@@ -94,7 +132,15 @@ export class TeamDashboardComponent implements OnInit {
       
     }
 
-    getEmployeePerformance(viewTeamMember){
-      this.router.navigate(['/user-performance/performance-dashboard']);
-    }
+
+    getEmployeePerformance(viewTeamMember: Employee) {
+          this.employeeService.setEmployee(viewTeamMember);
+      
+          this.router.navigate(['/view-performance']);
+        }
+
+
+  assignGoalsToEmployees(modalRef: BsModalRef) {
+   
+  }
 }

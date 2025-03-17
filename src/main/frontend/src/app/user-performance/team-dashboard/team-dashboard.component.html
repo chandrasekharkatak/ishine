@@ -12,7 +12,8 @@
         <option value="Team B">Team B</option>
         <option value="Team C">Team C</option>
       </select>
-      <button class="btn btn-primary" (click)="openAssignGoalsGroupModal()">Assign to Group</button>
+      <button class="btn btn-primary" [disabled]="!selectedEmployees.length"
+      (click)="openBulkAssignModal(bulkAssignTemplate)">Assign to Group</button>
     </div>
     
  
@@ -26,41 +27,78 @@
           </div>
           <div class="overflow-auto" bassHorizontalScroll [tableId]="'teamMemberInfo'" [tableTHeadId]="'teamMemberInfoTHead'"
           [tableTHeadTrId]="'teamMemberInfoTHeadTr'">
-            <table class="table team-table" id="team-table" matSort (matSortChange)="sortData($event)">	
-              <thead class="thead-light">	
-                <tr>	
-                  <th scope="col" class="info-label">Sr No.</th>	
-                  
-                  <th scope="col" class="info-label" mat-sort-header="name|string">Employee Name</th>	
-                  <th scope="col" class="info-label" mat-sort-header="department|string">Department</th>	
-                  <th scope="col" class="info-label" mat-sort-header="totalGoals|number">Total Goals</th>	
-                  <th scope="col" class="info-label" mat-sort-header="goalsCompleted|number">Goals Completed</th>
-                  <th >Action</th>
-                  </tr>
-                  <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="teamMemberColumns" (onSearch)="onSearch($event);page=1" ></tr>
-                </thead>
-                <tbody>
-                  <tr *ngIf="viewTeamMemberList.length == 0 || (viewTeamMemberList| colFilter:filters:false).length == 0">
-                    <th colspan="8" class="text-center info-label">No details to display...</th>
-                  </tr>
-                  <tr *ngFor="let viewTeamMember of viewTeamMemberList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-                    <td>{{10*(page-1)+i+1}}</td>
-                    
-                    <td>{{viewTeamMember.name}}</td>
-                    <td>{{viewTeamMember.department}}</td>
-                    <td>{{viewTeamMember.totalGoals}}</td>
-                    <td>{{viewTeamMember.goalsCompleted}}</td>
-                    <td>
-                      <button class="btn btn-sm btn-outline-primary mb-1" type="submit"
-                       (click)=" getEmployeePerformance(viewTeamMember)"
-                      ><span>View Performance </span></button>&nbsp;
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+          <table class="table team-table" id="team-table" matSort (matSortChange)="sortData($event)">
+            <thead class="thead-light">
+              <tr>
+                <th>
+                  <input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)" [(ngModel)]="isSelectAll">
+                </th>
+                <th scope="col" class="info-label">Sr No.</th>
+                <th scope="col" class="info-label" mat-sort-header="name|string">Employee Name</th>
+                <th scope="col" class="info-label" mat-sort-header="department|string">Department</th>
+                <th scope="col" class="info-label" mat-sort-header="totalGoals|number">Total Goals</th>
+                <th scope="col" class="info-label" mat-sort-header="goalsCompleted|number">Goals Completed</th>
+                <th>Action</th>
+              </tr>
+              <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="teamMemberColumns" (onSearch)="onSearch($event);page=1"></tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="viewTeamMemberList.length == 0 || (viewTeamMemberList | colFilter:filters:false).length == 0">
+                <td colspan="8" class="text-center info-label">No details to display...</td>
+              </tr>
+              <tr *ngFor="let viewTeamMember of viewTeamMemberList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+                <td><input type="checkbox" [(ngModel)]="viewTeamMember.isSelected"></td>
+                <td>{{10 * (page - 1) + i + 1}}</td>
+                <td>{{viewTeamMember.name}}</td>
+                <td>{{viewTeamMember.department}}</td>
+                <td>{{viewTeamMember.totalGoals}}</td>
+                <td>{{viewTeamMember.goalsCompleted}}</td>
+                <td>
+                  <button class="btn btn-sm btn-outline-primary mb-1" type="submit"
+                    (click)="getEmployeePerformance(viewTeamMember)">
+                    View Performance
+                  </button>&nbsp;
+                </td>
+              </tr>
+            </tbody>
+          </table>
           </div>
           <pagination-controls class="my-pagination" [hidden]="viewTeamMemberList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
         </div>
       </div>
   </div>
+
+
+
+
+
+  <ng-template #bulkAssignTemplate let-modalRef>
+    <div class="modal-header">
+      <h5 class="modal-title">Assign Goals to Selected Employees</h5>
+      <button type="button" class="close" aria-label="Close" (click)="modalRef.hide()">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+  
+    <div class="modal-body">
+      <label for="goalTemplate">Select Goal Template:</label>
+      <select id="goalTemplate" [(ngModel)]="selectedGoalTemplate">
+        <option *ngFor="let template of goalTemplates" [value]="template.id">{{ template.name }}</option>
+      </select>
+  
+      <h6 class="mt-3">Selected Employees:</h6>
+      <ul>
+        <li *ngFor="let employee of selectedEmployees">{{ employee.name }}</li>
+      </ul>
+  
+      <button
+        class="btn btn-primary mt-3"
+        [disabled]="!selectedGoalTemplate"
+        (click)="assignGoalsToEmployees(modalRef)"
+      >
+        Assign Goals
+      </button>
+    </div>
+  
+  </ng-template>
   

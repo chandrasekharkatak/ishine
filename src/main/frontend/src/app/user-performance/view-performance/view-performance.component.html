@@ -1,0 +1,211 @@
+<div class="container m-0">
+    <div class="card p-3 py-1 shadow-sm m-0">
+      <div class="row px-1 ml-1" >
+        <div class="col-md-12 table-header">
+          <h1 class="table-header-title">Performance Dashboard</h1>
+        </div>
+      </div>
+      <div class="form-group row gap-2 mb-3 ml-1">
+        <div class="text-center md-6 ">
+          <label for="quarterSelect" class="form-label fw-bold">Select Quarter:  </label>
+        </div>
+        <div>
+          <select id="quarterSelect" class="form-select w-20 " [(ngModel)]="selectedQuarter" (change)="onQuarterChange()">
+            <option *ngFor="let quarter of quarters" [value]="quarter">  {{ quarter }}  </option>
+          </select>
+        </div>
+      </div>
+      
+      <div class=" profile row align-items-center ml-2 mr-2 px-0">
+        <div class="col-md-6 d-flex align-items-center ">
+          <img src="assets/Images/default-user-image.jpeg" alt="profile" class="rounded-circle border" width="100" height="100">
+          <div class="ms-2 p-1 small">
+            <h4 class=" mb-0">{{currentEmployeeInfo.name}}</h4>
+             <span class="text-muted mb-2">{{currentEmployeeInfo.designationName}}</span>
+            <p><strong>Employee ID:</strong> A-{{currentEmployeeInfo.employeementId}}</p>
+            <p><strong>Department:</strong> {{currentEmployeeInfo.departmentName}}</p>
+            <p><strong>Manager:</strong> {{currentEmployeeInfo.managerName}}</p>
+          </div>
+        </div>
+        <div class="col-md-3 text-center">
+          <div class="stat-box bg-light p-2 rounded">Goals Completed: <strong> </strong></div>
+          <div class="stat-box bg-light p-2 rounded">Goals Remaining: <strong> </strong></div>
+        </div>
+        <div class="col-md-3 text-center">
+          <div class="stat-box bg-light p-2 rounded">KRA/KPI score: <strong>9/10</strong></div>
+          <div class="stat-box bg-light p-2 rounded">Questionnaire score: <strong>8/10</strong></div>
+        </div>
+      </div>
+      
+      <div class="row mt-4">
+        <div class="col-md-6">
+          <div class="graph-placeholder p-4 border rounded text-center">[Graphs Here]</div>
+        </div>
+        <div class="col-md-6">
+          
+          
+            <div class="goals-list p-2 border rounded d-flex flex-column" style="height: 100%;">
+              <h6 class="mb-1 text-center">Goals List</h6>
+              <div class="table-responsive flex-grow-1" style="max-height: 250px; overflow-y: auto;">
+                <table class="table table-sm table-bordered" style="font-size: 0.90rem;">
+                  <thead>
+                    <tr class="bg-light " >
+                      <th scope="col" class="w-30">Goal</th>
+                      <th scope="col">Description</th>
+                      <th scope="col" class="text-center w-20">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let goal of goals">
+                      <td>{{ goal.name }}</td>
+                      <td class="text-truncate" style="max-width: 180px;">{{ goal.description }}</td>
+                      <td class="text-center">
+                        <button class="btn btn-sm btn-outline-primary py-1 px-2" (click)="openModal(viewGoalTemplate, goal)" style="font-size: 0.75rem;" >View</button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            
+          
+        </div>
+      </div>
+      
+      <div class="row mt-4">
+        <div class="col-md-4">
+          <div class="info-card p-4 rounded">Appraisal Summary</div>
+        </div>
+        <div class="col-md-4">
+          <div class="info-card p-4 rounded">Skills</div>
+        </div>
+        <div class="col-md-4">
+          <div class="info-card p-4 rounded">Awards</div>
+        </div>
+      </div>
+      
+      <div class="mt-4 review-section p-4 border rounded">
+        <h4 class="text-center">Review</h4>
+        <div class="btn-group  align-items-center mb-3">
+          <div>
+          <button type="button" class="btn btn-outline-primary" [class.active]="activeTab === 'kra-kpi'" (click)="setActiveTab('kra-kpi')">KRA/KPI Review</button>
+          </div>
+          <div>
+          <button type="button" class="btn btn-outline-primary" [class.active]="activeTab === 'questionnaire'" (click)="setActiveTab('questionnaire')">Questionnaire Review</button>
+        </div>
+        </div>
+        <div class="form-group row gap-3 ">
+          <div class="text-center m-2 px-1" >
+          <label>Select Quarter:</label>
+          </div>
+          <select class="form-control w-25" [(ngModel)]="selectedQuarter" (change)="fetchReviewData()">
+            <option *ngFor="let quarter of quarters" [value]="quarter">{{ quarter }}</option>
+          </select>
+        </div>
+        <div class="tab-content mt-3">
+          <div *ngIf="activeTab === 'kra-kpi'">
+            <h4>KRA/KPI Review for Quarter {{ selectedQuarter }}</h4>
+            <form [formGroup]="kraKpiReviewForm" (ngSubmit)="submitKraKpiReview()">
+              <div *ngFor="let metric of kraKpiMetrics" class="form-group">
+                <label>{{ metric.name }} (Out of 10)</label>
+                <input type="number" class="form-control" formControlName="{{metric.id}}" min="0" max="10">
+              </div>
+              <button type="submit" class="btn btn-primary mt-3">Submit KRA/KPI Review</button>
+            </form>
+          </div>
+          <div *ngIf="activeTab === 'questionnaire'">
+            <h4>Questionnaire Review for Quarter {{ selectedQuarter }}</h4>
+            <form [formGroup]="questionnaireReviewForm" (ngSubmit)="submitQuestionnaireReview()">
+              <div *ngFor="let question of questionnaireQuestions" class="form-group">
+                <label>{{ question.text }} (Out of 10)</label>
+                <input type="number" class="form-control" formControlName="{{question.id}}" min="0" max="10">
+              </div>
+              <button type="submit" class="btn btn-primary mt-3">Submit Questionnaire Review</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  
+  
+<ng-template #viewGoalTemplate>
+  <div class="modal-content rounded-lg shadow-lg">
+    <div class="modal-header bg-primary text-white">
+      <h5 class="modal-title fw-bold">{{ selectedGoal?.name }}</h5>
+      <button type="button" class="btn-close text-white" aria-label="Close" (click)="modalRef.hide()"></button>
+    </div>
+
+    <div class="modal-body p-4">
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <p><strong>Goal Description:</strong></p>
+          <p class="text-muted">{{ selectedGoal?.description }}</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Status:</strong></p>
+          <span class="badge" >{{ selectedGoal?.status }}</span>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <p><strong>Assigned Date:</strong> {{ selectedGoal?.assignedDate | date:'mediumDate' }}</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Due Date:</strong> {{ selectedGoal?.dueDate | date:'mediumDate' }}</p>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <p><strong>Employee:</strong> {{ selectedGoal?.employeeName }}</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Assigned By:</strong> {{ selectedGoal?.assignedBy }}</p>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="goalStatus" class="form-label"><strong>Update Status (% Completed):</strong></label>
+        <input type="number" id="goalStatus" [(ngModel)]="selectedGoal.statusPercentage" min="0" max="100" step="1" 
+               class="form-control" placeholder="Enter percentage (0-100)" />
+      </div>
+
+      <div class="mb-3">
+        <h6 class="fw-bold">Checkpoints:</h6>
+        <ul class="list-group mb-2">
+          <li *ngFor="let checkpoint of selectedGoal?.checkpoints; let i = index" 
+              class="list-group-item d-flex justify-content-between align-items-center">
+            <input type="text" [(ngModel)]="selectedGoal.checkpoints[i]" 
+                   class="form-control form-control-sm border-0 bg-light" />
+            <button type="button" class="btn btn-danger btn-sm ms-2" (click)="removeCheckpoint(i)">Remove</button>
+          </li>
+        </ul>
+        <button type="button" class="btn btn-outline-primary btn-sm" (click)="addCheckpoint()">Add Checkpoint</button>
+      </div>
+
+      <div class="mb-3">
+        <h6 class="fw-bold">Remarks:</h6>
+        <label for="employeeRemark" class="form-label"><strong>Your Remark:</strong></label>
+        <textarea id="employeeRemark" [(ngModel)]="selectedGoal.employeeRemark.text"
+                  rows="3" 
+                  class="form-control"></textarea>
+
+        <label for="managerRemark" class="form-label mt-3"><strong>Manager's Remark:</strong></label>
+        <textarea id="managerRemark" [(ngModel)]="selectedGoal.managerRemark.text"
+                  rows="3" placeholder="{{ 'Last updated by: ' + selectedGoal.managerRemark.updatedBy }}"
+                  class="form-control"></textarea>
+      </div>
+    </div>
+
+    <div class="modal-footer d-flex justify-content-between">
+      <button type="button" class="btn btn-secondary" (click)="modalRef?.hide()">Close</button>
+      <button type="button" class="btn btn-primary" (click)="saveUpdates()">Save Changes</button>
+    </div>
+  </div>
+</ng-template>
+  
+  
+  

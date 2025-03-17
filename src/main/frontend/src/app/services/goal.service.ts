@@ -13,7 +13,7 @@ export class GoalService {
 
   constructor(private http: HttpClient) { }
 
-  updateGoal(goalId: string, payload: any): Observable<any> {
+  updateGoal(goalId: number, payload: any): Observable<any> {
     return this.http.put(`${this.baseUrl}`+`/api/goals/${goalId}`, payload);
   }
   

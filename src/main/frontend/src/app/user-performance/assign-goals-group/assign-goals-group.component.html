@@ -24,7 +24,7 @@
           <td>{{ employee.goalsCount }}</td>
           <td>
             <button *ngIf="!employee.assigned" class="btn btn-success" (click)="assignToGroup(employee)">Add</button>
-            <span *ngIf="employee.assigned">Added</span>
+            <span *ngIf="employee.assigned ">Added</span>
           </td>
         </tr>
       </tbody>
