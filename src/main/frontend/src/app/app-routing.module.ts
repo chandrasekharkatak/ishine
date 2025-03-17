@@ -69,6 +69,7 @@ import { InformationPreviewComponent } from './user-update-info/information-prev
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
 import { ProjectViewComponent } from './project-view/project-view.component';
 import { PerformanceConfigComponent } from './configuration/performance-config/performance-config.component';
+import { ReimbursementComponent } from './reimbursement/reimbursement.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -187,6 +188,7 @@ const routes: Routes = [
   {path:'helpdesk/:id', component: HelpdeskComponent, canActivate: [AuthGuard]},
   {path:'release-notes', component: UserReleasenotesComponent, canActivate: [AuthGuard]},
   {path:'newsletters', component: NewsletterComponent, canActivate: [AuthGuard]},
+  {path:'reimbursement', component: ReimbursementComponent, canActivate: [AuthGuard]},
   {path:'**', redirectTo:'home', pathMatch:'full'},
 ];
 
