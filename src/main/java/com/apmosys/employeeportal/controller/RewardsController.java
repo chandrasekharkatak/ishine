@@ -192,7 +192,7 @@ public class RewardsController {
 	}
 	
 	 @PostMapping("/saveExcelDataForReward")
-	    public ServiceResponse saveExcelDataForReward(@RequestParam("file") MultipartFile file,@ModelAttribute EmployeeRewardsDTO employeeRewardsDTO) throws EncryptedDocumentException, InvalidFormatException {
+	    public ServiceResponse saveExcelDataForReward(@RequestParam("file") MultipartFile file,@RequestParam("createdBy") Long createdBy) throws EncryptedDocumentException, InvalidFormatException {
 	    	ServiceResponse response = new ServiceResponse();
 	    	if (file.isEmpty()) {
 	    		response.setServiceResponse("Please upload a file.");
@@ -200,7 +200,7 @@ public class RewardsController {
 	    		return response;
 	        }
 	        try {
-	            response = rewardsService.saveExcelDataForReward(file,employeeRewardsDTO);
+	            response = rewardsService.saveExcelDataForReward(file,createdBy);
 	        } catch (Exception e) {
 	            e.printStackTrace();
 	            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);

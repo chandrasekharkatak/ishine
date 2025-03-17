@@ -1457,7 +1457,7 @@ public class RewardsService {
 	    return null;
 	}
 	
-	public ServiceResponse saveExcelDataForReward(MultipartFile file , EmployeeRewardsDTO employeeRewardsDTO) throws EncryptedDocumentException, InvalidFormatException {
+	public ServiceResponse saveExcelDataForReward(MultipartFile file , Long createdBy) throws EncryptedDocumentException, InvalidFormatException {
 	    ServiceResponse response = new ServiceResponse();
 	    List<String> errorMessages = new ArrayList<>();
 	    List<Long> inactiveEmployees = new ArrayList<>();
@@ -1568,7 +1568,7 @@ public class RewardsService {
 	            reward.setOfmonthyear(formattedMonthYear);
 	            reward.setRemark(remarks);
 	            CommonProperties commonProperties = new CommonProperties();
-	            commonProperties.setCreatedBy(employeeRewardsDTO.getCreatedBy() != null ? employeeRewardsDTO.getCreatedBy() : null);
+	            commonProperties.setCreatedBy(createdBy);
 	            reward.setCommonProperty(commonProperties);	            
 	            reward.setIsActive(0);
 	            reward.setRewardType(0);	            

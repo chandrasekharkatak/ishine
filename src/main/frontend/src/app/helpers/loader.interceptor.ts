@@ -234,7 +234,8 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `getExistingProjectsAndTeamsByEmployee`,
     `${this.baseUrl}` + `api/getAllEmployeesFor360View`,
     `${this.baseUrl}` + `api/getAll360LeaveApplicationsByEmpId`,
-     `${this.baseUrl}` + `api/biomax`
+     `${this.baseUrl}` + `api/biomax`,
+     `${this.baseUrl}` + `api/saveExcelDataForReward`
   
     
   ]
