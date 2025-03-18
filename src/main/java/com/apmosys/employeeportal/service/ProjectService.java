@@ -1,6 +1,10 @@
 package com.apmosys.employeeportal.service;
 
+import java.io.IOException;
 import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -10,14 +14,19 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import com.apmosys.employeeportal.dto.ClientsDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.PoTeamDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
 import com.apmosys.employeeportal.dto.SyncableProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.model.Activity;
@@ -42,6 +51,10 @@ import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 @Service
 public class ProjectService {
@@ -87,6 +100,72 @@ public class ProjectService {
 	
 	@Autowired
 	private LogService logService;
+	@Value("${poPortal.api.allProjects}")
+	private String allPoPortalProjects;
+	
+	@Autowired
+	private final RestTemplate restTemplate = new RestTemplate();
+	
+	
+	public RestTemplate getRestTemplate() {
+		return restTemplate;
+	}
+	
+	public List<ProjectPoPortalDTO> getProjectCloneFromPoPortal() {
+		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        //apiLogInfo.setSubFeatureName("");
+        apiLogInfo.setApiUrl("/api/getProjectCloneFromPoPortal");
+        apiLogInfo.setLogLevel("INFO");
+        ProjectPoPortalDTO[] projects = restTemplate.getForObject(allPoPortalProjects, ProjectPoPortalDTO[].class);
+        List<ProjectPoPortalDTO> list= Arrays.asList(projects != null ? projects : new ProjectPoPortalDTO[0]);
+
+        list.forEach((p)->{
+        	if (p.getProjectManager() != null) {
+        		System.out.println("p.getProjectManager()"+p.getProjectManager());
+        		String empId = p.getProjectManager().replaceAll("\\s+", "").replaceAll("(?i)A-", "");
+        		
+        		Employee empValidate = employeeRepository.findByEmployeementId(Long.parseLong(empId)); // Lookup employee
+        	    if (empValidate != null) {
+        	        p.setProjectManager(empValidate.getEmpId().toString()); // Update project manager ID
+        	        p.setProjectManagerName(empValidate.getName()); // Update project manager name
+        	    }
+        	
+        	}
+        	Project project=projectRepository.findByPoProjectId(p.getId());
+        	if(project!=null) {
+        		project.setProjectName(p.getName()+" ( "+p.getPoNo()+" ) ");
+        		project.setPoStartDate(p.getStartDate());
+        		project.setPoEndDate(p.getEndDate());
+        		project.setClientLocation(p.getClientLocation().get(0));
+        		project.setClientName(p.getClientName());
+        		project.setState(p.getClientState());
+        		project.setActive("true");
+        		if(p.getProjectManager()!=null) {
+            		
+        		//project.setProjectManagerId(Long.parseLong(p.getProjectManager()));
+        		}
+        		project.setIsDraftProject("true");
+        		projectRepository.save(project);
+        	}else {
+        		Project p1=new Project();
+        		p1.setProjectName(p.getName()+" ( "+p.getPoNo()+" ) ");
+        		p1.setState(p.getClientState());
+        		p1.setPoProjectId(p.getId());
+        		if(p.getProjectManager()!=null) {
+        		//project.setProjectManagerId(Long.parseLong(p.getProjectManager()));
+        		}
+        		project.setActive("true");
+        		project.setIsDraftProject("true");
+        		p1.setPoStartDate(p.getStartDate());
+        		p1.setPoEndDate(p.getEndDate());
+        		p1.setClientLocation(p.getClientLocation().get(0));
+        		p1.setClientName(p.getClientName());
+        		projectRepository.save(p1);
+        	}
+        });
+		return list;
+	}
 	
 	public ServiceResponse getAllClients() {
 		ServiceResponse response = new ServiceResponse();

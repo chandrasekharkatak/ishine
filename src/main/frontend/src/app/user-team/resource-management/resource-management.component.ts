@@ -321,7 +321,7 @@ export class ResourceManagementComponent implements OnInit {
       this.resourceManagementService.getInternalProject().pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.internalProjectList = response.serviceResponse;
-
+console.log(this.internalProjectList.length);
           let _projectList = [...allPoProject, ...this.internalProjectList];
 
           if ((_projectList != null || _projectList != undefined) && (this.teamCreatedProjectList != null || this.teamCreatedProjectList != undefined)) {
@@ -336,7 +336,7 @@ export class ResourceManagementComponent implements OnInit {
                 return 1;
               }
             });
-
+            console.log(_projectList);
             // Separate PoPortal projects and internal projects
             this.poPortalProjectList = _projectList.filter(proj => proj.id != null);
             this.internalProjectList = _projectList.filter(proj => proj.id == null);
@@ -411,7 +411,7 @@ export class ResourceManagementComponent implements OnInit {
 
             // added in single list  
 
-            this.allProject_Po_Internal = [...this.poPortalProjectList, ...this.internalProjectList];
+            this.allProject_Po_Internal = [ ...this.internalProjectList];
 
 
             //console.log(_projectList, " all projects");
@@ -431,6 +431,7 @@ export class ResourceManagementComponent implements OnInit {
     this.resourceManagementService.alreadyCreatedTeam().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.teamCreatedProjectList = response.serviceResponse;
+        console.log(this.teamCreatedProjectList);
         this.getAllProjects();
         //console.log(this.teamCreatedProjectList, " this.teamCreatedProjectList");
       } else {

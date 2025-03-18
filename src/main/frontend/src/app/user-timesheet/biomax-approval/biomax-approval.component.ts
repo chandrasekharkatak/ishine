@@ -234,7 +234,11 @@ export class BiomaxApprovalComponent implements OnInit {
     this.getById(id);
    
     }
-
+    ProjectClone(){
+      this.biomaxseviceService.getBioMaxRequestTpoprojectclone().pipe(first()).subscribe((response:any)=>{
+        console.log(response);
+      })
+        }
     getById(id:number){
       this.biomaxseviceService.getById(id).pipe(first()).subscribe((response:any)=>{
         this.biomaxFilterData=response.serviceResponse;

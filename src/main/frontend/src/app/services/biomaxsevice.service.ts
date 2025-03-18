@@ -39,5 +39,9 @@ export class BiomaxseviceService {
   getBioMaxRequestTypeCronJon():Observable<any>{
     return this.http.get(`${this.apiUrl}/getBioMaxRequestTypeCronJon`);
   }
+  
+  getBioMaxRequestTpoprojectclone():Observable<any>{
+    return this.http.get(`${this.apiUrl}/poprojectclone`);
+  }
 }
 

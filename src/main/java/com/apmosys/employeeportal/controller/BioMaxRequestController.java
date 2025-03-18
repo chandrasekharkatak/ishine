@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.BioMaxRequestDTO;
+import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
+import com.apmosys.employeeportal.service.ProjectService;
 import com.apmosys.employeeportal.serviceInterface.BioMaxRequestService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -22,7 +27,15 @@ public class BioMaxRequestController {
 	@Autowired
 	private BioMaxRequestService bioMaxRequestService;
 	
-	  @PostMapping(value = "/create", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@Autowired
+	private ProjectService projectService;
+	
+	@GetMapping(value = "/poprojectclone")
+	public ResponseEntity<List<ProjectPoPortalDTO>> poprojectclone() {
+		return ResponseEntity.ok(projectService.getProjectCloneFromPoPortal());
+	}
+	
+	@PostMapping(value = "/create", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ServiceResponse> createBioMaxRequest(@RequestBody BioMaxRequestDTO biomaxRequestDTO) {
 		return ResponseEntity.ok(bioMaxRequestService.createBioMaxRequest(biomaxRequestDTO));
 	}
