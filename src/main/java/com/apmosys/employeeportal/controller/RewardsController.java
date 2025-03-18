@@ -21,6 +21,7 @@ import com.apmosys.employeeportal.dto.AppreciationDetails;
 import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeRewardsDTO;
 import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
+import com.apmosys.employeeportal.dto.RewardCategoryDTO;
 import com.apmosys.employeeportal.dto.RewardConfigurationDTO;
 import com.apmosys.employeeportal.dto.RewardsDetails;
 import com.apmosys.employeeportal.service.FileUploadService;
@@ -146,10 +147,10 @@ public class RewardsController {
 		return serviceResponse;
 	}
 	
-	@RequestMapping(value = "/fetchEmployeesForHomepage", method = RequestMethod.GET)
-	 public ServiceResponse fetchEmployeesForHomepage() {
+	@PostMapping("/fetchEmployeesForHomepageByCategoryId")
+	 public ServiceResponse fetchEmployeesForHomepageByCategoryId(@RequestBody RewardCategoryDTO rewardCategoryDTO) {
 		ServiceResponse serviceResponse = new ServiceResponse();
-		serviceResponse = rewardsService.fetchEmployeesForHomepage();
+		serviceResponse = rewardsService.fetchEmployeesForHomepageByCategoryId(rewardCategoryDTO);
 	        return serviceResponse;
 	    }
 	
@@ -208,4 +209,11 @@ public class RewardsController {
 
 	        return response;
 	    }
+	 
+	 @RequestMapping(value = "/fetchRewardCategoryForHomePage", method = RequestMethod.GET)
+		public ServiceResponse fetchRewardCategoryForHomePage() {
+		    ServiceResponse serviceResponse = rewardsService.fetchRewardCategoryForHomePage();
+		    return serviceResponse;
+		}
+		
 }

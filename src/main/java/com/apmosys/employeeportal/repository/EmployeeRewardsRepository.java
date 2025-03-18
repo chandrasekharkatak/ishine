@@ -19,7 +19,7 @@ import com.apmosys.employeeportal.model.EmployeeRewards;
 public interface EmployeeRewardsRepository extends JpaRepository <EmployeeRewards, Long>  {
 	
 	@Query(nativeQuery = true)
-	 List<Object[]> fetchEmployeesForHomepage();
+	 List<Object[]> fetchEmployeesForHomepage(Long rewardCategoryid);
 	 
 	 @Query(value = "SELECT \n"
 				+ "    er.reward_type_name,\n"

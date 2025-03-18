@@ -449,139 +449,53 @@
         </div>
     </div>
 
-    <!-- <div *ngIf="userMapping.view_timesheet_display" class="timesheet-graph card mb-2">
-        <div class="card-title px-1 pt-2">
-            <p class="section-heading m-0 pl-2" id="timesheet-title">Total Timesheet Time</p>
-        </div>
-        <div class="card-body p-0">
-            <div class="row col">
-                <div id="totalEODChart" style="width:100%; height:15.625rem;"></div>
-            </div>
-        </div>
-    </div> -->
-
-    <!-- <div *ngIf="userMapping.view_employee_rewards" class="timesheet-graph reward card mb-2">
-
-        <div class="card-title px-1 pt-2">
-            <p class="section-heading m-0 pl-2 p-3">Rewards Events</p>
-        </div>
-        <div class="row col reward-content-container" style=>
-            <div *ngIf="rewardsList.length == 0" class="container-fluid placeholder">
-                
-                <img class="placeholder-img" style="width: 50px;" src="assets/Images/reward2.png" alt="Rewards Icon">
-                <h1 class="placeholder-text">No Rewards Today</h1>
-            </div>
-            <marquee *ngIf="rewardsList.length != 0" direction="up" scrolldelay="250" onmouseover="this.stop();" onmouseout="this.start();">
-                <mat-list class="p-0 reward-content">
-                    <mat-list-item *ngFor="let rewards of rewardsList">
-                        
-                        <img matListAvatar src="assets/Images/reward2.png" alt="User Avatar">
-                        <h1 matLine>{{rewards.rewardedToByName}} || Reward Name : {{rewards.rewardTypeName}}</h1>
-                        <p matLine>{{rewards.department}}</p>
-                    </mat-list-item>
-                </mat-list>
-            </marquee>
-            <div class="card-title px-1 pt-2">
-                <p class="section-heading m-0 pl-2 p-3">dfghj</p>
-            </div>
-        </div>
-    </div> -->
-
-    <!-- <div *ngIf="userMapping.view_employee_rewards" class="timesheet-graph reward card mb-2">
-        <div class="card-title px-1 pt-2">
-            <p class="section-heading m-0 pl-2 p-3">Apmosys Wall Of Fame</p>
-             <p class="text-muted pl-3"><b>MONTHLY : <span class="current-month-year">{{ currentMonthYearDisplay }}</span></b></p> 
-        </div>
-        
-        <div class="reward-content-container">
-            <div *ngIf="rewardsList.length == 0" class="container-fluid placeholder">
-                <img class="placeholder-img" src="assets/Images/reward2.png" alt="Rewards Icon">
-                <h1 class="placeholder-text">No Rewards Today</h1>
-            </div>
-            
-            <marquee *ngIf="rewardsList.length != 0" direction="up" scrolldelay="250" onmouseover="this.stop();" onmouseout="this.start();">
-                <mat-list class="reward-content">
-                    <mat-list-item *ngFor="let rewards of rewardsList">
-                        <img matListAvatar src="assets/Images/reward2.png" alt="User Avatar">
-                        <h1 matLine style="font-size: smaller;">{{rewards.rewardedToByName}} || {{rewards.rewardTypeName}}</h1>
-                        <p matLine style="font-size: smaller;">{{rewards.department}}</p>
-                    </mat-list-item>
-                </mat-list>
-            </marquee>
-            <br>
-            <div class="card-title px-1 pt-2 additional-title">
-                <p class="section-heading m-0 pl-2 p-3"></p>
-            </div>
-        </div>
-
-    </div>
-    
-</div> -->
-
-    <!-- <div *ngIf="userMapping.view_employee_rewards" class="timesheet-graph reward card mb-2">
-        <div class="card-title px-1 pt-2">
-            <p class="section-heading m-0 pl-2 p-3">Apmosys Wall Of Fame</p>
-            
-        </div>
-
-        <div class="reward-content-container">
-            <div *ngIf="rewardsList.length === 0" class="container-fluid placeholder">
-              <img class="placeholder-img" src="assets/Images/reward2.png" alt="Rewards Icon">
-              <h1 class="placeholder-text">No Rewards Today</h1>
-            </div>
-          
-            <ng-container *ngFor="let group of rewardsList">
-              <h3>{{ group.ofMonthYear }}</h3>
-              <marquee direction="up" scrolldelay="250" onmouseover="this.stop();" onmouseout="this.start();">
-                <mat-list class="reward-content">
-                  <mat-list-item *ngFor="let reward of group.rewards">
-                    <img matListAvatar src="assets/Images/reward2.png" alt="User Avatar">
-                    <h1 matLine style="font-size: smaller;">{{ reward.rewardedToByName }} || {{ reward.rewardTypeName }}</h1>
-                    <p matLine style="font-size: smaller;">{{ reward.department }}</p>
-                  </mat-list-item>
-                </mat-list>
-              </marquee>
-            </ng-container>
-          </div>
-        </div>
-    </div> -->
 
     <div *ngIf="userMapping.view_employee_rewards" class="timesheet-graph reward card mb-2">
         <div class="card-title px-1 pt-2">
-            <p class="section-heading m-0 pl-2 p-3">Apmosys Wall Of Fame</p>
-            <p *ngIf="rewardsList.length !== 0" class="text-muted pl-3">
-                <b>MONTHLY: <span>{{ monthKeys[currentMonthIndex] | date: 'MMMM yyyy' }}</span></b>
-            </p>
+          <p class="section-heading m-0 pl-2 p-3">Apmosys Wall Of Fame</p>
+         
+          <div class="tabs">
+            <ul class="nav nav-pills">
+              <li class="nav-item pl-2" *ngFor="let category of rewardCategoryList">
+                <a class="nav-link" [class.active]="selectedCategoryId === category.rewardCategoryId" 
+                   (click)="onCategoryTabClick(category)">
+                  {{ category.categoryName }}
+                </a>
+              </li>
+            </ul>
+          </div>
+          
+          <p *ngIf="rewardsList.length !== 0" class="text-muted p-2">
+            <b>{{ selectedCategoryName }}: <span>{{ selectedMonth | date: 'MMMM yyyy' }}</span></b>
+          </p>
         </div>
-
+      
         <div class="reward-content-container d-flex flex-column" style="max-height: 200px;">
-            <div *ngIf="rewardsList.length === 0" class="container-fluid text-center p-3">
-                <img class="placeholder-img" src="assets/Images/reward2.png" alt="Rewards Icon">
-                <h1 class="placeholder-text">No Rewards Today</h1>
-            </div>
-
-            <marquee *ngIf="rewardsList.length !== 0" direction="up" scrolldelay="250" onmouseover="this.stop();"
-                onmouseout="this.start();" class="h-100">
-                <mat-list class="reward-content">
-                    <mat-list-item *ngFor="let rewards of currentRewards">
-                        <img matListAvatar src="assets/Images/reward2.png" alt="User Avatar">
-                        <h1 *ngIf="userMapping.employee360_view_home" matLine class="small">
-                            <span id="clickablefor360" [navigateToEmployee360]="rewards.emp360" style="cursor: pointer;" title="Click to view Employee 360">
-                              {{ rewards.rewardedToByName }}
-                            </span>
-                            || {{ rewards.rewardTypeName }}
-                        </h1>
-                        <h1 *ngIf="!userMapping.employee360_view_home" matLine class="small">{{ rewards.rewardedToByName }} || {{ rewards.rewardTypeName }}</h1>
-                        <p matLine class="small">{{ rewards.department }}</p>
-                    </mat-list-item>
-                </mat-list>
-            </marquee>
+          <div *ngIf="showEmptyMessage" class="container-fluid text-center p-3">
+            <img class="placeholder-img" src="assets/Images/reward2.png" alt="Rewards Icon">
+            <h1 class="placeholder-text">No Rewards Today</h1>
+          </div>
+          <marquee *ngIf="rewardsList.length !== 0" direction="up" scrolldelay="250" 
+                   onmouseover="this.stop();" onmouseout="this.start();" class="h-100">
+            <mat-list class="reward-content">
+              <mat-list-item *ngFor="let rewards of currentRewards">
+                <img matListAvatar src="assets/Images/reward2.png" alt="User Avatar">
+                <h1 *ngIf="userMapping.employee360_view_home" matLine class="small">
+                  <span id="clickablefor360" [navigateToEmployee360]="rewards.emp360" style="cursor: pointer;" 
+                        title="Click to view Employee 360">
+                    {{ rewards.rewardedToByName }}
+                  </span>
+                  || {{ rewards.rewardTypeName }}
+                </h1>
+                <h1 *ngIf="!userMapping.employee360_view_home" matLine class="small">
+                  {{ rewards.rewardedToByName }} || {{ rewards.rewardTypeName }}
+                </h1>
+                <p matLine class="small">{{ rewards.department }}</p>
+              </mat-list-item>
+            </mat-list>
+          </marquee>
         </div>
     </div>
-
-
-
-
 
     <!-- Modals templates -->
     <ng-template #alert_message>

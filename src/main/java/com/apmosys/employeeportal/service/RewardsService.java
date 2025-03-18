@@ -1112,14 +1112,20 @@ public class RewardsService {
 	}
 
 	
-	public ServiceResponse fetchEmployeesForHomepage() {
+	public ServiceResponse fetchEmployeesForHomepageByCategoryId(RewardCategoryDTO rewardCategoryDTO) {
         ServiceResponse serviceResponse = new ServiceResponse();
         
         try {
-            List<Object[]> employeeRewards = employeeRewardsRepository.fetchEmployeesForHomepage();
+            List<Object[]> employeeRewards = employeeRewardsRepository.fetchEmployeesForHomepage(rewardCategoryDTO.getRewardCategoryId());
+            System.out.println("rewardCategoryDTO.getRewardCategoryId()"+rewardCategoryDTO.getRewardCategoryId());
             List<EmployeeRewardForHomeDTO> dtos = new ArrayList<>();
 
-            if(!employeeRewards.isEmpty()) {
+            if(employeeRewards.isEmpty()) {
+            	serviceResponse.setServiceResponse("No employee is rewarded for this category");
+                serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                
+                return serviceResponse;
+            }else{
             	employeeRewards.forEach((object) -> {
             		
             		EmployeeRewardForHomeDTO dto = new EmployeeRewardForHomeDTO();
@@ -1618,6 +1624,44 @@ public class RewardsService {
 	        errorMessages.add("Row " + rowNum + ": Invalid date format. Expected format is e.g 'January 2025'.");
 	        return null;
 	    }
+	}
+	
+	public ServiceResponse fetchRewardCategoryForHomePage() {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    
+	    try {
+	        List<RewardsCategory> rewardCategory = rewardsCategoryRepository.findAll();
+	        List<RewardCategoryDTO> dtos = new ArrayList<>();
+
+	        if(rewardCategory.isEmpty()) {
+	            serviceResponse.setServiceResponse("No reward category found!");
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            return serviceResponse;
+	        } else {
+	            for (RewardsCategory category : rewardCategory) {
+	                RewardCategoryDTO dto = new RewardCategoryDTO();
+	                
+	                dto.setRewardCategoryId(category.getRewardCategoryId());
+	                dto.setCategoryName(category.getCategoryName());
+	                
+	                dtos.add(dto);
+	            }
+	        }
+
+	        if (!dtos.isEmpty()) {
+	            serviceResponse.setServiceResponse(dtos);
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        } else {
+	            serviceResponse.setServiceResponse("No data found");
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        serviceResponse.setServiceResponse("Error occurred while fetching data");
+	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	    }
+	    
+	    return serviceResponse;
 	}
 
 }
