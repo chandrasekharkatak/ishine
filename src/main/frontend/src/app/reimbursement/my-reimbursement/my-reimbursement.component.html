@@ -1,1 +1,191 @@
-<p>my-reimbursement works!</p>
+<div class="row">
+    <div class="card col-md-12 px-0">
+        <div class="card-header text-center text-uppercase">
+            <strong>Create New Reimbursement Request</strong>
+        </div>
+        <div class="card-body">
+            <div class="row mb-2">
+                <div class="col-md-3">
+                    <label class="info-label">
+                        <span class="text-danger">*</span>Full Name
+                    </label>
+                    <input type="text" class="form-control" name="fullName"  [(ngModel)]="currentEmployeeInfo.name" disabled/>
+                </div>
+
+                <div class="col-md-3 mb-0">
+                    <label class="info-label">
+                        <span class="text-danger">*</span>Employee Id
+                    </label>
+                    <input type="text" class="form-control" name="fullName" [(ngModel)]="currentEmployeeInfo.empId" disabled />
+                </div>
+               
+                <div class="col-md-3 mb-0">
+                    <label class="info-label">
+                        <span class="text-danger">*</span>Designation
+                    </label>
+                    <input type="text" class="form-control" name="fullName" [(ngModel)]="currentEmployeeInfo.designationName" disabled />
+                </div>
+
+                <div class="col-md-3 mb-0">
+                    <label class="info-label">
+                        <span class="text-danger">*</span>Department
+                    </label>
+                    <input type="text" class="form-control" name="fullName"  [(ngModel)]="currentEmployeeInfo.departmentName" disabled />
+                </div>
+
+                <!-- <div class="col-md-3 mb-0">
+                        <label class="info-label">
+                            <span class="text-danger">*</span>Mail Id
+                        </label>
+                        <input type="text" class="form-control" name="fullName" required />
+                    </div> -->
+                    <div class="col-md-3 mb-0">
+                        <label class="info-label">
+                            <span class="text-danger">*</span>HOD Name
+                        </label>
+                        <input type="text" class="form-control" name="fullName"  [(ngModel)]="currentEmployeeInfo.managerName" disabled />
+                    </div>
+                
+            
+                <div class="col-md-3 mb-0">
+                    <label class="info-label">
+                        <span class="text-danger">*</span>Mobile No
+                    </label>
+                    <input type="text" class="form-control" name="fullName" [(ngModel)]="currentEmployeeInfo.mobileNo" disabled />
+                </div>
+
+                <div class="col-md-3 mb-0">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Expenditure Type</label>
+                        <select class="form-control" id="dayTypeCursor" aria-hidden="true" [(ngModel)]="selectedReason"
+                            (change)="onReasonSelect()">
+                            <option selected="selected" value="" disabled>Select</option>
+                            <option value="Travel">Travel</option>
+                            <option value="Food">Food</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+               
+                <div class="col-md-2 mb-0">
+                    <label class="info-label">
+                        <span class="text-danger">*</span> Curryency
+                    </label>
+                    <select class="form-control" id="dayTypeCursor" aria-hidden="true">
+                        <option selected="selected" value="" disabled>Select</option>
+                        <option value="Rupees">Rupees</option>
+                        <option value="Dollar">Dollar</option>
+                        <option value="Euro">Euro</option>
+                        <option value="Dhiram">Dhiram</option>
+                        <option value="Australian Dollar">Australian Dollar</option>
+                        <option value="Yen">Yen</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-0">
+                    <label class="info-label">
+                        <span class="text-danger">*</span> Amount
+                    </label>
+                    <input type="number" class="form-control" name="fullName" required />
+                </div>
+                <!-- <div class="col-md-3 mb-0">
+                    <label class="info-label"><span class="text-danger">*</span>Travel Class</label>
+                    <select class="form-control" id="dayTypeCursor" aria-hidden="true">
+                        <option selected="selected" value="" disabled>Select</option>
+                        <option value="First Class">First Class</option>
+                        <option value="Second Class">Second Class</option>
+                        <option value="Third Class">Third Class</option>
+                        <option value="Business Class">Business Class</option>
+                    </select>
+                </div> -->
+                <div class="col-md-3 mb-0" *ngIf="isTravel">
+                    <label class="info-label"><span class="text-danger">*</span>Travel Mode</label>
+                    <select class="form-control" id="dayTypeCursor" aria-hidden="true">
+                        <option selected="selected" value="" disabled>Select</option>
+                        <option value="Flight">Flight</option>
+                        <option value="Train">Train</option>
+                        <option value="Bus">Bus</option>
+                        <option value="CAB">CAB</option>
+                        <option value="CAB">Rickshaw</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-0" *ngIf="isTravel">
+                    <label class="info-label">
+                        <span class="text-danger">*</span> Distance (In KM)
+                    </label>
+                    <input type="number" class="form-control" name="fullName" required />
+                </div>
+
+                <div class="col-md-3 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>From Date</label>
+                            <!-- <input id="timesheetDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" [disabled]="isUpdation"> -->
+                            <div class="d-flex">
+                                <input class="form-control" #input (focus)="timesheetDate.open()" matInput id="fromDate"
+                                    [matDatepicker]="timesheetDate" placeholder="Choose a date"
+                                    autocomplete="off">
+                                <mat-datepicker-toggle matSuffix [for]="timesheetDate"
+                                    style="margin-left: -44px; margin-top: 0px;"></mat-datepicker-toggle>
+                            </div>
+                            <mat-datepicker #timesheetDate (closed)="input.blur()"></mat-datepicker>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="col-md-3 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>To Date</label>
+                            <!-- <input id="timesheetDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" [disabled]="isUpdation"> -->
+                            <div class="d-flex">
+                                <input class="form-control" #input (focus)="timesheetDate.open()" matInput id="toDate"
+                                    [matDatepicker]="timesheetDate" placeholder="Choose a date"
+                                    autocomplete="off">
+                                <mat-datepicker-toggle matSuffix [for]="timesheetDate"
+                                    style="margin-left: -44px; margin-top: 0px;"></mat-datepicker-toggle>
+                            </div>
+                            <mat-datepicker #timesheetDate (closed)="input.blur()"></mat-datepicker>
+                        </div>
+                    </div>
+                </div>
+
+               
+               
+                    <div class="col-md-4 mb-0">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label for="leaveDesc"><span class="text-danger">*</span>Purpose</label>
+                                <textarea class="form-control" id="dayTypeDesc" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 mb-0">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label for="fileUpload" class="info-label"> <span class="text-danger">*</span> Supporting Documents/GST Bill</label>
+                                <input type="file" id="fileUpload" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+                
+
+
+
+
+
+                <!-- </div> -->
+
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-12 px-0 text-center">
+                    <!-- Reset and Submit buttons -->
+                    <button type="button" class="btn btn-secondary btn-lg mx-1">Reset</button>
+                    <button type="submit" class="btn btn-primary btn-lg mx-1">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
