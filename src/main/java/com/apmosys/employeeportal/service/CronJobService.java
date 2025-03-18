@@ -5049,10 +5049,14 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 			            .collect(Collectors.toSet());  // Use a set for faster lookup
 			    
 			   // removeemployeeId.addAll(employeeNotLeaveDeduct);
+			    if(employeeNotLeaveDeduct.size()>0) {
 			    biomaxDataList.removeIf(bio -> employeeNotLeaveDeduct.contains(bio.getEmpId()));
+			    }
 				
 			}
+			 if(removeemployeeId.size()>0) {
 			biomaxDataList.removeIf(bio -> removeemployeeId.contains(bio.getEmployementId()));
+			 }
 				List<BioMaTO> finalEmpBioData = new ArrayList<>();
 						
 					

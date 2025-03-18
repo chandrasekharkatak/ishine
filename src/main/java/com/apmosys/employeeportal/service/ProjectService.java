@@ -119,8 +119,9 @@ public class ProjectService {
         apiLogInfo.setLogLevel("INFO");
         ProjectPoPortalDTO[] projects = restTemplate.getForObject(allPoPortalProjects, ProjectPoPortalDTO[].class);
         List<ProjectPoPortalDTO> list= Arrays.asList(projects != null ? projects : new ProjectPoPortalDTO[0]);
-
+if(list!=null) {
         list.forEach((p)->{
+        	
         	if (p.getProjectManager() != null) {
         		System.out.println("p.getProjectManager()"+p.getProjectManager());
         		String empId = p.getProjectManager().replaceAll("\\s+", "").replaceAll("(?i)A-", "");
@@ -133,6 +134,34 @@ public class ProjectService {
         	
         	}
         	Project project=projectRepository.findByPoProjectId(p.getId());
+        	if(p.getClientName()!=null) {
+        		Optional<Client> client=clientsRepository.findByClientName(p.getClientName());
+        		if(client.isPresent()) {
+        			Client c=client.get();
+        			System.out.println("client"+c.getClientName());
+        			project.setClientId(c.getClientId());
+        			project.setClientName(c.getClientName());
+        		}
+        	}
+        	List<ProjectDepartmentMap> projDeptMap = projectDepartmentMapRepository.findByProjectId(project.getProjectId());
+    		
+        	if(projDeptMap.size()==0) {
+    			List<String> deptName=p.getDepartment();
+    			if(deptName.size()>0) {
+    				
+    				for(String mp:deptName)
+    				{
+    					Department dept=departmentRepository.findByName(mp);
+    	    			if(dept!=null) {
+    	    				ProjectDepartmentMap ProjectDepartmentMap1=new ProjectDepartmentMap();
+        					ProjectDepartmentMap1.setDeptId(dept.getDeptId());
+        					ProjectDepartmentMap1.setProjectId(Integer.parseInt(project.getProjectId().toString()));
+        					projectDepartmentMapRepository.save(ProjectDepartmentMap1);
+    	    			}
+    					
+    				}
+    			}
+    		}
         	if(project!=null) {
         		project.setProjectName(p.getName()+" ( "+p.getPoNo()+" ) ");
         		project.setPoStartDate(p.getStartDate());
@@ -141,29 +170,44 @@ public class ProjectService {
         		project.setClientName(p.getClientName());
         		project.setState(p.getClientState());
         		project.setActive("true");
+        		project.setState(p.getStatus());
         		if(p.getProjectManager()!=null) {
             		
-        		//project.setProjectManagerId(Long.parseLong(p.getProjectManager()));
+        		project.setProjectManagerId(Long.parseLong(p.getProjectManager()));
         		}
+        		//project.setDepartmentName(p.getDepartment().toString());
+        		
         		project.setIsDraftProject("true");
+        		project.setActive("true");
+        		project.setSyncProject("true");
+        		
         		projectRepository.save(project);
         	}else {
-        		Project p1=new Project();
-        		p1.setProjectName(p.getName()+" ( "+p.getPoNo()+" ) ");
-        		p1.setState(p.getClientState());
-        		p1.setPoProjectId(p.getId());
+        		 project=new Project();
+        		 project.setProjectName(p.getName()+" ( "+p.getPoNo()+" ) ");
+        		 project.setState(p.getClientState());
+        		 project.setPoProjectId(p.getId());
         		if(p.getProjectManager()!=null) {
-        		//project.setProjectManagerId(Long.parseLong(p.getProjectManager()));
+        			project.setProjectManagerId(Long.parseLong(p.getProjectManager()));
         		}
-        		project.setActive("true");
+        		project.setState(p.getStatus());
+        		if(p.getDepartment().size()>0) {
+        			project.setDepartmentName(p.getDepartment().toString());
+        		}
         		project.setIsDraftProject("true");
-        		p1.setPoStartDate(p.getStartDate());
-        		p1.setPoEndDate(p.getEndDate());
-        		p1.setClientLocation(p.getClientLocation().get(0));
-        		p1.setClientName(p.getClientName());
-        		projectRepository.save(p1);
+        		project.setActive("true");
+        		project.setSyncProject("true");
+        		
+        		project.setPoStartDate(p.getStartDate());
+        		project.setPoEndDate(p.getEndDate());
+        		project.setClientLocation(p.getClientLocation().get(0));
+        		project.setClientName(p.getClientName());
+        		projectRepository.save(project);
         	}
+        	
+        	
         });
+}
 		return list;
 	}
 	

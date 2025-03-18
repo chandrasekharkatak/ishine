@@ -336,7 +336,7 @@ console.log(this.internalProjectList.length);
                 return 1;
               }
             });
-            console.log(_projectList);
+
             // Separate PoPortal projects and internal projects
             this.poPortalProjectList = _projectList.filter(proj => proj.id != null);
             this.internalProjectList = _projectList.filter(proj => proj.id == null);
@@ -431,7 +431,6 @@ console.log(this.internalProjectList.length);
     this.resourceManagementService.alreadyCreatedTeam().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.teamCreatedProjectList = response.serviceResponse;
-        console.log(this.teamCreatedProjectList);
         this.getAllProjects();
         //console.log(this.teamCreatedProjectList, " this.teamCreatedProjectList");
       } else {

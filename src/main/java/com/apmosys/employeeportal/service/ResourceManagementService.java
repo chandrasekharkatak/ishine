@@ -1702,15 +1702,16 @@ public class ResourceManagementService {
 					
 					projectDTO.setProjectType("Internal");
 					projectDTO.setName(object[0] != null ? object[0].toString() : null);
-					projectDTO.setProjectManager(object[10] != null ? "A-".concat(object[10].toString()) : null);
+					projectDTO.setProjectManager(object[1] != null ? "A-".concat(object[1].toString()) : null);
 					projectDTO.setProjectManagerName(object[2] != null ? object[2].toString() : null);
 					projectDTO.setProjectId(object[3] != null ? Integer.parseInt(object[3].toString()) : null);
-					projectDTO.setStatus(object[11] != null ? object[11].toString() : null);
-					projectDTO.setIsActive(object[12] != null ? Long.parseLong(object[12].toString()) :null);
-					//projectDTO.setIsActive(2l);
-					
+					projectDTO.setStatus(object[13] != null ? object[13].toString() : null);
+					//projectDTO.setIsActive(object[13] != null ? Long.parseLong(object[13].toString()) :null);
+					 //projectDTO.setIsActive(2l);
+					projectDTO.setStartDate(object[4] != null ? object[4].toString() :null);
+					projectDTO.setEndDate(object[5] != null ? object[5].toString() :null);
 					//Find ClientName
-					Integer clientId = object[7] != null ? Integer.parseInt(object[7].toString()) : null;
+					Integer clientId = object[9] != null ? Integer.parseInt(object[9].toString()) : null;
 					if(clientId != null) {
 						Client clientObj = clientsRepository.findByClientId(clientId);
 						
@@ -1719,9 +1720,9 @@ public class ResourceManagementService {
 						projectDTO.setClientName(null);
 					}
 					
-					projectDTO.setClientState(object[8] != null ? object[8].toString() : null);
-					projectDTO.setCreatedOn(object[5] != null ? object[5].toString() : null);
-					projectDTO.setIsDraftProject(object[9] != null ? object[9].toString() : null);
+					projectDTO.setClientState(object[10] != null ? object[10].toString() : null);
+					projectDTO.setCreatedOn(object[7] != null ? object[7].toString() : null);
+					projectDTO.setIsDraftProject(object[12] != null ? object[12].toString() : null);
 					
 					//Find ClientLocation
 					if(clientId != null) {
