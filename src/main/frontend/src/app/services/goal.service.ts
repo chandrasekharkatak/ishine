@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 
@@ -18,7 +18,10 @@ export class GoalService {
   }
   
 
-  getGoalsByEmployeeId(empId: number): Observable<any> {
-    return this.http.get(`${this.baseUrl}'+'/employee/${empId}`).pipe();
+  getGoalsByEmployeeAndQuarter(empId: number, quarter: string): Observable<any> {
+    const params = new HttpParams()
+      .set('empId', empId.toString())
+      .set('quarter', quarter);
+    return this.http.get(`${this.baseUrl}`+`/api/getAllGoals`, { params });
   }
 }

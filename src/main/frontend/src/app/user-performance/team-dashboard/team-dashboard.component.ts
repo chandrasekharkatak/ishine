@@ -45,9 +45,7 @@ export class TeamDashboardComponent implements OnInit {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
-  employees: any [] = [{
-    
-  }];
+  employees: any [] = [{  }];
   goals: any[] = [];
   modalRef?: BsModalRef;
 

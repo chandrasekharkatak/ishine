@@ -10,16 +10,30 @@ import { PerformanceService } from 'src/app/services/performance.service';
 import { GoalService } from 'src/app/services/goal.service';
 
 interface Goal {
+  statusPercentage: any;
   id: number;
   name: string;
   description: string;
-  checkpoints: { id: number; remark: string }[];
+  checkpoints: any[];
   managerRemark: string;
   employeeRemark: string;
   assignedBy: string;
   employeeName: string;
   dueDate: string;
   assignedDate: string;
+}
+
+interface Stats {
+  goalsCompleted: number;
+  goalsRemaining: number;
+  kraKpiScore: string;
+  questionnaireScore: string;
+}
+
+interface AppraisalSummary {
+  finalRating: number;
+  finalRemarks: string;
+  appraisalScore: number;
 }
 
 @Component({
@@ -32,7 +46,7 @@ export class PerformanceDashboardComponent implements OnInit {
   currentUser:User;
   activeTab: string = 'kra-kpi';
   selectedQuarter: string = 'Q1';
-  quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
+  quarters = [];
 
   kraKpiMetrics: any[] = [];
   questionnaireQuestions: any[] = [];
@@ -40,41 +54,18 @@ export class PerformanceDashboardComponent implements OnInit {
   kraKpiReviewForm: FormGroup;
   questionnaireReviewForm: FormGroup;
 
-  stats: {
-    goalsCompleted: number;
-    goalsRemaining: number;
-    kraKpiScore: string;
-    questionnaireScore: string;
+  stats: Stats ={
+    goalsCompleted: 0,
+    goalsRemaining: 0,
+    kraKpiScore: '',
+    questionnaireScore: '',
   };
 
-  goals: Goal[] = [{
-    id: 1,
-    name: 'Goalname',
-    description: 'goalDescription',
-    checkpoints: [],
-    managerRemark: '',
-    employeeRemark: '',
-    assignedBy:'',
-    assignedDate: '',
-    dueDate: '',
-    employeeName: '',
-  },
-  {
-    id: 1,
-    name: 'Goalname2',
-    description: 'goalDescription',
-    checkpoints: [],
-    managerRemark: '',
-    employeeRemark: '',
-    assignedBy:'',
-    assignedDate: '',
-    dueDate: '',
-    employeeName: '',
-  }];
-
+  goals: Goal[] = [];
+  summary?: AppraisalSummary;
 
   currentEmployeeInfo:Employee = new Employee();
-  selectedGoal: any;
+  selectedGoal?: Goal;
   modalRef?: BsModalRef;
   errorMessage: string;
 
@@ -91,15 +82,60 @@ export class PerformanceDashboardComponent implements OnInit {
   }
 
   ngOnInit(): void {
-  //  this.fetchGoals();
-  this.onGetEmployeeInfo();
-  this.loadPerformanceStats();
+    this.onGetEmployeeInfo();
+    this.fetchQuarters();
+    this.fetchGoals();
+    this.loadPerformanceStats();
   }
+
+  fetchQuarters(): void {
+    this.performanceService.getAvailableQuarters().subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === 'SUCCESS') {
+          this.quarters = response.serviceResponse;
+          this.selectedQuarter = this.quarters[0] || '';
+          this.onQuarterChange();
+        } else {
+          this.errorMessage = response.serviceMessage || 'Failed to load quarters.';
+        }
+      },
+      error: (error) => {
+        this.errorMessage = error.message || 'Error fetching quarters.';
+      }
+    });
+  }
+
+  onQuarterChange(): void {
+    if (!this.selectedQuarter) return;
+
+    this.loadPerformanceStats();
+    this.fetchReviewData();
+    this.fetchGoals();
+  }
+
+  loadAppraisalSummary(): void {
+    const empId = this.currentEmployeeInfo.empId;
+    if (!empId ) return;
+
+    this.performanceService.getAppraisalSummary(empId).subscribe({
+      next: (data) => {
+        this.summary = data;
+      },
+      error: (err) => {
+        console.error('Error fetching Appraisal Summary:', err);
+      },
+    });
+  }
+
 
   fetchGoals(): void {
     this.errorMessage = ''; 
+    const empId = this.currentEmployeeInfo.empId;
+    const quarter = this.selectedQuarter;
 
-    this.goalService.getGoalsByEmployeeId(this.currentEmployeeInfo.empId).subscribe({
+    if (!empId) return;
+
+    this.goalService.getGoalsByEmployeeAndQuarter(empId, quarter).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'SUCCESS') {
           this.goals = response.serviceResponse; 
@@ -175,6 +211,29 @@ export class PerformanceDashboardComponent implements OnInit {
     }
   }
 
+  loadReviewData(): void {
+    const empId = this.currentUser?.empId;
+    const quarter = this.selectedQuarter;
+    if (!empId) return;
+    this.performanceService.getKraKpiReview(empId, quarter).subscribe({
+      next: (data) => {
+        if (data.serviceStatus === 'SUCCESS') {
+          this.kraKpiMetrics = data.serviceResponse;
+        }
+      },
+      error: err => console.error('Error fetching KRA/KPI metrics:', err)
+    });
+
+    this.performanceService.getQuestionnaireReview(empId, quarter).subscribe({
+      next: (data) => {
+        if (data.serviceStatus === 'SUCCESS') {
+          this.questionnaireQuestions = data.serviceResponse;
+        }
+      },
+      error: err => console.error('Error fetching questionnaire:', err)
+    });
+  }
+
   initializeKraKpiForm() {
     let formControls: any = {};
     this.kraKpiMetrics.forEach(metric => {
@@ -204,10 +263,6 @@ export class PerformanceDashboardComponent implements OnInit {
       .subscribe(response => console.log('Questionnaire Review submitted:', response));
   }
   
-  onQuarterChange(){
-    
-  }
-  
 
   addCheckpoint() {
     this.selectedGoal.checkpoints.push('');
@@ -222,7 +277,6 @@ export class PerformanceDashboardComponent implements OnInit {
       statusPercentage: this.selectedGoal.statusPercentage,
       checkpoints: this.selectedGoal.checkpoints,
       employeeRemark: this.selectedGoal.employeeRemark,
-      managerRemark: this.selectedGoal.managerRemark,
     };
   
     this.goalService.updateGoal(this.selectedGoal.id, payload).subscribe(
@@ -236,9 +290,6 @@ export class PerformanceDashboardComponent implements OnInit {
     );
   }
 
-  getStars(rating: number): boolean[] {
-    const filledStars = Math.round(rating / 2);
-    return Array(5).fill(false).map((_, i) => i < filledStars);
-  }
+ 
   
 }

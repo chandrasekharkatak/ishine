@@ -119,8 +119,10 @@
             <input type="text" class="form-control" formControlName="name" required>
           </div>
           <label>Description</label>
-          <input type="text" class="form-control" formControlName="description">
+          <input type="text" class="form-control" formControlName="description" required>
         </div>
+
+
 
         <div *ngIf="selectedTemplateType === 'kra-kpi'" class="form-group w-25">
           <div class="form-group w-25">
@@ -131,11 +133,11 @@
           <input type="text" class="form-control" formControlName="metrics">
         </div>
 
+
+
+
         <div *ngIf="selectedTemplateType === 'questionnaire'" class="card-body mx-0">
-          
-          
             <form [formGroup]="questionnaireForm" (ngSubmit)="onSubmit()">
-              
               <div class="row mb-3">
                 <div class="col-md-6">
                   <label for="title"><span class="text-danger">*</span>Questionnaire Title</label>

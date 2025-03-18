@@ -5,13 +5,6 @@
     </div>
   </div>
     <div class="d-flex justify-content-between mb-3 ">
-     
-      <select class="form-control w-25">
-        <option value="">Filter by Team</option>
-        <option value="Team A">Team A</option>
-        <option value="Team B">Team B</option>
-        <option value="Team C">Team C</option>
-      </select>
       <button class="btn btn-primary" [disabled]="!selectedEmployees.length"
       (click)="openBulkAssignModal(bulkAssignTemplate)">Assign to Group</button>
     </div>
