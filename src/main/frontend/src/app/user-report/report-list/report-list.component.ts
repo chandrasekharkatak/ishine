@@ -557,6 +557,22 @@ export class ReportListComponent implements OnInit {
           employee.createdOn = (employee.createdOn) ? moment(employee.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           employee.updatedOn = (employee.updatedOn) ? moment(employee.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
+        this.allEmployeeList.forEach(employee => {
+          let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === employee.employeementId);
+          // console.log("allEmployeeList matchingEmployee : ", matchingEmployee)
+          employee.emp360 = matchingEmployee ? matchingEmployee : {};    
+          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === employee.managerId);
+          // console.log("leave match ",matchingEmployee);
+          employee.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          console.log("employee.updatedBy getAllEmpoyee", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          console.log("updatedBy getAllEmpoyee ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+      });
         //console.log("allEmployeeList : ", this.allEmployeeList)
       } else {
         alert(response.serviceResponse)
@@ -598,7 +614,7 @@ export class ReportListComponent implements OnInit {
           });
           this.allEmployeeList.forEach(employee => {
             let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === employee.employeementId);
-            console.log("allEmployeeList matchingEmployee : ", matchingEmployee)
+            // console.log("allEmployeeList matchingEmployee : ", matchingEmployee)
             employee.emp360 = matchingEmployee ? matchingEmployee : {};    
             let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === employee.managerId);
             // console.log("leave match ",matchingEmployee);
@@ -607,9 +623,9 @@ export class ReportListComponent implements OnInit {
             let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
             // console.log("createdby ", matchingEmployee3);
             employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
-            // console.log("employee.updatedBy ", employee.updatedBy);
+            console.log("employee.updatedBy ", employee.updatedBy);
             let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
-            // console.log("updatedBy ", matchingEmployee4);
+            console.log("updatedBy ", matchingEmployee4);
             employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
         });
           //console.log("allEmployeeList : ", this.allEmployeeList)

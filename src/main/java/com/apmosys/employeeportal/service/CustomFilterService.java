@@ -1077,6 +1077,7 @@ public class CustomFilterService {
 //					empDTO.setDomainName(object[66] != null ? (object[66].toString()) : null);
 					empDTO.setDesignationId(object[65] != null ? Long.parseLong(object[65].toString()) : null);
 					empDTO.setDesignationName(object[66] != null ? (object[66].toString()) : null);
+					empDTO.setUpdatedBy(object[67] != null ? Long.parseLong(object[67].toString()) : null);
 					empDTO.setBillableType(object[68] != null ? object[68].toString() : null);
 					
 //					empDTO.setAge(object[70] != null ? Long.parseLong(object[70].toString()) : null);
