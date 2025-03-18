@@ -17,6 +17,10 @@ import { ValidationService } from 'src/app/services/validation.service';
 import { ClipboardService } from 'ngx-clipboard';
 import { Router } from '@angular/router';
 import { UtilityService } from 'src/app/services/utility.service';
+import { ProjectService } from 'src/app/services/project.service';
+import { ProjectInsightQuestion } from 'src/app/models/projectInsightQuestion';
+import { ProjectQuestion } from 'src/app/models/projectQuestion';
+import { ProjectInsightService } from 'src/app/services/project-insight.service';
 
 @Component({
   selector: 'app-project-insights-config',
@@ -37,15 +41,20 @@ export class ProjectInsightsConfigComponent implements OnInit {
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
 
-  isSurveyForm:boolean = false;
+  isQuestionForm:boolean = false;
   isCreation:boolean = false;
   isUpdation:boolean = false;
 
-  isSurveyList:boolean = false;
+  isProjectInsightList:boolean = false;
   isSurveyResponseList:boolean = false;
+  // isSurveyResponseList
 
   surveyObj:Survey = new Survey();
   allSurveyQuestionList:SurveyQuestion[] = [new SurveyQuestion()];
+  projectInsightQuestionList:ProjectInsightQuestion[] = [new ProjectInsightQuestion()]
+  allProjectList:any[] = [];
+  projectInsightQuestion:ProjectInsightQuestion = new ProjectInsightQuestion();
+  allProjectInsightCreatedList:any[] = [];
 
   allSurveyList:any[] = [];
   allSurveyResponseList:any[] = [];
@@ -83,6 +92,8 @@ export class ProjectInsightsConfigComponent implements OnInit {
     private clipboardService: ClipboardService,
     private router: Router,
     private utilityService: UtilityService,
+    private projectService: ProjectService,
+    private projectInsightService:ProjectInsightService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -108,6 +119,8 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
     //console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
     this.preventBackButton();
+
+    this.getAllProjects();
   }
   preventBackButton(){
     history.pushState(null, null, location.href);
@@ -121,11 +134,11 @@ export class ProjectInsightsConfigComponent implements OnInit {
   }
 
   showSurveyForm(){
-    this.isSurveyForm = true;
+    this.isQuestionForm = true;
     this.isCreation = true;
 
     this.isUpdation = false;
-    this.isSurveyList = false;
+    this.isProjectInsightList = false;
     this.isSurveyResponseList = false;
 
     this.surveyObj = new Survey();
@@ -133,9 +146,9 @@ export class ProjectInsightsConfigComponent implements OnInit {
   }
 
   showSurveys(){
-    this.isSurveyList = true;
+    this.isProjectInsightList = true;
 
-    this.isSurveyForm = false;
+    this.isQuestionForm = false;
     this.isCreation = false;
     this.isUpdation = false;
     this.isSurveyResponseList = false;
@@ -146,10 +159,10 @@ export class ProjectInsightsConfigComponent implements OnInit {
   showSurveyResponses(surveyObj:Survey){
     this.isSurveyResponseList = true;
 
-    this.isSurveyForm = false;
+    this.isQuestionForm = false;
     this.isCreation = false;
     this.isUpdation = false;
-    this.isSurveyList = false;
+    this.isProjectInsightList = false;
 
     //console.log("surveyObj for responses : ", surveyObj);
     this.getAllSurveyResponsesBySurveyId(surveyObj);
@@ -157,12 +170,12 @@ export class ProjectInsightsConfigComponent implements OnInit {
   }
 
   showSurveyUpdate(surveyObj:Survey, template: TemplateRef<any>){
-    this.isSurveyForm = true;
+    this.isQuestionForm = true;
     this.isUpdation = true;
 
     this.isCreation = false;
     this.isSurveyResponseList = false;
-    this.isSurveyList = false;
+    this.isProjectInsightList = false;
 
     this.surveyObj = new Survey();
     this.allSurveyQuestionList = [];
@@ -187,29 +200,72 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
   }
 
-  // Manage Questions
-  addQuestion(i){
-    this.allSurveyQuestionList.splice(i+1,0,new SurveyQuestion());
+  getAllProjects(){
+    this.allProjectList = [];
+
+    this.projectService.getAllProjects().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allProjectList = response.serviceResponse;
+        this.allProjectList.forEach(project =>{
+        project.createdOn = (project.createdOn)? moment(project.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        project.updatedOn = (project.updatedOn)? moment(project.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+        })
+
+        //remove duplicate clients
+        this.allProjectList = this.allProjectList.filter((value, index, self) =>
+          index === self.findIndex((t) => (
+            t.projectId === value.projectId
+          ))
+        );
+        this.allProjectList = this.allProjectList.sort((a,b)=>a.createdOn-b.createdOn);
+        //console.log(this.allProjects, " : this.allProjects");
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
   }
 
-  removeQuestion(i){
-    this.allSurveyQuestionList.splice(i,1);
+  getProjectManangerInfo(projectId: any){
+    this.allProjectList.forEach((object) => {
+      if(object.projectId == projectId){
+        this.projectInsightQuestion.projectManagerName = object.employeeName;
+        this.projectInsightQuestion.projectManagerId = object.empId;
+      }
+    });
+  }
+
+  // Manage Questions
+  addQuestion(mileIndex: any, i: any) {
+    this.projectInsightQuestionList[mileIndex].projectQuestion.splice(i + 1, 0, new ProjectQuestion());
+  }
+  
+
+  removeQuestion(mileIndex,i){
+    this.projectInsightQuestionList[mileIndex].projectQuestion.splice(i,1);
+  }
+
+  addMilestone(mileIndex){
+    this.projectInsightQuestionList.splice(mileIndex+1,0,new ProjectInsightQuestion());
+  }
+
+  removeMilestone(mileIndex){ 
+    this.projectInsightQuestionList.splice(mileIndex,1);
   }
 
   // Manage Options
-  addOption(i, questionObj:SurveyQuestion){
-    let question = this.allSurveyQuestionList.find(ques => ques == questionObj);
+  addOption(mileIndex, i, questionObj:ProjectQuestion){
+    let question = this.projectInsightQuestionList[mileIndex].projectQuestion.find(ques => ques == questionObj);
     question.optionsList.splice(i+1,0, new SurveyOption());
   }
 
-  removeOption(i, questionObj:SurveyQuestion){
-    let question = this.allSurveyQuestionList.find(ques => ques == questionObj);
+  removeOption(mileIndex, i, questionObj:ProjectQuestion){
+    let question = this.projectInsightQuestionList[mileIndex].projectQuestion.find(ques => ques == questionObj);
     question.optionsList.splice(i,1);
   }
 
-  setOption(questionObj:SurveyQuestion){
+  setOption(questionObj:ProjectQuestion, mileIndex:any, index:any){
     if(questionObj.optionType == "checkbox" || questionObj.optionType == "radio"){
-      let question = this.allSurveyQuestionList.find(ques => ques == questionObj);
+      let question = this.projectInsightQuestionList[mileIndex].projectQuestion.find(ques => ques == questionObj);
       question.optionsList = [];
       question.optionsList.splice(1,0,new SurveyOption());
     }
@@ -217,79 +273,89 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
 
   onPreiew(previewTemplate: TemplateRef<any>, template: TemplateRef<any>){
-    let inputValidated: boolean = this.vallidateSurvey(template, this.surveyObj, this.allSurveyQuestionList);
+    let inputValidated: boolean = this.vallidateProjectInsight(template, this.projectInsightQuestion, this.projectInsightQuestionList);
     if (!inputValidated) return;
 
-    const surveyTemplate:string = this.createTemplate();
+    const questionTemplate:string = this.createTemplate();
 
-    let previewObj = new Survey();
-    previewObj.surveyName = this.surveyObj.surveyName;
-    previewObj.description = this.surveyObj.description;
-    previewObj.surveyQuestionList = this.allSurveyQuestionList;
-    previewObj.surveyTemplate = surveyTemplate;
+    let previewObj = new ProjectInsightQuestion();
+    previewObj.projectId = this.projectInsightQuestion.projectId;
+    previewObj.projectManagerId = this.projectInsightQuestion.projectManagerId;
+    previewObj.projectManagerName = this.projectInsightQuestion.projectManagerName;
+    previewObj.projectInsightQuestionList = this.projectInsightQuestionList;
+    previewObj.projectInsightQuestionTemplate = questionTemplate;
 
     //console.log("previewObj : ", previewObj);
     this.openSurveyPreviewMod(previewTemplate,previewObj);
   }
 
-  vallidateSurvey(template: TemplateRef<any>, surveyObj:Survey, allSurveyQuestionList:SurveyQuestion[]){
-    if(!this.validationService.validateNullUndefinedEmptyString(surveyObj.surveyName)){
-      this.alertMessage = "Please enter Survey Name !!"
+  vallidateProjectInsight(template: TemplateRef<any>, projectInsightQuestion:ProjectInsightQuestion, projectInsightQuestionList:ProjectInsightQuestion[]){
+    if(!this.validationService.validateNullUndefinedEmptyString(projectInsightQuestion.projectId)){
+      this.alertMessage = "Please select Project name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    if(!this.validationService.validateTeamName(surveyObj.surveyName.trim())){
-      this.alertMessage = "Please enter Valid Survey Name !!"
+    if(!this.validationService.validateNullUndefinedEmptyString(projectInsightQuestion.projectManagerName)){
+      this.alertMessage = "Please select Project Manager !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
 
     let flag = true;
-    allSurveyQuestionList.forEach((question:SurveyQuestion, index) => {
-      if(!this.validationService.validateNullUndefinedEmptyString(question.question)){
-        this.alertMessage = `Please enter Question ${index+1} !!`;
+    projectInsightQuestionList.forEach((milestone:ProjectInsightQuestion, mileIndex) => {
+      if(!this.validationService.validateNullUndefinedEmptyString(milestone.milestone)){
+        this.alertMessage = `Please enter milestone ${mileIndex+1} !!`;
         this.openAlertMod(template, this.alertMessage);
         flag = false;
-        return;
-      }
-      if(!this.validationService.validateTeamName(question.question)){
-        this.alertMessage = `Please enter valid Question ${index+1} !!`;
-        this.openAlertMod(template, this.alertMessage);
-        flag = false;
-        return;
+        return false;
       }
 
-      if(!this.validationService.validateNullUndefinedEmptyString(question.optionType)){
-        this.alertMessage = `Please select Option Type ${index+1} !!`;
-        this.openAlertMod(template, this.alertMessage);
-        flag = false;
-        return;
-      }
-
-      if(!this.validationService.validateNullUndefinedEmptyString(question.required)){
-        this.alertMessage = `Please select reqiured ${index+1} !!`;
-        this.openAlertMod(template, this.alertMessage);
-        flag = false;
-        return;
-      }
-
-      if(question.optionType == "radio" || question.optionType == "checkbox"){
-        if (question.optionsList.length < 2) {
-          this.alertMessage = `Please provide atleast 2 options for Question ${index + 1} !!`;
+      milestone.projectQuestion.forEach((question:ProjectQuestion, index) => {
+        if(!this.validationService.validateNullUndefinedEmptyString(question.question)){
+          this.alertMessage = `Please enter Question ${index+1} !!`;
           this.openAlertMod(template, this.alertMessage);
           flag = false;
           return;
-        }else{
-          question.optionsList.forEach((option: SurveyOption, opIndex) => {
-            if (!this.validationService.validateNullUndefinedEmptyString(option.optionValue)) {
-              this.alertMessage = `Please enter option ${opIndex + 1} for Question ${index + 1} !!`;
-              this.openAlertMod(template, this.alertMessage);
-              flag = false;
-              return;
-            }
-          });
         }
-      }
+        if(!this.validationService.validateTeamName(question.question)){
+          this.alertMessage = `Please enter valid Question ${index+1} !!`;
+          this.openAlertMod(template, this.alertMessage);
+          flag = false;
+          return;
+        }
+  
+        if(!this.validationService.validateNullUndefinedEmptyString(question.optionType)){
+          this.alertMessage = `Please select Option Type ${index+1} !!`;
+          this.openAlertMod(template, this.alertMessage);
+          flag = false;
+          return;
+        }
+  
+        if(!this.validationService.validateNullUndefinedEmptyString(question.required)){
+          this.alertMessage = `Please select reqiured ${index+1} !!`;
+          this.openAlertMod(template, this.alertMessage);
+          flag = false;
+          return;
+        }
+  
+        if(question.optionType == "radio" || question.optionType == "checkbox"){
+          if (question.optionsList.length < 2) {
+            this.alertMessage = `Please provide atleast 2 options for Question ${index + 1} !!`;
+            this.openAlertMod(template, this.alertMessage);
+            flag = false;
+            return;
+          }else{
+            question.optionsList.forEach((option: SurveyOption, opIndex) => {
+              if (!this.validationService.validateNullUndefinedEmptyString(option.optionValue)) {
+                this.alertMessage = `Please enter option ${opIndex + 1} for Question ${index + 1} !!`;
+                this.openAlertMod(template, this.alertMessage);
+                flag = false;
+                return;
+              }
+            });
+          }
+        }
+      });
     });
 
     return flag;
@@ -297,25 +363,25 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
   onSubmit(template: TemplateRef<any>){
 
-    let inputValidated: boolean = this.vallidateSurvey(template, this.surveyObj, this.allSurveyQuestionList);
+    let inputValidated: boolean = this.vallidateProjectInsight(template, this.projectInsightQuestion, this.projectInsightQuestionList);
     if (!inputValidated) return;
 
-    const surveyTemplate:string = this.createTemplate();
+    const questionTemplate:string = this.createTemplate();
 
-    let surveyObj = new Survey();
-    surveyObj.surveyName = this.surveyObj.surveyName;
-    surveyObj.description = this.surveyObj.description;
-    surveyObj.surveyQuestionList = this.allSurveyQuestionList;
-    surveyObj.surveyTemplate = surveyTemplate;
-    surveyObj.createdBy = this.currentUser.empId;
-    surveyObj.isActive = false;
+    let projObj = new ProjectInsightQuestion();
+    projObj.projectId = this.projectInsightQuestion.projectId;
+    projObj.projectManagerId = this.projectInsightQuestion.projectManagerId;
+    projObj.projectManagerName = this.projectInsightQuestion.projectManagerName;
+    projObj.projectInsightQuestionList = this.projectInsightQuestionList;
+    projObj.projectInsightQuestionTemplate = questionTemplate;
+    projObj.createdBy = this.currentUser.empId;
 
-    surveyObj.surveyQuestionList.forEach((survey:SurveyQuestion) => {
-      survey.options = JSON.stringify(survey.optionsList);
+    projObj.projectInsightQuestionList.forEach((proj:ProjectQuestion) => {
+      proj.options = JSON.stringify(proj.optionsList);
     });
 
     //console.log("survey : ", surveyObj);
-    this.surveyService.createSurvey(surveyObj).pipe(first()).subscribe((response: any) => {
+    this.projectInsightService.createProjectInsightQuestion(projObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showSurveys();
@@ -377,13 +443,14 @@ export class ProjectInsightsConfigComponent implements OnInit {
           survey.required = JSON.parse(survey.required);
         });
 
-        const surveyTemplate: string = this.createTemplate();
+        const questionTemplate: string = this.createTemplate();
 
-        let previewObj = new Survey();
-        previewObj.surveyName = surveyObj.surveyName;
-        previewObj.description = surveyObj.description;
-        previewObj.surveyQuestionList = this.allSurveyQuestionList;
-        previewObj.surveyTemplate = surveyTemplate;
+        let previewObj = new ProjectInsightQuestion();
+        previewObj.projectId = this.projectInsightQuestion.projectId;
+        previewObj.projectManagerId = this.projectInsightQuestion.projectManagerId;
+        previewObj.projectManagerName = this.projectInsightQuestion.projectManagerName;
+        previewObj.projectInsightQuestionList = this.projectInsightQuestionList;
+        previewObj.projectInsightQuestionTemplate = questionTemplate;
 
         //console.log("previewObj : ", previewObj);
         this.openSurveyPreviewMod(template, previewObj);
@@ -450,7 +517,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
   }
 
   onUpdate(template: TemplateRef<any>){
-    let inputValidated: boolean = this.vallidateSurvey(template, this.surveyObj, this.allSurveyQuestionList);
+    let inputValidated: boolean = this.vallidateProjectInsight(template, this.projectInsightQuestion, this.projectInsightQuestionList);
     if (!inputValidated) return;
 
     let surveyObj = new Survey();
@@ -525,66 +592,61 @@ export class ProjectInsightsConfigComponent implements OnInit {
     });
   }
 
-  createTemplate():string{
-   //console.log("this.surveyObj : ", this.surveyObj);
-   //console.log("this.allSurveyQuestionList : ", this.allSurveyQuestionList);
+  createTemplate(): string {
+    let projectInsightQueTemplate = ``;
 
-   let surveyTemplate = ``;
+    this.projectInsightQuestionList.forEach((milestone: ProjectInsightQuestion, mileIndex) => {
+      let finalQuestionTemplate = ``;
 
-   this.allSurveyQuestionList.forEach((question:SurveyQuestion, qIndex) => {
+      // Milestone Heading
+      const milestoneHeader = `
+        <div class="row">
+          <div class="form-group">
+            <h4 class="mb-0">Milestone ${mileIndex + 1}: ${milestone.milestone || ''}</h4>
+            <small class="text-secondary">${milestone.description || ''}</small>
+          </div>
+        </div>`;
 
-    let finalQuestionTemplate = ``;
-    const questionStartTemplate = `<div class="row"><div class="form-group">`
-    const questionEndTemplate = `</div></div>`
-    const questionRequiredTemplate = `<span class="text-danger">*</span>`
-    let isQuestionRequired = (question.required == true)? questionRequiredTemplate : '';
-    let questionTemplate = `<h5 class="mb-0"><i class="fa-solid fa-q question-icon"></i>.&nbsp; ${(question.question !== undefined && question.question !== null)? question.question : ''}${isQuestionRequired}</h5><small class="text-secondary">${(question.description !== undefined && question.description !== null)? question.description : ''}</small>`
+      finalQuestionTemplate += milestoneHeader;
 
-    finalQuestionTemplate = questionStartTemplate + questionTemplate;
+      milestone.projectQuestion.forEach((question: ProjectQuestion, qIndex) => {
+        let isQuestionRequired = question.required ? `<span class="text-danger">*</span>` : '';
+        let questionTemplate = `
+          <div class="row">
+            <div class="form-group">
+              <h5 class="mb-0"><i class="fa-solid fa-q question-icon"></i>.&nbsp; ${question.question || ''} ${isQuestionRequired}</h5>
+              <small class="text-secondary">${question.description || ''}</small>
+        `;
 
-     if (question.optionType == "text") {
-       let textTemplate: any =`<textarea class="form-control" rows="1" name="question-${qIndex+1}"></textarea>`;
-       finalQuestionTemplate = finalQuestionTemplate + textTemplate;
-     } else if (question.optionType == "checkbox") {
+        // Question Options
+        if (question.optionType === "text") {
+          questionTemplate += `<textarea class="form-control" rows="1" name="question-${qIndex + 1}"></textarea>`;
+        } else if (question.optionType === "checkbox") {
+          questionTemplate += question.optionsList.map((option, opIndex) => `
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="q-${qIndex + 1}-check-option-${opIndex + 1}" value="${option.optionValue}" name="question-${qIndex + 1}">
+              <label class="form-check-label" for="q-${qIndex + 1}-check-option-${opIndex + 1}">${option.optionValue}</label>
+            </div>
+          `).join('');
+        } else if (question.optionType === "radio") {
+          questionTemplate += question.optionsList.map((option, index) => `
+            <div class="form-check">
+              <input class="form-check-input" type="radio" id="q-${qIndex + 1}-radio-option-${index + 1}" value="${option.optionValue}" name="question-${qIndex + 1}">
+              <label class="form-check-label" for="q-${qIndex + 1}-radio-option-${index + 1}">${option.optionValue}</label>
+            </div>
+          `).join('');
+        }
 
-      let optionTemplate = '';
-      question.optionsList.forEach((option:SurveyOption, opIndex) => {
-        let checkboxTemplate: any =
-        `
-          <div class="form-check">
-           <input class="form-check-input" type="checkbox" id="q-${qIndex+1}-check-option-${opIndex+1}" value="${option.optionValue}" name="question-${qIndex+1}">
-           <label class="form-check-label" for="q-${qIndex+1}-check-option-${opIndex+1}">${option.optionValue}</label>
-           </div>
-         `;
-
-         optionTemplate = optionTemplate + checkboxTemplate;
+        questionTemplate += `</div></div>`;
+        finalQuestionTemplate += questionTemplate;
       });
 
-      finalQuestionTemplate = finalQuestionTemplate + optionTemplate;
-     } else if (question.optionType == "radio") {
+      projectInsightQueTemplate += finalQuestionTemplate;
+    });
 
-      let optionTemplate = '';
-      question.optionsList.forEach((option:SurveyOption, index) => {
-        let radioboxTemplate: any =
-        `
-        <div class="form-check">
-         <input class="form-check-input" type="radio" id="q-${qIndex+1}-radio-option-${index+1}" value="${option.optionValue}" name="question-${qIndex+1}">
-         <label class="form-check-label" for="q-${qIndex+1}-radio-option-${index+1}">${option.optionValue}</label>
-         </div>
-       `;
-
-       optionTemplate = optionTemplate + radioboxTemplate;
-      });
-      finalQuestionTemplate = finalQuestionTemplate + optionTemplate;
-     }
-
-     finalQuestionTemplate = finalQuestionTemplate + questionEndTemplate;
-     surveyTemplate = surveyTemplate + finalQuestionTemplate;
-   });
-
-   //console.log("surveyTemplate : ", surveyTemplate);
-   return surveyTemplate;
+    return projectInsightQueTemplate;
   }
+
 
   name = 'EmployeeSheet.xlsx';
   async exportToExcel(): Promise<void> {
@@ -662,10 +724,10 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
 
   //modals
-  openSurveyPreviewMod(template: TemplateRef<any>, surveyObj:Survey) {
+  openSurveyPreviewMod(template: TemplateRef<any>, surveyObj:ProjectInsightQuestion) {
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
     let surveyContainer = document.getElementById("survey-container");
-    surveyContainer.insertAdjacentHTML('beforeend', surveyObj.surveyTemplate);
+    surveyContainer.insertAdjacentHTML('beforeend', surveyObj.projectInsightQuestionTemplate);
   }
 
   openDeleteSurveyMod(template: TemplateRef<any>, surveyObj:Survey) {

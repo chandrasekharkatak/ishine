@@ -14,6 +14,9 @@ export class ProjectInsightQuestion {
     projectManagerId: any;
     projectManagerName: any;
 
+    projectInsightQuestionList:any;
+    projectInsightQuestionTemplate:any;
+
 
     milestone: any;
     projectQuestion:ProjectQuestion[] = [new ProjectQuestion()];
