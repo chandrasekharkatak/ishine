@@ -34,6 +34,7 @@ import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.NewsletterDTO;
+import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.Department;
@@ -869,7 +870,7 @@ public class CustomFilterService {
 						+ "e.previous_pf_account_number, e.relation, e.state, e.uan,\n"
 						+ "e.views_on_organisation, e.year_of_passing,\n" + "jr.dept_id, jr.name as jobrolename,\n"
 						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience,\n"
-						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,emp_proj_client.project_name, emp_proj_client.client_name, e.updated_on,e4.name as createdByName, e3.name as updatedByName,\n"
+						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,emp_proj_client.project_name, emp_proj_client.client_name, emp_proj_client.project_id, e.updated_on,e4.name as createdByName, e3.name as updatedByName,\n"
 						+ "e.designation_id,de.designation_name,e.updated_by,e.billable_type,emp_proj_client.team_name, e.is_consultant, e.is_apprenticeship, \n"
 						+ "(SELECT COUNT(*) * 100.0 / NULLIF(COUNT(*), 0) FROM\n"
 						+ "employee e_profile WHERE\n"
@@ -880,12 +881,12 @@ public class CustomFilterService {
 						+ "LEFT JOIN employee e3 ON e.updated_by = e3.emp_id\n"
 						+ "LEFT JOIN designation de ON de.designation_id = e.designation_id \n"
 						+ "LEFT JOIN employee e4 on e.created_by = e4.emp_id\n"
-						+ "LEFT JOIN (SELECT etm.emp_id, GROUP_CONCAT(DISTINCT pr.project_name) AS project_name, GROUP_CONCAT(DISTINCT cl.client_name) AS client_name,  GROUP_CONCAT(DISTINCT t.team_name) AS team_name \n"
+						+ "LEFT JOIN (SELECT etm.emp_id, GROUP_CONCAT(DISTINCT pr.project_name) AS project_name, GROUP_CONCAT(DISTINCT cl.client_name) AS client_name,  GROUP_CONCAT(DISTINCT t.team_name) AS team_name,  GROUP_CONCAT(DISTINCT pr.project_id) AS project_id \n"
 						+ "FROM employee_team_mapping etm \n"
 						+ "LEFT JOIN teams t ON t.team_id = etm.team_id \n"
 						+ "LEFT JOIN projects pr ON pr.project_id = t.project_id \n"
 						+ "LEFT JOIN clients cl ON cl.client_id = pr.client_id \n"
-						+ "WHERE etm.active != 0 "
+						+ "WHERE etm.active != 0 \n"
 						+ "AND t.is_active != 'N' \n"
 						+ "AND pr.active != 'false'\n"
 						+ "GROUP BY etm.emp_id) emp_proj_client ON emp_proj_client.emp_id = e.emp_id  where " + customQuery;
@@ -1206,20 +1207,48 @@ public class CustomFilterService {
 					empDTO.setMothersName(object[57] != null ? (object[57].toString()) : null);
 					empDTO.setSpouse(object[58] != null ? (object[58].toString()) : null);
 					empDTO.setTotalExperience(object[59] != null ? Float.parseFloat(object[59].toString()) : null);
-					empDTO.setProjectName(object[60] != null ? object[60].toString() : null);
+//					empDTO.setProjectName(object[60] != null ? object[60].toString() : null);
 					empDTO.setClientName(object[61] != null ? object[61].toString() : null);
-					empDTO.setUpdatedOn(object[62] != null ? (object[62].toString()) : null);
-					empDTO.setCreatedByName(object[63] != null ? (object[63].toString()) : null);
-					empDTO.setUpdatedByName(object[64] != null ? (object[64].toString()) : null);
+//					empDTO.setProjectId(object[62] != null ? Integer.parseInt((object[62].toString())) : null);
+					empDTO.setUpdatedOn(object[63] != null ? (object[63].toString()) : null);
+					empDTO.setCreatedByName(object[64] != null ? (object[64].toString()) : null);
+					empDTO.setUpdatedByName(object[65] != null ? (object[65].toString()) : null);
 					
 //					empDTO.setSpecializationName(object[66] != null ? (object[66].toString()) : null);
 //					empDTO.setDomainName(object[67] != null ? (object[67].toString()) : null);
-					empDTO.setDesignationId(object[65] != null ? Long.parseLong(object[65].toString()) : null);
-					empDTO.setDesignationName(object[66] != null ? (object[66].toString()) : null);
-					empDTO.setBillableType(object[68] != null ? object[68].toString() : null);
-					empDTO.setTeamName(object[69] != null ? object[69].toString() : null);	
-					empDTO.setIsConsultant(object[70] != null ? object[70].toString() : null);
-					empDTO.setIsApprenticeship(object[71] != null ? object[71].toString() : null);
+					empDTO.setDesignationId(object[66] != null ? Long.parseLong(object[66].toString()) : null);
+					empDTO.setDesignationName(object[67] != null ? (object[67].toString()) : null);
+					empDTO.setBillableType(object[69] != null ? object[69].toString() : null);
+					empDTO.setTeamName(object[70] != null ? object[70].toString() : null);	
+					empDTO.setIsConsultant(object[71] != null ? object[71].toString() : null);
+					empDTO.setIsApprenticeship(object[72] != null ? object[72].toString() : null);
+					
+					if (object[60] != null && object[62] != null) {
+		                String projectIdStr = object[62].toString().trim();
+		                String projectNameStr = object[60].toString().trim();
+
+		                
+		                if (!projectIdStr.isEmpty() && !projectNameStr.isEmpty()) {
+		                    String[] projectIds = projectIdStr.split(",");
+		                    String[] projectNames = projectNameStr.split(",");
+
+		                    
+		                    List<ProjectDTO> projectList = new ArrayList<>();
+		                    int length = Math.min(projectIds.length, projectNames.length);
+		                    
+		                    for (int i = 0; i < length; i++) {
+		                        try {
+		                            ProjectDTO projectDTO = new ProjectDTO();
+		                            projectDTO.setProjectId(Integer.parseInt(projectIds[i].trim()));
+		                            projectDTO.setProjectName(projectNames[i].trim());
+		                            projectList.add(projectDTO);
+		                        } catch (NumberFormatException e) {
+		                            System.err.println("Invalid projectId: " + projectIds[i]);
+		                        }
+		                    }
+		                    empDTO.setProjectList(projectList);
+		                }
+		            }
 					
 					ServiceResponse completionResponse = employeeService.getEmployeeProfileCompletion(empDTO);
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();

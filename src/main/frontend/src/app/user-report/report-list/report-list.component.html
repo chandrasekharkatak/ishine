@@ -325,8 +325,13 @@
                 <td>{{employee.employmentstatus}}</td>
                 
                 <!-- added by anurag  -->
-                <td *ngIf="userMapping.reports_employee_360" id="clickablefor360" [navigateToProjectView]="employee.projectId" style="cursor: pointer;" title="Click to view Project Details">{{employee.projectName}}</td>
-                <td *ngIf="!userMapping.reports_employee_360">{{employee.projectName}}</td>
+                <td *ngIf="userMapping.reports_employee_360 && employee.projectList" >
+                  <span *ngFor="let project of employee.projectList; let last = last" class="info-label"
+                      style="cursor: pointer; color: blue;"  id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.projectId" style="cursor: pointer;" title="Click to view Project Details"> 
+                      {{ project.projectName }}<span *ngIf="!last">, </span>
+                  </span>
+                </td>
+                <td *ngIf="!userMapping.reports_employee_360 || !employee.projectList">{{employee.projectName}}</td>
                 <td>{{employee.clientName}}</td>
                 <td>{{employee.billable}}</td>
                 <td>{{employee.billableType}}</td>

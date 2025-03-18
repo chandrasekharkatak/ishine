@@ -511,15 +511,17 @@
                         <td>{{leave.billable}}</td>
                         <td>{{leave.billableType}}</td>
 
-                        <td  *ngIf="userMapping.report_project_view">
+                        <td  *ngIf="userMapping.report_project_view && leave.projectList">
                             <span *ngFor="let project of leave.projectList; let last = last" class="info-label"
-                                style="cursor: pointer; color: blue;"  id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.projectId" style="cursor: pointer;" title="Click to view Project Details"> 
+                             id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.projectId" style="cursor: pointer;" title="Click to view Project Details"> 
                                 {{ project.projectName }}<span *ngIf="!last">, </span>
+                                <span *ngFor="let project of leave.projectList; let last = last" class="info-label" >
+                                    {{ project.projectName }}<span *ngIf="!last">, </span>
+                                </span>
                             </span>
                         </td>
-                        <td *ngIf="!userMapping.report_project_view">
-                            <span *ngFor="let project of leave.projectList; let last = last" class="info-label"
-                                style="cursor: pointer; color: blue;" >
+                        <td *ngIf="!userMapping.report_project_view || !leave.projectList">
+                            <span *ngFor="let project of leave.projectList; let last = last" class="info-label" >
                                 {{ project.projectName }}<span *ngIf="!last">, </span>
                             </span>
                         </td>
