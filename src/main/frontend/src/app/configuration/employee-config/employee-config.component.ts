@@ -689,6 +689,7 @@ export class EmployeeConfigComponent implements OnInit {
   }
 
   showUpdateForm(employee: Employee) {
+    
     this.isForm = true;
     this.referedTypeStatus = true;
     this.isTable = false;
@@ -698,6 +699,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.isDraftTable = false;
     this.isDeletion = false;
 
+    
     this.getManagerList(employee);
     this.getAllDepartmentList();
     this.getAllDomain();
@@ -713,7 +715,7 @@ export class EmployeeConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
 
         this.employeeObj = Object.assign({}, response.serviceResponse);
-
+        this.employeeObj.reportiesFlag = 'No';
         if (this.employeeObj.domainList != null) {
           this.getDomainSpecialization();
         }
@@ -742,6 +744,7 @@ export class EmployeeConfigComponent implements OnInit {
       } else {
         console.error(response.serviceResponse)
       }
+     
     });
 
     setTimeout(this.setCalenderMaxDate, 1000);
