@@ -59,15 +59,7 @@ export class PerformanceService {
 
   }
 
-  getPerformanceStats(empId: string, quarter: string): Observable<any> {
-    return this.http.get(`${this.baseUrl}api/performance-stats`, {
-      params: { empId, quarter },
-    });
-  }
-
-
-
-
+  
 
 
 getReviewTypeById(reviewObj: any) {
@@ -101,4 +93,33 @@ updateEmployeePerformanceHOD(performance:any){
 getALLdepartmentByEmployee() {
   return this.http.get(`${this.baseUrl}`+ `api/getAllDepartmentbyEmployeecont`);
 }
+
+getAvailableQuarters(){
+  return this.http.get(`${this.baseUrl}`+`api/getAllQuarters`);
+}
+
+getPerformanceStats(empId: string, quarter: string): Observable<any> {
+  return this.http.get(`${this.baseUrl}api/performance-stats`, {
+    params: { empId, quarter },
+  });
+}
+
+getKraKpiReview(empId: number, quarter: string): Observable<any> {
+  
+  return this.http.get(`${this.baseUrl}/kra-kpi`, { params: { empId, quarter }, });
+}
+
+getQuestionnaireReview(empId: number, quarter: string): Observable<any> {
+  
+  return this.http.get(`${this.baseUrl}/questionnaire`, { params: { empId, quarter },});
+}
+
+getAppraisalSummary(empId: number): Observable<any> {
+  return this.http.get(`${this.baseUrl}/api/appraisal-summaries/employee`, { params: { empId },});
+}
+
+submitReview(payload: any): Observable<any> {
+  return this.http.post(`${this.baseUrl}` + `api/submitReview`, payload);
+}
+
 }
