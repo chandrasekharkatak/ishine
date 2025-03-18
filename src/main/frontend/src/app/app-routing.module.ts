@@ -71,6 +71,9 @@ import { ProjectViewComponent } from './project-view/project-view.component';
 import { PerformanceConfigComponent } from './configuration/performance-config/performance-config.component';
 import { TravelAllowanceComponent } from './travel-allowance/travel-allowance.component';
 import { ReimbursementComponent } from './reimbursement/reimbursement.component';
+import { MyReimbursementComponent } from './reimbursement/my-reimbursement/my-reimbursement.component';
+import { ViewReimbursementComponent } from './reimbursement/view-reimbursement/view-reimbursement.component';
+import { ReimbursementapprovalComponent } from './reimbursement/reimbursementapproval/reimbursementapproval.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -190,7 +193,14 @@ const routes: Routes = [
   {path:'release-notes', component: UserReleasenotesComponent, canActivate: [AuthGuard]},
   {path:'newsletters', component: NewsletterComponent, canActivate: [AuthGuard]},
   {path:'travelDesk', component: TravelAllowanceComponent, canActivate: [AuthGuard]},
-  {path:'reimbursement', component: ReimbursementComponent, canActivate: [AuthGuard]},
+  {path:'reimbursement', component: ReimbursementComponent, canActivate: [AuthGuard],
+    children:[
+      {path:'my-reimbursement', component:MyReimbursementComponent},
+      {path:'view-reimbursement', component:ViewReimbursementComponent},
+      {path:'approve-reimbursement', component:ReimbursementapprovalComponent}
+      
+    ]
+  },
   {path:'**', redirectTo:'home', pathMatch:'full'},
 ];
 

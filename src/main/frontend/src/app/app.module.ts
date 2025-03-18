@@ -130,6 +130,9 @@ import { registerLocaleData } from '@angular/common';
 import localeGb from '@angular/common/locales/en-GB';
 import { TravelAllowanceComponent } from './travel-allowance/travel-allowance.component';
 import { ReimbursementComponent } from './reimbursement/reimbursement.component';
+import { MyReimbursementComponent } from './reimbursement/my-reimbursement/my-reimbursement.component';
+import { ViewReimbursementComponent } from './reimbursement/view-reimbursement/view-reimbursement.component';
+import { ReimbursementapprovalComponent } from './reimbursement/reimbursementapproval/reimbursementapproval.component';
 registerLocaleData(localeGb);
 // import { OwlDateTimeModule, OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
 // 
@@ -240,6 +243,9 @@ registerLocaleData(localeGb);
      PerformanceConfigComponent,
      TravelAllowanceComponent,
      ReimbursementComponent,
+     MyReimbursementComponent,
+     ViewReimbursementComponent,
+     ReimbursementapprovalComponent,
   
 
     //TestComponent
