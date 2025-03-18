@@ -461,7 +461,7 @@
                                   [(ngModel)]="activityObj.departmentList"
                                   [disabled]="!activityObj.teamId"
                                   >
-                                  <mat-option [value]="dept.deptId" *ngFor="let dept of deptSelect.filteredSource" [disabled]="isUpdation">
+                                  <mat-option [value]="dept.deptId" *ngFor="let dept of deptSelect.filteredSource">
                                     {{dept.name}}
                                   </mat-option>
                             </mat-select>

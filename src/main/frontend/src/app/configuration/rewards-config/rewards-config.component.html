@@ -57,7 +57,7 @@
                         <label class="info-label"><span class="text-danger">*</span>Reward Types</label>
                         <div class="input-group">
                             <input type="text" [(ngModel)]="rewardType" class="form-control"
-                                placeholder="Enter Reward Type">
+                                placeholder="Enter Reward Type" (keypress)="restrictInput($event)">
                             <div class="input-group-append">
                                 <button class="btn btn-outline-secondary add-button" (click)="addRewardType()">
                                     <i class="fa fa-plus"></i>

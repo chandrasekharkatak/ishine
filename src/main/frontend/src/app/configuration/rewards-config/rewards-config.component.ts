@@ -478,6 +478,30 @@ openForm(id:any,mode: string,template: TemplateRef<any> ) {
   }
 
 
+  
+
+ restrictInput(event) {
+    const inputField = event.target;
+    const value = inputField.value;
+    const allowedChars = [' ', '-'];  // Define allowed characters (space and dash)
+
+    // Prevent input if no value and key is a number
+    if (value.length === 0 && event.key >= '0' && event.key <= '9') {
+        event.preventDefault();
+    }
+
+    // Prevent input if value exceeds 20 characters
+    if (value.length >= 20) {
+        event.preventDefault();
+    }
+
+    // Allow space and dash characters and digits
+    if (!event.key.match(/[0-9a-zA-Z\s-]/)) {
+        event.preventDefault();
+    }
+}
+
+
   confirmResult: boolean = false;
   selectedRewardId: any | null = null;
 
