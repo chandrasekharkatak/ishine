@@ -1,0 +1,88 @@
+
+.table-header{
+    width: 100%;
+    height: 50px;
+    background: var(--ghost-white);
+    margin-bottom: 1em;
+}
+
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem; /* This controls the spacing between the form fields */
+}
+
+.form-group {
+    flex: 1;
+    min-width: 200px; /* Prevents fields from becoming too narrow */
+}
+
+.table-header-title{
+    font-size: 2rem;
+    padding: .2em;
+    margin-bottom: 0;
+    color: var(--raisin-black);
+}
+
+.my-pagination::ng-deep .ngx-pagination .current {
+    background: #193d8a  !important;
+}
+
+.my-pagination::ng-deep{
+    padding-top: 10px;
+}
+
+.search-box{
+    margin-top: 35px;
+}
+
+.scrollable-table{
+    width: 92vw;
+    height: 70vh;
+} 
+
+
+.thead-light th{
+    position: sticky;
+    top: -0.7px;
+}
+
+.info-label{
+    width: 200px;
+}
+.mb1{
+    margin-bottom: 1px !important;
+}
+
+.mb2{
+    margin-bottom: 2px !important;
+}
+
+.mb3{
+    margin-bottom: 3px !important;
+}
+
+.column-md{
+    min-width: 150px;
+}
+
+.cell-checkbox {
+    background-color: #fff;
+    height: 30px;
+    margin: 0 .25em;
+    width: 30px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.highlight {
+    background-color: rgb(171, 193, 253);
+}
+
+input[type=checkbox]:hover, input[type=radio]:hover {
+    cursor: pointer;
+}
+
+#dayTypeCursor{
+    cursor:pointer;
+}

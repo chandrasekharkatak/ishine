@@ -1,5 +1,3 @@
-import { DatePipe, LocationStrategy } from '@angular/common';
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -21,6 +19,17 @@ import { LeaveService } from 'src/app/services/leave.service';
 import { TeamViewService } from 'src/app/services/team-view.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { DatePipe, LocationStrategy } from '@angular/common';
+import { Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
+import { Asset } from '../models/asset';
+import { certification } from '../models/certification';
+import { Domain } from '../models/domain';
+import { PreviousEmployer } from '../models/previousEmployer';
+import { DomainService } from '../services/domain.service';
+import { ImageService } from '../services/image.service';
+import { OnBoardingService } from '../services/on-boarding.service';
+
 
 @Component({
   selector: 'app-travel-allowance',
@@ -32,10 +41,32 @@ export class TravelAllowanceComponent implements OnInit {
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
 
+
+  isUpdateProfile:boolean = false;
+
+  currentUser:any;
+  currentEmployeeInfo:Employee = new Employee();
+  UpdateEmployeeInfo:Employee = new Employee();
+
+  profileImage:File;
+  previewImage:any;
+  profileImageName:any;
+
+  feature="Profile";
+  userMapping:any = {};
+
+  //modal 
+  alertMessage:any;
+  modalRef: BsModalRef = new BsModalRef();
+
+  allCertificationList:any[] = [];
+  allPreviousEmployment:any[] = [];
+  updatedCertificationList:any[] = [];
+  updatedPreviousEmployment:any[] = [];
+  yearOfPassingList:any[] = [];
+  domainSpecializationList:any[] = [];
+  allAssetList:any[] = [];
   data: string;
-  feature = "My Timesheets";
-  currentUser: User;
-  userMapping: any = {};
 
   sortDirection = 'asc';
   sortColumn: any;
@@ -57,9 +88,6 @@ export class TravelAllowanceComponent implements OnInit {
 Allholidays: any[] = [];
 AllWeekOfList:any[]=[];
 
-  //modal
-  alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
 
   //Obj
   timesheetObj: Timesheet = new Timesheet();
@@ -117,11 +145,15 @@ AllWeekOfList:any[]=[];
     private locationStrategy: LocationStrategy,
     private employeeService : EmployeeService,
     private holidayService: HolidayService,
+    private imageService : ImageService,
+    private domainService:DomainService,
+    private sanitizer: DomSanitizer,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
   ngOnInit(): void {
+    this.onGetEmployeeInfo();
 
     // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -176,6 +208,68 @@ AllWeekOfList:any[]=[];
     this.reset();
     this.getEmployeeBasicInfo();
     this.getAllProjectsByEmpId(this.currentUser);
+  }
+
+  async onGetEmployeeInfo(){
+    this.domainSpecializationList = [];
+    this.currentEmployeeInfo = new Employee();
+    let currentEmp = new Employee();
+    currentEmp.empId = this.currentUser.empId;
+    currentEmp.isDraft = false;
+    //console.log("currentEmp : ", currentEmp);
+    
+    const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
+    if (response.serviceStatus == "Success") {
+      this.currentEmployeeInfo = response.serviceResponse;
+    
+      //console.log("currentEmployeeInfo : ", this.currentEmployeeInfo);
+      //this.loadProfileImage(this.currentEmployeeInfo.imageBytes)
+
+    } else {
+      console.error(response.serviceResponse);
+    }
+
+    const docResponse:any = await this.imageService.getEmployeeDocuments(currentEmp).toPromise();
+    if (docResponse.serviceStatus == 'Success') {
+      this.currentEmployeeInfo.documentList = docResponse.serviceResponse;
+      
+      //console.log("this.previewObj.documentList : ", this.currentEmployeeInfo.documentList);
+    } else {
+      //console.log(docResponse.serviceResponse);
+    }
+
+    let domainObj = new Domain();
+    domainObj.empId = this.currentUser.empId;
+    const domainResponse:any = await this.domainService.getDomainSpecializationByEmpId(domainObj).toPromise();
+      if (domainResponse.serviceStatus == "Success") {
+        this.domainSpecializationList = domainResponse.serviceResponse;
+
+        this.domainSpecializationList.forEach((object:Domain) =>{
+
+          var letters = 'BCDEF'.split('');
+          var color = '#';
+          for (var i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * letters.length)];
+          }
+
+          object.colorCode = color;
+        });
+
+        //console.log(this.domainSpecializationList, " : this.domainSpecializationList");
+      } else {
+        console.error(domainResponse.serviceResponse);
+      }
+
+    setTimeout(()=>{
+      this.currentEmployeeInfo.documentList && this.currentEmployeeInfo.documentList.forEach((doc, index) => {
+        if (doc.documentBytes) {
+          let preview = document.getElementById(`docPreview${index + 1}`);
+            let objectURL = 'data:image/*;base64,' + doc.documentBytes;
+            let src: string = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(objectURL));
+            preview.setAttribute('src', src);
+        }
+      });
+    }, 500);
   }
 
   showViewMyTimesheets() {
