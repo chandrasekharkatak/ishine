@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.model.JobRole;
@@ -32,5 +33,11 @@ public interface JobRoleRepository extends JpaRepository<JobRole, Long> {
 	public JobRole findByName(String name);
 
 	public JobRole findByNameAndDeptId(String name, Long deptId);
+	
+	@Query("SELECT j.jobRoleId FROM JobRole j WHERE j.deptId = :deptId")
+	List<Long> findJobRoleIdsByDeptId(@Param("deptId") Long deptId);
+
+	@Query("SELECT j.deptId FROM JobRole j WHERE j.jobRoleId = :jobRoleId")
+	Long findDeptIdByJobRoleId(@Param("jobRoleId") Long jobRoleId);
 	
 }

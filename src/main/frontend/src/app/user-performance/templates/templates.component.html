@@ -106,27 +106,47 @@
       </div>
       <div class="row ml-2">
         <div class="col-md-4">
-          <label class="info-label"><span class="text-danger">*</span>Department</label>
-          <select class="form-control" aria-hidden="true" [(ngModel)]="selectedDept" (change)="fetchQuestionnaireTemplates()">
-            <option selected="selected" [ngValue]="null" disabled>Select</option>
-            <option [ngValue]="'all'">All Departments</option>
-            <option *ngFor="let dept of allDeptList" [ngValue]="dept">{{dept.name}}</option>
+          <label class="info-label"><span class="text-danger">*</span>Quarter</label>
+          <select class="form-control" aria-hidden="true" [(ngModel)]="selectedQuarterId" (change)="onQuarterChange()">
+            <option [ngValue]="null">All Quarters</option>
+            <option [ngValue]="1">Q1</option>
+            <option [ngValue]="2">Q2</option>
+            <option [ngValue]="3">Q3</option>
+            <option [ngValue]="4">Q4</option>
           </select>
         </div>
       </div>
-      <ul class="list-group mt-3">
-        <li class="list-group-item" *ngFor="let template of questionnaireTemplates">
-          {{ template.name }} - {{ template.questions.length }} questions
-          <div class="float-right">
-            <button class="btn btn-sm btn-primary mr-1">Edit</button>
-            <button class="btn btn-sm btn-danger">Delete</button>
-          </div>
-        </li>
-        <li *ngIf="questionnaireTemplates.length === 0" class="list-group-item text-center">
-          No questionnaire templates found
-        </li>
-      </ul>
+      <div class="mt-3">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Description</th>
+              <th>Quarter</th>
+              <!-- <th>Questions</th> -->
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let template of questionnaireTemplates">
+              <td>{{ template.questionTitle }}</td>
+              <td>{{ template.questionDescription }}</td>
+              <!-- <td>{{template.question}}</td> -->
+              <td>Q{{ template.quarterId }}</td>
+              <td>
+                <button class="btn btn-sm btn-primary mr-1" (click)="editQuestionnaireTemplate(template)">Edit</button>
+                <button class="btn btn-sm btn-danger" (click)="deleteQuestionnaireTemplate(template.questionId)">Delete</button>
+              </td>
+            </tr>
+            <tr *ngIf="questionnaireTemplates.length === 0">
+              <td colspan="4" class="text-center">No questionnaire templates found</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
+
+    
 
     <div *ngIf="activeTab === 'create-template'">
       <div class="px-0">
@@ -143,25 +163,25 @@
       </div>
 
       <form [formGroup]="templateForm" (ngSubmit)="createOrUpdateTemplate()">
-        <div class="form-group w-25">
-          <label>Title <span class="text-danger">*</span></label>
-          <input type="text" class="form-control" formControlName="title" required>
-        </div>
+        
 
         <div *ngIf="selectedTemplateType === 'goals'" class="form-group w-25">
+          <div class="form-group w-25">
+            <label>Title <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" formControlName="title" required>
+          </div>
           <label>Description <span class="text-danger">*</span></label>
           <textarea class="form-control" formControlName="description" rows="3"></textarea>
         </div>
-
-        <div class="form-group w-25">
+    <div class="form-group w-25">
           <label>Department <span class="text-danger">*</span></label>
           <select class="form-control" formControlName="departmentId" required>
             <option [ngValue]="null" disabled>Select Department</option>
             <option *ngFor="let dept of allDeptList" [ngValue]="dept.deptId">{{dept.name}}</option>
           </select>
-        </div>
+        </div> 
 
-        <!-- <div *ngIf="selectedTemplateType === 'goals'" class="form-group w-25">
+        <div *ngIf="selectedTemplateType === 'goals'" class="form-group w-25">
           <label>Quarter <span class="text-danger">*</span></label>
           <select class="form-control" formControlName="quarterId" required>
             <option [ngValue]="null" disabled>Select Quarter</option>
@@ -170,20 +190,110 @@
             <option [ngValue]="3">Q3</option>
             <option [ngValue]="4">Q4</option>
           </select>
-        </div> -->
+        </div>
 
         <div *ngIf="selectedTemplateType === 'kra-kpi'" class="form-group w-25">
           <label>Metrics <span class="text-danger">*</span></label>
           <textarea class="form-control" formControlName="metrics" rows="3"></textarea>
         </div>
 
-        <div *ngIf="selectedTemplateType === 'questionnaire'" class="form-group w-25">
-          <label>Questions <span class="text-danger">*</span></label>
-          <textarea class="form-control" formControlName="questions" rows="3" 
-                   placeholder="Enter comma-separated questions"></textarea>
-          <small class="form-text text-muted">Enter questions separated by commas</small>
+        <div *ngIf="activeTab === 'create-template' && selectedTemplateType === 'questionnaire'" class="card-body mx-0">
+          <form [formGroup]="questionnaireForm" (ngSubmit)="onSubmit()">
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="questionTitle"><span class="text-danger">*</span>Questionnaire Title</label>
+                <input
+                  id="questionTitle"
+                  type="text"
+                  class="form-control"
+                  formControlName="questionTitle"
+                  placeholder="Enter questionnaire title"
+                  required
+                />
+                <div *ngIf="questionnaireForm.get('questionTitle')?.invalid && questionnaireForm.get('questionTitle')?.touched" class="text-danger">
+                  Title is required.
+                </div>
+              </div>
+            </div>
+        
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="questionDescription">Description</label>
+                <textarea
+                  id="questionDescription"
+                  class="form-control"
+                  formControlName="questionDescription"
+                  placeholder="Enter questionnaire description"
+                  rows="3"
+                ></textarea>
+              </div>
+            </div>
+        
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label for="quarterId">Quarter <span class="text-danger">*</span></label>
+                <select class="form-control" id="quarterId" formControlName="quarterId" required>
+                  <option [ngValue]="null" disabled>Select Quarter</option>
+                  <option [ngValue]="1">Q1</option>
+                  <option [ngValue]="2">Q2</option>
+                  <option [ngValue]="3">Q3</option>
+                  <option [ngValue]="4">Q4</option>
+                </select>
+                <div *ngIf="questionnaireForm.get('quarterId')?.invalid && questionnaireForm.get('quarterId')?.touched" class="text-danger">
+                  Quarter is required.
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <label><span class="text-danger">*</span>Questions</label>
+              <div formArrayName="questions">
+                <div *ngFor="let questionControl of questions.controls; let i = index" [formGroupName]="i" class="row mb-3">
+                  <div class="col-md-6">
+                    <div class="input-group">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text">{{ i + 1 }}</span>
+                      </div>
+                      <input
+                        type="text"
+                        class="form-control"
+                        formControlName="questionText"
+                        placeholder="Enter question {{ i + 1 }}"
+                        required
+                      />
+                      <div class="input-group-append">
+                        <button type="button" class="btn btn-outline-danger" (click)="removeQuestion(i)" [disabled]="questions.length <= 1">
+                          <i class="fa fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div *ngIf="questionControl.get('questionText')?.invalid && questionControl.get('questionText')?.touched" class="text-danger">
+                      Question is required.
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <button type="button" class="btn btn-outline-primary" (click)="addQuestion()" [disabled]="!questions.at(questions.length - 1).valid || questions.length >= 10">
+                    <i class="fa fa-plus"></i> Add Question
+                  </button>
+                  <small class="ml-2 text-muted">(Maximum 10 questions)</small>
+                </div>
+              </div>
+            </div>
+            
+            <div class="mt-3">
+              <button type="submit" class="btn btn-success" [disabled]="!questionnaireForm.valid">
+                {{ isEditing ? 'Update' : 'Create' }} Questionnaire
+              </button>
+              <button type="button" class="btn btn-secondary ml-2" (click)="resetQuestionnaireForm()">
+                Cancel
+              </button>
+            </div>
+          </form>
         </div>
-
         <div class="mt-3">
           <button type="submit" class="btn btn-primary" [disabled]="templateForm.invalid">
             {{ isEditing ? 'Update' : 'Create' }} Template

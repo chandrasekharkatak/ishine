@@ -8,8 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("/api/questionnaires")
 public class QuestionnaireController {
 
@@ -17,11 +19,11 @@ public class QuestionnaireController {
     private QuestionnaireService questionnaireService;
 
     @PostMapping("/createQuestionnaireTemplate")
-    public ServiceResponse createQuestionnaireTemplate(@RequestBody QuestionnaireDTO questionnaireDTO) {
+    public ServiceResponse createQuestionnaire(@RequestBody QuestionnaireDTO questionnaireDTO) {
         ServiceResponse response = new ServiceResponse();
         try {
-            Questionnaire createdQuestionnaire = questionnaireService.createQuestionnaireTemplate(questionnaireDTO);
-            response.setServiceResponse(createdQuestionnaire);
+            Questionnaire savedQuestionnaire = questionnaireService.createQuestionnaireTemplate(questionnaireDTO);
+            response.setServiceResponse(questionnaireService.convertToDTO(savedQuestionnaire));
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceMessage("Questionnaire created successfully");
         } catch (Exception e) {
@@ -37,7 +39,10 @@ public class QuestionnaireController {
         ServiceResponse response = new ServiceResponse();
         try {
             List<Questionnaire> questionnaires = questionnaireService.getAllQuestionnaires();
-            response.setServiceResponse(questionnaires);
+            List<QuestionnaireDTO> dtos = questionnaires.stream()
+                    .map(questionnaire -> questionnaireService.convertToDTO(questionnaire))
+                    .collect(Collectors.toList());
+            response.setServiceResponse(dtos);
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceMessage("Fetched all questionnaires successfully");
         } catch (Exception e) {
@@ -53,7 +58,7 @@ public class QuestionnaireController {
         ServiceResponse response = new ServiceResponse();
         try {
             Questionnaire questionnaire = questionnaireService.getQuestionnaireById(id);
-            response.setServiceResponse(questionnaire);
+            response.setServiceResponse(questionnaireService.convertToDTO(questionnaire));
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceMessage("Fetched questionnaire successfully");
         } catch (Exception e) {
@@ -65,11 +70,14 @@ public class QuestionnaireController {
     }
 
     @GetMapping("/getQuestionnaireByQuarter/{quarterId}")
-    public ServiceResponse getQuestionsByQuarter(@PathVariable Long quarterId) {
+    public ServiceResponse getQuestionnairesByQuarter(@PathVariable Long quarterId) {
         ServiceResponse response = new ServiceResponse();
         try {
             List<Questionnaire> questionnaires = questionnaireService.getQuestionsByQuarter(quarterId);
-            response.setServiceResponse(questionnaires);
+            List<QuestionnaireDTO> dtos = questionnaires.stream()
+                    .map(questionnaire -> questionnaireService.convertToDTO(questionnaire))
+                    .collect(Collectors.toList());
+            response.setServiceResponse(dtos);
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceMessage("Fetched questionnaires by quarter successfully");
         } catch (Exception e) {
@@ -80,12 +88,12 @@ public class QuestionnaireController {
         return response;
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/updateQuestionnaire/{id}")
     public ServiceResponse updateQuestionnaire(@PathVariable Long id, @RequestBody QuestionnaireDTO questionnaireDTO) {
         ServiceResponse response = new ServiceResponse();
         try {
             Questionnaire updatedQuestionnaire = questionnaireService.updateQuestionnaire(id, questionnaireDTO);
-            response.setServiceResponse(updatedQuestionnaire);
+            response.setServiceResponse(questionnaireService.convertToDTO(updatedQuestionnaire));
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceMessage("Questionnaire updated successfully");
         } catch (Exception e) {
@@ -96,7 +104,7 @@ public class QuestionnaireController {
         return response;
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/deleteQuestionnaire/{id}")
     public ServiceResponse deleteQuestionnaire(@PathVariable Long id) {
         ServiceResponse response = new ServiceResponse();
         try {

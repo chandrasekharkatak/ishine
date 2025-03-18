@@ -74,7 +74,6 @@ public class EmployeeGoalController {
         return employeeGoalService.getGoalsByEmployeeId(empId);
     }
 
-  
    
 }
 

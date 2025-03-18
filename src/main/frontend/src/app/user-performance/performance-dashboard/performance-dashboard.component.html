@@ -28,8 +28,8 @@
         </div>
       </div>
       <div class="col-md-3 text-center">
-        <div class="stat-box bg-light p-2 rounded">Goals Completed: <strong>8</strong></div>
-        <div class="stat-box bg-light p-2 rounded">Goals Remaining: <strong>4</strong></div>
+        <div class="stat-box bg-light p-2 rounded">Goals Completed: <strong> </strong></div>
+        <div class="stat-box bg-light p-2 rounded">Goals Remaining: <strong> </strong></div>
       </div>
       <div class="col-md-3 text-center">
         <div class="stat-box bg-light p-2 rounded">KRA/KPI score: <strong>9/10</strong></div>
@@ -84,58 +84,78 @@
       </div>
     </div>
     
-    <div class="mt-4 review-section p-4 border rounded">
-      <h4 class="text-center">Review</h4>
-      <div class="btn-group  align-items-center mb-3">
-        <div>
-        <button type="button" class="btn btn-outline-primary" [class.active]="activeTab === 'kra-kpi'" (click)="setActiveTab('kra-kpi')">KRA/KPI Review</button>
-        </div>
-        <div>
-        <button type="button" class="btn btn-outline-primary" [class.active]="activeTab === 'questionnaire'" (click)="setActiveTab('questionnaire')">Questionnaire Review</button>
-      </div>
-      </div>
-      <div class="form-group row gap-3 ">
-        <div class="text-center m-2 px-1" >
-        <label>Select Quarter:</label>
-        </div>
-        <select class="form-control w-25" [(ngModel)]="selectedQuarter" (change)="fetchReviewData()">
-          <option *ngFor="let quarter of quarters" [value]="quarter">{{ quarter }}</option>
-        </select>
-      </div>
-      <div class="tab-content mt-3">
-        <div *ngIf="activeTab === 'kra-kpi'">
-          <h4>KRA/KPI Review for Quarter {{ selectedQuarter }}</h4>
-          <form [formGroup]="kraKpiReviewForm" (ngSubmit)="submitKraKpiReview()">
-            <div *ngFor="let metric of kraKpiMetrics" class="form-group">
-              <label>{{ metric.name }} (Out of 10)</label>
-              <input type="number" class="form-control" formControlName="{{metric.id}}" min="0" max="10">
+    <div class="container py-4 m-0 px-0">
+      <div class="card shadow-lg order-0">
+        <div class="card-body">
+          <h2 class="text-center mb-4 fw-bold">Employee Review</h2>
+    
+          <ul class="nav nav-tabs  mb-4">
+            <li class="nav-item">
+              <button class="nav-link" [class.active]="activeTab === 'kra-kpi'" (click)="setActiveTab('kra-kpi')">KRA/KPI Review</button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link" [class.active]="activeTab === 'questionnaire'" (click)="setActiveTab('questionnaire')">Questionnaire Review</button>
+            </li>
+          </ul>
+    
+          <div class="row  mb-2">
+            <div class="col-auto">
+            <label class="col-auto fw-semibold">Select Quarter:</label>
+            
+              <select class="form-select" [(ngModel)]="selectedQuarter" (change)="fetchReviewData()">
+                <option *ngFor="let quarter of quarters" [value]="quarter">{{ quarter }}</option>
+              </select>
             </div>
-            <button type="submit" class="btn btn-primary mt-3">Submit KRA/KPI Review</button>
-          </form>
-        </div>
-        <div *ngIf="activeTab === 'questionnaire'">
-          <h4>Questionnaire Review for Quarter {{ selectedQuarter }}</h4>
-          <form [formGroup]="questionnaireReviewForm" (ngSubmit)="submitQuestionnaireReview()">
-            <div *ngFor="let question of questionnaireQuestions" class="form-group">
-              <label>{{ question.text }} (Out of 10)</label>
-              <input type="number" class="form-control" formControlName="{{question.id}}" min="0" max="10">
+          </div>
+
+          <div >
+    
+            <div *ngIf="activeTab === 'kra-kpi'">
+              <h4 class="mb-1 fw-semibold text-center">KRA/KPI Ratings - {{ selectedQuarter }}</h4>
+              <ul class="list-group list-group-flush">
+                <li *ngFor="let metric of kraKpiMetrics" class="list-group-item d-flex justify-content-between align-items-center py-3">
+                  <span>{{ metric.name }}</span>
+                  <span>
+                    <ng-container *ngFor="let star of getStars(metric.rating); let i = index">
+                      <i [class]="star ? 'fa-solid fa-star text-warning' : 'fa-regular fa-star text-muted'"></i>
+                    </ng-container>
+                    &nbsp;<strong>{{ metric.rating }}/10</strong>
+                  </span>
+                </li>
+              </ul>
             </div>
-            <button type="submit" class="btn btn-primary mt-3">Submit Questionnaire Review</button>
-          </form>
+    
+            <div *ngIf="activeTab === 'questionnaire'">
+              <h4 class="mb-3 fw-semibold text-center">Questionnaire Ratings - {{ selectedQuarter }}</h4>
+              <ul class="list-group list-group-flush">
+                <li *ngFor="let question of questionnaireQuestions" class="list-group-item d-flex justify-content-between align-items-center py-3">
+                  <span>{{ question.text }}</span>
+                  <span>
+                    <ng-container *ngFor="let star of getStars(question.rating); let i = index">
+                      <i [class]="star ? 'fa-solid fa-star text-warning' : 'fa-regular fa-star text-muted'"></i>
+                    </ng-container>
+                    &nbsp;<strong>{{ question.rating }}/10</strong>
+                  </span>
+                </li>
+              </ul>
+            </div>
+    
+          </div>
+    
         </div>
       </div>
     </div>
+    
   </div>
 </div>
 
 
 
-<!-- View Goal Modal -->
 <ng-template #viewGoalTemplate>
   <div class="modal-content rounded-lg shadow-lg">
-    <div class="modal-header  ">
-      <h5 class="modal-title fw-bold align-items-center">{{ selectedGoal?.name }}</h5>
-      <button type="button" class="close" aria-label="Close" (click)="modalRef.hide()"><span aria-hidden="true">&times;</span></button>
+    <div class="modal-header bg-primary text-white">
+      <h5 class="modal-title fw-bold">{{ selectedGoal?.name }}</h5>
+      <button type="button" class="btn-close text-white" aria-label="Close" (click)="modalRef.hide()"></button>
     </div>
 
     <div class="modal-body p-4">
@@ -146,7 +166,7 @@
         </div>
         <div class="col-md-6">
           <p><strong>Status:</strong></p>
-          <span class="badge" [ngClass]="getStatusClass(selectedGoal?.status)">{{ selectedGoal?.status }}</span>
+          <span class="badge" >{{ selectedGoal?.status }}</span>
         </div>
       </div>
 
@@ -169,24 +189,43 @@
       </div>
 
       <div class="mb-3">
+        <label for="goalStatus" class="form-label"><strong>Update Status (% Completed):</strong></label>
+        <input type="number" id="goalStatus" [(ngModel)]="selectedGoal.statusPercentage" min="0" max="100" step="1" 
+               class="form-control" placeholder="Enter percentage (0-100)" />
+      </div>
+
+      <div class="mb-3">
         <h6 class="fw-bold">Checkpoints:</h6>
-        <ul class="list-group">
-          <li *ngFor="let checkpoint of selectedGoal?.checkpoints" class="list-group-item">
-            {{ checkpoint }}
+        <ul class="list-group mb-2">
+          <li *ngFor="let checkpoint of selectedGoal?.checkpoints; let i = index" 
+              class="list-group-item d-flex justify-content-between align-items-center">
+            <input type="text" [(ngModel)]="selectedGoal.checkpoints[i]" 
+                   class="form-control form-control-sm border-0 bg-light" />
+            <button type="button" class="btn btn-danger btn-sm ms-2" (click)="removeCheckpoint(i)">Remove</button>
           </li>
         </ul>
+        <button type="button" class="btn btn-outline-primary btn-sm" (click)="addCheckpoint()">Add Checkpoint</button>
       </div>
 
       <div class="mb-3">
         <h6 class="fw-bold">Remarks:</h6>
-        <textarea class="form-control" [(ngModel)]="selectedGoal.employeeRemark" rows="3" placeholder="Enter remarks..."></textarea>
+        <label for="employeeRemark" class="form-label"><strong>Your Remark:</strong></label>
+        <textarea id="employeeRemark" [(ngModel)]="selectedGoal.employeeRemark.text"
+                  rows="3" placeholder="{{ 'Last updated by: ' + selectedGoal.employeeRemark.updatedBy }}"
+                  class="form-control"></textarea>
+
+        <label for="managerRemark" class="form-label mt-3"><strong>Manager's Remark:</strong></label>
+        <textarea id="managerRemark" [(ngModel)]="selectedGoal.managerRemark.text"
+                  rows="3" placeholder="{{ 'Last updated by: ' + selectedGoal.managerRemark.updatedBy }}"
+                  class="form-control"></textarea>
       </div>
     </div>
 
     <div class="modal-footer d-flex justify-content-between">
       <button type="button" class="btn btn-secondary" (click)="modalRef?.hide()">Close</button>
-      <button type="button" class="btn btn-primary" (click)="submitRemarks()">Save Remarks</button>
+      <button type="button" class="btn btn-primary" (click)="saveUpdates()">Save Changes</button>
     </div>
   </div>
 </ng-template>
+
 

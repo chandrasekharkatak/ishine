@@ -1,33 +1,18 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DepartmentService } from 'src/app/services/department.service';
 import { UserPerformanceService } from 'src/app/services/user-performance.service';
+import { TemplateService } from 'src/app/services/template.service';
 import { first } from 'rxjs/operators';
-
+import { question } from 'src/app/models/question';
+// import { QuestionnaireDTO } from 'src/app/models/questionnaire-dto';
+import { QuestionnaireDTO, QuestionDTO } from 'src/app/models/questionnaire-dto';
 @Component({
   selector: 'app-templates',
   templateUrl: './templates.component.html',
   styleUrls: ['./templates.component.css']
 })
 export class TemplatesComponent implements OnInit {
-toggleAllGoalTemplates($event: Event) {
-throw new Error('Method not implemented.');
-}
-areAllGoalTemplatesSelected() {
-throw new Error('Method not implemented.');
-}
-toggleAllQuestionnaireTemplates($event: Event) {
-throw new Error('Method not implemented.');
-}
-areAllQuestionnaireTemplatesSelected() {
-throw new Error('Method not implemented.');
-}
-toggleAllKraKpiTemplates($event: Event) {
-throw new Error('Method not implemented.');
-}
-areAllKraKpiTemplatesSelected() {
-throw new Error('Method not implemented.');
-}
   activeTab: string = 'goals';
   selectedTemplateType: string = 'goals';
   
@@ -36,15 +21,20 @@ throw new Error('Method not implemented.');
   goalTemplates: any[] = [];
   kraKpiTemplates: any[] = [];
   questionnaireTemplates: any[] = [];
-  
   templateForm: FormGroup;
+  questionnaireForm!: FormGroup;
   isEditing: boolean = false;
   editingTemplateId: number | null = null;
+  selectedQuarterId: number | null = null;
   
+
+
+
   constructor(
     private fb: FormBuilder, 
     private departmentService: DepartmentService,
-    private userPerformanceService: UserPerformanceService
+    private userPerformanceService: UserPerformanceService,
+    private templateService: TemplateService
   ) {
     this.templateForm = this.fb.group({
       title: ['', Validators.required],
@@ -54,11 +44,149 @@ throw new Error('Method not implemented.');
       metrics: [''],
       questions: ['']
     });
+
+    // Initialize the questionnaire form with a FormArray for questions
+    this.questionnaireForm = this.fb.group({
+      questionTitle: ['', Validators.required],
+      questionDescription: [''],
+      createdBy: [null], // Will be set before submission
+      quarterId: [null, Validators.required],
+      questions: this.fb.array([this.createQuestionField()])
+    });
   }
 
   ngOnInit(): void {
     this.fetchGoalTemplates();
     this.getAllDepartmentList();
+    this.fetchQuestionnaireTemplates();
+  }
+
+  // Create a single question form field
+  createQuestionField(): FormGroup {
+    return this.fb.group({
+      questionText: ['', Validators.required],
+      id: [null]
+    });
+  }
+
+  // Get access to the questions FormArray
+  get questions(): FormArray {
+    return this.questionnaireForm.get('questions') as FormArray;
+  }
+
+  // Add a new question field
+  addQuestion(): void {
+    if (this.questions.length < 10 && this.questions.at(this.questions.length - 1).valid) {
+      this.questions.push(this.createQuestionField());
+    }
+  }
+
+  // Remove a question field
+  removeQuestion(index: number): void {
+    if (this.questions.length > 1) {
+      this.questions.removeAt(index);
+    }
+  }
+
+  // Submit the questionnaire form
+  onSubmit() {
+    if (this.questionnaireForm.valid) {
+      // Create a new QuestionnaireDTO object
+      const formData = this.questionnaireForm.value;
+      
+      // Set the logged-in user ID (replace with actual implementation)
+      formData.createdBy = 1; // Example: Current user ID
+
+      // Map form array to QuestionDTO objects
+      const questionDTOs: question[] = this.questions.controls.map(control => {
+        const questionFormGroup = control as FormGroup;
+        return {
+          id: questionFormGroup.value.id,
+          questionText: questionFormGroup.value.questionText
+        };
+      });
+
+      // Create the final DTO
+      const questionnaireDTO: QuestionnaireDTO = {
+        questionId: this.isEditing ? this.editingTemplateId : undefined,
+        questionTitle: formData.questionTitle,
+        questionDescription: formData.questionDescription,
+        createdBy: formData.createdBy,
+        quarterId: formData.quarterId,
+        questions: questionDTOs
+      };
+
+      console.log('Questionnaire Form Data:', questionnaireDTO);
+      
+      if (this.isEditing && this.editingTemplateId) {
+        this.updateQuestionnaireTemplate(this.editingTemplateId, questionnaireDTO);
+      } else {
+        this.createQuestionnaireTemplate(questionnaireDTO);
+      }
+    } else {
+      // Mark all fields as touched to trigger validation messages
+      this.questionnaireForm.markAllAsTouched();
+    }
+  }
+
+  // Create a new questionnaire template
+  createQuestionnaireTemplate(formData: QuestionnaireDTO) {
+    this.templateService.createQuestionnaireTemplate(formData)
+      .pipe(first())
+      .subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus === "Success") {
+            alert('Questionnaire template created successfully!');
+            this.resetQuestionnaireForm();
+            this.setActiveTab('questionnaire');
+            this.fetchQuestionnaireTemplates();
+          } else {
+            console.error('Error creating questionnaire template:', response.serviceMessage);
+            alert('Failed to create questionnaire template: ' + response.serviceMessage);
+          }
+        },
+        error: (error) => {
+          console.error('HTTP error creating questionnaire template:', error);
+          alert('Error creating questionnaire template. Please try again.');
+        }
+      });
+  }
+
+  // Update an existing questionnaire template
+  updateQuestionnaireTemplate(id: number, formData: QuestionnaireDTO) {
+    this.templateService.updateQuestionnaire(id, formData)
+      .pipe(first())
+      .subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus === "Success") {
+            alert('Questionnaire template updated successfully!');
+            this.resetQuestionnaireForm();
+            this.setActiveTab('questionnaire');
+            this.fetchQuestionnaireTemplates();
+          } else {
+            console.error('Error updating questionnaire template:', response.serviceMessage);
+            alert('Failed to update questionnaire template: ' + response.serviceMessage);
+          }
+        },
+        error: (error) => {
+          console.error('HTTP error updating questionnaire template:', error);
+          alert('Error updating questionnaire template. Please try again.');
+        }
+      });
+  }
+
+  // Reset the questionnaire form
+  resetQuestionnaireForm() {
+    this.questionnaireForm.reset();
+    // Clear the questions FormArray except for one empty question
+    while (this.questions.length !== 0) {
+      this.questions.removeAt(0);
+    }
+    // Add one empty question field
+    this.questions.push(this.createQuestionField());
+    
+    this.isEditing = false;
+    this.editingTemplateId = null;
   }
 
   setActiveTab(tab: string) {
@@ -68,8 +196,256 @@ throw new Error('Method not implemented.');
     if (tab === 'questionnaire') this.fetchQuestionnaireTemplates();
     if (tab === 'create-template') {
       this.resetForm();
+      // Reset the questionnaire form when switching to create template tab
+      if (this.selectedTemplateType === 'questionnaire') {
+        this.resetQuestionnaireForm();
+      }
     }
   }
+
+  fetchQuestionnaireTemplates() {
+    this.templateService.getAllQuestionnaires()
+      .pipe(first())
+      .subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus === "Success") {
+            this.questionnaireTemplates = response.serviceResponse;
+          } else {
+            console.error('Error fetching questionnaire templates:', response.serviceMessage);
+          }
+        },
+        error: (error) => {
+          console.error('HTTP error fetching questionnaire templates:', error);
+        }
+      });
+  }
+
+  editQuestionnaireTemplate(template: any) {
+    this.isEditing = true;
+    this.editingTemplateId = template.questionId;
+    this.setActiveTab('create-template');
+    this.selectedTemplateType = 'questionnaire';
+    
+    // Clear existing questions
+    while (this.questions.length !== 0) {
+      this.questions.removeAt(0);
+    }
+    
+    // Patch the basic form values
+    this.questionnaireForm.patchValue({
+      questionTitle: template.questionTitle,
+      questionDescription: template.questionDescription,
+      quarterId: template.quarterId,
+      createdBy: template.createdBy
+    });
+    
+    // Add questions from the template
+    if (template.questions && template.questions.length > 0) {
+      template.questions.forEach((question: any) => {
+        const questionGroup = this.fb.group({
+          questionText: [question.questionText, Validators.required],
+          id: [question.id] // Keep the question ID for backend reference
+        });
+        this.questions.push(questionGroup);
+      });
+    } else {
+      // If no questions, add one empty question field
+      this.questions.push(this.createQuestionField());
+    }
+  }
+
+  deleteQuestionnaireTemplate(questionId: number) {
+    if (confirm('Are you sure you want to delete this questionnaire template?')) {
+      this.templateService.deleteQuestionnaire(questionId)
+        .pipe(first())
+        .subscribe({
+          next: (response: any) => {
+            if (response.serviceStatus === "Success") {
+              alert('Questionnaire template deleted successfully!');
+              this.fetchQuestionnaireTemplates();
+            } else {
+              console.error('Error deleting questionnaire template:', response.serviceMessage);
+              alert('Failed to delete questionnaire template: ' + response.serviceMessage);
+            }
+          },
+          error: (error) => {
+            console.error('HTTP error deleting questionnaire template:', error);
+            alert('Error deleting questionnaire template. Please try again.');
+          }
+        });
+    }
+  }
+
+  onQuarterChange() {
+    if (this.selectedQuarterId) {
+      this.templateService.getQuestionsByQuarter(this.selectedQuarterId)
+        .pipe(first())
+        .subscribe({
+          next: (response: any) => {
+            if (response.serviceStatus === "Success") {
+              this.questionnaireTemplates = response.serviceResponse;
+            } else {
+              console.error('Error fetching questionnaires by quarter:', response.serviceMessage);
+            }
+          },
+          error: (error) => {
+            console.error('HTTP error fetching questionnaires by quarter:', error);
+          }
+        });
+    } else {
+      this.fetchQuestionnaireTemplates();
+    }
+  }
+  // constructor(
+  //   private fb: FormBuilder, 
+  //   private departmentService: DepartmentService,
+  //   private userPerformanceService: UserPerformanceService,
+  //   private templateService: TemplateService
+  // ) {
+  //   this.templateForm = this.fb.group({
+  //     title: ['', Validators.required],
+  //     description: [''],
+  //     departmentId: [null, Validators.required],
+  //     quarterId: [null],
+  //     metrics: [''],
+  //     questions: ['']
+  //   });
+
+  //   // Initialize the questionnaire form with a FormArray for questions
+  //   this.questionnaireForm = this.fb.group({
+  //     questionTitle: ['', Validators.required],
+  //     questionDescription: [''],
+  //     createdBy: [null], // Will be set before submission
+  //     quarterId: [null],
+  //     questions: this.fb.array([this.createQuestionField()])
+  //   });
+  // }
+
+  // ngOnInit(): void {
+  //   this.fetchGoalTemplates();
+  //   this.getAllDepartmentList();
+  //   this.fetchQuestionnaireTemplates();
+  // }
+
+  // // Create a single question form field
+  // createQuestionField(): FormGroup {
+  //   return this.fb.group({
+  //     questionText: ['', Validators.required]
+  //   });
+  // }
+
+  // // Get access to the questions FormArray
+  // get questions(): FormArray {
+  //   return this.questionnaireForm.get('questions') as FormArray;
+  // }
+
+  // // Add a new question field
+  // addQuestion(): void {
+  //   if (this.questions.length < 10 && this.questions.at(this.questions.length - 1).valid) {
+  //     this.questions.push(this.createQuestionField());
+  //   }
+  // }
+
+  // // Remove a question field
+  // removeQuestion(index: number): void {
+  //   if (this.questions.length > 1) {
+  //     this.questions.removeAt(index);
+  //   }
+  // }
+
+  // // Submit the questionnaire form
+  // onSubmit() {
+  //   if (this.questionnaireForm.valid) {
+  //     const formData = this.questionnaireForm.value;
+  //     // Set the logged-in user ID (replace with actual implementation)
+  //     formData.createdBy = 1; // Example: Current user ID
+
+  //     console.log('Questionnaire Form Data:', formData);
+      
+  //     if (this.isEditing && this.editingTemplateId) {
+  //       this.updateQuestionnaireTemplate(this.editingTemplateId, formData);
+  //     } else {
+  //       this.createQuestionnaireTemplate(formData);
+  //     }
+  //   } else {
+  //     // Mark all fields as touched to trigger validation messages
+  //     this.questionnaireForm.markAllAsTouched();
+  //   }
+  // }
+
+  // // Create a new questionnaire template
+  // createQuestionnaireTemplate(formData: QuestionnaireDTO) {
+  //   this.templateService.createQuestionnaireTemplate(formData)
+  //     .pipe(first())
+  //     .subscribe({
+  //       next: (response: any) => {
+  //         if (response.serviceStatus === "Success") {
+  //           alert('Questionnaire template created successfully!');
+  //           this.resetQuestionnaireForm();
+  //           this.setActiveTab('questionnaire');
+  //           this.fetchQuestionnaireTemplates();
+  //         } else {
+  //           console.error('Error creating questionnaire template:', response.serviceMessage);
+  //           alert('Failed to create questionnaire template: ' + response.serviceMessage);
+  //         }
+  //       },
+  //       error: (error) => {
+  //         console.error('HTTP error creating questionnaire template:', error);
+  //         alert('Error creating questionnaire template. Please try again.');
+  //       }
+  //     });
+  // }
+
+  // // Update an existing questionnaire template
+  // updateQuestionnaireTemplate(id: number, formData: QuestionnaireDTO) {
+  //   this.templateService.updateQuestionnaire(id, formData)
+  //     .pipe(first())
+  //     .subscribe({
+  //       next: (response: any) => {
+  //         if (response.serviceStatus === "Success") {
+  //           alert('Questionnaire template updated successfully!');
+  //           this.resetQuestionnaireForm();
+  //           this.setActiveTab('questionnaire');
+  //           this.fetchQuestionnaireTemplates();
+  //         } else {
+  //           console.error('Error updating questionnaire template:', response.serviceMessage);
+  //           alert('Failed to update questionnaire template: ' + response.serviceMessage);
+  //         }
+  //       },
+  //       error: (error) => {
+  //         console.error('HTTP error updating questionnaire template:', error);
+  //         alert('Error updating questionnaire template. Please try again.');
+  //       }
+  //     });
+  // }
+
+  // // Reset the questionnaire form
+  // resetQuestionnaireForm() {
+  //   this.questionnaireForm.reset();
+  //   // Clear the questions FormArray except for one empty question
+  //   while (this.questions.length !== 0) {
+  //     this.questions.removeAt(0);
+  //   }
+  //   // Add one empty question field
+  //   this.questions.push(this.createQuestionField());
+    
+  //   this.isEditing = false;
+  //   this.editingTemplateId = null;
+  // }
+
+  // setActiveTab(tab: string) {
+  //   this.activeTab = tab;
+  //   if (tab === 'goals') this.fetchGoalTemplates();
+  //   if (tab === 'kra-kpi') this.fetchKraKpiTemplates();
+  //   if (tab === 'questionnaire') this.fetchQuestionnaireTemplates();
+  //   if (tab === 'create-template') {
+  //     this.resetForm();
+  //     // Reset the questionnaire form when switching to create template tab
+  //     if (this.selectedTemplateType === 'questionnaire') {
+  //       this.resetQuestionnaireForm();
+  //     }
+  //   }
+  // }
 
   fetchGoalTemplates() {
     this.userPerformanceService.getAllGoalTemplates()
@@ -88,6 +464,100 @@ throw new Error('Method not implemented.');
     });
   }
 
+  // fetchQuestionnaireTemplates() {
+  //   this.templateService.getAllQuestionnaires()
+  //     .pipe(first())
+  //     .subscribe({
+  //       next: (response: any) => {
+  //         if (response.serviceStatus === "Success") {
+  //           this.questionnaireTemplates = response.serviceResponse;
+  //         } else {
+  //           console.error('Error fetching questionnaire templates:', response.serviceMessage);
+  //         }
+  //       },
+  //       error: (error) => {
+  //         console.error('HTTP error fetching questionnaire templates:', error);
+  //       }
+  //     });
+  // }
+
+  // editQuestionnaireTemplate(template: any) {
+  //   this.isEditing = true;
+  //   this.editingTemplateId = template.id;
+  //   this.activeTab = 'create-template';
+  //   this.selectedTemplateType = 'questionnaire';
+    
+  //   // Clear existing questions
+  //   while (this.questions.length !== 0) {
+  //     this.questions.removeAt(0);
+  //   }
+    
+  //   // Patch the basic form values
+  //   this.questionnaireForm.patchValue({
+  //     questionTitle: template.questionTitle,
+  //     questionDescription: template.questionDescription,
+  //     quarterId: template.quarterId,
+  //     createdBy: template.createdBy
+  //   });
+    
+  //   // Add questions from the template
+  //   if (template.questions && template.questions.length > 0) {
+  //     template.questions.forEach((question: any) => {
+  //       const questionGroup = this.fb.group({
+  //         questionText: [question.questionText, Validators.required],
+  //         id: [question.id] // Keep the question ID for backend reference
+  //       });
+  //       this.questions.push(questionGroup);
+  //     });
+  //   } else {
+  //     // If no questions, add one empty question field
+  //     this.questions.push(this.createQuestionField());
+  //   }
+  // }
+
+  // deleteQuestionnaireTemplate(id: number) {
+  //   if (confirm('Are you sure you want to delete this questionnaire template?')) {
+  //     this.templateService.deleteQuestionnaire(id)
+  //       .pipe(first())
+  //       .subscribe({
+  //         next: (response: any) => {
+  //           if (response.serviceStatus === "Success") {
+  //             alert('Questionnaire template deleted successfully!');
+  //             this.fetchQuestionnaireTemplates();
+  //           } else {
+  //             console.error('Error deleting questionnaire template:', response.serviceMessage);
+  //             alert('Failed to delete questionnaire template: ' + response.serviceMessage);
+  //           }
+  //         },
+  //         error: (error) => {
+  //           console.error('HTTP error deleting questionnaire template:', error);
+  //           alert('Error deleting questionnaire template. Please try again.');
+  //         }
+  //       });
+  //   }
+  // }
+
+  // onQuarterChange() {
+  //   if (this.selectedQuarterId) {
+  //     this.templateService.getQuestionsByQuarter(this.selectedQuarterId)
+  //       .pipe(first())
+  //       .subscribe({
+  //         next: (response: any) => {
+  //           if (response.serviceStatus === "Success") {
+  //             this.questionnaireTemplates = response.serviceResponse;
+  //           } else {
+  //             console.error('Error fetching questionnaires by quarter:', response.serviceMessage);
+  //           }
+  //         },
+  //         error: (error) => {
+  //           console.error('HTTP error fetching questionnaires by quarter:', error);
+  //         }
+  //       });
+  //   } else {
+  //     this.fetchQuestionnaireTemplates();
+  //   }
+  // }
+
   onDepartmentChange() {
     if (this.selectedDept && this.selectedDept !== 'all') {
       this.userPerformanceService.getGoalTemplatesByDepartmentId(this.selectedDept.deptId)
@@ -105,18 +575,11 @@ throw new Error('Method not implemented.');
           }
         });
     } else {
-      // If no department is selected or "All Departments" is selected, fetch all templates
       this.fetchGoalTemplates();
     }
-    // this.http.get(`/api/goals-templates/department/department=${this.selectedDept}`)
-    //   .subscribe((data: any) => this.goalTemplates = data);
   }
 
   fetchKraKpiTemplates() {
-    // Implement when backend is ready
-  }
-
-  fetchQuestionnaireTemplates() {
     // Implement when backend is ready
   }
 
@@ -154,6 +617,11 @@ throw new Error('Method not implemented.');
   updateTemplateForm() {
     this.resetForm();
     this.updateFormValidation();
+    
+    // Reset the questionnaire form when changing template type
+    if (this.selectedTemplateType === 'questionnaire') {
+      this.resetQuestionnaireForm();
+    }
   }
 
   editTemplate(template: any) {
@@ -169,7 +637,6 @@ throw new Error('Method not implemented.');
       description: template.description,
       departmentId: template.departmentId,
       quarterId: template.quarterId,
-      // Add department if you need to send it
       department: dept ? dept.name : ''
     });
     
@@ -184,7 +651,6 @@ throw new Error('Method not implemented.');
         .subscribe({
           next: (response: any) => {
             if (response.serviceStatus === "Success") {
-              // Successfully deleted, now refresh the list
               this.fetchGoalTemplates();
             } else {
               console.error('Error deleting template:', response.serviceMessage);
@@ -201,7 +667,6 @@ throw new Error('Method not implemented.');
 
   createOrUpdateTemplate() {
     if (this.templateForm.invalid) {
-      // Mark all fields as touched to trigger validation messages
       Object.keys(this.templateForm.controls).forEach(key => {
         this.templateForm.get(key)?.markAsTouched();
       });
@@ -215,7 +680,6 @@ throw new Error('Method not implemented.');
     }
     
     if (this.isEditing && this.editingTemplateId) {
-      // Update existing template
       this.userPerformanceService.updateGoalTemplate(this.editingTemplateId, formValue)
       .pipe(first())
         .subscribe({
@@ -235,7 +699,6 @@ throw new Error('Method not implemented.');
           }
         });
     } else {
-      // Create new template
       this.userPerformanceService.createGoalTemplate(formValue)
         .pipe(first())
         .subscribe({

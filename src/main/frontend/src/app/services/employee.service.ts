@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, Subject, throwError } from 'rxjs';
+import { Observable, BehaviorSubject, throwError } from 'rxjs';
 import { Employee } from '../models/employee';
 import { User } from '../models/user';
 import { Query } from '../models/query';
@@ -325,5 +325,13 @@ getReporteesListByReportingManagerId(empObj: Employee){
 setReportingManagerToNewManager(employee : any){
   return this.http.post(`${this.baseUrl}`+`api/setReportingManagerToNewManager`,employee);
 }
+
+  private employeeSubject = new BehaviorSubject<Employee | null>(null);
+  
+    employee$: Observable<Employee | null> = this.employeeSubject.asObservable();
+  
+    setEmployee(employee: Employee) {
+      this.employeeSubject.next(employee);
+    }
 
 }
