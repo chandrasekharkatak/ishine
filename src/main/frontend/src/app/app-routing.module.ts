@@ -74,6 +74,9 @@ import { ReimbursementComponent } from './reimbursement/reimbursement.component'
 import { MyReimbursementComponent } from './reimbursement/my-reimbursement/my-reimbursement.component';
 import { ViewReimbursementComponent } from './reimbursement/view-reimbursement/view-reimbursement.component';
 import { ReimbursementapprovalComponent } from './reimbursement/reimbursementapproval/reimbursementapproval.component';
+import { MyTravelrequestComponent } from './travel-allowance/my-travelrequest/my-travelrequest.component';
+import { ViewTravelrequestComponent } from './travel-allowance/view-travelrequest/view-travelrequest.component';
+import { TravelrequestapprovalComponent } from './travel-allowance/travelrequestapproval/travelrequestapproval.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -192,7 +195,14 @@ const routes: Routes = [
   {path:'helpdesk/:id', component: HelpdeskComponent, canActivate: [AuthGuard]},
   {path:'release-notes', component: UserReleasenotesComponent, canActivate: [AuthGuard]},
   {path:'newsletters', component: NewsletterComponent, canActivate: [AuthGuard]},
-  {path:'travelDesk', component: TravelAllowanceComponent, canActivate: [AuthGuard]},
+  {path:'travelDesk', component: TravelAllowanceComponent, canActivate: [AuthGuard],
+    children:[
+      {path:'my-travelrequest', component:MyTravelrequestComponent},
+      {path:'view-travelrequest', component:ViewTravelrequestComponent},
+      {path:'approve-travelrequest', component:TravelrequestapprovalComponent}
+      
+    ]
+  },
   {path:'reimbursement', component: ReimbursementComponent, canActivate: [AuthGuard],
     children:[
       {path:'my-reimbursement', component:MyReimbursementComponent},

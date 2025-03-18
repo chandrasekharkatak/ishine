@@ -133,6 +133,9 @@ import { ReimbursementComponent } from './reimbursement/reimbursement.component'
 import { MyReimbursementComponent } from './reimbursement/my-reimbursement/my-reimbursement.component';
 import { ViewReimbursementComponent } from './reimbursement/view-reimbursement/view-reimbursement.component';
 import { ReimbursementapprovalComponent } from './reimbursement/reimbursementapproval/reimbursementapproval.component';
+import { MyTravelrequestComponent } from './travel-allowance/my-travelrequest/my-travelrequest.component';
+import { TravelrequestapprovalComponent } from './travel-allowance/travelrequestapproval/travelrequestapproval.component';
+import { ViewTravelrequestComponent } from './travel-allowance/view-travelrequest/view-travelrequest.component';
 registerLocaleData(localeGb);
 // import { OwlDateTimeModule, OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
 // 
@@ -246,6 +249,9 @@ registerLocaleData(localeGb);
      MyReimbursementComponent,
      ViewReimbursementComponent,
      ReimbursementapprovalComponent,
+     MyTravelrequestComponent,
+     TravelrequestapprovalComponent,
+     ViewTravelrequestComponent,
   
 
     //TestComponent
