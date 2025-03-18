@@ -357,7 +357,7 @@ openForm(id:any,mode: string,template: TemplateRef<any> ) {
       this.rewardsObj.rewardName = (<HTMLInputElement>document.querySelector('input[placeholder="Enter Sub Category name"]')).value;
       this.rewardsObj.rewardTypes = this.rewardTypes;
       if (this.rewardsObj.rewardTypes.length == 0) {
-        this.alertMessage = "Please enter reward Type !!"
+        this.alertMessage = "Please add reward Type !!"
         this.openAlertMod(template, this.alertMessage);
         return;
       }
@@ -371,6 +371,36 @@ openForm(id:any,mode: string,template: TemplateRef<any> ) {
           customQuery: filter.customQuery || ""   
         };
       });
+    // Check if customFilterDTOList is null, undefined, or empty
+if (!this.rewardsObj.customFilterDTOList || this.rewardsObj.customFilterDTOList.length === 0) {
+  this.alertMessage = "Please add filters to the custom Filter list!";
+  this.openAlertMod(template, this.alertMessage);
+  return;
+}
+
+// Validate each filter object in the customFilterDTOList
+for (const filter of this.rewardsObj.customFilterDTOList) {
+  
+  // Check if 'value' is undefined, null, or empty
+  if (filter.value === undefined || filter.value === null || filter.value.trim() === "") {
+    this.alertMessage = "Each filter must have a valid value.";
+    this.openAlertMod(template, this.alertMessage);
+    return;
+  }
+
+
+  // Check if 'customQuery' is invalid (null or undefined)
+  if (filter.customQuery === undefined || filter.customQuery === null) {
+    this.alertMessage = "Custom Query cannot be null or undefined.";
+    this.openAlertMod(template, this.alertMessage);
+    return;
+  }
+}
+
+// If validation passes, you can proceed with further processing
+console.log("Validation passed for customFilterDTOList");
+
+// Continue with your logic for further processing
 
     
       console.log("Submit Button : ", this.rewardsObj);
