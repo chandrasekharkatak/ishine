@@ -33,7 +33,7 @@
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Category</label>
                         <select class="form-control" id="" [(ngModel)]="rewardsObj.categoryId">
-                            <option value="" selected>Select</option>
+                            <option value="" selected disabled>Select</option>
                             <option *ngFor="let category of allCategoryist" value="{{category.rewardCategoryId}}">
                                 {{category.categoryName}}</option>
                         </select>
@@ -46,7 +46,7 @@
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Rewards Sub Category</label>
                         <input type="text" placeholder="Enter Sub Category name" class="form-control" maxlength="50"
-                            autocomplete="off" [(ngModel)]="rewardsObj.rewardName">
+                            autocomplete="off" [(ngModel)]="rewardsObj.rewardName" (keypress)="restrictInput($event)">
                     </div>
                 </div>
             </div>
@@ -59,7 +59,7 @@
                             <input type="text" [(ngModel)]="rewardType" class="form-control"
                                 placeholder="Enter Reward Type" (keypress)="restrictInput($event)">
                             <div class="input-group-append">
-                                <button class="btn btn-outline-secondary add-button" (click)="addRewardType()">
+                                <button class="btn btn-outline-secondary add-button" (click)="addRewardType(alert_message)">
                                     <i class="fa fa-plus"></i>
                                 </button>
                             </div>

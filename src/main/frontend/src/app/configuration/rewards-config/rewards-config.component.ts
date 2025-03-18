@@ -14,6 +14,7 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { LeaveService } from 'src/app/services/leave.service';
 import { RewardsServiceService } from 'src/app/services/rewards-service.service';
 import { UtilityService } from 'src/app/services/utility.service';
+import { ValidationService } from 'src/app/services/validation.service';
 
 class Operator{
   name:string;
@@ -90,6 +91,7 @@ export class RewardsConfigComponent implements OnInit {
     private modalService: BsModalService,
     private exportExcelService: ExportExcelService,
     private utilityService: UtilityService,
+    private validationService:ValidationService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
    }
@@ -143,12 +145,18 @@ export class RewardsConfigComponent implements OnInit {
     })
   }
 
-  addRewardType() {
-    if (this.rewardType) {
-      this.rewardTypes.push(this.rewardType);
-      this.rewardType = '';
+  addRewardType(template: TemplateRef<any>) {
+
+    if(this.rewardTypes.some(type => type.toLowerCase() === this.rewardType.toLowerCase())){
+      this.openAlertMod(template, "Dublicate review Type");
     }
-  }
+    if (this.rewardType && !this.rewardTypes.some(type => type.toLowerCase() === this.rewardType.toLowerCase())) {
+        this.rewardTypes.push(this.rewardType);
+        this.rewardType = '';
+    }
+}
+
+
 
   removeRewardType(index: number) {
     this.rewardTypes.splice(index, 1);
@@ -296,11 +304,64 @@ openForm(id:any,mode: string,template: TemplateRef<any> ) {
     this.queryList = rewardObj.customFilterDTOList || [];
   }
   
+
+    validateActivityObj(activityObj:Rewards, template: TemplateRef<any>) {
+  
+      if (!this.validationService.validateNullUndefinedEmptyString(activityObj.categoryId)) {
+        this.alertMessage = "Please select Category !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+  
+     
+      
+     
+      if (!this.validationService.validateNullUndefinedEmptyString(activityObj.rewardName)) {
+        this.alertMessage = "Please enter reward Sub Category !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+     
+  
+      
+  
+      // if (!activityObj.customFilterDTOList || activityObj.customFilterDTOList.length === 0) {
+      //   this.alertMessage = "Please add values in custom Filter !!";
+      //   this.openAlertMod(template, this.alertMessage);
+      //   return false;
+      // }
+
+      
+     
+  
+      // if (!this.validationService.validateNullUndefinedEmptyString(activityObj.eta)) {
+      //   this.alertMessage = "Please enter Activity ETA (Hours)!!"
+      //   this.openAlertMod(template, this.alertMessage);
+      //   return false;
+      // } else if (activityObj.eta < 0 || activityObj.eta > 999) {
+      //   this.alertMessage = "Please enter Valid Activity ETA (Hours) between 0-999 Hours!!"
+      //   this.openAlertMod(template, this.alertMessage);
+      //   return false;
+      // }
+  
+      return true;
+    }
   onSubmit(template: TemplateRef<any>) {
+    let inputValidated: boolean = this.validateActivityObj(this.rewardsObj, template)
+    if (!inputValidated) return;
+
+   
+  
     if (this.validateData()) {
       this.rewardsObj.categoryId = parseInt(this.rewardsObj.categoryId, 10);
       this.rewardsObj.rewardName = (<HTMLInputElement>document.querySelector('input[placeholder="Enter Sub Category name"]')).value;
       this.rewardsObj.rewardTypes = this.rewardTypes;
+      if (this.rewardsObj.rewardTypes.length == 0) {
+        this.alertMessage = "Please enter reward Type !!"
+        this.openAlertMod(template, this.alertMessage);
+        return;
+      }
+     
       // this.rewardsObj.createdBy = this.currentUser.empId;
       this.rewardsObj.customFilterDTOList = this.queryList.map(filter => {
         return {
@@ -310,6 +371,8 @@ openForm(id:any,mode: string,template: TemplateRef<any> ) {
           customQuery: filter.customQuery || ""   
         };
       });
+
+    
       console.log("Submit Button : ", this.rewardsObj);
 
       this.rewardsObj.isTeam=this.rewardTeams ;
@@ -339,6 +402,9 @@ openForm(id:any,mode: string,template: TemplateRef<any> ) {
             this.openAlertMod(template, response.serviceResponse);
             this.fetchAllRewards();
             this.resetForm();
+          }
+          else if(response.serviceStatus === 'Fail'){
+            this.openAlertMod(template, "Reward Sub Category Already Exits");
           }
         });
       }
@@ -480,26 +546,31 @@ openForm(id:any,mode: string,template: TemplateRef<any> ) {
 
   
 
- restrictInput(event) {
+   restrictInput(event) {
     const inputField = event.target;
     const value = inputField.value;
-    const allowedChars = [' ', '-'];  // Define allowed characters (space and dash)
 
-    // Prevent input if no value and key is a number
+   
+    if (value.length === 0 && (event.key === ' ' || event.key === '-')) {
+        event.preventDefault();
+    }
+
+    
     if (value.length === 0 && event.key >= '0' && event.key <= '9') {
         event.preventDefault();
     }
 
-    // Prevent input if value exceeds 20 characters
+    
     if (value.length >= 20) {
         event.preventDefault();
     }
 
-    // Allow space and dash characters and digits
+    
     if (!event.key.match(/[0-9a-zA-Z\s-]/)) {
         event.preventDefault();
     }
 }
+
 
 
   confirmResult: boolean = false;
