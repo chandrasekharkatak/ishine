@@ -177,6 +177,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   monthKeys: string[] = [];
   currentMonthIndex: number = 0;
   currentRewards: any[] = [];
+  scrollInterval: any;
 
   constructor(
     private modalService: BsModalService,
@@ -2222,23 +2223,67 @@ groupRewardsByMonth() {
 updateCurrentRewards() {
   const currentMonth = this.monthKeys[this.currentMonthIndex];
   
-  // Prevent flicker: Store old data first
   const newRewards = this.groupedRewards[currentMonth] || [];
-  
+
+  if (newRewards.length === 0) {
+    this.showEmptyMessage = true;
+  } else {
+    this.showEmptyMessage = false;
+  }
+
   if (JSON.stringify(this.currentRewards) !== JSON.stringify(newRewards)) {
     this.currentRewards = newRewards;
+    this.selectedMonth = currentMonth;  
     this.cdr.markForCheck();  
   }
 }
 
+// startScrolling() {
+//   if (this.scrollInterval) {
+//     clearInterval(this.scrollInterval); 
+//   }
+
+//   let scrollTime = Math.min(Math.max(this.currentRewards.length * 3 * 1000, 30000), 90000);
+
+//   this.updateCurrentRewards(); 
+
+//   this.scrollInterval = setInterval(() => {
+//     this.currentMonthIndex = (this.currentMonthIndex + 1) % this.monthKeys.length;
+
+//     // Ensure there are rewards for the next month before updating
+//     const nextMonth = this.monthKeys[this.currentMonthIndex];
+//     if (this.groupedRewards[nextMonth] && this.groupedRewards[nextMonth].length > 0) {
+//       this.updateCurrentRewards();
+//     } else {
+//       console.warn(`No rewards for the month: ${nextMonth}`);
+//     }
+//   }, scrollTime);
+// }
+
 startScrolling() {
+  if (this.scrollInterval) {
+    clearInterval(this.scrollInterval); 
+  }
+
   let scrollTime = Math.min(Math.max(this.currentRewards.length * 3 * 1000, 30000), 90000);
 
   this.updateCurrentRewards(); 
 
-  setInterval(() => {
-    this.currentMonthIndex = (this.currentMonthIndex + 1) % this.monthKeys.length;
-    this.updateCurrentRewards();
+  this.scrollInterval = setInterval(() => {
+    
+    this.currentRewards = [];
+    this.cdr.markForCheck();
+
+    setTimeout(() => {
+      this.currentMonthIndex = (this.currentMonthIndex + 1) % this.monthKeys.length;
+
+      const nextMonth = this.monthKeys[this.currentMonthIndex];
+      if (this.groupedRewards[nextMonth] && this.groupedRewards[nextMonth].length > 0) {
+        this.updateCurrentRewards();
+      } else {
+        console.warn(`No rewards for the month: ${nextMonth}`);
+      }
+    }, 3000); 
   }, scrollTime);
 }
 
