@@ -76,6 +76,7 @@ export class PerformanceDashboardComponent implements OnInit {
   currentEmployeeInfo:Employee = new Employee();
   selectedGoal: any;
   modalRef?: BsModalRef;
+  errorMessage: string;
 
   constructor(
     private http: HttpClient, 
@@ -96,9 +97,20 @@ export class PerformanceDashboardComponent implements OnInit {
   }
 
   fetchGoals(): void {
-    // this.goalService.getGoals().subscribe((data) => {
-    //   this.goals = data;
-    // });
+    this.errorMessage = ''; 
+
+    this.goalService.getGoalsByEmployeeId(this.currentEmployeeInfo.empId).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === 'SUCCESS') {
+          this.goals = response.serviceResponse; 
+        } else {
+          this.errorMessage = response.serviceMessage || 'No goals found for this employee.';
+        }
+      },
+      error: (error) => {
+        this.errorMessage = error.message || 'Failed to fetch employee goals.';
+      },
+    });
   }
 
   loadPerformanceStats(): void {
@@ -166,7 +178,7 @@ export class PerformanceDashboardComponent implements OnInit {
   initializeKraKpiForm() {
     let formControls: any = {};
     this.kraKpiMetrics.forEach(metric => {
-      formControls[metric.id] = [0];  // Default value
+      formControls[metric.id] = [0];  
     });
     this.kraKpiReviewForm = this.fb.group(formControls);
   }
@@ -174,7 +186,7 @@ export class PerformanceDashboardComponent implements OnInit {
   initializeQuestionnaireForm() {
     let formControls: any = {};
     this.questionnaireQuestions.forEach(question => {
-      formControls[question.id] = [0];  // Default value
+      formControls[question.id] = [0];  
     });
     this.questionnaireReviewForm = this.fb.group(formControls);
   }

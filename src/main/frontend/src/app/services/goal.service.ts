@@ -17,4 +17,8 @@ export class GoalService {
     return this.http.put(`${this.baseUrl}`+`/api/goals/${goalId}`, payload);
   }
   
+
+  getGoalsByEmployeeId(empId: number): Observable<any> {
+    return this.http.get(`${this.baseUrl}'+'/employee/${empId}`).pipe();
+  }
 }
