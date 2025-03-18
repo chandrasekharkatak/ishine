@@ -55,8 +55,8 @@ export class Employee360RewardsComponent implements OnInit {
   isTeamTableVisible: boolean = false;
   isTeamTableVisible1: boolean = false;
   matchedEmployees: any[] = [];
-  rewardsColumns: any[] = ['', 'rewardTypeName', 'name', 'createdOn','teamName', 'remark', 'updatedBy'];
-  rewardsTeamColumns:any[] = ['','rewardTypeName','name','createdByName','remark','createdOn'];
+  rewardsColumns: any[] = ['','rewardCategory', 'rewardTypeName', 'name', 'createdOn','teamName', 'remark'];
+  rewardsTeamColumns:any[] = ['','rewardCategoryName','rewardTypeName','name','createdByName','remark','createdOn'];
   page: number = 1;
   sortDirection = 'asc';
   sortColumn: any;
@@ -279,16 +279,36 @@ export class Employee360RewardsComponent implements OnInit {
     
     this.selectedPeriod = '';
     this.activeCategoryId = null;
-    this.rewardsCategories = [];
+    this.rewardsCategories = this.getCategoriesForYear();
+    // this.rewardsCategories = [];
     setTimeout(() => {
-      const periodDropdown = document.getElementById('periodDropdown') as HTMLSelectElement;
-      if (periodDropdown) {
-        periodDropdown.value = '';
+      const monthDropdown = document.getElementById('rewardsDropdown') as HTMLSelectElement;
+      if (monthDropdown) {
+        monthDropdown.value = '';
+        this.rewardList = [];
       }
     });
    
     console.log('Selected Year:', this.selectedYear);
   }
+
+  getCategoriesForYear(): any[] {
+    
+    return [
+        { rewardCategoryId: 1, categoryName: 'January' },
+        { rewardCategoryId: 2, categoryName: 'February' },
+        { rewardCategoryId: 3, categoryName: 'March' },
+        { rewardCategoryId: 4, categoryName: 'April' },
+        { rewardCategoryId: 5, categoryName: 'May' },
+        { rewardCategoryId: 6, categoryName: 'June' },
+        { rewardCategoryId: 7, categoryName: 'July' },
+        { rewardCategoryId: 8, categoryName: 'August' },
+        { rewardCategoryId: 9, categoryName: 'September' },
+        { rewardCategoryId: 10, categoryName: 'October' },
+        { rewardCategoryId: 11, categoryName: 'November' },
+        { rewardCategoryId: 12, categoryName: 'December' }
+    ];
+}
 
   onPeriodChange(event: Event): void {
     const selectElement = event.target as HTMLSelectElement;
@@ -658,6 +678,7 @@ export class Employee360RewardsComponent implements OnInit {
 
   goBack(): void {
     this.isTeamTableVisible = false;
+
   }
   
   getMatchingEmployees(): void {

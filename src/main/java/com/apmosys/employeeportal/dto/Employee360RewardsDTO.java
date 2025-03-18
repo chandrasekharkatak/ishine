@@ -22,5 +22,7 @@ public class Employee360RewardsDTO {
 	private String name;
 	private List<RewardTeamDTO> teamlist;
 	private Long createdBY;
+	private Long rewardCategoryId;
+	private String rewardCategory;
 
 }
