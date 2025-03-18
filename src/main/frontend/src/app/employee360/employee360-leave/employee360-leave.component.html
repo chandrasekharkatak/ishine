@@ -141,10 +141,10 @@
                             <td [ngStyle]="{'color': (leaveHistory.level3ApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.level3ApprovalStatus == 'Approved') ? 'green' : (leaveHistory.level3ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.level3ApprovalStatus}}</td>
                             <td class="info-label" *ngIf="activeButton==='Rejected'">{{leaveHistory.remark}}</td>
                             <td *ngIf="activeButton==='Pending'">
-                              <button *ngIf="approveReject && leaveHistory.isSelected" class="btn btn-sm btn-outline-success mb-1" type="submit"
+                              <button *ngIf="approveReject && leaveHistory.isManagerFlag" class="btn btn-sm btn-outline-success mb-1" type="submit"
                               (click)="onUpdateLeaveStatus(alert_message, leaveHistory, 2)" title="Approve"><em
                                 class="fa-solid fa-check"></em></button>&nbsp;
-                            <button *ngIf="approveReject && leaveHistory.isSelected" class="btn btn-sm btn-outline-danger" type="submit"
+                              <button *ngIf="approveReject && leaveHistory.isManagerFlag" class="btn btn-sm btn-outline-danger" type="submit"
                               (click)="openLeaveRejectModal(reject_leave_modal, leaveHistory)" title="Reject"><em
                                 class="fa-solid fa-xmark"></em></button>
                             </td>

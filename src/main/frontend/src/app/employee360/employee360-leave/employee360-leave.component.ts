@@ -429,6 +429,8 @@ export class Employee360LeaveComponent implements OnInit {
     leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId;
     leaveApplication.rejectReason = leaveApplication.rejectReason?.trim();	
     leaveApplication.leaveEmpId = this.employeeData.empId;
+    leaveApplication.empId=this.employeeData.empId;
+
     if(this.activeButton != "CompOff"){
     this.leaveService.updateLeaveStatus(leaveApplication).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

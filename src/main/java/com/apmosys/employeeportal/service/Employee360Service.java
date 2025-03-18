@@ -389,8 +389,9 @@ public class Employee360Service {
 				dto.setCurrentApprovalLevel(object[24] != null ? Integer.parseInt(object[24].toString()) : null);
 				dto.setFinalApprovalLevel(object[25] != null ? Integer.parseInt(object[25].toString()) : null);
 				dto.setCreatedByName(object[26] != null ? object[26].toString() : null);
-				dto.setLeaveTypeMasterId(object[27] != null ? Short.parseShort(object[27].toString()) : null);
-				dto.setManagerId(object[28] != null ? Integer.parseInt(object[28].toString()) : null);
+				dto.setLeaveEmpId(object[27] != null ? Long.parseLong(object[27].toString()) : null);
+				dto.setEmployeementId(object[28] != null ? Long.parseLong(object[28].toString()) : null);
+				dto.setLeaveTypeMasterId(object[29] != null ? Short.parseShort(object[29].toString()) : null);
 				
 				dtoList.add(dto);	
 				});
