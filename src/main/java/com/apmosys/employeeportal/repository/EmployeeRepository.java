@@ -425,6 +425,28 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query(nativeQuery = true,value = "select e.emp_id from employee e \n"
 			+ " inner join user_session u on e.emp_id = u.emp_id")
 	public Long findByEmpId();
+	
+	List<Employee> findByJobRoleIdIn(List<Long> jobRoleIds);
+	
+	@Query("SELECT e FROM Employee e " +
+		       "WHERE e.jobRoleId IN (" +
+		       "    SELECT j.jobRoleId FROM JobRole j " +
+		       "    WHERE j.deptId = (" +
+		       "        SELECT j2.deptId FROM JobRole j2 " +
+		       "        WHERE j2.jobRoleId = (" +
+		       "            SELECT e2.jobRoleId FROM Employee e2 " +
+		       "            WHERE e2.empId = (" +
+		       "                SELECT us.empId FROM UserSession us " +
+		       "                WHERE us.sessionKey = :sessionKey" +
+		       "            )" +
+		       "        )" +
+		       "    )" +
+		       ")")
+		List<Employee> findEmployeesByUserSessionDepartment(@Param("sessionKey") String sessionKey);
+	
+	@Query(nativeQuery = true, value = "select e.emp_id,e.name,e.employeement_id from employee e inner join job_role j on j.job_role_id = e.job_role_id inner join department d on j.dept_id=d.dept_id where d.hod_id = :hodId ;")
+		List<Object[]> findEmployeesInSameDepartmentAsCurrentUser(Long hodId);
+		
 
 
 }

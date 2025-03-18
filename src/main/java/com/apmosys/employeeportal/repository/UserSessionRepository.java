@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,6 +20,9 @@ public interface UserSessionRepository extends JpaRepository<UserSession, Long>{
 	           "INNER JOIN Employee e ON s.empId = e.empId " +
 	           "WHERE s.empId = :empId")
 	    EmployeeSessionDTO findEmployeeDetailsByEmpId(@Param("empId") Long empId);
+	    
 	
+//	Optional<UserSession> findBySessionKey(String sessionKey);
+
 
 }

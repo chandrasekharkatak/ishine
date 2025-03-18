@@ -17,7 +17,6 @@ export class UserPerformanceService {
   getAllGoalTemplates(): Observable<any> {
     return this.http.get(`${this.baseUrl}api/goal-templates`).pipe(
       map((response: any) => {
-        // Handle response transformation if needed
         return response;
       })
     );
@@ -54,4 +53,6 @@ export class UserPerformanceService {
     // Make sure we're using the correct endpoint and proper HTTP method
     return this.http.delete(`${this.baseUrl}api/goal-templates/${id}`);
   }
+
+  
 }
