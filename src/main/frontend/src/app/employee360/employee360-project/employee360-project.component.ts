@@ -40,7 +40,7 @@ isProjectTeamMemberVisible:boolean=false;
   getBillableType: any;
   newMemberInProject: any;
   lastDate: any;
-
+  page = 1;
   copyDepartment : any = [];
   currentBreadcrumbList: any[] = [];
   allProjectList: any[] = [];
@@ -56,7 +56,7 @@ isProjectTeamMemberVisible:boolean=false;
   filters:any = {};
   isSearchEnabled:boolean = false;
   projectColumns:any[] = ['blank','projectName' ,'teamName' , 'clientName', 'billableType', 'startDate', 'updatedOn'];
-
+  employeesColumns: any[] = ['blank', 'teamName', 'employeeName', 'billableType', 'startDate', 'employeeRole'];
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
   newteamMember: TeamMember = new TeamMember();
@@ -125,6 +125,7 @@ backfromvisibility(type:any){
   if(type=="ProjectVisible" && this.flag == true){
     this.isProjectVisible=true;
     this.flag = false;
+    this.filterProjectByProjectId = [];
    
   }
   else if(type=="ProjectTeamVisible"){
@@ -162,12 +163,55 @@ getTeamByProjectId(projectId:any){
  
   this.projectteamInfo.projectId = projectId;
 
-  this.emp360Service.getTeamInfo(this.projectteamInfo).pipe(first()).subscribe((response: any) => {
-    if (response.serviceStatus == "Success") {
-      this.filterProjectByProjectId = response.serviceResponse;
-  
-    }
-  });
+  this.emp360Service.getTeamInfo(this.projectteamInfo).subscribe({
+    next: (response: any) => {
+    if (response.serviceStatus === "Success") {
+                    this.filterProjectByProjectId = response.serviceResponse;
+                    // console.log("getTeamInfo ", this.teamMemberList);
+    
+                    const groupedData = {};
+    
+                    this.filterProjectByProjectId.forEach((member) => {
+                        const teamKey = member.teamId;
+    
+                        if (!groupedData[teamKey]) {
+                            groupedData[teamKey] = {
+                                teamId: member.teamId,
+                                teamName: member.teamName,
+                                employees: [],
+                                projectId: member.projectId,
+                                projectName: member.projectName
+                            };
+                        }
+    
+                        groupedData[teamKey].employees.push({
+                            empId: member.empId,
+                            employeeName: member.employeeName,
+                            employeeRole: member.employeeRole ? member.employeeRole.split(',').filter(role => role.trim() !== '').join(', ') : "",
+                            startDate: member.startDate ? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null,
+                            billableType: member.billableType,
+                            active: member.active,
+                            emp360: {}
+                        });
+    
+                        groupedData[teamKey].employees = groupedData[teamKey].employees || [];
+                    });
+    
+                    this.filterProjectByProjectId = Object.values(groupedData);
+    
+                    this.filterProjectByProjectId.forEach((team) => {
+                        team.employees.forEach((employee) => {
+                            // console.log("employee.empId ", employee.empId);
+                            let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
+                            // console.log("matchingEmployee ", matchingEmployee);
+                            employee.emp360 = matchingEmployee ? matchingEmployee : {};
+                        });
+                    });
+                    // console.log("Formatted Team Data: ", this.teamMemberList);
+                } else {
+                    console.warn("Failed to fetch team info");
+                }
+}});
 }
 filterProjects(id) {
   this.getTeamByProjectId(id);
@@ -253,6 +297,13 @@ async getTeamEmployeeByTeamId(teamId: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-md' });
     this.projectObj = projObj;
   }
+  deleteResourceModal1(template: TemplateRef<any>, projObj,member){
+    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.projectObj = projObj;
+    this.projectObj.empId = member.empId;
+  }
+
+  
 
   deleteResourceFromProject(template: TemplateRef<any>) {
     this.cancelRequest();
@@ -261,12 +312,13 @@ async getTeamEmployeeByTeamId(teamId: any) {
     projectObj.teamId = this.projectObj.teamId;
     projectObj.empId = this.projectObj.empId;
     projectObj.endDate = this.lastDate;
-
+    
     console.log("team details ", projectObj)
     this.projectService.updateProjectResourceAsInActive(projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.getExistingProjectsByUser();
+        this.getTeamByProjectId(this.projectObj.projectId);
       }
     })
   }
@@ -387,7 +439,7 @@ async getTeamEmployeeByTeamId(teamId: any) {
     //console.log("Updated Filter : ", this.filters);
   }
 
-  page = 1;
+  
   handlePageChange(event) {
     this.page = event;
   }

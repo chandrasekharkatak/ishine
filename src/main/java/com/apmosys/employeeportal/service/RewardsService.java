@@ -1499,6 +1499,16 @@ public class RewardsService {
 	                errorMessages.add("Row " + rowNum + ": Invalid EmployeeId.");
 	                continue;
 	            }
+	            
+	            String employeeName = null;
+	            if (columnIndexMap.containsKey("Employee Name")) {
+	                Cell employeeNameCell = currentRow.getCell(columnIndexMap.get("Employee Name"));
+	                if (employeeNameCell == null || employeeNameCell.getStringCellValue().trim().isEmpty()) {
+	                    errorMessages.add("Row " + rowNum + ": Employee Name is missing.");
+	                    continue;
+	                }
+	                employeeName = employeeNameCell.getStringCellValue().trim();
+	            }
 
 	            Optional<Employee> optionalEmployee = Optional.ofNullable(employeeRepository.findByEmployeementId(employeeId));
 	            if (!optionalEmployee.isPresent()) {
@@ -1507,11 +1517,21 @@ public class RewardsService {
 	            }
 
 	            Employee employee = optionalEmployee.get();
+	            
+	            
+	            if (!employee.getName().equalsIgnoreCase(employeeName)) {
+	                errorMessages.add("Row " + rowNum + ": Employee Name does not correspond to Employee ID '" + employeeId + "'.");
+	                continue;
+	            }
+	            
 
 	            if ("InActive".equalsIgnoreCase(employee.getEmploymentstatus())) {
 	                inactiveEmployees.add(employeeId);
 	                continue;
 	            }
+	            
+	                      
+	            
 
 	            String rewardCategoryName = null;
 	            if (columnIndexMap.containsKey("Reward Category")) {

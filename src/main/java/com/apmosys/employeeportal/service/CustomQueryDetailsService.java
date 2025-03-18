@@ -218,7 +218,7 @@ public class CustomQueryDetailsService {
 	        Iterator<Row> rows = sheet.iterator();
 
 	        Row headerRow = rows.next();
-	        Set<String> availableColumns = new HashSet<>(Arrays.asList("Employee Id", "Billable", "Billable Type", "Gender", "Manager Name", "Designation Name"));
+	        Set<String> availableColumns = new HashSet<>(Arrays.asList("Employee Id","Employee Name", "Billable", "Billable Type", "Gender", "Manager Name", "Designation Name"));
 
 	        Map<String, Integer> columnIndexMap = new HashMap<>();
 	        for (Cell cell : headerRow) {
@@ -246,6 +246,16 @@ public class CustomQueryDetailsService {
 	                errorMessages.add("Row " + rowNum + ": Invalid EmployeeId.");
 	                continue;
 	            }
+	            
+	            String employeeName = null;
+	            if (columnIndexMap.containsKey("Employee Name")) {
+	                Cell employeeNameCell = currentRow.getCell(columnIndexMap.get("Employee Name"));
+	                if (employeeNameCell == null || employeeNameCell.getStringCellValue().trim().isEmpty()) {
+	                    errorMessages.add("Row " + rowNum + ": Employee Name is missing.");
+	                    continue;
+	                }
+	                employeeName = employeeNameCell.getStringCellValue().trim();
+	            }
 
 	            Optional<Employee> optionalEmployee = Optional.ofNullable(employeeRepository.findByEmployeementId(employeeId));
 	            if (!optionalEmployee.isPresent()) {
@@ -254,6 +264,12 @@ public class CustomQueryDetailsService {
 	            }
 
 	            Employee employee = optionalEmployee.get();
+	            
+	            
+	            if (!employee.getName().equalsIgnoreCase(employeeName)) {
+	                errorMessages.add("Row " + rowNum + ": Employee Name does not correspond to Employee ID '" + employeeId + "'.");
+	                continue;
+	            }
 
 	            // Check for InActive employees
 	            if ("InActive".equalsIgnoreCase(employee.getEmploymentstatus())) {

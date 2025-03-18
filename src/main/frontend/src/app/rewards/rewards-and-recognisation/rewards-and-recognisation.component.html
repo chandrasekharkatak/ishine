@@ -64,8 +64,8 @@
             <div class="info-wrapper">
                 <div class="form-group">
                     <label class="info-label"  *ngIf="activeCategoryId==1"><span class="text-danger">*</span>Of Month-Year</label>
-                    <label class="info-label"  *ngIf="activeCategoryId==2"><span class="text-danger">*</span>Annual award Year</label>
-                    <label class="info-label"  *ngIf="activeCategoryId==3"><span class="text-danger">*</span>Half Yearly</label>
+                    <label class="info-label"  *ngIf="activeCategoryId==2"><span class="text-danger">*</span>Half Yearly MonthYear</label>
+                    <label class="info-label"  *ngIf="activeCategoryId==3"><span class="text-danger">*</span>Annual award MonthYear</label>
                  
                    
                     <input id="startMonth" type="month" class="form-control" [(ngModel)]="ofmonthyear"
@@ -325,7 +325,7 @@
                                 </label><br>
                             <small class="text-danger">Kindly ensure to fill appropriate data according to
                                 template</small>
-                            <input type="file" class="form-control p-1" (change)="onRewardFileSelect($event, alert_message)" >
+                            <input type="file" class="form-control p-1" #fileInput (change)="onRewardFileSelect($event, alert_message)" >
                         </div>
                     </div>
                 </div>

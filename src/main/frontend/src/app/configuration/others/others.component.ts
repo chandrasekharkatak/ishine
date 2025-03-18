@@ -58,7 +58,7 @@ export class OthersComponent implements OnInit {
 
 
 availableColumns: string[] = ['Billable', 'Billable Type', 'Gender', 'Manager Name', 'Designation Name'];
-selectedColumns: string[] = ['Employee Id'];  // 'Employee Id' is selected by default
+selectedColumns: string[] = ['Employee Id','Employee Name'];  // 'Employee Id' is selected by default
 selectedColumn: string = '';
 availableColumn: string = '';
 
@@ -298,19 +298,19 @@ onEmployeeUpload(event: any, template: TemplateRef<any>) {
   this.domainService.employeeBulkUpload(formData).pipe(first()).subscribe(
     (response: any) => {
       if (response.serviceStatus === "Success") {
-        // Show success message using openAlertMod
+       
         this.openAlertMod(template, response.serviceResponse);
       } else if (response.serviceStatus === "Fail") {
-        // Show alert with the inactive employees' IDs or row errors
+       
         this.openAlertMod(template, `Error found: ${response.serviceResponse}`);
-        // Optionally clear the file input for correction
-        event.target.value = '';  // Clear file input so user can upload a corrected file
+       
+        event.target.value = '';  
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
     },
     (error) => {
-      // Handle any error from the server
+      
       this.openAlertMod(template, "An error occurred while processing the upload.");
       console.error(error);
     }
