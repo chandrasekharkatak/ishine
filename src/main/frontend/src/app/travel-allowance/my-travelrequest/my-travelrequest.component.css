@@ -86,3 +86,9 @@ input[type=checkbox]:hover, input[type=radio]:hover {
 #dayTypeCursor{
     cursor:pointer;
 }
+
+#map {
+    width: 100%;
+    height: 300px; /* Adjust the height as per your requirement */
+  }
+  

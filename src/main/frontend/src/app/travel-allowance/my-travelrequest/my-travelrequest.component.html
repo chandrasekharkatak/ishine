@@ -56,6 +56,13 @@
                     </label>
                     <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.employeementId" name="fullName" required />
                 </div>
+
+                <div class="col-md-3 mb-0">
+                    <label class="info-label">
+                        <span class="text-danger">*</span>Department
+                    </label>
+                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.departmentName" name="fullName" required />
+                </div>
             
                 <div class="col-md-3 mb-0">
                     <label class="info-label">
@@ -182,6 +189,14 @@
                 </div>
             </div>
         </div>
+
+        <!-- <div class="col-md-6 mb-0">
+        <div class="form-group">
+            <label><span class="text-danger">*</span> Select Location</label>
+            <div id="map" style="height: 300px;"></div>
+          </div>
+        </div>  -->
+
     </div>
 
 
