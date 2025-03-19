@@ -33,12 +33,7 @@
                     <input type="text" class="form-control" name="fullName"  [(ngModel)]="currentEmployeeInfo.departmentName" disabled />
                 </div>
 
-                <!-- <div class="col-md-3 mb-0">
-                        <label class="info-label">
-                            <span class="text-danger">*</span>Mail Id
-                        </label>
-                        <input type="text" class="form-control" name="fullName" required />
-                    </div> -->
+
                     <div class="col-md-3 mb-0">
                         <label class="info-label">
                             <span class="text-danger">*</span>HOD Name
@@ -69,7 +64,7 @@
                
                 <div class="col-md-2 mb-0">
                     <label class="info-label">
-                        <span class="text-danger">*</span> Curryency
+                        <span class="text-danger">*</span> Currency
                     </label>
                     <select class="form-control" id="dayTypeCursor" aria-hidden="true">
                         <option selected="selected" value="" disabled>Select</option>
@@ -87,16 +82,7 @@
                     </label>
                     <input type="number" class="form-control" name="fullName" required />
                 </div>
-                <!-- <div class="col-md-3 mb-0">
-                    <label class="info-label"><span class="text-danger">*</span>Travel Class</label>
-                    <select class="form-control" id="dayTypeCursor" aria-hidden="true">
-                        <option selected="selected" value="" disabled>Select</option>
-                        <option value="First Class">First Class</option>
-                        <option value="Second Class">Second Class</option>
-                        <option value="Third Class">Third Class</option>
-                        <option value="Business Class">Business Class</option>
-                    </select>
-                </div> -->
+           
                 <div class="col-md-3 mb-0" *ngIf="isTravel">
                     <label class="info-label"><span class="text-danger">*</span>Travel Mode</label>
                     <select class="form-control" id="dayTypeCursor" aria-hidden="true">

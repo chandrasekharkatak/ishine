@@ -25,6 +25,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { ImageService } from 'src/app/services/image.service';
 import { DomainService } from 'src/app/services/domain.service';
 import { Domain } from 'src/app/models/domain';
+import { TravelDeskService } from 'src/app/services/travel-desk.service';
 
 
 
@@ -48,11 +49,7 @@ import { Domain } from 'src/app/models/domain';
 
   currentUser:any;
   currentEmployeeInfo:Employee = new Employee();
-  UpdateEmployeeInfo:Employee = new Employee();
 
-  profileImage:File;
-  previewImage:any;
-  profileImageName:any;
 
   feature="Profile";
   userMapping:any = {};
@@ -61,34 +58,10 @@ import { Domain } from 'src/app/models/domain';
   alertMessage:any;
   modalRef: BsModalRef = new BsModalRef();
 
-  allCertificationList:any[] = [];
-  allPreviousEmployment:any[] = [];
-  updatedCertificationList:any[] = [];
-  updatedPreviousEmployment:any[] = [];
-  yearOfPassingList:any[] = [];
-  domainSpecializationList:any[] = [];
-  allAssetList:any[] = [];
-  data: string;
 
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType:any;
-
-  //flags
-  isCreation: boolean = false;
-  isUpdation: boolean = false;
-
-  isTimesheetForm: boolean = false;
-  isTimesheetTable: boolean = false;
-
-  isTimesheetUpdate: boolean = false;
-  isTimesheetUpdateCounter = 0;
-
-  isSelfTimesheets: boolean = false;
-  isTeamTimesheets: boolean = false;
-
-Allholidays: any[] = [];
-AllWeekOfList:any[]=[];
 
 
   //Obj
@@ -107,49 +80,30 @@ AllWeekOfList:any[]=[];
   allMyTimesheetsDataForExcel: any[] = [];
 
 
-  availableTimesheetDates: any[] = [];
-  availableTimesheets: any[] = [];
-
-  projectList: any[] = [];
-  clientList: any[] = [];
-  clientLocationList: any[] = [];
-  // teamList:any[] = [];
-
-  teamMemberList: any[] = [];
-  errorMsg: any;
-  serverDate: any;
-
-  leaveHistoryList: any[] = [];
-  maxOutTimeDate: any;
-  disableCreateUpdateTimesheet:boolean = false;
-
-  isTimesheetLockCheckEnable:any = "true";
-
-  selectedTimesheet:any;
-  today = new Date().toISOString().split('T')[0];
-
-  filters:any = {};
-  isSearchEnabled:boolean = false;
-  selfTimesheetColumns:any[] = ['blank','date','dayType','officeInTime','officeOutTime','totalWorkingOfficeHours','description','totalTime','status','createdByName','createdOn','isNightShiftDisplay','leaveType','remarks'];
-  teamTimesheetColumns:any[] = ['blank','employeeName','date','dayType','officeInTime','officeOutTime','totalWorkingOfficeHours','description','totalTime','status','createdOn','isNightShiftDisplay','leaveType','remarks'];
+  travelDeskObj: any = {
+    associatedTravelRequest: '',
+    travelMode: '',
+    travelClass: '',
+    fromDate: null,
+    toDate: null,
+    purposeOfTravel: '',
+    supportingDocument: null, // File
+  };
+  locationStrategy: any;
+  domainSpecializationList: any[];
 
 
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
     private authenticationService: AuthenticationService,
-    private timesheetService: TimesheetService,
-    private exportExcelService: ExportExcelService,
-    private datePipe: DatePipe,
-    private clipboardService: ClipboardService,
-    private teamViewService : TeamViewService,
-    private leaveService : LeaveService,
-    private locationStrategy: LocationStrategy,
     private employeeService : EmployeeService,
     private holidayService: HolidayService,
     private imageService : ImageService,
     private domainService:DomainService,
     private sanitizer: DomSanitizer,
+    private travelDesk : TravelDeskService,
+    
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -164,17 +118,7 @@ AllWeekOfList:any[]=[];
     });
     //console.log(this.feature, this.userMapping);
 
-    this.timesheetService.getServerDate().pipe(first()).subscribe((response: any) => {
-      this.serverDate = response;
-    });
-
-    this.timesheetObj.timesheetAppliedFor = "self";
-    this.timesheetObj.empId = this.currentUser.empId;
-    this.timesheetObj.totalWorkingOfficeHours = '';
-    this.getAllHolidays();
-    this.getAllHolidaysbystate();
-    this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
-    this.sectionViewInit();
+   // this.sectionViewInit();
     this.preventBackButton();
 
     
@@ -188,29 +132,13 @@ AllWeekOfList:any[]=[];
   }
 
 
-  sectionViewInit() {
-    if (this.userMapping.add_timesheet) {
-      this.showCreateTimesheetForm();
-    } else if (this.userMapping.view_my_timesheets || this.userMapping.update_timesheet) {
-      this.showViewMyTimesheets()
-    }
-  }
+
 
   disableMannualDateInput() {
     return false;
   }
 
-  showCreateTimesheetForm() {
-    this.isTimesheetForm = true;
-    this.isCreation = true;
 
-    this.isTimesheetTable = false;
-    this.isUpdation = false;
-
-    this.reset();
-    this.getEmployeeBasicInfo();
-    this.getAllProjectsByEmpId(this.currentUser);
-  }
 
   async onGetEmployeeInfo(){
     this.domainSpecializationList = [];
@@ -274,206 +202,7 @@ AllWeekOfList:any[]=[];
     }, 500);
   }
 
-  showViewMyTimesheets() {
-    this.isTimesheetTable = true;
 
-    this.isTimesheetForm = false;
-    this.isCreation = false;
-    this.isUpdation = false;
-
-    this.showSelfTimesheets();
-  }
-
-  showSelfTimesheets() {
-    this.isSelfTimesheets = true;
-    this.isTeamTimesheets = false;
-
-    this.page = 1;
-
-    this.startDate = null;
-    this.endDate = null;
-
-    this.allMyTimesheets = [];
-    this.data = '';
-
-    this.filters = {};
-    this.isSearchEnabled = false;
-    this.setStartDateMinMax();
-  }
-
-  showTeamTimesheets() {
-    this.isTeamTimesheets = true;
-    this.isSelfTimesheets = false;
-
-    this.page = 1;
-
-    this.startDate = null;
-    this.endDate = null;
-
-    this.allMyTimesheets = [];
-    this.data = '';
-
-    this.filters = {};
-    this.isSearchEnabled = false;
-
-    this.teamMemberList = [];
-    this.setStartDateMinMax();
-
-    let employeeObj = new Employee();
-    employeeObj.empId = this.currentUser.empId;
-    this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.teamMemberList = response.serviceResponse;
-        //console.log("teamMemberList : ", this.teamMemberList);
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
-  }
-
-  openInActiveUpdateConfimationModal(template: TemplateRef<any>, timesheetObj: Timesheet,) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
-    this.selectedTimesheet = null;
-    this.selectedTimesheet = Object.assign({}, timesheetObj);
-  }
-
-  checkTimesheetForInActiveActivities(timesheetObj: Timesheet, template: TemplateRef<any>){
-
-    
-      if(timesheetObj.dayType == "Working" && (timesheetObj.status == "Pending" || timesheetObj.status == "Rejected") && timesheetObj?.inactiveTimesheetActivities){
-          this.openInActiveUpdateConfimationModal(template, timesheetObj);
-      }else{
-          this.showUpdateTimesheetForm(timesheetObj);
-      }
-  }
-
-  updateInactiveActivitiesTimesheet(){
-    this.showUpdateTimesheetForm(this.selectedTimesheet);
-  }
-
-  showUpdateTimesheetForm(timesheetObj: Timesheet) {
-    this.isTimesheetForm = true;
-    this.isUpdation = true;
-
-    this.isTimesheetTable = false;
-    this.isCreation = false;
-    this.isTimesheetUpdate = true;
-
-    this.timesheetObj = Object.assign({}, timesheetObj);
-    this.timesheetObj.updatedTimesheetActivities = [];
-    this.timesheetObj.date = (this.timesheetObj.date)? moment(timesheetObj.date, "DD-MM-YYYY").toDate() : '';
-    this.timesheetObj.officeInTime = (this.timesheetObj.officeInTime)? moment(timesheetObj.officeInTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
-    this.timesheetObj.officeOutTime = (this.timesheetObj.officeOutTime)? moment(timesheetObj.officeOutTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
-    this.timesheetObj.createdOn = (this.timesheetObj.createdOn)? moment(timesheetObj.createdOn, "DD-MM-YYYY HH:mm:ss").toDate() : '';
-    this.timesheetObj.dayType = (this.timesheetObj.dayType == "Holiday")? "Week Off" : this.timesheetObj.dayType;
-
-    if (this.timesheetObj.officeInTime) {
-      this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1, 'd').toString());
-    }
-
-    if(this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave"){
-      this.__tempDescription = this.timesheetObj.description;
-    }
-
-    let userObj: User = new User();
-    if (this.isSelfTimesheets) {
-      this.timesheetObj.timesheetAppliedFor = "self";
-      this.timesheetObj.empId = this.currentUser.empId;
-
-      userObj.empId = this.currentUser.empId;
-      userObj.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
-    } else if (this.isTeamTimesheets) {
-      this.timesheetObj.timesheetAppliedFor = "team";
-
-      let teamMember = this.teamMemberList.find(employee => employee.empId == timesheetObj.empId)
-      //console.log("Team Member : ", teamMember);
-      userObj.empId = teamMember.empId;
-      userObj.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
-      this.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
-    }
-
-    this.getAllProjectsByEmpId(userObj);
-    this.getAllAvailableTimesheetByEmpId(userObj);
-    setTimeout(()=>{
-      this.getAllMyActivitiesByTimesheetId(timesheetObj);
-    }, 500)
-  }
-
-  reset() {
-    this.timesheetObj = new Timesheet();
-    this.timesheetObj.dayType = '';
-    this.timesheetObj.timesheetAppliedFor = "self";
-    this.timesheetObj.empId = this.currentUser.empId;
-    this.timesheetObj.totalWorkingOfficeHours = '';
-    this.allTimesheetActivities = [];
-    this.addInputActivityField();
-  }
-
-
-
-  addInputActivityField(activityObj?: Activity) {
-
-    //console.log("before allTimesheetActivities : ", this.allTimesheetActivities)
-    let newActivityObj = new Activity();
-
-    if (activityObj != undefined) {
-      newActivityObj.clientId = activityObj.clientId;
-      newActivityObj.clientLocationId = activityObj.clientLocationId;
-      newActivityObj.projectId = activityObj.projectId;
-      newActivityObj.teamId = activityObj.teamId;
-      //console.log("newActivityObj : ", newActivityObj);
-
-      this.allTimesheetActivities.push(newActivityObj);
-      this.getClientLocationList(newActivityObj);
-      this.getProjectList(newActivityObj);
-      // this.getTeamList(newActivityObj)
-      this.getAllActivitiesByProjectIdandEmpId(newActivityObj);
-    } else {
-      this.allTimesheetActivities.push(newActivityObj);
-    }
-    //console.log("After allTimesheetActivities : ", this.allTimesheetActivities)
-  }
-
-  // Manage Activity
-
-  // --> pREV
-  // addInputActivityField() {
-  //   let newActivityObj = new Activity();
-  //   // newActivityObj.projectId = '';
-  //   // newActivityObj.activityId = '';
-  //   this.allTimesheetActivities.push(newActivityObj);
-  // }
-
-  removeInputActivityField(activityObj: any) {
-    this.allTimesheetActivities.forEach((value, index) => {
-      if (value == activityObj) {
-        if (this.isUpdation) {
-          this.timesheetObj.updatedTimesheetActivities.push(value);
-        }
-        this.allTimesheetActivities.splice(index, 1);
-      }
-    });
-  }
-
-  setAllProjectActivities(activityObj, allActivityList: any) {
-    const selectedActivityObj = this.allTimesheetActivities.find(activity => activity === activityObj);
-    if (!this.isTimesheetUpdate) {
-      selectedActivityObj.activityId = '';
-    } else {
-      this.isTimesheetUpdateCounter--;
-      if (this.isTimesheetUpdateCounter === 0) this.isTimesheetUpdate = false;
-    }
-    selectedActivityObj.projectActivities = allActivityList;
-    // console.log('setAllProjectActivities',selectedActivityObj.projectActivities)
-  }
-
-  setActivity(activityObj) {
-    this.allTimesheetActivities.find(activity => activity === activityObj).activity = activityObj.projectActivities.find(activity => activity.activityId == activityObj.activityId).activity;
-    activityObj.description = null;
-    console.log('setActivity',activityObj.projectActivities)
-    //console.log("Activity obj : ", activityObj)
-    // //console.log("Activity : ",activity)
-  }
 
 
 
@@ -482,1343 +211,127 @@ holidayList:any []= [];
 holidayListFilter:any[] = [];
 WeekOfListFilter:any[]=[];
 
-// _holidayList:any[]=[];
-// selectedHolidayType:any;
-// selectedYear: any;
-// selectedState:any;
-
-
-
-
 holidaystateObj:Holiday = new Holiday();
 holidaystateList:any[]=[];
 
 
-getAllHolidaysbystate() {
-
-  this.holidayList = [];
-
-  
-
-  this.holidaystateObj.state = this.currentUser.workLocation
-  this.holidayService.getAllHolidays(this.holidaystateObj).subscribe((response: any) => {
-    if (response.serviceStatus == "Success") {
-      this.holidaystateList = response.serviceResponse;
-
-      console.log("holidays  state wize",this.holidaystateList);
-
-      this.filterHolidaystateListByYear(new Date().getFullYear());
-    } else {
-      console.error(response.serviceResponse);
-    }
-  });
-}
-
-
-
-
-filterHolidaystateListByYear(year: number): void {
-  this.holidayListFilter = this.holidaystateList.filter((holiday) => {
-    const holidayYear = new Date(holiday.dateOfHoliday).getFullYear();
-    return (
-      holidayYear === year &&
-      holiday.holidayType !== 'WeekOff' &&
-      holiday.holidayType !== 'nonWorking' &&
-      (holiday.state.toLowerCase() === this.currentUser.workLocation.toLowerCase() || holiday.state.toLowerCase() === 'all')
-    );
-  });
-
-
-
-  this.Allholidays = this.holidayListFilter.map((holiday) =>
-    holiday.dateOfHoliday 
-  );
-
-  
-}
 
 
 
 
 
-getAllHolidays() {
 
-  this.holidayList = [];
+// getAllHolidays() {
+
+//   this.holidayList = [];
 
   
 
- this.holidayService.getAllHoliday().pipe(first()).subscribe((response: any) => {
-    if (response.serviceStatus == "Success") {
-      this.holidayList = response.serviceResponse;
+//  this.holidayService.getAllHoliday().pipe(first()).subscribe((response: any) => {
+//     if (response.serviceStatus == "Success") {
+//       this.holidayList = response.serviceResponse;
 
-      console.log("holidaylist   ",  this.holidayList);
-      this.filterHolidayListByYear(new Date().getFullYear());
-    } else {
-      console.error(response.serviceResponse);
-    }
-  });
-}
-
-
-
-
-
-filterHolidayListByYear(year: number): void {
-
-  this.WeekOfListFilter =  this.holidayList.filter((holiday) => {
-    const holidayYear = new Date(holiday.dateOfHoliday).getFullYear();
-    return (
-      holidayYear === year &&
-      holiday.holidayType == 'WeekOff'
-    );
-  });
-
-
-  this.AllWeekOfList = this.WeekOfListFilter.map((holiday) =>
-    holiday.dateOfHoliday 
-  );
-}
+//       console.log("holidaylist   ",  this.holidayList);
+//       //this.filterHolidayListByYear(new Date().getFullYear());
+//     } else {
+//       console.error(response.serviceResponse);
+//     }
+//   });
+// }
 
 
 
 
 
+// filterHolidayListByYear(year: number): void {
 
-// filterHolidayListByYear(value: any) {
-//   // Reset selections
-//   this.selectedHolidayType = "";
-//   this.selectedYear = value;
-
-//   console.log("Selected year:", this.selectedYear);
-
-//   this.holidayListFilter = this.holidayList.filter((holiday: Holiday) => {
-//     const holidayYear = moment(holiday.dateOfHoliday, "DD-MM-YYYY").year();
+//   this.WeekOfListFilter =  this.holidayList.filter((holiday) => {
+//     const holidayYear = new Date(holiday.dateOfHoliday).getFullYear();
 //     return (
-//       holiday.holidayType !== "WeekOff" &&
-//       holiday.holidayType !== "nonWorking" &&
-//       holidayYear === this.selectedYear
+//       holidayYear === year &&
+//       holiday.holidayType == 'WeekOff'
 //     );
 //   });
 
 
-//   this.Allholidays = this.holidayListFilter.map((holiday: Holiday) =>
-//     holiday.dateOfHoliday
-//       ? moment(holiday.dateOfHoliday, AppComponent.DATE_FORMAT).format(AppComponent.DB_DATE_FORMAT)
-//       : ''
-//   ).filter(date => date !== '');
-
-//   console.log("Selected holidayListFilter:", this.Allholidays);
-//   console.log("Selected Allholidays:", this.Allholidays);
+//   this.AllWeekOfList = this.WeekOfListFilter.map((holiday) =>
+//     holiday.dateOfHoliday 
+//   );
 // }
 
 
 
-
-
-
-
-
-
-
-
-//Manage the weekoff and holidays 
-customDateFilter: (date: Date) => boolean = (date: Date): boolean => {
-
-  const dayType = this.timesheetObj.dayType;
-  const filteredDates = this.getFilteredDates(dayType);
-  return filteredDates.some(filteredDate => 
-    this.datePipe.transform(filteredDate, 'yyyy-MM-dd') === this.datePipe.transform(date, 'yyyy-MM-dd')
-  );
-};
-
-
-
-
-// getFilteredDates(dayType: string): Date[] {
-  
-  
-// console.log("date filter ",this.Allholidays);
-
-//   const DAY_IN_MS = 24 * 60 * 60 * 1000;
-//   const currentDate = new Date();
-//   const backDatedDays = this.currentUser.timesheetBackDatedDays || 30;
-//   const startDate = new Date(currentDate.getTime() - backDatedDays * DAY_IN_MS);
-
-//   // const publicHolidays = ['2024-11-25', '2024-11-01']; // Add public holiday dates here.
-
-//   if (dayType === 'Non-working') {
-//     // Filter for Public Holidays
-
-//     console.log("hodays ",this.Allholidays)
-
-//     return this.Allholidays
-//       .map(date => new Date(date))
-//       .filter(holidayDate => holidayDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date === this.datePipe.transform(holidayDate, 'yyyy-MM-dd')));
-//   }
-
-//   if (dayType === 'Non-Working') {
-//     return this.AllWeekOfList
-//     .map(date => new Date(date))
-//     .filter(
-//       weekOffDate =>
-//         weekOffDate >= startDate &&
-//         weekOffDate <= currentDate &&
-//         !this.availableTimesheets.find(
-//           timesheet => timesheet.date === this.datePipe.transform(weekOffDate, 'yyyy-MM-dd')
-//         )
-//     );
-//   }
-
-//   return [];
-// }
-
-getFilteredDates(dayType: string): Date[] {
-  
-  
-  console.log("date filter ",this.Allholidays);
-  
-    const DAY_IN_MS = 24 * 60 * 60 * 1000;
-    const currentDate = new Date();
-    const backDatedDays = this.currentUser.timesheetBackDatedDays || 30;
-    const startDate = new Date(currentDate.getTime() - backDatedDays * DAY_IN_MS);
-  
-    // const publicHolidays = ['2024-11-25', '2024-11-01']; // Add public holiday dates here.
-  
-    // if (dayType === 'Public Holiday') {
-    //   // Filter for Public Holidays
-  
-    //   console.log("hodays ",this.Allholidays)
-  
-    //   return this.Allholidays
-    //     .map(date => new Date(date))
-    //     .filter(holidayDate => holidayDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date === this.datePipe.transform(holidayDate, 'yyyy-MM-dd')));
-    // }
-  
-    if (dayType === 'Non-working') {
-      console.log("holidays and week offs", this.AllWeekOfList, this.Allholidays);
-      
-      // Filter for holidays
-      const holidayDates = this.Allholidays
-        .map(date => new Date(date))
-        .filter(holidayDate => holidayDate >= startDate && 
-          holidayDate <= currentDate &&
-          this.availableTimesheets.find(timesheet => timesheet.date === this.datePipe.transform(holidayDate, 'yyyy-MM-dd'))
-        );
-      
-      // Filter for week-off dates
-      const weekOffDates = this.AllWeekOfList
-        .map(date => new Date(date))
-        .filter(
-          weekOffDate =>
-            weekOffDate >= startDate &&
-            weekOffDate <= currentDate &&
-            this.availableTimesheets.find(
-              timesheet => timesheet.date === this.datePipe.transform(weekOffDate, 'yyyy-MM-dd')
-            )
-        );
-    
-      // Combine the holidays and week off dates
-      return [...holidayDates, ...weekOffDates];
-    }
-    
-  
-    return [];
-  }
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  // Manage Timesheet Dates
-  timesheetDateFilter = (checkDate: Date) => {
-    const DAY_IN_MS = 24 * 60 * 60 * 1000;
-    const time = checkDate?.getTime();
-
-
-    let currentDate = new Date();
-    const dateFormat = 'YYYY-MM-DD';
-    let OPEN_BACKDATED_DAYS = 30;
-    const CURRENT_DAY = 1;
-
-    let dateOfJoining = moment(this.currentUser.dateOfJoining, dateFormat);
-
-    let daysDifference = moment(currentDate, dateFormat).diff(dateOfJoining, 'days');
-
-
-    if(this.currentUser.timesheetBackDatedDays>daysDifference){
-      
-      OPEN_BACKDATED_DAYS = daysDifference;    
-    
-    }else{
-      OPEN_BACKDATED_DAYS = this.currentUser.timesheetBackDatedDays; 
-    }
-
-
-    const dateObj = new Date(this.serverDate + 'T23:59:59');
-    let serverDate = dateObj;
-
-    //console.log(serverDate, " : serverDate");
-
-
-    // timesheetLockDays (days) + 1 current Day
-    let endDate = serverDate;
-    let startDate = new Date(endDate.getTime() - ((this.currentUser.timesheetLockDays + CURRENT_DAY) * DAY_IN_MS));
-
-    if (this.isTimesheetForm && this.isUpdation) {
-      this.availableTimesheets = this.availableTimesheets.filter(timesheet => this.datePipe.transform(timesheet.date, "yyyy-MM-dd") != this.datePipe.transform(this.timesheetObj.date, "yyyy-MM-dd"));
-    }
-
-    //console.log("isTimesheetLockCheckEnable : ", this.isTimesheetLockCheckEnable);
-
-
-    if(this.isTimesheetLockCheckEnable == "false"){
-      startDate = new Date(endDate.getTime() - ((OPEN_BACKDATED_DAYS + CURRENT_DAY) * DAY_IN_MS));
-      return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "yyyy-MM-dd"))) ? true : false;
-    }else{
-      return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "yyyy-MM-dd"))) ? true : false;
-    }
-  }
-
-  outTimeFilter = (checkDate: Date) => {
-    const dateFormat = 'YYYY-MM-DD';
-
-    let startDate = this.timesheetObj.officeInTime;
-    let endDate = new Date(moment(this.timesheetObj.officeInTime).add(1, 'd').toString());
-
-    return (moment(checkDate).format(dateFormat) <= moment(endDate).format(dateFormat) && moment(checkDate).format(dateFormat) >= moment(startDate).format(dateFormat)) ? true : false;
-  }
-
-
-
-
-  
-
-
-
-
-  setMaxInTimeDate(timesheetDate: any) {
-    //console.log("timesheetDate : ", moment(timesheetDate).format(moment.HTML5_FMT.DATETIME_LOCAL));
-
-    if(this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave"){
-      let inTimeDate = document.getElementById('officeInTime');
-     // //console.log("InTimeDate: ", inTimeDate);
-      let officeOutTime = document.getElementById('officeOutTime');
-      inTimeDate.setAttribute('min', `${moment(timesheetDate).format(moment.HTML5_FMT.DATETIME_LOCAL)}`);
-      officeOutTime.setAttribute('min', `${moment(timesheetDate).format(moment.HTML5_FMT.DATETIME_LOCAL)}`);
-    }
-  }
-
-  // added by anurag for viewMyTimesheet()
-  setStartDateMinMax(): void {
-    
-    let startDateInput = document.getElementById('timesheetStartDate');
-    let startEndDate = document.getElementById('timesheetEndDate');
-    startDateInput.setAttribute('max',this.today);
-    startEndDate.setAttribute('max',this.today);
-    //console.log("set date :: ",startDateInput);
-    
-  }
-  resetTotalWorkingOfficeHours(template: TemplateRef<any>) {
-    
-    if (this.timesheetObj.officeInTime) {
-     
-      const systemCurrentTime = moment(); 
-      const userOfficeInTime = moment(this.timesheetObj.officeInTime); 
-
-      console.log("data==",userOfficeInTime);
-    
-      if (systemCurrentTime.isSame(userOfficeInTime, 'minute')) {
-        const updatedInTime = userOfficeInTime.subtract(2, 'minutes').toDate();
-        this.timesheetObj.officeInTime = updatedInTime;
-      } 
-      else if (userOfficeInTime.isAfter(systemCurrentTime, 'minute') && userOfficeInTime.isSame(systemCurrentTime, 'day')) {
-        const updatedInTime = userOfficeInTime.subtract(2, 'minutes').toDate();
-        this.timesheetObj.officeInTime = updatedInTime;
-      }
-      
-
-
-    }
-
-    this.timesheetObj.officeOutTime = '';
-    this.timesheetObj.totalWorkingOfficeHours = '';
-  
-    this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1, 'd').toString());
-  };
-  
-
-  resetTimeonDayTypeChange(){
-    if(this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave"){
-      this.timesheetObj.officeInTime = '';
-      this.timesheetObj.officeOutTime = '';
-      this.timesheetObj.totalWorkingOfficeHours = '';
-    }
-  }
-
-  setTotalWorkingOfficeHours() {
-    const dateFormat = 'YYYY-MM-DD';
-  const systemCurrentTime = moment();
-  const userOfficeOutTime = moment(this.timesheetObj.officeOutTime);
-
-  console.log('systemCurrentTime', systemCurrentTime);
-  console.log('userOfficeOutTime', userOfficeOutTime);
-
-  if (
-    (userOfficeOutTime.isAfter(systemCurrentTime, 'minute') || userOfficeOutTime.isSame(systemCurrentTime, 'minute')) &&
-    userOfficeOutTime.isSame(systemCurrentTime, 'day')
-  ){
-    const updatedInTime = systemCurrentTime.subtract(1, 'minute').toDate();
-    this.timesheetObj.officeOutTime = updatedInTime;
-
-    console.log('Updated Office In Time:', updatedInTime);
-  }
-
-
-    if (this.timesheetObj.officeInTime && this.timesheetObj.officeOutTime) {
-
-      let start = moment(this.timesheetObj.officeInTime).format('DD-MM-YYYY HH:mm');
-      let end = moment(this.timesheetObj.officeOutTime).format('DD-MM-YYYY HH:mm');
-      let ms = moment(end, "DD-MM-YYYY HH:mm").diff(moment(start, "DD-MM-YYYY HH:mm"));
-      let d = moment.duration(ms);
-     
-
-      let duration = Math.floor(d.asHours()) + moment.utc(ms).format(":mm");
-
-      this.timesheetObj.totalWorkingOfficeHours = duration;
-      this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
-
-    
-    } else {
-      this.timesheetObj.totalWorkingOfficeHours = '';
-    }
-  }
-
-
-
-
-
-  
-
-
-
-  /* Timesheet */
-  validateTimesheetObj(timesheetObj: Timesheet, template: TemplateRef<any>) {
-
-    if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.date)) {
-      this.alertMessage = "Please enter Date !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-
-    if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.dayType)) {
-      this.alertMessage = "Please select Day Type !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-
-    if (timesheetObj.dayType != "Public Holiday" && timesheetObj.dayType != "Week Off" && timesheetObj.dayType != "Leave") {
-      let flag = true;
-      let totalActivityTime = 0;
-      let totalWorkingHoursInSeconds = 0;
-
-      let hm = (timesheetObj.totalWorkingOfficeHours)? timesheetObj.totalWorkingOfficeHours : '00:00';
-      let timeData = hm.split(':');
-
-      // minutes are worth 60 seconds. Hours are worth 60 minutes.
-      totalWorkingHoursInSeconds = (+timeData[0]) * 60 * 60 + (+timeData[1]) * 60;
-
-      //console.log("totalWorkingHoursInSeconds : ", totalWorkingHoursInSeconds);
-
-      if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.officeInTime)) {
-        this.alertMessage = "Please enter In Date-Time !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-
-      if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.officeOutTime)) {
-        this.alertMessage = "Please select Out Date-Time !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-
-      if (totalWorkingHoursInSeconds <= 0) {
-        this.alertMessage = "Please select Valid IN-OUT Date-Time !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-
-      this.allTimesheetActivities.forEach((activity, index) => {
-        if(!flag) return;
-
-        if (activity.description) activity.description = activity.description?.trim();
-
-        if (!this.validationService.validateNullUndefinedEmptyString(activity.clientId)) {
-          this.alertMessage = `Please select Client - ${index + 1}!!`
-          flag = false;
-          return;
-        }
-
-        if (!this.validationService.validateNullUndefinedEmptyString(activity.clientLocationId)) {
-          this.alertMessage = `Please select Client Location - ${index + 1}!!`
-          flag = false;
-          return;
-        }
-
-        if (!this.validationService.validateNullUndefinedEmptyString(activity.activityId)) {
-          this.alertMessage = `Please select Activity - ${index + 1}!!`
-          flag = false;
-          return;
-        }
-
-
-        // if (!this.validationService.validateNullUndefinedEmptyString(activity.projectId)) {
-        //   this.alertMessage = `Please select Project - ${index + 1}!!`
-        //   flag = false;
-        //   return;
-        // }
-
-
-        if (activity.description != null && activity.description != '') {
-
-          if (!this.validationService.validateActivityTimesheetDiscription(activity.description)) {
-            this.alertMessage = `Please enter valid Activity Description  - ${index + 1}!!`
-            flag = false;
-            return;
-          }
-        }
-        if (!this.validationService.validateCompletionTime(activity.completionTime) && !this.validationService.validateExperiencedNumber(activity.completionTime)) {
-          this.alertMessage = `Please enter valid Activity Completion Time - ${index + 1}!!`
-          flag = false;
-          activity.completionTime = ''
-          return;
-        }
-        if (!this.validationService.validateNullUndefinedEmptyString(activity.completionTime)) {
-          this.alertMessage = `Please enter Activity Completion Time - ${index + 1}!!`
-          flag = false;
-          return;
-        }
-
-        // validateCompletionTime
-        // if (!this.validationService.validateTimesheetCompletionTime(activity.completionTime)) {
-        //   this.alertMessage = `Please enter valid Activity Completion Time - ${index + 1}!!`
-        //   flag = false;
-        //   return;
-        // }
-        totalActivityTime = totalActivityTime + activity.completionTime;
-
-      });
-
-      if (!flag) {
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      } else if (totalActivityTime <= 0 || totalActivityTime > 24) {
-        this.alertMessage = 'Total time must be greater than 0 hrs and maximum upto 24 hrs!! '
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-    } else {
-      if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.description)) {
-        this.alertMessage = "Please enter Timesheet Description !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      } else if (!this.validationService.validateActivityTimesheetDiscription(timesheetObj.description)) {
-        this.alertMessage = `Please enter valid Description  !!`
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  onCreateTimesheet(template: TemplateRef<any>) {
-    const dateFormat = 'YYYY-MM-DD';
-    const dateTimeFormat = 'YYYY-MM-DD HH:mm:ss';
-
-    console.log( "test ",this.timesheetObj.description )
-    this.timesheetObj.description = this.timesheetObj.description?.trim();
-    console.log( "test ",this.timesheetObj.description )
-
-    let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template)
-    if (!inputValidated) return;
-
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave") {
-      //console.log("allTimesheetActivities :", this.allTimesheetActivities, this.allTimesheetActivities[0]);
-      this.timesheetObj.allTimesheetActivities = (Object.keys(this.allTimesheetActivities[0]).length === 0) ? null : this.allTimesheetActivities;
-    } else {
-      this.timesheetObj.allTimesheetActivities = null;
-    }
-
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave") {
-      this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
-      this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
-      this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
-    } else {
-      this.timesheetObj.date = moment(this.timesheetObj.date).format(dateFormat);
-    }
-    this.timesheetObj.createdBy = this.currentUser.empId;
-    this.timesheetObj.createdByName = this.currentUser.name
-    if (this.currentUser.approvalsTo == 'Reporting Manager'){
-      this.timesheetObj.currentManagerId = this.currentUser.reportingManagerId;
-    }else if (this.currentUser.approvalsTo == 'Manager'){
-      this.timesheetObj.currentManagerId = this.currentUser.managerId;
-    }else{
-      this.timesheetObj.currentManagerId = this.currentUser.managerId;
-    }
-    
-    //console.log("Add timesheetObj : ", this.timesheetObj);
-    this.timesheetService.addTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-        this.showViewMyTimesheets();
-        if (this.timesheetObj.timesheetAppliedFor == "self") {
-          this.startDate = this.endDate = this.timesheetObj.date;
-          this.getAllMyTimesheetsByEmpId();
-        } else {
-          this.showTeamTimesheets();
-          this.startDate = this.endDate = this.timesheetObj.date;
-          this.getMyTeamTimesheets();
-        }
-
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
-      }
-
-    });
-  }
-
-  onUpdateTimesheet(template: TemplateRef<any>) {
-    const dateFormat = 'YYYY-MM-DD';
-    const dateTimeFormat = 'YYYY-MM-DD HH:mm:ss';
-    let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template)
-    if (!inputValidated) return;
-
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave") {
-      this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
-      this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
-      this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
-      this.timesheetObj.createdOn = moment(this.timesheetObj.createdOn).format(dateTimeFormat);
-      this.timesheetObj.allTimesheetActivities = (Object.keys(this.allTimesheetActivities[0]).length === 0) ? null : this.allTimesheetActivities;
-
-      if (this.timesheetObj.allTimesheetActivities) {
-        let newTimesheetActivities = this.timesheetObj.allTimesheetActivities.filter(activity => !activity.timesheetId);
-        //console.log("newTimesheetActivities : ", newTimesheetActivities);
-
-        if (newTimesheetActivities) {
-          if (this.timesheetObj.updatedTimesheetActivities === undefined || this.timesheetObj.updatedTimesheetActivities.length === 0) {
-            this.timesheetObj.updatedTimesheetActivities = [];
-
-          }
-          this.timesheetObj.updatedTimesheetActivities.forEach(timesheet => {
-            if (timesheet.activityId == "") {
-              this.timesheetObj.updatedTimesheetActivities.splice(timesheet, 1);
-            }
-          });
-          this.timesheetObj.updatedTimesheetActivities = this.timesheetObj.updatedTimesheetActivities.concat(newTimesheetActivities);
-        }
-      } else {
-        if (this.timesheetObj.updatedTimesheetActivities == undefined || this.timesheetObj.updatedTimesheetActivities[0].length == 0) {
-          this.timesheetObj.updatedTimesheetActivities = null;
-        }
-      }
-    } else {
-      this.timesheetObj.updatedTimesheetActivities = null;
-      this.timesheetObj.date = moment(this.timesheetObj.date).format(dateFormat);
-      this.timesheetObj.createdOn = moment(this.timesheetObj.createdOn).format(dateTimeFormat);
-      this.timesheetObj.officeInTime = '';
-      this.timesheetObj.officeOutTime = '';
-      this.timesheetObj.totalWorkingOfficeHours = '';
-    }
-    this.timesheetObj.createdBy = this.currentUser.empId;
-    this.timesheetObj.currentManagerId = this.currentUser.managerId;
-    //console.log("Update timesheetObj : ", this.timesheetObj);
-    this.timesheetService.updateTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-        this.showViewMyTimesheets();
-        if (this.timesheetObj.timesheetAppliedFor == "self") {
-          this.startDate = this.endDate = this.timesheetObj.date;
-          this.getAllMyTimesheetsByEmpId();
-        } else {
-          this.showTeamTimesheets();
-          this.startDate = this.endDate = this.timesheetObj.date;
-          this.getMyTeamTimesheets();
-        }
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
-      }
-    });
-  }
-
-  __tempDescription = '';
-  onTimesheetDescriptionChange(){
-    if(this.isUpdation){
-      if(this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave"){
-        this.timesheetObj.description = (this.__tempDescription != null)? this.__tempDescription : '';
-        if(this.timesheetObj.description){
-          this.__tempDescription = this.timesheetObj.description;
-        }
-      } else if(this.timesheetObj.dayType == "Working" || this.timesheetObj.dayType == "Non-working"){
-        this.__tempDescription = (this.timesheetObj.description != null) ? this.timesheetObj.description : '';
-        this.timesheetObj.description = '';
-      }
-    }
-  }
-
-  getTimesheetMetadata(eventTarget?:any) {
-    //console.log("timesheet Obj For getTimesheetMetadata : ", this.timesheetObj);
-    let userObj: User = new User();
-    if (this.timesheetObj.timesheetAppliedFor == 'self') {
-      userObj.empId = this.currentUser.empId;
-      userObj.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
-      this.timesheetObj.empId = this.currentUser.empId;
-      this.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
-      //console.log("this.currentUser  : ", this.currentUser);
-      //console.log("userObj  : ", userObj);
-
-    }else{
-      let teamMember = this.teamMemberList.find(employee => employee.empId == this.timesheetObj.empId)
-      //console.log("Team Member : ", teamMember);
-      userObj.empId = teamMember.empId;
-      userObj.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
-      this.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
-      this.timesheetObj.empId = teamMember.empId;
-
-      if(teamMember.isTimesheetFilledByMember == "true"){
-        this.openAlertMod(this.alertTemplate, "Timesheet cannot be filled for team member more than 2 days.");
-        this.timesheetObj.empId = '';
-        eventTarget.value = "";
-        this.disableCreateUpdateTimesheet = true;
-        eventTarget.value = '';
-        //console.log(eventTarget.value, " : eventTarget");
-
-
-
-      }else{
-        this.disableCreateUpdateTimesheet = false;
-      }
-    }
-
-    const timesheetBkp = Object.assign({}, this.timesheetObj);
-
-    // reset timesheet
-    this.timesheetObj = new Timesheet();
-    this.timesheetObj.dayType = '';
-    this.allTimesheetActivities = [];
-    this.addInputActivityField()
-
-    // set leave AppliedFor User data to fetch activities for project & for display
-    this.timesheetObj.timesheetAppliedFor = timesheetBkp.timesheetAppliedFor;
-    this.timesheetObj.empId = timesheetBkp.empId;
-
-    //console.log("preset Timesheet : ", this.timesheetObj);
-
-    this.getAllProjectsByEmpId(userObj);
-    this.getAllAvailableTimesheetByEmpId(userObj);
-  }
-
-  getAllTeamMemberList() {
-    this.teamMemberList = []
-    this.timesheetObj.date = ''
-    this.timesheetObj.dayType = ''
-    this.timesheetObj.officeInTime = ''
-    this.timesheetObj.officeOutTime = ''
-    this.timesheetObj.totalWorkingOfficeHours = ''
-    this.allTimesheetActivities.forEach((timesheet) => {
-      timesheet.clientId = ''
-      timesheet.clientLocationId = ''
-      timesheet.teamId = ''
-      timesheet.activityId = ''
-      timesheet.description = ''
-      timesheet.completionTime = ''
-    })
-
-    if (this.timesheetObj.timesheetAppliedFor == "team") {
-      this.errorMsg = '';
-      let employeeObj = new Employee();
-      employeeObj.empId = this.currentUser.empId;
-      this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.teamMemberList = response.serviceResponse;
-          //console.log("teamMemberList : ", this.teamMemberList);
-        } else {
-          console.error(response.serviceResponse);
-        }
-      });
-    }
-
-  }
-
-  getAllProjectsByEmpId(employeeObj: User) {
-    this.allProjectsList = [];
-    this.clientList = [];
-    this.clientLocationList = [];
-    this.projectList = [];
-    // this.teamList = [];
-    // //console.log(" team list :    ", this.teamList)
-
-    let timesheetObj = new Timesheet();
-    timesheetObj.empId = employeeObj.empId;
-    this.timesheetService.getAllProjectsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allProjectsList = response.serviceResponse;
-        //console.log("allProjectsList :", this.allProjectsList);
-        const key = "clientId";
-        this.clientList = [...new Map(this.allProjectsList.map((project: Timesheet) => [project[key], project])).values()].map((project: Timesheet) => {
-          return { clientId: project.clientId, clientName: project.clientName }
-        });
-        //console.log("clientList :", this.clientList);
-      } else {
-        console.error(response.serviceResponse)
-      }
-    });
-  }
-
-  getProjectList(activityObj: Activity) {
-    this.projectList = [];
-
-    const key = "teamId";
-    this.projectList = [...new Map(this.allProjectsList.map((project: Timesheet) => [project[key], project])).values()].filter((project: Timesheet) => {
-      if (project.clientId == activityObj.clientId) {
-        project['displayTeam'] = `${project.projectName} | ${project.teamName}`;
-        return { teamId: project.teamId, teamName: project.teamName, projectName: project.projectName, displayTeam : project.displayTeam}
-      }
-    });
-    //console.log("projectList with displayTeam:", this.projectList);
-    this.setAllProjects(activityObj, this.projectList);
-  }
-
-  // getTeamList(activityObj: Activity){
-  //   this.teamList = []
-
-  //   const key = "teamId"
-  //   this.teamList = [...new Map(this.allProjectsList.map((team: Timesheet) => [team[key], team])).values()].filter((team: Timesheet) =>{
-  //     if( team.teamId == activityObj.teamId) {
-  //       return { teamId: team.teamId, teamName: team.teamName }
-  //     }
-  //   });
-  //   //console.log(" teamList :", this.teamList);
-  //   this.setAllTeams(activityObj , this.teamList)
-  // }
-
-  // setAllTeams(activityObj, teamList: any){
-  //   const selectedActivityObj:Activity = this.allTimesheetActivities.find( activity => activity == activityObj);
-  //   selectedActivityObj.teamList = teamList;
-  //   if((!this.isTimesheetUpdate && activityObj.teamId == "") || !this.teamList.find(team => team.teamId == selectedActivityObj.teamId)){
-  //     selectedActivityObj.teamId = '';
+  // exportToExcel(): void {
+
+  //   if (this.isTimesheetTable == true) {
+  //     this.excelName = 'MyTimeSheet.xlsx'
+
+  //     const _allEmployeeList = this.allMyTimesheets.slice()
+  //     this.allMyTimesheetsDataForExcel = _allEmployeeList.sort((a, b) => (new Date(a.date).getTime() > new Date(b.date).getTime())? 1 : -1);
+
+  //     const onlySpecificDataArr = this.allMyTimesheetsDataForExcel.map(
+  //       x => ({
+  //         "Date": x.date,
+  //         "Day Type": x.dayType,
+  //         "In Time": x.officeInTime,
+  //         "Out Time": x.officeOutTime,
+  //         "Total Working Hours": x.totalWorkingOfficeHours,
+  //         "Timesheet Details": x.description?.replaceAll('<br>', ' \n'),
+  //         "Total Activity Time": x.totalTime,
+  //         "Status": x.status,
+  //         "Applied By": x.createdByName,
+  //         "Applied On": x.createdOn,
+  //         "Shift Type": x.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift',
+  //         "Leave Type": x.leaveType,
+  //         "Remarks": x.remarks
+  //       })
+  //     )
+  //     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
   //   }
+
   // }
 
-
-  setAllProjects(activityObj, projectList: any) {
-    const selectedActivityObj: Activity = this.allTimesheetActivities.find(activity => activity === activityObj);
-    selectedActivityObj.projectList = projectList;
-    if ((!this.isTimesheetUpdate && activityObj.teamId == "") || !this.projectList.find(project => project.teamId == selectedActivityObj.teamId)) {
-      selectedActivityObj.teamId = '';
-    }
-  }
-
-  getClientLocationList(activityObj: any) {
-    this.clientLocationList = [];
-
-    // this.allTimesheetActivities.find(activity => activity == activityObj).clientLocationId = '';
-    const key = "clientLocationId";
-    this.clientLocationList = [...new Map(this.allProjectsList.map((project: Timesheet) => [project[key], project])).values()].filter((project: Timesheet) => {
-      if (project.clientId == activityObj.clientId) {
-        return { clientLocationId: project.clientLocationId, clientLocation: project.clientLocation }
-      }
-    });
-    //console.log("clientLocationList :", this.clientLocationList);
-    this.setAllClientLocations(activityObj, this.clientLocationList)
-  }
-
-  setAllClientLocations(activityObj, clientLocationList: any) {
-    const selectedActivityObj: Activity = this.allTimesheetActivities.find(activity => activity === activityObj);
-    selectedActivityObj.clientLocationList = clientLocationList;
-
-    //console.log("clientLocationList : ", clientLocationList);
-
-    if ((!this.isTimesheetUpdate && activityObj.clientLocationId == "") || !this.clientLocationList.find(clientLocation => clientLocation.clientLocationId == selectedActivityObj.clientLocationId)) {
-      selectedActivityObj.clientLocationId = '';
-    }
-  }
-
-  getAllActivitiesByProjectIdandEmpId(activityObj: any) {
-    let allActivityList = [];
-
-    //console.log("Current Timesheet : ", this.timesheetObj);
-
-    let timesheetObj = new Timesheet();
-    timesheetObj.empId = this.timesheetObj.empId;
-    timesheetObj.teamId = activityObj.teamId;
-    //console.log(this.allProjectsList, " : all project list");
-    //console.log(timesheetObj.teamId, " : timesheetObj.teamId");
+ 
 
 
-    let projectTimesheet = this.allProjectsList.find(project => project.teamId == timesheetObj.teamId);
-    //console.log(" projectTimesheet  :  ", projectTimesheet)
 
 
-    timesheetObj.projectId = projectTimesheet.projectId;
-    timesheetObj.clientId = this.timesheetObj.clientId;
-    timesheetObj.clientLocationId = this.timesheetObj.clientLocationId;
-    //console.log(" timesheetObj  :  ", timesheetObj)
-
-    this.timesheetService.getAllActivitiesByProjectIdandEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        allActivityList = response.serviceResponse;
-        // console.log('getAllActivitiesByProjectIdandEmpId',allActivityList)
-        allActivityList = allActivityList.sort((a, b) =>  a.activity.localeCompare(b.activity));
-        // console.log('after sorting',allActivityList)
-        // console.log("Team name :  ", timesheetObj.teamId);
-        // console.log("allActivityList :", allActivityList);
-        if(this.timesheetObj.timesheetAppliedFor == "team"){
-          let teamMember = this.teamMemberList.find(employee => employee.empId == this.timesheetObj.empId)
-          allActivityList = allActivityList.filter(x => x.departmentList?.map(x=>+x).includes(teamMember.departmentId));
-          // console.log('if',allActivityList)
-        }else{
-          
-          allActivityList = allActivityList.filter(x => x.departmentList?.map(x=>+x).includes(this.currentUser.departmentId));
-          // console.log('else',allActivityList)
-        }
-
-        //added by priyadarshini for debugging purpose
-        // }else {
-        //   allActivityList = allActivityList.filter((x) => {
-        //     console.log("Processing Activity:", x);
-            
-        //     const departmentList = x.departmentList?.map((dep) => +dep);
-        //     console.log("Mapped departmentList to numbers:", departmentList);
-        
-        //     const isIncluded = departmentList?.includes(this.currentUser.departmentId);
-        //     console.log("Does it include currentUser.departmentId:", this.currentUser.departmentId, "=>", isIncluded);
-        
-        //     return isIncluded;
-        //   });
-        
-        //   console.log("Filtered allActivityList:", allActivityList);
-        // }
-        
-      } else {
-        console.error(response.serviceResponse)
-      }
-      this.setAllProjectActivities(activityObj, allActivityList);
-      // console.log("getAllActivitiesByProjectIdandEmpId",allActivityList);
-    });
-  }
-
-  // getAllAvailableTimesheetByEmpId(employeeObj: User) {
-  //   this.availableTimesheets = [];
-  //   //console.log(" -- logged availableTimesheets -- ");
-
-  //   let timesheetObj = new Timesheet();
-  //   timesheetObj.empId = employeeObj.empId;
-  //   this.timesheetService.getbackdatedTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
-  //     if (response.serviceStatus == "Success") {
-  //       this.availableTimesheets = response.serviceResponse;
-  //       //console.log("availableTimesheets :", this.availableTimesheets);
-  //     } else {
-  //       console.error(response.serviceResponse)
-  //     }
-  //   });
-  // }
 
 
-  getAllAvailableTimesheetByEmpId(employeeObj: User) {
-    this.availableTimesheets = [];
-    const DAY_IN_MS = 24 * 60 * 60 * 1000;
-    let currentDate = new Date();
-    const dateFormat = 'YYYY-MM-DD';
-    let endDate:any;
-    let startDate:any;
-    let OPEN_BACKDATED_DAYS = 30;
-
-    if(this.currentUser.timesheetBackDatedDays){
-      OPEN_BACKDATED_DAYS = this.currentUser.timesheetBackDatedDays;
-      // console.log("OPEN_BACKDATED_DAYS",this.currentUser.timesheetBackDatedDays);
-    }
-
-    if(this.isTimesheetLockCheckEnable == 'false'){
-      endDate = currentDate;
-      startDate = new Date(endDate.getTime() - ((OPEN_BACKDATED_DAYS + 1) * DAY_IN_MS));
-      // startDate=this.currentUser.dateOfJoining;
-      console.log("ch",this.currentUser.dateOfJoining);
-    }else{
-      endDate = currentDate;
-      startDate = new Date(endDate.getTime() - ((this.currentUser.timesheetLockDays + 1) * DAY_IN_MS));
-    }
-
-    let timesheetObj = new Timesheet();
-      timesheetObj.empId = employeeObj.empId;
-      timesheetObj.startDate = moment(startDate).format(AppComponent.DB_DATE_FORMAT);
-      timesheetObj.endDate = moment(endDate).format(AppComponent.DB_DATE_FORMAT);
-
-      //console.log("getAllMyTimesheetsByEmpId :", timesheetObj);
-      this.timesheetService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.availableTimesheets = response.serviceResponse;
-          console.log("availableTimesheets :", this.availableTimesheets);
-        } else {
-          console.error(response.serviceResponse)
-        }
-      });
-  }
-
-  // getTimesheetData(template:TemplateRef<any>){
-
-  //   if (this.endDate < this.startDate) {
-  //     if (!this.validationService.validateNullUndefinedEmptyString(this.startDate)) {
-  //       this.alertMessage = "Please enter Start Date !!"
-  //       this.openAlertMod(template, this.alertMessage);
-  //       return false;
-  //     }
-
-  //     if (!this.validationService.validateNullUndefinedEmptyString(this.endDate)) {
-  //       this.alertMessage = "Please enter End Date !!"
-  //       this.openAlertMod(template, this.alertMessage);
-  //       return false;
-  //     }
-  //     //console.log("end date is small");
-  //     this.endDate = ''
-
+  // validateTime(event, data: any) {
+  //   if (!this.validationService.validateTimesheetCompletionTime(data)) {
+  //     this.errorMsg = "Please enter Time !!"
+  //   } else if (!this.validationService.validateExperiencedNumber(data)) {
+  //     this.errorMsg = "Please enter Valid Time !!"
+  //   }
+  //   else if (data <= 0 || data > 24) {
+  //     this.errorMsg = "Total Time Must be greater than 0 hrs and maximum upto 24 hrs!! "
+  //   }
+  //   else {
+  //     this.errorMsg = ""
+  //   }
+  //   if (this.errorMsg == "") {
+  //     event.target.nextElementSibling.textContent = ""
   //   } else {
-  //     this.allMyTimesheets = [];
+  //     event.target.nextElementSibling.textContent = this.errorMsg
   //   }
+
   // }
 
-  /* View Timesheets */
-  getAllMyTimesheetsByEmpId(template?: TemplateRef<any>) {
-    this.allMyTimesheets = [];
-    if (this.endDate < this.startDate) {
-      if (!this.validationService.validateNullUndefinedEmptyString(this.startDate)) {
-        this.alertMessage = "Please enter Start Date !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
+  // omit_special_char(event) {
 
-      if (!this.validationService.validateNullUndefinedEmptyString(this.endDate)) {
-        this.alertMessage = "Please enter End Date !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-      //console.log("end date is small");
-      this.endDate = ''
-      this.startDate = ''
-
-    } else {
-
-      let timesheetObj = new Timesheet();
-      timesheetObj.empId = this.currentUser.empId;
-      timesheetObj.startDate = this.startDate;
-      timesheetObj.endDate = this.endDate;
-
-      //console.log("getAllMyTimesheetsByEmpId :", timesheetObj);
-      this.timesheetService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.allMyTimesheets = response.serviceResponse;
-          this.allMyTimesheets.forEach(timesheet => {
-            timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
-            timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
-            timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
-            timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-            timesheet.isNightShiftDisplay = (timesheet.isNightShift == 'true') ? 'Night Shift' : 'Regular Shift';
-          });
-          //console.log("allMyTimesheets :", this.allMyTimesheets);
-        } else {
-          console.error(response.serviceResponse)
-        }
-      });
-
-    }
-  }
-
-  /* Timesheets Applied By ME for My Team Members */
-  getMyTeamTimesheets(template?: TemplateRef<any>) {
-    this.allMyTimesheets = [];
-
-    if (this.endDate) {
-      if (!this.validationService.validateNullUndefinedEmptyString(this.startDate)) {
-        this.alertMessage = "Please enter Start Date !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-
-      if (!this.validationService.validateNullUndefinedEmptyString(this.endDate)) {
-        this.alertMessage = "Please enter End Date !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-    } else {
-      return;
-    }
-
-    let timesheetObj = new Timesheet();
-    timesheetObj.createdBy = this.currentUser.empId;
-    timesheetObj.startDate = this.startDate;
-    timesheetObj.endDate = this.endDate;
-
-    //console.log("getAllMyTimesheetsByEmpId :", timesheetObj);
-    this.timesheetService.getAllMyTeamTimesheets(timesheetObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allMyTimesheets = response.serviceResponse;
-        this.allMyTimesheets.forEach(timesheet => {
-          timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
-          timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
-          timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
-          timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          timesheet.isNightShiftDisplay = (timesheet.isNightShift == 'true') ? 'Night Shift' : 'Regular Shift';
-        });
-        //console.log("allMyTimesheets :", this.allMyTimesheets);
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
-  }
-
-  resetToDate() {
-    this.endDate = ''
-    this.allMyTimesheets = [];
-  }
-
-  getAllMyActivitiesByTimesheetId(timesheet: any) {
-    this.allTimesheetActivities = [];
-
-    //console.log("timesheet : ", timesheet);
-
-
-    let timesheetObj = new Timesheet();
-    timesheetObj.timesheetId = timesheet.timesheetId;
-    this.timesheetService.getAllMyActivitiesByTimesheetId(timesheetObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allTimesheetActivities = response.serviceResponse;
-        const allActivities = [...this.allTimesheetActivities];
-        let inactiveActivities:any[] = timesheet.inactiveTimesheetActivities;
-
-        // Removing Inactive Activities from AllTimesheetActivities and added in UpdatedTimesheetActivities
-        if(inactiveActivities != null){
-          allActivities.forEach(activityObj => {
-            if(inactiveActivities.find(activity => activity.timesheetActivityMapId == activityObj.timesheetActivityMapId)) this.removeInputActivityField(activityObj)
-          });
-        }
-
-      } else {
-        console.error(response.serviceResponse)
-      }
-
-      if (this.allTimesheetActivities.length == 0) {
-        this.addInputActivityField();
-      } else {
-        if (this.isTimesheetUpdate) this.isTimesheetUpdateCounter = this.allTimesheetActivities.length;
-        this.allTimesheetActivities.forEach(activity => {
-          this.getAllActivitiesByProjectIdandEmpId(activity)
-          this.getClientLocationList(activity);
-          this.getProjectList(activity);
-          // this.getTeamList(activity);
-        });
-      }
-    });
-  }
-
-  viewAllMyActivitiesByTimesheetId(timesheet: any) {
-    this.timesheetObj.allTimesheetActivities = [];
-
-    let timesheetObj = new Timesheet();
-    timesheetObj.timesheetId = timesheet.timesheetId;
-    this.timesheetService.getAllMyActivitiesByTimesheetId(timesheetObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.timesheetObj.allTimesheetActivities = response.serviceResponse;
-        //console.log("timesheetObj.allTimesheetActivities :", this.timesheetObj.allTimesheetActivities);
-      } else {
-        console.error(response.serviceResponse)
-      }
-    });
-  }
-
-  getEmployeeBasicInfo() {
-    let employeeObj = new Employee();
-    employeeObj.email = this.currentUser.email;
-    this.employeeService.getEmployeeBasicInfo(employeeObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        let employeeInfo = response.serviceResponse;
-        this.currentUser.isTimesheetLockCheckEnable = JSON.parse(JSON.stringify(employeeInfo.isTimesheetLockCheckEnable));
-        this.authenticationService.setcurrentUserSubject(this.currentUser);
-        this.isTimesheetLockCheckEnable = employeeInfo.isTimesheetLockCheckEnable;
-        // console.log("doj",this.currentUser.dateOfJoining);
-        //console.log("isTimesheetLockCheckEnable : ", this.isTimesheetLockCheckEnable);
-
-        let userObj: User = new User();
-        userObj.empId = this.currentUser.empId;
-        userObj.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
-        this.getAllAvailableTimesheetByEmpId(userObj);
-      } else {
-        console.error(response.serviceResponse)
-      }
-    });
-  }
-
-  exportToExcel(): void {
-
-    if (this.isTimesheetTable == true) {
-      this.excelName = 'MyTimeSheet.xlsx'
-
-      const _allEmployeeList = this.allMyTimesheets.slice()
-      this.allMyTimesheetsDataForExcel = _allEmployeeList.sort((a, b) => (new Date(a.date).getTime() > new Date(b.date).getTime())? 1 : -1);
-
-      const onlySpecificDataArr = this.allMyTimesheetsDataForExcel.map(
-        x => ({
-          "Date": x.date,
-          "Day Type": x.dayType,
-          "In Time": x.officeInTime,
-          "Out Time": x.officeOutTime,
-          "Total Working Hours": x.totalWorkingOfficeHours,
-          "Timesheet Details": x.description?.replaceAll('<br>', ' \n'),
-          "Total Activity Time": x.totalTime,
-          "Status": x.status,
-          "Applied By": x.createdByName,
-          "Applied On": x.createdOn,
-          "Shift Type": x.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift',
-          "Leave Type": x.leaveType,
-          "Remarks": x.remarks
-        })
-      )
-      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
-    }
-
-  }
-
-  getAllMyLeaveApplicationsByEmpId(userObj: User) {
-    this.leaveHistoryList = [];
-    let leaveObj = new Leave();
-    leaveObj.empId = userObj.empId;
-    this.leaveService.getAllMyLeaveApplicationsByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.leaveHistoryList = response.serviceResponse;
-        //console.log("leaveHistoryList In Timesheet : ", this.leaveHistoryList);
-        this.leaveHistoryList = this.leaveHistoryList.filter(leaveApplication => leaveApplication.status == 'Approved');
-        //console.log("leave Approved  History : ", this.leaveHistoryList);
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
-  }
-
-
-
-
-
-
-  //modals
-  openUpdateConfimationModal(template: TemplateRef<any>,) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
-  }
-
-  openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
-    this.alertMessage = message;
-  }
-
-  openNightShiftTemplate(template: TemplateRef<any>, event){
-    if(event.target.checked){
-      this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
-    }
-  }
-
-  cancelRequest() {
-    this.modalRef.hide();
-  }
-
-  openTimesheetDetailsModal(template: TemplateRef<any>, timesheetObj: Timesheet) {
-    this.timesheetObj = new Timesheet();
-    this.timesheetObj = timesheetObj;
-    this.viewAllMyActivitiesByTimesheetId(this.timesheetObj);
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
-  }
-
-  async copyTimesheetDetailsToNotepad(timesheetObj: Timesheet) {
-    this.timesheetObj = new Timesheet();
-    this.timesheetObj = timesheetObj;
-
-    let content = "Employment Id: A-" + this.currentUser.employeementId
-      + " Name: " + this.currentUser.name
-      + " Date: " + this.timesheetObj.date
-      + " Daytype: " + this.timesheetObj.dayType
-      + " ";
-
-    const response: any = await this.timesheetService.getAllMyActivitiesByTimesheetId(timesheetObj).toPromise();
-
-    if (response.serviceStatus == "Success") {
-      let activityList = response.serviceResponse;
-      let totalActivity = "";
-      activityList.forEach((eodActivity, index) => {
-        index = index + 1;
-        totalActivity += index + ")" + "Project Name: " + eodActivity.projectName + " Activity: " + eodActivity.activity
-          + " description: " + eodActivity.description + " Time taken: " + eodActivity.completionTime + "hrs. ";
-      })
-      this.clipboardService.copy(content + " " + totalActivity);
-    } else if (response.serviceResponse = "No activities found.Activity list is empty") {
-      this.clipboardService.copy(content + " " + " description: " + timesheetObj.description)
-    }
-  }
-
-  // validateDescription(event,data:any){
-
-  // if (!this.validationService.validateActivityTimesheetDiscription(data)) {
-  //   this.errorMsg = "Please enter valid Description !!"
+  //   var k;
+  //   k = event.charCode;  //        k = event.keyCode;  (Both can be used)
+  //   //console.log("omit function" + k);
+  //   //console.log((k > 64 && k < 91) || (k > 96 && k < 123) || k == 8 || (k >= 48 && k <= 57));
+  //   if ((k == 43) || (k == 45) || (k == 69) || (k == 101)) {
+  //     return (false);
+  //   }
+  //   else {
+  //     return (true)
+  //   }
+  //   //return ((k > 64 && k < 91) || (k > 96 && k < 123) || k == 8 || (k >= 48 && k <= 57));
   // }
-  // else{
-  //   this.errorMsg = ""
-  // }
-  // if(this.errorMsg == ""){
-  //   event.target.nextElementSibling.textContent = ""
-  // }else{
-  //   event.target.nextElementSibling.textContent =  this.errorMsg
-  // }
-  // }
-  validateTime(event, data: any) {
-    if (!this.validationService.validateTimesheetCompletionTime(data)) {
-      this.errorMsg = "Please enter Time !!"
-    } else if (!this.validationService.validateExperiencedNumber(data)) {
-      this.errorMsg = "Please enter Valid Time !!"
-    }
-    else if (data <= 0 || data > 24) {
-      this.errorMsg = "Total Time Must be greater than 0 hrs and maximum upto 24 hrs!! "
-    }
-    else {
-      this.errorMsg = ""
-    }
-    if (this.errorMsg == "") {
-      event.target.nextElementSibling.textContent = ""
-    } else {
-      event.target.nextElementSibling.textContent = this.errorMsg
-    }
-
-  }
-
-  omit_special_char(event) {
-
-    var k;
-    k = event.charCode;  //        k = event.keyCode;  (Both can be used)
-    //console.log("omit function" + k);
-    //console.log((k > 64 && k < 91) || (k > 96 && k < 123) || k == 8 || (k >= 48 && k <= 57));
-    if ((k == 43) || (k == 45) || (k == 69) || (k == 101)) {
-      return (false);
-    }
-    else {
-      return (true)
-    }
-    //return ((k > 64 && k < 91) || (k > 96 && k < 123) || k == 8 || (k >= 48 && k <= 57));
-  }
 
   onPaste(e) {
     e.preventDefault();
@@ -1827,56 +340,11 @@ getFilteredDates(dayType: string): Date[] {
 
 
 
-  validateClientName(event, data: any) {
-
-    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
-      this.errorMsg = "Please Select Client Name !!"
-    }
-    else {
-      this.errorMsg = ""
-    }
-    if (this.errorMsg == "") {
-      event.target.nextElementSibling.textContent = ""
-    } else {
-      event.target.nextElementSibling.textContent = this.errorMsg
-    }
-  }
-
-
   preventScroll(event: WheelEvent): void {
     event.preventDefault();
   }
   
 
-
-  validateClientLocation(event, data: any) {
-
-    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
-      this.errorMsg = "Please Select Client Location !!"
-    }
-    else {
-      this.errorMsg = ""
-    }
-    if (this.errorMsg == "") {
-      event.target.nextElementSibling.textContent = ""
-    } else {
-      event.target.nextElementSibling.textContent = this.errorMsg
-    }
-  }
-  validateProjectName(event, data: any) {
-
-    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
-      this.errorMsg = "Please Select Project Name !!"
-    }
-    else {
-      this.errorMsg = ""
-    }
-    if (this.errorMsg == "") {
-      event.target.nextElementSibling.textContent = ""
-    } else {
-      event.target.nextElementSibling.textContent = this.errorMsg
-    }
-  }
 
   resetForm() {
     // Logic to reset form fields
@@ -1888,6 +356,9 @@ getFilteredDates(dayType: string): Date[] {
 submitForm() {
     // Logic to handle form submission
      if (this.isValidForm()) {
+      this.onGetEmployeeInfo();
+
+      console.log('Form Data:', this.travelDeskObj);
     //     // Call the service to submit the form data
     //     this.yourService.submitTimesheet(this.timesheetObj).subscribe(response => {
     //         // Handle success or failure
@@ -1900,20 +371,13 @@ isValidForm() {
     return true; // or false depending on your validation
 }
 
-  validateActivity(event, data: any) {
-
-    if (!this.validationService.validateNullUndefinedEmptyString(data)) {
-      this.errorMsg = "Please Select Activity !!"
-    }
-    else {
-      this.errorMsg = ""
-    }
-    if (this.errorMsg == "") {
-      event.target.nextElementSibling.textContent = ""
-    } else {
-      event.target.nextElementSibling.textContent = this.errorMsg
-    }
+onFileChange(event: any) {
+  const file = event.target.files[0];
+  if (file) {
+    this.travelDeskObj.supportingDocument = file;
   }
+}
+ 
   //pagination
 
   page = 1;
@@ -1931,17 +395,17 @@ isValidForm() {
     }
   }
 
-  toggleSearch(){
-    this.isSearchEnabled = !this.isSearchEnabled;
-    if(!this.isSearchEnabled){
-    this.filters = {};
-  }
-  }
+  // toggleSearch(){
+  //   this.isSearchEnabled = !this.isSearchEnabled;
+  //   if(!this.isSearchEnabled){
+  //   this.filters = {};
+  // }
+  // }
 
-  onSearch(searchData){
-    this.filters = searchData;
-    //console.log("Updated Filter : ", this.filters);
-  }
+  // onSearch(searchData){
+  //   this.filters = searchData;
+  //   //console.log("Updated Filter : ", this.filters);
+  // }
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
