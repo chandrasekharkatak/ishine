@@ -66,7 +66,7 @@
                     <label class="info-label">
                         <span class="text-danger">*</span> Currency
                     </label>
-                    <select class="form-control" id="dayTypeCursor" aria-hidden="true">
+                    <select class="form-control" id="dayTypeCursor" aria-hidden="true" [(ngModel)]="currencyType">
                         <option selected="selected" value="" disabled>Select</option>
                         <option value="Rupees">Rupees</option>
                         <option value="Dollar">Dollar</option>
@@ -80,12 +80,12 @@
                     <label class="info-label">
                         <span class="text-danger">*</span> Amount
                     </label>
-                    <input type="number" class="form-control" name="fullName" required />
+                    <input type="number" class="form-control" name="fullName" [(ngModel)]="amount" required />
                 </div>
            
                 <div class="col-md-3 mb-0" *ngIf="isTravel">
                     <label class="info-label"><span class="text-danger">*</span>Travel Mode</label>
-                    <select class="form-control" id="dayTypeCursor" aria-hidden="true">
+                    <select class="form-control" id="dayTypeCursor" aria-hidden="true" [(ngModel)]="travelMode">
                         <option selected="selected" value="" disabled>Select</option>
                         <option value="Flight">Flight</option>
                         <option value="Train">Train</option>
@@ -98,7 +98,7 @@
                     <label class="info-label">
                         <span class="text-danger">*</span> Distance (In KM)
                     </label>
-                    <input type="number" class="form-control" name="fullName" required />
+                    <input type="number" class="form-control" name="fullName" [(ngModel)]="distance" required />
                 </div>
 
                 <div class="col-md-3 mb-0">
@@ -107,7 +107,7 @@
                             <label class="info-label"><span class="text-danger">*</span>From Date</label>
                             <!-- <input id="timesheetDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" [disabled]="isUpdation"> -->
                             <div class="d-flex">
-                                <input class="form-control" #input (focus)="fromDate.open()" matInput id="fromDate"
+                                <input class="form-control" #input (focus)="fromDate.open()" [(ngModel)]="fromDateInput" matInput id="fromDate"
                                     [matDatepicker]="fromDate" placeholder="Choose a date"
                                     autocomplete="off">
                                 <mat-datepicker-toggle matSuffix [for]="fromDate"
@@ -125,8 +125,8 @@
                             <label class="info-label"><span class="text-danger">*</span>To Date</label>
                             <!-- <input id="timesheetDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" [disabled]="isUpdation"> -->
                             <div class="d-flex">
-                                <input class="form-control" #input (focus)="toDate.open()" matInput id="toDate"
-                                    [matDatepicker]="toDate" placeholder="Choose a date"
+                                <input class="form-control" #input (focus)="toDate.open()" [(ngModel)]="toDateInput" matInput id="toDate"
+                                    [matDatepicker]="toDate" placeholder="Choose a date" [min]="fromDateInput"
                                     autocomplete="off">
                                 <mat-datepicker-toggle matSuffix [for]="toDate"
                                     style="margin-left: -44px; margin-top: 0px;"></mat-datepicker-toggle>
@@ -142,7 +142,7 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label for="leaveDesc"><span class="text-danger">*</span>Purpose</label>
-                                <textarea class="form-control" id="dayTypeDesc" rows="3"></textarea>
+                                <textarea class="form-control" id="dayTypeDesc" rows="3" [(ngModel)]="purpose"></textarea>
                             </div>
                         </div>
                     </div>
@@ -151,7 +151,7 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label for="fileUpload" class="info-label"> <span class="text-danger">*</span> Supporting Documents/GST Bill</label>
-                                <input type="file" id="fileUpload" class="form-control" />
+                                <input type="file" id="fileUpload" [(ngModel)]="fileInput" class="form-control" />
                             </div>
                         </div>
                     </div>
