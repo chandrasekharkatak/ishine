@@ -1450,7 +1450,7 @@
                                     *ngIf="isDraftTable == true && employee.employmentStatus=='InActive' ? '{{employee.employmentReleaseStatus}} ' : ' ' && !isActiveTable">
                                     {{employee.employmentReleaseStatus}}</td>
 
-                                <td id="clickablefor360" *ngIf="userMapping.employee_360" [navigateToEmployee360]="employee.emp360Mng" style="cursor: pointer;" title="Click to view Employee 360">{{employee.managerName}}</td>
+                                <td id="clickablefor360" *ngIf="userMapping.employee_360" [navigateToEmployee360]="employee.emp360Manger" style="cursor: pointer;" title="Click to view Employee 360">{{employee.managerName}}</td>
                                 <td *ngIf="!userMapping.employee_360">{{employee.managerName}}</td>
                                 <td>{{employee.departmentName}}</td>
                                 <td>{{employee.dateOfJoining}}</td>

@@ -89,7 +89,7 @@ export class UploadPoliciesComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    //console.log(this.feature, this.userMapping);
+    console.log('----------------------------', this.userMapping);
     this.sectionViewInit();
     this.preventBackButton();
   }
@@ -264,7 +264,7 @@ export class UploadPoliciesComponent implements OnInit {
           // console.log("createdby ", matchingEmployee3);
           employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
         });
-        //console.log("DocumentList : ", this.document);
+        console.log("DocumentList : ", this.document);
       } else {
         console.error(response.serviceResponse);
       }

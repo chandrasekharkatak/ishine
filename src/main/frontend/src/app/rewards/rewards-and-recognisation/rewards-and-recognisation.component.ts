@@ -491,7 +491,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
     this.editRewardssss.updatedBy = this.currentUser.empId;
     this.editRewardssss.managerId = this.sumbitRewards.managerId || this.selectedReward.managerId;
 
-    console.log("updateddddddddddddd--", this.editRewardssss);
+    //console.log("updateddddddddddddd--", this.editRewardssss);
     this.rewardsService.updateRewardForEmployee(this.editRewardssss).subscribe(
       (response: any) => {
         if (response.serviceStatus === 'Success') {
@@ -501,7 +501,11 @@ export class RewardsAndRecognisationComponent implements OnInit {
           this.isRewards = false;
           this.isRewardshitory = true;
           this.fetchRewardHistory();
-
+          this.selectedReward = null;
+          this.ofmonthyear=null;
+          this.remarks=null;
+          this.sumbitRewards=null;
+          // this.editRewardssss=null;
         } else {
           this.openAlertMod(template, 'No reward categories available at the moment.');
         }

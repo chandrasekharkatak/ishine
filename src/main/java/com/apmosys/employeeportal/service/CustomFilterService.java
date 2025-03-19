@@ -1216,8 +1216,10 @@ public class CustomFilterService {
 					
 //					empDTO.setSpecializationName(object[66] != null ? (object[66].toString()) : null);
 //					empDTO.setDomainName(object[67] != null ? (object[67].toString()) : null);
+					//added bu rahul sir
 					empDTO.setDesignationId(object[66] != null ? Long.parseLong(object[66].toString()) : null);
 					empDTO.setDesignationName(object[67] != null ? (object[67].toString()) : null);
+					 empDTO.setUpdatedBy(object[68] != null ? Long.parseLong(object[68].toString()) : null);
 					empDTO.setBillableType(object[69] != null ? object[69].toString() : null);
 					empDTO.setTeamName(object[70] != null ? object[70].toString() : null);	
 					empDTO.setIsConsultant(object[71] != null ? object[71].toString() : null);
@@ -1249,6 +1251,15 @@ public class CustomFilterService {
 		                    empDTO.setProjectList(projectList);
 		                }
 		            }
+					//added by me 
+					// empDTO.setDesignationId(object[65] != null ? Long.parseLong(object[65].toString()) : null);
+					// empDTO.setDesignationName(object[66] != null ? (object[66].toString()) : null);
+					// //updated by
+					// empDTO.setUpdatedBy(object[67] != null ? Long.parseLong(object[67].toString()) : null);
+					// empDTO.setBillableType(object[68] != null ? object[68].toString() : null);
+					// empDTO.setTeamName(object[69] != null ? object[69].toString() : null);	
+					// empDTO.setIsConsultant(object[70] != null ? object[70].toString() : null);
+					// empDTO.setIsApprenticeship(object[71] != null ? object[71].toString() : null);
 					
 					ServiceResponse completionResponse = employeeService.getEmployeeProfileCompletion(empDTO);
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();

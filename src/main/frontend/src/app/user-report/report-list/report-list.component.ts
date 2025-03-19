@@ -614,14 +614,14 @@ export class ReportListComponent implements OnInit {
           });
           this.allEmployeeList.forEach(employee => {
             let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === employee.employeementId);
-            // console.log("allEmployeeList matchingEmployee : ", matchingEmployee)
+            //console.log("allEmployeeList matchingEmployee : ", matchingEmployee)
             employee.emp360 = matchingEmployee ? matchingEmployee : {};    
             let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === employee.managerId);
             // console.log("leave match ",matchingEmployee);
             employee.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
             // console.log("employee.createdBy ", employee.createdBy);
             let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
-            // console.log("createdby ", matchingEmployee3);
+            //console.log("createdby ", matchingEmployee3);
             employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
             console.log("employee.updatedBy ", employee.updatedBy);
             let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
