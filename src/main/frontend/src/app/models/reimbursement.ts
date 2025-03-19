@@ -11,8 +11,7 @@ export class MyReimbursementComponent{
         fromDate: any ;     
         toDate: any ;       
         purpose: any ;        
-        file: any ;
-        selectedReason: any ;;  
-        selectedCurrency: any ;; 
-        isTravel: boolean = false;             
+        fileData: any ;
+        selectedReason: any ;    
+        selectedCurrency: any ;            
 }

@@ -11,10 +11,22 @@ import { EmployeeService } from 'src/app/services/employee.service';
 export class MyReimbursementComponent implements OnInit {
 selectedReason:any;
 isTravel:boolean = false;
-isFood:boolean = false;
- currentUser:any;
-  currentEmployeeInfo:Employee = new Employee();
-  todayDate: string;
+
+
+currentEmployeeInfo:Employee = new Employee();
+todayDate: string;
+currencyType:any;
+currentUser:any;
+amount:any;
+travelMode:any;
+distance:any;
+fromDateInput:any;
+toDateInput:any;
+purpose:any;
+fileInput:any;
+
+
+
   constructor(private empService : EmployeeService, private authenticationService: AuthenticationService) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -48,7 +60,6 @@ isFood:boolean = false;
         this.currentEmployeeInfo = response.serviceResponse;
       
         console.log("currentEmployeeInfo : ", this.currentEmployeeInfo);
-        //this.loadProfileImage(this.currentEmployeeInfo.imageBytes)
   
       } else {
         console.error(response.serviceResponse);
