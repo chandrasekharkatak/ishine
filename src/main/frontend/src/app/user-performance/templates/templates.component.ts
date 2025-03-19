@@ -7,6 +7,8 @@ import { first } from 'rxjs/operators';
 import { question } from 'src/app/models/question';
 // import { QuestionnaireDTO } from 'src/app/models/questionnaire-dto';
 import { QuestionnaireDTO, QuestionDTO } from 'src/app/models/questionnaire-dto';
+import { KraKpiService } from 'src/app/services/kpi-kra.service';
+import { KpiTemplate } from 'src/app/models/kpiTemplate';
 @Component({
   selector: 'app-templates',
   templateUrl: './templates.component.html',
@@ -23,9 +25,12 @@ export class TemplatesComponent implements OnInit {
   questionnaireTemplates: any[] = [];
   templateForm: FormGroup;
   questionnaireForm!: FormGroup;
+  kpikraForm:FormGroup;
   isEditing: boolean = false;
   editingTemplateId: number | null = null;
   selectedQuarterId: number | null = null;
+
+
   
 
 
@@ -34,7 +39,8 @@ export class TemplatesComponent implements OnInit {
     private fb: FormBuilder, 
     private departmentService: DepartmentService,
     private userPerformanceService: UserPerformanceService,
-    private templateService: TemplateService
+    private templateService: TemplateService,
+    private kraKpiService : KraKpiService
   ) {
     this.templateForm = this.fb.group({
       title: ['', Validators.required],
@@ -53,15 +59,44 @@ export class TemplatesComponent implements OnInit {
       quarterId: [null, Validators.required],
       questions: this.fb.array([this.createQuestionField()])
     });
+
+    this.kpikraForm = this.fb.group({
+      name: ['', Validators.required],
+      description: [''],
+      createdBy: [null], // Will be set before submission
+      quarterId: [null, Validators.required],
+      kpis: this.fb.array([this.kpiField()])
+    });
+  }
+  kpiField(): FormGroup {
+    return this.fb.group({
+      description: ['', Validators.required],
+      id: [null]
+    });
+  }
+
+  get kpis(): FormArray {
+    return this.kpikraForm.get('kpis') as FormArray;
+  }
+  addKpi():void{
+    if (this.kpis.length < 10 && this.kpis.at(this.kpis.length - 1).valid) {
+      this.kpis.push(this.kpiField());
+    }
+  }
+
+  removeKpi(index:number):void{
+    if (this.kpis.length > 1) {
+      this.kpis.removeAt(index);
+    }
   }
 
   ngOnInit(): void {
     this.fetchGoalTemplates();
     this.getAllDepartmentList();
     this.fetchQuestionnaireTemplates();
+    this.fetchKraKpiTemplates();
   }
 
-  // Create a single question form field
   createQuestionField(): FormGroup {
     return this.fb.group({
       questionText: ['', Validators.required],
@@ -69,35 +104,31 @@ export class TemplatesComponent implements OnInit {
     });
   }
 
-  // Get access to the questions FormArray
   get questions(): FormArray {
     return this.questionnaireForm.get('questions') as FormArray;
   }
 
-  // Add a new question field
+  
   addQuestion(): void {
     if (this.questions.length < 10 && this.questions.at(this.questions.length - 1).valid) {
       this.questions.push(this.createQuestionField());
     }
   }
 
-  // Remove a question field
+  
   removeQuestion(index: number): void {
     if (this.questions.length > 1) {
       this.questions.removeAt(index);
     }
   }
 
-  // Submit the questionnaire form
   onSubmit() {
     if (this.questionnaireForm.valid) {
-      // Create a new QuestionnaireDTO object
+     
       const formData = this.questionnaireForm.value;
       
-      // Set the logged-in user ID (replace with actual implementation)
-      formData.createdBy = 1; // Example: Current user ID
+      formData.createdBy = 1; 
 
-      // Map form array to QuestionDTO objects
       const questionDTOs: question[] = this.questions.controls.map(control => {
         const questionFormGroup = control as FormGroup;
         return {
@@ -106,7 +137,7 @@ export class TemplatesComponent implements OnInit {
         };
       });
 
-      // Create the final DTO
+     
       const questionnaireDTO: QuestionnaireDTO = {
         questionId: this.isEditing ? this.editingTemplateId : undefined,
         questionTitle: formData.questionTitle,
@@ -124,12 +155,11 @@ export class TemplatesComponent implements OnInit {
         this.createQuestionnaireTemplate(questionnaireDTO);
       }
     } else {
-      // Mark all fields as touched to trigger validation messages
+      
       this.questionnaireForm.markAllAsTouched();
     }
   }
 
-  // Create a new questionnaire template
   createQuestionnaireTemplate(formData: QuestionnaireDTO) {
     this.templateService.createQuestionnaireTemplate(formData)
       .pipe(first())
@@ -152,7 +182,6 @@ export class TemplatesComponent implements OnInit {
       });
   }
 
-  // Update an existing questionnaire template
   updateQuestionnaireTemplate(id: number, formData: QuestionnaireDTO) {
     this.templateService.updateQuestionnaire(id, formData)
       .pipe(first())
@@ -175,30 +204,46 @@ export class TemplatesComponent implements OnInit {
       });
   }
 
-  // Reset the questionnaire form
   resetQuestionnaireForm() {
     this.questionnaireForm.reset();
-    // Clear the questions FormArray except for one empty question
+  
     while (this.questions.length !== 0) {
       this.questions.removeAt(0);
     }
-    // Add one empty question field
+  
     this.questions.push(this.createQuestionField());
     
     this.isEditing = false;
     this.editingTemplateId = null;
   }
 
+  // setActiveTab(tab: string) {
+  //   this.activeTab = tab;
+  //   if (tab === 'goals') this.fetchGoalTemplates();
+  //   if (tab === 'kra-kpi') this.fetchKraKpiTemplates();
+  //   if (tab === 'questionnaire') this.fetchQuestionnaireTemplates();
+  //   if (tab === 'create-template') {
+  //     this.resetForm();
+  //     // Reset the questionnaire form when switching to create template tab
+  //     if (this.selectedTemplateType === 'questionnaire') {
+  //       this.resetQuestionnaireForm();
+  //     }
+  //   }
+  // }
+
   setActiveTab(tab: string) {
     this.activeTab = tab;
     if (tab === 'goals') this.fetchGoalTemplates();
-    if (tab === 'kra-kpi') this.fetchKraKpiTemplates();
+    if (tab === 'kra-kpi') {
+      this.fetchKraKpiTemplates(); 
+    }
     if (tab === 'questionnaire') this.fetchQuestionnaireTemplates();
     if (tab === 'create-template') {
       this.resetForm();
-      // Reset the questionnaire form when switching to create template tab
       if (this.selectedTemplateType === 'questionnaire') {
         this.resetQuestionnaireForm();
+      } else if (this.selectedTemplateType === 'kra-kpi') {
+        this.resetKraKpiForm();
       }
     }
   }
@@ -226,12 +271,11 @@ export class TemplatesComponent implements OnInit {
     this.setActiveTab('create-template');
     this.selectedTemplateType = 'questionnaire';
     
-    // Clear existing questions
+    
     while (this.questions.length !== 0) {
       this.questions.removeAt(0);
     }
     
-    // Patch the basic form values
     this.questionnaireForm.patchValue({
       questionTitle: template.questionTitle,
       questionDescription: template.questionDescription,
@@ -239,17 +283,16 @@ export class TemplatesComponent implements OnInit {
       createdBy: template.createdBy
     });
     
-    // Add questions from the template
     if (template.questions && template.questions.length > 0) {
       template.questions.forEach((question: any) => {
         const questionGroup = this.fb.group({
           questionText: [question.questionText, Validators.required],
-          id: [question.id] // Keep the question ID for backend reference
+          id: [question.id] 
         });
         this.questions.push(questionGroup);
       });
     } else {
-      // If no questions, add one empty question field
+      
       this.questions.push(this.createQuestionField());
     }
   }
@@ -353,7 +396,7 @@ export class TemplatesComponent implements OnInit {
   //   }
   // }
 
-  // // Submit the questionnaire form
+  // 
   // onSubmit() {
   //   if (this.questionnaireForm.valid) {
   //     const formData = this.questionnaireForm.value;
@@ -579,8 +622,196 @@ export class TemplatesComponent implements OnInit {
     }
   }
 
+  onKraKpiSubmit() {
+    if (this.kpikraForm.valid) {
+      
+      const formData = this.kpikraForm.value;
+      
+      if (!formData.quarterId) {
+        alert('Please select a quarter');
+        return;
+      }
+  
+      formData.createdBy = 1; 
+  
+     
+      const kpiDTOs = this.kpis.controls.map(control => {
+        const kpiFormGroup = control as FormGroup;
+        return {
+          id: kpiFormGroup.value.id,
+          description: kpiFormGroup.value.description
+        };
+      });
+  
+      const kpiTemplate: KpiTemplate = {
+        kpiId: this.isEditing ? this.editingTemplateId : undefined,
+        name: formData.name,
+        description: formData.description,
+        createdBy: formData.createdBy,
+        quarterId: formData.quarterId,
+        kpis: kpiDTOs
+      };
+  
+      console.log('KRA-KPI Form Data:', kpiTemplate);
+  
+      if (this.isEditing && this.editingTemplateId) {
+        this.updateKraKpiTemplate(this.editingTemplateId, kpiTemplate);
+      } else {
+        this.createKraKpiTemplate(kpiTemplate);
+      }
+    } else {
+      this.kpikraForm.markAllAsTouched();
+      alert('Please fill all required fields');
+    }
+  }
+  createKraKpiTemplate(formData: KpiTemplate) {
+    console.log('Sending KPI template data:', formData);
+    this.kraKpiService.createKpiTemplate(formData)
+      .pipe(first())
+      .subscribe({
+        next: (response: any) => {
+          console.log('KPI template creation response:', response);
+          if (response.serviceStatus === "Success") {
+            alert('KRA-KPI template created successfully!');
+            this.resetKraKpiForm();
+            this.setActiveTab('kra-kpi');
+            this.fetchKraKpiTemplates();
+          } else {
+            console.error('Error creating KRA-KPI template:', response.serviceMessage);
+            alert('Failed to create KRA-KPI template: ' + response.serviceMessage);
+          }
+        },
+        error: (error) => {
+          console.error('HTTP error creating KRA-KPI template:', error);
+          alert('Error creating KRA-KPI template. Please try again.');
+        }
+      });
+  }
+  updateKraKpiTemplate(id: number, formData: KpiTemplate) {
+    this.kraKpiService.updateKpiTemplate(id, formData)
+      .pipe(first())
+      .subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus === "Success") {
+            alert('KRA-KPI template updated successfully!');
+            this.resetKraKpiForm();
+            this.setActiveTab('kra-kpi');
+            this.fetchKraKpiTemplates();
+          } else {
+            console.error('Error updating KRA-KPI template:', response.serviceMessage);
+            alert('Failed to update KRA-KPI template: ' + response.serviceMessage);
+          }
+        },
+        error: (error) => {
+          console.error('HTTP error updating KRA-KPI template:', error);
+          alert('Error updating KRA-KPI template. Please try again.');
+        }
+      });
+  }
+  editKraKpiTemplate(template: any) {
+    this.isEditing = true;
+    this.editingTemplateId = template.kpiId;
+    this.setActiveTab('create-template');
+    this.selectedTemplateType = 'kra-kpi';
+
+    while (this.kpis.length !== 0) {
+      this.kpis.removeAt(0);
+    }
+
+    this.kpikraForm.patchValue({
+      name: template.name,
+      description: template.description,
+      quarterId: template.quarterId,
+      createdBy: template.createdBy
+    });
+
+    if (template.kpis && template.kpis.length > 0) {
+      template.kpis.forEach((kpi: any) => {
+        const kpiGroup = this.fb.group({
+          description: [kpi.description, Validators.required],
+          id: [kpi.id] 
+        });
+        this.kpis.push(kpiGroup);
+      });
+    } else {
+     
+      this.kpis.push(this.kpiField());
+    }
+  }
+
+  deleteKraKpiTemplate(kpiId: number) {
+    if (confirm('Are you sure you want to delete this KRA-KPI template?')) {
+      this.kraKpiService.deleteKpiTemplate(kpiId)
+        .pipe(first())
+        .subscribe({
+          next: (response: any) => {
+            if (response.serviceStatus === "Success") {
+              alert('KRA-KPI template deleted successfully!');
+              this.fetchKraKpiTemplates();
+            } else {
+              console.error('Error deleting KRA-KPI template:', response.serviceMessage);
+              alert('Failed to delete KRA-KPI template: ' + response.serviceMessage);
+            }
+          },
+          error: (error) => {
+            console.error('HTTP error deleting KRA-KPI template:', error);
+            alert('Error deleting KRA-KPI template. Please try again.');
+          }
+        });
+    }
+  }
+  onKpiQuarterChange() {
+    if (this.selectedQuarterId) {
+      this.kraKpiService.getKpisByQuarter(this.selectedQuarterId)
+        .pipe(first())
+        .subscribe({
+          next: (response: any) => {
+            if (response.serviceStatus === "Success") {
+              this.kraKpiTemplates = response.serviceResponse;
+            } else {
+              console.error('Error fetching KRA-KPIs by quarter:', response.serviceMessage);
+            }
+          },
+          error: (error) => {
+            console.error('HTTP error fetching KRA-KPIs by quarter:', error);
+          }
+        });
+    } else {
+      this.fetchKraKpiTemplates();
+    }
+  }
+
+  resetKraKpiForm() {
+    this.kpikraForm.reset();
+   
+    while (this.kpis.length !== 0) {
+      this.kpis.removeAt(0);
+    }
+   
+    this.kpis.push(this.kpiField());
+
+    this.isEditing = false;
+    this.editingTemplateId = null;
+  }
   fetchKraKpiTemplates() {
-    // Implement when backend is ready
+    this.kraKpiService.getAllKpis()
+      .pipe(first())
+      .subscribe({
+        next: (response: any) => {
+          if (response && response.serviceStatus === "Success") {
+            this.kraKpiTemplates = Array.isArray(response.serviceResponse) 
+              ? response.serviceResponse 
+              : [response.serviceResponse];
+          } else {
+            console.error('Error fetching KRA-KPI templates:', response.serviceMessage);
+            this.kraKpiTemplates = [];
+          }
+        },
+        error: (error) => {
+          console.error('HTTP error fetching KRA-KPI templates:', error);
+          this.kraKpiTemplates = [];
+        }
+      });
   }
 
   resetForm() {
@@ -588,12 +819,11 @@ export class TemplatesComponent implements OnInit {
     this.isEditing = false;
     this.editingTemplateId = null;
     
-    // Reset validators based on the selected template type
     this.updateFormValidation();
   }
 
   updateFormValidation() {
-    // Update form validation based on the selected template type
+   
     if (this.selectedTemplateType === 'goals') {
       this.templateForm.get('description')?.setValidators([Validators.required]);
       this.templateForm.get('metrics')?.clearValidators();
@@ -608,7 +838,6 @@ export class TemplatesComponent implements OnInit {
       this.templateForm.get('questions')?.setValidators([Validators.required]);
     }
     
-    // Update form controls validity
     this.templateForm.get('description')?.updateValueAndValidity();
     this.templateForm.get('metrics')?.updateValueAndValidity();
     this.templateForm.get('questions')?.updateValueAndValidity();
@@ -618,7 +847,6 @@ export class TemplatesComponent implements OnInit {
     this.resetForm();
     this.updateFormValidation();
     
-    // Reset the questionnaire form when changing template type
     if (this.selectedTemplateType === 'questionnaire') {
       this.resetQuestionnaireForm();
     }
@@ -628,7 +856,7 @@ export class TemplatesComponent implements OnInit {
     this.isEditing = true;
     this.editingTemplateId = template.templateId;
     this.activeTab = 'create-template';
-    this.selectedTemplateType = 'goals'; // Assuming we're editing a goal template
+    this.selectedTemplateType = 'goals'; 
     
     const dept = this.allDeptList.find(d => d.deptId === template.departmentId);
   
@@ -640,7 +868,6 @@ export class TemplatesComponent implements OnInit {
       department: dept ? dept.name : ''
     });
     
-    // Update form validation for the selected template type
     this.updateFormValidation();
   }
 

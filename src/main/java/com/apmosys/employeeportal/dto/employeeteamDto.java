@@ -9,6 +9,6 @@ public class employeeteamDto {
 	private Long empId;
 	private Long employeementId;
 	private String name;
-	private Long noOfGoals;
+	private Long totalGoals;
 	private Long goalsCompleted;
 }

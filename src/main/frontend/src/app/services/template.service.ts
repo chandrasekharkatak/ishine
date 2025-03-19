@@ -12,7 +12,6 @@ export class TemplateService {
 
   constructor(private http: HttpClient) { }
 
-  // Questionnaire API calls
   getAllQuestionnaires(): Observable<any> {
     return this.http.get(`${this.apiUrl}api/questionnaires/getAllQuestionnaires`);
   }

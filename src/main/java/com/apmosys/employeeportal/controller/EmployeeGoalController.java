@@ -1,6 +1,8 @@
 package com.apmosys.employeeportal.controller;
 
+import com.apmosys.employeeportal.dto.BulkGoalAssignmentRequest;
 import com.apmosys.employeeportal.dto.EmployeeGoalDTO;
+import com.apmosys.employeeportal.dto.GoalAssignmentRequest;
 import com.apmosys.employeeportal.service.EmployeeGoalService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -19,16 +21,16 @@ public class EmployeeGoalController {
     private EmployeeGoalService employeeGoalService;
 
     @PostMapping("/assign")
-    public ServiceResponse assignGoalToEmployee(
-            @RequestParam Long empId,
-            @RequestParam Long templateId,
-            @RequestParam String expectedCompletionDate) {
-
+    public ServiceResponse assignGoalToEmployee(@RequestBody GoalAssignmentRequest request) {
         ServiceResponse response = new ServiceResponse();
         try {
-            LocalDate completionDate = LocalDate.parse(expectedCompletionDate);
-            EmployeeGoalDTO assignedGoal = employeeGoalService.assignGoalToEmployee(empId, templateId, completionDate);
-            
+            LocalDate completionDate = LocalDate.parse(request.getExpectedCompletionDate());
+            EmployeeGoalDTO assignedGoal = employeeGoalService.assignGoalToEmployee(
+                request.getEmpId(), 
+                request.getTemplateId(), 
+                completionDate
+            );
+
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceResponse(assignedGoal);
             response.setServiceMessage("Goal assigned successfully.");
@@ -41,19 +43,19 @@ public class EmployeeGoalController {
     }
     
     @PostMapping("/assign-bulk")
-    public ServiceResponse assignGoalsToMultipleEmployees(
-            @RequestParam List<Long> empIds,
-            @RequestParam Long templateId,
-            @RequestParam String expectedCompletionDate) {
-
+    public ServiceResponse assignGoalsToMultipleEmployees(@RequestBody BulkGoalAssignmentRequest request) {
         ServiceResponse response = new ServiceResponse();
         try {
-            LocalDate completionDate = LocalDate.parse(expectedCompletionDate);
-            List<EmployeeGoalDTO> assignedGoals = employeeGoalService.assignGoalToMultipleEmployees(empIds, templateId, completionDate);
+            LocalDate completionDate = LocalDate.parse(request.getExpectedCompletionDate());
+            List<EmployeeGoalDTO> assignedGoals = employeeGoalService.assignGoalToMultipleEmployees(
+                request.getEmpIds(), 
+                request.getTemplateId(), 
+                completionDate
+            );
 
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceResponse(assignedGoals);
-            response.setServiceMessage("Goals assigned successfully to " + empIds.size() + " employees.");
+            response.setServiceMessage("Goals assigned successfully to " + request.getEmpIds().size() + " employees.");
         } catch (Exception e) {
             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
             response.setServiceError(e.getMessage());

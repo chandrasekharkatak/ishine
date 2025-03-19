@@ -43,7 +43,7 @@ public class employeeDeptService {
 						employee.setName(object[1] != null ? object[1].toString(): null);
 						employee.setEmployeementId(object[2]!= null ? Long.parseLong(object[2].toString()) : null);
 						employee.setGoalsCompleted(null);
-						employee.setNoOfGoals(null);
+						employee.setTotalGoals(object[3]!= null ? Long.parseLong(object[3].toString()): null);
 					
 						dtoList.add(employee);
 					}

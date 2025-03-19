@@ -194,9 +194,152 @@
 
 
 
-        <div *ngIf="selectedTemplateType === 'kra-kpi'" class="form-group w-25">
-          <label>Metrics <span class="text-danger">*</span></label>
-          <textarea class="form-control" formControlName="metrics" rows="3"></textarea>
+        <!-- <div *ngIf="selectedTemplateType === 'kra-kpi'" class="card-body mx-0">
+          <form [formGroup]="kpikraForm" (ngSubmit)="onKraKpiSubmit()">
+            
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label><span class="text-danger">*</span> KPI Title</label>
+                <input type="text" class="form-control" formControlName="name" placeholder="Enter title" required>
+                <div *ngIf="kpikraForm.get('name')?.invalid && kpikraForm.get('name')?.touched" class="text-danger">
+                  Title is required.
+                </div>
+              </div>
+            </div>
+        
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label>KPI Description</label>
+                <textarea class="form-control" formControlName="description" placeholder="Enter description"></textarea>
+              </div>
+            </div>
+        
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label>Quarter</label>
+                <select class="form-control" formControlName="quarterId">
+                  <option [ngValue]="null">Select Quarter</option>
+                  <option [ngValue]="1">Q1</option>
+                  <option [ngValue]="2">Q2</option>
+                  <option [ngValue]="3">Q3</option>
+                  <option [ngValue]="4">Q4</option>
+                </select>
+              </div>
+            </div>
+        
+            <div formArrayName="kpis">
+              <div *ngFor="let kpi of kpis.controls; let i = index" [formGroupName]="i" class="form-group row mb-3">
+                <div class="col-md-6">
+                  <label>KRA/KPI {{ i + 1 }}</label>
+                  <input type="text" class="form-control" formControlName="description" placeholder="Enter KRA/KPI" required>
+                  <div *ngIf="kpi.get('description')?.invalid && kpi.get('description')?.touched" class="text-danger">
+                    KRA/KPI is required.
+                  </div>
+                </div>
+        
+                <div class="col-md-2 d-flex align-items-center mt-4">
+                  <button type="button" class="btn btn-outline-primary btn-sm me-2 m-1" (click)="addKpi()" 
+                          [disabled]="!kpis.at(kpis.length - 1)?.valid || kpis.length >= 10">
+                    <i class="fa fa-plus"></i>
+                  </button>
+                  <button type="button" class="btn btn-outline-primary btn-sm" (click)="removeKpi(i)" *ngIf="kpis.length > 1">
+                    <i class="fa fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+        
+            <button type="submit" class="btn btn-success mt-3" [disabled]="!kpikraForm.valid">Submit</button>
+            <button type="button" class="btn btn-secondary mt-3 ms-2" (click)="resetKraKpiForm()">Reset</button>
+          </form>
+        </div> -->
+        <div *ngIf="selectedTemplateType === 'kra-kpi'" class="card-body mx-0">
+          <form [formGroup]="kpikraForm" (ngSubmit)="onKraKpiSubmit()">
+            
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label><span class="text-danger">*</span> KRA Title</label>
+                <input type="text" class="form-control" formControlName="name" placeholder="Enter title" required>
+                <div *ngIf="kpikraForm.get('name')?.invalid && kpikraForm.get('name')?.touched" class="text-danger">
+                  Title is required.
+                </div>
+              </div>
+            </div>
+        
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label>KRA Description</label>
+                <textarea class="form-control" formControlName="description" placeholder="Enter description"></textarea>
+              </div>
+            </div>
+        
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label><span class="text-danger">*</span> Quarter</label>
+                <select class="form-control" formControlName="quarterId" required>
+                  <option [ngValue]="null">Select Quarter</option>
+                  <option [ngValue]="1">Q1</option>
+                  <option [ngValue]="2">Q2</option>
+                  <option [ngValue]="3">Q3</option>
+                  <option [ngValue]="4">Q4</option>
+                </select>
+                <div *ngIf="kpikraForm.get('quarterId')?.invalid && kpikraForm.get('quarterId')?.touched" class="text-danger">
+                  Quarter is required.
+                </div>
+              </div>
+            </div>
+        
+            <div class="row mb-3">
+              <div class="col-md-12">
+                <label><span class="text-danger">*</span> KPIs</label>
+                <div class="alert alert-info">
+                  Add Key Performance Indicators (KPIs) for this KRA
+                </div>
+              </div>
+            </div>
+        
+            <div formArrayName="kpis">
+              <div *ngFor="let kpi of kpis.controls; let i = index" [formGroupName]="i" class="form-group row mb-3">
+                <div class="col-md-8">
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text">KPI {{ i + 1 }}</span>
+                    </div>
+                    <input type="text" class="form-control" formControlName="description" placeholder="Enter KPI description" required>
+                    <div class="input-group-append">
+                      <button type="button" class="btn btn-outline-danger" (click)="removeKpi(i)" *ngIf="kpis.length > 1">
+                        <i class="fa fa-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div *ngIf="kpi.get('description')?.invalid && kpi.get('description')?.touched" class="text-danger mt-1">
+                    KPI description is required.
+                  </div>
+                </div>
+              </div>
+            </div>
+        
+            <div class="row mb-3">
+              <div class="col-md-12">
+                <button type="button" class="btn btn-outline-primary" (click)="addKpi()" 
+                        [disabled]="!kpis.at(kpis.length - 1)?.valid || kpis.length >= 10">
+                  <i class="fa fa-plus"></i> Add Another KPI
+                </button>
+                <small class="text-muted ms-2">(Max 10)</small>
+              </div>
+            </div>
+        
+            <div class="row mt-4">
+              <div class="col-md-12">
+                <button type="submit" class="btn btn-success" [disabled]="!kpikraForm.valid">
+                  <i class="fa fa-save"></i> {{ isEditing ? 'Update' : 'Save' }} KRA Template
+                </button>
+                <button type="button" class="btn btn-secondary ms-2" (click)="resetKraKpiForm()">
+                  <i class="fa fa-refresh"></i> Reset
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
 
         <div *ngIf="activeTab === 'create-template' && selectedTemplateType === 'questionnaire'" class="card-body mx-0">

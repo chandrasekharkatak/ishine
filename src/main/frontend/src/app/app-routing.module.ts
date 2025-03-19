@@ -72,6 +72,7 @@ import { PerformanceDashboardComponent } from './user-performance/performance-da
 import { TeamDashboardComponent } from './user-performance/team-dashboard/team-dashboard.component';
 import { TemplatesComponent } from './user-performance/templates/templates.component';
 import { QuarterCycleComponent } from './user-performance/quarter-cycle/quarter-cycle.component';
+import { ViewPerformanceComponent } from './user-performance/view-performance/view-performance.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -190,7 +191,8 @@ const routes: Routes = [
       { path: 'performance-dashboard', component: PerformanceDashboardComponent, },
       { path: 'team-dashboard', component: TeamDashboardComponent, },
       { path: 'templates', component: TemplatesComponent,  },
-      {path: 'quarter-cycle', component: QuarterCycleComponent}
+      {path: 'quarter-cycle', component: QuarterCycleComponent},
+      {path:'view-performance',component: ViewPerformanceComponent}
     ]
   },
   {path:'hr-policies', component: HrPoliciesComponent, canActivate: [AuthGuard]},

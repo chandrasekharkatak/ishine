@@ -444,9 +444,15 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		       ")")
 		List<Employee> findEmployeesByUserSessionDepartment(@Param("sessionKey") String sessionKey);
 	
-	@Query(nativeQuery = true, value = "select e.emp_id,e.name,e.employeement_id from employee e inner join job_role j on j.job_role_id = e.job_role_id inner join department d on j.dept_id=d.dept_id where d.hod_id = :hodId ;")
-		List<Object[]> findEmployeesInSameDepartmentAsCurrentUser(Long hodId);
-		
+	@Query(nativeQuery = true, value = "SELECT e.emp_id, e.name, e.employeement_id, eg.total_goals AS total_goals " +
+            "FROM employee e " +
+            "INNER JOIN job_role j ON j.job_role_id = e.job_role_id " +
+            "INNER JOIN department d ON j.dept_id = d.dept_id " +
+            "LEFT JOIN (SELECT emp_id, COUNT(*) AS total_goals " +
+            "           FROM employee_goals " +
+            "           GROUP BY emp_id) eg ON e.emp_id = eg.emp_id " +
+            "WHERE d.hod_id = :hodId")
+List<Object[]> findEmployeesInSameDepartmentAsCurrentUser(Long hodId);
 
 
 }

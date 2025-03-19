@@ -154,7 +154,7 @@ export class QuarterCycleComponent implements OnInit {
   setFinancialYear() {
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth() + 1; // Months are 0-based in JS
+    const currentMonth = currentDate.getMonth() + 1; 
 
     if (currentMonth >= 4) {
       this.quarterCycle.fromYear = currentYear;
