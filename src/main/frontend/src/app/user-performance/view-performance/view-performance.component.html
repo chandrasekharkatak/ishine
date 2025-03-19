@@ -5,14 +5,13 @@
         <h1 class="table-header-title">Employee Performance </h1>
       </div>
     </div>
-    <div class="form-group row gap-2 mb-3 ml-1">
-      <div class="text-center md-6 ">
-        <label for="quarterSelect" class="form-label fw-bold">Select Quarter:  </label>
-      </div>
-      <div>
-        <select id="quarterSelect" class="form-select w-20 " [(ngModel)]="selectedQuarter" (change)="onQuarterChange()">
-          <option *ngFor="let quarter of quarters" [value]="quarter">  {{ quarter }}  </option>
-        </select>
+    <div class="col-md-3 px-0 pr-1 ml-auto mb-0">
+      <div class="form-inline input-group">
+          <label class="d-inline-block mr-2 mt-2"><strong>Select quarter</strong></label>
+          <select class="form-control" aria-hidden="true" [(ngModel)]="selectedQuarter"  name="quarterId" (ngModelChange)="onQuarterChange()">
+              <option selected="selected" value="" disabled>Select</option>
+              <option *ngFor="let quarter of quarterCyclesList" [value]="quarter.quarterId">{{quarter.quarterCycle}}</option>
+            </select>
       </div>
     </div>
     
@@ -135,8 +134,8 @@
           <div class="row mb-2">
             <div class="col-auto">
               <label class="fw-semibold">Select Quarter:</label>
-              <select class="form-select" [(ngModel)]="selectedQuarter" (change)="loadReviewData()">
-                <option *ngFor="let quarter of quarters" [value]="quarter">{{ quarter }}</option>
+              <select class="form-select" [(ngModel)]="selectedQuarter1" (change)="loadReviewData()">
+                <option *ngFor="let quarter of quarterCyclesList" [value]="quarter">{{ quarter }}</option>
               </select>
             </div>
           </div>
