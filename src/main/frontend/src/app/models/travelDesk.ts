@@ -1,4 +1,4 @@
-export class MyTravelrequestComponent{
+export class MyTravelDesk{
     fullName: any ;
     employeeId: any ;
     departmentName: any ;
