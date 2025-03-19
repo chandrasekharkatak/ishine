@@ -1,4 +1,4 @@
-export class MyReimbursementComponent{
+export class MyReimbursement{
         name: any ;          
         empId: any ;         
         designationName: any ;

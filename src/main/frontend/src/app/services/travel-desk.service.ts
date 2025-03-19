@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { MyTravelrequestComponent } from '../travel-allowance/my-travelrequest/my-travelrequest.component';
+import { MyTravelDesk } from '../models/travelDesk';
 
 @Injectable({
   providedIn: 'root'
@@ -14,23 +15,23 @@ export class TravelDeskService {
 
   
 
-  fetchTravelData(travelDeskObj: MyTravelrequestComponent) {
+  fetchTravelData(travelDeskObj: MyTravelDesk) {
     return this.http.post(`${this.baseUrl}` + `api/fetchTravelData`, travelDeskObj);
   }
 
-  saveTravelData(travelDeskObj: MyTravelrequestComponent) {
+  saveTravelData(travelDeskObj: MyTravelDesk) {
     return this.http.post(`${this.baseUrl}` + `api/saveTravelData`, travelDeskObj);
   }
 
-  updateTravelData(travelDeskObj: MyTravelrequestComponent) {
+  updateTravelData(travelDeskObj: MyTravelDesk) {
     return this.http.post(`${this.baseUrl}` + `api/updateTravelData`, travelDeskObj);
   }
 
-  revokeTravel(travelDeskObj: MyTravelrequestComponent) {
+  revokeTravel(travelDeskObj: MyTravelDesk) {
     return this.http.post(`${this.baseUrl}` + `api/revokeTravel`, travelDeskObj);
   }
 
-  approveOrRejectTraveldesk(travelDeskObj: MyTravelrequestComponent) {
+  approveOrRejectTraveldesk(travelDeskObj: MyTravelDesk) {
     return this.http.post(`${this.baseUrl}` + `api/approveOrRejectTraveldesk`, travelDeskObj);
   }
 }

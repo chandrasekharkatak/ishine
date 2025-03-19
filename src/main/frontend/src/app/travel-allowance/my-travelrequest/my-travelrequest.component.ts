@@ -26,6 +26,7 @@ import { ImageService } from 'src/app/services/image.service';
 import { DomainService } from 'src/app/services/domain.service';
 import { Domain } from 'src/app/models/domain';
 import { TravelDeskService } from 'src/app/services/travel-desk.service';
+import { MyTravelDesk } from 'src/app/models/travelDesk';
 
 
 
@@ -46,7 +47,7 @@ import { TravelDeskService } from 'src/app/services/travel-desk.service';
 
 
   isUpdateProfile:boolean = false;
-
+  travelDeskInfo:MyTravelDesk = new MyTravelDesk();
   currentUser:any;
   currentEmployeeInfo:Employee = new Employee();
 
@@ -212,61 +213,46 @@ import { TravelDeskService } from 'src/app/services/travel-desk.service';
   }
 
 
+  async submitForm() {
 
+    // Logic to handle form submission
+     if (this.isValidForm()) {
 
+    this.travelDeskInfo = new MyTravelDesk();
+    let travelData = new MyTravelDesk();
+    travelData.employeeId = this.currentEmployeeInfo.employeementId;
+    travelData.fullName = this.currentEmployeeInfo.name;
+    travelData.email =this.currentEmployeeInfo.email;
+    travelData.departmentName=this.currentEmployeeInfo.departmentName;
+    travelData.designationName=this.currentEmployeeInfo.designationName;
+    travelData.mobileNo=this.currentEmployeeInfo.mobileNo;
+    travelData.managerName=this.currentEmployeeInfo.managerName;
+    travelData.associatedTravelRequest = this.travelDeskObj.associatedTravelRequest;
+    travelData.travelMode= this.travelDeskObj.travelMode ;
+    travelData.travelClass = this.travelDeskObj.travelClass;
+    travelData.fromDate =this.travelDeskObj.fromDate;
+    travelData.toDate = this.travelDeskObj.toDate;
+    travelData.fromLocation = this.travelDeskObj.fromLocation;
+    travelData.toLocation =this.travelDeskObj.toLocation;
+    travelData.purposeOfTravel = this.travelDeskObj.purposeOfTravel;
+    travelData.supportingDocument = this.travelDeskObj.supportingDocument;
 
+    console.log('Form Data:', travelData);
 
-holidayList:any []= [];
-holidayListFilter:any[] = [];
-WeekOfListFilter:any[]=[];
-
-holidaystateObj:Holiday = new Holiday();
-holidaystateList:any[]=[];
-
-
-
-
-
-
-
-
-// getAllHolidays() {
-
-//   this.holidayList = [];
-
+      this.onGetEmployeeInfo();
+    
+      const response: any = await this.travelDesk.saveTravelData(travelData).toPromise();
+      if (response.serviceStatus == "Success") {
+        
   
-
-//  this.holidayService.getAllHoliday().pipe(first()).subscribe((response: any) => {
-//     if (response.serviceStatus == "Success") {
-//       this.holidayList = response.serviceResponse;
-
-//       console.log("holidaylist   ",  this.holidayList);
-//       //this.filterHolidayListByYear(new Date().getFullYear());
-//     } else {
-//       console.error(response.serviceResponse);
-//     }
-//   });
-// }
+      } else {
+        console.error(response.serviceResponse);
+      }
+    }
+}
 
 
 
-
-
-// filterHolidayListByYear(year: number): void {
-
-//   this.WeekOfListFilter =  this.holidayList.filter((holiday) => {
-//     const holidayYear = new Date(holiday.dateOfHoliday).getFullYear();
-//     return (
-//       holidayYear === year &&
-//       holiday.holidayType == 'WeekOff'
-//     );
-//   });
-
-
-//   this.AllWeekOfList = this.WeekOfListFilter.map((holiday) =>
-//     holiday.dateOfHoliday 
-//   );
-// }
 
 
 
@@ -298,49 +284,7 @@ holidaystateList:any[]=[];
   //     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
   //   }
 
-  // }
-
  
-
-
-
-
-
-
-  // validateTime(event, data: any) {
-  //   if (!this.validationService.validateTimesheetCompletionTime(data)) {
-  //     this.errorMsg = "Please enter Time !!"
-  //   } else if (!this.validationService.validateExperiencedNumber(data)) {
-  //     this.errorMsg = "Please enter Valid Time !!"
-  //   }
-  //   else if (data <= 0 || data > 24) {
-  //     this.errorMsg = "Total Time Must be greater than 0 hrs and maximum upto 24 hrs!! "
-  //   }
-  //   else {
-  //     this.errorMsg = ""
-  //   }
-  //   if (this.errorMsg == "") {
-  //     event.target.nextElementSibling.textContent = ""
-  //   } else {
-  //     event.target.nextElementSibling.textContent = this.errorMsg
-  //   }
-
-  // }
-
-  // omit_special_char(event) {
-
-  //   var k;
-  //   k = event.charCode;  //        k = event.keyCode;  (Both can be used)
-  //   //console.log("omit function" + k);
-  //   //console.log((k > 64 && k < 91) || (k > 96 && k < 123) || k == 8 || (k >= 48 && k <= 57));
-  //   if ((k == 43) || (k == 45) || (k == 69) || (k == 101)) {
-  //     return (false);
-  //   }
-  //   else {
-  //     return (true)
-  //   }
-  //   //return ((k > 64 && k < 91) || (k > 96 && k < 123) || k == 8 || (k >= 48 && k <= 57));
-  // }
 
   onPaste(e) {
     e.preventDefault();
@@ -362,18 +306,7 @@ holidaystateList:any[]=[];
     // Reset other form-related data as needed
 }
 
-submitForm() {
-    // Logic to handle form submission
-     if (this.isValidForm()) {
-      this.onGetEmployeeInfo();
 
-      console.log('Form Data:', this.travelDeskObj);
-    //     // Call the service to submit the form data
-    //     this.yourService.submitTimesheet(this.timesheetObj).subscribe(response => {
-    //         // Handle success or failure
-    //     });
-    }
-}
 
 isValidForm() {
     // Add form validation logic here
