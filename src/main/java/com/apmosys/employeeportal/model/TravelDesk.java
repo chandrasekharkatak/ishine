@@ -30,7 +30,7 @@ public class TravelDesk {
 	private String name;
 	
 	@Column(name = "emp_id")
-	private Integer empId;
+	private BigInteger empId;
 	
 	@Column(name = "email")
 	private String email;
@@ -66,7 +66,7 @@ public class TravelDesk {
 	private Timestamp toDate;
 	
 	@Column(name = "appliedBy")
-	private String appliedBy;
+	private BigInteger appliedBy;
 	
 	@Column(name = "appliedOn")
 	private Timestamp appliedOn;
@@ -75,7 +75,7 @@ public class TravelDesk {
 	private String status;
 	
 	@Column(name = "approver")
-	private String approver;
+	private BigInteger approver;
 	
 	@Column(name = "level")
 	private Integer level;
