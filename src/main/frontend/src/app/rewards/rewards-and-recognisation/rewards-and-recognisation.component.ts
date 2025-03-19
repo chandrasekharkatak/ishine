@@ -305,6 +305,9 @@ export class RewardsAndRecognisationComponent implements OnInit {
     this.sumbitRewards.rewardCategoryId = this.activeCategoryId;
     this.sumbitRewards.ofmonthyear = this.ofmonthyear;
 
+
+   
+
     if (!this.validateRewardsWhileSubmit(template)) {
       return; // Stop execution if validation fails
     }
