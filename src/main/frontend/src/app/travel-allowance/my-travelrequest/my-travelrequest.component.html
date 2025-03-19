@@ -12,49 +12,49 @@
                     <label class="info-label">
                         <span class="text-danger">*</span>Full Name
                     </label>
-                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.name" name="fullName" required />
+                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.name" name="fullName" disabled required />
                 </div>
             
                 <div class="col-md-3 mb-0">
                     <label class="info-label">
                         <span class="text-danger">*</span>Employee Id
                     </label>
-                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.employeementId" name="employeeId" required />
+                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.employeementId" name="employeeId" disabled required />
                 </div>
 
                 <div class="col-md-3 mb-0">
                     <label class="info-label">
                         <span class="text-danger">*</span>Department
                     </label>
-                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.departmentName" name="departmentName" required />
+                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.departmentName" name="departmentName" disabled required />
                 </div>
             
                 <div class="col-md-3 mb-0">
                     <label class="info-label">
                         <span class="text-danger">*</span>Designation
                     </label>
-                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.designationName" name="designationName" required />
+                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.designationName" name="designationName" disabled required />
                 </div>
             
                 <div class="col-md-3 mb-0">
                     <label class="info-label">
                         <span class="text-danger">*</span>Mail Id
                     </label>
-                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.email" name="email" required />
+                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.email" name="email" disabled required />
                 </div>
 
                 <div class="col-md-3 mb-0">
                     <label class="info-label">
                         <span class="text-danger">*</span>Mobile No
                     </label>
-                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.mobileNo" name="mobileNo" required />
+                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.mobileNo" name="mobileNo" disabled required />
                 </div>
 
                 <div class="col-md-3 mb-0">
                     <label class="info-label">
                         <span class="text-danger">*</span>Manager Name
                     </label>
-                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.managerName" name="managerName" required />
+                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.managerName" name="managerName" disabled required />
                 </div>
 
                 <div class="col-md-3 mb-0">
@@ -93,14 +93,8 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>From Date</label>
-                            <div class="d-flex">
-                                <input class="form-control" [(ngModel)]="travelDeskObj.fromDate" #input (focus)="fromDate.open()" matInput
-                                    id="fromDate" [matDatepicker]="fromDate"
-                                    placeholder="Choose from date"
-                                    autocomplete="off">
-                                <mat-datepicker-toggle matSuffix [for]="fromDate" style="margin-left: -44px; margin-top: 0px;"></mat-datepicker-toggle>
-                            </div>
-                            <mat-datepicker #fromDate (closed)="input.blur()"></mat-datepicker>
+                            <input class="form-control" [(ngModel)]="travelDeskObj.fromDate" id="fromDate" type="date" 
+                                [min]="todayDate" placeholder="Choose from date" autocomplete="off">
                         </div>
                     </div>
                 </div>
@@ -109,14 +103,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>To Date</label>
-                            <div class="d-flex">
-                                <input class="form-control" [(ngModel)]="travelDeskObj.toDate" #input (focus)="toDate.open()" matInput
-                                    id="toDate" [matDatepicker]="toDate"
-                                    placeholder="Choose to date"
-                                    autocomplete="off">
-                                <mat-datepicker-toggle matSuffix [for]="toDate" style="margin-left: -44px; margin-top: 0px;"></mat-datepicker-toggle>
-                            </div>
-                            <mat-datepicker #toDate (closed)="input.blur()"></mat-datepicker>
+                            <input class="form-control" [(ngModel)]="travelDeskObj.toDate" id="toDate" type="date" [min]="travelDeskObj.fromDate" placeholder="Choose to date" autocomplete="off">
                         </div>
                     </div>
                 </div>

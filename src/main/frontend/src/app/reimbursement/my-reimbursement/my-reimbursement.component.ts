@@ -14,11 +14,14 @@ isTravel:boolean = false;
 isFood:boolean = false;
  currentUser:any;
   currentEmployeeInfo:Employee = new Employee();
+  todayDate: string;
   constructor(private empService : EmployeeService, private authenticationService: AuthenticationService) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
   ngOnInit(): void {
+    const today = new Date();
+    this.todayDate = today.toISOString().split('T')[0];
     this.onGetEmployeeInfo();
   }
 
