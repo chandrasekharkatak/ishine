@@ -300,13 +300,13 @@
                 <div class="info-wrapper">
                     <div *ngFor="let monthYear of wallOfFameMonths; let index = index"
                         class="d-flex align-items-center mb-2">
-                        <input type="month" class="form-control" [(ngModel)]="wallOfFameMonths[index]"
+                        <input type="month" class="form-control" [(ngModel)]="wallOfFameMonths[index]" (change)="checkDuplicateMonthYearr(index, alert_message)"
                             style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px; width: 500px; flex-shrink: 0;" />
-                        <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="addMonthYear()">
+                        <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="addMonthYear(alert_message)">
                             <i class="fa fa-plus"></i>
                         </button>
                         <button *ngIf="wallOfFameMonths.length > 1" type="button"
-                            class="btn btn-outline-danger btn-sm mx-1" (click)="removeMonthYear(index)">
+                            class="btn btn-outline-danger btn-sm mx-1" (click)="removeMonthYear(index,alert_message)">
                             <i class="fa fa-trash"></i>
                         </button>
                     </div>

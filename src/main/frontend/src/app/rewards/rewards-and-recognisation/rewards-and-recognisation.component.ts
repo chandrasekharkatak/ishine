@@ -471,15 +471,36 @@ export class RewardsAndRecognisationComponent implements OnInit {
 
 
   wallOfFameMonths: string[] = [''];
-  addMonthYear() {
-    this.wallOfFameMonths.push(''); // Add an empty month-year value.
+  addMonthYear(template: TemplateRef<any>) {
+    const lastMonthYear = this.wallOfFameMonths[this.wallOfFameMonths.length - 1];
+    if (lastMonthYear.trim() === '') {
+    this.openAlertMod(template,'Please select a Month-Year before adding a new one.');
+    return;
+    }
+    this.wallOfFameMonths.push('');
   }
 
-  removeMonthYear(index: number) {
+  removeMonthYear(index: number,template: TemplateRef<any>) {
     if (this.wallOfFameMonths.length > 1) {
-      this.wallOfFameMonths.splice(index, 1); // Remove the selected month-year.
+      this.wallOfFameMonths.splice(index, 1); 
     } else {
-      alert('At least one month-year must be selected.');
+      this.openAlertMod(template,'At least one month-year must be selected.');
+    }
+  }
+
+  checkDuplicateMonthYear(index: number) {
+    const selectedMonthYear = this.wallOfFameMonths[index];
+
+    if (!selectedMonthYear) return; // If no value is selected, do nothing.
+
+    // Check if the selected month-year already exists (excluding the current index)
+    const duplicateExists = this.wallOfFameMonths.some((month, i) => i !== index && month === selectedMonthYear);
+
+    if (duplicateExists) {
+        alert('Duplicate Month-Year! Please select a different one.');
+        setTimeout(() => {
+            this.wallOfFameMonths[index] = ''; // Reset the duplicate entry
+        }, 100); // Small delay to avoid UI flicker
     }
   }
 
@@ -539,7 +560,49 @@ export class RewardsAndRecognisationComponent implements OnInit {
     );
   }
 
+  get isFormValid(): boolean {
+   
+    const hasEmpty = this.wallOfFameMonths.some(monthYear => !monthYear.trim());
+
+   
+    const hasDuplicates = this.wallOfFameMonths.some((month, index) =>
+        this.wallOfFameMonths.indexOf(month) !== index && month !== ''
+    );
+
+    return !hasEmpty && !hasDuplicates; // Form is valid only if no empty fields & no duplicates
+}
+
+  checkDuplicateMonthYearr(index: number, template: TemplateRef<any>) {
+    const selectedMonthYear = this.wallOfFameMonths[index];
+
+    if (!selectedMonthYear) return; // If no value is selected, do nothing.
+
+    // Check if the selected month-year already exists (excluding the current index)
+    const duplicateExists = this.wallOfFameMonths.some((month, i) => i !== index && month === selectedMonthYear);
+
+    if (duplicateExists) {
+        this.openAlertMod(template, 'Duplicate Month-Year! Please select a different one.');
+        setTimeout(() => {
+            this.wallOfFameMonths[index] = ''; // Reset the duplicate entry
+        }, 100); // Small delay to avoid UI flicker
+    }
+}
+
   bulkEnable(template: TemplateRef<any>) {
+
+   
+
+    const isAnyEmpty = this.wallOfFameMonths.some(monthYear => !monthYear.trim());
+
+    if (this.wallOfFameMonths.length === 0 || isAnyEmpty) {
+      this.openAlertMod(template, 'Please select at least one Month-Year before proceeding.');
+      return; 
+  }
+
+  if (!this.isFormValid) {
+    this.openAlertMod(template,'Please ensure all Month-Years are selected and unique before proceeding.');
+      return;
+  }
 
     this.rewardsService.bulkEnableMonthYear(this.wallOfFameMonths).subscribe(
       (response: any) => {
