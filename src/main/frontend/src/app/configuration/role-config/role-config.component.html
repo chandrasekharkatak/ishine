@@ -21,7 +21,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Job Role Name</label>
-                            <input type="text" class="form-control" maxlength="255" (keyup)="checkJobRole(alert_message)" autocomplete="none"
+                            <input type="text" class="form-control" maxlength="255" (blur)="checkJobRole(alert_message)" autocomplete="none"
                                [(ngModel)]="jobRoleObj.name">
                         </div>
                     </div>

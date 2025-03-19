@@ -100,7 +100,7 @@
 
     <div class="row mb-1" *ngIf="selectedReward">
         <div class="col-md-12 mt-4" style="padding-left: 3rem;">
-            <h5>Reward Types for {{ selectedReward.rewardName }}</h5>
+            <h5><span class="text-danger">*</span> Reward Types for {{ selectedReward.rewardName }}</h5>
             <div *ngFor="let type of selectedReward.rewardTypes" class="form-check">
                 <input type="radio" class="form-check-input" [id]="'type-' + type" [name]="selectedReward.rewardName"
                     [value]="type" [(ngModel)]="selectedReward.selectedType">
@@ -227,17 +227,26 @@
                                 <td *ngIf="!userMapping.reward_employee_360">{{rewardHistory.rewardedToByName}}</td>
                                 <td>{{rewardHistory.rewardCategoryName}}</td>
                                 <td>{{rewardHistory.rewardTypeName}}</td>
-                                <td id="clickablefor360" *ngIf="userMapping.reward_employee_360 && rewardHistory.createdByName"
+
+                            
+
+                                <td id="clickablefor360" *ngIf="rewardHistory.createdByName&& userMapping.reward_employee_360"
+
                                     [navigateToEmployee360]="rewardHistory.emp360RewardBy" style="cursor: pointer;"
                                     title="Click to view Employee 360">{{rewardHistory.createdByName}}</td>
                                 <td *ngIf="!userMapping.reward_employee_360 || !rewardHistory.createdByName">{{rewardHistory.createdByName || 'N/A'}}</td>
                                 <td>{{rewardHistory.createdOn}}</td>
-                                <td id="clickablefor360" *ngIf="userMapping.reward_employee_360 && rewardHistory.managerName"
+
+                                <td id="clickablefor360" *ngIf="rewardHistory.managerName && userMapping.reward_employee_360"
+
                                     [navigateToEmployee360]="rewardHistory.emp360Manager" style="cursor: pointer;"
                                     title="Click to view Employee 360">{{rewardHistory.managerName || 'N/A'}}</td>
                                 <td *ngIf="!userMapping.reward_employee_360 || !rewardHistory.managerName">{{rewardHistory.managerName || 'N/A'}}</td>
                                 <td>{{rewardHistory.ofmonthyear | date: 'MMMM yyyy'}}
-                                <td id="clickablefor360" *ngIf="userMapping.reward_employee_360 && rewardHistory.updatedByName"
+
+                    
+                                <td id="clickablefor360" *ngIf="rewardHistory.updatedByName && userMapping.reward_employee_360"
+
                                     [navigateToEmployee360]="rewardHistory.emp360UpdatedBy" style="cursor: pointer;"
                                     title="Click to view Employee 360">{{rewardHistory.updatedByName || 'N/A'}}</td>
                                 <td *ngIf="!userMapping.reward_employee_360 || !rewardHistory.updatedByName">{{rewardHistory.updatedByName || 'N/A'}}
