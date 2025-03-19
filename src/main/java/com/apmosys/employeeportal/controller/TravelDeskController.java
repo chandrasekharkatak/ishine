@@ -12,6 +12,7 @@ public class TravelDeskController {
 	
 	@PostMapping("/fetchTravelData")
 	public ServiceResponse fetchTravelData() {
+		
 		return null;
 		
 	}
@@ -34,7 +35,7 @@ public class TravelDeskController {
 		
 	}
 	
-	@PostMapping("/approveOrRejectReimbursement")
+	@PostMapping("/approveOrRejectTravel")
 	public ServiceResponse approveOrRejectTravel() {
 		return null;
 		
