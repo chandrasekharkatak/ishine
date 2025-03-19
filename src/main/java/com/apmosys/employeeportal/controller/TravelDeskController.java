@@ -32,7 +32,7 @@ public class TravelDeskController {
 	
 	@PostMapping("/updateTravelData")
 	public ServiceResponse updateTravelData(@RequestBody TravelDeskDTO travelData) {
-		return null;
+		return travelDeskService.updateTravelData(travelData);
 		
 	}
 	
