@@ -1,46 +1,11 @@
-
-<div class="row mb-3">
-     <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_timesheet"
-            [ngClass]="{'active' : isTimesheetForm && isCreation}" (click)="showCreateTimesheetForm()">Create New
-            Request</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1"
-            *ngIf="userMapping.view_my_timesheets || userMapping.update_timesheet"
-            [ngClass]="{'active' : isTimesheetTable}" (click)="showViewMyTimesheets()">View My Request</button>
-    </div> 
-</div>
-
-<!-- <div class="col-md-12 px-0">
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1" >Create New Timesheet</button>
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1" >View My Timesheets</button>
-</div> -->
 <!-- start :: Create & Update Team -->
-<div class="row" >
+<div class="row">
     <div class="card col-md-12 px-0">
         <div class="card-header text-center text-uppercase">
-            <strong >Create New Request</strong>
+            <strong>Create New Request</strong>
             <!-- <strong *ngIf="isUpdation">Update Timesheet</strong> -->
         </div>
         <div class="card-body">
-            <div class="row">
-                <div class="col-md-4 mb-0">
-                    <div class="info-wrapper">
-                        <!-- <div class="form-group">
-                            <label class="d-block info-label"><span class="text-danger">*</span>Travel Allowance applied For</label>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="leaveFor" id="forSelf" value="self">
-                                <label class="form-check-label" for="forSelf">Self</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="leaveFor" id="forTeamMember"
-                                    value="team" >
-                                <label class="form-check-label" for="forTeamMember">Team member</label>
-                            </div> 
-                        </div>-->
-                    </div>
-                </div>
-            </div>
-
             <div class="row">
                 
                 <div class="col-md-3">
@@ -54,60 +19,58 @@
                     <label class="info-label">
                         <span class="text-danger">*</span>Employee Id
                     </label>
-                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.employeementId" name="fullName" required />
+                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.employeementId" name="employeeId" required />
                 </div>
 
                 <div class="col-md-3 mb-0">
                     <label class="info-label">
                         <span class="text-danger">*</span>Department
                     </label>
-                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.departmentName" name="fullName" required />
+                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.departmentName" name="departmentName" required />
                 </div>
             
                 <div class="col-md-3 mb-0">
                     <label class="info-label">
                         <span class="text-danger">*</span>Designation
                     </label>
-                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.designationName" name="fullName" required />
+                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.designationName" name="designationName" required />
                 </div>
             
                 <div class="col-md-3 mb-0">
                     <label class="info-label">
                         <span class="text-danger">*</span>Mail Id
                     </label>
-                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.email" name="fullName" required />
+                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.email" name="email" required />
                 </div>
 
                 <div class="col-md-3 mb-0">
                     <label class="info-label">
                         <span class="text-danger">*</span>Mobile No
                     </label>
-                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.mobileNo" name="fullName" required />
+                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.mobileNo" name="mobileNo" required />
                 </div>
 
                 <div class="col-md-3 mb-0">
                     <label class="info-label">
                         <span class="text-danger">*</span>Manager Name
                     </label>
-                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.managerName" name="fullName" required />
+                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.managerName" name="managerName" required />
                 </div>
 
                 <div class="col-md-3 mb-0">
                     <label class="info-label"><span class="text-danger">*</span>Associated Travel Request</label>
-                    <!-- <select class="form-control" id="dayTypeCursor" aria-hidden="true" [(ngModel)]="timesheetObj.dayType" > -->
-                        <select class="form-control" id="dayTypeCursor" aria-hidden="true" >
-                        <option selected="selected" value="" disabled>Select</option>
+                    <select class="form-control" [(ngModel)]="travelDeskObj.associatedTravelRequest" name="associatedTravelRequest" required>
+                        <option value="" disabled>Select</option>
                         <option value="Attend Client Interview">Attend Client Interview</option>
                         <option value="Client Visit">Client Visit</option>
                         <option value="Office Tour">Office Tour</option>
-                        
                     </select>
                 </div>
 
                 <div class="col-md-3 mb-0">
                     <label class="info-label"><span class="text-danger">*</span>Travel Mode</label>
-                    <select class="form-control" id="dayTypeCursor" aria-hidden="true" >
-                        <option selected="selected" value="" disabled>Select</option>
+                    <select class="form-control" [(ngModel)]="travelDeskObj.travelMode" name="travelMode" required>
+                        <option value="" disabled>Select</option>
                         <option value="Flight">Flight</option>
                         <option value="Train">Train</option>
                         <option value="Bus">Bus</option>
@@ -117,8 +80,8 @@
 
                 <div class="col-md-3 mb-0">
                     <label class="info-label"><span class="text-danger">*</span>Travel Class</label>
-                    <select class="form-control" id="dayTypeCursor" aria-hidden="true"  >
-                        <option selected="selected" value="" disabled>Select</option>
+                    <select class="form-control" [(ngModel)]="travelDeskObj.travelClass" name="travelClass" required>
+                        <option value="" disabled>Select</option>
                         <option value="First Class">First Class</option>
                         <option value="Second Class">Second Class</option>
                         <option value="Third Class">Third Class</option>
@@ -130,85 +93,67 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>From Date</label>
-                            <!-- <input id="timesheetDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" [disabled]="isUpdation"> -->
                             <div class="d-flex">
-                                <input class="form-control" #input (focus)="timesheetDate.open()" matInput
-                                    id="fromDate" [matDatepicker]="timesheetDate"
-                                    [matDatepickerFilter]="timesheetDateFilter" placeholder="Choose a timesheet date"
-                                    [(ngModel)]="timesheetObj.fromdate" (keydown)="disableMannualDateInput()"
+                                <input class="form-control" [(ngModel)]="travelDeskObj.fromDate" #input (focus)="fromDate.open()" matInput
+                                    id="fromDate" [matDatepicker]="fromDate"
+                                    placeholder="Choose from date"
                                     autocomplete="off">
-                                <mat-datepicker-toggle matSuffix [for]="timesheetDate" style="margin-left: -44px; margin-top: 0px;"></mat-datepicker-toggle>
+                                <mat-datepicker-toggle matSuffix [for]="fromDate" style="margin-left: -44px; margin-top: 0px;"></mat-datepicker-toggle>
                             </div>
-                            <mat-datepicker #timesheetDate (closed)="input.blur()"></mat-datepicker>
+                            <mat-datepicker #fromDate (closed)="input.blur()"></mat-datepicker>
                         </div>
                     </div>
                 </div>
-
 
                 <div class="col-md-3 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>To Date</label>
-                            <!-- <input id="timesheetDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" [disabled]="isUpdation"> -->
                             <div class="d-flex">
-                                <input class="form-control" #input (focus)="timesheetDate.open()" matInput
-                                    id="toDate" [matDatepicker]="timesheetDate"
-                                    [matDatepickerFilter]="timesheetDateFilter" placeholder="Choose a timesheet date"
-                                    [(ngModel)]="timesheetObj.todate" (keydown)="disableMannualDateInput()"
+                                <input class="form-control" [(ngModel)]="travelDeskObj.toDate" #input (focus)="toDate.open()" matInput
+                                    id="toDate" [matDatepicker]="toDate"
+                                    placeholder="Choose to date"
                                     autocomplete="off">
-                                <mat-datepicker-toggle matSuffix [for]="timesheetDate" style="margin-left: -44px; margin-top: 0px;"></mat-datepicker-toggle>
+                                <mat-datepicker-toggle matSuffix [for]="toDate" style="margin-left: -44px; margin-top: 0px;"></mat-datepicker-toggle>
                             </div>
-                            <mat-datepicker #timesheetDate (closed)="input.blur()"></mat-datepicker>
+                            <mat-datepicker #toDate (closed)="input.blur()"></mat-datepicker>
                         </div>
                     </div>
                 </div>
 
-           
-
             </div>
-            
-          
 
-        
-    <div class="row">
+            <div class="row">
                 <div class="col-md-6 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label for="leaveDesc"><span class="text-danger">*</span>Purpose of Travel</label>
-                            <textarea class="form-control" id="dayTypeDesc" rows="3"
-                                [(ngModel)]="timesheetObj.description"></textarea>
+                            <label for="purposeOfTravel"><span class="text-danger">*</span>Purpose of Travel</label>
+                            <textarea class="form-control" id="purposeOfTravel" rows="3"
+                                [(ngModel)]="travelDeskObj.purposeOfTravel" name="purposeOfTravel"></textarea>
                         </div>
                     </div>
                 </div>
 
-        <div class="col-md-6 mb-0">
-            <div class="info-wrapper">
-                <div class="form-group">
-                    <label for="fileUpload" class="info-label">Supporting Document</label>
-                    <input type="file" id="fileUpload" class="form-control" />
+                <div class="col-md-6 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label for="fileUpload" class="info-label">Supporting Document</label>
+                            <input type="file" id="fileUpload" class="form-control" (change)="onFileChange($event)" />
+                        </div>
+                    </div>
                 </div>
+
             </div>
-        </div>
 
-        <!-- <div class="col-md-6 mb-0">
-        <div class="form-group">
-            <label><span class="text-danger">*</span> Select Location</label>
-            <div id="map" style="height: 300px;"></div>
-          </div>
-        </div>  -->
-
-    </div>
-
-
-    <div class="row mb-3">
-        <div class="col-md-12 px-0 text-center">
-            <!-- Reset and Submit buttons -->
-            <button type="button" class="btn btn-secondary btn-lg mx-1" (click)="resetForm()">Reset</button>
-            <button type="submit" class="btn btn-primary btn-lg mx-1" (click)="submitForm()">Submit</button>
-        </div> 
-    </div>
+            <div class="row mb-3">
+                <div class="col-md-12 px-0 text-center">
+                    <!-- Reset and Submit buttons -->
+                    <button type="button" class="btn btn-secondary btn-lg mx-1" (click)="resetForm()">Reset</button>
+                    <button type="button" class="btn btn-primary btn-lg mx-1" (click)="submitForm()">Submit</button>
+                </div> 
+            </div>
          
+        </div>
     </div>
 </div>
 <!-- end :: create & update Team -->
-
