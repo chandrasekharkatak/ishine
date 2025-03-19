@@ -511,7 +511,8 @@ export class Employee360LeaveComponent implements OnInit {
       compOffObj.hodEmail = this.currentUser.email;
       compOffObj.hodName = this.currentUser.name;
       compOffObj.employeeName = compOffObj.createdByName;
-  
+      compOffObj.rejectCompOffReason = compOffObj.rejectReason;
+      console.log("reject comopp",compOffObj.rejectReason);
       this.leaveService.updateCompOffById(compOffObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.openAlertMod(template, response.serviceResponse);
@@ -596,6 +597,12 @@ export class Employee360LeaveComponent implements OnInit {
 
   openRevokeLeaveRejectModal(template: TemplateRef<any>, leave: any){
     this.leaveObj.rejectReason = '';
+    this.cancelRequest();
+    this.leaveObj = leave;
+    this.modalRef = this.modalService.show(template);
+  }
+
+  openRevokeLeaveRejectModalCompOff(template: TemplateRef<any>, leave: any){
     this.cancelRequest();
     this.leaveObj = leave;
     this.modalRef = this.modalService.show(template);
