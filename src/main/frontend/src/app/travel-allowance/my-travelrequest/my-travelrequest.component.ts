@@ -87,6 +87,8 @@ import { TravelDeskService } from 'src/app/services/travel-desk.service';
     fromDate: null,
     toDate: null,
     purposeOfTravel: '',
+    fromLocation:'',
+    toLocation:'',
     supportingDocument: null, // File
   };
   locationStrategy: any;

@@ -90,6 +90,20 @@
                 </div>
 
                 <div class="col-md-3 mb-0">
+                    <label class="info-label">
+                        <span class="text-danger">*</span>From Location
+                    </label>
+                    <input type="text" class="form-control" [(ngModel)]="travelDeskObj.fromLocation" name="fromLocation"  required />
+                </div>
+
+                <div class="col-md-3 mb-0">
+                    <label class="info-label">
+                        <span class="text-danger">*</span>To Location
+                    </label>
+                    <input type="text" class="form-control" [(ngModel)]="travelDeskObj.toLocation" name="toLocation"  required />
+                </div>
+
+                <div class="col-md-3 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>From Date</label>
