@@ -87,10 +87,14 @@ import { TravelDeskService } from 'src/app/services/travel-desk.service';
     fromDate: null,
     toDate: null,
     purposeOfTravel: '',
+    fromLocation:'',
+    toLocation:'',
     supportingDocument: null, // File
   };
   locationStrategy: any;
   domainSpecializationList: any[];
+  todayDate: string;
+
 
 
   constructor(
@@ -104,11 +108,16 @@ import { TravelDeskService } from 'src/app/services/travel-desk.service';
     private sanitizer: DomSanitizer,
     private travelDesk : TravelDeskService,
     
+    
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
   ngOnInit(): void {
+
+    const today = new Date();
+    this.todayDate = today.toISOString().split('T')[0];
+
     this.onGetEmployeeInfo();
 
     // Dynamic Subfeature Flags
@@ -395,17 +404,7 @@ onFileChange(event: any) {
     }
   }
 
-  // toggleSearch(){
-  //   this.isSearchEnabled = !this.isSearchEnabled;
-  //   if(!this.isSearchEnabled){
-  //   this.filters = {};
-  // }
-  // }
 
-  // onSearch(searchData){
-  //   this.filters = searchData;
-  //   //console.log("Updated Filter : ", this.filters);
-  // }
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

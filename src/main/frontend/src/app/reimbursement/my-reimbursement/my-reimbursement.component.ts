@@ -11,6 +11,10 @@ import { EmployeeService } from 'src/app/services/employee.service';
 export class MyReimbursementComponent implements OnInit {
 selectedReason:any;
 isTravel:boolean = false;
+
+
+currentEmployeeInfo:Employee = new Employee();
+todayDate: string;
 currencyType:any;
 currentUser:any;
 amount:any;
@@ -20,7 +24,7 @@ fromDateInput:any;
 toDateInput:any;
 purpose:any;
 fileInput:any;
-currentEmployeeInfo:Employee = new Employee();
+
 
 
   constructor(private empService : EmployeeService, private authenticationService: AuthenticationService) { 
@@ -28,6 +32,8 @@ currentEmployeeInfo:Employee = new Employee();
   }
 
   ngOnInit(): void {
+    const today = new Date();
+    this.todayDate = today.toISOString().split('T')[0];
     this.onGetEmployeeInfo();
   }
 

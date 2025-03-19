@@ -11,6 +11,8 @@ export class MyTravelrequestComponent{
     travelClass: any ;
     fromDate: any ;
     toDate: any ;
+    fromLocation : any;
+    toLocation : any ;
     purposeOfTravel: any ;
     supportingDocument: any ;
 }
