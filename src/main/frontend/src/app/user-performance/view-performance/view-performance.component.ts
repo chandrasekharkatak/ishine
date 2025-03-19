@@ -67,7 +67,7 @@ export class ViewPerformanceComponent implements OnInit {
   summary?: AppraisalSummary;
 
   currentEmployeeInfo:Employee = new Employee();
-  selectedEmployee!: Employee | null ;
+  selectedEmployee: any ;
   selectedGoal?: Goal;
   subscription!: Subscription;
   modalRef?: BsModalRef;
@@ -99,7 +99,7 @@ export class ViewPerformanceComponent implements OnInit {
   fetchQuarters(): void {
     this.performanceService.getAvailableQuarters().subscribe({
       next: (response: any) => {
-        if (response.serviceStatus === 'SUCCESS') {
+        if (response.serviceStatus === 'Success') {
           this.quarterCyclesList = response.serviceResponse;
           this.selectedQuarter = this.quarterCyclesList[0] || '';
           this.onQuarterChange();
@@ -178,7 +178,7 @@ export class ViewPerformanceComponent implements OnInit {
   async onGetEmployeeInfo(){
     this.currentEmployeeInfo = new Employee();
     let currentEmp = new Employee();
-    currentEmp.empId = this.selectedEmployee.empId;
+    currentEmp.empId = this.selectedEmployee.id;
 
     const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
     if (response.serviceStatus == "Success") {

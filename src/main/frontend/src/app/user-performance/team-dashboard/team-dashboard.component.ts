@@ -149,12 +149,11 @@ export class TeamDashboardComponent implements OnInit {
   }
 
   getEmployeePerformance(viewTeamMember) {
-    // Store employee data in session storage or service for access in performance dashboard
+    console.log(viewTeamMember);
     this.employeeService.setEmployee(viewTeamMember);
     this.router.navigate(['/user-performance/view-performance']);
   }
 
-  // New methods for employee selection
   toggleEmployeeSelection(employee: any) {
     console.log('Toggling selection for employee:', employee);
     const index = this.selectedEmployees.findIndex(e => e.id === employee.id);
@@ -198,9 +197,7 @@ export class TeamDashboardComponent implements OnInit {
       class: 'modal-md'
     });
   }
-  // singleAssignTemplate(singleAssignTemplate: any, arg1: { class: string; }): BsModalRef<any> {
-  //   throw new Error('Method not implemented.');
-  // }
+ 
 
   assignGoalsToEmployees() {
     console.log('Attempting to assign goals to multiple employees');
