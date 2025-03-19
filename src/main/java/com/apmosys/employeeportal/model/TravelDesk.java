@@ -40,6 +40,7 @@ public class TravelDesk {
 	
 	@Column(name = "mobileNo")
 	private BigInteger mobileNo;
+//	private BigInteger mobileNo = BigInteger.valueOf(0);
 	
 	@Column(name = "requestType")
 	private String requestType;

@@ -28,7 +28,12 @@ public class TravelDeskService {
 		
 		travelDesk.setEmpId(travelData.getEmployeeId());
 		travelDesk.setEmail(travelData.getEmail());
-		travelDesk.setMobileNo(travelData.getMobileNo());
+		if(travelData.getMobileNo() != null) {
+			travelDesk.setMobileNo(travelData.getMobileNo());
+		}
+		else {
+			travelDesk.setMobileNo(BigInteger.valueOf(98996712));
+		}
 		travelDesk.setDepartment(travelData.getDepartmentName());
 		travelDesk.setName(travelData.getFullName());
 		travelDesk.setRequestType(travelData.getAssociatedTravelRequest());
@@ -50,7 +55,10 @@ public class TravelDeskService {
 		travelDesk.setApprover(approver);
 		travelDesk.setLevel(1);
 		travelDesk.setActive(true);
+		System.out.println(travelDesk);
 		savedTravelDesk = tavelDeskRepository.save(travelDesk);
+		System.out.println(travelDesk);
+		System.out.println(savedTravelDesk);
 		if(savedTravelDesk == null) {
 			serviceResponse.setServiceError("Unable to save..!!");
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -65,6 +73,7 @@ public class TravelDeskService {
 		}
 		}
 		catch(Exception e) {
+			e.printStackTrace();
 			serviceResponse.setServiceError(e.getMessage());
 			serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			return serviceResponse;

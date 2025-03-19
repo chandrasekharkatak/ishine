@@ -69,6 +69,18 @@ public class ReimbursementData {
 	private String supportingDocPath;
 	
 	@Column(name ="isActive")
-	private boolean isActiv;
+	private boolean isActive;
+	
+	@Column(name ="appliedBy")
+	private BigInteger appliedBy;
+	
+	@Column(name ="appliedOn")
+	private Timestamp appliedOn;
+	
+	@Column(name ="approver")
+	private BigInteger approver;
+	
+	@Column(name ="status")
+	private String status;
 }
 

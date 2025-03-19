@@ -21,7 +21,7 @@ public class TravelDeskController {
 	public ServiceResponse fetchTravelData(@RequestBody TravelDeskDTO travelData) {
 		
 		return travelDeskService.fetchUserTravel(travelData.getEmployeeId());
-		
+		 
 	}
 	
 	@PostMapping("/saveTravelData")
