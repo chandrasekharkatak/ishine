@@ -28,13 +28,7 @@ isFood:boolean = false;
       this.isTravel = true;
       console.log(this.isTravel);
     }
-    else if(this.selectedReason === 'Food'){
-      this.isFood = true;
-      this.isTravel = false;
-      console.log(this.isFood);
-    }
     else{
-      this.isFood = false;
       this.isTravel = false;
     }
   }
