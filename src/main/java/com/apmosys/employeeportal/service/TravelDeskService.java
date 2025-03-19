@@ -2,6 +2,8 @@ package com.apmosys.employeeportal.service;
 
 import java.math.BigInteger;
 import java.sql.Timestamp;
+import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -65,6 +67,67 @@ public class TravelDeskService {
 			serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			return serviceResponse;
 		}
+		
+	}
+	
+	public ServiceResponse fetchUserTravel(BigInteger empId) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		try {
+			List<TravelDesk> travelDesk = tavelDeskRepository.findByEmpId(empId);
+			if(travelDesk.isEmpty() || travelDesk == null) {
+				serviceResponse.setServiceError("Data Not Found...!!");
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				return serviceResponse;
+			}
+			else {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				serviceResponse.setServiceResponse(travelDesk);
+				return serviceResponse;
+			}
+		}
+		catch(Exception e){
+			serviceResponse.setServiceError(e.getMessage());
+			serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			return serviceResponse;
+		}
+	}
+	
+	public ServiceResponse updateTravelData(TravelDeskDTO travelData) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		try {
+			return serviceResponse;
+		}
+		catch(Exception e) {
+			serviceResponse.setServiceError(e.getMessage());
+			serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			return serviceResponse;
+		}
+		
+	}
+	
+	public ServiceResponse revokeTravel(BigInteger requestId) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		try {
+		TravelDesk travelDesk = tavelDeskRepository.findByRequestId(requestId);
+		if(travelDesk == null) {
+			serviceResponse.setServiceError("Request Data Not Found...!!");
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			return serviceResponse;
+		}
+		else {
+			travelDesk.setActive(false);
+			tavelDeskRepository.save(travelDesk);
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse(travelDesk);
+			return serviceResponse;
+		}
+		}
+		catch(Exception e) {
+			serviceResponse.setServiceError(e.getMessage());
+			serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			return serviceResponse;
+		}
+		
 		
 	}
 }

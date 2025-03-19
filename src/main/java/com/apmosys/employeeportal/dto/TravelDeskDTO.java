@@ -8,6 +8,7 @@ import lombok.Data;
 @Data
 public class TravelDeskDTO {
 
+	 	private BigInteger requestId;
 	 	private String fullName ;
 	    private BigInteger employeeId ;
 	    private String departmentName ;

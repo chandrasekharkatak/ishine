@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,27 +18,27 @@ public class TravelDeskController {
 	private TravelDeskService travelDeskService;
 	
 	@PostMapping("/fetchTravelData")
-	public ServiceResponse fetchTravelData() {
+	public ServiceResponse fetchTravelData(@RequestBody TravelDeskDTO travelData) {
 		
-		return null;
+		return travelDeskService.fetchUserTravel(travelData.getEmployeeId());
 		
 	}
 	
 	@PostMapping("/saveTravelData")
-	public ServiceResponse saveTravelData(TravelDeskDTO travelData) {
+	public ServiceResponse saveTravelData(@RequestBody TravelDeskDTO travelData) {
 		return travelDeskService.saveTravelData(travelData);
 		
 	}
 	
 	@PostMapping("/updateTravelData")
-	public ServiceResponse updateTravelData() {
+	public ServiceResponse updateTravelData(@RequestBody TravelDeskDTO travelData) {
 		return null;
 		
 	}
 	
 	@PostMapping("/revokeTravel")
-	public ServiceResponse revokeTravel() {
-		return null;
+	public ServiceResponse revokeTravel(@RequestBody TravelDeskDTO travelData) {
+		return travelDeskService.revokeTravel(travelData.getRequestId());
 		
 	}
 	
