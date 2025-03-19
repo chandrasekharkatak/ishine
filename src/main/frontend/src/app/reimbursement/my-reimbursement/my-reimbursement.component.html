@@ -105,33 +105,17 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>From Date</label>
-                            <!-- <input id="timesheetDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" [disabled]="isUpdation"> -->
-                            <div class="d-flex">
-                                <input class="form-control" #input (focus)="fromDate.open()" [(ngModel)]="fromDateInput" matInput id="fromDate"
-                                    [matDatepicker]="fromDate" placeholder="Choose a date"
-                                    autocomplete="off">
-                                <mat-datepicker-toggle matSuffix [for]="fromDate"
-                                    style="margin-left: -44px; margin-top: 0px;"></mat-datepicker-toggle>
-                            </div>
-                            <mat-datepicker #fromDate (closed)="input.blur()"></mat-datepicker>
+                            <input class="form-control" [(ngModel)]="fromDateInput" id="fromDateInput" type="date" 
+                                [min]="todayDate" placeholder="Choose from date" autocomplete="off">
                         </div>
                     </div>
                 </div>
-
 
                 <div class="col-md-3 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>To Date</label>
-                            <!-- <input id="timesheetDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" [disabled]="isUpdation"> -->
-                            <div class="d-flex">
-                                <input class="form-control" #input (focus)="toDate.open()" [(ngModel)]="toDateInput" matInput id="toDate"
-                                    [matDatepicker]="toDate" placeholder="Choose a date" [min]="fromDateInput"
-                                    autocomplete="off">
-                                <mat-datepicker-toggle matSuffix [for]="toDate"
-                                    style="margin-left: -44px; margin-top: 0px;"></mat-datepicker-toggle>
-                            </div>
-                            <mat-datepicker #toDate (closed)="input.blur()"></mat-datepicker>
+                            <input class="form-control" [(ngModel)]="toDateInput" id="toDateInput" type="date" [min]="fromDateInput" placeholder="Choose to date" autocomplete="off">
                         </div>
                     </div>
                 </div>
