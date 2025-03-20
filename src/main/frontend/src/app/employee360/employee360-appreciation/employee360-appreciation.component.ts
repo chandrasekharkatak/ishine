@@ -11,6 +11,8 @@ import { EmployeeService } from 'src/app/services/employee.service';
 import { HelpService } from 'src/app/services/help.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { SortPipe } from 'src/app/sort.pipe';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 @Component({
   selector: 'app-employee360-appreciation',
   templateUrl: './employee360-appreciation.component.html',
@@ -92,6 +94,23 @@ export class Employee360AppreciationComponent implements OnInit {
     this.getEmployeeAppreciationDetails();
     this.getTeamAppreciationDetails();
    
+  }
+  exportToExcel(id:any): void {
+   let exportToExcelTeamfile=id+".xlsx";
+    const table = document.getElementById(''+id); // Get table by ID
+    if (!table) {
+      console.error('Table not found');
+      return;
+    }
+  
+    const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(table); // Convert table to worksheet
+    const workbook: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Project Data');
+  
+    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+  
+    saveAs(data, exportToExcelTeamfile);
   }
   ngAfterViewInit() {
     this.setActiveTab();

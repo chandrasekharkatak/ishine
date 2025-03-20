@@ -131,15 +131,15 @@ body {
 
 /* Profile Section */
 .profile-section {
-  background-color: #122f97;
-  color: white;
-  padding: 20px;
-  text-align: center;
-  border-radius: 10px;
-  height: 100%; /* Make full height */
-  position: relative; /* Allows child elements to scroll */
-  overflow-y: auto; /* Enable scrolling for long content */
-  max-height: calc(100vh - 30px); /* Prevent overflow from viewport */
+  background-color: #ffffff;
+    color: #0e0e0e;
+    padding: 20px;
+    text-align: center;
+    border-radius: 10px;
+    height: 100%;
+    position: relative;
+    overflow-y: auto;
+    max-height: calc(100vh - 30px);
 }
 
 /* Profile Card */

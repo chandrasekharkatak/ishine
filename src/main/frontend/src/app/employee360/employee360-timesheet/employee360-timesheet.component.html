@@ -73,7 +73,7 @@
           <div class="tab-pane active show fade timesheet__tab-container" id="weekly-tabpanel" role="tabpanel"
               aria-labelledby="weekly-tabpanel">
               <div class="row col-md-12 p-0 m-0">
-                  <table class="table table-sm timesheet-table">
+                  <table class="table table-sm timesheet-table" id="timesheet">
                       <thead>
                         <tr>
                           <th scope="col">Sr.No</th>
@@ -99,6 +99,9 @@
                         </tr>
                       </tbody>
                     </table>
+                    <button style="float: right;" type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                    (click)="exportToExcel('timesheet')"><em
+                        class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>  
               </div>
           </div>
           <div class="tab-pane fade timesheet__tab-container pt-2" id="thisMonth-tabpanel" role="tabpanel"
@@ -193,6 +196,10 @@
               </table>
         </div>
           <pagination-controls class="my-pagination" [hidden]="result.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+           
+          <button style="float: right;" type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+          (click)="exportToExcel('timesheet360Info')"><em
+              class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>  
     </div>
 </div>
 

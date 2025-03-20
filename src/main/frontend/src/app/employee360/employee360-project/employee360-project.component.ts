@@ -17,7 +17,9 @@ import { ResourceManagementService } from 'src/app/services/resource-management.
 import { UtilityService } from 'src/app/services/utility.service';
 import { SortPipe } from 'src/app/sort.pipe';
 import { ResourceManagementComponent } from 'src/app/user-team/resource-management/resource-management.component';
-
+import { ExportExcelService } from 'src/app/services/export-excel.service';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 @Component({
   selector: 'app-employee360-project',
   templateUrl: './employee360-project.component.html',
@@ -76,6 +78,7 @@ isProjectTeamMemberVisible:boolean=false;
     private projectService: ProjectService,
     private modalService: BsModalService,
     private router:Router,
+    private exportExcelService: ExportExcelService,
     private departmentService: DepartmentService,
     private resourceManagementService: ResourceManagementService,
     private employeeService: EmployeeService,
@@ -221,6 +224,24 @@ filterTeamMemberProjects(id) {
   this.filterProjectByProjectId = this.allProjectList.filter(project =>
     project.projectId==id
   );
+}
+
+exportToExcel(id:any): void {
+ let exportToExcelTeamfile=id+".xlsx";
+  const table = document.getElementById(''+id); // Get table by ID
+  if (!table) {
+    console.error('Table not found');
+    return;
+  }
+
+  const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(table); // Convert table to worksheet
+  const workbook: XLSX.WorkBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Project Data');
+
+  const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+
+  saveAs(data, exportToExcelTeamfile);
 }
 async getTeamEmployeeByTeamId(teamId: any) {
   try {

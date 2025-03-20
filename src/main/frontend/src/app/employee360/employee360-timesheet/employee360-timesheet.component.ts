@@ -16,6 +16,8 @@ import { Employee360Service } from 'src/app/services/employee360.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { SortPipe } from 'src/app/sort.pipe';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 @Component({
   selector: 'app-employee360-timesheet',
@@ -145,7 +147,23 @@ export class Employee360TimesheetComponent implements OnInit {
       this.getTimesheetsForHomePageByEmpId('Last 7 Days');
     }
   }
+exportToExcel(id:any): void {
+ let exportToExcelTeamfile=id+".xlsx";
+  const table = document.getElementById(''+id); // Get table by ID
+  if (!table) {
+    console.error('Table not found');
+    return;
+  }
 
+  const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(table); // Convert table to worksheet
+  const workbook: XLSX.WorkBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Time Sheet');
+
+  const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+
+  saveAs(data, exportToExcelTeamfile);
+}
   getTimesheetsForHomePageByEmpId(dateRange: any) {
     this.timesheetDetails = [];
     const TOTAL_WORKING_HOURS_IN_DAY = 8;

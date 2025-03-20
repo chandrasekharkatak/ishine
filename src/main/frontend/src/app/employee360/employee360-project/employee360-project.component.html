@@ -9,7 +9,7 @@
 
         <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInfo'" [tableTHeadId]="'projectInfoTHead'"
             [tableTHeadTrId]="'projectInfoTHeadTr'">
-            <table class="table" id="projectInfo" matSort (matSortChange)="sortData($event)">
+            <table class="table" id="projectInfoteammember" matSort (matSortChange)="sortData($event)">
                 <thead class="thead-light" id="projectInfoTHead">
                     <tr id="projectInfoTHeadTr">
                         <th scope="col" class="info-label">Sr No.</th>
@@ -47,7 +47,9 @@
         <pagination-controls class="my-pagination" [hidden]="allProjectList.length == 0"
             (pageChange)="handlePageChange($event)"></pagination-controls>
 
-
+            <button style="float: right;" type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+            (click)="exportToExcel('projectInfoteammember')"><em
+                class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>  
     </div>
     <div *ngIf="isProjectTeamVisible" class="container-fluid">
         <div class="col-md-12 mt-2">
@@ -70,7 +72,7 @@
                         </div> -->
                         <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInfo'" [tableTHeadId]="'projectInfoTHead'"
                             [tableTHeadTrId]="'projectInfoTHeadTr'">
-                            <table class="table" id="projectInfo" matSort (matSortChange)="sortData($event)">
+                            <table class="table" id="projectInfoteaminfo" matSort (matSortChange)="sortData($event)">
                                 <thead class="thead-light" id="projectInfoTHead">
                                     <tr id="projectInfoTHeadTr">
                                         <th scope="col" class="info-label">Sr No.</th>
@@ -119,10 +121,14 @@
                                     </ng-container>        
                                     <pagination-controls class="my-pagination" [hidden]="filterProjectByProjectId.length == 0"
                              (pageChange)="handlePageChange($event)"></pagination-controls>
- 
+                           
                                     <!-- <pagination-controls class="my-pagination" [hidden]="filterProjectByProjectId.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>                            -->
                                 </tbody>                                
-                            </table>                        
+                            </table>  
+                            
+                            <button style="float: right;" type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                            (click)="exportToExcel('projectInfoteam')"><em
+                                class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>                      
                         </div>
                     </div>
                 </div>
@@ -189,6 +195,9 @@
         </div>
         <pagination-controls class="my-pagination" [hidden]="allProjectList.length == 0"
             (pageChange)="handlePageChange($event)"></pagination-controls>
+            <button style="float: right;" type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+            (click)="exportToExcel('projectInfo')"><em
+                class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>
     </div>
 </div>
 

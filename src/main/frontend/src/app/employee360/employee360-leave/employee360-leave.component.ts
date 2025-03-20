@@ -21,6 +21,8 @@ import { LeaveService } from '../../services/leave.service';
 
 import { Sort } from '@angular/material/sort';
 import { ValidationService } from 'src/app/services/validation.service';
+import { async } from 'rxjs';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 
 declare module 'highcharts' {
   interface Series {
@@ -160,6 +162,7 @@ export class Employee360LeaveComponent implements OnInit {
     private logService: LogService,
     private router: Router,
     private utilityService: UtilityService,
+     private exportExcelService: ExportExcelService,
     private employee360Service: Employee360Service,
     private breadcrumbService: BreadcrumbService,
     private modalService: BsModalService,
@@ -329,7 +332,33 @@ export class Employee360LeaveComponent implements OnInit {
       this.showDropDown=true;}
     else{this.showDropDown=false;}
   }
+  name="Leave_report.xlsx";
+  exportToExcel(){
+     const onlySpecificDataArr = this.leaveList.map(
+            x => ({
+              "Employee": "".concat(x.createdByName),
+              "From Date": x.fromDate,
+              "TO Date": x.fromDate,
+              "Apply Date": (x.createdOn),
+              "Duration": (x.noOfDays),
+              "Status": (x.status),
+              "Approved/Rejected By": (x.leaveStatusUpdatedByName),
+              "Leave Reason": x.reason,
+              "Type": x.leaveType,
+              "Current Approval Level": x.currentApprovalLevel,
+              "Level 1 Approver Name": x.approverName,
+              "Level 1 Approver Status": x.managerApprovalStatus,
+              "Level 2 Approver Name":x.level2ApproverName,
+              "Level 2 Approver Status":x.level2ApprovalStatus,
+              "Level 3 Approver Name":x.level3ApproverName,
+              "Level 3 Approver Status":x.level3ApprovalStatus,
+              "Remarks":x.remark
 
+            })
+          )
+          this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
+       
+  }
   getAllLeaveApplicationsByEmpId(){
     let leaveObj = new Leave();
     leaveObj.empId = this.employeeData.empId;
@@ -398,7 +427,7 @@ export class Employee360LeaveComponent implements OnInit {
       },
       (error) => console.error("API error:", error)
   );
-  console.log("leaveApplicationList=>>>>",this.leaveApplicationList);
+ 
   }
 
   LeaveListOnStatus(teamViewLeaveHistoryList: any) {

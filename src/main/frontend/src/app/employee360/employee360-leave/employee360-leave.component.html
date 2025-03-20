@@ -156,6 +156,10 @@
                       </table>
                 </div>
                 <pagination-controls class="my-pagination" [hidden]="leaveList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+                <button style="float: right;" type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                [hidden]="leaveList.length == 0" (click)="exportToExcel()"><em
+                    class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>
+             
 </div>
 
 <!-- CompOff Application table -->

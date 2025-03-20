@@ -26,7 +26,7 @@
 </div>
 
 <div class="row-md-6">
-  <table *ngIf="isTeam" class="table"  matSort (matSortChange)="sortData($event)">
+  <table *ngIf="isTeam" class="table" id="appreciationtable"  matSort (matSortChange)="sortData($event)">
     <thead class="thead-light">
       <tr>
         <th scope="col" class="info-label">Sr No.</th>
@@ -95,4 +95,7 @@
   </table>
 
   <pagination-controls class="my-pagination" [hidden]="accortoselectedList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+  <button style="float: right;" type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+  (click)="exportToExcel('appreciationtable')"><em
+      class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button> 
 </div>
