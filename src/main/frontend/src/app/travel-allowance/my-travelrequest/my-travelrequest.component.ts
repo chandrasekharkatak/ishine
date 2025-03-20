@@ -243,7 +243,8 @@ import { MyTravelDesk } from 'src/app/models/travelDesk';
     
       const response: any = await this.travelDesk.saveTravelData(travelData).toPromise();
       if (response.serviceStatus == "Success") {
-        
+        alert("Success! Your request was processed successfully.");
+        window.location.reload();
   
       } else {
         console.error(response.serviceResponse);
@@ -284,7 +285,11 @@ import { MyTravelDesk } from 'src/app/models/travelDesk';
   //     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
   //   }
 
- 
+   // Modals
+   openAlertMod(template: TemplateRef<any>, message: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
 
   onPaste(e) {
     e.preventDefault();

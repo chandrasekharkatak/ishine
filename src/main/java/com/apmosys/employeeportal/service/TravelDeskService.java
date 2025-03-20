@@ -3,8 +3,6 @@ package com.apmosys.employeeportal.service;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +18,7 @@ public class TravelDeskService {
 	private TravelDeskRepository tavelDeskRepository;
 	
 	
+	@SuppressWarnings("unused")
 	public ServiceResponse saveTravelData(TravelDeskDTO travelData) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		try {
@@ -39,18 +38,18 @@ public class TravelDeskService {
 		travelDesk.setFromDate(travelData.getFromDate());
 		travelDesk.setToLocation(travelData.getToLocation());
 		travelDesk.setToDate(travelData.getToDate());
-		travelDesk.setAppliedBy(travelData.getEmployeeId());
 		Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
 		currentTimestamp.setNanos(currentTimestamp.getNanos() / 1000 * 1000);
 		System.out.println(currentTimestamp);
 		travelDesk.setAppliedOn(currentTimestamp);
 		travelDesk.setStatus("Pending");
-//		BigInteger bigInteger = new BigInteger(numberString);
 		BigInteger approver = BigInteger.valueOf(21329);
 		travelDesk.setApprover(approver);
 		travelDesk.setLevel(1);
 		travelDesk.setActive(true);
-		savedTravelDesk = tavelDeskRepository.save(travelDesk);
+		System.out.println(travelDesk);
+		savedTravelDesk=tavelDeskRepository.save(travelDesk);
+		
 		if(savedTravelDesk == null) {
 			serviceResponse.setServiceError("Unable to save..!!");
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -63,14 +62,15 @@ public class TravelDeskService {
 			serviceResponse.setServiceMessage("Saved Successfully..!!");
 			return serviceResponse;
 		}
-		}
-		catch(Exception e) {
-			serviceResponse.setServiceError(e.getMessage());
-			serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			return serviceResponse;
-		}
-		
 	}
+	catch(Exception e) {
+		e.printStackTrace();
+		serviceResponse.setServiceError(e.getMessage());
+		serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		return serviceResponse;
+	}
+		
+}
 	
 	public ServiceResponse fetchUserTravel(BigInteger empId) {
 		ServiceResponse serviceResponse = new ServiceResponse();

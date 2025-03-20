@@ -39,7 +39,7 @@ public class TravelDesk {
 	private String department;
 	
 	@Column(name = "mobileNo")
-	private BigInteger mobileNo;
+	private Long mobileNo;
 	
 	@Column(name = "requestType")
 	private String requestType;
