@@ -76,5 +76,11 @@ public class ReimbursementData {
 	
 	@Column(name ="isActive")
 	private boolean isActive;
+	
+	@Column(name ="approver")
+	private BigInteger approver;
+	
+	@Column(name ="status")
+	private String status;
 }
 

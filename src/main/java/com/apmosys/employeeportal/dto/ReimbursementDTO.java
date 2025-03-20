@@ -1,21 +1,26 @@
 package com.apmosys.employeeportal.dto;
 
+import java.math.BigInteger;
+import java.sql.Timestamp;
+
 import lombok.Data;
 
 @Data
 public class ReimbursementDTO {
 	
-	private String name;          
-    private String empId;         
+	private String name;   
+	private BigInteger requestId;
+    private BigInteger empId;  
+    private String email;
     private String designationName;
     private String departmentName; 
     private String managerName;   
-    private String mobileNo;
-    private String amount;        
+    private BigInteger mobileNo;
+    private BigInteger amount;        
     private String travelMode;      
-    private String distance;     
-    private String fromDate;     
-    private String toDate;       
+    private BigInteger distance;     
+    private Timestamp fromDate;     
+    private Timestamp toDate;       
     private String purpose;        
     private String fileData;
     private String selectedReason;    
