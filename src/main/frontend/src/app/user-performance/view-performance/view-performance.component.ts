@@ -97,11 +97,11 @@ export class ViewPerformanceComponent implements OnInit {
   }
 
   fetchQuarters(): void {
-    this.performanceService.getAvailableQuarters().subscribe({
+    this.performanceService.getAllQuarterCycles().subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.quarterCyclesList = response.serviceResponse;
-          this.selectedQuarter = this.quarterCyclesList[0] || '';
+          console.log(this.quarterCyclesList);
           this.onQuarterChange();
         } else {
           this.errorMessage = response.serviceMessage || 'Failed to load quarters.';

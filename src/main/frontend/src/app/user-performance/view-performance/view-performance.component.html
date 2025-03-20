@@ -135,7 +135,7 @@
             <div class="col-auto">
               <label class="fw-semibold">Select Quarter:</label>
               <select class="form-select" [(ngModel)]="selectedQuarter1" (change)="loadReviewData()">
-                <option *ngFor="let quarter of quarterCyclesList" [value]="quarter">{{ quarter }}</option>
+                <option *ngFor="let quarter of quarterCyclesList" [value]="quarter">{{ quarter.quarterCycle }}</option>
               </select>
             </div>
           </div>

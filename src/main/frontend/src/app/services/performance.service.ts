@@ -106,7 +106,7 @@ getPerformanceStats(empId: string, quarter: string): Observable<any> {
 
 getKraKpiReview(empId: number, quarter: string): Observable<any> {
   
-  return this.http.get(`${this.baseUrl}/kra-kpi`, { params: { empId, quarter }, });
+  return this.http.get(`${this.baseUrl}api/kra-kpi`, { params: { empId, quarter }, });
 }
 
 getQuestionnaireReview(empId: number, quarter: string): Observable<any> {
