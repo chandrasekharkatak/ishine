@@ -1,10 +1,12 @@
 package com.apmosys.employeeportal.service;
 
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.TimeZone;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -1470,7 +1472,12 @@ public class ProjectService {
 		return response;
 	}
 	
-	
+	private String formatDate(String dateTime) {
+	    if (dateTime == null || dateTime.isEmpty()) {
+	        return null;
+	    }
+	    return dateTime.split("T")[0]; 
+	}
 	
 	
 	public List<ProjectPoPortalDTO> getProjectCloneFromPoPortal() {
@@ -1483,6 +1490,8 @@ public class ProjectService {
         List<ProjectPoPortalDTO> list= Arrays.asList(projects != null ? projects : new ProjectPoPortalDTO[0]);
       System.out.println("Total Project="+list.size());
   	StringBuilder builderDepartment=new StringBuilder();
+  	
+  	
 
         if(list!=null) {
         	  System.out.println(list.toString());
@@ -1535,8 +1544,8 @@ public class ProjectService {
 //    		}
         	if(project!=null) {
         	//	project.setProjectName(p.getName());
-        		project.setPoStartDate(p.getStartDate());
-        		project.setPoEndDate(p.getEndDate());
+        		project.setPoStartDate(formatDate(p.getStartDate()));
+        		project.setPoEndDate(formatDate(p.getEndDate()));
         		 project.setPoNo(p.getPoNo());
         		 System.err.println("po type"+p.getProjectType())   ;
         		 project.setPoProjectType(p.getProjectType());
@@ -1575,8 +1584,8 @@ public class ProjectService {
 //        		project.setActive("true");
 //        		project.setSyncProject("true");
 //        		
-        		project.setPoStartDate(p.getStartDate());
-        		project.setPoEndDate(p.getEndDate());
+        		project.setPoStartDate(formatDate(p.getStartDate()));
+        		project.setPoEndDate(formatDate(p.getEndDate()));
         		project.setPoProjectType(p.getProjectType());
 //        		/        		project.setClientLocation(p.getClientLocation().get(0));
 //        		project.setClientName(p.getClientName());

@@ -249,6 +249,10 @@
                 
                 	<!--added by anurag allEmployees Query has changed as per pratima ma'am discussion in a group on 23 may 24 11:09 PM   -->
                   <th scope="col" class="info-label wide-col" mat-sort-header="projectName|string">Project Name</th>
+                  <th scope="col" class="info-label wide-col" mat-sort-header="poNo|string">Po No</th>
+                  <th scope="col" class="info-label wide-col" mat-sort-header="poStartDate|string">Po Start Date</th>
+                  <th scope="col" class="info-label wide-col" mat-sort-header="poEndDate|string">Po End Date</th>
+                  <th scope="col" class="info-label wide-col" mat-sort-header="poProjectType|string">Po Project Type</th>
                   <th scope="col" class="info-label wide-col" mat-sort-header="clientName|string">Client Name</th>
                   <th scope="col" class="info-label wide-col" mat-sort-header="billable|string">Billable</th>
                   <th scope="col" class="info-label wide-col" mat-sort-header="billableType|string">Billable Type</th>
@@ -319,6 +323,10 @@
                 
                 <!-- added by anurag  -->
 <td>{{employee.projectName}}</td>
+<td>{{employee.poNo}}</td>
+<td>{{employee.poStartDate}}</td>
+<td>{{employee.poEndDate}}</td>
+<td>{{employee.poProjectType}}</td>
 <td>{{employee.clientName}}</td>
 <td>{{employee.billable}}</td>
 <td>{{employee.billableType}}</td>
