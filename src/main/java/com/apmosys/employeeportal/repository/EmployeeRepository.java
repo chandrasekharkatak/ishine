@@ -413,7 +413,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	public List<Object[]> getReporteesListByReportingManagerId(Long empId );
 	
 	@Query(nativeQuery = true)
-	public List<Object[]> getTeamProjectMappingsByEmpId(Long empId );
+	public List<Object[]> getAllEmployeesReportByProjectType();
 	
 	
 	
@@ -422,5 +422,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query("UPDATE Employee e SET e.isRetain = 'No' WHERE e.empId = :empId")
 	void updateIsRetain(@Param("empId") Long empId);
 
-
+	@Query(nativeQuery = true)
+	public List<Object[]> getTeamProjectMappingsByEmpId(Long empId );
+	
 }

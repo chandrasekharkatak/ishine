@@ -13,7 +13,6 @@ import lombok.ToString;
 @Setter
 @ToString
 public class ProjectPoPortalDTO {
-	
 	private Long id;
     private String name;
     private String projectType;
@@ -33,6 +32,5 @@ public class ProjectPoPortalDTO {
 
     private String poNo;
     private List<ResourceRequirementDTO> resourceRequirements;
-
 
 }

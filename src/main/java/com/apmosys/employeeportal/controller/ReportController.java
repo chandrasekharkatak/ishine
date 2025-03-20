@@ -88,4 +88,10 @@ public class ReportController {
 			   return response;
 		   }
 
+		@RequestMapping(value="/getAllEmployeesReportByProjectType" , method = RequestMethod.GET)
+		public ServiceResponse getAllEmployeesReportByProjectType() {		
+			
+			ServiceResponse response =	reportService.getAllEmployeesReportByProjectType();
+			return response;
+		}
 }

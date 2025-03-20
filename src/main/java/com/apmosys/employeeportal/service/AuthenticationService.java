@@ -46,8 +46,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Service
 public class AuthenticationService {
 
-	@Value("${valid.attempt}")
-	private Integer failedAttempt;
 	 @Autowired
 	    private RestTemplate restTemplate;
 	@Autowired
@@ -109,6 +107,9 @@ public class AuthenticationService {
 	
 	@Value("${poPortal.api.allProjects}")
 	private String poPortalAllProjectApi;
+	
+	@Value("${valid.attempt}")
+	private Integer failedAttempt;
 	
 //	private static ConcurrentHashMap<Long, String> userSessionList = new ConcurrentHashMap<Long, String>();
 	public static ConcurrentHashMap<Long, LogDTO> userLogInfoList = new ConcurrentHashMap<Long, LogDTO>();
