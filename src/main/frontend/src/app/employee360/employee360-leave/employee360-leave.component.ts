@@ -347,6 +347,10 @@ export class Employee360LeaveComponent implements OnInit {
                 this.leaveObj2.leaveId = leaveApplication.leaveId;
                 this.leaveObj2.currentUserEmpId = this.currentUser.empId;
 
+                let matchingcreatedBy = this.allEmployeeList360.find(emp => emp.empId == leaveApplication.createdBy);
+                //console.log("matchingEmployeeAppLev1 ",matchingEmployeeAppLev1);
+                leaveApplication.emp360createdBy = matchingcreatedBy ? matchingcreatedBy : {};
+
                 //console.log("leaveApplication.approverId ",leaveApplication.approverId);
                 let matchingEmployeeAppLev1 = this.allEmployeeList360.find(emp => emp.empId == leaveApplication.approverId);
                 //console.log("matchingEmployeeAppLev1 ",matchingEmployeeAppLev1);
