@@ -40,6 +40,8 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.Project;
+import com.apmosys.employeeportal.model.ProjectsTemp;
+import com.apmosys.employeeportal.model.ProjectsTempRepository;
 import com.apmosys.employeeportal.model.Specialization;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.repository.ClientsRepository;
@@ -79,6 +81,9 @@ public class CustomFilterService {
 
 	@Autowired
 	ProjectRepository projectRepository;
+	
+	@Autowired
+	ProjectsTempRepository projectsTempRepository;
 
 	@Autowired
 	ClientsRepository clientsRepository;
@@ -757,6 +762,28 @@ public class CustomFilterService {
 						.append(dto.getValue() + "' ").append(dto.getConjunction());
 				break;
 			}
+			
+			case "Po No": {
+				query = query.append("  emp_proj_client.po_no ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
+				break;
+			}
+			case "Po Start Date": {
+				query = query.append("  emp_proj_client.po_start_date ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
+				break;
+			}
+			case "Po End Date": {
+				query = query.append("  emp_proj_client.po_end_date ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
+				break;
+			}
+			case "Po Project Type": {
+				query = query.append("  emp_proj_client.po_project_type ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
+				break;
+			}
+			
 			case "Client Name": {
 				query = query.append(" emp_proj_client.client_name ").append(dto.getOperator() + " '")
 						.append(dto.getValue() + "' ").append(dto.getConjunction());
@@ -2097,6 +2124,37 @@ public class CustomFilterService {
 						dto.setName(object.getProjectName());
 						dtoList.add(dto);
 					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				}
+				break;
+			}
+			case "Po No":{
+				List<ProjectsTemp> projObj = projectsTempRepository.findAll();
+				if(!projObj.isEmpty()) {
+					projObj.forEach((object) -> {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object.getPoNo());
+						dtoList.add(dto);				
+						});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				}
+				break;
+			}
+			
+			case "Po Project Type":{
+				List<String> projObj = projectsTempRepository.finddistinctPoProjectType();
+				if(!projObj.isEmpty()) {
+					projObj.forEach((object) -> {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object);
+						dtoList.add(dto);				
+						});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
 					apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
