@@ -22,6 +22,8 @@ export class TeamDashboardComponent implements OnInit {
 
 @ViewChild('bulkAssignTemplate') bulkAssignTemplate: TemplateRef<any>;
 @ViewChild('singleAssignTemplate') singleAssignTemplate: TemplateRef<any>;
+@ViewChild('multiGoalTemplate') multiGoalTemplate: TemplateRef<any>;
+
   currentUser: User;
   viewTeamMemberList: any[] = [];
   teamMemberColumns: any[] = ['blank', 'name', 'department', 'totalGoals', 'goalsCompleted'];
@@ -40,6 +42,10 @@ export class TeamDashboardComponent implements OnInit {
   page = 1;
   loading = false;
   modalRef?: BsModalRef;
+  
+  // New properties for multi-goal assignment
+  selectedGoalTemplates: string[] = [];
+  selectedGoalData: {templateId: number, expectedCompletionDate: string}[] = [];
 
   constructor(
     private router: Router,
@@ -100,6 +106,7 @@ export class TeamDashboardComponent implements OnInit {
       }
     );
   }
+  
   loadGoalTemplates() {
     console.log('Loading goal templates...');
     // Make sure we're using the correct API endpoint with correct casing
@@ -149,12 +156,12 @@ export class TeamDashboardComponent implements OnInit {
   }
 
   getEmployeePerformance(viewTeamMember) {
-    // Store employee data in session storage or service for access in performance dashboard
+   
     this.employeeService.setEmployee(viewTeamMember);
     this.router.navigate(['/user-performance/view-performance']);
   }
 
-  // New methods for employee selection
+
   toggleEmployeeSelection(employee: any) {
     console.log('Toggling selection for employee:', employee);
     const index = this.selectedEmployees.findIndex(e => e.id === employee.id);
@@ -165,6 +172,7 @@ export class TeamDashboardComponent implements OnInit {
     }
     console.log('Selected employees:', this.selectedEmployees);
   }
+  
   isEmployeeSelected(employee: any): boolean {
     return this.selectedEmployees.some(e => e.id === employee.id);
   }
@@ -184,6 +192,7 @@ export class TeamDashboardComponent implements OnInit {
       class: 'modal-lg'
     });
   }
+  
   closeModal() {
     if (this.modalRef) {
       this.modalRef.hide();
@@ -193,14 +202,39 @@ export class TeamDashboardComponent implements OnInit {
   assignGoalToEmployee(employee: any) {
     console.log('Setting up to assign goal to employee:', employee);
     this.selectedEmployee = employee;
-    this.selectedEmployees = [employee];
+    this.selectedEmployees = [employee]; // This is fine for tracking UI state
     this.modalRef = this.modalService.show(this.singleAssignTemplate, {
       class: 'modal-md'
     });
   }
-  // singleAssignTemplate(singleAssignTemplate: any, arg1: { class: string; }): BsModalRef<any> {
-  //   throw new Error('Method not implemented.');
-  // }
+  
+  // New method for opening multi-goal assignment modal
+  openMultiGoalModal(employee: any) {
+    console.log('Setting up to assign multiple goals to employee:', employee);
+    this.selectedEmployee = employee;
+    // Reset the selected goals
+    this.selectedGoalData = [];
+    this.addNewGoalSelection(); // Initialize with one goal selection row
+    
+    this.modalRef = this.modalService.show(this.multiGoalTemplate, {
+      class: 'modal-lg'
+    });
+  }
+  
+  // Add a new goal selection row to the form
+  addNewGoalSelection() {
+    this.selectedGoalData.push({
+      templateId: null,
+      expectedCompletionDate: ''
+    });
+  }
+  
+  // Remove a goal selection row from the form
+  removeGoalSelection(index: number) {
+    if (this.selectedGoalData.length > 1) {
+      this.selectedGoalData.splice(index, 1);
+    }
+  }
 
   assignGoalsToEmployees() {
     console.log('Attempting to assign goals to multiple employees');
@@ -228,9 +262,8 @@ export class TeamDashboardComponent implements OnInit {
           if (response && response.serviceStatus && 
               response.serviceStatus.toUpperCase() === 'SUCCESS') {
             
-            // Update local data before API refresh
+  
             this.selectedEmployees.forEach(emp => {
-              // Find the employee in the main list and update goal count
               const empInList = this.viewTeamMemberList.find(e => e.id === emp.id);
              
               if (empInList) {
@@ -239,6 +272,7 @@ export class TeamDashboardComponent implements OnInit {
             });
             
             this.closeModal();
+            this.selectedEmployees = null;
             this.selectedEmployees = [];
             this.selectedGoalTemplate = '';
             this.expectedCompletionDate = '';
@@ -275,6 +309,7 @@ export class TeamDashboardComponent implements OnInit {
     
     console.log('Sending assignment request:', requestBody);
   
+    // Use the single employee API endpoint here, not the bulk one
     this.http.post(`${environment.baseUrl}api/EmployeeGoals/assign`, requestBody)
       .subscribe(
         (response: any) => {
@@ -282,18 +317,11 @@ export class TeamDashboardComponent implements OnInit {
           if (response && response.serviceStatus && 
               response.serviceStatus.toUpperCase() === 'SUCCESS') {
             
-            // Update local data before API refresh
-            console.log("Verify",this.viewTeamMemberList);
+            // Update local data properly
             const empInList = this.viewTeamMemberList.find(e => e.id === this.selectedEmployee.id);
-            console.log("Verify",empInList);
-            if (empInList.totalGoals !=0){
-              empInList.totalGoals = empInList.totalGoals + 1 ;
-              console.log("Verify1",empInList.totalGoals);
-            }else{
-                empInList.totalGoals = 1;
-                console.log("Verify2",empInList.totalGoals);
+            if (empInList) {
+              empInList.totalGoals = (empInList.totalGoals || 0) + 1;
             }
-            
             
             this.closeModal();
             this.selectedEmployee = null;
@@ -314,5 +342,66 @@ export class TeamDashboardComponent implements OnInit {
           alert('Error assigning goal. Please try again.');
         }
       );
+  }
+  
+  // New method to assign multiple goals to a single employee
+  assignMultipleGoalsToEmployee() {
+    console.log('Attempting to assign multiple goals to employee:', this.selectedEmployee);
+    
+    // Validate all selected goals have both template and date
+    const invalidEntries = this.selectedGoalData.some(goal => 
+      !goal.templateId || !goal.expectedCompletionDate);
+    
+    if (invalidEntries || this.selectedGoalData.length === 0) {
+      console.error('Missing required data for multi-goal assignment');
+      alert('Please select a goal template and set an expected completion date for each goal.');
+      return;
+    }
+    
+    // Create array of assignment requests (one per goal)
+    const assignmentPromises = this.selectedGoalData.map(goal => {
+      const requestBody = {
+        empId: this.selectedEmployee.id,
+        templateId: Number(goal.templateId),
+        expectedCompletionDate: goal.expectedCompletionDate
+      };
+      
+      return this.http.post(`${environment.baseUrl}api/EmployeeGoals/assign`, requestBody).toPromise();
+    });
+    
+    // Execute all assignment requests
+    Promise.all(assignmentPromises)
+      .then(responses => {
+        console.log('All assignment responses:', responses);
+        
+        // Check if all assignments were successful
+        const allSuccessful = responses.every((response: any) => 
+          response && response.serviceStatus && 
+          response.serviceStatus.toUpperCase() === 'SUCCESS'
+        );
+        
+        if (allSuccessful) {
+          // Update local data
+          const empInList = this.viewTeamMemberList.find(e => e.id === this.selectedEmployee.id);
+          if (empInList) {
+            empInList.totalGoals = (empInList.totalGoals || 0) + this.selectedGoalData.length;
+          }
+          
+          this.closeModal();
+          this.selectedEmployee = null;
+          this.selectedGoalData = [];
+          
+          // Refresh from API to ensure data consistency
+          this.getEmployeesInDepartment();
+          alert(`${this.selectedGoalData.length} goals assigned successfully!`);
+        } else {
+          console.error('Some assignments failed:', responses);
+          alert('Some goals could not be assigned. Please check the console for details.');
+        }
+      })
+      .catch(error => {
+        console.error('Error assigning multiple goals:', error);
+        alert('Error assigning goals. Please try again.');
+      });
   }
 }
