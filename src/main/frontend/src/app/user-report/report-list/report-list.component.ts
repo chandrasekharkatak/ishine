@@ -21,6 +21,7 @@ import * as moment from 'moment';
 import { UtilityService } from 'src/app/services/utility.service';
 import * as XLSX from 'xlsx';
 import { Timesheet } from 'src/app/models/timesheet';
+import { DepartmentService } from 'src/app/services/department.service';
 
 class FilterData {
   title: any;
@@ -113,6 +114,8 @@ export class ReportListComponent implements OnInit {
   customQuery:any;
   leaveReportFlag:boolean=false;
   timesheetReportFlag:boolean=false;
+  showDetails:boolean = false;
+  changeTable:boolean = false;
 
   filters:any = {};
   isSearchEnabled:boolean = false;
@@ -121,6 +124,9 @@ export class ReportListComponent implements OnInit {
   employeeReportColumn:any[] = ['employeementId','employeeType','name','departmentName','jobRoleName','managerName','mobileNo','email','employmentstatus','projectName','poNo','poStartDate','poEndDate','poProjectType','clientName','billable','billableType','dateOfJoining','aadhar','aboutMe','address','permanentAddress','city','bloodGroup','dateOfBirth','gender','fatherName','panNumber','placeOfBirth','workLocation','probationPeriod','noticePeriod','country','totalExperience','emergencyContactMobile','emergencyContactPerson','landline','maritalStatus','motherTongue','alternateMobileNo','pincode','relation','state','viewsOnOrganisation','passportNumber','bankAccountNo','bankIFSCCode','bankName','pfAccountNumber','previousPfAccountNumber','uan','esicNumber','graduationType','pursuing','passingGrade','yearOfPassing','updatedOn','updatedByName','createdByName','createdOn'];
   leaveTimesheetReportColumn:any[] = ['employeementId','employeeType','employeeName','date','dayType','description','status','managerName','departmentName','createdOn','updatedOn','timesheetStatusUpdatedByName'];
   defaultMappingColumns:any[] = ['tabName','featureName','subFeatureName'];
+  departments:any [] = [];
+  selectedDepartment: string = '';
+
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -134,6 +140,7 @@ export class ReportListComponent implements OnInit {
     private renderer2: Renderer2,
     private locationStrategy: LocationStrategy,
     private utilityService: UtilityService,
+    private departmentService: DepartmentService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -163,6 +170,41 @@ export class ReportListComponent implements OnInit {
     } else if (this.userMapping.employee_report) {
       this.showEmployeeReportTable();
     }
+  }
+  toggleView() {
+    if(this.showDetails === true){
+      this.showDetails = false;
+    }
+    else{
+      this.showDetails = true;
+      this.getAllDepartments();
+    }
+  }
+  toggleTableView(){
+    if(this.changeTable === true){
+      this.changeTable = false;
+    }
+    else{
+      this.changeTable = true;
+    }
+  }
+
+  onDepartmentChange(event: any) {
+    this.selectedDepartment = event.target.value;
+    console.log('Selected Department:', this.selectedDepartment);
+  }
+  getAllDepartments(){
+    this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        // console.log('response -- ',response.serviceResponse);
+        this.departments = response.serviceResponse;
+        console.log('response -- ',this.departments);
+
+      }else {
+        alert(response.serviceResponse)
+      }
+    });
+
   }
 
   showLeaveReportTable() {
