@@ -94,4 +94,11 @@ public class ReportController {
 			ServiceResponse response =	reportService.getAllEmployeesReportByProjectType();
 			return response;
 		}
+		
+		@RequestMapping(value="/getAllEmployeesReportByProjectTypeInConsolidated" , method = RequestMethod.GET)
+		public ServiceResponse getAllEmployeesReportByProjectTypeInConsolidated() {		
+			
+			ServiceResponse response =	reportService.getAllEmployeesReportByProjectTypeInConsolidated();
+			return response;
+		}
 }
