@@ -10,4 +10,6 @@ public class BulkGoalAssignmentRequest {
     private List<Long> empIds;
     private Long templateId;
     private String expectedCompletionDate;
+    private Long quarterId;
+    
 }

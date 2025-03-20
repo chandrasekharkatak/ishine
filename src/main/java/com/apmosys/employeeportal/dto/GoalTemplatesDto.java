@@ -8,7 +8,7 @@ public class GoalTemplatesDto {
 
     private Long templateId;
     private String title; 
-    private Long quarterId;
+//    private Long quarterId;
     private String description;
     private Long createdById;
     private Long departmentId;

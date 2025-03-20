@@ -42,6 +42,9 @@ public class EmployeeGoalDTO {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate createdDate;
     
+    private String quarter;
+    
+    
 }
 
 

@@ -79,18 +79,18 @@
                 >
                   View Performance
                 </button>
-                <button
+                <!-- <button
                   class="btn btn-success btn-sm"
                   (click)="assignGoalToEmployee(viewTeamMember)"
                 >
                   Assign Goal
-                </button>
+                </button> -->
                 <button
-                  class="btn btn-sm btn-outline-primary ml-1"
+                  class="btn btn-success btn-sm"
                   title="Assign Multiple Goals"
                   (click)="openMultiGoalModal(viewTeamMember)"
                 >
-                  <i class="fa fa-tasks"></i> Multi-Goal
+                  <i class="fa fa-tasks"></i> Assign Goals
                 </button>
               </td>
             </tr>
@@ -139,6 +139,17 @@
           {{ template.title }}
         </option>
       </select>
+    </div>
+    <div class="row mb-3">
+      <div class="col-md-12">
+        <label>Select Quarter</label>
+        <select class="form-control" [(ngModel)]="selectedQuarter">
+          <option [ngValue]="null">Select Quarter</option>
+          <option *ngFor="let quarter of quarterCyclesList" [ngValue]="quarter.quarterId">
+            {{quarter.quarterCycle}}
+          </option>
+        </select>
+      </div>
     </div>
 
     <div class="form-group mb-3">
@@ -221,7 +232,7 @@
         [disabled]="
           !selectedGoalTemplate ||
           !expectedCompletionDate ||
-          selectedEmployees.length === 0
+          selectedEmployee.length === 0
         "
         (click)="assignGoalToSingleEmployee()"
       >
@@ -230,6 +241,9 @@
     </div>
   </div>
 </ng-template>
+
+
+
 <ng-template #multiGoalTemplate>
   <div class="modal-header">
     <h4 class="modal-title">
@@ -246,6 +260,19 @@
   </div>
   <div class="modal-body">
     <div class="container">
+      <!-- Quarter selection moved outside the loop - applies to all goals -->
+      <div class="row mb-3">
+        <div class="col-md-12">
+          <label>Select Quarter</label>
+          <select class="form-control" [(ngModel)]="selectedQuarter">
+            <option [ngValue]="null">Select Quarter</option>
+            <option *ngFor="let quarter of quarterCyclesList" [ngValue]="quarter.quarterId">
+              {{quarter.quarterCycle}}
+            </option>
+          </select>
+        </div>
+      </div>
+      
       <div
         class="row mb-2"
         *ngFor="let goalItem of selectedGoalData; let i = index"
@@ -256,9 +283,9 @@
             <option [ngValue]="null">Select Template</option>
             <option
               *ngFor="let template of goalTemplates"
-              [value]="template.id"
+              [value]="template.templateId"
             >
-              {{ template.name }}
+              {{ template.title }}
             </option>
           </select>
         </div>
@@ -297,6 +324,7 @@
       type="button"
       class="btn btn-primary"
       (click)="assignMultipleGoalsToEmployee()"
+      [disabled]="!selectedQuarter"
     >
       Assign Goals
     </button>

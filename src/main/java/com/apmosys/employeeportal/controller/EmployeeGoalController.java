@@ -26,9 +26,10 @@ public class EmployeeGoalController {
         try {
             LocalDate completionDate = LocalDate.parse(request.getExpectedCompletionDate());
             EmployeeGoalDTO assignedGoal = employeeGoalService.assignGoalToEmployee(
-                request.getEmpId(), 
-                request.getTemplateId(), 
-                completionDate
+            		   request.getEmpId(),
+            		    request.getTemplateId(),
+            		    completionDate,
+            		    request.getQuarterId()
             );
 
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -50,7 +51,8 @@ public class EmployeeGoalController {
             List<EmployeeGoalDTO> assignedGoals = employeeGoalService.assignGoalToMultipleEmployees(
                 request.getEmpIds(), 
                 request.getTemplateId(), 
-                completionDate
+                completionDate,
+                request.getQuarterId()
             );
 
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

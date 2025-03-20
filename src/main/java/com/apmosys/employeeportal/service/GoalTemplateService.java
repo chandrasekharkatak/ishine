@@ -158,9 +158,9 @@ public class GoalTemplateService{
                         goalTemplate.setDepartmentId(goalTemplatesDto.getDepartmentId());
                     }
                     
-                    if (goalTemplatesDto.getQuarterId() != null) {
-                        goalTemplate.setQuarterId(goalTemplatesDto.getQuarterId());
-                    }
+//                    if (goalTemplatesDto.getQuarterId() != null) {
+//                        goalTemplate.setQuarterId(goalTemplatesDto.getQuarterId());
+//                    }
                     
                     // Keep existing approval fields if not provided
                     if (goalTemplatesDto.getApprovedById() != null) {
@@ -276,9 +276,9 @@ public class GoalTemplateService{
                 if (goalTemplatesDto.getTitle() != null) {
                     goalTemplate.setTitle(goalTemplatesDto.getTitle());
                 }
-                if (goalTemplatesDto.getQuarterId() != null) {
-                    goalTemplate.setQuarterId(goalTemplatesDto.getQuarterId());
-                }
+//                if (goalTemplatesDto.getQuarterId() != null) {
+//                    goalTemplate.setQuarterId(goalTemplatesDto.getQuarterId());
+//                }
                 if (goalTemplatesDto.getDescription() != null) {
                     goalTemplate.setDescription(goalTemplatesDto.getDescription());
                 }
@@ -354,7 +354,7 @@ public class GoalTemplateService{
             entity.setDepartmentId(departmentDetails.getDeptId());
             entity.setDepartment(departmentDetails.getName());
             entity.setCreatedBy(departmentDetails.getHodId());
-            entity.setQuarterId(dto.getQuarterId());
+//            entity.setQuarterId(dto.getQuarterId());
 //            entity.setApprovedBy(dto.getApprovedById());
 //            entity.setIsApproved(dto.getIsApproved());
         }

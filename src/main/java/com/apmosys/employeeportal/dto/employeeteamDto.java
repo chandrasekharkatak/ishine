@@ -11,4 +11,5 @@ public class employeeteamDto {
 	private String name;
 	private Long totalGoals;
 	private Long goalsCompleted;
+	private Long quarterId;
 }

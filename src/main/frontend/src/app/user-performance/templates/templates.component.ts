@@ -742,7 +742,7 @@ export class TemplatesComponent implements OnInit {
       title: template.title,
       description: template.description,
       departmentId: template.departmentId,
-      quarterId: template.quarterId,
+      // quarterId: template.quarterId,
       department: dept ? dept.name : ''
     });
     
