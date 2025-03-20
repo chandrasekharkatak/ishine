@@ -525,9 +525,9 @@ public class ReportService {
 					employeeDTO.setEmploymentstatus(object[7] != null ? object[7].toString() : null);
 					employeeDTO.setBillable(object[8] != null ? object[8].toString() : null);
 					employeeDTO.setBillableType(object[9] != null ? object[9].toString() : null);
-					employeeDTO.setTeamId(object[10] != null ? Long.parseLong(object[10].toString()) : null);		
+					employeeDTO.setTeamIds(object[10] != null ? (object[10].toString()) : null);		
 					employeeDTO.setTeamName(object[11] != null ? object[11].toString() : null);
-					employeeDTO.setProjectId(object[12] != null ? Integer.parseInt(object[12].toString()) : null);
+					employeeDTO.setProjectIds(object[12] != null ? object[12].toString() : null);
 					employeeDTO.setProjectName(object[13] != null ? object[13].toString() : null); 
 					employeeDTO.setPoStartDate(object[14] != null ? object[14].toString() : null);
 					employeeDTO.setPoEndDate(object[15] != null ? object[15].toString() : null);
