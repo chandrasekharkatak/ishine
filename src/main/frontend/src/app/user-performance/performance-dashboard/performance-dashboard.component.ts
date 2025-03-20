@@ -45,15 +45,14 @@ export class PerformanceDashboardComponent implements OnInit {
 
   currentUser:User;
   activeTab: string = 'kra-kpi';
-  selectedQuarter: string = 'Q1';
-  quarters = [];
-
+  selectedQuarter: any;
+  quarterCyclesList: any;
+  selectedQuarter1:any;
   kraKpiMetrics: any[] = [];
   questionnaireQuestions: any[] = [];
 
   kraKpiReviewForm: FormGroup;
   questionnaireReviewForm: FormGroup;
-
   stats: Stats ={
     goalsCompleted: 0,
     goalsRemaining: 0,
@@ -86,14 +85,15 @@ export class PerformanceDashboardComponent implements OnInit {
     this.fetchQuarters();
     this.fetchGoals();
     this.loadPerformanceStats();
+
   }
 
   fetchQuarters(): void {
-    this.performanceService.getAvailableQuarters().subscribe({
+    this.performanceService.getAllQuarterCycles().subscribe({
       next: (response: any) => {
-        if (response.serviceStatus === 'SUCCESS') {
-          this.quarters = response.serviceResponse;
-          this.selectedQuarter = this.quarters[0] || '';
+        if (response.serviceStatus === 'Success') {
+          this.quarterCyclesList = response.serviceResponse;
+          console.log(this.quarterCyclesList);
           this.onQuarterChange();
         } else {
           this.errorMessage = response.serviceMessage || 'Failed to load quarters.';
@@ -109,7 +109,7 @@ export class PerformanceDashboardComponent implements OnInit {
     if (!this.selectedQuarter) return;
 
     this.loadPerformanceStats();
-    this.fetchReviewData();
+    this.loadReviewData();
     this.fetchGoals();
   }
 
@@ -184,7 +184,7 @@ export class PerformanceDashboardComponent implements OnInit {
 
   setActiveTab(tab: string) {
     this.activeTab = tab;
-    this.fetchReviewData();
+    this.loadReviewData();
   }
 
   openModal(template: TemplateRef<any>, goal: any): void {
@@ -193,27 +193,11 @@ export class PerformanceDashboardComponent implements OnInit {
   }
 
 
-  fetchReviewData() {
-    if (this.activeTab === 'kra-kpi') {
-      this.http.get(`/api/kra-kpi/review?quarter=${this.selectedQuarter}`)
-        .subscribe((data: any) => {
-          this.kraKpiMetrics = data;
-          this.initializeKraKpiForm();
-        });
-    }
-
-    if (this.activeTab === 'questionnaire') {
-      this.http.get(`/api/questionnaire/review?quarter=${this.selectedQuarter}`)
-        .subscribe((data: any) => {
-          this.questionnaireQuestions = data;
-          this.initializeQuestionnaireForm();
-        });
-    }
-  }
+  
 
   loadReviewData(): void {
     const empId = this.currentUser?.empId;
-    const quarter = this.selectedQuarter;
+    const quarter = this.selectedQuarter1;
     if (!empId) return;
     this.performanceService.getKraKpiReview(empId, quarter).subscribe({
       next: (data) => {
@@ -232,35 +216,6 @@ export class PerformanceDashboardComponent implements OnInit {
       },
       error: err => console.error('Error fetching questionnaire:', err)
     });
-  }
-
-  initializeKraKpiForm() {
-    let formControls: any = {};
-    this.kraKpiMetrics.forEach(metric => {
-      formControls[metric.id] = [0];  
-    });
-    this.kraKpiReviewForm = this.fb.group(formControls);
-  }
-
-  initializeQuestionnaireForm() {
-    let formControls: any = {};
-    this.questionnaireQuestions.forEach(question => {
-      formControls[question.id] = [0];  
-    });
-    this.questionnaireReviewForm = this.fb.group(formControls);
-  }
-
-
-  submitKraKpiReview() {
-    let payload = { quarter: this.selectedQuarter, scores: this.kraKpiReviewForm.value };
-    this.http.post(`/api/kra-kpi/review/submit`, payload)
-      .subscribe(response => console.log('KRA/KPI Review submitted:', response));
-  }
-
-  submitQuestionnaireReview() {
-    let payload = { quarter: this.selectedQuarter, scores: this.questionnaireReviewForm.value };
-    this.http.post(`/api/questionnaire/review/submit`, payload)
-      .subscribe(response => console.log('Questionnaire Review submitted:', response));
   }
   
 

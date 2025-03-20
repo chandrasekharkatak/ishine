@@ -46,8 +46,9 @@ export class ViewPerformanceComponent implements OnInit {
 
   currentUser:User;
   activeTab: string = 'kra-kpi';
-  selectedQuarter: string = 'Q1';
-  quarters = [];
+  quarterCyclesList: any;
+  selectedQuarter:any;
+  selectedQuarter1:any;
 
   kraKpiMetrics: any[] = [];
   questionnaireQuestions: any[] = [];
@@ -66,7 +67,7 @@ export class ViewPerformanceComponent implements OnInit {
   summary?: AppraisalSummary;
 
   currentEmployeeInfo:Employee = new Employee();
-  selectedEmployee!: Employee | null ;
+  selectedEmployee: any ;
   selectedGoal?: Goal;
   subscription!: Subscription;
   modalRef?: BsModalRef;
@@ -98,9 +99,9 @@ export class ViewPerformanceComponent implements OnInit {
   fetchQuarters(): void {
     this.performanceService.getAvailableQuarters().subscribe({
       next: (response: any) => {
-        if (response.serviceStatus === 'SUCCESS') {
-          this.quarters = response.serviceResponse;
-          this.selectedQuarter = this.quarters[0] || '';
+        if (response.serviceStatus === 'Success') {
+          this.quarterCyclesList = response.serviceResponse;
+          this.selectedQuarter = this.quarterCyclesList[0] || '';
           this.onQuarterChange();
         } else {
           this.errorMessage = response.serviceMessage || 'Failed to load quarters.';
@@ -177,7 +178,7 @@ export class ViewPerformanceComponent implements OnInit {
   async onGetEmployeeInfo(){
     this.currentEmployeeInfo = new Employee();
     let currentEmp = new Employee();
-    currentEmp.empId = this.selectedEmployee.empId;
+    currentEmp.empId = this.selectedEmployee.id;
 
     const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
     if (response.serviceStatus == "Success") {
@@ -204,7 +205,7 @@ export class ViewPerformanceComponent implements OnInit {
 
   loadReviewData(): void {
     const empId = this.currentUser?.empId;
-    const quarter = this.selectedQuarter;
+    const quarter = this.selectedQuarter1;
     if (!empId) return;
     this.performanceService.getKraKpiReview(empId, quarter).subscribe({
       next: (data) => {

@@ -161,7 +161,6 @@ export class TeamDashboardComponent implements OnInit {
     this.router.navigate(['/user-performance/view-performance']);
   }
 
-
   toggleEmployeeSelection(employee: any) {
     console.log('Toggling selection for employee:', employee);
     const index = this.selectedEmployees.findIndex(e => e.id === employee.id);
