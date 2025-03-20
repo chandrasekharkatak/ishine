@@ -18,7 +18,7 @@ public class Kpi {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+    private Long quarterId;
 
     
     private String name;

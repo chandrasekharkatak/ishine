@@ -22,8 +22,8 @@ export class KraKpiService {
   }
 
   getKpisByQuarter(quarterId: number): Observable<any> {
-    // return this.http.get(`${this.apiUrl}api/kpi/quarter/${quarterId}`);
-    return null;
+    return this.http.get(`${this.apiUrl}api/kpi/getKpisByQuarter/${quarterId}`);
+   
   }
   createKpiTemplate(kpiTemplate: KpiTemplate): Observable<any> {
     return this.http.post(`${this.apiUrl}api/kpi/createKpi`, kpiTemplate);

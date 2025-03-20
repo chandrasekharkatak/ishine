@@ -1,19 +1,19 @@
 <div class="mb-3">
   <div class="col-md-12 px-0">
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1"
-      [class.active]="activeTab === 'goals'" (click)="setActiveTab('goals')">Goals Template
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1" [class.active]="activeTab === 'goals'"
+      (click)="setActiveTab('goals')">Goals Template
     </button>
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1"
-      [class.active]="activeTab === 'kra-kpi'" (click)="setActiveTab('kra-kpi')">KRA/KPI Template
-    </button> 
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1"
-      [class.active]="activeTab === 'questionnaire'" (click)="setActiveTab('questionnaire')">Questionnaire Template
-    </button> 
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1"
-      [class.active]="activeTab === 'create-template'" (click)="setActiveTab('create-template')">Create Template
-    </button> 
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1" [class.active]="activeTab === 'kra-kpi'"
+      (click)="setActiveTab('kra-kpi')">KRA/KPI Template
+    </button>
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1" [class.active]="activeTab === 'questionnaire'"
+      (click)="setActiveTab('questionnaire')">Questionnaire Template
+    </button>
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1" [class.active]="activeTab === 'create-template'"
+      (click)="setActiveTab('create-template')">Create Template
+    </button>
   </div>
-  
+
   <div class="tab-content mt-3">
     <div *ngIf="activeTab === 'goals'">
       <div class="px-0">
@@ -39,9 +39,6 @@
               <th>Title</th>
               <th>Description</th>
               <th>Department</th>
-              <!-- <th>Quarter</th>
-              <th>Status</th>
-              <th>Actions</th> -->
             </tr>
           </thead>
           <tbody>
@@ -49,12 +46,6 @@
               <td>{{ template.title }}</td>
               <td>{{ template.description }}</td>
               <td>{{ template.department }}</td>
-              <!-- <td>Q{{ template.quarterId }}</td> -->
-              <!-- <td>
-                <span class="badge" [ngClass]="template.isApproved ? 'badge-success' : 'badge-warning'">
-                  {{ template.isApproved ? 'Approved' : 'Pending' }}
-                </span>
-              </td> -->
               <td>
                 <button class="btn btn-sm btn-primary mr-1" (click)="editTemplate(template)">Edit</button>
                 <button class="btn btn-sm btn-danger" (click)="deleteTemplate(template.templateId)">Delete</button>
@@ -68,7 +59,7 @@
       </div>
     </div>
 
-    <div *ngIf="activeTab === 'kra-kpi'">
+    <!-- <div *ngIf="activeTab === 'kra-kpi'">
       <div class="px-0">
         <div class="col-md-12 table-header">
           <h1 class="table-header-title">KRA/KPI Template</h1>
@@ -96,6 +87,53 @@
           No KRA/KPI templates found
         </li>
       </ul>
+    </div> -->
+
+    <div *ngIf="activeTab === 'kra-kpi'">
+      <div class="px-0">
+        <div class="col-md-12 table-header d-flex justify-content-between align-items-center">
+          <h1 class="table-header-title">KRA/KPI Template</h1>
+          <button class="btn btn-primary"
+            (click)="setActiveTab('create-template'); selectedTemplateType = 'kra-kpi'; resetKraKpiForm()">
+            Add KRA/KPI Template
+          </button>
+        </div>
+      </div>
+      <div class="row ml-2">
+        <div class="col-md-4"> <label class="info-label"><span class="text-danger">*</span>Quarter</label> <select
+            class="form-control" aria-hidden="true" [(ngModel)]="selectedQuarterIdForKpi" (change)="onKpiQuarterChange()">
+            <option [ngValue]="null">All Quarters</option>
+            <option [ngValue]="1">Q1</option>
+            <option [ngValue]="2">Q2</option>
+            <option [ngValue]="3">Q3</option>
+            <option [ngValue]="4">Q4</option>
+          </select> </div>
+      </div>
+      <div class="mt-3">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Description</th>
+              <th>Quarter</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let template of kraKpiTemplates">
+              <td>{{ template.name }}</td>
+              <td>{{ template.description }}</td>
+              <td>Q{{ template.quarterId }}</td>
+              <td> <button class="btn btn-sm btn-primary mr-1" (click)="editKraKpiTemplate(template)">Edit</button>
+                <button class="btn btn-sm btn-danger" (click)="deleteKraKpiTemplate(template.id)">Delete</button>
+              </td>
+            </tr>
+            <tr *ngIf="kraKpiTemplates.length === 0">
+              <td colspan="4" class="text-center">No KRA/KPI templates found</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <div *ngIf="activeTab === 'questionnaire'">
@@ -135,7 +173,8 @@
               <td>Q{{ template.quarterId }}</td>
               <td>
                 <button class="btn btn-sm btn-primary mr-1" (click)="editQuestionnaireTemplate(template)">Edit</button>
-                <button class="btn btn-sm btn-danger" (click)="deleteQuestionnaireTemplate(template.questionId)">Delete</button>
+                <button class="btn btn-sm btn-danger"
+                  (click)="deleteQuestionnaireTemplate(template.questionId)">Delete</button>
               </td>
             </tr>
             <tr *ngIf="questionnaireTemplates.length === 0">
@@ -146,7 +185,7 @@
       </div>
     </div>
 
-    
+
 
     <div *ngIf="activeTab === 'create-template'">
       <div class="px-0">
@@ -155,7 +194,8 @@
         </div>
       </div>
       <div class="w-25 mb-3">
-        <select class="form-control" [(ngModel)]="selectedTemplateType" (change)="updateTemplateForm()" [disabled]="isEditing">
+        <select class="form-control" [(ngModel)]="selectedTemplateType" (change)="updateTemplateForm()"
+          [disabled]="isEditing">
           <option value="goals">Goals Template</option>
           <option value="kra-kpi">KRA/KPI Template</option>
           <option value="questionnaire">Questionnaire Template</option>
@@ -163,7 +203,7 @@
       </div>
 
       <form [formGroup]="templateForm" (ngSubmit)="createOrUpdateTemplate()">
-        
+
 
         <div *ngIf="selectedTemplateType === 'goals'" class="form-group w-25">
           <div class="form-group w-25">
@@ -173,13 +213,13 @@
           <label>Description <span class="text-danger">*</span></label>
           <textarea class="form-control" formControlName="description" rows="3"></textarea>
         </div>
-    <div class="form-group w-25">
+        <div class="form-group w-25">
           <label>Department <span class="text-danger">*</span></label>
           <select class="form-control" formControlName="departmentId" required>
             <option [ngValue]="null" disabled>Select Department</option>
             <option *ngFor="let dept of allDeptList" [ngValue]="dept.deptId">{{dept.name}}</option>
           </select>
-        </div> 
+        </div>
 
         <div *ngIf="selectedTemplateType === 'goals'" class="form-group w-25">
           <label>Quarter <span class="text-danger">*</span></label>
@@ -192,70 +232,9 @@
           </select>
         </div>
 
-
-
-        <!-- <div *ngIf="selectedTemplateType === 'kra-kpi'" class="card-body mx-0">
-          <form [formGroup]="kpikraForm" (ngSubmit)="onKraKpiSubmit()">
-            
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <label><span class="text-danger">*</span> KPI Title</label>
-                <input type="text" class="form-control" formControlName="name" placeholder="Enter title" required>
-                <div *ngIf="kpikraForm.get('name')?.invalid && kpikraForm.get('name')?.touched" class="text-danger">
-                  Title is required.
-                </div>
-              </div>
-            </div>
-        
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <label>KPI Description</label>
-                <textarea class="form-control" formControlName="description" placeholder="Enter description"></textarea>
-              </div>
-            </div>
-        
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <label>Quarter</label>
-                <select class="form-control" formControlName="quarterId">
-                  <option [ngValue]="null">Select Quarter</option>
-                  <option [ngValue]="1">Q1</option>
-                  <option [ngValue]="2">Q2</option>
-                  <option [ngValue]="3">Q3</option>
-                  <option [ngValue]="4">Q4</option>
-                </select>
-              </div>
-            </div>
-        
-            <div formArrayName="kpis">
-              <div *ngFor="let kpi of kpis.controls; let i = index" [formGroupName]="i" class="form-group row mb-3">
-                <div class="col-md-6">
-                  <label>KRA/KPI {{ i + 1 }}</label>
-                  <input type="text" class="form-control" formControlName="description" placeholder="Enter KRA/KPI" required>
-                  <div *ngIf="kpi.get('description')?.invalid && kpi.get('description')?.touched" class="text-danger">
-                    KRA/KPI is required.
-                  </div>
-                </div>
-        
-                <div class="col-md-2 d-flex align-items-center mt-4">
-                  <button type="button" class="btn btn-outline-primary btn-sm me-2 m-1" (click)="addKpi()" 
-                          [disabled]="!kpis.at(kpis.length - 1)?.valid || kpis.length >= 10">
-                    <i class="fa fa-plus"></i>
-                  </button>
-                  <button type="button" class="btn btn-outline-primary btn-sm" (click)="removeKpi(i)" *ngIf="kpis.length > 1">
-                    <i class="fa fa-trash"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-        
-            <button type="submit" class="btn btn-success mt-3" [disabled]="!kpikraForm.valid">Submit</button>
-            <button type="button" class="btn btn-secondary mt-3 ms-2" (click)="resetKraKpiForm()">Reset</button>
-          </form>
-        </div> -->
         <div *ngIf="selectedTemplateType === 'kra-kpi'" class="card-body mx-0">
           <form [formGroup]="kpikraForm" (ngSubmit)="onKraKpiSubmit()">
-            
+
             <div class="row mb-3">
               <div class="col-md-6">
                 <label><span class="text-danger">*</span> KRA Title</label>
@@ -265,14 +244,14 @@
                 </div>
               </div>
             </div>
-        
+
             <div class="row mb-3">
               <div class="col-md-6">
                 <label>KRA Description</label>
                 <textarea class="form-control" formControlName="description" placeholder="Enter description"></textarea>
               </div>
             </div>
-        
+
             <div class="row mb-3">
               <div class="col-md-6">
                 <label><span class="text-danger">*</span> Quarter</label>
@@ -283,12 +262,13 @@
                   <option [ngValue]="3">Q3</option>
                   <option [ngValue]="4">Q4</option>
                 </select>
-                <div *ngIf="kpikraForm.get('quarterId')?.invalid && kpikraForm.get('quarterId')?.touched" class="text-danger">
+                <div *ngIf="kpikraForm.get('quarterId')?.invalid && kpikraForm.get('quarterId')?.touched"
+                  class="text-danger">
                   Quarter is required.
                 </div>
               </div>
             </div>
-        
+
             <div class="row mb-3">
               <div class="col-md-12">
                 <label><span class="text-danger">*</span> KPIs</label>
@@ -297,7 +277,7 @@
                 </div>
               </div>
             </div>
-        
+
             <div formArrayName="kpis">
               <div *ngFor="let kpi of kpis.controls; let i = index" [formGroupName]="i" class="form-group row mb-3">
                 <div class="col-md-8">
@@ -305,30 +285,33 @@
                     <div class="input-group-prepend">
                       <span class="input-group-text">KPI {{ i + 1 }}</span>
                     </div>
-                    <input type="text" class="form-control" formControlName="description" placeholder="Enter KPI description" required>
+                    <input type="text" class="form-control" formControlName="description"
+                      placeholder="Enter KPI description" required>
                     <div class="input-group-append">
-                      <button type="button" class="btn btn-outline-danger" (click)="removeKpi(i)" *ngIf="kpis.length > 1">
+                      <button type="button" class="btn btn-outline-danger" (click)="removeKpi(i)"
+                        *ngIf="kpis.length > 1">
                         <i class="fa fa-trash"></i>
                       </button>
                     </div>
                   </div>
-                  <div *ngIf="kpi.get('description')?.invalid && kpi.get('description')?.touched" class="text-danger mt-1">
+                  <div *ngIf="kpi.get('description')?.invalid && kpi.get('description')?.touched"
+                    class="text-danger mt-1">
                     KPI description is required.
                   </div>
                 </div>
               </div>
             </div>
-        
+
             <div class="row mb-3">
               <div class="col-md-12">
-                <button type="button" class="btn btn-outline-primary" (click)="addKpi()" 
-                        [disabled]="!kpis.at(kpis.length - 1)?.valid || kpis.length >= 10">
+                <button type="button" class="btn btn-outline-primary" (click)="addKpi()"
+                  [disabled]="!kpis.at(kpis.length - 1)?.valid || kpis.length >= 10">
                   <i class="fa fa-plus"></i> Add Another KPI
                 </button>
                 <small class="text-muted ms-2">(Max 10)</small>
               </div>
             </div>
-        
+
             <div class="row mt-4">
               <div class="col-md-12">
                 <button type="submit" class="btn btn-success" [disabled]="!kpikraForm.valid">
@@ -342,38 +325,31 @@
           </form>
         </div>
 
+        <!-- this is need to edited for creating questionnaire -->
+
         <div *ngIf="activeTab === 'create-template' && selectedTemplateType === 'questionnaire'" class="card-body mx-0">
           <form [formGroup]="questionnaireForm" (ngSubmit)="onSubmit()">
             <div class="row mb-3">
               <div class="col-md-6">
                 <label for="questionTitle"><span class="text-danger">*</span>Questionnaire Title</label>
-                <input
-                  id="questionTitle"
-                  type="text"
-                  class="form-control"
-                  formControlName="questionTitle"
-                  placeholder="Enter questionnaire title"
-                  required
-                />
-                <div *ngIf="questionnaireForm.get('questionTitle')?.invalid && questionnaireForm.get('questionTitle')?.touched" class="text-danger">
+                <input id="questionTitle" type="text" class="form-control" formControlName="questionTitle"
+                  placeholder="Enter questionnaire title" required />
+                <div
+                  *ngIf="questionnaireForm.get('questionTitle')?.invalid && questionnaireForm.get('questionTitle')?.touched"
+                  class="text-danger">
                   Title is required.
                 </div>
               </div>
             </div>
-        
+
             <div class="row mb-3">
               <div class="col-md-6">
                 <label for="questionDescription">Description</label>
-                <textarea
-                  id="questionDescription"
-                  class="form-control"
-                  formControlName="questionDescription"
-                  placeholder="Enter questionnaire description"
-                  rows="3"
-                ></textarea>
+                <textarea id="questionDescription" class="form-control" formControlName="questionDescription"
+                  placeholder="Enter questionnaire description" rows="3"></textarea>
               </div>
             </div>
-        
+
             <div class="row mb-3">
               <div class="col-md-4">
                 <label for="quarterId">Quarter <span class="text-danger">*</span></label>
@@ -384,51 +360,52 @@
                   <option [ngValue]="3">Q3</option>
                   <option [ngValue]="4">Q4</option>
                 </select>
-                <div *ngIf="questionnaireForm.get('quarterId')?.invalid && questionnaireForm.get('quarterId')?.touched" class="text-danger">
+                <div *ngIf="questionnaireForm.get('quarterId')?.invalid && questionnaireForm.get('quarterId')?.touched"
+                  class="text-danger">
                   Quarter is required.
                 </div>
               </div>
             </div>
-            
+
             <div>
               <label><span class="text-danger">*</span>Questions</label>
               <div formArrayName="questions">
-                <div *ngFor="let questionControl of questions.controls; let i = index" [formGroupName]="i" class="row mb-3">
+                <div *ngFor="let questionControl of questions.controls; let i = index" [formGroupName]="i"
+                  class="row mb-3">
                   <div class="col-md-6">
                     <div class="input-group">
                       <div class="input-group-prepend">
                         <span class="input-group-text">{{ i + 1 }}</span>
                       </div>
-                      <input
-                        type="text"
-                        class="form-control"
-                        formControlName="questionText"
-                        placeholder="Enter question {{ i + 1 }}"
-                        required
-                      />
+                      <input type="text" class="form-control" formControlName="questionText"
+                        placeholder="Enter question {{ i + 1 }}" required />
                       <div class="input-group-append">
-                        <button type="button" class="btn btn-outline-danger" (click)="removeQuestion(i)" [disabled]="questions.length <= 1">
+                        <button type="button" class="btn btn-outline-danger" (click)="removeQuestion(i)"
+                          [disabled]="questions.length <= 1">
                           <i class="fa fa-trash"></i>
                         </button>
                       </div>
                     </div>
-                    <div *ngIf="questionControl.get('questionText')?.invalid && questionControl.get('questionText')?.touched" class="text-danger">
+                    <div
+                      *ngIf="questionControl.get('questionText')?.invalid && questionControl.get('questionText')?.touched"
+                      class="text-danger">
                       Question is required.
                     </div>
                   </div>
                 </div>
               </div>
-              
+
               <div class="row mb-3">
                 <div class="col-md-6">
-                  <button type="button" class="btn btn-outline-primary" (click)="addQuestion()" [disabled]="!questions.at(questions.length - 1).valid || questions.length >= 10">
+                  <button type="button" class="btn btn-outline-primary" (click)="addQuestion()"
+                    [disabled]="!questions.at(questions.length - 1).valid || questions.length >= 10">
                     <i class="fa fa-plus"></i> Add Question
                   </button>
                   <small class="ml-2 text-muted">(Maximum 10 questions)</small>
                 </div>
               </div>
             </div>
-            
+
             <div class="mt-3">
               <button type="submit" class="btn btn-success" [disabled]="!questionnaireForm.valid">
                 {{ isEditing ? 'Update' : 'Create' }} Questionnaire

@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.service;
 
 import com.apmosys.employeeportal.dto.KpiDTO;
 import com.apmosys.employeeportal.model.Kpi;
+import com.apmosys.employeeportal.model.Questionnaire;
 //import com.apmosys.employeeportal.model.GoalStatus;
 import com.apmosys.employeeportal.repository.KpiRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ public class KpiService {
                 .description(kpi.getDescription())
 //                .type(kpi.getType())
 //                .status(kpi.getStatus())
+                .quarterId(kpi.getQuarterId())
                 .createdAt(kpi.getCreatedAt())
                 .updatedAt(kpi.getUpdatedAt())
                 .department(kpi.getDepartment()) 
@@ -43,6 +45,7 @@ public class KpiService {
 //        kpi.setStatus(dto.getStatus() != null ? dto.getStatus() : GoalStatus.PENDING);
         kpi.setApprovedBy(dto.getApprovedBy());
         kpi.setDepartment(dto.getDepartment()); 
+        kpi.setQuarterId(dto.getQuarterId());
         return kpi;
     }
 
@@ -112,7 +115,12 @@ public class KpiService {
 //        kpis.forEach(kpi -> kpi.setStatus(GoalStatus.APPROVED));
         return kpiRepository.saveAll(kpis).stream().map(this::toDTO).collect(Collectors.toList());
     }
-
+    
+    public List<KpiDTO> getKpisByQuarter(Long quarterId) {
+        return kpiRepository.findByQuarterId(quarterId).stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
  
     public List<KpiDTO> getKpisByDepartment(String department) {
         
@@ -121,4 +129,8 @@ public class KpiService {
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
+
+	
+
+	
 }

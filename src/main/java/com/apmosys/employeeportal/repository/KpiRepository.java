@@ -12,6 +12,7 @@ public interface KpiRepository extends JpaRepository<Kpi, Long> {
 //    List<Kpi> findByStatus(GoalStatus status);
     Optional<Kpi> findById(Long id);
     List<Kpi> findByDepartmentIgnoreCase(String department);
+	List<Kpi> findByQuarterId(Long quarterId);
 
 
 }
