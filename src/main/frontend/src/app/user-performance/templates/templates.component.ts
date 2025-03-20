@@ -46,7 +46,7 @@ export class TemplatesComponent implements OnInit {
       title: ['', Validators.required],
       description: [''],
       departmentId: [null, Validators.required],
-      quarterId: [null],
+      // quarterId: [null],
       metrics: [''],
       questions: ['']
     });
@@ -864,7 +864,7 @@ export class TemplatesComponent implements OnInit {
       title: template.title,
       description: template.description,
       departmentId: template.departmentId,
-      quarterId: template.quarterId,
+      // quarterId: template.quarterId,
       department: dept ? dept.name : ''
     });
     

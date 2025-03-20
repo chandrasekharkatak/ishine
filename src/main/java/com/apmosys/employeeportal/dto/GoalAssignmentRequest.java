@@ -9,4 +9,5 @@ public class GoalAssignmentRequest {
     private Long empId;
     private Long templateId;
     private String expectedCompletionDate;
+    private Long quarterId;
 }

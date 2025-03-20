@@ -1,7 +1,6 @@
 package com.apmosys.employeeportal.service;
 
 import java.time.LocalDate;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,8 +9,10 @@ import org.springframework.stereotype.Service;
 import com.apmosys.employeeportal.dto.EmployeeGoalDTO;
 import com.apmosys.employeeportal.model.EmployeeGoals;
 import com.apmosys.employeeportal.model.GoalTemplates;
+import com.apmosys.employeeportal.model.QuaterCycle;
 import com.apmosys.employeeportal.repository.EmployeeGoalRepository;
 import com.apmosys.employeeportal.repository.GoalTemplatesRepository;
+import com.apmosys.employeeportal.repository.QuarterCycleRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import java.util.*;
 
@@ -27,36 +28,78 @@ public class EmployeeGoalService {
     @Autowired
     private GoalTemplateService goalTemplateService;
     
-    public EmployeeGoalDTO assignGoalToEmployee(Long empId, Long templateId, LocalDate expectedCompletionDate) {
+    @Autowired
+    private QuarterCycleRepository quarterCycleRepository;
+    
+    public EmployeeGoalDTO assignGoalToEmployee(Long empId, Long templateId, LocalDate expectedCompletionDate, Long quarterId) {
         ServiceResponse response = goalTemplateService.getGoalTemplateById(templateId);
-
         if (!ServiceResponse.STATUS_SUCCESS.equals(response.getServiceStatus())) {
             throw new RuntimeException("Goal template not found with ID: " + templateId);
         }
-
-//        GoalTemplatesDto template = (GoalTemplatesDto) response.getServiceResponse();
-        Optional<GoalTemplates> vopt=goalTemplateRepo.findById(templateId);
-        GoalTemplates template=null;
-          if(vopt.isPresent()) template=vopt.get();
-//        System.out.println("Template: " + template.getTitle() + ", HOD ID: " + template.getCreatedById());
-
+        
+        Optional<GoalTemplates> vopt = goalTemplateRepo.findById(templateId);
+        GoalTemplates template = null;
+        if(vopt.isPresent()) template = vopt.get();
+        
+        // Query quarter information ONCE
+        List<Object[]> quarterIdList = quarterCycleRepository.findQuarterCycleById(quarterId);
+        
         EmployeeGoalDTO employeeGoalDTO = new EmployeeGoalDTO();
+        
+        // Let's debug what's actually in the quarterIdList
+        System.out.println("Quarter data size: " + (quarterIdList != null ? quarterIdList.size() : "null"));
+        if (quarterIdList != null && !quarterIdList.isEmpty()) {
+            Object[] quarterData = quarterIdList.get(0);
+            System.out.println("Quarter data length: " + (quarterData != null ? quarterData.length : "null"));
+            if (quarterData != null) {
+                for (int i = 0; i < quarterData.length; i++) {
+                    System.out.println("Data at index " + i + ": " + (quarterData[i] != null ? quarterData[i].toString() : "null"));
+                }
+            }
+            
+            // Try to find the value that contains month format like "APR-JUN"
+            for (int i = 0; quarterData != null && i < quarterData.length; i++) {
+                if (quarterData[i] != null && quarterData[i].toString().matches("[A-Z]{3}-[A-Z]{3}")) {
+                    employeeGoalDTO.setQuarter(quarterData[i].toString());
+                    System.out.println("Found quarter format at index " + i + ": " + quarterData[i].toString());
+                    break;
+                }
+            }
+            
+            // Fallback if we didn't find a matching format
+            if (employeeGoalDTO.getQuarter() == null && quarterData != null && quarterData.length > 0) {
+                // Try index 0, 1, and 2 in that order
+                for (int i = 0; i < Math.min(3, quarterData.length); i++) {
+                    if (quarterData[i] != null) {
+                        employeeGoalDTO.setQuarter(quarterData[i].toString());
+                        System.out.println("Using fallback quarter at index " + i + ": " + quarterData[i].toString());
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // If still null, set a default
+        if (employeeGoalDTO.getQuarter() == null) {
+            employeeGoalDTO.setQuarter("Unknown Quarter");
+            System.out.println("No quarter data found, using default");
+        }
+        
         employeeGoalDTO.setEmpId(empId);
         employeeGoalDTO.setTemplateId(templateId);
         employeeGoalDTO.setAssignedBy(template.getCreatedBy());
         employeeGoalDTO.setGoalTitle(template.getTitle());
-//        employeeGoalDTO.setGoalTitle(template.getTitle());
         employeeGoalDTO.setGoalProgress("Not Started"); // Default status
         employeeGoalDTO.setGoalStatus("Pending"); // Default review status
         employeeGoalDTO.setExpectedCompletionDate(expectedCompletionDate);
         employeeGoalDTO.setCreatedDate(LocalDate.now());
-
+        
         // Convert DTO to entity, save, and convert back to DTO
         EmployeeGoals savedGoal = employeeGoalRepository.save(convertToEntity(employeeGoalDTO));
         return convertToDTO(savedGoal);
     }
     
-    public List<EmployeeGoalDTO> assignGoalToMultipleEmployees(List<Long> empIds, Long templateId, LocalDate expectedCompletionDate) {
+    public List<EmployeeGoalDTO> assignGoalToMultipleEmployees(List<Long> empIds, Long templateId, LocalDate expectedCompletionDate, Long quarterId) {
         ServiceResponse response = goalTemplateService.getGoalTemplateById(templateId);
         if (!ServiceResponse.STATUS_SUCCESS.equals(response.getServiceStatus())) {
             throw new RuntimeException("Goal template not found with ID: " + templateId);
@@ -70,7 +113,46 @@ public class EmployeeGoalService {
       
         List<EmployeeGoalDTO> assignedGoals = new ArrayList<>();
         for (Long empId : empIds) {
+        	
+        	
             EmployeeGoalDTO employeeGoalDTO = new EmployeeGoalDTO();
+            List<Object[]> quarterIdList = quarterCycleRepository.findQuarterCycleById(quarterId);
+            if (quarterIdList != null && !quarterIdList.isEmpty()) {
+                Object[] quarterData = quarterIdList.get(0);
+                System.out.println("Quarter data length: " + (quarterData != null ? quarterData.length : "null"));
+                if (quarterData != null) {
+                    for (int i = 0; i < quarterData.length; i++) {
+                        System.out.println("Data at index " + i + ": " + (quarterData[i] != null ? quarterData[i].toString() : "null"));
+                    }
+                }
+                
+                // Try to find the value that contains month format like "APR-JUN"
+                for (int i = 0; quarterData != null && i < quarterData.length; i++) {
+                    if (quarterData[i] != null && quarterData[i].toString().matches("[A-Z]{3}-[A-Z]{3}")) {
+                        employeeGoalDTO.setQuarter(quarterData[i].toString());
+                        System.out.println("Found quarter format at index " + i + ": " + quarterData[i].toString());
+                        break;
+                    }
+                }
+                
+                // Fallback if we didn't find a matching format
+                if (employeeGoalDTO.getQuarter() == null && quarterData != null && quarterData.length > 0) {
+                    // Try index 0, 1, and 2 in that order
+                    for (int i = 0; i < Math.min(3, quarterData.length); i++) {
+                        if (quarterData[i] != null) {
+                            employeeGoalDTO.setQuarter(quarterData[i].toString());
+                            System.out.println("Using fallback quarter at index " + i + ": " + quarterData[i].toString());
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // If still null, set a default
+            if (employeeGoalDTO.getQuarter() == null) {
+                employeeGoalDTO.setQuarter("Unknown Quarter");
+                System.out.println("No quarter data found, using default");
+            }
             employeeGoalDTO.setEmpId(empId);
             employeeGoalDTO.setTemplateId(templateId);
             employeeGoalDTO.setAssignedBy(template.getCreatedBy());
@@ -160,11 +242,11 @@ public class EmployeeGoalService {
         return response;
     }
     
-    public ServiceResponse bulkAssignGoals(List<Long> empIds, Long templateId, LocalDate expectedCompletionDate) {
+    public ServiceResponse bulkAssignGoals(List<Long> empIds, Long templateId, LocalDate expectedCompletionDate,Long quarterId) {
         ServiceResponse response = new ServiceResponse();
         
         try {
-            List<EmployeeGoalDTO> assignedGoals = assignGoalToMultipleEmployees(empIds, templateId, expectedCompletionDate);
+            List<EmployeeGoalDTO> assignedGoals = assignGoalToMultipleEmployees(empIds, templateId, expectedCompletionDate,quarterId);
             
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceResponse(assignedGoals);
@@ -189,6 +271,7 @@ public class EmployeeGoalService {
         dto.setExpectedCompletionDate(entity.getExpectedCompletionDate());
         dto.setActualCompletionDate(entity.getActualCompletionDate());
         dto.setCreatedDate(entity.getCreatedDate());
+        dto.setQuarter(entity.getQuarter());
         return dto;
     }
     
@@ -204,6 +287,7 @@ public class EmployeeGoalService {
         entity.setExpectedCompletionDate(dto.getExpectedCompletionDate());
         entity.setActualCompletionDate(dto.getActualCompletionDate());
         entity.setCreatedDate(dto.getCreatedDate());
+        entity.setQuarter(dto.getQuarter());
         return entity;
     }
 
