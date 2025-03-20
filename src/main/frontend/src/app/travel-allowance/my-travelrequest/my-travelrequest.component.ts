@@ -65,16 +65,6 @@ import { MyTravelDesk } from 'src/app/models/travelDesk';
   sortColumnType:any;
 
 
-  //Obj
-  timesheetObj: Timesheet = new Timesheet();
-  allTimesheetActivities: any[] = []
-  allProjectsList: any[] = [];
-  allActivityList: any[] = [];
-
-  allMyTimesheets: any[] = [];
-  timesheetActivities: any[] = [];
-  startDate: any;
-  endDate: any;
 
   //excel
   excelName = '';

@@ -3,6 +3,8 @@ package com.apmosys.employeeportal.service;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -81,7 +83,12 @@ public class TravelDeskService {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		try {
 			List<TravelDesk> travelDesk = tavelDeskRepository.findByEmpId(empId);
-			if(travelDesk.isEmpty() || travelDesk == null) {
+			
+			  List<TravelDesk> activeTravelDesk = travelDesk.stream()
+			            .filter(t -> t.isActive() == true)  
+			            .collect(Collectors.toList());
+			  
+			if((travelDesk.isEmpty() || travelDesk == null) && activeTravelDesk.isEmpty()) {
 				serviceResponse.setServiceError("Data Not Found...!!");
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				return serviceResponse;

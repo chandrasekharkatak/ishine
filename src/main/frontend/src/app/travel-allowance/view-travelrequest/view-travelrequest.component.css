@@ -66,3 +66,16 @@
     word-wrap: break-word;
     min-width: 350px;
 }
+
+
+.modal {
+    /* display: block !important;
+    opacity: 1 !important; */
+    
+  }
+  
+  .modal-content {
+    /* opacity: 1 !important; */
+    /* visibility: visible !important; */
+  }
+  

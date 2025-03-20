@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -12,19 +13,20 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 @RestController
 @RequestMapping("/api")
 public class ReimbursementController {
-
-	@Autowired
-	private ReimbursementService reimbursementService;
 	
+	@Autowired
+	private ReimbursementService reimbursementService ;
+	
+
 	@PostMapping("/fetchReimbursementData")
-	public ServiceResponse fetchReimbursementData(ReimbursementDTO reimbursementDTO) {
-		//return reimbursementService.fetchReimbursementData(reimbursementDTO.getEmpId());
+	public ServiceResponse fetchReimbursementData() {
 		return null;
+		
 	}
 	
 	@PostMapping("/saveReimbursementData")
-	public ServiceResponse saveReimbursementData() {
-		return null;
+	public ServiceResponse saveReimbursementData(@RequestBody ReimbursementDTO reimbursementObj) {
+		return reimbursementService.saveTravelData(reimbursementObj);
 		
 	}
 	

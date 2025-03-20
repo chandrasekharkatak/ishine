@@ -14,7 +14,7 @@ public class TravelDeskDTO {
 	    private String departmentName ;
 	    private String designationName ;
 	    private String email ;
-	    private Long mobileNo ;
+	    private BigInteger mobileNo ;
 	    private String managerName ;
 	    private String associatedTravelRequest ;
 	    private String travelMode ;
