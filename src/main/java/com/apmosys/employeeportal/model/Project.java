@@ -49,5 +49,9 @@ public class Project {
 	private String role;
     private Integer count;
     private String experience;
+    private String poStartDate;
+	private  String poEndDate;
+	private String poNo;
+
 
 }
