@@ -372,6 +372,7 @@
           <table class="table table-responsive" matSort (matSortChange)="sortData($event)">
             <thead class="thead-light">
               <tr>
+                <th scope="col" class="info-label">Sr No.</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|empId">Emp Id</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="name|string">Full Name</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department</th>
@@ -405,6 +406,7 @@
               </tr>
               <tr
                 *ngFor="let employee of filteredEmployees | colFilter:filters: false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                <th class="info-label">{{20*(page-1)+i+1}}</th>
                 <td>A-{{ employee.employeementId }}</td>
                 <td>{{ employee.name }}</td>
                 <td>{{ employee.departmentName }}</td>
