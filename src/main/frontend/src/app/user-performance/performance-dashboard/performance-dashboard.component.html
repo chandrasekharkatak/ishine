@@ -66,7 +66,7 @@
                 </thead>
                 <tbody>
                   <tr *ngFor="let goal of goals">
-                    <td>{{ goal.name }}</td>
+                    <td>{{ goal.goalTitle }}</td>
                     <td class="text-truncate" style="max-width: 180px;">{{ goal.description }}</td>
                     <td class="text-center">
                       <button class="btn btn-sm btn-outline-primary py-1 px-2" (click)="openModal(viewGoalTemplate, goal)" style="font-size: 0.75rem;" >View</button>
@@ -192,7 +192,7 @@
 <ng-template #viewGoalTemplate>
   <div class="modal-content rounded-lg shadow-lg">
     <div class="modal-header ">
-      <h5 class="modal-title fw-bold">{{ selectedGoal?.name }}</h5>
+      <h5 class="modal-title fw-bold">{{ selectedGoal?.goalTitle }}</h5>
       <button type="button" class="btn-close text-white" aria-label="Close" (click)="modalRef.hide()"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
@@ -213,7 +213,7 @@
           <p><strong>Assigned Date:</strong> {{ selectedGoal?.assignedDate | date:'mediumDate' }}</p>
         </div>
         <div class="col-md-6">
-          <p><strong>Due Date:</strong> {{ selectedGoal?.dueDate | date:'mediumDate' }}</p>
+          <p><strong>Due Date:</strong> {{ selectedGoal?.expectedCompletionDate | date:'mediumDate' }}</p>
         </div>
       </div>
 

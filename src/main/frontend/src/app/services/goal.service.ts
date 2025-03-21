@@ -18,10 +18,7 @@ export class GoalService {
   }
   
 
-  getGoalsByEmployeeAndQuarter(empId: number, quarter: string): Observable<any> {
-    const params = new HttpParams()
-      .set('empId', empId.toString())
-      .set('quarter', quarter);
-    return this.http.get(`${this.baseUrl}`+`/api/getAllGoals`, { params });
+  getGoalsByEmployeeAndQuarter(empId: number, quarter: number): Observable<any> {
+    return this.http.get(`${this.baseUrl}api/goalQuarter/employee/${empId}/quarter/${quarter}`);
   }
 }

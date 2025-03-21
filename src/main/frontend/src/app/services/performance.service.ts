@@ -98,7 +98,7 @@ getAvailableQuarters(){
   return this.http.get(`${this.baseUrl}`+`api/getAllQuarters`);
 }
 
-getPerformanceStats(empId: string, quarter: string): Observable<any> {
+getPerformanceStats(empId: number, quarter: number): Observable<any> {
   return this.http.get(`${this.baseUrl}api/performance-stats`, {
     params: { empId, quarter },
   });

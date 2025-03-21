@@ -30,8 +30,10 @@ public class EmployeeGoals {
     private Long templateId;
     
     private String goalTitle;
+    
+    private String description;
 
-    private String goalProgress;
+    private Long goalProgress;
     
     private String goalStatus;
    
@@ -48,6 +50,9 @@ public class EmployeeGoals {
     private LocalDate createdDate;    
     
     private String quarter;
+    
+    private String remarks;
+    
 	
 }
 

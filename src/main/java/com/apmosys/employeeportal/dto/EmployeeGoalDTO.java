@@ -26,9 +26,11 @@ public class EmployeeGoalDTO {
     private String goalTitle;
 
     
-    private String goalProgress;
+    private Long goalProgress;
     
     private String goalStatus;
+    
+    private String description;
 
    
     private Long reviewStatus;
@@ -43,6 +45,9 @@ public class EmployeeGoalDTO {
     private LocalDate createdDate;
     
     private String quarter;
+    
+    
+    private String remarks;
     
     
 }

@@ -13,9 +13,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeGoalsQuarterDto;
 import com.apmosys.employeeportal.dto.EmployeeTimesheetDto;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.EmployeeGoals;
 import com.apmosys.employeeportal.model.Timesheet;
 
 @Repository
@@ -462,6 +464,16 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "WHERE \n"
 			+ "    d.hod_id = :hodId")
 List<Object[]> findEmployeesInSameDepartmentAsCurrentUser(Long hodId);
+
+
+@Query(value = "SELECT eg.* " +
+	       "FROM employee_goals eg " +
+	       "JOIN quater_cycle qc ON eg.quarter = qc.quarter_cycle " +
+	       "WHERE eg.emp_id = :employeeId " +
+	       "AND qc.quarter_id = :quarterId", 
+	       nativeQuery = true)
+	List<Object[]> findEmployeeGoalsByEmpIdAndQuarterId(@Param("employeeId") Long employeeId,
+	                                                  @Param("quarterId") Long quarterId);
 		
 
 

@@ -11,6 +11,7 @@ import com.apmosys.employeeportal.model.EmployeeGoals;
 import com.apmosys.employeeportal.model.GoalTemplates;
 import com.apmosys.employeeportal.model.QuaterCycle;
 import com.apmosys.employeeportal.repository.EmployeeGoalRepository;
+import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.GoalTemplatesRepository;
 import com.apmosys.employeeportal.repository.QuarterCycleRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -27,6 +28,9 @@ public class EmployeeGoalService {
     
     @Autowired
     private GoalTemplateService goalTemplateService;
+    
+	@Autowired
+	private EmployeeRepository employeeRepository;
     
     @Autowired
     private QuarterCycleRepository quarterCycleRepository;
@@ -88,8 +92,9 @@ public class EmployeeGoalService {
         employeeGoalDTO.setEmpId(empId);
         employeeGoalDTO.setTemplateId(templateId);
         employeeGoalDTO.setAssignedBy(template.getCreatedBy());
+        employeeGoalDTO.setDescription(template.getDescription());
         employeeGoalDTO.setGoalTitle(template.getTitle());
-        employeeGoalDTO.setGoalProgress("Not Started"); // Default status
+        employeeGoalDTO.setGoalProgress(null); // Default status
         employeeGoalDTO.setGoalStatus("Pending"); // Default review status
         employeeGoalDTO.setExpectedCompletionDate(expectedCompletionDate);
         employeeGoalDTO.setCreatedDate(LocalDate.now());
@@ -122,7 +127,7 @@ public class EmployeeGoalService {
                 System.out.println("Quarter data length: " + (quarterData != null ? quarterData.length : "null"));
                 if (quarterData != null) {
                     for (int i = 0; i < quarterData.length; i++) {
-                        System.out.println("Data at index " + i + ": " + (quarterData[i] != null ? quarterData[i].toString() : "null"));
+                        System.out.println("+++++++++++++++++++++++++++++Data at index " + i + ": " + (quarterData[i] != null ? quarterData[i].toString() : "null"));
                     }
                 }
                 
@@ -130,7 +135,7 @@ public class EmployeeGoalService {
                 for (int i = 0; quarterData != null && i < quarterData.length; i++) {
                     if (quarterData[i] != null && quarterData[i].toString().matches("[A-Z]{3}-[A-Z]{3}")) {
                         employeeGoalDTO.setQuarter(quarterData[i].toString());
-                        System.out.println("Found quarter format at index " + i + ": " + quarterData[i].toString());
+                        System.out.println("++++++++++++++++++++++++Found quarter format at index " + i + ": " + quarterData[i].toString());
                         break;
                     }
                 }
@@ -141,7 +146,7 @@ public class EmployeeGoalService {
                     for (int i = 0; i < Math.min(3, quarterData.length); i++) {
                         if (quarterData[i] != null) {
                             employeeGoalDTO.setQuarter(quarterData[i].toString());
-                            System.out.println("Using fallback quarter at index " + i + ": " + quarterData[i].toString());
+                            System.out.println("+++++++++++++++++++++++++++++++Using fallback quarter at index " + i + ": " + quarterData[i].toString());
                             break;
                         }
                     }
@@ -157,7 +162,7 @@ public class EmployeeGoalService {
             employeeGoalDTO.setTemplateId(templateId);
             employeeGoalDTO.setAssignedBy(template.getCreatedBy());
             employeeGoalDTO.setGoalTitle(template.getTitle());
-            employeeGoalDTO.setGoalProgress("Not Started"); 
+            employeeGoalDTO.setGoalProgress(null); 
             employeeGoalDTO.setGoalStatus("Pending"); 
             employeeGoalDTO.setExpectedCompletionDate(expectedCompletionDate);
             employeeGoalDTO.setCreatedDate(LocalDate.now());
@@ -259,6 +264,50 @@ public class EmployeeGoalService {
         
         return response;
     }
+    
+    public ServiceResponse getEmployeeGoalsByEmpIdAndQuarterId(Long empId, Long quarterId) {
+        ServiceResponse response = new ServiceResponse();
+        try {
+            List<Object[]> results = employeeRepository.findEmployeeGoalsByEmpIdAndQuarterId(empId, quarterId);
+            
+            System.out.println("Query results for empId=" + empId + ", quarterId=" + quarterId + ": " + 
+                               (results != null ? results.size() : "null") + " rows");
+            
+            // Debug the first row to understand the structure
+            if (results != null && !results.isEmpty()) {
+                Object[] firstRow = results.get(0);
+                System.out.println("First row has " + firstRow.length + " columns");
+                for (int i = 0; i < firstRow.length; i++) {
+                    System.out.println("Column " + i + ": " + 
+                                      (firstRow[i] != null ? firstRow[i].toString() + " (" + firstRow[i].getClass().getName() + ")" : "null"));
+                }
+                
+                // Continue with your existing code
+                List<EmployeeGoalDTO> dtoList = new ArrayList<>();
+                for (Object[] row : results) {
+                    EmployeeGoalDTO dto = convertRowToDTO(row);
+                    dtoList.add(dto);
+                    // Print the DTO to see if it's being populated correctly
+                    System.out.println("Converted DTO: " + dto.getGoalId() + ", " + dto.getGoalTitle() + ", " + dto.getQuarter());
+                }
+                
+                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(dtoList);
+                response.setServiceMessage("Employee Goals Retrieved Successfully");
+            } else {
+                System.out.println("No results returned from repository query");
+                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(null);
+                response.setServiceMessage("No Employee Goals Found");
+            }
+        } catch (Exception e) {
+            e.printStackTrace(); // Add this to see full stack trace
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceError(e.getMessage());
+            response.setServiceMessage("Error Retrieving Employee Goals");
+        }
+        return response;
+    }
     private EmployeeGoalDTO convertToDTO(EmployeeGoals entity) {
         EmployeeGoalDTO dto = new EmployeeGoalDTO();
         dto.setGoalId(entity.getGoalId());
@@ -272,6 +321,7 @@ public class EmployeeGoalService {
         dto.setActualCompletionDate(entity.getActualCompletionDate());
         dto.setCreatedDate(entity.getCreatedDate());
         dto.setQuarter(entity.getQuarter());
+        dto.setRemarks(entity.getRemarks());
         return dto;
     }
     
@@ -280,6 +330,7 @@ public class EmployeeGoalService {
         entity.setGoalId(dto.getGoalId());
         entity.setEmpId(dto.getEmpId());
         entity.setTemplateId(dto.getTemplateId());
+        entity.setDescription(dto.getDescription());
         entity.setAssignedBy(dto.getAssignedBy());
         entity.setGoalTitle(dto.getGoalTitle());
         entity.setGoalProgress(dto.getGoalProgress());
@@ -288,7 +339,55 @@ public class EmployeeGoalService {
         entity.setActualCompletionDate(dto.getActualCompletionDate());
         entity.setCreatedDate(dto.getCreatedDate());
         entity.setQuarter(dto.getQuarter());
+        entity.setRemarks(dto.getRemarks());
         return entity;
     }
+    private EmployeeGoalDTO convertRowToDTO(Object[] row) {
+        EmployeeGoalDTO dto = new EmployeeGoalDTO();
+        
+        // Based on the error message, map fields from the array
+        // Adjust indices based on the actual column order in your query results
+        try {
+            // The error message shows: '{10, null, 21874, 2025-03-20, 20759, 2025-03-20, Not Started, Pending, kjbbvkb, JUL-SEP, 1}'
+            
+            // Map the fields (adjust indices based on your actual result order)
+            if (row[0] != null) dto.setGoalId(((Number)row[0]).longValue());
+            // row[1] seems to be null in the example
+            if (row[2] != null) dto.setEmpId(((Number)row[2]).longValue());
+            if (row[3] != null) dto.setExpectedCompletionDate(parseDate(row[3]));
+            if (row[11] != null) dto.setTemplateId(((Number)row[11]).longValue());
+            if (row[6] != null) dto.setCreatedDate(parseDate(row[6]));
+            if (row[7] != null) dto.setGoalProgress(Long.parseLong(row[7].toString()));
+            if (row[8] != null) dto.setGoalStatus(row[8].toString());
+            if (row[9] != null) dto.setGoalTitle(row[9].toString());
+            if (row[10] != null) dto.setQuarter(row[10].toString());
+            if (row[5] != null) dto.setAssignedBy(((Number)row[5]).longValue());
+            if(row[4]!= null) dto.setDescription(row[4].toString());
+            if(row[12]!= null) dto.setRemarks(row[12].toString());
+            
+            // Add any other mappings needed for additional fields
+        } catch (Exception e) {
+            System.out.println("Error mapping row to DTO: " + e.getMessage());
+            // Consider logging the issue or handling the exception more gracefully
+        }
+        
+        return dto;
+    }
+    private LocalDate parseDate(Object dateObj) {
+        if (dateObj == null) return null;
+        
+        if (dateObj instanceof LocalDate) {
+            return (LocalDate) dateObj;
+        } else if (dateObj instanceof java.sql.Date) {
+            return ((java.sql.Date) dateObj).toLocalDate();
+        } else if (dateObj instanceof String) {
+            return LocalDate.parse((String) dateObj);
+        }
+        
+        // If it's another format, you might need to add more handling
+        return null;
+        
+    }
+    
 
 }

@@ -12,14 +12,14 @@ import { GoalService } from 'src/app/services/goal.service';
 interface Goal {
   progress: any;
   id: number;
-  name: string;
+  goalTitle: string;
   description: string;
   checkpoints: any[];
   managerRemark: string;
   employeeRemark: string;
   assignedBy: string;
   employeeName: string;
-  dueDate: string;
+  expectedCompletionDate: string;
   assignedDate: string;
 }
 
@@ -45,7 +45,7 @@ export class PerformanceDashboardComponent implements OnInit {
 
   currentUser:User;
   activeTab: string = 'kra-kpi';
-  selectedQuarter: any;
+  selectedQuarter: number;
   quarterCyclesList: any;
   selectedQuarter1:any;
   kraKpiMetrics: any[] = [];
@@ -107,7 +107,7 @@ export class PerformanceDashboardComponent implements OnInit {
 
   onQuarterChange(): void {
     if (!this.selectedQuarter) return;
-
+    console.log(this.selectedQuarter);
     this.loadPerformanceStats();
     this.loadReviewData();
     this.fetchGoals();
@@ -131,15 +131,16 @@ export class PerformanceDashboardComponent implements OnInit {
   fetchGoals(): void {
     this.errorMessage = ''; 
     const empId = this.currentEmployeeInfo.empId;
-    const quarter = this.selectedQuarter;
+    // const quarter = this.selectedQuarter;
 
     if (!empId) return;
-
+    const quarter = Number(this.selectedQuarter);
     this.goalService.getGoalsByEmployeeAndQuarter(empId, quarter).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.goals = response.serviceResponse; 
         } else {
+          
           this.errorMessage = response.serviceMessage || 'No goals found for this employee.';
         }
       },
@@ -147,6 +148,7 @@ export class PerformanceDashboardComponent implements OnInit {
         this.errorMessage = error.message || 'Failed to fetch employee goals.';
       },
     });
+    
   }
 
   loadPerformanceStats(): void {
@@ -230,7 +232,7 @@ export class PerformanceDashboardComponent implements OnInit {
   saveUpdates() {
     const payload = {
       GoalProgress: this.selectedGoal.progress,
-      checkpoints: this.selectedGoal.checkpoints,
+      // checkpoints: this.selectedGoal.checkpoints,
       employeeRemark: this.selectedGoal.employeeRemark,
     };
   
