@@ -187,6 +187,8 @@ export class ReportListComponent implements OnInit {
     }
     else{
       this.showDetails = true;
+      this.changeTable = true;
+      this.selectedDepartment= '';
       this.getAllDepartments();
       this.getAllEmployeesReportByProjectTypeInConsolidated();
       this.filterEmployees();
@@ -203,13 +205,14 @@ export class ReportListComponent implements OnInit {
     }
   }
   getAllEmployeesReportByProjectTypeInConsolidated(){
+    this.allEmployee=[];
     this.employeeService.getAllEmployeesReportByProjectTypeInConsolidated().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         // console.log('response -- ',response.serviceResponse);
         this.allEmployee=response.serviceResponse;
         console.log('emps -- ',this.allEmployee);
         this.filterEmployees();
-
+        
         // this.allEmployee.forEach((emp) => {
         //   const currentDate = new Date();
         //   const poEndDate = new Date(emp.poEndDate); 
@@ -1427,6 +1430,7 @@ export class ReportListComponent implements OnInit {
       this.employeeService.getAllEmployeesReportByProjectType().pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allEmployee = response.serviceResponse;
+          this.filterEmployees();
            console.log("d nbdfh",this.allEmployee);
         } else {
           
