@@ -1497,7 +1497,8 @@ public class ProjectService {
         	  System.out.println(list.toString());
               
         list.forEach((p)->{
-        	ProjectsTemp project=projectstempRepository.findByPoProjectId(p.getId());
+        	Project project=projectRepository.findByPoProjectId(p.getId());
+//        	ProjectsTemp project=projectstempRepository.findByPoProjectId(p.getId());
         	
         	if (p.getProjectManager() != null) {
         		System.out.println("p.getProjectManager()"+p.getProjectManager());
@@ -1565,9 +1566,11 @@ public class ProjectService {
 //        		project.setActive("true");
 //        		project.setSyncProject("true");
 //        		
-        		 projectstempRepository.save(project);
+        		 projectRepository.save(project);
+//        		 projectstempRepository.save(project);
         	}else {
-        		 project=new ProjectsTemp();
+        		 project=new Project();
+//        		 project=new ProjectsTemp();
         		 project.setPoNo(p.getPoNo());
         		 System.err.println("po type"+p.getProjectType())   ;
 //        		 project.setProjectName(p.getName());
@@ -1589,7 +1592,8 @@ public class ProjectService {
         		project.setPoProjectType(p.getProjectType());
 //        		/        		project.setClientLocation(p.getClientLocation().get(0));
 //        		project.setClientName(p.getClientName());
-        		projectstempRepository.save(project);
+        		projectRepository.save(project);       		
+//        		projectstempRepository.save(project);
         	}
         	
         	

@@ -52,6 +52,7 @@ public class Project {
     private String poStartDate;
 	private  String poEndDate;
 	private String poNo;
+	 private String poProjectType;
 
 
 }
