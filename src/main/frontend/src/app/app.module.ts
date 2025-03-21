@@ -128,6 +128,7 @@ import { PerformanceConfigComponent } from './configuration/performance-config/p
 import { OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
 import { registerLocaleData } from '@angular/common';
 import localeGb from '@angular/common/locales/en-GB';
+import { LMSComponent } from './employee360/lms/lms.component';
 registerLocaleData(localeGb);
 // import { OwlDateTimeModule, OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
 // 
@@ -236,7 +237,7 @@ registerLocaleData(localeGb);
      NavigateToProjectViewDirective,
      ProjectViewComponent,
      PerformanceConfigComponent,
-  
+     LMSComponent
 
     //TestComponent
   ],

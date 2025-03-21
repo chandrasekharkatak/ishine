@@ -17,6 +17,7 @@ export class Employee360Service {
 
   private baseUrl:any = environment.baseUrl;
 
+  private lmsbaseurl:any=environment.lmsbaseurl;
   private navigationSubject = new Subject<void>();
   private employeeDataSource = new BehaviorSubject<any>(null);
   private employeesFor360Source = new BehaviorSubject<any[]>([]); 
@@ -124,4 +125,20 @@ getTeamMemberByTeamId(teamId:any){
   getTeamInfo(project:Project){
     return this.http.post(`${this.baseUrl}`+`api/getTeamInfo`,project);
   }
+  getLmsData(email: any) {
+    const bearerToken = 'Nguif3kxwSDzmojAtj6M93aJlfJqsAWj9blFug4JWkHsoQ2LYgWiApqDe1GZqmpV';  // Use the actual token without "Bearer"
+    const body = { email: email };
+  
+    return this.http.post(
+      `${this.lmsbaseurl}api/get_user_enrolled_details`,
+      body,
+      {
+        headers: {
+          'Authorization': `Bearer ${bearerToken}`,  // Add the "Bearer" prefix here
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+  }
+  
 }

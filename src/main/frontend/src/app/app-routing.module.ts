@@ -69,6 +69,8 @@ import { InformationPreviewComponent } from './user-update-info/information-prev
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
 import { ProjectViewComponent } from './project-view/project-view.component';
 import { PerformanceConfigComponent } from './configuration/performance-config/performance-config.component';
+import { LMSComponent } from './employee360/lms/lms.component';
+
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -163,6 +165,7 @@ const routes: Routes = [
       { path: 'biomax', component: Employee360BiomaxComponent, },
       { path: 'rewards', component: Employee360RewardsComponent, },
       { path: 'appreciation', component: Employee360AppreciationComponent, },
+      { path: 'lms', component: LMSComponent, },
     ]
   },
   {path:'project-view', component: ProjectViewComponent},

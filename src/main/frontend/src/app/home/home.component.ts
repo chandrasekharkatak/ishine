@@ -211,21 +211,25 @@ export class HomeComponent implements OnInit, AfterViewInit {
     });
   }
 //added by rahul for lms redirection
+//added by rahul for lms redirection
 LmsRedirection(){
-   let obj = new Object();
- obj = { email: this.currentUser.email};
- //obj = { email: "mohamed.owais@apmosys.com"};
+  let obj = new Object();
+obj = { email: this.currentUser.email,token:sessionStorage.getItem('token')};
+
+   
+//obj = { email: "mohamed.owais@apmosys.com"};
 //obj = { email: "mohamed2.owais@apmosys.com"};
-  this.employeeService.IsValidateLMSPORTAL(obj).subscribe((response:any)=>{
-    //this.lmsauthentication = response.serviceResponse;
-    this.lmsauthentication = response.serviceResponse;
-     if(response.serviceStatus=="success"){
-      window.open(response.serviceResponse, '_blank');
-    }
-   else{
-      window.open(`${this.lmsurl}home/sign_up`,'_blank');
-    }
-  })
+ this.employeeService.IsValidateLMSPORTAL(obj).subscribe((response:any)=>{
+   //this.lmsauthentication = response.serviceResponse;
+   this.lmsauthentication = response.serviceResponse;
+   
+    if(response.serviceStatus=="success"){
+     window.open(response.serviceResponse, '_blank');
+   }
+  else{
+     window.open(`${this.lmsurl}home/sign_up`,'_blank');
+   }
+ })
 
 }
 
