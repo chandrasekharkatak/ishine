@@ -256,7 +256,6 @@
     </div>
 
 
-    <!-- branching box -->
     <div class="container mt-5" *ngIf="showDetails">
       <div class="row justify-content-center">
         <!-- First Box -->
@@ -264,70 +263,95 @@
           <div class="box border border-primary p-4 rounded text-center">
             <h4>TNM</h4>
             <div class="row mt-3">
-              <div class="col-6" (click)="onBoxClickDataChange('TNM-Active')">
+              <div  title="Click to View TNM-Active"
+                class="col-6"
+                [ngClass]="{'clicked': activeBox === 'Internal','hover': isHovering === 'TNM-Active' }"
+                (click)="onBoxClickDataChange('TNM-Active')"
+                (mouseover)="onMouseOver('TNM-Active')"
+                (mouseleave)="onMouseLeave()"
+              >
                 <div class="branch bg-success text-white p-3 rounded">
                   <h5>Active</h5>
-                  <p>{{tnmPOValidCount}}</p>
+                  <p>{{ tnmPOValidCount }}</p>
                 </div>
               </div>
-              <div class="col-6">
-                <div class="branch bg-danger text-white p-3 rounded">
+              <div
+              title="Click to View TNM-Expired"
+              
+                class="col-6"
+                [ngClass]="{ 'clicked': activeBox === 'TNM-Expired', 'hover': isHovering === 'TNM-Expired' }"
+                (click)="onBoxClickDataChange('TNM-Expired')"
+                (mouseover)="onMouseOver('TNM-Expired')"
+                (mouseleave)="onMouseLeave()"
+              >
+                <div class="branch bg-danger text-white p-3 rounded"
+               >
                   <h5>Expired</h5>
-                  <p>{{tnmPoExpiredCount}}</p>
+                  <p>{{ tnmPoExpiredCount }}</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
+    
         <!-- Second Box -->
         <div class="col-md-4">
           <div class="box border border-primary p-4 rounded text-center">
             <h4>Fixed Cost</h4>
             <div class="row mt-3">
-              <div class="col-6">
+              <div
+              title="Click to View FC-Active"
+                class="col-6"
+                [ngClass]="{ 'clicked': activeBox === 'FC-Active', 'hover': isHovering === 'FC-Active' }"
+                (click)="onBoxClickDataChange('FC-Active')"
+                (mouseover)="onMouseOver('FC-Active')"
+                (mouseleave)="onMouseLeave()"
+              >
                 <div class="branch bg-success text-white p-3 rounded">
                   <h5>Active</h5>
-                  <p>{{fixedCostPoValidCount}}</p>
+                  <p>{{ fixedCostPoValidCount }}</p>
                 </div>
               </div>
-              <div class="col-6">
+              <div
+              title="Click to View FC-Expired"
+                class="col-6"
+                [ngClass]="{ 'clicked': activeBox === 'FC-Expired', 'hover': isHovering === 'FC-Expired' }"
+                (click)="onBoxClickDataChange('FC-Expired')"
+                (mouseover)="onMouseOver('FC-Expired')"
+                (mouseleave)="onMouseLeave()"
+              >
                 <div class="branch bg-danger text-white p-3 rounded">
                   <h5>Expired</h5>
-                  <p>{{fixedCostPoExpiredCount}}</p>
+                  <p>{{ fixedCostPoExpiredCount }}</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
+    
         <!-- Third Box -->
         <div class="col-md-2">
           <div class="box border border-primary p-4 rounded text-center">
             <h4>Internal</h4>
-            <div class="row mt-3" (click)="onBoxClickDataChange('Internal')">
-              <!-- <div class="col-6"> -->
-              <div class="branch bg-success text-white p-3 rounded">
-                <!-- <h5>In Business</h5> -->
-                <h5>Active</h5>
-                <p>{{internalCount}}</p>
-                <!-- </div> -->
-              </div>
-              <!-- <div class="col-6">
-                  <div class="branch bg-success text-white p-3 rounded">
-                    <h5>Not in Business</h5>
-                    <p>60</p>
-                  </div>
-                </div> -->
+            <div
+              title="Click to View Internal"
+              class="branch bg-warning text-white p-4 rounded"
+              [ngClass]="{ 'clicked': activeBox === 'Internal', 'hover': isHovering === 'Internal' }"
+              (click)="onBoxClickDataChange('Internal')"
+              (mouseover)="onMouseOver('Internal')"
+              (mouseleave)="onMouseLeave()"
+            >
+              <h5>Internal</h5>
+              <p>{{ internalCount }}</p>
             </div>
           </div>
         </div>
-
       </div>
     </div>
+    
 
     <!-- sandy -->
-    <div class="col-md-3 col-sm-6 custom-control custom-switch d-flex justify-content-end" *ngIf="showDetails">
+    <div class="col-md-3 col-sm-6 custom-control custom-switch justify-content-end" *ngIf="showDetails">
       <input type="checkbox" class="custom-control-input" id="hierarchy-switch-2" (change)="toggleTableView()"
         [checked]="changeTable">
       <label class="custom-control-label" for="hierarchy-switch-2">Club Project Details</label>

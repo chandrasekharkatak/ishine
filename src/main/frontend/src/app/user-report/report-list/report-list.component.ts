@@ -136,7 +136,12 @@ export class ReportListComponent implements OnInit {
   internalCount=0;
   selectedDepartment: string = 'All';
 
+  activeBox: string | null = null;
+  isHovering: string | null = null;
 
+
+
+ 
   constructor(
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
@@ -188,7 +193,7 @@ export class ReportListComponent implements OnInit {
     else{
       this.showDetails = true;
       this.changeTable = true;
-      this.selectedDepartment= '';
+      this.selectedDepartment= 'all';
       this.getAllDepartments();
       this.getAllEmployeesReportByProjectTypeInConsolidated();
       this.filterEmployees();
@@ -203,6 +208,17 @@ export class ReportListComponent implements OnInit {
       this.changeTable = true;
       this.getAllEmployeesReportByProjectTypeInConsolidated();
     }
+  }
+
+ 
+
+  onMouseOver(box: string): void {
+    
+    this.isHovering = box;
+  }
+
+  onMouseLeave(): void {
+    this.isHovering = null;
   }
   getAllEmployeesReportByProjectTypeInConsolidated(){
     this.allEmployee=[];
@@ -268,6 +284,7 @@ export class ReportListComponent implements OnInit {
   }
   onBoxClickDataChange(boxName){
     this.filteredEmployees=[];
+    this.activeBox = boxName;
     //TNM-Active,TNM-Expired,FC-Active,FC-Expired
     const currentDate = new Date();
     //const poEndDate = new Date(emp.poEndDate)
