@@ -1,27 +1,27 @@
-import { Component, OnInit, TemplateRef, ViewChild, Renderer2, ElementRef } from '@angular/core';
+import { CdkDragDrop, CdkDragRelease, moveItemInArray } from "@angular/cdk/drag-drop";
+import { formatDate, LocationStrategy } from '@angular/common';
+import { Component, OnInit, Renderer2, TemplateRef, ViewChild } from '@angular/core';
+import { Sort } from '@angular/material/sort';
+import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
+import { Employee } from 'src/app/models/employee';
+import { Feature } from 'src/app/models/feature';
+import { JobRole } from 'src/app/models/jobRole';
+import { Query } from 'src/app/models/query';
+import { Timesheet } from 'src/app/models/timesheet';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
+import { DepartmentService } from 'src/app/services/department.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
-import { Sort } from '@angular/material/sort';
-import { TimesheetService } from 'src/app/services/timesheet.service';
-import { LeaveService } from 'src/app/services/leave.service';
-import { Feature } from 'src/app/models/feature';
-import { Query } from 'src/app/models/query';
 import { JobRoleService } from 'src/app/services/job-role.service';
-import { ValidationService } from 'src/app/services/validation.service';
-import { Employee } from 'src/app/models/employee';
-import { CdkDragDrop, moveItemInArray, CdkDragStart, CdkDragRelease } from "@angular/cdk/drag-drop";
-import { JobRole } from 'src/app/models/jobRole';
-import { formatDate, LocationStrategy } from '@angular/common';
-import { AppComponent } from 'src/app/app.component';
-import * as moment from 'moment';
+import { LeaveService } from 'src/app/services/leave.service';
+import { TimesheetService } from 'src/app/services/timesheet.service';
 import { UtilityService } from 'src/app/services/utility.service';
+import { ValidationService } from 'src/app/services/validation.service';
 import * as XLSX from 'xlsx';
-import { Timesheet } from 'src/app/models/timesheet';
-import { DepartmentService } from 'src/app/services/department.service';
 
 class FilterData {
   title: any;
@@ -115,7 +115,7 @@ export class ReportListComponent implements OnInit {
   leaveReportFlag:boolean=false;
   timesheetReportFlag:boolean=false;
   showDetails:boolean = false;
-  changeTable:boolean = false;
+  changeTable:boolean = true;
 
   filters:any = {};
   isSearchEnabled:boolean = false;
