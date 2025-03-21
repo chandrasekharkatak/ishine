@@ -206,8 +206,58 @@ export class ReportListComponent implements OnInit {
         console.log('emps -- ',this.allEmployee);
         this.filterEmployees();
 
+        // this.allEmployee.forEach((emp) => {
+        //   const currentDate = new Date();
+        //   const poEndDate = new Date(emp.poEndDate); 
+        
+        //   if (poEndDate < currentDate) {
+        //     if (emp.poProjectType === 'TNM') {
+        //       this.tnmPoExpiredCount++;
+        //     } else if (emp.poProjectType === 'Fixed Cost') {
+        //       this.fixedCostPoExpiredCount++;
+        //     }
+        //   } else if(!(poEndDate < currentDate)){
+        //     if (emp.poProjectType === 'TNM') {
+        //       this.tnmPOValidCount++;
+        //     } else if (emp.poProjectType === 'Fixed Cost') {
+        //       this.fixedCostPoValidCount++;
+        //     }
+        //   }
+        //   if(poEndDate == null){
+        //     this.internalCount++;
+        //   }
+        // });
+        this.allEmployee.forEach((emp) => {
+          if (!emp.poEndDate) { 
+            this.internalCount++;
+            return;
+          }
+        
+          const currentDate = new Date();
+          const poEndDate = new Date(emp.poEndDate);
+        
+          if (poEndDate < currentDate) {
+            if (emp.poProjectType === 'TNM') {
+              this.tnmPoExpiredCount++;
+            } else if (emp.poProjectType === 'Fixed Cost') {
+              this.fixedCostPoExpiredCount++;
+            }
+          } else {
+            if (emp.poProjectType === 'TNM') {
+              this.tnmPOValidCount++;
+            } else if (emp.poProjectType === 'Fixed Cost') {
+              this.fixedCostPoValidCount++;
+            }
+          }
+        });
+        
+        
+
+        //Fixed Cost,TNM,Bench,InternalRNDProducts,Shadow
+        //poEndDate "TNM" poProjectType
+
       }else {
-        alert(response.serviceResponse)
+        alert(response.serviceResponse);
       }
     });
   }
@@ -229,9 +279,7 @@ export class ReportListComponent implements OnInit {
       }
     });
   }
-  getCounts(){
 
-  }
   filterEmployees() {
     if (this.selectedDepartment) {
       this.filteredEmployees = this.allEmployee.filter(emp => emp.departmentId == this.selectedDepartment);
@@ -243,20 +291,6 @@ export class ReportListComponent implements OnInit {
     //poEndDate 
   }
   
-  // filterEmployees() {
-  //   if (this.selectedDepartment) {
-  //     // this.filteredEmployees = this.allEmployee.filter(emp => emp.departmentId === this.selectedDepartment);
-  //     this.allEmployee.forEach(emp => {
-  //       if(emp.departmentId === this.selectedDepartment){
-  //         this.filteredEmployees=emp;
-  //       }
-  //     });
-  //     console.log('Filtered dept data -- ',this.filteredEmployees);
-  //   } else {
-  //     this.filteredEmployees = [...this.allEmployee]; // Show all employees when no filter is applied
-  //   }
-  // }
-
   showLeaveReportTable() {
     this.leaveReportFlag = true;
     this.timesheetReportFlag = false;
