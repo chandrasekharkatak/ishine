@@ -145,7 +145,7 @@ export class ViewPerformanceComponent implements OnInit {
 
     this.goalService.getGoalsByEmployeeAndQuarter(empId, quarter).subscribe({
       next: (response: any) => {
-        if (response.serviceStatus === 'SUCCESS') {
+        if (response.serviceStatus === 'Success') {
           this.goals = response.serviceResponse; 
         } else {
           this.errorMessage = response.serviceMessage || 'No goals found for this employee.';
@@ -209,7 +209,7 @@ export class ViewPerformanceComponent implements OnInit {
     if (!empId) return;
     this.performanceService.getKraKpiReview(empId, quarter).subscribe({
       next: (data) => {
-        if (data.serviceStatus === 'SUCCESS') {
+        if (data.serviceStatus === 'Success') {
           this.kraKpiMetrics = data.serviceResponse;
         }
       },
@@ -218,7 +218,7 @@ export class ViewPerformanceComponent implements OnInit {
 
     this.performanceService.getQuestionnaireReview(empId, quarter).subscribe({
       next: (data) => {
-        if (data.serviceStatus === 'SUCCESS') {
+        if (data.serviceStatus === 'Success') {
           this.questionnaireQuestions = data.serviceResponse;
         }
       },

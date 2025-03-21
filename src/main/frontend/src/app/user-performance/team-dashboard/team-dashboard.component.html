@@ -25,12 +25,7 @@
         </div>
       </div>
 
-      <div class="selector-toggle" (click)="toggleSearch()">
-        <a href="javascript:void(0)">
-          <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-          <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-        </a>
-      </div>
+      
 
       <!-- Loading Indicator -->
       <div *ngIf="loading" class="text-center my-3">
@@ -41,25 +36,32 @@
       </div>
 
       <!-- Team Members Table -->
-      <div *ngIf="!loading && viewTeamMemberList.length > 0">
-        <table class="table table-bordered">
-          <thead>
+      <div *ngIf="!loading && viewTeamMemberList.length > 0" class="row">
+        <div class="col-md-12">
+        <div class="selector-toggle" (click)="toggleSearch()">
+          <a href="javascript:void(0)">
+              <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+          </a>
+        </div>
+        <div class="overflow-auto" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
+            [tableTHeadTrId]="'holidayInfoTHeadTr'">
+        <table class="table team-table" id="team-table" matSort (matSortChange)="sortData($event)">
+          <thead class="thead-light">
             <tr>
               <th>
                 <input type="checkbox" (change)="toggleAllSelection($event)" />
               </th>
-              <th>Sr No.</th>
-              <th>Employeement Id</th>
-              <th>Employee Name</th>
-              <th>Total Goals</th>
-              <th>Goals Completed</th>
-              <th>Action</th>
+              <th scope="col" class="info-label">Sr No.</th>
+              <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Employee Id</th>
+              <th scope="col" class="info-label wide-col" mat-sort-header="name|string">Employee Name</th>
+              <th scope="col" class="info-label text-center" style="min-width: 400px;">Action</th>
             </tr>
+            <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="teamMemberColumns" (onSearch)="onSearch($event);page=1" ></tr>
           </thead>
           <tbody>
-            <tr
-              *ngFor="let viewTeamMember of viewTeamMemberList; let i = index"
-            >
+            <ng-container *ngFor="let viewTeamMember of viewTeamMemberList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+            <tr>
               <td>
                 <input
                   type="checkbox"
@@ -67,11 +69,9 @@
                   (change)="toggleEmployeeSelection(viewTeamMember)"
                 />
               </td>
-              <td>{{ 10 * (page - 1) + i + 1 }}</td>
-              <td>{{ viewTeamMember.employeementId }}</td>
-              <td>{{ viewTeamMember.name }}</td>
-              <td>{{ viewTeamMember.totalGoals }}</td>
-              <td>{{ viewTeamMember.goalsCompleted }}</td>
+              <td class="info-label">{{ 10 * (page - 1) + i + 1 }}</td>
+              <td class="info-label">{{ viewTeamMember.employeementId }}</td>
+              <td class="info-label">{{ viewTeamMember.name }}</td>
               <td>
                 <button
                   class="btn btn-info btn-sm me-2"
@@ -94,8 +94,13 @@
                 </button>
               </td>
             </tr>
-          </tbody>
+          </ng-container>
         </table>
+      </div>
+      <pagination-controls class="my-pagination" [hidden]="viewTeamMemberList.length == 0"
+            (pageChange)="handlePageChange($event)"></pagination-controls>
+          
+      </div>
       </div>
 
       <!-- No Data Message -->

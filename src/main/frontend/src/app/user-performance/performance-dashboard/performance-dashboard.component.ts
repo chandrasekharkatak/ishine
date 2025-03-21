@@ -10,7 +10,7 @@ import { PerformanceService } from 'src/app/services/performance.service';
 import { GoalService } from 'src/app/services/goal.service';
 
 interface Goal {
-  statusPercentage: any;
+  progress: any;
   id: number;
   name: string;
   description: string;
@@ -137,7 +137,7 @@ export class PerformanceDashboardComponent implements OnInit {
 
     this.goalService.getGoalsByEmployeeAndQuarter(empId, quarter).subscribe({
       next: (response: any) => {
-        if (response.serviceStatus === 'SUCCESS') {
+        if (response.serviceStatus === 'Success') {
           this.goals = response.serviceResponse; 
         } else {
           this.errorMessage = response.serviceMessage || 'No goals found for this employee.';
@@ -201,7 +201,7 @@ export class PerformanceDashboardComponent implements OnInit {
     if (!empId) return;
     this.performanceService.getKraKpiReview(empId, quarter).subscribe({
       next: (data) => {
-        if (data.serviceStatus === 'SUCCESS') {
+        if (data.serviceStatus === 'Success') {
           this.kraKpiMetrics = data.serviceResponse;
         }
       },
@@ -210,7 +210,7 @@ export class PerformanceDashboardComponent implements OnInit {
 
     this.performanceService.getQuestionnaireReview(empId, quarter).subscribe({
       next: (data) => {
-        if (data.serviceStatus === 'SUCCESS') {
+        if (data.serviceStatus === 'Success') {
           this.questionnaireQuestions = data.serviceResponse;
         }
       },
@@ -229,7 +229,7 @@ export class PerformanceDashboardComponent implements OnInit {
   
   saveUpdates() {
     const payload = {
-      statusPercentage: this.selectedGoal.statusPercentage,
+      GoalProgress: this.selectedGoal.progress,
       checkpoints: this.selectedGoal.checkpoints,
       employeeRemark: this.selectedGoal.employeeRemark,
     };

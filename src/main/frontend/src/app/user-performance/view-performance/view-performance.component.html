@@ -5,34 +5,44 @@
         <h1 class="table-header-title">Employee Performance </h1>
       </div>
     </div>
-    <div class="col-md-3 px-0 pr-1 ml-auto mb-0">
-      <div class="form-inline input-group">
-          <label class="d-inline-block mr-2 mt-2"><strong>Select quarter</strong></label>
-          <select class="form-control" aria-hidden="true" [(ngModel)]="selectedQuarter"  name="quarterId" (ngModelChange)="onQuarterChange()">
-              <option selected="selected" value="" disabled>Select</option>
-              <option *ngFor="let quarter of quarterCyclesList" [value]="quarter.quarterId">{{quarter.quarterCycle}}</option>
-            </select>
-      </div>
-    </div>
     
-    <div class=" profile row align-items-center ml-2 mr-2 px-0">
-      <div class="col-md-6 d-flex align-items-center ">
-        <img src="assets/Images/default-user-image.jpeg" alt="profile" class="rounded-circle border" width="100" height="100">
+    
+    <div class="profile row align-items-center ml-2 mr-2 px-0 py-3">
+      <div class="col-md-6 d-flex align-items-center">
+        <img src="assets/Images/default-user-image.jpeg" alt="profile" class="rounded-circle border m-1 mr-4" width="100" height="100">
         <div class="ms-2 p-1 small">
-          <h4 class=" mb-0">{{currentEmployeeInfo.name}}</h4>
-           <span class="text-muted mb-2">{{currentEmployeeInfo.designationName}}</span>
+          <h4 class="mb-0">{{currentEmployeeInfo.name}}</h4>
+          <span class="text-muted mb-2">{{currentEmployeeInfo.designationName}}</span>
           <p><strong>Employee ID:</strong> A-{{currentEmployeeInfo.employeementId}}</p>
           <p><strong>Department:</strong> {{currentEmployeeInfo.departmentName}}</p>
           <p><strong>Manager:</strong> {{currentEmployeeInfo.managerName}}</p>
         </div>
       </div>
-      <div class="col-md-3 text-center">
-        <div class="stat-box bg-light p-2 rounded">Goals Completed: <strong>{{stats.goalsCompleted}} </strong></div>
-        <div class="stat-box bg-light p-2 rounded">Goals Remaining: <strong> {{stats.goalsRemaining}}</strong></div>
-      </div>
-      <div class="col-md-3 text-center">
-        <div class="stat-box bg-light p-2 rounded">KRA/KPI score: <strong>{{stats.kraKpiScore}}/10</strong></div>
-        <div class="stat-box bg-light p-2 rounded">Questionnaire score: <strong>{{stats.questionnaireScore}}/10</strong></div>
+    
+      <div class="col-md-6 d-flex flex-column align-items-end  justify-content-start ">
+        <div class="mb-3 pr-3 pl-2 w-auto align-top">
+          <div class="form-inline input-group input-group-sm">
+            <label class="mr-2 ">Select quarter</label>
+            <select class="form-control form-control-sm" aria-hidden="true" [(ngModel)]="selectedQuarter"
+              name="quarterId" (ngModelChange)="onQuarterChange()">
+              <option selected value="" disabled>Select</option>
+              <option *ngFor="let quarter of quarterCyclesList" [value]="quarter.quarterId">{{quarter.quarterCycle}}
+              </option>
+            </select>
+          </div>
+        </div>
+    
+        <div class="row  w-100">
+          <div class="col-md-6 text-center">
+            <div class="stat-box bg-light p-2 rounded">Goals Completed: <strong>{{stats.goalsCompleted}} </strong></div>
+            <div class="stat-box bg-light p-2 rounded">Goals Remaining: <strong>{{stats.goalsRemaining}}</strong></div>
+          </div>
+          <div class="col-md-6 text-center">
+            <div class="stat-box bg-light p-2 rounded">KRA/KPI score: <strong>{{stats.kraKpiScore}}/10</strong></div>
+            <div class="stat-box bg-light p-2 rounded">Questionnaire score: <strong>{{stats.questionnaireScore}}/10</strong></div>
+          </div>
+        </div>
+    
       </div>
     </div>
     
@@ -73,7 +83,7 @@
     
     <div class="row mt-4">
       <div class="col-md-4">
-        <div class="card shadow border-0 info">
+        <div class="card shadow border-0 info box">
           <div class="card-header ">
             <h5 class="card-title mb-0 text-center">Appraisal Summary</h5>
           </div>
@@ -96,7 +106,7 @@
       </div>
       
       <div class="col-md-4">
-        <div class="card shadow border-0 info">
+        <div class="card shadow border-0 info box">
           <div class="card-header ">
             <h5 class="card-title mb-0 text-center">Skills</h5>
           </div>
@@ -106,7 +116,7 @@
         </div>
       </div>
       <div class="col-md-4">
-        <div class="card shadow border-0 info">
+        <div class="card shadow border-0 info box">
           <div class="card-header ">
             <h5 class="card-title mb-0 text-center">Awards</h5>
           </div>
@@ -142,7 +152,7 @@
         
           <form (ngSubmit)="submitReview()">
             <div *ngIf="activeTab === 'kra-kpi'">
-              <h4 class="mb-1 fw-semibold text-center">KRA/KPI Ratings - {{ selectedQuarter }}</h4>
+              <h4 class="mb-1 fw-semibold text-center">KRA/KPI Ratings - {{ selectedQuarter1 }}</h4>
               <ul class="list-group list-group-flush">
                 <li *ngFor="let metric of kraKpiMetrics; let i = index" class="list-group-item py-3">
                   <span>{{ metric.name }}</span>
@@ -152,7 +162,7 @@
             </div>
         
             <div *ngIf="activeTab === 'questionnaire'">
-              <h4 class="mb-3 fw-semibold text-center">Questionnaire Ratings - {{ selectedQuarter }}</h4>
+              <h4 class="mb-3 fw-semibold text-center">Questionnaire Ratings - {{ selectedQuarter1 }}</h4>
               <ul class="list-group list-group-flush">
                 <li *ngFor="let question of questionnaireQuestions; let i = index" class="list-group-item py-3">
                   <span>{{ question.text }}</span>

@@ -26,8 +26,7 @@ export class TeamDashboardComponent implements OnInit {
 
   currentUser: User;
   viewTeamMemberList: any[] = [];
-  teamMemberColumns: any[] = ['blank', 'name', 'department', 'totalGoals', 'goalsCompleted'];
-
+  teamMemberColumns: any[] = ['blank','blank','employeementId', 'name'];
   isSearchEnabled: boolean = false;
   filters: any = {};
   sortDirection = 'asc';
