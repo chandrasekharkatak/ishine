@@ -119,6 +119,8 @@ export class ReportListComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
+
+  employeeReportColumnForDetailedProjectView:any[]=['employeementId','name','departmentName','jobRoleName','managerName','mobileNo','email','employmentstatus','billable','billableType','teamName','projectName','poNo','poType','poStartDate','poEndDate','effectiveStartDate','effectiveEndDate','clientName','clientLocation','workLocation','experience'];
   leaveReportColumns:any[] = ['employeementId','employeeType','employeeName','leaveType','fromDate','toDate','fromDateDayType','toDateDayType','noOfDays','reason','status','managerName','departmentName','createdOn','updatedOn','leaveStatusUpdatedByName'];
   timesheetReportColumns:any[] = ['employeementId','employeeType','employeeName','date','dayType','description','status','totalWorkingHours','officeInTime','officeOutTime','totalWorkingOfficeHours','leaveType','createdOn','updatedOn','timesheetStatusUpdatedByName'];
   employeeReportColumn:any[] = ['employeementId','employeeType','name','departmentName','jobRoleName','managerName','mobileNo','email','employmentstatus','projectName','poNo','poStartDate','poEndDate','poProjectType','clientName','billable','billableType','dateOfJoining','aadhar','aboutMe','address','permanentAddress','city','bloodGroup','dateOfBirth','gender','fatherName','panNumber','placeOfBirth','workLocation','probationPeriod','noticePeriod','country','totalExperience','emergencyContactMobile','emergencyContactPerson','landline','maritalStatus','motherTongue','alternateMobileNo','pincode','relation','state','viewsOnOrganisation','passportNumber','bankAccountNo','bankIFSCCode','bankName','pfAccountNumber','previousPfAccountNumber','uan','esicNumber','graduationType','pursuing','passingGrade','yearOfPassing','updatedOn','updatedByName','createdByName','createdOn'];
@@ -193,9 +195,11 @@ export class ReportListComponent implements OnInit {
   toggleTableView(){
     if(this.changeTable === true){
       this.changeTable = false;
+      this.getAllEmployeesReportByProjectType();
     }
     else{
       this.changeTable = true;
+      this.getAllEmployeesReportByProjectTypeInConsolidated();
     }
   }
   getAllEmployeesReportByProjectTypeInConsolidated(){
@@ -1374,7 +1378,26 @@ export class ReportListComponent implements OnInit {
     this.filters = searchData;
     //console.log("Updated Filter : ", this.filters);
   }
-}
+
+  getAllEmployeesReportByProjectType() {
+    this.allEmployee = [];
+
+      this.employeeService.getAllEmployeesReportByProjectType().pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.allEmployee = response.serviceResponse;
+           console.log("d nbdfh",this.allEmployee);
+        } else {
+          
+        }
+      });
+    }
+
+
+
+  }
+
+
+
 
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);

@@ -363,11 +363,8 @@
                 <th scope="col" class="info-label wide-col" mat-sort-header="teamName|string">Team Name</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="projectName|string">Project Name</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="poNo|string">Po No</th>
-
                 <th scope="col" class="info-label wide-col" mat-sort-header="poType|string">Po Type</th>
-
                 <th scope="col" class="info-label wide-col" mat-sort-header="poStartDate|string">Po Start Date</th>
-
                 <th scope="col" class="info-label wide-col" mat-sort-header="poEndDate|string">Po End Date</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="effectiveStartDate|string">Effective Start Date</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="effectiveEndDate|string">Effective End Date</th>
@@ -377,7 +374,7 @@
                 <th scope="col" class="info-label wide-col" mat-sort-header="experience|string">Experience</th>
               </tr>
               <tr app-column-filter-bar *ngIf="isEmployeeReportTable && isSearchEnabled"
-                [columnList]="employeeReportColumn" (onSearch)="onSearch($event);page=1"></tr>
+                [columnList]="employeeReportColumnForDetailedProjectView" (onSearch)="onSearch($event);page=1"></tr>
             </thead>
             <tbody>
               <tr *ngIf="filteredEmployees.length == 0 || (filteredEmployees | colFilter:filters: false).length == 0">

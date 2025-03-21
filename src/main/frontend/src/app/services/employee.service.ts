@@ -1,10 +1,10 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, Subject, throwError } from 'rxjs';
-import { Employee } from '../models/employee';
-import { User } from '../models/user';
-import { Query } from '../models/query';
+import { Observable, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import { Employee } from '../models/employee';
+import { Query } from '../models/query';
+import { User } from '../models/user';
 
 @Injectable({
   providedIn: 'root'
@@ -328,6 +328,10 @@ setReportingManagerToNewManager(employee : any){
 
 getAllEmployeesReportByProjectTypeInConsolidated(){
   return this.http.get(`${this.baseUrl}`+`api/getAllEmployeesReportByProjectTypeInConsolidated`);
+}
+
+getAllEmployeesReportByProjectType(){
+  return this.http.get(`${this.baseUrl}`+`api/getAllEmployeesReportByProjectType`);
 }
 
 }
