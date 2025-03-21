@@ -127,7 +127,6 @@ export class ReportListComponent implements OnInit {
   leaveTimesheetReportColumn:any[] = ['employeementId','employeeType','employeeName','date','dayType','description','status','managerName','departmentName','createdOn','updatedOn','timesheetStatusUpdatedByName'];
   defaultMappingColumns:any[] = ['tabName','featureName','subFeatureName'];
   departments:any [] = [];
-  selectedDepartment: string = '';
   allEmployee : any[] =[];
   filteredEmployees: any []=[];
   tnmPoExpiredCount=0;
@@ -135,6 +134,7 @@ export class ReportListComponent implements OnInit {
   fixedCostPoExpiredCount=0;
   fixedCostPoValidCount=0;
   internalCount=0;
+  selectedDepartment: string = 'All';
 
 
   constructor(
@@ -189,7 +189,7 @@ export class ReportListComponent implements OnInit {
       this.showDetails = true;
       this.getAllDepartments();
       this.getAllEmployeesReportByProjectTypeInConsolidated();
-      // this.filterEmployees();
+      this.filterEmployees();
     }
   }
   toggleTableView(){
@@ -255,8 +255,6 @@ export class ReportListComponent implements OnInit {
           }
         });
         
-        
-
         //Fixed Cost,TNM,Bench,InternalRNDProducts,Shadow
         //poEndDate "TNM" poProjectType
 
@@ -265,11 +263,49 @@ export class ReportListComponent implements OnInit {
       }
     });
   }
+  onBoxClickDataChange(boxName){
+    this.filteredEmployees=[];
+    //TNM-Active,TNM-Expired,FC-Active,FC-Expired
+    const currentDate = new Date();
+    //const poEndDate = new Date(emp.poEndDate)
+
+      if (boxName === 'TNM-Active') {
+        this.filteredEmployees = this.allEmployee.filter(emp => 
+          emp.poProjectType === "TNM" && new Date(emp.poEndDate) >= currentDate
+        );
+      } else if (boxName === 'TNM-Expired') {
+        this.filteredEmployees = this.allEmployee.filter(emp => 
+          emp.poProjectType === "TNM" && new Date(emp.poEndDate) < currentDate
+        );
+      } else if (boxName === 'FC-Active') {
+        this.filteredEmployees = this.allEmployee.filter(emp => 
+          emp.poProjectType === "Fixed Cost" && new Date(emp.poEndDate) >= currentDate
+        );
+      } else if (boxName === 'FC-Expired') {
+        this.filteredEmployees = this.allEmployee.filter(emp => 
+          emp.poProjectType === "Fixed Cost" && new Date(emp.poEndDate) < currentDate
+        );
+      } else {
+        this.filteredEmployees = this.allEmployee.filter(emp => 
+          emp.poProjectType !== "Fixed Cost" && emp.poProjectType !== "TNM"
+        );
+      }
+      console.log('Box click data-- ', this.filteredEmployees);
+
+
+  }
 
   onDepartmentChange(event: any) {
-    this.selectedDepartment = event.target.value;
+    this.filteredEmployees=[];
+
+    // if(this.selectedDepartment === 'all'){
+    //   this.filteredEmployees=this.allEmployee;
+    // }else{
+      this.selectedDepartment = event.target.value;
+    // }
     console.log('Selected Department:', this.selectedDepartment);
     this.filterEmployees();
+    
   }
   getAllDepartments(){
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
@@ -286,9 +322,13 @@ export class ReportListComponent implements OnInit {
 
   filterEmployees() {
     if (this.selectedDepartment) {
-      this.filteredEmployees = this.allEmployee.filter(emp => emp.departmentId == this.selectedDepartment);
+      if(this.selectedDepartment === 'all'){
+        this.filteredEmployees = [...this.allEmployee];
+      }else{
+        this.filteredEmployees = this.allEmployee.filter(emp => emp.departmentId == this.selectedDepartment);
+      }
     } else {
-      this.filteredEmployees = [...this.allEmployee]; // Show all employees when no filter is applied
+      this.filteredEmployees = [...this.allEmployee]; 
     }
     console.log('Filtered dept data -- ', this.filteredEmployees);
     //Fixed Cost,TNM,Bench,InternalRNDProducts,Shadow
