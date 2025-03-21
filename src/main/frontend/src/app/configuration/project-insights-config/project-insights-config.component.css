@@ -42,3 +42,58 @@
 .my-pagination::ng-deep{
     padding-top: 10px;
 }
+
+
+
+
+/* template create css */
+
+.milestone-container {
+    border: 1px solid black;
+    padding: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .milestone-title {
+    font-weight: bold;
+  }
+  
+  .milestone-description {
+    color: gray;
+  }
+  
+  .question-container {
+    border: 1px solid black;
+    padding: 10px;
+    margin: 10px 0;
+  }
+  
+  .question-title {
+    font-weight: bold;
+  }
+  
+  .question-description {
+    color: gray;
+    display: block;
+  }
+  
+  .upload-input {
+    float: right;
+  }
+  
+  .text-input {
+    width: 100%;
+    padding: 5px;
+    margin-top: 5px;
+    border: 1px solid black;
+  }
+  
+  .option-container {
+    display: flex;
+    align-items: center;
+  }
+  
+  .option-input {
+    margin-right: 5px;
+  }
+  

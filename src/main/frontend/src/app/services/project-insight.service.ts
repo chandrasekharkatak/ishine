@@ -16,4 +16,20 @@ export class ProjectInsightService {
   createProjectInsightQuestion(projObj: ProjectInsightQuestion){
     return this.http.post(`${this.baseUrl}` + `api/createProjectInsightQuestion`, projObj);
   }
+
+  updateProjectInsightQuestion(projObj: ProjectInsightQuestion){
+    return this.http.post(`${this.baseUrl}` + `api/updateProjectInsightQuestion`, projObj);
+  }
+
+  getAllProjectInsightList() {
+    return this.http.get(`${this.baseUrl}` + `api/getAllProjectInsightList`);
+  }
+
+  getAllQuestionsByProjectId(projectObj: any){
+    return this.http.post(`${this.baseUrl}` + `api/getAllQuestionsByProjectId`, projectObj);
+  }
+
+  getAllProjctInsightResponsesByProjectId(projectObj: any){
+    return this.http.post(`${this.baseUrl}` + `api/getAllProjctInsightResponsesByProjectId`, projectObj);
+  }
 }

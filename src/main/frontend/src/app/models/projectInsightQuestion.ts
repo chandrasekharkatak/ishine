@@ -19,5 +19,6 @@ export class ProjectInsightQuestion {
 
 
     milestone: any;
+    milestoneId: any;
     projectQuestion:ProjectQuestion[] = [new ProjectQuestion()];
 }

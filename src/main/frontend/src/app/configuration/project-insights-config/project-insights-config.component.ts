@@ -54,9 +54,8 @@ export class ProjectInsightsConfigComponent implements OnInit {
   projectInsightQuestionList:ProjectInsightQuestion[] = [new ProjectInsightQuestion()]
   allProjectList:any[] = [];
   projectInsightQuestion:ProjectInsightQuestion = new ProjectInsightQuestion();
-  allProjectInsightCreatedList:any[] = [];
 
-  allSurveyList:any[] = [];
+  allProjectInsightList:any[] = [];
   allSurveyResponseList:any[] = [];
   selectedSurveyName:any = "Test Survey";
   responseListTableHeaders:any[] =
@@ -130,7 +129,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
   }
 
   sectionViewInit(){
-    this.showSurveys();
+    this.showProjectInsight();
   }
 
   showSurveyForm(){
@@ -145,7 +144,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.allSurveyQuestionList = [new SurveyQuestion()];
   }
 
-  showSurveys(){
+  showProjectInsight(){
     this.isProjectInsightList = true;
 
     this.isQuestionForm = false;
@@ -153,10 +152,10 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.isUpdation = false;
     this.isSurveyResponseList = false;
 
-    this.getAllSurveys();
+    this.getAllProjectInsightList();
   }
 
-  showSurveyResponses(surveyObj:Survey){
+  showAddProjectInsightResponses(projectObj){
     this.isSurveyResponseList = true;
 
     this.isQuestionForm = false;
@@ -165,11 +164,10 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.isProjectInsightList = false;
 
     //console.log("surveyObj for responses : ", surveyObj);
-    this.getAllSurveyResponsesBySurveyId(surveyObj);
-
+    this.getAllProjctInsightResponsesByProjectId(projectObj);
   }
 
-  showSurveyUpdate(surveyObj:Survey, template: TemplateRef<any>){
+  showProjectInsightUpdate(projectObj:any, template: TemplateRef<any>){
     this.isQuestionForm = true;
     this.isUpdation = true;
 
@@ -177,22 +175,21 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.isSurveyResponseList = false;
     this.isProjectInsightList = false;
 
-    this.surveyObj = new Survey();
-    this.allSurveyQuestionList = [];
+    this.projectInsightQuestion = new ProjectInsightQuestion();
+    this.projectInsightQuestionList = [];
 
-    this.surveyService.getAllQuestionsBySurveyId(surveyObj).pipe(first()).subscribe((response: any) => {
+    this.projectInsightService.getAllQuestionsByProjectId(projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.allSurveyQuestionList = response.serviceResponse;
-        //console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
+        this.projectInsightQuestion = response.serviceResponse;
+        this.projectInsightQuestionList = this.projectInsightQuestion.projectInsightQuestionList;
 
-        this.surveyObj = surveyObj;
-        this.allSurveyQuestionList.forEach((survey: SurveyQuestion) => {
-          survey.optionsList = JSON.parse(survey.options);
-          survey.required = JSON.parse(survey.required);
+        this.projectInsightQuestionList.forEach((project: ProjectInsightQuestion) => {
+          project.projectQuestion.forEach((question: ProjectQuestion) => {
+            question.optionsList = JSON.parse(question.options);
+            question.required = JSON.parse(question.required);
+            question.documentUpload = JSON.parse(question.documentUpload);
+          });
         });
-
-        //console.log("For Edit SurveyObj ==> ",this.surveyObj, this.allSurveyQuestionList);
-
       } else {
         console.error(response.serviceResponse);
       }
@@ -317,12 +314,6 @@ export class ProjectInsightsConfigComponent implements OnInit {
           flag = false;
           return;
         }
-        if(!this.validationService.validateTeamName(question.question)){
-          this.alertMessage = `Please enter valid Question ${index+1} !!`;
-          this.openAlertMod(template, this.alertMessage);
-          flag = false;
-          return;
-        }
   
         if(!this.validationService.validateNullUndefinedEmptyString(question.optionType)){
           this.alertMessage = `Please select Option Type ${index+1} !!`;
@@ -361,6 +352,40 @@ export class ProjectInsightsConfigComponent implements OnInit {
     return flag;
   }
 
+  getAllProjctInsightResponsesByProjectId(projectObj: any){
+    this.projectInsightQuestion = new ProjectInsightQuestion();
+    this.projectInsightQuestionList = [];
+
+    this.projectInsightService.getAllProjctInsightResponsesByProjectId(projectObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.projectInsightQuestion = response.serviceResponse;
+        this.projectInsightQuestionList = this.projectInsightQuestion.projectInsightQuestionList;
+
+        this.projectInsightQuestionList.forEach((project: ProjectInsightQuestion) => {
+          project.projectQuestion.forEach((question: ProjectQuestion) => {
+            question.optionsList = JSON.parse(question.options);
+            question.required = JSON.parse(question.required);
+            question.documentUpload = JSON.parse(question.documentUpload);
+          });
+        });
+
+        const questionTemplate: string = this.createTemplate();
+
+        let previewObj = new ProjectInsightQuestion();
+        previewObj.projectId = this.projectInsightQuestion.projectId;
+        previewObj.projectManagerId = this.projectInsightQuestion.projectManagerId;
+        previewObj.projectManagerName = this.projectInsightQuestion.projectManagerName;
+        previewObj.projectInsightQuestionList = this.projectInsightQuestionList;
+        previewObj.projectInsightQuestionTemplate = questionTemplate;
+
+        //console.log("previewObj : ", previewObj);
+        // this.openSurveyPreviewMod(template, previewObj);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
   onSubmit(template: TemplateRef<any>){
 
     let inputValidated: boolean = this.vallidateProjectInsight(template, this.projectInsightQuestion, this.projectInsightQuestionList);
@@ -376,15 +401,17 @@ export class ProjectInsightsConfigComponent implements OnInit {
     projObj.projectInsightQuestionTemplate = questionTemplate;
     projObj.createdBy = this.currentUser.empId;
 
-    projObj.projectInsightQuestionList.forEach((proj:ProjectQuestion) => {
-      proj.options = JSON.stringify(proj.optionsList);
+    projObj.projectInsightQuestionList.forEach((proj:ProjectInsightQuestion) => {
+      proj.projectQuestion.forEach((questionObj: ProjectQuestion) => {
+        questionObj.options = JSON.stringify(questionObj.optionsList);
+      });
     });
 
     //console.log("survey : ", surveyObj);
     this.projectInsightService.createProjectInsightQuestion(projObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
-        this.showSurveys();
+        this.showProjectInsight();
       }else{
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -397,50 +424,39 @@ export class ProjectInsightsConfigComponent implements OnInit {
     }
   }
 
-  getAllSurveys(){
+  getAllProjectInsightList(){
     this.sortColumn=[];
     this.sortColumnType=[];
     this.sortDirection='';
-    this.allSurveyList = [];
+    this.allProjectInsightList = [];
 
-    this.surveyService.getAllSurveys().pipe(first()).subscribe((response: any) => {
+    this.projectInsightService.getAllProjectInsightList().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-       this.allSurveyList = response.serviceResponse;
-       this.allSurveyList.forEach(survey => {
-         survey.createdOn = (survey.createdOn)? moment(survey.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+       this.allProjectInsightList = response.serviceResponse;
+       this.allProjectInsightList.forEach(project => {
+        project.createdOn = (project.createdOn)? moment(project.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
        });
-       this.allSurveyList.forEach((employee) => {
-        // console.log("employee.createdBy ", employee.createdBy);
-        let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
-        // console.log("createdby ", matchingEmployee3);
-        employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
-        // console.log("employee.updatedBy ", employee.updatedBy);
-        let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
-        // console.log("updatedBy ", matchingEmployee4);
-        employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
-      });
-      //  console.log("this.allSurveyList : ", this.allSurveyList);
       }else{
         console.error(response.serviceResponse);
       }
     });
   }
 
-  onSurveyPreview(surveyObj:Survey, template: TemplateRef<any>){
+  onProjectInsightPreview(projectObj:any, template: TemplateRef<any>){
+    this.projectInsightQuestion = new ProjectInsightQuestion();
+    this.projectInsightQuestionList = [];
 
-    //console.log("For Preiew Survey : ", surveyObj);
-    this.surveyObj = new Survey();
-    this.allSurveyQuestionList = [];
-
-    this.surveyService.getAllQuestionsBySurveyId(surveyObj).pipe(first()).subscribe((response: any) => {
+    this.projectInsightService.getAllQuestionsByProjectId(projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.allSurveyQuestionList = response.serviceResponse;
-        //console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
+        this.projectInsightQuestion = response.serviceResponse;
+        this.projectInsightQuestionList = this.projectInsightQuestion.projectInsightQuestionList;
 
-        this.surveyObj = surveyObj;
-        this.allSurveyQuestionList.forEach((survey: SurveyQuestion) => {
-          survey.optionsList = JSON.parse(survey.options);
-          survey.required = JSON.parse(survey.required);
+        this.projectInsightQuestionList.forEach((project: ProjectInsightQuestion) => {
+          project.projectQuestion.forEach((question: ProjectQuestion) => {
+            question.optionsList = JSON.parse(question.options);
+            question.required = JSON.parse(question.required);
+            question.documentUpload = JSON.parse(question.documentUpload);
+          });
         });
 
         const questionTemplate: string = this.createTemplate();
@@ -520,20 +536,24 @@ export class ProjectInsightsConfigComponent implements OnInit {
     let inputValidated: boolean = this.vallidateProjectInsight(template, this.projectInsightQuestion, this.projectInsightQuestionList);
     if (!inputValidated) return;
 
-    let surveyObj = new Survey();
-    surveyObj = this.surveyObj;
-    surveyObj.surveyQuestionList = this.allSurveyQuestionList;
-    surveyObj.updatedBy = this.currentUser.empId;
-
-    surveyObj.surveyQuestionList.forEach((survey:SurveyQuestion) => {
-      survey.options = JSON.stringify(survey.optionsList);
-    });
+    let projObj = new ProjectInsightQuestion();
+      projObj.projectId = this.projectInsightQuestion.projectId;
+      projObj.projectManagerId = this.projectInsightQuestion.projectManagerId;
+      projObj.projectManagerName = this.projectInsightQuestion.projectManagerName;
+      projObj.projectInsightQuestionList = this.projectInsightQuestionList;
+      projObj.createdBy = this.currentUser.empId;
+  
+      projObj.projectInsightQuestionList.forEach((proj:ProjectInsightQuestion) => {
+        proj.projectQuestion.forEach((questionObj: ProjectQuestion) => {
+          questionObj.options = JSON.stringify(questionObj.optionsList);
+        });
+      });
 
     //console.log("updateSurvey : ", surveyObj);
-    this.surveyService.updateSurvey(surveyObj).pipe(first()).subscribe((response: any) => {
+    this.projectInsightService.updateProjectInsightQuestion(projObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
-        this.showSurveys();
+        this.showProjectInsight();
       }else{
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -547,7 +567,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.surveyService.deleteSurvey(this.surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
-        this.showSurveys();
+        this.showProjectInsight();
       }else{
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -566,7 +586,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.surveyService.changeSurveyStatus(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
-        this.showSurveys();
+        this.showProjectInsight();
       }else{
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -585,67 +605,77 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.surveyService.changeSurveyStatus(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
-        this.showSurveys();
+        this.showProjectInsight();
       }else{
         this.openAlertMod(template, response.serviceResponse);
       }
     });
   }
 
+  onImageSelect(event: any){
+  }
+
   createTemplate(): string {
-    let projectInsightQueTemplate = ``;
-
+    let projectInsightQueTemplate = '';
+  
     this.projectInsightQuestionList.forEach((milestone: ProjectInsightQuestion, mileIndex) => {
-      let finalQuestionTemplate = ``;
-
-      // Milestone Heading
+      let finalQuestionTemplate = '';
+  
+      // Milestone Heading with improved styling
       const milestoneHeader = `
-        <div class="row">
-          <div class="form-group">
-            <h4 class="mb-0">Milestone ${mileIndex + 1}: ${milestone.milestone || ''}</h4>
-            <small class="text-secondary">${milestone.description || ''}</small>
-          </div>
-        </div>`;
-
+        <div>
+          <h4 style="font-weight: bold;">Milestone ${mileIndex + 1}: ${milestone.milestone || ''}</h4>
+          <small style="color: gray;">${milestone.description || ''}</small>
+        </div>
+      `;
+  
       finalQuestionTemplate += milestoneHeader;
-
+  
+      let questionsBlock = '<div style="border: 1px solid black; padding: 10px; margin: 10px 14px;">';
+  
       milestone.projectQuestion.forEach((question: ProjectQuestion, qIndex) => {
-        let isQuestionRequired = question.required ? `<span class="text-danger">*</span>` : '';
+        let isQuestionRequired = question.required ? `<span style="color: red;">*</span>` : '';
+        let isUploadDocument = question.documentUpload ? `<input type="file" accept="image/*" style="float: right; font-size: 13px;">` : '';
+        
         let questionTemplate = `
-          <div class="row">
-            <div class="form-group">
-              <h5 class="mb-0"><i class="fa-solid fa-q question-icon"></i>.&nbsp; ${question.question || ''} ${isQuestionRequired}</h5>
-              <small class="text-secondary">${question.description || ''}</small>
+          <div style="padding: 10px; margin: 10px 0;">
+            <h5 style="font-weight: bold;">${qIndex + 1} - ${question.question || ''} ${isQuestionRequired}</h5>
+            <small style="color: gray; display: block; margin-bottom: 5px;">${question.description || ''}</small>
+            ${isUploadDocument}
         `;
-
+  
         // Question Options
         if (question.optionType === "text") {
-          questionTemplate += `<textarea class="form-control" rows="1" name="question-${qIndex + 1}"></textarea>`;
+          questionTemplate += `<input style="width: 50%">`;
         } else if (question.optionType === "checkbox") {
           questionTemplate += question.optionsList.map((option, opIndex) => `
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="q-${qIndex + 1}-check-option-${opIndex + 1}" value="${option.optionValue}" name="question-${qIndex + 1}">
-              <label class="form-check-label" for="q-${qIndex + 1}-check-option-${opIndex + 1}">${option.optionValue}</label>
+            <div style="display: flex; align-items: center; margin-top: 5px;">
+              <input type="checkbox" id="q-${qIndex + 1}-check-option-${opIndex + 1}" value="${option.optionValue}" name="question-${qIndex + 1}" style="margin-right: 5px;">
+              <label for="q-${qIndex + 1}-check-option-${opIndex + 1}">${option.optionValue}</label>
             </div>
           `).join('');
         } else if (question.optionType === "radio") {
           questionTemplate += question.optionsList.map((option, index) => `
-            <div class="form-check">
-              <input class="form-check-input" type="radio" id="q-${qIndex + 1}-radio-option-${index + 1}" value="${option.optionValue}" name="question-${qIndex + 1}">
-              <label class="form-check-label" for="q-${qIndex + 1}-radio-option-${index + 1}">${option.optionValue}</label>
+            <div style="display: flex; align-items: center; margin-top: 5px;">
+              <input type="radio" id="q-${qIndex + 1}-radio-option-${index + 1}" value="${option.optionValue}" name="question-${qIndex + 1}" style="margin-right: 5px;">
+              <label for="q-${qIndex + 1}-radio-option-${index + 1}">${option.optionValue}</label>
             </div>
           `).join('');
         }
-
-        questionTemplate += `</div></div>`;
-        finalQuestionTemplate += questionTemplate;
+  
+        questionTemplate += `</div>`;
+        questionsBlock += questionTemplate;
       });
-
+  
+      questionsBlock += '</div>'; // Closing the bordered div
+      finalQuestionTemplate += questionsBlock;
       projectInsightQueTemplate += finalQuestionTemplate;
     });
-
+  
     return projectInsightQueTemplate;
-  }
+}
+
+  
 
 
   name = 'EmployeeSheet.xlsx';
@@ -730,7 +760,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
     surveyContainer.insertAdjacentHTML('beforeend', surveyObj.projectInsightQuestionTemplate);
   }
 
-  openDeleteSurveyMod(template: TemplateRef<any>, surveyObj:Survey) {
+  openDeleteProjectInsightMod(template: TemplateRef<any>, surveyObj:Survey) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.surveyObj = surveyObj;
   }
