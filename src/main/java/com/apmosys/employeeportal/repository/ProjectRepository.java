@@ -50,5 +50,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 
 	public Project findByProjectIdAndProjectManagerId(Integer projectId, Long managerId);
 
-
+	@Query(nativeQuery=true,value="select DISTINCT po_project_type from projects where po_project_type IS NOT NULL")
+	List<String>finddistinctPoProjectType();
+	
 }

@@ -81,9 +81,6 @@ public class CustomFilterService {
 
 	@Autowired
 	ProjectRepository projectRepository;
-	
-	@Autowired
-	ProjectsTempRepository projectsTempRepository;
 
 	@Autowired
 	ClientsRepository clientsRepository;
@@ -954,7 +951,7 @@ public class CustomFilterService {
 						+ "        GROUP_CONCAT(DISTINCT pr.po_project_type ORDER BY pr.project_id SEPARATOR ',') AS po_project_type \n"
 						+ "    FROM employee_team_mapping etm \n"
 						+ "    LEFT JOIN teams t ON t.team_id = etm.team_id \n"
-						+ "    LEFT JOIN projects_temp pr ON pr.project_id = t.project_id \n"
+						+ "    LEFT JOIN projects pr ON pr.project_id = t.project_id \n"
 						+ "    LEFT JOIN clients cl ON cl.client_id = pr.client_id \n"
 						+ "    WHERE etm.active != 0 \n"
 						+ "      AND t.is_active != 'N' \n"
@@ -2132,7 +2129,7 @@ public class CustomFilterService {
 				break;
 			}
 			case "Po No":{
-				List<ProjectsTemp> projObj = projectsTempRepository.findAll();
+				List<Project> projObj = projectRepository.findAll();
 				if(!projObj.isEmpty()) {
 					projObj.forEach((object) -> {
 						EmployeeDTO dto = new EmployeeDTO();
@@ -2148,7 +2145,7 @@ public class CustomFilterService {
 			}
 			
 			case "Po Project Type":{
-				List<String> projObj = projectsTempRepository.finddistinctPoProjectType();
+				List<String> projObj = projectRepository.finddistinctPoProjectType();
 				if(!projObj.isEmpty()) {
 					projObj.forEach((object) -> {
 						EmployeeDTO dto = new EmployeeDTO();
