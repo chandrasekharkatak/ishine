@@ -249,7 +249,8 @@
     <div class="container mt-3 d-flex justify-content-end" *ngIf="showDetails">
       <!-- <label for="department">Select Department:</label> -->
       <select id="department" class="form-control w-auto d-inline-block" (change)="onDepartmentChange($event)">
-        <option value="" disabled selected>Select a department</option>
+        <!-- <option value="" disabled selected>Select a department</option> -->
+        <option value="all" selected>All</option>
         <option *ngFor="let dept of departments" [value]="dept.deptId">{{ dept.name }}</option>
       </select>
 
@@ -265,13 +266,13 @@
           <div class="box border border-primary p-4 rounded text-center">
             <h4>TNM</h4>
             <div class="row mt-3">
-              <div class="col-6">
+              <div class="col-6" (click)="onBoxClickDataChange('TNM-Active')">
                 <div class="branch bg-primary text-white p-3 rounded">
                   <h5>Active</h5>
                   <p>{{tnmPOValidCount}}</p>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" (click)="onBoxClickDataChange('TNM-Fixed')">
                 <div class="branch bg-success text-white p-3 rounded">
                   <h5>Expired</h5>
                   <p>{{tnmPoExpiredCount}}</p>
@@ -286,13 +287,13 @@
           <div class="box border border-primary p-4 rounded text-center">
             <h4>Fixed Cost</h4>
             <div class="row mt-3">
-              <div class="col-6">
+              <div class="col-6" (click)="onBoxClickDataChange('FC-Active')">
                 <div class="branch bg-primary text-white p-3 rounded">
                   <h5>Active</h5>
                   <p>{{fixedCostPoValidCount}}</p>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" (click)="onBoxClickDataChange('FC-Expired')">
                 <div class="branch bg-success text-white p-3 rounded">
                   <h5>Expired</h5>
                   <p>{{fixedCostPoExpiredCount}}</p>
@@ -306,7 +307,7 @@
         <div class="col-md-2">
           <div class="box border border-primary p-4 rounded text-center">
             <h4>Internal</h4>
-            <div class="row mt-3">
+            <div class="row mt-3" (click)="onBoxClickDataChange('Internal')">
               <!-- <div class="col-6"> -->
               <div class="branch bg-primary text-white p-3 rounded">
                 <!-- <h5>In Business</h5> -->

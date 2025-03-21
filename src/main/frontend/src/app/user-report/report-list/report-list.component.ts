@@ -327,8 +327,6 @@ export class ReportListComponent implements OnInit {
       }else{
         this.filteredEmployees = this.allEmployee.filter(emp => emp.departmentId == this.selectedDepartment);
       }
-    } else {
-      this.filteredEmployees = [...this.allEmployee]; 
     }
     console.log('Filtered dept data -- ', this.filteredEmployees);
     //Fixed Cost,TNM,Bench,InternalRNDProducts,Shadow
