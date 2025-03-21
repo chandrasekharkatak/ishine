@@ -473,6 +473,7 @@ public class ReportService {
 					employeeDTO.setDepartmentName(object[22] != null ? object[22].toString() : null);
 					employeeDTO.setPoProjectType(object[23] != null ? object[23].toString() : null);
 					employeeDTO.setJobRole(object[24] != null ? object[24].toString() : null);
+					employeeDTO.setPoProjectId(object[24] != null ? object[24].toString() : null);
 					
 					dtoList.add(employeeDTO);
 				});
@@ -541,7 +542,7 @@ public class ReportService {
 					employeeDTO.setDepartmentId(object[21] != null ? Long.parseLong(object[21].toString()) : null);
 					employeeDTO.setDepartmentName(object[22] != null ? object[22].toString() : null);
 					employeeDTO.setPoProjectType(object[23] != null ? object[23].toString() : null);
-					employeeDTO.setJobRole(object[24] != null ? object[24].toString() : null);
+					employeeDTO.setPoProjectId(object[24] != null ? object[24].toString() : null);
 					
 					dtoList.add(employeeDTO);
 				});

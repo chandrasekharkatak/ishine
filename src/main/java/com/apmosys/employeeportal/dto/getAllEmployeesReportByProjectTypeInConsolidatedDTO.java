@@ -35,4 +35,5 @@ public class getAllEmployeesReportByProjectTypeInConsolidatedDTO {
     private Integer projectId;
     private String jobRole;
     private String employeementId;
+    private String poProjectId;
 }
