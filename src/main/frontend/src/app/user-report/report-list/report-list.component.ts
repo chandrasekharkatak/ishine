@@ -126,6 +126,13 @@ export class ReportListComponent implements OnInit {
   defaultMappingColumns:any[] = ['tabName','featureName','subFeatureName'];
   departments:any [] = [];
   selectedDepartment: string = '';
+  allEmployee : any[] =[];
+  filteredEmployees: any []=[];
+  tnmPoExpiredCount=0;
+  tnmPOValidCount=0;
+  fixedCostPoExpiredCount=0;
+  fixedCostPoValidCount=0;
+  internalCount=0;
 
 
   constructor(
@@ -141,6 +148,7 @@ export class ReportListComponent implements OnInit {
     private locationStrategy: LocationStrategy,
     private utilityService: UtilityService,
     private departmentService: DepartmentService,
+
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -178,6 +186,8 @@ export class ReportListComponent implements OnInit {
     else{
       this.showDetails = true;
       this.getAllDepartments();
+      this.getAllEmployeesReportByProjectTypeInConsolidated();
+      // this.filterEmployees();
     }
   }
   toggleTableView(){
@@ -188,24 +198,64 @@ export class ReportListComponent implements OnInit {
       this.changeTable = true;
     }
   }
+  getAllEmployeesReportByProjectTypeInConsolidated(){
+    this.employeeService.getAllEmployeesReportByProjectTypeInConsolidated().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        // console.log('response -- ',response.serviceResponse);
+        this.allEmployee=response.serviceResponse;
+        console.log('emps -- ',this.allEmployee);
+        this.filterEmployees();
+
+      }else {
+        alert(response.serviceResponse)
+      }
+    });
+  }
 
   onDepartmentChange(event: any) {
     this.selectedDepartment = event.target.value;
     console.log('Selected Department:', this.selectedDepartment);
+    this.filterEmployees();
   }
   getAllDepartments(){
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         // console.log('response -- ',response.serviceResponse);
         this.departments = response.serviceResponse;
-        console.log('response -- ',this.departments);
+        // console.log('dept response -- ',this.departments);
 
       }else {
         alert(response.serviceResponse)
       }
     });
+  }
+  getCounts(){
 
   }
+  filterEmployees() {
+    if (this.selectedDepartment) {
+      this.filteredEmployees = this.allEmployee.filter(emp => emp.departmentId == this.selectedDepartment);
+    } else {
+      this.filteredEmployees = [...this.allEmployee]; // Show all employees when no filter is applied
+    }
+    console.log('Filtered dept data -- ', this.filteredEmployees);
+    //Fixed Cost,TNM,Bench,InternalRNDProducts,Shadow
+    //poEndDate 
+  }
+  
+  // filterEmployees() {
+  //   if (this.selectedDepartment) {
+  //     // this.filteredEmployees = this.allEmployee.filter(emp => emp.departmentId === this.selectedDepartment);
+  //     this.allEmployee.forEach(emp => {
+  //       if(emp.departmentId === this.selectedDepartment){
+  //         this.filteredEmployees=emp;
+  //       }
+  //     });
+  //     console.log('Filtered dept data -- ',this.filteredEmployees);
+  //   } else {
+  //     this.filteredEmployees = [...this.allEmployee]; // Show all employees when no filter is applied
+  //   }
+  // }
 
   showLeaveReportTable() {
     this.leaveReportFlag = true;

@@ -326,4 +326,8 @@ setReportingManagerToNewManager(employee : any){
   return this.http.post(`${this.baseUrl}`+`api/setReportingManagerToNewManager`,employee);
 }
 
+getAllEmployeesReportByProjectTypeInConsolidated(){
+  return this.http.get(`${this.baseUrl}`+`api/getAllEmployeesReportByProjectTypeInConsolidated`);
+}
+
 }
