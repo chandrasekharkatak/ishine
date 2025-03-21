@@ -17,4 +17,10 @@ export class MyTravelDesk{
     toLocation : any ;
     purposeOfTravel: any ;
     supportingDocument: any ;
+    approverStatus: any;
+    status: any;
+    level1approverRemarks : any;
+    level2approverRemarks : any;
+    hodId : any;
+    hodName : any ;
 }

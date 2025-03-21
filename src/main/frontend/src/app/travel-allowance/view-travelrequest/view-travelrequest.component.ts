@@ -26,6 +26,7 @@ export class ViewTravelrequestComponent implements OnInit {
   selectedTraveldataforDelete: any = [];
   domainSpecializationList: any[];
   currentUser: any;
+  alertMessage: any;
 
   constructor(private travelDesk: TravelDeskService,
     private modalService: BsModalService,
@@ -64,7 +65,13 @@ export class ViewTravelrequestComponent implements OnInit {
   isValidForm() {
     return true; 
   }
-  alertMessage: any;
+  //pagination
+
+  page = 1;
+  handlePageChange(event) {
+      this.page = event;
+  }
+  //alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
@@ -196,8 +203,7 @@ export class ViewTravelrequestComponent implements OnInit {
 
 
   closeModal() {
-    // Close the modal using jQuery
-    $('#editTravelRequestModal').modal('hide');
+    this.modalRef.hide();
   }
 
 

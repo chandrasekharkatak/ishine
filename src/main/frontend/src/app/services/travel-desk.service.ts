@@ -32,6 +32,6 @@ export class TravelDeskService {
   }
 
   approveOrRejectTraveldesk(travelDeskObj: MyTravelDesk) {
-    return this.http.post(`${this.baseUrl}` + `api/approveOrRejectTraveldesk`, travelDeskObj);
+    return this.http.post(`${this.baseUrl}` + `api/approveOrRejectTravel`, travelDeskObj);
   }
 }

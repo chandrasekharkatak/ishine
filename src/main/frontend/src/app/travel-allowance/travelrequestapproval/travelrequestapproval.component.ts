@@ -133,33 +133,35 @@ export class TravelrequestapprovalComponent implements OnInit {
     }
   }
 
-  async deleteTraveldata(row : any) {
-    if (this.isValidForm()) {
-      this.travelDeskInfo = new MyTravelDesk();
-      let travelData = new MyTravelDesk();
+  // async deleteTraveldata(row : any) {
+  //   if (this.isValidForm()) {
+  //     this.travelDeskInfo = new MyTravelDesk();
+  //     let travelData = new MyTravelDesk();
 
-      this.selectedTraveldataforDelete  = { ...row }; 
+  //     this.selectedTraveldataforDelete  = { ...row }; 
 
-      console.log('delete pain asichi reee :::::::::::::::::',this.selectedTraveldataforDelete)
+  //     console.log('delete pain asichi reee :::::::::::::::::',this.selectedTraveldataforDelete)
 
-      console.log('currentEmployeeInfo ::::::::::::::::',this.currentEmployeeInfo);
-      travelData.requestId = this.selectedTraveldataforDelete.requestId;  
+  //     console.log('currentEmployeeInfo ::::::::::::::::',this.currentEmployeeInfo);
+  //     travelData.requestId = this.selectedTraveldataforDelete.requestId;  
 
-     // console.log('Form data for delete :::::::::::::::::::::', this.travelRequests.requestId);
+  //    // console.log('Form data for delete :::::::::::::::::::::', this.travelRequests.requestId);
 
-      const response: any = await this.travelDesk.revokeTravel(travelData).toPromise();
+  //     const response: any = await this.travelDesk.revokeTravel(travelData).toPromise();
       
-      if (response.serviceStatus === "Success") {
-        alert("Success! Your Data is deleted successfully.");
-        this.onGetTravelInfo();
+  //     if (response.serviceStatus === "Success") {
+  //       alert("Success! Your Data is deleted successfully.");
+  //       this.onGetTravelInfo();
         
-      } else {
-        console.error('Error fetching data:', response.serviceResponse);
-      }
-    }
+  //     } else {
+  //       console.error('Error fetching data:', response.serviceResponse);
+  //     }
+  //   }
+  // }
+
+  cancelRequest() {
+    this.modalRef.hide();
   }
-
-
 
  async onGetEmployeeInfo(){
     this.domainSpecializationList = [];
@@ -190,6 +192,53 @@ export class TravelrequestapprovalComponent implements OnInit {
       });
     }, 500);
   }
+
+
+  async actionRequest(template: TemplateRef<any>) {
+
+    this.travelDeskInfo = new MyTravelDesk();
+    let travelData = new MyTravelDesk();
+
+    this.travelDeskInfo = new MyTravelDesk();
+    let newtravelData = new MyTravelDesk();
+    newtravelData.requestId=this.selectedTravelRequest.requestId;
+    newtravelData.employeeId = this.selectedTravelRequest.empId;
+    newtravelData.status = this.selectedTravelRequest.approverStatus;
+    newtravelData.level1approverRemarks = this.selectedTravelRequest.approverRemarks;
+
+
+    console.log('Approver Status ', newtravelData.approverStatus);
+
+    console.log('newtravelData :::::::::::::::::::::::::::::', newtravelData);
+    
+   //  const index = this.travelRequests.findIndex(request => request.requestId === this.selectedTravelRequest.requestId);
+
+ // if (index !== -1) {
+    
+  //  this.travelRequests[index] = { ...this.selectedTravelRequest };
+
+    try {
+      const response: any = await this.travelDesk.approveOrRejectTraveldesk(newtravelData).toPromise();
+
+      if (response.serviceStatus === "Success") {
+        this.alertMessage = `Success! Your request was approved successfully ..!!!!`;
+        this.openAlertMod(template, this.alertMessage);
+        console.log('Updated Travel Request:', this.selectedTravelRequest);
+        //this.modalRef.hide();
+      } else {
+        console.error('Error updating travel request:', response.serviceResponse);
+        alert('There was an issue updating the data.');
+      }
+    } catch (error) {
+      console.error('Error during API call:', error);
+      alert('An error occurred while updating the data. Please try again later.');
+    }
+
+
+
+
+ // }
+}
 
 
  

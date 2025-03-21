@@ -67,7 +67,7 @@
     <div class="col-md-12">
       <div class="row">
         <div class="col-md-12 table-header">
-          <h1 class="table-header-title">My TravelRequest History</h1>
+          <h1 class="table-header-title">Pending TravelRequest </h1>
         </div>
       </div>
       <div class="row">
@@ -76,6 +76,7 @@
             <table class="table table-responsive">
               <thead class="thead-light">
                 <tr>
+                   
                   <th scope="col" class="info-label">Sr No.</th>
                   <th scope="col" class="info-label">Name</th>
                   <th scope="col" class="info-label">Request Type</th>
@@ -111,15 +112,13 @@
                   <td>{{ row.approver }}</td>
                   <td>{{ row.status }}</td>
                   <td>
-                    <!-- <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter" >
-                      <em class="fa fa-edit"></em> Edit
+                    
+                    <button type="button" class="btn btn-success btn-sm btn-action button" (click)="openEditModal(approveRequest,row)">
+                      <em class="fa fa-edit"></em> Take Action
+                    </button>
+                    <!-- <button type="button" class="btn btn-danger btn-sm btn-action button" (click)="deleteTraveldata(row)">
+                      <em class="fa fa-trash"></em> Reject
                     </button> -->
-                    <button type="button" class="btn btn-primary" (click)="openEditModal(travel_desk,row)">
-                      <em class="fa fa-edit"></em> Edit
-                    </button>
-                    <button type="button" class="btn btn-danger btn-sm" (click)="deleteTraveldata(row)">
-                      <em class="fa fa-trash"></em> Delete
-                    </button>
                   </td>
                 </tr>
               </tbody>
@@ -136,13 +135,60 @@
   
 
   
+  <ng-template #approveRequest>
+    <div class="modal-body text-center">
+      <div class="modal-dialog modal-lg" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="approveRequestModalLabel">Approve Travel Request</h5>
+              <button type="button" class="close" (click)="cancelRequest()" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form #approveForm="ngForm">
+                <div class="form-group">
+                  <label for="requestId">Requester Name</label>
+                  <input type="text" class="form-control" id="requestId" [(ngModel)]="selectedTravelRequest.name" name="requestId" readonly />
+                </div>
+                <div class="form-group">
+                  <label for="approverRemarks">Approver Remarks</label>
+                  <textarea class="form-control" id="approverRemarks" [(ngModel)]="selectedTravelRequest.approverRemarks" name="approverRemarks" rows="4" placeholder="Enter your remarks..."></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="status">Approve Status</label>
+                  <select class="form-control" id="status" [(ngModel)]="selectedTravelRequest.approverStatus" name="approverStatus">
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
+                </div>
+
+                <button type="button" class="btn btn-primary" (click)="actionRequest(alert_message)">Submit Response</button>
+                <!-- <button type="button" class="btn btn-primary" (click)="approveRequest()">Approve</button>
+                <button type="button" class="btn btn-danger" (click)="closeModal()">Cancel</button> -->
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+
+
+  <ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
   
   
 
 
 
 
-  <ng-template #travel_desk>
+  <!-- <ng-template #travel_desk>
    
     <div class="modal-body text-center">
       <div class="" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
@@ -214,7 +260,5 @@
           </div>
         </div>
       </div>
-        <!-- <p>{{alertMessage}}</p>
-        <button type="button" class="btn btn-primary" >OK</button>&nbsp; -->
     </div>
-</ng-template>
+</ng-template> -->

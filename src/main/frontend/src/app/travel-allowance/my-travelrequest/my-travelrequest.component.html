@@ -122,10 +122,7 @@
                     </div>
                 </div>
 
-            </div>
-
-            <div class="row">
-                <div class="col-md-6 mb-0">
+                <div class="col-md-3 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label for="purposeOfTravel"><span class="text-danger">*</span>Purpose of Travel</label>
@@ -135,7 +132,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-6 mb-0">
+                <div class="col-md-3 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label for="fileUpload" class="info-label">Supporting Document</label>
@@ -144,13 +141,14 @@
                     </div>
                 </div>
 
+
             </div>
 
             <div class="row mb-3">
                 <div class="col-md-12 px-0 text-center">
                     <!-- Reset and Submit buttons -->
-                    <button type="button" class="btn btn-secondary btn-lg mx-1" (click)="resetForm()">Reset</button>
-                    <button type="button" class="btn btn-primary btn-lg mx-1" (click)="submitForm()">Submit</button>
+                    <button type="button" class="btn btn-secondary btn-lg mx-1" (click)="resetForm(alert_message)">Reset</button>
+                    <button type="button" class="btn btn-primary btn-lg mx-1" (click)="submitForm(alert_message)">Submit</button>
                 </div> 
             </div>
          
@@ -158,3 +156,10 @@
     </div>
 </div>
 <!-- end :: create & update Team -->
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>

@@ -16,7 +16,7 @@ public class TravelDeskDTO {
 	    private String designationName ;
 	    private String email ;
 	    private BigInteger mobileNo ;
-	    private String managerName ;
+	    private String hodName ;
 	    private String associatedTravelRequest ;
 	    private String travelMode ;
 	    private String travelClass ;
@@ -26,5 +26,9 @@ public class TravelDeskDTO {
 	    private Timestamp toDate ;
 	    private String purposeOfTravel ;
 	    private String supportingDocument ;
+	    private String status;
+	    private String level1approverRemarks;
+	    private String level2approverRemarks;
+	    
 	    
 }

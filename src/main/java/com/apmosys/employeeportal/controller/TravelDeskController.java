@@ -43,8 +43,8 @@ public class TravelDeskController {
 	}
 	
 	@PostMapping("/approveOrRejectTravel")
-	public ServiceResponse approveOrRejectTravel() {
-		return null;
+	public ServiceResponse approveOrRejectTravel(@RequestBody TravelDeskDTO travelData) {
+		return travelDeskService.approveRejectTravel(travelData);
 		
 	}
 }

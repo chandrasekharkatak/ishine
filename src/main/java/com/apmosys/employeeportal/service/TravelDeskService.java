@@ -41,6 +41,7 @@ public class TravelDeskService {
 		}
 		travelDesk.setDepartment(travelData.getDepartmentName());
 		travelDesk.setName(travelData.getFullName());
+		travelDesk.setHodName(travelData.getHodName());
 		travelDesk.setRequestType(travelData.getAssociatedTravelRequest());
 		travelDesk.setTravelMode(travelData.getTravelMode());
 		travelDesk.setTravelClass(travelData.getTravelClass());
@@ -101,7 +102,7 @@ public class TravelDeskService {
 			}
 			else {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				serviceResponse.setServiceResponse(travelDesk);
+				serviceResponse.setServiceResponse(activeTravelDesk);
 				return serviceResponse;
 			}
 		}
@@ -112,6 +113,7 @@ public class TravelDeskService {
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	public ServiceResponse updateTravelData(TravelDeskDTO travelData) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		try {
@@ -198,11 +200,11 @@ public class TravelDeskService {
 	}
 	
 	
-	public ServiceResponse approveRejectTravel(BigInteger requestId) {
+	public ServiceResponse approveRejectTravel(TravelDeskDTO travelData) {
 	    ServiceResponse serviceResponse = new ServiceResponse();
 
 	    try {
-	        TravelDesk travelDesk = tavelDeskRepository.findByRequestId(requestId);
+	        TravelDesk travelDesk = tavelDeskRepository.findByRequestId(travelData.getRequestId());
 	        
 	        if (travelDesk == null) {
 	            serviceResponse.setServiceError("Request Data Not Found...!!");
@@ -214,9 +216,9 @@ public class TravelDeskService {
 	        currentTimestamp.setNanos(currentTimestamp.getNanos() / 1000 * 1000);
 
 	        if (travelDesk.getLevel() == 1) {
-	            updateApprovalLevel(travelDesk, currentTimestamp, 1);
+	            updateApprovalLevel(travelDesk, currentTimestamp, travelData);
 	        } else if (travelDesk.getLevel() == 2) {
-	            updateApprovalLevel(travelDesk, currentTimestamp, 2);
+	            updateApprovalLevel(travelDesk, currentTimestamp, travelData);
 	        }
 
 	        TravelDesk updatedTravelDesk = tavelDeskRepository.save(travelDesk);
@@ -233,14 +235,16 @@ public class TravelDeskService {
 	    return serviceResponse;
 	}
 
-	private void updateApprovalLevel(TravelDesk travelDesk, Timestamp currentTimestamp, int level) {
-	    if (level == 1) {
+	private void updateApprovalLevel(TravelDesk travelDesk, Timestamp currentTimestamp, TravelDeskDTO travelData) {
+	    if (travelDesk.getLevel() == 1) {
 	        travelDesk.setLevel1ApproveOn(currentTimestamp);
 	        travelDesk.setLevel(travelDesk.getLevel()+1);
-	        travelDesk.setStatus("Approved by level 1");
-	    } else if (level == 2) {
+	        travelDesk.setStatus(travelData.getStatus());
+	        travelDesk.setLevel1approverRemarks(travelDesk.getLevel1approverRemarks());
+	    } else if (travelDesk.getLevel() == 2) {
 	        travelDesk.setLevel2ApproveOn(currentTimestamp);
-	        travelDesk.setStatus("Approved by level 2");
+	        travelDesk.setStatus(travelData.getStatus());
+	        travelDesk.setLevel2approverRemarks(travelDesk.getLevel2approverRemarks());
 	    }
 	}
 

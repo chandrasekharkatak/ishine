@@ -90,14 +90,20 @@ public class TravelDesk {
 	@Column(name = "level")
 	private Integer level;
 	
-	@Column(name = "approverRemarks")
-	private String approverRemarks;
+	@Column(name = "level1_approver_Remarks")
+	private String level1approverRemarks;
+	
+	@Column(name = "level2_approver_Remarks")
+	private String level2approverRemarks;
 	
 	@Column(name = "docPath")
 	private String docPath;
 	
 	@Column(name = "isActive")
 	private Integer isActive;
+	
+	@Column(name = "hod_name")
+	private String hodName;
 	
 
 

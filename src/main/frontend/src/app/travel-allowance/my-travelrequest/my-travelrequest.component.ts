@@ -116,9 +116,7 @@ import { MyTravelDesk } from 'src/app/models/travelDesk';
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    //console.log(this.feature, this.userMapping);
-
-   // this.sectionViewInit();
+    
     this.preventBackButton();
 
     
@@ -151,44 +149,10 @@ import { MyTravelDesk } from 'src/app/models/travelDesk';
     const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
     if (response.serviceStatus == "Success") {
       this.currentEmployeeInfo = response.serviceResponse;
-    
-      //console.log("currentEmployeeInfo : ", this.currentEmployeeInfo);
-      //this.loadProfileImage(this.currentEmployeeInfo.imageBytes)
 
     } else {
       console.error(response.serviceResponse);
     }
-
-    const docResponse:any = await this.imageService.getEmployeeDocuments(currentEmp).toPromise();
-    if (docResponse.serviceStatus == 'Success') {
-      this.currentEmployeeInfo.documentList = docResponse.serviceResponse;
-      
-      //console.log("this.previewObj.documentList : ", this.currentEmployeeInfo.documentList);
-    } else {
-      //console.log(docResponse.serviceResponse);
-    }
-
-    let domainObj = new Domain();
-    domainObj.empId = this.currentUser.empId;
-    const domainResponse:any = await this.domainService.getDomainSpecializationByEmpId(domainObj).toPromise();
-      if (domainResponse.serviceStatus == "Success") {
-        this.domainSpecializationList = domainResponse.serviceResponse;
-
-        this.domainSpecializationList.forEach((object:Domain) =>{
-
-          var letters = 'BCDEF'.split('');
-          var color = '#';
-          for (var i = 0; i < 6; i++) {
-            color += letters[Math.floor(Math.random() * letters.length)];
-          }
-
-          object.colorCode = color;
-        });
-
-        //console.log(this.domainSpecializationList, " : this.domainSpecializationList");
-      } else {
-        console.error(domainResponse.serviceResponse);
-      }
 
     setTimeout(()=>{
       this.currentEmployeeInfo.documentList && this.currentEmployeeInfo.documentList.forEach((doc, index) => {
@@ -202,79 +166,103 @@ import { MyTravelDesk } from 'src/app/models/travelDesk';
     }, 500);
   }
 
+  cancelRequest() {
+    this.modalRef.hide();
+  }
 
-  async submitForm() {
+  async submitForm(template: TemplateRef<any>) {
+    if (this.isValidForm()) {
 
-    // Logic to handle form submission
-     if (this.isValidForm()) {
+      console.log('1st ::::::::::::::::::::::',this.travelDeskObj.associatedTravelRequest);
 
-    this.travelDeskInfo = new MyTravelDesk();
-    let travelData = new MyTravelDesk();
-    travelData.employeeId = this.currentEmployeeInfo.empId;
-    travelData.fullName = this.currentEmployeeInfo.name;
-    travelData.email =this.currentEmployeeInfo.email;
-    travelData.departmentName=this.currentEmployeeInfo.departmentName;
-    travelData.designationName=this.currentEmployeeInfo.designationName;
-    travelData.mobileNo=this.currentEmployeeInfo.mobileNo;
-    travelData.managerName=this.currentEmployeeInfo.managerName;
-    travelData.associatedTravelRequest = this.travelDeskObj.associatedTravelRequest;
-    travelData.travelMode= this.travelDeskObj.travelMode ;
-    travelData.travelClass = this.travelDeskObj.travelClass;
-    travelData.fromDate =this.travelDeskObj.fromDate;
-    travelData.toDate = this.travelDeskObj.toDate;
-    travelData.fromLocation = this.travelDeskObj.fromLocation;
-    travelData.toLocation =this.travelDeskObj.toLocation;
-    travelData.purposeOfTravel = this.travelDeskObj.purposeOfTravel;
-    travelData.supportingDocument = this.travelDeskObj.supportingDocument;
-    travelData.levelOneApprover = this.currentEmployeeInfo.managerId;
 
-    console.log('Form Data:', travelData);
+        if (!this.travelDeskObj.associatedTravelRequest) {
+            this.alertMessage = `Please select an Associated Travel Request.`;
+            this.openAlertMod(template, this.alertMessage);
+            return;
+        }
 
-      this.onGetEmployeeInfo();
-    
-      const response: any = await this.travelDesk.saveTravelData(travelData).toPromise();
-      if (response.serviceStatus == "Success") {
-        alert("Success! Your request was processed successfully.");
-        window.location.reload();
-  
-      } else {
-        console.error(response.serviceResponse);
-      }
+        if (!this.travelDeskObj.travelMode) {
+            
+            this.alertMessage = `Please select a Travel Mode.`;
+            this.openAlertMod(template, this.alertMessage);
+            return;
+        }
+
+        if (!this.travelDeskObj.travelClass) {
+          this.alertMessage = `Please select a Travel Class.`;
+          this.openAlertMod(template, this.alertMessage);
+          return;
+        }
+
+        if (!this.travelDeskObj.fromLocation) {
+          this.alertMessage = `Please Enter from location.`;
+          this.openAlertMod(template, this.alertMessage);
+          return;
+        }
+
+        if (!this.travelDeskObj.toLocation) {
+          this.alertMessage = `Please Enter to location.`;
+          this.openAlertMod(template, this.alertMessage);
+          return;
+        }
+
+        if (!this.travelDeskObj.fromDate) {
+          this.alertMessage = `Please Select from date.`;
+          this.openAlertMod(template, this.alertMessage);
+          return;
+        }
+
+        if (!this.travelDeskObj.toDate) {
+          this.alertMessage = `Please Select to date.`;
+          this.openAlertMod(template, this.alertMessage);
+          return;
+        }
+
+        if (!this.travelDeskObj.purposeOfTravel) {
+            this.alertMessage = `Please enter the Purpose of Travel.`;
+          this.openAlertMod(template, this.alertMessage);
+          return;
+        }
+
+        this.travelDeskInfo = new MyTravelDesk();
+        let travelData = new MyTravelDesk();
+        travelData.employeeId = this.currentEmployeeInfo.empId;
+        travelData.fullName = this.currentEmployeeInfo.name;
+        travelData.email = this.currentEmployeeInfo.email;
+        travelData.departmentName = this.currentEmployeeInfo.departmentName;
+        travelData.designationName = this.currentEmployeeInfo.designationName;
+        travelData.mobileNo = this.currentEmployeeInfo.mobileNo;
+        travelData.managerName = this.currentUser.hodName;
+        travelData.associatedTravelRequest = this.travelDeskObj.associatedTravelRequest;
+        travelData.travelMode = this.travelDeskObj.travelMode;
+        travelData.travelClass = this.travelDeskObj.travelClass;
+        travelData.fromDate = this.travelDeskObj.fromDate;
+        travelData.toDate = this.travelDeskObj.toDate;
+        travelData.fromLocation = this.travelDeskObj.fromLocation;
+        travelData.toLocation = this.travelDeskObj.toLocation;
+        travelData.purposeOfTravel = this.travelDeskObj.purposeOfTravel;
+        travelData.supportingDocument = this.travelDeskObj.supportingDocument;
+        travelData.levelOneApprover = this.currentUser.hodId;
+        travelData.hodName = this.currentUser.hodName;
+
+        console.log('Form Data:', travelData);
+
+        try {
+            this.onGetEmployeeInfo();
+
+            const response: any = await this.travelDesk.saveTravelData(travelData).toPromise();
+            if (response.serviceStatus == "Success") {
+                this.alertMessage = `Success! Your request was processed successfully!`;
+                this.openAlertMod(template, this.alertMessage);
+            } else {
+                console.error(response.serviceResponse);
+            }
+        } catch (error) {
+            console.error('Error submitting form:', error);
+        }
     }
 }
-
-
-
-
-
-
-  // exportToExcel(): void {
-
-  //   if (this.isTimesheetTable == true) {
-  //     this.excelName = 'MyTimeSheet.xlsx'
-
-  //     const _allEmployeeList = this.allMyTimesheets.slice()
-  //     this.allMyTimesheetsDataForExcel = _allEmployeeList.sort((a, b) => (new Date(a.date).getTime() > new Date(b.date).getTime())? 1 : -1);
-
-  //     const onlySpecificDataArr = this.allMyTimesheetsDataForExcel.map(
-  //       x => ({
-  //         "Date": x.date,
-  //         "Day Type": x.dayType,
-  //         "In Time": x.officeInTime,
-  //         "Out Time": x.officeOutTime,
-  //         "Total Working Hours": x.totalWorkingOfficeHours,
-  //         "Timesheet Details": x.description?.replaceAll('<br>', ' \n'),
-  //         "Total Activity Time": x.totalTime,
-  //         "Status": x.status,
-  //         "Applied By": x.createdByName,
-  //         "Applied On": x.createdOn,
-  //         "Shift Type": x.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift',
-  //         "Leave Type": x.leaveType,
-  //         "Remarks": x.remarks
-  //       })
-  //     )
-  //     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
-  //   }
 
    // Modals
    openAlertMod(template: TemplateRef<any>, message: any) {
@@ -295,18 +283,26 @@ import { MyTravelDesk } from 'src/app/models/travelDesk';
   
 
 
-  resetForm() {
-    // Logic to reset form fields
-    // this.currentEmployeeInfo = ; // Clear the employee info
-    // this.timesheetObj = {}; // Clear the timesheet object
-    // Reset other form-related data as needed
+  resetForm(template: TemplateRef<any>) {
+    this.travelDeskObj = {
+      associatedTravelRequest: '',
+      travelMode: '',
+      travelClass: '',
+      fromLocation: '',
+      toLocation: '',
+      fromDate: '',
+      toDate: '',
+      purposeOfTravel: '',
+      supportingDocument: null 
+  };
+  this.alertMessage = `Your form data has been successfully reset  !!!!!!`;
+  this.openAlertMod(template, this.alertMessage);
+    
 }
 
 
-
 isValidForm() {
-    // Add form validation logic here
-    return true; // or false depending on your validation
+return true;
 }
 
 onFileChange(event: any) {
