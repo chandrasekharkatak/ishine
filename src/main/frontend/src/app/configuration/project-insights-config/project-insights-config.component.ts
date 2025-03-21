@@ -47,6 +47,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
   isProjectInsightList:boolean = false;
   isSurveyResponseList:boolean = false;
+  isProjectInsightResponseList:boolean = false;
   // isSurveyResponseList
 
   surveyObj:Survey = new Survey();
@@ -138,7 +139,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
     this.isUpdation = false;
     this.isProjectInsightList = false;
-    this.isSurveyResponseList = false;
+    this.isProjectInsightResponseList = false;
 
     this.surveyObj = new Survey();
     this.allSurveyQuestionList = [new SurveyQuestion()];
@@ -150,13 +151,13 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.isQuestionForm = false;
     this.isCreation = false;
     this.isUpdation = false;
-    this.isSurveyResponseList = false;
+    this.isProjectInsightResponseList = false;
 
     this.getAllProjectInsightList();
   }
 
   showAddProjectInsightResponses(projectObj){
-    this.isSurveyResponseList = true;
+    this.isProjectInsightResponseList = true;
 
     this.isQuestionForm = false;
     this.isCreation = false;
@@ -172,7 +173,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.isUpdation = true;
 
     this.isCreation = false;
-    this.isSurveyResponseList = false;
+    this.isProjectInsightResponseList = false;
     this.isProjectInsightList = false;
 
     this.projectInsightQuestion = new ProjectInsightQuestion();
@@ -356,7 +357,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.projectInsightQuestion = new ProjectInsightQuestion();
     this.projectInsightQuestionList = [];
 
-    this.projectInsightService.getAllProjctInsightResponsesByProjectId(projectObj).pipe(first()).subscribe((response: any) => {
+    this.projectInsightService.getAllQuestionsByProjectId(projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectInsightQuestion = response.serviceResponse;
         this.projectInsightQuestionList = this.projectInsightQuestion.projectInsightQuestionList;
@@ -371,19 +372,68 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
         const questionTemplate: string = this.createTemplate();
 
+        const formStart = `<form id="projectInsightForm">`
+        const formEnd = `</form>`
+        const finalQuestionTemplate = formStart + questionTemplate + formEnd;
+
         let previewObj = new ProjectInsightQuestion();
         previewObj.projectId = this.projectInsightQuestion.projectId;
         previewObj.projectManagerId = this.projectInsightQuestion.projectManagerId;
         previewObj.projectManagerName = this.projectInsightQuestion.projectManagerName;
         previewObj.projectInsightQuestionList = this.projectInsightQuestionList;
-        previewObj.projectInsightQuestionTemplate = questionTemplate;
+        previewObj.projectInsightQuestionTemplate = finalQuestionTemplate;
 
-        //console.log("previewObj : ", previewObj);
-        // this.openSurveyPreviewMod(template, previewObj);
+
+        let projectInsightContainer = document.getElementById("response-container");
+        projectInsightContainer.insertAdjacentHTML('afterbegin', previewObj.projectInsightQuestionTemplate);
       } else {
         console.error(response.serviceResponse);
       }
     });
+  }
+
+  addUpdateResponse(template: TemplateRef<any>){
+  //   const form: any = document.getElementById('surveyForm');
+
+
+  //   let projObj = new ProjectInsightQuestion();
+  //   projObj.projectId = this.projectInsightQuestion.projectId;
+  //   projObj.projectManagerId = this.projectInsightQuestion.projectManagerId;
+  //   projObj.projectManagerName = this.projectInsightQuestion.projectManagerName;
+  //   projObj.projectInsightQuestionList = this.projectInsightQuestionList;
+  //   projObj.empId = this.currentUser.empId;
+
+  //   this.projectInsightQuestionList.forEach((milestone, mileindex) => {
+  //     milestone.projectQuestion.forEach((question, index) => {
+  //       let surveyQuestion = new SurveyQuestion();
+  //       surveyQuestion.surveyQuestionId = question.surveyQuestionId;
+  //       surveyQuestion.required = question.required;
+
+  //       if (question.optionType == 'checkbox') {
+  //         let response = [];
+  //         form.elements[`question-${index + 1}`]?.forEach((checkboxOption) => {
+  //           if (checkboxOption.checked) response.push(checkboxOption.value);
+  //         });
+  //         surveyQuestion.response = response.join(", ");
+  //       } else {
+  //         surveyQuestion.response = form.elements[`question-${index + 1}`].value;
+  //       }
+  //       surveyObj.surveyQuestionList.push(surveyQuestion);
+  //     });
+  //   });
+
+  //   //console.log("On Survey Submit : ", surveyObj);
+  //   let inputValidated: boolean = this.validateSurveyResponse(surveyObj, template);
+  //   if (!inputValidated) return;
+  //   this.surveyService.setSurveyResponseByEmpId(surveyObj).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.openAlertMod(template, response.serviceResponse);
+  //       this.router.navigate(['/user-survey']);
+  //       this.showSurveys();
+  //     } else {
+  //       this.openAlertMod(template, response.serviceResponse);
+  //     }
+  //   });
   }
 
   onSubmit(template: TemplateRef<any>){
@@ -615,69 +665,134 @@ export class ProjectInsightsConfigComponent implements OnInit {
   onImageSelect(event: any){
   }
 
+//   createTemplate(): string {
+//     let projectInsightQueTemplate = '';
+  
+//     this.projectInsightQuestionList.forEach((milestone: ProjectInsightQuestion, mileIndex) => {
+//       let finalQuestionTemplate = '';
+  
+//       // Milestone Heading with improved styling
+//       const milestoneHeader = `
+//         <div>
+//           <h4 style="font-weight: bold;">Milestone ${mileIndex + 1}: ${milestone.milestone || ''}</h4>
+//           <small style="color: gray;">${milestone.description || ''}</small>
+//         </div>
+//       `;
+  
+//       finalQuestionTemplate += milestoneHeader;
+  
+//       let questionsBlock = '<div style="border: 1px solid black; padding: 10px; margin: 10px 14px;">';
+  
+//       milestone.projectQuestion.forEach((question: ProjectQuestion, qIndex) => {
+//         let isQuestionRequired = question.required ? `<span style="color: red;">*</span>` : '';
+//         let isUploadDocument = question.documentUpload ? `<input type="file" accept="image/*" style="float: right; font-size: 13px;">` : '';
+        
+//         let questionTemplate = `
+//           <div style="padding: 10px; margin: 10px 0;">
+//             <h5 style="font-weight: bold;">${qIndex + 1} - ${question.question || ''} ${isQuestionRequired}</h5>
+//             <small style="color: gray; display: block; margin-bottom: 5px;">${question.description || ''}</small>
+//             ${isUploadDocument}
+//         `;
+  
+//         // Question Options
+//         if (question.optionType === "text") {
+//           questionTemplate += `<input style="width: 50%">`;
+//         } else if (question.optionType === "checkbox") {
+//           questionTemplate += question.optionsList.map((option, opIndex) => `
+//             <div style="display: flex; align-items: center; margin-top: 5px;">
+//               <input type="checkbox" id="q-${qIndex + 1}-check-option-${opIndex + 1}" value="${option.optionValue}" name="question-${qIndex + 1}" style="margin-right: 5px;">
+//               <label for="q-${qIndex + 1}-check-option-${opIndex + 1}">${option.optionValue}</label>
+//             </div>
+//           `).join('');
+//         } else if (question.optionType === "radio") {
+//           questionTemplate += question.optionsList.map((option, index) => `
+//             <div style="display: flex; align-items: center; margin-top: 5px;">
+//               <input type="radio" id="q-${qIndex + 1}-radio-option-${index + 1}" value="${option.optionValue}" name="question-${qIndex + 1}" style="margin-right: 5px;">
+//               <label for="q-${qIndex + 1}-radio-option-${index + 1}">${option.optionValue}</label>
+//             </div>
+//           `).join('');
+//         }
+  
+//         questionTemplate += `</div>`;
+//         questionsBlock += questionTemplate;
+//       });
+  
+//       questionsBlock += '</div>'; // Closing the bordered div
+//       finalQuestionTemplate += questionsBlock;
+//       projectInsightQueTemplate += finalQuestionTemplate;
+//     });
+  
+//     return projectInsightQueTemplate;
+// }
+
   createTemplate(): string {
     let projectInsightQueTemplate = '';
-  
+
     this.projectInsightQuestionList.forEach((milestone: ProjectInsightQuestion, mileIndex) => {
       let finalQuestionTemplate = '';
-  
+
       // Milestone Heading with improved styling
       const milestoneHeader = `
-        <div>
+      <div>
           <h4 style="font-weight: bold;">Milestone ${mileIndex + 1}: ${milestone.milestone || ''}</h4>
           <small style="color: gray;">${milestone.description || ''}</small>
-        </div>
+      </div>
       `;
-  
+
       finalQuestionTemplate += milestoneHeader;
-  
+
       let questionsBlock = '<div style="border: 1px solid black; padding: 10px; margin: 10px 14px;">';
-  
+
       milestone.projectQuestion.forEach((question: ProjectQuestion, qIndex) => {
         let isQuestionRequired = question.required ? `<span style="color: red;">*</span>` : '';
         let isUploadDocument = question.documentUpload ? `<input type="file" accept="image/*" style="float: right; font-size: 13px;">` : '';
-        
+        let responseValue = question.response ? question.response : '';
+
         let questionTemplate = `
           <div style="padding: 10px; margin: 10px 0;">
-            <h5 style="font-weight: bold;">${qIndex + 1} - ${question.question || ''} ${isQuestionRequired}</h5>
-            <small style="color: gray; display: block; margin-bottom: 5px;">${question.description || ''}</small>
-            ${isUploadDocument}
-        `;
-  
-        // Question Options
+              <h5 style="font-weight: bold;">${qIndex + 1} - ${question.question || ''} ${isQuestionRequired}</h5>
+              <small style="color: gray; display: block; margin-bottom: 5px;">${question.description || ''}</small>
+              ${isUploadDocument}
+          `;
+
+        // Question Options with response pre-filled
         if (question.optionType === "text") {
-          questionTemplate += `<input style="width: 50%">`;
+          questionTemplate += `<input style="width: 50%" type="text" value="${responseValue}">`;
         } else if (question.optionType === "checkbox") {
-          questionTemplate += question.optionsList.map((option, opIndex) => `
-            <div style="display: flex; align-items: center; margin-top: 5px;">
-              <input type="checkbox" id="q-${qIndex + 1}-check-option-${opIndex + 1}" value="${option.optionValue}" name="question-${qIndex + 1}" style="margin-right: 5px;">
-              <label for="q-${qIndex + 1}-check-option-${opIndex + 1}">${option.optionValue}</label>
-            </div>
-          `).join('');
+          questionTemplate += question.optionsList.map((option, opIndex) => {
+            const isChecked = question.response?.includes(option.optionValue) ? 'checked' : '';
+            return `
+                  <div style="display: flex; align-items: center; margin-top: 5px;">
+                      <input type="checkbox" id="q-${qIndex + 1}-check-option-${opIndex + 1}" value="${option.optionValue}" name="question-${qIndex + 1}" ${isChecked} style="margin-right: 5px;">
+                      <label for="q-${qIndex + 1}-check-option-${opIndex + 1}">${option.optionValue}</label>
+                  </div>
+                  `;
+          }).join('');
         } else if (question.optionType === "radio") {
-          questionTemplate += question.optionsList.map((option, index) => `
-            <div style="display: flex; align-items: center; margin-top: 5px;">
-              <input type="radio" id="q-${qIndex + 1}-radio-option-${index + 1}" value="${option.optionValue}" name="question-${qIndex + 1}" style="margin-right: 5px;">
-              <label for="q-${qIndex + 1}-radio-option-${index + 1}">${option.optionValue}</label>
-            </div>
-          `).join('');
+          questionTemplate += question.optionsList.map((option, index) => {
+            const isChecked = question.response === option.optionValue ? 'checked' : '';
+            return `
+                  <div style="display: flex; align-items: center; margin-top: 5px;">
+                      <input type="radio" id="q-${qIndex + 1}-radio-option-${index + 1}" value="${option.optionValue}" name="question-${qIndex + 1}" ${isChecked} style="margin-right: 5px;">
+                      <label for="q-${qIndex + 1}-radio-option-${index + 1}">${option.optionValue}</label>
+                  </div>
+                  `;
+          }).join('');
         }
-  
+
         questionTemplate += `</div>`;
         questionsBlock += questionTemplate;
       });
-  
+
       questionsBlock += '</div>'; // Closing the bordered div
       finalQuestionTemplate += questionsBlock;
       projectInsightQueTemplate += finalQuestionTemplate;
     });
-  
+
     return projectInsightQueTemplate;
-}
+  }
 
   
-
-
   name = 'EmployeeSheet.xlsx';
   async exportToExcel(): Promise<void> {
 
