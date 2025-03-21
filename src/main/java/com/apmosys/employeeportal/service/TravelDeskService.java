@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.TravelDeskDTO;
@@ -18,6 +19,9 @@ public class TravelDeskService {
 
 	@Autowired
 	private TravelDeskRepository tavelDeskRepository;
+	
+	@Value("${level2Approver}")
+	public String level2Approver;
 	
 	
 	@SuppressWarnings("unused")
@@ -50,8 +54,10 @@ public class TravelDeskService {
 		System.out.println(currentTimestamp);
 		travelDesk.setAppliedOn(currentTimestamp);
 		travelDesk.setStatus("Pending");
-		BigInteger approver = BigInteger.valueOf(21329);
-		travelDesk.setApprover(approver);
+		BigInteger approver1 = BigInteger.valueOf(travelData.getLevelOneApprover());
+		travelDesk.setApprover1(approver1);
+		BigInteger approver2 = new BigInteger(level2Approver);
+		travelDesk.setApprover2(approver2);
 		travelDesk.setLevel(1);
 		travelDesk.setIsActive(1);
 		System.out.println(travelDesk);
@@ -136,9 +142,11 @@ public class TravelDeskService {
 				existingTravelDesk.setAppliedOn(currentTimestamp);
 				existingTravelDesk.setStatus("Pending");
 //				BigInteger bigInteger = new BigInteger(numberString);
-				BigInteger approver = BigInteger.valueOf(21329);
-				existingTravelDesk.setApprover(approver);
+				BigInteger approver = BigInteger.valueOf(travelData.getLevelOneApprover());
+				existingTravelDesk.setApprover1(approver);
 				existingTravelDesk.setLevel(1);
+				BigInteger approver2 = new BigInteger(level2Approver);
+				existingTravelDesk.setApprover2(approver2);
 				existingTravelDesk.setIsActive(1);
 				TravelDesk savedTravelDesk = tavelDeskRepository.save(existingTravelDesk);
 				if(savedTravelDesk == null) {
@@ -188,4 +196,52 @@ public class TravelDeskService {
 		
 		
 	}
+	
+	
+	public ServiceResponse approveRejectTravel(BigInteger requestId) {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+
+	    try {
+	        TravelDesk travelDesk = tavelDeskRepository.findByRequestId(requestId);
+	        
+	        if (travelDesk == null) {
+	            serviceResponse.setServiceError("Request Data Not Found...!!");
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            return serviceResponse;
+	        }
+
+	        Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
+	        currentTimestamp.setNanos(currentTimestamp.getNanos() / 1000 * 1000);
+
+	        if (travelDesk.getLevel() == 1) {
+	            updateApprovalLevel(travelDesk, currentTimestamp, 1);
+	        } else if (travelDesk.getLevel() == 2) {
+	            updateApprovalLevel(travelDesk, currentTimestamp, 2);
+	        }
+
+	        TravelDesk updatedTravelDesk = tavelDeskRepository.save(travelDesk);
+	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        serviceResponse.setServiceResponse(updatedTravelDesk);
+	        serviceResponse.setServiceMessage("Updated Successfully..!!");
+
+	    } catch (Exception e) {
+	        serviceResponse.setServiceError(e.getMessage());
+	        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        // Consider logging the error here for better debugging
+	    }
+
+	    return serviceResponse;
+	}
+
+	private void updateApprovalLevel(TravelDesk travelDesk, Timestamp currentTimestamp, int level) {
+	    if (level == 1) {
+	        travelDesk.setLevel1ApproveOn(currentTimestamp);
+	        travelDesk.setLevel(travelDesk.getLevel()+1);
+	        travelDesk.setStatus("Approved by level 1");
+	    } else if (level == 2) {
+	        travelDesk.setLevel2ApproveOn(currentTimestamp);
+	        travelDesk.setStatus("Approved by level 2");
+	    }
+	}
+
 }

@@ -197,6 +197,7 @@ const routes: Routes = [
   {path:'newsletters', component: NewsletterComponent, canActivate: [AuthGuard]},
   {path:'travelDesk', component: TravelAllowanceComponent, canActivate: [AuthGuard],
     children:[
+      {path:'', redirectTo:'my-travelrequest', pathMatch:'full'},
       {path:'my-travelrequest', component:MyTravelrequestComponent},
       {path:'view-travelrequest', component:ViewTravelrequestComponent},
       {path:'approve-travelrequest', component:TravelrequestapprovalComponent}

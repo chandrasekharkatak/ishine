@@ -74,8 +74,18 @@ public class TravelDesk {
 	@Column(name = "status")
 	private String status;
 	
-	@Column(name = "approver")
-	private BigInteger approver;
+	@Column(name = "level1_approve_by")
+	private BigInteger approver1;
+	
+	@Column(name = "level1_approve_on")
+	private Timestamp level1ApproveOn;
+	
+	@Column(name = "level2_approve_by")
+	private BigInteger approver2;
+	
+	@Column(name = "level2_approve_on")
+	private Timestamp level2ApproveOn;
+	
 	
 	@Column(name = "level")
 	private Integer level;

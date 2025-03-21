@@ -4,6 +4,7 @@ export class MyTravelDesk{
     employeeId: any ;
     departmentName: any ;
     designationName: any ;
+    levelOneApprover : any;
     email: any ;
     mobileNo: any ;
     managerName: any ;

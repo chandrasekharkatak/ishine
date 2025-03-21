@@ -210,7 +210,7 @@ import { MyTravelDesk } from 'src/app/models/travelDesk';
 
     this.travelDeskInfo = new MyTravelDesk();
     let travelData = new MyTravelDesk();
-    travelData.employeeId = this.currentEmployeeInfo.employeementId;
+    travelData.employeeId = this.currentEmployeeInfo.empId;
     travelData.fullName = this.currentEmployeeInfo.name;
     travelData.email =this.currentEmployeeInfo.email;
     travelData.departmentName=this.currentEmployeeInfo.departmentName;
@@ -226,6 +226,7 @@ import { MyTravelDesk } from 'src/app/models/travelDesk';
     travelData.toLocation =this.travelDeskObj.toLocation;
     travelData.purposeOfTravel = this.travelDeskObj.purposeOfTravel;
     travelData.supportingDocument = this.travelDeskObj.supportingDocument;
+    travelData.levelOneApprover = this.currentEmployeeInfo.managerId;
 
     console.log('Form Data:', travelData);
 

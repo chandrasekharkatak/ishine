@@ -11,6 +11,7 @@ public class TravelDeskDTO {
 	 	private BigInteger requestId;
 	 	private String fullName ;
 	    private BigInteger employeeId ;
+	    private Long levelOneApprover;
 	    private String departmentName ;
 	    private String designationName ;
 	    private String email ;
