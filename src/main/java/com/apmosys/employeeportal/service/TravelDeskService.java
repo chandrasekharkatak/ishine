@@ -53,7 +53,7 @@ public class TravelDeskService {
 		BigInteger approver = BigInteger.valueOf(21329);
 		travelDesk.setApprover(approver);
 		travelDesk.setLevel(1);
-		travelDesk.setActive(true);
+		travelDesk.setIsActive(1);
 		System.out.println(travelDesk);
 		savedTravelDesk=tavelDeskRepository.save(travelDesk);
 		
@@ -85,10 +85,10 @@ public class TravelDeskService {
 			List<TravelDesk> travelDesk = tavelDeskRepository.findByEmpId(empId);
 			
 			  List<TravelDesk> activeTravelDesk = travelDesk.stream()
-			            .filter(t -> t.isActive() == true)  
+			            .filter(t -> t.getIsActive() != 0)  
 			            .collect(Collectors.toList());
 			  
-			if((travelDesk.isEmpty() || travelDesk == null) && activeTravelDesk.isEmpty()) {
+			if(activeTravelDesk.isEmpty()) {
 				serviceResponse.setServiceError("Data Not Found...!!");
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				return serviceResponse;
@@ -139,7 +139,7 @@ public class TravelDeskService {
 				BigInteger approver = BigInteger.valueOf(21329);
 				existingTravelDesk.setApprover(approver);
 				existingTravelDesk.setLevel(1);
-				existingTravelDesk.setActive(true);
+				existingTravelDesk.setIsActive(1);
 				TravelDesk savedTravelDesk = tavelDeskRepository.save(existingTravelDesk);
 				if(savedTravelDesk == null) {
 					serviceResponse.setServiceError("Unable to update...!!");
@@ -173,7 +173,7 @@ public class TravelDeskService {
 			return serviceResponse;
 		}
 		else {
-			travelDesk.setActive(false);
+			travelDesk.setIsActive(0);
 			tavelDeskRepository.save(travelDesk);
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse(travelDesk);

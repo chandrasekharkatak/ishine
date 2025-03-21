@@ -87,7 +87,7 @@ public class TravelDesk {
 	private String docPath;
 	
 	@Column(name = "isActive")
-	private boolean isActive;
+	private Integer isActive;
 	
 
 
