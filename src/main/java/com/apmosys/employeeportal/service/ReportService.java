@@ -14,6 +14,7 @@ import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.dto.getAllEmployeesReportByProjectTypeInConsolidatedDTO;
 import com.apmosys.employeeportal.model.EmployeeRole;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -436,7 +437,7 @@ public class ReportService {
         logBuilder.append("EmployeeByProjectTypeReport:" + employeeRepository.getAllEmployeesReportByProjectType().size());
 		try {
 			List<Object[]> allEmployeeReport = employeeRepository.getAllEmployeesReportByProjectType();
-			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+			List<getAllEmployeesReportByProjectTypeInConsolidatedDTO> dtoList = new ArrayList<getAllEmployeesReportByProjectTypeInConsolidatedDTO>();
 			
 			if(allEmployeeReport == null){
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -445,7 +446,7 @@ public class ReportService {
                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}else{
 				allEmployeeReport.forEach((object) -> {
-					EmployeeDTO employeeDTO = new EmployeeDTO();
+					getAllEmployeesReportByProjectTypeInConsolidatedDTO employeeDTO = new getAllEmployeesReportByProjectTypeInConsolidatedDTO();
 					
 					employeeDTO.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 					employeeDTO.setEmploymentstatus(object[1] != null ? object[1].toString() : null);
@@ -471,6 +472,7 @@ public class ReportService {
 					employeeDTO.setDepartmentId(object[21] != null ? Long.parseLong(object[21].toString()) : null);
 					employeeDTO.setDepartmentName(object[22] != null ? object[22].toString() : null);
 					employeeDTO.setPoProjectType(object[23] != null ? object[23].toString() : null);
+					employeeDTO.setJobRole(object[24] != null ? object[24].toString() : null);
 					
 					dtoList.add(employeeDTO);
 				});
@@ -504,7 +506,7 @@ public class ReportService {
         logBuilder.append("EmployeeByProjectTypeReport:" + employeeRepository.getAllEmployeesReportByProjectTypeInConsolidated().size());
 		try {
 			List<Object[]> allEmployeeReport = employeeRepository.getAllEmployeesReportByProjectTypeInConsolidated();
-			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+			List<getAllEmployeesReportByProjectTypeInConsolidatedDTO> dtoList = new ArrayList<getAllEmployeesReportByProjectTypeInConsolidatedDTO>();
 			
 			if(allEmployeeReport == null)  {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -513,7 +515,7 @@ public class ReportService {
                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}else{
 				allEmployeeReport.forEach((object) -> {
-					EmployeeDTO employeeDTO = new EmployeeDTO();
+					getAllEmployeesReportByProjectTypeInConsolidatedDTO employeeDTO = new getAllEmployeesReportByProjectTypeInConsolidatedDTO();
 					
 					employeeDTO.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 					employeeDTO.setEmploymentstatus(object[1] != null ? object[1].toString() : null);
@@ -539,6 +541,7 @@ public class ReportService {
 					employeeDTO.setDepartmentId(object[21] != null ? Long.parseLong(object[21].toString()) : null);
 					employeeDTO.setDepartmentName(object[22] != null ? object[22].toString() : null);
 					employeeDTO.setPoProjectType(object[23] != null ? object[23].toString() : null);
+					employeeDTO.setJobRole(object[24] != null ? object[24].toString() : null);
 					
 					dtoList.add(employeeDTO);
 				});
