@@ -449,7 +449,7 @@ public class ReportService {
 					getAllEmployeesReportByProjectTypeInConsolidatedDTO employeeDTO = new getAllEmployeesReportByProjectTypeInConsolidatedDTO();
 					
 					employeeDTO.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-					employeeDTO.setEmploymentstatus(object[1] != null ? object[1].toString() : null);
+					employeeDTO.setEmployeementId(object[1] != null ? object[1].toString() : null);
 					employeeDTO.setName(object[2] != null ? object[2].toString() : null);
 					employeeDTO.setEmail(object[3] != null ? object[3].toString() : null);
 					employeeDTO.setMobileNo(object[4] != null ? Long.parseLong(object[4].toString()) : null);
@@ -518,7 +518,7 @@ public class ReportService {
 					getAllEmployeesReportByProjectTypeInConsolidatedDTO employeeDTO = new getAllEmployeesReportByProjectTypeInConsolidatedDTO();
 					
 					employeeDTO.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-					employeeDTO.setEmploymentstatus(object[1] != null ? object[1].toString() : null);
+					employeeDTO.setEmployeementId(object[1] != null ? object[1].toString() : null);
 					employeeDTO.setName(object[2] != null ? object[2].toString() : null);
 					employeeDTO.setEmail(object[3] != null ? object[3].toString() : null);
 					employeeDTO.setMobileNo(object[4] != null ? Long.parseLong(object[4].toString()) : null);
