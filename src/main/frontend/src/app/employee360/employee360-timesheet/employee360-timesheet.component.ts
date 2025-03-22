@@ -18,6 +18,7 @@ import { UtilityService } from 'src/app/services/utility.service';
 import { SortPipe } from 'src/app/sort.pipe';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { Employee } from 'src/app/models/employee';
 
 @Component({
   selector: 'app-employee360-timesheet',
@@ -76,7 +77,7 @@ export class Employee360TimesheetComponent implements OnInit {
   isSelect: boolean = false;
   allTeamTimesheetRequests: Timesheet[] = [];
   timesheetID:any = [];
-
+  Employee360=new Employee();
   projectClicked:boolean=false;
   teamClicked:boolean=false;
   actionButton:boolean=false;
@@ -122,6 +123,7 @@ export class Employee360TimesheetComponent implements OnInit {
     }
     // this.empId=sessionStorage.getItem('empId');
     let employeeData = localStorage.getItem('employee360Data');
+    this.Employee360=JSON.parse(employeeData);
       let employeeObject = JSON.parse(employeeData);
         let empId = employeeObject.empId;
 
@@ -131,6 +133,7 @@ export class Employee360TimesheetComponent implements OnInit {
     this.formattedEndDate = null;
     this.get360TimesheetDetails(this.activeButton,empId,this.projectId,this.teamName,0,this.formattedStartDate,this.formattedEndDate);
     this.getAllEmployeeFor360View();
+    console.log(this.Employee360);
   }
 
   setActiveButton(button: string): void {
@@ -401,8 +404,7 @@ exportToExcel(id:any): void {
   
   
   toggleSelectAll() {
-    console.log("this.allSelected", this.allSelected);
-    if (this.allSelected === true) {
+     if (this.allSelected === true) {
       for (const emp of this.result) {
         if(emp.selected===false){
         emp.selected = true;  
@@ -416,22 +418,22 @@ exportToExcel(id:any): void {
       this.timesheetIds = []; 
       this.bulkList=[]; 
     }
-    console.log("this.timesheetID all" , this.timesheetIds);
-    console.log("this.bulkList==>",this.bulkList);
-    
+     
   }
 
   findByProject(projectId: number,projectName:string){
+    alert(projectId);
     this.isProjectTeamClicked=true;
     this.projectClicked=true;
     this.allSelected=false;
     this.header=projectName+" : Member Details";
-    console.log("project clicked =>  " + projectId );
+   
     this.projectId=projectId;
     this.get360TimesheetDetails(this.activeButton,this.empIdd,projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
   }
 
   findByTeam(teamName: any){
+    alert(teamName);
     this.isProjectTeamClicked=true;
     this.teamClicked=true;
     this.allSelected=false;
@@ -498,7 +500,7 @@ updateStatus(status: string) {
     this.projectId=0;
     this.teamName="null";
     this.allSelected=false;
-    console.log('goback id -- ',this.empId);
+   
     let employeeData = localStorage.getItem('employee360Data');
     let employeeObject = JSON.parse(employeeData);
     let emp_Id = employeeObject.empId;
@@ -506,7 +508,7 @@ updateStatus(status: string) {
   }
     
   onChangeOption(arg: any) {
-    this.managerId =0;
+    
     if (arg == 1) {
       // Handle "All"
       this.startDate = null;

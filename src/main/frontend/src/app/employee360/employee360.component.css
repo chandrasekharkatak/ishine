@@ -3,7 +3,11 @@ body {
     font-family: Arial, sans-serif;
     background-color: #f5f5f5;
   }
-  
+  .text-name{
+    font-size: 26px;
+    color: #231e8d;
+    font-weight: bold;
+  }
   .employee-card {
     border: none;
     box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
@@ -11,24 +15,21 @@ body {
     overflow: hidden;
     /* height: 100%; */
   }
-  
+  .container-fluid{
+       margin-top: 4%;
+  }
  
   .profile-picture {
-    display: flex;
-    justify-content: center;
-    align-items: center; 
-    height: 150px; 
-    width: 150px;
-    margin: 0 auto; 
-    overflow: hidden; 
+        border-radius: 50%;
+        object-fit: cover;
+      
   }
   
   .profile-picture img {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
+    width: 150px;
+    height: 150px;
     border-radius: 50%;
-    border: 3px solid #fff;
+    object-fit: cover;
   }
   
   .profile-name {
@@ -42,16 +43,17 @@ body {
     margin: 5px 0;
   }
   
-  .profile-details {
-    margin-top: 15px;
-    font-size: 0.9rem;
-    line-height: 1.5;
-  }
+ 
   
   .profile-details p {
-    margin: 5px 0;
+    margin: 0px 0;
   }
-  
+  .nav-link {
+    text-transform: uppercase;
+}
+.report__tab-item__link {
+  text-transform: uppercase;
+}
   /* Header */
   .employee-header {
     background-color: #17249f;
@@ -83,9 +85,37 @@ body {
   
   .report__tab-item__link.active {
     color: #182ca0;
+    background: #eef0fd;
     border-bottom: 3px solid #163ea2;
   }
-  
+  .config__tab-container {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+    
+    /* Scrollbar styles */
+    scrollbar-width: thin; /* For Firefox */
+    scrollbar-color: #888 #f1f1f1; /* For Firefox */
+}
+
+/* For Chrome, Edge, and Safari */
+.config__tab-container::-webkit-scrollbar {
+    width: 8px; /* Width of the scrollbar */
+}
+
+.config__tab-container::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Track color */
+    border-radius: 10px;
+}
+
+.config__tab-container::-webkit-scrollbar-thumb {
+    background: #888; /* Scrollbar handle color */
+    border-radius: 10px;
+}
+
+.config__tab-container::-webkit-scrollbar-thumb:hover {
+    background: #555; /* Handle color on hover */
+}
+
   /* Table */
   .project-table th {
     background-color: #101e9c;
@@ -131,73 +161,86 @@ body {
 
 /* Profile Section */
 .profile-section {
-  background-color: #ffffff;
-    color: #0e0e0e;
-    padding: 20px;
-    text-align: center;
-    border-radius: 10px;
-    height: 100%;
-    position: relative;
-    overflow-y: auto;
-    max-height: calc(100vh - 30px);
+  color: #0e0e0e;
+  padding: 3px;
+  text-align: center;
+  border-radius: 10px;
+  position: relative;
+  margin-top: 3%;
+  /* overflow-y: auto; */
+  max-height: calc(100vh - 30px);
+  width: 99%;
 }
 
-/* Profile Card */
 .profile-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
+  width: 100%;
+  
+  margin: auto;
+  text-align: center;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 3px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
 }
-
-/* Profile Picture */
-.profile-picture {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 120px;
-  width: 120px;
-  margin: 0 auto;
-  overflow: hidden;
-}
-
 .profile-picture img {
   width: 100px;
   height: 100px;
-  object-fit: cover;
   border-radius: 50%;
-  border: 3px solid #fff;
+  object-fit: cover;
 }
-
-/* Text Adjustments */
+.textValue{
+  text-align: left;
+    font-size: 19px;
+    color: #5e5b5bde;
+    font-weight: 500;
+}
+.profile-email1{
+  display: inline-block;
+  display: inline-block; 
+  margin-left: 36%;
+  font-size: 20px;
+}
 .profile-name {
-  font-size: 1.5rem;
+  margin: 10px 0;
+    color: #1309e3;
+    font-size: 28px;
+    font-weight: bold;
+}
+.profile-email, .profile-phone {
+  color: #666;
   margin: 5px 0;
 }
-
-.profile-email,
-.profile-phone {
-  font-size: 0.9rem;
-  margin: 5px 0;
-}
-
 .profile-details {
-  margin-top: 10px;
-  font-size: 0.85rem;
-  line-height: 1.4;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 20px;
   text-align: left;
 }
-
-.profile-details p {
-  margin: 5px 0;
+.profile-details div {
+  padding: 10px;
+  background: #f9f9f9;
+  border-radius: 5px;
+}
+.profile-details strong {
+  display: block;
+  color: #6c6b6b;
+  font-size: 18px;
 }
 
 /* Responsiveness */
 @media (max-width: 768px) {
   .profile-section {
-    padding: 15px;
-    max-height: calc(100vh - 20px); /* Adjust for smaller viewports */
+    background-color: #ffffff;
+    color: #0e0e0e;
+    padding: 3px;
+    text-align: center;
+    border-radius: 10px;
+    position: relative;
+    /* overflow-y: auto; */
+    max-height: calc(100vh - 30px);
+    width: 99%;
+    margin-top: 3%;
   }
 
   .profile-picture {
@@ -228,15 +271,7 @@ body {
       /* height: 100%; */
     }
     
-    .profile-picture {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 150px;
-      width: 150px;
-      margin: 0 auto;
-      overflow: hidden;
-    }
+   
     
     .profile-picture img {
       width: 100px;
@@ -297,8 +332,12 @@ body {
     }
     
     .report__tab-item__link.active {
-      color: #182ca0;
-      border-bottom: 3px solid #163ea2;
+         color: #182ca0;
+    border-bottom: 3px solid #163ea2;
+    background: aliceblue;
+    border-left: 0px;
+    border-right: 0px;
+    border-top: 0px;
     }
     
     /* Table */
@@ -337,25 +376,9 @@ body {
       box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Optional for better visibility */
     }
     
-    /* Profile Section */
-    .profile-section {
-      background-color: #122f97;
-      color: white;
-      height: 100%; /* Take full height */
-      padding: 20px;
-      text-align: center;
-      border-radius: 10px;
-      position: relative; /* Allows scrolling for content */
-      overflow-y: auto; /* Enable scrolling for long content */
-      max-height: calc(100vh - 30px); /* Prevent overflow from viewport */
-    }
+
     
-    .profile-card {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-    }
+   
     
     .row {
       height: 100vh; /* Ensure the row takes full height of the viewport */

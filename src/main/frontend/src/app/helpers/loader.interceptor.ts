@@ -236,7 +236,8 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getAll360LeaveApplicationsByEmpId`,
      `${this.baseUrl}` + `api/biomax`,
      `${this.baseUrl}` + `api/saveExcelDataForReward`,
-     `${this.baseUrl}` + `api/fetchEmployeesForHomepageByCategoryId`
+     `${this.baseUrl}` + `api/fetchEmployeesForHomepageByCategoryId`,
+     `${this.baseUrl}` + `api/getAllTeamView`, 
   
     
   ]
