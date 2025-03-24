@@ -52,7 +52,7 @@
                 <div class="col-md-3 mb-0">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Expenditure Type</label>
-                        <select class="form-control" id="dayTypeCursor" aria-hidden="true" [(ngModel)]="selectedReason"
+                        <select class="form-control" id="dayTypeCursor" aria-hidden="true" [(ngModel)]="reimbursementObj.expenditureType"
                             (change)="onReasonSelect()">
                             <option selected="selected" value="" disabled>Select</option>
                             <option value="Travel">Travel</option>
@@ -66,7 +66,7 @@
                     <label class="info-label">
                         <span class="text-danger">*</span> Currency
                     </label>
-                    <select class="form-control" id="dayTypeCursor" aria-hidden="true" [(ngModel)]="currencyType">
+                    <select class="form-control" id="dayTypeCursor" aria-hidden="true" [(ngModel)]="reimbursementObj.currencyType">
                         <option selected="selected" value="" disabled>Select</option>
                         <option value="Rupees">Rupees</option>
                         <option value="Dollar">Dollar</option>
@@ -80,12 +80,12 @@
                     <label class="info-label">
                         <span class="text-danger">*</span> Amount
                     </label>
-                    <input type="number" class="form-control" name="fullName" [(ngModel)]="amount" required />
+                    <input type="number" class="form-control" name="fullName" [(ngModel)]="reimbursementObj.amount" required />
                 </div>
            
                 <div class="col-md-3 mb-0" *ngIf="isTravel">
                     <label class="info-label"><span class="text-danger">*</span>Travel Mode</label>
-                    <select class="form-control" id="dayTypeCursor" aria-hidden="true" [(ngModel)]="travelMode">
+                    <select class="form-control" id="dayTypeCursor" aria-hidden="true" [(ngModel)]="reimbursementObj.travelMode">
                         <option selected="selected" value="" disabled>Select</option>
                         <option value="Flight">Flight</option>
                         <option value="Train">Train</option>
@@ -98,14 +98,14 @@
                     <label class="info-label">
                         <span class="text-danger">*</span> Distance (In KM)
                     </label>
-                    <input type="number" class="form-control" name="fullName" [(ngModel)]="distance" required />
+                    <input type="number" class="form-control" name="fullName" [(ngModel)]="reimbursementObj.distance" required />
                 </div>
 
                 <div class="col-md-3 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>From Date</label>
-                            <input class="form-control" [(ngModel)]="fromDateInput" id="fromDateInput" type="date" 
+                            <input class="form-control" [(ngModel)]="reimbursementObj.fromDate" id="fromDate" type="date" 
                                 [min]="todayDate" placeholder="Choose from date" autocomplete="off">
                         </div>
                     </div>
@@ -115,7 +115,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>To Date</label>
-                            <input class="form-control" [(ngModel)]="toDateInput" id="toDateInput" type="date" [min]="fromDateInput" placeholder="Choose to date" autocomplete="off">
+                            <input class="form-control" [(ngModel)]="reimbursementObj.toDate" id="toDate" type="date" [min]="fromDateInput" placeholder="Choose to date" autocomplete="off">
                         </div>
                     </div>
                 </div>
@@ -126,7 +126,7 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label for="leaveDesc"><span class="text-danger">*</span>Purpose</label>
-                                <textarea class="form-control" id="dayTypeDesc" rows="3" [(ngModel)]="purpose"></textarea>
+                                <textarea class="form-control" id="dayTypeDesc" rows="3" [(ngModel)]="reimbursementObj.purpose"></textarea>
                             </div>
                         </div>
                     </div>
@@ -135,7 +135,7 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label for="fileUpload" class="info-label"> <span class="text-danger">*</span> Supporting Documents/GST Bill</label>
-                                <input type="file" id="fileUpload" [(ngModel)]="fileInput" class="form-control" />
+                                <input type="file" id="fileUpload" [(ngModel)]="reimbursementObj.supportingDocument" class="form-control" />
                             </div>
                         </div>
                     </div>

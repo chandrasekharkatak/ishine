@@ -27,6 +27,23 @@ fromDateInput:any;
 toDateInput:any;
 purpose:any;
 fileInput:any;
+expenditureType:any;
+
+reimbursementObj: any = {
+  currencyType:'',
+  currentUser:'',
+  amount:'',
+  distance:'',
+  travelMode: '',
+  travelClass: '',
+  expenditureType:'',
+  fromDate: null,
+  toDate: null,
+  purpose: '',
+  fromLocation:'',
+  toLocation:'',
+  supportingDocument: null, // File
+};
 
 
 
@@ -44,8 +61,8 @@ fileInput:any;
   }
 
   onReasonSelect(){
-    console.log(this.selectedReason);
-    if(this.selectedReason === 'Travel'){
+    console.log(this.reimbursementObj.expenditureType);
+    if(this.reimbursementObj.expenditureType === 'Travel'){
       this.isTravel = true;
       console.log(this.isTravel);
     }
@@ -87,21 +104,22 @@ fileInput:any;
 
      reimbursementData.empId = this.currentEmployeeInfo.employeementId;
      reimbursementData.name = this.currentEmployeeInfo.name;
+     reimbursementData.email = this.currentEmployeeInfo.email;
      reimbursementData.departmentName=this.currentEmployeeInfo.departmentName;
      reimbursementData.designationName=this.currentEmployeeInfo.designationName;
      reimbursementData.mobileNo=this.currentEmployeeInfo.mobileNo;
      reimbursementData.managerName=this.currentEmployeeInfo.managerName;
-     reimbursementData.amount =this.amount;        
-     reimbursementData.travelMode =this.travelMode;      
-     reimbursementData.distance=this.distance;     
-     reimbursementData.fromDate =this.fromDateInput;     
-     reimbursementData.toDate =this.toDateInput;       
-     reimbursementData.purpose=this.purpose;        
-     reimbursementData.fileData =this.fileInput;
-     reimbursementData.selectedReason =this. onReasonSelect ;  
-     reimbursementData.selectedCurrency =this.currencyType;
+     reimbursementData.amount =this.reimbursementObj.amount;        
+     reimbursementData.travelMode =this.reimbursementObj.travelMode;      
+     reimbursementData.distance=this.reimbursementObj.distance;     
+     reimbursementData.fromDate =this.reimbursementObj.fromDate;     
+     reimbursementData.toDate =this.reimbursementObj.toDate;       
+     reimbursementData.purpose=this.reimbursementObj.purpose;        
+     reimbursementData.fileData =this.reimbursementObj.fileData; 
+     reimbursementData.selectedCurrency =this.reimbursementObj.currencyType;
+     reimbursementData.expenditureType = this.reimbursementObj.expenditureType;
  
-     console.log('Form Data:', reimbursementData);
+     console.log('reimbursementData Data::::::::::::::::::::::::::::', reimbursementData);
  
        this.onGetEmployeeInfo();
      

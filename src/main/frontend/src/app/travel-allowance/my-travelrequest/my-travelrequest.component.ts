@@ -93,9 +93,6 @@ import { MyTravelDesk } from 'src/app/models/travelDesk';
     private modalService: BsModalService,
     private authenticationService: AuthenticationService,
     private employeeService : EmployeeService,
-    private holidayService: HolidayService,
-    private imageService : ImageService,
-    private domainService:DomainService,
     private sanitizer: DomSanitizer,
     private travelDesk : TravelDeskService,
     
@@ -119,8 +116,6 @@ import { MyTravelDesk } from 'src/app/models/travelDesk';
     
     this.preventBackButton();
 
-    
-    // this.setStartDateMinMax();
   }
   preventBackButton() {
     history.pushState(null, null, location.href);

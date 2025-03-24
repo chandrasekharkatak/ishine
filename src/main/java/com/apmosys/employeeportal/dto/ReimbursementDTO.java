@@ -24,5 +24,6 @@ public class ReimbursementDTO {
     private String purpose;        
     private String fileData;
     private String selectedReason;    
-    private String selectedCurrency;      
+    private String selectedCurrency;   
+    private String expenditureType;
 }

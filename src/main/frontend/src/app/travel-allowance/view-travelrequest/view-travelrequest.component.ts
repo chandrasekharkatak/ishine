@@ -88,7 +88,7 @@ export class ViewTravelrequestComponent implements OnInit {
 
     console.log('editpain asichi re ::::::::::::::::::::',this.selectedTravelRequest);
 
-    this.openAlertMod(template, "njvhv");
+    this.openAlertMod(template, "");
 
   }
 

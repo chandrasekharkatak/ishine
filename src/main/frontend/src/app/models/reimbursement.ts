@@ -1,8 +1,10 @@
 export class MyReimbursement{
         requestId : any;
         name: any ;          
-        empId: any ;         
+        empId: any ;
+        email:any;         
         designationName: any ;
+        expenditureType : any ;
         departmentName: any ; 
         managerName: any ;   
         mobileNo: any ;

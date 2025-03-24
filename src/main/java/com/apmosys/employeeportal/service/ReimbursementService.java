@@ -55,14 +55,14 @@ public class ReimbursementService {
 			reimbursementData.setEmail(reimbursementObj.getEmail());
 			reimbursementData.setAmount(reimbursementObj.getAmount());
 			reimbursementData.setCurrency(reimbursementObj.getSelectedCurrency());
-			reimbursementData.setExpenditureType(reimbursementObj.getSelectedReason());
-			if(reimbursementObj.getSelectedReason().equalsIgnoreCase("Travel")) {
+			reimbursementData.setExpenditureType(reimbursementObj.getExpenditureType());
+			if(reimbursementObj.getExpenditureType().equalsIgnoreCase("Travel")) {
 				reimbursementData.setTravelMode(reimbursementObj.getTravelMode());
 				reimbursementData.setDistance(reimbursementObj.getDistance());
 			}
 			reimbursementData.setFromDate(reimbursementObj.getFromDate());
 			reimbursementData.setToDate(reimbursementObj.getToDate());
-			reimbursementData.setActive(true);
+			reimbursementData.setPurpose(reimbursementObj.getPurpose());			reimbursementData.setActive(true);
 			reimbursementData.setAppliedBy(reimbursementObj.getEmpId());
 			Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
 			currentTimestamp.setNanos(currentTimestamp.getNanos() / 1000 * 1000);
