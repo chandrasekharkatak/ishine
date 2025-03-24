@@ -70,6 +70,7 @@ export class SurveyConfigComponent implements OnInit {
   isSearchEnabled:boolean = false;
   surveyColumns:any[] = ['surveyName','description','isActive','createdByName','createdOn'];
   surveyResponseColumns:any[] = ['0','1','2'];
+  surveyColumns1:any[]=  ['0','1','2'];
 
   employeesFor360: any[] = [];
 

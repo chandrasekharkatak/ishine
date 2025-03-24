@@ -17,7 +17,7 @@ export class Employee360Service {
 
   private baseUrl:any = environment.baseUrl;
 
-  private lmsbaseurl:any=environment.lmsbaseurl;
+  public lmsbaseurl:any=environment.lmsbaseurl;
   private navigationSubject = new Subject<void>();
   private employeeDataSource = new BehaviorSubject<any>(null);
   private employeesFor360Source = new BehaviorSubject<any[]>([]); 

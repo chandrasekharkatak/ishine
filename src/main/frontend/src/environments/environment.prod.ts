@@ -1,4 +1,5 @@
 export const environment = {
   production: true,
-  baseUrl: "./"
+  baseUrl: "./",
+  lmsbaseurl :"http://192.168.12.113/academy-lms/index.php/",
 };
