@@ -1558,7 +1558,7 @@ public class RewardsService {
 
 	            Optional<RewardsCategory> rewardCategory = Optional.ofNullable(rewardsCategoryRepository.findByCategoryNameIgnoreCase(rewardCategoryName));
 	            if (!rewardCategory.isPresent()) {
-	                errorMessages.add("Row " + rowNum + ": Invalid Reward Category '" + rewardCategoryName + "'. Allowed values are 'Monthly', 'HalfYearly', 'Annual'.");
+	                errorMessages.add("Row " + rowNum + ": Invalid Reward Category '" + rewardCategoryName + "'. Allowed values are 'Monthly', 'Half Yearly', 'Annual'.");
 	                continue;
 	            }
 
