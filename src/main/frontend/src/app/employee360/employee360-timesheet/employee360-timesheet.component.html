@@ -171,7 +171,7 @@
                     <td *ngIf="item.showProject&& isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount" id="clickablefor360" [navigateToProjectView]="item.projectId" style="cursor: pointer;" title="Click to view Project Details">
                       {{item.projectName ? item.projectName : '-'}} </td>
       
-                    <td *ngIf="item.showProject&& !isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount" (click)="findByTeam(item.teamName)" style="cursor: pointer; color: #043870;">{{item.teamName?item.teamName:'-'}}</td>
+                    <td *ngIf="item.showProject&& !isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount" (click)="findByTeam(item.teamName,item.teamId)" style="cursor: pointer; color: #043870;">{{item.teamName?item.teamName:'-'}}</td>
                     <td *ngIf="item.showProject&& isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount" id="clickablefor360" [navigateToProjectView]="item.projectId" style="cursor: pointer;" title="Click to view Project Details">{{item.teamName?item.teamName:'-'}}</td>
                     <td *ngIf="item.showProject" [attr.rowspan]="item.projectActivityCount">{{item.completionTime}} hrs</td>
                     <td *ngIf="item.showProject" [attr.rowspan]="item.projectActivityCount">{{item.activity}} </td>   

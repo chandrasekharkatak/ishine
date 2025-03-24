@@ -131,8 +131,8 @@ export class Employee360TimesheetComponent implements OnInit {
     this.endDate = null;
     this.formattedStartDate = null;
     this.formattedEndDate = null;
-    this.get360TimesheetDetails(this.activeButton,empId,this.projectId,this.teamName,0,this.formattedStartDate,this.formattedEndDate);
-    this.getAllEmployeeFor360View();
+    this.get360TimesheetDetails(this.activeButton,empId,this.projectId,this.teamName,this.formattedStartDate,this.formattedEndDate);
+    // this.getAllEmployeeFor360View();
     console.log(this.Employee360);
   }
 
@@ -144,7 +144,7 @@ export class Employee360TimesheetComponent implements OnInit {
     }
     if(this.activeButton !=='Calendar'){
       this.empId=sessionStorage.getItem('empId');
-      this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,0,this.formattedStartDate,this.formattedEndDate);
+      this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.formattedStartDate,this.formattedEndDate);
     }else{
       this.empId=sessionStorage.getItem('empId');
       this.getTimesheetsForHomePageByEmpId('Last 7 Days');
@@ -429,10 +429,10 @@ exportToExcel(id:any): void {
     this.header=projectName+" : Member Details";
    
     this.projectId=projectId;
-    this.get360TimesheetDetails(this.activeButton,this.empIdd,projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
+    this.get360TimesheetDetails(this.activeButton,this.empIdd,projectId,this.teamName,this.formattedStartDate,this.formattedEndDate);
   }
 
-  findByTeam(teamName: any){
+  findByTeam(teamName: any, teamId : any){
     alert(teamName);
     this.isProjectTeamClicked=true;
     this.teamClicked=true;
@@ -440,7 +440,7 @@ exportToExcel(id:any): void {
     this.teamName=teamName;
     this.header=teamName+" : Member Details";
     console.log("team clicked => " + teamName);
-    this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
+    this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,teamId,this.formattedStartDate,this.formattedEndDate);
   }
   
 
@@ -480,7 +480,7 @@ updateStatus(status: string) {
       this.showModal = true;
     }
   );
-  this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
+  this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.formattedStartDate,this.formattedEndDate);
 
 
 }
@@ -504,7 +504,7 @@ updateStatus(status: string) {
     let employeeData = localStorage.getItem('employee360Data');
     let employeeObject = JSON.parse(employeeData);
     let emp_Id = employeeObject.empId;
-    this.get360TimesheetDetails(this.activeButton,emp_Id,this.projectId,this.teamName,0,this.formattedStartDate,this.formattedEndDate);
+    this.get360TimesheetDetails(this.activeButton,emp_Id,this.projectId,this.teamName,this.formattedStartDate,this.formattedEndDate);
   }
     
   onChangeOption(arg: any) {
@@ -564,11 +564,11 @@ updateStatus(status: string) {
     if (this.startDate && this.endDate) {
        this.formattedStartDate = this.datePipe.transform(this.startDate, 'dd-MM-yyyy');
       this.formattedEndDate = this.datePipe.transform(this.endDate, 'dd-MM-yyyy');
-      if(this.isProjectTeamClicked){this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);
+      if(this.isProjectTeamClicked){this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.formattedStartDate,this.formattedEndDate);
       }
-      else{this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.managerId,this.formattedStartDate,this.formattedEndDate);}
+      else{this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.formattedStartDate,this.formattedEndDate);}
     }else{
-      this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.managerId,this.startDate,this.endDate);
+      this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.startDate,this.endDate);
 
     }
   }
@@ -619,6 +619,7 @@ updateStatus(status: string) {
             activity: items.activity,
             projectName: items.projectName,
             teamName: items.teamName,
+            teamId: items.teamId,
             projectId: items.projectId,
             activityId: items.activityId,
             timesheetId : items.timesheetId,
@@ -730,7 +731,7 @@ async get360TimesheetDetails(
   empId: number, 
   projectId: number, 
   teamName: string, 
-  managerId: number, 
+  // managerId: number, 
   formattedStartDate: string, 
   formattedEndDate: string
 ): Promise<void> {
@@ -745,7 +746,7 @@ async get360TimesheetDetails(
       empId, 
       projectId, 
       teamName, 
-      managerId, 
+      // managerId, 
       formattedStartDate, 
       formattedEndDate
     ).toPromise();  
