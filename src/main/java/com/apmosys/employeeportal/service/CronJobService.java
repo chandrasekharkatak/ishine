@@ -5356,223 +5356,269 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 
 		@Transactional
 		public void leaveDeduct() {
-		    String depart = "";
-		    String employee = "";
+			String depart = "";
+			String employee = "";
 
-		    // start the rahul code
-		    List<BioMaTO> biomaxDataList = bioMaxService.getBiomaxDataForLeaveDeduct();
-		    System.out.println("Total Data Coming from Biomax: " + (biomaxDataList != null ? biomaxDataList.size() : 0));
+			List<BioMaTO> biomaxDataList = new ArrayList<>();
+			BioMaTO biomatObj = new BioMaTO();
+			biomatObj.setEmployeeCode("2");
+			biomatObj.setAttendanceDate("2025-03-20 00:00:00.0");
+			biomatObj.setInTime("00:00");
+			biomatObj.setOutTime("00:00");
+			biomatObj.setTotalDuration("200");
+			biomatObj.setShiftName("General");
+			biomatObj.setBeginTime("00:00");
+			biomatObj.setEndTime("00:00");
+			biomatObj.setDeduct("0.5");
+			biomaxDataList.add(biomatObj);
 
-		    List<Long> dataToBeDeleted = new ArrayList<>();
-		    List<Long> removeemployeeId = new ArrayList<>();
-		    
-		    // Fetch comp-off leave employees for today and filter biomaxDataList
-		    List<CompOffLeave> compOffLeaveList = compOffLeaveRepository.findEmployeeIsOnCompOffLeaveToday();
-		    if (compOffLeaveList != null && !compOffLeaveList.isEmpty()) {
-		        compOffLeaveList.forEach((comoff) -> {
-		            Employee empcomof = employeeRepository.findByEmpId(comoff.getEmpId());
-		            if (empcomof != null) {
-		                removeemployeeId.add(empcomof.getEmployeementId());
-		            }
-		        });
-		    }
+			BioMaTO biomatObj1 = new BioMaTO();
+			biomatObj1.setEmployeeCode("4");
+			biomatObj1.setAttendanceDate("2025-03-19 00:00:00.0");
+			biomatObj1.setInTime("00:00");
+			biomatObj1.setOutTime("00:00");
+			biomatObj1.setTotalDuration("200");
+			biomatObj1.setShiftName("General");
+			biomatObj1.setBeginTime("00:00");
+			biomatObj1.setEndTime("00:00");
+			biomatObj1.setDeduct("0.5");
+			biomaxDataList.add(biomatObj1);
 
-		    // Fetch department configuration and filter biomaxDataList for non-leave-deducted departments
-		    Optional<PortalConfig> departmentConfig = portalConfigRepository.findByportalConfigById(Short.parseShort(biomaxleavedeductForDepartment));
-		    if (departmentConfig.isPresent()) {
-		        PortalConfig portalConfig = departmentConfig.get();
-		        String departmentConfigValue = portalConfig.getConfigValue().replace("[", "").replace("]", "");  // Remove square brackets
-		        if (!departmentConfigValue.isEmpty()) {
-		            String[] departmentIds = departmentConfigValue.split(",");  // Split the string into an array
-		            Set<Long> departmentNotLeaveDeduct = Arrays.stream(departmentIds)
-		                    .map(Long::parseLong)
-		                    .collect(Collectors.toSet());  // Store department IDs in a set for faster lookup
-		            biomaxDataList.removeIf(bio -> departmentNotLeaveDeduct.contains(bio.getDepartmentId()));
-		        }
-		    }
+			BioMaTO biomatObj2 = new BioMaTO();
+			biomatObj2.setEmployeeCode("3");
+			biomatObj2.setAttendanceDate("2025-03-18 00:00:00.0");
+			biomatObj2.setInTime("00:00");
+			biomatObj2.setOutTime("00:00");
+			biomatObj2.setTotalDuration("200");
+			biomatObj2.setShiftName("General");
+			biomatObj2.setBeginTime("00:00");
+			biomatObj2.setEndTime("00:00");
+			biomatObj2.setDeduct("0.5");
+			biomaxDataList.add(biomatObj2);
 
-		    // Fetch employees on leave today and filter biomaxDataList for them
-		    List<EmployeeLeave> employeeLeaveList = employeeLeaveRepository.findEmployeeIsOnLeaveToday();
-		    if (employeeLeaveList != null && !employeeLeaveList.isEmpty()) {
-		        employeeLeaveList.forEach((empleave) -> {
-		            Employee empcomof = employeeRepository.findByEmpId(empleave.getEmpId());
-		            if (empcomof != null) {
-		                removeemployeeId.add(empcomof.getEmployeementId());
-		            }
-		        });
-		    }
+			// start the rahul code
+//		    List<BioMaTO> biomaxDataList = bioMaxService.getBiomaxDataForLeaveDeduct();
+			System.out
+					.println("Total Data Coming from Biomax: " + (biomaxDataList != null ? biomaxDataList.size() : 0));
 
-		    // Fetch employees with leave deduction exemptions and filter biomaxDataList for them
-		    Optional<PortalConfig> employeeLeaveDeductConfig = portalConfigRepository.findByportalConfigById(Short.parseShort(biomaxleavedeductForEmployee));
-		    if (employeeLeaveDeductConfig.isPresent()) {
-		        PortalConfig portalConfig = employeeLeaveDeductConfig.get();
-		        String employeeConfigValue = portalConfig.getConfigValue().replace("[", "").replace("]", "");  // Remove square brackets
-		        if (!employeeConfigValue.isEmpty()) {
-		            String[] employeeIds = employeeConfigValue.split(",");  // Split the string into an array
-		            Set<Long> employeeNotLeaveDeduct = Arrays.stream(employeeIds)
-		                    .map(Long::parseLong)
-		                    .collect(Collectors.toSet());  // Use a set for faster lookup
-		            biomaxDataList.removeIf(bio -> employeeNotLeaveDeduct.contains(bio.getEmpId()));
-		        }
-		    }
+			List<Long> dataToBeDeleted = new ArrayList<>();
+			List<Long> removeemployeeId = new ArrayList<>();
 
-		    if (removeemployeeId != null && !removeemployeeId.isEmpty()) {
-		        biomaxDataList.removeIf(bio -> removeemployeeId.contains(bio.getEmployementId()));
-		    }
+			// Fetch comp-off leave employees for today and filter biomaxDataList
+			List<CompOffLeave> compOffLeaveList = compOffLeaveRepository.findEmployeeIsOnCompOffLeaveToday();
+			if (compOffLeaveList != null && !compOffLeaveList.isEmpty()) {
+				compOffLeaveList.forEach((comoff) -> {
+					Employee empcomof = employeeRepository.findByEmpId(comoff.getEmpId());
+					if (empcomof != null) {
+						removeemployeeId.add(empcomof.getEmployeementId());
+					}
+				});
+			}
 
-		    List<BioMaTO> finalEmpBioData = new ArrayList<>();
-		    // end of the code
+			// Fetch department configuration and filter biomaxDataList for
+			// non-leave-deducted departments
+			Optional<PortalConfig> departmentConfig = portalConfigRepository
+					.findByportalConfigById(Short.parseShort(biomaxleavedeductForDepartment));
+			if (departmentConfig.isPresent()) {
+				PortalConfig portalConfig = departmentConfig.get();
+				String departmentConfigValue = portalConfig.getConfigValue().replace("[", "").replace("]", ""); // Remove
+																												// square
+																												// brackets
+				if (!departmentConfigValue.isEmpty()) {
+					String[] departmentIds = departmentConfigValue.split(","); // Split the string into an array
+					Set<Long> departmentNotLeaveDeduct = Arrays.stream(departmentIds).map(Long::parseLong)
+							.collect(Collectors.toSet()); // Store department IDs in a set for faster lookup
+					biomaxDataList.removeIf(bio -> departmentNotLeaveDeduct.contains(bio.getDepartmentId()));
+				}
+			}
 
-		    String fileName = "LeaveDeduct.xlsx";
-		    var file = new File(fileName);
+			// Fetch employees on leave today and filter biomaxDataList for them
+			List<EmployeeLeave> employeeLeaveList = employeeLeaveRepository.findEmployeeIsOnLeaveToday();
+			if (employeeLeaveList != null && !employeeLeaveList.isEmpty()) {
+				employeeLeaveList.forEach((empleave) -> {
+					Employee empcomof = employeeRepository.findByEmpId(empleave.getEmpId());
+					if (empcomof != null) {
+						removeemployeeId.add(empcomof.getEmployeementId());
+					}
+				});
+			}
 
-		    try (var fos = new FileOutputStream(file)) {
-		        // Try to create the Workbook and handle any exceptions
-		        try {
-		            var wb = new Workbook(fos, "Application", "1.0");
-		            Worksheet ws = wb.newWorksheet("Employee in Probation");
+//			 Fetch employees with leave deduction exemptions and filter biomaxDataList for
+//			 them
+			Optional<PortalConfig> employeeLeaveDeductConfig = portalConfigRepository
+					.findByportalConfigById(Short.parseShort(biomaxleavedeductForEmployee));
+			if (employeeLeaveDeductConfig.isPresent()) {
+				PortalConfig portalConfig = employeeLeaveDeductConfig.get();
+				String employeeConfigValue = portalConfig.getConfigValue().replace("[", "").replace("]", ""); // Remove
+																												// square
+																												// brackets
+				if (!employeeConfigValue.isEmpty()) {
+					String[] employeeIds = employeeConfigValue.split(","); // Split the string into an array
+					Set<Long> employeeNotLeaveDeduct = Arrays.stream(employeeIds).map(Long::parseLong)
+							.collect(Collectors.toSet()); // Use a set for faster lookup
+					biomaxDataList.removeIf(bio -> employeeNotLeaveDeduct.contains(bio.getEmpId()));
+				}
+			}
 
-		            ws.value(0, 0, "EmpId");
-		            ws.value(0, 1, "Emp Name");
-		            ws.value(0, 2, "Date");
-		            ws.value(0, 3, "In-Time");
-		            ws.value(0, 4, "Out-Time");
-		            ws.value(0, 5, "Total Working Hours");
-		            ws.value(0, 6, "Salary to be deducted (In days)");
+			if (removeemployeeId != null && !removeemployeeId.isEmpty()) {
+				biomaxDataList.removeIf(bio -> removeemployeeId.contains(bio.getEmployementId()));
+			}
+
+			List<BioMaTO> finalEmpBioData = new ArrayList<>();
+			// end of the code
+
+			String fileName = "LeaveDeduct.xlsx";
+			var file = new File(fileName);
+
+			try (var fos = new FileOutputStream(file)) {
+				// Try to create the Workbook and handle any exceptions
+				try {
+					var wb = new Workbook(fos, "Application", "1.0");
+					Worksheet ws = wb.newWorksheet("Employee in Probation");
+
+					ws.value(0, 0, "EmpId");
+					ws.value(0, 1, "Emp Name");
+					ws.value(0, 2, "Date");
+					ws.value(0, 3, "In-Time");
+					ws.value(0, 4, "Out-Time");
+					ws.value(0, 5, "Total Working Hours");
+					ws.value(0, 6, "Salary to be deducted (In days)");
 
 //		            int rowNum = 1;
-		            if (biomaxDataList != null && !biomaxDataList.isEmpty()) {
-		            	
-		                List<BioMaTO> biomaxDataFilterList = biomaxDataList.stream()
-		                		.filter(obj -> (!(obj.getDeduct().isEmpty()) && obj.getDeduct()!= null && Double.parseDouble(obj.getDeduct()) > 0))
-		                        .collect(Collectors.toList());
-		                List<Long> employmentIdList = biomaxDataList.stream()
-		                		.filter(obj -> !(obj.getDeduct().isEmpty()) && obj.getDeduct()!= null && Double.parseDouble(obj.getDeduct()) > 0)
-		                		.map(BioMaTO::getEmployementId)
-		                		.collect(Collectors.toList());
-		                dataToBeDeleted.addAll(employmentIdList);
+					if (biomaxDataList != null && !biomaxDataList.isEmpty()) {
 
-		                if (biomaxDataFilterList != null && !biomaxDataFilterList.isEmpty()) {
-		                    biomaxDataFilterList.forEach((object) -> {
-		                    	int rowNum = 1;
-		                        Long employmentId = Long.parseLong(object.getEmployeeCode().replaceAll("\\D", ""));
-		                        List<BiomaxDefaulter> defaulterList = biomaxDefaulterRepository.findByEmployeementIdForDefaulterBiomax(employmentId);
-		                        Employee employeeObj = employeeRepository.findByEmployeementId(employmentId);
-		                        JobRole departmentjon = jobRoleRepository.findByjobRoleId(employeeObj.getJobRoleId());
-		                        
-		                        if (employeeObj != null) {
-		                            if (!defaulterList.isEmpty() && defaulterList.size() >= 2) {
-		                            	BiomaxDefaulter newDefaulterObj = new BiomaxDefaulter();
-		                                newDefaulterObj.setEmpId(employeeObj.getEmpId());
-		                                newDefaulterObj.setEmployeementId(employmentId);
-		                                newDefaulterObj.setDepartmentId(departmentjon.getDeptId());
-		                                newDefaulterObj.setLeaveToDeduct(object.getDeduct());
-		                                newDefaulterObj.setDefaultedDate(object.getAttendanceDate());
- 		                                newDefaulterObj.setIsDeducted(false);
-		                                biomaxDefaulterRepository.save(newDefaulterObj);
-		                                List<BiomaxDefaulter> defaulterListLatest = biomaxDefaulterRepository.findByEmployeementIdForDefaulterBiomax(employmentId);
-		                                
-		                                String mostFrequentLeaveToDeduct = defaulterListLatest.stream()
-		                                        .collect(Collectors.groupingBy(
-		                                                BiomaxDefaulter::getLeaveToDeduct, 
-		                                                Collectors.counting()
-		                                        ))
-		                                        .entrySet().stream()
-		                                        .max(Comparator.comparingLong(Map.Entry::getValue))  
-		                                        .map(Map.Entry::getKey)  
-		                                        .orElse("No data found");  
+						List<BioMaTO> biomaxDataFilterList = biomaxDataList.stream()
+								.filter(obj -> (!(obj.getDeduct().isEmpty()) && obj.getDeduct() != null
+										&& Double.parseDouble(obj.getDeduct()) > 0))
+								.collect(Collectors.toList());
+						List<Long> employmentIdList = biomaxDataFilterList.stream()
+							    .filter(obj -> !(obj.getDeduct().isEmpty()) && obj.getDeduct() != null
+					            && Double.parseDouble(obj.getDeduct()) > 0)
+					    .map(obj -> Long.parseLong(obj.getEmployeeCode())) 
+					    .collect(Collectors.toList());
+						dataToBeDeleted.addAll(employmentIdList);
 
-		                                if (employeeObj.getEmploymentstatus().equals("Confirmed") && !mostFrequentLeaveToDeduct.equalsIgnoreCase("No data found")) {
-		                                    // Deduct leave logic
-		                                    EmployeeLeavesMap employeeLeaveMapObject = employeeLeavesMapRepository
-		                                            .findByEmpIdAndLeaveTypeMasterId(employeeObj.getEmpId(), (short) 3);
+						if (biomaxDataFilterList != null && !biomaxDataFilterList.isEmpty()) {
+							biomaxDataFilterList.forEach((object) -> {
+								int rowNum = 1;
+								Long employmentId = Long.parseLong(object.getEmployeeCode().replaceAll("\\D", ""));
+								List<BiomaxDefaulter> defaulterList = biomaxDefaulterRepository
+										.findByEmployeementIdForDefaulterBiomax(employmentId);
+								Employee employeeObj = employeeRepository.findByEmployeementId(employmentId);
+								JobRole departmentjon = jobRoleRepository.findByjobRoleId(employeeObj.getJobRoleId());
 
-		                                    if (employeeLeaveMapObject != null) {
-		                                        Float newBalance = employeeLeaveMapObject.getBalance()
-		                                                - Float.parseFloat(mostFrequentLeaveToDeduct);
+								if (employeeObj != null) {
+									if (!defaulterList.isEmpty() && defaulterList.size() >= 2) {
+										BiomaxDefaulter newDefaulterObj = new BiomaxDefaulter();
+										newDefaulterObj.setEmpId(employeeObj.getEmpId());
+										newDefaulterObj.setEmployeementId(employmentId);
+										newDefaulterObj.setDepartmentId(departmentjon.getDeptId());
+										newDefaulterObj.setLeaveToDeduct(object.getDeduct());
+										newDefaulterObj.setDefaultedDate(object.getAttendanceDate());
+										newDefaulterObj.setIsDeducted(false);
+										biomaxDefaulterRepository.save(newDefaulterObj);
+										List<BiomaxDefaulter> defaulterListLatest = biomaxDefaulterRepository
+												.findByEmployeementIdForDefaulterBiomax(employmentId);
 
-		                                        employeeLeaveMapObject.setBalance(newBalance);
-		                                        EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeaveMapObject);
+										String mostFrequentLeaveToDeduct = defaulterListLatest.stream()
+												.collect(Collectors.groupingBy(BiomaxDefaulter::getLeaveToDeduct,
+														Collectors.counting()))
+												.entrySet().stream().max(Comparator.comparingLong(Map.Entry::getValue))
+												.map(Map.Entry::getKey).orElse("No data found");
 
-		                                        if (dbResponse != null) {
-		                                            LeaveBalanceLog log = new LeaveBalanceLog();
-		                                            log.setBalance(newBalance);
-		                                            log.setEmpId(employeeObj.getEmpId());
-		                                            log.setLeaveTypeMasterId((short) 3);
-		                                            log.setMessage(LeaveLogMessage.autoDeductLeaveOnTimesheetDefaulter
-		                                                    .replace("0.0", object.getDeduct()));
-		                                            log.setUpdateBalanceBy("-" + object.getDeduct());
+										if (employeeObj.getEmploymentstatus().equals("Confirmed")
+												&& !mostFrequentLeaveToDeduct.equalsIgnoreCase("No data found")) {
+											// Deduct leave logic
+											EmployeeLeavesMap employeeLeaveMapObject = employeeLeavesMapRepository
+													.findByEmpIdAndLeaveTypeMasterId(employeeObj.getEmpId(), (short) 3);
 
-		                                            LeaveBalanceLog leaveLogDbResponse = leaveBalanceLogRepository.save(log);
-		                                        }
-		                                    }
-		                                } else if (employeeObj.getEmploymentstatus().equals("Probation") && !mostFrequentLeaveToDeduct.equalsIgnoreCase("No data found")) {
-		                                    // Deduct salary logic --> create excel and send to HR
-		                                    ws.style(rowNum, 2).format("dd-MM-yyyy").set();
-		                                    ws.style(rowNum, 3).format("dd-MM-yyyy HH:mm:ss").set();
-		                                    ws.style(rowNum, 4).format("dd-MM-yyyy HH:mm:ss").set();
+											if (employeeLeaveMapObject != null) {
+												Float newBalance = employeeLeaveMapObject.getBalance()
+														- Float.parseFloat(mostFrequentLeaveToDeduct);
 
-		                                    ws.value(rowNum, 0, "A-" + employmentId);
-		                                    ws.value(rowNum, 1, employeeObj.getName());
-		                                    ws.value(rowNum, 2, LocalDate.now());
-		                                    ws.value(rowNum, 3, object.getInTime());
-		                                    ws.value(rowNum, 4, object.getOutTime());
-		                                    ws.value(rowNum, 5, object.getTotalDuration());
-		                                    ws.value(rowNum, 6, mostFrequentLeaveToDeduct);
-		                                    rowNum++;
-		                                }
+												employeeLeaveMapObject.setBalance(newBalance);
+												EmployeeLeavesMap dbResponse = employeeLeavesMapRepository
+														.save(employeeLeaveMapObject);
+
+												if (dbResponse != null) {
+													LeaveBalanceLog log = new LeaveBalanceLog();
+													log.setBalance(newBalance);
+													log.setEmpId(employeeObj.getEmpId());
+													log.setLeaveTypeMasterId((short) 3);
+													log.setMessage(LeaveLogMessage.autoDeductLeaveOnTimesheetDefaulter
+															.replace("0.0", object.getDeduct()));
+													log.setUpdateBalanceBy("-" + object.getDeduct());
+
+													LeaveBalanceLog leaveLogDbResponse = leaveBalanceLogRepository
+															.save(log);
+												}
+											}
+										} else if (employeeObj.getEmploymentstatus().equals("Probation")
+												&& !mostFrequentLeaveToDeduct.equalsIgnoreCase("No data found")) {
+											// Deduct salary logic --> create excel and send to HR
+											ws.style(rowNum, 2).format("dd-MM-yyyy").set();
+											ws.style(rowNum, 3).format("dd-MM-yyyy HH:mm:ss").set();
+											ws.style(rowNum, 4).format("dd-MM-yyyy HH:mm:ss").set();
+
+											ws.value(rowNum, 0, "A-" + employmentId);
+											ws.value(rowNum, 1, employeeObj.getName());
+											ws.value(rowNum, 2, LocalDate.now());
+											ws.value(rowNum, 3, object.getInTime());
+											ws.value(rowNum, 4, object.getOutTime());
+											ws.value(rowNum, 5, object.getTotalDuration());
+											ws.value(rowNum, 6, mostFrequentLeaveToDeduct);
+											rowNum++;
+										}
 //		                                dataToBeDeleted.add(employmentId);
 
-		                                defaulterListLatest.forEach(data->{
-		                                	data.setIsDeducted(true);
-		                                	biomaxDefaulterRepository.save(data);
-		                                });
-		                                
-		                            } 
-		                            else {
-		                                // New defaulter entry
-		                                BiomaxDefaulter newDefaulterObj = new BiomaxDefaulter();
-		                                newDefaulterObj.setEmpId(employeeObj.getEmpId());
-		                                newDefaulterObj.setEmployeementId(employmentId);
-		                                newDefaulterObj.setDepartmentId(departmentjon.getDeptId());
-		                                newDefaulterObj.setLeaveToDeduct(object.getDeduct());
-		                                newDefaulterObj.setDefaultedDate(object.getAttendanceDate());
- 		                                newDefaulterObj.setIsDeducted(false);
-		                                biomaxDefaulterRepository.save(newDefaulterObj);
-		                            }
-		                        }
-		                    });
-		                }
-		            }
-		            wb.finish();
+										defaulterListLatest.forEach(data -> {
+											data.setIsDeducted(true);
+											biomaxDefaulterRepository.save(data);
+										});
 
-		        } catch (Exception e) {
-		            System.err.println("Error while creating or finishing the workbook: " + e.getMessage());
-		            e.printStackTrace();
-		            return;  
-		        }
+									} else {
+										// New defaulter entry
+										BiomaxDefaulter newDefaulterObj = new BiomaxDefaulter();
+										newDefaulterObj.setEmpId(employeeObj.getEmpId());
+										newDefaulterObj.setEmployeementId(employmentId);
+										newDefaulterObj.setDepartmentId(departmentjon.getDeptId());
+										newDefaulterObj.setLeaveToDeduct(object.getDeduct());
+										newDefaulterObj.setDefaultedDate(object.getAttendanceDate());
+										newDefaulterObj.setIsDeducted(false);
+										biomaxDefaulterRepository.save(newDefaulterObj);
+									}
+								}
+							});
+						}
+					}
+					wb.finish();
 
-		        // Send mail
-		        boolean mailSent = mailService.sendMailWithAttachment(hrMailAddress,
-		                hrMailAddress,
-		                "Salary to be deducted of Employees in probation due to defaulter in working time",
-		                "Dear Team, <br><br>Please find the salary to be deducted of Employees in probation due to defaulter in working time attached below.",
-		                file);
+				} catch (Exception e) {
+					System.err.println("Error while creating or finishing the workbook: " + e.getMessage());
+					e.printStackTrace();
+					return;
+				}
 
-		        if (mailSent) {
-		            System.out.println("Salary to be deducted of Employees Mail sent successfully!!");
-		        } else {
-		            System.out.println("Unable to send salary to be deducted of Employees Mail!!");
-		        }
+				// Send mail
+				boolean mailSent = mailService.sendMailWithAttachment(hrMailAddress, hrMailAddress,
+						"Salary to be deducted of Employees in probation due to defaulter in working time",
+						"Dear Team, <br><br>Please find the salary to be deducted of Employees in probation due to defaulter in working time attached below.",
+						file);
 
-		        // Delete all the employees in defaulter by employmentId
-		        if (!dataToBeDeleted.isEmpty()) {
-		            biomaxDefaulterRepository.deleteAllByEmployeementIds(dataToBeDeleted);
-		        }
+				if (mailSent) {
+					System.out.println("Salary to be deducted of Employees Mail sent successfully!!");
+				} else {
+					System.out.println("Unable to send salary to be deducted of Employees Mail!!");
+				}
 
-		    } catch (Exception e) {
-		        e.printStackTrace();
-		    }
+				// Delete all the employees in defaulter by employmentId
+				if (!dataToBeDeleted.isEmpty()) {
+					biomaxDefaulterRepository.deleteAllByEmployeementIds(dataToBeDeleted);
+				}
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 
 }	
