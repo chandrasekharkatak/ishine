@@ -76,6 +76,8 @@ export class BiomaxApprovalComponent implements OnInit {
   isWeekOffsExcluded:boolean = false;
   weekOffExcludedDepartmentList:any[] = [];
   teamMemberList:any[] = [];
+  applicableDates: any[];
+  // dateList: any[];
 
   constructor(
     private validationService:ValidationService,
@@ -139,6 +141,14 @@ export class BiomaxApprovalComponent implements OnInit {
    
   }
 
+  formatDate(timestamp: string | number): Date {
+    return new Date(timestamp);
+  }
+
+  fromDateFilterDatePicker = (date: Date): boolean => {
+    return this.applicableDates.some(d => this.formatDate(d).toDateString() === date.toDateString());
+  };
+
 
  
   showBioMaxApprovalRequestTable(){
@@ -193,7 +203,8 @@ export class BiomaxApprovalComponent implements OnInit {
       this.biomaxseviceService.getByEmployeeId(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
        if(response.serviceStatus=="true"){
         this.biomaxListEmployeeId=response.serviceResponse;
-        
+        this.applicableDates = this.biomaxListEmployeeId[0].applicableDates;	
+        console.log(this.applicableDates ,":applicableDates ");
         this.biomaxListEmployeeIdPedning= this.biomaxListEmployeeId.filter((p)=>p.biomaxStatus==="Pending")
      this.biomaxListEmployeeIdApproved=this.biomaxListEmployeeId.filter((p)=>p.biomaxStatus==="Approved" || p.biomaxStatus==="Rejected")
 

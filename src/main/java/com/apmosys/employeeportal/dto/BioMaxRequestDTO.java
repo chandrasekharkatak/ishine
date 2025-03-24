@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -29,4 +30,5 @@ public class BioMaxRequestDTO {
 	private String requestRemark;
 	private LocalDateTime statusDate;
 	private boolean isEnabled;
+	private List<String> applicableDates;
 }

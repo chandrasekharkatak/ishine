@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,11 +13,13 @@ import org.springframework.stereotype.Service;
 import com.apmosys.employeeportal.dto.BioMaxRequestDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.model.BioMaxRequestIssue;
+import com.apmosys.employeeportal.model.BiomaxDefaulter;
 import com.apmosys.employeeportal.model.BiomaxRequest;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.repository.BioMaxRequestIssueRepository;
+import com.apmosys.employeeportal.repository.BiomaxDefaulterRepository;
 import com.apmosys.employeeportal.repository.BiomaxRequestRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -44,6 +47,9 @@ public class BioMaxRequestServiceImp implements BioMaxRequestService{
 	
 	@Autowired
 	private EmployeeLeavesMapRepository employeeLeavesMapRepository;
+	
+	@Autowired
+	private BiomaxDefaulterRepository biomaxDefaulterRepository;
 	
 	@Override
 	public ServiceResponse createBioMaxRequest(BioMaxRequestDTO biomaxRequest) {
@@ -189,6 +195,12 @@ public void afterLeaveApprovedLeaveAdded(Long empid) {
 				ob.setBiomaxStatus(e.getBiomaxStatus());
 				ob.setRequestRemark(e.getRequestRemark());
 				ob.setBiomaxrequestDate(e.getBiomaxrequestDate());
+				List<BiomaxDefaulter> defaulterList = biomaxDefaulterRepository.findByEmpIdAndIsDeducted(empid,true); 
+				List<String> dateList = defaulterList.stream()
+						.map(BiomaxDefaulter::getDefaultedDate)
+						.collect(Collectors.toList());
+				
+				ob.setApplicableDates(dateList);
 				listbiomax.add(ob);
 			});
 			response.setServiceStatus("true");

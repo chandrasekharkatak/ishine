@@ -2,8 +2,8 @@
     <div class="col-md-12 px-0">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.apply_comp_off_req" [ngClass]="{'active' : isForm && isCreation}" (click)="showCreateForm()">Apply Bio Max Request</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_comp_off_req_status || userMapping.update_comp_off_req" [ngClass]="{'active' : isCompOffRequestsTable}" (click)="showBioMaxRequestTable()">My  Bio Max Request</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_comp_off_req_status || userMapping.update_comp_off_req" [ngClass]="{'active' : isApprovalRequest}" (click)="showBioMaxApprovalRequestTable()">Approval Request</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_comp_off_req_status || userMapping.update_comp_off_req" [ngClass]="{'active' : isApprovedRequest}" (click)="showBioMaxApprovedRequestTable()">Approved Request</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_comp_off_req_status || userMapping.update_comp_off_req" [ngClass]="{'active' : isApprovalRequest}" (click)="showBioMaxApprovalRequestTable()">My Approved Requests</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_comp_off_req_status || userMapping.update_comp_off_req" [ngClass]="{'active' : isApprovedRequest}" (click)="showBioMaxApprovedRequestTable()">Approval Request</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_comp_off_req_status || userMapping.update_comp_off_req"  (click)="CronJobs()">Cron Jobs</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_comp_off_req_status || userMapping.update_comp_off_req"  (click)="ProjectClone()">Project Clone</button>
  
@@ -35,7 +35,7 @@
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>From Date</label>
                             <div class="d-flex">
-                                <input class="form-control" matInput id="fromDate" #input (focus)="fromDatePicker.open()" [matDatepicker]="fromDatePicker"  [matDatepickerFilter]="fromDateFilter" (keydown)="disableMannualDateInput()"
+                                <input class="form-control" matInput id="fromDate" #input (focus)="fromDatePicker.open()" [matDatepicker]="fromDatePicker"  [matDatepickerFilter]="fromDateFilterDatePicker" (keydown)="disableMannualDateInput()"
                                 placeholder="From Bio Max Request Date" [(ngModel)]="biomax.biomaxrequestDate" (dateChange)="resetToDate()">
                                 <mat-datepicker-toggle matSuffix [for]="fromDatePicker" style="margin-left: -40px;" ></mat-datepicker-toggle>
                             </div>
@@ -48,7 +48,7 @@
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>To Date</label>
                             <div class="d-flex">
-                                <input class="form-control" matInput id="fromDate" #input (focus)="tofromDatePicker.open()" [matDatepicker]="tofromDatePicker"  [matDatepickerFilter]="tofromDateFilter" (keydown)="disableMannualDateInput1()"
+                                <input class="form-control" matInput id="fromDate" #input (focus)="tofromDatePicker.open()" [matDatepicker]="tofromDatePicker"  [matDatepickerFilter]="fromDateFilterDatePicker" (keydown)="disableMannualDateInput1()"
                                 placeholder="To Bio Max Request Date" [(ngModel)]="biomax.tobiomaxrequestDate" (dateChange)="resetToDate()">
                                 <mat-datepicker-toggle matSuffix [for]="tofromDatePicker" style="margin-left: -40px;" ></mat-datepicker-toggle>
                             </div>

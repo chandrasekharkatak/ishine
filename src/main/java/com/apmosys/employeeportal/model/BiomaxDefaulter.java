@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.model;
 
+import java.sql.Timestamp;
+
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -22,7 +24,9 @@ public class BiomaxDefaulter {
 	private Long empId;
 	private Long employeementId;
 	private Long departmentId;
-	
+	private String leaveToDeduct;
+	private String defaultedDate;
+	private Boolean isDeducted; 
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();
 
