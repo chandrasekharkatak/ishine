@@ -723,7 +723,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
 
     const headers = [
       ['Employee Id', 'Employee Name', 'Reward Category', 'Reward Type Name', 'Of Month-Year', 'Remarks'],
-      ['e.g. 240017', 'e.g. Prarthana Lenka', 'e.g. Monthly/HalfYearly/Annual', 'e.g. Gem Of The Month', 'e.g. January 2025', 'e.g. Did their best in their respective fields']
+      ['e.g. 240017', 'e.g. Prarthana Lenka', 'e.g. Monthly/Half Yearly/Annual', 'e.g. Gem Of The Month', 'e.g. January 2025', 'e.g. Did their best in their respective fields']
     ];
 
 
