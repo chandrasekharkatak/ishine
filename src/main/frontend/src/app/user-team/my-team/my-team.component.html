@@ -111,7 +111,7 @@
                         (click)="onUpdateTimesheetLockCheck(alert_message,teamView,'false')"><em><i class="fa-solid fa-lock"></i>&nbsp;Timesheet</em></button>
                       <button *ngIf="teamView.isTimesheetLockCheckEnable == 'false'" class="btn btn-sm btn-outline-primary mb-1" type="submit"
                         (click)="onUpdateTimesheetLockCheck(alert_message,teamView,'true')"><em><i class="fa-solid fa-lock-open"></i>&nbsp;Timesheet</em></button>
-                        <button *ngIf="!showReporteeLeaveBalance" class="btn btn-sm btn-outline-primary mb-1 ml-10" type="submit"
+                        <button  class="btn btn-sm btn-outline-primary mb-1 ml-10" type="submit"
                         (click)="onGetEmpLeaveBalance(alert_message,teamView,i)"><em><i class="fa-solid fa-eye"></i>&nbsp; Balance</em></button>
                         <button *ngIf="showReporteeLeaveBalance && selectedDataIndex == i" class="btn btn-sm btn-outline-danger mb-1" type="submit"
                         (click)="onHideEmpLeaveBalance()"><em><i class="fa-solid fa-eye-slash"></i>&nbsp; Balance</em></button>
@@ -262,10 +262,10 @@
                             <td class="info-label"> {{teamLeaveHistory.toDate}}</td> -->
                             <td class="info-label">{{leaveHistory.noOfDays}}</td>
                             <td class="info-label">{{leaveHistory.status}}</td>
-                            <td class="info-label" id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="leaveHistory.leaveStatusUpdatedByName ? leaveHistory.emp360leaveStatusUpdatedBy : null"
+                            <td class="info-label" id="clickablefor360" *ngIf="leaveHistory.leaveStatusUpdatedByName && userMapping.my_team_employee_360" [navigateToEmployee360]="leaveHistory.leaveStatusUpdatedByName ? leaveHistory.emp360leaveStatusUpdatedBy : null"
                             [ngStyle]="{'cursor': leaveHistory.leaveStatusUpdatedByName ? 'pointer' : 'default'}"
                             [title]="leaveHistory.leaveStatusUpdatedByName ? 'Click to view Employee 360' : ''">{{leaveHistory.leaveStatusUpdatedByName}}</td>
-                            <td class="info-label" *ngIf="!userMapping.my_team_employee_360">{{leaveHistory.leaveStatusUpdatedByName}}</td>
+                            <td class="info-label" *ngIf="!userMapping.my_team_employee_360 || !leaveHistory.leaveStatusUpdatedByName">{{leaveHistory.leaveStatusUpdatedByName}}</td>
                             <td class="info-label">{{leaveHistory.reason}}</td>
                             <td class="info-label">{{leaveHistory.leaveType}}</td>
                             <td>{{leaveHistory.currentApprovalLevel}}
@@ -373,8 +373,8 @@
               <td class="info-label"> {{teamLeaveHistory.toDate}}</td> -->
               <td class="info-label">{{compOffHistory.noOfDays}}</td>
               <td class="info-label">{{compOffHistory.status}}</td>
-              <td class="info-label" id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="compOffHistory.emp360ApprovedBy" style="cursor: pointer;" title="Click to view Employee 360">{{compOffHistory.leaveStatusUpdatedByName}}</td>
-              <td class="info-label" *ngIf="!userMapping.my_team_employee_360">{{compOffHistory.leaveStatusUpdatedByName}}</td>
+              <td class="info-label" id="clickablefor360" *ngIf="compOffHistory.leaveStatusUpdatedByName && userMapping.my_team_employee_360" [navigateToEmployee360]="compOffHistory.emp360ApprovedBy" style="cursor: pointer;" title="Click to view Employee 360">{{compOffHistory.leaveStatusUpdatedByName}}</td>
+              <td class="info-label" *ngIf="!userMapping.my_team_employee_360 || !compOffHistory.leaveStatusUpdatedByName  ">{{compOffHistory.leaveStatusUpdatedByName}}</td>
               <td class="info-label">{{compOffHistory.reason}}</td>
               </tr>
             </tbody>
