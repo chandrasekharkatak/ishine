@@ -270,10 +270,13 @@ export class RoleConfigComponent implements OnInit {
         this.jobRoleService.checkJobRole(this.jobRoleObj).pipe(first()).subscribe((response: any)=>{
           if(response.serviceStatus =='Fail'){
             this.openAlertMod(template, response.serviceResponse);
-            this.jobRoleObj.name = '';
-            this.jobRoleObj.employeeRole = ''
-            this.jobRoleObj.departmentId = ''
+            if(this.isCreation){
+              this.jobRoleObj.name = '';
+              this.jobRoleObj.employeeRole = ''
+              this.jobRoleObj.departmentId = ''
+
             }
+          }
         })
 
   }
