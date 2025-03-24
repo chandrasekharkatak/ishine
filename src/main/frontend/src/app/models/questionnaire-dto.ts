@@ -20,11 +20,7 @@ export class QuestionnaireDTO {
   questions?: QuestionDTO[];
   departmentId?: number;
   department?: string;
+  response: number;
 
 
-  constructor() {
-    this.questionTitle = '';
-    this.questionDescription = '';
-    this.questions = [];
-  }
 }

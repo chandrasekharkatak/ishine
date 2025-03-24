@@ -3,4 +3,5 @@
 export interface question {
     id?: number;
     questionText: string;
+    response: number;
   }

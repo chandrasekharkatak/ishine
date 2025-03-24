@@ -22,6 +22,8 @@ public class KpiDTO {
     private List<kpiItemDTO> kpis;
   
     private Long quarterId;
+    
+    private String quarter;
 }
 
 

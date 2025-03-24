@@ -40,6 +40,7 @@ interface AppraisalSummary {
 }
 
 interface QuestionDTO {
+response: any;
   id: number;
   questionText: string;
   // Add other fields as needed
@@ -51,11 +52,11 @@ interface QuestionDTO {
   styleUrls: ['./performance-dashboard.component.css']
 })
 export class PerformanceDashboardComponent implements OnInit {
-
-  currentUser:User;
   feature="performance_dashboard";
   userMapping:any = {};
   log:Log;
+  responses = [];
+  currentUser: User;
   activeTab: string = 'kra-kpi';
   selectedQuarter: number;
   quarterCyclesList: any;
@@ -79,6 +80,7 @@ export class PerformanceDashboardComponent implements OnInit {
   selectedGoal?: Goal;
   modalRef?: BsModalRef;
   errorMessage: string;
+  currentQuestionnaireId: any;
 
   constructor(
     private http: HttpClient, 
@@ -198,6 +200,7 @@ export class PerformanceDashboardComponent implements OnInit {
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.goals = response.serviceResponse; 
+          console.log('list of goals',this.goals);
         } else {
           this.errorMessage = response.serviceMessage || 'No goals found for this employee.';
         }
@@ -324,10 +327,9 @@ loadQuestionnaireQuestions(): void {
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.questionnaireQuestions = response.serviceResponse[0].questions;
-          console.log()
-          // index 0 .ques
-          // Initialize form after questions are loaded
+          this.currentQuestionnaireId = response.serviceResponse[0].questionId;
           console.log('Questionnaire response:',this.questionnaireQuestions);
+
           this.initQuestionnaireForm();
         } else {
           console.error('Failed to load questionnaire questions:', response.serviceMessage);
@@ -340,24 +342,16 @@ loadQuestionnaireQuestions(): void {
 }
 
 saveQuestionnaireResponses(): void {
-  if (this.questionnaireReviewForm.invalid) {
-    alert('Please fill all required fields correctly.');
-    return;
-  }
+  console.log("Response ======> "+ JSON.stringify(this.questionnaireQuestions));
+
+  const response = {
+    questions: this.questionnaireQuestions,
+    questionId: this.currentQuestionnaireId
+  };
+
   
-  const responses = [];
-  
-  this.questionnaireQuestions.forEach(question => {
-    responses.push({
-      questionId: question.id,
-      response: this.questionnaireReviewForm.get('question_' + question.id).value,
-      rating: this.questionnaireReviewForm.get('rating_' + question.id).value,
-      employeeId: this.currentUser.empId,
-      quarterId: this.selectedQuarter
-    });
-  });
-  
-  this.performanceService.submitQuestionnaireResponses(responses).subscribe({
+
+  this.performanceService.submitQuestionnaireResponses(response).subscribe({
     next: (response: any) => {
       if (response.serviceStatus === 'Success') {
         alert('Questionnaire responses submitted successfully!');

@@ -177,17 +177,19 @@
                       No questionnaire questions found for this quarter and department.
                     </div>
             
-                    <form [formGroup]="questionnaireReviewForm" *ngIf="questionnaireQuestions.length > 0">
+                      <form *ngIf="questionnaireQuestions.length > 0">
+
                       <div class="list-group">
-                        <div class="list-group-item" *ngFor="let question of questionnaireQuestions; let i = index">
-                          <div class="mb-3">
-                            <label class="form-label fw-bold">Question {{i + 1}}</label>
-                            <p>{{question.questionText}}</p>
+                        <div class="list-group-item row" *ngFor="let question of questionnaireQuestions;">
+                          <div class="mb-3 col">
+                            <label class="form-label fw-bold"> {{question.questionText}}</label> 
                             
-                            <!-- Add form controls based on your requirements -->
+                           
+                         
                             <div class="mt-2">
-                              <label class="form-label">Response:</label>
-                              <textarea class="form-control" rows="3" [formControlName]="'question_' + question.id"></textarea>
+                              <label class="form-label w-auto">Response:</label>
+                              <input  [(ngModel)]="question.response" placeholder="Rate from 1 to 10" type="number" name="response" min="0" max="10"/>
+
                             </div>
                             
                             <!-- Rating if needed -->

@@ -58,6 +58,7 @@ export class ViewPerformanceComponent implements OnInit {
 
   kraKpiMetrics: any[] = [];
   questionnaireQuestions: any[] = [];
+  currentQuestionnaireId: any;
 
   kraKpiReviewForm: FormGroup;
   questionnaireReviewForm: FormGroup;
@@ -131,7 +132,6 @@ export class ViewPerformanceComponent implements OnInit {
     if (!this.selectedQuarter) return;
 
     this.loadPerformanceStats();
-    this.loadReviewData();
     this.fetchGoals();
   }
 
@@ -197,7 +197,7 @@ export class ViewPerformanceComponent implements OnInit {
     const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
     if (response.serviceStatus == "Success") {
       this.currentEmployeeInfo = response.serviceResponse;
-
+      console.log(this.currentEmployeeInfo);
     } else {
       console.error(response.serviceResponse);
     }
@@ -240,6 +240,54 @@ export class ViewPerformanceComponent implements OnInit {
     });
   }
 
+  loadQuestionnaireQuestions(): void {
+    const quarterId = this.selectedQuarter1;
+    const departmentId = this.currentEmployeeInfo.departmentId;
+    
+
+    this.http.get(`http://localhost:8081/api/questionnaires/getQuestionnaireByQuarterAndDepartment/${quarterId}/${departmentId}`)
+      .subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus === 'Success') {
+            this.questionnaireQuestions = response.serviceResponse[0].questions;
+            this.currentQuestionnaireId = response.serviceResponse[0].questionId;
+            console.log('Questionnaire response:',this.questionnaireQuestions);
+  
+           
+          } else {
+            console.error('Failed to load questionnaire questions:', response.serviceMessage);
+          }
+        },
+        error: (error) => {
+          console.error('Error fetching questionnaire questions:', error);
+        }
+      });
+  }
+
+  saveQuestionnaireResponses(): void {
+    console.log("Response ======> "+ JSON.stringify(this.questionnaireQuestions));
+  
+    const response = {
+      questions: this.questionnaireQuestions,
+      questionId: this.currentQuestionnaireId
+    };
+  
+    
+  
+    this.performanceService.submitQuestionnaireResponses(response).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === 'Success') {
+          alert('Questionnaire responses submitted successfully!');
+        } else {
+          alert('Failed to submit responses: ' + response.serviceMessage);
+        }
+      },
+      error: (error) => {
+        console.error('Error submitting questionnaire responses:', error);
+        alert('An error occurred while submitting responses. Please try again.');
+      }
+    });
+  }
   
   
 

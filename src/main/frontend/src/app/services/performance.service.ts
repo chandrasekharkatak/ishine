@@ -127,7 +127,7 @@ getQuestionnaireByQuarterAndDepartment(quarterId: number, departmentId: number) 
 }
 
 // Method to submit questionnaire responses
-submitQuestionnaireResponses(responses: any[]) {
+submitQuestionnaireResponses(responses: any) {
   return this.http.post<any>(`${this.baseUrl}api/question/responses`, responses);
 }
 

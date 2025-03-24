@@ -231,7 +231,8 @@ quarter: any;
         questionTitle: this.questionnaireForm.value.questionTitle,
         questionDescription: this.questionnaireForm.value.questionDescription,
         createdBy: this.currentUser.empId, // Using the logged-in user's ID
-        questions: questionDTOs
+        questions: questionDTOs,
+        response: null,
       };
       
       console.log('Form data to submit:', questionnaireData);
@@ -410,6 +411,7 @@ quarter: any;
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
             this.questionnaireTemplates = response.serviceResponse;
+            console.log('ques template:: ',this.questionnaireTemplates);
           } else {
             console.error('Error fetching questionnaire templates:', response.serviceMessage);
           }
