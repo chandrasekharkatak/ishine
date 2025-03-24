@@ -7,6 +7,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { Conditional } from '@angular/compiler';
+import { formatDate } from '@angular/common';
 declare var $: any; // Import jQuery if it's being used for DOM manipulation
 
 @Component({
@@ -74,19 +75,37 @@ export class ViewTravelrequestComponent implements OnInit {
   //alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
     this.alertMessage = message;
   }
   openEditModal(template: TemplateRef<any> ,row :any) {
 
     this.selectedTravelRequest = { ...row };
 
+    this.selectedTravelRequest.fromDate = this.formatDate(this.selectedTravelRequest.fromDate);
+    this.selectedTravelRequest.toDate = this.formatDate(this.selectedTravelRequest.toDate);
+    this.selectedTravelRequest.appliedOn = this.formatDate(this.selectedTravelRequest.appliedOn);
+
     console.log('editpain asichi re ::::::::::::::::::::',this.selectedTravelRequest);
 
     this.openAlertMod(template, "njvhv");
 
-    // // Open modal using jQuery (Bootstrap modal method)
-    // $('#exampleModalCenter').modal('show');
+  }
+
+  formatDate(date: string | Date | null): string | null {
+    if (!date) return null; 
+    const d = new Date(date);
+  
+    if (isNaN(d.getTime())) {
+      console.error("Invalid date:", date);
+      return null;
+    }
+    
+    const month = ('0' + (d.getMonth() + 1)).slice(-2);
+    const day = ('0' + d.getDate()).slice(-2);
+    const year = d.getFullYear();
+    
+    return `${year}-${month}-${day}`;
   }
 
   
@@ -117,7 +136,7 @@ export class ViewTravelrequestComponent implements OnInit {
       newtravelData.supportingDocument = this.selectedTravelRequest.supportingDocument;
 
 
-      console.log('Form Data:', travelData);
+      console.log('selectedTravelRequest Data ::::::::::::::::', this.selectedTravelRequest);
        const index = this.travelRequests.findIndex(request => request.requestId === this.selectedTravelRequest.requestId);
 
     if (index !== -1) {

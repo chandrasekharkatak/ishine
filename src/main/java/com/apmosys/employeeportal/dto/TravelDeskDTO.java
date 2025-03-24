@@ -29,6 +29,6 @@ public class TravelDeskDTO {
 	    private String status;
 	    private String level1approverRemarks;
 	    private String level2approverRemarks;
-	    
+	    private String level1approveremail;
 	    
 }

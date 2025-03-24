@@ -96,7 +96,7 @@
               </thead>
               <tbody>
                 <!-- Loop over travelRequests and render each row -->
-                <tr *ngFor="let row of travelRequests">
+                <tr *ngFor="let row of travelRequests | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                   <td>{{ row.requestId }}</td>
                   <td>{{ row.name }}</td>
                   <td>{{ row.requestType }}</td>
@@ -109,25 +109,23 @@
                   <td>{{ row.appliedOn | date }}</td>
                   <td>{{ row.purpose }}</td>
                   <td>{{ row.level }}</td>
-                  <td>{{ row.approver }}</td>
+                  <td>{{ row.hodName }}</td>
                   <td>{{ row.status }}</td>
                   <td>
                     
-                    <button type="button" class="btn btn-success btn-sm btn-action button" (click)="openEditModal(approveRequest,row)">
+                    <button *ngIf="row.status != 'Approved' && row.status != 'Rejected'" type="button" class="btn btn-success btn-sm btn-action button" (click)="openEditModal(approveRequest,row)">
                       <em class="fa fa-edit"></em> Take Action
                     </button>
-                    <!-- <button type="button" class="btn btn-danger btn-sm btn-action button" (click)="deleteTraveldata(row)">
-                      <em class="fa fa-trash"></em> Reject
-                    </button> -->
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <pagination-controls class="my-pagination"></pagination-controls>
-          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2">
+          <pagination-controls class="my-pagination" [hidden]="travelRequests.length == 0"
+                    (pageChange)="handlePageChange($event)"></pagination-controls>
+          <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2">
             <em class="fa fa-file-arrow-down fa-2x"></em>
-          </button>
+          </button> -->
         </div>
       </div>
     </div>
@@ -142,7 +140,7 @@
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title" id="approveRequestModalLabel">Approve Travel Request</h5>
-              <button type="button" class="close" (click)="cancelRequest()" aria-label="Close">
+              <button type="button" class="close" (click)="closeModal()" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>

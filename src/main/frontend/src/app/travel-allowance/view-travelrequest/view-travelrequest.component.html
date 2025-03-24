@@ -53,10 +53,10 @@
                       <em class="fa fa-edit"></em> Edit
                     </button> -->
                     <div class="d-inline-flex">
-                      <button *ngIf="row.status != 'Approved'" type="button" class="btn btn-primary btn-sm ml-2" (click)="openEditModal(travel_desk,row)">
+                      <button *ngIf="row.status != 'Approved' && row.status != 'Rejected'" type="button" class="btn btn-primary btn-sm ml-2" (click)="openEditModal(travel_desk,row)">
                         <em class="fa fa-edit"></em> Edit
                       </button>
-                      <button *ngIf="row.status != 'Approved'" type="button" class="btn btn-danger btn-sm ml-2" (click)="deleteTraveldata(row)">
+                      <button *ngIf="row.status != 'Approved' && row.status != 'Rejected'" type="button" class="btn btn-danger btn-sm ml-2" (click)="deleteTraveldata(row)">
                         <em class="fa fa-trash"></em> Delete
                       </button>
                     </div>
@@ -97,65 +97,110 @@
             </div>
             <div class="modal-body">
               <form #editForm="ngForm">
-                <div class="form-group">
-                  <label for="requestId">Request ID</label>
-                  <input type="text" class="form-control" id="requestId" [(ngModel)]="selectedTravelRequest.requestId" name="requestId" readonly />
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="requestId">Request ID</label>
+                      <input type="text" class="form-control" id="requestId" [(ngModel)]="selectedTravelRequest.requestId" name="requestId" readonly />
+                    </div>
+                  </div>
+                
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="name">Name</label>
+                      <input type="text" class="form-control" id="name" [(ngModel)]="selectedTravelRequest.name" name="name" readonly/>
+                    </div>
+                  </div>
+                
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="requestType">Request Type</label>
+                      <input type="text" class="form-control" id="requestType" [(ngModel)]="selectedTravelRequest.requestType" name="requestType" />
+                    </div>
+                  </div>
+                
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="fromDate">From Date</label>
+                      <input type="date" class="form-control" id="fromDate" [(ngModel)]="selectedTravelRequest.fromDate" name="fromDate" />
+                    </div>
+                  </div>
+                
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="toDate">To Date</label>
+                      <input type="date" class="form-control" id="toDate" [(ngModel)]="selectedTravelRequest.toDate" name="toDate" />
+                    </div>
+                  </div>
+                
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="fromLocation">From Location</label>
+                      <input type="text" class="form-control" id="fromLocation" [(ngModel)]="selectedTravelRequest.fromLocation" name="fromLocation" />
+                    </div>
+                  </div>
+                
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="toLocation">To Location</label>
+                      <input type="text" class="form-control" id="toLocation" [(ngModel)]="selectedTravelRequest.toLocation" name="toLocation" />
+                    </div>
+                  </div>
+                
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="status">Status</label>
+                      <input type="text" class="form-control" id="status" [(ngModel)]="selectedTravelRequest.status" name="status" readonly />
+                    </div>
+                  </div>
+                
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="appliedBy">Applied By</label>
+                      <input type="text" class="form-control" id="appliedBy" [(ngModel)]="selectedTravelRequest.appliedBy" name="appliedBy" readonly/>
+                    </div>
+                  </div>
+                
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="appliedOn">Applied On</label>
+                      <input type="date" class="form-control" id="appliedOn" [(ngModel)]="selectedTravelRequest.appliedOn" name="appliedOn" readonly/>
+                    </div>
+                  </div>
+                
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="purpose">Purpose of Travel</label>
+                      <textarea class="form-control" id="purpose" [(ngModel)]="selectedTravelRequest.purpose" name="purpose"></textarea>
+                    </div>
+                  </div>
+                
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="approver">Level 1 Approver</label>
+                      <input type="text" class="form-control" id="approver" [(ngModel)]="selectedTravelRequest.approver" name="approver" readonly/>
+                    </div>
+                  </div>
+                
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="approverStatus">Level 1 Approver Status</label>
+                      <input type="text" class="form-control" id="approverStatus" [(ngModel)]="selectedTravelRequest.status" name="approverStatus" readonly/>
+                    </div>
+                  </div>
+                
+                  <div class="col-md-12 text-center">
+                    <button type="button" class="btn btn-primary" (click)="updateTravelRequest()">Save Changes</button>
+                  </div>
                 </div>
-                <div class="form-group">
-                  <label for="name">Name</label>
-                  <input type="text" class="form-control" id="name" [(ngModel)]="selectedTravelRequest.name" name="name" />
-                </div>
-                <div class="form-group">
-                  <label for="requestType">Request Type</label>
-                  <input type="text" class="form-control" id="requestType" [(ngModel)]="selectedTravelRequest.requestType" name="requestType" />
-                </div>
-                <div class="form-group">
-                  <label for="fromDate">From Date</label>
-                  <input type="date" class="form-control" id="fromDate" [(ngModel)]="selectedTravelRequest.fromDate" name="fromDate" disabled />
-                </div>
-                <div class="form-group">
-                  <label for="toDate">To Date</label>
-                  <input type="date" class="form-control" id="toDate" [(ngModel)]="selectedTravelRequest.toDate" name="toDate" disabled />
-                </div>
-                <div class="form-group">
-                  <label for="fromLocation">From Location</label>
-                  <input type="text" class="form-control" id="fromLocation" [(ngModel)]="selectedTravelRequest.fromLocation" name="fromLocation" />
-                </div>
-                <div class="form-group">
-                  <label for="toLocation">To Location</label>
-                  <input type="text" class="form-control" id="toLocation" [(ngModel)]="selectedTravelRequest.toLocation" name="toLocation" />
-                </div>
-                <div class="form-group">
-                  <label for="status">Status</label>
-                  <input type="text" class="form-control" id="status" [(ngModel)]="selectedTravelRequest.status" name="status" />
-                </div>
-                <div class="form-group">
-                  <label for="appliedBy">Applied By</label>
-                  <input type="text" class="form-control" id="appliedBy" [(ngModel)]="selectedTravelRequest.appliedBy" name="appliedBy" />
-                </div>
-                <div class="form-group">
-                  <label for="appliedOn">Applied On</label>
-                  <input type="date" class="form-control" id="appliedOn" [(ngModel)]="selectedTravelRequest.appliedOn" name="appliedOn" disabled />
-                </div>
-                <div class="form-group">
-                  <label for="purpose">Purpose of Travel</label>
-                  <textarea class="form-control" id="purpose" [(ngModel)]="selectedTravelRequest.purpose" name="purpose"></textarea>
-                </div>
-                <div class="form-group">
-                  <label for="approver">Level 1 Approver</label>
-                  <input type="text" class="form-control" id="approver" [(ngModel)]="selectedTravelRequest.approver" name="approver" />
-                </div>
-                <div class="form-group">
-                  <label for="approverStatus">Level 1 Approver Status</label>
-                  <input type="text" class="form-control" id="approverStatus" [(ngModel)]="selectedTravelRequest.status" name="approverStatus" />
-                </div>
-                <button type="button" class="btn btn-primary" (click)="updateTravelRequest()">Save Changes</button>
+                
               </form>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    
     <!-- <p>{{alertMessage}}</p>
     <button type="button" class="btn btn-primary" >OK</button>&nbsp; -->
 </ng-template>

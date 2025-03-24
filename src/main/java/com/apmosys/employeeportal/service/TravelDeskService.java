@@ -5,12 +5,15 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.naming.factory.SendMailFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.TravelDeskDTO;
+import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.TravelDesk;
+import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.TravelDeskRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -19,6 +22,12 @@ public class TravelDeskService {
 
 	@Autowired
 	private TravelDeskRepository tavelDeskRepository;
+	
+	@Autowired
+	private MailService mailService;
+	
+	@Autowired
+	private EmployeeRepository employeeRepository;
 	
 	@Value("${level2Approver}")
 	public String level2Approver;
@@ -74,6 +83,13 @@ public class TravelDeskService {
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse(savedTravelDesk);
 			serviceResponse.setServiceMessage("Saved Successfully..!!");
+            Employee emp = employeeRepository.findByEmpId(Long.valueOf(travelDesk.getEmpId().toString()));
+			mailService.sendMailforTravel(travelDesk.getLevel1ApproverEmail(),
+	        		"Travel request approval required",
+	        		"Dear"+travelDesk.getHodName()+", <br><br>" + "A travel request is applied by "+ emp.getName()+"<br> for the purpose of : "+
+	        		travelDesk.getPurpose()+".<br>From date:"+travelDesk.getFromDate().toGMTString()+" and will return on : "+travelDesk.getToDate().toGMTString()+
+	        		".<br> For this the mode of travel will be : "+travelDesk.getTravelMode()+" and travel class is:"+travelDesk.getTravelClass()+" .<br>Kindly take action on this application .");
+
 			return serviceResponse;
 		}
 	}
@@ -160,6 +176,13 @@ public class TravelDeskService {
 					serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					serviceResponse.setServiceResponse(savedTravelDesk);
 					serviceResponse.setServiceMessage("Updated Successfully..!!");
+					 Employee emp = employeeRepository.findByEmpId(Long.valueOf(existingTravelDesk.getEmpId().toString()));
+						mailService.sendMailforTravel(existingTravelDesk.getLevel1ApproverEmail(),
+				        		"Travel request Updated",
+				        		"Dear "+existingTravelDesk.getHodName()+", <br><br>" + "A travel request that was applied by "+ emp.getName()+" is upadated and now <br>the purpose is : "+
+				        				existingTravelDesk.getPurpose()+".<br>the From date is : "+existingTravelDesk.getFromDate().toGMTString()+" and will return on : "+existingTravelDesk.getToDate().toGMTString()+
+				        		".<br> For this the mode of travel will be : "+existingTravelDesk.getTravelMode()+" and travel class is : "+existingTravelDesk.getTravelClass()+"<br>Kindly take action on this application .");
+
 					return serviceResponse;
 				}
 			}
@@ -200,6 +223,7 @@ public class TravelDeskService {
 	}
 	
 	
+	@SuppressWarnings("deprecation")
 	public ServiceResponse approveRejectTravel(TravelDeskDTO travelData) {
 	    ServiceResponse serviceResponse = new ServiceResponse();
 
@@ -214,14 +238,23 @@ public class TravelDeskService {
 
 	        Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
 	        currentTimestamp.setNanos(currentTimestamp.getNanos() / 1000 * 1000);
-
+            Employee emp = employeeRepository.findByEmpId(Long.valueOf(travelDesk.getEmpId().toString()));
 	        if (travelDesk.getLevel() == 1) {
 	            updateApprovalLevel(travelDesk, currentTimestamp, travelData);
+	            if(travelDesk.getLevel1ApproveOn() != null && travelDesk.getStatus() == "Approved") {
+		            mailService.sendMailforTravel(travelDesk.getLevel1ApproverEmail(),
+			        		"Travel request approval required",
+			        		"Dear"+travelDesk.getHodName()+", <br><br>" + "A travel request is applied by"+ emp.getName()+"<br> for the purpose of:"+
+			        		travelDesk.getPurpose()+".<br>From date:"+travelDesk.getFromDate().toGMTString()+"and will return on:"+travelDesk.getToDate().toGMTString()+
+			        		".<br> For this the mode of travel will be:"+travelDesk.getTravelMode()+"and travle class is:"+travelDesk.getTravelClass()+".<>"+"<br>Kindly take action on this application");
+		            }
 	        } else if (travelDesk.getLevel() == 2) {
 	            updateApprovalLevel(travelDesk, currentTimestamp, travelData);
+	            
 	        }
 
 	        TravelDesk updatedTravelDesk = tavelDeskRepository.save(travelDesk);
+	        	        
 	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        serviceResponse.setServiceResponse(updatedTravelDesk);
 	        serviceResponse.setServiceMessage("Updated Successfully..!!");
@@ -236,16 +269,23 @@ public class TravelDeskService {
 	}
 
 	private void updateApprovalLevel(TravelDesk travelDesk, Timestamp currentTimestamp, TravelDeskDTO travelData) {
+		if (travelData.getStatus().equals("Rejected")) {
+			travelDesk.setStatus(travelData.getStatus());
+			travelDesk.setLevel1approverRemarks(travelData.getLevel1approverRemarks());
+		}else {
 	    if (travelDesk.getLevel() == 1) {
 	        travelDesk.setLevel1ApproveOn(currentTimestamp);
 	        travelDesk.setLevel(travelDesk.getLevel()+1);
 	        travelDesk.setStatus(travelData.getStatus());
-	        travelDesk.setLevel1approverRemarks(travelDesk.getLevel1approverRemarks());
+	        travelDesk.setLevel1approverRemarks(travelData.getLevel1approverRemarks());
 	    } else if (travelDesk.getLevel() == 2) {
 	        travelDesk.setLevel2ApproveOn(currentTimestamp);
 	        travelDesk.setStatus(travelData.getStatus());
-	        travelDesk.setLevel2approverRemarks(travelDesk.getLevel2approverRemarks());
+	        travelDesk.setLevel2approverRemarks(travelData.getLevel2approverRemarks());
 	    }
 	}
+	}
+	
+	
 
 }
