@@ -39,6 +39,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Random;
@@ -53,6 +54,7 @@ import javax.mail.internet.AddressException;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
 
 import org.dhatim.fastexcel.Workbook;
 import org.dhatim.fastexcel.Worksheet;
@@ -5352,6 +5354,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //			   
 //		}
 
+		@Transactional
 		public void leaveDeduct() {
 		    String depart = "";
 		    String employee = "";
@@ -5441,8 +5444,13 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		            if (biomaxDataList != null && !biomaxDataList.isEmpty()) {
 		            	
 		                List<BioMaTO> biomaxDataFilterList = biomaxDataList.stream()
-		                		.filter(obj -> (!(obj.getDeduct().isEmpty()) && Double.parseDouble(obj.getDeduct()) > 0))
+		                		.filter(obj -> (!(obj.getDeduct().isEmpty()) && obj.getDeduct()!= null && Double.parseDouble(obj.getDeduct()) > 0))
 		                        .collect(Collectors.toList());
+		                List<Long> employmentIdList = biomaxDataList.stream()
+		                		.filter(obj -> !(obj.getDeduct().isEmpty()) && obj.getDeduct()!= null && Double.parseDouble(obj.getDeduct()) > 0)
+		                		.map(BioMaTO::getEmployementId)
+		                		.collect(Collectors.toList());
+		                dataToBeDeleted.addAll(employmentIdList);
 
 		                if (biomaxDataFilterList != null && !biomaxDataFilterList.isEmpty()) {
 		                    biomaxDataFilterList.forEach((object) -> {

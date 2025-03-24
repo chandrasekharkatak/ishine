@@ -17,6 +17,9 @@ public interface BiomaxDefaulterRepository extends JpaRepository<BiomaxDefaulter
 	@Query(value = "SELECT * FROM biomax_defaulter WHERE employeement_id = :empId AND created_on >= CURDATE() - INTERVAL 3 DAY", nativeQuery = true)
 	List<BiomaxDefaulter> findByEmployeementIdForDefaulterBiomax(@Param("empId") Long empId);
 
+	@Query(value = "SELECT * FROM biomax_defaulter WHERE employeement_id = :empId AND created_on >= CURDATE() - INTERVAL 3 DAY", nativeQuery = true)
+	List<BiomaxDefaulter> findByEmployeementIdAndFromdateAndTodate(@Param("empId") Long empId);
+
 
 	List<BiomaxDefaulter> findByEmployeementId(Long parseLong);
 	
@@ -26,8 +29,12 @@ public interface BiomaxDefaulterRepository extends JpaRepository<BiomaxDefaulter
 	
 	@Modifying
 	@Transactional
-	@Query(value = "DELETE FROM biomax_defaulter WHERE employeement_id IN :employmentIds", nativeQuery = true)
+	@Query(value = "DELETE FROM biomax_defaulter\n"
+			+ "WHERE employeement_id NOT IN (:employmentIds)\n"
+			+ "AND MONTH(defaulted_date) != MONTH(CURDATE())\n"
+			+ "AND YEAR(defaulted_date) != YEAR(CURDATE())", nativeQuery = true)
     void deleteAllByEmployeementIds(List<Long> employmentIds);
+
 	
 	
 	
