@@ -254,12 +254,108 @@
 
       <!-- <p *ngIf="selectedDepartment" class="mt-2">You selected: <b>{{ selectedDepartment }}</b></p> -->
     </div>
-
-
     <div class="container mt-5" *ngIf="showDetails">
       <div class="row justify-content-center">
-        <!-- First Box -->
+        <!-- First Box (TNM) -->
         <div class="col-md-4">
+          <div class="box border border-primary p-4 rounded text-center h-100 d-flex flex-column">
+            <h4>TNM</h4>
+            <div class="row mt-3 flex-grow-1">
+              <div
+                title="Click to View TNM-Active"
+                class="col-6 d-flex"
+                [ngClass]="{'clicked': activeBox === 'TNM-Active', 'hover': isHovering === 'TNM-Active'}"
+                (click)="onBoxClickDataChange('TNM-Active')"
+                (mouseover)="onMouseOver('TNM-Active')"
+                (mouseleave)="onMouseLeave()"
+              >
+                <div class="branch bg-success text-white p-3 rounded w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                  <h5>Active</h5>
+                  <p>{{ tnmPOValidCount }}</p>
+                </div>
+              </div>
+              <div
+                title="Click to View TNM-Expired"
+                class="col-6 d-flex"
+                [ngClass]="{ 'clicked': activeBox === 'TNM-Expired', 'hover': isHovering === 'TNM-Expired' }"
+                (click)="onBoxClickDataChange('TNM-Expired')"
+                (mouseover)="onMouseOver('TNM-Expired')"
+                (mouseleave)="onMouseLeave()"
+              >
+                <div class="branch bg-danger text-white p-3 rounded w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                  <h5>Expired</h5>
+                  <p>{{ tnmPoExpiredCount }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    
+        <!-- Second Box (Fixed Cost) -->
+        <div class="col-md-4">
+          <div class="box border border-primary p-4 rounded text-center h-100 d-flex flex-column">
+            <h4>Fixed Cost</h4>
+            <div class="row mt-3 flex-grow-1">
+              <div
+                title="Click to View FC-Active"
+                class="col-6 d-flex"
+                [ngClass]="{ 'clicked': activeBox === 'FC-Active', 'hover': isHovering === 'FC-Active' }"
+                (click)="onBoxClickDataChange('FC-Active')"
+                (mouseover)="onMouseOver('FC-Active')"
+                (mouseleave)="onMouseLeave()"
+              >
+                <div class="branch bg-success text-white p-3 rounded w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                  <h5>Active</h5>
+                  <p>{{ fixedCostPoValidCount }}</p>
+                </div>
+              </div>
+              <div
+                title="Click to View FC-Expired"
+                class="col-6 d-flex"
+                [ngClass]="{ 'clicked': activeBox === 'FC-Expired', 'hover': isHovering === 'FC-Expired' }"
+                (click)="onBoxClickDataChange('FC-Expired')"
+                (mouseover)="onMouseOver('FC-Expired')"
+                (mouseleave)="onMouseLeave()"
+              >
+                <div class="branch bg-danger text-white p-3 rounded w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                  <h5>Expired</h5>
+                  <p>{{ fixedCostPoExpiredCount }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    
+        <!-- Third Box (Internal) -->
+        <div class="col-md-4">
+          <div class="box border border-primary p-4 rounded text-center h-100 d-flex flex-column">
+            <h4>Internal</h4>
+            <div class="row mt-3 flex-grow-1">
+              <div class="col-12 d-flex">
+                <div
+                  title="Click to View Internal"
+                  class="branch bg-warning text-white p-4 rounded w-100 h-100 d-flex flex-column align-items-center justify-content-center"
+                  [ngClass]="{ 'clicked': activeBox === 'Internal', 'hover': isHovering === 'Internal' }"
+                  (click)="onBoxClickDataChange('Internal')"
+                  (mouseover)="onMouseOver('Internal')"
+                  (mouseleave)="onMouseLeave()"
+                >
+                  <h5>Internal</h5>
+                  <p>{{ internalCount }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    
+      </div>
+    </div>
+    
+
+    <!-- <div class="container mt-5" *ngIf="showDetails">
+      <div class="row justify-content-center"> -->
+        <!-- First Box -->
+        <!-- <div class="col-md-4">
           <div class="box border border-primary p-4 rounded text-center">
             <h4>TNM</h4>
             <div class="row mt-3">
@@ -292,10 +388,10 @@
               </div>
             </div>
           </div>
-        </div>
+        </div> -->
     
         <!-- Second Box -->
-        <div class="col-md-4">
+        <!-- <div class="col-md-4">
           <div class="box border border-primary p-4 rounded text-center">
             <h4>Fixed Cost</h4>
             <div class="row mt-3">
@@ -327,10 +423,10 @@
               </div>
             </div>
           </div>
-        </div>
+        </div> -->
     
         <!-- Third Box -->
-        <div class="col-md-2">
+        <!-- <div class="col-md-2">
           <div class="box border border-primary p-4 rounded text-center">
             <h4>Internal</h4>
             <div
@@ -347,7 +443,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </div> -->
     
 
     <!-- sandy -->
@@ -376,7 +472,7 @@
                 <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|empId">Emp Id</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="name|string">Full Name</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="jobRoleName|string">Job Role</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="jobRole|string">Job Role</th>
                 <th scope="col" class="info-label " mat-sort-header="managerName|string">Manager</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="mobileNo|number">Mobile Number</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="email|string">Email Id</th>
@@ -395,7 +491,7 @@
                 <th scope="col" class="info-label wide-col" mat-sort-header="clientName|string">Client Name</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="clientLocation|string">Client Location</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="workLocation|string">Work Location</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="experience|string">Experience</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="totalExperience|string">Experience</th>
               </tr>
               <tr app-column-filter-bar *ngIf="isEmployeeReportTable && isSearchEnabled"
                 [columnList]="employeeReportColumnForDetailedProjectView" (onSearch)="onSearch($event);page=1"></tr>
@@ -433,10 +529,10 @@
             </tbody>
           </table>
         </div>
-        <pagination-controls class="my-pagination" [hidden]="allEmployeeList.length == 0"
+        <pagination-controls class="my-pagination" [hidden]="filteredEmployees.length == 0"
           (pageChange)="handlePageChange($event)"></pagination-controls>
         <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-          [hidden]="allEmployeeList.length == 0" (click)="exportToExcel()"><em
+          [hidden]="filteredEmployees.length == 0" (click)="exportToExcel()"><em
             class="fa fa-file-arrow-down fa-2x"></em></button>
       </div>
     </div>
@@ -455,6 +551,7 @@
           <table class="table table-responsive" matSort (matSortChange)="sortData($event)">
             <thead class="thead-light">
               <tr>
+                <th scope="col" class="info-label">Sr No.</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|empId">Emp Id</th>
                 <th scope="col" class="info-label" mat-sort-header="employeeType|empId">Employee Type</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="name|string">Full Name</th>
@@ -542,6 +639,7 @@
               </tr>
               <tr
                 *ngFor="let employee of allEmployeeList | colFilter:filters: false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                <th class="info-label">{{20*(page-1)+i+1}}</th>
                 <td>{{employee.employeementId}}</td>
                 <td>{{employee.employeeType}}</td>
                 <td>{{employee.name}}</td>
