@@ -947,7 +947,7 @@
                                     title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
                                 <button *ngIf="userMapping.update_request_status"
                                     class="btn btn-sm btn-outline-danger mb2" type="submit"
-                                    (click)="onUpdateCompOffStatus(alert_message, compOffApplication, 3)"
+                                    (click)="openRevokeLeaveRejectModalCompOff(reject_revoke_leave_Comp_off, compOffApplication)"
                                     title="Reject"><em class="fa-solid fa-xmark"></em></button>
                             </td>
                         </tr>
@@ -1309,3 +1309,14 @@
         </div> -->
         </div>
     </ng-template>
+
+
+
+    <ng-template #reject_revoke_leave_Comp_off>
+        <div class="modal-body text-center">
+            <p>Kindly provide reason(s) for rejecting application.</p>
+            <textarea rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.rejectReason"> </textarea><br>
+            <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)" (click)="onUpdateCompOffStatus(alert_message,leaveObj,3);cancelRequest()">Reject</button>&nbsp;
+            <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+        </div>
+      </ng-template>

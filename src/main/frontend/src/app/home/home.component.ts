@@ -1,39 +1,36 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
+import { LocationStrategy } from '@angular/common';
+import { AfterViewInit, ChangeDetectorRef, Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
+import { Sort } from '@angular/material/sort';
+import { DomSanitizer } from '@angular/platform-browser';
+import { Router } from '@angular/router';
+import * as CryptoJS from 'crypto-js';
+import * as HighCharts from 'highcharts';
+import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { AppComponent } from '../app.component';
+import { BodyComponent } from '../body/body.component';
+import { CalendarComponent } from '../helpers/calendar/calendar.component';
+import { Employee } from '../models/employee';
+import { Feature } from '../models/feature';
 import { Leave } from '../models/leave';
+import { Log } from '../models/log';
+import { NotificationMessage } from '../models/notification';
+import { RewardCategory } from '../models/rewardCategory';
+import { Timesheet } from '../models/timesheet';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
-import { LeaveService } from '../services/leave.service';
-import { ExportExcelService } from 'src/app/services/export-excel.service';
-import * as HighCharts from 'highcharts';
-import { Router } from '@angular/router';
 import { EmployeeService } from '../services/employee.service';
-import { ImageService } from '../services/image.service';
-import { DomSanitizer } from '@angular/platform-browser';
-import { Timesheet } from '../models/timesheet';
-import { TimesheetService } from '../services/timesheet.service';
-import { NotificationMessage } from '../models/notification';
-import { NotificationService } from '../services/notification.service';
-import * as moment from 'moment';
-import { CalendarComponent } from '../helpers/calendar/calendar.component';
-import { BodyComponent } from '../body/body.component';
-import { Feature } from '../models/feature';
-import { ValidationService } from '../services/validation.service';
-import { LogService } from '../services/log.service';
-import { Log } from '../models/log';
-import * as CryptoJS from 'crypto-js';
-import { Employee } from '../models/employee';
-import { LocationStrategy } from '@angular/common';
-import { Sort } from '@angular/material/sort';
-import { AppComponent } from '../app.component';
-import { EventPhoto } from '../models/EventPhoto';
-import { RewardsServiceService } from '../services/rewards-service.service';
-import { UtilityService } from '../services/utility.service';
-import { environment } from 'src/environments/environment';
 import { Employee360Service } from '../services/employee360.service';
-import { SortPipe } from '../sort.pipe';
-import { RewardCategory } from '../models/rewardCategory';
+import { ImageService } from '../services/image.service';
+import { LeaveService } from '../services/leave.service';
+import { LogService } from '../services/log.service';
+import { NotificationService } from '../services/notification.service';
+import { RewardsServiceService } from '../services/rewards-service.service';
+import { TimesheetService } from '../services/timesheet.service';
+import { UtilityService } from '../services/utility.service';
+import { ValidationService } from '../services/validation.service';
 
 interface objlms{
   email:any
@@ -492,12 +489,8 @@ async ngOnInit(): Promise<void> {
     let compOff: Leave = new Leave();
     compOff = Object.assign({}, compOffObj);
     compOff.leaveStatusId = updatedCompOffStatusId;
+    compOff.rejectCompOffReason = compOffObj.rejectReason;
     compOff.leaveStatusUpdatedBy = this.currentUser.empId
-    // compOff.hodEmail = this.currentUser.email;
-    // compOff.hodName = this.currentUser.name;
-    // compOff.employeeName = compOff.createdByName;
-    // compOff.level2ApproverId= this.currentUser.hodId;
-    //console.log("Update Comp off : ", compOff);
 
     this.leaveService.updateCompOffById(compOff).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1396,6 +1389,12 @@ async ngOnInit(): Promise<void> {
    
   }
 
+
+  openRevokeLeaveRejectModalCompOff(template: TemplateRef<any>, leave: any){
+      this.cancelRequest();
+      this.leaveObj = leave;
+      this.modalRef = this.modalService.show(template);
+    }
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
