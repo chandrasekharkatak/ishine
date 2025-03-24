@@ -36,7 +36,9 @@ export class Employee360Component implements OnInit {
   currentUser:User;
   userMapping:any = {};
   breadcrumbUrl:any[] = [];
-  
+  breadcrumbUrl1:any[] = [];
+  breadcrumbs: any[] = [];
+
   private navigationSubscription: Subscription;
 
   constructor(
@@ -45,6 +47,8 @@ export class Employee360Component implements OnInit {
     private route: ActivatedRoute,
     private employee360Service: Employee360Service,
     private breadcrumbService: BreadcrumbService,
+  
+  
     
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -107,7 +111,15 @@ export class Employee360Component implements OnInit {
   }
 
 
-
+  backhistory(){
+    this.breadcrumbs = this.backhistory1();
+    alert(this.breadcrumbs[0]);
+  
+  }
+  backhistory1() {
+    const breadcrumbData = sessionStorage.getItem("breadcrumb");
+    return breadcrumbData ? JSON.parse(breadcrumbData) : [];
+  }
 
 
   ngAfterViewInit(): void {

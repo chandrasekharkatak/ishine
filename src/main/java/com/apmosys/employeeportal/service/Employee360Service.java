@@ -182,7 +182,10 @@ public class Employee360Service {
 		return response;
 	}
 		
-	public ServiceResponse get360TimesheetDetails(String status,long empId,long projectId,long teamName,long managerId, String startDate, String endDate) {
+//	public ServiceResponse get360TimesheetDetails(String status,long empId,long projectId,long teamName,long managerId, String startDate, String endDate) {
+	public ServiceResponse get360TimesheetDetails(String status,long empId,long projectId,long teamName, String startDate, String endDate) {
+//		long managerId = 0;
+		
 		ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setSubFeatureName("get360TimesheetDetails");
@@ -213,7 +216,8 @@ public class Employee360Service {
 	        System.out.println("localStartDate: " + localStartDate + " (Type: " + ((localStartDate != null) ? localStartDate.getClass().getSimpleName() : "null") + ")");
 	        System.out.println("localEndDate: " + localEndDate + " (Type: " + ((localEndDate != null) ? localEndDate.getClass().getSimpleName() : "null") + ")");
 
-	        List<Object[]> timesheetData=employeeRepository.getTimesheetData(status,empId,managerId, localStartDate, localEndDate,projectId,teamName);
+//	        List<Object[]> timesheetData=employeeRepository.getTimesheetData(status,empId,managerId, localStartDate, localEndDate,projectId,teamName);
+	        List<Object[]> timesheetData=employeeRepository.getTimesheetData(status,empId, localStartDate, localEndDate,projectId,teamName);
 	        if(!timesheetData.isEmpty()) {
 	        	for(Object[] sheet : timesheetData) {
 				        Employee360DTO dto = new Employee360DTO();

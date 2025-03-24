@@ -702,6 +702,13 @@ export class SurveyConfigComponent implements OnInit {
       this.filters = {};
     }
   }
+  isSearchEnabledResponse:boolean=false;
+  toggleSearchResponse(){
+    this.isSearchEnabledResponse = !this.isSearchEnabledResponse;
+    if(!this.isSearchEnabledResponse){
+      this.filters = {};
+    }
+  }
 
   sortData(sort: Sort){
     //console.log(sort);
