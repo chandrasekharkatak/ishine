@@ -4,9 +4,9 @@
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_comp_off_req_status || userMapping.update_comp_off_req" [ngClass]="{'active' : isCompOffRequestsTable}" (click)="showBioMaxRequestTable()">My  Bio Max Request</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_comp_off_req_status || userMapping.update_comp_off_req" [ngClass]="{'active' : isApprovalRequest}" (click)="showBioMaxApprovalRequestTable()">My Approved Requests</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_comp_off_req_status || userMapping.update_comp_off_req" [ngClass]="{'active' : isApprovedRequest}" (click)="showBioMaxApprovedRequestTable()">Approval Request</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_comp_off_req_status || userMapping.update_comp_off_req"  (click)="CronJobs()">Cron Jobs</button>
+        <!-- <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_comp_off_req_status || userMapping.update_comp_off_req"  (click)="CronJobs()">Cron Jobs</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_comp_off_req_status || userMapping.update_comp_off_req"  (click)="ProjectClone()">Project Clone</button>
- 
+  -->
     </div>
 </div>
 

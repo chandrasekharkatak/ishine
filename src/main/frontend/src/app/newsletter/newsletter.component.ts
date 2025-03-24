@@ -328,7 +328,7 @@ openFilterModal(template: TemplateRef<any> , colums : any[], title: any){
   
 
   this.queryList = [
-    { column: "Document Name" , operator: "!=" , value: "", conjunction: "" }
+    { column: "Document Name" , operator: "" , value: "", conjunction: "" }
   ];
   this. storedDataList.forEach((data) => {
     if(data.filterName == title){

@@ -124,7 +124,7 @@ backfromvisibility(type:any){
   this.isProjectVisible=false;
   this.isProjectTeamVisible=false;
   this.isProjectTeamMemberVisible=false;
-  
+  this.getExistingProjectsByUser();
   if(type=="ProjectVisible" && this.flag == true){
     this.isProjectVisible=true;
     this.flag = false;
@@ -141,6 +141,7 @@ backfromvisibility(type:any){
     this.isProjectTeamVisible=true;
     this.isProjectVisible=false;
   }
+
 }
 redirecttoProjectTeam(id:any){
   this.isProjectVisible=false;
