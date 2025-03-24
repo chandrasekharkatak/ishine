@@ -10,5 +10,6 @@ import lombok.*;
 public class QuestionDTO {
     private Long id;
     private String questionText;
+    private Float response;
     // Add other fields as needed
 }

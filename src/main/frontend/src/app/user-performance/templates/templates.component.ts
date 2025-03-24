@@ -9,6 +9,14 @@ import { question } from 'src/app/models/question';
 import { QuestionnaireDTO, QuestionDTO } from 'src/app/models/questionnaire-dto';
 import { KraKpiService } from 'src/app/services/kpi-kra.service';
 import { KpiTemplate } from 'src/app/models/kpiTemplate';
+import { PerformanceService } from 'src/app/services/performance.service';
+import { AuthenticationService } from 'src/app/services/authentication.service';
+import { EmployeeService } from 'src/app/services/employee.service';
+import { Employee } from 'src/app/models/employee';
+import { User } from 'src/app/models/user';
+
+
+
 @Component({
   selector: 'app-templates',
   templateUrl: './templates.component.html',
@@ -29,14 +37,33 @@ export class TemplatesComponent implements OnInit {
   isEditing: boolean = false;
   editingTemplateId: number | null = null;
   selectedQuarterId: number | null = null;
+  selectdepartmentId:number| null= null;
+  // selectdepartmentId: number | null = null;
+
+// To this (with correct spelling)
+selectedDepartmentId: number | null = null;
   selectedQuarterIdForKpi: number | null = null;
+quarterCyclesList: any;
+selectedQuarter1: any;
+selectedQuarter: any;
+  errorMessage: any;
+  currentUser:User;
+  currentEmployeeInfo:Employee = new Employee();
+quarter: any;
+  // selectedDepartmentId: number;
+
+
   constructor(
     private fb: FormBuilder, 
     private departmentService: DepartmentService,
     private userPerformanceService: UserPerformanceService,
     private templateService: TemplateService,
-    private kraKpiService : KraKpiService
+    private kraKpiService : KraKpiService,
+    private performanceService:PerformanceService,
+    private authenticationService : AuthenticationService,
+    private employeeService:EmployeeService,
   ) {
+    this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     this.templateForm = this.fb.group({
       title: ['', Validators.required],
       description: [''],
@@ -44,16 +71,16 @@ export class TemplatesComponent implements OnInit {
       quarterId: [null],
       // metrics: [''],
       questions: [''],
-      kpis: ['']
+      kpis: [''],
     });
 
-   
     this.questionnaireForm = this.fb.group({
       questionTitle: ['', Validators.required],
       questionDescription: [''],
       createdBy: [null], 
       quarterId: [null, Validators.required],
-      questions: this.fb.array([this.createQuestionField()])
+      questions: this.fb.array([this.createQuestionField()]),
+      departmentId: [null, Validators.required] // Make sure this is properly initialized
     });
 
     this.kpikraForm = this.fb.group({
@@ -64,6 +91,33 @@ export class TemplatesComponent implements OnInit {
       kpis: this.fb.array([this.kpiField()])
     });
   }
+
+  ngOnInit(): void {
+    this.onGetEmployeeInfo();
+    this.fetchQuarters();
+    this.fetchGoalTemplates();
+    this.getAllDepartmentList();
+    this.fetchQuestionnaireTemplates();
+    this.fetchKraKpiTemplates();
+    
+  }
+
+  async onGetEmployeeInfo(){
+    this.currentEmployeeInfo = new Employee();
+    let currentEmp = new Employee();
+    currentEmp.empId = this.currentUser.empId;
+
+    const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
+    if (response.serviceStatus == "Success") {
+      this.currentEmployeeInfo = response.serviceResponse;
+      console.log('Employee info:', this.currentEmployeeInfo);
+      this.fetchQuarters();
+
+    } else {
+      console.error(response.serviceResponse);
+    }
+  }
+
   kpiField(): FormGroup {
     return this.fb.group({
       description: ['', Validators.required],
@@ -86,11 +140,23 @@ export class TemplatesComponent implements OnInit {
     }
   }
 
-  ngOnInit(): void {
-    this.fetchGoalTemplates();
-    this.getAllDepartmentList();
-    this.fetchQuestionnaireTemplates();
-    this.fetchKraKpiTemplates();
+
+  
+  fetchQuarters(): void {
+    this.performanceService.getAllQuarterCycles().subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === 'Success') {
+          this.quarterCyclesList = response.serviceResponse;
+          // this.selectedQuarter = this.quarterCyclesList[0].quarterId;
+          
+        } else {
+          this.errorMessage = response.serviceMessage || 'Failed to load quarters.';
+        }
+      },
+      error: (error) => {
+        this.errorMessage = error.message || 'Error fetching quarters.';
+      }
+    });
   }
 
   createQuestionField(): FormGroup {
@@ -119,46 +185,77 @@ export class TemplatesComponent implements OnInit {
   }
 
   onSubmit() {
+    console.log('Submit button clicked!');
+    console.log('Form valid?', this.questionnaireForm.valid);
+    
     if (this.questionnaireForm.valid) {
-     
-      const formData = this.questionnaireForm.value;
+      // Make sure we have quarter and department IDs
+      if (!this.selectedQuarterId) {
+        alert('Please select a quarter');
+        return;
+      }
       
-      formData.createdBy = 1; 
-
-      const questionDTOs: question[] = this.questions.controls.map(control => {
-        const questionFormGroup = control as FormGroup;
+      if (!this.selectedDepartmentId) {
+        alert('Please select a department');
+        return;
+      }
+      
+      // Create the DTO to send to the API
+      const questionDTOs: QuestionDTO[] = this.questions.controls.map((control: any) => {
         return {
-          id: questionFormGroup.value.id,
-          questionText: questionFormGroup.value.questionText
+          id: control.value.id,
+          questionText: control.value.questionText
         };
       });
       
-
-     
-      const questionnaireDTO: QuestionnaireDTO = {
+      const questionnaireData: QuestionnaireDTO = {
         questionId: this.isEditing ? this.editingTemplateId : undefined,
-        questionTitle: formData.questionTitle,
-        questionDescription: formData.questionDescription,
-        createdBy: formData.createdBy,
-        quarterId: formData.quarterId,
+        questionTitle: this.questionnaireForm.value.questionTitle,
+        questionDescription: this.questionnaireForm.value.questionDescription,
+        createdBy: this.currentUser.empId, // Using the logged-in user's ID
         questions: questionDTOs
       };
-
-      console.log('Questionnaire Form Data:', questionnaireDTO);
       
+      console.log('Form data to submit:', questionnaireData);
+      console.log('Quarter ID:', this.selectedQuarterId);
+      console.log('Department ID:', this.selectedDepartmentId);
+      
+      // Call the appropriate method based on whether we're editing or creating
       if (this.isEditing && this.editingTemplateId) {
-        this.updateQuestionnaireTemplate(this.editingTemplateId, questionnaireDTO);
+        this.updateQuestionnaireTemplate(this.editingTemplateId, questionnaireData);
       } else {
-        this.createQuestionnaireTemplate(questionnaireDTO);
+        this.createQuestionnaireTemplate(questionnaireData, this.selectedQuarterId, this.selectedDepartmentId);
       }
     } else {
-      
+      console.log('Form validation errors:', this.getFormValidationErrors());
       this.questionnaireForm.markAllAsTouched();
+      alert('Please fill in all required fields correctly');
     }
   }
+  
+  // Add this helper method to see validation errors
+  getFormValidationErrors() {
+    const errors = {};
+    Object.keys(this.questionnaireForm.controls).forEach(key => {
+      const control = this.questionnaireForm.get(key);
+      if (control && control.errors) {
+        errors[key] = control.errors;
+      }
+    });
+    return errors;
+  }
+  onQuarterSelection(event: any) {
+    this.selectedQuarterId = +event.target.value;
+    console.log('Quarter selected:', this.selectedQuarterId);
+  }
+  
+  onDepartmentSelection(event: any) {
+    this.selectedDepartmentId = +event.target.value;
+    console.log('Department selected:', this.selectedDepartmentId);
+  }
 
-  createQuestionnaireTemplate(formData: QuestionnaireDTO) {
-    this.templateService.createQuestionnaireTemplate(formData)
+  createQuestionnaireTemplate(formData: QuestionnaireDTO, quarterId: number, departmentId: number) {
+    this.templateService.createQuestionnaireTemplate(formData, quarterId, departmentId)
       .pipe(first())
       .subscribe({
         next: (response: any) => {
@@ -832,6 +929,7 @@ export class TemplatesComponent implements OnInit {
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
             this.allDeptList = response.serviceResponse;
+            
           } else {
             console.error(response.serviceResponse);
           }

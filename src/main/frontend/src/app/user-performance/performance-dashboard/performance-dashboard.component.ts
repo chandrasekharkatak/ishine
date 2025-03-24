@@ -36,6 +36,12 @@ interface AppraisalSummary {
   appraisalScore: number;
 }
 
+interface QuestionDTO {
+  id: number;
+  questionText: string;
+  // Add other fields as needed
+}
+
 @Component({
   selector: 'app-performance-dashboard',
   templateUrl: './performance-dashboard.component.html',
@@ -43,17 +49,17 @@ interface AppraisalSummary {
 })
 export class PerformanceDashboardComponent implements OnInit {
 
-  currentUser:User;
+  currentUser: User;
   activeTab: string = 'kra-kpi';
   selectedQuarter: number;
   quarterCyclesList: any;
-  selectedQuarter1:any;
+  selectedQuarter1: any;
   kraKpiMetrics: any[] = [];
-  questionnaireQuestions: any[] = [];
+  questionnaireQuestions: QuestionDTO[] = [];
 
   kraKpiReviewForm: FormGroup;
   questionnaireReviewForm: FormGroup;
-  stats: Stats ={
+  stats: Stats = {
     goalsCompleted: 0,
     goalsRemaining: 0,
     kraKpiScore: '',
@@ -63,29 +69,40 @@ export class PerformanceDashboardComponent implements OnInit {
   goals: Goal[] = [];
   summary?: AppraisalSummary;
 
-  currentEmployeeInfo:Employee = new Employee();
+  currentEmployeeInfo: Employee = new Employee();
   selectedGoal?: Goal;
   modalRef?: BsModalRef;
   errorMessage: string;
 
   constructor(
     private http: HttpClient, 
-    private employeeService:EmployeeService,
+    private employeeService: EmployeeService,
     private modalService: BsModalService,
     private fb: FormBuilder,
-    private authenticationService : AuthenticationService,
-    private performanceService:PerformanceService,
-    private goalService:GoalService
+    private authenticationService: AuthenticationService,
+    private performanceService: PerformanceService,
+    private goalService: GoalService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
   ngOnInit(): void {
     this.onGetEmployeeInfo();
-    this.fetchQuarters();
-    this.fetchGoals();
-    this.loadPerformanceStats();
+  }
 
+  async onGetEmployeeInfo() {
+    this.currentEmployeeInfo = new Employee();
+    let currentEmp = new Employee();
+    currentEmp.empId = this.currentUser.empId;
+
+    const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
+    if (response.serviceStatus == "Success") {
+      this.currentEmployeeInfo = response.serviceResponse;
+      console.log('Employee info:', this.currentEmployeeInfo);
+      this.fetchQuarters();
+    } else {
+      console.error(response.serviceResponse);
+    }
   }
 
   fetchQuarters(): void {
@@ -93,7 +110,8 @@ export class PerformanceDashboardComponent implements OnInit {
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.quarterCyclesList = response.serviceResponse;
-          console.log(this.quarterCyclesList);
+          this.selectedQuarter = this.quarterCyclesList[0].quarterId;
+          
           this.onQuarterChange();
         } else {
           this.errorMessage = response.serviceMessage || 'Failed to load quarters.';
@@ -107,15 +125,40 @@ export class PerformanceDashboardComponent implements OnInit {
 
   onQuarterChange(): void {
     if (!this.selectedQuarter) return;
-    console.log(this.selectedQuarter);
+    
+    // Clear existing questions when quarter changes
+    this.questionnaireQuestions = [];
+    
     this.loadPerformanceStats();
-    this.loadReviewData();
+    this.loadReviewData(); // This is commented out in your original code
     this.fetchGoals();
+    
+    // Only load questionnaire questions if we're on the questionnaire tab
+    if (this.activeTab === 'questionnaire') {
+      this.loadQuestionnaireQuestions();
+    }
   }
 
-  loadAppraisalSummary(): void {
+  onQuarterChange1(): void {
+    if (!this.selectedQuarter) return;
+    
+    // Clear existing questions when quarter changes
+    this.questionnaireQuestions = [];
+    
+    // this.loadPerformanceStats();
+    // this.loadReviewData(); // This is commented out in your original code
+    // this.fetchGoals();
+    
+    // Only load questionnaire questions if we're on the questionnaire tab
+    if (this.activeTab === 'questionnaire') {
+      this.loadQuestionnaireQuestions();
+    }
+  }
+
+
+  loadAppraisalSummary(): void { 
     const empId = this.currentEmployeeInfo.empId;
-    if (!empId ) return;
+    if (!empId) return;
 
     this.performanceService.getAppraisalSummary(empId).subscribe({
       next: (data) => {
@@ -127,12 +170,10 @@ export class PerformanceDashboardComponent implements OnInit {
     });
   }
 
-
   fetchGoals(): void {
+
     this.errorMessage = ''; 
     const empId = this.currentEmployeeInfo.empId;
-    // const quarter = this.selectedQuarter;
-
     if (!empId) return;
     const quarter = Number(this.selectedQuarter);
     this.goalService.getGoalsByEmployeeAndQuarter(empId, quarter).subscribe({
@@ -140,7 +181,6 @@ export class PerformanceDashboardComponent implements OnInit {
         if (response.serviceStatus === 'Success') {
           this.goals = response.serviceResponse; 
         } else {
-          
           this.errorMessage = response.serviceMessage || 'No goals found for this employee.';
         }
       },
@@ -148,7 +188,6 @@ export class PerformanceDashboardComponent implements OnInit {
         this.errorMessage = error.message || 'Failed to fetch employee goals.';
       },
     });
-    
   }
 
   loadPerformanceStats(): void {
@@ -167,35 +206,39 @@ export class PerformanceDashboardComponent implements OnInit {
     });
   }
 
-  
-
-  async onGetEmployeeInfo(){
-    this.currentEmployeeInfo = new Employee();
-    let currentEmp = new Employee();
-    currentEmp.empId = this.currentUser.empId;
-
-    const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
-    if (response.serviceStatus == "Success") {
-      this.currentEmployeeInfo = response.serviceResponse;
-
-    } else {
-      console.error(response.serviceResponse);
-    }
-  }
-
+  // loadQuestionnaireQuestions(): void {
+  //   const quarterId = this.selectedQuarter;
+  //   const departmentId = this.currentEmployeeInfo.departmentId;
+    
+  //   if (!quarterId || !departmentId) return;
+    
+  //   this.performanceService.getQuestionnaireByQuarterAndDepartment(quarterId, departmentId).subscribe({
+  //     next: (response: any) => {
+  //       if (response.serviceStatus === 'Success') {
+  //         this.questionnaireQuestions = response.serviceResponse;
+  //       } else {
+  //         console.error('Failed to load questionnaire questions:', response.serviceMessage);
+  //       }
+  //     },
+  //     error: (error) => {
+  //       console.error('Error fetching questionnaire questions:', error);
+  //     }
+  //   });
+  // }
 
   setActiveTab(tab: string) {
     this.activeTab = tab;
-    this.loadReviewData();
+    
+    // Only load questionnaire data when switching to that tab
+    if (tab === 'questionnaire' && this.questionnaireQuestions.length === 0) {
+      this.loadQuestionnaireQuestions();
+    }
   }
 
   openModal(template: TemplateRef<any>, goal: any): void {
     this.selectedGoal = goal;
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
-
-
-  
 
   loadReviewData(): void {
     const empId = this.currentUser?.empId;
@@ -219,7 +262,6 @@ export class PerformanceDashboardComponent implements OnInit {
       error: err => console.error('Error fetching questionnaire:', err)
     });
   }
-  
 
   addCheckpoint() {
     this.selectedGoal.checkpoints.push('');
@@ -229,6 +271,86 @@ export class PerformanceDashboardComponent implements OnInit {
     this.selectedGoal.checkpoints.splice(index, 1);
   }
   
+  // Add these methods to your PerformanceDashboardComponent class
+
+initQuestionnaireForm(): void {
+  const formGroup = this.fb.group({});
+  
+  // Add form controls for each question
+  this.questionnaireQuestions.forEach(question => {
+    formGroup.addControl('question_' + question.id, this.fb.control(''));
+    formGroup.addControl('rating_' + question.id, this.fb.control(''));
+  });
+  
+  this.questionnaireReviewForm = formGroup;
+}
+
+loadQuestionnaireQuestions(): void {
+  // Add a check to prevent redundant calls
+  if (this.questionnaireQuestions.length > 0) {
+    // Questions are already loaded, just initialize the form
+    this.initQuestionnaireForm();
+    return;
+  }
+  
+  const quarterId = this.selectedQuarter1;
+  const departmentId = this.currentEmployeeInfo.departmentId;
+  
+  if (!quarterId || !departmentId) return;
+  
+  // Fix: Updated the API endpoint to match the required format
+  this.http.get(`http://localhost:8081/api/questionnaires/getQuestionnaireByQuarterAndDepartment/${quarterId}/${departmentId}`)
+    .subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === 'Success') {
+          this.questionnaireQuestions = response.serviceResponse[0].questions;
+          console.log()
+          // index 0 .ques
+          // Initialize form after questions are loaded
+          console.log('Questionnaire response:',this.questionnaireQuestions);
+          this.initQuestionnaireForm();
+        } else {
+          console.error('Failed to load questionnaire questions:', response.serviceMessage);
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching questionnaire questions:', error);
+      }
+    });
+}
+
+saveQuestionnaireResponses(): void {
+  if (this.questionnaireReviewForm.invalid) {
+    alert('Please fill all required fields correctly.');
+    return;
+  }
+  
+  const responses = [];
+  
+  this.questionnaireQuestions.forEach(question => {
+    responses.push({
+      questionId: question.id,
+      response: this.questionnaireReviewForm.get('question_' + question.id).value,
+      rating: this.questionnaireReviewForm.get('rating_' + question.id).value,
+      employeeId: this.currentUser.empId,
+      quarterId: this.selectedQuarter
+    });
+  });
+  
+  this.performanceService.submitQuestionnaireResponses(responses).subscribe({
+    next: (response: any) => {
+      if (response.serviceStatus === 'Success') {
+        alert('Questionnaire responses submitted successfully!');
+      } else {
+        alert('Failed to submit responses: ' + response.serviceMessage);
+      }
+    },
+    error: (error) => {
+      console.error('Error submitting questionnaire responses:', error);
+      alert('An error occurred while submitting responses. Please try again.');
+    }
+  });
+}
   saveUpdates() {
     const payload = {
       GoalProgress: this.selectedGoal.progress,
@@ -246,7 +368,4 @@ export class PerformanceDashboardComponent implements OnInit {
       }
     );
   }
-
- 
-  
 }

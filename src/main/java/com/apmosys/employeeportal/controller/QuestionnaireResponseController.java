@@ -15,11 +15,11 @@ public class QuestionnaireResponseController {
     @Autowired
     private QuestionnaireResponseService service;
 
-    @PostMapping("/save")
-    public ServiceResponse saveResponse(@RequestBody QuestionnaireResponseDTO dto) {
+    @PostMapping("/save/{quarterId}")
+    public ServiceResponse saveResponse(@RequestBody QuestionnaireResponseDTO dto,@PathVariable Long quarterId) {
         ServiceResponse response = new ServiceResponse();
         try {
-            QuestionnaireResponseDTO savedDto = service.saveResponse(dto);
+            QuestionnaireResponseDTO savedDto = service.saveResponse(dto,quarterId);
             response.setServiceResponse(savedDto);
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceMessage("Response saved successfully.");

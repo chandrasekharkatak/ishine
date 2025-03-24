@@ -16,7 +16,8 @@ public class QuestionnaireResponseDTO {
 	
 	private Long responseId;
 	
-	private Integer quarter;
+	private String quarter;
+	
 	
 	private String response;
 	

@@ -145,9 +145,9 @@
             <div class="col-auto">
             <label class="col-auto fw-semibold">Select Quarter:</label>
             
-              <select class="form-select" [(ngModel)]="selectedQuarter1" (change)="loadReviewData()">
+              <select class="form-select" [(ngModel)]="selectedQuarter1" (change)="loadQuestionnaireQuestions()">
                 <option value="" disabled>select</option>
-                <option *ngFor="let quarters of quarterCyclesList">{{ quarters.quarterCycle }}</option>
+                <option *ngFor="let quarters of quarterCyclesList" [value]="quarters.quarterId">{{ quarters.quarterCycle }}</option>
               </select>
             </div>
           </div>
@@ -166,16 +166,55 @@
               </ul>
             </div>
     
-            <div *ngIf="activeTab === 'questionnaire'">
-              <h4 class="mb-3 fw-semibold text-center">Questionnaire Ratings - {{ selectedQuarter1 }}</h4>
-              <ul class="list-group list-group-flush">
-                <li *ngFor="let question of questionnaireQuestions" class="list-group-item d-flex justify-content-between align-items-center py-3">
-                  <span>{{ question.text }}</span>
-                  <span>
-                   <strong>{{ question.rating }}/10</strong>
-                  </span>
-                </li>
-              </ul>
+            <div class="row" *ngIf="activeTab === 'questionnaire'">
+              <div class="col-12">
+                <div class="card">
+                  <div class="card-header">
+                    <h5 class="card-title">Performance Questionnaire</h5>
+                  </div>
+                  <div class="card-body">
+                    <div *ngIf="questionnaireQuestions.length === 0" class="alert alert-info">
+                      No questionnaire questions found for this quarter and department.
+                    </div>
+            
+                    <form [formGroup]="questionnaireReviewForm" *ngIf="questionnaireQuestions.length > 0">
+                      <div class="list-group">
+                        <div class="list-group-item" *ngFor="let question of questionnaireQuestions; let i = index">
+                          <div class="mb-3">
+                            <label class="form-label fw-bold">Question {{i + 1}}</label>
+                            <p>{{question.questionText}}</p>
+                            
+                            <!-- Add form controls based on your requirements -->
+                            <div class="mt-2">
+                              <label class="form-label">Response:</label>
+                              <textarea class="form-control" rows="3" [formControlName]="'question_' + question.id"></textarea>
+                            </div>
+                            
+                            <!-- Rating if needed -->
+                            <div class="mt-2">
+                              <label class="form-label">Rating:</label>
+                              <select class="form-select" [formControlName]="'rating_' + question.id">
+                                <option value="">Select Rating</option>
+                                <option value="1">1 - Poor</option>
+                                <option value="2">2 - Below Average</option>
+                                <option value="3">3 - Average</option>
+                                <option value="4">4 - Good</option>
+                                <option value="5">5 - Excellent</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                        <button type="button" class="btn btn-primary" (click)="saveQuestionnaireResponses()">
+                          Save Responses
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
             </div>
     
           </div>
@@ -245,17 +284,25 @@
         <button type="button" class="btn btn-outline-primary btn-sm" (click)="addCheckpoint()">Add Checkpoint</button>
       </div>
 
-      <div class="mb-3">
+      <div class="mb-3 col ml-0">
+        <div>
         <h6 class="fw-bold">Remarks:</h6>
-        <label for="employeeRemark" class="form-label"><strong>Your Remark:</strong></label>
-        <textarea id="employeeRemark" [(ngModel)]="selectedGoal.employeeRemark"
-                  rows="3" placeholder="{{ selectedGoal.employeeRemark }}"
-                  class="form-control"></textarea>
-
-        <label for="managerRemark" class="form-label mt-3"><strong>Manager's Remark:</strong></label>
-        <textarea id="managerRemark" 
+        </div>
+        <div class="row align-items-center">
+        <div>
+          <label for="employeeRemark" class="form-label"><strong>Your Remark:</strong></label>
+          <textarea id="employeeRemark" [(ngModel)]="selectedGoal.employeeRemark"
+                    rows="3" placeholder="{{ selectedGoal.employeeRemark }}"
+                    class="form-control">
+          </textarea>
+        </div>
+        <div>
+          <label for="managerRemark" class="form-label mt-3"><strong>Manager's Remark:</strong></label>
+          <textarea id="managerRemark" 
                   rows="3" 
                   class="form-control">{{ selectedGoal.managerRemark }}</textarea>
+        </div>
+        </div>
       </div>
     </div>
 

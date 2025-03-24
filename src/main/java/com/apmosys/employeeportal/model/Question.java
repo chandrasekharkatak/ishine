@@ -21,6 +21,8 @@ package com.apmosys.employeeportal.model;
 	    @JoinColumn(name = "questionnaire_id")
 	    private Questionnaire questionnaire;
 	    
+	    private Float response;
+	    
 	    // Add other fields as needed
 	}
 

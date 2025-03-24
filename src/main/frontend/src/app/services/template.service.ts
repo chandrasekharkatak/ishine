@@ -24,8 +24,8 @@ export class TemplateService {
     return this.http.get(`${this.apiUrl}api/questionnaires/getQuestionnaireByQuarter/${quarterId}`);
   }
 
-  createQuestionnaireTemplate(questionnaireData: QuestionnaireDTO): Observable<any> {
-    return this.http.post(`${this.apiUrl}api/questionnaires/createQuestionnaireTemplate`, questionnaireData);
+  createQuestionnaireTemplate(questionnaireData: QuestionnaireDTO, quarterId: number, departmentId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}api/questionnaires/createQuestionnaireTemplate/quarter/${quarterId}/department/${departmentId}`, questionnaireData);
   }
 
   updateQuestionnaire(questionId: number, questionnaireData: QuestionnaireDTO): Observable<any> {

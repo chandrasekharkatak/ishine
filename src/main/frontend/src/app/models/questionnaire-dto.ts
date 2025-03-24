@@ -16,7 +16,11 @@ export class QuestionnaireDTO {
   questionDescription?: string;
   createdBy?: number;
   quarterId?: number;
+  quarterCycle?: string;
   questions?: QuestionDTO[];
+  departmentId?: number;
+  department?: string;
+
 
   constructor() {
     this.questionTitle = '';

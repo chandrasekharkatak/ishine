@@ -14,4 +14,7 @@ public class QuestionnaireDTO {
     private String createdBy;
     private List<QuestionDTO> questions;
     private Long quarterId;
+    private String quarter;
+    private Long departmentId;
+    private String department;
 }

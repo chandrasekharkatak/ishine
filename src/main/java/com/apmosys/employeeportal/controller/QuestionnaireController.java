@@ -18,11 +18,11 @@ public class QuestionnaireController {
     @Autowired
     private QuestionnaireService questionnaireService;
 
-    @PostMapping("/createQuestionnaireTemplate")
-    public ServiceResponse createQuestionnaire(@RequestBody QuestionnaireDTO questionnaireDTO) {
+    @PostMapping("/createQuestionnaireTemplate/quarter/{quarterId}/department/{departmentId}")
+    public ServiceResponse createQuestionnaire(@RequestBody QuestionnaireDTO questionnaireDTO,@PathVariable Long quarterId,@PathVariable Long departmentId) {
         ServiceResponse response = new ServiceResponse();
         try {
-            Questionnaire savedQuestionnaire = questionnaireService.createQuestionnaireTemplate(questionnaireDTO);
+            Questionnaire savedQuestionnaire = questionnaireService.createQuestionnaireTemplate(questionnaireDTO,quarterId,departmentId);
             response.setServiceResponse(questionnaireService.convertToDTO(savedQuestionnaire));
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceMessage("Questionnaire created successfully");
@@ -87,7 +87,25 @@ public class QuestionnaireController {
         }
         return response;
     }
-
+    
+    @GetMapping("/getQuestionnaireByQuarterAndDepartment/{quarterId}/{departmentId}")
+    public ServiceResponse getQuestionnairesByQuarterAndDepartment(@PathVariable Long quarterId,@PathVariable Long departmentId) {
+        ServiceResponse response = new ServiceResponse();
+        try {
+            List<Questionnaire> questionnaires = questionnaireService.getQuestionsByQuarterAndDepartment(quarterId,departmentId);
+            List<QuestionnaireDTO> dtos = questionnaires.stream()
+                    .map(questionnaire -> questionnaireService.convertToDTO(questionnaire))
+                    .collect(Collectors.toList());
+            response.setServiceResponse(dtos);
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceMessage("Fetched questionnaires by quarter successfully");
+        } catch (Exception e) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceError(e.getMessage());
+            response.setErrorStackTrace(e.toString());
+        }
+        return response;
+    }
     @PutMapping("/updateQuestionnaire/{id}")
     public ServiceResponse updateQuestionnaire(@PathVariable Long id, @RequestBody QuestionnaireDTO questionnaireDTO) {
         ServiceResponse response = new ServiceResponse();

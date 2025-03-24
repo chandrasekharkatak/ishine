@@ -28,6 +28,13 @@ public class Questionnaire {
     
     private Long quarterId;
     
+    private String quarter;
+    
+    private String department;
+    
+    private Long departmentId;
+    
+    
     // Helper method to add question and set the relationship
     public void addQuestion(Question question) {
         questions.add(question);

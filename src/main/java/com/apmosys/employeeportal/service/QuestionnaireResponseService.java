@@ -1,31 +1,47 @@
 package com.apmosys.employeeportal.service;
 
 import com.apmosys.employeeportal.dto.QuestionnaireResponseDTO;
+import com.apmosys.employeeportal.model.QuaterCycle;
+import com.apmosys.employeeportal.model.Questionnaire;
 import com.apmosys.employeeportal.model.QuestionnaireResponse;
+import com.apmosys.employeeportal.repository.QuarterCycleRepository;
 import com.apmosys.employeeportal.repository.QuestionnaireResponseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.transaction.Transactional;
+
 @Service
 public class QuestionnaireResponseService {
 
     @Autowired
     private QuestionnaireResponseRepository repository;
+    
+    @Autowired
+    private QuarterCycleRepository quarterCycleRepository;
+    
+    @Transactional
+    public QuestionnaireResponseDTO saveResponse(QuestionnaireResponseDTO dto, Long quarterId) {
+        String quarter = quarterCycleRepository.findquartercyclebyID(quarterId);
+        if (quarter == null) {
+            throw new IllegalArgumentException("Quarter not found");
+        }
 
-    public QuestionnaireResponseDTO saveResponse(QuestionnaireResponseDTO dto) {
         QuestionnaireResponse response = new QuestionnaireResponse();
         response.setEmpId(dto.getEmpId());
         response.setQuestionId(dto.getQuestionId());
         response.setQuestionTitle(dto.getQuestionTitle());
         response.setResponse(dto.getResponse());
-        response.setQuarter(dto.getQuarter());
+        response.setQuarter(quarter.toString());
         response.setRemarks(dto.getRemarks());
         response.setScore(dto.getScore());
 
         response = repository.save(response);
         dto.setResponseId(response.getResponseId());
+        
+        System.out.println("+++++++++++++++++++++++++++++++++++++++"+quarter);
         return dto;
     }
 

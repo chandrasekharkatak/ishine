@@ -51,6 +51,10 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 			+ "inner join user_session u on e.emp_id = u.emp_id")
 	public Object findbyEmpId();
 
+	public List<Department> findByHodId(Long empId);
 	
+	@Query(value = "SELECT name FROM department WHERE dept_id = :deptId", nativeQuery = true)
+	public String findNameByDeptId(Long deptId);
+
 	
 }

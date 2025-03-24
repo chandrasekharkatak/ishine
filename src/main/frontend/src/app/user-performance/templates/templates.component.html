@@ -144,14 +144,14 @@
       </div>
       <div class="row ml-2">
         <div class="col-md-4">
-          <label class="info-label"><span class="text-danger">*</span>Quarter</label>
-          <select class="form-control" aria-hidden="true" [(ngModel)]="selectedQuarterId" (change)="onQuarterChange()">
+          <!-- <label class="info-label"><span class="text-danger">*</span>Quarter</label> -->
+          <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="selectedQuarterId" (change)="onQuarterChange()">
             <option [ngValue]="null">All Quarters</option>
             <option [ngValue]="1">Q1</option>
             <option [ngValue]="2">Q2</option>
             <option [ngValue]="3">Q3</option>
             <option [ngValue]="4">Q4</option>
-          </select>
+          </select> -->
         </div>
       </div>
       <div class="mt-3">
@@ -160,8 +160,8 @@
             <tr>
               <th>Title</th>
               <th>Description</th>
+              <th>Department</th>
               <th>Quarter</th>
-              <!-- <th>Questions</th> -->
               <th>Actions</th>
             </tr>
           </thead>
@@ -169,8 +169,9 @@
             <tr *ngFor="let template of questionnaireTemplates">
               <td>{{ template.questionTitle }}</td>
               <td>{{ template.questionDescription }}</td>
-              <!-- <td>{{template.question}}</td> -->
-              <td>Q{{ template.quarterId }}</td>
+              <td>{{template.department}}</td>
+              <td>{{ template.quarter }}</td>
+            
               <td>
                 <button class="btn btn-sm btn-primary mr-1" (click)="editQuestionnaireTemplate(template)">Edit</button>
                 <button class="btn btn-sm btn-danger"
@@ -213,13 +214,13 @@
           <label>Description <span class="text-danger">*</span></label>
           <textarea class="form-control" formControlName="description" rows="3"></textarea>
         </div>
-        <div class="form-group w-25">
+        <!-- <div class="form-group w-25">
           <label>Department <span class="text-danger">*</span></label>
           <select class="form-control" formControlName="departmentId" required>
             <option [ngValue]="null" disabled>Select Department</option>
             <option *ngFor="let dept of allDeptList" [ngValue]="dept.deptId">{{dept.name}}</option>
           </select>
-        </div>
+        </div> -->
 
         <div *ngIf="selectedTemplateType === 'goals'" class="form-group w-25">
           <!-- <label>Quarter <span class="text-danger">*</span></label>
@@ -350,8 +351,35 @@
               </div>
             </div>
 
-            <div class="row mb-3">
-              <div class="col-md-4">
+            <!-- <div class="row mb-3">
+              <div class="mb-3 pr-3 pl-2 w-auto align-top">
+                <div class="form-inline input-group input-group-sm">
+                  <label class="mr-2">Select quarter</label>
+                  <select class="form-control form-control-sm" aria-hidden="true" formControlName="quarterId">
+                    <option selected value="" disabled>Select</option>
+                    <option *ngFor="let quarter of quarterCyclesList" [value]="quarter.quarterId">
+                      {{quarter.quarterCycle}}
+                    </option>
+                  </select>
+                </div>
+              </div>
+            </div> -->
+
+            <select formControlName="quarterId" (change)="onQuarterSelection($event)" class="form-control">
+              <option [ngValue]="null">Select Quarter</option>
+              <option *ngFor="let quarter of quarterCyclesList" [value]="quarter.quarterId">
+                {{ quarter.quarterCycle }}
+              </option>
+            </select>
+            
+            <select formControlName="departmentId" (change)="onDepartmentSelection($event)" class="form-control">
+              <option [ngValue]="null">Select Department</option>
+              <option *ngFor="let dept of allDeptList" [value]="dept.deptId">
+                {{ dept.name }}
+              </option>
+            </select>
+            
+              <!-- <div class="col-md-4">
                 <label for="quarterId">Quarter <span class="text-danger">*</span></label>
                 <select class="form-control" id="quarterId" formControlName="quarterId" required>
                   <option [ngValue]="null" disabled>Select Quarter</option>
@@ -364,8 +392,9 @@
                   class="text-danger">
                   Quarter is required.
                 </div>
-              </div>
-            </div>
+                
+              </div> -->
+            <!-- </div> -->
 
             <div>
               <label><span class="text-danger">*</span>Questions</label>

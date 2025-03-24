@@ -19,9 +19,13 @@ public class QuestionnaireResponse {
     
 	private Long questionId;
 	
+
+	
 	private String questionTitle;
 
-	private Integer quarter; 
+	private Integer quarterId; 
+	
+	private String quarter;
 	
 	private String response;
 	

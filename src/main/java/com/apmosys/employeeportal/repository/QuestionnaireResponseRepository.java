@@ -11,4 +11,5 @@ public interface QuestionnaireResponseRepository extends JpaRepository<Questionn
     List<QuestionnaireResponse> findByGoalId(Long goalId);
 	List<QuestionnaireResponse> findByEmpIdAndQuarter(Long employeeId, Integer quarter);
 	
+	
 }
