@@ -776,6 +776,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
           if (response.serviceStatus === "Success") {
             this.openAlertMod(template, response.serviceResponse);
             this.isRewardshitory = true;
+            this.fetchRewardHistory();
             this.isRewards = false;
             this.iswalloffame = false;
             this.isRewardsExcel = false;
