@@ -1,6 +1,10 @@
 package com.apmosys.employeeportal.service;
 
+import java.io.IOException;
 import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -11,14 +15,19 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import com.apmosys.employeeportal.dto.ClientsDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.PoTeamDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
 import com.apmosys.employeeportal.dto.SyncableProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.model.Activity;
@@ -43,6 +52,10 @@ import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 @Service
 public class ProjectService {
@@ -88,6 +101,116 @@ public class ProjectService {
 	
 	@Autowired
 	private LogService logService;
+	@Value("${poPortal.api.allProjects}")
+	private String allPoPortalProjects;
+	
+	@Autowired
+	private final RestTemplate restTemplate = new RestTemplate();
+	
+	
+	public RestTemplate getRestTemplate() {
+		return restTemplate;
+	}
+	
+	public List<ProjectPoPortalDTO> getProjectCloneFromPoPortal() {
+		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        //apiLogInfo.setSubFeatureName("");
+        apiLogInfo.setApiUrl("/api/getProjectCloneFromPoPortal");
+        apiLogInfo.setLogLevel("INFO");
+        ProjectPoPortalDTO[] projects = restTemplate.getForObject(allPoPortalProjects, ProjectPoPortalDTO[].class);
+        List<ProjectPoPortalDTO> list= Arrays.asList(projects != null ? projects : new ProjectPoPortalDTO[0]);
+if(list!=null) {
+        list.forEach((p)->{
+        	
+        	if (p.getProjectManager() != null) {
+        		System.out.println("p.getProjectManager()"+p.getProjectManager());
+        		String empId = p.getProjectManager().replaceAll("\\s+", "").replaceAll("(?i)A-", "");
+        		
+        		Employee empValidate = employeeRepository.findByEmployeementId(Long.parseLong(empId)); // Lookup employee
+        	    if (empValidate != null) {
+        	        p.setProjectManager(empValidate.getEmpId().toString()); // Update project manager ID
+        	        p.setProjectManagerName(empValidate.getName()); // Update project manager name
+        	    }
+        	
+        	}
+        	Project project=projectRepository.findByPoProjectId(p.getId());
+        	if(p.getClientName()!=null) {
+        		Optional<Client> client=clientsRepository.findByClientName(p.getClientName());
+        		if(client.isPresent()) {
+        			Client c=client.get();
+        			System.out.println("client"+c.getClientName());
+        			project.setClientId(c.getClientId());
+        			project.setClientName(c.getClientName());
+        		}
+        	}
+        	List<ProjectDepartmentMap> projDeptMap = projectDepartmentMapRepository.findByProjectId(project.getProjectId());
+    		
+        	if(projDeptMap.size()==0) {
+    			List<String> deptName=p.getDepartment();
+    			if(deptName.size()>0) {
+    				
+    				for(String mp:deptName)
+    				{
+    					Department dept=departmentRepository.findByName(mp);
+    	    			if(dept!=null) {
+    	    				ProjectDepartmentMap ProjectDepartmentMap1=new ProjectDepartmentMap();
+        					ProjectDepartmentMap1.setDeptId(dept.getDeptId());
+        					ProjectDepartmentMap1.setProjectId(Integer.parseInt(project.getProjectId().toString()));
+        					projectDepartmentMapRepository.save(ProjectDepartmentMap1);
+    	    			}
+    					
+    				}
+    			}
+    		}
+        	if(project!=null) {
+        		project.setProjectName(p.getName()+" ( "+p.getPoNo()+" ) ");
+        		project.setPoStartDate(p.getStartDate());
+        		project.setPoEndDate(p.getEndDate());
+        		project.setClientLocation(p.getClientLocation().get(0));
+        		project.setClientName(p.getClientName());
+        		project.setState(p.getClientState());
+        		project.setActive("true");
+        		project.setState(p.getStatus());
+        		if(p.getProjectManager()!=null) {
+            		
+        		project.setProjectManagerId(Long.parseLong(p.getProjectManager()));
+        		}
+        		//project.setDepartmentName(p.getDepartment().toString());
+        		
+        		project.setIsDraftProject("true");
+        		project.setActive("true");
+        		project.setSyncProject("true");
+        		
+        		projectRepository.save(project);
+        	}else {
+        		 project=new Project();
+        		 project.setProjectName(p.getName()+" ( "+p.getPoNo()+" ) ");
+        		 project.setState(p.getClientState());
+        		 project.setPoProjectId(p.getId());
+        		if(p.getProjectManager()!=null) {
+        			project.setProjectManagerId(Long.parseLong(p.getProjectManager()));
+        		}
+        		project.setState(p.getStatus());
+        		if(p.getDepartment().size()>0) {
+        			project.setDepartmentName(p.getDepartment().toString());
+        		}
+        		project.setIsDraftProject("true");
+        		project.setActive("true");
+        		project.setSyncProject("true");
+        		
+        		project.setPoStartDate(p.getStartDate());
+        		project.setPoEndDate(p.getEndDate());
+        		project.setClientLocation(p.getClientLocation().get(0));
+        		project.setClientName(p.getClientName());
+        		projectRepository.save(project);
+        	}
+        	
+        	
+        });
+}
+		return list;
+	}
 	
 	public ServiceResponse getAllClients() {
 		ServiceResponse response = new ServiceResponse();

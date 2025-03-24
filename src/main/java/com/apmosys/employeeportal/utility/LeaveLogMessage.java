@@ -19,5 +19,7 @@ public class LeaveLogMessage {
 	public static String requestUpdateLeaveSub = "Deducted 0.0 leaves. Employee requested for update leave.";
 	
 	public static String leaveRevoked = "Added 0.0 leaves. Leave revoked by employee.";
+	public static String autoDeductLeaveOnTimesheetDefaulter = "Deducted 0.0 leaves. Timesheet defaulter Leave deducted automatically by system.";
+	public static String BiomaxLeaveOnTimesheetDefaulter = "Deducted 0.0 leaves. Biomax defaulter Leave deducted automatically Added Biomax Cron Jobs Approval.";
 
 }

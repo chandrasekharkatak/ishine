@@ -39,6 +39,8 @@
                                 <th scope="col" class="info-label" mat-sort-header="name|string">Project Name</th>
                                 <th scope="col" class="info-label" mat-sort-header="projectManagerName|string">Project
                                     Manager</th>
+                                    <th scope="col" class="info-label" mat-sort-header="projectManagerName|string">Start Date</th>
+                                    <th scope="col" class="info-label" mat-sort-header="projectManagerName|string">End Date</th>
                                 <th scope="col" class="info-label" mat-sort-header="clientName|string">Client</th>
                                 <th scope="col" class="info-label" mat-sort-header="clientState|string">State</th>
                                 <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
@@ -70,7 +72,7 @@
                                     <td *ngIf="!userMapping.my_team_resource_management_employee_360 || !project.projectManagerName">{{project.projectManagerName}}</td>
                                     <td>{{project.clientName}}</td>
                                     <td>{{project.clientState}}</td>
-                                    <td>{{project.createdOn}}</td>
+                                    <td>{{project.createdOn | date: 'MM/dd/yyyy'}}</td>
                                     <td>{{project.status}}</td>
                                     <td
                                         [ngStyle]="{'color': (project.isDraftProject == 'Pending For Approval') ? 'orange' : (project.isActive == 2) ? 'orange': (project.isDraftProject == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">

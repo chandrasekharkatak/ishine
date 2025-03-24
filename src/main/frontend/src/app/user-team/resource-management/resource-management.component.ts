@@ -335,7 +335,7 @@ export class ResourceManagementComponent implements OnInit {
       this.resourceManagementService.getInternalProject().pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.internalProjectList = response.serviceResponse;
-
+console.log(this.internalProjectList.length);
           let _projectList = [...allPoProject, ...this.internalProjectList];
 
           if ((_projectList != null || _projectList != undefined) && (this.teamCreatedProjectList != null || this.teamCreatedProjectList != undefined)) {
@@ -426,7 +426,7 @@ export class ResourceManagementComponent implements OnInit {
 
             // added in single list  
 
-            this.allProject_Po_Internal = [...this.poPortalProjectList, ...this.internalProjectList];
+            this.allProject_Po_Internal = [ ...this.internalProjectList];
 
             for(let y of this.allProject_Po_Internal){
               let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === y.projectManager);

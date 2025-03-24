@@ -70,6 +70,7 @@ import { UserUpdateInfoComponent } from './user-update-info/user-update-info.com
 import { ProjectViewComponent } from './project-view/project-view.component';
 import { PerformanceConfigComponent } from './configuration/performance-config/performance-config.component';
 import { LMSComponent } from './employee360/lms/lms.component';
+import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
 
 
 const routes: Routes = [
@@ -116,6 +117,8 @@ const routes: Routes = [
     children: [
       { path: 'my-timesheet', component: MyTimesheetComponent, },
       { path: 'team-timesheet', component: TeamTimesheetComponent, },
+      { path: 'biomax-request', component: BiomaxApprovalComponent, },
+    
     ]
   },
   {path:'user-leaves/:tabName', component: UserLeavesComponent, canActivate: [AuthGuard],
@@ -123,12 +126,14 @@ const routes: Routes = [
       { path: 'leave', component: LeaveComponent, },
       { path: 'holiday', component: HolidaysComponent, },
       { path: 'compOff', component: CompOffComponent, },
+     
     ]
   },
   {path:'user-timesheet/:tabName', component: UserTimesheetComponent, canActivate: [AuthGuard],
     children: [
       { path: 'my-timesheet', component: MyTimesheetComponent, },
       { path: 'team-timesheet', component: TeamTimesheetComponent, },
+      { path: 'biomax-request', component: BiomaxApprovalComponent, },
     ]
   },
   {path:'user-team', component: UserTeamComponent, canActivate: [AuthGuard],

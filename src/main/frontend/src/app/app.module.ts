@@ -133,6 +133,7 @@ registerLocaleData(localeGb);
 // import { OwlDateTimeModule, OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
 // 
 
+import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
 
@@ -237,7 +238,8 @@ registerLocaleData(localeGb);
      NavigateToProjectViewDirective,
      ProjectViewComponent,
      PerformanceConfigComponent,
-     LMSComponent
+     LMSComponent,
+     BiomaxApprovalComponent
 
     //TestComponent
   ],

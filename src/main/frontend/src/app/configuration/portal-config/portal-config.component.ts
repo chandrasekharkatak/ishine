@@ -138,6 +138,7 @@ export class PortalConfigComponent implements OnInit {
     private utilityService: UtilityService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    this.getEmployeeList();
   }
 
   async ngOnInit(): Promise<void> {
@@ -323,7 +324,7 @@ export class PortalConfigComponent implements OnInit {
 
     this.getAllPortalConfigData();
     this.getAllDepartmentList();
-    this.getEmployeeList();
+
   }
 
   holidayDateFilter = (d: Date)=>{
@@ -401,6 +402,12 @@ export class PortalConfigComponent implements OnInit {
           }
           if (portal.configName == 'Leave week-off/holiday exclusion') {
             this.portalObj.weekOffExcludedDepartmentList = JSON.parse(portal.configValue);
+          }
+          if (portal.configName == 'Leave deduction relaxation in the department') {
+            this.portalObj.departmentIdList = JSON.parse(portal.configValue);
+          }
+          if (portal.configName == 'Leave deduction relaxation in the employee') {
+            this.portalObj.empIdList = JSON.parse(portal.configValue);
           }
         }
       } else {
@@ -570,11 +577,11 @@ export class PortalConfigComponent implements OnInit {
     }
 
 
-
+  
     let tempArray = JSON.parse(JSON.stringify(this.portalConfigList));
-
+   
     tempArray.forEach((portalConfig, index) => {
-
+     
       if (index == 0) {
         portalConfig.configPeriod = portalObj.probationPeriod;
         portalConfig.mailTrigger = portalObj.probationMailTrigger;
@@ -599,7 +606,18 @@ export class PortalConfigComponent implements OnInit {
       } else if (index == 8) {
         portalObj.weekOffExcludedDepartmentList = JSON.stringify(portalObj.weekOffExcludedDepartmentList);
         portalConfig.configValue = portalObj.weekOffExcludedDepartmentList;
+      }else if (index == 9) {
+        portalObj.departmentIdList = JSON.stringify(portalObj.departmentIdList);
+        portalConfig.configValue = portalObj.departmentIdList;
+        portalConfig.departmentId = portalObj.departmentIdList;
       }
+      else if (index == 10) {
+        portalObj.empIdList = JSON.stringify(portalObj.empIdList);
+        portalConfig.configValue = portalObj.empIdList;
+        portalObj.empId=portalObj.empIdList;
+      }
+      
+     
 
     })
     portalObj.allPortalConfigData = tempArray;
