@@ -4,10 +4,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.AppraisalSummaryDto;
+import com.apmosys.employeeportal.dto.SummaryDto;
 import com.apmosys.employeeportal.model.AppraisalSummary;
 import com.apmosys.employeeportal.model.QuestionnaireResponse;
 import com.apmosys.employeeportal.model.ReviewTable;
 import com.apmosys.employeeportal.repository.AppraisalSummaryRepository;
+import com.apmosys.employeeportal.repository.EmployeeGoalRepository;
+import com.apmosys.employeeportal.repository.KpiResponseRepository;
 import com.apmosys.employeeportal.repository.QuestionnaireRepository;
 import com.apmosys.employeeportal.repository.QuestionnaireResponseRepository;
 import com.apmosys.employeeportal.repository.ReviewRepository;
@@ -25,6 +28,15 @@ public class AppraisalSummaryService {
     
     @Autowired
     private ReviewRepository reviewRepo;
+    
+    @Autowired
+    private EmployeeGoalRepository employeeGoalRepository;
+    
+    @Autowired
+    private QuestionnaireResponseRepository questionnaireResponseRepository;
+    
+    @Autowired
+    private KpiResponseRepository kpiResponseRepository;
 
 //    private QuestionnaireRepository questionnaireResponseRepository
     @Autowired
@@ -195,6 +207,34 @@ public class AppraisalSummaryService {
             default: return "Performance Evaluation Incomplete";
         }
     }
+    
+    public SummaryDto getAppraisalSummary(Long empId, Long quarterId) {
+        try {
+            SummaryDto summaryDto = new SummaryDto();
+            summaryDto.setEmpId(empId);
+            summaryDto.setQuarter(quarterId);
+
+            // Calculate Goals Completed and Remaining
+            long goalsCompleted = employeeGoalRepository.countByEmpIdAndQuarterAndGoalStatus(empId, quarterId, "COMPLETED");
+            long goalsRemaining = employeeGoalRepository.countByEmpIdAndQuarterAndGoalStatus(empId, quarterId, "PENDING");
+
+            summaryDto.setGoalsCompleted(goalsCompleted);
+            summaryDto.setGoalsRemaining(goalsRemaining);
+
+            // Calculate Questionnaire Score
+            Float questionnaireScore = questionnaireResponseRepository.calculateTotalScoreByEmpIdAndQuarter(empId, quarterId);
+            summaryDto.setQuestionnaireScore(questionnaireScore != null ? questionnaireScore.longValue() : 0L);
+
+            // Calculate KPI Score
+            Float kpiScore = kpiResponseRepository.calculateTotalScoreByEmpIdAndQuarter(empId, quarterId);
+            summaryDto.setKraKpiScore(kpiScore != null ? kpiScore.longValue() : 0L);
+
+            return summaryDto;
+        } catch (Exception e) {
+            throw new RuntimeException("Error calculating appraisal summary: " + e.getMessage());
+        }
+    }
+
     
     public AppraisalSummaryDto convertToDto(AppraisalSummary appraisalSummary) {
         AppraisalSummaryDto dto = new AppraisalSummaryDto();

@@ -9,6 +9,9 @@ import { EmployeeService } from 'src/app/services/employee.service';
 import { PerformanceService } from 'src/app/services/performance.service';
 import { GoalService } from 'src/app/services/goal.service';
 import { Subscription } from 'rxjs';
+import { Feature } from 'src/app/models/feature';
+import { LogService } from 'src/app/services/log.service';
+import { Log } from 'src/app/models/log';
 
 interface Goal {
   statusPercentage: any;
@@ -45,6 +48,9 @@ interface AppraisalSummary {
 export class ViewPerformanceComponent implements OnInit {
 
   currentUser:User;
+  feature="view_performance";
+  userMapping:any = {};
+  log:Log;
   activeTab: string = 'kra-kpi';
   quarterCyclesList: any;
   selectedQuarter:any;
@@ -80,12 +86,15 @@ export class ViewPerformanceComponent implements OnInit {
     private fb: FormBuilder,
     private authenticationService : AuthenticationService,
     private performanceService:PerformanceService,
-    private goalService:GoalService
+    private goalService:GoalService,
+    private logService:LogService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
   ngOnInit(): void {
+    this.logService.updateLogInfo(this.log);
+
     this.subscription = this.employeeService.employee$.subscribe(emp => {
       this.selectedEmployee = emp;
     });
@@ -94,6 +103,11 @@ export class ViewPerformanceComponent implements OnInit {
     this.fetchGoals();
     this.loadPerformanceStats();
     this.setActiveTab('kra-kpi');
+
+    let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    featureMap.subFeatures?.forEach(sub => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    });
   }
 
   fetchQuarters(): void {

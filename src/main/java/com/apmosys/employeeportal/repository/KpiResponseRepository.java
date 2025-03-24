@@ -16,11 +16,17 @@ public interface KpiResponseRepository extends JpaRepository<KpiResponse, Long> 
     List<KpiResponse> findByDepartmentId(Long departmentId);
     
     @Query(nativeQuery = true, value = 
-            "INSERT INTO kpi_responses (emp_id, department_name) " +
+            "INSERT INTO kpi_response (emp_id, department_name) " +
             "SELECT us.emp_id, d.name " +
             "FROM user_session us " +
             "JOIN department d ON d.hod_id = us.emp_id " +
             "WHERE us.user_session_id = :sessionId " +
             "RETURNING id")
      Long createKpiResponseFromUserSession(@Param("sessionId") Long sessionId);
+    
+    @Query(nativeQuery = true,value ="SELECT k.score FROM kpi_response k WHERE k.emp_id = :emp_id AND k.quarter_id = :quarter_id")
+    public Float calculateTotalScoreByEmpIdAndQuarter(@Param("emp_id") Long empId, @Param("quarter_id") Long quarterId);
+
+    
+    
 }

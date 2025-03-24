@@ -45,12 +45,12 @@ public class EmployeeGoalService {
         GoalTemplates template = null;
         if(vopt.isPresent()) template = vopt.get();
         
-        // Query quarter information ONCE
+
+
         List<Object[]> quarterIdList = quarterCycleRepository.findQuarterCycleById(quarterId);
         
         EmployeeGoalDTO employeeGoalDTO = new EmployeeGoalDTO();
         
-        // Let's debug what's actually in the quarterIdList
         System.out.println("Quarter data size: " + (quarterIdList != null ? quarterIdList.size() : "null"));
         if (quarterIdList != null && !quarterIdList.isEmpty()) {
             Object[] quarterData = quarterIdList.get(0);
@@ -61,7 +61,8 @@ public class EmployeeGoalService {
                 }
             }
             
-            // Try to find the value that contains month format like "APR-JUN"
+
+
             for (int i = 0; quarterData != null && i < quarterData.length; i++) {
                 if (quarterData[i] != null && quarterData[i].toString().matches("[A-Z]{3}-[A-Z]{3}")) {
                     employeeGoalDTO.setQuarter(quarterData[i].toString());
@@ -70,9 +71,11 @@ public class EmployeeGoalService {
                 }
             }
             
-            // Fallback if we didn't find a matching format
+
+
             if (employeeGoalDTO.getQuarter() == null && quarterData != null && quarterData.length > 0) {
-                // Try index 0, 1, and 2 in that order
+
+
                 for (int i = 0; i < Math.min(3, quarterData.length); i++) {
                     if (quarterData[i] != null) {
                         employeeGoalDTO.setQuarter(quarterData[i].toString());
@@ -98,8 +101,10 @@ public class EmployeeGoalService {
         employeeGoalDTO.setGoalStatus("Pending"); // Default review status
         employeeGoalDTO.setExpectedCompletionDate(expectedCompletionDate);
         employeeGoalDTO.setCreatedDate(LocalDate.now());
+        employeeGoalDTO.setQuarterId(quarterId);
         
-        // Convert DTO to entity, save, and convert back to DTO
+
+
         EmployeeGoals savedGoal = employeeGoalRepository.save(convertToEntity(employeeGoalDTO));
         return convertToDTO(savedGoal);
     }
@@ -131,7 +136,7 @@ public class EmployeeGoalService {
                     }
                 }
                 
-                // Try to find the value that contains month format like "APR-JUN"
+
                 for (int i = 0; quarterData != null && i < quarterData.length; i++) {
                     if (quarterData[i] != null && quarterData[i].toString().matches("[A-Z]{3}-[A-Z]{3}")) {
                         employeeGoalDTO.setQuarter(quarterData[i].toString());
@@ -140,9 +145,9 @@ public class EmployeeGoalService {
                     }
                 }
                 
-                // Fallback if we didn't find a matching format
+
                 if (employeeGoalDTO.getQuarter() == null && quarterData != null && quarterData.length > 0) {
-                    // Try index 0, 1, and 2 in that order
+                    
                     for (int i = 0; i < Math.min(3, quarterData.length); i++) {
                         if (quarterData[i] != null) {
                             employeeGoalDTO.setQuarter(quarterData[i].toString());
@@ -153,7 +158,6 @@ public class EmployeeGoalService {
                 }
             }
             
-            // If still null, set a default
             if (employeeGoalDTO.getQuarter() == null) {
                 employeeGoalDTO.setQuarter("Unknown Quarter");
                 System.out.println("No quarter data found, using default");
@@ -166,6 +170,7 @@ public class EmployeeGoalService {
             employeeGoalDTO.setGoalStatus("Pending"); 
             employeeGoalDTO.setExpectedCompletionDate(expectedCompletionDate);
             employeeGoalDTO.setCreatedDate(LocalDate.now());
+            employeeGoalDTO.setQuarterId(quarterId);
 
             EmployeeGoals savedGoal = employeeGoalRepository.save(convertToEntity(employeeGoalDTO));
             assignedGoals.add(convertToDTO(savedGoal));
@@ -273,8 +278,7 @@ public class EmployeeGoalService {
             System.out.println("Query results for empId=" + empId + ", quarterId=" + quarterId + ": " + 
                                (results != null ? results.size() : "null") + " rows");
             
-            // Debug the first row to understand the structure
-            if (results != null && !results.isEmpty()) {
+                        if (results != null && !results.isEmpty()) {
                 Object[] firstRow = results.get(0);
                 System.out.println("First row has " + firstRow.length + " columns");
                 for (int i = 0; i < firstRow.length; i++) {
@@ -282,7 +286,7 @@ public class EmployeeGoalService {
                                       (firstRow[i] != null ? firstRow[i].toString() + " (" + firstRow[i].getClass().getName() + ")" : "null"));
                 }
                 
-                // Continue with your existing code
+              
                 List<EmployeeGoalDTO> dtoList = new ArrayList<>();
                 for (Object[] row : results) {
                     EmployeeGoalDTO dto = convertRowToDTO(row);
@@ -322,6 +326,7 @@ public class EmployeeGoalService {
         dto.setCreatedDate(entity.getCreatedDate());
         dto.setQuarter(entity.getQuarter());
         dto.setRemarks(entity.getRemarks());
+        dto.setQuarterId(entity.getQuarterId());
         return dto;
     }
     
@@ -340,17 +345,13 @@ public class EmployeeGoalService {
         entity.setCreatedDate(dto.getCreatedDate());
         entity.setQuarter(dto.getQuarter());
         entity.setRemarks(dto.getRemarks());
+        entity.setQuarterId(dto.getQuarterId());
         return entity;
     }
     private EmployeeGoalDTO convertRowToDTO(Object[] row) {
         EmployeeGoalDTO dto = new EmployeeGoalDTO();
         
-        // Based on the error message, map fields from the array
-        // Adjust indices based on the actual column order in your query results
         try {
-            // The error message shows: '{10, null, 21874, 2025-03-20, 20759, 2025-03-20, Not Started, Pending, kjbbvkb, JUL-SEP, 1}'
-            
-            // Map the fields (adjust indices based on your actual result order)
             if (row[0] != null) dto.setGoalId(((Number)row[0]).longValue());
             // row[1] seems to be null in the example
             if (row[2] != null) dto.setEmpId(((Number)row[2]).longValue());
@@ -364,12 +365,11 @@ public class EmployeeGoalService {
             if (row[5] != null) dto.setAssignedBy(((Number)row[5]).longValue());
             if(row[4]!= null) dto.setDescription(row[4].toString());
             if(row[12]!= null) dto.setRemarks(row[12].toString());
+            if(row[13]!= null) dto.setQuarterId(Long.parseLong(row[13].toString()));
             
-            // Add any other mappings needed for additional fields
-        } catch (Exception e) {
+                    } catch (Exception e) {
             System.out.println("Error mapping row to DTO: " + e.getMessage());
-            // Consider logging the issue or handling the exception more gracefully
-        }
+                    }
         
         return dto;
     }
@@ -384,7 +384,6 @@ public class EmployeeGoalService {
             return LocalDate.parse((String) dateObj);
         }
         
-        // If it's another format, you might need to add more handling
         return null;
         
     }

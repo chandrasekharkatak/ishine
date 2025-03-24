@@ -17,6 +17,9 @@ import { User } from 'src/app/models/user';
 
 
 
+import { Log } from 'src/app/models/log';
+import { Feature } from 'src/app/models/feature';
+import { LogService } from 'src/app/services/log.service';
 @Component({
   selector: 'app-templates',
   templateUrl: './templates.component.html',
@@ -25,7 +28,10 @@ import { User } from 'src/app/models/user';
 export class TemplatesComponent implements OnInit {
   activeTab: string = 'goals';
   selectedTemplateType: string = 'goals';
-  
+  currentUser: User;
+  feature="templates";
+  userMapping:any = {};
+  log:Log;
   selectedDept: any = null;
   allDeptList: any[] = [];
   goalTemplates: any[] = [];
@@ -47,7 +53,6 @@ quarterCyclesList: any;
 selectedQuarter1: any;
 selectedQuarter: any;
   errorMessage: any;
-  currentUser:User;
   currentEmployeeInfo:Employee = new Employee();
 quarter: any;
   // selectedDepartmentId: number;
@@ -59,6 +64,7 @@ quarter: any;
     private userPerformanceService: UserPerformanceService,
     private templateService: TemplateService,
     private kraKpiService : KraKpiService,
+    private logService:LogService,
     private performanceService:PerformanceService,
     private authenticationService : AuthenticationService,
     private employeeService:EmployeeService,
@@ -93,6 +99,8 @@ quarter: any;
   }
 
   ngOnInit(): void {
+    this.logService.updateLogInfo(this.log);
+
     this.onGetEmployeeInfo();
     this.fetchQuarters();
     this.fetchGoalTemplates();
@@ -100,6 +108,11 @@ quarter: any;
     this.fetchQuestionnaireTemplates();
     this.fetchKraKpiTemplates();
     
+    let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    featureMap.subFeatures?.forEach(sub => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    });
+
   }
 
   async onGetEmployeeInfo(){
@@ -143,6 +156,8 @@ quarter: any;
 
   
   fetchQuarters(): void {
+    
+
     this.performanceService.getAllQuarterCycles().subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
@@ -157,6 +172,9 @@ quarter: any;
         this.errorMessage = error.message || 'Error fetching quarters.';
       }
     });
+
+  
+
   }
 
   createQuestionField(): FormGroup {

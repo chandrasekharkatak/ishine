@@ -102,9 +102,7 @@ getAvailableQuarters(){
 }
 
 getPerformanceStats(empId: number, quarter: number): Observable<any> {
-  return this.http.get(`${this.baseUrl}api/performance-stats`, {
-    params: { empId, quarter },
-  });
+  return this.http.get(`${this.baseUrl}`+`api/appraisal-summaries/employee/${empId}/quarter/${quarter}`);
 }
 
 getKraKpiReview(empId: number, quarter: string): Observable<any> {

@@ -47,7 +47,7 @@ export class QuarterCycleComponent implements OnInit {
   reviewTypelist: any[] = [];
   reviewColumns: any[] = ['blank', 'reviewLabel', 'reviewFieldType', 'condition', 'quarterCycle', 'departmentName', 'employeeName', 'createdOn', 'updatedByName', 'updatedOn']
 
-  feature: "Performance Config";
+  feature: "quarter_cycle";
   isQuaterForm: boolean = false;
   isQuaterCreation: boolean = false;
   isQuaterUpdation: boolean = false;

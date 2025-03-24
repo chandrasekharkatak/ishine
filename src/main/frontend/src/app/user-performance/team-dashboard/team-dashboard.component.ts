@@ -12,6 +12,9 @@ import { TeamDashboardService } from 'src/app/services/team-dashboard.service';
 import { environment } from 'src/environments/environment';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { PerformanceService } from 'src/app/services/performance.service';
+import { Log } from 'src/app/models/log';
+import { Feature } from 'src/app/models/feature';
+import { LogService } from 'src/app/services/log.service';
 @Component({
   selector: 'app-team-dashboard',
   templateUrl: './team-dashboard.component.html',
@@ -25,6 +28,9 @@ export class TeamDashboardComponent implements OnInit {
 @ViewChild('multiGoalTemplate') multiGoalTemplate: TemplateRef<any>;
 
   currentUser: User;
+  feature="team_dashboard";
+  userMapping:any = {};
+  log:Log;
   viewTeamMemberList: any[] = [];
   teamMemberColumns: any[] = ['blank','blank','employeementId', 'name'];
   isSearchEnabled: boolean = false;
@@ -63,7 +69,8 @@ export class TeamDashboardComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private teamDashboardService: TeamDashboardService,
     private employeeService: EmployeeService,
-    private performanceService: PerformanceService
+    private performanceService: PerformanceService,
+    private logService:LogService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -72,6 +79,8 @@ export class TeamDashboardComponent implements OnInit {
   goals: any[] = [];
 
   ngOnInit() {
+    this.logService.updateLogInfo(this.log);
+
     console.log('Current user:', this.currentUser);
     if (this.currentUser && this.currentUser.hodId) {
       this.hodId = this.currentUser.hodId;
@@ -83,6 +92,12 @@ export class TeamDashboardComponent implements OnInit {
       console.error('Current user or HOD ID is undefined');
     }
     this.fetchQuarters();
+
+    let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    featureMap.subFeatures?.forEach(sub => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    });
+
   }
 
   fetchQuarters(): void {

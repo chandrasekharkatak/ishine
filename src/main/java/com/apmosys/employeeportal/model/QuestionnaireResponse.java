@@ -23,7 +23,8 @@ public class QuestionnaireResponse {
 	
 	private String questionTitle;
 
-	private Integer quarterId; 
+	private Long quarterId; 
+	
 	
 	private String quarter;
 	

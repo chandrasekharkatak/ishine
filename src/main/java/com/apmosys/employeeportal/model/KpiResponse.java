@@ -8,12 +8,13 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "kpi_responses")
+@Table(name = "kpi_response")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class KpiResponse {
     
+	
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long responseId;
@@ -28,4 +29,7 @@ public class KpiResponse {
     private String departmentName;
     private Long departmentId;
     private Long quarterId;
+    private String quarter;
+    
+    
 }

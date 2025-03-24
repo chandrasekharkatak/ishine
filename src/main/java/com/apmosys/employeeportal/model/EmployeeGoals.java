@@ -51,6 +51,9 @@ public class EmployeeGoals {
     
     private String quarter;
     
+    
+    private Long quarterId;
+    
     private String remarks;
     
 	

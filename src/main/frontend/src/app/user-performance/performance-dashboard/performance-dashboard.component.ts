@@ -8,6 +8,9 @@ import { Employee } from 'src/app/models/employee';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { PerformanceService } from 'src/app/services/performance.service';
 import { GoalService } from 'src/app/services/goal.service';
+import { Feature } from 'src/app/models/feature';
+import { LogService } from 'src/app/services/log.service';
+import { Log } from 'src/app/models/log';
 
 interface Goal {
   progress: any;
@@ -49,14 +52,17 @@ interface QuestionDTO {
 })
 export class PerformanceDashboardComponent implements OnInit {
 
-  currentUser: User;
+  currentUser:User;
+  feature="performance_dashboard";
+  userMapping:any = {};
+  log:Log;
   activeTab: string = 'kra-kpi';
   selectedQuarter: number;
   quarterCyclesList: any;
   selectedQuarter1: any;
   kraKpiMetrics: any[] = [];
   questionnaireQuestions: QuestionDTO[] = [];
-
+  selectedgoalProgress: any;
   kraKpiReviewForm: FormGroup;
   questionnaireReviewForm: FormGroup;
   stats: Stats = {
@@ -79,17 +85,29 @@ export class PerformanceDashboardComponent implements OnInit {
     private employeeService: EmployeeService,
     private modalService: BsModalService,
     private fb: FormBuilder,
-    private authenticationService: AuthenticationService,
-    private performanceService: PerformanceService,
-    private goalService: GoalService
+    private authenticationService : AuthenticationService,
+    private performanceService:PerformanceService,
+    private goalService:GoalService,
+    private logService:LogService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
   ngOnInit(): void {
-    this.onGetEmployeeInfo();
-  }
+    this.logService.updateLogInfo(this.log);
 
+    this.onGetEmployeeInfo();
+    this.fetchQuarters();
+    this.fetchGoals();
+    this.loadPerformanceStats();
+
+    let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    featureMap.subFeatures?.forEach(sub => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    });
+
+
+  }
   async onGetEmployeeInfo() {
     this.currentEmployeeInfo = new Employee();
     let currentEmp = new Employee();
@@ -194,11 +212,13 @@ export class PerformanceDashboardComponent implements OnInit {
     const empId = this.currentUser?.empId;
     const quarter = this.selectedQuarter;
 
+
     if (!empId || !quarter) return;
 
     this.performanceService.getPerformanceStats(empId, quarter).subscribe({
-      next: (data) => {
-        this.stats = data;
+      next: (response: any) => {
+        this.stats = response.serviceResponse;
+        console.log('STATS::: ',this.stats)
       },
       error: (err) => {
         console.error('Error fetching performance stats:', err);
@@ -353,7 +373,7 @@ saveQuestionnaireResponses(): void {
 }
   saveUpdates() {
     const payload = {
-      GoalProgress: this.selectedGoal.progress,
+      GoalProgress: this.selectedgoalProgress,
       // checkpoints: this.selectedGoal.checkpoints,
       employeeRemark: this.selectedGoal.employeeRemark,
     };
