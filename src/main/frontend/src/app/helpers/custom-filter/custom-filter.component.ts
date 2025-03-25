@@ -143,7 +143,7 @@ export class CustomFilterComponent implements OnInit {
     return true;
   }
   getPlaceholder(column: string): string {
-    const dateFields = ['From Date', 'To Date', 'Date'];
+    const dateFields = ['From Date', 'To Date', 'Date','Po Start Date','Po End Date'];
     return dateFields.includes(column) ? 'DD-MM-YYYY' : 'Enter value';
 }
 }

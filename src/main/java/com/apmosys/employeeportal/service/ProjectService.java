@@ -1,10 +1,12 @@
 package com.apmosys.employeeportal.service;
 
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.TimeZone;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -12,13 +14,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import com.apmosys.employeeportal.dto.ClientsDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.PoTeamDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
 import com.apmosys.employeeportal.dto.SyncableProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.model.Activity;
@@ -30,6 +35,8 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
+import com.apmosys.employeeportal.model.ProjectsTemp;
+import com.apmosys.employeeportal.model.ProjectsTempRepository;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.ActivityTemplateRepository;
@@ -62,6 +69,9 @@ public class ProjectService {
 	@Autowired
 	TeamRepository teamRepository;
 	
+	 @Autowired
+	 ProjectsTempRepository projectstempRepository;
+	 
 	@Autowired
 	EmployeeTeamMapRepository employeeTeamMapRepository;
 	
@@ -88,6 +98,18 @@ public class ProjectService {
 	
 	@Autowired
 	private LogService logService;
+	
+	@Value("${poPortal.api.allProjects}")
+	private String allPoPortalProjects;
+	
+	@Autowired
+	private final RestTemplate restTemplate = new RestTemplate();
+	
+	
+	public RestTemplate getRestTemplate() {
+		return restTemplate;
+	}
+
 	
 	public ServiceResponse getAllClients() {
 		ServiceResponse response = new ServiceResponse();
@@ -1450,4 +1472,199 @@ public class ProjectService {
 		return response;
 	}
 	
+	private String formatDate(String dateTime) {
+	    if (dateTime == null || dateTime.isEmpty()) {
+	        return null;
+	    }
+	    return dateTime.split("T")[0]; 
+	}
+	
+	
+//	public List<ProjectPoPortalDTO> getProjectCloneFromPoPortal() {
+//		ServiceResponse response = new ServiceResponse();
+//        LogDTO apiLogInfo = new LogDTO();
+//        apiLogInfo.setSubFeatureName("getProjectCloneFromPoPortal");
+//        apiLogInfo.setApiUrl("/api/getProjectCloneFromPoPortal");
+//        apiLogInfo.setLogLevel("INFO");
+//        ProjectPoPortalDTO[] projects = restTemplate.getForObject(allPoPortalProjects, ProjectPoPortalDTO[].class);
+//        List<ProjectPoPortalDTO> list= Arrays.asList(projects != null ? projects : new ProjectPoPortalDTO[0]);
+//        System.out.println("Total Project="+list.size());
+//        StringBuilder builderDepartment=new StringBuilder();
+//  	
+//  	
+//
+//        if(list!=null) {
+//        	  System.out.println(list.toString());
+//              
+//        list.forEach((p)->{
+////        	Project project=projectRepository.findByPoProjectId(p.getId());
+//        	ProjectsTemp project=projectstempRepository.findByPoProjectId(p.getId());
+//        	
+//        	if (p.getProjectManager() != null) {
+//        		System.out.println("p.getProjectManager()"+p.getProjectManager());
+//        		String empId = p.getProjectManager().replaceAll("\\s+", "").replaceAll("(?i)A-", "");
+//        		
+//        		Employee empValidate = employeeRepository.findByEmployeementId(Long.parseLong(empId)); // Lookup employee
+//        	    if (empValidate != null) {
+//        	        p.setProjectManager(empValidate.getEmpId().toString()); // Update project manager ID
+//        	        p.setProjectManagerName(empValidate.getName()); // Update project manager name
+//        	    }
+//        	
+//        	}
+////        	if(p.getClientName()!=null) {
+////        		Optional<Client> client=clientsRepository.findByClientName(p.getClientName());
+////        		if(client.isPresent()) {
+////        			Client c=client.get();
+////        			if(c.getClientName()!=null) {
+////        			System.out.println("client"+c.getClientName());
+////        			project.setClientId(c.getClientId());
+////        			project.setClientName(c.getClientName());
+////        			}
+////        		}
+////        	}
+////        	if(project.getProjectId()!=null) {
+////        	List<ProjectDepartmentMap> projDeptMap = projectDepartmentMapRepository.findByProjectId(project.getProjectId());
+////    		if(projDeptMap.size()==0) {
+////    			List<String> deptName=p.getDepartment();
+////    			if(deptName.size()>0) {
+////    				
+////    				for(String mp:deptName)
+////    				{
+////    					builderDepartment.append(mp);
+////    					Department dept=departmentRepository.findByName(mp);
+////    	    			if(dept!=null) {
+////    	    				ProjectDepartmentMap ProjectDepartmentMap1=new ProjectDepartmentMap();
+////        					ProjectDepartmentMap1.setDeptId(dept.getDeptId());
+////        					ProjectDepartmentMap1.setProjectId(Integer.parseInt(project.getProjectId().toString()));
+////        					//projectDepartmentMapRepository.save(ProjectDepartmentMap1);
+////    	    			}
+////    					
+////    				}
+////    			}
+////        	}
+////    		}
+//        	if(project!=null) {
+//        	//	project.setProjectName(p.getName());
+//        		project.setPoStartDate(formatDate(p.getStartDate()));
+//        		project.setPoEndDate(formatDate(p.getEndDate()));
+//        		 project.setPoNo(p.getPoNo());
+//        		 System.err.println("po type"+p.getProjectType())   ;
+//        		 project.setPoProjectType(p.getProjectType());
+////        		project.setClientLocation(p.getClientLocation().get(0));
+////        		project.setClientName(p.getClientName());
+////        		project.setState(p.getClientState());
+////        		project.setActive("true");
+////        		project.setPoNo(p.getPoNo());
+////        		//project.set(p.getStatus());
+////        		if(p.getProjectManager()!=null) {
+////            		
+////        		project.setProjectManagerId(Long.parseLong(p.getProjectManager()));
+////        		}
+////        		project.setDepartmentName(builderDepartment.toString());
+////        		
+////        		project.setIsDraftProject("true");
+////        		project.setActive("true");
+////        		project.setSyncProject("true");
+////        		
+////        		 projectRepository.save(project);
+//        		 projectstempRepository.save(project);
+//        	}
+////        		 else {
+////        		 project=new Project();
+//////        		 project=new ProjectsTemp();
+////        		 project.setPoNo(p.getPoNo());
+////        		 System.err.println("po type"+p.getProjectType())   ;
+//////        		 project.setProjectName(p.getName());
+//////        		 project.setState(p.getClientState());
+//////        		 project.setPoProjectId(p.getId());
+//////        		if(p.getProjectManager()!=null) {
+//////        			project.setProjectManagerId(Long.parseLong(p.getProjectManager()));
+//////        		}
+//////        		//project.setState(p.getStatus());
+//////        		if(p.getDepartment().size()>0) {
+//////        			project.setDepartmentName(builderDepartment.toString());
+//////        		}
+//////        		project.setIsDraftProject("true");
+//////        		project.setActive("true");
+//////        		project.setSyncProject("true");
+//////        		
+////        		project.setPoStartDate(formatDate(p.getStartDate()));
+////        		project.setPoEndDate(formatDate(p.getEndDate()));
+////        		project.setPoProjectType(p.getProjectType());
+//////        		/        		project.setClientLocation(p.getClientLocation().get(0));
+//////        		project.setClientName(p.getClientName());
+////        		projectRepository.save(project);       		
+//////        		projectstempRepository.save(project);
+////        	}
+//        	
+//        	
+//        });
+//}
+//		return list;
+//	}
+	
+	public List<ProjectPoPortalDTO> getProjectCloneFromPoPortal() {
+		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setSubFeatureName("getProjectCloneFromPoPortal");
+        apiLogInfo.setApiUrl("/api/getProjectCloneFromPoPortal");
+        apiLogInfo.setLogLevel("INFO");
+        ProjectPoPortalDTO[] projects = restTemplate.getForObject(allPoPortalProjects, ProjectPoPortalDTO[].class);
+        List<ProjectPoPortalDTO> list= Arrays.asList(projects != null ? projects : new ProjectPoPortalDTO[0]);
+        System.out.println("Total Project="+list.size());
+        StringBuilder builderDepartment=new StringBuilder();
+  	
+        if(list!=null) {
+//        	  System.out.println(list.toString());
+        
+        for(ProjectPoPortalDTO dto:list) {
+        	Project project=projectRepository.findByPoProjectId(dto.getId());
+//        	ProjectsTemp project=projectstempRepository.findByPoProjectId(dto.getId());
+        	
+        	if(project!=null) {
+        		 project.setPoStartDate(dto.getStartDate());
+        		 System.err.println("PoStartDate"+dto.getPoStartDate());
+        		 
+        		 project.setPoEndDate(dto.getEndDate());
+        		 System.err.println("PoEndDate"+dto.getPoEndDate());
+        		 
+				 project.setPoNo(dto.getPoNo());
+				 System.err.println("Po No"+dto.getPoNo());
+				 
+				 System.err.println("po type"+dto.getProjectType());
+				 project.setPoProjectType(dto.getProjectType());
+				 
+				 projectRepository.save(project);
+//				 projectstempRepository.save(project);
+        	}else {
+        		System.err.println("Project table doesnot contain po project id"+dto.getId())   ;
+        	}
+        	
+        }
+//        list.forEach((p)->{
+//        	Project project=projectRepository.findByPoProjectId(p.getId());
+//        	ProjectsTemp project=projectstempRepository.findByPoProjectId(p.getId());
+//        	
+//        	if(project!=null) {
+//        		 project.setPoStartDate(formatDate(p.getStartDate()));
+//        		 System.err.println("PoStartDate"+formatDate(p.getPoStartDate()));
+//        		 
+//        		 project.setPoEndDate(formatDate(p.getEndDate()));
+//        		 System.err.println("PoEndDate"+formatDate(p.getPoEndDate()));
+//        		 
+//				 project.setPoNo(p.getPoNo());
+//				 System.err.println("Po No"+p.getPoNo());
+//				 
+//				 System.err.println("po type"+p.getProjectType());
+//				 project.setPoProjectType(p.getProjectType());
+//				 
+////				 projectRepository.save(project);
+//				 projectstempRepository.save(project);
+//        	}else {
+//        		System.err.println("Project table doesnot contain po project id"+p.getId())   ;
+//        	}
+//        	});
+        }
+		return list;
+	}
 }
