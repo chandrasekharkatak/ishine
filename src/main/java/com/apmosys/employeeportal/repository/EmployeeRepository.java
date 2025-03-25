@@ -482,6 +482,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "where e.emp_id=:empId")
 	public Optional<Object[]> getDesignationByEmpId(Long empId);
 	
+	@Query(nativeQuery = true)
 	public List<Object[]> getAllEmployeesReportByProjectType();
 	
 	@Query(nativeQuery = true)
