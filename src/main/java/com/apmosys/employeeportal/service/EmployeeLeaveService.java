@@ -1345,6 +1345,10 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 					dto.setMaternityLeaveDays(object[27] != null ? Long.parseLong(object[27].toString()) : null);
 					
 					dto.setEmployeeName(object[28] != null ? object[28].toString() : null);
+					dto.setEmpId(object[29] != null ? Long.parseLong(object[29].toString()) : null);
+					dto.setApproverEmpId(object[30] != null ? Long.parseLong(object[30].toString()) : null);			
+					
+					
 					
 					dtoList.add(dto);
 				});

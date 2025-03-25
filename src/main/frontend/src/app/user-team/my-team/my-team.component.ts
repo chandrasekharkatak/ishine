@@ -1750,6 +1750,10 @@ export class MyTeamComponent implements OnInit {
           data.toDate = moment(data.toDate).format(AppComponent.DATE_FORMAT);
           this.leaveHistoryObj.name = data.createdByName;
           this.leaveUser = data.createdByName;
+          let matchingleavecreatedByEmpId = this.allEmployeeList360.find(emp => emp.empId === data.empId);
+          data.emp360leavecreatedByEmpId = matchingleavecreatedByEmpId ? matchingleavecreatedByEmpId : {};
+          let matchingapproverempId = this.allEmployeeList360.find(emp => emp.empId === data.approverEmpId);
+          data.emp360approverempId = matchingapproverempId ? matchingapproverempId : {};
         })
       }
     })
