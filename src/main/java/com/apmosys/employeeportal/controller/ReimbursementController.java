@@ -19,26 +19,26 @@ public class ReimbursementController {
 	
 
 	@PostMapping("/fetchReimbursementData")
-	public ServiceResponse fetchReimbursementData() {
-		return null;
+	public ServiceResponse fetchReimbursementData(@RequestBody ReimbursementDTO reimbursementObj) {
+		return reimbursementService.fetchReimbursementData(reimbursementObj.getEmpId());
 		
 	}
 	
 	@PostMapping("/saveReimbursementData")
 	public ServiceResponse saveReimbursementData(@RequestBody ReimbursementDTO reimbursementObj) {
-		return reimbursementService.saveTravelData(reimbursementObj);
+		return reimbursementService.saveReimbursementData(reimbursementObj);
 		
 	}
 	
 	@PostMapping("/updateReimbursementData")
-	public ServiceResponse updateReimbursementData() {
-		return null;
+	public ServiceResponse updateReimbursementData(@RequestBody ReimbursementDTO reimbursementObj) {
+		return reimbursementService.updateReimbursementData(reimbursementObj);
 		
 	}
 	
 	@PostMapping("/revokeReimbursement")
-	public ServiceResponse revokeReimbursement() {
-		return null;
+	public ServiceResponse revokeReimbursement(@RequestBody ReimbursementDTO reimbursementObj) {
+		return reimbursementService.revokeReimbursement(reimbursementObj.getRequestId());
 		
 	}
 	

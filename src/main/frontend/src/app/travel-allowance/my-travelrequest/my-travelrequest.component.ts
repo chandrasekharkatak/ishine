@@ -1,40 +1,16 @@
 import { Sort } from '@angular/material/sort';
-import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import { ClipboardService } from 'ngx-clipboard';
-import { first } from 'rxjs/operators';
-import { AppComponent } from 'src/app/app.component';
-import { Activity } from 'src/app/models/activity';
 import { Employee } from 'src/app/models/employee';
 import { Feature } from 'src/app/models/feature';
-import { Holiday } from 'src/app/models/holiday';
-import { Leave } from 'src/app/models/leave';
-import { Timesheet } from 'src/app/models/timesheet';
-import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
-import { ExportExcelService } from 'src/app/services/export-excel.service';
-import { HolidayService } from 'src/app/services/holiday.service';
-import { LeaveService } from 'src/app/services/leave.service';
-import { TeamViewService } from 'src/app/services/team-view.service';
-import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { ImageService } from 'src/app/services/image.service';
-import { DomainService } from 'src/app/services/domain.service';
-import { Domain } from 'src/app/models/domain';
 import { TravelDeskService } from 'src/app/services/travel-desk.service';
 import { MyTravelDesk } from 'src/app/models/travelDesk';
 
 
-
-// @Component({
-//   selector: 'app-travel-allowance',
-//   templateUrl: './travel-allowance.component.html',
-//   styleUrls: ['./travel-allowance.component.css']
-// })
 @Component({
   selector: 'app-my-travelrequest',
   templateUrl: './my-travelrequest.component.html',

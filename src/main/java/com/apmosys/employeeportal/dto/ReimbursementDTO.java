@@ -26,4 +26,11 @@ public class ReimbursementDTO {
     private String selectedReason;    
     private String selectedCurrency;   
     private String expenditureType;
+    private String level;
+    private Long levelOneApprover;
+    private Long levelTwoApprover;
+    private String level1approverRemarks;
+    private String level2approverRemarks;
+    private String level1approveremail;
+    private String level2approveremail;
 }

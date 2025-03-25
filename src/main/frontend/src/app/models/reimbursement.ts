@@ -10,7 +10,11 @@ export class MyReimbursement{
         mobileNo: any ;
         amount: any ;        
         travelMode: any ;      
-        distance: any ;     
+        distance: any ;   
+        currency: any;
+        appliedBy: any;
+        status :any;
+        appliedOn:any;  
         fromDate: any ;     
         toDate: any ;       
         purpose: any ;        

@@ -205,6 +205,7 @@ const routes: Routes = [
   },
   {path:'reimbursement', component: ReimbursementComponent, canActivate: [AuthGuard],
     children:[
+      {path:'', redirectTo:'my-reimbursement', pathMatch:'full'},
       {path:'my-reimbursement', component:MyReimbursementComponent},
       {path:'view-reimbursement', component:ViewReimbursementComponent},
       {path:'approve-reimbursement', component:ReimbursementapprovalComponent}

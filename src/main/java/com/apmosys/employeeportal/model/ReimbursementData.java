@@ -75,12 +75,44 @@ public class ReimbursementData {
 	private Timestamp appliedOn;
 	
 	@Column(name ="isActive")
-	private boolean isActive;
+	private Integer isActive;
 	
 	@Column(name ="approver")
 	private BigInteger approver;
 	
 	@Column(name ="status")
 	private String status;
+	
+	@Column(name = "level1_approve_by")
+	private BigInteger approver1;
+	
+	@Column(name = "level1_approver_email")
+	private String level1ApproverEmail;
+	
+	@Column(name = "level1_approve_on")
+	private Timestamp level1ApproveOn;
+	
+	@Column(name = "level2_approve_by")
+	private BigInteger approver2;
+	
+	@Column(name = "level2_approver_email")
+	private String level2ApproverEmail;
+	
+	@Column(name = "level2_approve_on")
+	private Timestamp level2ApproveOn;
+	
+	
+	@Column(name = "level")
+	private Integer level;
+	
+	@Column(name = "level1_approver_remarks")
+	private String level1approverRemarks;
+	
+	@Column(name = "level2_approver_remarks")
+	private String level2approverRemarks;
+	
+	@Column(name = "hod_name")
+	private String hodName;
+	
 }
 
