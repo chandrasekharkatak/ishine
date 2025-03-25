@@ -31,6 +31,10 @@ public class ProjectPoPortalDTO {
     private String createdOn;
 
     private String poNo;
+    private String poStartDate;
+    private String poEndDate;
+    private String poProjectType;
+    private String PoProjectId;
     private List<ResourceRequirementDTO> resourceRequirements;
 
 }
