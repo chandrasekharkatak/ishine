@@ -46,8 +46,6 @@ public class Project {
 	private Long updatedBy;
 	private LocalDateTime updatedOn;
 	
-	private String poStartDate;
-	private  String poEndDate;
 	
 	//added as per RMG Requirement
 	private String role;
