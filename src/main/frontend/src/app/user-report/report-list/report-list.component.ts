@@ -1,26 +1,27 @@
-import { Component, OnInit, TemplateRef, ViewChild, Renderer2, ElementRef } from '@angular/core';
+import { CdkDragDrop, CdkDragRelease, moveItemInArray } from "@angular/cdk/drag-drop";
+import { formatDate, LocationStrategy } from '@angular/common';
+import { Component, OnInit, Renderer2, TemplateRef, ViewChild } from '@angular/core';
+import { Sort } from '@angular/material/sort';
+import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
+import { Employee } from 'src/app/models/employee';
+import { Feature } from 'src/app/models/feature';
+import { JobRole } from 'src/app/models/jobRole';
+import { Query } from 'src/app/models/query';
+import { Timesheet } from 'src/app/models/timesheet';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
+import { DepartmentService } from 'src/app/services/department.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
-import { Sort } from '@angular/material/sort';
-import { TimesheetService } from 'src/app/services/timesheet.service';
-import { LeaveService } from 'src/app/services/leave.service';
-import { Feature } from 'src/app/models/feature';
-import { Query } from 'src/app/models/query';
 import { JobRoleService } from 'src/app/services/job-role.service';
-import { ValidationService } from 'src/app/services/validation.service';
-import { Employee } from 'src/app/models/employee';
-import { CdkDragDrop, moveItemInArray, CdkDragStart, CdkDragRelease } from "@angular/cdk/drag-drop";
-import { JobRole } from 'src/app/models/jobRole';
-import { formatDate, LocationStrategy } from '@angular/common';
-import { AppComponent } from 'src/app/app.component';
-import * as moment from 'moment';
+import { LeaveService } from 'src/app/services/leave.service';
+import { TimesheetService } from 'src/app/services/timesheet.service';
 import { UtilityService } from 'src/app/services/utility.service';
+import { ValidationService } from 'src/app/services/validation.service';
 import * as XLSX from 'xlsx';
-import { Timesheet } from 'src/app/models/timesheet';
 import { SortPipe } from 'src/app/sort.pipe';
 
 class FilterData {
@@ -96,7 +97,7 @@ export class ReportListComponent implements OnInit {
   selectedColumnToShow: any;
 
   leaveColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Leave Type', 'Team Name', 'Project Name', 'Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
-  employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department','Designation', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Client Name', 'Employment Status', 'Date Of Joining','Domain','Specialization', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On','Profile Completion'];
+  employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department','Designation', 'Job Role', 'Manager', 'Team Name', 'Project Name','Po No','Po Start Date','Po End Date','Po Project Type', 'Client Name', 'Employment Status', 'Date Of Joining','Domain','Specialization', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On','Profile Completion'];
   timesheetColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Department', 'Date', 'Day Type', 'Status', 'Total Working Hour', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'Created On', 'Updated On', 'Updated By', 'Leave Type'];
   queryList: any[] = [];
   filterData: any = new FilterData();
@@ -114,16 +115,40 @@ export class ReportListComponent implements OnInit {
   customQuery:any;
   leaveReportFlag:boolean=false;
   timesheetReportFlag:boolean=false;
+  showDetails:boolean = false;
+  changeTable:boolean = true;
 
   filters:any = {};
   isSearchEnabled:boolean = false;
+
+  employeeReportColumnForDetailedProjectView:any[]=['blank','employeementId','name','departmentName','jobRoleName','managerName','mobileNo','email','employmentstatus','billable','billableType','teamName','projectName','poNo','poType','poStartDate','poEndDate','effectiveStartDate','effectiveEndDate','clientName','clientLocation','workLocation','experience'];
   leaveReportColumns:any[] = ['employeementId','employeeType','employeeName','leaveType','fromDate','toDate','fromDateDayType','toDateDayType','noOfDays','reason','status','managerName','departmentName','createdOn','updatedOn','leaveStatusUpdatedByName'];
   timesheetReportColumns:any[] = ['employeementId','employeeType','employeeName','date','dayType','description','status','totalWorkingHours','officeInTime','officeOutTime','totalWorkingOfficeHours','leaveType','createdOn','updatedOn','timesheetStatusUpdatedByName'];
-  employeeReportColumn:any[] = ['employeementId','employeeType','name','departmentName','jobRoleName','managerName','mobileNo','email','employmentstatus','projectName','clientName','billable','billableType','dateOfJoining','aadhar','aboutMe','address','permanentAddress','city','bloodGroup','dateOfBirth','gender','fatherName','panNumber','placeOfBirth','workLocation','probationPeriod','noticePeriod','country','totalExperience','emergencyContactMobile','emergencyContactPerson','landline','maritalStatus','motherTongue','alternateMobileNo','pincode','relation','state','viewsOnOrganisation','passportNumber','bankAccountNo','bankIFSCCode','bankName','pfAccountNumber','previousPfAccountNumber','uan','esicNumber','graduationType','pursuing','passingGrade','yearOfPassing','updatedOn','updatedByName','createdByName','createdOn'];
+  employeeReportColumn:any[] = ['blank','employeementId','employeeType','name','departmentName','jobRoleName','managerName','mobileNo','email','employmentstatus','projectName','poNo','poStartDate','poEndDate','poProjectType','clientName','billable','billableType','dateOfJoining','aadhar','aboutMe','address','permanentAddress','city','bloodGroup','dateOfBirth','gender','fatherName','panNumber','placeOfBirth','workLocation','probationPeriod','noticePeriod','country','totalExperience','emergencyContactMobile','emergencyContactPerson','landline','maritalStatus','motherTongue','alternateMobileNo','pincode','relation','state','viewsOnOrganisation','passportNumber','bankAccountNo','bankIFSCCode','bankName','pfAccountNumber','previousPfAccountNumber','uan','esicNumber','graduationType','pursuing','passingGrade','yearOfPassing','updatedOn','updatedByName','createdByName','createdOn'];
   leaveTimesheetReportColumn:any[] = ['employeementId','employeeType','employeeName','date','dayType','description','status','managerName','departmentName','createdOn','updatedOn','timesheetStatusUpdatedByName'];
   defaultMappingColumns:any[] = ['tabName','featureName','subFeatureName'];
   employeesFor360:any[] = [];
+  departments:any [] = [];
+  allEmployee : any[] =[];
+  filteredEmployees: any []=[];
+  tnmPoExpiredCount=0;
+  tnmPOValidCount=0;
+  fixedCostPoExpiredCount=0;
+  fixedCostPoValidCount=0;
+  internalCount=0;
+  selectedDepartment: string = 'All';
 
+  activeBox: string | null = null;
+  isHovering: string | null = null;
+
+  tnmPoExpiredCountList:any[]=[];
+  tnmPOValidCountList:any[]=[];
+  fixedCostPoExpiredCountList:any[]=[];
+  fixedCostPoValidCountList:any[]=[];
+  internalCountList:any[]=[];
+
+
+ 
   constructor(
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
@@ -136,6 +161,8 @@ export class ReportListComponent implements OnInit {
     private renderer2: Renderer2,
     private locationStrategy: LocationStrategy,
     private utilityService: UtilityService,
+    private departmentService: DepartmentService,
+
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -174,7 +201,270 @@ export class ReportListComponent implements OnInit {
       this.showEmployeeReportTable();
     }
   }
+  toggleView() {
+    if(this.showDetails === true){
+      this.showDetails = false;
 
+    }
+    else{
+      this.showDetails = true;
+      this.changeTable = true;
+      this.selectedDepartment= 'all';
+      this.getAllDepartments();
+      this.getAllEmployeesReportByProjectTypeInConsolidated();
+      this.filterEmployees();
+      this.tnmPoExpiredCount=0;
+    this.tnmPOValidCount=0;
+    this.fixedCostPoExpiredCount=0;
+    this.fixedCostPoValidCount=0;
+    this.internalCount=0;
+    }
+  }
+  toggleTableView(){
+    if(this.changeTable === true){
+      this.changeTable = false;
+      this.getAllEmployeesReportByProjectType();
+    }
+    else{
+      this.changeTable = true;
+      this.getAllEmployeesReportByProjectTypeInConsolidated();
+      this.tnmPoExpiredCount=0;
+    this.tnmPOValidCount=0;
+    this.fixedCostPoExpiredCount=0;
+    this.fixedCostPoValidCount=0;
+    this.internalCount=0;
+    }
+  }
+
+ 
+
+  onMouseOver(box: string): void {
+    
+    this.isHovering = box;
+  }
+
+  onMouseLeave(): void {
+    this.isHovering = null;
+  }
+  getAllEmployeesReportByProjectTypeInConsolidated(){
+    this.allEmployee=[];
+    this.employeeService.getAllEmployeesReportByProjectTypeInConsolidated().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        // console.log('response -- ',response.serviceResponse);
+        this.allEmployee=response.serviceResponse;
+        console.log('emps -- ',this.allEmployee);
+        this.filterEmployees();
+        
+        
+        this.allEmployee.forEach((emp) => {
+          if (!emp.poEndDate) {
+            this.internalCount++;
+            this.internalCountList.push(emp);
+            return;
+          }
+        
+          const currentDate = new Date();
+          const poEndDate = new Date(emp.poEndDate);
+        
+          const projectTypes = emp.poProjectType.toLowerCase().split(',');
+        
+          if (poEndDate < currentDate) {
+            projectTypes.forEach((type) => {
+              type = type.trim(); 
+              if (type === 'tnm') {
+                this.tnmPoExpiredCount++;
+                this.tnmPoExpiredCountList.push(emp);
+              } else if (type === 'fixed cost') {
+                this.fixedCostPoExpiredCount++;
+                this.fixedCostPoExpiredCountList.push(emp);
+              }
+            });
+           
+          } else {
+            projectTypes.forEach((type) => {
+              type = type.trim(); 
+              if (type === 'tnm') {
+                this.tnmPOValidCount++;
+                this.tnmPOValidCountList.push(emp);
+              } else if (type === 'fixed cost') {
+                this.fixedCostPoValidCount++;
+                this.fixedCostPoValidCountList.push(emp);
+              }
+            });
+          }
+          console.log("TNM Expired Count:", this.tnmPoExpiredCount);
+          console.log("Fixed Cost Expired Count:", this.fixedCostPoExpiredCount);
+          console.log("TNM Valid Count:", this.tnmPOValidCount);
+          console.log("Fixed Cost Valid Count:", this.fixedCostPoValidCount);
+        });
+
+      }else {
+        alert(response.serviceResponse);
+      }
+    });
+  }
+  // onBoxClickDataChange(boxName){
+  //   this.filteredEmployees=[];
+  //   this.activeBox = boxName;
+  //   //TNM-Active,TNM-Expired,FC-Active,FC-Expired
+  //   const currentDate = new Date();
+  //   //const poEndDate = new Date(emp.poEndDate)
+
+  //     if (boxName === 'TNM-Active') {
+  //       this.filteredEmployees = this.allEmployee.filter(emp => 
+  //         emp.poProjectType === "TNM" && new Date(emp.poEndDate) >= currentDate
+  //       );
+  //     } else if (boxName === 'TNM-Expired') {
+  //       this.filteredEmployees = this.allEmployee.filter(emp => 
+  //         emp.poProjectType === "TNM" && new Date(emp.poEndDate) < currentDate
+  //       );
+  //     } else if (boxName === 'FC-Active') {
+  //       this.filteredEmployees = this.allEmployee.filter(emp => 
+  //         emp.poProjectType === "Fixed Cost" && new Date(emp.poEndDate) >= currentDate
+  //       );
+  //     } else if (boxName === 'FC-Expired') {
+  //       this.filteredEmployees = this.allEmployee.filter(emp => 
+  //         emp.poProjectType === "Fixed Cost" && new Date(emp.poEndDate) < currentDate
+  //       );
+  //     } else {
+  //       this.filteredEmployees = this.allEmployee.filter(emp => 
+  //         emp.poProjectType !== "Fixed Cost" && emp.poProjectType !== "TNM"
+  //       );
+  //     }
+  //     console.log('Box click data-- ', this.filteredEmployees);
+
+
+  // }
+//   onBoxClickDataChange(boxName) {
+//     this.filteredEmployees = [];
+//     this.activeBox = boxName;
+//     const currentDate = new Date();
+
+//     this.filteredEmployees = this.allEmployee.filter(emp => {
+      
+//       const projectTypes = emp.poProjectType.toLowerCase().split(',').map(type => type.trim()); 
+//       if(emp.poProjectType){
+        
+
+//         if (boxName === 'TNM-Active') {
+//             return projectTypes.includes('tnm') && new Date(emp.poEndDate) >= currentDate;
+//         } else if (boxName === 'TNM-Expired') {
+//             return projectTypes.includes('tnm') && new Date(emp.poEndDate) < currentDate;
+//         } else if (boxName === 'FC-Active') {
+//             return projectTypes.includes('fixed cost') && new Date(emp.poEndDate) >= currentDate;
+//         } else if (boxName === 'FC-Expired') {
+//             return projectTypes.includes('fixed cost') && new Date(emp.poEndDate) < currentDate;
+//         } 
+//       }else {
+//         return !projectTypes.includes('fixed cost') && !projectTypes.includes('tnm');
+//     }
+        
+//     });
+
+//     console.log('Box click data-- ', this.filteredEmployees);
+// }
+// onBoxClickDataChange(boxName) {
+//   this.filteredEmployees = [];
+//   this.activeBox = boxName;
+//   const currentDate = new Date();
+
+  // this.filteredEmployees = this.allEmployee.filter(emp => {
+  //     // Handle null poProjectType
+  //     if (!emp.poProjectType) {
+  //         return false; // Exclude employees with null or undefined poProjectType
+  //     }
+
+  //     // Normalize poProjectType: convert to lowercase and split by commas
+  //     const projectTypes = emp.poProjectType.toLowerCase().split(',').map(type => type.trim());
+
+  //     if (boxName === 'TNM-Active') {
+  //         return projectTypes.includes('tnm') && new Date(emp.poEndDate) >= currentDate;
+  //     } else if (boxName === 'TNM-Expired') {
+  //         return projectTypes.includes('tnm') && new Date(emp.poEndDate) < currentDate;
+  //     } else if (boxName === 'FC-Active') {
+  //         return projectTypes.includes('fixed cost') && new Date(emp.poEndDate) >= currentDate;
+  //     } else if (boxName === 'FC-Expired') {
+  //         return projectTypes.includes('fixed cost') && new Date(emp.poEndDate) < currentDate;
+  //     } else {
+  //         return !projectTypes.includes('fixed cost') && !projectTypes.includes('tnm');
+  //     }
+  // });
+
+//   console.log('Box click data-- ', this.filteredEmployees);
+// }
+onBoxClickDataChange(boxName) {
+  this.filteredEmployees = [];
+  this.activeBox = boxName;
+  // const currentDate = new Date();
+
+  // this.filteredEmployees = this.allEmployee.filter(emp => {
+  //     if (!emp.poProjectType) {
+  //         return false; 
+  //     }
+
+      // const projectTypes = emp.poProjectType.toLowerCase().split(',').map(type => type.trim());
+
+      if (boxName === 'TNM-Active') {
+          // return projectTypes.includes('tnm') && new Date(emp.poEndDate) >= currentDate;
+          this.filteredEmployees=this.tnmPOValidCountList;
+      } else if (boxName === 'TNM-Expired') {
+        this.filteredEmployees=this.tnmPoExpiredCountList;
+
+          // return projectTypes.includes('tnm') && new Date(emp.poEndDate) < currentDate;
+      } else if (boxName === 'FC-Active') {
+        this.filteredEmployees=this.fixedCostPoValidCountList;
+          // return projectTypes.includes('fixed cost') && new Date(emp.poEndDate) >= currentDate;
+      } else if (boxName === 'FC-Expired') {
+        this.filteredEmployees=this.fixedCostPoExpiredCountList;
+
+          // return projectTypes.includes('fixed cost') && new Date(emp.poEndDate) < currentDate;
+      } else {
+          // return !projectTypes.includes('fixed cost') && !projectTypes.includes('tnm');
+          this.filteredEmployees=this.internalCountList;
+      }
+  // });
+
+  console.log('Box click data-- ', this.filteredEmployees);
+}
+
+  onDepartmentChange(event: any) {
+    this.filteredEmployees=[];
+
+    // if(this.selectedDepartment === 'all'){
+    //   this.filteredEmployees=this.allEmployee;
+    // }else{
+      this.selectedDepartment = event.target.value;
+    // }
+    console.log('Selected Department:', this.selectedDepartment);
+    this.filterEmployees();
+    
+  }
+  getAllDepartments(){
+    this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        // console.log('response -- ',response.serviceResponse);
+        this.departments = response.serviceResponse;
+        // console.log('dept response -- ',this.departments);
+
+      }else {
+        alert(response.serviceResponse)
+      }
+    });
+  }
+
+  filterEmployees() {
+    if (this.selectedDepartment) {
+      if(this.selectedDepartment === 'all'){
+        this.filteredEmployees = [...this.allEmployee];
+      }else{
+        this.filteredEmployees = this.allEmployee.filter(emp => emp.departmentId == this.selectedDepartment);
+      }
+    }
+    console.log('Filtered dept data -- ', this.filteredEmployees);
+    //Fixed Cost,TNM,Bench,InternalRNDProducts,Shadow
+    //poEndDate 
+  }
+  
   showLeaveReportTable() {
     this.leaveReportFlag = true;
     this.timesheetReportFlag = false;
@@ -1181,7 +1471,10 @@ export class ReportListComponent implements OnInit {
     }
 
     if (this.isEmployeeReportTable == true) {
-      this.excelName = 'EmployeeReport.xlsx';
+      // this.excelName = 'EmployeeReport.xlsx';
+
+      if(!this.showDetails){
+        this.excelName = 'EmployeeReport.xlsx';
 
         const onlySpecificDataArr = this.allEmployeeList.map(
           x => ({
@@ -1194,9 +1487,13 @@ export class ReportListComponent implements OnInit {
             "Department" : x.departmentName,
             "Billable" : x.billable,
             "Billable Type" : x.billableType,
-            "Project Name" : x.projectName,
             "Client Name" : x.clientName,
             "Team Name":x.teamName,
+            "Project Name" : x.projectName,
+            "Po No" : x.poNo,
+            "Po Start Date" : x.poStartDate,
+            "Po End Date" : x.poEndDate,
+            "Po Project Type" : x.poProjectType,
             "Aadhar":x.aadhar,
             "About Me":x.aboutMe,
             "address":x.address,
@@ -1242,6 +1539,38 @@ export class ReportListComponent implements OnInit {
           })
         )
         this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+      }else{
+        this.excelName = 'EmployeeDetailedReport.xlsx';
+
+        const onlySpecificDataArr = this.filteredEmployees.map(
+          x => ({
+            "Employee Id":x.employeementId,
+            "Full Name":x.name,
+            "Department":x.departmentName,
+            "Job Role":x.jobRole,
+            "Manager":x.managerName,
+            "Mobile Number":x.mobileNo,
+            "Email Id":x.email,
+            "Employment Status":x.employmentstatus,
+            "Billable":x.billable,
+            "Billable Type":x.billableType,
+            "Team Name":x.teamName,
+            "Project Name":x.projectName,
+            "Po No":x.poNo,
+            "Po Type":x.poType,
+            "Po Start Date":x.poStartDate,
+            "Po End Date":x.poEndDate,
+            "Effective Start Date":x.effectiveStartDate,
+            "Effective End Date":x.effectiveEndDate,
+            "Client Name":x.clientName,
+            "Client Location":x.clientLocation,
+            "Work Location":x.workLocation,
+            "Experience":x.totalExperience,
+
+          })
+        )
+        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+      }
     }
 
     if (this.isAccessControlListTable == true) {
@@ -1350,7 +1679,27 @@ export class ReportListComponent implements OnInit {
     this.filters = searchData;
     //console.log("Updated Filter : ", this.filters);
   }
-}
+
+  getAllEmployeesReportByProjectType() {
+    this.allEmployee = [];
+
+      this.employeeService.getAllEmployeesReportByProjectType().pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.allEmployee = response.serviceResponse;
+          this.filterEmployees();
+           console.log("d nbdfh",this.allEmployee);
+        } else {
+          
+        }
+      });
+    }
+
+
+
+  }
+
+
+
 
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);

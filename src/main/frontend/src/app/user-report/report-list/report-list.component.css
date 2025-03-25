@@ -157,3 +157,35 @@
     border-spacing: 0;
 }
   
+
+
+
+/* Shivtosh */
+
+.branch {
+   
+    cursor: pointer;
+  }
+ 
+  
+  .branch.hover {
+    
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); 
+    background-color: #fff;
+  }
+  
+  .branch.clicked {
+    border: 2px solid #007bff; 
+    transform: scale(1.1); 
+  }
+  
+  h5, p {
+    margin: 0;
+    font-size: 1rem; 
+  }
+  
+  .box {
+    min-height: 200px; 
+  }
+  
