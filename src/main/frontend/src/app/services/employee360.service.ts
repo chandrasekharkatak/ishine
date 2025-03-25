@@ -1,14 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import { Timesheet } from '../models/timesheet';
-import { Subject } from 'rxjs';
-import { BehaviorSubject } from 'rxjs';
 import { Employee } from '../models/employee';
 import { Leave } from '../models/leave';
-import { Team } from '../models/team';
 import { Project } from '../models/project';
+import { Team } from '../models/team';
+import { Timesheet } from '../models/timesheet';
 
 @Injectable({
   providedIn: 'root'
@@ -121,10 +120,17 @@ getTeamMemberByTeamId(teamId:any){
   getProjectInfo(project:Project){
     return this.http.post(`${this.baseUrl}`+`api/getProjectInfo`,project);
   }
-
+  
   getTeamInfo(project:Project){
     return this.http.post(`${this.baseUrl}`+`api/getTeamInfo`,project);
   }
+
+
+
+  getRewardsAndAppreciationCount(employeeDetails:any){
+    return this.http.post(`${this.baseUrl}`+`api/getRewardsAndAppreciationCount`,employeeDetails);
+  }
+
   getLmsData(email: any) {
     const bearerToken = 'Nguif3kxwSDzmojAtj6M93aJlfJqsAWj9blFug4JWkHsoQ2LYgWiApqDe1GZqmpV';  // Use the actual token without "Bearer"
     const body = { email: email };

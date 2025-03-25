@@ -75,19 +75,19 @@
     <div class="profile-details">
       <p class="profile-email1 textValue"><strong>Office:</strong> {{employeeData.workLocation}}</p>
       <p class="profile-email1 textValue"><strong>Total Experience:</strong> {{employeeData.totalExperience}}</p>
-      <p class="profile-email1 textValue"><strong>Appreciation Count:</strong> 0</p>
-      <p class="profile-email1 textValue"><strong>Total Rewards Count:</strong> 0</p>
+      <p class="profile-email1 textValue"><strong>Appreciation Count:</strong> {{appreciationCount}}</p>
+      <p class="profile-email1 textValue"><strong>Total Rewards Count:</strong> {{rewardsCount}}</p>
     </div>
-    <div class="profile-details">
+    <!-- <div class="profile-details">
       <p class="profile-email1 textValue"><strong>Total Leave Count:</strong> 0</p>
       <p class="profile-email1 textValue"><strong>Total OverTime:</strong> 0</p>
       <p class="profile-email1 textValue"><strong>Total Under Time:</strong> 0</p>
       <p class="profile-email1 textValue"><strong>Status Confirmed:</strong> {{employeeData.employmentstatus ==
         'Confirmed' ? 'Yes' : 'No'}}</p>
-
-
-    </div>
+    </div> -->
     <div class="profile-details">
+      <p class="profile-email1 textValue"><strong>Status Confirmed:</strong> {{employeeData.employmentstatus ==
+        'Confirmed' ? 'Yes' : 'No'}}</p>
       <p class="profile-email1 textValue"><strong>Billable Type:</strong> {{employeeData.billableType}}</p>
       <p class="profile-email1 textValue"><strong>Employee Since:</strong> {{employeeData.dateOfJoining}}</p>
 
