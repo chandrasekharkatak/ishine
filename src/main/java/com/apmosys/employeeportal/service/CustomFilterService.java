@@ -1297,7 +1297,7 @@ public class CustomFilterService {
 					empDTO.setMothersName(object[57] != null ? (object[57].toString()) : null);
 					empDTO.setSpouse(object[58] != null ? (object[58].toString()) : null);
 					empDTO.setTotalExperience(object[59] != null ? Float.parseFloat(object[59].toString()) : null);
-//					empDTO.setProjectName(object[60] != null ? object[60].toString() : null);
+					empDTO.setProjectName(object[60] != null ? object[60].toString() : null);
 					empDTO.setClientName(object[61] != null ? object[61].toString() : null);
 //					empDTO.setProjectId(object[62] != null ? Integer.parseInt((object[62].toString())) : null);
 					empDTO.setUpdatedOn(object[63] != null ? (object[63].toString()) : null);
