@@ -22,6 +22,8 @@ public class AppraisalSummary {
 	private Float finalRating;
 	
 	private String finalRemarks;
+//	 private String quarter;
+//	    private Long quarterId;
 	
 	private Float appraisalScore;
 	

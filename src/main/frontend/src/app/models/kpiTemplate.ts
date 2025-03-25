@@ -4,6 +4,7 @@ export interface KpiTemplate {
   description: string;
   createdBy: number;
   quarterId: number;
+  departmentId: number;
   kpis: {
     id?: number;
     description: string;

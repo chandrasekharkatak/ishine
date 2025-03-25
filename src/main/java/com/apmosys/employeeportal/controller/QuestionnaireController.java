@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.controller;
 
+import com.apmosys.employeeportal.dto.KpiDTO;
 import com.apmosys.employeeportal.dto.QuestionnaireDTO;
 import com.apmosys.employeeportal.model.Questionnaire;
 import com.apmosys.employeeportal.service.QuestionnaireService;
@@ -87,18 +88,17 @@ public class QuestionnaireController {
         }
         return response;
     }
-    
-    @GetMapping("/getQuestionnaireByQuarterAndDepartment/{quarterId}/{departmentId}")
-    public ServiceResponse getQuestionnairesByQuarterAndDepartment(@PathVariable Long quarterId,@PathVariable Long departmentId) {
+    @GetMapping("/department/name/{departmentName}")
+    public ServiceResponse getQuestionnairesByDepartmentName(@PathVariable String departmentName) {
         ServiceResponse response = new ServiceResponse();
         try {
-            List<Questionnaire> questionnaires = questionnaireService.getQuestionsByQuarterAndDepartment(quarterId,departmentId);
+            List<Questionnaire> questionnaires = questionnaireService.getQuestionnairesByDepartmentName(departmentName);
             List<QuestionnaireDTO> dtos = questionnaires.stream()
                     .map(questionnaire -> questionnaireService.convertToDTO(questionnaire))
                     .collect(Collectors.toList());
             response.setServiceResponse(dtos);
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            response.setServiceMessage("Fetched questionnaires by quarter successfully");
+            response.setServiceMessage("Fetched questionnaires by department name successfully");
         } catch (Exception e) {
             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
             response.setServiceError(e.getMessage());
@@ -106,6 +106,26 @@ public class QuestionnaireController {
         }
         return response;
     }
+    @GetMapping("/department/{department}/quarter/{quarterId}")
+    public ServiceResponse getQuestionnairesByDepartmentAndQuarter(@PathVariable String departmentName, @PathVariable Long quarterId) {
+        ServiceResponse response = new ServiceResponse();
+        try {
+            List<Questionnaire> questionnaires = questionnaireService.getQuestionnairesByDepartmentAndQuarter(departmentName, quarterId);
+            List<QuestionnaireDTO> dtos = questionnaires.stream()
+                    .map(questionnaire -> questionnaireService.convertToDTO(questionnaire))
+                    .collect(Collectors.toList());
+            response.setServiceResponse(dtos);
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceMessage("Fetched questionnaires by department and quarter successfully");
+        } catch (Exception e) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceError(e.getMessage());
+            response.setErrorStackTrace(e.toString());
+        }
+        return response;
+    }
+
+
     @PutMapping("/updateQuestionnaire/{id}")
     public ServiceResponse updateQuestionnaire(@PathVariable Long id, @RequestBody QuestionnaireDTO questionnaireDTO) {
         ServiceResponse response = new ServiceResponse();

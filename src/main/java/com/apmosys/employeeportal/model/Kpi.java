@@ -1,11 +1,11 @@
 package com.apmosys.employeeportal.model;
-
-
 import javax.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "kpi_kra")
@@ -14,29 +14,35 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Kpi {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Long quarterId;
-    
+    private Long departmentId;
+  
+    private String name;
+    private String description;
+   
     private String quarter;
 
-    
-    private String name;
+    @OneToMany(mappedBy = "kpi", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Kpis> kpis = new ArrayList<>();
 
-    private String description;
- 
     private String approvedBy;
-    
+    private String createdBy;
+
     private String department;
 
-    @CreationTimestamp
-    @Column(updatable = false)
-    private LocalDateTime createdAt; 
-    
-    @UpdateTimestamp
-    private LocalDateTime updatedAt; 
+ 
 
+    public void addKpis(Kpis kpisItem) {
+        kpis.add(kpisItem);
+        kpisItem.setKpi(this);
+    }
+
+    public void removeKpis(Kpis kpisItem) {
+        kpis.remove(kpisItem);
+        kpisItem.setKpi(null);
+    }
 }
-

@@ -28,6 +28,7 @@ export class UserPerformanceService {
     return this.http.get(`${this.baseUrl}api/goal-templates/department/${departmentId}`);
   }
 
+
   // Get goal templates by department name
   getGoalTemplatesByDepartmentName(departmentName: string): Observable<any> {
     return this.http.get(`${this.baseUrl}api/goal-templates/department/name/${departmentName}`);

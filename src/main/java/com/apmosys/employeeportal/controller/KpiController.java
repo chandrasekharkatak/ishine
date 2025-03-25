@@ -2,7 +2,9 @@ package com.apmosys.employeeportal.controller;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.KpiDTO;
+import com.apmosys.employeeportal.dto.QuestionnaireDTO;
 import com.apmosys.employeeportal.model.KpiResponse;
+import com.apmosys.employeeportal.model.Questionnaire;
 import com.apmosys.employeeportal.service.KpiResponseService;
 import com.apmosys.employeeportal.service.KpiService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -12,11 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import javax.persistence.EntityNotFoundException;
-
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-
 
 import java.util.List;
 
@@ -31,11 +28,11 @@ public class KpiController {
     @Autowired
     KpiResponseService kpiResponseService;
     
-    @PostMapping(value = "/createKpi")
-    public ServiceResponse createKpi(@RequestBody KpiDTO kpiDTO) {
+    @PostMapping(value = "/createKpiTemplate/quarter/{quarterId}/department/{departmentId}")
+    public ServiceResponse createKpi(@RequestBody KpiDTO kpiDTO, @PathVariable Long quarterId, @PathVariable Long departmentId) {
         ServiceResponse response = new ServiceResponse();
         try {
-            KpiDTO createdKpi = kpiService.createKpi(kpiDTO);  
+            KpiDTO createdKpi = kpiService.createKpi(kpiDTO, quarterId, departmentId);  
             response.setServiceResponse(createdKpi);         
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceMessage("KPI created successfully.");
@@ -46,8 +43,6 @@ public class KpiController {
         }
         return response;
     }
-
-
    
     @GetMapping("/getAllKpis")
     public ServiceResponse getAllKpis() {
@@ -86,7 +81,6 @@ public class KpiController {
         return response;
     }
 
-    
     @PutMapping("/updateKpi/{id}")
     public ServiceResponse updateKpi(@PathVariable Long id, @RequestBody KpiDTO updatedKpiDTO) {
         ServiceResponse response = new ServiceResponse();
@@ -105,9 +99,6 @@ public class KpiController {
         }
         return response;
     }
-
-
-    
     @DeleteMapping("/deleteKpi/{id}")
     public ServiceResponse deleteKpi(@PathVariable Long id) {
         ServiceResponse response = new ServiceResponse();
@@ -126,6 +117,70 @@ public class KpiController {
         return response;
     }
 
+    @GetMapping("/getKpisByQuarter/{quarterId}")
+    public ServiceResponse getKpisByQuarter(@PathVariable Long quarterId) {
+        ServiceResponse response = new ServiceResponse();
+        try {
+            List<KpiDTO> kpis = kpiService.getKpisByQuarter(quarterId);
+            response.setServiceResponse(kpis);
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceMessage("KPIs for quarter ID " + quarterId + " retrieved successfully.");
+        } catch (Exception e) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceMessage(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceError(e.getMessage());
+        }
+        return response;
+    }
+    
+    @GetMapping("/department/name/{departmentName}")
+    public ServiceResponse getKpisByDepartmentName(@PathVariable String departmentName) {
+        ServiceResponse response = new ServiceResponse();
+        try {
+            List<KpiDTO> kpis = kpiService.getKpisByDepartmentName(departmentName);
+            response.setServiceResponse(kpis);
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceMessage("KPIs for department name '" + departmentName + "' retrieved successfully.");
+        } catch (Exception e) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceMessage(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceError(e.getMessage());
+        }
+        return response;
+    }
+    
+    @GetMapping("/department/{departmentId}")
+    public ServiceResponse getKpisByDepartmentId(@PathVariable Long departmentId) {
+        ServiceResponse response = new ServiceResponse();
+        try {
+            List<KpiDTO> kpis = kpiService.getKpisByDepartmentId(departmentId);
+            response.setServiceResponse(kpis);
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceMessage("KPIs for department ID " + departmentId + " retrieved successfully.");
+        } catch (Exception e) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceMessage(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceError(e.getMessage());
+        }
+        return response;
+    }
+    
+    @GetMapping("/getKpisByQuarter/{quarterId}/Department/{departmentId}")
+    public ServiceResponse getKpisByQuarterAndDepartment(@PathVariable Long quarterId, @PathVariable Long departmentId) {
+        ServiceResponse response = new ServiceResponse();
+        try {
+           
+            List<KpiDTO> kpis = kpiService.getKpisByQuarterAndDepartment(quarterId, departmentId);
+            response.setServiceResponse(kpis);
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceMessage("KPIs for quarter ID " + quarterId + " and department '" + departmentId + "' retrieved successfully.");
+        } catch (Exception e) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceMessage(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceError(e.getMessage());
+        }
+        return response;
+    }
     
     @PutMapping("/{id}/reject")
     public ServiceResponse rejectKpi(@PathVariable Long id) {

@@ -88,17 +88,17 @@
             <h5 class="card-title mb-0 text-center">Appraisal Summary</h5>
           </div>
           <div class="card-body">
-            <p class="card-text">
+            <p class="card-text px-1">
               <strong>Final Rating:</strong> 
-              <!-- <span class="badge bg-success">{{ summary.finalRating }}/10</span> -->
+              <span >{{ summary.finalRating }}/10</span>
             </p>
-            <p class="card-text">
+            <p class="card-text px-1">
               <strong>Appraisal Score:</strong> 
-              <!-- <span class="badge bg-info">{{ summary.appraisalScore }}%</span> -->
+              <span >{{ summary.appraisalScore }}%</span>
             </p>
-            <p class="card-text">
+            <p class="card-text px-1">
               <strong>Final Remarks:</strong>
-              <!-- <span class="text-muted d-block mt-1">{{ summary.finalRemarks }}</span> -->
+              <span class="text-muted d-block mt-1">{{ summary.finalRemarks }}</span>
             </p>
           </div>
           
@@ -134,6 +134,8 @@
     
           <ul class="nav nav-tabs  mb-4">
             <li class="nav-item ">
+
+              <!-- kpi kra review in performance dashboard -->
               <button class="nav-link " [class.active]="activeTab === 'kra-kpi'" aria-selected="true" (click)="setActiveTab('kra-kpi')">KRA/KPI Review</button>
             </li>
             <li class="nav-item ">
@@ -165,6 +167,8 @@
                 </li>
               </ul>
             </div>
+
+            <!-- kpi kra questionniare  -->
     
             <div class="row" *ngIf="activeTab === 'questionnaire'">
               <div class="col-12">

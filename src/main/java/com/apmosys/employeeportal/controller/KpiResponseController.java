@@ -15,8 +15,8 @@ public class KpiResponseController {
     @Autowired
     private KpiResponseService service;
 
-    @PostMapping("/save")
-    public ServiceResponse saveResponse(@RequestBody KpiResponseDTO dto) {
+    @PostMapping("/save/{quarterId}")
+    public ServiceResponse saveResponse(@RequestBody KpiResponseDTO dto , @PathVariable Long quarterId ) {
         ServiceResponse response = new ServiceResponse();
         try {
 //        	System.out.println("EMP Id in controller ==="+empId);
@@ -37,6 +37,22 @@ public class KpiResponseController {
         ServiceResponse response = new ServiceResponse();
         try {
             List<KpiResponseDTO> responses = service.getResponsesByEmpId(empId);
+            response.setServiceResponse(responses);
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceMessage("Responses fetched successfully.");
+        } catch (Exception e) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceMessage(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceError(e.getMessage());
+        }
+        return response;
+    }
+    
+    @GetMapping("/employee/{empId}/quarter/{quarterId}")
+    public ServiceResponse getResponsesByEmpIdAndQuarterId(@PathVariable Long empId, @PathVariable Long quarterId) {
+        ServiceResponse response = new ServiceResponse();
+        try {
+            List<KpiResponseDTO> responses = service.getResponsesByEmpIdAndQuarterId(empId, quarterId);
             response.setServiceResponse(responses);
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceMessage("Responses fetched successfully.");
@@ -79,6 +95,7 @@ public class KpiResponseController {
         }
         return response;
     }
+
 
     @DeleteMapping("/{responseId}")
     public ServiceResponse deleteResponse(@PathVariable Long responseId) {

@@ -6,11 +6,11 @@ import org.springframework.stereotype.Service;
 import com.apmosys.employeeportal.dto.AppraisalSummaryDto;
 import com.apmosys.employeeportal.dto.SummaryDto;
 import com.apmosys.employeeportal.model.AppraisalSummary;
+import com.apmosys.employeeportal.model.QuaterCycle;
 import com.apmosys.employeeportal.model.QuestionnaireResponse;
 import com.apmosys.employeeportal.model.ReviewTable;
 import com.apmosys.employeeportal.repository.AppraisalSummaryRepository;
-import com.apmosys.employeeportal.repository.EmployeeGoalRepository;
-import com.apmosys.employeeportal.repository.KpiResponseRepository;
+import com.apmosys.employeeportal.repository.QuarterCycleRepository;
 import com.apmosys.employeeportal.repository.QuestionnaireRepository;
 import com.apmosys.employeeportal.repository.QuestionnaireResponseRepository;
 import com.apmosys.employeeportal.repository.ReviewRepository;
@@ -30,45 +30,14 @@ public class AppraisalSummaryService {
     private ReviewRepository reviewRepo;
     
     @Autowired
-    private EmployeeGoalRepository employeeGoalRepository;
+    private QuarterCycleRepository quarterCycleRepository;
     
-    @Autowired
-    private QuestionnaireResponseRepository questionnaireResponseRepository;
-    
-    @Autowired
-    private KpiResponseRepository kpiResponseRepository;
-
-//    private QuestionnaireRepository questionnaireResponseRepository
     @Autowired
     private QuestionnaireResponseRepository questionnaireResponseRepo;
-    
-//    public ServiceResponse createAppraisalSummary(AppraisalSummaryDto appraisalSummaryDto) {
-//        ServiceResponse response = new ServiceResponse();
-//        try {
-//         
-//        	if (appraisalSummaryDto.getEmployeeId() == null) {
-//                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//                response.setServiceMessage("Employee ID is required");
-//                return response;
-//            }
-//
-//           
-//            AppraisalSummary appraisalSummary = convertToEntity(appraisalSummaryDto);
-//            
-//            AppraisalSummary savedAppraisalSummary = appraisalSummaryRepository.save(appraisalSummary);
-//            
-//            AppraisalSummaryDto savedDto = convertToDto(savedAppraisalSummary);
-//            
-//            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//            response.setServiceResponse(savedDto);
-//            response.setServiceMessage("Appraisal Summary Created Successfully");
-//        } catch (Exception e) {
-//            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//            response.setServiceError(e.getMessage());
-//            response.setServiceMessage("Error Creating Appraisal Summary");
-//        }
-//        return response;
-//    }
+
+
+
+
     public ServiceResponse calculateAndCreateAppraisalSummary(Long employeeId) {
         ServiceResponse response = new ServiceResponse();
         try {
@@ -118,6 +87,9 @@ public class AppraisalSummaryService {
         }
         return response;
     }
+    
+ 
+    
 
     public ServiceResponse getAppraisalSummaryById(Long id) {
         ServiceResponse response = new ServiceResponse();

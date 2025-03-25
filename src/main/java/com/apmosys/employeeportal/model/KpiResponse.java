@@ -23,7 +23,9 @@ public class KpiResponse {
     private Long kpiId;
     private String response;
     private String remarks;
+    private String quarter;
     private Float score;
+    private Float rating;
     private String approvedBy;
     private LocalDateTime createdAt;
     private String departmentName;

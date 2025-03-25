@@ -11,8 +11,7 @@ public class QuestionnaireResponse {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long responseId;
-	
- 
+
 	private Long goalId;
 	
 	private Long empId;

@@ -11,6 +11,7 @@ import { GoalService } from 'src/app/services/goal.service';
 import { Feature } from 'src/app/models/feature';
 import { LogService } from 'src/app/services/log.service';
 import { Log } from 'src/app/models/log';
+import { KraKpiService } from 'src/app/services/kpi-kra.service';
 
 interface Goal {
   progress: any;
@@ -91,6 +92,7 @@ export class PerformanceDashboardComponent implements OnInit {
     private performanceService:PerformanceService,
     private goalService:GoalService,
     private logService:LogService,
+    private krakpiService: KraKpiService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -146,14 +148,12 @@ export class PerformanceDashboardComponent implements OnInit {
   onQuarterChange(): void {
     if (!this.selectedQuarter) return;
     
-    // Clear existing questions when quarter changes
     this.questionnaireQuestions = [];
     
     this.loadPerformanceStats();
-    this.loadReviewData(); // This is commented out in your original code
+    this.loadReviewData();
     this.fetchGoals();
-    
-    // Only load questionnaire questions if we're on the questionnaire tab
+    this.loadAppraisalSummary();
     if (this.activeTab === 'questionnaire') {
       this.loadQuestionnaireQuestions();
     }
@@ -178,11 +178,13 @@ export class PerformanceDashboardComponent implements OnInit {
 
   loadAppraisalSummary(): void { 
     const empId = this.currentEmployeeInfo.empId;
+    console.log('emp id: ',this.currentEmployeeInfo.empId);
     if (!empId) return;
 
     this.performanceService.getAppraisalSummary(empId).subscribe({
-      next: (data) => {
-        this.summary = data;
+      next: (response) => {
+        this.summary = response.serviceResponse[0];
+        console.log('appraisal summary:', this.summary);
       },
       error: (err) => {
         console.error('Error fetching Appraisal Summary:', err);

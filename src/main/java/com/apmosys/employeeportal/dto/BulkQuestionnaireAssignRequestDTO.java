@@ -1,12 +1,13 @@
 package com.apmosys.employeeportal.dto;
 
+import java.util.List;
 import lombok.*;
+
 @Getter
 @Setter
-public class QuestionnaireAssignRequestDTO {
-	 private Long empId;
+public class BulkQuestionnaireAssignRequestDTO {
+	 private List<Long> empIds;
 	    private Long questionId;
 //	    private String expectedCompletionDate;
 	    private Long quarterId;
-	}
-
+}

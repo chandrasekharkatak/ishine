@@ -44,6 +44,7 @@ public class EmployeeGoalService {
         Optional<GoalTemplates> vopt = goalTemplateRepo.findById(templateId);
         GoalTemplates template = null;
         if(vopt.isPresent()) template = vopt.get();
+     
         
 
 
@@ -86,7 +87,7 @@ public class EmployeeGoalService {
             }
         }
         
-        // If still null, set a default
+    
         if (employeeGoalDTO.getQuarter() == null) {
             employeeGoalDTO.setQuarter("Unknown Quarter");
             System.out.println("No quarter data found, using default");

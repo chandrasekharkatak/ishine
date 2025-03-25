@@ -14,6 +14,12 @@ public interface KpiResponseRepository extends JpaRepository<KpiResponse, Long> 
     List<KpiResponse> findByKpiId(Long kpiId);
     List<KpiResponse> findByQuarterId(Long quarterId);
     List<KpiResponse> findByDepartmentId(Long departmentId);
+    List<KpiResponse> getResponsesByEmpIdAndQuarterId(Long empId, Long quarterId);
+
+    List<KpiResponse> findByQuarter(String quarter);
+
+    List<KpiResponse> findByQuarterAndDepartmentName(String quarter, String departmentName);
+
     
     @Query(nativeQuery = true, value = 
             "INSERT INTO kpi_response (emp_id, department_name) " +

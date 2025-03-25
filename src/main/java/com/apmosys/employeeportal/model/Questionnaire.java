@@ -35,13 +35,14 @@ public class Questionnaire {
     private Long departmentId;
     
     
-    // Helper method to add question and set the relationship
+    
+
     public void addQuestion(Question question) {
         questions.add(question);
         question.setQuestionnaire(this);
     }
-    
-    // Helper method to remove question
+    private String departmentName;
+   
     public void removeQuestion(Question question) {
         questions.remove(question);
         question.setQuestionnaire(null);

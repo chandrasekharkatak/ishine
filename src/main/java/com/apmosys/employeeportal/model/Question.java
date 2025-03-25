@@ -20,8 +20,9 @@ package com.apmosys.employeeportal.model;
 	    @ManyToOne(fetch = FetchType.LAZY)
 	    @JoinColumn(name = "questionnaire_id")
 	    private Questionnaire questionnaire;
-	    
-	    private Float response;
+
+		private Float response;
+		
 	    
 	    // Add other fields as needed
 	}

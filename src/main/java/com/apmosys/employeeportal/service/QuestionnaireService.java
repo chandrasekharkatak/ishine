@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.service;
 
+import com.apmosys.employeeportal.dto.KpiDTO;
 import com.apmosys.employeeportal.dto.QuestionDTO;
 import com.apmosys.employeeportal.dto.QuestionnaireDTO;
 import com.apmosys.employeeportal.model.Question;
@@ -7,6 +8,8 @@ import com.apmosys.employeeportal.model.Questionnaire;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.QuarterCycleRepository;
 import com.apmosys.employeeportal.repository.QuestionnaireRepository;
+import com.apmosys.employeeportal.utility.ServiceResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -31,6 +34,9 @@ public class QuestionnaireService {
         questionnaire.setQuestionTitle(dto.getQuestionTitle());
         questionnaire.setQuestionDescription(dto.getQuestionDescription());
         questionnaire.setCreatedBy(dto.getCreatedBy());
+        questionnaire.setQuarterId(dto.getQuarterId());
+        questionnaire.setDepartmentName(dto.getDepartmentName());
+ 
         questionnaire.setQuarterId(quarterId);
         questionnaire.setQuarter(quarter);
         questionnaire.setDepartment(department);
@@ -74,13 +80,12 @@ public class QuestionnaireService {
         questionnaire.setQuestionDescription(dto.getQuestionDescription());
         questionnaire.setCreatedBy(dto.getCreatedBy());
         questionnaire.setQuarterId(dto.getQuarterId());
-        
-        // Handle questions if they exist
+        questionnaire.setDepartmentName(dto.getDepartmentName());
+ 
         if (dto.getQuestions() != null) {
-            // Clear existing questions
+       
             questionnaire.getQuestions().clear();
-            
-            // Add new questions
+        
             for (QuestionDTO questionDTO : dto.getQuestions()) {
                 Question question = new Question();
                 question.setQuestionText(questionDTO.getQuestionText());
@@ -91,12 +96,15 @@ public class QuestionnaireService {
         
         return questionnaireRepository.save(questionnaire);
     }
+    
+    public List<Questionnaire> getQuestionnairesByDepartmentName(String departmentName) {
+        return questionnaireRepository.findByDepartmentName(departmentName);
+    }
   
     public void deleteQuestionnaire(Long id) {
         questionnaireRepository.deleteById(id);
     }
-    
-    // Convert entity to DTO
+ 
     public QuestionnaireDTO convertToDTO(Questionnaire questionnaire) {
         QuestionnaireDTO dto = new QuestionnaireDTO();
         dto.setQuestionId(questionnaire.getQuestionId());
@@ -118,4 +126,11 @@ public class QuestionnaireService {
         
         return dto;
     }
+    
+    public List<Questionnaire> getQuestionnairesByDepartmentAndQuarter(String departmentName, Long quarterId) {
+        return questionnaireRepository.findByDepartmentNameAndQuarterId(departmentName, quarterId);
+    }
+
+	
+	
 }

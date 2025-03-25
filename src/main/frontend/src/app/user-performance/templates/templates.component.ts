@@ -46,7 +46,6 @@ export class TemplatesComponent implements OnInit {
   selectdepartmentId:number| null= null;
   // selectdepartmentId: number | null = null;
 
-// To this (with correct spelling)
 selectedDepartmentId: number | null = null;
   selectedQuarterIdForKpi: number | null = null;
 quarterCyclesList: any;
@@ -86,7 +85,7 @@ quarter: any;
       createdBy: [null], 
       quarterId: [null, Validators.required],
       questions: this.fb.array([this.createQuestionField()]),
-      departmentId: [null, Validators.required] // Make sure this is properly initialized
+      departmentId: [null, Validators.required] 
     });
 
     this.kpikraForm = this.fb.group({
@@ -94,7 +93,9 @@ quarter: any;
       description: [''],
       createdBy: [null],
       quarterId: [null, Validators.required],
-      kpis: this.fb.array([this.kpiField()])
+      kpis: this.fb.array([this.kpiField()]),
+      departmentId:[null , Validators.required]
+
     });
   }
 
@@ -294,9 +295,25 @@ quarter: any;
         }
       });
   }
+
+
+  // fetchQuarters(): void {
+  //   this.performanceService.getAllQuarterCycles().subscribe({
+  //     next: (response: any) => {
+  //       if (response.serviceStatus === 'Success') {
+  //         this.quarterCyclesList = response.serviceResponse;
+  //       } else {
+  //         this.errorMessage = response.serviceMessage || 'Failed to load quarters.';
+  //       }
+  //     },
+  //     error: (error) => {
+  //       this.errorMessage = error.message || 'Error fetching quarters.';
+  //     }
+  //   });
+  // }
   createKraKpiTemplate(formData: KpiTemplate) {
     // console.log('Sending KPI template data:', formData);
-    this.kraKpiService.createKpiTemplate(formData)
+    this.kraKpiService.createKpiTemplate(formData,formData.quarterId,formData.departmentId)
       .pipe(first())
       .subscribe({
         next: (response: any) => {
@@ -317,6 +334,7 @@ quarter: any;
         }
       });
   }
+
 
   updateQuestionnaireTemplate(id: number, formData: QuestionnaireDTO) {
     this.templateService.updateQuestionnaire(id, formData)
@@ -582,24 +600,65 @@ quarter: any;
     });
   }
 
+  // onDepartmentChange() {
+  //   if (this.selectedDept && this.selectedDept !== 'all') {
+  //     this.userPerformanceService.getGoalTemplatesByDepartmentId(this.selectedDept.deptId)
+  //       .pipe(first())
+  //       .subscribe({
+  //         next: (response: any) => {
+  //           if (response.serviceStatus === "Success") {
+  //             this.goalTemplates = response.serviceResponse;
+  //           } else {
+  //             console.error('Error fetching department goal templates:', response.serviceMessage);
+  //           }
+  //         },
+  //         error: (error) => {
+  //           console.error('HTTP error fetching department templates:', error);
+  //         }
+  //       });
+  //   } else {
+  //     this.fetchGoalTemplates();
+  //   }
+  // }
   onDepartmentChange() {
     if (this.selectedDept && this.selectedDept !== 'all') {
-      this.userPerformanceService.getGoalTemplatesByDepartmentId(this.selectedDept.deptId)
-        .pipe(first())
-        .subscribe({
-          next: (response: any) => {
-            if (response.serviceStatus === "Success") {
-              this.goalTemplates = response.serviceResponse;
-            } else {
-              console.error('Error fetching department goal templates:', response.serviceMessage);
+      if (this.activeTab === 'goals') {
+        this.userPerformanceService.getGoalTemplatesByDepartmentId(this.selectedDept.deptId)
+          .pipe(first())
+          .subscribe({
+            next: (response: any) => {
+              if (response.serviceStatus === "Success") {
+                this.goalTemplates = response.serviceResponse;
+              } else {
+                console.error('Error fetching department goal templates:', response.serviceMessage);
+              }
+            },
+            error: (error) => {
+              console.error('HTTP error fetching department templates:', error);
             }
-          },
-          error: (error) => {
-            console.error('HTTP error fetching department templates:', error);
-          }
-        });
+          });
+      } else if (this.activeTab === 'kra-kpi') {
+        this.kraKpiService.getKraKpiTemplatesByDepartmentId(this.selectedDept.deptId)
+          .pipe(first())
+          .subscribe({
+            next: (response: any) => {
+              if (response.serviceStatus === "Success") {
+                this.kraKpiTemplates = response.serviceResponse;
+              } else {
+                console.error('Error fetching department KRA/KPI templates:', response.serviceMessage);
+              }
+            },
+            error: (error) => {
+              console.error('HTTP error fetching department KRA/KPI templates:', error);
+            }
+          });
+      }
     } else {
-      this.fetchGoalTemplates();
+      if (this.activeTab === 'goals') {
+        this.fetchGoalTemplates();
+      } else if (this.activeTab === 'kra-kpi') {
+        this.fetchKraKpiTemplates();
+      }
     }
   }
   
@@ -608,7 +667,7 @@ quarter: any;
     if (this.kpikraForm.valid) {
       const formData = this.kpikraForm.value;
       
-      formData.createdBy = 1; 
+      formData.createdBy = this.currentEmployeeInfo.empId; 
   
       const kpiDTOs = this.kpis.controls.map(control => {
         const kpiFormGroup = control as FormGroup;
@@ -624,7 +683,8 @@ quarter: any;
         description: formData.description,
         createdBy: formData.createdBy,
         quarterId: formData.quarterId,
-        kpis: kpiDTOs
+        kpis: kpiDTOs,
+        departmentId: formData.departmentId
       };
   
       console.log('KRA-KPI Form Data:', kpiTemplate);
@@ -790,12 +850,14 @@ quarter: any;
   // }
 
   fetchKraKpiTemplates() {
+    
     this.kraKpiService.getAllKpis()
       .pipe(first())
       .subscribe({
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
             this.kraKpiTemplates = response.serviceResponse;
+            console.log(this.kraKpiTemplates);
           } else {
             console.error('Error fetching KRA-KPI templates:', response.serviceMessage);
             this.kraKpiTemplates = [];
