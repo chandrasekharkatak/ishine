@@ -579,7 +579,12 @@ export class Employee360LeaveComponent implements OnInit {
                 leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
                 leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
                 leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+                let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId == leave.empId);
+                //console.log("matchingEmployeeAppLev1 ",matchingEmployeeAppLev1);
+                leave.emp360 = matchingEmployee ? matchingEmployee : {};
+
               });
+              // console.log('reporteeLeaveRevokeApplicationList -- ',this.reporteeLeaveRevokeApplicationList);
             } else {
               console.error(response.serviceResponse);
             }
@@ -593,7 +598,13 @@ export class Employee360LeaveComponent implements OnInit {
                 leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
                 leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
                 leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+                let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId == leave.empId);
+                //console.log("matchingEmployeeAppLev1 ",matchingEmployeeAppLev1);
+                leave.emp360 = matchingEmployee ? matchingEmployee : {};
+
               });
+              // console.log('reporteeLeaveRevokeApplicationList -- ',this.reporteeLeaveRevokeApplicationList);
+
             } else {
               console.error(response.serviceResponse);
             }
