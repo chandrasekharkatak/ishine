@@ -37,6 +37,12 @@ export class ProjectInsightsConfigComponent implements OnInit {
   sortColumn: any;
   sortColumnType:any;
 
+  // tab clicked
+  projectInsightTabClick: boolean = false;
+  prospectiveProjectTabClick: boolean = false;
+  searchTabClick: boolean = false;
+  dashboardTabClick: boolean = false;
+
   //modal
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
@@ -119,9 +125,8 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
     //console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
     this.preventBackButton();
-
-    this.getAllProjects();
   }
+
   preventBackButton(){
     history.pushState(null, null, location.href);
     this.locationStrategy.onPopState(()=>{
@@ -130,10 +135,15 @@ export class ProjectInsightsConfigComponent implements OnInit {
   }
 
   sectionViewInit(){
-    this.showProjectInsight();
+    
   }
 
-  showSurveyForm(){
+  isProjectInsightTabClick(){
+    this.showProjectInsight();
+    this.getAllProjects();
+  }
+
+  showProjectInsightForm(){
     this.isQuestionForm = true;
     this.isCreation = true;
 
