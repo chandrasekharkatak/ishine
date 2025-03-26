@@ -53,4 +53,6 @@ public class ResourceManagementDTO {
 	private String isAllProj;
 	private Integer active;
 	
+
+	private String poNo;
 }
