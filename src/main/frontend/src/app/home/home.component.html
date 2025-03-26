@@ -204,6 +204,11 @@
 
 
         <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link nav-text notification_icon" >
+                    <i class="fas fa-bell" (click)="openPoExpiredMod(poexpire_template)"></i>
+                </a>
+            </li>
             <li class="nav-item pt-1 mr-2">
                 <small class="nav-text">Profile Completed</small>
                 <div class="progress profileCompleted">
@@ -1325,4 +1330,31 @@
 
         </div> -->
         </div>
+    </ng-template>
+
+     <!-- poexpire_template Modal fixed after login-->
+     <ng-template #poexpire_template_fixed>
+        <div class="modal-header">
+            <b>Expired Projects/POs</b>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body text-center" style="overflow: scroll;">
+            <app-expied-po-and-project></app-expied-po-and-project>
+        </div>
+        
+    </ng-template>
+
+    <ng-template #poexpire_template>
+        <div class="modal-header">
+            <b>Expired Projects/POs</b>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body text-center" style="overflow: scroll;">
+            <app-expied-po-and-project></app-expied-po-and-project>
+        </div>
+        
     </ng-template>

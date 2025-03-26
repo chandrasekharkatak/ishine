@@ -191,7 +191,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
  @ViewChild('consent_notification_template')
  private consentNotificationTemplate: TemplateRef<any>;
-  consentModalConfig = {
+ 
+ @ViewChild('poexpire_template_fixed')
+ poExpireTemplateRef:TemplateRef<any> ;
+  
+ 
+ consentModalConfig = {
     backdrop: true,
     ignoreBackdropClick: true,
     keyboard: false,
@@ -418,7 +423,13 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
    this.isEmployeeOnBench();
 
     //console.log('User Mapping', this.userMapping);
+
+    
   }
+
+  
+    
+  
 
  preventBackButton() {
    history.pushState(null, null, location.href);
@@ -438,6 +449,8 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
       this.openConsentNotificationModal();
       this.setReleaseNote();
     }
+
+    this.openPoExpiredMod(this.poExpireTemplateRef);
   }
 
  reset() {
@@ -1576,6 +1589,13 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
 
   openNotificationMod(template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
+
+  openPoExpiredMod(template: TemplateRef<any>) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl' ,
+      backdrop: 'static',
+      keyboard: false 
+  });
   }
 
   openReqMod(template: TemplateRef<any>) {
