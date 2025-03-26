@@ -672,6 +672,8 @@ export class Employee360RewardsComponent implements OnInit {
       (response: any) => {
         this.teamRewardList = response.rewardsDTO;
         this.teamRewardList.forEach(reward => {
+          let matchingRewardedTo =  this.allEmployeeList360.find(emp => emp.empId === reward.id);
+          reward.emp360rewardedToId = matchingRewardedTo ? matchingRewardedTo : {};
           let matchingEmployeeteam = this.allEmployeeList360.find(emp => emp.empId === reward.createdBy);
           reward.emp360teamcreatedBy = matchingEmployeeteam ? matchingEmployeeteam : {};
         });

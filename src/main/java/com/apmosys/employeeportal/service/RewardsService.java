@@ -1446,8 +1446,8 @@ public class RewardsService {
 	    dto.setCreatedBy(getLongValue(row[5])); 
 	    dto.setCreatedByName(getEmployeeNameByEmpId(getLongValue(row[5])));
 	    dto.setRewardCategoryId(getLongValue(row[6]));
-	    dto.setRewardCategoryName(getStringValue(row[7]));    
-	    
+	    dto.setRewardCategoryName(getStringValue(row[7]));
+	    dto.setId(getLongValue(row[8]));
 	    return dto;
 	}
 

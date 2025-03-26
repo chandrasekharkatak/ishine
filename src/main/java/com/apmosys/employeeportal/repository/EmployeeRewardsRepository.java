@@ -148,7 +148,7 @@ public interface EmployeeRewardsRepository extends JpaRepository <EmployeeReward
 //	List<Object[]> getRewardByTeamAndDateRange( @Param("empId") Long empId
 //														 );
 	
-	@Query(value = "SELECT e.name,er.reward_type_name, er.rewarded_to, er.created_on, er.remark, er.created_by,rc.reward_category_id,rc.category_name \n"
+	@Query(value = "SELECT e.name,er.reward_type_name, er.rewarded_to, er.created_on, er.remark, er.created_by,rc.reward_category_id,rc.category_name,e.emp_id \n"
 			+ "			FROM employee_rewards er \n"
 			+ "			INNER JOIN employee e ON e.emp_id = er.rewarded_to\n"
 			+ "			inner join employee_team_mapping etm on etm.emp_id = e.emp_id\n"

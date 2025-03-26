@@ -230,7 +230,8 @@
                         <th class="info-label"><label>{{ i + 1 }}</label></th>
                         <td>{{teamlist.rewardCategoryName}}</td>
                         <td><label>{{ teamlist.rewardTypeName }}</label></td>
-                        <td><label>{{ teamlist.name }}</label>
+                        <td  id="clickablefor360" [navigateToEmployee360]="teamlist.emp360rewardedToId"
+                        style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()"><label>{{ teamlist.name }}</label>
                             <!-- <span style="cursor: pointer;" *ngIf="getMatchedEmployee(teamlist)">
                                 <a [navigateToEmployee360]="getMatchedEmployee(teamlist)">
                                     {{ teamlist.name }}
