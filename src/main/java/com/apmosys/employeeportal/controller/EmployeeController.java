@@ -513,7 +513,7 @@ public class EmployeeController {
 		
 		ServiceResponse response = employeeService.updateDefaultProject(employeeDTO.getEmpId(),employeeDTO.getSelectedProjectId());
 		
-		return null;
+		return response;
 	}
 	
 	@PostMapping(value = "/getExpiredPo")

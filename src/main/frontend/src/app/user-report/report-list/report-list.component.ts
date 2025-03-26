@@ -477,9 +477,12 @@ onBoxClickDataChange(boxName) {
   console.log('new Employee OBJ :::::::::::::',newemployeeObj);
 
   this.employeeService.updateDefaultProject(newemployeeObj).pipe(first()).subscribe((response: any) => {
+    console.log('response ::::::::::::::::::::::',response);
     if (response.serviceStatus == "Success") {
       this.updatedEmpObj= response.serviceResponse ;
       console.log('updated project details ::::::::',this.updatedEmpObj);
+      this.openAlertMod(this.alertModal, "Default Project Updated Successfully  !! ")
+      
     }
   });
 
