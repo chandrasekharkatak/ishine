@@ -904,9 +904,9 @@ quarter: any;
     this.resetForm();
     this.updateFormValidation();
     
-    if (this.selectedTemplateType === 'questionnaire') {
-      this.resetQuestionnaireForm();
-    }
+    // if (this.selectedTemplateType === 'questionnaire') {
+    //   this.resetQuestionnaireForm();
+    // }
   }
 
   editTemplate(template: any) {

@@ -97,9 +97,9 @@ public class QuestionnaireService {
         return questionnaireRepository.save(questionnaire);
     }
     
-    public List<Questionnaire> getQuestionnairesByDepartmentName(String departmentName) {
-        return questionnaireRepository.findByDepartmentName(departmentName);
-    }
+//    public List<Questionnaire> getQuestionnairesByDepartmentName(String departmentName) {
+//        return questionnaireRepository.findByDepartmentName(departmentName);
+//    }
   
     public void deleteQuestionnaire(Long id) {
         questionnaireRepository.deleteById(id);
@@ -126,10 +126,18 @@ public class QuestionnaireService {
         
         return dto;
     }
+
+	public List<Questionnaire> getQuestionnairesByDepartmentName(String departmentName) {
+		return questionnaireRepository.findByDepartmentName(departmentName);
+	}
+
+	public List<Questionnaire> getQuestionnairesByDepartmentAndQuarter(String departmentName, Long quarterId) {
+		return questionnaireRepository.findByDepartmentNameAndQuarterId(departmentName , quarterId);
+	}
     
-    public List<Questionnaire> getQuestionnairesByDepartmentAndQuarter(String departmentName, Long quarterId) {
-        return questionnaireRepository.findByDepartmentNameAndQuarterId(departmentName, quarterId);
-    }
+//    public List<Questionnaire> getQuestionnairesByDepartmentAndQuarter(String departmentName, Long quarterId) {
+//        return questionnaireRepository.findByDepartmentNameAndQuarterId(departmentName, quarterId);
+//    }
 
 	
 	

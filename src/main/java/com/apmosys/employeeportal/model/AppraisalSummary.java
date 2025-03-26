@@ -17,6 +17,8 @@ public class AppraisalSummary {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 	
+	private Long quaterId;
+	
 	private Long employeeId;
 	
 	private Float finalRating;

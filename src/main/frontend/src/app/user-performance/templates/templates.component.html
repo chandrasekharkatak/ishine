@@ -247,34 +247,33 @@
         </select>
       </div>
 
-      <form [formGroup]="templateForm" (ngSubmit)="createOrUpdateTemplate()">
+      <form [formGroup]="templateForm" >
 
 
         <div *ngIf="selectedTemplateType === 'goals'" class="form-group w-25">
-          <div class="form-group w-25">
+          <div class="form-group ">
             <label>Title <span class="text-danger">*</span></label>
             <input type="text" class="form-control" formControlName="title" required>
           </div>
           <label>Description <span class="text-danger">*</span></label>
           <textarea class="form-control" formControlName="description" rows="3"></textarea>
         </div>
-        <!-- <div class="form-group w-25">
+        <div class="form-group w-25">
           <label>Department <span class="text-danger">*</span></label>
           <select class="form-control" formControlName="departmentId" required>
             <option [ngValue]="null" disabled>Select Department</option>
             <option *ngFor="let dept of allDeptList" [ngValue]="dept.deptId">{{dept.name}}</option>
           </select>
-        </div> -->
+        </div>
 
-        <div *ngIf="selectedTemplateType === 'goals'" class="form-group w-25">
-          <!-- <label>Quarter <span class="text-danger">*</span></label>
-          <select class="form-control" formControlName="quarterId" required>
-            <option [ngValue]="null" disabled>Select Quarter</option>
-            <option [ngValue]="1">Q1</option>
-            <option [ngValue]="2">Q2</option>
-            <option [ngValue]="3">Q3</option>
-            <option [ngValue]="4">Q4</option>
-          </select> -->
+       
+        <div class="mt-3" *ngIf="selectedTemplateType === 'goals'">
+          <button type="submit" class="btn btn-primary" [disabled]="templateForm.invalid">
+            {{ isEditing ? 'Update' : 'Create' }} Template
+          </button>
+          <button type="button" class="btn btn-secondary ml-2" (click)="resetForm()">
+            Cancel
+          </button>
         </div>
 
         <!-- ************************************************************************************************* -->
@@ -499,12 +498,11 @@
             </div>
           </form>
         </div>
-        
 
-        <!-- this is need to edited for creating questionnaire -->
+        <!--  creating questionnaire -->
 
-        <div *ngIf="activeTab === 'create-template' && selectedTemplateType === 'questionnaire'" class="card-body mx-0">
-          <form [formGroup]="questionnaireForm" (ngSubmit)="onSubmit()">
+        <div *ngIf="activeTab === 'create-template' && selectedTemplateType === 'questionnaire'" class="card-body m-0">
+          <form [formGroup]="questionnaireForm" (ngSubmit)="onSubmit()" class="ml-0">
             <div class="row mb-3">
               <div class="col-md-6">
                 <label for="questionTitle"><span class="text-danger">*</span>Questionnaire Title</label>
@@ -522,7 +520,7 @@
               <div class="col-md-6">
                 <label for="questionDescription">Description</label>
                 <textarea id="questionDescription" class="form-control" formControlName="questionDescription"
-                  placeholder="Enter questionnaire description" rows="3"></textarea>
+                  placeholder="Enter questionnaire description" rows="2"></textarea>
               </div>
             </div>
 
@@ -540,12 +538,16 @@
               </div>
             </div> -->
 
-            <select formControlName="quarterId" (change)="onQuarterSelection($event)" class="form-control">
-              <option [ngValue]="null">Select Quarter</option>
-              <option *ngFor="let quarter of quarterCyclesList" [value]="quarter.quarterId">
-                {{ quarter.quarterCycle }}
-              </option>
-            </select>
+            <div class="mb-3 row">
+              <div class="col-md-6">
+                <select formControlName="quarterId" (change)="onQuarterSelection($event)" class="form-control">
+                  <option [ngValue]="null">Select Quarter</option>
+                  <option *ngFor="let quarter of quarterCyclesList" [value]="quarter.quarterId">
+                    {{ quarter.quarterCycle }}
+                  </option>
+                </select>
+              </div>
+            </div>
             
             <select formControlName="departmentId" (change)="onDepartmentSelection($event)" class="form-control">
               <option [ngValue]="null">Select Department</option>
@@ -632,14 +634,7 @@
             </div>
           </form>
         </div>
-        <div class="mt-3">
-          <button type="submit" class="btn btn-primary" [disabled]="templateForm.invalid">
-            {{ isEditing ? 'Update' : 'Create' }} Template
-          </button>
-          <button type="button" class="btn btn-secondary ml-2" (click)="resetForm()">
-            Cancel
-          </button>
-        </div>
+        
       </form>
     </div>
   </div>

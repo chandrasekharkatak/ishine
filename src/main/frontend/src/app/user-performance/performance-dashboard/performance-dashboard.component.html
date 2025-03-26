@@ -1,6 +1,6 @@
-<div class="container m-0">
-  <div class="card p-3 py-1 shadow-sm m-0">
-    <div class="row px-1 ml-1" >
+<div class="container mt-0 mb-0">
+  <div class="card p-3 py-0 shadow-sm m-0 ">
+    <div class="row px-1 ml-1 mr-1" >
       <div class="col-md-12 table-header">
         <h1 class="table-header-title">Performance Dashboard</h1>
       </div>
@@ -59,15 +59,17 @@
               <table class="table table-sm table-bordered" style="font-size: 0.90rem;">
                 <thead>
                   <tr class="bg-light " >
-                    <th scope="col" class="w-30">Goal</th>
+                    <th scope="col" class="w-20">Goal</th>
                     <th scope="col">Description</th>
-                    <th scope="col" class="text-center w-20">Action</th>
+                    <th scope="col" class="text-center w-5">Status</th>
+                    <th scope="col" class="text-center w-5">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr *ngFor="let goal of goals">
                     <td>{{ goal.goalTitle }}</td>
                     <td class="text-truncate" style="max-width: 180px;">{{ goal.description }}</td>
+                    <td class="text-center">{{ goal.goalStatus }}</td>
                     <td class="text-center">
                       <button class="btn btn-sm btn-outline-primary py-1 px-2" (click)="openModal(viewGoalTemplate, goal)" style="font-size: 0.75rem;" >View</button>
                     </td>
@@ -135,7 +137,6 @@
           <ul class="nav nav-tabs  mb-4">
             <li class="nav-item ">
 
-              <!-- kpi kra review in performance dashboard -->
               <button class="nav-link " [class.active]="activeTab === 'kra-kpi'" aria-selected="true" (click)="setActiveTab('kra-kpi')">KRA/KPI Review</button>
             </li>
             <li class="nav-item ">
@@ -184,30 +185,19 @@
                       <form *ngIf="questionnaireQuestions.length > 0">
 
                       <div class="list-group">
-                        <div class="list-group-item row" *ngFor="let question of questionnaireQuestions;">
+                        <div class="list-group-item row" *ngFor="let question of questionnaireQuestions; let i = index">
                           <div class="mb-3 col">
-                            <label class="form-label fw-bold"> {{question.questionText}}</label> 
+                            <label class="form-label fw-bold">{{i+1}}. {{question.questionText}}</label> 
                             
                            
                          
-                            <div class="mt-2">
-                              <label class="form-label w-auto">Response:</label>
-                              <input  [(ngModel)]="question.response" placeholder="Rate from 1 to 10" type="number" name="response" min="0" max="10"/>
+                            <div class="mt-2 w-30">
+                              <label class="text-muted mr-2 ">Ratings:</label>
+                              <input class="w-25" [(ngModel)]="question.response" placeholder="Rate from 1 to 10" type="number" name="response" min="0" max="10"/>
 
                             </div>
                             
-                            <!-- Rating if needed -->
-                            <!-- <div class="mt-2">
-                              <label class="form-label">Rating:</label>
-                              <select class="form-select" [formControlName]="'rating_' + question.id">
-                                <option value="">Select Rating</option>
-                                <option value="1">1 - Poor</option>
-                                <option value="2">2 - Below Average</option>
-                                <option value="3">3 - Average</option>
-                                <option value="4">4 - Good</option>
-                                <option value="5">5 - Excellent</option>
-                              </select>
-                            </div> -->
+                            
                           </div>
                         </div>
                       </div>
@@ -237,8 +227,8 @@
 <ng-template #viewGoalTemplate>
   <div class="modal-content rounded-lg shadow-lg">
     <div class="modal-header ">
-      <h5 class="modal-title fw-bold">{{ selectedGoal?.goalTitle }}</h5>
-      <button type="button" class="btn-close text-white" aria-label="Close" (click)="modalRef.hide()"><i class="fa-solid fa-xmark"></i></button>
+      <h5 class="modal-title fw-bold align-items-center">{{ selectedGoal?.goalTitle }}</h5>
+      <button type="button" class="close " aria-label="Close" (click)="modalRef.hide()"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
     <div class="modal-body p-4">
@@ -248,14 +238,14 @@
           <p class="text-muted">{{ selectedGoal?.description }}</p>
         </div>
         <div class="col-md-6">
-          <p><strong>Status:</strong></p>
-          <span class="badge" >{{ selectedGoal?.progress }}</span>
+          <p><strong>Progress:</strong></p>
+          <span class="badge" >{{ selectedGoal?.goalProgress }}</span>
         </div>
       </div>
 
       <div class="row mb-3">
         <div class="col-md-6">
-          <p><strong>Assigned Date:</strong> {{ selectedGoal?.assignedDate | date:'mediumDate' }}</p>
+          <p><strong>Assigned Date:</strong> {{ selectedGoal?.createdDate | date:'mediumDate' }}</p>
         </div>
         <div class="col-md-6">
           <p><strong>Due Date:</strong> {{ selectedGoal?.expectedCompletionDate | date:'mediumDate' }}</p>
@@ -264,7 +254,7 @@
 
       <div class="row mb-3">
         <div class="col-md-6">
-          <p><strong>Employee:</strong> {{ selectedGoal?.employeeName }}</p>
+          <p><strong>Quarter:</strong> {{ selectedGoal?.quarter }}</p>
         </div>
         <div class="col-md-6">
           <p><strong>Assigned By:</strong> {{ selectedGoal?.assignedBy }}</p>
@@ -273,7 +263,7 @@
 
       <div class="mb-3">
         <label for="goalStatus" class="form-label"><strong>Update Progress (% Completed):</strong></label>
-        <input type="number" id="goalStatus" [(ngModel)]="selectedgoalProgress" [min]="selectedGoal?.progress" max="100" step="1" 
+        <input type="number" id="goalStatus" [(ngModel)]="selectedgoalProgress" [min]="selectedGoal?.goalProgress" max="100" step="1" 
                class="form-control" placeholder="Enter percentage " />
       </div>
 

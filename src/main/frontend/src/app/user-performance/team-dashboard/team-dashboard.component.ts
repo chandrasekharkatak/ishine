@@ -2,7 +2,6 @@ import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
-import { AssignGoalsGroupComponent } from '../assign-goals-group/assign-goals-group.component';
 import { Sort } from '@angular/material/sort';
 import { User } from 'src/app/models/user';
 import { TeamViewService } from 'src/app/services/team-view.service';
@@ -15,6 +14,8 @@ import { PerformanceService } from 'src/app/services/performance.service';
 import { Log } from 'src/app/models/log';
 import { Feature } from 'src/app/models/feature';
 import { LogService } from 'src/app/services/log.service';
+import * as moment from 'moment';
+import { DatePipe } from '@angular/common';
 @Component({
   selector: 'app-team-dashboard',
   templateUrl: './team-dashboard.component.html',
@@ -52,7 +53,6 @@ export class TeamDashboardComponent implements OnInit {
   loading = false;
   modalRef?: BsModalRef;
   
-  // New properties for multi-goal assignment
   selectedGoalTemplates: string[] = [];
   errorMessage: string;
   selectedGoalData: {
@@ -60,6 +60,7 @@ export class TeamDashboardComponent implements OnInit {
     templateId: number;
     expectedCompletionDate: string;
   }[] = [];
+  today: Date = new Date();
 
   constructor(
     private router: Router,
@@ -71,6 +72,7 @@ export class TeamDashboardComponent implements OnInit {
     private employeeService: EmployeeService,
     private performanceService: PerformanceService,
     private logService:LogService,
+    private datePipe: DatePipe
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -80,6 +82,8 @@ export class TeamDashboardComponent implements OnInit {
 
   ngOnInit() {
     this.logService.updateLogInfo(this.log);
+    const today = new Date(); 
+    console.log('today date: ', today);
 
     console.log('Current user:', this.currentUser);
     if (this.currentUser && this.currentUser.hodId) {
@@ -98,6 +102,7 @@ export class TeamDashboardComponent implements OnInit {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
 
+   
   }
 
   fetchQuarters(): void {
@@ -254,6 +259,17 @@ export class TeamDashboardComponent implements OnInit {
       class: 'modal-lg'
     });
   }
+
+  futureDateFilter = (date: Date | null): boolean => {
+    const today = new Date(); 
+    return date ? date > today : false; 
+  };
+
+ 
+
+  disableManualDateInput() {
+    return false; 
+  }
   
   closeModal() {
     if (this.modalRef) {
@@ -359,61 +375,7 @@ export class TeamDashboardComponent implements OnInit {
       );
   }
   
-  assignGoalToSingleEmployee() {
-    console.log('Attempting to assign goal to single employee');
-    
-    if (!this.selectedGoalTemplate || !this.expectedCompletionDate || !this.selectedEmployee || !this.selectedQuarter) {
-      console.error('Missing required data for goal assignment');
-      alert('Please select a goal template, quarter, and set an expected completion date.');
-      return;
-    }
-  
-    const requestBody = {
-      empId: this.selectedEmployee.id,
-      templateId: Number(this.selectedGoalTemplate),
-      expectedCompletionDate: this.expectedCompletionDate,
-      quarterId: Number(this.selectedQuarter)
-    };
-    
-    console.log('Sending assignment request:', requestBody);
-  
-    // Use the single employee API endpoint here, not the bulk one
-    this.http.post(`${environment.baseUrl}api/EmployeeGoals/assign`, requestBody)
-      .subscribe(
-        (response: any) => {
-          console.log('Assignment response:', response);
-          if (response && response.serviceStatus && 
-              response.serviceStatus.toUpperCase() === 'SUCCESS') {
-            
-            // Update local data properly
-            const empInList = this.viewTeamMemberList.find(e => e.id === this.selectedEmployee.id);
-            if (empInList) {
-              empInList.totalGoals = (empInList.totalGoals || 0) + 1;
-            }
-            
-            this.closeModal();
-            this.selectedEmployee = null;
-            this.selectedEmployees = [];
-            this.selectedGoalTemplate = '';
-            this.expectedCompletionDate = '';
-            this.selectedQuarter = '';
-            
-            // Still refresh from API to ensure data consistency
-            this.getEmployeesInDepartment();
-            alert('Goal assigned successfully!');
-          } else {
-            console.error('Error response:', response);
-            alert('Error assigning goal: ' + (response.serviceMessage || 'Unknown error'));
-          }
-        },
-        (error) => {
-          console.error('HTTP error:', error);
-          alert('Error assigning goal. Please try again.');
-        }
-      );
-  }
-  
-  // Fixed method to assign multiple goals to a single employee
+
   assignMultipleGoalsToEmployee() {
     console.log('Attempting to assign multiple goals to employee:', this.selectedEmployee);
     
@@ -427,26 +389,23 @@ export class TeamDashboardComponent implements OnInit {
       return;
     }
     
-    // Add loading indicator
-    this.loading = true;
     
-    // Create array of assignment requests (one per goal)
+    const dateFormat = 'YYYY-MM-DD';
     const assignmentPromises = this.selectedGoalData.map(goal => {
       const requestBody = {
         empId: this.selectedEmployee.id,
         templateId: Number(goal.templateId),
-        expectedCompletionDate: goal.expectedCompletionDate,
-        quarterId: Number(this.selectedQuarter)  // Use the selected quarter for all goals
+        // expectedCompletionDate: moment(goal.expectedCompletionDate, dateFormat).toDate(),
+        expectedCompletionDate: this.datePipe.transform(goal.expectedCompletionDate, 'yyyy-MM-dd'),
+        quarterId: Number(this.selectedQuarter) 
       };
       
       console.log('Sending goal assignment request:', requestBody);
       
-      // Properly handle the promise to ensure failures are caught
       return this.http.post(`${environment.baseUrl}api/EmployeeGoals/assign`, requestBody)
         .toPromise()
         .catch(error => {
           console.error('Error assigning goal:', error, requestBody);
-          // Return a standardized error response so Promise.all can continue
           return { 
             serviceStatus: 'ERROR', 
             serviceMessage: error.message || 'Failed to assign goal',
@@ -456,13 +415,11 @@ export class TeamDashboardComponent implements OnInit {
         });
     });
     
-    // Execute all assignment requests
     Promise.all(assignmentPromises)
       .then(responses => {
         console.log('All assignment responses:', responses);
         this.loading = false;
         
-        // Check if all assignments were successful
         const successfulAssignments = responses.filter((response: any) => 
           response && response.serviceStatus && 
           response.serviceStatus.toUpperCase() === 'SUCCESS'
@@ -471,8 +428,7 @@ export class TeamDashboardComponent implements OnInit {
         const failedAssignments = responses.length - successfulAssignments.length;
         
         if (failedAssignments === 0) {
-          // All successful
-          // Update local data
+      
           const empInList = this.viewTeamMemberList.find(e => e.id === this.selectedEmployee.id);
           if (empInList) {
             empInList.totalGoals = (empInList.totalGoals || 0) + this.selectedGoalData.length;

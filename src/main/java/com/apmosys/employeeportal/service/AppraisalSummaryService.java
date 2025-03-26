@@ -6,10 +6,13 @@ import org.springframework.stereotype.Service;
 import com.apmosys.employeeportal.dto.AppraisalSummaryDto;
 import com.apmosys.employeeportal.dto.SummaryDto;
 import com.apmosys.employeeportal.model.AppraisalSummary;
-import com.apmosys.employeeportal.model.QuaterCycle;
+import com.apmosys.employeeportal.model.Qresponse;
 import com.apmosys.employeeportal.model.QuestionnaireResponse;
 import com.apmosys.employeeportal.model.ReviewTable;
 import com.apmosys.employeeportal.repository.AppraisalSummaryRepository;
+import com.apmosys.employeeportal.repository.EmployeeGoalRepository;
+import com.apmosys.employeeportal.repository.KpiResponseRepository;
+import com.apmosys.employeeportal.repository.QresponseRepository;
 import com.apmosys.employeeportal.repository.QuarterCycleRepository;
 import com.apmosys.employeeportal.repository.QuestionnaireRepository;
 import com.apmosys.employeeportal.repository.QuestionnaireResponseRepository;
@@ -30,19 +33,53 @@ public class AppraisalSummaryService {
     private ReviewRepository reviewRepo;
     
     @Autowired
-    private QuarterCycleRepository quarterCycleRepository;
+    private EmployeeGoalRepository employeeGoalRepository;
     
     @Autowired
+    private QuestionnaireResponseRepository questionnaireResponseRepository;
+    
+    @Autowired
+    private KpiResponseRepository kpiResponseRepository;
+
+//    private QuestionnaireRepository questionnaireResponseRepository
+    @Autowired
     private QuestionnaireResponseRepository questionnaireResponseRepo;
+    
+    @Autowired
+    private QresponseRepository qresponseRespository;
+    
+    public ServiceResponse createAppraisalSummary(AppraisalSummaryDto appraisalSummaryDto) {
+        ServiceResponse response = new ServiceResponse();
+        try {
+         
+        	if (appraisalSummaryDto.getEmployeeId() == null) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceMessage("Employee ID is required");
+                return response;
+            }
 
-
-
-
-    public ServiceResponse calculateAndCreateAppraisalSummary(Long employeeId) {
+           
+            AppraisalSummary appraisalSummary = convertToEntity(appraisalSummaryDto);
+            
+            AppraisalSummary savedAppraisalSummary = appraisalSummaryRepository.save(appraisalSummary);
+            
+            AppraisalSummaryDto savedDto = convertToDto(savedAppraisalSummary);
+            
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse(savedDto);
+            response.setServiceMessage("Appraisal Summary Created Successfully");
+        } catch (Exception e) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceError(e.getMessage());
+            response.setServiceMessage("Error Creating Appraisal Summary");
+        }
+        return response;
+    }
+    public ServiceResponse calculateAndCreateAppraisalSummary(Long employeeId,Long quarterId) {
         ServiceResponse response = new ServiceResponse();
         try {
 
-            List<QuestionnaireResponse> responses = questionnaireResponseRepo.findByEmpId(employeeId);
+            List<Qresponse> responses = qresponseRespository.findByEmpId(employeeId);
             List<ReviewTable> response1 = reviewRepo.findByEmployeeId(employeeId);
             if (responses == null || responses.size() != 4) {
                 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -54,15 +91,16 @@ public class AppraisalSummaryService {
                 response.setServiceMessage("Incomplete data: Exactly 4 questionnaire responses are required");
                 return response;
             }
-            float totalScore = (float) responses.stream()
-            	    .mapToDouble(resp -> resp.getScore() != null ? resp.getScore() : 0.0f)
-            	    .sum();
+            
+            float score = qresponseRespository.calculateByEmpIdAndQuarterId(employeeId, quarterId);
+            
+            float totalScore = (float) score;
             float totalScore1 = (float) response1.stream()
             	    .mapToDouble(resp -> resp.getKpiScore() != null ? resp.getKpiScore() : 0.0f)
             	    .sum();
             
-            float averageScore = (totalScore / 4.0f) + (totalScore1/4.0f);
-            //last mein convert to 40 also add kpi score to this 
+            float averageScore = score;
+           
             Integer finalRating = calculateFinalRating(averageScore);
             AppraisalSummaryDto appraisalSummaryDto = new AppraisalSummaryDto();
             appraisalSummaryDto.setEmployeeId(employeeId);
@@ -139,6 +177,33 @@ public class AppraisalSummaryService {
         try {
            
             List<AppraisalSummary> appraisalSummaries = appraisalSummaryRepository.findByEmployeeId(employeeId);
+            
+            
+            List<AppraisalSummaryDto> dtoList = appraisalSummaries.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+            
+            if (!dtoList.isEmpty()) {
+                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(dtoList);
+                response.setServiceMessage("Appraisal Summaries Retrieved Successfully");
+            } else {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceMessage("No Appraisal Summaries Found for Employee");
+            }
+        } catch (Exception e) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceError(e.getMessage());
+            response.setServiceMessage("Error Retrieving Appraisal Summaries");
+        }
+        return response;
+    }
+    
+    public ServiceResponse getAppraisalSummaryByEmployeeIdAndQuarterId(Long employeeId,Long quarterId) {
+        ServiceResponse response = new ServiceResponse();
+        try {
+           
+            List<AppraisalSummary> appraisalSummaries = appraisalSummaryRepository.findbyEmpIdAndQuarterId(employeeId, quarterId);
             
             
             List<AppraisalSummaryDto> dtoList = appraisalSummaries.stream()

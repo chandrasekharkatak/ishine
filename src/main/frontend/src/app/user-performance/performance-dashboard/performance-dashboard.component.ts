@@ -14,17 +14,18 @@ import { Log } from 'src/app/models/log';
 import { KraKpiService } from 'src/app/services/kpi-kra.service';
 
 interface Goal {
-  progress: any;
-  id: number;
+  goalStatus: string;
+  goalProgress: any;
+  goalId: number;
   goalTitle: string;
   description: string;
   checkpoints: any[];
   managerRemark: string;
   employeeRemark: string;
   assignedBy: string;
-  employeeName: string;
+  quarter: string;
   expectedCompletionDate: string;
-  assignedDate: string;
+  createdDate: string;
 }
 
 interface Stats {
@@ -148,10 +149,7 @@ export class PerformanceDashboardComponent implements OnInit {
   onQuarterChange(): void {
     if (!this.selectedQuarter) return;
     
-    this.questionnaireQuestions = [];
-    
-    this.loadPerformanceStats();
-    this.loadReviewData();
+    this.loadPerformanceStats(); 
     this.fetchGoals();
     this.loadAppraisalSummary();
     if (this.activeTab === 'questionnaire') {
@@ -254,10 +252,6 @@ export class PerformanceDashboardComponent implements OnInit {
   setActiveTab(tab: string) {
     this.activeTab = tab;
     
-    // Only load questionnaire data when switching to that tab
-    if (tab === 'questionnaire' && this.questionnaireQuestions.length === 0) {
-      this.loadQuestionnaireQuestions();
-    }
   }
 
   openModal(template: TemplateRef<any>, goal: any): void {
@@ -311,15 +305,12 @@ initQuestionnaireForm(): void {
 }
 
 loadQuestionnaireQuestions(): void {
-  // Add a check to prevent redundant calls
-  if (this.questionnaireQuestions.length > 0) {
-    // Questions are already loaded, just initialize the form
-    this.initQuestionnaireForm();
-    return;
-  }
   
   const quarterId = this.selectedQuarter1;
   const departmentId = this.currentEmployeeInfo.departmentId;
+
+  this.questionnaireQuestions = [];
+  this.currentQuestionnaireId = null;
   
   if (!quarterId || !departmentId) return;
   
@@ -344,16 +335,13 @@ loadQuestionnaireQuestions(): void {
 }
 
 saveQuestionnaireResponses(): void {
-  console.log("Response ======> "+ JSON.stringify(this.questionnaireQuestions));
+ 
 
-  const response = {
-    questions: this.questionnaireQuestions,
-    questionId: this.currentQuestionnaireId
-  };
+  const empId = this.currentEmployeeInfo.empId;
+  const quarterId = this.selectedQuarter1;
 
-  
 
-  this.performanceService.submitQuestionnaireResponses(response).subscribe({
+  this.performanceService.submitQuestionnaireResponses(this.questionnaireQuestions,empId,quarterId).subscribe({
     next: (response: any) => {
       if (response.serviceStatus === 'Success') {
         alert('Questionnaire responses submitted successfully!');
@@ -369,13 +357,18 @@ saveQuestionnaireResponses(): void {
 }
   saveUpdates() {
     const payload = {
-      GoalProgress: this.selectedgoalProgress,
+      goalProgress: this.selectedgoalProgress,
       // checkpoints: this.selectedGoal.checkpoints,
       employeeRemark: this.selectedGoal.employeeRemark,
+      // goalId : this.selectedGoal.goalId
     };
   
-    this.goalService.updateGoal(this.selectedGoal.id, payload).subscribe(
+    this.goalService.updateGoal(this.selectedGoal.goalId, payload).subscribe(
       (response) => {
+        if (response.serviceStatus === 'Success') {
+          alert('Updates saved successfully!');
+          this.modalRef.hide();
+        }
         alert('Updates saved successfully!');
         this.modalRef.hide();
       },

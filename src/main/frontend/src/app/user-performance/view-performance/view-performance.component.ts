@@ -14,17 +14,18 @@ import { LogService } from 'src/app/services/log.service';
 import { Log } from 'src/app/models/log';
 
 interface Goal {
-  statusPercentage: any;
-  id: number;
-  name: string;
+  goalStatus: string;
+  goalProgress: any;
+  goalId: number;
+  goalTitle: string;
   description: string;
   checkpoints: any[];
   managerRemark: string;
   employeeRemark: string;
   assignedBy: string;
-  employeeName: string;
-  dueDate: string;
-  assignedDate: string;
+  quarter: string;
+  expectedCompletionDate: string;
+  createdDate: string;
 }
 
 interface Stats {
@@ -116,7 +117,8 @@ export class ViewPerformanceComponent implements OnInit {
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.quarterCyclesList = response.serviceResponse;
-          console.log(this.quarterCyclesList);
+          this.selectedQuarter = this.quarterCyclesList[0].quarterId;
+          
           this.onQuarterChange();
         } else {
           this.errorMessage = response.serviceMessage || 'Failed to load quarters.';
@@ -151,16 +153,16 @@ export class ViewPerformanceComponent implements OnInit {
 
 
   fetchGoals(): void {
+
     this.errorMessage = ''; 
     const empId = this.currentEmployeeInfo.empId;
-    const quarter = this.selectedQuarter;
-
     if (!empId) return;
-
+    const quarter = Number(this.selectedQuarter);
     this.goalService.getGoalsByEmployeeAndQuarter(empId, quarter).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.goals = response.serviceResponse; 
+          console.log('list of goals',this.goals);
         } else {
           this.errorMessage = response.serviceMessage || 'No goals found for this employee.';
         }
@@ -175,11 +177,13 @@ export class ViewPerformanceComponent implements OnInit {
     const empId = this.currentUser?.empId;
     const quarter = this.selectedQuarter;
 
+
     if (!empId || !quarter) return;
 
     this.performanceService.getPerformanceStats(empId, quarter).subscribe({
-      next: (data) => {
-        this.stats = data;
+      next: (response: any) => {
+        this.stats = response.serviceResponse;
+        console.log('STATS::: ',this.stats);
       },
       error: (err) => {
         console.error('Error fetching performance stats:', err);
@@ -206,7 +210,7 @@ export class ViewPerformanceComponent implements OnInit {
 
   setActiveTab(tab: string) {
     this.activeTab = tab;
-    this.loadReviewData();
+
   }
 
   openModal(template: TemplateRef<any>, goal: any): void {
@@ -217,33 +221,35 @@ export class ViewPerformanceComponent implements OnInit {
 
  
 
-  loadReviewData(): void {
-    const empId = this.currentUser?.empId;
-    const quarter = this.selectedQuarter1;
-    if (!empId) return;
-    this.performanceService.getKraKpiReview(empId, quarter).subscribe({
-      next: (data) => {
-        if (data.serviceStatus === 'Success') {
-          this.kraKpiMetrics = data.serviceResponse;
-        }
-      },
-      error: err => console.error('Error fetching KRA/KPI metrics:', err)
-    });
+  // loadReviewData(): void {
+  //   const empId = this.currentUser?.empId;
+  //   const quarter = this.selectedQuarter1;
+  //   if (!empId) return;
+  //   this.performanceService.getKraKpiReview(empId, quarter).subscribe({
+  //     next: (data) => {
+  //       if (data.serviceStatus === 'Success') {
+  //         this.kraKpiMetrics = data.serviceResponse;
+  //       }
+  //     },
+  //     error: err => console.error('Error fetching KRA/KPI metrics:', err)
+  //   });
 
-    this.performanceService.getQuestionnaireReview(empId, quarter).subscribe({
-      next: (data) => {
-        if (data.serviceStatus === 'Success') {
-          this.questionnaireQuestions = data.serviceResponse;
-        }
-      },
-      error: err => console.error('Error fetching questionnaire:', err)
-    });
-  }
+  //   this.performanceService.getQuestionnaireReview(empId, quarter).subscribe({
+  //     next: (data) => {
+  //       if (data.serviceStatus === 'Success') {
+  //         this.questionnaireQuestions = data.serviceResponse;
+  //       }
+  //     },
+  //     error: err => console.error('Error fetching questionnaire:', err)
+  //   });
+  // }
 
   loadQuestionnaireQuestions(): void {
     const quarterId = this.selectedQuarter1;
     const departmentId = this.currentEmployeeInfo.departmentId;
-    
+
+    this.questionnaireQuestions = [];
+    this.currentQuestionnaireId = null;    
 
     this.http.get(`http://localhost:8081/api/questionnaires/getQuestionnaireByQuarterAndDepartment/${quarterId}/${departmentId}`)
       .subscribe({
@@ -251,7 +257,8 @@ export class ViewPerformanceComponent implements OnInit {
           if (response.serviceStatus === 'Success') {
             this.questionnaireQuestions = response.serviceResponse[0].questions;
             this.currentQuestionnaireId = response.serviceResponse[0].questionId;
-            console.log('Questionnaire response:',this.questionnaireQuestions);
+            // console.log('Questionnaire response:',this.questionnaireQuestions);
+            console.log('length of questionnaire: ', this.questionnaireQuestions.length);
   
            
           } else {
@@ -269,12 +276,13 @@ export class ViewPerformanceComponent implements OnInit {
   
     const response = {
       questions: this.questionnaireQuestions,
-      questionId: this.currentQuestionnaireId
     };
-  
+
+    const empId = this.currentEmployeeInfo.empId;
+    const quarterId = this.selectedQuarter1;
     
   
-    this.performanceService.submitQuestionnaireResponses(response).subscribe({
+    this.performanceService.submitQuestionnaireResponses(response,empId,quarterId).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           alert('Questionnaire responses submitted successfully!');
@@ -304,7 +312,7 @@ export class ViewPerformanceComponent implements OnInit {
       managerRemark: this.selectedGoal.managerRemark,
     };
   
-    this.goalService.updateGoal(this.selectedGoal.id, payload).subscribe(
+    this.goalService.updateGoal(this.selectedGoal.goalId, payload).subscribe(
       (response) => {
         alert('Updates saved successfully!');
         this.modalRef.hide();

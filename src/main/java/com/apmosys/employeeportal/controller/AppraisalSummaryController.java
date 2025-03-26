@@ -18,6 +18,7 @@ public class AppraisalSummaryController {
     @GetMapping("/employee/{empId}/quarter/{quarterId}")
     public ServiceResponse getAppraisalSummary(@PathVariable Long empId, @PathVariable Long quarterId) {
         ServiceResponse response = new ServiceResponse();
+        
         try {
             SummaryDto summaryDto = appraisalSummaryService.getAppraisalSummary(empId, quarterId);
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -31,9 +32,9 @@ public class AppraisalSummaryController {
         return response;
     }
 
-    @GetMapping("/calculate/{employeeId}")
-    public ServiceResponse calculateAppraisalSummary(@PathVariable Long employeeId) {
-        return appraisalSummaryService.calculateAndCreateAppraisalSummary(employeeId);
+    @GetMapping("/calculate/{employeeId}/{quarterId}")
+    public ServiceResponse calculateAppraisalSummary(@PathVariable Long employeeId,@PathVariable Long quarterId) {
+        return appraisalSummaryService.calculateAndCreateAppraisalSummary(employeeId,quarterId);
     }
     
     @GetMapping("/{id}")

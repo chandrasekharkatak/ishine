@@ -34,8 +34,7 @@ public class KpiResponseDTO {
 	  private String departmentName;
 	    private Long departmentId;
 	    private Long quarterId;
-	    
-	    private String quarter;
+	   
 }
 	
 	

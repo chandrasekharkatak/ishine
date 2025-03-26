@@ -125,8 +125,6 @@ import { UserUpdateInfoComponent } from './user-update-info/user-update-info.com
 import { PerformanceDashboardComponent } from './user-performance/performance-dashboard/performance-dashboard.component';
 import { TeamDashboardComponent } from './user-performance/team-dashboard/team-dashboard.component';
 import { TemplatesComponent } from './user-performance/templates/templates.component';
-import { AssignGoalsGroupComponent } from './user-performance/assign-goals-group/assign-goals-group.component';
-import { GoalsTemplateComponent } from './user-performance/goals-template/goals-template.component';
 import { QuarterCycleComponent } from './user-performance/quarter-cycle/quarter-cycle.component';
 import { ViewPerformanceComponent } from './user-performance/view-performance/view-performance.component';
 
@@ -224,8 +222,6 @@ import { ViewPerformanceComponent } from './user-performance/view-performance/vi
     PerformanceDashboardComponent,
     TeamDashboardComponent,
     TemplatesComponent,
-    AssignGoalsGroupComponent,
-    GoalsTemplateComponent,
     QuarterCycleComponent,
     ViewPerformanceComponent,
 

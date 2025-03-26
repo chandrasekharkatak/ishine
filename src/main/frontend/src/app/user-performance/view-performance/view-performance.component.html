@@ -59,15 +59,17 @@
               <table class="table table-sm table-bordered" style="font-size: 0.90rem;">
                 <thead>
                   <tr class="bg-light " >
-                    <th scope="col" class="w-30">Goal</th>
+                    <th scope="col" class="w-20">Goal</th>
                     <th scope="col">Description</th>
-                    <th scope="col" class="text-center w-20">Action</th>
+                    <th scope="col" class="text-center w-5">Status</th>
+                    <th scope="col" class="text-center w-5">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr *ngFor="let goal of goals">
-                    <td>{{ goal.name }}</td>
+                    <td>{{ goal.goalTitle }}</td>
                     <td class="text-truncate" style="max-width: 180px;">{{ goal.description }}</td>
+                    <td class="text-center">{{ goal.goalStatus }}</td>
                     <td class="text-center">
                       <button class="btn btn-sm btn-outline-primary py-1 px-2" (click)="openModal(viewGoalTemplate, goal)" style="font-size: 0.75rem;" >View</button>
                     </td>
@@ -144,7 +146,7 @@
           <div class="row mb-2">
             <div class="col-auto">
               <label class="fw-semibold">Select Quarter:</label>
-              <select class="form-select" [(ngModel)]="selectedQuarter1" (change)="loadQuestionnaireQuestions()">
+              <select class="form-select" aria-hidden="true" name="quarterId1" [(ngModel)]="selectedQuarter1" (ngModelChange)="loadQuestionnaireQuestions()">
                 <option value="" disabled>select</option>
                 <option *ngFor="let quarter of quarterCyclesList" [value]="quarter.quarterId">{{ quarter.quarterCycle }}</option>
               </select>
@@ -166,7 +168,7 @@
               <div class="col-12">
                 <div class="card">
                   <div class="card-header">
-                    <h5 class="card-title">Performance Questionnaire</h5>
+                    <h5 class="card-title"> Questionnaire Review</h5>
                   </div>
                   <div class="card-body">
                     <div *ngIf="questionnaireQuestions.length === 0" class="alert alert-info">
@@ -218,7 +220,7 @@
 <ng-template #viewGoalTemplate>
   <div class="modal-content rounded-lg shadow-lg">
     <div class="modal-header ">
-      <h5 class="modal-title fw-bold">{{ selectedGoal?.name }}</h5>
+      <h5 class="modal-title fw-bold">{{ selectedGoal?.goalTitle }}</h5>
       <button type="button" class="btn-close text-white" aria-label="Close" (click)="modalRef.hide()"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
@@ -230,22 +232,22 @@
         </div>
         <div class="col-md-6">
           <p><strong>Status:</strong></p>
-          <span class="badge" >{{ selectedGoal?.statusPercentage }}</span>
+          <span class="badge" >{{ selectedGoal?.goalProgress }}</span>
         </div>
       </div>
 
       <div class="row mb-3">
         <div class="col-md-6">
-          <p><strong>Assigned Date:</strong> {{ selectedGoal?.assignedDate | date:'mediumDate' }}</p>
+          <p><strong>Assigned Date:</strong> {{ selectedGoal?.createdDate | date:'mediumDate' }}</p>
         </div>
         <div class="col-md-6">
-          <p><strong>Due Date:</strong> {{ selectedGoal?.dueDate | date:'mediumDate' }}</p>
+          <p><strong>Due Date:</strong> {{ selectedGoal?.expectedCompletionDate | date:'mediumDate' }}</p>
         </div>
       </div>
 
       <div class="row mb-3">
         <div class="col-md-6">
-          <p><strong>Employee:</strong> {{ selectedGoal?.employeeName }}</p>
+          <p><strong>Quarter:</strong> {{ selectedGoal?.quarter }}</p>
         </div>
         <div class="col-md-6">
           <p><strong>Assigned By:</strong> {{ selectedGoal?.assignedBy }}</p>
@@ -253,7 +255,7 @@
       </div>
 
 
-      <div class="mb-3">
+      <!-- <div class="mb-3">
         <h6 class="fw-bold">Checkpoints:</h6>
         <ul class="list-group mb-2">
           <li *ngFor="let checkpoint of selectedGoal?.checkpoints"
@@ -261,7 +263,7 @@
             {{ checkpoint }}
           </li>
         </ul>
-      </div>
+      </div> -->
       
       <div class="mb-3">
         <h6 class="fw-bold">Remarks:</h6>

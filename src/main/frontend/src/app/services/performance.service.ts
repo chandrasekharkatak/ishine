@@ -116,7 +116,7 @@ getQuestionnaireReview(empId: number, quarter: string): Observable<any> {
 }
 
 getAppraisalSummary(empId: number): Observable<any> {
-  return this.http.get(`${this.baseUrl}api/appraisal-summaries/employee/${empId}`);
+  return this.http.get(`${this.baseUrl}/api/appraisal-summaries/employee/${empId}`);
 }
 
 submitReview(payload: any): Observable<any> {
@@ -127,8 +127,8 @@ getQuestionnaireByQuarterAndDepartment(quarterId: number, departmentId: number) 
 }
 
 // Method to submit questionnaire responses
-submitQuestionnaireResponses(responses: any) {
-  return this.http.post<any>(`${this.baseUrl}api/question/responses`, responses);
+submitQuestionnaireResponses(response: any, empId:number,quarterId:number) {
+  return this.http.post<any>(`${this.baseUrl}api/qresponses/save/${empId}/${quarterId}`, response);
 }
-
+x
 }
