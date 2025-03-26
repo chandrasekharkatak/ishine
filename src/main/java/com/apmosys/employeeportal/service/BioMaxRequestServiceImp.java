@@ -9,8 +9,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.transaction.Transactional;
+
 import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.BioMaxRequestDTO;
@@ -52,17 +55,22 @@ public class BioMaxRequestServiceImp implements BioMaxRequestService {
 
 	@Autowired
 	private BiomaxDefaulterRepository biomaxDefaulterRepository;
+	
+	@Value("${leavetypeId}")
+	private int leaveTypeId;
 
 	@Override
 	public ServiceResponse createBioMaxRequest(BioMaxRequestDTO biomaxRequest) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
+		Optional<BioMaxRequestIssue> requestType = bioMaxRequestIssueRepository
+				.findById(biomaxRequest.getBiomaxTitle());
 		apiLogInfo.setSubFeatureName("Add createBioMaxRequest");
 		apiLogInfo.setApiUrl("/api/createBioMaxRequest");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append(
-				"BioMax Request Type :" + biomaxRequest.getEmpId() + " ,Approved By :" + biomaxRequest.getStatusBy());
+				"BioMax Request Type :" + requestType + " ,is created and pending to be Approved By :" + biomaxRequest.getStatusBy());
 		try {
 			BiomaxRequest biomax = new BiomaxRequest();
 			biomax.setBiomaxrequestDate(biomaxRequest.getBiomaxrequestDate());
@@ -70,7 +78,7 @@ public class BioMaxRequestServiceImp implements BioMaxRequestService {
 			biomax.setBiomaxStatus("Pending");
 			biomax.setCreatedOn(LocalDateTime.now());
 			biomax.setTobiomaxrequestDate(biomaxRequest.getTobiomaxrequestDate());
-			biomax.setBiomaxTitle(biomaxRequest.getBiomaxTitle());
+			biomax.setBiomaxIssueId(biomaxRequest.getBiomaxTitle());
 			biomax.setRequestRemark(biomaxRequest.getRequestRemark());
 			biomax.setReportingManagerId(biomaxRequest.getReportingManagerId());
 			bioMaxRequestRepository.save(biomax);
@@ -88,6 +96,7 @@ public class BioMaxRequestServiceImp implements BioMaxRequestService {
 	}
 
 	@Override
+	@Transactional
 	public ServiceResponse updateBioMaxRequest(Long id, BioMaxRequestDTO biomaxRequestDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -95,7 +104,7 @@ public class BioMaxRequestServiceImp implements BioMaxRequestService {
 		apiLogInfo.setApiUrl("/api/updateBioMaxRequest");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("BioMax Request Type :" + biomaxRequestDTO.getEmpId() + " ,Approved By :"
+		logBuilder.append("BioMax Request Type :" + biomaxRequestDTO.getBiomaxTitleValue() + " ,is Approved By :"
 				+ biomaxRequestDTO.getStatusBy());
 		try {
 			Optional<BiomaxRequest> exitingBiomaxRequestForUpdate = bioMaxRequestRepository.findById(id);
@@ -114,7 +123,7 @@ public class BioMaxRequestServiceImp implements BioMaxRequestService {
 
 				response.setServiceStatus("success");
 				response.setServiceMessage(
-						"Biomax Request Has been " + biomaxRequestDTO.getBiomaxStatus() + " to your Reporting Manager");
+						"Biomax Request Staus Is Updated To " + biomaxRequestDTO.getBiomaxStatus());
 				response.setServiceResponse(biomax);
 			} else {
 				response.setServiceStatus("fails");
@@ -134,7 +143,7 @@ public class BioMaxRequestServiceImp implements BioMaxRequestService {
 	private List<List<BiomaxDefaulter>> groupConsecutiveDays(List<BiomaxDefaulter> defaulterList) {
 
 		defaulterList.sort(Comparator.comparing(defaulter -> LocalDateTime.parse(defaulter.getDefaultedDate(),
-				DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
+				DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S"))));
 
 		List<List<BiomaxDefaulter>> groupedDefaulters = new ArrayList<>();
 		List<BiomaxDefaulter> currentGroup = new ArrayList<>();
@@ -142,17 +151,24 @@ public class BioMaxRequestServiceImp implements BioMaxRequestService {
 		for (int i = 0; i < defaulterList.size(); i++) {
 			BiomaxDefaulter currentDefaulter = defaulterList.get(i);
 			LocalDateTime currentDate = LocalDateTime.parse(currentDefaulter.getDefaultedDate(),
-					DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+					DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S"));
 
 			if (currentGroup.isEmpty()) {
 				currentGroup.add(currentDefaulter);
 			} else {
 				BiomaxDefaulter lastDefaulterInGroup = currentGroup.get(currentGroup.size() - 1);
 				LocalDateTime lastDateInGroup = LocalDateTime.parse(lastDefaulterInGroup.getDefaultedDate(),
-						DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+						DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S"));
 				if (lastDateInGroup.plusDays(1).equals(currentDate)) {
 					currentGroup.add(currentDefaulter);
-				} else {
+				} 
+				else if(lastDateInGroup.plusDays(2).equals(currentDate)) {
+					currentGroup.add(currentDefaulter);
+				}
+				else if(lastDateInGroup.plusDays(3).equals(currentDate)) {
+					currentGroup.add(currentDefaulter);
+				}
+					else {
 					if (currentGroup.size() == 3) {
 						groupedDefaulters.add(new ArrayList<>(currentGroup));
 					}
@@ -179,16 +195,20 @@ public class BioMaxRequestServiceImp implements BioMaxRequestService {
 
 				if (employee.getEmploymentstatus().equals("Confirmed")) {
 					EmployeeLeavesMap employeeLeaveMapObject = employeeLeavesMapRepository
-							.findByEmpIdAndLeaveTypeMasterId(empid, (short) 3);
+							.findByEmpIdAndLeaveTypeMasterId(empid, (short) leaveTypeId);
 					List<BiomaxDefaulter> defaulterListLatest = biomaxDefaulterRepository.findByEmpIdAndIsDeducted(empid,true);
 					DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 					List<BiomaxDefaulter> filteredList = defaulterListLatest.stream().filter(defaulter -> {
 						String defaultedDateStr = defaulter.getDefaultedDate();
 						try {
+							if (defaultedDateStr.contains(".")) {
+						        defaultedDateStr = defaultedDateStr.substring(0, defaultedDateStr.indexOf(".")); 
+						    }
 							LocalDateTime defaultedDate = LocalDateTime.parse(defaultedDateStr, formatter);
 							return !defaultedDate.isBefore(fromDate) && !defaultedDate.isAfter(toDate);
 						} catch (Exception e) {
+							e.printStackTrace();
 							return false;
 						}
 					}).collect(Collectors.toList());
@@ -216,15 +236,19 @@ public class BioMaxRequestServiceImp implements BioMaxRequestService {
 				    // Update the leave balance based on the most frequent leave to deduct
 				    if (employeeLeaveMapObject != null && !mostFrequentLeaveToDeduct.equals("No data found")) {
 				        Float newBalance = employeeLeaveMapObject.getBalance() + totalDeductionToBeAdded;
-
+				        
 					employeeLeaveMapObject.setBalance(newBalance);
 					EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeaveMapObject);
+					filteredList.forEach(data->{
+						data.setIsApprovedByManager(true);
+					});
+					biomaxDefaulterRepository.saveAll(filteredList);
 					LeaveBalanceLog log = new LeaveBalanceLog();
 
 					log.setBalance(newBalance);
 					log.setEmpId(empid);
-					log.setLeaveTypeMasterId((short) 3);
-					log.setMessage(LeaveLogMessage.autoDeductLeaveOnTimesheetDefaulter.replace("0.0", ""+totalDeductionToBeAdded));
+					log.setLeaveTypeMasterId((short) leaveTypeId);
+					log.setMessage(LeaveLogMessage.autoDeductedLeaveOnTimesheetDefaulterAddedBack.replace("0.0", ""+totalDeductionToBeAdded));
 					log.setUpdateBalanceBy("+" + totalDeductionToBeAdded);
 
 					LeaveBalanceLog leaveLogDbResponse = leaveBalanceLogRepository.save(log);
@@ -254,10 +278,10 @@ public class BioMaxRequestServiceImp implements BioMaxRequestService {
 					BioMaxRequestDTO ob = new BioMaxRequestDTO();
 					ob.setBiomaxreequestId(e.getBiomaxreequestId());
 					ob.setBiomaxStatus(ob.getBiomaxStatus());
-					ob.setBiomaxTitle(e.getBiomaxTitle());
+					ob.setBiomaxTitle(e.getBiomaxIssueId());
 					ob.setTobiomaxrequestDate(e.getTobiomaxrequestDate());
 					Optional<BioMaxRequestIssue> requestType = bioMaxRequestIssueRepository
-							.findById(e.getBiomaxTitle());
+							.findById(e.getBiomaxIssueId());
 					if (requestType.isPresent()) {
 						ob.setBiomaxTitleValue(requestType.get().getBioMaxRequestIssueName());
 					}
@@ -272,8 +296,8 @@ public class BioMaxRequestServiceImp implements BioMaxRequestService {
 					ob.setBiomaxStatus(e.getBiomaxStatus());
 					ob.setRequestRemark(e.getRequestRemark());
 					ob.setBiomaxrequestDate(e.getBiomaxrequestDate());
-					List<BiomaxDefaulter> defaulterList = biomaxDefaulterRepository.findByEmpIdAndIsDeducted(empid,
-							true);
+					List<BiomaxDefaulter> defaulterList = biomaxDefaulterRepository.findByEmpIdAndIsDeductedAndIsApprovedByManager(empid,
+							true,false);
 					List<String> dateList = defaulterList.stream().map(BiomaxDefaulter::getDefaultedDate)
 							.collect(Collectors.toList());
 
@@ -312,12 +336,12 @@ public class BioMaxRequestServiceImp implements BioMaxRequestService {
 					BioMaxRequestDTO ob = new BioMaxRequestDTO();
 					ob.setBiomaxreequestId(e.getBiomaxreequestId());
 					ob.setBiomaxStatus(ob.getBiomaxStatus());
-					ob.setBiomaxTitle(e.getBiomaxTitle());
+					ob.setBiomaxTitle(e.getBiomaxIssueId());
 					ob.setTobiomaxrequestDate(e.getTobiomaxrequestDate());
 
 					ob.setReportingManagerId(e.getReportingManagerId());
 					Optional<BioMaxRequestIssue> requestType = bioMaxRequestIssueRepository
-							.findById(e.getBiomaxTitle());
+							.findById(e.getBiomaxIssueId());
 					if (requestType.isPresent()) {
 						ob.setBiomaxTitleValue(requestType.get().getBioMaxRequestIssueName());
 					}

@@ -21,7 +21,7 @@ public class BiomaxRequest {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long biomaxreequestId;
-	private Long biomaxTitle;
+	private Long biomaxIssueId;
 	private Long empId;
 	private Long reportingManagerId;
 	private LocalDateTime biomaxrequestDate;

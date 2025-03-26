@@ -260,8 +260,8 @@ public class CronJobService {
 	@Value("${valid.attempt:5}")
 	private Long validAttempt;
 	
-	
-	
+	@Value("${leavetypeId}")
+	private int leaveTypeId;
 	
 	 @PersistenceContext
 	 EntityManager entityManager;
@@ -5354,47 +5354,83 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //			   
 //		}
 
-		@Transactional
+//		@Transactional
 		public void leaveDeduct() {
 			String depart = "";
 			String employee = "";
 
 			List<BioMaTO> biomaxDataList = new ArrayList<>();
-			BioMaTO biomatObj = new BioMaTO();
-			biomatObj.setEmployeeCode("2");
-			biomatObj.setAttendanceDate("2025-03-20 00:00:00.0");
-			biomatObj.setInTime("00:00");
-			biomatObj.setOutTime("00:00");
-			biomatObj.setTotalDuration("200");
-			biomatObj.setShiftName("General");
-			biomatObj.setBeginTime("00:00");
-			biomatObj.setEndTime("00:00");
-			biomatObj.setDeduct("0.5");
-			biomaxDataList.add(biomatObj);
+//			BioMaTO biomatObj = new BioMaTO();
+//			biomatObj.setEmployeeCode("3");
+//			biomatObj.setAttendanceDate("2025-03-17 00:00:00.0");
+//			biomatObj.setInTime("00:00");
+//			biomatObj.setOutTime("00:00");
+//			biomatObj.setTotalDuration("200");
+//			biomatObj.setShiftName("General");
+//			biomatObj.setBeginTime("00:00");
+//			biomatObj.setEndTime("00:00");
+//			biomatObj.setDeduct("1");
+//			biomaxDataList.add(biomatObj);
+//
+//			BioMaTO biomatObj1 = new BioMaTO();
+//			biomatObj1.setEmployeeCode("3");
+//			biomatObj1.setAttendanceDate("2025-03-18 00:00:00.0");
+//			biomatObj1.setInTime("00:00");
+//			biomatObj1.setOutTime("00:00");
+//			biomatObj1.setTotalDuration("200");
+//			biomatObj1.setShiftName("General");
+//			biomatObj1.setBeginTime("00:00");
+//			biomatObj1.setEndTime("00:00");
+//			biomatObj1.setDeduct("1");
+//			biomaxDataList.add(biomatObj1);
 
-			BioMaTO biomatObj1 = new BioMaTO();
-			biomatObj1.setEmployeeCode("4");
-			biomatObj1.setAttendanceDate("2025-03-19 00:00:00.0");
-			biomatObj1.setInTime("00:00");
-			biomatObj1.setOutTime("00:00");
-			biomatObj1.setTotalDuration("200");
-			biomatObj1.setShiftName("General");
-			biomatObj1.setBeginTime("00:00");
-			biomatObj1.setEndTime("00:00");
-			biomatObj1.setDeduct("0.5");
-			biomaxDataList.add(biomatObj1);
-
-			BioMaTO biomatObj2 = new BioMaTO();
-			biomatObj2.setEmployeeCode("3");
-			biomatObj2.setAttendanceDate("2025-03-18 00:00:00.0");
-			biomatObj2.setInTime("00:00");
-			biomatObj2.setOutTime("00:00");
-			biomatObj2.setTotalDuration("200");
-			biomatObj2.setShiftName("General");
-			biomatObj2.setBeginTime("00:00");
-			biomatObj2.setEndTime("00:00");
-			biomatObj2.setDeduct("0.5");
-			biomaxDataList.add(biomatObj2);
+//			BioMaTO biomatObj2 = new BioMaTO();
+//			biomatObj2.setEmployeeCode("3");
+//			biomatObj2.setAttendanceDate("2025-03-19 00:00:00.0");
+//			biomatObj2.setInTime("00:00");
+//			biomatObj2.setOutTime("00:00");
+//			biomatObj2.setTotalDuration("200");
+//			biomatObj2.setShiftName("General");
+//			biomatObj2.setBeginTime("00:00");
+//			biomatObj2.setEndTime("00:00");
+//			biomatObj2.setDeduct("0.5");
+//			biomaxDataList.add(biomatObj2);
+//			
+//			BioMaTO biomatObj3 = new BioMaTO();
+//			biomatObj3.setEmployeeCode("3");
+//			biomatObj3.setAttendanceDate("2025-03-21 00:00:00.0");
+//			biomatObj3.setInTime("00:00");
+//			biomatObj3.setOutTime("00:00");
+//			biomatObj3.setTotalDuration("200");
+//			biomatObj3.setShiftName("General");
+//			biomatObj3.setBeginTime("00:00");
+//			biomatObj3.setEndTime("00:00");
+//			biomatObj3.setDeduct("0.5");
+//			biomaxDataList.add(biomatObj3);
+//			
+			BioMaTO biomatObj4 = new BioMaTO();
+			biomatObj4.setEmployeeCode("3");
+			biomatObj4.setAttendanceDate("2025-03-24 00:00:00.0");
+			biomatObj4.setInTime("00:00");
+			biomatObj4.setOutTime("00:00");
+			biomatObj4.setTotalDuration("200");
+			biomatObj4.setShiftName("General");
+			biomatObj4.setBeginTime("00:00");
+			biomatObj4.setEndTime("00:00");
+			biomatObj4.setDeduct("1");
+			biomaxDataList.add(biomatObj4);
+			
+			BioMaTO biomatObj5 = new BioMaTO();
+			biomatObj5.setEmployeeCode("3");
+			biomatObj5.setAttendanceDate("2025-03-25 00:00:00.0");
+			biomatObj5.setInTime("00:00");
+			biomatObj5.setOutTime("00:00");
+			biomatObj5.setTotalDuration("200");
+			biomatObj5.setShiftName("General");
+			biomatObj5.setBeginTime("00:00");
+			biomatObj5.setEndTime("00:00");
+			biomatObj5.setDeduct("0.5");
+			biomaxDataList.add(biomatObj5);
 
 			// start the rahul code
 //		    List<BioMaTO> biomaxDataList = bioMaxService.getBiomaxDataForLeaveDeduct();
@@ -5405,31 +5441,36 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 			List<Long> removeemployeeId = new ArrayList<>();
 
 			// Fetch comp-off leave employees for today and filter biomaxDataList
-			List<CompOffLeave> compOffLeaveList = compOffLeaveRepository.findEmployeeIsOnCompOffLeaveToday();
-			if (compOffLeaveList != null && !compOffLeaveList.isEmpty()) {
-				compOffLeaveList.forEach((comoff) -> {
-					Employee empcomof = employeeRepository.findByEmpId(comoff.getEmpId());
-					if (empcomof != null) {
-						removeemployeeId.add(empcomof.getEmployeementId());
-					}
-				});
-			}
-
+//			List<CompOffLeave> compOffLeaveList = compOffLeaveRepository.findEmployeeIsOnCompOffLeaveToday();
+//			if (compOffLeaveList != null && !compOffLeaveList.isEmpty()) {
+//				compOffLeaveList.forEach((comoff) -> {
+//					Employee empcomof = employeeRepository.findByEmpId(comoff.getEmpId());
+//					if (empcomof != null) {
+//						removeemployeeId.add(empcomof.getEmployeementId());
+//					}
+//				});
+//			}
+			
+			
 			// Fetch department configuration and filter biomaxDataList for
 			// non-leave-deducted departments
 			Optional<PortalConfig> departmentConfig = portalConfigRepository
 					.findByportalConfigById(Short.parseShort(biomaxleavedeductForDepartment));
 			if (departmentConfig.isPresent()) {
 				PortalConfig portalConfig = departmentConfig.get();
+				if(portalConfig.getConfigValue() != null) {
 				String departmentConfigValue = portalConfig.getConfigValue().replace("[", "").replace("]", ""); // Remove
-																												// square
-																												// brackets
+				
 				if (!departmentConfigValue.isEmpty()) {
 					String[] departmentIds = departmentConfigValue.split(","); // Split the string into an array
 					Set<Long> departmentNotLeaveDeduct = Arrays.stream(departmentIds).map(Long::parseLong)
 							.collect(Collectors.toSet()); // Store department IDs in a set for faster lookup
 					biomaxDataList.removeIf(bio -> departmentNotLeaveDeduct.contains(bio.getDepartmentId()));
 				}
+				
+				
+				}																							
+																												
 			}
 
 			// Fetch employees on leave today and filter biomaxDataList for them
@@ -5487,6 +5528,21 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //		            int rowNum = 1;
 					if (biomaxDataList != null && !biomaxDataList.isEmpty()) {
 
+//						 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+//
+//					        // Filter out biomax data where AttendanceDate is a holiday
+//					        List<BioMaTO> filteredList = biomaxDataList.stream()
+//					                .filter(biomaxData -> {
+//					                	 String attendanceDateStr = biomaxData.getAttendanceDate();
+//					                	 String dateOnlyStr = attendanceDateStr.split(" ")[0];
+//					                     LocalDate attendanceDate = LocalDate.parse(dateOnlyStr, formatter);
+//
+//					                     // Check if the formatted date is a holiday
+//					                     List<Holiday> holidays = holidayRepository.findByDateOfHoliday(attendanceDate);
+//					                     return holidays.isEmpty(); // Keep the data if no holiday is found
+//					                })
+//					                .collect(Collectors.toList());
+						
 						List<BioMaTO> biomaxDataFilterList = biomaxDataList.stream()
 								.filter(obj -> (!(obj.getDeduct().isEmpty()) && obj.getDeduct() != null
 										&& Double.parseDouble(obj.getDeduct()) > 0))
@@ -5516,7 +5572,9 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 										newDefaulterObj.setLeaveToDeduct(object.getDeduct());
 										newDefaulterObj.setDefaultedDate(object.getAttendanceDate());
 										newDefaulterObj.setIsDeducted(false);
+										newDefaulterObj.setIsApprovedByManager(false);
 										biomaxDefaulterRepository.save(newDefaulterObj);
+										
 										List<BiomaxDefaulter> defaulterListLatest = biomaxDefaulterRepository
 												.findByEmployeementIdForDefaulterBiomax(employmentId);
 
@@ -5530,7 +5588,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 												&& !mostFrequentLeaveToDeduct.equalsIgnoreCase("No data found")) {
 											// Deduct leave logic
 											EmployeeLeavesMap employeeLeaveMapObject = employeeLeavesMapRepository
-													.findByEmpIdAndLeaveTypeMasterId(employeeObj.getEmpId(), (short) 3);
+													.findByEmpIdAndLeaveTypeMasterId(employeeObj.getEmpId(), (short) leaveTypeId);
 
 											if (employeeLeaveMapObject != null) {
 												Float newBalance = employeeLeaveMapObject.getBalance()
@@ -5544,10 +5602,10 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 													LeaveBalanceLog log = new LeaveBalanceLog();
 													log.setBalance(newBalance);
 													log.setEmpId(employeeObj.getEmpId());
-													log.setLeaveTypeMasterId((short) 3);
+													log.setLeaveTypeMasterId((short) leaveTypeId);
 													log.setMessage(LeaveLogMessage.autoDeductLeaveOnTimesheetDefaulter
 															.replace("0.0", object.getDeduct()));
-													log.setUpdateBalanceBy("-" + object.getDeduct());
+													log.setUpdateBalanceBy("-" + mostFrequentLeaveToDeduct);
 
 													LeaveBalanceLog leaveLogDbResponse = leaveBalanceLogRepository
 															.save(log);
@@ -5570,9 +5628,10 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 											rowNum++;
 										}
 //		                                dataToBeDeleted.add(employmentId);
-
+										Long maxGrpId = biomaxDefaulterRepository.findMaxDroupIdFromEmpId(employeeObj.getEmpId());
 										defaulterListLatest.forEach(data -> {
 											data.setIsDeducted(true);
+											data.setGroupId(maxGrpId);
 											biomaxDefaulterRepository.save(data);
 										});
 
@@ -5585,6 +5644,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 										newDefaulterObj.setLeaveToDeduct(object.getDeduct());
 										newDefaulterObj.setDefaultedDate(object.getAttendanceDate());
 										newDefaulterObj.setIsDeducted(false);
+										newDefaulterObj.setIsApprovedByManager(false);
 										biomaxDefaulterRepository.save(newDefaulterObj);
 									}
 								}

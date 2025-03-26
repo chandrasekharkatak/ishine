@@ -26,7 +26,9 @@ public class BiomaxDefaulter {
 	private Long departmentId;
 	private String leaveToDeduct;
 	private String defaultedDate;
-	private Boolean isDeducted; 
+	private Long groupId;
+	private Boolean isDeducted;
+	private Boolean isApprovedByManager;
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();
 
