@@ -244,7 +244,8 @@
                                 </a>
                             </span> -->
                             </td>
-                            <td><label>{{ teamlist.createdByName }}</label></td>
+                            <td id="clickablefor360" [navigateToEmployee360]="teamlist.emp360teamcreatedBy"
+                            style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()"><label>{{ teamlist.createdByName }}</label></td>
                             <td><label>{{ teamlist.remark }}</label></td>
                             <td><label>{{ teamlist.createdOn | date: 'dd-MM-yyyy'}}</label></td>
                         </tr>
