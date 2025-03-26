@@ -6320,7 +6320,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 			
 			response.setServiceResponse(empPrimaryProjectMappingSaved);
 			response.setServiceMessage("Saved Succesfully...!!");
-			response.setServiceStatus("Success");
+			response.setServiceStatus(response.STATUS_SUCCESS);
 		
 		}
 		else if(empPrimaryProjectMapping != null && projectId != null && !projectId.isEmpty()) {
@@ -6331,17 +6331,17 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 			
 			response.setServiceResponse(empPrimaryProjectMappingSaved);
 			response.setServiceMessage("Updated Succesfully...!!");
-			response.setServiceStatus("Success");
+			response.setServiceStatus(response.STATUS_SUCCESS);
 		}
 		
 		else {
 			response.setServiceMessage("Please provide the Project Id..!!");
-			response.setServiceStatus("Fail");
+			response.setServiceStatus(response.STATUS_FAIL);
 		}
 	}
 		else {
 			response.setServiceMessage("Please provide the Employee Id..!!");
-			response.setServiceStatus("Fail");
+			response.setServiceStatus(response.STATUS_FAIL);
 		}
 		
 		return response;
