@@ -506,4 +506,12 @@ public class EmployeeController {
 		ServiceResponse response = employeeService.setReportingManagerToNewManager(employeeDto);
 		return response;
 	}
+	
+	@PostMapping("/updateDeafultProject")
+	public ServiceResponse updateDeafultProject(@RequestBody EmployeeDTO employeeDTO) {
+		
+		ServiceResponse response = employeeService.updateDeafultProject(employeeDTO.getEmpId(),employeeDTO.getSelectedProjectId(),employeeDTO.getProjectName());
+		
+		return null;
+	}
 }

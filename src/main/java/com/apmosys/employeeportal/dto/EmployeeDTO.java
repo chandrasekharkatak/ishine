@@ -268,5 +268,7 @@ public class EmployeeDTO {
     
     private String teamIds;
     private String projectIds;
+    private String selectedProjectId;
+    
 	
 }

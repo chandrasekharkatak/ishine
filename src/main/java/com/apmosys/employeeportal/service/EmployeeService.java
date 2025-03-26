@@ -56,6 +56,7 @@ import com.apmosys.employeeportal.model.Asset;
 import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.DraftEmployee;
+import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeAssetMap;
 import com.apmosys.employeeportal.model.EmployeeCertificate;
@@ -86,6 +87,7 @@ import com.apmosys.employeeportal.repository.AuditCustomRepository;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.DraftEmployeeRepository;
+import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificateRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
@@ -145,6 +147,9 @@ public class EmployeeService {
 
 	@Autowired
 	EmployeeTeamMapRepository employeeTeamMapRepository;
+	
+	@Autowired
+	EmpPrimaryProjectMappingRepository empPrimaryProjectMappingRepository;
 
 	@Value("${default.password}")
 	String defaultPaswword;
@@ -6300,5 +6305,46 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	
 	return response;
 }
+	public ServiceResponse updateDeafultProject(Long empId, String projectId, String projectName) {
+		
+		ServiceResponse response = new ServiceResponse();
+		EmpPrimaryProjectMapping empPrimaryProjectMapping = new EmpPrimaryProjectMapping();
+		if(empId != null) {
+		empPrimaryProjectMapping = empPrimaryProjectMappingRepository.findByEmpId(empId);
+		if(empPrimaryProjectMapping == null && projectId != null && !projectId.isEmpty()) {
+			
+			empPrimaryProjectMapping.setEmpId(empId);
+			empPrimaryProjectMapping.setPrimaryProjectId(Long.valueOf(projectId));			
+			empPrimaryProjectMapping.setPrimaryProjectName(projectName);
+			EmpPrimaryProjectMapping empPrimaryProjectMappingSaved = empPrimaryProjectMappingRepository.save(empPrimaryProjectMapping);
+			
+			response.setServiceResponse(empPrimaryProjectMappingSaved);
+			response.setServiceMessage("Saved Succesfully...!!");
+			response.setServiceStatus("Success");
+		
+		}
+		else if(empPrimaryProjectMapping != null && projectId != null && !projectId.isEmpty()) {
+			
+			empPrimaryProjectMapping.setPrimaryProjectId(Long.valueOf(projectId));			
+			empPrimaryProjectMapping.setPrimaryProjectName(projectName);
+			EmpPrimaryProjectMapping empPrimaryProjectMappingSaved = empPrimaryProjectMappingRepository.save(empPrimaryProjectMapping);
+			
+			response.setServiceResponse(empPrimaryProjectMappingSaved);
+			response.setServiceMessage("Updated Succesfully...!!");
+			response.setServiceStatus("Success");
+		}
+		
+		else {
+			response.setServiceMessage("Please provide the Project Id..!!");
+			response.setServiceStatus("Fail");
+		}
+	}
+		else {
+			response.setServiceMessage("Please provide the Employee Id..!!");
+			response.setServiceStatus("Fail");
+		}
+		
+		return response;
+	}
 	
 }
