@@ -507,10 +507,10 @@ public class EmployeeController {
 		return response;
 	}
 	
-	@PostMapping("/updateDeafultProject")
+	@PostMapping("/updateDefaultProject")
 	public ServiceResponse updateDeafultProject(@RequestBody EmployeeDTO employeeDTO) {
 		
-		ServiceResponse response = employeeService.updateDeafultProject(employeeDTO.getEmpId(),employeeDTO.getSelectedProjectId(),employeeDTO.getProjectName());
+		ServiceResponse response = employeeService.updateDeafultProject(employeeDTO.getEmpId(),employeeDTO.getSelectedProjectId());
 		
 		return null;
 	}
