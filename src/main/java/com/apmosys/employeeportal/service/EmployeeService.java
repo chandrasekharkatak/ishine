@@ -46,10 +46,13 @@ import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeCertificateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeRewardsDTO;
+import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
+import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.SurveyDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.model.Asset;
@@ -6354,5 +6357,30 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		
 		return response;
 	}
+	
+	
+	public ServiceResponse getExpiredPo() {
+		ServiceResponse serviceResponse = new ServiceResponse();
+	    try {
+	    	List<ProjectDTO> expiredPoList = new ArrayList<>();
+		      
+		        List<Project> result = projectRepository.getExpiredPolist();
+
+		    if (result.isEmpty()) {
+	            serviceResponse.setServiceResponse("No data found");
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        } else {
+	            serviceResponse.setServiceResponse(result);
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        }
+    } catch (Exception e) {
+        e.printStackTrace(); 
+        serviceResponse.setServiceResponse("Error occurred while fetching data");
+        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+    }
+    
+    return serviceResponse;
+	}
+
 	
 }

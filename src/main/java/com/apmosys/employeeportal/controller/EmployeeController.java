@@ -20,6 +20,7 @@ import com.apmosys.employeeportal.dto.AppreciationRequest;
 import com.apmosys.employeeportal.dto.DateRangeDTO;
 import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.service.EmployeeService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -513,5 +514,13 @@ public class EmployeeController {
 		ServiceResponse response = employeeService.updateDefaultProject(employeeDTO.getEmpId(),employeeDTO.getSelectedProjectId());
 		
 		return null;
+	}
+	
+	@PostMapping(value = "/getExpiredPo")
+	public ServiceResponse getEmployeeRewardByEmpId() { 
+		
+		ServiceResponse serviceResponse = new ServiceResponse();
+		serviceResponse = employeeService.getExpiredPo();
+		return serviceResponse;
 	}
 }

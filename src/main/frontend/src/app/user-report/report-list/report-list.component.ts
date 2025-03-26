@@ -459,6 +459,8 @@ onBoxClickDataChange(boxName) {
   }
 
   updateDefaultProject(employee : any){
+
+    console.log('emp data :::::::::::',employee);
   this.getProjectId(employee);
   
   const selectedProjectId = this.getProjectId(employee);
