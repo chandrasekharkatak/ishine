@@ -118,4 +118,11 @@ public class ResourceManagementController {
 		ServiceResponse response = resourceManagementService.deleteTeamByTeamId(teamDto);
 		return response;
 	}
+	
+	@RequestMapping(value = "/syncPoProjectDetailsByProjectId", method = RequestMethod.POST)
+	public ServiceResponse syncPoProjectDetailsByProjectId(@RequestBody ResourceManagementDTO resourceManagementDTO) {
+		
+		ServiceResponse response = resourceManagementService.syncPoProjectDetailsByProjectId(resourceManagementDTO);
+		return response;
+	}
 }

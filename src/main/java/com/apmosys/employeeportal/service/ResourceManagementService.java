@@ -179,6 +179,12 @@ public class ResourceManagementService {
 
 		        projectObj.setProjectName(resourceManagementDTO.getName());
 		        projectObj.setProjectManagerId(projManagerId);
+		        
+		        projectObj.setPoNo(resourceManagementDTO.getPoNo());
+		        projectObj.setPoStartDate(resourceManagementDTO.getStartDate());
+		        projectObj.setPoEndDate(resourceManagementDTO.getEndDate());
+		        projectObj.setPoProjectType(resourceManagementDTO.getProjectType());
+		        
 		        Project projectDbResponse = projectRepository.save(projectObj);
 				
 				resourceManagementDTO.getTeamList().forEach((teamObj) -> {
@@ -665,6 +671,10 @@ public class ResourceManagementService {
 			    newProject.setPoProjectId(resourceManagementDTO.getId());
 			    newProject.setActive("true");
 			    newProject.setSyncProject("true");
+			    newProject.setPoProjectType(resourceManagementDTO.getProjectType());
+			    newProject.setPoNo(resourceManagementDTO.getPoNo());
+			    newProject.setPoStartDate(resourceManagementDTO.getStartDate());
+			    newProject.setPoEndDate(resourceManagementDTO.getEndDate());
 				
 				  	if (resourceManagementDTO.getIsHOD().equals("true")) {
 				 	newProject.setIsDraftProject("false"); 
@@ -757,7 +767,8 @@ public class ResourceManagementService {
 //			                after create team
 			                
 			                try {
-								mailService.sendMail(rmgMail,"Regarding Team Create", "Dear "
+							
+			                	mailService.sendMail(rmgMail,"Regarding Team Create", "Dear "
 										+ "RMG ,"+"<br>"
 										+ "The Team has been created with the team name - "+teamDbResponse.getTeamName()+"<br>"
 												+ "<br><br>"
@@ -2697,6 +2708,55 @@ public class ResourceManagementService {
 		return response;
 	}
 	
-	
-	
+	public ServiceResponse syncPoProjectDetailsByProjectId(ResourceManagementDTO resourceManagementDTO) {
+		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setSubFeatureName("syncPoProjectDetailsByProjectId");
+        apiLogInfo.setApiUrl("/api/syncPoProjectDetailsByProjectId");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("syncPoProjectDetailsByProjectId "+resourceManagementDTO.getId());
+
+		try {
+			Project projObj = null;
+		    if (resourceManagementDTO.getProjectType().equals("Internal")) {
+		        projObj = null;
+		    } else {
+		        projObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
+		    }
+
+		    Project projectObj = projObj;
+
+		    if (projectObj != null) {
+		        
+		        projectObj.setPoNo(resourceManagementDTO.getPoNo());
+		        projectObj.setPoStartDate(resourceManagementDTO.getStartDate());
+		        projectObj.setPoEndDate(resourceManagementDTO.getEndDate());
+		        projectObj.setPoProjectType(resourceManagementDTO.getProjectType());
+		        
+		        Project projectDbResponse = projectRepository.save(projectObj);
+		        
+		        if(projectDbResponse != projObj) {
+		        	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Synced Successfully !");
+		        }else if(projectDbResponse != projObj) {
+		        	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Already Up To Date !");
+		        }else {
+		        	response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+					response.setServiceResponse("Data not mismatched !");
+		        }
+		    }
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
 }
