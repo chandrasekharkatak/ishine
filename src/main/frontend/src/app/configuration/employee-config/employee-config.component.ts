@@ -2000,7 +2000,7 @@ export class EmployeeConfigComponent implements OnInit {
           // console.log("employee.managerId ", employee.managerId);
           let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === employee.managerId);
           // console.log("manager ", matchingEmployee2);
-          employee.emp360Manger = matchingEmployee2 ? matchingEmployee2 : {};
+          employee.emp360Mng = matchingEmployee2 ? matchingEmployee2 : {};
           // console.log("employee.createdBy ", employee.createdBy);
           let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
           // console.log("createdby ", matchingEmployee3);

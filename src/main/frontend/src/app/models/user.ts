@@ -39,6 +39,8 @@ export class User{
 	hodName:any;
     hodEmail:any;
 
+    firstName: any;
+
     isTimesheetLockCheckEnable:any;
     timesheetLockUpdatedOn:any;
 	timesheetBackDatedDays:any;

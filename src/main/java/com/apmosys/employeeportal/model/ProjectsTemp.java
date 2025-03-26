@@ -18,8 +18,8 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@Table(name="projects")
-public class Project {
+@Table(name="projects_temp")
+public class ProjectsTemp {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,16 +45,12 @@ public class Project {
 	private Long createdBy;
 	private Long updatedBy;
 	private LocalDateTime updatedOn;
-	
-	
 	//added as per RMG Requirement
 	private String role;
     private Integer count;
     private String experience;
+    private String poEndDate;
+    private String poNo;
     private String poStartDate;
-	private  String poEndDate;
-	private String poNo;
-	 private String poProjectType;
-
-
+    private String poProjectType;
 }

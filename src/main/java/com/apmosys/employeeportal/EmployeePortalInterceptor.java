@@ -37,7 +37,8 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 				"/employeeportal/api/checkOTPWhenForgotPassword",
 				"/employeeportal/api/resendOTP",
 				"/employeeportal/api/checkUserSession",
-				"/employeeportal/api/logoutUser"
+				"/employeeportal/api/logoutUser",
+				"/employeeportal/api/downloadFileFromQrCode"
 			);
 			
 	private final String POPORTAL_SESSION_KEY = "Nguif3kxwSDzmojAtj6M93aJlfJqsAWj9blFug4JWkHsoQ2LYgWiApqDe1GZqmpV"; 

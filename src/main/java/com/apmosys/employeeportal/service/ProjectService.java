@@ -5,10 +5,12 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.TimeZone;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -19,7 +21,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.RestTemplate;
 
 import com.apmosys.employeeportal.dto.ClientsDTO;
@@ -39,6 +43,8 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
+import com.apmosys.employeeportal.model.ProjectsTemp;
+import com.apmosys.employeeportal.model.ProjectsTempRepository;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.ActivityTemplateRepository;
@@ -75,6 +81,9 @@ public class ProjectService {
 	@Autowired
 	TeamRepository teamRepository;
 	
+	 @Autowired
+	 ProjectsTempRepository projectstempRepository;
+	 
 	@Autowired
 	EmployeeTeamMapRepository employeeTeamMapRepository;
 	
@@ -101,6 +110,7 @@ public class ProjectService {
 	
 	@Autowired
 	private LogService logService;
+	
 	@Value("${poPortal.api.allProjects}")
 	private String allPoPortalProjects;
 	
@@ -111,106 +121,7 @@ public class ProjectService {
 	public RestTemplate getRestTemplate() {
 		return restTemplate;
 	}
-	
-	public List<ProjectPoPortalDTO> getProjectCloneFromPoPortal() {
-		ServiceResponse response = new ServiceResponse();
-        LogDTO apiLogInfo = new LogDTO();
-        //apiLogInfo.setSubFeatureName("");
-        apiLogInfo.setApiUrl("/api/getProjectCloneFromPoPortal");
-        apiLogInfo.setLogLevel("INFO");
-        ProjectPoPortalDTO[] projects = restTemplate.getForObject(allPoPortalProjects, ProjectPoPortalDTO[].class);
-        List<ProjectPoPortalDTO> list= Arrays.asList(projects != null ? projects : new ProjectPoPortalDTO[0]);
-if(list!=null) {
-        list.forEach((p)->{
-        	
-        	if (p.getProjectManager() != null) {
-        		System.out.println("p.getProjectManager()"+p.getProjectManager());
-        		String empId = p.getProjectManager().replaceAll("\\s+", "").replaceAll("(?i)A-", "");
-        		
-        		Employee empValidate = employeeRepository.findByEmployeementId(Long.parseLong(empId)); // Lookup employee
-        	    if (empValidate != null) {
-        	        p.setProjectManager(empValidate.getEmpId().toString()); // Update project manager ID
-        	        p.setProjectManagerName(empValidate.getName()); // Update project manager name
-        	    }
-        	
-        	}
-        	Project project=projectRepository.findByPoProjectId(p.getId());
-        	if(p.getClientName()!=null) {
-        		Optional<Client> client=clientsRepository.findByClientName(p.getClientName());
-        		if(client.isPresent()) {
-        			Client c=client.get();
-        			System.out.println("client"+c.getClientName());
-        			project.setClientId(c.getClientId());
-        			project.setClientName(c.getClientName());
-        		}
-        	}
-        	List<ProjectDepartmentMap> projDeptMap = projectDepartmentMapRepository.findByProjectId(project.getProjectId());
-    		
-        	if(projDeptMap.size()==0) {
-    			List<String> deptName=p.getDepartment();
-    			if(deptName.size()>0) {
-    				
-    				for(String mp:deptName)
-    				{
-    					Department dept=departmentRepository.findByName(mp);
-    	    			if(dept!=null) {
-    	    				ProjectDepartmentMap ProjectDepartmentMap1=new ProjectDepartmentMap();
-        					ProjectDepartmentMap1.setDeptId(dept.getDeptId());
-        					ProjectDepartmentMap1.setProjectId(Integer.parseInt(project.getProjectId().toString()));
-        					projectDepartmentMapRepository.save(ProjectDepartmentMap1);
-    	    			}
-    					
-    				}
-    			}
-    		}
-        	if(project!=null) {
-        		project.setProjectName(p.getName()+" ( "+p.getPoNo()+" ) ");
-        		project.setPoStartDate(p.getStartDate());
-        		project.setPoEndDate(p.getEndDate());
-        		project.setClientLocation(p.getClientLocation().get(0));
-        		project.setClientName(p.getClientName());
-        		project.setState(p.getClientState());
-        		project.setActive("true");
-        		project.setState(p.getStatus());
-        		if(p.getProjectManager()!=null) {
-            		
-        		project.setProjectManagerId(Long.parseLong(p.getProjectManager()));
-        		}
-        		//project.setDepartmentName(p.getDepartment().toString());
-        		
-        		project.setIsDraftProject("true");
-        		project.setActive("true");
-        		project.setSyncProject("true");
-        		
-        		projectRepository.save(project);
-        	}else {
-        		 project=new Project();
-        		 project.setProjectName(p.getName()+" ( "+p.getPoNo()+" ) ");
-        		 project.setState(p.getClientState());
-        		 project.setPoProjectId(p.getId());
-        		if(p.getProjectManager()!=null) {
-        			project.setProjectManagerId(Long.parseLong(p.getProjectManager()));
-        		}
-        		project.setState(p.getStatus());
-        		if(p.getDepartment().size()>0) {
-        			project.setDepartmentName(p.getDepartment().toString());
-        		}
-        		project.setIsDraftProject("true");
-        		project.setActive("true");
-        		project.setSyncProject("true");
-        		
-        		project.setPoStartDate(p.getStartDate());
-        		project.setPoEndDate(p.getEndDate());
-        		project.setClientLocation(p.getClientLocation().get(0));
-        		project.setClientName(p.getClientName());
-        		projectRepository.save(project);
-        	}
-        	
-        	
-        });
-}
-		return list;
-	}
+
 	
 	public ServiceResponse getAllClients() {
 		ServiceResponse response = new ServiceResponse();
@@ -1573,4 +1484,52 @@ if(list!=null) {
 		return response;
 	}
 	
+	private String formatDate(String dateTime) {
+	    if (dateTime == null || dateTime.isEmpty()) {
+	        return null;
+	    }
+	    return dateTime.split("T")[0]; 
+	}
+	
+	public List<ProjectPoPortalDTO> getProjectCloneFromPoPortal() {
+		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setSubFeatureName("getProjectCloneFromPoPortal");
+        apiLogInfo.setApiUrl("/api/getProjectCloneFromPoPortal");
+        apiLogInfo.setLogLevel("INFO");
+        ProjectPoPortalDTO[] projects = restTemplate.getForObject(allPoPortalProjects, ProjectPoPortalDTO[].class);
+        List<ProjectPoPortalDTO> list= Arrays.asList(projects != null ? projects : new ProjectPoPortalDTO[0]);
+        System.out.println("Total Project="+list.size());
+        StringBuilder builderDepartment=new StringBuilder();
+  	
+        if(list!=null) {
+//        	  System.out.println(list.toString());
+        
+        for(ProjectPoPortalDTO dto:list) {
+        	Project project=projectRepository.findByPoProjectId(dto.getId());
+//        	ProjectsTemp project=projectstempRepository.findByPoProjectId(dto.getId());
+        	
+        	if(project!=null) {
+        		 project.setPoStartDate(dto.getStartDate());
+        		 System.err.println("PoStartDate"+dto.getPoStartDate());
+        		 
+        		 project.setPoEndDate(dto.getEndDate());
+        		 System.err.println("PoEndDate"+dto.getPoEndDate());
+        		 
+				 project.setPoNo(dto.getPoNo());
+				 System.err.println("Po No"+dto.getPoNo());
+				 
+				 System.err.println("po type"+dto.getProjectType());
+				 project.setPoProjectType(dto.getProjectType());
+				 
+				 projectRepository.save(project);
+//				 projectstempRepository.save(project);
+        	}else {
+        		System.err.println("Project table doesnot contain po project id"+dto.getId())   ;
+        	}
+        	
+        }
+        }
+		return list;
+	}
 }

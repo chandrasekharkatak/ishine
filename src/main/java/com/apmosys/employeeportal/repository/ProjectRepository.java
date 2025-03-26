@@ -55,4 +55,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getTeamInfo(Integer projectId);
+	
+	@Query(nativeQuery=true,value="select DISTINCT po_project_type from projects where po_project_type IS NOT NULL")
+	List<String>finddistinctPoProjectType();
+	
 }

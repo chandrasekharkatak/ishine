@@ -863,13 +863,15 @@
                   <!-- *ngFor="let review of reviewTypelist| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index"> -->
 
                   <td scope="col" class="info-label">{{10*(pageNo-1)+i+1}}</td>
-                  <td>{{history.createdByName}}</td>
+                  <td  (click)="cancelRequest()" id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="history.emp360leavecreatedByEmpId" style="cursor: pointer;"  title="Click to view Employee 360">{{history.createdByName}}</td>
+                    <td *ngIf="!userMapping.my_team_employee_360">{{history.createdByName}}</td>
                   <td>{{history.leaveType}}</td>
                   <td>{{history.fromDate}}</td>
                   <td>{{history.toDate}}</td>
                   <td>{{history.noOfDays}}</td>
                   <td>{{history.createdOn}}</td>
-                  <td>{{history.approverName}}</td>
+                  <td (click)="cancelRequest()" id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="history.emp360approverempId" style="cursor: pointer;"  title="Click to view Employee 360">{{history.approverName}}</td>
+                  <td *ngIf="!userMapping.my_team_employee_360">{{history.approverName}}</td>
                   <td>{{history.managerApprovalStatus}}</td>
                   <td>{{history.reason}}</td>
                   <td>{{history.status}}</td>

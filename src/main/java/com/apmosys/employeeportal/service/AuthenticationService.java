@@ -45,10 +45,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class AuthenticationService {
-
 	
-	 @Autowired
-	    private RestTemplate restTemplate;
+	@Autowired
+	private RestTemplate restTemplate;
+
 	@Autowired
 	EmployeeRepository employeeRepository;
 
@@ -63,9 +63,6 @@ public class AuthenticationService {
 
 	@Value("${portal.static.otp}")
 	private String portalStaticOtp;
-	
-	@Value("${valid.attempt}")
-	private Integer failedAttempt;
 
 	@Value("${idle.session.timeout}")
 	private Integer sessionTimeout;
@@ -111,6 +108,9 @@ public class AuthenticationService {
 	
 	@Value("${poPortal.api.allProjects}")
 	private String poPortalAllProjectApi;
+	
+	@Value("${valid.attempt}")
+	private Integer failedAttempt;
 	
 //	private static ConcurrentHashMap<Long, String> userSessionList = new ConcurrentHashMap<Long, String>();
 	public static ConcurrentHashMap<Long, LogDTO> userLogInfoList = new ConcurrentHashMap<Long, LogDTO>();

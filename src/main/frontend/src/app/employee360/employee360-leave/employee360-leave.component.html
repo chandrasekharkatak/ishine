@@ -126,22 +126,27 @@
                             <td class="info-label">{{leaveHistory.createdOn}}</td>
                             <td class="info-label">{{leaveHistory.noOfDays}}</td>
                             <td class="info-label">{{leaveHistory.status}}</td>
-                            <td class="info-label" id="clickablefor360" [navigateToEmployee360]="leaveHistory.emp360leaveStatusUpdatedBy" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{leaveHistory.leaveStatusUpdatedByName}}</td>
+                            <td class="info-label" *ngIf="leaveHistory.leaveStatusUpdatedByName" id="clickablefor360" [navigateToEmployee360]="leaveHistory.emp360leaveStatusUpdatedBy" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{leaveHistory.leaveStatusUpdatedByName}}</td>
+                            <td class="info-label" *ngIf="!leaveHistory.leaveStatusUpdatedByName">{{leaveHistory.leaveStatusUpdatedByName}}</td>
                             <td class="info-label">{{leaveHistory.reason}}</td>
                             <td class="info-label">{{leaveHistory.leaveType}}</td>
                             <td>{{leaveHistory.currentApprovalLevel}}
                               <br>
                               <h6 class="badge badge-pill primary-pill" *ngIf="leaveHistory.currentApprovalLevel == leaveHistory.finalApprovalLevel && leaveHistory.status == 'Pending'">Final</h6>
                             </td>
-                            <td *ngIf="leaveHistory.approverName" id="clickablefor360" [navigateToEmployee360]="leaveHistory.emp360AppLev1" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{leaveHistory.approverName}}</td>
-                            <td *ngIf="!leaveHistory.approverName">{{leaveHistory.approverName}}</td>
+                           
+                            <td *ngIf="leaveHistory.approverName" id="clickablefor360" [navigateToEmployee360]="leaveHistory.approverName ? leaveHistory.emp360AppLev1 : null" [ngStyle]="{'cursor': leaveHistory.approverName ? 'pointer' : 'default'}" [title]="leaveHistory.approverName ? 'Click to view Employee 360' : ''" (click)="refresh()">{{leaveHistory.approverName}}</td>
+                            <td *ngIf="!leaveHistory.approverName"></td>
                             <td [ngStyle]="{'color': (leaveHistory.managerApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.managerApprovalStatus == 'Approved') ? 'green' : (leaveHistory.managerApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.managerApprovalStatus}}</td>
-                            <td *ngIf="leaveHistory.level2ApproverName" id="clickablefor360" [navigateToEmployee360]="leaveHistory.emp360AppLev2" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{leaveHistory.level2ApproverName}}</td>
-                            <td *ngIf="!leaveHistory.level2ApproverName">{{leaveHistory.level2ApproverName}}</td>
+
+                            <td *ngIf="leaveHistory.level2ApproverName" id="clickablefor360" [navigateToEmployee360]="leaveHistory.level2ApproverName ? leaveHistory.emp360AppLev2 : null" [ngStyle]="{'cursor': leaveHistory.level2ApproverName ? 'pointer' : 'default'}" [title]="leaveHistory.level2ApproverName ? 'Click to view Employee 360' : ''" (click)="refresh()">{{leaveHistory.level2ApproverName}}</td>
+                            <td *ngIf="!leaveHistory.level2ApproverName"></td>
                             <td [ngStyle]="{'color': (leaveHistory.level2ApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.level2ApprovalStatus == 'Approved') ? 'green' : (leaveHistory.level2ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.level2ApprovalStatus}}</td>
-                            <td *ngIf="!leaveHistory.level3ApproverName" id="clickablefor360" [navigateToEmployee360]="leaveHistory.emp360AppLev3" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{leaveHistory.level3ApproverName}}</td>
-                            <td *ngIf="!leaveHistory.level3ApproverName" id="clickablefor360" [navigateToEmployee360]="leaveHistory.emp360AppLev3" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{leaveHistory.level3ApproverName}}</td>
+                           
+                            <td *ngIf="leaveHistory.level3ApproverName" id="clickablefor360" [navigateToEmployee360]="leaveHistory.emp360AppLev3 ? leaveHistory.emp360AppLev3 : null" [ngStyle]="{'cursor': leaveHistory.level3ApproverName ? 'pointer' : 'default'}" [title]="leaveHistory.level3ApproverName ? 'Click to view Employee 360' : ''" (click)="refresh()">{{leaveHistory.level3ApproverName}}</td>
+                            <td *ngIf="!leaveHistory.level3ApproverName"></td>
                             <td [ngStyle]="{'color': (leaveHistory.level3ApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.level3ApprovalStatus == 'Approved') ? 'green' : (leaveHistory.level3ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.level3ApprovalStatus}}</td>
+
                             <td class="info-label" *ngIf="activeButton==='Rejected'">{{leaveHistory.remark}}</td>
                             <td *ngIf="activeButton==='Pending'">
                               <button *ngIf="approveReject && leaveHistory.isManagerFlag" class="btn btn-sm btn-outline-success mb-1" type="submit"
@@ -211,10 +216,10 @@
                     <h6 class="badge badge-pill primary-pill" *ngIf="compOffApp.currentApprovalLevel == compOffApp.finalApprovalLevel && compOffApp.status == 'Pending'">Final</h6>
                   </td>
                   <td *ngIf="compOffApp.approverName" id="clickablefor360" [navigateToEmployee360]="compOffApp.emp360Lev1" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{compOffApp.approverName}}</td>
-                  <td *ngIf="!compOffApp.approverName" [navigateToEmployee360]="compOffApp.emp360Lev1" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{compOffApp.approverName}}</td>
+                  <!-- <td *ngIf="!compOffApp.approverName" [navigateToEmployee360]="compOffApp.emp360Lev1" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{compOffApp.approverName}}</td> -->
                   <td [ngStyle]="{'color': (compOffApp.managerApprovalStatus == 'Pending') ? 'orange' : (compOffApp.managerApprovalStatus == 'Approved') ? 'green' : (compOffApp.managerApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{compOffApp.managerApprovalStatus}}</td>
-                  <td *ngIf="!compOffApp.level2ApproverName" id="clickablefor360" [navigateToEmployee360]="compOffApp.emp360Lev2" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{compOffApp.level2ApproverName}}</td>
-                  <td *ngIf="!compOffApp.level2ApproverName" id="clickablefor360" [navigateToEmployee360]="compOffApp.emp360Lev2" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{compOffApp.level2ApproverName}}</td>
+                  <td *ngIf="compOffApp.level2ApproverName" id="clickablefor360" [navigateToEmployee360]="compOffApp.emp360Lev2" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{compOffApp.level2ApproverName}}</td>
+                  <!-- <td *ngIf="!compOffApp.level2ApproverName" id="clickablefor360" [navigateToEmployee360]="compOffApp.emp360Lev2" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{compOffApp.level2ApproverName}}</td> -->
                    <td [ngStyle]="{'color': (compOffApp.level2ApprovalStatus == 'Pending') ? 'orange' : (compOffApp.level2ApprovalStatus == 'Approved') ? 'green' : (compOffApp.level2ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{compOffApp.level2ApprovalStatus}}</td>
                   <td>{{compOffApp.status}}</td>
                   <td *ngIf="isCompOffRequest">
@@ -274,7 +279,7 @@
                   <td>{{leave.toDate}}</td>
                   <td>{{leave.noOfDays}}</td>
                   <td>{{leave.status}}</td>
-                  <td>{{leave.createdByName}}</td>
+                  <td *ngIf="leave.createdByName" id="clickablefor360" [navigateToEmployee360]="leave.emp360" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{leave.createdByName}}</td>
                   <td>{{leave.createdOn}}</td>
                   <td>{{leave.revokeReason}}</td>
                   <td>

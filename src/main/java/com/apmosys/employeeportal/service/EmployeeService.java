@@ -40,6 +40,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.EncryptDecrypt;
+import com.apmosys.employeeportal.dto.AppreciationAndRewardsCountDto;
 import com.apmosys.employeeportal.dto.AppreciationDetails;
 import com.apmosys.employeeportal.dto.AppreciationDetailsDTO;
 import com.apmosys.employeeportal.dto.DateRangeDTO;
@@ -6604,5 +6605,43 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	
 	return response;
 }
+	
+	
+	public ServiceResponse getRewardsAndAppreciationCount(AppreciationAndRewardsCountDto employeeDto) {
+      ServiceResponse response = new ServiceResponse();
+		
+		try {
+			
+			List<Object[]> EmployeeRewardsAndAppreciationCount = employeeRepository.getRewardsAndAppreciationCount(employeeDto.getEmpId());
+			List<AppreciationAndRewardsCountDto> listOfRewardsAndAppreciation = new ArrayList<AppreciationAndRewardsCountDto>();
+
+	        if (EmployeeRewardsAndAppreciationCount != null) {
+	            for (Object[] object : EmployeeRewardsAndAppreciationCount) {
+
+	            	AppreciationAndRewardsCountDto employeeDetail = new AppreciationAndRewardsCountDto();
+	            	    employeeDetail.setEmpId(employeeDto.getEmpId());	                    
+	            	    employeeDetail.setAppreciationCount(object[1] != null ? object[1].toString() : null);
+	                    employeeDetail.setRewardsCount(object[0] != null ? object[0].toString() : null);	          
+	                    listOfRewardsAndAppreciation.add(employeeDetail);
+	                    
+	            }
+	        }
+	        
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(listOfRewardsAndAppreciation);
+				
+	        
+		
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse(e.getMessage());
+		}
+		
+		return response;
+}
+	
 	
 }

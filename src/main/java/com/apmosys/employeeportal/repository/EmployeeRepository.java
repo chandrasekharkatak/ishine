@@ -477,20 +477,29 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getReporteesListByReportingManagerId(Long empId );
 	
-	@Query(nativeQuery = true)
-	public List<Object[]> getTeamProjectMappingsByEmpId(Long empId );
-	
 	@Query(nativeQuery = true, value = "select d.designation_name from employee e\n"
 			+ "Inner join designation d on d.designation_id=e.designation_id\n"
 			+ "where e.emp_id=:empId")
 	public Optional<Object[]> getDesignationByEmpId(Long empId);
 	
+	@Query(nativeQuery = true)
+	public List<Object[]> getAllEmployeesReportByProjectType();
 	
+	@Query(nativeQuery = true)
+	public List<Object[]> getAllEmployeesReportByProjectTypeInConsolidated();
 	
 	@Transactional
 	@Modifying
 	@Query("UPDATE Employee e SET e.isRetain = 'No' WHERE e.empId = :empId")
 	void updateIsRetain(@Param("empId") Long empId);
 
+	@Query(nativeQuery = true)
+	public List<Object[]> getTeamProjectMappingsByEmpId(Long empId );
+	
 
+    @Query(nativeQuery = true,value = "SELECT \n"
+    		+ "    (SELECT COUNT(*) FROM employee_rewards WHERE rewarded_to = :employeeId) AS rewardCount,\n"
+    		+ "    (SELECT COUNT(*) FROM appreciation WHERE appreciation_to = :employeeId) AS appreciationCount")
+    List<Object[]> getRewardsAndAppreciationCount(@Param("employeeId") Long employeeId);
+	
 }

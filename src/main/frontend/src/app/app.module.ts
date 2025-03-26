@@ -134,6 +134,7 @@ registerLocaleData(localeGb);
 // 
 
 import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
+import { QrCodeGeneratorComponent } from './qr-code-generator/qr-code-generator.component';
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
 
@@ -239,7 +240,8 @@ import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax
      ProjectViewComponent,
      PerformanceConfigComponent,
      LMSComponent,
-     BiomaxApprovalComponent
+     BiomaxApprovalComponent,
+     QrCodeGeneratorComponent
 
     //TestComponent
   ],

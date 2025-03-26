@@ -20,9 +20,8 @@ import { Log } from '../../models/log';
 import { LeaveService } from '../../services/leave.service';
 
 import { Sort } from '@angular/material/sort';
-import { ValidationService } from 'src/app/services/validation.service';
-import { async } from 'rxjs';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { ValidationService } from 'src/app/services/validation.service';
 
 declare module 'highcharts' {
   interface Series {
@@ -370,6 +369,7 @@ export class Employee360LeaveComponent implements OnInit {
       (response: any) => {
           if (response.serviceStatus === "Success") {
             this.teamViewLeaveHistoryList=response.serviceResponse;
+
             this.LeaveListOnStatus(this.teamViewLeaveHistoryList);
             //console.log("this.teamViewLeaveHistoryList====>",this.teamViewLeaveHistoryList);
               this.teamViewLeaveHistoryList.forEach((leaveApplication) => {
@@ -432,20 +432,27 @@ export class Employee360LeaveComponent implements OnInit {
 
   LeaveListOnStatus(teamViewLeaveHistoryList: any) {
     this.leaveList = [];
+  
     this.currentUserr=sessionStorage.getItem('currentUser');
     if (this.currentUserr) {
       const currentUserData = JSON.parse(this.currentUserr);
       this.managerId = currentUserData.empId;
-      console.log(this.managerId); 
+     
     }
+  
+   console.log(this.employeeData.empId);
+  
+   this.teamViewLeaveHistoryList = this.teamViewLeaveHistoryList.filter(created => created.createdBy == this.employeeData.empId);
     for (const emp of this.teamViewLeaveHistoryList){
+     
       if(emp.status == this.activeButton){
         if(emp.managerId == this.managerId || emp.level2ApproverId == this.managerId || emp.level3ApproverId == this.managerId){
           emp.isSelected = true;
         }else{
           emp.isSelected = false;
         }
-          this.leaveList.push(emp);
+        this.leaveList.push(emp);
+         
 
       }
 
@@ -572,7 +579,12 @@ export class Employee360LeaveComponent implements OnInit {
                 leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
                 leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
                 leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+                let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId == leave.empId);
+                //console.log("matchingEmployeeAppLev1 ",matchingEmployeeAppLev1);
+                leave.emp360 = matchingEmployee ? matchingEmployee : {};
+
               });
+              // console.log('reporteeLeaveRevokeApplicationList -- ',this.reporteeLeaveRevokeApplicationList);
             } else {
               console.error(response.serviceResponse);
             }
@@ -586,7 +598,13 @@ export class Employee360LeaveComponent implements OnInit {
                 leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
                 leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
                 leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+                let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId == leave.empId);
+                //console.log("matchingEmployeeAppLev1 ",matchingEmployeeAppLev1);
+                leave.emp360 = matchingEmployee ? matchingEmployee : {};
+
               });
+              // console.log('reporteeLeaveRevokeApplicationList -- ',this.reporteeLeaveRevokeApplicationList);
+
             } else {
               console.error(response.serviceResponse);
             }

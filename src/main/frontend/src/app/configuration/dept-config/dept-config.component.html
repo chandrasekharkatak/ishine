@@ -123,7 +123,8 @@
                                 <td *ngIf="!userMapping.employee360_view_department_config" >{{dept.createdByName}}</td>
                                 <td>{{dept.createdOn}}</td>
                                 <td>{{dept.updatedOn}}</td>
-                                <td *ngIf="userMapping.employee360_view_department_config" id="clickablefor360" [navigateToEmployee360]="dept.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{dept.updatedByName}}</td>
+                                <td *ngIf="userMapping.employee360_view_department_config && dept.updatedByName" id="clickablefor360" [navigateToEmployee360]="dept.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{dept.updatedByName}}</td>
+                                <td *ngIf="userMapping.employee360_view_department_config && !dept.updatedByName">{{dept.updatedByName}}</td>
                                 <td *ngIf="!userMapping.employee360_view_department_config">{{dept.updatedByName}}</td>
                                 <td *ngIf="userMapping.update_department || userMapping.delete_department">
                                     <button *ngIf="userMapping.update_department" class="btn btn-sm btn-outline-primary"

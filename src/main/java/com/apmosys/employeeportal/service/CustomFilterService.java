@@ -44,6 +44,8 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.Project;
+import com.apmosys.employeeportal.model.ProjectsTemp;
+import com.apmosys.employeeportal.model.ProjectsTempRepository;
 import com.apmosys.employeeportal.model.Specialization;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.repository.ClientsRepository;
@@ -765,6 +767,28 @@ public class CustomFilterService {
 						.append(dto.getValue() + "' ").append(dto.getConjunction());
 				break;
 			}
+			
+			case "Po No": {
+				query = query.append("  emp_proj_client.po_no ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
+				break;
+			}
+			case "Po Start Date": {
+				query = query.append("  emp_proj_client.po_start_date ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
+				break;
+			}
+			case "Po End Date": {
+				query = query.append("  emp_proj_client.po_end_date ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
+				break;
+			}
+			case "Po Project Type": {
+				query = query.append("  emp_proj_client.po_project_type ").append(dto.getOperator() + " '")
+						.append(dto.getValue() + "' ").append(dto.getConjunction());
+				break;
+			}
+			
 			case "Client Name": {
 				query = query.append(" emp_proj_client.client_name ").append(dto.getOperator() + " '")
 						.append(dto.getValue() + "' ").append(dto.getConjunction());
@@ -861,35 +885,101 @@ public class CustomFilterService {
 //						+ "LEFT JOIN domain dm ON dm.domain_id = s.domain_id\n"
 //						+ "LEFT JOIN designation de ON de.designation_id = e.designation_id  " + customQuery;
 				
-				String q = "SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
-						+ "e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,\n"
-						+ "e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing,\n"
-						+ "e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, e.mother_tongue, e.name,\n"
-						+ "e.notice_period, e.alternate_mobile_no,  e.pan_number, e.passport_number,\n"
-						+ "e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade,\n"
-						+ "e.previous_pf_account_number, e.relation, e.state, e.uan,\n"
-						+ "e.views_on_organisation, e.year_of_passing,\n" + "jr.dept_id, jr.name as jobrolename,\n"
-						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience,\n"
-						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,emp_proj_client.project_name, emp_proj_client.client_name, emp_proj_client.project_id, e.updated_on,e4.name as createdByName, e3.name as updatedByName,\n"
-						+ "e.designation_id,de.designation_name,e.updated_by,e.billable_type,emp_proj_client.team_name, e.is_consultant, e.is_apprenticeship, \n"
-						+ "(SELECT COUNT(*) * 100.0 / NULLIF(COUNT(*), 0) FROM\n"
-						+ "employee e_profile WHERE\n"
-						+ "e_profile.emp_id = e.emp_id) AS profile_completion_percentage \n" + "FROM employee e\n"
+				// String q = "SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
+				// 		+ "e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,\n"
+				// 		+ "e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing,\n"
+				// 		+ "e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, e.mother_tongue, e.name,\n"
+				// 		+ "e.notice_period, e.alternate_mobile_no,  e.pan_number, e.passport_number,\n"
+				// 		+ "e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade,\n"
+				// 		+ "e.previous_pf_account_number, e.relation, e.state, e.uan,\n"
+				// 		+ "e.views_on_organisation, e.year_of_passing,\n" + "jr.dept_id, jr.name as jobrolename,\n"
+				// 		+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience,\n"
+				// 		+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,emp_proj_client.project_name, emp_proj_client.client_name, emp_proj_client.project_id, e.updated_on,e4.name as createdByName, e3.name as updatedByName,\n"
+				// 		+ "e.designation_id,de.designation_name,e.updated_by,e.billable_type,emp_proj_client.team_name, e.is_consultant, e.is_apprenticeship, \n"
+				// 		+ "(SELECT COUNT(*) * 100.0 / NULLIF(COUNT(*), 0) FROM\n"
+				// 		+ "employee e_profile WHERE\n"
+				// 		+ "e_profile.emp_id = e.emp_id) AS profile_completion_percentage \n" + "FROM employee e\n"
+//				String q = "SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
+//						+ "e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,\n"
+//						+ "e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing,\n"
+//						+ "e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, e.mother_tongue, e.name,\n"
+//						+ "e.notice_period, e.alternate_mobile_no,  e.pan_number, e.passport_number,\n"
+//						+ "e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade,\n"
+//						+ "e.previous_pf_account_number, e.relation, e.state, e.uan,\n"
+//						+ "e.views_on_organisation, e.year_of_passing,\n" + "jr.dept_id, jr.name as jobrolename,\n"
+//						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience,\n"
+//						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,emp_proj_client.project_name, emp_proj_client.client_name, e.updated_on,e4.name as createdByName, e3.name as updatedByName,\n"
+//						+ "e.designation_id,de.designation_name,e.updated_by,e.billable_type,emp_proj_client.team_name, e.is_consultant, e.is_apprenticeship,emp_proj_client.project_id,emp_proj_client.project_name, \n"
+//						+ "       emp_proj_client.po_no, emp_proj_client.po_start_date, emp_proj_client.po_end_date, \n"
+//						+ "       emp_proj_client.po_project_type, \n"
+//						+ "(SELECT COUNT(*) * 100.0 / NULLIF(COUNT(*), 0) FROM\n"
+//						+ "employee e_profile WHERE\n"
+//						+ "e_profile.emp_id = e.emp_id) AS profile_completion_percentage \n" + "FROM employee e\n"
+//						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id\n"
+//						+ "INNER JOIN department d ON d.dept_id = jr.dept_id\n"
+//						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id\n"
+//						+ "LEFT JOIN employee e3 ON e.updated_by = e3.emp_id\n"
+//						+ "LEFT JOIN designation de ON de.designation_id = e.designation_id \n"
+//						+ "LEFT JOIN employee e4 on e.created_by = e4.emp_id\n"
+//						+ "LEFT JOIN (SELECT etm.emp_id,GROUP_CONCAT(DISTINCT pr.project_id ORDER BY pr.project_id SEPARATOR ',') AS project_id,GROUP_CONCAT(DISTINCT pr.project_name ORDER BY pr.project_id SEPARATOR ',') AS project_name, GROUP_CONCAT(DISTINCT cl.client_name ORDER BY pr.project_id SEPARATOR ',') AS client_name, GROUP_CONCAT(DISTINCT t.team_name ORDER BY pr.project_id SEPARATOR ',') AS team_name,GROUP_CONCAT(DISTINCT pr.po_no ORDER BY pr.project_id SEPARATOR ',') AS po_no,GROUP_CONCAT(DISTINCT pr.po_start_date ORDER BY pr.project_id SEPARATOR ',') AS po_start_date,GROUP_CONCAT(DISTINCT pr.po_end_date ORDER BY pr.project_id SEPARATOR ',') AS po_end_date,GROUP_CONCAT(DISTINCT pr.po_project_type ORDER BY pr.project_id SEPARATOR ',') AS po_project_type \n"
+//						+ "FROM employee_team_mapping etm \n"
+//						+ "LEFT JOIN teams t ON t.team_id = etm.team_id \n"
+//						+ "LEFT JOIN projects_temp pr ON pr.project_id = t.project_id \n"
+//						+ "LEFT JOIN clients cl ON cl.client_id = pr.client_id \n"
+//						+ "WHERE etm.active != 0 "
+//						+ "AND t.is_active != 'N' \n"
+//						+ "AND pr.active != 'false'\n"
+//						+ "GROUP BY etm.emp_id) emp_proj_client ON emp_proj_client.emp_id = e.emp_id  where " + customQuery;
+				
+				String q = "SELECT \n"
+						+ "    e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode, \n"
+						+ "    e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
+						+ "    e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,\n"
+						+ "    e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing,\n"
+						+ "    e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, e.mother_tongue, e.name,\n"
+						+ "    e.notice_period, e.alternate_mobile_no, e.pan_number, e.passport_number,\n"
+						+ "    e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade,\n"
+						+ "    e.previous_pf_account_number, e.relation, e.state, e.uan,\n"
+						+ "    e.views_on_organisation, e.year_of_passing, jr.dept_id, jr.name AS jobrolename,\n"
+						+ "    d.name AS departmentname, e.work_location, e.probation_period, e.emp_id, e2.name AS manager, \n"
+						+ "    e.experience, e.billable, e.child1, e.child2, e.child3, e.mothers_name, e.spouse, \n"
+						+ "    e.total_experience, emp_proj_client.project_name, emp_proj_client.client_name,emp_proj_client.project_id, e.updated_on, \n"
+						+ "    e4.name AS createdByName, e3.name AS updatedByName, e.designation_id, de.designation_name, \n"
+						+ "    e.updated_by, e.billable_type, emp_proj_client.team_name, e.is_consultant, e.is_apprenticeship, \n"
+						+ "    emp_proj_client.po_no, \n"
+						+ "    emp_proj_client.po_start_date, emp_proj_client.po_end_date, emp_proj_client.po_project_type, \n"
+						+ "\n"
+						+ "    (SELECT COUNT(*) * 100.0 / NULLIF(COUNT(*), 0) \n"
+						+ "     FROM employee e_profile \n"
+						+ "     WHERE e_profile.emp_id = e.emp_id) AS profile_completion_percentage \n"
+						+ "\n"
+						+ "FROM employee e\n"
 						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id\n"
 						+ "INNER JOIN department d ON d.dept_id = jr.dept_id\n"
 						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id\n"
 						+ "LEFT JOIN employee e3 ON e.updated_by = e3.emp_id\n"
 						+ "LEFT JOIN designation de ON de.designation_id = e.designation_id \n"
-						+ "LEFT JOIN employee e4 on e.created_by = e4.emp_id\n"
-						+ "LEFT JOIN (SELECT etm.emp_id, GROUP_CONCAT(DISTINCT pr.project_name) AS project_name, GROUP_CONCAT(DISTINCT cl.client_name) AS client_name,  GROUP_CONCAT(DISTINCT t.team_name) AS team_name,  GROUP_CONCAT(DISTINCT pr.project_id) AS project_id \n"
-						+ "FROM employee_team_mapping etm \n"
-						+ "LEFT JOIN teams t ON t.team_id = etm.team_id \n"
-						+ "LEFT JOIN projects pr ON pr.project_id = t.project_id \n"
-						+ "LEFT JOIN clients cl ON cl.client_id = pr.client_id \n"
-						+ "WHERE etm.active != 0 \n"
-						+ "AND t.is_active != 'N' \n"
-						+ "AND pr.active != 'false'\n"
-						+ "GROUP BY etm.emp_id) emp_proj_client ON emp_proj_client.emp_id = e.emp_id  where " + customQuery;
+						+ "LEFT JOIN employee e4 ON e.created_by = e4.emp_id\n"
+						+ "LEFT JOIN (\n"
+						+ "    SELECT \n"
+						+ "        etm.emp_id,\n"
+						+ "        GROUP_CONCAT(DISTINCT pr.project_id ORDER BY pr.project_id SEPARATOR ',') AS project_id,\n"
+						+ "        GROUP_CONCAT(DISTINCT pr.project_name ORDER BY pr.project_id SEPARATOR ',') AS project_name, \n"
+						+ "        GROUP_CONCAT(DISTINCT cl.client_name ORDER BY pr.project_id SEPARATOR ',') AS client_name,  \n"
+						+ "        GROUP_CONCAT(DISTINCT t.team_name ORDER BY pr.project_id SEPARATOR ',') AS team_name,\n"
+						+ "        GROUP_CONCAT(DISTINCT pr.po_no ORDER BY pr.project_id SEPARATOR ',') AS po_no,\n"
+						+ "        GROUP_CONCAT(DISTINCT pr.po_start_date ORDER BY pr.project_id SEPARATOR ',') AS po_start_date,\n"
+						+ "        GROUP_CONCAT(DISTINCT pr.po_end_date ORDER BY pr.project_id SEPARATOR ',') AS po_end_date,\n"
+						+ "        GROUP_CONCAT(DISTINCT pr.po_project_type ORDER BY pr.project_id SEPARATOR ',') AS po_project_type \n"
+						+ "    FROM employee_team_mapping etm \n"
+						+ "    LEFT JOIN teams t ON t.team_id = etm.team_id \n"
+						+ "    LEFT JOIN projects pr ON pr.project_id = t.project_id \n"
+						+ "    LEFT JOIN clients cl ON cl.client_id = pr.client_id \n"
+						+ "    WHERE etm.active != 0 \n"
+						+ "      AND t.is_active != 'N' \n"
+						+ "      AND pr.active != 'false'\n"
+						+ "    GROUP BY etm.emp_id\n"
+						+ ") emp_proj_client ON emp_proj_client.emp_id = e.emp_id where " + customQuery;
 
 				System.out.println(q);
 				Query query = session.createSQLQuery(q);
@@ -1207,7 +1297,7 @@ public class CustomFilterService {
 					empDTO.setMothersName(object[57] != null ? (object[57].toString()) : null);
 					empDTO.setSpouse(object[58] != null ? (object[58].toString()) : null);
 					empDTO.setTotalExperience(object[59] != null ? Float.parseFloat(object[59].toString()) : null);
-//					empDTO.setProjectName(object[60] != null ? object[60].toString() : null);
+					empDTO.setProjectName(object[60] != null ? object[60].toString() : null);
 					empDTO.setClientName(object[61] != null ? object[61].toString() : null);
 //					empDTO.setProjectId(object[62] != null ? Integer.parseInt((object[62].toString())) : null);
 					empDTO.setUpdatedOn(object[63] != null ? (object[63].toString()) : null);
@@ -1224,6 +1314,13 @@ public class CustomFilterService {
 					empDTO.setTeamName(object[70] != null ? object[70].toString() : null);	
 					empDTO.setIsConsultant(object[71] != null ? object[71].toString() : null);
 					empDTO.setIsApprenticeship(object[72] != null ? object[72].toString() : null);
+					empDTO.setPoNo(object[73] != null ? object[73].toString() : null);
+                    empDTO.setPoStartDate(object[74] != null ? object[74].toString() : null);
+					empDTO.setPoEndDate(object[75] != null ? object[75].toString() : null);
+					empDTO.setPoProjectType(object[76] != null ? object[76].toString() : null);
+
+
+
 					
 					if (object[60] != null && object[62] != null) {
 		                String projectIdStr = object[62].toString().trim();
@@ -2090,6 +2187,37 @@ public class CustomFilterService {
 						dto.setName(object.getProjectName());
 						dtoList.add(dto);
 					});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				}
+				break;
+			}
+			case "Po No":{
+				List<Project> projObj = projectRepository.findAll();
+				if(!projObj.isEmpty()) {
+					projObj.forEach((object) -> {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object.getPoNo());
+						dtoList.add(dto);				
+						});
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				}
+				break;
+			}
+			
+			case "Po Project Type":{
+				List<String> projObj = projectRepository.finddistinctPoProjectType();
+				if(!projObj.isEmpty()) {
+					projObj.forEach((object) -> {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object);
+						dtoList.add(dto);				
+						});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
 					apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());

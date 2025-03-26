@@ -281,7 +281,7 @@ export class PerformanceConfigComponent implements OnInit {
       const onlySpecificDataArr = this.quarterCycleDataForExcel.map(
         x => ({
           "Financial Year": x.financialYear,
-          "Quarter Cycle": x.quarterCycle,
+          "Cycle": x.quarterCycle,
           "Created By": x.createdByName,
           "Created on": (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
           "Updated By": x.updatedByName,
@@ -325,7 +325,7 @@ export class PerformanceConfigComponent implements OnInit {
 
     if (isOverlap) {
       this.quarterCycle.fromMonth = '';
-      this.openAlertMod(template, `The selected month ${this.quarterCycle.fromMonth} already exists in a quarter cycle ${existingQuarter}.`);
+      this.openAlertMod(template, `The selected month ${this.quarterCycle.fromMonth} already exists in a cycle ${existingQuarter}.`);
 
     }
   }
@@ -447,7 +447,7 @@ export class PerformanceConfigComponent implements OnInit {
     obj.quarterId = quarterId;
     this.performanceService.isEnable(obj).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, 'Quarter Cycle Enabled');
+        this.openAlertMod(template, 'Cycle Enabled');
         this.showQuaterTable();
       }
     });
@@ -468,7 +468,7 @@ export class PerformanceConfigComponent implements OnInit {
 
     this.performanceService.deleteQuarterCycle(obj).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, 'Quarter Cycle Deleted');
+        this.openAlertMod(template, 'Cycle Deleted');
         this.showQuaterTable();
       }
     });
@@ -515,7 +515,7 @@ export class PerformanceConfigComponent implements OnInit {
 
     this.performanceService.isEnable(obj).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, 'Quarter Cycle Disabled');
+        this.openAlertMod(template, 'Cycle Disabled');
         this.showQuaterTable();
       }
     });
@@ -613,7 +613,7 @@ export class PerformanceConfigComponent implements OnInit {
   validateReviewTypes(template: TemplateRef<any>,reviewObj:review,allSpecializationList:any[] ){
 
     if(!this.validationService.validateNullUndefinedEmptyString(reviewObj.quarterId)){
-      this.alertMessage = "Please select Quarter Cycle !!"
+      this.alertMessage = "Please select Cycle !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
