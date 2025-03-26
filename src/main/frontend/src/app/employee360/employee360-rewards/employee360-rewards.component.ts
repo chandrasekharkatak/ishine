@@ -388,6 +388,8 @@ export class Employee360RewardsComponent implements OnInit {
              if(response.serviceStatus == 'Success'){
               this.rewardList = response.serviceResponse;
               this.rewardList.forEach(reward => {
+                let matchingnameempId = this.allEmployeeList360.find(emp => emp.empId === reward.nameId);
+                reward.emp360nameempid = matchingnameempId ? matchingnameempId : {}; 
                 let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId === reward.createdBY);
                 console.log('matches++',matchingEmployee);
                 reward.emp360 = matchingEmployee ? matchingEmployee : {};

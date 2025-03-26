@@ -38,7 +38,7 @@ public interface EmployeeRewardsRepository extends JpaRepository <EmployeeReward
 		@Query(nativeQuery = true)
 		List<Object[]> getRewardByEmpIdWithDateRange(Long empId, String ofMonthYear);
 
-		@Query(nativeQuery = true,value="SELECT e.name,er.reward_type_name, er.rewarded_to, er.created_on, er.remark, er.created_by,rc.reward_category_id,rc.category_name \n"
+		@Query(nativeQuery = true,value="SELECT e.name,er.reward_type_name, er.rewarded_to, er.created_on, er.remark, er.created_by,rc.reward_category_id,rc.category_name,e.emp_id \n"
 				+ "				FROM employee_rewards er \n"
 				+ "				INNER JOIN employee e ON e.emp_id = er.rewarded_to\n"
 				+ "                inner join rewards_category rc on er.reward_category_id = rc.reward_category_id\n"

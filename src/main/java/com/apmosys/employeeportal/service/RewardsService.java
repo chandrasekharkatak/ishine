@@ -1313,8 +1313,8 @@ public class RewardsService {
 			            dto.setName(row[0] != null ? row[0].toString() : null);
 			            dto.setCreatedBY(row[5] != null ? Long.parseLong(row[5].toString()) : null);
 			            dto.setRewardCategoryId(row[6] !=null ? Long.parseLong(row[6].toString()) : null);	
-			            dto.setRewardCategory(row[7] != null ? row[7].toString() : null);	            
-			            
+			            dto.setRewardCategory(row[7] != null ? row[7].toString() : null);
+			            dto.setNameId(row[8] !=null ? Long.parseLong(row[8].toString()) : null);			            
 			            
 			            List<RewardTeamDTO> teamList = getTeamsByEmpId(request.getEmpId());
 			            

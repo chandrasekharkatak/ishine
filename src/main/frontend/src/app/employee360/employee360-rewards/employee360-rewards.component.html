@@ -170,7 +170,8 @@
                         <td>{{ i + 1 }}</td>
                         <td>{{rewardHistory.rewardCategory}}</td>
                         <td>{{ rewardHistory.rewardTypeName }}</td>
-                        <td>{{ rewardHistory.name }}</td>
+                        <td id="clickablefor360" [navigateToEmployee360]="rewardHistory.emp360nameempid" style="cursor: pointer;"
+                        title="Click to view Employee 360" (click)="refresh()">{{ rewardHistory.name }}</td>
                         <td id="clickablefor360" [navigateToEmployee360]="rewardHistory.emp360" style="cursor: pointer;"
                             title="Click to view Employee 360" (click)="refresh()">{{
                             rewardHistory.createdByName }}</td>
