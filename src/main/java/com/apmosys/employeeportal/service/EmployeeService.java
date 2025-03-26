@@ -6305,7 +6305,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	
 	return response;
 }
-	public ServiceResponse updateDeafultProject(Long empId, String projectId, String projectName) {
+	public ServiceResponse updateDeafultProject(Long empId, String projectId) {
 		
 		ServiceResponse response = new ServiceResponse();
 		EmpPrimaryProjectMapping empPrimaryProjectMapping = new EmpPrimaryProjectMapping();
@@ -6315,35 +6315,41 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 			
 			EmpPrimaryProjectMapping empPrimaryProjectMappingNew = new EmpPrimaryProjectMapping();
 
+			// empPrimaryProjectMappingNew.setEmpId(empId);
+			// empPrimaryProjectMappingNew.setPrimaryProjectId(Long.valueOf(projectId));			
+			// empPrimaryProjectMappingNew.setPrimaryProjectName(projectName);
+			// EmpPrimaryProjectMapping empPrimaryProjectMappingSaved = empPrimaryProjectMappingRepository.save(empPrimaryProjectMappingNew);
+			Project project = projectRepository.findByProjectId(Integer.valueOf(projectId));
 			empPrimaryProjectMappingNew.setEmpId(empId);
 			empPrimaryProjectMappingNew.setPrimaryProjectId(Long.valueOf(projectId));			
-			empPrimaryProjectMappingNew.setPrimaryProjectName(projectName);
+			empPrimaryProjectMappingNew.setPrimaryProjectName(project.getProjectName());
 			EmpPrimaryProjectMapping empPrimaryProjectMappingSaved = empPrimaryProjectMappingRepository.save(empPrimaryProjectMappingNew);
 			
 			response.setServiceResponse(empPrimaryProjectMappingSaved);
 			response.setServiceMessage("Saved Succesfully...!!");
-			response.setServiceStatus("Success");
+			response.setServiceStatus(response.STATUS_SUCCESS);
 		
 		}
 		else if(empPrimaryProjectMapping != null && projectId != null && !projectId.isEmpty()) {
 			
-			empPrimaryProjectMapping.setPrimaryProjectId(Long.valueOf(projectId));			
-			empPrimaryProjectMapping.setPrimaryProjectName(projectName);
+			empPrimaryProjectMapping.setPrimaryProjectId(Long.valueOf(projectId));	
+			Project project = projectRepository.findByProjectId(Integer.valueOf(projectId));
+			empPrimaryProjectMapping.setPrimaryProjectName(project.getProjectName());
 			EmpPrimaryProjectMapping empPrimaryProjectMappingSaved = empPrimaryProjectMappingRepository.save(empPrimaryProjectMapping);
 			
 			response.setServiceResponse(empPrimaryProjectMappingSaved);
 			response.setServiceMessage("Updated Succesfully...!!");
-			response.setServiceStatus("Success");
+			response.setServiceStatus(response.STATUS_SUCCESS);
 		}
 		
 		else {
 			response.setServiceMessage("Please provide the Project Id..!!");
-			response.setServiceStatus("Fail");
+			response.setServiceStatus(response.STATUS_FAIL);
 		}
 	}
 		else {
 			response.setServiceMessage("Please provide the Employee Id..!!");
-			response.setServiceStatus("Fail");
+			response.setServiceStatus(response.STATUS_FAIL);
 		}
 		
 		return response;
