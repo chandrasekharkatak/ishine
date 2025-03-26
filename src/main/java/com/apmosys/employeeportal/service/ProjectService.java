@@ -1510,10 +1510,10 @@ public class ProjectService {
 //        	ProjectsTemp project=projectstempRepository.findByPoProjectId(dto.getId());
         	
         	if(project!=null) {
-        		 project.setPoStartDate(dto.getStartDate());
+        		 project.setPoStartDate(formatDate(dto.getStartDate()));
         		 System.err.println("PoStartDate"+dto.getPoStartDate());
         		 
-        		 project.setPoEndDate(dto.getEndDate());
+        		 project.setPoEndDate(formatDate(dto.getEndDate()));
         		 System.err.println("PoEndDate"+dto.getPoEndDate());
         		 
 				 project.setPoNo(dto.getPoNo());
