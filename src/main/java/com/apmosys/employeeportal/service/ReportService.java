@@ -1,7 +1,9 @@
 package com.apmosys.employeeportal.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -545,6 +547,17 @@ public class ReportService {
 					employeeDTO.setJobRole(object[24] != null ? object[24].toString() : null);
 					employeeDTO.setPoProjectId(object[25] != null ? object[25].toString() : null);
 					
+					Map<String, String> projectMap = new HashMap<>();
+			        if (object[12] != null && object[13] != null) {
+			            String[] projectIds = object[12].toString().split(",");
+			            String[] projectNames = object[13].toString().split(",");
+
+			            for (int i = 0; i < projectIds.length; i++) {
+			                projectMap.put(projectIds[i].trim(), i < projectNames.length ? projectNames[i].trim() : "");
+			            }
+			        }
+			        employeeDTO.setProjects(projectMap);
+			        
 					dtoList.add(employeeDTO);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.dto;
 
+import java.util.Map;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -36,4 +38,5 @@ public class getAllEmployeesReportByProjectTypeInConsolidatedDTO {
     private String jobRole;
     private String employeementId;
     private String poProjectId;
+    private Map<String, String> projects;
 }
