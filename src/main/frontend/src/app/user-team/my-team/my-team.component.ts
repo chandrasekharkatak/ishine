@@ -1,26 +1,24 @@
+import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Sort } from '@angular/material/sort';
+import { ActivatedRoute, Router } from '@angular/router';
+import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
-import { Employee } from 'src/app/models/employee';
-import { Leave } from 'src/app/models/leave';
-import { AuthenticationService } from 'src/app/services/authentication.service';
-import { TeamViewService } from 'src/app/services/team-view.service';
-import { LeaveService } from 'src/app/services/leave.service';
-import { User } from 'src/app/models/user';
-import { Feature } from 'src/app/models/feature';
-import { ValidationService } from 'src/app/services/validation.service';
-import { ExportExcelService } from 'src/app/services/export-excel.service';
-import { EmployeeService } from 'src/app/services/employee.service';
-import { Sort } from '@angular/material/sort';
-import { HierarchyUser } from 'src/app/models/hierarchyUser';
-import { LocationStrategy } from '@angular/common';
-import * as moment from 'moment';
 import { AppComponent } from 'src/app/app.component';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Team } from 'src/app/models/team';
-import { UtilityService } from 'src/app/services/utility.service';
+import { Employee } from 'src/app/models/employee';
+import { Feature } from 'src/app/models/feature';
+import { HierarchyUser } from 'src/app/models/hierarchyUser';
+import { Leave } from 'src/app/models/leave';
+import { User } from 'src/app/models/user';
+import { AuthenticationService } from 'src/app/services/authentication.service';
+import { EmployeeService } from 'src/app/services/employee.service';
 import { Employee360Service } from 'src/app/services/employee360.service';
-import { SortPipe } from 'src/app/sort.pipe';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { LeaveService } from 'src/app/services/leave.service';
+import { TeamViewService } from 'src/app/services/team-view.service';
+import { UtilityService } from 'src/app/services/utility.service';
+import { ValidationService } from 'src/app/services/validation.service';
 
 
 @Component({
@@ -992,7 +990,7 @@ export class MyTeamComponent implements OnInit {
     compOffObj.hodEmail = this.currentUser.email;
     compOffObj.hodName = this.currentUser.name;
     compOffObj.employeeName = compOffObj.createdByName;
-
+    compOffObj.rejectCompOffReason = compOffObj.rejectReason;
     //console.log("Update Comp off : ", compOffObj);
     this.leaveService.updateCompOffById(compOffObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1893,7 +1891,11 @@ PipGenerateToUser(template: TemplateRef<any>,leaveObj,flag){
   // }
   
 }
-
+ openRevokeLeaveRejectModalCompOff(template: TemplateRef<any>, leave: any){
+      this.cancelRequest();
+      this.leaveObj = leave;
+      this.modalRef = this.modalService.show(template);
+    }
 pipReason(teamObj){
   this.pageNo=1
   this.pipReasons = []
