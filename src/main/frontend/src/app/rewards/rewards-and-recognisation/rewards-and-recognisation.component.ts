@@ -371,11 +371,11 @@ export class RewardsAndRecognisationComponent implements OnInit {
       return false;
     }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(this.sumbitRewards.remark)) {
-      this.alertMessage = "Please enter a Remark !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(this.sumbitRewards.remark)) {
+    //   this.alertMessage = "Please enter a Remark !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
     return true;
   }
