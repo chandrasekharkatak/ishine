@@ -1,0 +1,40 @@
+<div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'"
+                            [tableTHeadId]="'auditInfoTHead'" [tableTHeadTrId]="'auditInfoTHeadTr'">
+                            <table class="table table-responsive" id="auditInfo" >
+                                <!-- matSort
+                                (matSortChange)="sortData($event)" -->
+                                <thead class="thead-light" id="auditInfoTHead">
+                                    <tr id="auditInfoTHeadTr">
+                                        <th scope="col">Sr No.</th>
+                                        <th scope="col" class="info-label" >Expired On</th>
+                                        <th scope="col" class="info-label" >Project Id</th>
+                                        <th scope="col" class="info-label" >PO Id</th>
+                                        <th scope="col" class="info-label" >Action</th>
+                                        <!-- <th scope="col" class="info-label" >
+                                            Updated By</th> -->
+                                    </tr>
+
+                                    <!-- mat-sort-header="date|datetime"
+                                    mat-sort-header="field|string"
+                                    mat-sort-header="value|string"
+                                    mat-sort-header="bucketName|string"
+                                    mat-sort-header="updatedByName|string" -->
+                                    <!-- <tr app-column-filter-bar *ngIf="isTable && isAuditSearchEnabled"
+                                        [columnList]="employeeAuditColumns" (onSearch)="onAuditSearch($event);page=1">
+                                    </tr> -->
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th colspan="11" class="text-center info-label">No details to display...</th>
+                                    </tr>
+                                    <tr></tr>
+                                        
+                                
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- <div class="my-buttons">
+                            <pagination-controls id="kycUpdate" class="my-pagination"
+                                [hidden]="kycUpdateList.length == 0"
+                                (pageChange)="handleAuditPageChanges($event)"></pagination-controls>
+                        </div> -->
