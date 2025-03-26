@@ -6305,7 +6305,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	
 	return response;
 }
-	public ServiceResponse updateDeafultProject(Long empId, String projectId) {
+	public ServiceResponse updateDefaultProject(Long empId, String projectId) {
 		
 		ServiceResponse response = new ServiceResponse();
 		EmpPrimaryProjectMapping empPrimaryProjectMapping = new EmpPrimaryProjectMapping();
