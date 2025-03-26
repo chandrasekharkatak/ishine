@@ -92,15 +92,15 @@
           <div class="card-body">
             <p class="card-text px-1">
               <strong>Final Rating:</strong> 
-              <span >{{ summary.finalRating }}/10</span>
+              <!-- <span >{{ summary.finalRating }}/10</span> -->
             </p>
             <p class="card-text px-1">
               <strong>Appraisal Score:</strong> 
-              <span >{{ summary.appraisalScore }}%</span>
+              <!-- <span >{{ summary.appraisalScore }}%</span> -->
             </p>
             <p class="card-text px-1">
               <strong>Final Remarks:</strong>
-              <span class="text-muted d-block mt-1">{{ summary.finalRemarks }}</span>
+              <!-- <span class="text-muted d-block mt-1">{{ summary.finalRemarks }}</span> -->
             </p>
           </div>
           
@@ -148,7 +148,7 @@
             <div class="col-auto">
             <label class="col-auto fw-semibold">Select Quarter:</label>
             
-              <select class="form-select" [(ngModel)]="selectedQuarter1" (change)="loadQuestionnaireQuestions()">
+              <select class="form-select" [(ngModel)]="selectedQuarter1" (change)="quarterChange2()">
                 <option value="" disabled>select</option>
                 <option *ngFor="let quarters of quarterCyclesList" [value]="quarters.quarterId">{{ quarters.quarterCycle }}</option>
               </select>
@@ -157,19 +157,50 @@
 
           <div >
     
-            <div *ngIf="activeTab === 'kra-kpi'">
-              <h4 class="mb-1 fw-semibold text-center">KRA/KPI Ratings </h4>
-              <ul class="list-group list-group-flush">
-                <li *ngFor="let metric of kraKpiMetrics" class="list-group-item d-flex justify-content-between align-items-center py-3">
-                  <span>{{ metric.name }}</span>
-                  <span>
-                    <strong>{{ metric.rating }}/10</strong>
-                  </span>
-                </li>
-              </ul>
-            </div>
+            
 
             <!-- kpi kra questionniare  -->
+            <div class="row" *ngIf="activeTab === 'kra-kpi'">
+              <div class="col-12">
+                <div class="card">
+                  <div class="card-header">
+                    <h5 class="card-title"> KRA/KPI Ratings</h5>
+                  </div>
+                  <div class="card-body">
+                    <div *ngIf="kpiList.length === 0" class="alert alert-info">
+                      No KRA/KPIs found for this quarter and department.
+                    </div>
+            
+                      <form *ngIf="kpiList.length > 0">
+
+                      <div class="list-group">
+                        <div class="list-group-item row" *ngFor="let kpi of kpiList;">
+                          <div class="mb-3 col">
+                            <label class="form-label fw-bold"> {{kpi.description}}</label> 
+                            
+                           
+                         
+                            <div class="mt-2">
+                              <label class="form-label w-auto">Ratings:</label>
+                              <p>{{kpi.response}}</p>
+
+                            </div>
+                            
+                          
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <!-- <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                        <button type="button" class="btn btn-primary" (click)="saveKpiResponses()">
+                          Save KPI Responses
+                        </button>
+                      </div> -->
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
     
             <div class="row" *ngIf="activeTab === 'questionnaire'">
               <div class="col-12">
@@ -193,7 +224,8 @@
                          
                             <div class="mt-2 w-30">
                               <label class="text-muted mr-2 ">Ratings:</label>
-                              <input class="w-25" [(ngModel)]="question.response" placeholder="Rate from 1 to 10" type="number" name="response" min="0" max="10"/>
+                              <p>{{question.response}}</p>
+                              <!-- <input class="w-25" [(ngModel)]="question.response" placeholder="Rate from 1 to 10" type="number" name="response" min="0" max="10"/> -->
 
                             </div>
                             
@@ -202,11 +234,11 @@
                         </div>
                       </div>
                       
-                      <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                      <!-- <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
                         <button type="button" class="btn btn-primary" (click)="saveQuestionnaireResponses()">
                           Save Responses
                         </button>
-                      </div>
+                      </div> -->
                     </form>
                   </div>
                 </div>

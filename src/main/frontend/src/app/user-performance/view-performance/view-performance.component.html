@@ -146,7 +146,7 @@
           <div class="row mb-2">
             <div class="col-auto">
               <label class="fw-semibold">Select Quarter:</label>
-              <select class="form-select" aria-hidden="true" name="quarterId1" [(ngModel)]="selectedQuarter1" (ngModelChange)="loadQuestionnaireQuestions()">
+              <select class="form-select" aria-hidden="true" name="quarterId1" [(ngModel)]="selectedQuarter1" (ngModelChange)="quarterChange2()">
                 <option value="" disabled>select</option>
                 <option *ngFor="let quarter of quarterCyclesList" [value]="quarter.quarterId">{{ quarter.quarterCycle }}</option>
               </select>
@@ -154,15 +154,47 @@
           </div>
         
           
-            <div *ngIf="activeTab === 'kra-kpi'">
-              <h4 class="mb-1 fw-semibold text-center">KRA/KPI Ratings - {{ selectedQuarter1 }}</h4>
-              <ul class="list-group list-group-flush">
-                <li *ngFor="let metric of kraKpiMetrics; let i = index" class="list-group-item py-3">
-                  <span>{{ metric.name }}</span>
-                  <input type="number" [(ngModel)]="metric.rating" min="0" max="10" class="form-control form-control-sm w-auto ms-auto" placeholder="Rate (0-10)" />
-                </li>
-              </ul>
+          <div class="row" *ngIf="activeTab === 'kra-kpi'">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h5 class="card-title"> KRA/KPI Ratings</h5>
+                </div>
+                <div class="card-body">
+                  <div *ngIf="kpiList.length === 0" class="alert alert-info">
+                    No KRA/KPIs found for this quarter and department.
+                  </div>
+          
+                    <form *ngIf="kpiList.length > 0">
+
+                    <div class="list-group">
+                      <div class="list-group-item row" *ngFor="let kpi of kpiList;">
+                        <div class="mb-3 col">
+                          <label class="form-label fw-bold"> {{kpi.description}}</label> 
+                          
+                         
+                       
+                          <div class="mt-2">
+                            <label class="form-label w-auto">Response:</label>
+                            <input  [(ngModel)]="kpi.response" placeholder="Rate from 1 to 10" class="w-25" type="number" name="response" min="0" max="10"/>
+
+                          </div>
+                          
+                        
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                      <button type="button" class="btn btn-primary" (click)="saveKpiResponses()">
+                        Save KPI Responses
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
             </div>
+          </div>
         
             <div class="row" *ngIf="activeTab === 'questionnaire'">
               <div class="col-12">
@@ -186,7 +218,7 @@
                          
                             <div class="mt-2">
                               <label class="form-label w-auto">Response:</label>
-                              <input  [(ngModel)]="question.response" placeholder="Rate from 1 to 10" type="number" name="response" min="0" max="10"/>
+                              <input  [(ngModel)]="question.response" class="w-25" placeholder="Rate from 1 to 10" type="number" name="response" min="0" max="10"/>
 
                             </div>
                            

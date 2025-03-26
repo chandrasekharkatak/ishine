@@ -5,7 +5,6 @@ import { UserPerformanceService } from 'src/app/services/user-performance.servic
 import { TemplateService } from 'src/app/services/template.service';
 import { first } from 'rxjs/operators';
 import { question } from 'src/app/models/question';
-// import { QuestionnaireDTO } from 'src/app/models/questionnaire-dto';
 import { QuestionnaireDTO, QuestionDTO } from 'src/app/models/questionnaire-dto';
 import { KraKpiService } from 'src/app/services/kpi-kra.service';
 import { KpiTemplate } from 'src/app/models/kpiTemplate';
@@ -44,7 +43,6 @@ export class TemplatesComponent implements OnInit {
   editingTemplateId: number | null = null;
   selectedQuarterId: number | null = null;
   selectdepartmentId:number| null= null;
-  // selectdepartmentId: number | null = null;
 
 selectedDepartmentId: number | null = null;
   selectedQuarterIdForKpi: number | null = null;
@@ -54,7 +52,6 @@ selectedQuarter: any;
   errorMessage: any;
   currentEmployeeInfo:Employee = new Employee();
 quarter: any;
-  // selectedDepartmentId: number;
 
 
   constructor(
@@ -74,7 +71,6 @@ quarter: any;
       description: [''],
       departmentId: [null, Validators.required],
       quarterId: [null],
-      // metrics: [''],
       questions: [''],
       kpis: [''],
     });
@@ -208,7 +204,6 @@ quarter: any;
     console.log('Form valid?', this.questionnaireForm.valid);
     
     if (this.questionnaireForm.valid) {
-      // Make sure we have quarter and department IDs
       if (!this.selectedQuarterId) {
         alert('Please select a quarter');
         return;
@@ -219,7 +214,6 @@ quarter: any;
         return;
       }
       
-      // Create the DTO to send to the API
       const questionDTOs: QuestionDTO[] = this.questions.controls.map((control: any) => {
         return {
           id: control.value.id,
@@ -231,7 +225,7 @@ quarter: any;
         questionId: this.isEditing ? this.editingTemplateId : undefined,
         questionTitle: this.questionnaireForm.value.questionTitle,
         questionDescription: this.questionnaireForm.value.questionDescription,
-        createdBy: this.currentUser.empId, // Using the logged-in user's ID
+        createdBy: this.currentUser.empId, 
         questions: questionDTOs,
         response: null,
       };
@@ -240,7 +234,6 @@ quarter: any;
       console.log('Quarter ID:', this.selectedQuarterId);
       console.log('Department ID:', this.selectedDepartmentId);
       
-      // Call the appropriate method based on whether we're editing or creating
       if (this.isEditing && this.editingTemplateId) {
         this.updateQuestionnaireTemplate(this.editingTemplateId, questionnaireData);
       } else {
@@ -253,7 +246,6 @@ quarter: any;
     }
   }
   
-  // Add this helper method to see validation errors
   getFormValidationErrors() {
     const errors = {};
     Object.keys(this.questionnaireForm.controls).forEach(key => {
@@ -297,20 +289,7 @@ quarter: any;
   }
 
 
-  // fetchQuarters(): void {
-  //   this.performanceService.getAllQuarterCycles().subscribe({
-  //     next: (response: any) => {
-  //       if (response.serviceStatus === 'Success') {
-  //         this.quarterCyclesList = response.serviceResponse;
-  //       } else {
-  //         this.errorMessage = response.serviceMessage || 'Failed to load quarters.';
-  //       }
-  //     },
-  //     error: (error) => {
-  //       this.errorMessage = error.message || 'Error fetching quarters.';
-  //     }
-  //   });
-  // }
+
   createKraKpiTemplate(formData: KpiTemplate) {
     // console.log('Sending KPI template data:', formData);
     this.kraKpiService.createKpiTemplate(formData,formData.quarterId,formData.departmentId)

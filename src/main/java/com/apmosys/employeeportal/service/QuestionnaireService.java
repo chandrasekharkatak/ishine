@@ -80,6 +80,8 @@ public class QuestionnaireService {
         questionnaire.setQuestionDescription(dto.getQuestionDescription());
         questionnaire.setCreatedBy(dto.getCreatedBy());
         questionnaire.setQuarterId(dto.getQuarterId());
+        questionnaire.setDepartmentId(dto.getDepartmentId());
+        
         questionnaire.setDepartmentName(dto.getDepartmentName());
  
         if (dto.getQuestions() != null) {
@@ -131,8 +133,8 @@ public class QuestionnaireService {
 		return questionnaireRepository.findByDepartmentName(departmentName);
 	}
 
-	public List<Questionnaire> getQuestionnairesByDepartmentAndQuarter(String departmentName, Long quarterId) {
-		return questionnaireRepository.findByDepartmentNameAndQuarterId(departmentName , quarterId);
+	public List<Questionnaire> getQuestionnairesByDepartmentAndQuarter(Long departmentId, Long quarterId) {
+		return questionnaireRepository.findByQuarterAndDepartment(departmentId , quarterId);
 	}
     
 //    public List<Questionnaire> getQuestionnairesByDepartmentAndQuarter(String departmentName, Long quarterId) {

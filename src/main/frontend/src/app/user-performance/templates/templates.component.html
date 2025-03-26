@@ -139,7 +139,7 @@
       </div>
     </div> -->
 
-    <!-- edited kra kpi  -->
+    <!--  kra kpi  -->
     <div *ngIf="activeTab === 'kra-kpi'">
       <div class="px-0">
         <div class="col-md-12 table-header">
@@ -185,7 +185,7 @@
         </table>
       </div>
     </div>
-    <!-- Edited one for kra/kpi -->
+    <!-- questionnaire -->
 
     <div *ngIf="activeTab === 'questionnaire'">
       <div class="px-0">
@@ -258,7 +258,7 @@
           <label>Description <span class="text-danger">*</span></label>
           <textarea class="form-control" formControlName="description" rows="3"></textarea>
         </div>
-        <div class="form-group w-25">
+        <div *ngIf="selectedTemplateType === 'goals'" class="form-group w-25">
           <label>Department <span class="text-danger">*</span></label>
           <select class="form-control" formControlName="departmentId" required>
             <option [ngValue]="null" disabled>Select Department</option>
@@ -268,7 +268,7 @@
 
        
         <div class="mt-3" *ngIf="selectedTemplateType === 'goals'">
-          <button type="submit" class="btn btn-primary" [disabled]="templateForm.invalid">
+          <button type="submit" class="btn btn-primary" [disabled]="templateForm.invalid" (click)="createOrUpdateTemplate()">
             {{ isEditing ? 'Update' : 'Create' }} Template
           </button>
           <button type="button" class="btn btn-secondary ml-2" (click)="resetForm()">
@@ -276,135 +276,7 @@
           </button>
         </div>
 
-        <!-- ************************************************************************************************* -->
-         <!-- KPI KRA SECTION -->
-<!-- KRA-KPI View Modal -->
-<!-- <div class="modal fade" id="viewKraKpiModal" tabindex="-1" aria-labelledby="viewKraKpiModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="viewKraKpiModalLabel">{{ viewingTemplate?.name }}</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div class="mb-3">
-          <h6>Description:</h6>
-          <p>{{ viewingTemplate?.description || 'No description available' }}</p>
-        </div>
-        <div class="mb-3">
-          <h6>Quarter: {{ getQuarterName(viewingTemplate?.quarterId) }}</h6>
-        </div>
-        <div>
-          <h6>KPIs:</h6>
-          <ul class="list-group">
-            <li class="list-group-item" *ngFor="let kpi of viewingTemplate?.kpis; let i = index">
-              <span class="fw-bold">KPI {{ i + 1 }}:</span> {{ kpi.description }}
-            </li>
-          </ul>
-          <p *ngIf="!viewingTemplate?.kpis || viewingTemplate?.kpis.length === 0" class="text-muted">
-            No KPIs available
-          </p>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div> -->
-         <!-- added end -->
-
-
-
-
-         <!-- create template edited for kra kpi  -->
-
-
-
-        <!-- <div *ngIf="selectedTemplateType === 'kra-kpi'" class="card-body mx-0">
-          <form [formGroup]="kpikraForm" (ngSubmit)="onKraKpiSubmit()">
-
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <label><span class="text-danger">*</span> KRA Title</label>
-                <input type="text" class="form-control" formControlName="name" placeholder="Enter title" required>
-                <div *ngIf="kpikraForm.get('name')?.invalid && kpikraForm.get('name')?.touched" class="text-danger">
-                  Title is required.
-                </div>
-              </div>
-            </div>
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <label>KRA Description</label>
-                <textarea class="form-control" formControlName="description" placeholder="Enter description"></textarea>
-              </div>
-            </div>
-
-            <div class="col-md-3 px-0 pr-1  mb-0">
-              <div class="form-inline input-group">
-                  <label class="d-inline-block mr-2 mt-2"><strong>Select quarter</strong></label>
-                  <select class="form-control" aria-hidden="true" [(ngModel)]="selectedQuarter"  name="quarterId" (ngModelChange)="onKpiQuarterChange()">
-                      <option selected="selected" value="" disabled>Select</option>
-                      <option *ngFor="let quarter of quarterCyclesList" [value]="quarter.quarterId">{{quarter.quarterCycle}}</option>
-                    </select>
-              </div>
-            </div>
-
-            <div class="row mb-3">
-              <div class="col-md-12">
-                <label><span class="text-danger">*</span> KPIs</label>
-                <div class="alert alert-info">
-                  Add Key Performance Indicators (KPIs) for this KRA
-                </div>
-              </div>
-            </div>
-
-            <div formArrayName="kpis">
-              <div *ngFor="let kpi of kpis.controls; let i = index" [formGroupName]="i" class="form-group row mb-3">
-                <div class="col-md-8">
-                  <div class="input-group">
-                    <div class="input-group-prepend">
-                      <span class="input-group-text">KPI {{ i + 1 }}</span>
-                    </div>
-                    <input type="text" class="form-control" formControlName="description"
-                      placeholder="Enter KPI description" required>
-                    <div class="input-group-append">
-                      <button type="button" class="btn btn-outline-danger" (click)="removeKpi(i)"
-                        *ngIf="kpis.length > 1">
-                        <i class="fa fa-trash"></i>
-                      </button>
-                    </div>
-                  </div>
-                  <div *ngIf="kpi.get('description')?.invalid && kpi.get('description')?.touched"
-                    class="text-danger mt-1">
-                    KPI description is required.
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="row mb-3">
-              <div class="col-md-12">
-                <button type="button" class="btn btn-outline-primary" (click)="addKpi()"
-                  [disabled]="!kpis.at(kpis.length - 1)?.valid || kpis.length >= 10">
-                  <i class="fa fa-plus"></i> Add Another KPI
-                </button>
-                <small class="text-muted ms-2">(Max 10)</small>
-              </div>
-            </div>
-
-            <div class="row mt-4">
-              <div class="col-md-12">
-                <button type="submit" class="btn btn-success" [disabled]="!kpikraForm.valid">
-                  <i class="fa fa-save"></i> {{ isEditing ? 'Update' : 'Save' }} KRA Template
-                </button>
-                <button type="button" class="btn btn-secondary ms-2" (click)="resetKraKpiForm()">
-                  <i class="fa fa-refresh"></i> Reset
-                </button>
-              </div>
-            </div>
-          </form>
-        </div> -->
+        
         <div *ngIf="activeTab === 'create-template' && selectedTemplateType === 'kra-kpi'" class="card-body mx-0">
           <form [formGroup]="kpikraForm" (ngSubmit)="onKraKpiSubmit()">
             <div class="row mb-3">
@@ -427,9 +299,9 @@
             </div>
         
             <div class="row mb-3">
-              <div class="col-md-3 px-0 pr-1 mb-0">
+              <div class="col-md-6 px-0 pr-1 mb-0">
                 <div class="form-inline input-group">
-                  <label class="d-inline-block mr-2 mt-2"><strong>Select quarter</strong></label>
+                  <label class="d-inline-block mr-2 mt-2">Select quarter</label>
                   <select class="form-control" aria-hidden="true" formControlName="quarterId" (ngModelChange)="onKpiQuarterChange()">
                     <option selected="selected" value="" disabled>Select</option>
                     <option *ngFor="let quarter of quarterCyclesList" [value]="quarter.quarterId">{{quarter.quarterCycle}}</option>

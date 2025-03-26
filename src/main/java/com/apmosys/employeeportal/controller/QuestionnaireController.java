@@ -106,11 +106,11 @@ public class QuestionnaireController {
         }
         return response;
     }
-    @GetMapping("/department/{department}/quarter/{quarterId}")
-    public ServiceResponse getQuestionnairesByDepartmentAndQuarter(@PathVariable String departmentName, @PathVariable Long quarterId) {
+    @GetMapping("/department/{departmentId}/quarter/{quarterId}")
+    public ServiceResponse getQuestionnairesByDepartmentAndQuarter(@PathVariable Long departmentId, @PathVariable Long quarterId) {
         ServiceResponse response = new ServiceResponse();
         try {
-            List<Questionnaire> questionnaires = questionnaireService.getQuestionnairesByDepartmentAndQuarter(departmentName, quarterId);
+            List<Questionnaire> questionnaires = questionnaireService.getQuestionnairesByDepartmentAndQuarter(departmentId, quarterId);
             List<QuestionnaireDTO> dtos = questionnaires.stream()
                     .map(questionnaire -> questionnaireService.convertToDTO(questionnaire))
                     .collect(Collectors.toList());

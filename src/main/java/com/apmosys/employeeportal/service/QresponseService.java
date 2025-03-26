@@ -26,13 +26,13 @@ public class  QresponseService {
     	//String quarter = quarteCycleRepository.findquartercyclebyID(quarterId);
         List<Qresponse> entities=new ArrayList<>();
         for(QresponseDTO obj:responses){
-            List<Qresponse> employeeId12 = qresponseRepository.findempId(empId, quarterId);
+            Long employeeId12 = qresponseRepository.findempId(empId, quarterId);
             
 
-            Qresponse employeeId=employeeId12.get(0);
+            Long employeeId=employeeId12;
         	Qresponse entity = new Qresponse();
 
-            if(obj.getResponse() == null &	employeeId.getId()==  null) {
+            if(obj.getResponse() == null &	employeeId ==  null) {
         		
         		entity.setId(obj.getId());
                 entity.setQuestionText(obj.getQuestionText());

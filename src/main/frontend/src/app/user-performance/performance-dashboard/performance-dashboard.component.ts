@@ -48,6 +48,12 @@ response: any;
   // Add other fields as needed
 }
 
+interface kpiList{
+  response:any;
+  id:number;
+  description: string;
+}
+
 @Component({
   selector: 'app-performance-dashboard',
   templateUrl: './performance-dashboard.component.html',
@@ -65,6 +71,7 @@ export class PerformanceDashboardComponent implements OnInit {
   selectedQuarter1: any;
   kraKpiMetrics: any[] = [];
   questionnaireQuestions: QuestionDTO[] = [];
+  kpiList:kpiList[] = [];
   selectedgoalProgress: any;
   kraKpiReviewForm: FormGroup;
   questionnaireReviewForm: FormGroup;
@@ -133,7 +140,8 @@ export class PerformanceDashboardComponent implements OnInit {
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.quarterCyclesList = response.serviceResponse;
-          this.selectedQuarter = this.quarterCyclesList[0].quarterId;
+          // this.selectedQuarter = this.quarterCyclesList[0].quarterId;
+          console.log('list of quarters:', this.quarterCyclesList);
           
           this.onQuarterChange();
         } else {
@@ -259,28 +267,28 @@ export class PerformanceDashboardComponent implements OnInit {
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
-  loadReviewData(): void {
-    const empId = this.currentUser?.empId;
-    const quarter = this.selectedQuarter1;
-    if (!empId) return;
-    this.performanceService.getKraKpiReview(empId, quarter).subscribe({
-      next: (data) => {
-        if (data.serviceStatus === 'Success') {
-          this.kraKpiMetrics = data.serviceResponse;
-        }
-      },
-      error: err => console.error('Error fetching KRA/KPI metrics:', err)
-    });
+  // loadReviewData(): void {
+  //   const empId = this.currentUser?.empId;
+  //   const quarter = this.selectedQuarter1;
+  //   if (!empId) return;
+  //   this.performanceService.getKraKpiReview(empId, quarter).subscribe({
+  //     next: (data) => {
+  //       if (data.serviceStatus === 'Success') {
+  //         this.kraKpiMetrics = data.serviceResponse;
+  //       }
+  //     },
+  //     error: err => console.error('Error fetching KRA/KPI metrics:', err)
+  //   });
 
-    this.performanceService.getQuestionnaireReview(empId, quarter).subscribe({
-      next: (data) => {
-        if (data.serviceStatus === 'Success') {
-          this.questionnaireQuestions = data.serviceResponse;
-        }
-      },
-      error: err => console.error('Error fetching questionnaire:', err)
-    });
-  }
+  //   this.performanceService.getQuestionnaireReview(empId, quarter).subscribe({
+  //     next: (data) => {
+  //       if (data.serviceStatus === 'Success') {
+  //         this.questionnaireQuestions = data.serviceResponse;
+  //       }
+  //     },
+  //     error: err => console.error('Error fetching questionnaire:', err)
+  //   });
+  // }
 
   addCheckpoint() {
     this.selectedGoal.checkpoints.push('');
@@ -303,7 +311,10 @@ initQuestionnaireForm(): void {
   
   this.questionnaireReviewForm = formGroup;
 }
-
+quarterChange2(): void{
+  this.loadKpiList();
+  this.loadQuestionnaireQuestions();
+}
 loadQuestionnaireQuestions(): void {
   
   const quarterId = this.selectedQuarter1;
@@ -314,13 +325,12 @@ loadQuestionnaireQuestions(): void {
   
   if (!quarterId || !departmentId) return;
   
-  // Fix: Updated the API endpoint to match the required format
-  this.http.get(`http://localhost:8081/api/questionnaires/getQuestionnaireByQuarterAndDepartment/${quarterId}/${departmentId}`)
+  this.http.get(`http://localhost:8081/api/questionnaires/department/${departmentId}/quarter/${quarterId}`)
     .subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.questionnaireQuestions = response.serviceResponse[0].questions;
-          this.currentQuestionnaireId = response.serviceResponse[0].questionId;
+          // this.currentQuestionnaireId = response.serviceResponse[0].questionId;
           console.log('Questionnaire response:',this.questionnaireQuestions);
 
           this.initQuestionnaireForm();
@@ -332,6 +342,52 @@ loadQuestionnaireQuestions(): void {
         console.error('Error fetching questionnaire questions:', error);
       }
     });
+}
+loadKpiList(): void {
+  const quarterId = this.selectedQuarter1;
+  const departmentId = this.currentEmployeeInfo.departmentId;
+  
+  if (!quarterId || !departmentId) return;
+
+  this.http.get(`http://localhost:8081/api/kpi/getKpisByQuarter/${quarterId}/Department/${departmentId}`)
+    .subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === 'Success') {
+          this.kpiList = response.serviceResponse[0].kpis;
+
+          this.initQuestionnaireForm();
+        } else {
+          console.error('Failed to load questionnaire questions:', response.serviceMessage);
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching questionnaire questions:', error);
+      }
+    });
+
+}
+
+saveKpiResponses(): void {
+
+  console.log("Response ======> "+ JSON.stringify(this.kpiList));
+
+  const response = this.kpiList;
+  const empId = this.currentEmployeeInfo.empId;
+  const quarterId = this.selectedQuarter1;
+
+  this.performanceService.submitKpiResponses(response,empId,quarterId).subscribe({
+    next: (response: any) => {
+      if (response.serviceStatus === 'Success') {
+        alert('KPI responses submitted successfully!');
+      } else {
+        alert('Failed to submit responses: ' + response.serviceMessage);
+      }
+    },
+    error: (error) => {
+      console.error('Error submitting KPI responses:', error);
+      alert('An error occurred while submitting responses. Please try again.');
+    }
+  });
 }
 
 saveQuestionnaireResponses(): void {

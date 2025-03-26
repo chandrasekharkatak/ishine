@@ -129,6 +129,9 @@ getQuestionnaireByQuarterAndDepartment(quarterId: number, departmentId: number) 
 // Method to submit questionnaire responses
 submitQuestionnaireResponses(response: any, empId:number,quarterId:number) {
   return this.http.post<any>(`${this.baseUrl}api/qresponses/save/${empId}/${quarterId}`, response);
-}
-x
+} 
+submitKpiResponses(responses: any, empId:number,quarterId:number) {
+  return this.http.post<any>(`${this.baseUrl}api/kpi-responses/save/${empId}/quarter/${quarterId}`, responses);
+} 
+
 }
