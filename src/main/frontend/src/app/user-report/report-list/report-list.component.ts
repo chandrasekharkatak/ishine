@@ -92,6 +92,7 @@ export class ReportListComponent implements OnInit {
   excelName: any;
   jobRoleName: any;
   departmentId: any;
+  selectedProjectId : any;
   employeeRole: any;
   selectedColumnToShow: any;
 
@@ -144,6 +145,8 @@ export class ReportListComponent implements OnInit {
   fixedCostPoExpiredCountList:any[]=[];
   fixedCostPoValidCountList:any[]=[];
   internalCountList:any[]=[];
+  newemployeeObj: any;
+  updatedEmpObj :any;
 
 
  
@@ -414,7 +417,7 @@ onBoxClickDataChange(boxName) {
       }
   // });
 
-  console.log('Box click data-- ', this.filteredEmployees);
+  console.log('Box click data-- :::::::::::::::::', this.filteredEmployees);
 }
 
   onDepartmentChange(event: any) {
@@ -450,9 +453,50 @@ onBoxClickDataChange(boxName) {
         this.filteredEmployees = this.allEmployee.filter(emp => emp.departmentId == this.selectedDepartment);
       }
     }
-    console.log('Filtered dept data -- ', this.filteredEmployees);
+    console.log('Filtered dept data with project name   :::::::::::::::::::::::::::::::::::-- ', this.filteredEmployees);
     //Fixed Cost,TNM,Bench,InternalRNDProducts,Shadow
     //poEndDate 
+  }
+
+  updateDefaultProject(employee : any){
+  this.getProjectId(employee);
+  
+  const selectedProjectId = this.getProjectId(employee);
+  console.log("Selected Project ID:", selectedProjectId);
+  this.selectedProjectId = selectedProjectId ;
+  let newemployeeObj: Employee = new Employee();
+  
+
+  newemployeeObj.selectedProjectId = this.selectedProjectId;
+  newemployeeObj.projectName = employee.projectName;
+  newemployeeObj.empId = employee.empId;
+
+
+  console.log('new Employee OBJ :::::::::::::',newemployeeObj);
+
+  this.employeeService.updateDefaultProject(newemployeeObj).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      this.updatedEmpObj= response.serviceResponse ;
+      console.log('updated project details ::::::::',this.updatedEmpObj);
+    }
+  });
+
+  }
+
+  getProjectId(employee: any): string | null {
+    
+    const projectNames = employee.projectName.split(',');
+    const projectIds = employee.projectIds.split(',');
+  
+    // Find index of selected project
+    const selectedIndex = projectNames.findIndex(project => project.trim() === employee.selectedProject.trim());
+  
+    // Return the corresponding projectId, or null if not found
+    if (selectedIndex !== -1 && selectedIndex < projectIds.length) {
+      return projectIds[selectedIndex].trim();
+    } else {
+      return null;
+    }
   }
   
   showLeaveReportTable() {

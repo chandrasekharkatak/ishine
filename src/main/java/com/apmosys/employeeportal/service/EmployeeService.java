@@ -6313,10 +6313,12 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		empPrimaryProjectMapping = empPrimaryProjectMappingRepository.findByEmpId(empId);
 		if(empPrimaryProjectMapping == null && projectId != null && !projectId.isEmpty()) {
 			
-			empPrimaryProjectMapping.setEmpId(empId);
-			empPrimaryProjectMapping.setPrimaryProjectId(Long.valueOf(projectId));			
-			empPrimaryProjectMapping.setPrimaryProjectName(projectName);
-			EmpPrimaryProjectMapping empPrimaryProjectMappingSaved = empPrimaryProjectMappingRepository.save(empPrimaryProjectMapping);
+			EmpPrimaryProjectMapping empPrimaryProjectMappingNew = new EmpPrimaryProjectMapping();
+
+			empPrimaryProjectMappingNew.setEmpId(empId);
+			empPrimaryProjectMappingNew.setPrimaryProjectId(Long.valueOf(projectId));			
+			empPrimaryProjectMappingNew.setPrimaryProjectName(projectName);
+			EmpPrimaryProjectMapping empPrimaryProjectMappingSaved = empPrimaryProjectMappingRepository.save(empPrimaryProjectMappingNew);
 			
 			response.setServiceResponse(empPrimaryProjectMappingSaved);
 			response.setServiceMessage("Saved Succesfully...!!");
