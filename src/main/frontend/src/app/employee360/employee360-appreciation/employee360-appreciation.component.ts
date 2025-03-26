@@ -196,9 +196,9 @@ export class Employee360AppreciationComponent implements OnInit {
           let matchingEmployee = this.employeesFor360.find(emp => emp.empId === appObj.appreciationByByEmpId);
           console.log("matchingEmployee ", matchingEmployee);
           appObj.emp360AppreciationBy = matchingEmployee ? matchingEmployee : {};
-          appObj.appreciationDate = (appObj.appreciationDate)
-            ? moment(appObj.appreciationDate).format(AppComponent.DATETIME_FORMAT)
-            : null;
+          // appObj.appreciationDate = (appObj.appreciationDate)
+          //   ? moment(appObj.appreciationDate).format(AppComponent.DATETIME_FORMAT)
+          //   : null;
         });
       } else {
         console.error(response.serviceResponse);
@@ -220,9 +220,9 @@ export class Employee360AppreciationComponent implements OnInit {
           let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === appObj.appreciationToByEmpId);
           console.log("matchingEmployee ", matchingEmployee2);
           appObj.emp360AppreciationTo = matchingEmployee2 ? matchingEmployee2 : {};
-          appObj.appreciationDate = (appObj.appreciationDate) 
-              ? moment(appObj.appreciationDate).format(AppComponent.DATETIME_FORMAT) 
-              : null;
+          // appObj.appreciationDate = (appObj.appreciationDate) 
+          //     ? moment(appObj.appreciationDate).format(AppComponent.DATETIME_FORMAT) 
+          //     : null;
         });
       } else {
         console.error(response.serviceResponse);
