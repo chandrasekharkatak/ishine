@@ -80,7 +80,7 @@
                     <hr>
 
                     <div class="row">
-                        <div class="col-md-6 mb-0">
+                        <div class="col-md-4 mb-0">
                             <div class="info-wrapper">
                                 <div class="form-group">
                                     <label class="info-label"><span class="text-danger">*</span><b>Milestone - {{mileIndex+1}}</b></label>
@@ -88,7 +88,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-4 mb-0">
+                        <div class="col-md-2 mb-0">
                             <div class="info-wrapper">
                                 <div class="form-group">
                                     <label class="info-label">Description</label>
@@ -96,9 +96,181 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="col-md-2 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label class="info-label"><span class="text-danger">*</span>Assign To</label>
+                                    <select class="form-control" aria-hidden="true">
+                                        <option selected="selected" value="" disabled>Select</option>
+                                        <option value="checkbox">checkbox</option>
+                                        <option value="radio">radio</option>
+                                        <option value="text">text</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label class="info-label">Redmine Id</label>
+                                    <input type="text" class="form-control" autocomplete="none" [(ngModel)]="milestone.description">
+                                </div>
+                            </div>
+                        </div>
                         <div class="col-md-2 pt-4 mt-2">
-                            <button type="button" class="btn btn-outline-primary mx-1" (click)="addMilestone(mileIndex)"><i class="fa fa-plus" aria-hidden="true"></i></button>
-                            <button *ngIf="projectInsightQuestionList.length>1" type="button" class="btn btn-outline-primary mx-1" (click)="removeMilestone(mileIndex)"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                            <div class="dropdown-container d-inline-block" ngbDropdown>
+                                <button class="btn btn-outline-primary mx-1" ngbDropdownToggle>
+                                    <i class="fa fa-plus" aria-hidden="true"></i>
+                                </button>
+                                <div ngbDropdownMenu class="dropdown-menu enhanced-dropdown">
+                                    <button ngbDropdownItem (click)="addMilestone(mileIndex)">
+                                        Add Milestone
+                                    </button>
+                                    <button ngbDropdownItem (click)="addModule('milestone', mileIndex)">
+                                        Add Module
+                                    </button>
+                                    <button ngbDropdownItem (click)="addQuestion('milestone', mileIndex)">
+                                        Add Question
+                                    </button>
+                                </div>
+                            </div>                            
+                            <button *ngIf="projectInsightQuestionList.length > 1" 
+                                type="button" 
+                                class="btn btn-outline-primary mx-1" 
+                                (click)="removeMilestone(mileIndex)">
+                                <i class="fa fa-trash" aria-hidden="true"></i>
+                            </button>
+                        </div>                        
+                    </div>
+
+                    <!-- Module List -->
+                    <div *ngFor="let module of milestone.moduleList; let modIndex = index" class="row" style="padding-left: 30px;"
+                        [class.question-input]="milestone?.moduleList?.length>1">
+                        <div class="row">
+                            <div class="col-md-4 mb-0">
+                                <div class="info-wrapper">
+                                    <div class="form-group">
+                                        <label class="info-label"><span class="text-danger">*</span><b>Module - {{modIndex+1}}</b></label>
+                                        <input type="text" class="form-control" autocomplete="none" [(ngModel)]="module.module">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2 mb-0">
+                                <div class="info-wrapper">
+                                    <div class="form-group">
+                                        <label class="info-label">Description</label>
+                                        <input type="text" class="form-control" autocomplete="none" [(ngModel)]="module.description">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2 mb-0">
+                                <div class="info-wrapper">
+                                    <div class="form-group">
+                                        <label class="info-label"><span class="text-danger">*</span>Assign To</label>
+                                        <select class="form-control" aria-hidden="true">
+                                            <option selected="selected" value="" disabled>Select</option>
+                                            <option value="checkbox">checkbox</option>
+                                            <option value="radio">radio</option>
+                                            <option value="text">text</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2 mb-0">
+                                <div class="info-wrapper">
+                                    <div class="form-group">
+                                        <label class="info-label">Redmine Id</label>
+                                        <input type="text" class="form-control" autocomplete="none" [(ngModel)]="module.redmineId">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2 pt-4 mt-2">
+                                <div class="dropdown-container d-inline-block" ngbDropdown>
+                                    <button class="btn btn-outline-primary mx-1" ngbDropdownToggle>
+                                        <i class="fa fa-plus" aria-hidden="true"></i>
+                                    </button>
+                                    <div ngbDropdownMenu class="dropdown-menu enhanced-dropdown">
+                                        <button ngbDropdownItem (click)="addModule('module', modIndex)">
+                                            Add Module
+                                        </button>
+                                        <button ngbDropdownItem (click)="addSubModule('module', mileIndex, modIndex)">
+                                            Add Sub Module
+                                        </button>
+                                        <button ngbDropdownItem (click)="addQuestion('module', mileIndex, modIndex)">
+                                            Add Question
+                                        </button>
+                                    </div>
+                                </div>
+                                <button *ngIf="projectInsightQuestionList.length > 1" type="button" class="btn btn-outline-primary mx-1"
+                                    (click)="removeMilestone(modIndex)">
+                                    <i class="fa fa-trash" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </div>
+                    
+                    
+                        <!-- SubModule List -->
+                        <div *ngFor="let submodule of module.subModuleList; let submodIndex = index" class="row"
+                            style="padding-left: 30px;" [class.question-input]="module?.subModuleList?.length>1">
+                            <div class="row">
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span><b>Sub Module -
+                                                    {{submodIndex+1}}</b></label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="submodule.subModule">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Description</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="submodule.description">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Assign To</label>
+                                            <select class="form-control" aria-hidden="true">
+                                                <option selected="selected" value="" disabled>Select</option>
+                                                <option value="checkbox">checkbox</option>
+                                                <option value="radio">radio</option>
+                                                <option value="text">text</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label">Redmine Id</label>
+                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="submodule.redmineId">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 pt-4 mt-2">
+                                    <div class="dropdown-container d-inline-block" ngbDropdown>
+                                        <button class="btn btn-outline-primary mx-1" ngbDropdownToggle>
+                                            <i class="fa fa-plus" aria-hidden="true"></i>
+                                        </button>
+                                        <div ngbDropdownMenu class="dropdown-menu enhanced-dropdown">
+                                            <button ngbDropdownItem (click)="addSubModule('submodule', mileIndex, modIndex)">
+                                                Add Sub Module
+                                            </button>
+                                            <button ngbDropdownItem (click)="addQuestion('submodule', mileIndex, modIndex, submodIndex)">
+                                                Add Question
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button *ngIf="projectInsightQuestionList.length > 1" type="button" class="btn btn-outline-primary mx-1"
+                                        (click)="removeMilestone(submodIndex)">
+                                        <i class="fa fa-trash" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 

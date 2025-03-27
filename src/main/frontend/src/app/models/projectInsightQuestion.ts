@@ -1,4 +1,6 @@
+import { ProjectModule } from "./projectModule";
 import { ProjectQuestion } from "./projectQuestion";
+import { ProjectSubModule } from "./projectSubModule";
 
 export class ProjectInsightQuestion {
     questionId: any;
@@ -20,5 +22,8 @@ export class ProjectInsightQuestion {
 
     milestone: any;
     milestoneId: any;
-    projectQuestion:ProjectQuestion[] = [new ProjectQuestion()];
+    assignTo: any;
+    redmineId: any;
+    projectQuestion:ProjectQuestion[] = [];
+    moduleList:ProjectModule[] = [];
 }

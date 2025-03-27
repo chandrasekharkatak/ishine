@@ -21,6 +21,8 @@ import { ProjectService } from 'src/app/services/project.service';
 import { ProjectInsightQuestion } from 'src/app/models/projectInsightQuestion';
 import { ProjectQuestion } from 'src/app/models/projectQuestion';
 import { ProjectInsightService } from 'src/app/services/project-insight.service';
+import { ProjectModule } from 'src/app/models/projectModule';
+import { ProjectSubModule } from 'src/app/models/projectSubModule';
 
 @Component({
   selector: 'app-project-insights-config',
@@ -243,17 +245,37 @@ export class ProjectInsightsConfigComponent implements OnInit {
   }
 
   // Manage Questions
-  addQuestion(mileIndex: any, i: any) {
-    this.projectInsightQuestionList[mileIndex].projectQuestion.splice(i + 1, 0, new ProjectQuestion());
-  }
+  // addQuestion(mileIndex: any, i: any) {
+  //   this.projectInsightQuestionList[mileIndex].projectQuestion.splice(i + 1, 0, new ProjectQuestion());
+  // }
   
 
   removeQuestion(mileIndex,i){
     this.projectInsightQuestionList[mileIndex].projectQuestion.splice(i,1);
   }
 
+  // Add button config
+  //Milestone
   addMilestone(mileIndex){
     this.projectInsightQuestionList.splice(mileIndex+1,0,new ProjectInsightQuestion());
+  }
+
+  addModule(type: any, index:any){
+    this.projectInsightQuestionList[index].moduleList.splice(this.projectInsightQuestionList[index].moduleList.length+1,0,new ProjectModule());
+  }
+
+  addSubModule(type: any, milIndex:any, modIndex:any){
+    this.projectInsightQuestionList[milIndex].moduleList[modIndex].subModuleList.splice(this.projectInsightQuestionList[milIndex].moduleList[modIndex].subModuleList.length+1,0,new ProjectSubModule());
+  }
+
+  addQuestion(type: any, mileIndex: any, modIndex?:any, subModIndex?: any){
+    if(type == 'milestone'){
+      this.projectInsightQuestionList[mileIndex].projectQuestion.splice(this.projectInsightQuestionList[mileIndex].projectQuestion.length + 1, 0, new ProjectQuestion());
+    }else if(type == 'module'){
+      this.projectInsightQuestionList[mileIndex].moduleList[modIndex].projectQuestion.splice(this.projectInsightQuestionList[mileIndex].moduleList[modIndex].projectQuestion.length + 1, 0, new ProjectQuestion());
+    }else if(type == 'submodule'){
+      this.projectInsightQuestionList[mileIndex].moduleList[modIndex].subModuleList[subModIndex].projectQuestion.splice(this.projectInsightQuestionList[mileIndex].moduleList[modIndex].subModuleList[subModIndex].projectQuestion.length + 1, 0, new ProjectQuestion());
+    }
   }
 
   removeMilestone(mileIndex){ 
