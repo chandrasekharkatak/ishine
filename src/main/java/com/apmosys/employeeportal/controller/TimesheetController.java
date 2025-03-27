@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.service.TimesheetService;
@@ -157,9 +158,9 @@ public class TimesheetController {
 	}
 	
 	
-	@RequestMapping(value = "/getAllOrDeptWiseEmployeeTimesheetReport",method = RequestMethod.GET)
-	    public ServiceResponse getAllOrDeptWiseEmployeeTimesheetReport(@RequestParam String deptId) {
-	        return timesheetService.getAllOrDeptWiseEmployeeTimesheetReport(deptId);
+	 @RequestMapping(value = "/getAllOrDeptWiseEmployeeTimesheetReport",method = RequestMethod.POST)
+	    public ServiceResponse getAllOrDeptWiseEmployeeTimesheetReport(@RequestBody FilteredTimesheetDTO filteredTimesheetDTO) {
+	        return timesheetService.getAllOrDeptWiseEmployeeTimesheetReport(filteredTimesheetDTO);
 	    }
 	
 //	@Scheduled(cron = "0 53 17 * * ?")  // Runs at 3:55 pm
