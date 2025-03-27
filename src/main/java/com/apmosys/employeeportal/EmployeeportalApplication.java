@@ -11,9 +11,10 @@ import org.springframework.web.client.RestTemplate;
 public class EmployeeportalApplication {
 
 	public static void main(String[] args) {
+		
 		SpringApplication.run(EmployeeportalApplication.class, args);
+		
 	}
-
 	@Bean
 	public ModelMapper modelMapper() {
 		return new ModelMapper();

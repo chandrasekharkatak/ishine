@@ -39,7 +39,19 @@ img{
     border-color: var(--dark-cornflower-blue);
     color: var(--dark-cornflower-blue);
 }
-
+/* Added by rahul SIngh*/
+#clickablefor360{
+    text-decoration: none; /* Remove default underline */
+  color: #043870  !important; /* Text color, change it as you prefer */
+  cursor: pointer; /* Change the cursor to pointer on hover */
+  transition: all 0.3s ease;
+}
+#clickablefor360:hover{
+    text-decoration: none; /* Remove default underline */
+  color: #043870 !important; /* Text color, change it as you prefer */
+  cursor: pointer; /* Change the cursor to pointer on hover */
+  transition: all 0.3s ease;
+}
 .btn.btn-outline-primary:hover,
 .btn.btn-outline-primary:active,
 .btn-outline-primary:not(:disabled):not(.disabled).active {

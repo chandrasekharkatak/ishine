@@ -171,6 +171,7 @@ public class HelpService {
 						helpDTO.setHelpDocumentName(object[4] != null ? object[4].toString() : null);
 						helpDTO.setCreatedOn(object[5] != null ? object[5].toString() : null);
 						helpDTO.setUpdatedOn(object[6] != null ? object[6].toString() : null);
+						helpDTO.setCreatedBy(object[7] != null ? Long.parseLong(object[7].toString()) : null);
 						
 						dtoList.add(helpDTO);
 					});

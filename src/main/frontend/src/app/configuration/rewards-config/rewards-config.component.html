@@ -1,11 +1,11 @@
 <div class="row">
-    <div class="col-md-12" style="padding-left: 0; padding-bottom: 1rem;">
+    <!-- <div class="col-md-12" style="padding-left: 0; padding-bottom: 1rem;">
         <button type="button" class="btn btn-outline-primary btn-sm active ng-star-inserted" style="font-size: smaller;"
             (click)="refresh()" [ngClass]="{'active' : rewardSubData}">Reward Category</button>
-    </div>
+    </div> -->
 
     <div class="col-md-12 table-header">
-        <h1 class="table-header-title">Rewards</h1>
+        <h1 class="table-header-title">Reward(s)</h1>
     </div>
 </div>
 
@@ -33,7 +33,7 @@
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Category</label>
                         <select class="form-control" id="" [(ngModel)]="rewardsObj.categoryId">
-                            <option value="" selected>Select</option>
+                            <option value="" selected disabled>Select</option>
                             <option *ngFor="let category of allCategoryist" value="{{category.rewardCategoryId}}">
                                 {{category.categoryName}}</option>
                         </select>
@@ -46,7 +46,7 @@
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Rewards Sub Category</label>
                         <input type="text" placeholder="Enter Sub Category name" class="form-control" maxlength="50"
-                            autocomplete="off" [(ngModel)]="rewardsObj.rewardName">
+                            autocomplete="off" [(ngModel)]="rewardsObj.rewardName" (keypress)="restrictInput($event)">
                     </div>
                 </div>
             </div>
@@ -57,9 +57,9 @@
                         <label class="info-label"><span class="text-danger">*</span>Reward Types</label>
                         <div class="input-group">
                             <input type="text" [(ngModel)]="rewardType" class="form-control"
-                                placeholder="Enter Reward Type">
+                                placeholder="Enter Reward Type" (keypress)="restrictInput($event)">
                             <div class="input-group-append">
-                                <button class="btn btn-outline-secondary add-button" (click)="addRewardType()">
+                                <button class="btn btn-outline-secondary add-button" (click)="addRewardType(alert_message)">
                                     <i class="fa fa-plus"></i>
                                 </button>
                             </div>
@@ -208,8 +208,8 @@
     <div class="col-md-12">
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" (click)="toggleSearch()">
-                    <a href="javascript:void(0)">
+                <div class="selector-toggle" >
+                    <a href="javascript:void(0)" (click)="toggleSearch()">
                         <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
@@ -239,16 +239,45 @@
                                 <td>{{reward.rewardName}}</td>
                                 <td>{{ reward.categoryName || 'N/A' }}</td>
                                 <td>{{ reward.rewardTypes?.join(', ') || 'N/A' }}</td>
-                                <td>{{ reward.createdByName || 'N/A' }}</td>
-                                <td>{{ reward.createdOn || 'N/A' }}</td>
-                                <td>{{ reward.updatedByName || 'N/A' }}</td>
-                                <td>{{ reward.updatedOn || 'N/A' }}</td>
+                                <td *ngIf="userMapping.employee360_view_reward_config">
+                                    <span *ngIf="reward.createdByName; else showNADisplay" 
+                                          id="clickablefor360" 
+                                          [navigateToEmployee360]="reward.emp360CreatedBy" 
+                                          style="cursor: pointer;" 
+                                          title="Click to view Employee 360">
+                                      {{ reward.createdByName }}
+                                    </span>
+                                    <ng-template #showNADisplay>
+                                      {{ reward.createdByName ?? 'N/A' }}
+                                    </ng-template>
+                                  </td>                                  
+                                <td *ngIf="!userMapping.employee360_view_reward_config">{{ reward.createdByName || 'N/A' }}</td>
+                                <td>{{ reward.createdOn ? (reward.createdOn | date:'dd-MM-yyyy HH:mm:ss') : 'N/A' }}
+
+                                </td>
+                                <td *ngIf="userMapping.employee360_view_reward_config">
+                                    <span *ngIf="reward.updatedByName; else showNADisplay" 
+                                          id="clickablefor360" 
+                                          [navigateToEmployee360]="reward.emp360UpdatedBy" 
+                                          style="cursor: pointer;" 
+                                          title="Click to view Employee 360">
+                                      {{ reward.updatedByName }}
+                                    </span>
+                                    <ng-template #showNADisplay>
+                                      {{ reward.updatedByName ?? 'N/A' }}
+                                    </ng-template>
+                                  </td>                                  
+                                <td *ngIf="!userMapping.employee360_view_reward_config">{{ reward.updatedByName || 'N/A' }}</td>
+                                <td>{{ reward.updatedOn ? (reward.updatedOn | date:'dd-MM-yyyy HH:mm:ss') : 'N/A' }}
+                                </td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-primary" type="submit"
                                         (click)="openForm(reward.id,'edit',alert_message)"><em
                                             class="fa fa-edit"></em></button>&nbsp;
                                     <button class="btn btn-sm btn-outline-danger" type="button"
-                                        (click)="deleteRewardsByRewardId(alert_message,reward.id)"><em
+                                        
+                                        (click)="openConfirmationPopup(confirmTemplate,reward.id)"
+                                        ><em
                                             class="fa fa-trash"></em></button>&nbsp;
                                 </td>
                             </tr>
@@ -271,4 +300,25 @@
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
     </div>
+</ng-template>
+
+
+<!-- Button to Open Modal -->
+<!-- <button class="btn btn-primary" (click)="openConfirmationPopup(confirmTemplate)">Open Confirmation</button> -->
+
+<!-- Modal Template -->
+<ng-template #confirmTemplate>
+  <div class="modal-header">
+    <h4 class="modal-title">Confirmation</h4>
+    <button type="button" class="close" aria-label="Close" (click)="decline()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <p>Are you sure you want to proceed?</p>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-danger" (click)="decline()">No</button>
+    <button class="btn btn-success" (click)="confirm(alert_message)">Yes</button>
+  </div>
 </ng-template>

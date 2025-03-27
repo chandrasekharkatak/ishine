@@ -18,6 +18,7 @@ import { LoaderService } from '../services/loader.service';
 export class LoaderInterceptor implements HttpInterceptor {
 
   private baseUrl:any = environment.baseUrl;
+  startDate:any;
 
   URL_whiteList = [
 
@@ -107,6 +108,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/setSurveyResponseByEmpId`,
     `${this.baseUrl}` + `api/getAnsweredSurveysByEmpId`,
     `${this.baseUrl}` + `api/empdetails`,
+    `${this.baseUrl}` + `api/getSurveyAllResponsesBySurveyId`,
 
     `${this.baseUrl}` + `api/generatePerviousMonthDSR`,
     `${this.baseUrl}` + `api/getAllDocument`,
@@ -216,9 +218,27 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getBioData`,
 
     //added by priyadarshini
-    `${this.baseUrl}`+`api/saveRewardConfiguration`,
+    `${this.baseUrl}` +`api/saveRewardConfiguration`,
     `${this.baseUrl}` + `api/showAllRewards/`,
     `${this.baseUrl}` + `api/fetchEmployeesFromRewardCondition`,
+    `${this.baseUrl}` +`api/submitRewardForEmployee`,
+    `${this.baseUrl}` + `api/showAllEmployeeRewards`,
+    `${this.baseUrl}` + `api/getReviewType`,
+    `${this.baseUrl}` + `api/getProjectInfo`,
+    `${this.baseUrl}` + `api/getTeamInfo`,
+    `${this.baseUrl}` + `api/getAllEmployeesForPerformance`,
+    `${this.baseUrl}` + `api/get360TimesheetDetails`,
+    `${this.baseUrl}` + `api/submitEmployeePerformanceHOD`,
+    `${this.baseUrl}` + `api/submitEmployeePerformanceHR`,
+    `${this.baseUrl}` + `api/addReviewType`,
+    `${this.baseUrl}` + `api/updateReviewType`,
+    `${this.baseUrl}` + `getExistingProjectsAndTeamsByEmployee`,
+    `${this.baseUrl}` + `api/getAllEmployeesFor360View`,
+    `${this.baseUrl}` + `api/getAll360LeaveApplicationsByEmpId`,
+    `${this.baseUrl}` + `api/biomax`,
+    `${this.baseUrl}` + `api/saveExcelDataForReward`,
+    `${this.baseUrl}` + `api/fetchEmployeesForHomepageByCategoryId`,
+    `${this.baseUrl}` + `api/getAllTeamView`, 
     `${this.baseUrl}`+`api/submitRewardForEmployee`,
     `${this.baseUrl}` + `api/showAllEmployeeRewards`,
     `${this.baseUrl}` + `api/getAllEmployeesReportByProjectTypeInConsolidated`,

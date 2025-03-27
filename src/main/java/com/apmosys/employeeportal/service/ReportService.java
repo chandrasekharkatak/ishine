@@ -77,6 +77,9 @@ public class ReportService {
 					leavedto.setEmploymentStatus(object[13] != null ? object[13].toString() : null);
 					leavedto.setFromDateDayType(object[14] != null ? Float.parseFloat(object[14].toString()) : null);
 					leavedto.setToDateDayType(object[15] != null ? Float.parseFloat(object[15].toString()) : null);
+					leavedto.setManagerId(object[16] != null ? Integer.parseInt(object[16].toString()) : null);
+					leavedto.setLeaveStatusUpdatedBy(object[17] != null ? Long.parseLong(object[17].toString()) : null);
+					
 					dtoList.add(leavedto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -134,7 +137,8 @@ public class ReportService {
 					timesheetDto.setOfficeOutTime(object[11] != null ? object[11].toString() : null);
 					timesheetDto.setTotalWorkingOfficeHours(object[12] != null ? object[12].toString() : null);
 					timesheetDto.setEmploymentstatus(object[10] != null ? object[10].toString() : null);	
-
+					timesheetDto.setTimesheetStatusUpdatedBy(object[11] != null ? Long.parseLong(object[11].toString()) : null);
+					
 					dtoList.add(timesheetDto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

@@ -18,6 +18,7 @@ import com.apmosys.employeeportal.dto.DomainDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.SpecializationDTO;
 import com.apmosys.employeeportal.model.ActivityTemplate;
+import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Domain;
 import com.apmosys.employeeportal.model.EmployeeSpecializationMap;
 import com.apmosys.employeeportal.model.Specialization;
@@ -58,6 +59,18 @@ public class DomainService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("domainId : "+domainDTO.getDomainId()+", domainName : "+domainDTO.getDomainName());
 		try {
+			
+			List<Domain> existingDomainName = domainRepository.findByDomainnName(domainDTO.getDomainName());
+	        if (existingDomainName != null && !existingDomainName.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Domain Name already exists.");
+	            apiLogInfo.setApiResponse("Domain Name already exists.");            
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);  
+	            apiLogInfo.setLogLevel("ERROR");
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+			
 			
 			Domain domainObj = new Domain();
 			
@@ -134,8 +147,10 @@ public class DomainService {
 						
 						domain.setDomainId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 						domain.setDomainName(object[1] != null ? object[1].toString() : null);
+						domain.setCreatedBy(object[2] != null ? Long.parseLong(object[2].toString()) : null);
 						domain.setCreatedByName(object[3] != null ? object[3].toString() : null);
 						domain.setCreatedOn(object[4] != null ? object[4].toString() : null);
+						domain.setUpdatedBy(object[5] != null ? Long.parseLong(object[5].toString()) : null);
 						domain.setUpdatedByName(object[6] != null ? object[6].toString() : null);
 						domain.setUpdatedOn(object[7] != null ? object[7].toString() : null);
 						
@@ -445,11 +460,16 @@ public class DomainService {
 			
 			Domain domainObj = domainRepository.findByDomainName(domainDTO.getDomainName());
 			if(domainObj != null) {
-				if(((domainDTO.getDomainId() != null) && (!domainObj.getDomainId().equals(domainDTO.getDomainId())))
-						|| domainDTO.getDomainId() == null) {
+				if((domainDTO.getDomainId() != null) && !domainDTO.getDomainId().equals(domainObj.getDomainId())) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Duplicate Domain Name not allowed.");
-					apiLogInfo.setApiResponse("Duplicate Domain Name not allowed.");
+					response.setServiceResponse("Domain with same name already exists !!");
+					apiLogInfo.setApiResponse("Domain with same name already exists !!");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				}
+				if(domainDTO.getDomainId() == null) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Domain with same name already exists !!");
+					apiLogInfo.setApiResponse("Domain with same name already exists !!");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 			}

@@ -2,6 +2,8 @@ package com.apmosys.employeeportal.controller;
 
 import java.util.List;
 
+import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,13 +15,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.AppreciationDetails;
 import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeRewardsDTO;
 import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
+import com.apmosys.employeeportal.dto.RewardCategoryDTO;
 import com.apmosys.employeeportal.dto.RewardConfigurationDTO;
 import com.apmosys.employeeportal.dto.RewardsDetails;
+import com.apmosys.employeeportal.service.FileUploadService;
 import com.apmosys.employeeportal.service.RewardsService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -29,6 +34,9 @@ public class RewardsController {
 	
 	@Autowired
 	RewardsService rewardsService;
+	
+	@Autowired
+    private FileUploadService fileUploadService;
 	
 	@RequestMapping(value = "/getAllRewardsCategory", method= RequestMethod.GET)
 	public ServiceResponse getAllRewardsCategory() {
@@ -139,10 +147,10 @@ public class RewardsController {
 		return serviceResponse;
 	}
 	
-	@RequestMapping(value = "/fetchEmployeesForHomepage", method = RequestMethod.GET)
-	 public ServiceResponse fetchEmployeesForHomepage() {
+	@PostMapping("/fetchEmployeesForHomepageByCategoryId")
+	 public ServiceResponse fetchEmployeesForHomepageByCategoryId(@RequestBody RewardCategoryDTO rewardCategoryDTO) {
 		ServiceResponse serviceResponse = new ServiceResponse();
-		serviceResponse = rewardsService.fetchEmployeesForHomepage();
+		serviceResponse = rewardsService.fetchEmployeesForHomepageByCategoryId(rewardCategoryDTO);
 	        return serviceResponse;
 	    }
 	
@@ -182,4 +190,30 @@ public class RewardsController {
 	public RewardsDetails getTeamRewardByEmpId(@RequestBody EmployeeRewardsRequest request) {
 		return rewardsService.getTeamRewardByEmpId(request);
 	}
+	
+	 @PostMapping("/saveExcelDataForReward")
+	    public ServiceResponse saveExcelDataForReward(@RequestParam("file") MultipartFile file,@RequestParam("createdBy") Long createdBy) throws EncryptedDocumentException, InvalidFormatException {
+	    	ServiceResponse response = new ServiceResponse();
+	    	if (file.isEmpty()) {
+	    		response.setServiceResponse("Please upload a file.");
+	    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	    		return response;
+	        }
+	        try {
+	            response = rewardsService.saveExcelDataForReward(file,createdBy);
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	            response.setServiceResponse("Error occurred while processing the file.");
+	        }
+
+	        return response;
+	    }
+	 
+	 @RequestMapping(value = "/fetchRewardCategoryForHomePage", method = RequestMethod.GET)
+		public ServiceResponse fetchRewardCategoryForHomePage() {
+		    ServiceResponse serviceResponse = rewardsService.fetchRewardCategoryForHomePage();
+		    return serviceResponse;
+		}
+		
 }

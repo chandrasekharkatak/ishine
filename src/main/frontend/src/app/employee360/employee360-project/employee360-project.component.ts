@@ -10,9 +10,16 @@ import { Project } from 'src/app/models/project';
 import { TeamMember } from 'src/app/models/teamMember';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 import { DepartmentService } from 'src/app/services/department.service';
+import { EmployeeService } from 'src/app/services/employee.service';
+import { Employee360Service } from 'src/app/services/employee360.service';
 import { ProjectService } from 'src/app/services/project.service';
 import { ResourceManagementService } from 'src/app/services/resource-management.service';
-
+import { UtilityService } from 'src/app/services/utility.service';
+import { SortPipe } from 'src/app/sort.pipe';
+import { ResourceManagementComponent } from 'src/app/user-team/resource-management/resource-management.component';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 @Component({
   selector: 'app-employee360-project',
   templateUrl: './employee360-project.component.html',
@@ -25,15 +32,24 @@ export class Employee360ProjectComponent implements OnInit {
 
   isEditProject: boolean = false;
   isHideButton: boolean = false;
+//added by rahul
+flag:boolean=false;
+isProjectVisible:boolean=true;
+isProjectTeamVisible:boolean=false;
+isProjectTeamMemberVisible:boolean=false;
 
   employeeData: any;
   getBillableType: any;
   newMemberInProject: any;
   lastDate: any;
-
+  page = 1;
   copyDepartment : any = [];
   currentBreadcrumbList: any[] = [];
   allProjectList: any[] = [];
+  //Rahul Singh
+  filterProjectByProjectId:any[]=[];
+  filterTeamfromTeamId: any; 
+  //end 
   filteredDeptList: any[] = [];
   allDeptList: any[] = [];
   allTeamList: any[] = [];
@@ -42,7 +58,7 @@ export class Employee360ProjectComponent implements OnInit {
   filters:any = {};
   isSearchEnabled:boolean = false;
   projectColumns:any[] = ['blank','projectName' ,'teamName' , 'clientName', 'billableType', 'startDate', 'updatedOn'];
-
+  employeesColumns: any[] = ['blank', 'teamName', 'employeeName', 'billableType', 'startDate', 'employeeRole'];
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
   newteamMember: TeamMember = new TeamMember();
@@ -54,14 +70,20 @@ export class Employee360ProjectComponent implements OnInit {
   sortColumn: any;
   sortColumnType:any;
   abbreviationError: string = '';
+  @ViewChild(ResourceManagementComponent) resourceManagementComponent: ResourceManagementComponent;
+  employeesFor360:any[] = [];
 
   constructor(
     private breadcrumbService: BreadcrumbService,
     private projectService: ProjectService,
     private modalService: BsModalService,
     private router:Router,
+    private exportExcelService: ExportExcelService,
     private departmentService: DepartmentService,
     private resourceManagementService: ResourceManagementService,
+    private employeeService: EmployeeService,
+    private utilityService: UtilityService,
+    private emp360Service:Employee360Service
   ) {
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
     const navigation = this.router.getCurrentNavigation();
@@ -89,9 +111,166 @@ export class Employee360ProjectComponent implements OnInit {
       this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
 
+    this.getAllEmployeeFor360View();
     //get Project by Employee
     this.getExistingProjectsByUser();
   }
+  clearBreadcrumbs(){
+    // this.breadcrumbService.setBreadcrumbSubject(null);
+    window.location.reload()
+  }
+//added by rahul singh
+backfromvisibility(type:any){
+  this.isProjectVisible=false;
+  this.isProjectTeamVisible=false;
+  this.isProjectTeamMemberVisible=false;
+  this.getExistingProjectsByUser();
+  if(type=="ProjectVisible" && this.flag == true){
+    this.isProjectVisible=true;
+    this.flag = false;
+    this.filterProjectByProjectId = [];
+   
+  }
+  else if(type=="ProjectTeamVisible"){
+    this.isProjectTeamVisible=true;
+  }
+ else if(type=="ProjectTeamMemberVisible" && this.flag == false){
+    this.isProjectVisible=true;
+    this.isProjectTeamVisible=false;
+  }else{
+    this.isProjectTeamVisible=true;
+    this.isProjectVisible=false;
+  }
+
+}
+redirecttoProjectTeam(id:any){
+  this.isProjectVisible=false;
+  this.isProjectTeamVisible=true;
+  this.isProjectTeamMemberVisible=false;
+  this.flag= true;
+
+  this.filterProjects(id);
+}
+redirecttoTeam(id:any,projectId:any){
+  this.isProjectTeamMemberVisible=true;
+  this.isProjectVisible=false;
+  this.isProjectTeamVisible=false;
+  this.getTeamEmployeeByTeamId(id);
+  this.filterProjects(projectId);
+ 
+
+}
+
+projectteamInfo: Project = new Project();
+
+getTeamByProjectId(projectId:any){
+ 
+  this.projectteamInfo.projectId = projectId;
+
+  this.emp360Service.getTeamInfo(this.projectteamInfo).subscribe({
+    next: (response: any) => {
+    if (response.serviceStatus === "Success") {
+                    this.filterProjectByProjectId = response.serviceResponse;
+                    // console.log("getTeamInfo ", this.teamMemberList);
+    
+                    const groupedData = {};
+    
+                    this.filterProjectByProjectId.forEach((member) => {
+                        const teamKey = member.teamId;
+    
+                        if (!groupedData[teamKey]) {
+                            groupedData[teamKey] = {
+                                teamId: member.teamId,
+                                teamName: member.teamName,
+                                employees: [],
+                                projectId: member.projectId,
+                                projectName: member.projectName
+                            };
+                        }
+    
+                        groupedData[teamKey].employees.push({
+                            empId: member.empId,
+                            employeeName: member.employeeName,
+                            employeeRole: member.employeeRole ? member.employeeRole.split(',').filter(role => role.trim() !== '').join(', ') : "",
+                            startDate: member.startDate ? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null,
+                            billableType: member.billableType,
+                            active: member.active,
+                            emp360: {}
+                        });
+    
+                        groupedData[teamKey].employees = groupedData[teamKey].employees || [];
+                    });
+    
+                    this.filterProjectByProjectId = Object.values(groupedData);
+    
+                    this.filterProjectByProjectId.forEach((team) => {
+                        team.employees.forEach((employee) => {
+                            // console.log("employee.empId ", employee.empId);
+                            let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
+                            // console.log("matchingEmployee ", matchingEmployee);
+                            employee.emp360 = matchingEmployee ? matchingEmployee : {};
+                        });
+                    });
+                    // console.log("Formatted Team Data: ", this.teamMemberList);
+                } else {
+                    console.warn("Failed to fetch team info");
+                }
+}});
+}
+filterProjects(id) {
+  this.getTeamByProjectId(id);
+   
+}
+filterTeamMemberProjects(id) {
+  this.filterProjectByProjectId = this.allProjectList.filter(project =>
+    project.projectId==id
+  );
+}
+
+exportToExcel(id:any): void {
+ let exportToExcelTeamfile=id+".xlsx";
+  const table = document.getElementById(''+id); // Get table by ID
+  if (!table) {
+    console.error('Table not found');
+    return;
+  }
+
+  const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(table); // Convert table to worksheet
+  const workbook: XLSX.WorkBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Project Data');
+
+  const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+
+  saveAs(data, exportToExcelTeamfile);
+}
+async getTeamEmployeeByTeamId(teamId: any) {
+  try {
+    const response: any = await this.projectService.getTeamMemberByTeamId(teamId).pipe(first()).toPromise();
+
+    if (response.serviceStatus === 'Success') {
+      this.filterTeamfromTeamId = response.serviceResponse;
+      
+      this.filterTeamfromTeamId.forEach((employee) => {
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId == employee.empId);
+          console.log("matchingEmployee ", matchingEmployee);
+          employee.emp360 = matchingEmployee ? matchingEmployee : {};
+          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId == employee.teamLeadId);
+          console.log("matchingEmployee2 ", matchingEmployee2);
+          employee.emp360teamLeadId = matchingEmployee2 ? matchingEmployee2 : {};
+      });
+      // console.log('filterTeamfromTeamId = ',this.filterTeamfromTeamId);
+     
+    } else {
+      // Handle failure case, if needed
+      console.log('Service failed:', response);
+    }
+  } catch (error) {
+    // Handle error case
+    console.error('Error fetching team members:', error);
+  }
+}
+//end
 
   showEditProjectForm(project: any) {
     this.isEditProject = true;
@@ -103,7 +282,7 @@ export class Employee360ProjectComponent implements OnInit {
     this.getTeamListByProjectName(project);
   }
 
-  getExistingProjectsByUser() {
+  async getExistingProjectsByUser() {
     let projectObj = new Project();
     projectObj.empId = this.employeeData.empId;
     projectObj.isAllProj = true;
@@ -140,6 +319,13 @@ export class Employee360ProjectComponent implements OnInit {
     this.modalRef = this.modalService.show(template, { class: 'modal-md' });
     this.projectObj = projObj;
   }
+  deleteResourceModal1(template: TemplateRef<any>, projObj,member){
+    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.projectObj = projObj;
+    this.projectObj.empId = member.empId;
+  }
+
+  
 
   deleteResourceFromProject(template: TemplateRef<any>) {
     this.cancelRequest();
@@ -148,12 +334,13 @@ export class Employee360ProjectComponent implements OnInit {
     projectObj.teamId = this.projectObj.teamId;
     projectObj.empId = this.projectObj.empId;
     projectObj.endDate = this.lastDate;
-
+    
     console.log("team details ", projectObj)
     this.projectService.updateProjectResourceAsInActive(projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.getExistingProjectsByUser();
+        this.getTeamByProjectId(this.projectObj.projectId);
       }
     })
   }
@@ -164,8 +351,11 @@ export class Employee360ProjectComponent implements OnInit {
     breadcrumbObject.url = "/user-team/resource-management";
     breadcrumbObject.object = projectObj;
     this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
-
     this.router.navigate([breadcrumbObject.url], { queryParams: { }});
+   
+    this.resourceManagementComponent.showEditProjectForm(projectObj);
+    
+    
   }
 
   viewProjectInfo(projectObj :any){
@@ -271,7 +461,7 @@ export class Employee360ProjectComponent implements OnInit {
     //console.log("Updated Filter : ", this.filters);
   }
 
-  page = 1;
+  
   handlePageChange(event) {
     this.page = event;
   }
@@ -279,4 +469,40 @@ export class Employee360ProjectComponent implements OnInit {
   cancelRequest() {
     this.modalRef.hide();
   }
+
+  async getAllEmployeeFor360View(): Promise<void> {
+    this.employeesFor360 = [];
+    
+    try {
+        const response: any = await this.employeeService.getAllEmployeesFor360View().toPromise();
+        
+        if (response.serviceStatus === "Success") {
+            this.employeesFor360 = response.serviceResponse;
+
+            this.employeesFor360.forEach(employeeObj => {
+                employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
+                employeeObj.dateOfJoining = employeeObj.dateOfJoining ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+                employeeObj.dateOfRelieving = employeeObj.dateOfRelieving ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+                employeeObj.updatedOn = employeeObj.updatedOn ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+                employeeObj.createdOn = employeeObj.createdOn ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+
+                if (employeeObj.isConsultant === 'true') {
+                    employeeObj.employeeType = 'Consultant';
+                } else if (employeeObj.isApprenticeship === 'true') {
+                    employeeObj.employeeType = 'Apprentice';
+                } else {
+                    employeeObj.employeeType = 'Regular';
+                }
+            });
+
+            // Sort the employees
+            this.employeesFor360 = new SortPipe().transform(this.employeesFor360, ['name', 'string', 'asc']);
+        } else {
+            alert(response.serviceResponse);
+        }
+    } catch (error) {
+        console.error("Error fetching employees:", error);
+    }
+}
+
 }

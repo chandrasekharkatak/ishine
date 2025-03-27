@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { LOCALE_ID, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { DragDropModule } from '@angular/cdk/drag-drop';
@@ -124,9 +124,32 @@ import { InformationPreviewComponent } from './user-update-info/information-prev
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
 import { QrCodeGeneratorComponent } from './qr-code-generator/qr-code-generator.component';
 import { ExpiedPoAndProjectComponent } from './home/expied-po-and-project/expied-po-and-project.component';
+import { NavigateToProjectViewDirective } from './navigate-to-project-view.directive';
+import { ProjectViewComponent } from './project-view/project-view.component';
+import { PerformanceConfigComponent } from './configuration/performance-config/performance-config.component';
+import { OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
+import { registerLocaleData } from '@angular/common';
+import localeGb from '@angular/common/locales/en-GB';
+import { LMSComponent } from './employee360/lms/lms.component';
+registerLocaleData(localeGb);
+// import { OwlDateTimeModule, OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
+// 
+
+import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
 
+
+  export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
+    parseInput: 'DD/MM/YYYY hh:mm A',
+    fullPickerInput: 'DD/MM/YYYY hh:mm A',
+    datePickerInput: 'DD/MM/YYYY',
+    timePickerInput: 'hh:mm A',
+    monthYearLabel: 'MMM YYYY',
+    dateA11yLabel: 'DD/MM/YYYY',
+    monthYearA11yLabel: 'MMMM YYYY',
+  };
+  
 @NgModule({
   declarations: [
     AppComponent,
@@ -209,13 +232,18 @@ import { ExpiedPoAndProjectComponent } from './home/expied-po-and-project/expied
     Employee360BiomaxComponent,
     Employee360RewardsComponent,
     Employee360AppreciationComponent,
-
+    
     BreadcrumbComponent,
 
     Employee360BiomaxComponent,
      AppreciationComponent,
      QrCodeGeneratorComponent,
-     ExpiedPoAndProjectComponent
+     ExpiedPoAndProjectComponent,
+     NavigateToProjectViewDirective,
+     ProjectViewComponent,
+     PerformanceConfigComponent,
+     LMSComponent,
+     BiomaxApprovalComponent,
 
     //TestComponent
   ],
@@ -265,6 +293,9 @@ import { ExpiedPoAndProjectComponent } from './home/expied-po-and-project/expied
     MatInputModule,
     MatFormFieldModule,
     MatOptionModule,
+    OwlNativeDateTimeModule,
+    OwlDateTimeModule
+
   ],
   providers: [
     BsModalService,
@@ -272,6 +303,10 @@ import { ExpiedPoAndProjectComponent } from './home/expied-po-and-project/expied
     { provide: LocationStrategy, useClass: HashLocationStrategy },
     { provide: HTTP_INTERCEPTORS, useClass: LoaderInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: EmployeePortalInterceptor, multi: true },
+    { provide: OWL_DATE_TIME_FORMATS, useValue: MY_CUSTOM_FORMATS },
+    { provide: LOCALE_ID, useValue: 'en-GB' } // Force UK locale for DD/MM/YYYY
+
+   
   ],
   bootstrap: [AppComponent]
 })

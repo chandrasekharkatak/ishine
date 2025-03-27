@@ -211,6 +211,7 @@
                     <button type="button" class="btn btn-outline-primary btn-sm mx-1 dsr-button" (click)="reconsileHolidayTimesheet(alert_message)">Reconsile Holiday/ WeekOff Timesheet</button>
                 </div>
             </div>
+           
             <!-- <div class="row">
                 <div class="col-md-5 mb-0">
                     <div class="info-wrapper">
@@ -223,6 +224,31 @@
                     <button type="button" class="btn btn-outline-primary btn-sm">Download</button>
                 </div>
             </div> -->
+            <div class="row">
+                
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Leave deduction relaxation in the department.</label>
+                            <mat-select class="form-control"  multiple [(ngModel)]="portalObj.departmentIdList">
+                                <mat-option selected="selected"  value="" disabled>Select</mat-option>
+                                <mat-option *ngFor="let dept1 of allDeptList" [value]="dept1.deptId">{{dept1.name}}</mat-option>
+                            </mat-select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Leave deduction relaxation in the employee.</label>
+                            <mat-select class="form-control" multiple  [(ngModel)]="portalObj.empIdList">
+                                <mat-option selected="selected"  value="" disabled>Select</mat-option>
+                                <mat-option *ngFor="let emp of employeeList" [value]="emp.empId">{{emp.name}}</mat-option>
+                            </mat-select>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="row mt-3">
                 <div class="col-md-12">
                     <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="updatePortalGlobalConfiguration(portalObj,alert_message)">Update Portal Global Configuration</button>
@@ -312,10 +338,10 @@
     <!-- <input type="text" class="form-control"  placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	 -->
     <!-- <button type="button"  id="buttonPosition" class="btn btn-sm btn-outline-primary mx-1" (click)="openFilterModal(filter, appreciationColumns, 'Filter Appreciation')"><i class="fa-solid fa-filter"></i></button> -->
     </div>
-    <div class="selector-toggle" (click)="toggleSearch()">
+    <div class="selector-toggle" >
         <a href="javascript:void(0)">
-            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+            <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
+            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
         </a>
     </div>
     <table class="table appreciation-config-table"  id="table appreciation-config-table" matSort (matSortChange)="sortData($event) ">
@@ -367,10 +393,10 @@
 </div>
 <br>
   <div class = row-md-6 *ngIf="viewAppreciationForm">
-    <div class="selector-toggle" (click)="toggleSearch()">
+    <div class="selector-toggle" >
         <a href="javascript:void(0)">
-            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+            <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
+            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
         </a>
     </div>
       <table class="table" matSort (matSortChange)="sortData($event)">
@@ -414,10 +440,10 @@
 </div>
 <!--AppreciationInfo table start-->
 <div class = row-md-6 *ngIf="isAppreciationInfo">
-  <div class="selector-toggle" (click)="toggleSearch()">
+  <div class="selector-toggle" >
       <a href="javascript:void(0)">
-          <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-          <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+          <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
+          <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
       </a>
   </div>
     <table class="table" matSort (matSortChange)="sortData($event)">
@@ -455,10 +481,10 @@
         </div> -->
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" (click)="toggleSearch()">
+                <div class="selector-toggle" >
                     <a href="javascript:void(0)">
-                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
                     </a>
                 </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'appreciationInfo'"
@@ -583,10 +609,10 @@
 
         <div class="row" *ngIf="isHelpTable">
             <div class="col-md-12">
-                <div class="selector-toggle" (click)="toggleSearch()">
+                <div class="selector-toggle" >
                     <a href="javascript:void(0)">
-                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
                     </a>
                 </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'helpDocInfo'"
@@ -614,8 +640,9 @@
                                 *ngFor="let doc of document | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }, let i = index ">
                                 <th class="info-label">{{10*(page-1)+i+1}}</th>
                                 <td>{{doc.fileName}}</td>
-                                <td>{{doc.helpDocumentName}}</td>
-                                <td>{{doc.createdByName}}</td>
+                                <td>{{doc.helpDocumentName}}</td> 
+                                <td *ngIf="userMapping.employee360_view_portal_config"id="clickablefor360" [navigateToEmployee360]="doc.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{doc.createdByName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_portal_config">{{doc.createdByName}}</td>
                                 <td>{{doc.createdOn}}</td>
                                 <td>
                                 <button class="btn btn-sm btn-outline-danger" type="submit" (click)="openDeleteDocument(delete_helpDoc_template,doc)" ><em class="fa fa-trash"></em></button>&nbsp;

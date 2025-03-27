@@ -12,7 +12,10 @@ import { Sort } from '@angular/material/sort';
 import { LocationStrategy } from '@angular/common';
 import * as moment from 'moment';
 import { AppComponent } from 'src/app/app.component';
-
+import { Employee360Service } from 'src/app/services/employee360.service';
+import { SortPipe } from 'src/app/sort.pipe';
+import { EmployeeService } from 'src/app/services/employee.service';
+import { UtilityService } from 'src/app/services/utility.service';
 
 @Component({
   selector: 'app-team-timesheet',
@@ -44,6 +47,8 @@ export class TeamTimesheetComponent implements OnInit {
   modalRef: BsModalRef = new BsModalRef();
   allTeamTimesheets: any[] = [];
   allTeamTimesheetRequests: Timesheet[] = [];
+  // employeesFor360: any[] = [];
+  allEmployeeList360: any[] = [];
 
   timesheetObj: Timesheet = new Timesheet();
   startDate: any;
@@ -65,22 +70,31 @@ export class TeamTimesheetComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private timesheetService: TimesheetService,
     private exportExcelService: ExportExcelService,
-    private locationStrategy: LocationStrategy
+    private locationStrategy: LocationStrategy,
+    private employee360Service: Employee360Service,
+    private employeeService: EmployeeService,
+    private utilityService: UtilityService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
 
     // Dynamic Subfeature Flags 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    //console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
     this.preventBackButton();
+    try {
+      this.allEmployeeList360 = await this.utilityService.getEmployeeDetailsFor360View();
+      //console.log("Priyadarshini ", this.allEmployeeList360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
+
   }
   preventBackButton() {
     history.pushState(null, null, location.href);
@@ -88,7 +102,7 @@ export class TeamTimesheetComponent implements OnInit {
       history.pushState(null, null, location.href);
     })
   }
-
+  
   sectionViewInit() {
     if (this.userMapping.view_my_teams_timesheets) {
       this.showAllTimesheetsTable();
@@ -158,9 +172,13 @@ export class TeamTimesheetComponent implements OnInit {
           x.officeInTime = (x.officeInTime) ? moment(x.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
           x.officeOutTime = (x.officeOutTime) ? moment(x.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
           x.createdOn = (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === x.employeementId);
+          // console.log('matches++',matchingEmployee);
+          x.emp360 = matchingEmployee ? matchingEmployee : {};
+
         }
 
-        //console.log("allTeamTimesheets :", this.allTeamTimesheets);
+        // console.log("allTeamTimesheets :", this.allTeamTimesheets);
       } else {
         console.error(response.serviceResponse)
       }
@@ -187,6 +205,15 @@ export class TeamTimesheetComponent implements OnInit {
           timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
+
+        this.allTeamTimesheetRequests.forEach(timesheet => {
+          let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === timesheet.employeementId);
+          let matchingEmployeeCreatedBy = this.allEmployeeList360.find(emp => emp.empId === timesheet.createdBy);
+          //console.log('matches++',matchingEmployee);
+          timesheet.emp360 = matchingEmployee ? matchingEmployee : {};
+          timesheet.emp360CreatedBy = matchingEmployeeCreatedBy ? matchingEmployeeCreatedBy : {};
+          });
+
         //console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
       } else {
         console.error(response.serviceResponse)

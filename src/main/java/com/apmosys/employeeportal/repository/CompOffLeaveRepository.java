@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import com.apmosys.employeeportal.model.CompOffLeave;
+import com.apmosys.employeeportal.model.EmployeeLeave;
 
 public interface CompOffLeaveRepository extends JpaRepository<CompOffLeave, Long> {
 
@@ -71,4 +72,6 @@ public interface CompOffLeaveRepository extends JpaRepository<CompOffLeave, Long
 
 	public CompOffLeave findByCompOffLeaveId(Long compOffLeaveId);
 	
+	@Query(value = " FROM CompOffLeave WHERE current_date() BETWEEN  fromDate and toDate")
+	public List<CompOffLeave> findEmployeeIsOnCompOffLeaveToday();
 }

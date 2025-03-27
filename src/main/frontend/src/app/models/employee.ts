@@ -200,6 +200,7 @@ export class Employee{
 	referedType:any;
 	referedName:any;
 	employeeConfirmationDate:any;
+	emp360:any;
 
 	selectedProjectId :any;
 

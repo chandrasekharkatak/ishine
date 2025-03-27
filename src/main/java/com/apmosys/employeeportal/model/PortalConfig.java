@@ -1,7 +1,9 @@
 package com.apmosys.employeeportal.model;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -30,8 +32,9 @@ public class PortalConfig {
 	@JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
 	private LocalDateTime updatedOn;
 	
-	private Long updatedBy;
-	
+	private String updatedBy;
+
 	private String configValue;
-	
+	// Store as JSON
+
 }

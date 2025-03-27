@@ -45,10 +45,10 @@
 
     <div class="row">
       <div class="col-md-12">
-        <div class="selector-toggle" (click)="toggleSearch()">
-          <a href="javascript:void(0)">
-            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+        <div class="selector-toggle" >
+          <a href="javascript:void(0)" (click)="toggleSearch()">
+              <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
         <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveReportInfo'"
@@ -87,7 +87,8 @@
                 *ngFor="let leave of allLeaveApplicationsList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{leave.employeementId}}</td>
                 <td>{{leave.employeeType}}</td>
-                <td>{{leave.employeeName}}</td>
+                <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="leave.emp360" style="cursor: pointer;" title="Click to view Employee 360" >{{leave.employeeName}}</td>
+                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{leave.employeeName}}</td>
                 <td>{{leave.leaveType}}</td>
                 <td>{{leave.fromDate}}</td>
                 <td>{{leave.toDate}}</td>
@@ -96,11 +97,13 @@
                 <td>{{leave.noOfDays}}</td>
                 <td class="wide-col">{{leave.reason}}</td>
                 <td>{{leave.status}}</td>
-                <td>{{leave.managerName}}</td>
+                <td class="text-capitalize" *ngIf="userMapping.reports_employee_360" id="clickablefor360" [navigateToEmployee360]="leave.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{leave.managerName}}</td>
+                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{leave.managerName}}</td>
                 <td>{{leave.departmentName}}</td>
                 <td>{{leave.createdOn}}</td>
                 <td>{{leave.updatedOn}}</td>
-                <td>{{leave.leaveStatusUpdatedByName}}</td>
+                <td class="text-capitalize" *ngIf="leave.leaveStatusUpdatedByName && userMapping.reports_employee_360" id="clickablefor360" [navigateToEmployee360]="leave.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{leave.leaveStatusUpdatedByName}}</td>
+                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360" >{{leave.leaveStatusUpdatedByName}}</td>
               </tr>
             </tbody>
           </table>
@@ -142,10 +145,10 @@
 
     <div class="row">
       <div class="col-md-12">
-        <div class="selector-toggle" (click)="toggleSearch()">
-          <a href="javascript:void(0)">
-            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+        <div class="selector-toggle" >
+          <a href="javascript:void(0)" (click)="toggleSearch()">
+              <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
         <div class="overflow-auto" bassHorizontalScroll [tableId]="'timesheetReportInfo'"
@@ -183,8 +186,9 @@
               <tr
                 *ngFor="let timesheet of allTimesheetApplicationsList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{timesheet.employeementId}}</td>
-                <td>{{timesheet.employeeType}}</td>
-                <td>{{timesheet.employeeName}}</td>
+                <td>{{timesheet.employeeType}}</td> 
+                <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;" title="Click to view Employee 360" >{{timesheet.employeeName}}</td>
+                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{timesheet.employeeName}}</td>
                 <td>{{timesheet.date}}</td>
                 <td>{{timesheet.dayType}}</td>
                 <td style="min-width: 250px;">{{timesheet.description}}</td>
@@ -195,8 +199,9 @@
                 <td>{{timesheet.totalWorkingOfficeHours}}</td>
                 <td>{{timesheet.leaveType}}</td>
                 <td>{{timesheet.createdOn}}</td>
-                <td>{{timesheet.updatedOn}}</td>
-                <td>{{timesheet.timesheetStatusUpdatedByName}}</td>
+                <td>{{timesheet.updatedOn}}</td>    
+                <td class="text-capitalize" *ngIf="timesheet.timesheetStatusUpdatedByName && userMapping.reports_employee_360" id="clickablefor360" [navigateToEmployee360]="timesheet.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{timesheet.timesheetStatusUpdatedByName}}</td>
+                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{timesheet.timesheetStatusUpdatedByName}}</td>
               </tr>
             </tbody>
           </table>
@@ -654,16 +659,24 @@
                 <th class="info-label">{{20*(page-1)+i+1}}</th>
                 <td>{{employee.employeementId}}</td>
                 <td>{{employee.employeeType}}</td>
-                <td>{{employee.name}}</td>
+                <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="employee.emp360" style="cursor: pointer;" title="Click to view Employee 360" (click)="cancelRequest()">{{employee.name}}</td>
+                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{employee.name}}</td>
                 <td>{{employee.departmentName}}</td>
                 <td>{{employee.jobRoleName}}</td>
-                <td>{{employee.managerName}}</td>
+                <td class="text-capitalize" *ngIf="userMapping.reports_employee_360 && employee.managerName"  id="clickablefor360" [navigateToEmployee360]="employee.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{employee.managerName}}</td>
+                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360 || !employee.managerName">{{employee.managerName}}</td>
                 <td>{{employee.mobileNo}}</td>
                 <td>{{employee.email}}</td>
                 <td>{{employee.employmentstatus}}</td>
 
                 <!-- added by anurag  -->
-                <td>{{employee.projectName}}</td>
+                <td *ngIf="userMapping.reports_employee_360 && employee.projectList" >
+                  <span *ngFor="let project of employee.projectList; let last = last" class="info-label"
+                      style="cursor: pointer; color: blue;"  id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.projectId" style="cursor: pointer;" title="Click to view Project Details"> 
+                      {{ project.projectName }}<span *ngIf="!last">, </span>
+                  </span>
+                </td>
+                <td *ngIf="!userMapping.reports_employee_360 || !employee.projectList">{{employee.projectName}}</td>
                 <td>{{employee.poNo}}</td>
                 <td>{{employee.poStartDate}}</td>
                 <td>{{employee.poEndDate}}</td>
@@ -671,6 +684,13 @@
                 <td>{{employee.clientName}}</td>
                 <td>{{employee.billable}}</td>
                 <td>{{employee.billableType}}</td>
+
+                <!-- added by anurag  -->
+                <!-- <td>{{employee.projectName}}</td> -->
+               
+                <!-- <td>{{employee.clientName}}</td>
+                <td>{{employee.billable}}</td>
+                <td>{{employee.billableType}}</td> -->
 
                 <!-- ended -->
                 <td>{{employee.dateOfJoining}}</td>
@@ -717,8 +737,10 @@
                 <td>{{employee.passingGrade}}</td>
                 <td>{{employee.yearOfPassing}}</td>
                 <td>{{employee.updatedOn}}</td>
-                <td>{{employee.updatedByName}}</td>
-                <td>{{employee.createdByName}}</td>
+                <td *ngIf="employee.updatedByName && userMapping.reports_employee_360"id="clickablefor360" [navigateToEmployee360]="employee.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{employee.updatedByName}}</td>
+                <td *ngIf="!userMapping.reports_employee_360 || !employee.updatedByName">{{employee.updatedByName}}</td>
+                <td *ngIf="employee.createdByName && userMapping.reports_employee_360"id="clickablefor360" [navigateToEmployee360]="employee.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{employee.createdByName}}</td>
+                <td *ngIf="!userMapping.reports_employee_360 || !employee.createdByName">{{employee.createdByName}}</td>
                 <td>{{employee.createdOn}}</td>
                 <td>
                   <div class="progress profileCompleted">
@@ -1029,10 +1051,10 @@
 
     <div class="row">
       <div class="col-md-12">
-        <div class="selector-toggle" (click)="toggleSearch()">
-          <a href="javascript:void(0)">
-            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+        <div class="selector-toggle" >
+          <a href="javascript:void(0)" (click)="toggleSearch()">
+              <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
         <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveTimesheetReportInfo'"
@@ -1066,16 +1088,19 @@
                 *ngFor="let timesheet of allLeaveTimesheets | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{timesheet.employeementId}}</td>
                 <td>{{timesheet.employeeType}}</td>
-                <td>{{timesheet.employeeName}}</td>
+                <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{timesheet.employeeName}}</td>
+                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{timesheet.employeeName}}</td>
                 <td>{{timesheet.date}}</td>
                 <td>{{timesheet.dayType}}</td>
                 <td style="min-width: 250px;">{{timesheet.description}}</td>
                 <td>{{timesheet.status}}</td>
-                <td>{{timesheet.managerName}}</td>
+                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360 || !timesheet.managerName">{{timesheet.managerName}}</td>
+                <td class="text-capitalize" *ngIf="userMapping.reports_employee_360 && timesheet.managerName" id="clickablefor360" [navigateToEmployee360]="timesheet.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{timesheet.managerName}}</td>
                 <td>{{timesheet.departmentName}}</td>
                 <td>{{timesheet.createdOn}}</td>
                 <td>{{timesheet.updatedOn}}</td>
-                <td>{{timesheet.timesheetStatusUpdatedByName}}</td>
+                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{timesheet.timesheetStatusUpdatedByName}}</td>
+                <td class="text-capitalize" *ngIf="userMapping.reports_employee_360" id="clickablefor360" [navigateToEmployee360]="timesheet.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{timesheet.timesheetStatusUpdatedByName}}</td>
               </tr>
             </tbody>
           </table>
