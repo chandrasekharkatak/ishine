@@ -145,4 +145,11 @@ public class ResourceManagementController {
 		return response;
 	}
 
+	
+	@RequestMapping(value = "/getPoProjectDetailsForPoProjects", method = RequestMethod.GET)
+	public ServiceResponse getPoProjectDetailsForPoProjects() {
+		
+		ServiceResponse response = resourceManagementService.getPoProjectDetailsForPoProjects();
+		return response;
+	}
 }
