@@ -38,5 +38,7 @@ public class getAllEmployeesReportByProjectTypeInConsolidatedDTO {
     private String jobRole;
     private String employeementId;
     private String poProjectId;
+    private String primaryProjectId;
+    private String primaryProjectName;
     private Map<String, String> projects;
 }

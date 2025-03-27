@@ -491,6 +491,7 @@
                 <th scope="col" class="info-label wide-col" mat-sort-header="clientLocation|string">Client Location</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="workLocation|string">Work Location</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="totalExperience|string">Experience</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="totalExperience|string">Default Project Assigned</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="defaultProject|string">Select Default Project</th>
               </tr>
               <tr app-column-filter-bar *ngIf="isEmployeeReportTable && isSearchEnabled"
@@ -525,11 +526,9 @@
                 <td>{{ employee.clientLocation }}</td>
                 <td>{{ employee.workLocation }}</td>
                 <td>{{ employee.totalExperience }}</td>
+                <td>{{ employee.totalExperience }}</td>
                 <td>
                   <select class="form-control" [(ngModel)]="employee.selectedProject">
-                    <!-- <option >
-                      {{ employee.projectName }}
-                    </option> -->
                     <option *ngFor="let project of employee.projectName.split(',')">
                       {{ project.trim() }}
                     </option>

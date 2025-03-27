@@ -546,6 +546,8 @@ public class ReportService {
 					employeeDTO.setPoProjectType(object[23] != null ? object[23].toString() : null);
 					employeeDTO.setJobRole(object[24] != null ? object[24].toString() : null);
 					employeeDTO.setPoProjectId(object[25] != null ? object[25].toString() : null);
+					employeeDTO.setPrimaryProjectName(object[26] != null ? object[26].toString() : null);
+					employeeDTO.setPrimaryProjectId(object[27] != null ? object[27].toString() : null);
 					
 					Map<String, String> projectMap = new HashMap<>();
 			        if (object[12] != null && object[13] != null) {
