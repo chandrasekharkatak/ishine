@@ -1136,12 +1136,12 @@ public class RewardsService {
             		dto.setRewardedTo(object[3] != null ? Long.parseLong(object[3].toString()):null);
             		dto.setRewardedToByName(object[4] != null? object[4].toString() : null);
             		dto.setRewardTypeID(object[5] != null? Integer.parseInt(object[5].toString()) : null);
-            		dto.setCategoryId(object[6] != null ? Integer.parseInt(object[6].toString()) : null);
-            		dto.setRewardTypeName(object[7] != null ? object[7].toString() : null);
-            		dto.setDepartmentId(object[8] != null ? Long.parseLong(object[8].toString()) : null);
-            		dto.setDepartment(object[9] != null ? object[9].toString() : null);
-            		dto.setOfMonthYear(object[10] != null ? object[10].toString() : null);
-            		dto.setCategoryName(object[11] != null ? object[11].toString() : null);
+//            		dto.setCategoryId(object[6] != null ? Integer.parseInt(object[6].toString()) : null);
+            		dto.setRewardTypeName(object[6] != null ? object[6].toString() : null);
+            		dto.setDepartmentId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
+            		dto.setDepartment(object[8] != null ? object[8].toString() : null);
+            		dto.setOfMonthYear(object[9] != null ? object[9].toString() : null);
+            		dto.setCategoryName(object[10] != null ? object[10].toString() : null);
             	
             	dtos.add(dto);
             	});
