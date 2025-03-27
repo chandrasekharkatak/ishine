@@ -50,5 +50,9 @@ export class ResourceManagementService {
   getPoProjectDetailsForPoProjects(){
     return this.http.get(`${this.baseUrl}` + `api/getPoProjectDetailsForPoProjects`);
   }
+
+  syncPoProjectDetailsByProjectId(project: Project){
+    return this.http.post(`${this.baseUrl}` + `api/syncPoProjectDetailsByProjectId`,project);
+  }
   
 }

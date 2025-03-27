@@ -2733,9 +2733,11 @@ public class ResourceManagementService {
 		try {
 			Project projObj = null;
 		    if (resourceManagementDTO.getProjectType().equals("Internal")) {
-		        projObj = null;
+	        	response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+				response.setServiceResponse("This is marked as an internal project !");
+				return response;
 		    } else {
-		        projObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
+		        projObj = projectRepository.findByProjectId(Integer.parseInt(resourceManagementDTO.getProjectId().toString()));
 		    }
 
 		    Project projectObj = projObj;
@@ -2749,15 +2751,15 @@ public class ResourceManagementService {
 		        
 		        Project projectDbResponse = projectRepository.save(projectObj);
 		        
-		        if(projectDbResponse != projObj) {
+		        if(projectObj != projObj) {
 		        	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Synced Successfully !");
-		        }else if(projectDbResponse != projObj) {
+		        }else if(projectObj == projObj) {
 		        	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Already Up To Date !");
 		        }else {
 		        	response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-					response.setServiceResponse("Data not mismatched !");
+					response.setServiceResponse("Data mismatched between Ishine and Po !");
 		        }
 		    }
 		}catch(Exception e) {
