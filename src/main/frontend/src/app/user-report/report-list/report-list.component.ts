@@ -241,6 +241,11 @@ export class ReportListComponent implements OnInit {
   }
   getAllEmployeesReportByProjectTypeInConsolidated(){
     this.allEmployee=[];
+    this.tnmPoExpiredCount=0;
+    this.tnmPOValidCount=0;
+    this.fixedCostPoExpiredCount=0;
+    this.fixedCostPoValidCount=0;
+    this.internalCount=0;
     this.employeeService.getAllEmployeesReportByProjectTypeInConsolidated().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         // console.log('response -- ',response.serviceResponse);
@@ -458,47 +463,92 @@ onBoxClickDataChange(boxName) {
     //poEndDate 
   }
 
-  updateDefaultProject(employee : any){
-
-    console.log('emp data :::::::::::',employee);
-  this.getProjectId(employee);
+  // updateDefaultProject(employee : any){
+  //   this.updatedEmpObj = new Employee();
+  //   console.log('emp data :::::::::::',employee);
+  // this.getProjectId(employee);
   
-  const selectedProjectId = this.getProjectId(employee);
-  console.log("Selected Project ID:", selectedProjectId);
-  this.selectedProjectId = selectedProjectId ;
-  let newemployeeObj: Employee = new Employee();
+  // const selectedProjectId = this.getProjectId(employee);
+  // console.log("Selected Project ID:", selectedProjectId);
+  // this.selectedProjectId = selectedProjectId ;
+  // let newemployeeObj: Employee = new Employee();
   
 
-  newemployeeObj.selectedProjectId = this.selectedProjectId;
-  newemployeeObj.projectName = employee.projectName;
-  newemployeeObj.empId = employee.empId;
+  // newemployeeObj.selectedProjectId = this.selectedProjectId;
+  // newemployeeObj.projectName = employee.projectName;
+  // newemployeeObj.empId = employee.empId;
 
 
-  console.log('new Employee OBJ :::::::::::::',newemployeeObj);
+  // console.log('new Employee OBJ :::::::::::::',newemployeeObj);
 
-  this.employeeService.updateDefaultProject(newemployeeObj).pipe(first()).subscribe((response: any) => {
-    console.log('response ::::::::::::::::::::::',response);
-    if (response.serviceStatus == "Success") {
-      this.updatedEmpObj= response.serviceResponse ;
-      console.log('updated project details ::::::::',this.updatedEmpObj);
-      this.openAlertMod(this.alertModal, "Default Project Updated Successfully  !! ")
+  // this.employeeService.updateDefaultProject(newemployeeObj).pipe(first()).subscribe((response: any) => {
+  //   console.log('response ::::::::::::::::::::::',response);
+  //   if (response.serviceStatus == "Success") {
+  //     this.updatedEmpObj= response.serviceResponse ;
+  //     console.log('updated project details ::::::::',this.updatedEmpObj);
+  //     this.openAlertMod(this.alertModal, "Default Project Updated Successfully  !! ")
       
-    }
-  });
+  //   }
+  // });
 
+  // }
+
+  updateDefaultProject(employee: any) {
+    this.updatedEmpObj = new Employee();
+    console.log('emp data :::::::::::', employee);
+    this.getProjectId(employee);
+    
+    const selectedProjectId = this.getProjectId(employee);
+    console.log("Selected Project ID:", selectedProjectId);
+    this.selectedProjectId = selectedProjectId;
+  
+    let newemployeeObj: Employee = new Employee();
+    newemployeeObj.selectedProjectId = this.selectedProjectId;
+    newemployeeObj.projectName = employee.projectName;
+    newemployeeObj.empId = employee.empId;
+  
+    console.log('new Employee OBJ :::::::::::::', newemployeeObj);
+  
+    this.employeeService.updateDefaultProject(newemployeeObj).pipe(first()).subscribe((response: any) => {
+      console.log('response ::::::::::::::::::::::', response);
+      if (response.serviceStatus === "Success") {
+        this.updatedEmpObj = response.serviceResponse;
+        //console.log('updated project details ::::::::', this.updatedEmpObj);
+        this.openAlertMod(this.alertModal, "Default Project Updated Successfully  !! ")
+
+        this.getAllEmployeesReportByProjectTypeInConsolidated();
+        //employee.defaultProjectAssigned = this.updatedEmpObj.primaryProjectName;
+      }
+    });
   }
 
-  getProjectId(employee: any): string | null {
+  // getProjectId(employee: any): string | null {
     
-    const projectNames = employee.projectName.split(',');
-    const projectIds = employee.projectIds.split(',');
+  //   const projectNames = employee.projectName.split(',');
+  //   const projectIds = employee.projectIds.split(',');
+
+  //   const selectedIndex = projectNames.findIndex(project => project.trim() === employee.selectedProject.trim());
   
-    // Find index of selected project
-    const selectedIndex = projectNames.findIndex(project => project.trim() === employee.selectedProject.trim());
+  //   if (selectedIndex !== -1 && selectedIndex < projectIds.length) {
+  //     return projectIds[selectedIndex].trim();
+  //   } else {
+  //     return null;
+  //   }
+  // }
+
+  getProjectId(employee: any): string | null {
+    if (employee.projectName && employee.projectIds) {
+      const projectNames = employee.projectName.split(',');
+      const projectIds = employee.projectIds.split(',');
   
-    // Return the corresponding projectId, or null if not found
-    if (selectedIndex !== -1 && selectedIndex < projectIds.length) {
-      return projectIds[selectedIndex].trim();
+      // Ensure both arrays have valid data before proceeding
+      if (projectNames.length > 0 && projectIds.length > 0) {
+        const selectedIndex = projectNames.findIndex(project => project.trim() === employee.selectedProject.trim());
+  
+        if (selectedIndex !== -1 && selectedIndex < projectIds.length) {
+          return projectIds[selectedIndex].trim();
+        }
+      }
     } else {
       return null;
     }

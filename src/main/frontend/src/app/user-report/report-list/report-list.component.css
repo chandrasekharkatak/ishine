@@ -189,3 +189,7 @@
     min-height: 200px; 
   }
   
+  .button{
+    float: right; 
+    margin-top: 1px;
+  }
