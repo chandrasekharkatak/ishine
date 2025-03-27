@@ -470,17 +470,17 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
   onSubmit(template: TemplateRef<any>){
 
-    let inputValidated: boolean = this.vallidateProjectInsight(template, this.projectInsightQuestion, this.projectInsightQuestionList);
-    if (!inputValidated) return;
+    // let inputValidated: boolean = this.vallidateProjectInsight(template, this.projectInsightQuestion, this.projectInsightQuestionList);
+    // if (!inputValidated) return;
 
-    const questionTemplate:string = this.createTemplate();
+    // const questionTemplate:string = this.createTemplate();
 
     let projObj = new ProjectInsightQuestion();
     projObj.projectId = this.projectInsightQuestion.projectId;
     projObj.projectManagerId = this.projectInsightQuestion.projectManagerId;
     projObj.projectManagerName = this.projectInsightQuestion.projectManagerName;
     projObj.projectInsightQuestionList = this.projectInsightQuestionList;
-    projObj.projectInsightQuestionTemplate = questionTemplate;
+    // projObj.projectInsightQuestionTemplate = questionTemplate;
     projObj.createdBy = this.currentUser.empId;
 
     projObj.projectInsightQuestionList.forEach((proj:ProjectInsightQuestion) => {
@@ -489,15 +489,18 @@ export class ProjectInsightsConfigComponent implements OnInit {
       });
     });
 
-    //console.log("survey : ", surveyObj);
-    this.projectInsightService.createProjectInsightQuestion(projObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-        this.showProjectInsight();
-      }else{
-        this.openAlertMod(template, response.serviceResponse);
-      }
-    });
+    console.log(projObj, " : final object");
+    
+
+    // //console.log("survey : ", surveyObj);
+    // this.projectInsightService.createProjectInsightQuestion(projObj).pipe(first()).subscribe((response: any) => {
+    //   if (response.serviceStatus == "Success") {
+    //     this.openAlertMod(template, response.serviceResponse);
+    //     this.showProjectInsight();
+    //   }else{
+    //     this.openAlertMod(template, response.serviceResponse);
+    //   }
+    // });
   }
 
   spaceTrimOnSurveyName(){
