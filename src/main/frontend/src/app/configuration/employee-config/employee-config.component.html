@@ -1013,7 +1013,7 @@
                                                 <label class="info-label"><span
                                                         class="text-danger">*</span>Experience</label>
                                                 <select class="form-control" aria-hidden="true"
-                                                    (change)="clearAfterChange('totalExp','totalExperience')"
+                                                    
                                                     [(ngModel)]="employeeObj.experience">
                                                     <option selected="selected" value="" disabled>Select</option>
                                                     <option value="Fresher">Fresher</option>
@@ -1310,8 +1310,8 @@
     <div class="col-md-12">
         <div class="row">
             <div class="col-md-12 table-header">
-                <h1 *ngIf="!isDraftTable" class="table-header-title">Employees</h1>
-                <h1 *ngIf="isDraftTable" class="table-header-title">Employees Draft</h1>
+                <h1 *ngIf="!isDraftTable" class="table-header-title">Employee(s)</h1>
+                <h1 *ngIf="isDraftTable" class="table-header-title">Employee(s) Draft</h1>
             </div>
         </div>
         <div class="col-md-12">
@@ -1377,10 +1377,10 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" (click)="toggleSearch()">
+                <div class="selector-toggle" >
                     <a href="javascript:void(0)">
-                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
                     </a>
                 </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeInfo'"
@@ -1439,7 +1439,7 @@
                             <th *ngIf="isDraftTable" class="info-label">{{i+1}}</th> -->
                                 <td>{{employee.employeementId}}</td>
                                 <td>{{employee.employeeType}}</td>
-                                <td *ngIf="userMapping.employee_360" [navigateToEmployee360]="employee" style="cursor: pointer;" title="Click to view Employee 360"> {{employee.name}}</td>
+                                <td id="clickablefor360" *ngIf="userMapping.employee_360" [navigateToEmployee360]="employee.emp360" style="cursor: pointer;" title="Click to view Employee 360"> {{employee.name}}</td>
                                 <td *ngIf="!userMapping.employee_360">{{employee.name}}</td>
                                 <td>{{employee.email}}</td>
                                 <td>{{employee.employmentstatus}}</td>
@@ -1450,14 +1450,17 @@
                                     *ngIf="isDraftTable == true && employee.employmentStatus=='InActive' ? '{{employee.employmentReleaseStatus}} ' : ' ' && !isActiveTable">
                                     {{employee.employmentReleaseStatus}}</td>
 
-                                <td>{{employee.managerName}}</td>
+                                <td id="clickablefor360" *ngIf="userMapping.employee_360" [navigateToEmployee360]="employee.emp360Mng" style="cursor: pointer;" title="Click to view Employee 360">{{employee.managerName}}</td>
+                                <td *ngIf="!userMapping.employee_360">{{employee.managerName}}</td>
                                 <td>{{employee.departmentName}}</td>
                                 <td>{{employee.dateOfJoining}}</td>
                                 <td *ngIf="dateOfReleivingshow && isTable">{{employee.dateOfRelieving}}</td>
                                 <td *ngIf="isTable">{{employee.createdOn}}</td>
-                                <td *ngIf="isTable">{{employee.createdByName}}</td>
+                                <td id="clickablefor360" [navigateToEmployee360]="employee.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360" *ngIf="isTable && userMapping.employee_360 && employee.createdByName">{{employee.createdByName}}</td>
+                                <td *ngIf="isTable && (!userMapping.employee_360 || !employee.createdByName)">{{employee.createdByName}}</td>
                                 <td *ngIf="isTable">{{employee.updatedOn}}</td>
-                                <td *ngIf="isTable">{{employee.updatedByName}}</td>
+                                <td id="clickablefor360" [navigateToEmployee360]="employee.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360" *ngIf="isTable && userMapping.employee_360 && employee.updatedByName">{{employee.updatedByName}}</td>
+                                <td *ngIf="isTable && (!userMapping.employee_360 || !employee.updatedByName)">{{employee.updatedByName}}</td>
                                 <td *ngIf="isTable">{{employee.referedName}}</td>
                                 <td *ngIf="isDraftTable">{{employee.updateApplicationStatus}}</td>
                                 <td
@@ -2913,7 +2916,8 @@
                                         <td><span class="badge badge-pill"
                                                 [ngStyle]="{'background-color': audit.color}">{{audit.bucketName}}</span>
                                         </td>
-                                        <td>{{audit.updatedByName}}</td>
+                                        <td id="clickablefor360" *ngIf="userMapping.employee_360" [navigateToEmployee360]="audit.emp360updatedBy" (click)="cancelRequest()" style="cursor: pointer;" title="Click to view Employee 360">{{audit.updatedByName}}</td>
+                                        <td *ngIf="!userMapping.employee_360">{{audit.updatedByName}}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -2982,7 +2986,8 @@
                                         <td><span class="badge badge-pill"
                                                 [ngStyle]="{'background-color': audit.color}">{{audit.bucketName}}</span>
                                         </td>
-                                        <td>{{audit.updatedByName}}</td>
+                                        <td id="clickablefor360" *ngIf="userMapping.employee_360" [navigateToEmployee360]="audit.emp360updatedBy" (click)="cancelRequest()" style="cursor: pointer;" title="Click to view Employee 360">{{audit.updatedByName}}</td>
+                                        <td *ngIf="!userMapping.employee_360">{{audit.updatedByName}}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -3051,7 +3056,8 @@
                                         <td><span class="badge badge-pill"
                                                 [ngStyle]="{'background-color': audit.color}">{{audit.bucketName}}</span>
                                         </td>
-                                        <td>{{audit.updatedByName}}</td>
+                                        <td id="clickablefor360" *ngIf="userMapping.employee_360" [navigateToEmployee360]="audit.emp360updatedBy" (click)="cancelRequest()" style="cursor: pointer;" title="Click to view Employee 360">{{audit.updatedByName}}</td>
+                                        <td *ngIf="!userMapping.employee_360">{{audit.updatedByName}}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -3121,7 +3127,8 @@
                                         <td><span class="badge badge-pill"
                                                 [ngStyle]="{'background-color': audit.color}">{{audit.bucketName}}</span>
                                         </td>
-                                        <td>{{audit.updatedByName}}</td>
+                                        <td id="clickablefor360" *ngIf="userMapping.employee_360" [navigateToEmployee360]="audit.emp360updatedBy" (click)="cancelRequest()" style="cursor: pointer;" title="Click to view Employee 360">{{audit.updatedByName}}</td>
+                                        <td *ngIf="!userMapping.employee_360">{{audit.updatedByName}}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -3194,7 +3201,8 @@
                                         <td><span class="badge badge-pill"
                                                 [ngStyle]="{'background-color': audit.color}">{{audit.bucketName}}</span>
                                         </td>
-                                        <td>{{audit.updatedByName}}</td>
+                                        <td id="clickablefor360" *ngIf="userMapping.employee_360" [navigateToEmployee360]="audit.emp360updatedBy" (click)="cancelRequest()" style="cursor: pointer;" title="Click to view Employee 360">{{audit.updatedByName}}</td>
+                                        <td *ngIf="!userMapping.employee_360">{{audit.updatedByName}}</td>
                                     </tr>
                                 </tbody>
                             </table>

@@ -47,7 +47,7 @@ public class TypeDocumentService {
 			TypeDocument typeDocument = new TypeDocument();
 			
 			typeDocument.setTypeName(documentDto.getTypeName());
-			typeDocument.setCreatedBy(documentDto.getCreatedBy());
+			typeDocument.setCreatedBy(documentDto.getCreatedBy().toString());
 			typeDocument.setCreatedOn(LocalDate.now());
 			
 			TypeDocument dbResponse = typeDocumentRepository.save(typeDocument);
@@ -106,9 +106,13 @@ public class TypeDocumentService {
 				DocumentDTO doc = new DocumentDTO();
 				doc.setTypeName(type[0] != null ? type[0].toString() : null);
 				doc.setCreatedOn(type[1] != null ? LocalDate.parse(type[1].toString()) : null);
-				doc.setCreatedBy(type[2] != null ? type[2].toString() : null);
+				doc.setCreatedBy(type[2] != null ? Long.parseLong(type[2].toString()) : null);
 				doc.setName(type[3] != null ? type[3].toString() : null);
 				doc.setTypeId(type[4] != null ? Long.parseLong(type[4].toString()) : null);
+				doc.setUpdatedBy(type[5] != null ? Long.parseLong(type[5].toString()) : null);
+				doc.setUpdatedOn(type[6] != null ? LocalDate.parse(type[6].toString()) : null);
+				doc.setUpdatedByName(type[7] != null ? type[7].toString() : null);
+				
 				listOfTypes.add(doc);
 			});
 			
@@ -236,7 +240,7 @@ public class TypeDocumentService {
 			TypeDocument dbType = typeDocumentRepository.findByTypeId(documentDto.getTypeId());
 			
 			dbType.setTypeName(documentDto.getTypeName());
-			dbType.setUpdatedBy(documentDto.getUpdatedBy());
+			dbType.setUpdatedBy(documentDto.getUpdatedBy().toString());
 			dbType.setUpdatedOn(LocalDate.now());
 			
 			TypeDocument updateType = typeDocumentRepository.save(dbType);

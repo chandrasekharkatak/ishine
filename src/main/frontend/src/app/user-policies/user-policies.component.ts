@@ -12,6 +12,7 @@ import { Feature } from 'src/app/models/feature';
 import { LocationStrategy } from '@angular/common';
 import * as moment from 'moment';
 import { AppComponent } from '../app.component';
+import { UtilityService } from '../services/utility.service';
 
 
 
@@ -51,10 +52,15 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
     class : 'modal-sm'
   }
 
+  employeesFor360: any[] = [];
+  userMapping: any = {};
+  feature = 'HR Policies';
+
   constructor(private policiesService : PoliciesService,
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
-    private locationStrategy: LocationStrategy
+    private locationStrategy: LocationStrategy,
+        private utilityService: UtilityService,
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
 
@@ -74,7 +80,18 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
   policyColumns:any[] = ['blank','policyName','createdByName','createdOn'];
   isDocumentScrolledToBottom:boolean = false;
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
+    // this.getAllNewsletters();
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+          featureMap.subFeatures?.forEach(sub => {
+            this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+        });
 
     this.getAllDocuments();
     this.preventBackButton();
@@ -98,6 +115,9 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
         this.document =  response.serviceResponse;
         this.document.forEach(doc => {
           doc.createdOn = (doc.createdOn)? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === doc.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          doc.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
         });
         this.getAllReadPolicies();
         //console.log("DocumentList xyz: ", this.document);

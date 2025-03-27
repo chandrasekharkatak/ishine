@@ -33,4 +33,6 @@ export class Rewards{
     teamId:any;
     selectedType:any;
     ofmonthyear:any;
+  emp360CreatedBy: any;
+  emp360UpdatedBy: any;
 }

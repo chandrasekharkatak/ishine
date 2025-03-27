@@ -45,9 +45,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class AuthenticationService {
+	
+	@Autowired
+	private RestTemplate restTemplate;
 
-	 @Autowired
-	    private RestTemplate restTemplate;
 	@Autowired
 	EmployeeRepository employeeRepository;
 

@@ -17,7 +17,8 @@ public class JobRoleDTO {
 	private String name;	
 	private Long departmentId;	
 	private String createdOn;	
-	private String createdBy;	
+	private Long createdBy;	
+	private String createdByName;
 //	private LocalDateTime updatedOn;	
 	private int updatedBy;
 	private int createdById;

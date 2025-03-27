@@ -125,4 +125,24 @@ public class ResourceManagementController {
 		ServiceResponse response = resourceManagementService.syncPoProjectDetailsByProjectId(resourceManagementDTO);
 		return response;
 	}
+	@RequestMapping(value = "/getProjectInfo", method = RequestMethod.POST)
+	public ServiceResponse getProjectInfo(@RequestBody ResourceManagementDTO resourceManagementDTO) {
+		
+		ServiceResponse response = resourceManagementService.getProjectInfo(resourceManagementDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getTeamInfo", method = RequestMethod.POST)
+	public ServiceResponse getTeamInfo(@RequestBody ResourceManagementDTO resourceManagementDTO) {
+		
+		ServiceResponse response = resourceManagementService.getTeamInfo(resourceManagementDTO);
+		return response;
+	}
+	@RequestMapping(value = "/getTeamMemberByTeamId/{teamId}", method = RequestMethod.GET)
+	public ServiceResponse getTeamMemberByTeamId(@PathVariable("teamId") Long teamId) {
+		
+		ServiceResponse response = resourceManagementService.getTeamMemberByTeamId(teamId);
+		return response;
+	}
+
 }

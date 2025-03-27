@@ -185,6 +185,9 @@ public class SurveyServiceImpl implements SurveyService {
 						dto.setUpdatedByName(object[6] != null ? object[6].toString() : null);
 						dto.setUpdatedOn(object[7] != null ? object[7].toString() : null);
 						dto.setType(object[8] != null ? object[8].toString() : null);
+						dto.setCreatedBy(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+						dto.setUpdatedBy(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+						
 						dtoList.add(dto);
 					});
 

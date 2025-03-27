@@ -66,8 +66,13 @@ public class HolidayService {
 			     newHoliday.setDateOfHoliday(stringToDateTimeParser.getDate(holidayDTO.getDateOfHoliday(),"yyyy-MM-dd"));
 			     newHoliday.setDayOfTheWeek(holidayDTO.getDayOfTheWeek());
 			     newHoliday.setOptionalHoliday(holidayDTO.getOptionalHoliday());
-			     newHoliday.setState(holidayDTO.getState());
+//			     newHoliday.setState(holidayDTO.getState());
 			     newHoliday.setHolidayType(holidayDTO.getHolidayType());
+			     if(holidayDTO.getHolidayType().equals("WeekOff") ) {
+			    	 newHoliday.setState("all");
+			     }else {
+			    	  newHoliday.setState(holidayDTO.getState());
+			     }
 //			     newHoliday.setCreatedOn(Timestamp.valueOf(stringToDateTimeParser.getCurrentDateTime()));
 			     newHoliday.setCreatedBy(holidayDTO.getCreatedBy());
 
@@ -126,7 +131,7 @@ public class HolidayService {
 				holiday.setState(holidayDTO.getState());
 				holiday.setHolidayType(holidayDTO.getHolidayType());
 				holiday.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
-				holiday.setUpdatedBy(Integer.parseInt(holidayDTO.getUpdatedBy()));
+				holiday.setUpdatedBy(holidayDTO.getUpdatedBy());
 				Holiday dbResponse = holidayRepository.save(holiday);
 
 				if (dbResponse != null) {
@@ -291,6 +296,7 @@ public class HolidayService {
 					dto.setUpdatedByName(object[8] != null ? object[8].toString() : null);
 					dto.setCreatedBy(object[9] != null ? Integer.parseInt(object[9].toString()) : null);
 					dto.setState(object[10] != null ? object[10].toString() : null);
+					dto.setUpdatedBy(object[11] != null ? Integer.parseInt(object[11].toString()) : null);
 					
 					dtoList.add(dto);
 				});      
@@ -370,20 +376,26 @@ public class HolidayService {
 		logBuilder.append("occasion : " + holidayDTO.getOccasion());
 				
 		  try {
-			  Holiday checkOccasion = holidayRepository.findByOccasion(holidayDTO.getOccasion());
-			  Integer yearOfOccassion = holidayRepository.findYearOfOccassion(holidayDTO.getOccasion());
-//			  System.out.println(yearOfOccassion);
-//			  System.out.println(holidayDTO.getCurrentYear());
 			  
-			  if(yearOfOccassion == holidayDTO.getCurrentYear()) {
-				  if(checkOccasion != null) {
+			  List<Holiday> checkOccasion = holidayRepository.findByOccasion(holidayDTO.getOccasion());
+			  Integer yearOfOccassion = holidayRepository.findYearOfOccassion(holidayDTO.getOccasion());
+			  
+			  if(Integer.valueOf(yearOfOccassion).equals(holidayDTO.getCurrentYear())) {
+				  if(checkOccasion != null && !checkOccasion.isEmpty()) {
 					  response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					  response.setServiceResponse("Occasion already exist!");
 					  
 					  apiLogInfo.setApiResponse("Occasion already exist!");			
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				  }
+			  }else {
+				  response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				  response.setServiceResponse("Occasion Created Successfully");
+				  
+				  apiLogInfo.setApiResponse("Occasion Created Successfully");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			  }
+			
 		  } catch (Exception e) {
 			   e.printStackTrace();
 			   response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);

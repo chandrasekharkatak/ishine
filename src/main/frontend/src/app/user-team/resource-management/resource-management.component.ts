@@ -22,6 +22,8 @@ import * as moment from 'moment';
 import { AppComponent } from 'src/app/app.component';
 import { ProjectService } from 'src/app/services/project.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { Employee360Service } from 'src/app/services/employee360.service';
+import { SortPipe } from 'src/app/sort.pipe';
 
 @Component({
   selector: 'app-resource-management',
@@ -107,8 +109,8 @@ export class ResourceManagementComponent implements OnInit {
   projectDetails: any = [];
   copyDepartment : any = [];
   currentBreadcrumbList: any[] = [];
-
-
+  // employeesFor360: any[] = [];
+  allEmployeeList360: any[] = [];
 
   constructor(
     private departmentService: DepartmentService,
@@ -124,13 +126,14 @@ export class ResourceManagementComponent implements OnInit {
     private exportExcelService: ExportExcelService,
     private utilityService: UtilityService,
     private breadcrumbService: BreadcrumbService,
+    private employee360Service: Employee360Service,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
   }
 
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
 
     // Dynamic Subfeature Flags 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -148,7 +151,18 @@ export class ResourceManagementComponent implements OnInit {
     if ((this.currentBreadcrumbList != undefined && this.currentBreadcrumbList != null) && this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.title.includes("Project")) {
       this.toggleSearch();
     }
+    // this.employee360Service.employeesFor360$.subscribe((employees) => {
+    //   this.employeesFor360 = employees;
+    //   console.log("Employee Data fetched by Shared service ",this.employeesFor360);
+    // });
+    // console.log('userMapping',this.userMapping);
+    try {
+      this.allEmployeeList360 = await this.utilityService.getEmployeeDetailsFor360View();
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
   }
+   
 
   sectionViewInit() {
     if (this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin') {
@@ -321,7 +335,7 @@ export class ResourceManagementComponent implements OnInit {
       this.resourceManagementService.getInternalProject().pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.internalProjectList = response.serviceResponse;
-
+console.log(this.internalProjectList.length);
           let _projectList = [...allPoProject, ...this.internalProjectList];
 
           if ((_projectList != null || _projectList != undefined) && (this.teamCreatedProjectList != null || this.teamCreatedProjectList != undefined)) {
@@ -412,8 +426,13 @@ export class ResourceManagementComponent implements OnInit {
 
             // added in single list  
 
-            this.allProject_Po_Internal = [...this.poPortalProjectList, ...this.internalProjectList];
+            this.allProject_Po_Internal = [ ...this.internalProjectList];
 
+            for(let y of this.allProject_Po_Internal){
+              let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === y.projectManager);
+              console.log('matches++',matchingEmployee);
+              y.emp360 = matchingEmployee ? matchingEmployee : {};
+            }
 
             //console.log(_projectList, " all projects");
             console.log(this.internalProjectList, " this.internalProjectList");
@@ -751,6 +770,9 @@ export class ResourceManagementComponent implements OnInit {
               if (member) { // Check if member is not null
                 // Format the startDate if it exists, otherwise set it to null
                 member.startDate = member.startDate ? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null;
+                let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId === member.empId);
+                console.log('matches++',matchingEmployee);
+                member.emp360 = matchingEmployee ? matchingEmployee : {};
               }
             });
           } else {

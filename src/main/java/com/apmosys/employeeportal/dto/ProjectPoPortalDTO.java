@@ -36,5 +36,5 @@ public class ProjectPoPortalDTO {
     private String poProjectType;
     private String PoProjectId;
     private List<ResourceRequirementDTO> resourceRequirements;
-
+ 
 }

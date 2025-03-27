@@ -1345,6 +1345,10 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 					dto.setMaternityLeaveDays(object[27] != null ? Long.parseLong(object[27].toString()) : null);
 					
 					dto.setEmployeeName(object[28] != null ? object[28].toString() : null);
+					dto.setEmpId(object[29] != null ? Long.parseLong(object[29].toString()) : null);
+					dto.setApproverEmpId(object[30] != null ? Long.parseLong(object[30].toString()) : null);			
+					
+					
 					
 					dtoList.add(dto);
 				});
@@ -1408,22 +1412,25 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 					dto.setEmployeementId(object[13] != null ? Long.parseLong(object[13].toString()) : null);
 					
 					dto.setApproverName(object[14] != null ? object[14].toString() : null);
-					dto.setApproverEmail(object[15] != null ? object[15].toString() : null);
-					dto.setManagerApprovalStatus(object[16] != null ? object[16].toString() : null);
-					dto.setLevel2ApproverId(object[17] != null ? Long.parseLong(object[17].toString()) : null);
-					dto.setLevel2ApproverName(object[18] != null ? object[18].toString() : null);
-					dto.setLevel2ApproverEmail(object[19] != null ? object[19].toString() : null);
-					dto.setLevel2ApprovalStatus(object[20] != null ? object[20].toString() : null);
+					//for approver level 1 empid emp 360
+					dto.setLevel1ApproverId(object[15] != null ? Long.parseLong(object[15].toString()) : null);
+					dto.setApproverEmail(object[16] != null ? object[16].toString() : null);
+					dto.setManagerApprovalStatus(object[17] != null ? object[17].toString() : null);
+					dto.setLevel2ApproverId(object[18] != null ? Long.parseLong(object[18].toString()) : null);
+					dto.setLevel2ApproverName(object[19] != null ? object[19].toString() : null);
+					dto.setLevel2ApproverEmail(object[20] != null ? object[20].toString() : null);
+					dto.setLevel2ApprovalStatus(object[21] != null ? object[21].toString() : null);
+
+					dto.setLevel3ApproverId(object[22] != null ? Long.parseLong(object[22].toString()) : null);
+					dto.setLevel3ApproverName(object[23] != null ? object[23].toString() : null);
+					dto.setLevel3ApprovalStatus(object[24] != null ? object[24].toString() : null);
+					dto.setLevel3ApproverEmail(object[25] != null ? object[25].toString() : null);
+
+					dto.setCurrentApprovalLevel(object[26] != null ? Integer.parseInt(object[26].toString()) : null);
+					dto.setFinalApprovalLevel(object[27] != null ? Integer.parseInt(object[27].toString()) : null);
+					dto.setLeaveEmpId(object[28] != null ? Long.parseLong(object[28].toString()) : null);
+					dto.setManagerId(object[29] != null ? Integer.parseInt(object[29].toString()) : null);
 					
-					dto.setLevel3ApproverId(object[21] != null ? Long.parseLong(object[21].toString()) : null);
-					dto.setLevel3ApproverName(object[22] != null ? object[22].toString() : null);
-					dto.setLevel3ApprovalStatus(object[23] != null ? object[23].toString() : null);
-					dto.setLevel3ApproverEmail(object[24] != null ? object[24].toString() : null);
-					
-					dto.setCurrentApprovalLevel(object[25] != null ? Integer.parseInt(object[25].toString()) : null);
-					dto.setFinalApprovalLevel(object[26] != null ? Integer.parseInt(object[26].toString()) : null);
-					dto.setLeaveEmpId(object[27] != null ? Long.parseLong(object[27].toString()) : null);
-					dto.setManagerId(object[28] != null ? Integer.parseInt(object[28].toString()) : null);				
 					dtoList.add(dto);
 				});
 
@@ -1881,15 +1888,18 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 									+"<br>"+" Reason -: "+leaveDTO.getRejectReason());
 						}
 					}
-					 //Autofill timesheet delete on rejecting leave 
-				    
-					DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-				    DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-				    
-				    String start =  LocalDate.parse(leaveDTO.getFromDate(), formatter).format(formatter2);
-				    String end =  LocalDate.parse(leaveDTO.getToDate(), formatter).format(formatter2);
 					
-				    List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),start,end);
+				    
+					DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy"); 
+
+					String start = LocalDate.parse(leaveDTO.getFromDate(), formatter)
+					                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+					String end = LocalDate.parse(leaveDTO.getToDate(), formatter)
+					                       .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+					List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(), start, end);
+
+					//
 
 					if (empTimeSheet != null) {
 
@@ -2065,6 +2075,9 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 						empDto.setDepartmentName(object[2] != null ? object[2].toString() : null);
 						empDto.setEmploymentStatus(object[3] != null ? object[3].toString() : null);
 						empDto.setEmployeeName(employee.getName());
+						empDto.setEmpId(employee.getEmpId());
+						empDto.setManagerId(object[7] != null ? Integer.parseInt(object[7].toString()) : null);
+						
 						employeeDataList.add(empDto);
 					});
 

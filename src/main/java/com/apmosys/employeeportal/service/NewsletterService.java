@@ -184,6 +184,10 @@ public class NewsletterService {
 						newsletterDTO.setCreatedOn(object[7] != null ? object[7].toString() : null);
 						newsletterDTO.setTypeId(object[8] != null ? Long.parseLong(object[8].toString()) : null);
 						newsletterDTO.setTypeName(object[9] != null ? object[9].toString() : null);
+						newsletterDTO.setUpdatedOn(object[10] != null ? object[10].toString() : null);
+						newsletterDTO.setUpdatedBy(object[11] != null ? Integer.parseInt(object[11].toString()) : null);
+						newsletterDTO.setUpdatedByName(object[12] != null ? object[12].toString() : null);
+						
 						dtoList.add(newsletterDTO);
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

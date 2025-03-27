@@ -1,18 +1,19 @@
-import { Component, OnInit,TemplateRef } from '@angular/core';
-import { UploadPolicy } from 'src/app/models/UploadPolicy';
-import { UploadPoliciesService } from 'src/app/services/upload-policies.service';
-import { ValidationService } from 'src/app/services/validation.service';
+import { LocationStrategy } from '@angular/common';
+import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Sort } from '@angular/material/sort';
+import { saveAs } from "file-saver";
+import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
+import { Feature } from 'src/app/models/feature';
+import { UploadPolicy } from 'src/app/models/UploadPolicy';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { NotificationService } from 'src/app/services/notification.service';
-import { first } from 'rxjs/operators';
-import { Feature } from 'src/app/models/feature';
-import { saveAs } from "file-saver";
-import { Sort } from '@angular/material/sort';
-import { LocationStrategy } from '@angular/common';
-import * as moment from 'moment';
-import { AppComponent } from 'src/app/app.component';
+import { UploadPoliciesService } from 'src/app/services/upload-policies.service';
+import { UtilityService } from 'src/app/services/utility.service';
+import { ValidationService } from 'src/app/services/validation.service';
 
 
 
@@ -63,23 +64,32 @@ export class UploadPoliciesComponent implements OnInit {
   documentsColumns:any[] = ['blank','fileName','policyName','createdByName','createdOn'];
   readResponseColumns:any[] = ['blank','name','empId','policyName','readEnabled'];
 
+  employeesFor360: any[] = [];
+
   constructor(private uploadPoliciesService : UploadPoliciesService,
   private validationService: ValidationService,
   private modalService: BsModalService,
   private authenticationService: AuthenticationService,
   private notificationService: NotificationService,
-  private locationStrategy: LocationStrategy
+  private locationStrategy: LocationStrategy,
+  private utilityService: UtilityService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
 
    }
 
-  ngOnInit(): void {
+   async ngOnInit(): Promise<void> {
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    //console.log(this.feature, this.userMapping);
+    console.log('----------------------------', this.userMapping);
     this.sectionViewInit();
     this.preventBackButton();
   }
@@ -165,6 +175,26 @@ export class UploadPoliciesComponent implements OnInit {
     this.policyName = null;
     this.files = [];
   }
+
+
+  RestrictFullName(event) {
+    var k;
+    k = event.charCode;
+    if ((k == 33) || (k == 34) || (k == 35) || (k == 36) || (k == 37) ||
+      (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42) ||
+      (k == 43) || (k == 44) || (k == 45) || (k == 46) || (k == 47) || (k == 48) ||
+      (k == 49) || (k == 50) || (k == 51) || (k == 52) || (k == 53) || (k == 54) || (k == 55) ||
+      (k == 56) || (k == 57) || (k == 58) ||
+      (k == 59) || (k == 60) || (k == 61) || (k == 62) || (k == 63) ||
+      (k == 64) || (k == 91) || (k == 92) || (k == 93) || (k == 94) ||
+      (k == 95) || (k == 96) || (k == 123) ||
+      (k == 124) || (k == 125) || (k == 126) || (k == 127)) {
+      return (false);
+    }
+    return (true);
+
+
+  }
   onUploadFiles(template: TemplateRef<any>){
     this.policyName = this.policyName?.trim();
     if(!this.validationService.validateNullUndefinedEmptyString(this.policyName)){
@@ -228,7 +258,13 @@ export class UploadPoliciesComponent implements OnInit {
         this.document.forEach(doc => {
           doc.createdOn = (doc.createdOn)? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
-        //console.log("DocumentList : ", this.document);
+        this.document.forEach((employee) => {
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+        });
+        console.log("DocumentList : ", this.document);
       } else {
         console.error(response.serviceResponse);
       }

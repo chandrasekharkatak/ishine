@@ -283,6 +283,7 @@ public class LeavePolicyMasterService {
 					dto.setMaritalStatus(object[26] != null ? object[26].toString() : null);
 					dto.setMaternityType(object[27] != null ? object[27].toString() : null);
 					dto.setMaternityLeaveDays(object[28] != null ? Long.parseLong(object[28].toString()) : null);
+					dto.setCreatedBy(object[29] != null ? Long.parseLong(object[29].toString()) : null);
 					
 					dtoList.add(dto);
 				}
