@@ -498,8 +498,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	
 
     @Query(nativeQuery = true,value = "SELECT \n"
-    		+ "    (SELECT COUNT(*) FROM employee_rewards WHERE rewarded_to = :employeeId) AS rewardCount,\n"
-    		+ "    (SELECT COUNT(*) FROM appreciation WHERE appreciation_to = :employeeId) AS appreciationCount")
+    		+ "    (SELECT COUNT(*) FROM employee_rewards WHERE rewarded_to = e.emp_id) AS rewardCount,\n"
+    		+ "    (SELECT COUNT(*) FROM appreciation WHERE appreciation_to = e.employeement_id) AS appreciationCount\n"
+    		+ "FROM employee e\n"
+    		+ "WHERE e.emp_id = :employeeId")
     List<Object[]> getRewardsAndAppreciationCount(@Param("employeeId") Long employeeId);
 	
 }
