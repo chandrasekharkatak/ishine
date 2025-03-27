@@ -46,5 +46,9 @@ export class ResourceManagementService {
   getInternalProject(){
     return this.http.get(`${this.baseUrl}` + `api/getInternalProject`);
   }
+
+  getPoProjectDetailsForPoProjects(){
+    return this.http.get(`${this.baseUrl}` + `api/getPoProjectDetailsForPoProjects`);
+  }
   
 }

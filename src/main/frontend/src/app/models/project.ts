@@ -50,4 +50,13 @@ export class Project{
 
 	endDate: any;
 	isAllProj: any;
+
+	isSynced: any;
+	poNo: any;
+	startDate:any;
+	poStartDate:any;
+	poEndDate:any;
+	projectType:any;
+	poProjectType:any;
+	isMail:any;
 }
