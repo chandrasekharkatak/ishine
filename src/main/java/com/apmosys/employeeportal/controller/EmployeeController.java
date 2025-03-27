@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -513,10 +514,10 @@ public class EmployeeController {
 		
 		ServiceResponse response = employeeService.updateDefaultProject(employeeDTO.getEmpId(),employeeDTO.getSelectedProjectId());
 		
-		return null;
+		return response;
 	}
 	
-	@PostMapping(value = "/getExpiredPo")
+	@GetMapping("/getExpiredPo")
 	public ServiceResponse getEmployeeRewardByEmpId() { 
 		
 		ServiceResponse serviceResponse = new ServiceResponse();
