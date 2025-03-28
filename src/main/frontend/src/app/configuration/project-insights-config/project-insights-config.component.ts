@@ -340,48 +340,107 @@ export class ProjectInsightsConfigComponent implements OnInit {
         return false;
       }
 
-      milestone.projectQuestion.forEach((question:ProjectQuestion, index) => {
-        if(!this.validationService.validateNullUndefinedEmptyString(question.question)){
-          this.alertMessage = `Please enter Question ${index+1} !!`;
-          this.openAlertMod(template, this.alertMessage);
-          flag = false;
-          return;
-        }
-  
-        if(!this.validationService.validateNullUndefinedEmptyString(question.optionType)){
-          this.alertMessage = `Please select Option Type ${index+1} !!`;
-          this.openAlertMod(template, this.alertMessage);
-          flag = false;
-          return;
-        }
-  
-        if(!this.validationService.validateNullUndefinedEmptyString(question.required)){
-          this.alertMessage = `Please select reqiured ${index+1} !!`;
-          this.openAlertMod(template, this.alertMessage);
-          flag = false;
-          return;
-        }
-  
-        if(question.optionType == "radio" || question.optionType == "checkbox"){
-          if (question.optionsList.length < 2) {
-            this.alertMessage = `Please provide atleast 2 options for Question ${index + 1} !!`;
+      if(!this.validationService.validateNullUndefinedEmptyString(milestone.assignTo)){
+        this.alertMessage = `Please select assign user in milestone ${mileIndex+1} !!`;
+        this.openAlertMod(template, this.alertMessage);
+        flag = false;
+        return false;
+      }
+
+      if(milestone.projectQuestion != null && milestone.projectQuestion.length != 0){
+        flag = this.questionValidation(milestone.projectQuestion, mileIndex, template, 'Milestone');
+      }
+
+      if(milestone.moduleList != null && milestone.moduleList.length != 0){
+        milestone.moduleList.forEach((module: any, modIndex) => {
+          if(!this.validationService.validateNullUndefinedEmptyString(module.module)){
+            this.alertMessage = `Please enter module ${modIndex+1} !!`;
             this.openAlertMod(template, this.alertMessage);
             flag = false;
-            return;
-          }else{
-            question.optionsList.forEach((option: SurveyOption, opIndex) => {
-              if (!this.validationService.validateNullUndefinedEmptyString(option.optionValue)) {
-                this.alertMessage = `Please enter option ${opIndex + 1} for Question ${index + 1} !!`;
+            return false;
+          }
+    
+          if(!this.validationService.validateNullUndefinedEmptyString(module.assignTo)){
+            this.alertMessage = `Please select assign user in module ${modIndex+1} !!`;
+            this.openAlertMod(template, this.alertMessage);
+            flag = false;
+            return false;
+          }
+
+          if(module.projectQuestion != null && module.projectQuestion.length != 0){
+            flag = this.questionValidation(module.projectQuestion, modIndex, template, 'Module');
+          }
+
+          if(module.subModuleList != null && module.subModuleList.length != 0){
+            module.subModuleList.forEach((submodule:any, submodIndex) => {
+              if(!this.validationService.validateNullUndefinedEmptyString(submodule.subModule)){
+                this.alertMessage = `Please enter sub-module ${submodIndex+1} !!`;
                 this.openAlertMod(template, this.alertMessage);
                 flag = false;
-                return;
+                return false;
+              }
+        
+              if(!this.validationService.validateNullUndefinedEmptyString(submodule.assignTo)){
+                this.alertMessage = `Please select assign user in sub-module ${submodIndex+1} !!`;
+                this.openAlertMod(template, this.alertMessage);
+                flag = false;
+                return false;
+              }
+    
+              if(submodule.projectQuestion != null && submodule.projectQuestion.length != 0){
+                flag = this.questionValidation(submodule.projectQuestion, submodIndex, template, 'sub-module');
               }
             });
           }
-        }
-      });
+        }) 
+      }
     });
 
+    return flag;
+  }
+
+  questionValidation(questionList:ProjectQuestion[], parentIndex:any, template: TemplateRef<any>, parentType: any){
+    let flag = true;
+    questionList.forEach((question:ProjectQuestion, index) => {
+      if(!this.validationService.validateNullUndefinedEmptyString(question.question)){
+        this.alertMessage = `Please enter ${parentType}-${parentIndex+1} Question ${index+1} !!`;
+        this.openAlertMod(template, this.alertMessage);
+        flag = false;
+        return;
+      }
+
+      if(!this.validationService.validateNullUndefinedEmptyString(question.optionType)){
+        this.alertMessage = `Please select ${parentType}-${parentIndex+1} Option Type ${index+1} !!`;
+        this.openAlertMod(template, this.alertMessage);
+        flag = false;
+        return;
+      }
+
+      if(!this.validationService.validateNullUndefinedEmptyString(question.required)){
+        this.alertMessage = `Please select ${parentType}-${parentIndex+1} reqiured ${index+1} !!`;
+        this.openAlertMod(template, this.alertMessage);
+        flag = false;
+        return;
+      }
+
+      if(question.optionType == "radio" || question.optionType == "checkbox"){
+        if (question.optionsList.length < 2) {
+          this.alertMessage = `Please provide atleast 2 options for ${parentType}-${parentIndex+1} Question ${index + 1} !!`;
+          this.openAlertMod(template, this.alertMessage);
+          flag = false;
+          return;
+        }else{
+          question.optionsList.forEach((option: SurveyOption, opIndex) => {
+            if (!this.validationService.validateNullUndefinedEmptyString(option.optionValue)) {
+              this.alertMessage = `Please enter option ${opIndex + 1} for ${parentType}-${parentIndex+1} Question ${index + 1} !!`;
+              this.openAlertMod(template, this.alertMessage);
+              flag = false;
+              return;
+            }
+          });
+        }
+      }
+    });
     return flag;
   }
 
@@ -470,17 +529,17 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
   onSubmit(template: TemplateRef<any>){
 
-    // let inputValidated: boolean = this.vallidateProjectInsight(template, this.projectInsightQuestion, this.projectInsightQuestionList);
-    // if (!inputValidated) return;
+    let inputValidated: boolean = this.vallidateProjectInsight(template, this.projectInsightQuestion, this.projectInsightQuestionList);
+    if (!inputValidated) return;
 
-    // const questionTemplate:string = this.createTemplate();
+    const questionTemplate:string = this.createTemplate();
 
     let projObj = new ProjectInsightQuestion();
     projObj.projectId = this.projectInsightQuestion.projectId;
     projObj.projectManagerId = this.projectInsightQuestion.projectManagerId;
     projObj.projectManagerName = this.projectInsightQuestion.projectManagerName;
     projObj.projectInsightQuestionList = this.projectInsightQuestionList;
-    // projObj.projectInsightQuestionTemplate = questionTemplate;
+    projObj.projectInsightQuestionTemplate = questionTemplate;
     projObj.createdBy = this.currentUser.empId;
 
     projObj.projectInsightQuestionList.forEach((proj:ProjectInsightQuestion) => {
@@ -490,17 +549,14 @@ export class ProjectInsightsConfigComponent implements OnInit {
     });
 
     console.log(projObj, " : final object");
-    
-
-    // //console.log("survey : ", surveyObj);
-    // this.projectInsightService.createProjectInsightQuestion(projObj).pipe(first()).subscribe((response: any) => {
-    //   if (response.serviceStatus == "Success") {
-    //     this.openAlertMod(template, response.serviceResponse);
-    //     this.showProjectInsight();
-    //   }else{
-    //     this.openAlertMod(template, response.serviceResponse);
-    //   }
-    // });
+    this.projectInsightService.createProjectInsightQuestion(projObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showProjectInsight();
+      }else{
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
   }
 
   spaceTrimOnSurveyName(){
