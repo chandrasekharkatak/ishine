@@ -79,13 +79,13 @@
                                         <em>{{project.isDraftProject}}</em></td>
                                     <td>
                                         <button class="btn btn-sm btn-outline-primary mb-1"
-                                            *ngIf="project.isSynced == true"
+                                            *ngIf="project.isSynced == false"
                                             (click)="syncPoProjectDetailsByProjectId(alert_message, project);"
                                             type="submit">Sync Po</button>&nbsp;
-                                        <button class="btn btn-sm btn-outline-primary mb-1"
+                                        <!-- <button class="btn btn-sm btn-outline-primary mb-1"
                                         *ngIf="project.isSynced == true"
                                         (click)="syncPoProjectDetailsByProjectId(alert_message, project);"
-                                        type="submit">Mail</button>&nbsp;
+                                        type="submit">Mail</button>&nbsp; -->
                                         <button class="btn btn-sm btn-outline-primary mb-1"
                                             *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'"
                                             (click)="openProjectPreviewModal(preview_team, project);isEditProject = false"

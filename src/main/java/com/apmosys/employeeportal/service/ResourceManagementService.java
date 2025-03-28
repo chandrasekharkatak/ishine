@@ -26,6 +26,7 @@ import org.springframework.web.client.HttpServerErrorException.InternalServerErr
 import org.springframework.web.client.RestTemplate;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
@@ -118,6 +119,9 @@ public class ResourceManagementService {
 	
 	@Value("${rmg.mail}")
 	private String rmgMail;
+	
+	@Value("${dept_head.mail}")
+	private String deptHodMail;
 	
 	@Value("${poPortal.api.syncProject}")
 	private String syncProjectApi;
@@ -719,7 +723,6 @@ public class ResourceManagementService {
 			                    teamLeadName = teamMember.getName();
 			                }
 			            }
-
 						
 			            Team newTeamObj = new Team();
 			            newTeamObj.setIsActive("Y");
@@ -731,6 +734,20 @@ public class ResourceManagementService {
 						newTeamObj.setDeptIds(deptList.toString());
 			            newTeamObj.getCommonProperty().setCreatedBy(resourceManagementDTO.getCreatedBy());
 			            Team teamDbResponse = teamRepository.save(newTeamObj);
+			            
+			            StringBuilder emailBody = new StringBuilder();
+			            emailBody.append("<html><body>") // Wrap email content inside HTML tags
+			                     .append("Dear RMG,<br><br>")
+			                     .append("The Team has been created with the team name - <b>").append(teamDbResponse.getTeamName()).append("</b><br><br>")
+			                     .append("<table border='1' style='border-collapse: collapse; width: 100%;'>")
+			                     .append("<tr>")
+			                     .append("<th style='padding: 8px; text-align: left;'>Employment ID</th>")
+			                     .append("<th style='padding: 8px; text-align: left;'>Employee Name</th>")
+			                     .append("<th style='padding: 8px; text-align: left;'>Job Role</th>")
+			                     .append("<th style='padding: 8px; text-align: left;'>Department</th>")
+			                     .append("<th style='padding: 8px; text-align: left;'>Start Date</th>")
+			                     .append("<th style='padding: 8px; text-align: left;'>Employee Role</th>")
+			                     .append("</tr>");
 
 			            if (teamDbResponse != null) {
 			                List<EmployeeTeamMap> mapList = new ArrayList<EmployeeTeamMap>();
@@ -738,6 +755,7 @@ public class ResourceManagementService {
 			                // Add team member in the team
 			                for (TeamMemberDTO teamMember : teamObj.getTeamMemberList()) {
 			                    EmployeeTeamMap newEmpTeamMap = new EmployeeTeamMap();
+				                EmployeeDetailsForTeamMemberDTO employeeDetails = employeeRepository.getEmployeeDetailsForTeam(teamMember.getEmpId());
 
 			                    // TeamLead
 			                    if ((teamMember.getIsTeamLead() != null) && (teamMember.getIsTeamLead().equals("true"))) {
@@ -758,28 +776,40 @@ public class ResourceManagementService {
 			                        newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
 			                        mapList.add(newEmpTeamMap);
 			                    }
+			                    
+			                    if (employeeDetails != null) {
+			                        String employmentId = "A-" + employeeDetails.getEmployeementId();
+			                        if ("true".equalsIgnoreCase(employeeDetails.getIsConsultant())) {
+			                            employmentId = "CS-" + employeeDetails.getEmployeementId();
+			                        }
+
+			                        String employeeRole = teamMember.getIsTeamLead() != null && teamMember.getIsTeamLead().equalsIgnoreCase("true")
+			                                            ? "TeamLead"
+			                                            : String.join(",", teamMember.getEmployeeRole());
+
+			                        emailBody.append("<tr>")
+			                        .append("<td style='padding: 8px;'>").append(employmentId).append("</td>")
+			                        .append("<td style='padding: 8px;'>").append(employeeDetails.getEmployeeName()).append("</td>")
+			                        .append("<td style='padding: 8px;'>").append(employeeDetails.getJobRoleName()).append("</td>")
+			                        .append("<td style='padding: 8px;'>").append(employeeDetails.getDeptName()).append("</td>")
+			                        .append("<td style='padding: 8px;'>").append(employeeDetails.getStartDate()).append("</td>")
+			                        .append("<td style='padding: 8px;'>").append(employeeRole).append("</td>")
+			                        .append("</tr>");
+			                    }
 			                }
 			                List<EmployeeTeamMap> teamMemberDbResponse = employeeTeamMapRepository.saveAll(mapList);
-			                
-//			                after create team
-			                
+
+			                emailBody.append("</table><br><br>")
+			                .append("Sincerely,<br>")
+			                .append("<b>Team RMG - ApMoSys Technologies</b>")
+			                .append("</body></html>");
+
 			                try {
-							
-			                	mailService.sendMail(rmgMail,"Regarding Team Create", "Dear "
-										+ "RMG ,"+"<br>"
-										+ "The Team has been created with the team name - "+teamDbResponse.getTeamName()+"<br>"
-												+ "<br><br>"
-												+ "Sincerely,"+"<br>"
-												+ "Team RMG - ApMoSys Technologies"
-												+generateHtmlTable(teamObj.getTeamMemberList())
-										);
-							} catch (AddressException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							} catch (MessagingException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
+			                    mailService.sendMail(rmgMail, "Regarding Team Creation", emailBody.toString());
+			                } catch ( MessagingException e) {
+			                    e.printStackTrace();
+			                }
+			               
 
 			                // Add default activity
 			                Activity newActivityCreated = null;

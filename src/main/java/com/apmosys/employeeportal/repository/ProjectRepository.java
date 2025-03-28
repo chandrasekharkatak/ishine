@@ -5,6 +5,7 @@ import java.util.List;
 import org.hibernate.query.NativeQuery;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.model.Project;
@@ -66,4 +67,12 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	
 	@Query(nativeQuery=true)
 	public List<Object[]> getPoProjectDetailsForPoProjects();
+	
+	@Query(nativeQuery = true)
+	List<Object[]> getExpiredPoProjects();
+	
+	@Query(nativeQuery = true)
+	List<String> getEmployeeEmailsByProjectId(@Param("projectId") Integer projectId);
+
+
 }
