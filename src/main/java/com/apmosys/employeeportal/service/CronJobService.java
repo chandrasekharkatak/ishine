@@ -69,6 +69,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -78,6 +80,7 @@ import com.apmosys.employeeportal.dto.BioMaTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.BiomaxDefaulter;
@@ -223,6 +226,9 @@ public class CronJobService {
 	
 	@Autowired
 	BiomaxDefaulterRepository biomaxDefaulterRepository;
+	
+	@Autowired
+	private final RestTemplate restTemplate = new RestTemplate();
 
 	@Value("${po.db.url}")
 	private String url;
@@ -5679,6 +5685,50 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+		}
+		
+		@Async
+		@Scheduled(cron = "0 14 0 ? * *")
+		@Transactional
+		public void getProjectCloneFromPoPortal() {
+
+		    List<ProjectPoPortalDTO> list = new ArrayList<>();
+		    
+		    try {
+		        ProjectPoPortalDTO[] projects = restTemplate.getForObject(allPoPortalProjects, ProjectPoPortalDTO[].class);
+		        
+		        list = Arrays.asList(projects != null ? projects : new ProjectPoPortalDTO[0]);
+		        System.out.println("Total Projects Fetched = " + list.size());
+
+		    } catch (RestClientException e) {
+		        System.err.println("Error fetching projects from PoPortal API: " + e.getMessage());
+		    }
+
+		    if (!list.isEmpty()) {
+		        for (ProjectPoPortalDTO dto : list) {
+		            try {
+		                Project project = projectRepository.findByPoProjectId(dto.getId());
+
+		                if (project != null) {
+		                    project.setPoStartDate(dto.getStartDate());
+		                    project.setPoEndDate(dto.getEndDate());
+		                    project.setPoNo(dto.getPoNo());
+		                    project.setPoProjectType(dto.getProjectType());
+
+		                    projectRepository.save(project);
+
+		                    System.out.println("Updated Project: ID=" + dto.getId() + ", PoNo=" + dto.getPoNo());
+		                } else {
+		                    System.err.println("Project table does not contain PoProjectId: " + dto.getId());
+		                }
+
+		            } catch (Exception ex) {
+		                System.err.println("Error updating project ID: " + dto.getId() + " - " + ex.getMessage());
+		            }
+		        }
+		    } else {
+		        System.out.println("No projects found from PoPortal API.");
+		    }
 		}
 
 }	

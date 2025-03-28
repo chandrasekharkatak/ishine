@@ -22,6 +22,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import com.apmosys.employeeportal.dto.ClientsDTO;
@@ -1489,45 +1490,54 @@ public class ProjectService {
 	    return dateTime.split("T")[0]; 
 	}
 	
+	@Transactional
 	public List<ProjectPoPortalDTO> getProjectCloneFromPoPortal() {
-		ServiceResponse response = new ServiceResponse();
-        LogDTO apiLogInfo = new LogDTO();
-        apiLogInfo.setSubFeatureName("getProjectCloneFromPoPortal");
-        apiLogInfo.setApiUrl("/api/getProjectCloneFromPoPortal");
-        apiLogInfo.setLogLevel("INFO");
-        ProjectPoPortalDTO[] projects = restTemplate.getForObject(allPoPortalProjects, ProjectPoPortalDTO[].class);
-        List<ProjectPoPortalDTO> list= Arrays.asList(projects != null ? projects : new ProjectPoPortalDTO[0]);
-        System.out.println("Total Project="+list.size());
-        StringBuilder builderDepartment=new StringBuilder();
-  	
-        if(list!=null) {
-//        	  System.out.println(list.toString());
-        
-        for(ProjectPoPortalDTO dto:list) {
-        	Project project=projectRepository.findByPoProjectId(dto.getId());
-//        	ProjectsTemp project=projectstempRepository.findByPoProjectId(dto.getId());
-        	
-        	if(project!=null) {
-        		 project.setPoStartDate(dto.getStartDate());
-        		 System.err.println("PoStartDate"+dto.getPoStartDate());
-        		 
-        		 project.setPoEndDate(dto.getEndDate());
-        		 System.err.println("PoEndDate"+dto.getPoEndDate());
-        		 
-				 project.setPoNo(dto.getPoNo());
-				 System.err.println("Po No"+dto.getPoNo());
-				 
-				 System.err.println("po type"+dto.getProjectType());
-				 project.setPoProjectType(dto.getProjectType());
-				 
-				 projectRepository.save(project);
-//				 projectstempRepository.save(project);
-        	}else {
-        		System.err.println("Project table doesnot contain po project id"+dto.getId())   ;
-        	}
-        	
-        }
-        }
-		return list;
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("getProjectCloneFromPoPortal");
+	    apiLogInfo.setApiUrl("/api/getProjectCloneFromPoPortal");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    List<ProjectPoPortalDTO> list = new ArrayList<>();
+	    
+	    try {
+	        ProjectPoPortalDTO[] projects = restTemplate.getForObject(allPoPortalProjects, ProjectPoPortalDTO[].class);
+	        
+	        list = Arrays.asList(projects != null ? projects : new ProjectPoPortalDTO[0]);
+	        System.out.println("Total Projects Fetched = " + list.size());
+
+	    } catch (RestClientException e) {
+	        System.err.println("Error fetching projects from PoPortal API: " + e.getMessage());
+	        return list; 
+	    }
+
+	    if (!list.isEmpty()) {
+	        for (ProjectPoPortalDTO dto : list) {
+	            try {
+	                Project project = projectRepository.findByPoProjectId(dto.getId());
+
+	                if (project != null) {
+	                    project.setPoStartDate(dto.getStartDate());
+	                    project.setPoEndDate(dto.getEndDate());
+	                    project.setPoNo(dto.getPoNo());
+	                    project.setPoProjectType(dto.getProjectType());
+
+	                    projectRepository.save(project);
+
+	                    System.out.println("Updated Project: ID=" + dto.getId() + ", PoNo=" + dto.getPoNo());
+	                } else {
+	                    System.err.println("Project table does not contain PoProjectId: " + dto.getId());
+	                }
+
+	            } catch (Exception ex) {
+	                System.err.println("Error updating project ID: " + dto.getId() + " - " + ex.getMessage());
+	            }
+	        }
+	    } else {
+	        System.out.println("No projects found from PoPortal API.");
+	    }
+
+	    return list;
 	}
+
 }

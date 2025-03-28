@@ -31,6 +31,7 @@ import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.PoTeamDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectInfoDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TeamMemberDTO;
@@ -2732,9 +2733,11 @@ public class ResourceManagementService {
 		try {
 			Project projObj = null;
 		    if (resourceManagementDTO.getProjectType().equals("Internal")) {
-		        projObj = null;
+	        	response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+				response.setServiceResponse("This is marked as an internal project !");
+				return response;
 		    } else {
-		        projObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
+		        projObj = projectRepository.findByProjectId(Integer.parseInt(resourceManagementDTO.getProjectId().toString()));
 		    }
 
 		    Project projectObj = projObj;
@@ -2748,15 +2751,15 @@ public class ResourceManagementService {
 		        
 		        Project projectDbResponse = projectRepository.save(projectObj);
 		        
-		        if(projectDbResponse != projObj) {
+		        if(projectObj != projObj) {
 		        	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Synced Successfully !");
-		        }else if(projectDbResponse != projObj) {
+		        }else if(projectObj == projObj) {
 		        	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Already Up To Date !");
 		        }else {
 		        	response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-					response.setServiceResponse("Data not mismatched !");
+					response.setServiceResponse("Data mismatched between Ishine and Po !");
 		        }
 		    }
 		}catch(Exception e) {
@@ -2771,6 +2774,7 @@ public class ResourceManagementService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+
 public ServiceResponse getProjectInfo(ResourceManagementDTO resourceManagementDTO) {
 	
 	ServiceResponse response = new ServiceResponse();
@@ -2822,6 +2826,7 @@ public ServiceResponse getProjectInfo(ResourceManagementDTO resourceManagementDT
 	logService.logMyInfo(httpRequest, apiLogInfo);
 	return response;
 }
+
 public ServiceResponse getTeamMemberByTeamId(Long teamId) {
 	ServiceResponse response = new ServiceResponse();
 	List<Object[]> allEmployeeList = employeeTeamMapRepository.findEmployeeByTeamId(teamId);
@@ -2907,4 +2912,51 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 	return response;
 }
 	
+	public ServiceResponse getPoProjectDetailsForPoProjects() {
+		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setSubFeatureName("getPoProjectDetailsForPoProjects");
+        apiLogInfo.setApiUrl("/api/getPoProjectDetailsForPoProjects");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("getPoProjectDetailsForPoProjects "+projectRepository.getPoProjectDetailsForPoProjects().size());
+
+		try {
+			List<Object[]> projectInfoList = projectRepository.getPoProjectDetailsForPoProjects();
+			List<ProjectInfoDTO> projectObjList = new ArrayList<ProjectInfoDTO>();
+			
+		    if (projectInfoList != null || !projectInfoList.isEmpty()) {
+		    	projectInfoList.forEach((projectInfo) -> {
+		    	ProjectInfoDTO projectObj = new ProjectInfoDTO();
+		    	
+		    	projectObj.setProjectId(projectInfo[0]!=null ? Integer.parseInt(projectInfo[0].toString()) : null);
+		    	projectObj.setProjectName(projectInfo[1]!=null ? projectInfo[1].toString() : null);
+		        projectObj.setPoNo(projectInfo[2]!=null ? projectInfo[2].toString() : null);
+		        projectObj.setStartDate(projectInfo[3]!=null ? projectInfo[3].toString() : null);
+		        projectObj.setEndDate(projectInfo[4]!=null ? projectInfo[4].toString() : null);
+		        projectObj.setProjectType(projectInfo[5]!=null ? projectInfo[5].toString() : null);
+		        projectObj.setId(projectInfo[6]!=null ? Long.parseLong(projectInfo[6].toString()) : null);
+		        
+		        projectObjList.add(projectObj);
+		    	});
+	    	}
+	        if(projectObjList != null || !projectObjList.isEmpty()) {
+	        	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(projectObjList);
+	        }else {
+	        	response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+				response.setServiceResponse("Data not present !");
+	        }
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
 }

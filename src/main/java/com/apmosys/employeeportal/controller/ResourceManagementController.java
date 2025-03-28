@@ -119,12 +119,6 @@ public class ResourceManagementController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/syncPoProjectDetailsByProjectId", method = RequestMethod.POST)
-	public ServiceResponse syncPoProjectDetailsByProjectId(@RequestBody ResourceManagementDTO resourceManagementDTO) {
-		
-		ServiceResponse response = resourceManagementService.syncPoProjectDetailsByProjectId(resourceManagementDTO);
-		return response;
-	}
 	@RequestMapping(value = "/getProjectInfo", method = RequestMethod.POST)
 	public ServiceResponse getProjectInfo(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 		
@@ -142,6 +136,20 @@ public class ResourceManagementController {
 	public ServiceResponse getTeamMemberByTeamId(@PathVariable("teamId") Long teamId) {
 		
 		ServiceResponse response = resourceManagementService.getTeamMemberByTeamId(teamId);
+		return response;
+	}
+
+	@RequestMapping(value = "/syncPoProjectDetailsByProjectId", method = RequestMethod.POST)
+	public ServiceResponse syncPoProjectDetailsByProjectId(@RequestBody ResourceManagementDTO resourceManagementDTO) {
+		
+		ServiceResponse response = resourceManagementService.syncPoProjectDetailsByProjectId(resourceManagementDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getPoProjectDetailsForPoProjects", method = RequestMethod.GET)
+	public ServiceResponse getPoProjectDetailsForPoProjects() {
+		
+		ServiceResponse response = resourceManagementService.getPoProjectDetailsForPoProjects();
 		return response;
 	}
 

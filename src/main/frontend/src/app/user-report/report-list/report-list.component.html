@@ -531,14 +531,14 @@
                 <td>{{ employee.clientLocation }}</td>
                 <td>{{ employee.workLocation }}</td>
                 <td>{{ employee.totalExperience }}</td>
-                <td>{{ employee.totalExperience }}</td>
+                <td>{{ employee.primaryProjectName || 'Not Assigned' }}</td>
                 <td>
                   <select class="form-control" [(ngModel)]="employee.selectedProject">
-                    <option *ngFor="let project of employee.projectName.split(',')">
+                    <option *ngFor="let project of (employee.projectName && employee.projectName.trim() ? employee.projectName.split(',') : [])">
                       {{ project.trim() }}
                     </option>
                   </select>
-                  <button type="button" class="btn btn-sm btn-outline-primary ml-2" (click)="updateDefaultProject(employee)">
+                  <button type="button" class="btn btn-sm btn-outline-primary ml-2 " style="float: right; margin-top: 1px;" (click)="updateDefaultProject(employee)">
                     Submit
                   </button>
                 </td>
