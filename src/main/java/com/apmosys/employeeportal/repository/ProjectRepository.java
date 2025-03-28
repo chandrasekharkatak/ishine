@@ -53,7 +53,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	// @Query(nativeQuery=true,value="select DISTINCT po_project_type from projects where po_project_type IS NOT NULL")
 	// List<String>finddistinctPoProjectType();
 
-	@Query(nativeQuery=true,value="SELECT * FROM projects WHERE STR_TO_DATE(po_end_date, '%Y-%m-%d') < CURDATE()")
+	@Query(nativeQuery=true,value="SELECT * FROM projects p inner join teams t on p.project_id = t.project_id WHERE STR_TO_DATE(p.po_end_date, '%Y-%m-%d') < CURDATE() ")
 	public List<Project> getExpiredPolist();
 	@Query(nativeQuery = true)
 	public List<Object[]> getProjectInfo(Integer projectId);

@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
+import { BsModalRef } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { EmployeeService } from 'src/app/services/employee.service';
+import { HomeComponent } from '../home.component';
 
 @Component({
   selector: 'app-expied-po-and-project',
@@ -10,7 +12,8 @@ import { EmployeeService } from 'src/app/services/employee.service';
 export class ExpiedPoAndProjectComponent implements OnInit {
 
   employee:any[] = [];
-  constructor(private employeeService: EmployeeService) { }
+  modalRef: BsModalRef = new BsModalRef();
+  constructor(private employeeService: EmployeeService, private homeComponent:HomeComponent) { }
 
   ngOnInit(): void {
     this.geExpiredtPoData();
@@ -23,5 +26,15 @@ export class ExpiedPoAndProjectComponent implements OnInit {
       console.log(response,":::::::::::::::::::Response,geExpiredtPoData")
     }
     });
+  }
+
+  closeModal(){
+    this.homeComponent.cancelRequest();
+  }
+
+  sendEmail(poEndDate:any,projectName:any,poNo:any,poProjectType:any){
+
+    console.log(poEndDate,projectName,poNo,poProjectType)
+    
   }
 }

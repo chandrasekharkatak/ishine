@@ -539,10 +539,19 @@ public class EmployeeController {
 		serviceResponse = employeeService.getExpiredPo();
 		return serviceResponse;
 	}
+	
 	@RequestMapping(value = "/getRewardsAndAppreciationCount", method = RequestMethod.POST)
 	public ServiceResponse getRewardsAndAppreciationCount(@RequestBody AppreciationAndRewardsCountDto employeeDto) {
 		
 		ServiceResponse response = employeeService.getRewardsAndAppreciationCount(employeeDto);
+		return response;
+	}
+	
+	@PostMapping("/sendExpiredPoEmail")
+	public ServiceResponse sendExpiredPoEmail(@RequestBody EmployeeDTO employeeDTO) {
+		
+		ServiceResponse response = employeeService.updateDefaultProject(employeeDTO.getEmpId(),employeeDTO.getSelectedProjectId());
+		
 		return response;
 	}
 	

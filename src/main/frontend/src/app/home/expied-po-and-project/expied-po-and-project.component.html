@@ -1,19 +1,19 @@
-<div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'"
+<div class="exparedPoadata" bassHorizontalScroll [tableId]="'auditInfo'"
                             [tableTHeadId]="'auditInfoTHead'" [tableTHeadTrId]="'auditInfoTHeadTr'">
-                            <table class="table table-responsive" id="auditInfo" >
+                            <table class="table table-responsive" id="auditInfo">
                                 <!-- matSort
                                 (matSortChange)="sortData($event)" -->
                                 <thead class="thead-light" id="auditInfoTHead">
                                     <tr id="auditInfoTHeadTr">
-                                        <!-- <th scope="col">Sr No.</th> -->
-                                        <th scope="col" class="info-label" colspan="2">Expired On</th>
-                                        <th scope="col" class="info-label" colspan="4">Client Name</th>
-                                        <th scope="col" class="info-label" colspan="2">Project Id</th>
-                                        <th scope="col" class="info-label" colspan="4">Project Name</th>
-                                        <th scope="col" class="info-label" colspan="2">PO No.</th>
-                                        <th scope="col" class="info-label" colspan="2">Project Type</th>
-                                        <th scope="col" class="info-label" colspan="5">Send E-Mail</th>
-                                        <th scope="col" class="info-label" colspan="2">Modify</th>
+                                        <th scope="col" class="info-label">Sr No.</th>
+                                        <th scope="col" class="info-label">Expired On</th>
+                                        <th scope="col" class="info-label">Client Name</th>
+                                        <th scope="col" class="info-label">Project Id</th>
+                                        <th scope="col" class="info-label">Project Name</th>
+                                        <th scope="col" class="info-label">PO No.</th>
+                                        <th scope="col" class="info-label">Project Type</th>
+                                        <th scope="col" class="info-label" colspan="7">Send E-Mail</th>
+                                        <th scope="col" class="info-label">Modify</th>
                                         <!-- <th scope="col" class="info-label" >
                                             Updated By</th> -->
                                     </tr>
@@ -31,21 +31,21 @@
                                     <tr *ngIf="employee.length === 0">
                                         <th colspan="11" class="text-center info-label">No details to display...</th>
                                     </tr>
-                                    <tr *ngFor="let expData of employee">
-                                        <!-- <td>{{i}}</td> -->
-                                        <td colspan="2">{{expData.poEndDate}}</td>
-                                        <td colspan="4">{{expData.clientName}}</td>
-                                        <td colspan="2">{{expData.projectId}}</td>
-                                        <td colspan="4">{{expData.projectName}}</td>
-                                        <td colspan="2">{{expData.poNo}}</td>
-                                        <td colspan="2">{{expData.poProjectType}}</td>
-                                        <td colspan="5">
-                                            <button type="button" class="btn btn-primary">
+                                    <tr *ngFor="let expData of employee; let i=index">
+                                        <td>{{i+1}}</td>
+                                        <td>{{expData.poEndDate}}</td>
+                                        <td>{{expData.clientName}}</td>
+                                        <td>{{expData.projectId}}</td>
+                                        <td>{{expData.projectName}}</td>
+                                        <td>{{expData.poNo}}</td>
+                                        <td>{{expData.poProjectType}}</td>
+                                        <td colspan="7">
+                                            <button type="button" class="btn btn-primary" (click)="sendEmail(expData.poEndDate,expData.projectName,expData.poNo,expData.poProjectType)">
                                              Send Email
                                             </button>
                                         </td>
-                                        <td colspan="2">
-                                          <button type="button" class="btn btn-warning">
+                                        <td>
+                                          <button type="button" class="btn btn-warning" [navigateToProjectView]="expData.projectId" (click)="closeModal()" >
                                             Edit
                                           </button>
                                         </td>
