@@ -562,6 +562,7 @@ export class MyTeamComponent implements OnInit {
       leaveObj.empId = this.currentUser.empId;
       this.teamViewService.getAllTeamLeaveHistoryView(leaveObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
+          //console.log(response.serviceResponse);
           this.teamViewLeaveHistoryList = response.serviceResponse;
           this.teamViewLeaveHistoryList.forEach(leaveHistory => {
 

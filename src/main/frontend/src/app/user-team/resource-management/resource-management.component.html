@@ -74,9 +74,10 @@
                                     <td>{{project.clientState}}</td>
                                     <td>{{project.createdOn | date: 'MM/dd/yyyy'}}</td>
                                     <td>{{project.status}}</td>
-                                    <td
+                                    <!-- <td
                                         [ngStyle]="{'color': (project.isDraftProject == 'Pending For Approval') ? 'orange' : (project.isActive == 2) ? 'orange': (project.isDraftProject == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">
-                                        <em>{{project.isDraftProject}}</em></td>
+                                        <em>{{project.isDraftProject}}</em></td> -->
+                                        <td [ngStyle]="{'color': (project.isDraftProject == 'Pending For Approval') ? 'orange' : (project.isDraftProject == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}"><em>{{project.isDraftProject}}</em></td>
                                     <td>
                                         <button class="btn btn-sm btn-outline-primary mb-1"
                                             *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'"
