@@ -12,6 +12,7 @@ public class ProjectInsightQuestionDTO {
 	private String description;
 	private Long deptId;
     private List<ProjectQuestionDTO> projectQuestion;
+    private List<ModuleDTO> moduleList;
     private Long assignedTo;
 
 }

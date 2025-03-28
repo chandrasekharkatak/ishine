@@ -19,7 +19,10 @@ public class QuestionMaster {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long questionMasterId;
-	private Long milestoneId;
+	
+	private Long entityId;
+    private String entityType;
+	
 	private String question;
 	private String description;
 	

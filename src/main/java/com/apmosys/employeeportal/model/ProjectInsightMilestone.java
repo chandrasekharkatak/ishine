@@ -31,6 +31,7 @@ public class ProjectInsightMilestone {
 	private Long projectId;
 	
 	private Long assignedTo;
+	private Long redmineId;
 	
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
 	private Timestamp createdOn;

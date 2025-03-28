@@ -10,6 +10,6 @@ export class ProjectQuestion{
 
     name:any;
 	employeementId:any;
-
+    userType:any;
     optionsList:any[]= [];
 }

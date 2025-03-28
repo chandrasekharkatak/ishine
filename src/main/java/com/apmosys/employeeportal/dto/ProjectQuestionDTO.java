@@ -16,7 +16,10 @@ public class ProjectQuestionDTO {
     private Long milestoneId;
     
     private Long responseId;
-
+    private Long entityId;
+    private String entityType;
+    private String documentPath;
+    
     private String name;
 	private Long employeementId;
 
