@@ -37,6 +37,7 @@
                                 <th></th>
                                 <th scope="col" class="info-label">Sr No.</th>
                                 <th scope="col" class="info-label" mat-sort-header="name|string">Project Name</th>
+                                <th scope="col" class="info-label" mat-sort-header="poNo|string">PO Number</th>
                                 <th scope="col" class="info-label" mat-sort-header="projectManagerName|string">Project
                                     Manager</th>
                                     <!-- <th scope="col" class="info-label" mat-sort-header="projectManagerName|string">Start Date</th>
@@ -67,6 +68,8 @@
                                                 (change)="onSelectProjectForSync(project,$event)"></span></td>
                                     <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
                                     <td *ngIf="!project.projectId">{{project.name}}</td>
+                                    <td>{{project.poNo}}</td>
+
                                     <td *ngIf="project.projectId"style="cursor: pointer; color: blue;"  id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.projectId" style="cursor: pointer;" title="Click to view Project Details">{{project.name}}</td>
                                     <td id="clickablefor360" *ngIf="userMapping.my_team_resource_management_employee_360 && project.projectManagerName" [navigateToEmployee360]="project.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{project.projectManagerName}}</td>
                                     <td *ngIf="!userMapping.my_team_resource_management_employee_360 || !project.projectManagerName">{{project.projectManagerName}}</td>

@@ -104,7 +104,7 @@ export class ResourceManagementComponent implements OnInit {
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
   filters: any = {};
   isSearchEnabled: boolean = false;
-  projectColumns: any[] = ["blank", "blank", "name", "projectManagerName", "clientName", "clientState", "createdOn", "status", "isDraftProject"];
+  projectColumns: any[] = ["blank", "blank", "name","poNo","projectManagerName", "clientName", "clientState", "createdOn", "status", "isDraftProject"];
 
   projectDetails: any = [];
   copyDepartment : any = [];
