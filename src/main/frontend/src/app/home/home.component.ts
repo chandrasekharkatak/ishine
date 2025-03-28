@@ -161,6 +161,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
  poExpireTemplateRef:TemplateRef<any> ;
   
  
+ @ViewChild('mailSentPopUp')
+ mailSentPopUp:TemplateRef<any> ;
+
  consentModalConfig = {
     backdrop: true,
     ignoreBackdropClick: true,
@@ -2339,7 +2342,10 @@ moveToNextGroup(): void {
 
   this.startRewardCycle();
 }
-
+emailSentPopUp(msg:any){
+  this.openAlertMod(this.mailSentPopUp,msg);
+}
+  
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);

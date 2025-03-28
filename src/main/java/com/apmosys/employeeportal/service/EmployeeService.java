@@ -25,6 +25,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import javax.mail.MessagingException;
+import javax.mail.internet.AddressException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.FilenameUtils;
@@ -51,6 +53,8 @@ import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeRewardsDTO;
 import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
+import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO;
+import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO.PoObject;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
@@ -171,6 +175,12 @@ public class EmployeeService {
 	
 	@Value("${rmg.mail}")
 	private String rmgMail;
+	
+	@Value("${business_mails}")
+	private String businessMail;
+	
+	@Value("${vp_mails}")
+	private String vpMails;
 
 	@Autowired
 	EmployeeLeavesMapRepository employeeLeavesMapRepository;
@@ -5305,8 +5315,8 @@ public class EmployeeService {
 		
 		Double proileCompleted = 0.00;
 		Double totalFields = 0.00;
-		System.err.println("check details \n");
-		System.err.println(" \n"+employeeDto);
+//		System.err.println("check details \n");
+//		System.err.println(" \n"+employeeDto);
 		try {
 			List<Object[]> employeeProile = employeeRepository.getEmployeeProfileCompletion(employeeDto.getEmpId());
 			
@@ -6723,6 +6733,49 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		
 		return response;
 }
+	
+	public ServiceResponse sendExpiredPoEmail(ExpiredPOMailSendDTO employeeDTO) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+//		businessMail;vpMails;
+		System.out.println(employeeDTO.getExpiredData());
+		String subject = "PROVIDE INFORMATION REGARDING EXPIRED PROJECT/POs";
+		String bodyText = generateEmailBody(employeeDTO.getExpiredData());
+		try {
+		boolean mailSent = mailService.sendMailWithCC(businessMail,vpMails,subject,bodyText);
+		if(!mailSent) {
+			serviceResponse.setServiceStatus(serviceResponse.STATUS_FAIL);
+			serviceResponse.setServiceMessage("Unable to send mail...!!");
+		}
+		else {
+			serviceResponse.setServiceStatus(serviceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceMessage("Mail sent successfully...!!");
+		}
+		}
+		catch(Exception e){
+			serviceResponse.setErrorStackTrace(e.getMessage());
+			serviceResponse.setServiceMessage(serviceResponse.SOMETHING_WENT_WRONG);
+			serviceResponse.setServiceStatus(serviceResponse.STATUS_FAIL);
+		}
+		
+		return serviceResponse;
+	}
+	
+	public String generateEmailBody(PoObject expiredData) {
+		System.out.println(expiredData);
+	    StringBuilder emailBody = new StringBuilder();
+//	    SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+	    emailBody.append("Hello Business Team,<br><br>");
+	    emailBody.append("The following Projects/POs seems to be expired:<br><br>");
+	    
+//	    	String formattedEndDate = dateFormat.format(expiredData.getEndDate());
+	        emailBody.append("<b>PO Number:</b> ").append(expiredData.getPoNo())
+	                 .append(" | <b>Project Name:</b> ").append(expiredData.getProjectName())
+	                 .append(" | <b>PO/Project Type:</b> ").append(expiredData.getPoType())
+	                 .append(" | <b>End Date:</b> ").append(expiredData.getEndDate())
+	                 .append("<br>");
+	    
+	    return emailBody.toString();
+	}
 	
 	
 }

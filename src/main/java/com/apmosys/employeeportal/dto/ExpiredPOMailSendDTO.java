@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.dto;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,9 +13,14 @@ public class ExpiredPOMailSendDTO {
 
 	
 	private String userEmail;
-	private String poNo;
-	private String projectName;
-	private String startDate;
-	private String endDate;
+	private PoObject expiredData;
+	
+	@Data
+	public class PoObject {
+		String poNo;
+		String projectName;
+		String poType;
+		String endDate;
+	}
 	
 }
