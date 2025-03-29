@@ -2,7 +2,7 @@ import { ProjectQuestion } from "./projectQuestion";
 import { ProjectSubModule } from "./projectSubModule";
 
 export class ProjectModule {
-    assignTo: any;
+    assignedTo: any;
     redmineId: any;
     moduleId: any;
     module: any;

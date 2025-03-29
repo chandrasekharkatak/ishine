@@ -22,7 +22,7 @@ export class ProjectInsightQuestion {
 
     milestone: any;
     milestoneId: any;
-    assignTo: any;
+    assignedTo: any;
     redmineId: any;
     projectQuestion:ProjectQuestion[] = [];
     moduleList:ProjectModule[] = [];

@@ -340,7 +340,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
         return false;
       }
 
-      if(!this.validationService.validateNullUndefinedEmptyString(milestone.assignTo)){
+      if(!this.validationService.validateNullUndefinedEmptyString(milestone.assignedTo)){
         this.alertMessage = `Please select assign user in milestone ${mileIndex+1} !!`;
         this.openAlertMod(template, this.alertMessage);
         flag = false;
@@ -360,7 +360,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
             return false;
           }
     
-          if(!this.validationService.validateNullUndefinedEmptyString(module.assignTo)){
+          if(!this.validationService.validateNullUndefinedEmptyString(module.assignedTo)){
             this.alertMessage = `Please select assign user in module ${modIndex+1} !!`;
             this.openAlertMod(template, this.alertMessage);
             flag = false;
@@ -380,7 +380,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
                 return false;
               }
         
-              if(!this.validationService.validateNullUndefinedEmptyString(submodule.assignTo)){
+              if(!this.validationService.validateNullUndefinedEmptyString(submodule.assignedTo)){
                 this.alertMessage = `Please select assign user in sub-module ${submodIndex+1} !!`;
                 this.openAlertMod(template, this.alertMessage);
                 flag = false;

@@ -8,7 +8,7 @@ public class SubModuleDTO {
 	
 	private Long submoduleId;
 	private Long moduleId;
-	private String submodule;
+	private String subModule;
 	private String description;
 	private Long assignedTo;
 	private Long redmineId;

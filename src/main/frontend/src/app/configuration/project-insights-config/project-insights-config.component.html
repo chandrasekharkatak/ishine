@@ -101,11 +101,11 @@
                             <div class="info-wrapper">
                                 <div class="form-group">
                                     <label class="info-label"><span class="text-danger">*</span>Assign To</label>
-                                    <select class="form-control" aria-hidden="true">
+                                    <select class="form-control" aria-hidden="true"  [(ngModel)]="milestone.assignedTo">
                                         <option selected="selected" value="" disabled>Select</option>
-                                        <option value="checkbox">checkbox</option>
-                                        <option value="radio">radio</option>
-                                        <option value="text">text</option>
+                                        <option value="1">checkbox</option>
+                                        <option value="2">radio</option>
+                                        <option value="3">text</option>
                                     </select>
                                 </div>
                             </div>
@@ -170,11 +170,11 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Assign To</label>
-                                            <select class="form-control" aria-hidden="true">
+                                            <select class="form-control" aria-hidden="true" [(ngModel)]="module.assignedTo">
                                                 <option selected="selected" value="" disabled>Select</option>
-                                                <option value="checkbox">checkbox</option>
-                                                <option value="radio">radio</option>
-                                                <option value="text">text</option>
+                                                <option value="1">checkbox</option>
+                                                <option value="2">radio</option>
+                                                <option value="3">text</option>
                                             </select>
                                         </div>
                                     </div>
@@ -242,11 +242,11 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Assign To</label>
-                                                <select class="form-control" aria-hidden="true">
+                                                <select class="form-control" aria-hidden="true" [(ngModel)]="submodule.assignedTo">
                                                     <option selected="selected" value="" disabled>Select</option>
-                                                    <option value="checkbox">checkbox</option>
-                                                    <option value="radio">radio</option>
-                                                    <option value="text">text</option>
+                                                    <option value="1">checkbox</option>
+                                                    <option value="2">radio</option>
+                                                    <option value="3">text</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -425,6 +425,7 @@
         </button>
     </div>
     <div class="modal-body">
-        <div class="container-fluid d-flex flex-column align-tems-center" id="survey-container" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;"></div>
+        <!-- <div class="container-fluid d-flex flex-column align-tems-center" id="survey-container" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;"></div> -->
+        <div class="container-fluid d-flex flex-column align-tems-center" id="survey-container"></div>
     </div>
 </ng-template>

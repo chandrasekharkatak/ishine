@@ -22,6 +22,8 @@ public class ProjectQuestionDTO {
     
     private String name;
 	private Long employeementId;
+	
+	private Long empId;
 
 //	private String optionsList;
 }

@@ -8,6 +8,8 @@ import com.apmosys.employeeportal.model.QuestionMaster;
 
 public interface QuestionMasterRepository extends JpaRepository<QuestionMaster, Long>{
 
+	List<QuestionMaster> findByEntityIdAndEntityType(Long milestoneId, String string);
+
 //	List<QuestionMaster> findByMilestoneId(Long milestoneId);
 
 //	QuestionMaster findByQuestionMasterId(Long questionId);

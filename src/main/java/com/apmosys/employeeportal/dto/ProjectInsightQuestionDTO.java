@@ -14,5 +14,6 @@ public class ProjectInsightQuestionDTO {
     private List<ProjectQuestionDTO> projectQuestion;
     private List<ModuleDTO> moduleList;
     private Long assignedTo;
+    private Long redmineId;
 
 }
