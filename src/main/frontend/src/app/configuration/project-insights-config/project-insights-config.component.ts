@@ -450,17 +450,19 @@ export class ProjectInsightsConfigComponent implements OnInit {
     return flag;
   }
 
-  onCheckboxChange(event: any, value: string, question: any) {
-    if (!question.response) {
-      question.response = []; // Initialize as an array if undefined
+  onCheckboxChange(event: any, value: string, question: any,option:any) {
+    if (question.responseList == null || question.responseList == undefined) {
+      question.responseList = []; // Initialize as an array if undefined
     }
   
     if (event.target.checked) {
       // Add value if checked
-      question.response.push(value);
+      option.isChecked = true;
+      question.responseList.push(value);
     } else {
       // Remove value if unchecked
-      question.response = question.response.filter((item: string) => item !== value);
+      question.responseList = question.responseList.filter((item: string) => item != value);
+      option.isChecked = false;
     }
   }
 
@@ -511,14 +513,14 @@ export class ProjectInsightsConfigComponent implements OnInit {
   }
 
   saveProjectInsightResponse(template: TemplateRef<any>) {
-    let inputValidated: boolean = this.validateProjectInsightResponse(template, this.projectInsightQuestion, this.projectInsightQuestionList);
+    let inputValidated: boolean = this.validateProjectInsightResponse(template,this.projectInsightResponseList,this.projectInsightQuestion);
     if (!inputValidated) return;
 
     let projObj = new ProjectInsightQuestion();
     projObj.projectId = this.projectInsightQuestion.projectId;
     projObj.projectManagerId = this.projectInsightQuestion.projectManagerId;
     projObj.projectManagerName = this.projectInsightQuestion.projectManagerName;
-    projObj.projectInsightQuestionList = this.projectInsightQuestionList;
+    projObj.projectInsightQuestionList = this.projectInsightResponseList;
     projObj.empId = this.currentUser.empId;
 
     this.projectInsightService.saveProjectInsightResponse(projObj).pipe(first()).subscribe((response: any) => {
@@ -531,46 +533,57 @@ export class ProjectInsightsConfigComponent implements OnInit {
     });
   }
 
-  validateProjectInsightResponse(template: TemplateRef<any>, projectInsightQuestion: ProjectInsightQuestion, projectInsightResponseList: ProjectInsightQuestion[]) {
-    let flag = true;
-    projectInsightResponseList.forEach((milestone: ProjectInsightQuestion, mileIndex) => {
-      if (milestone.projectQuestion != null && milestone.projectQuestion.length != 0) {
-        flag = this.validateQuestionAndResponse(milestone.projectQuestion, mileIndex, template, 'Milestone');
-      }
-
-      if (milestone.moduleList != null && milestone.moduleList.length != 0) {
-        milestone.moduleList.forEach((module: any, modIndex) => {
-          if (module.projectQuestion != null && module.projectQuestion.length != 0) {
-            flag = this.validateQuestionAndResponse(module.projectQuestion, modIndex, template, 'Module');
-          }
-
-          if (module.subModuleList != null && module.subModuleList.length != 0) {
-            module.subModuleList.forEach((submodule: any, submodIndex) => {
-              if (submodule.projectQuestion != null && submodule.projectQuestion.length != 0) {
-                flag = this.validateQuestionAndResponse(submodule.projectQuestion, submodIndex, template, 'sub-module');
-              }
-              
-            });
-          }
-        });
-      }
-    });
-    return flag;
-  }
-
-  validateQuestionAndResponse(questionList: ProjectQuestion[], parentIndex: any, template: TemplateRef<any>, parentType: any) {
-    let flag = true;
-    questionList.forEach((question: ProjectQuestion, index) => {
-      if (question.required) {
-        if (!this.validationService.validateNullUndefinedEmptyString(question.response)) {
-          this.alertMessage = `Please provide response for ${parentType}-${parentIndex + 1} Question ${index + 1} !!`;
-          this.openAlertMod(template, this.alertMessage);
-          flag = false;
-          return;
+  validateProjectInsightResponse(template: TemplateRef<any>,projectInsightResponseList: ProjectInsightQuestion[],projectInsightQuestion:any) {
+    for (let milestoneIndex = 0; milestoneIndex < projectInsightResponseList.length; milestoneIndex++) {
+      let milestone = projectInsightResponseList[milestoneIndex];
+  
+      if (milestone.projectQuestion?.length) {
+        if (!this.validateQuestionAndResponse(milestone.projectQuestion, milestoneIndex, template, 'Milestone')) {
+          return false;
         }
       }
-    });
-    return flag;
+  
+      for (let moduleIndex = 0; moduleIndex < (milestone.moduleList?.length || 0); moduleIndex++) {
+        let module = milestone.moduleList[moduleIndex];
+  
+        if (module.projectQuestion?.length) {
+          if (!this.validateQuestionAndResponse(module.projectQuestion, moduleIndex, template, 'Milestone - ' + (milestoneIndex+1) +  ' Module')) {
+            return false; 
+          }
+        }
+  
+        for (let submoduleIndex = 0; submoduleIndex < (module.subModuleList?.length || 0); submoduleIndex++) {
+          let submodule = module.subModuleList[submoduleIndex];
+  
+          if (submodule.projectQuestion?.length) {
+            if (!this.validateQuestionAndResponse(submodule.projectQuestion, submoduleIndex, template, 'Milestone - ' + milestoneIndex+1 +  ' Module - '  + (moduleIndex+1)+ 'Sub-module')) {
+              return false; 
+            }
+          }
+        }
+      }
+    }
+    return true; 
+  }
+  
+  validateQuestionAndResponse(questionList: ProjectQuestion[],parentIndex: number,template: TemplateRef<any>,parentType: string) {
+    for (let index = 0; index < questionList.length; index++) {
+      let question = questionList[index];
+  
+      if (question.required) {
+        let isInvalid =
+          question.optionType === 'checkbox'
+            ? !Array.isArray(question.responseList) || question.responseList.length === 0
+            : this.validationService.validateNullUndefinedEmptyString(question.response) === false;
+  
+        if (isInvalid) {
+          this.alertMessage = `Please provide response for ${parentType}-${parentIndex + 1} Question ${index + 1} !!`;
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   onSubmit(template: TemplateRef<any>){
