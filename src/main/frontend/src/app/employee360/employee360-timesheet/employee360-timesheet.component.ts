@@ -1,14 +1,15 @@
 import { ScrollStrategy } from '@angular/cdk/overlay';
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { Sort } from '@angular/material/sort';
 import { Router } from '@angular/router';
+import { saveAs } from 'file-saver';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { CalendarComponent } from 'src/app/helpers/calendar/calendar.component';
 import { Breadcrumb } from 'src/app/models/breadcrumd';
+import { Employee } from 'src/app/models/employee';
 import { Timesheet } from 'src/app/models/timesheet';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 import { EmployeeService } from 'src/app/services/employee.service';
@@ -17,8 +18,6 @@ import { TimesheetService } from 'src/app/services/timesheet.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { SortPipe } from 'src/app/sort.pipe';
 import * as XLSX from 'xlsx';
-import { saveAs } from 'file-saver';
-import { Employee } from 'src/app/models/employee';
 
 @Component({
   selector: 'app-employee360-timesheet',
@@ -26,7 +25,7 @@ import { Employee } from 'src/app/models/employee';
   styleUrls: ['./employee360-timesheet.component.css']
 })
 export class Employee360TimesheetComponent implements OnInit {
-  
+
   @ViewChild("thisMonthCal")
   private thisMonthCalendar: CalendarComponent;
   @ViewChild("lastMonthCal")
@@ -41,65 +40,65 @@ export class Employee360TimesheetComponent implements OnInit {
   activeCompOffButton: string;
   timesheetDetails: any;
   userMapping: any;
-  projectName:any;
-  teamName:any=0;
-  empId:any=0;
-  empIdd:any=0;
-  projectId:any=0;
-  currentUser:any;
+  projectName: any;
+  teamName: any = 0;
+  empId: any = 0;
+  empIdd: any = 0;
+  projectId: any = 0;
+  currentUser: any;
   time;
-  managerId:any=0;
-  endDate:any ;
-  startDate:any ;
+  managerId: any = 0;
+  endDate: any;
+  startDate: any;
   scrollStrategy: ScrollStrategy;
-  data  :Timesheet [] = [];
-  formattedStartDate:any="null";
-  formattedEndDate: any="null";
+  data: Timesheet[] = [];
+  formattedStartDate: any = "null";
+  formattedEndDate: any = "null";
   allSelected: any;
   dateTimeRange: any = null;
   todayDate: Date = new Date();
-  breadcrumbs:any;
-  mainRowSpam:any ;
-  result:any [] = [];
-  timesheetIds:any []=[];
-  responseCount:any=0;
+  breadcrumbs: any;
+  mainRowSpam: any;
+  result: any[] = [];
+  timesheetIds: any[] = [];
+  responseCount: any = 0;
 
-  filters:any = {};
-  isSearchEnabled:boolean = false;
+  filters: any = {};
+  isSearchEnabled: boolean = false;
 
 
   sortDirection = 'asc';
   sortColumn: any;
-  sortColumnType:any;
+  sortColumnType: any;
   //Bulk approve-reject
   bulkList: any = [];
   isSelectAll: boolean = false;
   isSelect: boolean = false;
   allTeamTimesheetRequests: Timesheet[] = [];
-  timesheetID:any = [];
-  Employee360=new Employee();
-  projectClicked:boolean=false;
-  teamClicked:boolean=false;
-  actionButton:boolean=false;
+  timesheetID: any = [];
+  Employee360 = new Employee();
+  projectClicked: boolean = false;
+  teamClicked: boolean = false;
+  actionButton: boolean = false;
 
-  timesheetColumns:any[]=['blank','employmentId','name','date','dayType','projectName','teamName','completionTime','activity','officeInTime','officeOutTime','totalTime','nightShift','status','createdOn'];
-  employeesFor360:any[] = [];
-  
+  timesheetColumns: any[] = ['blank', 'employmentId', 'name', 'date', 'dayType', 'projectName', 'teamName', 'completionTime', 'activity', 'officeInTime', 'officeOutTime', 'totalTime', 'nightShift', 'status', 'createdOn'];
+  employeesFor360: any[] = [];
+
   constructor(
     private employeeService: EmployeeService,
     private utilityService: UtilityService,
-    private employee360Service : Employee360Service,
-    private timesheetService : TimesheetService,
+    private employee360Service: Employee360Service,
+    private timesheetService: TimesheetService,
     private datePipe: DatePipe,
     private modalService: BsModalService,
     private router: Router,
     private breadcrumbService: BreadcrumbService
   ) {
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
-   }
+  }
   modalRef: BsModalRef = new BsModalRef();
-  isProjectTeamClicked:boolean=false;
-  header:String="";
+  isProjectTeamClicked: boolean = false;
+  header: String = "";
   currentBreadcrumbList: any[] = [];
 
   ngOnInit(): void {
@@ -107,7 +106,7 @@ export class Employee360TimesheetComponent implements OnInit {
     if (findbreadcrumbObject >= 0) {
       this.currentBreadcrumbList.splice(findbreadcrumbObject + 1);
       this.breadcrumbService.setBreadcrumbSubject(this.currentBreadcrumbList);
-    }else{
+    } else {
       let breadcrumbObject = new Breadcrumb();
       breadcrumbObject.title = "Timesheet";
       breadcrumbObject.url = "/employee-360/timesheet";
@@ -115,23 +114,23 @@ export class Employee360TimesheetComponent implements OnInit {
     }
 
     this.activeButton = 'Pending';
-    this.currentUser=sessionStorage.getItem('currentUser');
+    this.currentUser = sessionStorage.getItem('currentUser');
     if (this.currentUser) {
       const currentUserData = JSON.parse(this.currentUser);
       this.managerId = currentUserData.empId;
-      console.log(this.managerId); 
+      console.log(this.managerId);
     }
     // this.empId=sessionStorage.getItem('empId');
     let employeeData = localStorage.getItem('employee360Data');
-    this.Employee360=JSON.parse(employeeData);
-      let employeeObject = JSON.parse(employeeData);
-        let empId = employeeObject.empId;
+    this.Employee360 = JSON.parse(employeeData);
+    let employeeObject = JSON.parse(employeeData);
+    let empId = employeeObject.empId;
 
     this.startDate = null;
     this.endDate = null;
     this.formattedStartDate = null;
     this.formattedEndDate = null;
-    this.get360TimesheetDetails(this.activeButton,empId,this.projectId,this.teamName,this.formattedStartDate,this.formattedEndDate);
+    this.get360TimesheetDetails(this.activeButton, empId, this.projectId, this.teamName, this.formattedStartDate, this.formattedEndDate);
     // this.getAllEmployeeFor360View();
     console.log(this.Employee360);
   }
@@ -139,34 +138,34 @@ export class Employee360TimesheetComponent implements OnInit {
   setActiveButton(button: string): void {
     this.activeButton = button;
     // this.empIdd=240065;
-    if(button!=='Pending'){
-      this.allSelected=false;
+    if (button !== 'Pending') {
+      this.allSelected = false;
     }
-    if(this.activeButton !=='Calendar'){
-      this.empId=sessionStorage.getItem('empId');
-      this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.formattedStartDate,this.formattedEndDate);
-    }else{
-      this.empId=sessionStorage.getItem('empId');
+    if (this.activeButton !== 'Calendar') {
+      this.empId = sessionStorage.getItem('empId');
+      this.get360TimesheetDetails(this.activeButton, this.empId, this.projectId, this.teamName, this.formattedStartDate, this.formattedEndDate);
+    } else {
+      this.empId = sessionStorage.getItem('empId');
       this.getTimesheetsForHomePageByEmpId('Last 7 Days');
     }
   }
-exportToExcel(id:any): void {
- let exportToExcelTeamfile=id+".xlsx";
-  const table = document.getElementById(''+id); // Get table by ID
-  if (!table) {
-    console.error('Table not found');
-    return;
+  exportToExcel(id: any): void {
+    let exportToExcelTeamfile = id + ".xlsx";
+    const table = document.getElementById('' + id); // Get table by ID
+    if (!table) {
+      console.error('Table not found');
+      return;
+    }
+
+    const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(table); // Convert table to worksheet
+    const workbook: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Time Sheet');
+
+    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+
+    saveAs(data, exportToExcelTeamfile);
   }
-
-  const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(table); // Convert table to worksheet
-  const workbook: XLSX.WorkBook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Time Sheet');
-
-  const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-  const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-
-  saveAs(data, exportToExcelTeamfile);
-}
   getTimesheetsForHomePageByEmpId(dateRange: any) {
     this.timesheetDetails = [];
     const TOTAL_WORKING_HOURS_IN_DAY = 8;
@@ -182,8 +181,8 @@ exportToExcel(id:any): void {
     // timesheetObj.empId = 21899;
     // 240065
     console.log(sessionStorage.getItem('employeeId'));
-    console.log("timesheetObj.empId => " , timesheetObj.empId);
-    
+    console.log("timesheetObj.empId => ", timesheetObj.empId);
+
 
     if (dateRange == 'Last 7 Days') {
       totaltimesheetDaysCount = 7;
@@ -231,8 +230,8 @@ exportToExcel(id:any): void {
             newTimesheetObj.totalWorkingHoursPercentage = (newTimesheetObj.totalWorkingHours / TOTAL_WORKING_HOURS_IN_DAY) * 100 + "%";
 
             // For Chart Data
-            if (newTimesheetObj.status == "Pending") {pendingCount++; }
-            else if (newTimesheetObj.status == "Approved") {approvedCount++;}
+            if (newTimesheetObj.status == "Pending") { pendingCount++; }
+            else if (newTimesheetObj.status == "Approved") { approvedCount++; }
             else if (newTimesheetObj.status == "Rejected") rejectedCount++;
           } else {
             newTimesheetObj.totalWorkingHoursPercentage = "0%";
@@ -320,8 +319,8 @@ exportToExcel(id:any): void {
     return weekDay;
   }
 
-  bulkClicked(status:string){
-    console.log("status+++"+status);
+  bulkClicked(status: string) {
+    console.log("status+++" + status);
     this.updateStatus(status);
   }
 
@@ -330,37 +329,48 @@ exportToExcel(id:any): void {
     this.page = event;
   }
 
-  toggleSearch(){
+  toggleSearch() {
     this.isSearchEnabled = !this.isSearchEnabled;
-    if(!this.isSearchEnabled){
+    if (!this.isSearchEnabled) {
       this.filters = {};
     }
   }
 
-  resetSearch(){
+  resetSearch() {
     this.isSearchEnabled = false;
     this.filters = {};
   }
 
-  onSearch(searchData){
+  onSearch(searchData) {
     this.filters = searchData;
     //console.log("Updated Filter : ", this.filters);
   }
 
-    sortData(sort: Sort){
-      //console.log(sort);
-      if(sort.active){
-        let sortParams:any[] = sort.active?.split("|");
-        this.sortColumn = sortParams[0];
-        this.sortColumnType = sortParams[1];
-        this.sortDirection = sort.direction;
-      }
-    }
+  sortData(sort: any) {
+    //console.log(sort);
+    const sortDirection = sort.direction.desc; // 'asc' or 'desc'
 
-  update(status:string,empId: number, date: string){
-    for (const emp of this.result){
-      if(emp.empId == empId && emp.date == date){
-        this.timesheetIds.push(emp.timesheetId);            
+    // if(sort.active){
+    //   let sortParams:any[] = sort.active?.split("|");
+    //   this.sortColumn = sortParams[0];
+    //   this.sortColumnType = sortParams[1];
+    //   this.sortDirection = sort.direction;
+    // }
+    if (sortDirection === 'desc') {
+      this.result.sort((a, b) => {
+        return b.date - a.date; // Adjust to your column logic
+      });
+    } else if (sortDirection === 'asc') {
+      this.result.sort((a, b) => {
+        return a.date - b.date; // Adjust to your column logic
+      });
+    }
+  }
+
+  update(status: string, empId: number, date: string) {
+    for (const emp of this.result) {
+      if (emp.empId == empId && emp.date == date) {
+        this.timesheetIds.push(emp.timesheetId);
       }
     }
     this.updateStatus(status);
@@ -368,11 +378,11 @@ exportToExcel(id:any): void {
 
   toggleRowSelection(empId: number, date: string, selected: boolean) {
     // this.bulkList.push(empId);
-  
+
     for (const emp of this.result) {
       if (emp.empId === empId && emp.date === date) {
         emp.selected = selected;
-  
+
         if (selected) {
           this.timesheetIds.push(emp.timesheetId);
           if (!this.bulkList.includes(emp.date)) {
@@ -384,131 +394,132 @@ exportToExcel(id:any): void {
         }
       }
     }
-  
+
     console.log("this.bulkList", this.bulkList);
-    
+
     console.log("this.result", this.result);
     console.log("timesheetID", this.timesheetIds);
-  
+
     this.allSelected = false;
     const allSelect = this.result.every(emp => emp.selected === true);
     if (allSelect) {
       this.allSelected = true;
     }
-  
+
     const allDeselect = this.result.every(emp => emp.selected === false);
     if (allDeselect) {
       this.allSelected = false;
     }
   }
-  
-  
+
+
   toggleSelectAll() {
-     if (this.allSelected === true) {
+    if (this.allSelected === true) {
       for (const emp of this.result) {
-        if(emp.selected===false){
-        emp.selected = true;  
-        if(!this.bulkList.includes(emp.date)){this.bulkList.push(emp.date)}
-        this.timesheetIds.push(emp.timesheetId);  }
+        if (emp.selected === false) {
+          emp.selected = true;
+          if (!this.bulkList.includes(emp.date)) { this.bulkList.push(emp.date) }
+          this.timesheetIds.push(emp.timesheetId);
+        }
       }
     } else {
       this.result.forEach(emp => {
-        emp.selected = false;  
+        emp.selected = false;
       });
-      this.timesheetIds = []; 
-      this.bulkList=[]; 
+      this.timesheetIds = [];
+      this.bulkList = [];
     }
-     
+
   }
 
-  findByProject(projectId: number,projectName:string){
+  findByProject(projectId: number, projectName: string) {
     alert(projectId);
-    this.isProjectTeamClicked=true;
-    this.projectClicked=true;
-    this.allSelected=false;
-    this.header=projectName+" : Member Details";
-   
-    this.projectId=projectId;
-    this.get360TimesheetDetails(this.activeButton,this.empIdd,projectId,this.teamName,this.formattedStartDate,this.formattedEndDate);
+    this.isProjectTeamClicked = true;
+    this.projectClicked = true;
+    this.allSelected = false;
+    this.header = projectName + " : Member Details";
+
+    this.projectId = projectId;
+    this.get360TimesheetDetails(this.activeButton, this.empIdd, projectId, this.teamName, this.formattedStartDate, this.formattedEndDate);
   }
 
-  findByTeam(teamName: any, teamId : any){
+  findByTeam(teamName: any, teamId: any) {
     alert(teamName);
-    this.isProjectTeamClicked=true;
-    this.teamClicked=true;
-    this.allSelected=false;
-    this.teamName=teamName;
-    this.header=teamName+" : Member Details";
+    this.isProjectTeamClicked = true;
+    this.teamClicked = true;
+    this.allSelected = false;
+    this.teamName = teamName;
+    this.header = teamName + " : Member Details";
     console.log("team clicked => " + teamName);
-    this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,teamId,this.formattedStartDate,this.formattedEndDate);
+    this.get360TimesheetDetails(this.activeButton, this.empIdd, this.projectId, teamId, this.formattedStartDate, this.formattedEndDate);
   }
-  
 
-loading: boolean = false; 
 
-updateStatus(status: string) {
-  if (this.loading) return; 
-  this.loading = true; 
-  console.log("this.timesheet" , this.timesheetIds);
-  console.log("allSelected+++++++"+this.allSelected);
-  
-  this.employee360Service.updateStatus(status, this.timesheetIds, this.managerId).pipe(first()).subscribe(
-    (response: any) => {
-      this.loading = false; 
+  loading: boolean = false;
 
-      if (response.serviceStatus === "Success") {
-        this.alertMessage = response.serviceResponse;
-        this.showModal = true;
-        if (this.modalRef) {
-          this.modalRef.hide();
-          this.modalRef = null;
+  updateStatus(status: string) {
+    if (this.loading) return;
+    this.loading = true;
+    console.log("this.timesheet", this.timesheetIds);
+    console.log("allSelected+++++++" + this.allSelected);
+
+    this.employee360Service.updateStatus(status, this.timesheetIds, this.managerId).pipe(first()).subscribe(
+      (response: any) => {
+        this.loading = false;
+
+        if (response.serviceStatus === "Success") {
+          this.alertMessage = response.serviceResponse;
+          this.showModal = true;
+          if (this.modalRef) {
+            this.modalRef.hide();
+            this.modalRef = null;
+          }
+
+          this.modalRef = this.modalService.show(this.alertModal, {
+            keyboard: false,
+            class: 'modal-sm',
+          });
+        } else {
+          this.alertMessage = response.serviceResponse;
+          this.showModal = true;
         }
-
-        this.modalRef = this.modalService.show(this.alertModal, {
-          keyboard: false,
-          class: 'modal-sm',
-        });
-      } else {
-        this.alertMessage = response.serviceResponse;
+      },
+      (error) => {
+        this.loading = false;
+        console.error("Error occurred:", error);
+        this.alertMessage = "Error occurred while updating status.";
         this.showModal = true;
       }
-    },
-    (error) => {
-      this.loading = false; 
-      console.error("Error occurred:", error);
-      this.alertMessage = "Error occurred while updating status.";
-      this.showModal = true;
-    }
-  );
-  this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.formattedStartDate,this.formattedEndDate);
+    );
+    this.get360TimesheetDetails(this.activeButton, this.empId, this.projectId, this.teamName, this.formattedStartDate, this.formattedEndDate);
 
 
-}
+  }
 
   cancelRequest() {
-    this.showModal = false; 
+    this.showModal = false;
     if (this.modalRef) {
-      this.modalRef.hide(); 
+      this.modalRef.hide();
       this.modalRef = null;
     }
   }
-  
-  goBack(){
-    this.isProjectTeamClicked=false;
-    this.projectClicked=false;
-    this.teamClicked=false;
-    this.projectId=0;
-    this.teamName="null";
-    this.allSelected=false;
-   
+
+  goBack() {
+    this.isProjectTeamClicked = false;
+    this.projectClicked = false;
+    this.teamClicked = false;
+    this.projectId = 0;
+    this.teamName = "null";
+    this.allSelected = false;
+
     let employeeData = localStorage.getItem('employee360Data');
     let employeeObject = JSON.parse(employeeData);
     let emp_Id = employeeObject.empId;
-    this.get360TimesheetDetails(this.activeButton,emp_Id,this.projectId,this.teamName,this.formattedStartDate,this.formattedEndDate);
+    this.get360TimesheetDetails(this.activeButton, emp_Id, this.projectId, this.teamName, this.formattedStartDate, this.formattedEndDate);
   }
-    
+
   onChangeOption(arg: any) {
-    
+
     if (arg == 1) {
       // Handle "All"
       this.startDate = null;
@@ -533,8 +544,8 @@ updateStatus(status: string) {
       // Handle "Date range"
       // start and end date will be handled by the owl-datepicker input fields
     }
-    console.log("startDate" , this.startDate);
-    console.log("endDate" , this.endDate);
+    console.log("startDate", this.startDate);
+    console.log("endDate", this.endDate);
 
   }
 
@@ -549,238 +560,252 @@ updateStatus(status: string) {
     if (this.dateTimeRange && this.dateTimeRange.length === 2) {
       const fromDate = this.dateTimeRange[0];
       const toDate = this.dateTimeRange[1];
-  
+
       console.log('From Date:', fromDate);
       console.log('To Date:', toDate);
       this.startDate = fromDate;
       this.endDate = toDate;
-  
+
       // logic to filter data based on the selected range
       this.setDate();
     }
   }
 
-  setDate(){
+  setDate() {
     if (this.startDate && this.endDate) {
-       this.formattedStartDate = this.datePipe.transform(this.startDate, 'dd-MM-yyyy');
+      this.formattedStartDate = this.datePipe.transform(this.startDate, 'dd-MM-yyyy');
       this.formattedEndDate = this.datePipe.transform(this.endDate, 'dd-MM-yyyy');
-      if(this.isProjectTeamClicked){this.get360TimesheetDetails(this.activeButton,this.empIdd,this.projectId,this.teamName,this.formattedStartDate,this.formattedEndDate);
+      if (this.isProjectTeamClicked) {
+        this.get360TimesheetDetails(this.activeButton, this.empIdd, this.projectId, this.teamName, this.formattedStartDate, this.formattedEndDate);
       }
-      else{this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.formattedStartDate,this.formattedEndDate);}
-    }else{
-      this.get360TimesheetDetails(this.activeButton,this.empId,this.projectId,this.teamName,this.startDate,this.endDate);
+      else { this.get360TimesheetDetails(this.activeButton, this.empId, this.projectId, this.teamName, this.formattedStartDate, this.formattedEndDate); }
+    } else {
+      this.get360TimesheetDetails(this.activeButton, this.empId, this.projectId, this.teamName, this.startDate, this.endDate);
 
     }
   }
-  
 
-  navigateToEmployee360(){
+
+  navigateToEmployee360() {
     this.removeActiveTab();
     this.router.navigate(['/employee-360/profile']);
     this.setActiveTab();
   }
 
-  removeActiveTab(){
+  removeActiveTab() {
     const tab = document.getElementById('Employee360Tab').querySelector('.nav-link.active');
     tab?.classList.remove('active');
   }
 
-  setActiveTab(){
+  setActiveTab() {
     const tab = document.getElementById('Employee360Tab').querySelector('.nav-link');
     tab.classList.add('active');
     let activeRouteLink = tab.getAttribute('routerLink');
   }
 
-  transformData(originalData: any ) {
+  transformData(originalData: any) {
     let transformedData = [];
-  
-    Object.values(originalData).forEach((employee :any) => {
-      let isFirstActivity = true; 
+
+    Object.values(originalData).forEach((employee: any) => {
+      let isFirstActivity = true;
       // this.managerId=21865;
-      if(this.managerId==employee.managerId){
-        this.actionButton=true;
-      }else{this.actionButton=false;}
+      if (this.managerId == employee.managerId) {
+        this.actionButton = true;
+      } else { this.actionButton = false; }
       const totalActivitiesCount = employee.timeSheetlist.length;
       employee.timeSheetlist.forEach(items => {
         let showProject = true;
-          transformedData.push({
-            empId: employee.empId,
-            employmentId:"A-"+employee.employmentId,
-            name: employee.name,
-            date: employee.date, 
-            officeInTime: employee.officeInTime,
-            officeOutTime: employee.officeOutTime,
-            totalTime: employee.totalTime,
-            nightShift: employee.nightShift,
-            status: employee.status,
-            createdOn: employee.createdOn,
-            dayType:employee.dayType,
-            completionTime:items.completionTime,
-            activity: items.activity,
-            projectName: items.projectName,
-            teamName: items.teamName,
-            teamId: items.teamId,
-            projectId: items.projectId,
-            activityId: items.activityId,
-            timesheetId : items.timesheetId,
-            empActivitiesCountForDay: totalActivitiesCount, 
-            showProject: showProject,  
-            showEmpId: isFirstActivity,
-            selected: false, 
+        transformedData.push({
+          empId: employee.empId,
+          employmentId: "A-" + employee.employmentId,
+          name: employee.name,
+          date: employee.date,
+          officeInTime: employee.officeInTime,
+          officeOutTime: employee.officeOutTime,
+          totalTime: employee.totalTime,
+          nightShift: employee.nightShift,
+          status: employee.status,
+          createdOn: employee.createdOn,
+          dayType: employee.dayType,
+          completionTime: items.completionTime,
+          activity: items.activity,
+          projectName: items.projectName,
+          teamName: items.teamName,
+          teamId: items.teamId,
+          projectId: items.projectId,
+          activityId: items.activityId,
+          timesheetId: items.timesheetId,
+          empActivitiesCountForDay: totalActivitiesCount,
+          showProject: showProject,
+          showEmpId: isFirstActivity,
+          selected: false,
         });
         isFirstActivity = false;
         showProject = false;
       });
     });
-  
+
     return transformedData;
   }
 
-//   get360TimesheetDetails(activeButton:string,empId:number,projectId:number,teamName:string,managerId:number,formattedStartDate:string,formattedEndDate:string) {
-//     console.log(this.activeButton);
-//     this.employee360Service.get360TimesheetDetails(activeButton,empId,projectId,teamName,managerId,formattedStartDate,formattedEndDate).pipe(first()).subscribe((response: any) => {
-//         if (response.serviceStatus === "Success") {
-//             console.log("=> serviceResponse", response.serviceResponse);
-//             this.data = response.serviceResponse;
-//             this.data = Object.values(this.data);
-//             this.responseCount=this.data.length; 
-//             this.result = this.transformData(this.data);
-//             this.result.forEach((employee) => {
-//               let matchingEmployee = this.employeesFor360.find(emp => emp.empId == employee.empId);
-//               console.log("matchingEmployee ", matchingEmployee);
-//               employee.emp360 = matchingEmployee ? matchingEmployee : {};
-//           });
-//             console.log("this.result =>", this.result )
-//         }
-//     });
+  //   get360TimesheetDetails(activeButton:string,empId:number,projectId:number,teamName:string,managerId:number,formattedStartDate:string,formattedEndDate:string) {
+  //     console.log(this.activeButton);
+  //     this.employee360Service.get360TimesheetDetails(activeButton,empId,projectId,teamName,managerId,formattedStartDate,formattedEndDate).pipe(first()).subscribe((response: any) => {
+  //         if (response.serviceStatus === "Success") {
+  //             console.log("=> serviceResponse", response.serviceResponse);
+  //             this.data = response.serviceResponse;
+  //             this.data = Object.values(this.data);
+  //             this.responseCount=this.data.length; 
+  //             this.result = this.transformData(this.data);
+  //             this.result.forEach((employee) => {
+  //               let matchingEmployee = this.employeesFor360.find(emp => emp.empId == employee.empId);
+  //               console.log("matchingEmployee ", matchingEmployee);
+  //               employee.emp360 = matchingEmployee ? matchingEmployee : {};
+  //           });
+  //             console.log("this.result =>", this.result )
+  //         }
+  //     });
 
-//     this.currentUser=sessionStorage.getItem('currentUser');
-//     if (this.currentUser) {
-//       const currentUserData = JSON.parse(this.currentUser);
-//       this.managerId = currentUserData.empId;
-//       console.log(this.managerId); 
-//     }
-// }
+  //     this.currentUser=sessionStorage.getItem('currentUser');
+  //     if (this.currentUser) {
+  //       const currentUserData = JSON.parse(this.currentUser);
+  //       this.managerId = currentUserData.empId;
+  //       console.log(this.managerId); 
+  //     }
+  // }
 
-//   getAllEmployeeFor360View(): void {
-//         this.employeesFor360 = [];
-//         this.employeeService.getAllEmployeesFor360View().subscribe({
-//             next: (response: any) => {
-//                 if (response.serviceStatus == "Success") {
-//                     this.employeesFor360 = response.serviceResponse;
-    
-//                     this.employeesFor360.forEach(employeeObj => {
-//                         employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
-//                         employeeObj.dateOfJoining = employeeObj.dateOfJoining ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-//                         employeeObj.dateOfRelieving = employeeObj.dateOfRelieving ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-//                         employeeObj.updatedOn = employeeObj.updatedOn ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-//                         employeeObj.createdOn = employeeObj.createdOn ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-    
-//                         if (employeeObj.isConsultant == 'true')
-//                             employeeObj.employeeType = 'Consultant';
-//                         else if (employeeObj.isApprenticeship == 'true')
-//                             employeeObj.employeeType = 'Apprentice';
-//                         else
-//                             employeeObj.employeeType = 'Regular';
-//                     });
-    
-//                     this.employeesFor360 = new SortPipe().transform(this.employeesFor360, ['name', 'string', 'asc']);
-//                 } else {
-//                     alert(response.serviceResponse);
-//                 }
-//             },
-//             error: (error) => {
-//                 console.error("Error fetching employees:", error);
-//             }
-//         });
-//     }
-async getAllEmployeeFor360View(): Promise<any> {
-  try {
-    const response: any = await this.employeeService.getAllEmployeesFor360View().toPromise();
+  //   getAllEmployeeFor360View(): void {
+  //         this.employeesFor360 = [];
+  //         this.employeeService.getAllEmployeesFor360View().subscribe({
+  //             next: (response: any) => {
+  //                 if (response.serviceStatus == "Success") {
+  //                     this.employeesFor360 = response.serviceResponse;
 
-    if (response.serviceStatus === "Success") {
-      this.employeesFor360 = response.serviceResponse;
+  //                     this.employeesFor360.forEach(employeeObj => {
+  //                         employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
+  //                         employeeObj.dateOfJoining = employeeObj.dateOfJoining ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+  //                         employeeObj.dateOfRelieving = employeeObj.dateOfRelieving ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+  //                         employeeObj.updatedOn = employeeObj.updatedOn ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+  //                         employeeObj.createdOn = employeeObj.createdOn ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
 
-      // Process employees
-      this.employeesFor360 = this.employeesFor360.map(employeeObj => {
-        employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
-        employeeObj.dateOfJoining = employeeObj.dateOfJoining ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-        employeeObj.dateOfRelieving = employeeObj.dateOfRelieving ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-        employeeObj.updatedOn = employeeObj.updatedOn ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-        employeeObj.createdOn = employeeObj.createdOn ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-        if (employeeObj.isConsultant === 'true') employeeObj.employeeType = 'Consultant';
-        else if (employeeObj.isApprenticeship === 'true') employeeObj.employeeType = 'Apprentice';
-        else employeeObj.employeeType = 'Regular';
-        return employeeObj;
-      });
+  //                         if (employeeObj.isConsultant == 'true')
+  //                             employeeObj.employeeType = 'Consultant';
+  //                         else if (employeeObj.isApprenticeship == 'true')
+  //                             employeeObj.employeeType = 'Apprentice';
+  //                         else
+  //                             employeeObj.employeeType = 'Regular';
+  //                     });
 
-      // Sort employees
-      this.employeesFor360 = new SortPipe().transform(this.employeesFor360, ['name', 'string', 'asc']);
-      
-      return this.employeesFor360;
-    } else {
-      throw new Error(response.serviceResponse);
+  //                     this.employeesFor360 = new SortPipe().transform(this.employeesFor360, ['name', 'string', 'asc']);
+  //                 } else {
+  //                     alert(response.serviceResponse);
+  //                 }
+  //             },
+  //             error: (error) => {
+  //                 console.error("Error fetching employees:", error);
+  //             }
+  //         });
+  //     }
+  async getAllEmployeeFor360View(): Promise<any> {
+    try {
+      const response: any = await this.employeeService.getAllEmployeesFor360View().toPromise();
+
+      if (response.serviceStatus === "Success") {
+        this.employeesFor360 = response.serviceResponse;
+
+        // Process employees
+        this.employeesFor360 = this.employeesFor360.map(employeeObj => {
+          employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
+          employeeObj.dateOfJoining = employeeObj.dateOfJoining ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+          employeeObj.dateOfRelieving = employeeObj.dateOfRelieving ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+          employeeObj.updatedOn = employeeObj.updatedOn ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+          employeeObj.createdOn = employeeObj.createdOn ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          if (employeeObj.isConsultant === 'true') employeeObj.employeeType = 'Consultant';
+          else if (employeeObj.isApprenticeship === 'true') employeeObj.employeeType = 'Apprentice';
+          else employeeObj.employeeType = 'Regular';
+          return employeeObj;
+        });
+
+        // Sort employees
+        this.employeesFor360 = new SortPipe().transform(this.employeesFor360, ['name', 'string', 'asc']);
+
+        return this.employeesFor360;
+      } else {
+        throw new Error(response.serviceResponse);
+      }
+    } catch (error) {
+      throw error;
     }
-  } catch (error) {
-    throw error;
   }
-}
 
-async get360TimesheetDetails(
-  activeButton: string, 
-  empId: number, 
-  projectId: number, 
-  teamName: string, 
-  // managerId: number, 
-  formattedStartDate: string, 
-  formattedEndDate: string
-): Promise<void> {
-  console.log(this.activeButton);
+  async get360TimesheetDetails(
+    activeButton: string,
+    empId: number,
+    projectId: number,
+    teamName: string,
+    // managerId: number, 
+    formattedStartDate: string,
+    formattedEndDate: string
+  ): Promise<void> {
+    console.log(this.activeButton);
 
-  try {
+    try {
 
-    await this.getAllEmployeeFor360View();
+      await this.getAllEmployeeFor360View();
 
-    const response: any = await this.employee360Service.get360TimesheetDetails(
-      activeButton, 
-      empId, 
-      projectId, 
-      teamName, 
-      // managerId, 
-      formattedStartDate, 
-      formattedEndDate
-    ).toPromise();  
+      const response: any = await this.employee360Service.get360TimesheetDetails(
+        activeButton,
+        empId,
+        projectId,
+        teamName,
+        // managerId, 
+        formattedStartDate,
+        formattedEndDate
+      ).toPromise();
 
-    if (response.serviceStatus === "Success") {
-      console.log("=> serviceResponse", response.serviceResponse);
-      this.data = response.serviceResponse;
-      this.data = Object.values(this.data);
-      this.responseCount = this.data.length;
-      this.result = this.transformData(this.data);
-      this.result.forEach((employee) => {
-        let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
-        console.log("matchingEmployee ", matchingEmployee);
-        employee.emp360 = matchingEmployee ? matchingEmployee : {};
-      });
-      console.log("this.result =>", this.result);
+      if (response.serviceStatus === "Success") {
+        console.log("=> serviceResponse", response.serviceResponse);
+        this.data = response.serviceResponse;
+        this.data = Object.values(this.data);
+        this.responseCount = this.data.length;
+        this.result = this.transformData(this.data);
+        this.result.forEach((employee) => {
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
+          console.log("matchingEmployee ", matchingEmployee);
+          employee.emp360 = matchingEmployee ? matchingEmployee : {};
+        });
+
+
+        
+        this.result.sort((a, b) => {
+          
+          if (a.date > b.date) {
+            return -1; 
+          } else if (a.date < b.date) {
+            return 1; 
+          }
+          return 0;
+        });
+
+        console.log("this.result =>", this.result);
+      }
+
+      this.currentUser = sessionStorage.getItem('currentUser');
+      if (this.currentUser) {
+        const currentUserData = JSON.parse(this.currentUser);
+        this.managerId = currentUserData.empId;
+        console.log(this.managerId);
+      }
+
+    } catch (error) {
+      console.error("Error fetching data:", error);
     }
-
-    this.currentUser = sessionStorage.getItem('currentUser');
-    if (this.currentUser) {
-      const currentUserData = JSON.parse(this.currentUser);
-      this.managerId = currentUserData.empId;
-      console.log(this.managerId);
-    }
-
-  } catch (error) {
-    console.error("Error fetching data:", error);
   }
-}
 
-    clearBreadcrumbs(){
-      window.location.reload()
-    }
+  clearBreadcrumbs() {
+    window.location.reload()
+  }
 
-    
+
 }
 

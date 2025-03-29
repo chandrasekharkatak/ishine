@@ -388,6 +388,8 @@ export class Employee360RewardsComponent implements OnInit {
              if(response.serviceStatus == 'Success'){
               this.rewardList = response.serviceResponse;
               this.rewardList.forEach(reward => {
+                let matchingnameempId = this.allEmployeeList360.find(emp => emp.empId === reward.nameId);
+                reward.emp360nameempid = matchingnameempId ? matchingnameempId : {}; 
                 let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId === reward.createdBY);
                 console.log('matches++',matchingEmployee);
                 reward.emp360 = matchingEmployee ? matchingEmployee : {};
@@ -671,6 +673,12 @@ export class Employee360RewardsComponent implements OnInit {
     this.rewardsService.getTeamRewardByEmpId(request).subscribe(
       (response: any) => {
         this.teamRewardList = response.rewardsDTO;
+        this.teamRewardList.forEach(reward => {
+          let matchingRewardedTo =  this.allEmployeeList360.find(emp => emp.empId === reward.id);
+          reward.emp360rewardedToId = matchingRewardedTo ? matchingRewardedTo : {};
+          let matchingEmployeeteam = this.allEmployeeList360.find(emp => emp.empId === reward.createdBy);
+          reward.emp360teamcreatedBy = matchingEmployeeteam ? matchingEmployeeteam : {};
+        });
         this.getMatchingEmployees();
      
       });

@@ -1136,12 +1136,12 @@ public class RewardsService {
             		dto.setRewardedTo(object[3] != null ? Long.parseLong(object[3].toString()):null);
             		dto.setRewardedToByName(object[4] != null? object[4].toString() : null);
             		dto.setRewardTypeID(object[5] != null? Integer.parseInt(object[5].toString()) : null);
-            		dto.setCategoryId(object[6] != null ? Integer.parseInt(object[6].toString()) : null);
-            		dto.setRewardTypeName(object[7] != null ? object[7].toString() : null);
-            		dto.setDepartmentId(object[8] != null ? Long.parseLong(object[8].toString()) : null);
-            		dto.setDepartment(object[9] != null ? object[9].toString() : null);
-            		dto.setOfMonthYear(object[10] != null ? object[10].toString() : null);
-            		dto.setCategoryName(object[11] != null ? object[11].toString() : null);
+//            		dto.setCategoryId(object[6] != null ? Integer.parseInt(object[6].toString()) : null);
+            		dto.setRewardTypeName(object[6] != null ? object[6].toString() : null);
+            		dto.setDepartmentId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
+            		dto.setDepartment(object[8] != null ? object[8].toString() : null);
+            		dto.setOfMonthYear(object[9] != null ? object[9].toString() : null);
+            		dto.setCategoryName(object[10] != null ? object[10].toString() : null);
             	
             	dtos.add(dto);
             	});
@@ -1313,8 +1313,8 @@ public class RewardsService {
 			            dto.setName(row[0] != null ? row[0].toString() : null);
 			            dto.setCreatedBY(row[5] != null ? Long.parseLong(row[5].toString()) : null);
 			            dto.setRewardCategoryId(row[6] !=null ? Long.parseLong(row[6].toString()) : null);	
-			            dto.setRewardCategory(row[7] != null ? row[7].toString() : null);	            
-			            
+			            dto.setRewardCategory(row[7] != null ? row[7].toString() : null);
+			            dto.setNameId(row[8] !=null ? Long.parseLong(row[8].toString()) : null);			            
 			            
 			            List<RewardTeamDTO> teamList = getTeamsByEmpId(request.getEmpId());
 			            
@@ -1443,10 +1443,11 @@ public class RewardsService {
 	    dto.setRewardedTo(getLongValue(row[2]));
 	    dto.setCreatedOn(getLocalDateTime(row[3]));
 	    dto.setRemark(getStringValue(row[4]));
+	    dto.setCreatedBy(getLongValue(row[5])); 
 	    dto.setCreatedByName(getEmployeeNameByEmpId(getLongValue(row[5])));
 	    dto.setRewardCategoryId(getLongValue(row[6]));
-	    dto.setRewardCategoryName(getStringValue(row[7]));    
-	    
+	    dto.setRewardCategoryName(getStringValue(row[7]));
+	    dto.setId(getLongValue(row[8]));
 	    return dto;
 	}
 

@@ -118,7 +118,7 @@
   
   <!-- for pending , approved  and rejected  -->
 
-  <div class="row">
+  <div class="row" *ngIf="activeButton != 'Calendar'">
     <div class="col-md-12">
         <div class="selector-toggle" >
             <a href="javascript:void(0)" (click)="toggleSearch()">

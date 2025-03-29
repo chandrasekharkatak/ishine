@@ -2916,8 +2916,8 @@
                                         <td><span class="badge badge-pill"
                                                 [ngStyle]="{'background-color': audit.color}">{{audit.bucketName}}</span>
                                         </td>
-                                        <td id="clickablefor360" *ngIf="userMapping.employee_360" [navigateToEmployee360]="audit.emp360updatedBy" (click)="cancelRequest()" style="cursor: pointer;" title="Click to view Employee 360">{{audit.updatedByName}}</td>
-                                        <td *ngIf="!userMapping.employee_360">{{audit.updatedByName}}</td>
+                                        <td id="clickablefor360" *ngIf="audit.updatedByName && userMapping.employee_360" [navigateToEmployee360]="audit.emp360updatedBy" (click)="cancelRequest()" style="cursor: pointer;" title="Click to view Employee 360">{{audit.updatedByName}}</td>
+                                        <td *ngIf="!userMapping.employee_360 || !audit.updatedByName">{{audit.updatedByName}}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -2986,8 +2986,8 @@
                                         <td><span class="badge badge-pill"
                                                 [ngStyle]="{'background-color': audit.color}">{{audit.bucketName}}</span>
                                         </td>
-                                        <td id="clickablefor360" *ngIf="userMapping.employee_360" [navigateToEmployee360]="audit.emp360updatedBy" (click)="cancelRequest()" style="cursor: pointer;" title="Click to view Employee 360">{{audit.updatedByName}}</td>
-                                        <td *ngIf="!userMapping.employee_360">{{audit.updatedByName}}</td>
+                                        <td id="clickablefor360" *ngIf="audit.updatedByName && userMapping.employee_360" [navigateToEmployee360]="audit.emp360updatedBy" (click)="cancelRequest()" style="cursor: pointer;" title="Click to view Employee 360">{{audit.updatedByName}}</td>
+                                        <td *ngIf="!userMapping.employee_360 || !audit.updatedByName">{{audit.updatedByName}}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -3056,8 +3056,8 @@
                                         <td><span class="badge badge-pill"
                                                 [ngStyle]="{'background-color': audit.color}">{{audit.bucketName}}</span>
                                         </td>
-                                        <td id="clickablefor360" *ngIf="userMapping.employee_360" [navigateToEmployee360]="audit.emp360updatedBy" (click)="cancelRequest()" style="cursor: pointer;" title="Click to view Employee 360">{{audit.updatedByName}}</td>
-                                        <td *ngIf="!userMapping.employee_360">{{audit.updatedByName}}</td>
+                                        <td id="clickablefor360" *ngIf="audit.updatedByName && userMapping.employee_360" [navigateToEmployee360]="audit.emp360updatedBy" (click)="cancelRequest()" style="cursor: pointer;" title="Click to view Employee 360">{{audit.updatedByName}}</td>
+                                        <td *ngIf="!userMapping.employee_360 || !audit.updatedByName">{{audit.updatedByName}}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -3127,8 +3127,8 @@
                                         <td><span class="badge badge-pill"
                                                 [ngStyle]="{'background-color': audit.color}">{{audit.bucketName}}</span>
                                         </td>
-                                        <td id="clickablefor360" *ngIf="userMapping.employee_360" [navigateToEmployee360]="audit.emp360updatedBy" (click)="cancelRequest()" style="cursor: pointer;" title="Click to view Employee 360">{{audit.updatedByName}}</td>
-                                        <td *ngIf="!userMapping.employee_360">{{audit.updatedByName}}</td>
+                                        <td id="clickablefor360" *ngIf="audit.updatedByName && userMapping.employee_360" [navigateToEmployee360]="audit.emp360updatedBy" (click)="cancelRequest()" style="cursor: pointer;" title="Click to view Employee 360">{{audit.updatedByName}}</td>
+                                        <td *ngIf="!userMapping.employee_360 || !audit.updatedByName">{{audit.updatedByName}}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -3201,8 +3201,8 @@
                                         <td><span class="badge badge-pill"
                                                 [ngStyle]="{'background-color': audit.color}">{{audit.bucketName}}</span>
                                         </td>
-                                        <td id="clickablefor360" *ngIf="userMapping.employee_360" [navigateToEmployee360]="audit.emp360updatedBy" (click)="cancelRequest()" style="cursor: pointer;" title="Click to view Employee 360">{{audit.updatedByName}}</td>
-                                        <td *ngIf="!userMapping.employee_360">{{audit.updatedByName}}</td>
+                                        <td id="clickablefor360" *ngIf="audit.updatedByName && userMapping.employee_360" [navigateToEmployee360]="audit.emp360updatedBy" (click)="cancelRequest()" style="cursor: pointer;" title="Click to view Employee 360">{{audit.updatedByName}}</td>
+                                        <td *ngIf="!userMapping.employee_360 || !audit.updatedByName">{{audit.updatedByName}}</td>
                                     </tr>
                                 </tbody>
                             </table>
