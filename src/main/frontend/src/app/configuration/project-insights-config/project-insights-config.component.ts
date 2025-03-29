@@ -60,7 +60,9 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
   surveyObj:Survey = new Survey();
   allSurveyQuestionList:SurveyQuestion[] = [new SurveyQuestion()];
-  projectInsightQuestionList:ProjectInsightQuestion[] = [new ProjectInsightQuestion()]
+  projectInsightQuestionList:ProjectInsightQuestion[] = [new ProjectInsightQuestion()];
+  projectInsightResponseList:ProjectInsightQuestion[] = [new ProjectInsightQuestion()];
+
   allProjectList:any[] = [];
   projectInsightQuestion:ProjectInsightQuestion = new ProjectInsightQuestion();
 
@@ -170,14 +172,11 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
   showAddProjectInsightResponses(projectObj){
     this.isProjectInsightResponseList = true;
-
     this.isQuestionForm = false;
     this.isCreation = false;
     this.isUpdation = false;
     this.isProjectInsightList = false;
-
-    //console.log("surveyObj for responses : ", surveyObj);
-    this.getAllProjctInsightResponsesByProjectId(projectObj);
+    this.getAllProjectInsightResponsesByProjectId(projectObj);
   }
 
   showProjectInsightUpdate(projectObj:any, template: TemplateRef<any>){
@@ -444,87 +443,127 @@ export class ProjectInsightsConfigComponent implements OnInit {
     return flag;
   }
 
-  getAllProjctInsightResponsesByProjectId(projectObj: any){
-    this.projectInsightQuestion = new ProjectInsightQuestion();
-    this.projectInsightQuestionList = [];
+  onCheckboxChange(event: any, value: string, question: any) {
+    if (!question.response) {
+      question.response = []; // Initialize as an array if undefined
+    }
+  
+    if (event.target.checked) {
+      // Add value if checked
+      question.response.push(value);
+    } else {
+      // Remove value if unchecked
+      question.response = question.response.filter((item: string) => item !== value);
+    }
+  }
 
-    this.projectInsightService.getAllQuestionsByProjectId(projectObj).pipe(first()).subscribe((response: any) => {
+  isInArray(value: string, array: any[]): boolean {
+    return Array.isArray(array) && array.includes(value);
+  }
+
+  getAllProjectInsightResponsesByProjectId(projectObj: any) {
+    this.projectInsightQuestion = new ProjectInsightQuestion();
+    this.projectInsightResponseList = [];
+
+    this.projectInsightService.getAllProjectInsightResponsesByProjectId(projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectInsightQuestion = response.serviceResponse;
-        this.projectInsightQuestionList = this.projectInsightQuestion.projectInsightQuestionList;
+        this.projectInsightResponseList = this.projectInsightQuestion.projectInsightQuestionList;
 
-        this.projectInsightQuestionList.forEach((project: ProjectInsightQuestion) => {
-          project.projectQuestion.forEach((question: ProjectQuestion) => {
-            question.optionsList = JSON.parse(question.options);
-            question.required = JSON.parse(question.required);
-            question.documentUpload = JSON.parse(question.documentUpload);
-          });
+        this.projectInsightResponseList.forEach((milestone: ProjectInsightQuestion, mileIndex) => {
+          if (milestone.projectQuestion != null && milestone.projectQuestion.length != 0) {
+            milestone.projectQuestion.forEach((question: ProjectQuestion, index) => {
+              question.optionsList = JSON.parse(question.options);
+            });
+          }
+
+          if (milestone.moduleList != null && milestone.moduleList.length != 0) {
+            milestone.moduleList.forEach((module: any, modIndex) => {
+              if (module.projectQuestion != null && module.projectQuestion.length != 0) {
+                module.projectQuestion.forEach((question: ProjectQuestion, index) => {
+                  question.optionsList = JSON.parse(question.options);
+                });
+              }
+
+              if (module.subModuleList != null && module.subModuleList.length != 0) {
+                module.subModuleList.forEach((submodule: any, submodIndex) => {
+                  if (submodule.projectQuestion != null && submodule.projectQuestion.length != 0) {
+                    submodule.projectQuestion.forEach((question: ProjectQuestion, index) => {
+                      question.optionsList = JSON.parse(question.options);
+                    });
+                  }
+                });
+              }
+            });
+          }
         });
-
-        const questionTemplate: string = this.createTemplate();
-
-        const formStart = `<form id="projectInsightForm">`
-        const formEnd = `</form>`
-        const finalQuestionTemplate = formStart + questionTemplate + formEnd;
-
-        let previewObj = new ProjectInsightQuestion();
-        previewObj.projectId = this.projectInsightQuestion.projectId;
-        previewObj.projectManagerId = this.projectInsightQuestion.projectManagerId;
-        previewObj.projectManagerName = this.projectInsightQuestion.projectManagerName;
-        previewObj.projectInsightQuestionList = this.projectInsightQuestionList;
-        previewObj.projectInsightQuestionTemplate = finalQuestionTemplate;
-
-
-        let projectInsightContainer = document.getElementById("response-container");
-        projectInsightContainer.insertAdjacentHTML('afterbegin', previewObj.projectInsightQuestionTemplate);
       } else {
         console.error(response.serviceResponse);
       }
     });
   }
 
-  addUpdateResponse(template: TemplateRef<any>){
-  //   const form: any = document.getElementById('surveyForm');
+  saveProjectInsightResponse(template: TemplateRef<any>) {
+    let inputValidated: boolean = this.validateProjectInsightResponse(template, this.projectInsightQuestion, this.projectInsightQuestionList);
+    if (!inputValidated) return;
 
+    let projObj = new ProjectInsightQuestion();
+    projObj.projectId = this.projectInsightQuestion.projectId;
+    projObj.projectManagerId = this.projectInsightQuestion.projectManagerId;
+    projObj.projectManagerName = this.projectInsightQuestion.projectManagerName;
+    projObj.projectInsightQuestionList = this.projectInsightQuestionList;
+    projObj.empId = this.currentUser.empId;
 
-  //   let projObj = new ProjectInsightQuestion();
-  //   projObj.projectId = this.projectInsightQuestion.projectId;
-  //   projObj.projectManagerId = this.projectInsightQuestion.projectManagerId;
-  //   projObj.projectManagerName = this.projectInsightQuestion.projectManagerName;
-  //   projObj.projectInsightQuestionList = this.projectInsightQuestionList;
-  //   projObj.empId = this.currentUser.empId;
+    this.projectInsightService.saveProjectInsightResponse(projObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showProjectInsight();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
 
-  //   this.projectInsightQuestionList.forEach((milestone, mileindex) => {
-  //     milestone.projectQuestion.forEach((question, index) => {
-  //       let surveyQuestion = new SurveyQuestion();
-  //       surveyQuestion.surveyQuestionId = question.surveyQuestionId;
-  //       surveyQuestion.required = question.required;
+  validateProjectInsightResponse(template: TemplateRef<any>, projectInsightQuestion: ProjectInsightQuestion, projectInsightResponseList: ProjectInsightQuestion[]) {
+    let flag = true;
+    projectInsightResponseList.forEach((milestone: ProjectInsightQuestion, mileIndex) => {
+      if (milestone.projectQuestion != null && milestone.projectQuestion.length != 0) {
+        flag = this.validateQuestionAndResponse(milestone.projectQuestion, mileIndex, template, 'Milestone');
+      }
 
-  //       if (question.optionType == 'checkbox') {
-  //         let response = [];
-  //         form.elements[`question-${index + 1}`]?.forEach((checkboxOption) => {
-  //           if (checkboxOption.checked) response.push(checkboxOption.value);
-  //         });
-  //         surveyQuestion.response = response.join(", ");
-  //       } else {
-  //         surveyQuestion.response = form.elements[`question-${index + 1}`].value;
-  //       }
-  //       surveyObj.surveyQuestionList.push(surveyQuestion);
-  //     });
-  //   });
+      if (milestone.moduleList != null && milestone.moduleList.length != 0) {
+        milestone.moduleList.forEach((module: any, modIndex) => {
+          if (module.projectQuestion != null && module.projectQuestion.length != 0) {
+            flag = this.validateQuestionAndResponse(module.projectQuestion, modIndex, template, 'Module');
+          }
 
-  //   //console.log("On Survey Submit : ", surveyObj);
-  //   let inputValidated: boolean = this.validateSurveyResponse(surveyObj, template);
-  //   if (!inputValidated) return;
-  //   this.surveyService.setSurveyResponseByEmpId(surveyObj).pipe(first()).subscribe((response: any) => {
-  //     if (response.serviceStatus == "Success") {
-  //       this.openAlertMod(template, response.serviceResponse);
-  //       this.router.navigate(['/user-survey']);
-  //       this.showSurveys();
-  //     } else {
-  //       this.openAlertMod(template, response.serviceResponse);
-  //     }
-  //   });
+          if (module.subModuleList != null && module.subModuleList.length != 0) {
+            module.subModuleList.forEach((submodule: any, submodIndex) => {
+              if (submodule.projectQuestion != null && submodule.projectQuestion.length != 0) {
+                flag = this.validateQuestionAndResponse(submodule.projectQuestion, submodIndex, template, 'sub-module');
+              }
+              
+            });
+          }
+        });
+      }
+    });
+    return flag;
+  }
+
+  validateQuestionAndResponse(questionList: ProjectQuestion[], parentIndex: any, template: TemplateRef<any>, parentType: any) {
+    let flag = true;
+    questionList.forEach((question: ProjectQuestion, index) => {
+      if (question.required) {
+        if (!this.validationService.validateNullUndefinedEmptyString(question.response)) {
+          this.alertMessage = `Please provide response for ${parentType}-${parentIndex + 1} Question ${index + 1} !!`;
+          this.openAlertMod(template, this.alertMessage);
+          flag = false;
+          return;
+        }
+      }
+    });
+    return flag;
   }
 
   onSubmit(template: TemplateRef<any>){

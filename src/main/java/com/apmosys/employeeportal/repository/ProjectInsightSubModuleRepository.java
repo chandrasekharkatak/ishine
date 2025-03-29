@@ -10,4 +10,6 @@ public interface ProjectInsightSubModuleRepository extends JpaRepository<Project
 
 	List<ProjectInsightSubModule> getByModuleId(Long moduleId);
 
+	List<ProjectInsightSubModule> findByModuleId(Long moduleId);
+
 }
