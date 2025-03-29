@@ -848,7 +848,7 @@ public class ProjectInsightService {
 			if (projectInsightDTO.getProjectInsightQuestionList() != null && !projectInsightDTO.getProjectInsightQuestionList().isEmpty()) {
 				saveProjectMileStoneResponse(projectInsightDTO.getProjectInsightQuestionList(),projectInsightDTO.getEmpId());
 				apiLogInfo.setApiResponse("Project Insight Response Saved Successfully");
-				response.setServiceResponse(null);
+				response.setServiceResponse("Project Insight Response Saved Successfully");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			} else {
@@ -871,15 +871,14 @@ public class ProjectInsightService {
 		return response;
 	}
 
-	private String saveProjectMileStoneResponse(List<ProjectInsightQuestionDTO> projectInsightQuestionDTOList, Long employeeId) {
+	private String saveProjectMileStoneResponse(List<ProjectInsightQuestionDTO> projectInsightQuestionDTOList,
+			Long employeeId) {
 		String response = null;
 		try {
 			if (projectInsightQuestionDTOList != null && !projectInsightQuestionDTOList.isEmpty()) {
 				for (ProjectInsightQuestionDTO projectInsightQuestionDTO : projectInsightQuestionDTOList) {
-					saveProjectInsightResponse(projectInsightQuestionDTO.getProjectQuestion(),employeeId);
-					if(projectInsightQuestionDTO.getModuleList() != null && !projectInsightQuestionDTO.getModuleList().isEmpty()) {
-						
-					}
+					saveProjectInsightResponse(projectInsightQuestionDTO.getProjectQuestion(), employeeId);
+					saveProjectInsightModuleResponse(projectInsightQuestionDTO.getModuleList(), employeeId);
 				}
 			} else {
 				return null;
@@ -889,6 +888,33 @@ public class ProjectInsightService {
 			throw e;
 		}
 		return response;
+	}
+
+	private void saveProjectInsightModuleResponse(List<ModuleDTO> moduleList, Long employeeId) {
+		try {
+			if (moduleList != null && !moduleList.isEmpty()) {
+				for (ModuleDTO moduleDTO : moduleList) {
+					saveProjectInsightResponse(moduleDTO.getProjectQuestion(), employeeId);
+					saveProjectInsightSubModuleResponse(moduleDTO.getSubModuleList(), employeeId);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	private void saveProjectInsightSubModuleResponse(List<SubModuleDTO> subModuleList, Long employeeId) {
+		try {
+			if (subModuleList != null && !subModuleList.isEmpty()) {
+				for (SubModuleDTO subModuleDTO : subModuleList) {
+					saveProjectInsightResponse(subModuleDTO.getProjectQuestion(), employeeId);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
 	}
 
 	private void saveProjectInsightResponse(List<ProjectQuestionDTO> projectQuestionList, Long employeeId) {
@@ -917,7 +943,5 @@ public class ProjectInsightService {
 			throw e;
 		}
 	}
-	
-	
 	
 }

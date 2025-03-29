@@ -398,7 +398,7 @@
                         <div class="col-md-4 mb-0">
                             <div class="info-wrapper">
                                 <div class="form-group">
-                                    <label class="info-label"><span class="text-danger">*</span><b>Milestone -
+                                    <label class="info-label"><b>Milestone -
                                             {{mileIndex+1}}</b></label>
                                     <input type="text" class="form-control" autocomplete="none"
                                         [(ngModel)]="milestone.milestone" disabled>
@@ -482,9 +482,8 @@
                                             *ngFor="let option of question.optionsList; let mileQuestionOptionIndex = index">
                                             <input type="checkbox"
                                                 [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex"
-                                                [value]="question.response"
-                                                [checked]="isInArray(option.optionValue,  question.response)"
-                                                (change)="onCheckboxChange($event, option.optionValue, question)">&nbsp;
+                                                [(ngModel)]="option.isChecked"
+                                                (change)="onCheckboxChange($event, option.optionValue, question,option)">&nbsp;
                                             <label
                                                 [for]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex">{{
                                                 option.optionValue }}</label>
@@ -519,7 +518,7 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label"><span class="text-danger">*</span><b>Module -
+                                            <label class="info-label"><b>Module -
                                                     {{modIndex+1}}</b></label>
                                             <input type="text" class="form-control" autocomplete="none"
                                                 [(ngModel)]="module.module" disabled>
@@ -607,8 +606,8 @@
                                                     *ngFor="let option of question.optionsList; let modQuestionOptionIndex = index">
                                                     <input type="checkbox"
                                                         [id]="'Module-' +module.moduleId + '-Question' + question.questionId + 'checkbox' + modQuestionOptionIndex"
-                                                        [checked]="isInArray(option.optionValue,  question.response)"
-                                                        (change)="onCheckboxChange($event, option.optionValue, question)">&nbsp;
+                                                        [(ngModel)]="option.isChecked"
+                                                        (change)="onCheckboxChange($event, option.optionValue, question,option)">&nbsp;
                                                     <label
                                                         [for]="'Module-' +module.moduleId + '-Question' + question.questionId + 'checkbox' + modQuestionOptionIndex">{{
                                                         option.optionValue }}</label>
@@ -636,7 +635,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        
 
 
                         <!-- SubModule List -->
@@ -647,7 +646,7 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
-                                                <label class="info-label"><span class="text-danger">*</span><b>Sub
+                                                <label class="info-label"><b>Sub
                                                         Module -
                                                         {{submodIndex+1}}</b></label>
                                                 <input type="text" class="form-control" autocomplete="none"
@@ -736,8 +735,8 @@
                                                         *ngFor="let option of question.optionsList; let submodQuestionOptionIndex = index">
                                                         <input type="checkbox"
                                                             [id]="'SubModule-' + submodule.subModuleId + '-Question' + question.questionId + 'checkbox' + submodQuestionOptionIndex"
-                                                            [checked]="isInArray(option.optionValue,  question.response)"
-                                                            (change)="onCheckboxChange($event, option.optionValue, question)">&nbsp;
+                                                            [(ngModel)]="option.isChecked"
+                                                            (change)="onCheckboxChange($event, option.optionValue, question,option)">&nbsp;
                                                         <label
                                                             [for]="'SubModule-' + submodule.subModuleId + '-Question' + question.questionId + 'checkbox' + submodQuestionOptionIndex">{{
                                                             option.optionValue }}</label>
@@ -767,6 +766,7 @@
                                 </div>
 
                             </div>
+                        </div>
                         </div>
                     </div>
                 </div>
