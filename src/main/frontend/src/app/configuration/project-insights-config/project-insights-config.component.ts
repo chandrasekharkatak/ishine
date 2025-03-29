@@ -240,6 +240,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
       if(object.projectId == projectId){
         this.projectInsightQuestion.projectManagerName = object.employeeName;
         this.projectInsightQuestion.projectManagerId = object.empId;
+        this.projectInsightQuestion.projectName = object.projectName;
       }
     });
   }
@@ -453,14 +454,6 @@ export class ProjectInsightsConfigComponent implements OnInit {
         this.projectInsightQuestion = response.serviceResponse;
         this.projectInsightQuestionList = this.projectInsightQuestion.projectInsightQuestionList;
 
-        this.projectInsightQuestionList.forEach((project: ProjectInsightQuestion) => {
-          project.projectQuestion.forEach((question: ProjectQuestion) => {
-            question.optionsList = JSON.parse(question.options);
-            question.required = JSON.parse(question.required);
-            question.documentUpload = JSON.parse(question.documentUpload);
-          });
-        });
-
         const questionTemplate: string = this.createTemplate();
 
         const formStart = `<form id="projectInsightForm">`
@@ -543,9 +536,34 @@ export class ProjectInsightsConfigComponent implements OnInit {
     projObj.createdBy = this.currentUser.empId;
 
     projObj.projectInsightQuestionList.forEach((proj:ProjectInsightQuestion) => {
-      proj.projectQuestion.forEach((questionObj: ProjectQuestion) => {
-        questionObj.options = JSON.stringify(questionObj.optionsList);
-      });
+
+      if(proj.projectQuestion != null && proj.projectQuestion.length != 0){
+        proj.projectQuestion.forEach((questionObj: ProjectQuestion) => {
+          questionObj.options = JSON.stringify(questionObj.optionsList);
+        });
+      }
+
+      if(proj.moduleList != null && proj.moduleList.length != 0){
+        proj.moduleList.forEach((moduleObj: any) => {
+
+          if(moduleObj.projectQuestion != null && moduleObj.projectQuestion.length != 0){
+            moduleObj.projectQuestion.forEach((questionObj: ProjectQuestion) => {
+              questionObj.options = JSON.stringify(questionObj.optionsList);
+            });
+          }
+
+          if(moduleObj.subModuleList != null && moduleObj.subModuleList.length != 0){
+            moduleObj.subModuleList.forEach((submoduleObj: any) => {
+    
+              if(submoduleObj.projectQuestion != null && submoduleObj.projectQuestion.length != 0){
+                submoduleObj.projectQuestion.forEach((questionObj: ProjectQuestion) => {
+                  questionObj.options = JSON.stringify(questionObj.optionsList);
+                });
+              }
+            });
+          }
+        });
+      }
     });
 
     console.log(projObj, " : final object");
@@ -591,14 +609,6 @@ export class ProjectInsightsConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.projectInsightQuestion = response.serviceResponse;
         this.projectInsightQuestionList = this.projectInsightQuestion.projectInsightQuestionList;
-
-        this.projectInsightQuestionList.forEach((project: ProjectInsightQuestion) => {
-          project.projectQuestion.forEach((question: ProjectQuestion) => {
-            question.optionsList = JSON.parse(question.options);
-            question.required = JSON.parse(question.required);
-            question.documentUpload = JSON.parse(question.documentUpload);
-          });
-        });
 
         const questionTemplate: string = this.createTemplate();
 
@@ -685,9 +695,34 @@ export class ProjectInsightsConfigComponent implements OnInit {
       projObj.createdBy = this.currentUser.empId;
   
       projObj.projectInsightQuestionList.forEach((proj:ProjectInsightQuestion) => {
-        proj.projectQuestion.forEach((questionObj: ProjectQuestion) => {
-          questionObj.options = JSON.stringify(questionObj.optionsList);
-        });
+
+        if(proj.projectQuestion != null && proj.projectQuestion.length != 0){
+          proj.projectQuestion.forEach((questionObj: ProjectQuestion) => {
+            questionObj.options = JSON.stringify(questionObj.optionsList);
+          });
+        }
+  
+        if(proj.moduleList != null && proj.moduleList.length != 0){
+          proj.moduleList.forEach((moduleObj: any) => {
+  
+            if(moduleObj.projectQuestion != null && moduleObj.projectQuestion.length != 0){
+              moduleObj.projectQuestion.forEach((questionObj: ProjectQuestion) => {
+                questionObj.options = JSON.stringify(questionObj.optionsList);
+              });
+            }
+  
+            if(moduleObj.subModuleList != null && moduleObj.subModuleList.length != 0){
+              moduleObj.subModuleList.forEach((submoduleObj: any) => {
+      
+                if(submoduleObj.projectQuestion != null && submoduleObj.projectQuestion.length != 0){
+                  submoduleObj.projectQuestion.forEach((questionObj: ProjectQuestion) => {
+                    questionObj.options = JSON.stringify(questionObj.optionsList);
+                  });
+                }
+              });
+            }
+          });
+        }
       });
 
     //console.log("updateSurvey : ", surveyObj);
@@ -756,133 +791,455 @@ export class ProjectInsightsConfigComponent implements OnInit {
   onImageSelect(event: any){
   }
 
-//   createTemplate(): string {
-//     let projectInsightQueTemplate = '';
-  
-//     this.projectInsightQuestionList.forEach((milestone: ProjectInsightQuestion, mileIndex) => {
-//       let finalQuestionTemplate = '';
-  
-//       // Milestone Heading with improved styling
-//       const milestoneHeader = `
-//         <div>
-//           <h4 style="font-weight: bold;">Milestone ${mileIndex + 1}: ${milestone.milestone || ''}</h4>
-//           <small style="color: gray;">${milestone.description || ''}</small>
+// createTemplate(): string {
+//   let projectInsightQueTemplate = '';
+
+//   // Iterate through milestones
+//   this.projectInsightQuestionList.forEach((milestone: ProjectInsightQuestion, mileIndex) => {
+//     // Milestone Section
+//     projectInsightQueTemplate += `
+//       <div class="milestone-section" style="margin-bottom: 30px; background: white; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+//         <div class="milestone-header" style="background: #3498db; color: white; padding: 15px; border-radius: 8px 8px 0 0;">
+//           <h3 style="margin: 0;">Milestone ${mileIndex + 1}: ${milestone.milestone || ''}</h3>
+//           <div style="font-size: 14px; margin-top: 5px;">${milestone.description || ''}</div>
+//           <div style="font-size: 12px; margin-top: 5px;">Assigned To: ${milestone.assignedTo || ''}</div>
 //         </div>
-//       `;
-  
-//       finalQuestionTemplate += milestoneHeader;
-  
-//       let questionsBlock = '<div style="border: 1px solid black; padding: 10px; margin: 10px 14px;">';
-  
-//       milestone.projectQuestion.forEach((question: ProjectQuestion, qIndex) => {
-//         let isQuestionRequired = question.required ? `<span style="color: red;">*</span>` : '';
-//         let isUploadDocument = question.documentUpload ? `<input type="file" accept="image/*" style="float: right; font-size: 13px;">` : '';
-        
-//         let questionTemplate = `
-//           <div style="padding: 10px; margin: 10px 0;">
-//             <h5 style="font-weight: bold;">${qIndex + 1} - ${question.question || ''} ${isQuestionRequired}</h5>
-//             <small style="color: gray; display: block; margin-bottom: 5px;">${question.description || ''}</small>
-//             ${isUploadDocument}
+//         <div class="milestone-content" style="padding: 20px;">
+//     `;
+
+//     // Milestone Questions
+//     if (milestone.projectQuestion && milestone.projectQuestion.length > 0) {
+//       projectInsightQueTemplate += this.createQuestionsSection(milestone.projectQuestion, 'Milestone');
+//     }
+
+//     // Handle Modules
+//     if (milestone.moduleList && milestone.moduleList.length > 0) {
+//       milestone.moduleList.forEach((module, modIndex) => {
+//         projectInsightQueTemplate += `
+//           <div class="module-section" style="margin: 20px 0; background: #f5f6fa; border-radius: 6px; padding: 15px;">
+//             <div class="module-header" style="background: #2ecc71; color: white; padding: 10px; border-radius: 6px; margin-bottom: 15px;">
+//               <h4 style="margin: 0;">Module: ${module.module || ''}</h4>
+//               <div style="font-size: 12px; margin-top: 5px;">Assigned To: ${module.assignedTo || ''}</div>
+//             </div>
 //         `;
-  
-//         // Question Options
-//         if (question.optionType === "text") {
-//           questionTemplate += `<input style="width: 50%">`;
-//         } else if (question.optionType === "checkbox") {
-//           questionTemplate += question.optionsList.map((option, opIndex) => `
-//             <div style="display: flex; align-items: center; margin-top: 5px;">
-//               <input type="checkbox" id="q-${qIndex + 1}-check-option-${opIndex + 1}" value="${option.optionValue}" name="question-${qIndex + 1}" style="margin-right: 5px;">
-//               <label for="q-${qIndex + 1}-check-option-${opIndex + 1}">${option.optionValue}</label>
-//             </div>
-//           `).join('');
-//         } else if (question.optionType === "radio") {
-//           questionTemplate += question.optionsList.map((option, index) => `
-//             <div style="display: flex; align-items: center; margin-top: 5px;">
-//               <input type="radio" id="q-${qIndex + 1}-radio-option-${index + 1}" value="${option.optionValue}" name="question-${qIndex + 1}" style="margin-right: 5px;">
-//               <label for="q-${qIndex + 1}-radio-option-${index + 1}">${option.optionValue}</label>
-//             </div>
-//           `).join('');
+
+//         // Module Questions
+//         if (module.projectQuestion && module.projectQuestion.length > 0) {
+//           projectInsightQueTemplate += this.createQuestionsSection(module.projectQuestion, 'Module');
 //         }
-  
-//         questionTemplate += `</div>`;
-//         questionsBlock += questionTemplate;
+
+//         // Handle SubModules
+//         if (module.subModuleList && module.subModuleList.length > 0) {
+//           module.subModuleList.forEach((subModule, subModIndex) => {
+//             projectInsightQueTemplate += `
+//               <div class="submodule-section" style="margin: 15px 0; background: white; border-radius: 6px; padding: 15px;">
+//                 <div class="submodule-header" style="background: #9b59b6; color: white; padding: 8px; border-radius: 6px; margin-bottom: 15px;">
+//                   <h5 style="margin: 0;">Sub-Module</h5>
+//                   <div style="font-size: 12px; margin-top: 5px;">Assigned To: ${subModule.assignedTo || ''}</div>
+//                 </div>
+//             `;
+
+//             // SubModule Questions
+//             if (subModule.projectQuestion && subModule.projectQuestion.length > 0) {
+//               projectInsightQueTemplate += this.createQuestionsSection(subModule.projectQuestion, 'SubModule');
+//             }
+
+//             projectInsightQueTemplate += `</div>`; // Close submodule-section
+//           });
+//         }
+
+//         projectInsightQueTemplate += `</div>`; // Close module-section
 //       });
-  
-//       questionsBlock += '</div>'; // Closing the bordered div
-//       finalQuestionTemplate += questionsBlock;
-//       projectInsightQueTemplate += finalQuestionTemplate;
-//     });
-  
-//     return projectInsightQueTemplate;
+//     }
+
+//     projectInsightQueTemplate += `
+//         </div>
+//       </div>
+//     `; // Close milestone-content and milestone-section
+//   });
+
+//   return projectInsightQueTemplate;
 // }
 
-  createTemplate(): string {
-    let projectInsightQueTemplate = '';
+// private createQuestionsSection(questions: any[], entityType: string): string {
+//   let questionsTemplate = '';
+  
+//   questions.forEach((question, qIndex) => {
+//     const isRequired = question.required === 'true' ? `<span style="color: #e74c3c; margin-left: 5px;">*</span>` : '';
+//     const hasDocument = question.documentUpload === 'true' ? 
+//       `<div style="margin-top: 10px;">
+//         <input type="file" accept="image/*" class="form-control-file" style="font-size: 14px;">
+//        </div>` : '';
+    
+//     questionsTemplate += `
+//       <div class="question-container" style="background: white; padding: 15px; margin: 10px 0; border-radius: 6px; border: 1px solid #e0e0e0;">
+//         <div class="question-header" style="margin-bottom: 10px;">
+//           <h5 style="color: #34495e; margin: 0;">Q${qIndex + 1}. ${question.question}${isRequired}</h5>
+//           ${question.description ? `<small style="color: #7f8c8d;">${question.description}</small>` : ''}
+//         </div>
+//     `;
 
-    this.projectInsightQuestionList.forEach((milestone: ProjectInsightQuestion, mileIndex) => {
-      let finalQuestionTemplate = '';
+//     // Handle different question types
+//     if (question.optionType === "text") {
+//       questionsTemplate += `
+//         <input type="text" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"
+//                value="${question.response || ''}" placeholder="Enter your answer">
+//       `;
+//     } else if (question.optionType === "checkbox" || question.optionType === "radio") {
+//       const options = JSON.parse(question.options || '[]');
+//       options.forEach((option: any, optIndex: number) => {
+//         const isChecked = question.response?.includes(option.optionValue) ? 'checked' : '';
+//         questionsTemplate += `
+//           <div class="option-container" style="margin: 8px 0;">
+//             <input type="${question.optionType}" 
+//                    id="${entityType}-${qIndex}-${question.optionType}-${optIndex}"
+//                    name="${entityType}-question-${qIndex}"
+//                    value="${option.optionValue}"
+//                    ${isChecked}
+//                    style="margin-right: 8px;">
+//             <label for="${entityType}-${qIndex}-${question.optionType}-${optIndex}"
+//                    style="color: #2c3e50; font-size: 14px;">
+//               ${option.optionValue}
+//             </label>
+//           </div>
+//         `;
+//       });
+//     }
 
-      // Milestone Heading with improved styling
-      const milestoneHeader = `
-      <div>
-          <h4 style="font-weight: bold;">Milestone ${mileIndex + 1}: ${milestone.milestone || ''}</h4>
-          <small style="color: gray;">${milestone.description || ''}</small>
-      </div>
-      `;
+//     questionsTemplate += `
+//         ${hasDocument}
+//       </div>
+//     `;
+//   });
 
-      finalQuestionTemplate += milestoneHeader;
+//   return questionsTemplate;
+// }
 
-      let questionsBlock = '<div style="border: 1px solid black; padding: 10px; margin: 10px 14px;">';
 
-      milestone.projectQuestion.forEach((question: ProjectQuestion, qIndex) => {
-        let isQuestionRequired = question.required ? `<span style="color: red;">*</span>` : '';
-        let isUploadDocument = question.documentUpload ? `<input type="file" accept="image/*" style="float: right; font-size: 13px;">` : '';
-        let responseValue = question.response ? question.response : '';
+createTemplate(): string {
+  let projectInsightQueTemplate = `
+    <style>
+      .milestone-section { transition: all 0.3s ease; }
+      .milestone-section:hover { transform: translateY(-2px); }
+      .question-container:hover { border-color: #3498db !important; }
+      .custom-input:focus { box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2); }
+      .custom-checkbox, .custom-radio { cursor: pointer; }
+      .custom-checkbox:hover, .custom-radio:hover { background-color: #f8f9fa; }
+      .file-upload { transition: all 0.3s ease; }
+      .file-upload:hover { background-color: #f8f9fa; }
+    </style>
+  `;
 
-        let questionTemplate = `
-          <div style="padding: 10px; margin: 10px 0;">
-              <h5 style="font-weight: bold;">${qIndex + 1} - ${question.question || ''} ${isQuestionRequired}</h5>
-              <small style="color: gray; display: block; margin-bottom: 5px;">${question.description || ''}</small>
-              ${isUploadDocument}
-          `;
+  // Iterate through milestones
+  this.projectInsightQuestionList.forEach((milestone: ProjectInsightQuestion, mileIndex) => {
+    projectInsightQueTemplate += `
+      <div class="milestone-section" style="
+        margin-bottom: 30px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        overflow: hidden;
+        border: 1px solid #e1e8ed;
+      ">
+        <div class="milestone-header" style="
+          background: linear-gradient(135deg, #3498db, #2980b9);
+          color: white;
+          padding: 20px;
+          position: relative;
+        ">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="
+              margin: 0;
+              font-size: 1.5rem;
+              font-weight: 600;
+              letter-spacing: 0.5px;
+            ">Milestone ${mileIndex + 1}: ${milestone.milestone || ''}</h3>
+            <span style="
+              background: rgba(255,255,255,0.2);
+              padding: 4px 12px;
+              border-radius: 20px;
+              font-size: 0.8rem;
+            ">Phase ${mileIndex + 1}</span>
+          </div>
+          <div style="margin-top: 10px; opacity: 0.9;">${milestone.description || ''}</div>
+          <div style="
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          ">
+            <svg style="width: 16px; height: 16px;" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            </svg>
+            <span style="font-size: 0.9rem;">Assigned To: ${milestone.assignedTo || ''}</span>
+          </div>
+        </div>
+        <div class="milestone-content" style="padding: 25px;">
+    `;
 
-        // Question Options with response pre-filled
-        if (question.optionType === "text") {
-          questionTemplate += `<input style="width: 50%" type="text" value="${responseValue}">`;
-        } else if (question.optionType === "checkbox") {
-          questionTemplate += question.optionsList.map((option, opIndex) => {
-            const isChecked = question.response?.includes(option.optionValue) ? 'checked' : '';
-            return `
-                  <div style="display: flex; align-items: center; margin-top: 5px;">
-                      <input type="checkbox" id="q-${qIndex + 1}-check-option-${opIndex + 1}" value="${option.optionValue}" name="question-${qIndex + 1}" ${isChecked} style="margin-right: 5px;">
-                      <label for="q-${qIndex + 1}-check-option-${opIndex + 1}">${option.optionValue}</label>
-                  </div>
-                  `;
-          }).join('');
-        } else if (question.optionType === "radio") {
-          questionTemplate += question.optionsList.map((option, index) => {
-            const isChecked = question.response === option.optionValue ? 'checked' : '';
-            return `
-                  <div style="display: flex; align-items: center; margin-top: 5px;">
-                      <input type="radio" id="q-${qIndex + 1}-radio-option-${index + 1}" value="${option.optionValue}" name="question-${qIndex + 1}" ${isChecked} style="margin-right: 5px;">
-                      <label for="q-${qIndex + 1}-radio-option-${index + 1}">${option.optionValue}</label>
-                  </div>
-                  `;
-          }).join('');
+    // Milestone Questions
+    if (milestone.projectQuestion && milestone.projectQuestion.length > 0) {
+      projectInsightQueTemplate += this.createQuestionsSection(milestone.projectQuestion, 'Milestone');
+    }
+
+    // Handle Modules with enhanced styling
+    if (milestone.moduleList && milestone.moduleList.length > 0) {
+      milestone.moduleList.forEach((module, modIndex) => {
+        projectInsightQueTemplate += `
+          <div class="module-section" style="
+            margin: 20px 0;
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+          ">
+            <div class="module-header" style="
+              background: linear-gradient(135deg, #2ecc71, #27ae60);
+              color: white;
+              padding: 15px;
+              border-radius: 8px;
+              margin-bottom: 20px;
+              box-shadow: 0 2px 8px rgba(46, 204, 113, 0.2);
+            ">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h4 style="margin: 0; font-weight: 500;">Module: ${module.module || ''}</h4>
+                <span style="
+                  background: rgba(255,255,255,0.2);
+                  padding: 3px 10px;
+                  border-radius: 15px;
+                  font-size: 0.8rem;
+                ">Module ${modIndex + 1}</span>
+              </div>
+              <div style="
+                margin-top: 10px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 0.9rem;
+              ">
+                <svg style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+                Assigned To: ${module.assignedTo || ''}
+              </div>
+            </div>
+        `;
+
+        // Module Questions
+        if (module.projectQuestion && module.projectQuestion.length > 0) {
+          projectInsightQueTemplate += this.createQuestionsSection(module.projectQuestion, 'Module');
         }
 
-        questionTemplate += `</div>`;
-        questionsBlock += questionTemplate;
+        // Handle SubModules with enhanced styling
+        if (module.subModuleList && module.subModuleList.length > 0) {
+          module.subModuleList.forEach((subModule, subModIndex) => {
+            projectInsightQueTemplate += `
+              <div class="submodule-section" style="
+                margin: 15px 0;
+                background: white;
+                border-radius: 8px;
+                padding: 20px;
+                border: 1px solid #edf2f7;
+              ">
+                <div class="submodule-header" style="
+                  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+                  color: white;
+                  padding: 12px 16px;
+                  border-radius: 6px;
+                  margin-bottom: 15px;
+                  box-shadow: 0 2px 8px rgba(155, 89, 182, 0.2);
+                ">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h5 style="margin: 0; font-weight: 500;">Sub-Module ${subModIndex + 1}</h5>
+                    <span style="
+                      background: rgba(255,255,255,0.2);
+                      padding: 2px 8px;
+                      border-radius: 12px;
+                      font-size: 0.75rem;
+                    ">Sub-Phase</span>
+                  </div>
+                  <div style="
+                    margin-top: 8px;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    font-size: 0.85rem;
+                  ">
+                    <svg style="width: 12px; height: 12px;" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                    Assigned To: ${subModule.assignedTo || ''}
+                  </div>
+                </div>
+            `;
+
+            // SubModule Questions
+            if (subModule.projectQuestion && subModule.projectQuestion.length > 0) {
+              projectInsightQueTemplate += this.createQuestionsSection(subModule.projectQuestion, 'SubModule');
+            }
+
+            projectInsightQueTemplate += `</div>`;
+          });
+        }
+
+        projectInsightQueTemplate += `</div>`;
       });
+    }
 
-      questionsBlock += '</div>'; // Closing the bordered div
-      finalQuestionTemplate += questionsBlock;
-      projectInsightQueTemplate += finalQuestionTemplate;
-    });
+    projectInsightQueTemplate += `
+        </div>
+      </div>
+    `;
+  });
 
-    return projectInsightQueTemplate;
-  }
+  return projectInsightQueTemplate;
+}
 
+private createQuestionsSection(questions: any[], entityType: string): string {
+  let questionsTemplate = '';
+  
+  questions.forEach((question, qIndex) => {
+    const isRequired = question.required === 'true' 
+      ? `<span style="color: #e74c3c; margin-left: 5px; font-size: 1.2em;">*</span>` 
+      : '';
+    const hasDocument = question.documentUpload === 'true' 
+      ? `<div class="file-upload" style="
+          margin-top: 12px;
+          padding: 12px;
+          border: 2px dashed #cbd5e0;
+          border-radius: 6px;
+          text-align: center;
+        ">
+          <label for="file-${entityType}-${qIndex}" style="
+            display: block;
+            cursor: pointer;
+            color: #4a5568;
+          ">
+            <svg style="width: 24px; height: 24px; margin-bottom: 8px;" viewBox="0 0 24 24" fill="#4a5568">
+              <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
+            </svg>
+            <span style="display: block; font-size: 0.9rem;">Click to upload or drag and drop</span>
+            <span style="display: block; font-size: 0.8rem; color: #718096;">Supported formats: Images</span>
+          </label>
+          <input 
+            id="file-${entityType}-${qIndex}"
+            type="file" 
+            accept="image/*" 
+            style="display: none;"
+            class="form-control-file">
+        </div>` 
+      : '';
+    
+    questionsTemplate += `
+      <div class="question-container" style="
+        background: white;
+        padding: 20px;
+        margin: 15px 0;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
+      ">
+        <div class="question-header" style="margin-bottom: 15px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="
+              background: #3498db;
+              color: white;
+              width: 24px;
+              height: 24px;
+              border-radius: 12px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 0.8rem;
+              font-weight: 500;
+            ">${qIndex + 1}</span>
+            <h5 style="
+              color: #2d3748;
+              margin: 0;
+              font-weight: 500;
+              font-size: 1.1rem;
+            ">${question.question}${isRequired}</h5>
+          </div>
+          ${question.description ? 
+            `<div style="
+              color: #718096;
+              margin-top: 8px;
+              font-size: 0.9rem;
+              padding-left: 32px;
+            ">${question.description}</div>` 
+            : ''}
+        </div>
+    `;
+
+    // Handle different question types with enhanced styling
+    if (question.optionType === "text") {
+      questionsTemplate += `
+        <div style="padding-left: 32px;">
+          <input 
+            type="text" 
+            class="form-control custom-input" 
+            style="
+              width: 100%;
+              padding: 10px 12px;
+              border: 1px solid #e2e8f0;
+              border-radius: 6px;
+              font-size: 0.95rem;
+              transition: all 0.3s ease;
+              outline: none;
+            "
+            value="${question.response || ''}" 
+            placeholder="Enter your answer">
+        </div>
+      `;
+    } else if (question.optionType === "checkbox" || question.optionType === "radio") {
+      const options = JSON.parse(question.options || '[]');
+      questionsTemplate += `<div style="padding-left: 32px;">`;
+      options.forEach((option: any, optIndex: number) => {
+        const isChecked = question.response?.includes(option.optionValue) ? 'checked' : '';
+        questionsTemplate += `
+          <div class="custom-${question.optionType}" style="
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+          ">
+            <label style="
+              display: flex;
+              align-items: center;
+              gap: 10px;
+              margin: 0;
+              cursor: pointer;
+            ">
+              <input 
+                type="${question.optionType}"
+                id="${entityType}-${qIndex}-${question.optionType}-${optIndex}"
+                name="${entityType}-question-${qIndex}"
+                value="${option.optionValue}"
+                ${isChecked}
+                style="
+                  width: 18px;
+                  height: 18px;
+                  cursor: pointer;
+                ">
+              <span style="
+                color: #4a5568;
+                font-size: 0.95rem;
+              ">${option.optionValue}</span>
+            </label>
+          </div>
+        `;
+      });
+      questionsTemplate += `</div>`;
+    }
+
+    questionsTemplate += `
+        ${hasDocument}
+      </div>
+    `;
+  });
+
+  return questionsTemplate;
+}
   
   name = 'EmployeeSheet.xlsx';
   async exportToExcel(): Promise<void> {
