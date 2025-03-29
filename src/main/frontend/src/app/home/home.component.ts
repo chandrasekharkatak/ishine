@@ -332,7 +332,10 @@ async ngOnInit(): Promise<void> {
       this.setReleaseNote();
     }
 
-    this.openPoExpiredMod();
+    if (this.currentUser.employeeRole == "RMG") {
+      this.openPoExpiredMod();
+    }
+    
   }
 
  reset() {

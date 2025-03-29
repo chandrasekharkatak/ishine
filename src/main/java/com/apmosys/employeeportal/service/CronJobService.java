@@ -1,6 +1,8 @@
 package com.apmosys.employeeportal.service;
 
 import java.io.File;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -24,6 +26,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.OffsetDateTime;
 import java.time.Period;
 import java.time.YearMonth;
 import java.time.ZoneId;
@@ -5688,7 +5691,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		}
 		
 		@Async
-		@Scheduled(cron = "0 14 0 ? * *")
+		@Scheduled(cron = "0 46 15 ? * *")
 		@Transactional
 		public void getProjectCloneFromPoPortal() {
 
@@ -5716,6 +5719,8 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		                    project.setPoProjectType(dto.getProjectType());
 
 		                    projectRepository.save(project);
+		                    
+		                    
 
 		                    System.out.println("Updated Project: ID=" + dto.getId() + ", PoNo=" + dto.getPoNo());
 		                } else {
@@ -5725,9 +5730,93 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		            } catch (Exception ex) {
 		                System.err.println("Error updating project ID: " + dto.getId() + " - " + ex.getMessage());
 		            }
+		            List<Object[]> expiredProjects = projectRepository.getExpiredPoProjects();
+
+                    if (expiredProjects.isEmpty()) {
+                        System.out.println("No expired PO projects found.");
+                        return;
+                    }
+
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+                    DateTimeFormatter sourceFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME; // For ISO 8601 input
+                    DateTimeFormatter targetFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy"); // Desired format
+
+
+                    for (Object[] projects : expiredProjects) {
+                    	String employeeName = (String) projects[0];
+                        String projectName = (String) projects[1];
+                        String teamName = (String) projects[2];
+
+                        
+                        Timestamp allocationTimestamp = (Timestamp) projects[5];
+                        String allocationStartDate = allocationTimestamp != null ? dateFormat.format(new Date(allocationTimestamp.getTime())) : "N/A";
+                        String poStartDate = formatDate((String) projects[3], sourceFormatter, targetFormatter);
+                        String poEndDate = formatDate((String) projects[4], sourceFormatter, targetFormatter);
+
+                        Integer projectId = (Integer) projects[6];
+
+                        List<String> emails = projectRepository.getEmployeeEmailsByProjectId(projectId);
+
+                        if (!emails.isEmpty()) {
+                        	for (String email : emails) {
+                                String emailBody = buildEmailContent(employeeName, projectName, teamName, poStartDate, poEndDate, allocationStartDate);
+
+                                try {
+//                                    mailService.sendMailWithoutAttachmentWithMailBody2( 
+//                                    		"priyadarshini.singh@apmosys.com",
+//                                            "Project PO Expiry Notification", 
+//                                            emailBody,  
+//                                            null
+//                                    );
+                                    mailService.sendMailWithoutAttachmentWithMailBody2( 
+                                    		email,
+                                            "Project PO Expiry Notification", 
+                                            emailBody,  
+                                            null
+                                    );
+                                    System.out.println("Mail sent to " + email + " for expired PO: " + projectName);
+                                } catch (MessagingException e) {
+                                    System.err.println("Error sending mail to " + email + " for PO: " + projectName + " - " + e.getMessage());
+                                }
+                            }                        } else {
+                            System.out.println("No employees found for project ID: " + projectId);
+                        }
+                    }
 		        }
 		    } else {
 		        System.out.println("No projects found from PoPortal API.");
+		    }
+		}
+		
+		private String buildEmailContent(String employeeName, String projectName, String teamName, 
+                 String poStartDate, String poEndDate, String allocationStartDate) {
+			return "<html><body>"
+			+ "<p>Dear " + employeeName + ",</p>"
+			+ "<p>The project that you are currently billed for has expired.</p>"
+			+ "<p>Please contact the concerned authorities to take necessary action immediately, "
+			+ "as this could hamper the billing generated for you.</p>"
+			+ "<p>Below are the project details:</p>"
+			+ "<table border='1' style='border-collapse: collapse; width: 100%;'>"
+			+ "<tr><th>Project Name</th><th>Team Name</th><th>PO Number</th><th>PO Start Date</th>"
+			+ "<th>PO End Date</th><th>Employee Allocation Start Date</th></tr>"
+			+ "<tr><td>" + projectName + "</td><td>" + teamName + "</td><td>" 
+			+ "<td>" + poStartDate + "</td><td>" + poEndDate + "</td><td>" + allocationStartDate + "</td></tr>"
+			+ "</table><br><br>"
+			+ "<p>Regards,</p>"
+			+ "<p>RMG Team</p>"
+			+ "</body></html>";
+		}
+		
+		private String formatDate(String dateString, DateTimeFormatter sourceFormatter, DateTimeFormatter targetFormatter) {
+		    if (dateString == null || dateString.isEmpty()) {
+		        return "N/A";
+		    }
+		    try {
+		        OffsetDateTime parsedDate = OffsetDateTime.parse(dateString, sourceFormatter);
+		        return parsedDate.format(targetFormatter);
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		        return "N/A";
 		    }
 		}
 

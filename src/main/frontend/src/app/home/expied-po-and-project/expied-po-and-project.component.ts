@@ -5,6 +5,9 @@ import { EmployeeService } from 'src/app/services/employee.service';
 import { HomeComponent } from '../home.component';
 import {  ExpiredEmailData } from 'src/app/models/expiredEmailmodel';
 import { PoObject } from 'src/app/models/poObbjectData';
+import { AuthenticationService } from 'src/app/services/authentication.service';
+import { User } from 'src/app/models/user';
+import { Feature } from 'src/app/models/feature';
 
 @Component({
   selector: 'app-expied-po-and-project',
@@ -17,9 +20,26 @@ export class ExpiedPoAndProjectComponent implements OnInit {
   employee:any[] = [];
   modalRef: BsModalRef = new BsModalRef();
   popUpMessege: any;
-  constructor(private employeeService: EmployeeService, private homeComponent:HomeComponent) { }
+  currentUser: User;
+  userMapping: any = {};
+  feature = "Home";
+
+  constructor(
+      private employeeService: EmployeeService, 
+      private homeComponent:HomeComponent,
+      private authenticationService: AuthenticationService,) { 
+    this.authenticationService.currentUser.subscribe(x => {
+      this.currentUser = x;
+    });
+  }
 
   ngOnInit(): void {
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+        console.log("feature Name ", featureMap);
+        featureMap.subFeatures?.forEach(sub => {
+          this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+        });
+        console.log("currentUser",this.currentUser);
     this.geExpiredtPoData();
   }
 
