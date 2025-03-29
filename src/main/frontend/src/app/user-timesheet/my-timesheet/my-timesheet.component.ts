@@ -1177,14 +1177,20 @@ getFilteredDates(dayType: string): Date[] {
     this.timesheetService.getAllProjectsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allProjectsList = response.serviceResponse;
-        //console.log("allProjectsList :", this.allProjectsList);
+        console.log("allProjectsList :", this.allProjectsList);
+        if(this.allProjectsList.length == 0){
+        }
+        else{
         const key = "clientId";
         this.clientList = [...new Map(this.allProjectsList.map((project: Timesheet) => [project[key], project])).values()].map((project: Timesheet) => {
           return { clientId: project.clientId, clientName: project.clientName }
         });
         //console.log("clientList :", this.clientList);
+      }
       } else {
         console.error(response.serviceResponse)
+        this.openAlertMod(this.alertTemplate, "Either you are not mapped to any project or one of your project has expired!! Please contact RMG team.");
+
       }
     });
   }
