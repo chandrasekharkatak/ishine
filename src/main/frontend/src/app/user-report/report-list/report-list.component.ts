@@ -251,6 +251,10 @@ export class ReportListComponent implements OnInit {
   }
   getAllEmployeesReportByProjectTypeInConsolidated(){
     this.allEmployee=[];
+    this.tnmPOValidCountList = [];
+    this.tnmPoExpiredCountList = [];
+    this.fixedCostPoValidCountList = [];
+    this.internalCountList = [];
     this.tnmPoExpiredCount=0;
     this.tnmPOValidCount=0;
     this.fixedCostPoExpiredCount=0;

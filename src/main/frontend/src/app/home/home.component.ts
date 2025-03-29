@@ -332,7 +332,7 @@ async ngOnInit(): Promise<void> {
       this.setReleaseNote();
     }
 
-    this.openPoExpiredMod(this.poExpireTemplateRef);
+    this.openPoExpiredMod();
   }
 
  reset() {
@@ -1408,7 +1408,9 @@ async ngOnInit(): Promise<void> {
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
-  openPoExpiredMod(template: TemplateRef<any>) {
+  openPoExpiredMod() {
+    this.cancelRequest();
+    let template=this.poExpireTemplateRef;
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' ,
       backdrop: 'static',
       keyboard: false 
