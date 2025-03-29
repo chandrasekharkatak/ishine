@@ -21,6 +21,7 @@ import com.apmosys.employeeportal.dto.SubModuleDTO;
 import com.apmosys.employeeportal.dto.SurveyDTO;
 import com.apmosys.employeeportal.dto.SurveyQuestionDTO;
 import com.apmosys.employeeportal.model.Project;
+import com.apmosys.employeeportal.model.ProjectInsightAssignees;
 import com.apmosys.employeeportal.model.ProjectInsightMilestone;
 import com.apmosys.employeeportal.model.ProjectInsightModule;
 import com.apmosys.employeeportal.model.ProjectInsightResponse;
@@ -143,7 +144,17 @@ public class ProjectInsightService {
 
 					newProjectInsight.setCreatedBy(projectInsightDTO.getCreatedBy());
 					newProjectInsight.setProjectId(projectInsightDTO.getProjectId());
-					newProjectInsight.setAssignedTo(project.getAssignedTo());
+					
+//					if(!project.getAssignedTo().isEmpty()) {
+//						for(Long assignToId: project.getAssignedTo()) {
+//							ProjectInsightAssignees newAssignObj = new ProjectInsightAssignees();
+//							
+//							newAssignObj.setAssignedTo(assignToId);
+//							newAssignObj.setEntityId(assignToId)
+//							newProjectInsight.setAssignedTo(project.getAssignedTo());
+//						}
+//					}
+					
 					newProjectInsight.setMilestone(project.getMilestone());
 					newProjectInsight.setDescription(project.getDescription());
 					newProjectInsight.setDeptId(project.getDeptId());
@@ -176,7 +187,7 @@ public class ProjectInsightService {
 								ProjectInsightModule newProjectInsightModule = new ProjectInsightModule();
 
 								newProjectInsightModule.setCreatedBy(projectInsightDTO.getCreatedBy());
-								newProjectInsightModule.setAssignedTo(module.getAssignedTo());
+//								newProjectInsightModule.setAssignedTo(module.getAssignedTo());
 								newProjectInsightModule.setMilestoneId(milestoneId);
 								newProjectInsightModule.setDescription(module.getDescription());
 								newProjectInsightModule.setRedmineId(module.getRedmineId());
@@ -205,7 +216,7 @@ public class ProjectInsightService {
 											ProjectInsightSubModule newProjectInsightSubModule = new ProjectInsightSubModule();
 
 											newProjectInsightSubModule.setCreatedBy(projectInsightDTO.getCreatedBy());
-											newProjectInsightSubModule.setAssignedTo(submodule.getAssignedTo());
+//											newProjectInsightSubModule.setAssignedTo(submodule.getAssignedTo());
 											newProjectInsightSubModule.setModuleId(moduleId);
 											newProjectInsightSubModule.setDescription(submodule.getDescription());
 											newProjectInsightSubModule.setRedmineId(submodule.getRedmineId());
@@ -413,7 +424,7 @@ public class ProjectInsightService {
 					mileStoneList.forEach((mileStone) -> {
 						ProjectInsightQuestionDTO mileStoneProjObject = new ProjectInsightQuestionDTO();
 						
-						mileStoneProjObject.setAssignedTo(mileStone.getAssignedTo());
+//						mileStoneProjObject.setAssignedTo(mileStone.getAssignedTo());
 						mileStoneProjObject.setDeptId(mileStone.getDeptId());
 						mileStoneProjObject.setDescription(mileStone.getDescription());
 						mileStoneProjObject.setMilestone(mileStone.getMilestone());
@@ -431,7 +442,7 @@ public class ProjectInsightService {
 							moduleList.forEach((module) -> {
 								ModuleDTO modDto = new ModuleDTO();
 								
-								modDto.setAssignedTo(module.getAssignedTo());
+//								modDto.setAssignedTo(module.getAssignedTo());
 								modDto.setCreatedBy(module.getCreatedBy());
 								modDto.setCreatedOn(module.getCreatedOn().toString());
 								modDto.setDescription(module.getDescription());
@@ -448,7 +459,7 @@ public class ProjectInsightService {
 									subModuleList.forEach((submodule) -> {
 										SubModuleDTO submodDto = new SubModuleDTO();
 										
-										submodDto.setAssignedTo(submodule.getAssignedTo());
+//										submodDto.setAssignedTo(submodule.getAssignedTo());
 										submodDto.setCreatedBy(submodule.getCreatedBy());
 										submodDto.setCreatedOn(submodule.getCreatedOn().toString());
 										submodDto.setDescription(submodule.getDescription());
@@ -735,7 +746,7 @@ public class ProjectInsightService {
 			projectInsightQuestionDTO.setMilestone(projectInsightMilestone.getMilestone());
 			projectInsightQuestionDTO.setDescription(projectInsightMilestone.getDescription());
 			projectInsightQuestionDTO.setDeptId(projectInsightMilestone.getDeptId());
-			projectInsightQuestionDTO.setAssignedTo(projectInsightMilestone.getAssignedTo());
+//			projectInsightQuestionDTO.setAssignedTo(projectInsightMilestone.getAssignedTo());
 			projectInsightQuestionDTO.setProjectQuestion(getProjectQuestionDTOList(projectInsightMilestone.getMilestoneId(), "Milestone",employeeId));
 			projectInsightQuestionDTO.setModuleList(getProjectInsightModuleDTOList(projectInsightMilestone.getMilestoneId(),employeeId));
 			return projectInsightQuestionDTO;
@@ -756,7 +767,7 @@ public class ProjectInsightService {
 					moduleDTO.setMilestoneId(projectInsightModule.getMilestoneId());
 					moduleDTO.setModule(projectInsightModule.getModule());
 					moduleDTO.setDescription(projectInsightModule.getDescription());
-					moduleDTO.setAssignedTo(projectInsightModule.getAssignedTo());
+//					moduleDTO.setAssignedTo(projectInsightModule.getAssignedTo());
 					moduleDTO.setRedmineId(projectInsightModule.getRedmineId());
 					moduleDTO.setProjectQuestion(getProjectQuestionDTOList(projectInsightModule.getModuleId(), "Module",employeeId));
 					moduleDTO.setSubModuleList(getProjectInsightSubModuleDTOList(projectInsightModule.getModuleId(),employeeId));
@@ -773,20 +784,20 @@ public class ProjectInsightService {
 	private List<SubModuleDTO> getProjectInsightSubModuleDTOList(Long moduleId,Long employeeId) {
 		List<SubModuleDTO> projectInsightSubModuleDTOList = new ArrayList<>();
 		try {
-//			List<ProjectInsightSubModule> projectInsightSubModuleList = projectInsightSubModuleRepository.findByModuleId(moduleId);
-//			if (!projectInsightSubModuleList.isEmpty()) {
-//				for (ProjectInsightSubModule projectInsightSubModule : projectInsightSubModuleList) {
-//					SubModuleDTO subModuleDTO = new SubModuleDTO();
-//					subModuleDTO.setSubmoduleId(projectInsightSubModule.getSubmoduleId());
-//					subModuleDTO.setSubModule(projectInsightSubModule.getSubmodule());
-//					subModuleDTO.setModuleId(projectInsightSubModule.getModuleId());
-//					subModuleDTO.setDescription(projectInsightSubModule.getDescription());
+			List<ProjectInsightSubModule> projectInsightSubModuleList = projectInsightSubModuleRepository.findByModuleId(moduleId);
+			if (!projectInsightSubModuleList.isEmpty()) {
+				for (ProjectInsightSubModule projectInsightSubModule : projectInsightSubModuleList) {
+					SubModuleDTO subModuleDTO = new SubModuleDTO();
+					subModuleDTO.setSubmoduleId(projectInsightSubModule.getSubmoduleId());
+					subModuleDTO.setSubModule(projectInsightSubModule.getSubmodule());
+					subModuleDTO.setModuleId(projectInsightSubModule.getModuleId());
+					subModuleDTO.setDescription(projectInsightSubModule.getDescription());
 //					subModuleDTO.setAssignedTo(projectInsightSubModule.getAssignedTo());
-//					subModuleDTO.setRedmineId(projectInsightSubModule.getRedmineId());
-//					subModuleDTO.setProjectQuestion(getProjectQuestionDTOList(projectInsightSubModule.getSubmoduleId(), "SubModule",employeeId));
-//					projectInsightSubModuleDTOList.add(subModuleDTO);
-//				}
-//			}
+					subModuleDTO.setRedmineId(projectInsightSubModule.getRedmineId());
+					subModuleDTO.setProjectQuestion(getProjectQuestionDTOList(projectInsightSubModule.getSubmoduleId(), "SubModule",employeeId));
+					projectInsightSubModuleDTOList.add(subModuleDTO);
+				}
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;

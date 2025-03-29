@@ -13,7 +13,7 @@ public class ProjectInsightQuestionDTO {
 	private Long deptId;
     private List<ProjectQuestionDTO> projectQuestion;
     private List<ModuleDTO> moduleList;
-    private Long assignedTo;
+    private List<Long> assignedTo;
     private Long redmineId;
 
 }

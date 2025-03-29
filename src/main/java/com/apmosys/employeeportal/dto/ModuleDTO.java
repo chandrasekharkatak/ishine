@@ -10,7 +10,7 @@ public class ModuleDTO {
     private Long moduleId;
     private String module;
 	private String description;
-    private Long assignedTo;
+	private List<Long> assignedTo;
 	private Long redmineId;
 	private String createdOn;
 	private Long createdBy;
