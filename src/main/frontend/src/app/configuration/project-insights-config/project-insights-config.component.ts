@@ -23,6 +23,7 @@ import { ProjectQuestion } from 'src/app/models/projectQuestion';
 import { ProjectInsightService } from 'src/app/services/project-insight.service';
 import { ProjectModule } from 'src/app/models/projectModule';
 import { ProjectSubModule } from 'src/app/models/projectSubModule';
+import { EmployeeService } from 'src/app/services/employee.service';
 
 @Component({
   selector: 'app-project-insights-config',
@@ -62,6 +63,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
   allSurveyQuestionList:SurveyQuestion[] = [new SurveyQuestion()];
   projectInsightQuestionList:ProjectInsightQuestion[] = [new ProjectInsightQuestion()];
   projectInsightResponseList:ProjectInsightQuestion[] = [new ProjectInsightQuestion()];
+  employeeList:any[] = [];
 
   allProjectList:any[] = [];
   projectInsightQuestion:ProjectInsightQuestion = new ProjectInsightQuestion();
@@ -103,7 +105,8 @@ export class ProjectInsightsConfigComponent implements OnInit {
     private router: Router,
     private utilityService: UtilityService,
     private projectService: ProjectService,
-    private projectInsightService:ProjectInsightService
+    private projectInsightService:ProjectInsightService,
+    private employeeService: EmployeeService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -139,10 +142,12 @@ export class ProjectInsightsConfigComponent implements OnInit {
   }
 
   sectionViewInit(){
-    
+    this.getEmployeeList();
   }
 
   isProjectInsightTabClick(){
+    this.projectInsightTabClick = true;
+
     this.showProjectInsight();
     this.getAllProjects();
   }
@@ -340,6 +345,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
         return false;
       }
 
+      alert(milestone.assignedTo)
       if(!this.validationService.validateNullUndefinedEmptyString(milestone.assignedTo)){
         this.alertMessage = `Please select assign user in milestone ${mileIndex+1} !!`;
         this.openAlertMod(template, this.alertMessage);
@@ -831,6 +837,18 @@ export class ProjectInsightsConfigComponent implements OnInit {
         this.showProjectInsight();
       }else{
         this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  getEmployeeList() {
+    this.employeeList = [];
+    this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeeList = response.serviceResponse;
+        this.employeeList = this.employeeList.filter(x => x.employmentstatus != 'InActive');
+      } else {
+        console.error(response.serviceResponse)
       }
     });
   }

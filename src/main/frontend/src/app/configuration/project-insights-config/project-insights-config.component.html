@@ -93,20 +93,26 @@
                             <div class="info-wrapper">
                                 <div class="form-group">
                                     <label class="info-label">Description</label>
-                                    <input type="text" class="form-control" autocomplete="none" [(ngModel)]="milestone.description">
+                                    <input type="textarea" class="form-control" autocomplete="none" [(ngModel)]="milestone.description">
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-2 mb-0">
                             <div class="info-wrapper">
                                 <div class="form-group">
-                                    <label class="info-label"><span class="text-danger">*</span>Assign To</label>
-                                    <select class="form-control" aria-hidden="true"  [(ngModel)]="milestone.assignedTo">
-                                        <option selected="selected" value="" disabled>Select</option>
-                                        <option value="1">checkbox</option>
-                                        <option value="2">radio</option>
-                                        <option value="3">text</option>
-                                    </select>
+                                    <label><span class="text-danger">*</span>Assign To</label>
+                                    <mat-select ngxMatSelect class="form-control"
+                                          #approvalSelect="ngxMatSelect"
+                                          [displayMember]="'name'"
+                                          [valueMember]="'empId'"
+                                          [source]="employeeList"
+                                          [useInfiniteScroll]="true"
+                                          [multiple]="true"
+                                          [(ngModel)]="milestone.assignedTo">
+                                          <mat-option [value]="employee.empId" *ngFor="let employee of approvalSelect.filteredSource">
+                                            {{employee.name}}
+                                          </mat-option>
+                                    </mat-select>
                                 </div>
                             </div>
                         </div>
@@ -161,7 +167,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label">Description</label>
-                                            <input type="text" class="form-control" autocomplete="none"
+                                            <input type="textarea" class="form-control" autocomplete="none"
                                                 [(ngModel)]="module.description">
                                         </div>
                                     </div>
@@ -169,13 +175,19 @@
                                 <div class="col-md-2 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label"><span class="text-danger">*</span>Assign To</label>
-                                            <select class="form-control" aria-hidden="true" [(ngModel)]="module.assignedTo">
-                                                <option selected="selected" value="" disabled>Select</option>
-                                                <option value="1">checkbox</option>
-                                                <option value="2">radio</option>
-                                                <option value="3">text</option>
-                                            </select>
+                                            <label><span class="text-danger">*</span>Assign To</label>
+                                            <mat-select ngxMatSelect class="form-control"
+                                                  #approvalSelect="ngxMatSelect"
+                                                  [displayMember]="'name'"
+                                                  [valueMember]="'empId'"
+                                                  [source]="employeeList"
+                                                  [useInfiniteScroll]="true"
+                                                  [multiple]="true"
+                                                  [(ngModel)]="module.assignedTo">
+                                                  <mat-option [value]="employee.empId" *ngFor="let employee of approvalSelect.filteredSource">
+                                                    {{employee.name}}
+                                                  </mat-option>
+                                            </mat-select>
                                         </div>
                                     </div>
                                 </div>
@@ -241,13 +253,19 @@
                                     <div class="col-md-2 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
-                                                <label class="info-label"><span class="text-danger">*</span>Assign To</label>
-                                                <select class="form-control" aria-hidden="true" [(ngModel)]="submodule.assignedTo">
-                                                    <option selected="selected" value="" disabled>Select</option>
-                                                    <option value="1">checkbox</option>
-                                                    <option value="2">radio</option>
-                                                    <option value="3">text</option>
-                                                </select>
+                                                <label><span class="text-danger">*</span>Assign To</label>
+                                                <mat-select ngxMatSelect class="form-control"
+                                                      #approvalSelect="ngxMatSelect"
+                                                      [displayMember]="'name'"
+                                                      [valueMember]="'empId'"
+                                                      [source]="employeeList"
+                                                      [useInfiniteScroll]="true"
+                                                      [multiple]="true"
+                                                      [(ngModel)]="submodule.assignedTo">
+                                                      <mat-option [value]="employee.empId" *ngFor="let employee of approvalSelect.filteredSource">
+                                                        {{employee.name}}
+                                                      </mat-option>
+                                                </mat-select>
                                             </div>
                                         </div>
                                     </div>

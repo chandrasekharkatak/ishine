@@ -773,20 +773,20 @@ public class ProjectInsightService {
 	private List<SubModuleDTO> getProjectInsightSubModuleDTOList(Long moduleId,Long employeeId) {
 		List<SubModuleDTO> projectInsightSubModuleDTOList = new ArrayList<>();
 		try {
-			List<ProjectInsightSubModule> projectInsightSubModuleList = projectInsightSubModuleRepository.findByModuleId(moduleId);
-			if (!projectInsightSubModuleList.isEmpty()) {
-				for (ProjectInsightSubModule projectInsightSubModule : projectInsightSubModuleList) {
-					SubModuleDTO subModuleDTO = new SubModuleDTO();
-					subModuleDTO.setSubmoduleId(projectInsightSubModule.getSubmoduleId());
-					subModuleDTO.setSubModule(projectInsightSubModule.getSubmodule());
-					subModuleDTO.setModuleId(projectInsightSubModule.getModuleId());
-					subModuleDTO.setDescription(projectInsightSubModule.getDescription());
-					subModuleDTO.setAssignedTo(projectInsightSubModule.getAssignedTo());
-					subModuleDTO.setRedmineId(projectInsightSubModule.getRedmineId());
-					subModuleDTO.setProjectQuestion(getProjectQuestionDTOList(projectInsightSubModule.getSubmoduleId(), "SubModule",employeeId));
-					projectInsightSubModuleDTOList.add(subModuleDTO);
-				}
-			}
+//			List<ProjectInsightSubModule> projectInsightSubModuleList = projectInsightSubModuleRepository.findByModuleId(moduleId);
+//			if (!projectInsightSubModuleList.isEmpty()) {
+//				for (ProjectInsightSubModule projectInsightSubModule : projectInsightSubModuleList) {
+//					SubModuleDTO subModuleDTO = new SubModuleDTO();
+//					subModuleDTO.setSubmoduleId(projectInsightSubModule.getSubmoduleId());
+//					subModuleDTO.setSubModule(projectInsightSubModule.getSubmodule());
+//					subModuleDTO.setModuleId(projectInsightSubModule.getModuleId());
+//					subModuleDTO.setDescription(projectInsightSubModule.getDescription());
+//					subModuleDTO.setAssignedTo(projectInsightSubModule.getAssignedTo());
+//					subModuleDTO.setRedmineId(projectInsightSubModule.getRedmineId());
+//					subModuleDTO.setProjectQuestion(getProjectQuestionDTOList(projectInsightSubModule.getSubmoduleId(), "SubModule",employeeId));
+//					projectInsightSubModuleDTOList.add(subModuleDTO);
+//				}
+//			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
