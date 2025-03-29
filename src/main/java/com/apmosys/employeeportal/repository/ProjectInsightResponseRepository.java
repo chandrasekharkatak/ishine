@@ -8,4 +8,6 @@ public interface ProjectInsightResponseRepository extends JpaRepository<ProjectI
 
 	ProjectInsightResponse findByQuestionMasterId(Long questionMasterId);
 
+	ProjectInsightResponse findByQuestionMasterIdAndEmpId(Long questionMasterId, Long employeeId);
+
 }

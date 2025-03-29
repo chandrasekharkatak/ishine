@@ -29,7 +29,11 @@ export class ProjectInsightService {
     return this.http.post(`${this.baseUrl}` + `api/getAllQuestionsByProjectId`, projectObj);
   }
 
-  getAllProjctInsightResponsesByProjectId(projectObj: any){
-    return this.http.post(`${this.baseUrl}` + `api/getAllProjctInsightResponsesByProjectId`, projectObj);
+  getAllProjectInsightResponsesByProjectId(projectObj: any){
+    return this.http.post(`${this.baseUrl}` + `api/getAllProjectInsightResponsesByProjectId`, projectObj);
+  }
+
+  saveProjectInsightResponse(projectObj: any){
+    return this.http.post(`${this.baseUrl}` + `api/saveProjectInsightResponse`, projectObj);
   }
 }

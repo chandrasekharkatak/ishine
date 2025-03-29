@@ -45,5 +45,16 @@ public class ProjectInsightController {
 		ServiceResponse response = projectInsightService.updateProjectInsightQuestion(projectInsightDTO);
 		return response;
 	}
-
+	
+	@RequestMapping(value = "/getAllProjectInsightResponsesByProjectId", method = RequestMethod.POST)
+	public ServiceResponse getAllProjectInsightResponsesByProjectId(@RequestBody ProjectInsightDTO projectInsightDTO) {
+		ServiceResponse response = projectInsightService.getAllProjectInsightResponsesByProjectId(projectInsightDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/saveProjectInsightResponse", method = RequestMethod.POST)
+	public ServiceResponse saveProjectInsightResponse(@RequestBody ProjectInsightDTO projectInsightDTO) {
+		ServiceResponse response = projectInsightService.saveProjectInsightResponse(projectInsightDTO);
+		return response;
+	}
 }

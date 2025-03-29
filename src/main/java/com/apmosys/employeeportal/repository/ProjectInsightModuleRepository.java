@@ -10,4 +10,6 @@ public interface ProjectInsightModuleRepository extends JpaRepository<ProjectIns
 
 	List<ProjectInsightModule> getByMilestoneId(Long milestoneId);
 
+	List<ProjectInsightModule> findByMilestoneId(Long milestoneId);
+
 }
