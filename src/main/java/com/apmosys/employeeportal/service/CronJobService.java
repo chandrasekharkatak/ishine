@@ -5354,7 +5354,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //			   
 //		}
 
-//		@Transactional
+		@Transactional
 		public void leaveDeduct() {
 			String depart = "";
 			String employee = "";
@@ -5408,29 +5408,29 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //			biomatObj3.setDeduct("0.5");
 //			biomaxDataList.add(biomatObj3);
 //			
-			BioMaTO biomatObj4 = new BioMaTO();
-			biomatObj4.setEmployeeCode("3");
-			biomatObj4.setAttendanceDate("2025-03-24 00:00:00.0");
-			biomatObj4.setInTime("00:00");
-			biomatObj4.setOutTime("00:00");
-			biomatObj4.setTotalDuration("200");
-			biomatObj4.setShiftName("General");
-			biomatObj4.setBeginTime("00:00");
-			biomatObj4.setEndTime("00:00");
-			biomatObj4.setDeduct("1");
-			biomaxDataList.add(biomatObj4);
-			
-			BioMaTO biomatObj5 = new BioMaTO();
-			biomatObj5.setEmployeeCode("3");
-			biomatObj5.setAttendanceDate("2025-03-25 00:00:00.0");
-			biomatObj5.setInTime("00:00");
-			biomatObj5.setOutTime("00:00");
-			biomatObj5.setTotalDuration("200");
-			biomatObj5.setShiftName("General");
-			biomatObj5.setBeginTime("00:00");
-			biomatObj5.setEndTime("00:00");
-			biomatObj5.setDeduct("0.5");
-			biomaxDataList.add(biomatObj5);
+//			BioMaTO biomatObj4 = new BioMaTO();
+//			biomatObj4.setEmployeeCode("3");
+//			biomatObj4.setAttendanceDate("2025-03-24 00:00:00.0");
+//			biomatObj4.setInTime("00:00");
+//			biomatObj4.setOutTime("00:00");
+//			biomatObj4.setTotalDuration("200");
+//			biomatObj4.setShiftName("General");
+//			biomatObj4.setBeginTime("00:00");
+//			biomatObj4.setEndTime("00:00");
+//			biomatObj4.setDeduct("1");
+//			biomaxDataList.add(biomatObj4);
+//			
+//			BioMaTO biomatObj5 = new BioMaTO();
+//			biomatObj5.setEmployeeCode("3");
+//			biomatObj5.setAttendanceDate("2025-03-25 00:00:00.0");
+//			biomatObj5.setInTime("00:00");
+//			biomatObj5.setOutTime("00:00");
+//			biomatObj5.setTotalDuration("200");
+//			biomatObj5.setShiftName("General");
+//			biomatObj5.setBeginTime("00:00");
+//			biomatObj5.setEndTime("00:00");
+//			biomatObj5.setDeduct("0.5");
+//			biomaxDataList.add(biomatObj5);
 
 			// start the rahul code
 //		    List<BioMaTO> biomaxDataList = bioMaxService.getBiomaxDataForLeaveDeduct();
