@@ -1,6 +1,7 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { Router } from '@angular/router';
+import { saveAs } from 'file-saver';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
@@ -12,14 +13,13 @@ import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 import { DepartmentService } from 'src/app/services/department.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { Employee360Service } from 'src/app/services/employee360.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ProjectService } from 'src/app/services/project.service';
 import { ResourceManagementService } from 'src/app/services/resource-management.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { SortPipe } from 'src/app/sort.pipe';
 import { ResourceManagementComponent } from 'src/app/user-team/resource-management/resource-management.component';
-import { ExportExcelService } from 'src/app/services/export-excel.service';
 import * as XLSX from 'xlsx';
-import { saveAs } from 'file-saver';
 @Component({
   selector: 'app-employee360-project',
   templateUrl: './employee360-project.component.html',
@@ -110,7 +110,6 @@ isProjectTeamMemberVisible:boolean=false;
       breadcrumbObject.url = "/employee-360/project";
       this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
-
     this.getAllEmployeeFor360View();
     //get Project by Employee
     this.getExistingProjectsByUser();
@@ -315,11 +314,21 @@ async getTeamEmployeeByTeamId(teamId: any) {
   }
 
   deleteResourceModal(template: TemplateRef<any>, projObj) {
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0'); 
+    const yyyy = today.getFullYear();
+    this.lastDate = `${yyyy}-${mm}-${dd}`;
     // let projectObj = Object.assign({},this.projectObj); for copy object
     this.modalRef = this.modalService.show(template, { class: 'modal-md' });
     this.projectObj = projObj;
   }
   deleteResourceModal1(template: TemplateRef<any>, projObj,member){
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0'); 
+    const yyyy = today.getFullYear();
+    this.lastDate = `${yyyy}-${mm}-${dd}`;
     this.modalRef = this.modalService.show(template, { class: 'modal-md' });
     this.projectObj = projObj;
     this.projectObj.empId = member.empId;
@@ -339,6 +348,7 @@ async getTeamEmployeeByTeamId(teamId: any) {
     this.projectService.updateProjectResourceAsInActive(projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
+        this.lastDate='';
         this.getExistingProjectsByUser();
         this.getTeamByProjectId(this.projectObj.projectId);
       }

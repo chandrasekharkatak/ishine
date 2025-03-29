@@ -603,6 +603,7 @@ export class Employee360LeaveComponent implements OnInit {
                 leave.emp360 = matchingEmployee ? matchingEmployee : {};
 
               });
+              this.reporteeLeaveRevokeApplicationList = this.reporteeLeaveRevokeApplicationList.filter(leave => leave.empId === this.employeeData.empId);
               // console.log('reporteeLeaveRevokeApplicationList -- ',this.reporteeLeaveRevokeApplicationList);
 
             } else {
