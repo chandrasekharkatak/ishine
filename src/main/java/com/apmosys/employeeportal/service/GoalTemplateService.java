@@ -91,6 +91,11 @@ public class GoalTemplateService{
                 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
                 response.setServiceMessage("Invalid Department ID");
                 return response;
+            }else {
+            	goalTemplatesDto.setDepartment(department.getName());
+            	GoalTemplates goalTemplate=new GoalTemplates();
+            	goalTemplate.setApprovedBy(goalTemplatesDto.getApprovedById());
+            	goalTemplatesRepository.save(goalTemplate);
             }
 
             // Convert DTO to Entity
@@ -103,7 +108,7 @@ public class GoalTemplateService{
             GoalTemplatesDto savedDto = convertToDto(savedGoalTemplate);
             
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            response.setServiceResponse(savedDto);
+            response.setServiceResponse(goalTemplate);
             response.setServiceMessage("Goal Template Created Successfully");
         } catch (Exception e) {
             response.setServiceStatus(ServiceResponse.STATUS_FAIL);

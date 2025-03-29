@@ -4,7 +4,6 @@ import { HttpClient } from '@angular/common/http';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { Sort } from '@angular/material/sort';
 import { User } from 'src/app/models/user';
-import { TeamViewService } from 'src/app/services/team-view.service';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { Employee } from 'src/app/models/employee';
 import { TeamDashboardService } from 'src/app/services/team-dashboard.service';
@@ -14,7 +13,6 @@ import { PerformanceService } from 'src/app/services/performance.service';
 import { Log } from 'src/app/models/log';
 import { Feature } from 'src/app/models/feature';
 import { LogService } from 'src/app/services/log.service';
-import * as moment from 'moment';
 import { DatePipe } from '@angular/common';
 @Component({
   selector: 'app-team-dashboard',
@@ -66,7 +64,6 @@ export class TeamDashboardComponent implements OnInit {
     private router: Router,
     private http: HttpClient,
     private modalService: BsModalService,
-    private teamViewService: TeamViewService,
     private authenticationService: AuthenticationService,
     private teamDashboardService: TeamDashboardService,
     private employeeService: EmployeeService,
@@ -111,7 +108,7 @@ export class TeamDashboardComponent implements OnInit {
         if (response.serviceStatus === 'Success') {
           this.quarterCyclesList = response.serviceResponse;
           console.log(this.quarterCyclesList);
-          this.onQuarterChange();
+         
         } else {
           this.errorMessage = response.serviceMessage || 'Failed to load quarters.';
         }
@@ -122,19 +119,14 @@ export class TeamDashboardComponent implements OnInit {
     });
   }
   
-  onQuarterChange(): void {
-    if (!this.selectedQuarter) return;
-    // Additional logic can be added here if needed
-  }
+
   
   getEmployeesInDepartment() {
-    this.loading = true;
     this.teamDashboardService.findEmployeesInSameDepartmentAsCurrentUser(this.hodId).subscribe(
       (response: any) => {
         console.log('Raw response:', JSON.stringify(response))
         if (response && response.serviceStatus && 
             response.serviceStatus.toUpperCase() === 'SUCCESS') {
-          // Map the response to match the expected structure
           this.viewTeamMemberList = response.serviceResponse.map(employee => {
             return {
               id: employee.empId,
@@ -252,7 +244,6 @@ export class TeamDashboardComponent implements OnInit {
     }
   }
 
-  // Modal methods
   openBulkAssignModal(template: TemplateRef<any>) {
     console.log('Opening bulk assign modal for:', this.selectedEmployees);
     this.modalRef = this.modalService.show(template, {
@@ -280,30 +271,26 @@ export class TeamDashboardComponent implements OnInit {
   assignGoalToEmployee(employee: any) {
     console.log('Setting up to assign goal to employee:', employee);
     this.selectedEmployee = employee;
-    this.selectedEmployees = [employee]; // This is fine for tracking UI state
+    this.selectedEmployees = [employee]; 
     this.modalRef = this.modalService.show(this.singleAssignTemplate, {
       class: 'modal-md'
     });
   }
   
-  // New method for opening multi-goal assignment modal
   openMultiGoalModal(employee: any) {
     console.log('Setting up to assign multiple goals to employee:', employee);
     
     this.selectedEmployee = employee;
-    this.selectedGoalData = []; // Reset selected goals
+    this.selectedGoalData = []; 
     
-    // Ensure goal templates are loaded before opening modal
     this.loadGoalTemplates();
-    
-    this.addNewGoalSelection(); // Initialize with one goal selection row
+    this.addNewGoalSelection(); 
     
     this.modalRef = this.modalService.show(this.multiGoalTemplate, {
       class: 'modal-lg'
     });
   }
   
-  // Add a new goal selection row to the form
   addNewGoalSelection() {
     this.selectedGoalData.push({
       templateId: null,
@@ -312,7 +299,6 @@ export class TeamDashboardComponent implements OnInit {
     });
   }
   
-  // Remove a goal selection row from the form
   removeGoalSelection(index: number) {
     if (this.selectedGoalData.length > 1) {
       this.selectedGoalData.splice(index, 1);
@@ -360,7 +346,6 @@ export class TeamDashboardComponent implements OnInit {
             this.expectedCompletionDate = '';
             this.selectedQuarter = '';
             
-            // Still refresh from API to ensure data consistency
             this.getEmployeesInDepartment();
             alert('Goals assigned successfully!');
           } else {
@@ -379,7 +364,6 @@ export class TeamDashboardComponent implements OnInit {
   assignMultipleGoalsToEmployee() {
     console.log('Attempting to assign multiple goals to employee:', this.selectedEmployee);
     
-    // Validate all selected goals have template and date
     const invalidEntries = this.selectedGoalData.some(goal => 
       !goal.templateId || !goal.expectedCompletionDate || !this.selectedQuarter);
     
@@ -390,12 +374,10 @@ export class TeamDashboardComponent implements OnInit {
     }
     
     
-    const dateFormat = 'YYYY-MM-DD';
     const assignmentPromises = this.selectedGoalData.map(goal => {
       const requestBody = {
         empId: this.selectedEmployee.id,
         templateId: Number(goal.templateId),
-        // expectedCompletionDate: moment(goal.expectedCompletionDate, dateFormat).toDate(),
         expectedCompletionDate: this.datePipe.transform(goal.expectedCompletionDate, 'yyyy-MM-dd'),
         quarterId: Number(this.selectedQuarter) 
       };
@@ -439,18 +421,15 @@ export class TeamDashboardComponent implements OnInit {
           this.selectedGoalData = [];
           this.selectedQuarter = '';
           
-          // Refresh from API to ensure data consistency
           this.getEmployeesInDepartment();
           alert(`All goals assigned successfully!`);
         } else {
           console.error('Some assignments failed:', responses);
           
           if (successfulAssignments.length > 0) {
-            // Some succeeded, some failed
             alert(`${successfulAssignments.length} goals assigned successfully, but ${failedAssignments} failed. Check the console for details.`);
-            this.getEmployeesInDepartment(); // Still refresh
+            this.getEmployeesInDepartment(); 
           } else {
-            // All failed
             alert('Failed to assign any goals. Please check the console for details.');
           }
         }

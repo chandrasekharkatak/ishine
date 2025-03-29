@@ -328,10 +328,10 @@ setReportingManagerToNewManager(employee : any){
 
   private employeeSubject = new BehaviorSubject<Employee | null>(null);
   
-    employee$: Observable<Employee | null> = this.employeeSubject.asObservable();
+  employee$: Observable<Employee | null> = this.employeeSubject.asObservable();
   
-    setEmployee(employee: Employee) {
-      this.employeeSubject.next(employee);
-    }
+  setEmployee(employee: Employee) {
+    this.employeeSubject.next(employee);
+  }
 
 }

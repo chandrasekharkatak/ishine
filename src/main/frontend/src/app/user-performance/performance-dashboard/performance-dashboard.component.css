@@ -63,6 +63,11 @@ body {
   
 }
 
+.profileLable{
+  font-weight: 600;
+  color: var(--middle-grey);
+}
+
 .table-header-title{
   font-size: 2rem;
   padding: .2em;
@@ -88,5 +93,10 @@ body {
 .form-control {
   border-radius: 6px;
 }
+
+
+
+
+
 
 

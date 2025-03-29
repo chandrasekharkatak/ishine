@@ -122,11 +122,17 @@ getAppraisalSummary(empId: number): Observable<any> {
 submitReview(payload: any): Observable<any> {
   return this.http.post(`${this.baseUrl}` + `api/submitReview`, payload);
 }
-getQuestionnaireByQuarterAndDepartment(quarterId: number, departmentId: number) {
-  return this.http.get<any>(`${this.baseUrl}api/questionnaires/getQuestionnaireByQuarterAndDepartment/${quarterId}/${departmentId}`);
+
+
+getQuestionnares(departmentId: number, quarterId: number){
+  return this.http.get<any>(`${this.baseUrl}api/questionnaires/department/${departmentId}/quarter/${quarterId}`);
 }
 
-// Method to submit questionnaire responses
+getKraKpi(departmentId: number, quarterId: number){
+  return this.http.get<any>(`${this.baseUrl}api/kpi/getKpisByQuarter/${quarterId}/Department/${departmentId}`);
+}
+
+
 submitQuestionnaireResponses(response: any, empId:number,quarterId:number) {
   return this.http.post<any>(`${this.baseUrl}api/qresponses/save/${empId}/${quarterId}`, response);
 } 

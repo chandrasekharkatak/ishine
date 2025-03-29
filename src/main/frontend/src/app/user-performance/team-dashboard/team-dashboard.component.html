@@ -25,7 +25,7 @@
       <!-- Team Members Table -->
       <div *ngIf="!loading && viewTeamMemberList.length > 0" class="row">
         <div class="col-md-12">
-        <div class="selector-toggle" (click)="toggleSearch()">
+        <div class="selector-toggle" (click)="toggleSearch()" >
           <a href="javascript:void(0)">
               <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
               <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>

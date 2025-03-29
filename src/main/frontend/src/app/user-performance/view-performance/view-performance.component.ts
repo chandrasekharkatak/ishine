@@ -12,6 +12,8 @@ import { Subscription } from 'rxjs';
 import { Feature } from 'src/app/models/feature';
 import { LogService } from 'src/app/services/log.service';
 import { Log } from 'src/app/models/log';
+import { Router } from '@angular/router';
+
 
 interface Goal {
   goalStatus: string;
@@ -83,6 +85,7 @@ export class ViewPerformanceComponent implements OnInit {
   kpiList: any;
 
   constructor(
+    private router: Router,
     private http: HttpClient, 
     private employeeService:EmployeeService,
     private modalService: BsModalService,
@@ -102,7 +105,6 @@ export class ViewPerformanceComponent implements OnInit {
       this.selectedEmployee = emp;
     });
     this.onGetEmployeeInfo();
-    this.fetchQuarters();
     this.setActiveTab('kra-kpi');
 
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -117,8 +119,10 @@ export class ViewPerformanceComponent implements OnInit {
         if (response.serviceStatus === 'Success') {
           this.quarterCyclesList = response.serviceResponse;
           this.selectedQuarter = this.quarterCyclesList[0].quarterId;
+          this.selectedQuarter1 = this.quarterCyclesList[0].quarterId;
           
           this.onQuarterChange();
+          this.onQuarterChange1();
         } else {
           this.errorMessage = response.serviceMessage || 'Failed to load quarters.';
         }
@@ -135,6 +139,15 @@ export class ViewPerformanceComponent implements OnInit {
     this.loadPerformanceStats();
     this.fetchGoals();
   }
+
+  onQuarterChange1(): void{
+    if (!this.selectedQuarter1) return;
+
+    this.loadKpiList();
+    this.loadQuestionnaireQuestions();
+  }
+
+
 
   loadAppraisalSummary(): void {
     const empId = this.currentEmployeeInfo.empId;
@@ -189,8 +202,7 @@ export class ViewPerformanceComponent implements OnInit {
       },
     });
   }
-
-  
+ 
 
   async onGetEmployeeInfo(){
     this.currentEmployeeInfo = new Employee();
@@ -201,6 +213,7 @@ export class ViewPerformanceComponent implements OnInit {
     if (response.serviceStatus == "Success") {
       this.currentEmployeeInfo = response.serviceResponse;
       console.log(this.currentEmployeeInfo);
+      this.fetchQuarters();
     } else {
       console.error(response.serviceResponse);
     }
@@ -248,7 +261,6 @@ export class ViewPerformanceComponent implements OnInit {
 
   saveQuestionnaireResponses(): void {
  
-
     const empId = this.currentEmployeeInfo.empId;
     const quarterId = this.selectedQuarter1;
 
@@ -270,25 +282,18 @@ export class ViewPerformanceComponent implements OnInit {
       }
     });
   }
-  initQuestionnaireForm(): void {
-    const formGroup = this.fb.group({});
-    
-    this.questionnaireQuestions.forEach(question => {
-      formGroup.addControl('question_' + question.id, this.fb.control(''));
-      formGroup.addControl('rating_' + question.id, this.fb.control(''));
-    });
-    
-    this.questionnaireReviewForm = formGroup;
-  }
 
-  quarterChange2(): void{
-    this.loadKpiList();
-    this.loadQuestionnaireQuestions();
+
+  navigateToteam(): void{
+    this.router.navigate(['/user-performance/team-dashboard']);
   }
 
   loadKpiList(): void {
     const quarterId = this.selectedQuarter1;
     const departmentId = this.currentEmployeeInfo.departmentId;
+
+    this.kpiList = [];
+
     
     if (!quarterId || !departmentId) return;
   
@@ -297,9 +302,7 @@ export class ViewPerformanceComponent implements OnInit {
         next: (response: any) => {
           if (response.serviceStatus === 'Success') {
             this.kpiList = response.serviceResponse[0].kpis;
-            
-  
-            this.initQuestionnaireForm();
+
           } else {
             console.error('Failed to load questionnaire questions:', response.serviceMessage);
           }
@@ -333,17 +336,7 @@ export class ViewPerformanceComponent implements OnInit {
       }
     });
   }
-  
-  
 
-  addCheckpoint() {
-    this.selectedGoal.checkpoints.push('');
-  }
-  
-  removeCheckpoint(index: number) {
-    this.selectedGoal.checkpoints.splice(index, 1);
-  }
-  
   saveUpdates() {
     const payload = {
       managerRemark: this.selectedGoal.managerRemark,
@@ -360,31 +353,6 @@ export class ViewPerformanceComponent implements OnInit {
     );
   }
 
-  submitReview(): void {
-    let reviewData;
 
-    if (this.activeTab === 'kra-kpi') {
-      reviewData = this.kraKpiMetrics.map((metric) => ({
-        name: metric.name,
-        rating: metric.rating,
-      }));
-    } else if (this.activeTab === 'questionnaire') {
-      reviewData = this.questionnaireQuestions.map((question) => ({
-        text: question.text,
-        rating: question.rating,
-      }));
-    }
-
-    const payload = {
-      quarter: this.selectedQuarter,
-      type: this.activeTab === 'kra-kpi' ? 'KRA/KPI' : 'Questionnaire',
-      reviews: reviewData,
-    };
-
-    this.performanceService.submitReview(payload).subscribe({
-      next: () => alert('Review submitted successfully!'),
-      error: (err) => console.error('Error submitting review:', err),
-    });
-  }
   
 }

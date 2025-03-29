@@ -149,8 +149,6 @@ quarter: any;
       this.kpis.removeAt(index);
     }
   }
-
-
   
   fetchQuarters(): void {
     
@@ -200,7 +198,6 @@ quarter: any;
   }
 
   onSubmit() {
-    console.log('Submit button clicked!');
     console.log('Form valid?', this.questionnaireForm.valid);
     
     if (this.questionnaireForm.valid) {
@@ -579,26 +576,7 @@ quarter: any;
     });
   }
 
-  // onDepartmentChange() {
-  //   if (this.selectedDept && this.selectedDept !== 'all') {
-  //     this.userPerformanceService.getGoalTemplatesByDepartmentId(this.selectedDept.deptId)
-  //       .pipe(first())
-  //       .subscribe({
-  //         next: (response: any) => {
-  //           if (response.serviceStatus === "Success") {
-  //             this.goalTemplates = response.serviceResponse;
-  //           } else {
-  //             console.error('Error fetching department goal templates:', response.serviceMessage);
-  //           }
-  //         },
-  //         error: (error) => {
-  //           console.error('HTTP error fetching department templates:', error);
-  //         }
-  //       });
-  //   } else {
-  //     this.fetchGoalTemplates();
-  //   }
-  // }
+
   onDepartmentChange() {
     if (this.selectedDept && this.selectedDept !== 'all') {
       if (this.activeTab === 'goals') {
@@ -677,156 +655,7 @@ quarter: any;
       this.kpikraForm.markAllAsTouched();
     }
   }
-  
-  // createKraKpiTemplate(formData: KpiTemplate) {
-  //   console.log('Sending KPI template data:', formData);
-  //   this.kraKpiService.createKpiTemplate(formData)
-  //     .pipe(first())
-  //     .subscribe({
-  //       next: (response: any) => {
-  //         console.log('KPI template creation response:', response);
-  //         if (response.serviceStatus === "Success") {
-  //           alert('KRA-KPI template created successfully!');
-  //           this.resetKraKpiForm();
-  //           this.setActiveTab('kra-kpi');
-  //           this.fetchKraKpiTemplates();
-  //         } else {
-  //           console.error('Error creating KRA-KPI template:', response.serviceMessage);
-  //           alert('Failed to create KRA-KPI template: ' + response.serviceMessage);
-  //         }
-  //       },
-  //       error: (error) => {
-  //         console.error('HTTP error creating KRA-KPI template:', error);
-  //         alert('Error creating KRA-KPI template. Please try again.');
-  //       }
-  //     });
-  // }
-  // updateKraKpiTemplate(id: number, formData: KpiTemplate) {
-  //   this.kraKpiService.updateKpiTemplate(id, formData)
-  //     .pipe(first())
-  //     .subscribe({
-  //       next: (response: any) => {
-  //         if (response.serviceStatus === "Success") {
-  //           alert('KRA-KPI template updated successfully!');
-  //           this.resetKraKpiForm();
-  //           this.setActiveTab('kra-kpi');
-  //           this.fetchKraKpiTemplates();
-  //         } else {
-  //           console.error('Error updating KRA-KPI template:', response.serviceMessage);
-  //           alert('Failed to update KRA-KPI template: ' + response.serviceMessage);
-  //         }
-  //       },
-  //       error: (error) => {
-  //         console.error('HTTP error updating KRA-KPI template:', error);
-  //         alert('Error updating KRA-KPI template. Please try again.');
-  //       }
-  //     });
-  // }
-  // editKraKpiTemplate(template: any) {
-  //   this.isEditing = true;
-  //   this.editingTemplateId = template.kpiId;
-  //   this.setActiveTab('create-template');
-  //   this.selectedTemplateType = 'kra-kpi';
 
-  //   while (this.kpis.length !== 0) {
-  //     this.kpis.removeAt(0);
-  //   }
-
-  //   this.kpikraForm.patchValue({
-  //     name: template.name,
-  //     description: template.description,
-  //     quarterId: template.quarterId,
-  //     createdBy: template.createdBy
-  //   });
-
-  //   if (template.kpis && template.kpis.length > 0) {
-  //     template.kpis.forEach((kpi: any) => {
-  //       const kpiGroup = this.fb.group({
-  //         description: [kpi.description, Validators.required],
-  //         id: [kpi.id] 
-  //       });
-  //       this.kpis.push(kpiGroup);
-  //     });
-  //   } else {
-     
-  //     this.kpis.push(this.kpiField());
-  //   }
-  // }
-
-  // deleteKraKpiTemplate(kpiId: number) {
-  //   if (confirm('Are you sure you want to delete this KRA-KPI template?')) {
-  //     this.kraKpiService.deleteKpiTemplate(kpiId)
-  //       .pipe(first())
-  //       .subscribe({
-  //         next: (response: any) => {
-  //           if (response.serviceStatus === "Success") {
-  //             alert('KRA-KPI template deleted successfully!');
-  //             this.fetchKraKpiTemplates();
-  //           } else {
-  //             console.error('Error deleting KRA-KPI template:', response.serviceMessage);
-  //             alert('Failed to delete KRA-KPI template: ' + response.serviceMessage);
-  //           }
-  //         },
-  //         error: (error) => {
-  //           console.error('HTTP error deleting KRA-KPI template:', error);
-  //           alert('Error deleting KRA-KPI template. Please try again.');
-  //         }
-  //       });
-  //   }
-  // }
-  // onKpiQuarterChange() {
-  //   if (this.selectedQuarterId) {
-  //     this.kraKpiService.getKpisByQuarter(this.selectedQuarterId)
-  //       .pipe(first())
-  //       .subscribe({
-  //         next: (response: any) => {
-  //           if (response.serviceStatus === "Success") {
-  //             this.kraKpiTemplates = response.serviceResponse;
-  //           } else {
-  //             console.error('Error fetching KRA-KPIs by quarter:', response.serviceMessage);
-  //           }
-  //         },
-  //         error: (error) => {
-  //           console.error('HTTP error fetching KRA-KPIs by quarter:', error);
-  //         }
-  //       });
-  //   } else {
-  //     this.fetchKraKpiTemplates();
-  //   }
-  // }
-
-  // resetKraKpiForm() {
-  //   this.kpikraForm.reset();
-   
-  //   while (this.kpis.length !== 0) {
-  //     this.kpis.removeAt(0);
-  //   }
-   
-  //   this.kpis.push(this.kpiField());
-
-  //   this.isEditing = false;
-  //   this.editingTemplateId = null;
-  // }
-  // fetchKraKpiTemplates() {
-  //   this.kraKpiService.getAllKpis()
-  //     .pipe(first())
-  //     .subscribe({
-  //       next: (response: any) => {
-  //         if (response && response.serviceStatus === "Success") {
-  //           this.kraKpiTemplates = Array.isArray(response.serviceResponse) 
-  //             ? response.serviceResponse 
-  //             : [response.serviceResponse];
-  //         } else {
-  //           console.error('Error fetching KRA-KPI templates:', response.serviceMessage);
-  //           this.kraKpiTemplates = [];
-  //         }
-  //       },
-  //       error: (error) => {
-  //         console.error('HTTP error fetching KRA-KPI templates:', error);
-  //         this.kraKpiTemplates = [];
-  //       }
-  //     });
-  // }
 
   fetchKraKpiTemplates() {
     
@@ -1000,31 +829,6 @@ quarter: any;
         }
       });
   }
-
-
-
-  // createKraKpiTemplate(formData: KpiTemplate) {
-  //   console.log('Sending KPI template data:', formData);
-  //   this.kraKpiService.createKpiTemplate(formData)
-  //     .pipe(first())
-  //     .subscribe(
-  //       (response: any) => {
-  //         if (response.serviceStatus === "Success") {
-  //           console.log('KPI template created successfully:', response);
-  //           this.openAlertMod(this.alertTemplate, 'KRA-KPI template created successfully');
-  //           this.resetKraKpiForm();
-  //           this.fetchKraKpiTemplates(); // Refresh the list
-  //         } else {
-  //           console.error(response.serviceError);
-  //           this.openAlertMod(this.alertTemplate, 'Error creating KRA-KPI template');
-  //         }
-  //       },
-  //       (error) => {
-  //         console.error('HTTP error creating KRA-KPI template:', error);
-  //         this.openAlertMod(this.alertTemplate, 'Error creating KRA-KPI template');
-  //       }
-  //     );
-  // }
 
 
 

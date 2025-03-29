@@ -1,10 +1,24 @@
-<div class="container m-0">
-  <div class="card p-3 py-1 shadow-sm m-0">
-    <div class="row px-1 ml-1" >
-      <div class="col-md-12 table-header">
-        <h1 class="table-header-title">Employee Performance </h1>
+<div class="px-0">
+  <button class="btn btn-sm btn-outline-primary mb-1" (click)="navigateToteam()">
+      <em><i class="fa-solid fa-arrow-left-long"></i></em>
+  </button>
+</div>
+<div class="row px-1 ml-1 mr-1">
+  <div class="col-md-12 d-flex justify-content-between align-items-center table-header">
+    <h1 class="table-header-title">Employee Performance</h1>
+    <div class="mb-1 mt-1 pr-3 pl-2 w-auto">
+      <div class="form-inline input-group input-group-sm">
+        <label class="mr-2 font-weight-bold ">Select Quarter:</label>
+        <select class="form-control form-control-sm"  [(ngModel)]="selectedQuarter"
+          name="quarterId" (ngModelChange)="onQuarterChange()">
+          <option selected value="" disabled>Select</option>
+          <option *ngFor="let quarter of quarterCyclesList" [value]="quarter.quarterId">{{quarter.quarterCycle}}
+          </option>
+        </select>
       </div>
     </div>
+  </div>
+</div>
     
     
     <div class="profile row align-items-center ml-2 mr-2 px-0 py-3">
@@ -19,19 +33,7 @@
         </div>
       </div>
     
-      <div class="col-md-6 d-flex flex-column align-items-end  justify-content-start ">
-        <div class="mb-3 pr-3 pl-2 w-auto align-top">
-          <div class="form-inline input-group input-group-sm">
-            <label class="mr-2 ">Select quarter</label>
-            <select class="form-control form-control-sm" aria-hidden="true" [(ngModel)]="selectedQuarter"
-              name="quarterId" (ngModelChange)="onQuarterChange()">
-              <option selected value="" disabled>Select</option>
-              <option *ngFor="let quarter of quarterCyclesList" [value]="quarter.quarterId">{{quarter.quarterCycle}}
-              </option>
-            </select>
-          </div>
-        </div>
-    
+      <div class="col-md-6 d-flex flex-column align-items-end  justify-content-start ">    
         <div class="row  w-100">
           <div class="col-md-6 text-center">
             <div class="stat-box bg-light p-2 rounded">Goals Completed: <strong>{{stats.goalsCompleted}} </strong></div>
@@ -51,36 +53,34 @@
         <div class="graph-placeholder p-4 border rounded text-center">[Graphs Here]</div>
       </div>
       <div class="col-md-6">
-        
-        
-          <div class="goals-list p-2 border rounded d-flex flex-column" style="height: 100%;">
-            <h6 class="mb-1 text-center">Goals List</h6>
-            <div class="table-responsive flex-grow-1" style="max-height: 250px; overflow-y: auto;">
-              <table class="table table-sm table-bordered" style="font-size: 0.90rem;">
-                <thead>
-                  <tr class="bg-light " >
-                    <th scope="col" class="w-20">Goal</th>
-                    <th scope="col">Description</th>
-                    <th scope="col" class="text-center w-5">Status</th>
-                    <th scope="col" class="text-center w-5">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let goal of goals">
-                    <td>{{ goal.goalTitle }}</td>
-                    <td class="text-truncate" style="max-width: 180px;">{{ goal.description }}</td>
-                    <td class="text-center">{{ goal.goalStatus }}</td>
-                    <td class="text-center">
-                      <button class="btn btn-sm btn-outline-primary py-1 px-2" (click)="openModal(viewGoalTemplate, goal)" style="font-size: 0.75rem;" >View</button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+        <div class="goals-list p-2 border rounded d-flex flex-column" style="height: 100%;">
+          <h6 class="mb-1 text-center">Goals List</h6>
+          <div class="table-responsive flex-grow-1" style="max-height: 250px; overflow-y: auto;">
+            <table class="table table-sm table-bordered" style="font-size: 0.90rem;">
+              <thead>
+                <tr class="bg-light " >
+                  <th scope="col" style="max-width: 2rem ;">Sr No.</th>
+                  <th scope="col" class="">Goal</th>
+                  <th scope="col">Description</th>
+                  <th scope="col" class="text-center ">Status</th>
+                  <th scope="col" class="text-center " style="max-width: 2rem ;">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let goal of goals let i = index">
+                  <td>{{ i+1 }}</td>
+                  <td>{{ goal.goalTitle }}</td>
+                  <td class="text-truncate" style="max-width: 180px;">{{ goal.description }}</td>
+                  <td class="text-center">{{ goal.goalStatus }}</td>
+                  <td class="text-center">
+                    <button class="btn btn-sm btn-outline-primary py-1 px-2" title="View Goal" (click)="openModal(viewGoalTemplate, goal)"  ><i class="fa-solid fa-eye"></i></button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          
-        
-      </div>
+        </div>
+    </div>
     </div>
     
     <div class="row mt-4">
@@ -132,70 +132,79 @@
     <div class="container py-4 m-0 px-0">
       <div class="card shadow order-0">
         <div class="card-body">
-          <h2 class="text-center mb-4 fw-bold">Employee Review</h2>
-        
-          <ul class="nav nav-tabs mb-4">
-            <li class="nav-item">
-              <button class="nav-link" [class.active]="activeTab === 'kra-kpi'" (click)="setActiveTab('kra-kpi')">KRA/KPI Review</button>
-            </li>
-            <li class="nav-item">
-              <button class="nav-link" [class.active]="activeTab === 'questionnaire'" (click)="setActiveTab('questionnaire')">Questionnaire Review</button>
-            </li>
-          </ul>
-        
-          <div class="row mb-2">
-            <div class="col-auto">
-              <label class="fw-semibold">Select Quarter:</label>
-              <select class="form-select" aria-hidden="true" name="quarterId1" [(ngModel)]="selectedQuarter1" (ngModelChange)="quarterChange2()">
+          <h2 class="text-center mb-4 fw-bold">Reviews and Ratings</h2>
+    
+          <ul class="nav nav-tabs mb-4 d-flex justify-content-between align-items-center">
+            <div class="d-flex">
+              <li class="nav-item">
+                <button class="nav-link" [class.active]="activeTab === 'kra-kpi'" aria-selected="true" (click)="setActiveTab('kra-kpi')">KRA/KPI Rating</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" [class.active]="activeTab === 'questionnaire'" aria-selected="true" (click)="setActiveTab('questionnaire')">Questionnaire Review</button>
+              </li>
+            </div>
+          
+            <div class="d-flex input-group-sm form-inline pr-4">
+              <label class="mr-2 font-weight-bold  me-2">Select Quarter:</label>
+              <select class="form-control form-control-sm" [(ngModel)]="selectedQuarter1" (change)="onQuarterChange1()">
                 <option value="" disabled>select</option>
-                <option *ngFor="let quarter of quarterCyclesList" [value]="quarter.quarterId">{{ quarter.quarterCycle }}</option>
+                <option *ngFor="let quarters of quarterCyclesList" [value]="quarters.quarterId">{{ quarters.quarterCycle }}</option>
               </select>
             </div>
-          </div>
-        
+          </ul>
           
-          <div class="row" *ngIf="activeTab === 'kra-kpi'">
-            <div class="col-12">
-              <div class="card">
-                <div class="card-header">
-                  <h5 class="card-title"> KRA/KPI Ratings</h5>
-                </div>
-                <div class="card-body">
-                  <div *ngIf="kpiList.length === 0" class="alert alert-info">
-                    No KRA/KPIs found for this quarter and department.
+          <!-- kpi kra  -->
+          <div >
+            <div class="row" *ngIf="activeTab === 'kra-kpi'">
+              <div class="col-12">
+                <div class="card">
+                  <div class="card-header">
+                    <h5 class="card-title"> KRA/KPI Ratings</h5>
                   </div>
-          
-                    <form *ngIf="kpiList.length > 0">
-
-                    <div class="list-group">
-                      <div class="list-group-item row" *ngFor="let kpi of kpiList;">
-                        <div class="mb-3 col">
-                          <label class="form-label fw-bold"> {{kpi.description}}</label> 
-                          
-                         
-                       
-                          <div class="mt-2">
-                            <label class="form-label w-auto">Response:</label>
-                            <input  [(ngModel)]="kpi.response" placeholder="Rate from 1 to 10" class="w-25" type="number" name="response" min="0" max="10"/>
-
+                  <div class="card-body">
+                    <div *ngIf="kpiList.length === 0" class="alert alert-info">
+                      No KRA/KPIs found for this quarter and department.
+                    </div>
+            
+                      <form *ngIf="kpiList.length > 0">
+                      <div class="list-group ">
+                        <div class="list-group-item row d-flex justify-content-between align-items-center" *ngFor="let kpi of kpiList; let i = index">
+                          <div class="col-md-7">
+                            <label class="form-label fw-bold ">{{i+1}}. {{kpi.description}}</label> 
+                            
                           </div>
-                          
-                        
+                          <div class="col-md-5 col">
+                            <div class="row mb-0">
+                              <label class="form-label mr-2">Ratings: </label>
+                              <p>{{kpi.response}}</p>
+                            </div>
+                            <div class="row">
+                              <span>0</span>
+                                <input 
+                                  type="range" 
+                                  min="0" 
+                                  max="10" 
+                                  step="0.5" 
+                                  [(ngModel)]="kpi.response" 
+                                  [ngModelOptions]="{ standalone: true }" 
+                                  class="w-50" />
+                                <span>10</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
-                      <button type="button" class="btn btn-primary" (click)="saveKpiResponses()">
-                        Save KPI Responses
-                      </button>
-                    </div>
-                  </form>
+                      
+                      <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                        <button type="button" class="btn btn-primary" (click)="saveKpiResponses()">
+                          Save KPI Responses
+                        </button>
+                      </div>
+                    </form>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        
+            <!-- kpi kra  -->
             <div class="row" *ngIf="activeTab === 'questionnaire'">
               <div class="col-12">
                 <div class="card">
@@ -210,19 +219,32 @@
                       <form *ngIf="questionnaireQuestions.length > 0">
 
                       <div class="list-group">
-                        <div class="list-group-item row" *ngFor="let question of questionnaireQuestions;">
-                          <div class="mb-3 col">
-                            <label class="form-label fw-bold"> {{question.questionText}}</label> 
-                            
-                           
-                         
-                            <div class="mt-2">
-                              <label class="form-label w-auto">Response:</label>
-                              <input  [(ngModel)]="question.response" class="w-25" placeholder="Rate from 1 to 10" type="number" name="response" min="0" max="10"/>
-
+                        <div class="list-group-item row d-flex justify-content-between align-items-center" *ngFor="let question of questionnaireQuestions; let i = index">
+                          
+                            <div class="col-md-7">
+                              <label class="form-label fw-bold">{{i+1}}. {{question.questionText}}</label>
                             </div>
-                           
-                          </div>
+
+                            <div class="col-md-5 col">
+                              <div class="row mb-0">
+                                <label class="form-label mr-2">Response: </label>
+                                <p>{{question.response}}</p>
+                              </div>
+                              <div class="row">
+                                <span>0</span>
+                                  <input 
+                                    type="range" 
+                                    min="0" 
+                                    max="10" 
+                                    step="0.5" 
+                                    [(ngModel)]="question.response" 
+                                    [ngModelOptions]="{ standalone: true }" 
+                                    class="w-50" />
+                                  <span>10</span>
+                              </div>
+                            </div>
+
+                          
                         </div>
                       </div>
                       
@@ -236,24 +258,22 @@
                 </div>
               </div>
             </div>
-        
-          
+    
+          </div>
+    
         </div>
-        
-        
       </div>
     </div>
     
-  </div>
-</div>
 
 
+<!-- modals  -->
 
 <ng-template #viewGoalTemplate>
   <div class="modal-content rounded-lg shadow-lg">
     <div class="modal-header ">
       <h5 class="modal-title fw-bold">{{ selectedGoal?.goalTitle }}</h5>
-      <button type="button" class="btn-close text-white" aria-label="Close" (click)="modalRef.hide()"><i class="fa-solid fa-xmark"></i></button>
+      <button type="button" class="close " aria-label="Close" (click)="modalRef.hide()"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
     <div class="modal-body p-4">
@@ -285,32 +305,23 @@
           <p><strong>Assigned By:</strong> {{ selectedGoal?.assignedBy }}</p>
         </div>
       </div>
-
-
-      <!-- <div class="mb-3">
-        <h6 class="fw-bold">Checkpoints:</h6>
-        <ul class="list-group mb-2">
-          <li *ngFor="let checkpoint of selectedGoal?.checkpoints"
-              class="list-group-item">
-            {{ checkpoint }}
-          </li>
-        </ul>
-      </div> -->
       
-      <div class="mb-3">
-        <h6 class="fw-bold">Remarks:</h6>
-        <label for="employeeRemark" class="form-label"><strong>Employee Remark:</strong></label>
-        <textarea id="employeeRemark" readonly
-                  rows="3"
-                  class="form-control">
-          {{ selectedGoal.employeeRemark }}
-        </textarea>
-
-        <label for="managerRemark" class="form-label mt-3"><strong>Manager's Remark:</strong></label>
-        <textarea id="managerRemark" [(ngModel)]="selectedGoal.managerRemark"
-                  rows="3"
-                  placeholder="Enter your remark"
-                  class="form-control"></textarea>
+      <div class="mb-3 col ">
+        <div class="row d-flex align-items-center">
+        <div class="mx-2">
+          <label for="employeeRemark" class="form-label"><strong>Your Remark:</strong></label>
+          <textarea id="employeeRemark" readonly [(ngModel)]="selectedGoal.employeeRemark"
+                    rows="3" placeholder="{{ selectedGoal.employeeRemark }}"
+                    class="form-control">
+          </textarea>
+        </div>
+        <div class="mx-5  align-items-center">
+          <label for="managerRemark" class="form-label "><strong>Manager's Remark:</strong></label>
+          <textarea id="managerRemark" 
+                  rows="3" 
+                  class="form-control">{{ selectedGoal.managerRemark }}</textarea>
+        </div>
+        </div>
       </div>
       
     </div>

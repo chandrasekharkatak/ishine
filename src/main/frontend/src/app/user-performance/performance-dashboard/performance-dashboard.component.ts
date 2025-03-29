@@ -11,7 +11,6 @@ import { GoalService } from 'src/app/services/goal.service';
 import { Feature } from 'src/app/models/feature';
 import { LogService } from 'src/app/services/log.service';
 import { Log } from 'src/app/models/log';
-import { KraKpiService } from 'src/app/services/kpi-kra.service';
 
 interface Goal {
   goalStatus: string;
@@ -45,7 +44,6 @@ interface QuestionDTO {
 response: any;
   id: number;
   questionText: string;
-  // Add other fields as needed
 }
 
 interface kpiList{
@@ -81,7 +79,7 @@ export class PerformanceDashboardComponent implements OnInit {
     kraKpiScore: '',
     questionnaireScore: '',
   };
-
+  minRating = 3;
   goals: Goal[] = [];
   summary?: AppraisalSummary;
 
@@ -100,7 +98,6 @@ export class PerformanceDashboardComponent implements OnInit {
     private performanceService:PerformanceService,
     private goalService:GoalService,
     private logService:LogService,
-    private krakpiService: KraKpiService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -109,7 +106,6 @@ export class PerformanceDashboardComponent implements OnInit {
     this.logService.updateLogInfo(this.log);
 
     this.onGetEmployeeInfo();
-    this.fetchQuarters();
     this.fetchGoals();
     this.loadPerformanceStats();
 
@@ -135,15 +131,18 @@ export class PerformanceDashboardComponent implements OnInit {
     }
   }
 
+
   fetchQuarters(): void {
     this.performanceService.getAllQuarterCycles().subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.quarterCyclesList = response.serviceResponse;
-          // this.selectedQuarter = this.quarterCyclesList[0].quarterId;
-          console.log('list of quarters:', this.quarterCyclesList);
+          this.selectedQuarter = this.quarterCyclesList[0].quarterId;
+          this.selectedQuarter1 = this.quarterCyclesList[0].quarterId;
+          // console.log('list of quarters:', this.quarterCyclesList);
           
           this.onQuarterChange();
+          this.quarterChange2();
         } else {
           this.errorMessage = response.serviceMessage || 'Failed to load quarters.';
         }
@@ -160,26 +159,10 @@ export class PerformanceDashboardComponent implements OnInit {
     this.loadPerformanceStats(); 
     this.fetchGoals();
     this.loadAppraisalSummary();
-    if (this.activeTab === 'questionnaire') {
-      this.loadQuestionnaireQuestions();
-    }
+    
   }
 
-  onQuarterChange1(): void {
-    if (!this.selectedQuarter) return;
-    
-    // Clear existing questions when quarter changes
-    this.questionnaireQuestions = [];
-    
-    // this.loadPerformanceStats();
-    // this.loadReviewData(); // This is commented out in your original code
-    // this.fetchGoals();
-    
-    // Only load questionnaire questions if we're on the questionnaire tab
-    if (this.activeTab === 'questionnaire') {
-      this.loadQuestionnaireQuestions();
-    }
-  }
+
 
 
   loadAppraisalSummary(): void { 
@@ -190,7 +173,7 @@ export class PerformanceDashboardComponent implements OnInit {
     this.performanceService.getAppraisalSummary(empId).subscribe({
       next: (response) => {
         this.summary = response.serviceResponse[0];
-        console.log('appraisal summary:', this.summary);
+        // console.log('appraisal summary:', this.summary);
       },
       error: (err) => {
         console.error('Error fetching Appraisal Summary:', err);
@@ -208,7 +191,7 @@ export class PerformanceDashboardComponent implements OnInit {
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.goals = response.serviceResponse; 
-          console.log('list of goals',this.goals);
+          // console.log('list of goals',this.goals);
         } else {
           this.errorMessage = response.serviceMessage || 'No goals found for this employee.';
         }
@@ -229,33 +212,13 @@ export class PerformanceDashboardComponent implements OnInit {
     this.performanceService.getPerformanceStats(empId, quarter).subscribe({
       next: (response: any) => {
         this.stats = response.serviceResponse;
-        console.log('STATS::: ',this.stats)
+        // console.log('STATS::: ',this.stats);
       },
       error: (err) => {
         console.error('Error fetching performance stats:', err);
       },
     });
   }
-
-  // loadQuestionnaireQuestions(): void {
-  //   const quarterId = this.selectedQuarter;
-  //   const departmentId = this.currentEmployeeInfo.departmentId;
-    
-  //   if (!quarterId || !departmentId) return;
-    
-  //   this.performanceService.getQuestionnaireByQuarterAndDepartment(quarterId, departmentId).subscribe({
-  //     next: (response: any) => {
-  //       if (response.serviceStatus === 'Success') {
-  //         this.questionnaireQuestions = response.serviceResponse;
-  //       } else {
-  //         console.error('Failed to load questionnaire questions:', response.serviceMessage);
-  //       }
-  //     },
-  //     error: (error) => {
-  //       console.error('Error fetching questionnaire questions:', error);
-  //     }
-  //   });
-  // }
 
   setActiveTab(tab: string) {
     this.activeTab = tab;
@@ -267,54 +230,12 @@ export class PerformanceDashboardComponent implements OnInit {
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
-  // loadReviewData(): void {
-  //   const empId = this.currentUser?.empId;
-  //   const quarter = this.selectedQuarter1;
-  //   if (!empId) return;
-  //   this.performanceService.getKraKpiReview(empId, quarter).subscribe({
-  //     next: (data) => {
-  //       if (data.serviceStatus === 'Success') {
-  //         this.kraKpiMetrics = data.serviceResponse;
-  //       }
-  //     },
-  //     error: err => console.error('Error fetching KRA/KPI metrics:', err)
-  //   });
 
-  //   this.performanceService.getQuestionnaireReview(empId, quarter).subscribe({
-  //     next: (data) => {
-  //       if (data.serviceStatus === 'Success') {
-  //         this.questionnaireQuestions = data.serviceResponse;
-  //       }
-  //     },
-  //     error: err => console.error('Error fetching questionnaire:', err)
-  //   });
-  // }
-
-  addCheckpoint() {
-    this.selectedGoal.checkpoints.push('');
-  }
-  
-  removeCheckpoint(index: number) {
-    this.selectedGoal.checkpoints.splice(index, 1);
-  }
-  
-  // Add these methods to your PerformanceDashboardComponent class
-
-initQuestionnaireForm(): void {
-  const formGroup = this.fb.group({});
-  
-  // Add form controls for each question
-  this.questionnaireQuestions.forEach(question => {
-    formGroup.addControl('question_' + question.id, this.fb.control(''));
-    formGroup.addControl('rating_' + question.id, this.fb.control(''));
-  });
-  
-  this.questionnaireReviewForm = formGroup;
-}
 quarterChange2(): void{
   this.loadKpiList();
   this.loadQuestionnaireQuestions();
 }
+
 loadQuestionnaireQuestions(): void {
   
   const quarterId = this.selectedQuarter1;
@@ -324,16 +245,13 @@ loadQuestionnaireQuestions(): void {
   this.currentQuestionnaireId = null;
   
   if (!quarterId || !departmentId) return;
-  
-  this.http.get(`http://localhost:8081/api/questionnaires/department/${departmentId}/quarter/${quarterId}`)
-    .subscribe({
+
+    this.performanceService.getQuestionnares(departmentId, quarterId).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.questionnaireQuestions = response.serviceResponse[0].questions;
-          // this.currentQuestionnaireId = response.serviceResponse[0].questionId;
           console.log('Questionnaire response:',this.questionnaireQuestions);
 
-          this.initQuestionnaireForm();
         } else {
           console.error('Failed to load questionnaire questions:', response.serviceMessage);
         }
@@ -343,19 +261,19 @@ loadQuestionnaireQuestions(): void {
       }
     });
 }
+
+
 loadKpiList(): void {
   const quarterId = this.selectedQuarter1;
   const departmentId = this.currentEmployeeInfo.departmentId;
   
   if (!quarterId || !departmentId) return;
-
-  this.http.get(`http://localhost:8081/api/kpi/getKpisByQuarter/${quarterId}/Department/${departmentId}`)
-    .subscribe({
+  
+    this.performanceService.getKraKpi(departmentId, quarterId).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.kpiList = response.serviceResponse[0].kpis;
 
-          this.initQuestionnaireForm();
         } else {
           console.error('Failed to load questionnaire questions:', response.serviceMessage);
         }
@@ -366,6 +284,8 @@ loadKpiList(): void {
     });
 
 }
+
+
 
 saveKpiResponses(): void {
 
@@ -414,9 +334,7 @@ saveQuestionnaireResponses(): void {
   saveUpdates() {
     const payload = {
       goalProgress: this.selectedgoalProgress,
-      // checkpoints: this.selectedGoal.checkpoints,
       employeeRemark: this.selectedGoal.employeeRemark,
-      // goalId : this.selectedGoal.goalId
     };
   
     this.goalService.updateGoal(this.selectedGoal.goalId, payload).subscribe(
