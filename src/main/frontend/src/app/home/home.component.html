@@ -67,63 +67,6 @@
 
 
 
-<!-- First Div: Both conditions are true -->
-<div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null && consentNotificationMessage != null"
-    style="display: flex; justify-content: space-between; width: 100%;">
-
-    <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="left"
-        style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop; width: calc(55vw - 4px);   overflow: hidden; display: inline-block;">
-        <span>
-            "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
-        </span>
-    </marquee>
-
-    <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="right" onmouseover="this.stop()"
-        onmouseout="this.start()"
-        style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop; width: calc(50vw - 255px);  overflow: hidden; display: inline-block;">
-        <span>
-            {{consentNotificationMessage}}
-        </span>
-        <button class="btn btn-sm btn-outline-success" (click)="submitNotificationConsent()"
-            style="margin-left: 8px; height: 30px; width: 120px; font-size: 12px;">
-            I Agree
-        </button>
-
-    </marquee>
-
-</div>
-
-<!-- Second Div: Only lines.billableType === 'Bench' && lines.dayOnbench != null is true -->
-<div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null && consentNotificationMessage == null"
-    style="display: flex; justify-content: space-between; width: 100%; position: relative;">
-
-    <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="left"
-        style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop;  overflow: hidden; display: inline-block;">
-        <span>
-            "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
-        </span>
-    </marquee>
-
-</div>
-
-<!-- Third Div: Only consentNotificationMessage != null is true -->
-<div *ngIf="consentNotificationMessage != null && (lines.billableType !== 'Bench' || lines.dayOnbench == null)"
-    style="display: flex; justify-content: space-between; width: 100%; position: relative;">
-
-    <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="left" onmouseover="this.stop()"
-        onmouseout="this.start()"
-        style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop;   overflow: hidden; display: inline-block;">
-        <span>
-            {{consentNotificationMessage}}
-        </span>
-        <button class="btn btn-sm btn-outline-success" (click)="submitNotificationConsent()"
-            style="margin-left: 8px; height: 30px; width: 120px; font-size: 12px;">
-            I Agree
-        </button>
-    </marquee>
-
-
-</div>
 
 
 <!-- style="font-family: Calibri, sans-serif; color: #FFFFFF;  background-color: #193d8a; scrolldelay: 50; behavior: loop; "> -->
@@ -204,7 +147,8 @@
 
 
         <ul class="navbar-nav">
-            <li  *ngIf="currentUser.employeeRole == 'RMG'"  class="nav-item" style="margin-left: 10px; ">
+            <li  *ngIf="currentUser.employeeRole === 'RMG'"
+            class="nav-item" style="margin-left: 10px; ">
                 <a class="nav-link nav-text notification_icon" (click)="openPoExpiredMod()">
                     <i class="fas fa-bell" ></i>
                     EXP PO
@@ -1317,8 +1261,8 @@
     </ng-template>
 
      <!-- poexpire_template Modal fixed after login-->
-     <ng-template #poexpire_template_fixed>
-        <div  *ngIf="currentUser.employeeRole == 'RMG'" >
+     <ng-template #poexpire_template_fixed *ngIf="currentUser.employeeRole === 'RMG' ">
+        <div>
             <div class="modal-header">
                 <b>Expired Projects/POs</b>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
@@ -1326,12 +1270,12 @@
                 </button>
             </div>
             <div class="modal-body text-center" style="overflow: scroll;">
-                <app-expied-po-and-project></app-expied-po-and-project>
+                <app-expied-po-and-project [employee]="expiredList" (emailEvent)="handleEmailRequest($event)"></app-expied-po-and-project>
             </div>
         </div>
     </ng-template>
 
-    <ng-template #poexpire_template>
+    <!-- <ng-template #poexpire_template>
         <div class="modal-header">
             <b>Expired Projects/POs</b>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
@@ -1342,7 +1286,7 @@
             <app-expied-po-and-project></app-expied-po-and-project>
         </div>
         
-    </ng-template>
+    </ng-template> -->
 
     <ng-template #mailSentPopUp>
         <div class="modal-body text-center">
@@ -1365,3 +1309,64 @@
             <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
         </div>
       </ng-template>
+
+
+
+
+      <!-- First Div: Both conditions are true -->
+<!-- <div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null && consentNotificationMessage != null"
+style="display: flex; justify-content: space-between; width: 100%;">
+
+<marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="left"
+    style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop; width: calc(55vw - 4px);   overflow: hidden; display: inline-block;">
+    <span>
+        "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
+    </span>
+</marquee>
+
+<marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="right" onmouseover="this.stop()"
+    onmouseout="this.start()"
+    style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop; width: calc(50vw - 255px);  overflow: hidden; display: inline-block;">
+    <span>
+        {{consentNotificationMessage}}
+    </span>
+    <button class="btn btn-sm btn-outline-success" (click)="submitNotificationConsent()"
+        style="margin-left: 8px; height: 30px; width: 120px; font-size: 12px;">
+        I Agree
+    </button>
+
+</marquee>
+
+</div> -->
+
+<!-- Second Div: Only lines.billableType === 'Bench' && lines.dayOnbench != null is true -->
+<!-- <div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null && consentNotificationMessage == null"
+style="display: flex; justify-content: space-between; width: 100%; position: relative;">
+
+<marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="left"
+    style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop;  overflow: hidden; display: inline-block;">
+    <span>
+        "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
+    </span>
+</marquee>
+
+</div> -->
+
+<!-- Third Div: Only consentNotificationMessage != null is true -->
+<!-- <div *ngIf="consentNotificationMessage != null && (lines.billableType !== 'Bench' || lines.dayOnbench == null)"
+style="display: flex; justify-content: space-between; width: 100%; position: relative;">
+
+<marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="left" onmouseover="this.stop()"
+    onmouseout="this.start()"
+    style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop;   overflow: hidden; display: inline-block;">
+    <span>
+        {{consentNotificationMessage}}
+    </span>
+    <button class="btn btn-sm btn-outline-success" (click)="submitNotificationConsent()"
+        style="margin-left: 8px; height: 30px; width: 120px; font-size: 12px;">
+        I Agree
+    </button>
+</marquee>
+
+
+</div> -->

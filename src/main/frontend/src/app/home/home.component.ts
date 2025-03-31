@@ -31,6 +31,8 @@ import { RewardsServiceService } from '../services/rewards-service.service';
 import { TimesheetService } from '../services/timesheet.service';
 import { UtilityService } from '../services/utility.service';
 import { ValidationService } from '../services/validation.service';
+import { ExpiredEmailData } from '../models/expiredEmailmodel';
+import { PoObject } from '../models/poObbjectData';
 
 interface objlms{
   email:any
@@ -129,7 +131,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
   leaveTypes: Leave[] = [];
   leaveBucketDetails: any[] = [];
   lmsauthentication:any;
-
+// Expired Po section
+expiredList:any[] = [];
+popUpMessege:any;
 //  notificationObj: NotificationMessage = new NotificationMessage();
 //  timesheetDetails: any[] = [];
 
@@ -1413,11 +1417,14 @@ async ngOnInit(): Promise<void> {
 
   openPoExpiredMod() {
     this.cancelRequest();
-    let template=this.poExpireTemplateRef;
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' ,
+    this.geExpiredtPoData();
+      console.log(this.expiredList);
+    // alert("hi");
+    this.modalRef = this.modalService.show(this.poExpireTemplateRef, { class: 'modal-xl' ,
       backdrop: 'static',
       keyboard: false 
   });
+  
   }
 
   openReqMod(template: TemplateRef<any>) {
@@ -2111,6 +2118,7 @@ async ngOnInit(): Promise<void> {
    }
  }
 
+
   submitReleaseNoteNotificationConsent() {
     let notificationObj = new NotificationMessage();
 
@@ -2350,7 +2358,45 @@ moveToNextGroup(): void {
 emailSentPopUp(msg:any){
   this.openAlertMod(this.mailSentPopUp,msg);
 }
-  
+geExpiredtPoData(){
+  this.employeeService.getExpiredPo().pipe(first()).subscribe((response: any) => {
+  if(response.serviceStatus == "Success"){
+   this.expiredList =  response.serviceResponse
+    console.log(response,":::::::::::::::::::Response,geExpiredtPoData")
+  }
+  });
+}
+
+handleEmailRequest(eventData: { poEndDate: any, projectName: any, poNo: any, poProjectType: any }) {
+  console.log('Email Request Received:', eventData);
+  this.sendEmail(eventData.poEndDate,eventData.projectName,eventData.poNo,eventData.poProjectType);
+  // Perform email sending logic here
+}
+
+sendEmail(poEndDate:any,projectName:any,poNo:any,poProjectType:any){
+
+  console.log(poEndDate,projectName,poNo,poProjectType)
+  let expiredEmailData: ExpiredEmailData = new ExpiredEmailData();
+  let poObject: PoObject = new PoObject();
+  poObject.poNo = poNo;
+  poObject.projectName = projectName;
+  poObject.endDate = poEndDate;
+  poObject.poType = poProjectType;
+  expiredEmailData.expiredData = poObject;
+  let user = JSON.parse(sessionStorage.getItem('currentUser'));
+  expiredEmailData.userEmail = user.email;
+  console.log(expiredEmailData,"expiredEmailData",)
+  console.log(expiredEmailData.expiredData,"expiredEmailData")
+  console.log(expiredEmailData,"expiredEmailData")
+  this.employeeService.sendExpiredPoEmail(expiredEmailData).pipe(first()).subscribe((response: any) => {
+    if(response.serviceStatus == "Success"){
+      this.popUpMessege =  response.serviceMessage;
+       console.log(response,":::::::::::::::::::Response,geExpiredtPoData");
+       this.cancelRequest();
+      this.emailSentPopUp(this.popUpMessege);
+     }
+  });
+}
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
