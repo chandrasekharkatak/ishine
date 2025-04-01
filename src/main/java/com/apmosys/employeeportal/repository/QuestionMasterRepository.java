@@ -10,8 +10,8 @@ public interface QuestionMasterRepository extends JpaRepository<QuestionMaster, 
 
 	List<QuestionMaster> findByEntityIdAndEntityType(Long milestoneId, String string);
 
-//	List<QuestionMaster> findByMilestoneId(Long milestoneId);
+	QuestionMaster findByQuestionMasterId(Long questionId);
 
-//	QuestionMaster findByQuestionMasterId(Long questionId);
+//	List<QuestionMaster> findByMilestoneId(Long milestoneId);
 
 }

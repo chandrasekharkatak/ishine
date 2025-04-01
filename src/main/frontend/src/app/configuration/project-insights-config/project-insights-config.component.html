@@ -216,8 +216,8 @@
                                             </button>
                                         </div>
                                     </div>
-                                    <button *ngIf="projectInsightQuestionList.length > 1" type="button"
-                                        class="btn btn-outline-primary mx-1" (click)="removeMilestone(modIndex)">
+                                    <button type="button"
+                                        class="btn btn-outline-primary mx-1" (click)="removeModule(mileIndex, modIndex)">
                                         <i class="fa fa-trash" aria-hidden="true"></i>
                                     </button>
                                 </div>
@@ -293,8 +293,8 @@
                                                 </button>
                                             </div>
                                         </div>
-                                        <button *ngIf="projectInsightQuestionList.length > 1" type="button"
-                                            class="btn btn-outline-primary mx-1" (click)="removeMilestone(submodIndex)">
+                                        <button type="button"
+                                            class="btn btn-outline-primary mx-1" (click)="removeSubModule(mileIndex, modIndex, submodIndex)">
                                             <i class="fa fa-trash" aria-hidden="true"></i>
                                         </button>
                                     </div>

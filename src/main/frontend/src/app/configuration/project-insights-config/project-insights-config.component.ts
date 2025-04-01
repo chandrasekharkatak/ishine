@@ -287,6 +287,14 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.projectInsightQuestionList.splice(mileIndex,1);
   }
 
+  removeModule(mileIndex:any, modIndex:any){
+    this.projectInsightQuestionList[mileIndex].moduleList.splice(modIndex);
+  }
+
+  removeSubModule(mileIndex:any, modIndex:any, subModIndex:any){
+    this.projectInsightQuestionList[mileIndex].moduleList[modIndex].subModuleList.splice(subModIndex);
+  }
+
   // Manage Options
   addOption(mileIndex, i, questionObj:ProjectQuestion){
     let question = this.projectInsightQuestionList[mileIndex].projectQuestion.find(ques => ques == questionObj);
@@ -345,7 +353,6 @@ export class ProjectInsightsConfigComponent implements OnInit {
         return false;
       }
 
-      alert(milestone.assignedTo)
       if(!this.validationService.validateNullUndefinedEmptyString(milestone.assignedTo)){
         this.alertMessage = `Please select assign user in milestone ${mileIndex+1} !!`;
         this.openAlertMod(template, this.alertMessage);
@@ -758,7 +765,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
       projObj.projectManagerId = this.projectInsightQuestion.projectManagerId;
       projObj.projectManagerName = this.projectInsightQuestion.projectManagerName;
       projObj.projectInsightQuestionList = this.projectInsightQuestionList;
-      projObj.createdBy = this.currentUser.empId;
+      projObj.updatedBy = this.currentUser.empId;
   
       projObj.projectInsightQuestionList.forEach((proj:ProjectInsightQuestion) => {
 
