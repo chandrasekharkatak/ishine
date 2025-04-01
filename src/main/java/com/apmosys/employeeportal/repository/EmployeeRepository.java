@@ -48,8 +48,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "INNER JOIN employee e7 ON d.hod_id = e7.emp_id \n"
 			+ "LEFT JOIN employee e5 ON e.reporting_manager_id = e5.emp_id \n"
 			+ "LEFT JOIN designation des ON des.designation_id = e.designation_id \n"
+			+" where e.employmentstatus!='InActive' and \n"
+			+ "(e.manager_id=:empId or d.hod_id=:empId or e.reporting_manager_id=:empId)"
 			+ "order by e.name")
-	public List<Object[]> getAllEmployeesForPerformance();
+	public List<Object[]> getAllEmployeesForPerformance(Long empId);
 
 //	@Query(nativeQuery = true)	
 //	public List<Object[]> getEmployeesByRole();	

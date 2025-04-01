@@ -240,7 +240,7 @@ export class UserPerformanceComponent implements OnInit {
 
   getAllEmployee() {
 
-    this.performanceSerive.getAllEmployeesForPerformance().subscribe
+    this.performanceSerive.getAllEmployeesForPerformance(this.currentUser.empId).subscribe
       ((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allEmployee = response.serviceResponse;
@@ -253,7 +253,7 @@ export class UserPerformanceComponent implements OnInit {
           // this.allEmployee = this.allEmployee.filter(employee => employee.empId !== this.currentUser.empId);
           this.eligibleEmployees = this.allEmployee.filter(employee => {
             console.log("employee hod", employee.hodName);
-            console.log("employee hod", employee.hodId);
+            console.log("employee managerId", employee.managerId);
           
             // Append employee ID using utility service
             employee.employeementId = this.utilityService.appendEmployeementid(employee.isConsultant, employee.employeementId);
@@ -264,6 +264,15 @@ export class UserPerformanceComponent implements OnInit {
             if (employee.hodId === this.currentUser.empId) {
               // Check if the employee is confirmed and joined more than one year ago
               return joiningDate <= oneYearAgo && employee.employmentstatus === 'Confirmed';
+            }else{
+
+              if(employee.managerId!=null){
+                if(employee.managerId===this.currentUser.managerId){
+                  return joiningDate <= oneYearAgo && employee.employmentstatus === 'Confirmed';
+          
+                }
+              }
+             
             }
             if( this.userMapping.performance_action_by_hr === true){
               // Check if the employee is confirmed and joined more than one year ago
@@ -280,13 +289,11 @@ export class UserPerformanceComponent implements OnInit {
           });
           this.eligibleEmployees.forEach(eligibleEmp => {
             let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === eligibleEmp.employeementId);
-            console.log('matches++',matchingEmployee);
             eligibleEmp.emp360 = matchingEmployee ? matchingEmployee : {};
 
           });
 
-          console.log("eligibleEmployees", this.eligibleEmployees);
-
+         
         } else {
           console.error(response.serviceResponse);
         }
@@ -479,7 +486,7 @@ export class UserPerformanceComponent implements OnInit {
 
   name = 'EmployeeSheet.xlsx';
   exportToExcel(): void {
-    this.performanceService.getAllEmployeesForPerformance().pipe(first()).subscribe((response: any) => {
+    this.performanceService.getAllEmployeesForPerformance(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         //  this.employeeDataForExcel = response.serviceResponse;
 

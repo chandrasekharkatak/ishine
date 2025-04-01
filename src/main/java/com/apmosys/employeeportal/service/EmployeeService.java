@@ -3045,10 +3045,10 @@ public class EmployeeService {
 		return response;
 	}
 	
-	public ServiceResponse getAllEmployeesForPerformance() {
+	public ServiceResponse getAllEmployeesForPerformance(Long empId) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			List<Object[]> allEmployeeListForPerformance = employeeRepository.getAllEmployeesForPerformance();
+			List<Object[]> allEmployeeListForPerformance = employeeRepository.getAllEmployeesForPerformance(empId);
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 
 			if (allEmployeeListForPerformance != null) {
