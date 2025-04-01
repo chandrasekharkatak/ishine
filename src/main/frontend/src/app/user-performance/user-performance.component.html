@@ -300,8 +300,8 @@
               <textarea id="justification" [(ngModel)]="hodRemarks" [disabled]="currentStatus === 'Ongoing' || currentStatus === 'Completed'"></textarea>
   
               <button type="button" class="btn btn-primary float-right"
-                (click)="submitReviewEmployee(quarter,alert_message,i)" *ngIf="!enableDisableSubmit && userMapping.performance_action_by_hod">Submit</button>
-                <button type="button" class="btn btn-primary float-right" (click)="updateReviewEmployee(quarter,alert_message,i)" *ngIf="currentStatus == 'Rejected' && userMapping.performance_action_by_hod">Update</button>
+                (click)="submitReviewEmployee(quarter,alert_message,i)" *ngIf="!enableDisableSubmit && userMapping.performance_action_by_approvals_to">Submit</button>
+                <button type="button" class="btn btn-primary float-right" (click)="updateReviewEmployee(quarter,alert_message,i)" *ngIf="currentStatus == 'Rejected' && userMapping.performance_action_by_approvals_to">Update</button>
   
               <div class="d-flex justify-content-end" *ngIf="currentStatus == 'Ongoing'  && userMapping.performance_action_by_hod">
                 <button type="button" class="btn btn-primary" *ngIf="enableDisableSubmit"

@@ -142,7 +142,7 @@ export class UserPerformanceComponent implements OnInit {
       });
 
       this.isperformanceDsah = true;
-
+      console.log("usermappinghodhr",this.userMapping);
       // console.log("hodddddd", this.userMapping.performance_action_by_hod);
       // console.log("hrrrrrrrr", this.userMapping.performance_action_by_hr);
        this.getAllEmployeeFor360View();
