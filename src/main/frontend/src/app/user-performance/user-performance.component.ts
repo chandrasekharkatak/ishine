@@ -924,57 +924,61 @@ export class UserPerformanceComponent implements OnInit {
 
   }
 
-  currentStatus: any;
-  HrAndHodView(performance: any) {
+
+  currentStatus:any;
+  HrAndHodView(performance:any){
     this.performanceSerive.hrAndHodEmpoyeePerformanceView(performance).pipe(first()).subscribe((response: any) => {
-      this.enableDisableSubmit = false;
+      this.enableDisableSubmit=false;
       if (response.serviceStatus == "Success") {
         this.performnace1 = response.serviceResponse;
-
-        console.log("given by hod", this.performnace1);
-
+        
+        console.log("given by hod",this.performnace1);
+       
 
         this.currentStatus = this.performnace1[0].completionStatus;
         this.enableDisableSubmit = !this.enableDisableSubmit;
         this.filterRatingCriteria = this.performnace1.filter(item => item.deptId == this.selectedEmployee.departmentId && item.reviewFieldType === 'Rating' && item.empId == this.selectedEmployee.empId && item.quarterId == this.performnace.quarterId);
         this.filterCriteria = this.performnace1.filter(item => item.deptId == this.selectedEmployee.departmentId && item.reviewFieldType === 'Slider' && item.empId == this.selectedEmployee.empId && item.quarterId == this.performnace.quarterId);
         this.filterCriteria.forEach(value => {
-          this.myList.push({ reviewLabel: value.reviewLabel, silde: value.ratingValue, performanceRatingId: value.performanceRatingId });
-          this.finalRating = value.finalRating;
+          this.myList.push({ reviewLabel: value.reviewLabel, silde: value.ratingValue,performanceRatingId:value.performanceRatingId });
+          this.finalRating=value.finalRating;
           this.hodRemarks = value.hodRemarks;
           this.hrReviewStatus=value.hrReviewStatus;
           this.acceptReason = value.hrRemark;
           
         });
         this.filterRatingCriteria.forEach(value => {
-          this.myRateList.push({ reviewLabel: value.reviewLabel, rate: value.ratingValue, performanceRatingId: value.performanceRatingId });
-          this.finalRating = value.finalRating;
+          this.myRateList.push({ reviewLabel: value.reviewLabel, rate: value.ratingValue,performanceRatingId:value.performanceRatingId });
+          this.finalRating=value.finalRating;
           this.hodRemarks = value.hodRemarks;
           this.hrReviewStatus=value.hrReviewStatus;
-          this.acceptReason = value.hrRemark;
+           this.acceptReason = value.hrRemark;
+          
         });
+     
 
-
+      } else {
         this.currentStatus = 'Not Started';
         this.enableDisableSubmit = false;
         this.filterCriteriaQuarter = this.allReviewType.filter(item => item.quarterId === this.quarterId);
         this.filterCriteria = this.filterCriteriaQuarter.filter(item => item.departmentName == this.selectedEmployee.departmentName && item.reviewFieldType === 'Slider');
         this.filterRatingCriteria = this.filterCriteriaQuarter.filter(item => item.departmentName == this.selectedEmployee.departmentName && item.reviewFieldType === 'Rating');
         this.filterCriteria.forEach(value => {
-          this.myList.push({ reviewLabel: value.reviewLabel, silde: 0, performanceRatingId: null });
+          this.myList.push({ reviewLabel: value.reviewLabel, silde: 0 ,performanceRatingId:null});
           this.finalRating = null;
           this.hodRemarks = null;
         });
         this.filterRatingCriteria.forEach(value => {
-          this.myRateList.push({ reviewLabel: value.reviewLabel, rate: 0, performanceRatingId: null });
+          this.myRateList.push({ reviewLabel: value.reviewLabel, rate: 0,performanceRatingId:null });
           this.finalRating = null;
           this.hodRemarks = null;
         });
-
+        
       }
-
+     
     });
   }
+
 
   getStatusColor(status: string): string {
     switch (status) {
