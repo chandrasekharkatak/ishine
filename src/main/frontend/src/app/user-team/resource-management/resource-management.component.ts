@@ -1172,7 +1172,9 @@ export class ResourceManagementComponent implements OnInit {
         "Client State": x.clientState,
         "Created On": x.createdOn,
         "Approval Status": x.isDraftProject,
-        "Project Status": x.status
+        "Project Status": x.status,
+        "Apmosys RM": x.apmosysRM,
+        "Client RM": x.clientRM
       })
     )
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
