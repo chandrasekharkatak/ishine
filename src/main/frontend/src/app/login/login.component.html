@@ -38,6 +38,10 @@
                                     <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextType,'fa-eye': fieldTextType}"></em>
                                 </span>
                             </div>
+                            <!-- <span style="color:red; display: flex; justify-content: flex-end"> -->
+                                <p style="color:red; display: flex; justify-content: flex-end">00:{{timeLeft}}</p>
+                            <!-- </span> -->
+
                         </div>
                         <button type="submit" class="btn btn-primary btn-block otp__btn" (click)="onConfirmLoginOTP()">Confirm</button>
                     </div>
@@ -91,7 +95,7 @@
                     <div class="auth__cta d-flex justify-content-between mt-3">
                         <a *ngIf="isLoginForm" class="auth__link" (click)="showForgotPassForm()">Forgot Password?</a>
                         <a *ngIf="!isLoginForm" class="auth__link" (click)="showLoginForm()">SIGN IN</a>
-                        <a *ngIf="isOtpForm || isForgotPassOtpForm" class="auth__link" (click)="resendOTP()">Resend OTP</a>
+                        <a *ngIf="isOtpForm || isForgotPassOtpForm" class="auth__link" (click)="resendOTP();resetTimer();startTimer()">Resend OTP</a>
                     </div>
                 </div>
             </div>

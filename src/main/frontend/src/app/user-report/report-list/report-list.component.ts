@@ -117,6 +117,7 @@ export class ReportListComponent implements OnInit {
   leaveReportFlag:boolean=false;
   timesheetReportFlag:boolean=false;
   showDetails:boolean = false;
+  showDetailsTimesheet:boolean = false;
   changeTable:boolean = true;
 
   filters:any = {};
@@ -204,6 +205,27 @@ export class ReportListComponent implements OnInit {
       this.showEmployeeReportTable();
     }
   }
+
+  toggleViewTimesheet(){
+    if(this.showDetailsTimesheet === true){
+      this.showDetailsTimesheet = false;
+    }
+    else{
+      this.showDetailsTimesheet = true;
+      this.selectedDepartment= 'all';
+      this.getAllDepartments();
+      this.getAllOrDeptWiseEmployeeTimesheetReport();
+     
+    }
+  }
+
+  getAllOrDeptWiseEmployeeTimesheetReport(){
+    console.log("department"+ this.selectedDepartment);
+  }
+
+
+
+
   toggleView() {
     if(this.showDetails === true){
       this.showDetails = false;
@@ -437,6 +459,12 @@ onBoxClickDataChange(boxName) {
   // });
 
   console.log('Box click data-- :::::::::::::::::', this.filteredEmployees);
+}
+
+onDepartmentChangeTimesheet(event: any){
+  this.selectedDepartment = event.target.value;
+  this.getAllOrDeptWiseEmployeeTimesheetReport();
+
 }
 
   onDepartmentChange(event: any) {

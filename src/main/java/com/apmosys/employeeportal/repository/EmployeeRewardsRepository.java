@@ -18,7 +18,13 @@ import com.apmosys.employeeportal.model.EmployeeRewards;
 @Repository
 public interface EmployeeRewardsRepository extends JpaRepository <EmployeeRewards, Long>  {
 	
-	@Query(nativeQuery = true)
+	@Query(nativeQuery = true,value = "SELECT er.reward_id,er.is_active,er.id,er.rewarded_to,e.name AS rewarded_to_name, \n"
+			+ "er.reward_type AS rewardtypeId,er.reward_type_name,d.dept_id, \n"
+			+ "d.name AS department_name,er.ofmonthyear,rc.category_name FROM \n"
+			+ "employee_rewards er LEFT JOIN employee e ON e.emp_id = er.rewarded_to INNER JOIN \n"
+			+ "job_role j ON e.job_role_id = j.job_role_id INNER JOIN department d ON d.dept_id = j.dept_id \n"
+			+ "INNER JOIN rewards_category rc ON rc.reward_category_id = er.reward_category_id\n"
+			+ "WHERE  er.is_active !=0 AND er.reward_category_id = :rewardCategoryid")
 	 List<Object[]> fetchEmployeesForHomepage(Long rewardCategoryid);
 	 
 	 @Query(value = "SELECT \n"
@@ -38,11 +44,11 @@ public interface EmployeeRewardsRepository extends JpaRepository <EmployeeReward
 		@Query(nativeQuery = true)
 		List<Object[]> getRewardByEmpIdWithDateRange(Long empId, String ofMonthYear);
 
-		@Query(nativeQuery = true,value="SELECT e.name,er.reward_type_name, er.rewarded_to, er.created_on, er.remark, er.created_by,rc.reward_category_id,rc.category_name \n"
+		@Query(nativeQuery = true,value="SELECT e.name,er.reward_type_name, er.rewarded_to, er.created_on, er.remark, er.created_by,rc.reward_category_id,rc.category_name,e.emp_id,er.ofmonthyear \n"
 				+ "				FROM employee_rewards er \n"
 				+ "				INNER JOIN employee e ON e.emp_id = er.rewarded_to\n"
 				+ "                inner join rewards_category rc on er.reward_category_id = rc.reward_category_id\n"
-				+ "				where er.rewarded_to = :empId and er.ofmonthyear = :ofMonthYear")
+				+ "				where er.rewarded_to = :empId and er.ofmonthyear = COALESCE(:ofMonthYear, er.ofmonthyear)")
 		List<Object[]> getRewardDetailsByEmpId(Long empId, String ofMonthYear);
 		
 		@Query(nativeQuery = true, value="select t.team_id,t.team_name \n"
@@ -148,14 +154,27 @@ public interface EmployeeRewardsRepository extends JpaRepository <EmployeeReward
 //	List<Object[]> getRewardByTeamAndDateRange( @Param("empId") Long empId
 //														 );
 	
-	@Query(value = "SELECT e.name,er.reward_type_name, er.rewarded_to, er.created_on, er.remark, er.created_by,rc.reward_category_id,rc.category_name \n"
-			+ "			FROM employee_rewards er \n"
-			+ "			INNER JOIN employee e ON e.emp_id = er.rewarded_to\n"
-			+ "			inner join employee_team_mapping etm on etm.emp_id = e.emp_id\n"
-			+ "			inner join teams t on t.team_id = etm.team_id\n"
-			+ "            inner join rewards_category rc on rc.reward_category_id = er.reward_category_id\n"
-			+ "			where  etm.active != 0 and er.ofmonthyear = :ofMonthYear and t.team_id = :teamId ", nativeQuery = true)
-List<Object[]> getRewardByTeamAndDateRange(String ofMonthYear,Long teamId);
+	@Query(value = "SELECT e.name, er.reward_type_name, er.rewarded_to, er.created_on, \n"
+			+ "       er.remark, er.created_by, rc.reward_category_id, rc.category_name, e.emp_id,er.ofMonthYear \n"
+			+ "FROM employee_rewards er \n"
+			+ "INNER JOIN employee e ON e.emp_id = er.rewarded_to\n"
+			+ "INNER JOIN rewards_category rc ON rc.reward_category_id = er.reward_category_id\n"
+			+ "WHERE er.rewarded_to IN (\n"
+			+ "    SELECT e2.emp_id \n"
+			+ "    FROM employee e2 \n"
+			+ "    WHERE e2.emp_id IN (\n"
+			+ "        SELECT etm.emp_id \n"
+			+ "        FROM employee_team_mapping etm \n"
+			+ "        WHERE etm.team_id IN (\n"
+			+ "            SELECT etm2.team_id \n"
+			+ "            FROM employee_team_mapping etm2 \n"
+			+ "            WHERE etm2.emp_id = :currentUserEmpId\n"
+			+ "        )\n"
+			+ "    )\n"
+			+ ") \n"
+			+ "AND er.ofmonthyear = COALESCE(:ofMonthYear, er.ofmonthyear);\n"
+			+ "", nativeQuery = true)
+List<Object[]> getRewardByTeamAndDateRange(String ofMonthYear,Long currentUserEmpId);
 
 
  @Query(nativeQuery = true , value = "SELECT er.reward_id,rc.reward_category_id, rc.category_name, er.id ,r.reward_name,r.reward_type,er.reward_type_name,er.rewarded_to,\n"

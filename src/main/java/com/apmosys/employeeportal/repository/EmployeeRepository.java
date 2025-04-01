@@ -40,7 +40,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ " e.job_role_id, e.manager_id, e.name, \n"
 			+ " jr.dept_id, jr.name as jobrolename, \n"
 			+ " d.name as departmentname,e.emp_id, e2.name as manager, e.experience, \n"
-			+ "e.billable,e.total_experience,  jr.name as JobRolename,e.billable_type,des.designation_name,e.reporting_manager_id, e5.name AS reportingManger, jr.employee_role, d.hod_id, e7.name AS hodName, d.name AS hodDepartmentName   \n"
+			+ "e.billable,e.total_experience,  jr.name as JobRolename,e.billable_type,des.designation_name,e.reporting_manager_id, e5.name AS reportingManger, jr.employee_role, d.hod_id, e7.name AS hodName, d.name AS hodDepartmentName  \n"
 			+ "FROM employee e \n"
 			+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
 			+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
@@ -50,8 +50,38 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "INNER JOIN employee e7 ON d.hod_id = e7.emp_id \n"
 			+ "LEFT JOIN employee e5 ON e.reporting_manager_id = e5.emp_id \n"
 			+ "LEFT JOIN designation des ON des.designation_id = e.designation_id \n"
+			+" where e.employmentstatus!='InActive' AND  d.hod_id=:empId  \n"
+			+ "or (\n"
+			+ "    CASE \n"
+			+ "        WHEN e.approvals_to = 'Manager' THEN e.manager_id = :empId \n"
+			+"  WHEN e.approvals_to = 'Reporting Manager' THEN e.reporting_manager_id = :empId \n"
+			+ "        ELSE (d.hod_id = :empId)\n"
+			+ "    END\n"
+			+ ")"
 			+ "order by e.name")
-	public List<Object[]> getAllEmployeesForPerformance();
+	public List<Object[]> getAllEmployeesForPerformance(Long empId);
+
+	
+	
+	@Query(nativeQuery = true, value = "SELECT e.employeement_id, \n"
+			+ " e.date_of_joining, e.email, \n"
+			+ " e.employmentstatus, \n"
+			+ " e.job_role_id, e.manager_id, e.name, \n"
+			+ " jr.dept_id, jr.name as jobrolename, \n"
+			+ " d.name as departmentname,e.emp_id, e2.name as manager, e.experience, \n"
+			+ "e.billable,e.total_experience,  jr.name as JobRolename,e.billable_type,des.designation_name,e.reporting_manager_id, e5.name AS reportingManger, jr.employee_role, d.hod_id, e7.name AS hodName, d.name AS hodDepartmentName  \n"
+			+ "FROM employee e \n"
+			+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
+			+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
+			+ "LEFT JOIN employee e3 on e.updated_by = e3.emp_id \n"
+			+ "LEFT JOIN employee e4 on e.created_by = e4.emp_id \n"
+			+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id \n"
+			+ "INNER JOIN employee e7 ON d.hod_id = e7.emp_id \n"
+			+ "LEFT JOIN employee e5 ON e.reporting_manager_id = e5.emp_id \n"
+			+ "LEFT JOIN designation des ON des.designation_id = e.designation_id \n"
+			+" where e.employmentstatus!='InActive'  \n"
+			+ "order by e.name")
+	public List<Object[]> getAllEmployeesForPerformanceForHr();
 
 //	@Query(nativeQuery = true)	
 //	public List<Object[]> getEmployeesByRole();	
@@ -430,7 +460,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 				    @Query(nativeQuery = true, value = "SELECT et.timesheet_id,et.emp_id,e.name,et.date,et.day_type,\n"
 				    	+ "et.office_in_time,et.office_out_time,et.total_time,\n"
-				    	+ "et.status,et.remarks,e.employeement_id,e.created_on,et.current_manager_id\n"
+				    	+ "et.status,et.remarks,e.employeement_id,et.created_on,et.current_manager_id\n"
 				    	+ "FROM employee_timesheets et  \n"
 				    	+ "inner join employee_timesheet_activities_mapping etam on etam.timesheet_id = et.timesheet_id \n"
 				    	+ "inner join activities a on a.activity_id = etam.activity_id \n"
@@ -441,7 +471,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 				        + " AND (:projectId = 0 OR p.project_id = :projectId) \n "
 				        +" AND (:teamName = 0 OR t.team_id = :teamName) \n "
 				        + "AND (:empId = 0 OR et.emp_id = :empId) " 
-				        + "AND ((:startDate IS NULL OR :endDate IS NULL) OR (et.date BETWEEN :startDate AND :endDate))")
+				        + "AND et.date >= CURDATE() - INTERVAL 3 MONTH\n"
+				        + "AND ((:startDate IS NULL OR :endDate IS NULL) OR (et.date BETWEEN :startDate AND :endDate))"
+				        + "ORDER BY et.date DESC\n")
 				    List<Object[]> getTimesheetData(
 				            @Param("status") String status,
 				            @Param("empId") long empId,
@@ -502,8 +534,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	public EmployeeDetailsForTeamMemberDTO getEmployeeDetailsForTeam(Long empId );
 
     @Query(nativeQuery = true,value = "SELECT \n"
-    		+ "    (SELECT COUNT(*) FROM employee_rewards WHERE rewarded_to = :employeeId) AS rewardCount,\n"
-    		+ "    (SELECT COUNT(*) FROM appreciation WHERE appreciation_to = :employeeId) AS appreciationCount")
+    		+ "    (SELECT COUNT(*) FROM employee_rewards WHERE rewarded_to = e.emp_id) AS rewardCount,\n"
+    		+ "    (SELECT COUNT(*) FROM appreciation WHERE appreciation_to = e.employeement_id) AS appreciationCount\n"
+    		+ "FROM employee e\n"
+    		+ "WHERE e.emp_id = :employeeId")
     List<Object[]> getRewardsAndAppreciationCount(@Param("employeeId") Long employeeId);
 	
 }

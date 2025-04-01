@@ -30,13 +30,14 @@ public class TimesheetDTO {
 	private String dayType;
 	private String employeeName;
 	private String createdByName;
+	private Long CreatedByEmpId;
 	private String createdOn;
 	private String startDate;
 	private String endDate;
 	private Long createdBy;
 	private List<ActivityDTO> allTimesheetActivities;
 	private List<ActivityDTO> updatedTimesheetActivities;
-
+    private Long activityTimesheetId;
 	private Long employeementId;
 
 	private Long applicationCount;

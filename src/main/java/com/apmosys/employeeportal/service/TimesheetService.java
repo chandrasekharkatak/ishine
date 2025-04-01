@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -1799,7 +1800,93 @@ public class TimesheetService {
 //	    System.err.println("--------cron ended---");
 //	}
 
-    
+	public ServiceResponse getAllOrDeptWiseEmployeeTimesheetReport(String deptId) {
+        ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        
+        apiLogInfo.setSubFeatureName("fetch_timesheets");
+        apiLogInfo.setApiUrl("/api/getAllOrDeptWiseEmployeeTimesheetReport");
+        apiLogInfo.setLogLevel("INFO");
+        
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("Requested Department ID: ").append(deptId);
+
+        try {
+            List<Object[]> timesheetList;
+            switch (deptId.toLowerCase()) {
+                case "all":
+                    timesheetList = timesheetsRepository.getAllEmployeeTimesheets();
+                    break;
+                default:
+                    timesheetList = timesheetsRepository.getTimesheetsByDepartment(Long.parseLong(deptId));
+                    break;
+            }
+
+            if (timesheetList == null || timesheetList.isEmpty()) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("No timesheets found.");
+                apiLogInfo.setApiResponse("No timesheets found.");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            } else {
+                List<TimesheetDTO> dtoList = timesheetList.stream()
+                        .map(this::mapToTimesheetDTO)
+                        .collect(Collectors.toList());
+
+                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(dtoList);
+                apiLogInfo.setApiResponse("Timesheet data retrieved.");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceResponse("Something went wrong.");
+            response.setServiceError(e.getMessage());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
+        }
+
+        apiLogInfo.setApiRequest(logBuilder.toString());
+        logService.logMyInfo(httpRequest, apiLogInfo);
+        return response;
+    }
+	
+	private TimesheetDTO mapToTimesheetDTO(Object[] object) {
+        TimesheetDTO dto = new TimesheetDTO();
+        dto.setTimesheetId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+        dto.setDate(object[1] != null ? object[1].toString() : null);
+        dto.setDayType(object[2] != null ? object[2].toString() : null);
+        dto.setEmployeementId(object[3] != null ? Long.parseLong(object[3].toString()) : null);        
+        dto.setEmployeeName(object[4] != null ? object[4].toString() : null);
+        dto.setTotalTime(object[5] != null ? Float.parseFloat(object[5].toString()) : null);
+        dto.setStatus(object[6] != null ? object[6].toString() : null);
+        dto.setCreatedByName(object[7] != null ? object[7].toString() : null);
+        dto.setCreatedOn(object[8] != null ? object[8].toString() : null);
+        dto.setCreatedByEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+        dto.setRemarks(object[10] != null ? object[10].toString() : null);
+        dto.setOfficeInTime(object[11] != null ? object[11].toString() : null);
+        dto.setOfficeOutTime(object[12] != null ? object[12].toString() : null);
+        dto.setIsNightShift(object[13] != null ? object[13].toString() : null);
+        dto.setLeaveType(object[14] != null ? object[14].toString() : null);
+        dto.setActivityTimesheetId(object[15] != null ? Long.parseLong(object[15].toString()) : null);
+        dto.setActivity(object[16] != null ? object[16].toString() : null);
+        dto.setDescription(object[18] != null ? object[18].toString() : null);
+        dto.setProjectName(object[19] != null ? object[19].toString() : null);
+        dto.setClientName(object[20] != null ? object[20].toString() : null);
+        dto.setClientLocation(object[21] != null ? object[21].toString() : null);
+        dto.setTeamName(object[22] != null ? object[22].toString() : null);
+        dto.setManagerName(object[23] != null ? object[23].toString() : null);
+        dto.setActivityId(object[24] != null ? Long.parseLong(object[24].toString()) : null);
+        dto.setProjectId(object[25] != null ? Integer.parseInt(object[25].toString()) : null);
+        dto.setIsApprenticeship(object[31] != null ? object[31].toString() : null);
+        dto.setIsConsultant(object[30] != null ? object[30].toString() : null);
+        dto.setDepartmentName(object[32] != null ? object[32].toString() : null);
+        dto.setManagerId(object[33] != null ? Long.parseLong(object[33].toString()) : null);
+        dto.setEmpId(object[34] != null ? Long.parseLong(object[34].toString()) : null);        
+        return dto;
+    }
+
     
 
 }

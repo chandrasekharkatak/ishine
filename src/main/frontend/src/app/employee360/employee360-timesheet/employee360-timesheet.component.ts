@@ -3,12 +3,14 @@ import { DatePipe } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { Router } from '@angular/router';
+import { saveAs } from 'file-saver';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { CalendarComponent } from 'src/app/helpers/calendar/calendar.component';
 import { Breadcrumb } from 'src/app/models/breadcrumd';
+import { Employee } from 'src/app/models/employee';
 import { Timesheet } from 'src/app/models/timesheet';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 import { EmployeeService } from 'src/app/services/employee.service';
@@ -17,8 +19,6 @@ import { TimesheetService } from 'src/app/services/timesheet.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { SortPipe } from 'src/app/sort.pipe';
 import * as XLSX from 'xlsx';
-import { saveAs } from 'file-saver';
-import { Employee } from 'src/app/models/employee';
 
 @Component({
   selector: 'app-employee360-timesheet',
@@ -762,6 +762,16 @@ async get360TimesheetDetails(
         console.log("matchingEmployee ", matchingEmployee);
         employee.emp360 = matchingEmployee ? matchingEmployee : {};
       });
+      this.result.sort((a, b) => {
+          
+        if (a.date > b.date) {
+          return -1; 
+        } else if (a.date < b.date) {
+          return 1; 
+        }
+        return 0;
+      });
+
       console.log("this.result =>", this.result);
     }
 

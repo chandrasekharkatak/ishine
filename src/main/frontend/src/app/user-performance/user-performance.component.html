@@ -296,31 +296,42 @@
               <label for="final-rating">Final Rating</label>
               <input type="text" id="final-rating" [value]="finalRating || '0'" disabled placeholder="Enter Final Rating">
   
-              <label for="justification">Justify your Rating (Min. 150 characters)</label>
-              <textarea id="justification" [(ngModel)]="hodRemarks"></textarea>
+              <label for="justification"><span class="text-danger">*</span>Justify your Rating (Min. 150 characters)</label>
+              <textarea id="justification" [(ngModel)]="hodRemarks" [disabled]="currentStatus === 'Ongoing' || currentStatus === 'Completed'"></textarea>
   
               <button type="button" class="btn btn-primary float-right"
                 (click)="submitReviewEmployee(quarter,alert_message,i)" *ngIf="!enableDisableSubmit && userMapping.performance_action_by_hod">Submit</button>
                 <button type="button" class="btn btn-primary float-right" (click)="updateReviewEmployee(quarter,alert_message,i)" *ngIf="currentStatus == 'Rejected' && userMapping.performance_action_by_hod">Update</button>
   
               <div class="d-flex justify-content-end" *ngIf="currentStatus == 'Ongoing'">
-                <button type="button" class="btn btn-primary" *ngIf="enableDisableSubmit && userMapping.performance_action_by_hr "
+                <button type="button" class="btn btn-primary" *ngIf="enableDisableSubmit  "
                   (click)="selectAction('accept')">Accept</button>
-                <button type="button" class="btn btn-danger ml-2" *ngIf="enableDisableSubmit && userMapping.performance_action_by_hr "
+                <button type="button" class="btn btn-danger ml-2" *ngIf="enableDisableSubmit "
                   (click)="selectAction('reject')">Reject</button>
               </div>
   
   
               <div *ngIf="isAcceptSelected">
-                <label for="acceptReason">Comments:</label>
+                <label for="acceptReason"><span class="text-danger">*</span>Comments:</label>
                 <textarea id="acceptReason" [(ngModel)]="acceptReason" class="form-control"
                   placeholder="Enter reason"></textarea>
               </div>
+              <div *ngIf="acceptReason != null && currentStatus == 'Completed' && hrReviewStatus == 'Accepted'">
+                <label for="acceptReason">Accept Reasons:</label>
+                <textarea id="acceptReason" [(ngModel)]="acceptReason" class="form-control"
+                  placeholder="Enter reason"></textarea>
+              </div>
+              
   
   
               <div *ngIf="isRejectSelected">
-                <label for="rejectReason">Provide Reject Reason:</label>
+                <label for="rejectReason"><span class="text-danger">*</span>Provide Reject Reason:</label>
                 <textarea id="rejectReason" [(ngModel)]="rejectReason" class="form-control"
+                  placeholder="Enter reason"></textarea>
+              </div>
+              <div *ngIf="acceptReason != null && hrReviewStatus == 'Rejected'">
+                <label for="rejectReason">Reject Reason:</label>
+                <textarea id="rejectReason" [(ngModel)]="acceptReason" class="form-control"
                   placeholder="Enter reason"></textarea>
               </div>
   

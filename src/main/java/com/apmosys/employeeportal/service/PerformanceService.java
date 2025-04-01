@@ -790,6 +790,8 @@ public class PerformanceService {
 					performanceDetails.setFinalRating(object[10] != null ? object[10].toString() : null);
 					performanceDetails.setDeptId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
 					performanceDetails.setPerformanceRatingId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
+					performanceDetails.setHrRemark(object[13] != null ? object[13].toString() : null);
+					performanceDetails.setHrReviewStatus(object[14] != null ? object[14].toString() : null);
 									
 					performance.add(performanceDetails);
 			 

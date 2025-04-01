@@ -84,10 +84,10 @@ public class EmployeeController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/getAllEmployeesForPerformance", method = RequestMethod.GET)
-	public ServiceResponse getAllEmployeesForPerformance() {
+	@RequestMapping(value = "/getAllEmployeesForPerformance/{empId}/{status}", method = RequestMethod.GET)
+	public ServiceResponse getAllEmployeesForPerformance(@PathVariable("empId") Long empId,@PathVariable("status") boolean status) {
 
-		ServiceResponse response = employeeService.getAllEmployeesForPerformance();
+		ServiceResponse response = employeeService.getAllEmployeesForPerformance(empId,status);
 		return response;
 	}
 	

@@ -27,7 +27,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 export class Employee360RewardsComponent implements OnInit {
 
   modalRef: BsModalRef = new BsModalRef();
-  currentEmpId: number = Number(sessionStorage.getItem('empId'));
+  // currentEmpId: number = Number(sessionStorage.getItem('empId'));
   currentUser: User;
   currentBreadcrumbList: any[] = [];
   rewardList: any[] = [];
@@ -55,8 +55,8 @@ export class Employee360RewardsComponent implements OnInit {
   isTeamTableVisible: boolean = false;
   isTeamTableVisible1: boolean = false;
   matchedEmployees: any[] = [];
-  rewardsColumns: any[] = ['','rewardCategory', 'rewardTypeName', 'name', 'createdOn','teamName', 'remark'];
-  rewardsTeamColumns:any[] = ['','rewardCategoryName','rewardTypeName','name','createdByName','remark','createdOn'];
+  rewardsColumns: any[] = ['blank' ,'rewardCategory', 'rewardTypeName', 'name','createdByName','createdOn','ofMonthYear','remark'];
+  rewardsTeamColumns:any[] = ['blank','rewardCategoryName','rewardTypeName','name','createdByName','ofmonthyear','remark','createdOn'];
   page: number = 1;
   sortDirection = 'asc';
   sortColumn: any;
@@ -75,6 +75,7 @@ export class Employee360RewardsComponent implements OnInit {
   allEmployeeList360:any[]=[];
   selectemmpName: string;
   employeeSearchText: any = '';
+  currentEmpId: any;
   constructor(
     private authenticationService: AuthenticationService,
     private rewardsService: RewardsServiceService,
@@ -115,7 +116,13 @@ export class Employee360RewardsComponent implements OnInit {
       breadcrumbObject.url = "/employee-360/rewards";
       this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
+    let employeeData = localStorage.getItem('employee360Data');
+    let employeeObject = JSON.parse(employeeData);
+     this.currentEmpId = employeeObject.empId;
+    //  console.log("ebe kahara"+ this.currentEmpId);
 
+    this.ofMonthYear = null;
+    this.getEmployeeRewardsDetails();
     this.getRewardsCategories(this.alertMessageTemplate);
     const currentYear = new Date().getFullYear();
     for (let i = currentYear; i >= currentYear - 10; i--) {
@@ -142,6 +149,69 @@ export class Employee360RewardsComponent implements OnInit {
   cancelRequest() {
     this.modalRef.hide();
   }
+
+  getEmployeeRewardsDetails(){
+    const request = {
+      empId:this.currentEmpId,
+      ofMonthYear: this.ofMonthYear,
+    };
+
+    // Call the API
+    this.rewardsService.getEmployeeRewardByEmpId(request).subscribe(
+      (response: any) => {
+         if(response.serviceStatus == 'Success'){
+          this.rewardList = response.serviceResponse;
+          this.rewardList.forEach(reward => {
+            let matchingnameempId = this.allEmployeeList360.find(emp => emp.empId === reward.nameId);
+            reward.emp360nameempid = matchingnameempId ? matchingnameempId : {}; 
+            let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId === reward.createdBY);
+            console.log('matches++',matchingEmployee);
+            reward.emp360 = matchingEmployee ? matchingEmployee : {};
+            if (reward.ofMonthYear) {
+              let [year, month] = reward.ofMonthYear.split("-");
+              let date = new Date(parseInt(year), parseInt(month) - 1);
+              reward.ofMonthYear = date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+            }
+          });
+          console.log('Rewards Details:', response);
+         }else{
+          this.rewardList=[];
+           console.error('No rewards to fetch');
+         }
+      },
+      (error: any) => {
+        console.error('Error fetching rewards:', error);
+      }
+    );
+  }
+
+
+  getTeamRewardsDetails(){
+    this.isTeamTableVisible1 = true;
+    this.isTeamTableVisible = true;
+    const request = new EmployeeRewarsRequest();
+    request.empId = this.currentEmpId;
+    request.ofMonthYear = this.ofMonthYear;
+
+    this.rewardsService.getTeamRewardByEmpId(request).subscribe(
+      (response: any) => {
+        this.teamRewardList = response.rewardsDTO;
+        this.teamRewardList.forEach(reward => {
+          let matchingRewardedTo =  this.allEmployeeList360.find(emp => emp.empId === reward.id);
+          reward.emp360rewardedToId = matchingRewardedTo ? matchingRewardedTo : {};
+          let matchingEmployeeteam = this.allEmployeeList360.find(emp => emp.empId === reward.createdBy);
+          reward.emp360teamcreatedBy = matchingEmployeeteam ? matchingEmployeeteam : {};
+          if (reward.ofmonthyear) {
+            let [year, month] = reward.ofmonthyear.split("-");
+            let date = new Date(parseInt(year), parseInt(month) - 1);
+            reward.ofmonthyear = date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+          }
+        });
+        // this.getMatchingEmployees();
+     
+      });
+  }
+  
 
   rewardSubmit(template: TemplateRef<any>){
     this.sumbitRewards.remark = this.remarks;
@@ -373,39 +443,43 @@ export class Employee360RewardsComponent implements OnInit {
     
     this.ofMonthYear = `${this.selectedYear}-${formattedMonth}`;
     console.log("ofMonthYear  ",this.ofMonthYear)
+    
 
-    if (this.selectedYear && categoryId) {
-      if (this.ofMonthYear) {
-        // Prepare the API request payload
-        const request = {
-          empId: sessionStorage.getItem('empId'),
-          ofMonthYear: this.ofMonthYear,
-        };
+    this.getEmployeeRewardsDetails();
+    // if (this.selectedYear && categoryId) {
+    //   if (this.ofMonthYear) {
+    //     // Prepare the API request payload
+    //     const request = {
+    //       empId:this.currentEmpId,
+    //       ofMonthYear: this.ofMonthYear,
+    //     };
 
-        // Call the API
-        this.rewardsService.getEmployeeRewardByEmpId(request).subscribe(
-          (response: any) => {
-             if(response.serviceStatus == 'Success'){
-              this.rewardList = response.serviceResponse;
-              this.rewardList.forEach(reward => {
-                let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId === reward.createdBY);
-                console.log('matches++',matchingEmployee);
-                reward.emp360 = matchingEmployee ? matchingEmployee : {};
-              });
-              console.log('Rewards Details:', response);
-             }else{
-              this.rewardList=[];
-               console.error('No rewards to fetch');
-             }
-          },
-          (error: any) => {
-            console.error('Error fetching rewards:', error);
-          }
-        );
-      } else {
-        console.error('Invalid date range for category selection.');
-      }
-    }
+    //     // Call the API
+    //     this.rewardsService.getEmployeeRewardByEmpId(request).subscribe(
+    //       (response: any) => {
+    //          if(response.serviceStatus == 'Success'){
+    //           this.rewardList = response.serviceResponse;
+    //           this.rewardList.forEach(reward => {
+    //             let matchingnameempId = this.allEmployeeList360.find(emp => emp.empId === reward.nameId);
+    //             reward.emp360nameempid = matchingnameempId ? matchingnameempId : {}; 
+    //             let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId === reward.createdBY);
+    //             console.log('matches++',matchingEmployee);
+    //             reward.emp360 = matchingEmployee ? matchingEmployee : {};
+    //           });
+    //           console.log('Rewards Details:', response);
+    //          }else{
+    //           this.rewardList=[];
+    //            console.error('No rewards to fetch');
+    //          }
+    //       },
+    //       (error: any) => {
+    //         console.error('Error fetching rewards:', error);
+    //       }
+    //     );
+    //   } else {
+    //     console.error('Invalid date range for category selection.');
+    //   }
+    // }
   }
 
   // getStartDateForMonth(year: number, month: number): string {
@@ -671,6 +745,12 @@ export class Employee360RewardsComponent implements OnInit {
     this.rewardsService.getTeamRewardByEmpId(request).subscribe(
       (response: any) => {
         this.teamRewardList = response.rewardsDTO;
+        this.teamRewardList.forEach(reward => {
+          let matchingRewardedTo =  this.allEmployeeList360.find(emp => emp.empId === reward.id);
+          reward.emp360rewardedToId = matchingRewardedTo ? matchingRewardedTo : {};
+          let matchingEmployeeteam = this.allEmployeeList360.find(emp => emp.empId === reward.createdBy);
+          reward.emp360teamcreatedBy = matchingEmployeeteam ? matchingEmployeeteam : {};
+        });
         this.getMatchingEmployees();
      
       });

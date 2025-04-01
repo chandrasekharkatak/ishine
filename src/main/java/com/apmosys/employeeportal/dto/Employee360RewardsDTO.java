@@ -20,9 +20,11 @@ public class Employee360RewardsDTO {
 	private String remark;
 	private String createdByName;
 	private String name;
+	private Long nameId;
 	private List<RewardTeamDTO> teamlist;
 	private Long createdBY;
 	private Long rewardCategoryId;
 	private String rewardCategory;
+	private String ofMonthYear;
 
 }

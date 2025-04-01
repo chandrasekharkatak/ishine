@@ -63,7 +63,7 @@ export class Employee360AppreciationComponent implements OnInit {
     }
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
-    this.getDateRanges();
+    // this.getDateRanges();
     // this.getEmployeeInfo();
   }
 
@@ -90,9 +90,11 @@ export class Employee360AppreciationComponent implements OnInit {
     let employeeObject = JSON.parse(employeeData);
      this.currentEId = employeeObject.empId;
      this.currentEmpId = Number(employeeObject.employeementId.replace(/\D/g, ''));
-    this.calculateFinancialYear();
+    // this.calculateFinancialYear();
+    this.appreciation.startDate = null;
+    this.appreciation.endDate = null;
     this.getEmployeeAppreciationDetails();
-    this.getTeamAppreciationDetails();
+    // this.getTeamAppreciationDetails();
    
   }
   exportToExcel(id:any): void {
@@ -133,9 +135,14 @@ export class Employee360AppreciationComponent implements OnInit {
 
   getTeamAppreciationList(){
     this.isTeam = false;
-    this.accortoselectedList = [];
-    this.accortoselectedList = this.teamAppreciationList;
+    // this.accortoselectedList = [];
+    // this.accortoselectedList = this.teamAppreciationList;
+    this.getTeamAppreciationDetails();
 
+  }
+  getTeamOrEmployeeDetails(){
+    this.getTeamAppreciationDetails();
+    this.getEmployeeAppreciationDetails();
   }
 
   getEmployeeAppreciationList(){
@@ -144,48 +151,53 @@ export class Employee360AppreciationComponent implements OnInit {
     this.getEmployeeAppreciationDetails();
   }
  
-  getDateRanges() {
-    this.employeeService.getDateRangesForDropdown(this.currentEmpId).subscribe(
-      (data: any) => {
-        this.formattedDateRanges = data.map((range: any) => {
-          console.log(range.fromDate, "==", range.toDate);
-          const fromYear = new Date(range.fromDate).getFullYear() - 1;
-          const toYear = new Date(range.toDate).getFullYear();
-          // if(toYear==fromYear){
-          //   return `${fromYear}`;
-          // }else{
-          //   return `${fromYear}-${toYear}`;
-          // }
-          return `${fromYear}-${toYear}`;
+  // getDateRanges() {
+  //   this.employeeService.getDateRangesForDropdown(this.currentEmpId).subscribe(
+  //     (data: any) => {
+  //       this.formattedDateRanges = data.map((range: any) => {
+  //         console.log(range.fromDate, "==", range.toDate);
+  //         const fromYear = new Date(range.fromDate).getFullYear() - 1;
+  //         const toYear = new Date(range.toDate).getFullYear();
+  //         // if(toYear==fromYear){
+  //         //   return `${fromYear}`;
+  //         // }else{
+  //         //   return `${fromYear}-${toYear}`;
+  //         // }
+  //         return `${fromYear}-${toYear}`;
 
-        });
-      },
-      (error) => {
-        console.error('Error fetching date ranges', error);
-      }
-    );
-  }
+  //       });
+  //     },
+  //     (error) => {
+  //       console.error('Error fetching date ranges', error);
+  //     }
+  //   );
+  // }
 
   financialYear: string = '';
   appreciation: Appreciation = new Appreciation();
 
-  calculateFinancialYear() {
-    const today = new Date();
-    const currentYear = today.getFullYear();
-    const currentMonth = today.getMonth() + 1;
-    let startYear, endYear;
-    if (currentMonth >= 4) {
-      startYear = currentYear;
-      endYear = currentYear + 1;
-    } else {
-      startYear = currentYear - 1;
-      endYear = currentYear;
-    }
-    this.financialYear = `${startYear}-${endYear}`;
-    this.appreciation.startDate = `${startYear}-04-01`;
-    this.appreciation.endDate = `${endYear}-03-31`;
-  }
+  // calculateFinancialYear() {
+  //   const today = new Date();
+  //   const currentYear = today.getFullYear();
+  //   const currentMonth = today.getMonth() + 1;
+  //   let startYear, endYear;
+  //   if (currentMonth >= 4) {
+  //     startYear = currentYear;
+  //     endYear = currentYear + 1;
+  //   } else {
+  //     startYear = currentYear - 1;
+  //     endYear = currentYear;
+  //   }
+  //   this.financialYear = `${startYear}-${endYear}`;
+  //   this.appreciation.startDate = `${startYear}-04-01`;
+  //   this.appreciation.endDate = `${endYear}-03-31`;
+  // }
+  
 
+  accToDateRangeSelect(){
+    this.getEmployeeAppreciationDetails();
+    this.getTeamAppreciationDetails();
+  }
 
   getEmployeeAppreciationDetails() {
     this.appreciation.employeementId = this.currentEmpId;
