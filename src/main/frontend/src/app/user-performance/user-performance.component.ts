@@ -9,6 +9,7 @@ import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Performance } from 'src/app/models/performance';
 import { Query } from 'src/app/models/query';
+import { SortPipe } from 'src/app/sort.pipe';
 import { Employee } from '../models/employee';
 import { Feature } from '../models/feature';
 import { Log } from '../models/log';
@@ -20,7 +21,6 @@ import { LogService } from '../services/log.service';
 import { PerformanceService } from '../services/performance.service';
 import { UtilityService } from '../services/utility.service';
 import { ValidationService } from '../services/validation.service';
-import { SortPipe } from 'src/app/sort.pipe';
 
 
 class FilterData {
@@ -64,6 +64,7 @@ export class UserPerformanceComponent implements OnInit {
   allReviewType: any[] = [];
   allQauterCycle: any[] = [];
   eligibleEmployees: any[] = [];
+  hrReviewStatus:any;
   // currentUser: any;
   // userMapping: any = {};
   EnabledAndActiveQuarterCycle: any[] = [];
@@ -961,17 +962,19 @@ export class UserPerformanceComponent implements OnInit {
           this.myList.push({ reviewLabel: value.reviewLabel, silde: value.ratingValue, performanceRatingId: value.performanceRatingId });
           this.finalRating = value.finalRating;
           this.hodRemarks = value.hodRemarks;
-
+          this.hrReviewStatus=value.hrReviewStatus;
+          this.acceptReason = value.hrRemark;
+          
         });
         this.filterRatingCriteria.forEach(value => {
           this.myRateList.push({ reviewLabel: value.reviewLabel, rate: value.ratingValue, performanceRatingId: value.performanceRatingId });
           this.finalRating = value.finalRating;
           this.hodRemarks = value.hodRemarks;
-
+          this.hrReviewStatus=value.hrReviewStatus;
+          this.acceptReason = value.hrRemark;
         });
 
 
-      } else {
         this.currentStatus = 'Not Started';
         this.enableDisableSubmit = false;
         this.filterCriteriaQuarter = this.allReviewType.filter(item => item.quarterId === this.quarterId);
