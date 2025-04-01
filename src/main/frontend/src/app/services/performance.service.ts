@@ -18,8 +18,8 @@ export class PerformanceService {
     return this.http.get(`${this.baseUrl}` + `api/getAllEmployees`);
   }
 
-  getAllEmployeesForPerformance(empId:any){
-    return this.http.get(`${this.baseUrl}` + `api/getAllEmployeesForPerformance/`+empId);
+  getAllEmployeesForPerformance(empId:any,hrvalidate:any){
+    return this.http.get(`${this.baseUrl}` + `api/getAllEmployeesForPerformance/`+empId+`/`+hrvalidate);
   }
 
   createQuarterCycle(quarterCycle: QuarterCycle){

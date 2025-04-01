@@ -3045,10 +3045,17 @@ public class EmployeeService {
 		return response;
 	}
 	
-	public ServiceResponse getAllEmployeesForPerformance(Long empId) {
+	public ServiceResponse getAllEmployeesForPerformance(Long empId,boolean status) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			List<Object[]> allEmployeeListForPerformance = employeeRepository.getAllEmployeesForPerformance(empId);
+			List<Object[]> allEmployeeListForPerformance=new ArrayList<Object[]>();
+			if(status) {
+				allEmployeeListForPerformance=employeeRepository.getAllEmployeesForPerformanceForHr();
+			}else {
+				allEmployeeListForPerformance = employeeRepository.getAllEmployeesForPerformance(empId);
+				
+			}
+			
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 
 			if (allEmployeeListForPerformance != null) {
@@ -3088,6 +3095,8 @@ public class EmployeeService {
 							    : 0.0;
 					 performanceStatus = Double.parseDouble(String.format("%.2f", performanceStatus));
 					 empDTO.setPerformanceStatusPercentage(performanceStatus);
+					  //empDTO.setApprovalsTo(object[24] != null ? object[24].toString() : null);
+						
 					 dtoList.add(empDTO);
 				});
 				 

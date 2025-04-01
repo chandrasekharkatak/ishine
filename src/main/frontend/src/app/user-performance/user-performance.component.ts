@@ -131,7 +131,7 @@ export class UserPerformanceComponent implements OnInit {
 
 
       // Then call other methods
-      this.getAllEmployee();
+    
       this.getAllReviveType();
       this.getAllQauterCycle();
 
@@ -145,9 +145,9 @@ export class UserPerformanceComponent implements OnInit {
 
       // console.log("hodddddd", this.userMapping.performance_action_by_hod);
       // console.log("hrrrrrrrr", this.userMapping.performance_action_by_hr);
-      console.log('usermapping -- ', this.userMapping);
-      this.getAllEmployeeFor360View();
-
+       this.getAllEmployeeFor360View();
+       this.getAllEmployee();
+     
     } catch (error) {
       console.error("Error in ngOnInit", error);
     }
@@ -240,8 +240,7 @@ export class UserPerformanceComponent implements OnInit {
 
 
   getAllEmployee() {
-
-    this.performanceSerive.getAllEmployeesForPerformance(this.currentUser.empId).subscribe
+   this.performanceSerive.getAllEmployeesForPerformance(this.currentUser.empId,this.userMapping.performance_action_by_hr).subscribe
       ((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allEmployee = response.serviceResponse;
@@ -485,7 +484,7 @@ export class UserPerformanceComponent implements OnInit {
 
   name = 'EmployeeSheet.xlsx';
   exportToExcel(): void {
-    this.performanceService.getAllEmployeesForPerformance(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+    this.performanceService.getAllEmployeesForPerformance(this.currentUser.empId,this.userMapping.performance_action_by_hr).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         //  this.employeeDataForExcel = response.serviceResponse;
 
