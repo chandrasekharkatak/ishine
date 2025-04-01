@@ -10,15 +10,20 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import org.hibernate.envers.Audited;
+
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Getter
-@Setter
+//@Getter
+//@Setter
+@Data
 @ToString
 @Table(name="projects")
+@Audited
 public class Project {
 	
 	@Id
@@ -45,16 +50,16 @@ public class Project {
 	private Long createdBy;
 	private Long updatedBy;
 	private LocalDateTime updatedOn;
-	
-	
-	//added as per RMG Requirement
 	private String role;
     private Integer count;
     private String experience;
     private String poStartDate;
-	private  String poEndDate;
+	private String poEndDate;
 	private String poNo;
-	 private String poProjectType;
-
-
+	private String poProjectType;
+	private String apmosysRM;
+	private String clientRM;
+	private Boolean isRenewable;
+	private String deptId;
+	private String status;
 }

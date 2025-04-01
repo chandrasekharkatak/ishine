@@ -46,6 +46,4 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 	@Query(nativeQuery = true , value = "select * from department where name = :deptname")
 	public List<Department> findByDeptName(String deptname);
 	
-
-	
 }

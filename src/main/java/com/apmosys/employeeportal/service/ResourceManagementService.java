@@ -185,6 +185,10 @@ public class ResourceManagementService {
 		        projectObj.setPoStartDate(resourceManagementDTO.getStartDate());
 		        projectObj.setPoEndDate(resourceManagementDTO.getEndDate());
 		        projectObj.setPoProjectType(resourceManagementDTO.getProjectType());
+
+		        projectObj.setApmosysRM(resourceManagementDTO.getApmosysRM());	
+		        projectObj.setIsRenewable(resourceManagementDTO.getIsRenewable());
+		        projectObj.setClientRM(resourceManagementDTO.getClientRM());
 		        
 		        Project projectDbResponse = projectRepository.save(projectObj);
 				
@@ -676,6 +680,10 @@ public class ResourceManagementService {
 			    newProject.setPoNo(resourceManagementDTO.getPoNo());
 			    newProject.setPoStartDate(resourceManagementDTO.getStartDate());
 			    newProject.setPoEndDate(resourceManagementDTO.getEndDate());
+
+			    newProject.setApmosysRM(resourceManagementDTO.getApmosysRM());	
+			    newProject.setIsRenewable(resourceManagementDTO.getIsRenewable());
+			    newProject.setClientRM(resourceManagementDTO.getClientRM());
 				
 				  	if (resourceManagementDTO.getIsHOD().equals("true")) {
 				 	newProject.setIsDraftProject("false"); 

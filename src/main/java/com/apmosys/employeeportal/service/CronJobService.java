@@ -90,6 +90,7 @@ import com.apmosys.employeeportal.model.BiomaxDefaulter;
 import com.apmosys.employeeportal.model.BiomaxRequest;
 import com.apmosys.employeeportal.model.BirthdayMail;
 import com.apmosys.employeeportal.model.Client;
+import com.apmosys.employeeportal.model.ClientLocation;
 import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
@@ -109,6 +110,7 @@ import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.repository.BiomaxDefaulterRepository;
 import com.apmosys.employeeportal.repository.BiomaxRequestRepository;
 import com.apmosys.employeeportal.repository.BirthdayMailRepository;
+import com.apmosys.employeeportal.repository.ClientLocationRepository;
 import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
@@ -147,6 +149,9 @@ public class CronJobService {
 	private BiomaxRequestRepository biomaxRequestRepository;
 	@Autowired
 	ProjectRepository projectRepository;
+	
+	@Autowired
+	ClientLocationRepository clientLocationRepository;
 	
 	@Autowired
 	BioMaxService bioMaxService;
@@ -5694,6 +5699,13 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		@Scheduled(cron = "0 46 15 ? * *")
 		@Transactional
 		public void getProjectCloneFromPoPortal() {
+			
+			LogDTO apiLogInfo = new LogDTO();
+	        apiLogInfo.setSubFeatureName("createDraftProjectInfo");
+	        apiLogInfo.setApiUrl("/api/createDraftProjectInfo");
+	        apiLogInfo.setLogLevel("INFO");
+	        StringBuilder logBuilder = new StringBuilder();
+	        logBuilder.append("Cron to update existing po-project details in Ishine started");
 
 		    List<ProjectPoPortalDTO> list = new ArrayList<>();
 		    
@@ -5701,10 +5713,10 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		        ProjectPoPortalDTO[] projects = restTemplate.getForObject(allPoPortalProjects, ProjectPoPortalDTO[].class);
 		        
 		        list = Arrays.asList(projects != null ? projects : new ProjectPoPortalDTO[0]);
-		        System.out.println("Total Projects Fetched = " + list.size());
+		        logBuilder.append("Total Projects Fetched = " + list.size());
 
 		    } catch (RestClientException e) {
-		        System.err.println("Error fetching projects from PoPortal API: " + e.getMessage());
+		        logBuilder.append("Error fetching projects from PoPortal API: " + e.getMessage());
 		    }
 
 		    if (!list.isEmpty()) {
@@ -5713,33 +5725,109 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		                Project project = projectRepository.findByPoProjectId(dto.getId());
 
 		                if (project != null) {
+
+		                    project.setProjectName(dto.getName());
+		                    project.setPoProjectType(dto.getProjectType());
 		                    project.setPoStartDate(dto.getStartDate());
 		                    project.setPoEndDate(dto.getEndDate());
+		                    project.setStatus(dto.getStatus());
+		                    //departmentIds
+		                    List<String> departmentList = dto.getDepartment();
+		                    List<String> deptIds = null;
+		                    if(!departmentList.isEmpty()) {
+		                    	departmentList.forEach(dept->{
+		                    		List<Department> deptList =  departmentRepository.findByDeptName(dept);
+		                    		if(deptList.isEmpty()) {
+		                		        logBuilder.append("No Dept Id fetched");
+		                    		}
+		                    		else if(deptList.size() > 1) {
+		                		        logBuilder.append("Multiple Dept Ids fetched");
+		                    		}
+		                    		else {
+		                    			deptIds.add(deptList.get(0).getDeptId().toString());
+		                    		}
+		                    	});
+		                    }
+		                    if(!deptIds.isEmpty()) {
+		                    	String deptIdStr = String.join(",", deptIds);
+		                        project.setDeptId(deptIdStr); 
+		                    }
+		                    //clientId
+		                    Integer clientId = null;
+		    			    Optional<Client> clientObj = clientsRepository.findByClientName(dto.getClientName());
+		    			    if (!clientObj.isEmpty()) {
+		    			        Client clientPresent = clientObj.get();
+		    			        clientId = clientPresent.getClientId();
+		    			    } else {
+		    			        // Add Client & Client Location
+		    			        Client newClient = new Client();
+		    			        newClient.setClientName(dto.getClientName());
+		    			        Client clientDbResponse = clientsRepository.save(newClient);
+		    			        if (clientDbResponse != null) {
+		    			            clientId = clientDbResponse.getClientId();
+		    			            List<ClientLocation> locations = new ArrayList<>();
+
+		    			            for (String clientLocation : dto.getClientLocation()) {
+		    			                ClientLocation newClientLocation = new ClientLocation();
+		    			                newClientLocation.setClientId(clientDbResponse.getClientId());
+		    			                newClientLocation.setClientLocation(clientLocation);
+		    			                locations.add(newClientLocation);
+		    			            }
+		    			            // Add WFH location
+//		    			            boolean contains = Arrays.stream(dto.getClientLocation()).anyMatch("WFH"::equals);
+		    			            boolean contains = dto.getClientLocation().stream().anyMatch("WFH"::equals);
+		    			            if (!contains) {
+		    			                ClientLocation newClientLocation = new ClientLocation();
+		    			                newClientLocation.setClientId(clientDbResponse.getClientId());
+		    			                newClientLocation.setClientLocation("WFH");
+		    			                locations.add(newClientLocation);
+		    			            }
+		    			            List<ClientLocation> clientLocationDbResponse = clientLocationRepository.saveAll(locations);
+		    			            if (!clientLocationDbResponse.isEmpty()) {
+		    					        logBuilder.append("Client stored successfully in database");
+		    			            } else {
+		    					        logBuilder.append("Error occured while storing updated project details from PoPortal API.");
+		    			            }
+		    			        } else {
+		    			            
+		    			        }
+		    			    }
+		    			     project.setClientId(clientId); 
+		    			     
+		                    //projManagerId
+		                    Long employeementID = Long.parseLong(dto.getProjectManager().split("-")[1]);
+		    		        Long projManagerId = null;
+		    		        Employee employee = employeeRepository.findByEmployeementId(employeementID);
+		    		        if (employee != null) {
+		    		            projManagerId = employee.getEmpId();
+		    		        }
+		    		        
 		                    project.setPoNo(dto.getPoNo());
-		                    project.setPoProjectType(dto.getProjectType());
-
+		                    project.setApmosysRM(dto.getApmosysRM());	
+		                    project.setIsRenewable(dto.getIsRenewable());
+		                    project.setClientRM(dto.getClientRM());
+		                    
 		                    projectRepository.save(project);
-		                    
-		                    
 
-		                    System.out.println("Updated Project: ID=" + dto.getId() + ", PoNo=" + dto.getPoNo());
+		    		        logBuilder.append("Updated Project: ID=" + dto.getId() + ", PoNo=" + dto.getPoNo());
+		    		        
 		                } else {
-		                    System.err.println("Project table does not contain PoProjectId: " + dto.getId());
+		    		        logBuilder.append("Project table does not contain PoProjectId: " + dto.getId());
 		                }
 
 		            } catch (Exception ex) {
-		                System.err.println("Error updating project ID: " + dto.getId() + " - " + ex.getMessage());
+				        logBuilder.append("Error updating project ID: " + dto.getId() + " - " + ex.getMessage());
 		            }
 		            List<Object[]> expiredProjects = projectRepository.getExpiredPoProjects();
 
                     if (expiredProjects.isEmpty()) {
-                        System.out.println("No expired PO projects found.");
+                    	logBuilder.append("No expired PO projects found.");
                         return;
                     }
 
                     SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
-                    DateTimeFormatter sourceFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME; // For ISO 8601 input
-                    DateTimeFormatter targetFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy"); // Desired format
+                    DateTimeFormatter sourceFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME; 
+                    DateTimeFormatter targetFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy"); 
 
 
                     for (Object[] projects : expiredProjects) {
@@ -5774,17 +5862,17 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
                                             emailBody,  
                                             null
                                     );
-                                    System.out.println("Mail sent to " + email + " for expired PO: " + projectName);
+                    		        logBuilder.append("Mail sent to " + email + " for expired PO: " + projectName);
                                 } catch (MessagingException e) {
-                                    System.err.println("Error sending mail to " + email + " for PO: " + projectName + " - " + e.getMessage());
+                    		        logBuilder.append("Error sending mail to " + email + " for PO: " + projectName + " - " + e.getMessage());
                                 }
                             }                        } else {
-                            System.out.println("No employees found for project ID: " + projectId);
+                		        logBuilder.append("No employees found for project ID: " + projectId);
                         }
                     }
 		        }
 		    } else {
-		        System.out.println("No projects found from PoPortal API.");
+		        logBuilder.append("No projects found from PoPortal API.");
 		    }
 		}
 		

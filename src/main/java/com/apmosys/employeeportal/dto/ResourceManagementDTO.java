@@ -31,16 +31,13 @@ public class ResourceManagementDTO {
 	private String poEndDate;
 	private Long createdBy;
 	private Long updatedBy;
-	
 	private String createdOn;
 	private String deptName;
-	
 	private String projectType;
 	private Integer projectId;
 	private String status;
 	private Long isActive;
 	private String projectName;
-	
 	private Long teamId;
 	private String teamName;
 	private String billableType;
@@ -49,14 +46,15 @@ public class ResourceManagementDTO {
 	private String employeeName;
 	private Long employeementId;
 	private String departmentName;
-	
 	private String endDate;
 	private String isAllProj;
 	private Integer active;
-	
-
 	private String poNo;
 	private String clientLocationName;
 	private String employeeRole;
 	private Long clientId;
+	private String apmosysRM;
+	private String clientRM;
+	private Boolean isRenewable;
+	private String deptId;
 }
