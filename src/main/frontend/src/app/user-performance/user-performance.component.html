@@ -240,138 +240,155 @@
           {{quarter.empId}}
        </div> -->
       <div [id]="'collapse' + i" class="collapse" [attr.aria-labelledby]="'heading' + i" data-parent="#accordion">
+        <!-- <div class="card-body" *ngIf="(currentStatus != 'Ongoing' && currentStatus != 'Completed' && currentStatus != 'Rejected') 
+              && (userMapping.performance_action_by_hod || userMapping.performance_action_by_hr)"> Review has not been given By manager/Reporting Manger
+        </div> -->
         <div class="card-body">
           <!-- Final Review -->
           <div class="final-review" *ngIf="filterRatingCriteria.length > 0 || filterCriteria.length > 0">
-            <div class="row">
-              <div class="col-lg-12 col-md-8 col-sm-12">
-                <h3 style="float:right; color: black;">
-                  <b>STATUS: <span [ngStyle]="{'color': getStatusColor(currentStatus)}">{{ currentStatus }}</span></b>
-                </h3>
+            <div *ngIf="((currentStatus === 'Ongoing' || currentStatus === 'Completed' || currentStatus === 'Rejected' || currentStatus === 'Not Started' ) 
+            && (userMapping.performance_action_by_approvals_to)) 
+            || ((currentStatus === 'Ongoing' || currentStatus === 'Completed' || currentStatus === 'Rejected') 
+            && userMapping.performance_action_by_hod)">
+              <div class="row">
+                <div class="col-lg-12 col-md-8 col-sm-12">
+                  <h3 style="float:right; color: black;">
+                    <b>STATUS: <span [ngStyle]="{'color': getStatusColor(currentStatus)}">{{ currentStatus }}</span></b>
+                  </h3>
+                </div>
               </div>
-            </div>
-            <div class="row">
-              <div class="col-lg-12 col-md-8 col-sm-12">
+              <div class="row">
+                <div class="col-lg-12 col-md-8 col-sm-12">
 
-                <h4 style="float:left">Final Review</h4>
-                <h5 style="float:right"> {{ quarter.financialYear }} | Cycle: {{ quarter.quarterCycle }}</h5>
+                  <h4 style="float:left">Final Review</h4>
+                  <h5 style="float:right"> {{ quarter.financialYear }} | Cycle: {{ quarter.quarterCycle }}</h5>
+                </div>
               </div>
-            </div>
 
 
-            <table>
-              <thead>
-                <tr>
-                  <th>Criteria</th>
-                  <th>Rating</th>
-                  <!-- <th *ngIf="filterRatingCriteria[0]?.reviewFieldType === 'rating'">Stars</th> -->
+              <table>
+                <thead>
+                  <tr>
+                    <th>Criteria</th>
+                    <th>Rating</th>
+                    <!-- <th *ngIf="filterRatingCriteria[0]?.reviewFieldType === 'rating'">Stars</th> -->
 
-                </tr>
-              </thead>
-              <tbody>
-                <ng-container *ngIf="filterCriteria.length > 0">
-                  <tr *ngFor="let item of filterCriteria; let j = index">
-                    <td *ngIf="item.reviewFieldType === 'Slider' ">{{ item.reviewLabel }}</td>
-                    <td *ngIf="item.reviewFieldType === 'Slider'">
-                      <span>0</span>
-                      <input type="range" min="0" [max]="item.condition" step="0.5" [(ngModel)]="myList[j].silde"
-                        (input)="updateSlide(j, myList[j].silde)" [disabled]="
+                  </tr>
+                </thead>
+                <tbody>
+                  <ng-container *ngIf="filterCriteria.length > 0">
+                    <tr *ngFor="let item of filterCriteria; let j = index">
+                      <td *ngIf="item.reviewFieldType === 'Slider' ">{{ item.reviewLabel }}</td>
+                      <td *ngIf="item.reviewFieldType === 'Slider'">
+                        <span>0</span>
+                        <input type="range" min="0" [max]="item.condition" step="0.5" [(ngModel)]="myList[j].silde"
+                          (input)="updateSlide(j, myList[j].silde)" [disabled]="
                           (currentStatus === 'Ongoing' && userMapping.performance_action_by_hod) ? false : 
                           (currentStatus === 'Ongoing' || currentStatus === 'Completed' || currentUser.employeeRole === 'HR')
                       ">
-                      <span>{{ item.condition }}</span>
-                      <p>{{ myList[j].silde }}</p>
-                    </td>
-                  </tr>
-                </ng-container>
+                        <span>{{ item.condition }}</span>
+                        <p>{{ myList[j].silde }}</p>
+                      </td>
+                    </tr>
+                  </ng-container>
 
 
-                <ng-container *ngIf="filterRatingCriteria.length > 0">
-                  <tr *ngFor="let item of filterRatingCriteria; let i = index">
-                    <td *ngIf="item.reviewFieldType === 'Rating'&& item.quarterId === quarter.quarterId">{{
-                      item.reviewLabel }}
-                    </td>
-                    <td *ngIf="item.reviewFieldType === 'Rating'&& item.quarterId === quarter.quarterId">
-                      <div class="stars">
-                        <span *ngFor="let star of getRatingList(item.condition);  let k = index"
-                          (click)="updateRating(i, k + 1)" [ngClass]="{'selected': k < myRateList[i].rate ,'disabled': !(currentStatus === 'Ongoing' && userMapping.performance_action_by_hod) 
+                  <ng-container *ngIf="filterRatingCriteria.length > 0">
+                    <tr *ngFor="let item of filterRatingCriteria; let i = index">
+                      <td *ngIf="item.reviewFieldType === 'Rating'&& item.quarterId === quarter.quarterId">{{
+                        item.reviewLabel }}
+                      </td>
+                      <td *ngIf="item.reviewFieldType === 'Rating'&& item.quarterId === quarter.quarterId">
+                        <div class="stars">
+                          <span *ngFor="let star of getRatingList(item.condition);  let k = index"
+                            (click)="updateRating(i, k + 1)" [ngClass]="{'selected': k < myRateList[i].rate ,'disabled': !(currentStatus === 'Ongoing' && userMapping.performance_action_by_hod) 
                             || currentStatus === 'Completed' 
                             || currentUser.employeeRole === 'HR'
                          }">
-                          ★
-                        </span>
-                      </div>
-                    </td>
-                  </tr>
-                </ng-container>
+                            ★
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  </ng-container>
 
-              </tbody>
-            </table>
-
-
+                </tbody>
+              </table>
 
 
-            <label for="final-rating">Final Rating</label>
-            <input type="text" id="final-rating" [value]="finalRating || '0'" disabled placeholder="Enter Final Rating">
 
-            <label for="justification"><span class="text-danger">*</span>Justify your Rating (Min. 150
-              characters)</label>
-            <textarea id="justification" [(ngModel)]="hodRemarks"
-              [disabled]="currentStatus === 'Ongoing' || currentStatus === 'Completed'"></textarea>
 
-            <button type="button" class="btn btn-primary float-right"
-              (click)="submitReviewEmployee(quarter,alert_message,i)"
-              *ngIf="!enableDisableSubmit && userMapping.performance_action_by_hod">Submit</button>
-            <button type="button" class="btn btn-primary float-right"
-              (click)="updateReviewEmployee(quarter,alert_message,i)"
-              *ngIf="currentStatus == 'Rejected' && userMapping.performance_action_by_hod">Update</button>
+              <label for="final-rating">Final Rating</label>
+              <input type="text" id="final-rating" [value]="finalRating || '0'" disabled
+                placeholder="Enter Final Rating">
 
-            <div class="d-flex justify-content-end"
-              *ngIf="currentStatus == 'Ongoing'  && userMapping.performance_action_by_hod">
-              <button type="button" class="btn btn-primary" *ngIf="enableDisableSubmit"
-                (click)="selectAction('accept')">Accept</button>
-              <button type="button" class="btn btn-danger ml-2" *ngIf="enableDisableSubmit "
-                (click)="selectAction('reject')">Reject</button>
+              <label for="justification"><span class="text-danger">*</span>Justify your Rating (Min. 150
+                characters)</label>
+              <textarea id="justification" [(ngModel)]="hodRemarks"
+                [disabled]="currentStatus === 'Ongoing' || currentStatus === 'Completed'"></textarea>
+
+              <button type="button" class="btn btn-primary float-right"
+                (click)="submitReviewEmployee(quarter,alert_message,i)"
+                *ngIf="!enableDisableSubmit && userMapping.performance_action_by_approvals_to">Submit</button>
+
+
+              <div class="d-flex justify-content-end"
+                *ngIf="currentStatus == 'Ongoing'  && userMapping.performance_action_by_hod">
+                <button type="button" class="btn btn-primary" *ngIf="enableDisableSubmit"
+                  (click)="selectAction('accept')">Accept</button>
+                <button type="button" class="btn btn-danger ml-2" *ngIf="enableDisableSubmit "
+                  (click)="selectAction('reject')">Reject</button>
+              </div>
+
+
+              <div *ngIf="isAcceptSelected">
+                <label for="acceptReason"><span class="text-danger">*</span>Comments:</label>
+                <textarea id="acceptReason" [(ngModel)]="acceptReason" class="form-control"
+                  placeholder="Enter reason"></textarea>
+              </div>
+              <div *ngIf="currentStatus == 'Completed'  && hrReviewStatus == 'Accepted'">
+                <label for="acceptReason">Accept Reasons:</label>
+                <textarea id="acceptReason" [(ngModel)]="acceptReason" class="form-control"
+                  placeholder="Enter reason"></textarea>
+              </div>
+
+
+
+              <div *ngIf="isRejectSelected">
+                <label for="rejectReason"><span class="text-danger">*</span>Provide Reject Reason:</label>
+                <textarea id="rejectReason" [(ngModel)]="rejectReason" class="form-control"
+                  placeholder="Enter reason"></textarea>
+              </div>
+              <div *ngIf="hrReviewStatus == 'Rejected'">
+                <label for="rejectReason">Reject Reason:</label>
+                <textarea id="rejectReason" [(ngModel)]="acceptReason" class="form-control"
+                  placeholder="Enter reason"></textarea>
+              </div>
+
+              <button type="button" class="btn btn-primary float-right mt-1"
+                (click)="updateReviewEmployee(quarter,alert_message,i)"
+                *ngIf="currentStatus == 'Rejected' && userMapping.performance_action_by_approvals_to">Update</button>
+
+              <div class="d-flex justify-content-end" *ngIf="isAcceptSelected || isRejectSelected">
+                <button type="button" (click)="submitRemarksByHR(quarter,alert_message,i)" class="btn btn-success mt-2">
+                  Submit</button>
+              </div>
             </div>
-
-
-            <div *ngIf="isAcceptSelected">
-              <label for="acceptReason"><span class="text-danger">*</span>Comments:</label>
-              <textarea id="acceptReason" [(ngModel)]="acceptReason" class="form-control"
-                placeholder="Enter reason"></textarea>
-            </div>
-            <div *ngIf="acceptReason != null && currentStatus == 'Completed' && hrReviewStatus == 'Accepted'">
-              <label for="acceptReason">Accept Reasons:</label>
-              <textarea id="acceptReason" [(ngModel)]="acceptReason" class="form-control"
-                placeholder="Enter reason"></textarea>
-            </div>
-
-
-
-            <div *ngIf="isRejectSelected">
-              <label for="rejectReason"><span class="text-danger">*</span>Provide Reject Reason:</label>
-              <textarea id="rejectReason" [(ngModel)]="rejectReason" class="form-control"
-                placeholder="Enter reason"></textarea>
-            </div>
-            <div *ngIf="acceptReason != null && hrReviewStatus == 'Rejected'">
-              <label for="rejectReason">Reject Reason:</label>
-              <textarea id="rejectReason" [(ngModel)]="acceptReason" class="form-control"
-                placeholder="Enter reason"></textarea>
-            </div>
-
-
-            <div class="d-flex justify-content-end" *ngIf="isAcceptSelected || isRejectSelected">
-              <button type="button" (click)="submitRemarksByHR(alert_message,i)" class="btn btn-success mt-2">
-                Submit</button>
+            <div *ngIf="(currentStatus != 'Ongoing' && currentStatus != 'Completed' && currentStatus != 'Rejected') 
+            && (userMapping.performance_action_by_hod || userMapping.performance_action_by_hr)">
+              <p class="text-center">
+                Review has not been given By manager/Reporting Manger
+              </p>
             </div>
 
 
           </div>
-          <div *ngIf="filterRatingCriteria.length === 0 && filterCriteria.length === 0">
+          <div *ngIf="filterRatingCriteria.length === 0 && filterCriteria.length === 0 ">
             <p class="text-center">
               No Data to Display
             </p>
           </div>
+
         </div>
       </div>
 

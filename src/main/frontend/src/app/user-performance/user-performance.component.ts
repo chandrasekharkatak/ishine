@@ -1016,7 +1016,7 @@ export class UserPerformanceComponent implements OnInit {
   submitRemarkHr: Performance = new Performance();
   acceptReason: any;
   rejectReason: any;
-  submitRemarksByHR(template: TemplateRef<any>, index: any) {
+  submitRemarksByHR(quarter: any,template: TemplateRef<any>, index: any) {
      
     if (this.isAcceptSelected && !this.validationService.validateNullUndefinedEmptyString(this.acceptReason)) {
       this.alertMessage = "Please enter Comments!";
@@ -1029,7 +1029,35 @@ export class UserPerformanceComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return;
     }
+    this.submitRemarkHr.empId = this.selectedEmployee.empId;
+    this.submitRemarkHr.quarterId = quarter.quarterId;
+    
+    this.submitRemarkHr.performanceRatings = [];
+    this.filterCriteria.forEach((item, index) => {
+      this.submitRemarkHr.employeePerformanceId = item.employeePerformanceId;
+      if (this.myList[index] && this.myList[index].silde !== undefined) {
+        this.submitRemarkHr.performanceRatings.push({
+          reviewTypeId: item.reviewTypeId,
+          rating: this.myList[index].silde,
+          performanceRatingId: this.myList[index].performanceRatingId,
+        });
+      }
+    });
 
+    this.filterRatingCriteria.forEach((item, index) => {
+      this.submitRemarkHr.employeePerformanceId = item.employeePerformanceId;
+      if (this.myRateList[index] && this.myRateList[index].rate !== undefined) {
+        this.submitRemarkHr.employeePerformanceId = item.employeePerformanceId;
+        this.submitRemarkHr.performanceRatings.push({
+          reviewTypeId: item.reviewTypeId,
+          rating: this.myRateList[index].rate,
+          performanceRatingId: this.myRateList[index].performanceRatingId,
+
+        });
+      }
+    });
+
+    this.submitRemarkHr.finalRating = this.finalRating;
     this.submitRemarkHr.employeePerformanceId = this.performnace1[0].employeePerformanceId;
     this.submitRemarkHr.hrReviewStatus = this.isAcceptSelected ? "Accepted" : "Rejected";
     this.submitRemarkHr.hrRemark = this.isAcceptSelected ? this.acceptReason : this.rejectReason;

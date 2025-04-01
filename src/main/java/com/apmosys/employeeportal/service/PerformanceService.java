@@ -595,32 +595,62 @@ public class PerformanceService {
 	public ServiceResponse submitEmployeePerformanceHR(PerformanceDTO employeePerformanceDTO) {
 	    ServiceResponse response = new ServiceResponse();
 	    try {
-	        Optional<EmployeePerformance> optionalEmployeePerformance =  employeePerformanceRepository.findById(employeePerformanceDTO.getEmployeePerformanceId());
+	    	
+	    	EmployeePerformance savedEmployeePerformanceHR =null;
+	        EmployeePerformance optionalEmployeePerformance =  employeePerformanceRepository.findByPerformanceId(employeePerformanceDTO.getEmployeePerformanceId());
 
-	        if (optionalEmployeePerformance.isPresent()) { 
-	            EmployeePerformance employeePerformance = optionalEmployeePerformance.get();
-	            
-	            employeePerformance.setHr_id(employeePerformanceDTO.getHrId());
-	            employeePerformance.setHr_remarks(employeePerformanceDTO.getHrRemark());
-	            employeePerformance.setHr_review_status(employeePerformanceDTO.getHrReviewStatus());
-	            employeePerformance.setCompletion_status(
+	        if (optionalEmployeePerformance != null) { 
+//	            EmployeePerformance employeePerformance = optionalEmployeePerformance.get();
+	        	
+	        	optionalEmployeePerformance.setHr_id(employeePerformanceDTO.getHrId());
+	        	optionalEmployeePerformance.setHr_remarks(employeePerformanceDTO.getHrRemark());
+	        	optionalEmployeePerformance.setHr_review_status(employeePerformanceDTO.getHrReviewStatus());
+	        	optionalEmployeePerformance.setCompletion_status(
 	                employeePerformanceDTO.getHrReviewStatus().equals("Accepted") ? "Completed" : "Rejected"
 	            );
+                if( employeePerformanceDTO.getHrReviewStatus().equals("Accepted")) {
+                	optionalEmployeePerformance.setFinal_rating(employeePerformanceDTO.getFinalRating());
+                }
+ 	             savedEmployeePerformanceHR = 
+	                    employeePerformanceRepository.save(optionalEmployeePerformance);
+	             }
+	            
+	            if (savedEmployeePerformanceHR != null && employeePerformanceDTO.getHrReviewStatus().equals("Accepted")) {
+                    
+		             for (PerformanceRatingDTO ratingDTO : employeePerformanceDTO.getPerformanceRatings()) {
+		            	 EmployeeRatingPerformance ratingPerformance = employeeRatingPerformanceRepository.getById(ratingDTO.getPerformanceRatingId());
+		            	 if(ratingPerformance != null) {
+		            		 
+		            		 ratingPerformance.setQuarterId(employeePerformanceDTO.getQuarterId());
+			                 ratingPerformance.setReviewTypeId(ratingDTO.getReviewTypeId());
+			                 ratingPerformance.setRatingValue(ratingDTO.getRating());
+			                 ratingPerformance.setEmpId(employeePerformanceDTO.getEmpId());
+			                 employeeRatingPerformanceRepository.save(ratingPerformance);
+		            	 }
+		                 
+		                 
+		                 
+		                 
+		             }
+		         
+		             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		             response.setServiceResponse("Reviewed HOD Remarks Successfully");
+		         } else {
+		             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		             response.setServiceResponse("Couldn't submit Remarks");
+		         }
 
-	            EmployeePerformance savedEmployeePerformanceHR = 
-	                    employeePerformanceRepository.save(employeePerformance);
-
-	            if (savedEmployeePerformanceHR != null) {
-	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	                response.setServiceResponse("Reviewed HOD Remarks Successfully");
-	            } else {
-	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	                response.setServiceResponse("Couldn't submit Remarks");
-	            }
-	        } else {
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse("Employee Performance record not found.");
-	        }
+//	            if (savedEmployeePerformanceHR != null) {
+//	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	                response.setServiceResponse("Reviewed HOD Remarks Successfully");
+//	            } else {
+//	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	                response.setServiceResponse("Couldn't submit Remarks");
+//	            }
+//	         else {
+//	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	            response.setServiceResponse("Employee Performance record not found.");
+//	        }
 
 	    } catch(Exception e) {
 			e.printStackTrace();
