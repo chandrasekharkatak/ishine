@@ -5698,7 +5698,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		}
 		
 		@Async
-		@Scheduled(cron = "0 4 19 ? * *")
+		@Scheduled(cron = "0 35 19 ? * *")
 		@Transactional
 		public void getProjectCloneFromPoPortal() {
 			
@@ -5997,21 +5997,22 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		
 		private String buildEmailContent(String employeeName, String projectName, String teamName, 
                  String poStartDate, String poEndDate, String allocationStartDate) {
-			return "<html><body>"
-					+ "<p>Dear " + employeeName + ",</p>"
-					+ "<p>The project that you are currently billed for is expiring soon. This will result in timesheet restriction in case your project mapping is not removed.</p>"
-					+ "<p>Please contact the concerned authorities to take necessary action immediately, "
-					+ "as this could hamper the billing generated for you.</p>"
-					+ "<p>Below are the project details:</p>"
-					+ "<table border='1' style='border-collapse: collapse; width: 100%;'>"
-					+ "<tr><th>Project Name</th><th>Team Name</th><th>PO Start Date</th>"
-					+ "<th>PO End Date</th><th>Employee Allocation Start Date</th></tr>"
-					+ "<tr><td>" + projectName + "</td><td>" + teamName + "</td><td>" 
-					+ "<td>" + poStartDate + "</td><td>" + poEndDate + "</td><td>" + allocationStartDate + "</td></tr>"
-					+ "</table><br><br>"
-					+ "<p>Regards,</p>"
-					+ "<p>RMG Team</p>"
-					+ "</body></html>";
+			return  "<html><body>"
+				    + "<p>Dear " + employeeName + ",</p>"
+				    + "<p>The project that you are currently billed for is expiring soon. "
+				    + "This will result in timesheet restriction in case your project mapping is not removed.</p>"
+				    + "<p>Please contact the concerned authorities to take necessary action immediately, "
+				    + "as this could hamper the billing generated for you.</p>"
+				    + "<p>Below are the project details:</p>"
+				    + "<table border='1' style='border-collapse: collapse; width: 100%;'>"
+				    + "<tr><th>Project Name</th><th>Team Name</th><th>PO Start Date</th>"
+				    + "<th>PO End Date</th><th>Employee Allocation Start Date</th></tr>"
+				    + "<tr><td>" + projectName + "</td><td>" + teamName + "</td><td>" 
+				    + poStartDate + "</td><td>" + poEndDate + "</td><td>" + allocationStartDate + "</td></tr>"
+				    + "</table><br><br>"
+				    + "<p>Regards,</p>"
+				    + "<p>RMG Team</p>"
+				    + "</body></html>";
 		}
 		
 		private String buildEmailContent2(String employeeName, String projectName, String teamName, 

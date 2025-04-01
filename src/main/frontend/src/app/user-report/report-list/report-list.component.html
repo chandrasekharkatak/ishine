@@ -567,11 +567,13 @@
                 <th scope="col" class="info-label wide-col" mat-sort-header="clientLocation|string">Client Location</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="workLocation|string">Work Location</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="totalExperience|string">Experience</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="totalExperience|string">Default Project Assigned</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="defaultProject|string">Select Default Project</th>
+                <th *ngIf="changeTable" scope="col" class="info-label wide-col" mat-sort-header="totalExperience|string">Default Project Assigned</th>
+                <th *ngIf="changeTable" scope="col" class="info-label wide-col" mat-sort-header="defaultProject|string">Select Default Project</th>
               </tr>
-              <tr app-column-filter-bar *ngIf="isEmployeeReportTable && isSearchEnabled"
-                [columnList]="employeeReportColumnForDetailedProjectView" (onSearch)="onSearch($event);page=1"></tr>
+              <tr app-column-filter-bar *ngIf="isEmployeeReportTable && isSearchEnabled && changeTable"
+                [columnList]="employeeReportColumnForDetailedProjectViewClub" (onSearch)="onSearch($event);page=1"></tr>
+              <tr app-column-filter-bar *ngIf="isEmployeeReportTable && isSearchEnabled && !changeTable"
+              [columnList]="employeeReportColumnForDetailedProjectView" (onSearch)="onSearch($event);page=1"></tr>
             </thead>
             <tbody>
               <tr *ngIf="filteredEmployees.length == 0 || (filteredEmployees | colFilter:filters: false).length == 0">
@@ -602,8 +604,8 @@
                 <td>{{ employee.clientLocation }}</td>
                 <td>{{ employee.workLocation }}</td>
                 <td>{{ employee.totalExperience }}</td>
-                <td>{{ employee.primaryProjectName || 'Not Assigned' }}</td>
-                <td>
+                <td *ngIf="changeTable">{{ employee.primaryProjectName || 'Not Assigned' }}</td>
+                <td *ngIf="changeTable">
                   <select class="form-control" [(ngModel)]="employee.selectedProject">
                     <option *ngFor="let project of (employee.projectName && employee.projectName.trim() ? employee.projectName.split(',') : [])">
                       {{ project.trim() }}
