@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
@@ -29,6 +30,7 @@ import com.apmosys.employeeportal.model.ProjectInsightSubModule;
 import com.apmosys.employeeportal.model.QuestionMaster;
 import com.apmosys.employeeportal.model.Survey;
 import com.apmosys.employeeportal.model.SurveyQuestion;
+import com.apmosys.employeeportal.repository.ProjectInsightAssigneesRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightMilestoneRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightModuleRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightResponseRepository;
@@ -65,6 +67,9 @@ public class ProjectInsightService {
 	
 	@Autowired
 	ProjectInsightModuleRepository projectInsightModuleRepository;
+	
+	@Autowired
+	ProjectInsightAssigneesRepository projectInsightAssigneesRepository;
 	
 	public ServiceResponse addQuestion(List<ProjectQuestionDTO> questionAddList, Long entityId, String entity) {
 		ServiceResponse response = new ServiceResponse();
@@ -144,17 +149,6 @@ public class ProjectInsightService {
 
 					newProjectInsight.setCreatedBy(projectInsightDTO.getCreatedBy());
 					newProjectInsight.setProjectId(projectInsightDTO.getProjectId());
-					
-//					if(!project.getAssignedTo().isEmpty()) {
-//						for(Long assignToId: project.getAssignedTo()) {
-//							ProjectInsightAssignees newAssignObj = new ProjectInsightAssignees();
-//							
-//							newAssignObj.setAssignedTo(assignToId);
-//							newAssignObj.setEntityId(assignToId)
-//							newProjectInsight.setAssignedTo(project.getAssignedTo());
-//						}
-//					}
-					
 					newProjectInsight.setMilestone(project.getMilestone());
 					newProjectInsight.setDescription(project.getDescription());
 					newProjectInsight.setDeptId(project.getDeptId());
@@ -165,8 +159,20 @@ public class ProjectInsightService {
 					
 					if(newMilestoneCreated.getMilestoneId() != null) {
 						isSuccess.set(true);
-						
 						Long milestoneId = newMilestoneCreated.getMilestoneId();
+						
+						//Assign to
+						if(!project.getAssignedTo().isEmpty()) {
+							for(Long assignToId: project.getAssignedTo()) {
+								ProjectInsightAssignees newAssignObj = new ProjectInsightAssignees();
+								
+								newAssignObj.setAssignedTo(assignToId);
+								newAssignObj.setEntityId(milestoneId);
+								newAssignObj.setEntityType("Milestone");
+								
+								ProjectInsightAssignees assignToDbResponse = projectInsightAssigneesRepository.save(newAssignObj);
+							}
+						}
 						
 						//Add Milestone question
 						if(!project.getProjectQuestion().isEmpty()) {
@@ -187,7 +193,6 @@ public class ProjectInsightService {
 								ProjectInsightModule newProjectInsightModule = new ProjectInsightModule();
 
 								newProjectInsightModule.setCreatedBy(projectInsightDTO.getCreatedBy());
-//								newProjectInsightModule.setAssignedTo(module.getAssignedTo());
 								newProjectInsightModule.setMilestoneId(milestoneId);
 								newProjectInsightModule.setDescription(module.getDescription());
 								newProjectInsightModule.setRedmineId(module.getRedmineId());
@@ -198,6 +203,19 @@ public class ProjectInsightService {
 								if(moduleResponse != null) {
 									Long moduleId = moduleResponse.getModuleId();
 									 isSuccess.set(true);
+									 
+									//Assign to
+										if(!module.getAssignedTo().isEmpty()) {
+											for(Long assignToId: project.getAssignedTo()) {
+												ProjectInsightAssignees newAssignObj = new ProjectInsightAssignees();
+												
+												newAssignObj.setAssignedTo(assignToId);
+												newAssignObj.setEntityId(moduleId);
+												newAssignObj.setEntityType("Module");
+												
+												ProjectInsightAssignees assignToDbResponse = projectInsightAssigneesRepository.save(newAssignObj);
+											}
+										}
 									
 									//Add Milestone question
 									if(!module.getProjectQuestion().isEmpty()) {
@@ -216,7 +234,6 @@ public class ProjectInsightService {
 											ProjectInsightSubModule newProjectInsightSubModule = new ProjectInsightSubModule();
 
 											newProjectInsightSubModule.setCreatedBy(projectInsightDTO.getCreatedBy());
-//											newProjectInsightSubModule.setAssignedTo(submodule.getAssignedTo());
 											newProjectInsightSubModule.setModuleId(moduleId);
 											newProjectInsightSubModule.setDescription(submodule.getDescription());
 											newProjectInsightSubModule.setRedmineId(submodule.getRedmineId());
@@ -227,6 +244,19 @@ public class ProjectInsightService {
 											if(submoduleResponse != null) {
 												Long submoduleId = submoduleResponse.getSubmoduleId();
 												isSuccess.set(true);
+												
+												//Assign to
+												if(!submodule.getAssignedTo().isEmpty()) {
+													for(Long assignToId: project.getAssignedTo()) {
+														ProjectInsightAssignees newAssignObj = new ProjectInsightAssignees();
+														
+														newAssignObj.setAssignedTo(assignToId);
+														newAssignObj.setEntityId(submoduleId);
+														newAssignObj.setEntityType("SubModule");
+														
+														ProjectInsightAssignees assignToDbResponse = projectInsightAssigneesRepository.save(newAssignObj);
+													}
+												}
 												
 												//Add Milestone question
 												if(!submodule.getProjectQuestion().isEmpty()) {
@@ -424,7 +454,15 @@ public class ProjectInsightService {
 					mileStoneList.forEach((mileStone) -> {
 						ProjectInsightQuestionDTO mileStoneProjObject = new ProjectInsightQuestionDTO();
 						
-//						mileStoneProjObject.setAssignedTo(mileStone.getAssignedTo());
+						List<ProjectInsightAssignees> assignToDbList = projectInsightAssigneesRepository
+								.getByEntityIdAndEntityType(mileStone.getMilestoneId(), "Milestone");
+
+						if(!assignToDbList.isEmpty()) {
+							mileStoneProjObject.setAssignedTo(assignToDbList.stream()
+	                                .map(ProjectInsightAssignees::getAssignedTo)
+	                                .collect(Collectors.toList()));
+						}
+						
 						mileStoneProjObject.setDeptId(mileStone.getDeptId());
 						mileStoneProjObject.setDescription(mileStone.getDescription());
 						mileStoneProjObject.setMilestone(mileStone.getMilestone());
@@ -442,7 +480,15 @@ public class ProjectInsightService {
 							moduleList.forEach((module) -> {
 								ModuleDTO modDto = new ModuleDTO();
 								
-//								modDto.setAssignedTo(module.getAssignedTo());
+								List<ProjectInsightAssignees> assignModuleToDbList = projectInsightAssigneesRepository
+										.getByEntityIdAndEntityType(module.getModuleId(), "Module");
+
+								if(!assignModuleToDbList.isEmpty()) {
+									modDto.setAssignedTo(assignModuleToDbList.stream()
+			                                .map(ProjectInsightAssignees::getAssignedTo)
+			                                .collect(Collectors.toList()));
+								}
+								
 								modDto.setCreatedBy(module.getCreatedBy());
 								modDto.setCreatedOn(module.getCreatedOn().toString());
 								modDto.setDescription(module.getDescription());
@@ -459,7 +505,15 @@ public class ProjectInsightService {
 									subModuleList.forEach((submodule) -> {
 										SubModuleDTO submodDto = new SubModuleDTO();
 										
-//										submodDto.setAssignedTo(submodule.getAssignedTo());
+										List<ProjectInsightAssignees> assignSubModuleToDbList = projectInsightAssigneesRepository
+												.getByEntityIdAndEntityType(submodule.getSubmoduleId(), "SubModule");
+
+										if(!assignSubModuleToDbList.isEmpty()) {
+											submodDto.setAssignedTo(assignSubModuleToDbList.stream()
+					                                .map(ProjectInsightAssignees::getAssignedTo)
+					                                .collect(Collectors.toList()));
+										}
+										
 										submodDto.setCreatedBy(submodule.getCreatedBy());
 										submodDto.setCreatedOn(submodule.getCreatedOn().toString());
 										submodDto.setDescription(submodule.getDescription());
