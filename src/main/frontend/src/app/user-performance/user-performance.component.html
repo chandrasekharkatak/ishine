@@ -296,8 +296,8 @@
               <label for="final-rating">Final Rating</label>
               <input type="text" id="final-rating" [value]="finalRating || '0'" disabled placeholder="Enter Final Rating">
   
-              <label for="justification">Justify your Rating (Min. 150 characters)</label>
-              <textarea id="justification" [(ngModel)]="hodRemarks"></textarea>
+              <label for="justification"><span class="text-danger">*</span>Justify your Rating (Min. 150 characters)</label>
+              <textarea id="justification" [(ngModel)]="hodRemarks" [disabled]="currentStatus === 'Ongoing' || currentStatus === 'Completed'"></textarea>
   
               <button type="button" class="btn btn-primary float-right"
                 (click)="submitReviewEmployee(quarter,alert_message,i)" *ngIf="!enableDisableSubmit && userMapping.performance_action_by_hod">Submit</button>
@@ -312,14 +312,14 @@
   
   
               <div *ngIf="isAcceptSelected">
-                <label for="acceptReason">Comments:</label>
+                <label for="acceptReason"><span class="text-danger">*</span>Comments:</label>
                 <textarea id="acceptReason" [(ngModel)]="acceptReason" class="form-control"
                   placeholder="Enter reason"></textarea>
               </div>
   
   
               <div *ngIf="isRejectSelected">
-                <label for="rejectReason">Provide Reject Reason:</label>
+                <label for="rejectReason"><span class="text-danger">*</span>Provide Reject Reason:</label>
                 <textarea id="rejectReason" [(ngModel)]="rejectReason" class="form-control"
                   placeholder="Enter reason"></textarea>
               </div>
