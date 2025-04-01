@@ -428,7 +428,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 				    @Query(nativeQuery = true, value = "SELECT et.timesheet_id,et.emp_id,e.name,et.date,et.day_type,\n"
 				    	+ "et.office_in_time,et.office_out_time,et.total_time,\n"
-				    	+ "et.status,et.remarks,e.employeement_id,e.created_on,et.current_manager_id\n"
+				    	+ "et.status,et.remarks,e.employeement_id,et.created_on,et.current_manager_id\n"
 				    	+ "FROM employee_timesheets et  \n"
 				    	+ "inner join employee_timesheet_activities_mapping etam on etam.timesheet_id = et.timesheet_id \n"
 				    	+ "inner join activities a on a.activity_id = etam.activity_id \n"
@@ -439,7 +439,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 				        + " AND (:projectId = 0 OR p.project_id = :projectId) \n "
 				        +" AND (:teamName = 0 OR t.team_id = :teamName) \n "
 				        + "AND (:empId = 0 OR et.emp_id = :empId) " 
-				        + "AND ((:startDate IS NULL OR :endDate IS NULL) OR (et.date BETWEEN :startDate AND :endDate))")
+				        + "AND et.date >= CURDATE() - INTERVAL 3 MONTH\n"
+				        + "AND ((:startDate IS NULL OR :endDate IS NULL) OR (et.date BETWEEN :startDate AND :endDate))"
+				        + "ORDER BY et.date DESC\n")
 				    List<Object[]> getTimesheetData(
 				            @Param("status") String status,
 				            @Param("empId") long empId,
