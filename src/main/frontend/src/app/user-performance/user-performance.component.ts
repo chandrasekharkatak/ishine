@@ -256,27 +256,8 @@ export class UserPerformanceComponent implements OnInit {
             employee.employeementId = this.utilityService.appendEmployeementid(employee.isConsultant, employee.employeementId);
 
             const joiningDate = new Date(employee.dateOfJoining);
-
-            // If the current user's role is HR or the HOD ID matches the current user
-            if (employee.hodId === this.currentUser.empId) {
-              // Check if the employee is confirmed and joined more than one year ago
-              return joiningDate <= oneYearAgo && employee.employmentstatus === 'Confirmed';
-            }else{
-
-              if(employee.managerId!=null){
-                if(employee.managerId===this.currentUser.managerId){
-                  return joiningDate <= oneYearAgo && employee.employmentstatus === 'Confirmed';
-          
-                }
-              }
-             
-            }
-            if (this.userMapping.performance_action_by_hr === true) {
-              // Check if the employee is confirmed and joined more than one year ago
-              return joiningDate <= oneYearAgo && employee.employmentstatus === 'Confirmed';
-            }
-
-
+   return joiningDate <= oneYearAgo && employee.employmentstatus === 'Confirmed';
+           
             // if (this.currentUser.employeeRole !== 'HR') {
             //   alert('You are not authorized..!!');
             // }
