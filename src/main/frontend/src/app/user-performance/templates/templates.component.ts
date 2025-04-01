@@ -1,10 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DepartmentService } from 'src/app/services/department.service';
 import { UserPerformanceService } from 'src/app/services/user-performance.service';
 import { TemplateService } from 'src/app/services/template.service';
 import { first } from 'rxjs/operators';
-import { question } from 'src/app/models/question';
 import { QuestionnaireDTO, QuestionDTO } from 'src/app/models/questionnaire-dto';
 import { KraKpiService } from 'src/app/services/kpi-kra.service';
 import { KpiTemplate } from 'src/app/models/kpiTemplate';
@@ -13,6 +12,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { Employee } from 'src/app/models/employee';
 import { User } from 'src/app/models/user';
+import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
 
 
@@ -25,6 +25,9 @@ import { LogService } from 'src/app/services/log.service';
   styleUrls: ['./templates.component.css']
 })
 export class TemplatesComponent implements OnInit {
+
+  @ViewChild('alert_message') alert_message: TemplateRef<any>;
+
   activeTab: string = 'goals';
   selectedTemplateType: string = 'goals';
   currentUser: User;
@@ -52,6 +55,9 @@ selectedQuarter: any;
   errorMessage: any;
   currentEmployeeInfo:Employee = new Employee();
 quarter: any;
+alertMessage: any;
+modalRef?: BsModalRef;
+// jobRoleObj: any;
 
 
   constructor(
@@ -59,6 +65,7 @@ quarter: any;
     private departmentService: DepartmentService,
     private userPerformanceService: UserPerformanceService,
     private templateService: TemplateService,
+    private modalService: BsModalService,
     private kraKpiService : KraKpiService,
     private logService:LogService,
     private performanceService:PerformanceService,
@@ -102,8 +109,6 @@ quarter: any;
     this.fetchQuarters();
     this.fetchGoalTemplates();
     this.getAllDepartmentList();
-    this.fetchQuestionnaireTemplates();
-    this.fetchKraKpiTemplates();
     
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -149,16 +154,14 @@ quarter: any;
       this.kpis.removeAt(index);
     }
   }
+
+
   
   fetchQuarters(): void {
-    
-
     this.performanceService.getAllQuarterCycles().subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
-          this.quarterCyclesList = response.serviceResponse;
-          // this.selectedQuarter = this.quarterCyclesList[0].quarterId;
-          
+          this.quarterCyclesList = response.serviceResponse;          
         } else {
           this.errorMessage = response.serviceMessage || 'Failed to load quarters.';
         }
@@ -197,7 +200,8 @@ quarter: any;
     }
   }
 
-  onSubmit() {
+  onSubmit(template: TemplateRef<any>) {
+    console.log('Submit button clicked!');
     console.log('Form valid?', this.questionnaireForm.valid);
     
     if (this.questionnaireForm.valid) {
@@ -227,19 +231,20 @@ quarter: any;
         response: null,
       };
       
-      console.log('Form data to submit:', questionnaireData);
-      console.log('Quarter ID:', this.selectedQuarterId);
-      console.log('Department ID:', this.selectedDepartmentId);
+      // console.log('Form data to submit:', questionnaireData);
+      // console.log('Quarter ID:', this.selectedQuarterId);
+      // console.log('Department ID:', this.selectedDepartmentId);
       
       if (this.isEditing && this.editingTemplateId) {
-        this.updateQuestionnaireTemplate(this.editingTemplateId, questionnaireData);
+        this.updateQuestionnaireTemplate(this.editingTemplateId, questionnaireData,this.alert_message);
       } else {
-        this.createQuestionnaireTemplate(questionnaireData, this.selectedQuarterId, this.selectedDepartmentId);
+        this.createQuestionnaireTemplate(questionnaireData, this.selectedQuarterId, this.selectedDepartmentId, this.alert_message);
       }
     } else {
       console.log('Form validation errors:', this.getFormValidationErrors());
       this.questionnaireForm.markAllAsTouched();
-      alert('Please fill in all required fields correctly');
+      this.alertMessage = 'Please fill in all required fields correctly'
+      this.openAlertMod(template, this.alertMessage);
     }
   }
   
@@ -263,31 +268,33 @@ quarter: any;
     console.log('Department selected:', this.selectedDepartmentId);
   }
 
-  createQuestionnaireTemplate(formData: QuestionnaireDTO, quarterId: number, departmentId: number) {
+  createQuestionnaireTemplate(formData: QuestionnaireDTO, quarterId: number, departmentId: number, template: TemplateRef<any>) {
     this.templateService.createQuestionnaireTemplate(formData, quarterId, departmentId)
       .pipe(first())
       .subscribe({
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
-            alert('Questionnaire template created successfully!');
+            this.alertMessage = 'Questionnaire template created successfully!'
+            this.openAlertMod(template, this.alertMessage);
             this.resetQuestionnaireForm();
             this.setActiveTab('questionnaire');
             this.fetchQuestionnaireTemplates();
           } else {
-            console.error('Error creating questionnaire template:', response.serviceMessage);
-            alert('Failed to create questionnaire template: ' + response.serviceMessage);
+            this.alertMessage = `Failed to create questionnaire template: ${response.serviceMessage}`
+            this.openAlertMod(template, this.alertMessage);
           }
         },
         error: (error) => {
           console.error('HTTP error creating questionnaire template:', error);
-          alert('Error creating questionnaire template. Please try again.');
+          this.alertMessage = 'Error creating questionnaire template. Please try again.'
+          this.openAlertMod(template, this.alertMessage);
         }
       });
   }
 
 
 
-  createKraKpiTemplate(formData: KpiTemplate) {
+  createKraKpiTemplate(formData: KpiTemplate, template: TemplateRef<any>) {
     // console.log('Sending KPI template data:', formData);
     this.kraKpiService.createKpiTemplate(formData,formData.quarterId,formData.departmentId)
       .pipe(first())
@@ -295,46 +302,52 @@ quarter: any;
         next: (response: any) => {
           console.log('KPI template creation response:', response);
           if (response.serviceStatus === "Success") {
-            alert('KRA-KPI template created successfully!');
+            this.alertMessage = 'KRA-KPI template created successfully!'
+            this.openAlertMod(template, this.alertMessage);
             this.resetKraKpiForm();
             this.setActiveTab('kra-kpi');
             this.fetchKraKpiTemplates();
           } else {
             console.error('Error creating KRA-KPI template:', response.serviceMessage);
-            alert('Failed to create KRA-KPI template: ' + response.serviceMessage);
+            this.alertMessage = `Failed to create KRA-KPI template:  ${response.serviceMessage}`
+            this.openAlertMod(template, this.alertMessage);
           }
         },
         error: (error) => {
           console.error('HTTP error creating KRA-KPI template:', error);
-          alert('Error creating KRA-KPI template. Please try again.');
+          this.alertMessage = 'Error creating KRA-KPI template. Please try again.'
+          this.openAlertMod(template, this.alertMessage);
         }
       });
   }
 
 
-  updateQuestionnaireTemplate(id: number, formData: QuestionnaireDTO) {
+  updateQuestionnaireTemplate(id: number, formData: QuestionnaireDTO, template:TemplateRef<any>) {
     this.templateService.updateQuestionnaire(id, formData)
       .pipe(first())
       .subscribe({
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
-            alert('Questionnaire template updated successfully!');
+            this.alertMessage = 'Questionnaire template updated successfully!'
+            this.openAlertMod(template, this.alertMessage);
             this.resetQuestionnaireForm();
             this.setActiveTab('questionnaire');
             this.fetchQuestionnaireTemplates();
           } else {
             console.error('Error updating questionnaire template:', response.serviceMessage);
-            alert('Failed to update questionnaire template: ' + response.serviceMessage);
+            this.alertMessage = `Failed to update questionnaire template:  ${response.serviceMessage}`
+            this.openAlertMod(template, this.alertMessage);
           }
         },
         error: (error) => {
           console.error('HTTP error updating questionnaire template:', error);
-          alert('Error updating questionnaire template. Please try again.');
+          this.alertMessage = 'Error updating questionnaire template. Please try again.'
+          this.openAlertMod(template, this.alertMessage);
         }
       });
   }
 
-  updateKraKpiTemplate(id: number, formData: KpiTemplate) {
+  updateKraKpiTemplate(id: number, formData: KpiTemplate, template: TemplateRef<any>) {
     this.kraKpiService.updateKpiTemplate(id, formData)
       .pipe(first())
       .subscribe({
@@ -345,13 +358,14 @@ quarter: any;
             this.setActiveTab('kra-kpi');
             this.fetchKraKpiTemplates();
           } else {
-            console.error('Error updating KRA-KPI template:', response.serviceMessage);
-            alert('Failed to update KRA-KPI template: ' + response.serviceMessage);
+            this.alertMessage = `Failed to update KRA-KPI template:  ${response.serviceMessage}`
+            this.openAlertMod(template, this.alertMessage);
           }
         },
         error: (error) => {
           console.error('HTTP error updating KRA-KPI template:', error);
-          alert('Error updating KRA-KPI template. Please try again.');
+          this.alertMessage = 'Error updating KRA-KPI template. Please try again.'
+          this.openAlertMod(template, this.alertMessage);
         }
       });
   }
@@ -474,46 +488,48 @@ quarter: any;
     }
   }
 
-  deleteQuestionnaireTemplate(questionId: number) {
+  deleteQuestionnaireTemplate(questionId: number,template: TemplateRef<any>) {
     if (confirm('Are you sure you want to delete this questionnaire template?')) {
       this.templateService.deleteQuestionnaire(questionId)
         .pipe(first())
         .subscribe({
           next: (response: any) => {
             if (response.serviceStatus === "Success") {
-              alert('Questionnaire template deleted successfully!');
+              this.alertMessage = 'Questionnaire template deleted successfully!'
+              this.openAlertMod(template, this.alertMessage);
               this.fetchQuestionnaireTemplates();
             } else {
-              console.error('Error deleting questionnaire template:', response.serviceMessage);
-              alert('Failed to delete questionnaire template: ' + response.serviceMessage);
+              this.alertMessage = `Failed to delete questionnaire template:  ${response.serviceMessage}`
+              this.openAlertMod(template, this.alertMessage);
             }
           },
           error: (error) => {
-            console.error('HTTP error deleting questionnaire template:', error);
-            alert('Error deleting questionnaire template. Please try again.');
+            this.alertMessage = 'Error deleting questionnaire template. Please try again.'
+            this.openAlertMod(template, this.alertMessage);
           }
         });
     }
   }
 
-  deleteKraKpiTemplate(id: number) {
-    console.log('Attempting to delete KPI with ID:', id);
+  deleteKraKpiTemplate(id: number, template: TemplateRef<any>) {
     if (confirm('Are you sure you want to delete this KRA-KPI template?'))  {
       this.kraKpiService.deleteKpiTemplate(id)
         .pipe(first())
         .subscribe({
           next: (response: any) => {
             if (response.serviceStatus === "Success") {
-              alert('KRA-KPI template deleted successfully!');
+              this.alertMessage = 'KRA-KPI template deleted successfully!'
+              this.openAlertMod(template, this.alertMessage);
               this.fetchKraKpiTemplates();
             } else {
-              console.error('Error deleting KRA-KPI template:', response.serviceMessage);
-              alert('Failed to delete KRA-KPI template: ' + response.serviceMessage);
+              this.alertMessage = `Failed to delete KRA-KPI template:  ${response.serviceMessage}`
+              this.openAlertMod(template, this.alertMessage);
             }
           },
           error: (error) => {
             console.error('HTTP error deleting KRA-KPI template:', error);
-            alert('Error deleting KRA-KPI template. Please try again.');
+            this.alertMessage = 'Error deleting KRA-KPI template. Please try again.'
+            this.openAlertMod(template, this.alertMessage);
           }
         });
     }
@@ -575,10 +591,9 @@ quarter: any;
       }
     });
   }
-
-
   onDepartmentChange() {
     if (this.selectedDept && this.selectedDept !== 'all') {
+    
       if (this.activeTab === 'goals') {
         this.userPerformanceService.getGoalTemplatesByDepartmentId(this.selectedDept.deptId)
           .pipe(first())
@@ -609,15 +624,33 @@ quarter: any;
               console.error('HTTP error fetching department KRA/KPI templates:', error);
             }
           });
+      } else if (this.activeTab === 'questionnaire') { 
+        this.templateService.getQuestionnaireTemplatesByDepartmentId(this.selectedDept.deptId)
+          .pipe(first())
+          .subscribe({
+            next: (response: any) => {
+              if (response.serviceStatus === "Success") {
+                this.questionnaireTemplates = response.serviceResponse;
+              } else {
+                console.error("Error fetching department questionnaire templates:", response.serviceMessage);
+              }
+            },
+            error: (error) => {
+              console.error("HTTP error fetching department questionnaire:", error);
+            }
+          });
       }
-    } else {
+    } else { 
       if (this.activeTab === 'goals') {
         this.fetchGoalTemplates();
       } else if (this.activeTab === 'kra-kpi') {
         this.fetchKraKpiTemplates();
+      } else if (this.activeTab === 'questionnaire') { 
+        this.fetchQuestionnaireTemplates();
       }
     }
   }
+  
   
 
   onKraKpiSubmit() {
@@ -647,15 +680,14 @@ quarter: any;
       console.log('KRA-KPI Form Data:', kpiTemplate);
       
       if (this.isEditing && this.editingTemplateId) {
-        this.updateKraKpiTemplate(this.editingTemplateId, kpiTemplate);
+        this.updateKraKpiTemplate(this.editingTemplateId, kpiTemplate,this.alert_message);
       } else {
-        this.createKraKpiTemplate(kpiTemplate);
+        this.createKraKpiTemplate(kpiTemplate,this.alert_message);
       }
     } else {
       this.kpikraForm.markAllAsTouched();
     }
   }
-
 
   fetchKraKpiTemplates() {
     
@@ -690,7 +722,7 @@ quarter: any;
   updateFormValidation() {
    
     if (this.selectedTemplateType === 'goals') {
-      this.templateForm.get('description')?.setValidators([Validators.required]);
+      this.templateForm.get('title')?.setValidators([Validators.required]);
       this.templateForm.get('metrics')?.clearValidators();
       this.templateForm.get('questions')?.clearValidators();
     } else if (this.selectedTemplateType === 'kra-kpi') {
@@ -712,9 +744,7 @@ quarter: any;
     this.resetForm();
     this.updateFormValidation();
     
-    // if (this.selectedTemplateType === 'questionnaire') {
-    //   this.resetQuestionnaireForm();
-    // }
+
   }
 
   editTemplate(template: any) {
@@ -736,7 +766,7 @@ quarter: any;
     this.updateFormValidation();
   }
 
-  deleteTemplate(templateId: number) {
+  deleteGoalTemplate(templateId: number,template: TemplateRef<any>) {
     if (confirm('Are you sure you want to delete this template?')) {
       this.userPerformanceService.deleteGoalTemplate(templateId)
         .pipe(first())
@@ -745,19 +775,19 @@ quarter: any;
             if (response.serviceStatus === "Success") {
               this.fetchGoalTemplates();
             } else {
-              console.error('Error deleting template:', response.serviceMessage);
-              alert('Failed to delete template: ' + response.serviceMessage);
+              this.alertMessage = `Failed to delete template:  ${response.serviceMessage}`
+              this.openAlertMod(template, this.alertMessage);
             }
           },
           error: (error) => {
-            console.error('HTTP error deleting template:', error);
-            alert('Error deleting template. Please try again.');
+            this.alertMessage = 'Error deleting template. Please try again.'
+            this.openAlertMod(template, this.alertMessage);
           }
         });
     }
   }
 
-  createOrUpdateTemplate() {
+  createOrUpdateTemplate(template: TemplateRef<any>) {
     if (this.templateForm.invalid) {
       Object.keys(this.templateForm.controls).forEach(key => {
         this.templateForm.get(key)?.markAsTouched();
@@ -766,10 +796,6 @@ quarter: any;
     }
     
     const formValue = { ...this.templateForm.value };
-    
-    if (this.selectedTemplateType === 'questionnaire' && formValue.questions) {
-      formValue.questions = formValue.questions.split(',').map((q: string) => q.trim());
-    }
     
     if (this.isEditing && this.editingTemplateId) {
       this.userPerformanceService.updateGoalTemplate(this.editingTemplateId, formValue)
@@ -781,13 +807,14 @@ quarter: any;
               this.setActiveTab('goals');
               this.fetchGoalTemplates();
             } else {
-              console.error('Error updating template:', response.serviceMessage);
-              alert('Failed to update template: ' + response.serviceMessage);
+              this.alertMessage = `Failed to update template:  ${response.serviceMessage}`
+              this.openAlertMod(template, this.alertMessage);
             }
           },
           error: (error) => {
             console.error('HTTP error updating template:', error);
-            alert('Error updating template. Please try again.');
+            this.alertMessage = 'Error updating template. Please try again.'
+            this.openAlertMod(template, this.alertMessage);
           }
         });
     } else {
@@ -801,12 +828,14 @@ quarter: any;
               this.fetchGoalTemplates();
             } else {
               console.error('Error creating questionnaire template:', response.serviceMessage);
-              alert('Failed to create questionnaire  template: ' + response.serviceMessage);
+              this.alertMessage = `Failed to create questionnaire  template:  ${response.serviceMessage}`
+              this.openAlertMod(template, this.alertMessage);
             }
           },
           error: (error) => {
             console.error('HTTP error creating template:', error);
-            alert('Error creating template. Please try again.');
+            this.alertMessage = 'Error creating template. Please try again.'
+            this.openAlertMod(template, this.alertMessage);
           }
         });
     }
@@ -830,6 +859,8 @@ quarter: any;
       });
   }
 
-
-
+  openAlertMod(template: TemplateRef<any>, message: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
 }

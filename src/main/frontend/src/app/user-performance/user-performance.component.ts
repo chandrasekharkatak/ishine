@@ -34,15 +34,6 @@ export class UserPerformanceComponent implements OnInit {
     if (!this.route.firstChild) {
       this.router.navigate(['performance-dashboard'], { relativeTo: this.route });
     }    
-
-    // let featureMap:Feature[] = this.currentUser.userMapping.filter(userMap => userMap.tabName == this.tabName);
-    // featureMap?.forEach(feat => {
-    //   let inActiveSubfeatures = feat.subFeatures.filter(sub => {
-    //     if(sub.isActive === false)return sub;
-    //   });
-    //   this.userMapping[feat.featureName.replaceAll(' ', '_').toLowerCase()] = (inActiveSubfeatures.length === feat.subFeatures.length) ? false : true;
-      
-    // });
     
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     console.log('featureMap -- ',featureMap);

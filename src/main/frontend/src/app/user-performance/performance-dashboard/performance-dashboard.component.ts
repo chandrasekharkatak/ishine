@@ -1,7 +1,5 @@
 import { Component, OnInit, TemplateRef } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
-import { FormBuilder, FormGroup } from '@angular/forms';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { Employee } from 'src/app/models/employee';
@@ -41,12 +39,14 @@ interface AppraisalSummary {
 }
 
 interface QuestionDTO {
+remark: any;
 response: any;
   id: number;
   questionText: string;
 }
 
 interface kpiList{
+  remark: any;
   response:any;
   id:number;
   description: string;
@@ -71,8 +71,7 @@ export class PerformanceDashboardComponent implements OnInit {
   questionnaireQuestions: QuestionDTO[] = [];
   kpiList:kpiList[] = [];
   selectedgoalProgress: any;
-  kraKpiReviewForm: FormGroup;
-  questionnaireReviewForm: FormGroup;
+
   stats: Stats = {
     goalsCompleted: 0,
     goalsRemaining: 0,
@@ -81,7 +80,11 @@ export class PerformanceDashboardComponent implements OnInit {
   };
   minRating = 3;
   goals: Goal[] = [];
-  summary?: AppraisalSummary;
+  summary: AppraisalSummary = {
+    finalRating: 0,        
+    finalRemarks: '',      
+    appraisalScore: 0      
+  };
 
   currentEmployeeInfo: Employee = new Employee();
   selectedGoal?: Goal;
@@ -89,11 +92,11 @@ export class PerformanceDashboardComponent implements OnInit {
   errorMessage: string;
   currentQuestionnaireId: any;
 
+  alertMessage:any;
+
   constructor(
-    private http: HttpClient, 
     private employeeService: EmployeeService,
     private modalService: BsModalService,
-    private fb: FormBuilder,
     private authenticationService : AuthenticationService,
     private performanceService:PerformanceService,
     private goalService:GoalService,
@@ -266,6 +269,8 @@ loadQuestionnaireQuestions(): void {
 loadKpiList(): void {
   const quarterId = this.selectedQuarter1;
   const departmentId = this.currentEmployeeInfo.departmentId;
+
+  this.kpiList = [];
   
   if (!quarterId || !departmentId) return;
   
@@ -287,8 +292,8 @@ loadKpiList(): void {
 
 
 
-saveKpiResponses(): void {
-
+saveKpiResponses(template: TemplateRef<any>): void {
+  
   console.log("Response ======> "+ JSON.stringify(this.kpiList));
 
   const response = this.kpiList;
@@ -298,40 +303,23 @@ saveKpiResponses(): void {
   this.performanceService.submitKpiResponses(response,empId,quarterId).subscribe({
     next: (response: any) => {
       if (response.serviceStatus === 'Success') {
-        alert('KPI responses submitted successfully!');
+        this.alertMessage = "KPI responses submitted successfully!"
+        this.openAlertMod(template, this.alertMessage);
       } else {
-        alert('Failed to submit responses: ' + response.serviceMessage);
+        this.alertMessage = `Failed to submit responses: ${response.serviceMessage}`
+        this.openAlertMod(template, this.alertMessage);
       }
     },
     error: (error) => {
       console.error('Error submitting KPI responses:', error);
-      alert('An error occurred while submitting responses. Please try again.');
+      this.alertMessage = `Error submitting KPI responses: ${error}`
+      this.openAlertMod(template, this.alertMessage);
     }
   });
 }
 
-saveQuestionnaireResponses(): void {
- 
 
-  const empId = this.currentEmployeeInfo.empId;
-  const quarterId = this.selectedQuarter1;
-
-
-  this.performanceService.submitQuestionnaireResponses(this.questionnaireQuestions,empId,quarterId).subscribe({
-    next: (response: any) => {
-      if (response.serviceStatus === 'Success') {
-        alert('Questionnaire responses submitted successfully!');
-      } else {
-        alert('Failed to submit responses: ' + response.serviceMessage);
-      }
-    },
-    error: (error) => {
-      console.error('Error submitting questionnaire responses:', error);
-      alert('An error occurred while submitting responses. Please try again.');
-    }
-  });
-}
-  saveUpdates() {
+  saveUpdates(template: TemplateRef<any>) {
     const payload = {
       goalProgress: this.selectedgoalProgress,
       employeeRemark: this.selectedGoal.employeeRemark,
@@ -340,15 +328,47 @@ saveQuestionnaireResponses(): void {
     this.goalService.updateGoal(this.selectedGoal.goalId, payload).subscribe(
       (response) => {
         if (response.serviceStatus === 'Success') {
-          alert('Updates saved successfully!');
-          this.modalRef.hide();
+          this.alertMessage = "Updates saved successfully!"
+          this.openAlertMod(template, this.alertMessage);
         }
-        alert('Updates saved successfully!');
-        this.modalRef.hide();
+       
       },
       (error) => {
         console.error('Error saving updates:', error);
+        this.alertMessage = "'Error saving updates"
+        this.openAlertMod(template, this.alertMessage);
       }
     );
+  }
+
+  saveQuestionnaireResponses(template: TemplateRef<any>): void {
+ 
+    const empId = this.currentEmployeeInfo.empId;
+    const quarterId = this.selectedQuarter1;
+
+    console.log('question response:', this.questionnaireQuestions);
+  
+  
+    this.performanceService.submitQuestionnaireResponses(this.questionnaireQuestions,empId,quarterId).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === 'Success') {
+          this.alertMessage = "Questionnaire responses submitted successfully!"
+          this.openAlertMod(template, this.alertMessage);
+        } else {
+          this.alertMessage = `Failed to submit responses: ${response.serviceMessage}`
+          this.openAlertMod(template, this.alertMessage);
+        }
+      },
+      error: (error) => {
+        console.error('Error submitting questionnaire responses:', error);
+        this.alertMessage = `An error occurred while submitting responses. Please try again.`
+        this.openAlertMod(template, this.alertMessage);
+      }
+    });
+  }
+
+  openAlertMod(template: TemplateRef<any>, message: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
   }
 }

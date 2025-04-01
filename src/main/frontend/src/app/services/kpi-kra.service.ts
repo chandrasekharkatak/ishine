@@ -38,9 +38,7 @@ export class KraKpiService {
   createKpiTemplate(kpiTemplate: KpiTemplate , quarterId: number , departmentId: number): Observable<any> {
     return this.http.post(`${this.apiUrl}api/kpi/createKpiTemplate/quarter/${quarterId}/department/${departmentId}`, kpiTemplate);
   }
-  //  createQuestionnaireTemplate(questionnaireData: QuestionnaireDTO, quarterId: number, departmentId: number): Observable<any> {
-  //     return this.http.post(`${this.apiUrl}api/questionnaires/createQuestionnaireTemplate/quarter/${quarterId}/department/${departmentId}`, questionnaireData);
-  //   }
+
 
   updateKpiTemplate(id: number, kpiTemplate: KpiTemplate): Observable<any> {
     return this.http.put(`${this.apiUrl}api/kpi/updateKpi/${id}`, kpiTemplate);

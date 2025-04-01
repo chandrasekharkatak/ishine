@@ -43,6 +43,13 @@ interface AppraisalSummary {
   appraisalScore: number;
 }
 
+interface kpiList{
+  remark: any;
+  response:any;
+  id:number;
+  description: string;
+}
+
 @Component({
   selector: 'app-view-performance',
   templateUrl: './view-performance.component.html',
@@ -82,7 +89,8 @@ export class ViewPerformanceComponent implements OnInit {
   subscription!: Subscription;
   modalRef?: BsModalRef;
   errorMessage: string;
-  kpiList: any;
+  kpiList:kpiList[] = [];
+  alertMessage: any;
 
   constructor(
     private router: Router,
@@ -186,7 +194,7 @@ export class ViewPerformanceComponent implements OnInit {
   }
 
   loadPerformanceStats(): void {
-    const empId = this.currentUser?.empId;
+    const empId = this.selectedEmployee.id;
     const quarter = this.selectedQuarter;
 
 
@@ -259,26 +267,28 @@ export class ViewPerformanceComponent implements OnInit {
       });
   }
 
-  saveQuestionnaireResponses(): void {
+  saveQuestionnaireResponses(template: TemplateRef<any>): void {
  
     const empId = this.currentEmployeeInfo.empId;
     const quarterId = this.selectedQuarter1;
 
-    const response = this.questionnaireQuestions;
     console.log('question response:', this.questionnaireQuestions);
   
   
     this.performanceService.submitQuestionnaireResponses(this.questionnaireQuestions,empId,quarterId).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
-          alert('Questionnaire responses submitted successfully!');
+          this.alertMessage = "Questionnaire responses submitted successfully!"
+          this.openAlertMod(template, this.alertMessage);
         } else {
-          alert('Failed to submit responses: ' + response.serviceMessage);
+          this.alertMessage = `Failed to submit responses: ${response.serviceMessage}`
+          this.openAlertMod(template, this.alertMessage);
         }
       },
       error: (error) => {
         console.error('Error submitting questionnaire responses:', error);
-        alert('An error occurred while submitting responses. Please try again.');
+        this.alertMessage = `An error occurred while submitting responses. Please try again.`
+        this.openAlertMod(template, this.alertMessage);
       }
     });
   }
@@ -314,7 +324,7 @@ export class ViewPerformanceComponent implements OnInit {
   
   }
   
-  saveKpiResponses(): void {
+  saveKpiResponses(template: TemplateRef<any>): void {
   
     console.log("Response ======> "+ JSON.stringify(this.kpiList));
   
@@ -325,34 +335,45 @@ export class ViewPerformanceComponent implements OnInit {
     this.performanceService.submitKpiResponses(response,empId,quarterId).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
-          alert('KPI responses submitted successfully!');
+          this.alertMessage = "KPI responses submitted successfully!"
+          this.openAlertMod(template, this.alertMessage);
         } else {
-          alert('Failed to submit responses: ' + response.serviceMessage);
+          this.alertMessage = `Failed to submit responses: ${response.serviceMessage}`
+          this.openAlertMod(template, this.alertMessage);
         }
       },
       error: (error) => {
         console.error('Error submitting KPI responses:', error);
-        alert('An error occurred while submitting responses. Please try again.');
+        this.alertMessage = `Error submitting KPI responses: ${error}`
+        this.openAlertMod(template, this.alertMessage);
       }
     });
   }
 
-  saveUpdates() {
+  saveUpdates(template: TemplateRef<any>) {
     const payload = {
       managerRemark: this.selectedGoal.managerRemark,
     };
   
     this.goalService.updateGoal(this.selectedGoal.goalId, payload).subscribe(
       (response) => {
-        alert('Updates saved successfully!');
-        this.modalRef.hide();
+        if (response.serviceStatus === 'Success') {
+          this.alertMessage = "Updates saved successfully!"
+          this.openAlertMod(template, this.alertMessage);
+        }
       },
       (error) => {
         console.error('Error saving updates:', error);
+        this.alertMessage = "'Error saving updates"
+        this.openAlertMod(template, this.alertMessage);
       }
     );
   }
 
+  openAlertMod(template: TemplateRef<any>, message: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
 
   
 }

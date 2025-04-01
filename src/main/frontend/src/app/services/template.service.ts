@@ -35,4 +35,10 @@ export class TemplateService {
   deleteQuestionnaire(questionId: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}api/questionnaires/deleteQuestionnaire/${questionId}`);
   }
+  
+  getQuestionnaireTemplatesByDepartmentId(departmentId: number): Observable<any>{
+    
+    return this.http.get(`${this.apiUrl}api/questionnaires/department/${departmentId}`);
+
+  }
 }

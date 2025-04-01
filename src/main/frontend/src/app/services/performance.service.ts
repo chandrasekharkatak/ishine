@@ -116,7 +116,7 @@ getQuestionnaireReview(empId: number, quarter: string): Observable<any> {
 }
 
 getAppraisalSummary(empId: number): Observable<any> {
-  return this.http.get(`${this.baseUrl}/api/appraisal-summaries/employee/${empId}`);
+  return this.http.get(`${this.baseUrl}api/appraisal-summaries/employee/${empId}`);
 }
 
 submitReview(payload: any): Observable<any> {

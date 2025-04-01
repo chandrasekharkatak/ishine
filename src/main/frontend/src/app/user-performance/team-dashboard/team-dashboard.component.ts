@@ -59,6 +59,7 @@ export class TeamDashboardComponent implements OnInit {
     expectedCompletionDate: string;
   }[] = [];
   today: Date = new Date();
+  alertMessage:any;
 
   constructor(
     private router: Router,
@@ -99,7 +100,6 @@ export class TeamDashboardComponent implements OnInit {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
 
-   
   }
 
   fetchQuarters(): void {
@@ -119,7 +119,6 @@ export class TeamDashboardComponent implements OnInit {
     });
   }
   
-
   
   getEmployeesInDepartment() {
     this.teamDashboardService.findEmployeesInSameDepartmentAsCurrentUser(this.hodId).subscribe(
@@ -276,10 +275,10 @@ export class TeamDashboardComponent implements OnInit {
       class: 'modal-md'
     });
   }
-  
+
+
   openMultiGoalModal(employee: any) {
     console.log('Setting up to assign multiple goals to employee:', employee);
-    
     this.selectedEmployee = employee;
     this.selectedGoalData = []; 
     
@@ -305,12 +304,13 @@ export class TeamDashboardComponent implements OnInit {
     }
   }
 
-  assignGoalsToEmployees() {
+  assignGoalsToEmployees(template: TemplateRef<any>) {
     console.log('Attempting to assign goals to multiple employees');
     
     if (!this.selectedGoalTemplate || !this.expectedCompletionDate || this.selectedEmployees.length === 0 || !this.selectedQuarter) {
       console.error('Missing required data for bulk goal assignment');
-      alert('Please select a goal template, set an expected completion date, select a quarter, and select at least one employee.');
+      this.alertMessage = "Please select a goal template, set an expected completion date, select a quarter, and select at least one employee."
+      this.openAlertMod(template, this.alertMessage);
       return;
     }
   
@@ -347,29 +347,31 @@ export class TeamDashboardComponent implements OnInit {
             this.selectedQuarter = '';
             
             this.getEmployeesInDepartment();
-            alert('Goals assigned successfully!');
+            this.alertMessage = 'Goals assigned successfully! '
+            this.openAlertMod(template, this.alertMessage);
           } else {
             console.error('Error response:', response);
-            alert('Error assigning goals: ' + (response.serviceMessage || 'Unknown error'));
+            this.alertMessage = `Error assigning goals: ` + `${response.serviceMessage}`
+            this.openAlertMod(template, this.alertMessage);
           }
         },
         (error) => {
           console.error('HTTP error:', error);
-          alert('Error assigning goals. Please try again.');
+          this.alertMessage = "Error assigning goals. Please try again."
+          this.openAlertMod(template, this.alertMessage);
         }
       );
   }
   
-
-  assignMultipleGoalsToEmployee() {
-    console.log('Attempting to assign multiple goals to employee:', this.selectedEmployee);
+  assignMultipleGoalsToEmployee(template: TemplateRef<any>) {
     
     const invalidEntries = this.selectedGoalData.some(goal => 
       !goal.templateId || !goal.expectedCompletionDate || !this.selectedQuarter);
     
     if (invalidEntries || this.selectedGoalData.length === 0) {
       console.error('Missing required data for multi-goal assignment');
-      alert('Please select a goal template, quarter, and set an expected completion date for each goal.');
+      this.alertMessage = "Please select a goal template, quarter, and set an expected completion date for each goal."
+      this.openAlertMod(template, this.alertMessage);
       return;
     }
     
@@ -382,7 +384,7 @@ export class TeamDashboardComponent implements OnInit {
         quarterId: Number(this.selectedQuarter) 
       };
       
-      console.log('Sending goal assignment request:', requestBody);
+      // console.log('Sending goal assignment request:', requestBody);
       
       return this.http.post(`${environment.baseUrl}api/EmployeeGoals/assign`, requestBody)
         .toPromise()
@@ -422,22 +424,33 @@ export class TeamDashboardComponent implements OnInit {
           this.selectedQuarter = '';
           
           this.getEmployeesInDepartment();
-          alert(`All goals assigned successfully!`);
+          this.alertMessage = "All goals assigned successfully!"
+          this.openAlertMod(template, this.alertMessage); 
         } else {
           console.error('Some assignments failed:', responses);
           
           if (successfulAssignments.length > 0) {
-            alert(`${successfulAssignments.length} goals assigned successfully, but ${failedAssignments} failed. Check the console for details.`);
+            this.alertMessage = `${successfulAssignments.length} goals assigned successfully, but ${failedAssignments} failed. Check the console for details.`
+            this.openAlertMod(template, this.alertMessage); 
             this.getEmployeesInDepartment(); 
           } else {
-            alert('Failed to assign any goals. Please check the console for details.');
+            this.alertMessage = "Failed to assign any goals. Please check the console for details."
+            this.openAlertMod(template, this.alertMessage);
           }
         }
       })
       .catch(error => {
         this.loading = false;
         console.error('Fatal error assigning multiple goals:', error);
-        alert('Error assigning goals. Please try again.');
+        
+        this.alertMessage = "Error assigning goals. Please try again"
+        this.openAlertMod(template, this.alertMessage);
       });
   }
+
+  openAlertMod(template: TemplateRef<any>, message: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
 }
+

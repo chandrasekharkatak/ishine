@@ -61,14 +61,14 @@
               <td class="info-label">{{ viewTeamMember.name }}</td>
               <td>
                 <button
-                  class="btn btn-info btn-sm me-2"
+                  class="btn btn-info btn-sm mx-2"
                   (click)="getEmployeePerformance(viewTeamMember)"
                 >
                   View Performance
                 </button>
                 
                 <button
-                  class="btn btn-success btn-sm"
+                  class="btn btn-success btn-sm mx-2"
                   title="Assign Multiple Goals"
                   (click)="openMultiGoalModal(viewTeamMember)"
                 >
@@ -95,8 +95,8 @@
   </div>
 </div>
 
-<!-- Bulk Assign Modal Template -->
-<ng-template #bulkAssignTemplate let-modalRef>
+<!-- Modals Template -->
+ <ng-template #bulkAssignTemplate let-modalRef>
   <div class="modal-header">
     <h5 class="modal-title">Assign Goals  bulk to Selected Employees</h5>
     <button
@@ -189,7 +189,7 @@
           !expectedCompletionDate ||
           selectedEmployees.length === 0
         "
-        (click)="assignGoalsToEmployees()"
+        (click)="assignGoalsToEmployees(alert_message)"
       >
         Assign Goals
       </button>
@@ -302,10 +302,17 @@
     <button
       type="button"
       class="btn btn-primary"
-      (click)="assignMultipleGoalsToEmployee()"
+      (click)="assignMultipleGoalsToEmployee(alert_message)"
       [disabled]="!selectedQuarter"
     >
       Assign Goals
     </button>
   </div>
-</ng-template>+
+</ng-template>
+
+<ng-template #alert_message>
+  <div class="modal-body text-center">
+      <p>{{alertMessage}}</p>
+      <button type="button" class="btn btn-primary" (click)="this.modalRef.hide();">OK</button>&nbsp;
+  </div>
+</ng-template>

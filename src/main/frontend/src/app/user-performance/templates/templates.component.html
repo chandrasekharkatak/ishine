@@ -14,7 +14,7 @@
     </button>
   </div>
 
-  <!--  goals templates  -->
+  <!--  goal templates  -->
   <div class="tab-content mt-3">
     <div *ngIf="activeTab === 'goals'">
       <div class="px-0">
@@ -34,12 +34,14 @@
       </div>
 
       <div class="mt-3">
-        <table class="table table-striped">
-          <thead>
+        <table class="table team-table">
+          <thead class="thead-light">
+
             <tr>
               <th>Title</th>
               <th>Description</th>
               <th>Department</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -47,9 +49,13 @@
               <td>{{ template.title }}</td>
               <td>{{ template.description }}</td>
               <td>{{ template.department }}</td>
+
               <td>
-                <button class="btn btn-sm btn-primary mr-1" (click)="editTemplate(template)">Edit</button>
-                <button class="btn btn-sm btn-danger" (click)="deleteTemplate(template.templateId)">Delete</button>
+                <button class="btn btn-sm btn-outline-primary" type="submit" (click)="editTemplate(template)"><i 
+                    class="fa fa-edit"></i></button>&nbsp;
+
+                <button class="btn btn-sm btn-outline-danger" type="submit" (click)="deleteGoalTemplate(template.templateId,alert_message)"><i
+                   class="fa fa-trash"></i></button>&nbsp;
               </td>
             </tr>
             <tr *ngIf="goalTemplates.length === 0">
@@ -60,8 +66,7 @@
       </div>
     </div>
 
-
-    <!--  kra kpi templates  -->
+    <!--  kra kpi templates -->
     <div *ngIf="activeTab === 'kra-kpi'">
       <div class="px-0">
         <div class="col-md-12 table-header">
@@ -71,7 +76,7 @@
       <div class="row ml-2">
         <div class="col-md-4">
           <label class="info-label"><span class="text-danger">*</span>Department</label>
-          <select class="form-control" aria-hidden="true" [(ngModel)]="selectedDept" (change)="onDepartmentChange()">
+          <select class="form-control"  [(ngModel)]="selectedDept" (change)="onDepartmentChange()">
             <option selected="selected" [ngValue]="null" disabled>Select</option>
             <option [ngValue]="'all'">All Departments</option>
             <option *ngFor="let dept of allDeptList" [ngValue]="dept">{{dept.name}}</option>
@@ -79,8 +84,8 @@
         </div>
       </div>
       <div class="mt-3">
-        <table class="table table-striped">
-          <thead>
+        <table class="table team-table">
+          <thead class="thead-light">
             <tr>
               <th>Name</th>
               <th>Description</th>
@@ -96,8 +101,12 @@
               <td>{{ template.department}}</td>
               <td>{{ template.quarter}}</td>
               <td>
-                <button class="btn btn-sm btn-primary mr-1" (click)="editKraKpiTemplate(template)">Edit</button>
-                <button class="btn btn-sm btn-danger" (click)="deleteKraKpiTemplate(template.id)">Delete</button>
+                <button class="btn btn-sm btn-outline-primary" type="submit" (click)="editKraKpiTemplate(template)"><i 
+                    class="fa fa-edit"></i></button>&nbsp;
+                <button class="btn btn-sm btn-outline-danger" type="submit" (click)="deleteKraKpiTemplate(template.id,alert_message)"><i
+                     class="fa fa-trash"></i></button>&nbsp;
+
+
               </td>
             </tr>
             <tr *ngIf="kraKpiTemplates.length === 0">
@@ -107,22 +116,26 @@
         </table>
       </div>
     </div>
-    
-    <!--  questionnaire templates  -->
+
+    <!-- questionnaire templates -->
     <div *ngIf="activeTab === 'questionnaire'">
       <div class="px-0">
         <div class="col-md-12 table-header">
           <h1 class="table-header-title">Questionnaire Template</h1>
         </div>
       </div>
-      <div class="row ml-2">
-        <div class="col-md-4">
-       
-        </div>
+      <div class="col-md-4">
+        <label class="info-label"><span class="text-danger">*</span>Department</label>
+        <select class="form-control"  [(ngModel)]="selectedDept" (change)="onDepartmentChange()">
+          <option selected="selected" [ngValue]="null" disabled>Select</option>
+          <option [ngValue]="'all'">All Departments</option>
+          <option *ngFor="let dept of allDeptList" [ngValue]="dept">{{dept.name}}</option>
+        </select>
       </div>
+
       <div class="mt-3">
-        <table class="table table-striped">
-          <thead>
+        <table class="table team-table">
+          <thead class="thead-light">
             <tr>
               <th>Title</th>
               <th>Description</th>
@@ -137,11 +150,14 @@
               <td>{{ template.questionDescription }}</td>
               <td>{{template.department}}</td>
               <td>{{ template.quarter }}</td>
-            
+
               <td>
-                <button class="btn btn-sm btn-primary mr-1" (click)="editQuestionnaireTemplate(template)">Edit</button>
-                <button class="btn btn-sm btn-danger"
-                  (click)="deleteQuestionnaireTemplate(template.questionId)">Delete</button>
+                <button class="btn btn-sm btn-outline-primary" type="submit" (click)="editQuestionnaireTemplate(template)"><i
+                     class="fa fa-edit"></i></button>&nbsp;
+
+                <button class="btn btn-sm btn-outline-danger" type="submit" (click)="deleteQuestionnaireTemplate(template.id,alert_message)"><i
+                     class="fa fa-trash"></i></button>&nbsp;
+
               </td>
             </tr>
             <tr *ngIf="questionnaireTemplates.length === 0">
@@ -152,8 +168,8 @@
       </div>
     </div>
 
+<!-- CREATE TEMPLATE -->
 
-    <!--  create templates  -->
     <div *ngIf="activeTab === 'create-template'">
       <div class="px-0">
         <div class="col-md-12 table-header">
@@ -169,9 +185,10 @@
         </select>
       </div>
 
-      <form [formGroup]="templateForm" >
+      <form [formGroup]="templateForm">
 
-        <!--  create goal templates  -->
+      <!-- create template for goals  -->
+
         <div *ngIf="selectedTemplateType === 'goals'" class="form-group w-25">
           <div class="form-group ">
             <label>Title <span class="text-danger">*</span></label>
@@ -188,22 +205,24 @@
           </select>
         </div>
 
-       
+
         <div class="mt-3" *ngIf="selectedTemplateType === 'goals'">
-          <button type="submit" class="btn btn-primary" [disabled]="templateForm.invalid" (click)="createOrUpdateTemplate()">
-            {{ isEditing ? 'Update' : 'Create' }} Template
+          <button type="submit" class="btn btn-primary" [disabled]="templateForm.invalid"
+            (click)="createOrUpdateTemplate(alert_message)">
+            {{ isEditing ? 'Update' : 'Create' }}Goal Template
           </button>
           <button type="button" class="btn btn-secondary ml-2" (click)="resetForm()">
             Cancel
           </button>
         </div>
+   
+        <!-- create template for kpi kra -->
 
-        <!--  create Kra/Kpi templates  -->
         <div *ngIf="activeTab === 'create-template' && selectedTemplateType === 'kra-kpi'" class="card-body mx-0">
           <form [formGroup]="kpikraForm" (ngSubmit)="onKraKpiSubmit()">
             <div class="row mb-3">
               <div class="col-md-6">
-                <label for="kraTitle"><span class="text-danger">*</span>KRA Title</label>
+                <label for="kraTitle">KRA Title<span class="text-danger">*</span></label>
                 <input id="kraTitle" type="text" class="form-control" formControlName="name"
                   placeholder="Enter KRA title" required />
                 <div *ngIf="kpikraForm.get('name')?.invalid && kpikraForm.get('name')?.touched" class="text-danger">
@@ -211,7 +230,7 @@
                 </div>
               </div>
             </div>
-        
+
             <div class="row mb-3">
               <div class="col-md-6">
                 <label for="kraDescription">Description</label>
@@ -219,19 +238,21 @@
                   placeholder="Enter KRA description" rows="3"></textarea>
               </div>
             </div>
-        
             <div class="row mb-3">
-              <div class="col-md-6 px-0 pr-1 mb-0">
-                <div class="form-inline input-group">
-                  <label class="d-inline-block mr-2 mt-2">Select quarter</label>
-                  <select class="form-control"  formControlName="quarterId" (ngModelChange)="onKpiQuarterChange()">
-                    <option selected="selected" value="" disabled>Select</option>
-                    <option *ngFor="let quarter of quarterCyclesList" [value]="quarter.quarterId">{{quarter.quarterCycle}}</option>
-                  </select>
+              <div class="col-md-6">
+                <label for="quarterId">Quarter<span class="text-danger">*</span></label>
+                <select class="form-control" id="quarterId" formControlName="quarterId" (ngModelChange)="onKpiQuarterChange()" required>
+                  <option [ngValue]="null" disabled>Select Quarter</option>
+                  <option *ngFor="let quarter of quarterCyclesList" [value]="quarter.quarterId">
+                    {{ quarter.quarterCycle }}
+                  </option>
+                </select>
+                <div *ngIf="kpikraForm.get('quarterId')?.invalid && kpikraForm.get('quarterId')?.touched" class="text-danger mt-2">
+                  Quarter is required.
                 </div>
               </div>
             </div>
-        
+            
             <div class="row mb-3">
               <div class="col-md-6">
                 <label for="departmentId">Department <span class="text-danger">*</span></label>
@@ -239,14 +260,35 @@
                   <option [ngValue]="null" disabled>Select Department</option>
                   <option *ngFor="let dept of allDeptList" [value]="dept.deptId">{{ dept.name }}</option>
                 </select>
-                <div *ngIf="kpikraForm.get('departmentId')?.invalid && kpikraForm.get('departmentId')?.touched" class="text-danger">
+                <div *ngIf="kpikraForm.get('departmentId')?.invalid && kpikraForm.get('departmentId')?.touched"
+                  class="text-danger">
                   Department is required.
                 </div>
               </div>
             </div>
-        
+<!-- this is for personas -->
+            <!-- <div class="col-md-4 mb-0">
+              <div class="info-wrapper">
+                  <div class="form-group">
+                      <label class="info-label"><span class="text-danger">*</span>Employee Role</label>
+                      <select class="form-control" aria-hidden="true" [(ngModel)]="jobRoleObj.employeeRole">
+                          <option selected="selected" value="" disabled>Select</option>
+                          <option value="Employee">Employee</option>
+                          <option value="TeamLead">Team Lead</option>
+                          <option value="HOD">HOD</option>
+                          <option value="Manager">Manager</option>
+                          <option value="HR Manager">HR Manager</option>
+                          <option value="HR">HR</option>
+                          <option value="RMG">RMG</option>
+                          <option value="SuperAdmin">Super Admin</option>
+                          <option value="SELECT">Blank Role</option>
+                      </select>
+                  </div>
+              </div>
+          </div> -->
+
             <div>
-              <label><span class="text-danger">*</span>KPIs</label>
+              <label>KPIs<span class="text-danger">*</span></label>
               <div formArrayName="kpis">
                 <div *ngFor="let kpiControl of kpis.controls; let i = index" [formGroupName]="i" class="row mb-3">
                   <div class="col-md-6">
@@ -256,6 +298,12 @@
                       </div>
                       <input type="text" class="form-control" formControlName="description"
                         placeholder="Enter KPI {{ i + 1 }}" required />
+                      <div class="input-group-append">
+                        <button type="button" class="btn btn-outline-primary" (click)="addKpi()"
+                        [disabled]="!kpis.at(kpis.length - 1).valid || kpis.length >= 10">
+                          <i class="fa fa-plus"></i>
+                        </button>
+                      </div>
                       <div class="input-group-append">
                         <button type="button" class="btn btn-outline-danger" (click)="removeKpi(i)"
                           [disabled]="kpis.length <= 1">
@@ -267,21 +315,16 @@
                       class="text-danger">
                       KPI is required.
                     </div>
+                    
                   </div>
                 </div>
-              </div>
-        
-              <div class="row mb-3">
-                <div class="col-md-6">
-                  <button type="button" class="btn btn-outline-primary" (click)="addKpi()"
-                    [disabled]="!kpis.at(kpis.length - 1).valid || kpis.length >= 10">
-                    <i class="fa fa-plus"></i> Add KPI
-                  </button>
-                  <small class="ml-2 text-muted">(Maximum 10 KPIs)</small>
+                <div *ngIf="kpis.length>9">
+                  <small class="ml-2 text-danger">Maximum 10 KPIs are allowed</small>
                 </div>
               </div>
+
             </div>
-        
+
             <div class="mt-3">
               <button type="submit" class="btn btn-success" [disabled]="!kpikraForm.valid">
                 {{ isEditing ? 'Update' : 'Create' }} KRA/KPI Template
@@ -293,12 +336,13 @@
           </form>
         </div>
 
-        <!--  create questionnaire templates  -->
+        <!--  create template questionnaire -->
+
         <div *ngIf="activeTab === 'create-template' && selectedTemplateType === 'questionnaire'" class="card-body m-0">
-          <form [formGroup]="questionnaireForm" (ngSubmit)="onSubmit()" class="ml-0">
+          <form [formGroup]="questionnaireForm" (ngSubmit)="onSubmit(alert_message)" class="ml-0">
             <div class="row mb-3">
               <div class="col-md-6">
-                <label for="questionTitle"><span class="text-danger">*</span>Questionnaire Title</label>
+                <label for="questionTitle">Questionnaire Title<span class="text-danger">*</span></label>
                 <input id="questionTitle" type="text" class="form-control" formControlName="questionTitle"
                   placeholder="Enter questionnaire title" required />
                 <div
@@ -327,27 +371,20 @@
                 </select>
               </div>
             </div>
-            
-            <select formControlName="departmentId" (change)="onDepartmentSelection($event)" class="form-control">
-              <option [ngValue]="null">Select Department</option>
-              <option *ngFor="let dept of allDeptList" [value]="dept.deptId">
-                {{ dept.name }}
-              </option>
-            </select>
-            
-              <div class="col-md-3 px-0 pr-1  mb-0">
-                <div class="form-inline input-group">
-                    <label class="d-inline-block mr-2 mt-2"><strong>Select quarter</strong></label>
-                    <select class="form-control"  [(ngModel)]="selectedQuarter"  name="quarterId" (ngModelChange)="onQuarterChange()">
-                        <option selected="selected" value="" disabled>Select</option>
-                        <option *ngFor="let quarter of quarterCyclesList" [value]="quarter.quarterId">{{quarter.quarterCycle}}</option>
-                      </select>
-                </div>
-              </div>
 
+            <div class="mb-3 row">
+              <div class="col-md-6">
+                <select formControlName="departmentId" (change)="onDepartmentSelection($event)" class="form-control">
+                  <option [ngValue]="null">Select Department</option>
+                  <option *ngFor="let dept of allDeptList" [value]="dept.deptId">
+                    {{ dept.name }}
+                  </option>
+                </select>
+              </div>
+            </div>
 
             <div>
-              <label><span class="text-danger">*</span>Questions</label>
+              <label>Questions<span class="text-danger">*</span></label>
               <div formArrayName="questions">
                 <div *ngFor="let questionControl of questions.controls; let i = index" [formGroupName]="i"
                   class="row mb-3">
@@ -364,6 +401,12 @@
                           <i class="fa fa-trash"></i>
                         </button>
                       </div>
+                      <div class="input-group-append">
+                        <button type="button" class="btn btn-outline-primary" (click)="addQuestion()"
+                        [disabled]="!questions.at(questions.length - 1).valid || questions.length >= 10">
+                          <i class="fa fa-plus"></i>
+                        </button>
+                      </div>
                     </div>
                     <div
                       *ngIf="questionControl.get('questionText')?.invalid && questionControl.get('questionText')?.touched"
@@ -372,15 +415,8 @@
                     </div>
                   </div>
                 </div>
-              </div>
-
-              <div class="row mb-3">
-                <div class="col-md-6">
-                  <button type="button" class="btn btn-outline-primary" (click)="addQuestion()"
-                    [disabled]="!questions.at(questions.length - 1).valid || questions.length >= 10">
-                    <i class="fa fa-plus"></i> Add Question
-                  </button>
-                  <small class="ml-2 text-muted">(Maximum 10 questions)</small>
+                <div *ngIf="questions.length>9">
+                  <small class="ml-2 text-danger">Maximum 10 questions are allowed</small>
                 </div>
               </div>
             </div>
@@ -395,8 +431,16 @@
             </div>
           </form>
         </div>
-        
+
       </form>
     </div>
   </div>
 </div>
+
+
+<ng-template #alert_message>
+  <div class="modal-body text-center">
+      <p>{{alertMessage}}</p>
+      <button type="button" class="btn btn-primary" (click)="this.modalRef.hide();">OK</button>&nbsp;
+  </div>
+</ng-template>

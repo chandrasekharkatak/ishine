@@ -44,32 +44,33 @@
               <p>Reports To: {{ currentEmployeeInfo.managerName }}</p>
             </div>
             
-            <div class="stats-section mt-3 col-md-12">
+            <div class="stats-section mt-3 col-md-12 justify-content-start ">
         
               <div class="row text-center">
-                <div class="col-md-3">
-                  <p><strong>{{ stats.goalsCompleted }}</strong></p>
+                <div class="col-md-3 ml-0">
                   Goals Completed
+                  <p><strong>{{ stats.goalsCompleted }}</strong></p>
+                  
                 </div>
                 <div class="col-md-3">
-                  <p><strong>{{ stats.goalsRemaining }}</strong></p>
                   Goals Remaining
+                  <p><strong>{{ stats.goalsRemaining }}</strong></p>
+                  
                 </div>
                 <div class="col-md-3">
-                  <p><strong>{{ stats.kraKpiScore }}/10</strong></p>
                   KRA/KPI Score
+                  <p><strong>{{ stats.kraKpiScore }}/10</strong></p>
+                  
                 </div>
                 <div class="col-md-3">
-                  <p><strong>{{ stats.questionnaireScore }}/10</strong></p>
                   Questionnaire Score
+                  <p><strong>{{ stats.questionnaireScore }}/10</strong></p>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    
-      
       
     </div>
     
@@ -121,15 +122,15 @@
           <div class="card-body">
             <p class="card-text px-1">
               <strong>Final Rating:</strong> 
-              <!-- <span >{{ summary.finalRating }}/10</span> -->
+              <!-- <span > {{ summary.finalRating }}/10</span> -->
             </p>
             <p class="card-text px-1">
               <strong>Appraisal Score:</strong> 
-              <!-- <span >{{ summary.appraisalScore }}%</span> -->
+              <!-- <span > {{ summary.appraisalScore }}%</span> -->
             </p>
             <p class="card-text px-1">
               <strong>Final Remarks:</strong>
-              <!-- <span class="text-muted d-block mt-1">{{ summary.finalRemarks }}</span> -->
+              <!-- <span class="text-muted d-block mt-1"> {{ summary.finalRemarks }}</span> -->
             </p>
           </div>
           
@@ -163,13 +164,13 @@
         <div class="card-body">
           <h2 class="text-center mb-4 fw-bold">Reviews and Ratings</h2>
     
-          <ul class="nav nav-tabs mb-4 d-flex justify-content-between align-items-center">
-            <div class="d-flex">
+          <ul class="nav review_tabs mb-4 d-flex justify-content-between align-items-center">
+            <div class="d-flex nav-tabs ">
               <li class="nav-item">
-                <button class="nav-link" [class.active]="activeTab === 'kra-kpi'"  (click)="setActiveTab('kra-kpi')">KRA/KPI Rating</button>
+                <a class="nav-link" [class.active]="activeTab === 'kra-kpi'"  (click)="setActiveTab('kra-kpi')" >KRA/KPI Rating</a>
               </li>
               <li class="nav-item">
-                <button class="nav-link" [class.active]="activeTab === 'questionnaire'"  (click)="setActiveTab('questionnaire')">Questionnaire Review</button>
+                <a class="nav-link" [class.active]="activeTab === 'questionnaire'"  (click)="setActiveTab('questionnaire')" >Questionnaire Review</a>
               </li>
             </div>
           
@@ -197,13 +198,13 @@
                     </div>
             
                       <form *ngIf="kpiList.length > 0">
-                      <div class="list-group ">
+                      <div class="list-group col">
                         <div class="list-group-item row d-flex justify-content-between align-items-center" *ngFor="let kpi of kpiList; let i = index">
-                          <div class="col-md-7">
+                          <div class="col-md-5">
                             <label class="form-label fw-bold ">{{i+1}}. {{kpi.description}}</label> 
                             
                           </div>
-                          <div class="col-md-5 col">
+                          <div class="col-md-4 col">
                             <div class="row mb-0">
                               <label class="form-label mr-2">Ratings: </label>
                               <p>{{kpi.response}}</p>
@@ -215,21 +216,51 @@
                                   min="0" 
                                   max="10" 
                                   step="0.5" 
-                                  [value]="kpi.response"
-                                  disabled
+                                  [(ngModel)]="kpi.response"
+                                  [ngModelOptions]="{ standalone: true }"
                                   class="w-50"
-                                  [attr.readonly]="true" />
+                                   />
                                 <span>10</span>
                             </div>
                           </div>
+                          <div class="col-md-3">
+                            <textarea id="EmployeeJustification" class="form-control" placeholder="Justify your ratings" [(ngModel)]="kpi.remark" required></textarea>
+                          </div>
+                        </div>
+                        <div class="list-group-item row d-flex justify-content-between align-items-center">
+                            <div class="col-md-5">
+                              Review by: 
+                            </div>
+                            <div class="col-md-4 col">
+                              <div class="row mb-0">
+                                <label class="form-label mr-2">Ratings: </label>
+                                
+                              </div>
+                                <div class="row">
+                                  <span>0</span>
+                                  <input 
+                                    type="range" 
+                                    min="0" 
+                                    max="10" 
+                                    step="0.5" 
+                                    [value]="8"
+                                    disabled
+                                    class="w-50"
+                                     />
+                                  <span>10</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                              <textarea  id="ManagerRemark" class="form-control" readonly>Manager's remark</textarea>
+                            </div>
                         </div>
                       </div>
                       
-                      <!-- <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
-                        <button type="button" class="btn btn-primary" (click)="saveKpiResponses()">
+                      <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                        <button type="button" class="btn btn-primary" (click)="saveKpiResponses(alert_message)">
                           Save KPI Responses
                         </button>
-                      </div> -->
+                      </div>
                     </form>
                   </div>
                 </div>
@@ -254,10 +285,10 @@
                       <div class="list-group">
                         <div class="list-group-item row d-flex justify-content-between align-items-center" *ngFor="let question of questionnaireQuestions; let i = index">
                           
-                            <div class="col-md-7">
+                            <div class="col-md-5">
                               <label class="form-label fw-bold">{{i+1}}. {{question.questionText}}</label>
                             </div>
-                            <div class="col-md-5 col">
+                            <div class="col-md-4 col">
                               <div class="row mb-0">
                                 <label class="form-label mr-2">Response: </label>
                                 <p>{{question.response}}</p>
@@ -269,20 +300,50 @@
                                     min="0" 
                                     max="10" 
                                     step="0.5" 
-                                    [value]="question.response" 
-                                    disabled
+                                    [(ngModel)]="question.response" 
+                                    [ngModelOptions]="{ standalone: true }"
                                     class="w-50" />
                                   <span>10</span>
                               </div>
                             </div>
+                            <div class="col-md-3">
+                              <textarea id="EmployeeJustification" class="form-control" placeholder="Justify your ratings" [(ngModel)]="question.remark" required></textarea>
+                            </div>
+                        </div>
+                        <div class="list-group-item row d-flex justify-content-between align-items-center">
+                          <div class="col-md-5">
+                            Review by: 
+                          </div>
+                          <div class="col-md-4 col">
+                            <div class="row mb-0">
+                              <label class="form-label mr-2">Ratings: </label>
+                              
+                            </div>
+                              <div class="row">
+                                <span>0</span>
+                                <input 
+                                  type="range" 
+                                  min="0" 
+                                  max="10" 
+                                  step="0.5" 
+                                  [value]="8"
+                                  disabled
+                                  class="w-50"
+                                   />
+                                <span>10</span>
+                              </div>
+                          </div>
+                          <div class="col-md-3">
+                            <textarea  id="ManagerRemark" class="form-control" readonly>Manager's remark</textarea>
+                          </div>
                         </div>
                       </div>
                       
-                      <!-- <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
-                        <button type="button" class="btn btn-primary" (click)="saveQuestionnaireResponses()">
+                      <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                        <button type="button" class="btn btn-primary" (click)="saveQuestionnaireResponses(alert_message)">
                           Save Responses
                         </button>
-                      </div> -->
+                      </div>
                     </form>
                   </div>
                 </div>
@@ -294,11 +355,9 @@
         </div>
       </div>
     </div>
-    
-  
 
 
-<!-- modals   -->
+<!-- Modals Template -->
 
 <ng-template #viewGoalTemplate>
   <div class="modal-content rounded-lg shadow-lg">
@@ -341,13 +400,13 @@
       <div class="mb-2 mx-0 col ">
           <div class="row">
             <label class="form-label mr-2 font-weight-bold">Update Progress: </label>
-            <p>{{selectedgoalProgress}}</p>
+            <p>{{selectedgoalProgress}}%</p>
           </div>
           <div>
             <span>{{selectedGoal?.goalProgress}}</span>
               <input 
                 type="range" 
-                [min]="selectedGoal?.goalProgress" 
+                [min]="selectedGoal?.goalProgress"
                 max="100" 
                 step="1" 
                 [(ngModel)]="selectedgoalProgress" 
@@ -380,8 +439,15 @@
 
     <div class="modal-footer d-flex justify-content-between">
       <button type="button" class="btn btn-secondary" (click)="modalRef?.hide()">Close</button>
-      <button type="button" class="btn btn-primary" (click)="saveUpdates()">Save Changes</button>
+      <button type="button" class="btn btn-primary" (click)="saveUpdates(alert_message)">Save Changes</button>
     </div>
+  </div>
+</ng-template>
+
+<ng-template #alert_message>
+  <div class="modal-body text-center">
+      <p>{{alertMessage}}</p>
+      <button type="button" class="btn btn-primary" (click)="this.modalRef.hide();">OK</button>&nbsp;
   </div>
 </ng-template>
 
