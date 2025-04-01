@@ -4,103 +4,12 @@
             <div class="row p-3">
                 <div class="col-md-12 table-header">
                     <h1 style="float:left" class="table-header-title">Rewards</h1>
-                    <!-- <button type="button" style="float:right"
-                        class="btn btn-outline-primary btn-sm  ng-star-inserted mx-1"
-                        (click)="createReward(alertMessageTemplate)">{{btnstring}}
-                    </button> -->
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- <div class="col-lg-12" *ngIf="isrewardVisible">
-
-            <div class="row mb-2 p-3">
-                <div class="col-md-12 px-7" style="padding-left: 2rem;">
-                    <label>Reward Category</label>
-                </div>
-                <div class="col-md-12 px-7" style="padding-left: 2rem;">
-
-                    <button *ngFor="let category of rewardsCategories1" type="button"
-                        class="btn btn-outline-primary btn-sm  ng-star-inserted mx-1"
-                        [ngClass]="{'active': category.rewardCategoryId === activeCategoryId}"
-                        (click)="getRewardsByCategoryId(category.rewardCategoryId, alertMessageTemplate)">{{category.categoryName}}
-                    </button>
-
-
-                </div>
-
-            </div>
-            <div class="row mb-1 ">
-                <div class="col-md-4 px-7" style="padding-left: 3rem;">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label" *ngIf="activeCategoryId==1"><span class="text-danger">*</span>Of
-                                Month-Year</label>
-                            <label class="info-label" *ngIf="activeCategoryId==2"><span
-                                    class="text-danger">*</span>Annual award Year</label>
-                            <label class="info-label" *ngIf="activeCategoryId==3"><span class="text-danger">*</span>Half
-                                Yearly</label>
-
-
-                            <input id="startMonth" type="month" class="form-control" [(ngModel)]="ofmonthyear"
-                                style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px;" />
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-
-
-
-
-
-
-
-            <div class="row mb-1" *ngIf="selectedReward">
-                <div class="col-md-12 mt-4" style="padding-left: 3rem;">
-                    <h5>Reward Types for {{ selectedReward.rewardName }}</h5>
-                    <div *ngFor="let type of selectedReward.rewardTypes" class="form-check">
-                        <input type="radio" class="form-check-input" [id]="'type-' + type"
-                            [name]="selectedReward.rewardName" [value]="type" [(ngModel)]="selectedReward.selectedType">
-                        <label class="form-check-label" [for]="'type-' + type">
-                            {{ type }}
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-
-
-
-
-
-
-            <div class="row mb-1">
-                <div class="col-md-12 mt-4" style="padding-left: 3rem;">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label for="leaveDesc"><span class="text-danger">*</span> <strong>Remarks</strong></label>
-                            <textarea [(ngModel)]="remarks" class="form-control" id="Desc" rows="3"
-                                style="width: 31%;"></textarea>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row mb-3">
-                <div class="col-md-12 mt-4" style="padding-left: 3rem;">
-                    <button type="submit" class="btn btn-primary btn-sm mx-1"
-                        (click)="rewardSubmit(alert_message)">Submit Reward</button>
-                </div>
-            </div>
-
-
-
-        </div> -->
     <div *ngIf="!isTeamTableVisible">
-        <div class="row">
-            <!-- Year Dropdown -->
+        <div class="row align-items-center">
             <div class="col-sm-3 col-4 mb-2 small-gap">
                 <div class="form-inline input-group">
                     <select id="yearDropdown" class="form-control form-control-sm" (change)="onYearChange($event)">
@@ -111,24 +20,11 @@
                     </select>
                 </div>
             </div>
-
-            <!-- Period Dropdown -->
-            <!-- <div class="col-sm-3 col-4 mb-2" *ngIf="selectedYear">
-                    <div class="form-inline input-group">
-                        <select id="periodDropdown" class="form-control form-control-sm"
-                            (change)="onPeriodChange($event)">
-                            <option [value]="''" disabled selected>Select Period</option>
-                            <option value="monthly">Monthly</option>
-                            <option value="halfYearly">Half-Yearly</option>
-                        </select>
-                    </div>
-                </div> -->
-
-            <!-- Rewards Dropdown -->
-            <div class="col-sm-3 col-4 mb-2 small-gap" *ngIf="rewardsCategories.length > 0">
+    
+          
+            <div class="col-sm-3 col-4 mb-2 small-gap" >
                 <div class="form-inline input-group">
-                    <select id="rewardsDropdown" class="form-control form-control-sm"
-                        (change)="onCategoryChange($event)">
+                    <select id="rewardsDropdown" class="form-control form-control-sm" (change)="onCategoryChange($event)">
                         <option [value]="''" disabled selected>Select Month</option>
                         <option *ngFor="let category of rewardsCategories" [value]="category.rewardCategoryId">
                             {{ category.categoryName }}
@@ -136,27 +32,37 @@
                     </select>
                 </div>
             </div>
+    
+           
+            <div class="col-sm-5 col-4  d-flex justify-content-end">
+                <button class="btn btn-outline-primary btn-sm" (click)="getTeamRewardsDetails()">
+                    View Team Rewards
+                </button>
+            </div>
         </div>
+    
+        <!-- Search Toggle -->
         <div class="selector-toggle">
             <a href="javascript:void(0)" (click)="toggleSearch()">
                 <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
         </div>
+    
+        <!-- Table -->
         <div class="row-md-12">
             <table class="table" id="rewards360Info" matSort (matSortChange)="sortData($event)">
                 <thead class="thead-light">
                     <tr>
                         <th scope="col" class="info-label">Sr No.</th>
-                        <th scope="col" class="info-label" mat-sort-header="rewardCategory|string">Rewards Category
-                        </th>
+                        <th scope="col" class="info-label" mat-sort-header="rewardCategory|string">Rewards Category</th>
                         <th scope="col" class="info-label" mat-sort-header="rewardTypeName|string">Rewards Name</th>
                         <th scope="col" class="info-label" mat-sort-header="name|string">Rewarded To</th>
                         <th scope="col" class="info-label" mat-sort-header="createdByName|string">Rewarded By</th>
                         <th scope="col" class="info-label" mat-sort-header="createdOn|string">Rewarded On</th>
-                        <th scope="col" class="info-label" mat-sort-header="teamName|string">Teams Name</th>
+                        <th scope="col" class="info-label" mat-sort-header="ofMonthYear|string">Of Month-Year</th>
+                        <!-- <th scope="col" class="info-label" mat-sort-header="teamName|string">Teams Name</th> -->
                         <th scope="col" class="info-label" mat-sort-header="remark|string">Remarks</th>
-
                     </tr>
                     <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="rewardsColumns"
                         (onSearch)="onSearch($event); page=1"></tr>
@@ -170,26 +76,29 @@
                         <td>{{ i + 1 }}</td>
                         <td>{{rewardHistory.rewardCategory}}</td>
                         <td>{{ rewardHistory.rewardTypeName }}</td>
-                        <td id="clickablefor360" [navigateToEmployee360]="rewardHistory.emp360nameempid" style="cursor: pointer;"
-                        title="Click to view Employee 360" (click)="refresh()">{{ rewardHistory.name }}</td>
+                        <td id="clickablefor360" [navigateToEmployee360]="rewardHistory.emp360nameempid"
+                            style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">
+                            {{ rewardHistory.name }}
+                        </td>
                         <td id="clickablefor360" [navigateToEmployee360]="rewardHistory.emp360" style="cursor: pointer;"
-                            title="Click to view Employee 360" (click)="refresh()">{{
-                            rewardHistory.createdByName }}</td>
-                        <td>{{ rewardHistory.createdOn |date: 'dd-MM-yyyy' }}</td>
-                        <td>
+                            title="Click to view Employee 360" (click)="refresh()">
+                            {{ rewardHistory.createdByName }}
+                        </td>
+                        <td>{{ rewardHistory.createdOn | date: 'dd-MM-yyyy' }}</td>
+                        <td>{{rewardHistory.ofMonthYear}}</td>
+                        <!-- <td>
                             <span *ngFor="let team of rewardHistory.teamlist; let last = last" class="info-label"
                                 style="cursor: pointer; color: blue;" (click)="showTeamTable(team)">
                                 {{ team.teamName }}<span *ngIf="!last">, </span>
                             </span>
-                        </td>
-
+                        </td> -->
                         <td>{{ rewardHistory.remark }}</td>
-
                     </tr>
                 </tbody>
             </table>
         </div>
     </div>
+    
 
     <div *ngIf="isTeamTableVisible">
 
@@ -215,6 +124,7 @@
                         <th scope="col" class="info-label" mat-sort-header="rewardTypeName|string">Rewards Name</th>
                         <th scope="col" class="info-label" mat-sort-header="name|string">Rewarded To</th>
                         <th scope="col" class="info-label" mat-sort-header="createdByName|sring">Rewarded By</th>
+                        <th scope="col" class="info-label" mat-sort-header="ofmonthyear|sring">Of Month-Year</th>
                         <th scope="col" class="info-label" mat-sort-header="remark|string">Remarks</th>
                         <th scope="col" class="info-label" mat-sort-header="createdOn|string">Rewarded on</th>
                     </tr>
@@ -243,6 +153,7 @@
                             style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">
                             <label>{{ teamlist.createdByName }}</label>
                         </td>
+                        <td><label>{{teamlist.ofmonthyear}}</label></td>
                         <td><label>{{ teamlist.remark }}</label></td>
                         <td><label>{{ teamlist.createdOn | date: 'dd-MM-yyyy'}}</label></td>
                     </tr>

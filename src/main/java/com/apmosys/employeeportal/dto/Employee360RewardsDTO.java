@@ -25,5 +25,6 @@ public class Employee360RewardsDTO {
 	private Long createdBY;
 	private Long rewardCategoryId;
 	private String rewardCategory;
+	private String ofMonthYear;
 
 }
