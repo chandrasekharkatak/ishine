@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  baseUrl: "http://localhost:8081/",
+  baseUrl: "http://localhost:8080/",
   lmsbaseurl :"http://192.168.12.113/academy-lms/index.php/",
   qrCodebaseUrl: "http://192.168.12.108:8080/qrcodegenerator/#/"
   // baseUrl: "http://192.168.21.175:8081/employeeportal/"

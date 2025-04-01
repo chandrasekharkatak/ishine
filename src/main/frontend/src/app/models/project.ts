@@ -59,4 +59,6 @@ export class Project{
 	projectType:any;
 	poProjectType:any;
 	isMail:any;
+	apmosysRM:any;
+	clientRM:any;
 }

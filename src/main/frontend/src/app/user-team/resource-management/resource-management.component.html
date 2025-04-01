@@ -37,11 +37,14 @@
                                 <th></th>
                                 <th scope="col" class="info-label">Sr No.</th>
                                 <th scope="col" class="info-label" mat-sort-header="name|string">Project Name</th>
+                                <th scope="col" class="info-label" mat-sort-header="poNo|string">PO Number</th>
                                 <th scope="col" class="info-label" mat-sort-header="projectManagerName|string">Project
                                     Manager</th>
                                     <!-- <th scope="col" class="info-label" mat-sort-header="projectManagerName|string">Start Date</th>
                                     <th scope="col" class="info-label" mat-sort-header="projectManagerName|string">End Date</th> -->
                                 <th scope="col" class="info-label" mat-sort-header="clientName|string">Client</th>
+                                <th scope="col" class="info-label" mat-sort-header="clientName|string">Apmosys RM</th>
+                                <th scope="col" class="info-label" mat-sort-header="clientName|string">Client RM</th>
                                 <th scope="col" class="info-label" mat-sort-header="clientState|string">State</th>
                                 <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
                                 <th scope="col" class="info-label" mat-sort-header="status|string">Project Status</th>
@@ -66,26 +69,23 @@
                                                 class="sync-project-checkbox" id="{{i}}" type="checkbox"
                                                 (change)="onSelectProjectForSync(project,$event)"></span></td>
                                     <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
-                                    <td *ngIf="!project.projectId">{{project.name}}</td>
-                                    <td *ngIf="project.projectId"style="cursor: pointer; color: blue;"  id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.projectId" style="cursor: pointer;" title="Click to view Project Details">{{project.name}}</td>
+                                    <td>{{project.name}}</td>
+                                    <td>{{project.poNo}}</td>
+
+                                    <!-- <td *ngIf="project.projectId"style="cursor: pointer; color: blue;"  id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.projectId" style="cursor: pointer;" title="Click to view Project Details">{{project.name}}</td> -->
                                     <td id="clickablefor360" *ngIf="userMapping.my_team_resource_management_employee_360 && project.projectManagerName" [navigateToEmployee360]="project.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{project.projectManagerName}}</td>
                                     <td *ngIf="!userMapping.my_team_resource_management_employee_360 || !project.projectManagerName">{{project.projectManagerName}}</td>
                                     <td>{{project.clientName}}</td>
+                                    <td>{{project.apmosysRM}}</td>
+                                    <td>{{project.clientRM}}</td>
                                     <td>{{project.clientState}}</td>
-                                    <td>{{project.createdOn}}</td>
+                                    <td>{{project.createdOn | date: 'MM/dd/yyyy'}}</td>
                                     <td>{{project.status}}</td>
-                                    <td
+                                    <!-- <td
                                         [ngStyle]="{'color': (project.isDraftProject == 'Pending For Approval') ? 'orange' : (project.isActive == 2) ? 'orange': (project.isDraftProject == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">
-                                        <em>{{project.isDraftProject}}</em></td>
+                                        <em>{{project.isDraftProject}}</em></td> -->
+                                        <td [ngStyle]="{'color': (project.isDraftProject == 'Pending For Approval') ? 'orange' : (project.isDraftProject == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}"><em>{{project.isDraftProject}}</em></td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline-primary mb-1"
-                                            *ngIf="project.isSynced == false"
-                                            (click)="syncPoProjectDetailsByProjectId(alert_message, project);"
-                                            type="submit">Sync Po</button>&nbsp;
-                                        <!-- <button class="btn btn-sm btn-outline-primary mb-1"
-                                        *ngIf="project.isSynced == true"
-                                        (click)="syncPoProjectDetailsByProjectId(alert_message, project);"
-                                        type="submit">Mail</button>&nbsp; -->
                                         <button class="btn btn-sm btn-outline-primary mb-1"
                                             *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'"
                                             (click)="openProjectPreviewModal(preview_team, project);isEditProject = false"
