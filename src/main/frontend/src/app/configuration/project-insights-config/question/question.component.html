@@ -51,20 +51,7 @@
                           </select>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-4 mb-0">
-                <div class="info-wrapper" style="display: flex;">
-                    <div class="custom-control-lg custom-control custom-checkbox mt-4 pt-2">
-                        <input class="custom-control-input" type="checkbox" id="requiredCheck{{mileIndex+1}}{{i+1}}" [(ngModel)]="question.required">
-                        <label class="custom-control-label" for="requiredCheck{{mileIndex+1}}{{i+1}}"><span class="text-danger">*</span>Required</label>
-                    </div>
-
-                    <div class="custom-control-lg custom-control custom-checkbox mt-4 pt-2 ml-4">
-                        <input class="custom-control-input" type="checkbox" id="documentCheck{{mileIndex+1}}{{i+1}}" [(ngModel)]="question.documentUpload">
-                        <label class="custom-control-label" for="documentCheck{{mileIndex+1}}{{i+1}}">Document Upload</label>
-                    </div>
-                </div>
-            </div>
+            </div>    
         </div>
         <div class="row" *ngIf="(question.optionType == 'checkbox' || question.optionType == 'radio')" >
             <div class="col-md-12" *ngFor="let option of question.optionsList; let i = index">

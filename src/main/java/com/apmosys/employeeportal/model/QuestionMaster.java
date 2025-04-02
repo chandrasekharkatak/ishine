@@ -32,10 +32,10 @@ public class QuestionMaster {
 	@Column(length = 1000)
 	private String options;
 
-	@Column(columnDefinition = "varchar(10) DEFAULT 'N'")
+	@Column(columnDefinition = "varchar(10) DEFAULT 'Y'")
 	private String required;
 	
-	@Column(columnDefinition = "varchar(10) DEFAULT 'N'")
+	@Column(columnDefinition = "varchar(10) DEFAULT 'Y'")
 	private String documentUpload;
 	
 	
