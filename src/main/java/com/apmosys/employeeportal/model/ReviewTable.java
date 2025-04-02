@@ -23,10 +23,6 @@ public class ReviewTable {
 	
 	private Long employeeId;
 	
-//	private Integer goalId;
-	
-//	private Long kpiId;
-	
 	private Integer quarter;
 	
 	private Float rating;

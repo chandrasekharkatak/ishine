@@ -15,7 +15,7 @@ public class AppraisalSummaryController {
     @Autowired
     private AppraisalSummaryService appraisalSummaryService;
 
-    @GetMapping("/employee/{empId}/quarter/{quarterId}")
+    @GetMapping("/employee/{empId}/quarter/{quarterId}")//change to response entity
     public ServiceResponse getAppraisalSummary(@PathVariable Long empId, @PathVariable Long quarterId) {
         ServiceResponse response = new ServiceResponse();
         

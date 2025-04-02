@@ -1,14 +1,18 @@
 package com.apmosys.employeeportal.dto;
 
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+
 import lombok.*;
 
 @Getter
 @Setter
 public class GoalTemplatesDto {
 
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long templateId;
+	
     private String title; 
-//    private Long quarterId;
     private String description;
     private Long createdById;
     private Long departmentId;

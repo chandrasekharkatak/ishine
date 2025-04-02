@@ -21,29 +21,33 @@ import java.util.List;
 	    @Autowired
 	    private QuarterCycleRepository quarteCycleRepository;
 
-	    
+	    //change whole for checking primary key
 	    public void saveResponses(List<KresponseDTO> responses,Long empId,Long quarterId) {
 	    	List<Kresponse> entities=new ArrayList<>();
 	        for(KresponseDTO obj:responses){
-	            Long employeeId12 = kresponseRepository.findempId(empId, quarterId);
+	            Long employeeId = kresponseRepository.findempId(empId, quarterId);
 	            
 
-	            Long employeeId=employeeId12;
-	            System.out.println("++++++++++"+employeeId);
-	        	Kresponse entity = new Kresponse();
+//	            Long employeeId=employeeId12;
+	        	Kresponse entity = new Kresponse();//check for primary key 
+	        	//no twice calling of api
 
-	            if(obj.getResponse() == null &	employeeId ==  null) {
+	            if(obj.getResponse() == null &&	employeeId ==  null) {
 	        		
-	        		entity.setId(obj.getId());
+	        		entity.setKpiId(obj.getId());
 	                entity.setDescription(obj.getDescription());
 	                entity.setResponse(null);
+	                entity.setReview(null);
+	                entity.setIsFixed(obj.getIsFixed());
 	        	}else {
-	            entity.setId(obj.getId());
+	            entity.setKpiId(obj.getId());
 	            entity.setDescription(obj.getDescription());
 	            entity.setResponse(obj.getResponse());
 	            entity.setEmpId(empId);
 	            entity.setQuarterId(quarterId);
-	        }
+	            entity.setReview(obj.getReview());
+	            entity.setIsFixed(obj.getIsFixed());
+	        	}
 	        entities.add(entity);  
 	        }
 	        this.kresponseRepository.saveAll(entities);

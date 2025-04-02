@@ -6,7 +6,6 @@ import lombok.*;
 public class QuestionnaireAssignRequestDTO {
 	 private Long empId;
 	    private Long questionId;
-//	    private String expectedCompletionDate;
 	    private Long quarterId;
 	}
 

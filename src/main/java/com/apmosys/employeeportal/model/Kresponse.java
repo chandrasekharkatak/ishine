@@ -19,9 +19,12 @@ public class Kresponse {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long responseId;
 	private Float response;
-	private Long id;
+	private Long kpiId;
 	private Long empId;
 	private Long quarterId;
 	private String description;
+	private String review;
+	
+	private Boolean isFixed;
 	
 }

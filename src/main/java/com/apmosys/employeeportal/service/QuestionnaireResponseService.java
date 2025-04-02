@@ -34,7 +34,7 @@ public class QuestionnaireResponseService {
         response.setQuestionId(dto.getQuestionId());
         response.setQuestionTitle(dto.getQuestionTitle());
         response.setResponse(dto.getResponse());
-        response.setQuarter(quarter.toString());
+        response.setQuarter(quarter);
         response.setRemarks(dto.getRemarks());
         response.setScore(dto.getScore());
 

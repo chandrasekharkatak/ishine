@@ -29,16 +29,13 @@ public class GoalTemplateService{
     @Autowired
     private DepartmentRepository departmentRepository;
     @Autowired
-//    private UserService userService;
     
     public ServiceResponse getAllGoalTemplates() {
         ServiceResponse response = new ServiceResponse();
         LogDTO apiLogInfo = new LogDTO();
         apiLogInfo.setApiUrl("/getAllGoalTemplates");
-        
-        System.out.print(apiLogInfo.getApiUrl());
         apiLogInfo.setFeatureName("getallgoaltemplate");
-        apiLogInfo.setLogLevel("INFO");
+        apiLogInfo.setLogLevel("INFO");//constructor or builder design pattern
         StringBuilder logBuilder = new StringBuilder();
         logBuilder.append("ALL GOAL TEMPLATES");
 
@@ -47,14 +44,14 @@ public class GoalTemplateService{
             List<GoalTemplatesDto> dtoList = goalTemplates.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
-            
+            //check for no goal templates //no content
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceResponse(goalTemplates);
-            response.setServiceMessage("Goal Templates Retrieved Successfully");
+            response.setServiceMessage("Goal Templates have been Retrieved Successfully");
         } catch (Exception e) {
             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
             response.setServiceError(e.getMessage());
-            response.setServiceMessage("Error Retrieving Goal Templates");
+            response.setServiceMessage("Error in  Retrieving Goal Templates");
         }
         return response;
     }
@@ -71,7 +68,7 @@ public class GoalTemplateService{
                 response.setServiceMessage("Goal Template Retrieved Successfully");
             } else {
                 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceMessage("Goal Template Not Found");
+                response.setServiceMessage("Goal Template has not been  Found");
             }
         } catch (Exception e) {
             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -89,13 +86,8 @@ public class GoalTemplateService{
             Department department = departmentRepository.findByDeptId(goalTemplatesDto.getDepartmentId());
             if (department == null) {
                 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceMessage("Invalid Department ID");
+                response.setServiceMessage("Department ID not found");
                 return response;
-            }else {
-            	goalTemplatesDto.setDepartment(department.getName());
-            	GoalTemplates goalTemplate=new GoalTemplates();
-            	goalTemplate.setApprovedBy(goalTemplatesDto.getApprovedById());
-            	goalTemplatesRepository.save(goalTemplate);
             }
 
             // Convert DTO to Entity
@@ -108,7 +100,7 @@ public class GoalTemplateService{
             GoalTemplatesDto savedDto = convertToDto(savedGoalTemplate);
             
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            response.setServiceResponse(goalTemplate);
+            response.setServiceResponse(savedDto);
             response.setServiceMessage("Goal Template Created Successfully");
         } catch (Exception e) {
             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -125,27 +117,7 @@ public class GoalTemplateService{
         
         if (existingGoalTemplate.isPresent()) {
             GoalTemplates goalTemplate = existingGoalTemplate.get();
-//            List<GoalTemplates> A = goalTemplatesRepository.findByTemplateId(id);
-//            GoalTemplates B = A.get(0);
-//            if (goalTemplatesDto.getDepartment() != null || !goalTemplatesDto.getDepartment().isEmpty()) {
-//            	B.setDepartment(goalTemplatesDto.getDepartment());
-//            }
-//            if (goalTemplatesDto.getTitle() != null || !goalTemplatesDto.getTitle().isEmpty()) {
-//            	B.setTitle(goalTemplatesDto.getTitle());
-//            }
-//            if (goalTemplatesDto.getDescription() != null || !goalTemplatesDto.getDescription().isEmpty()) {
-//            	B.setDescription(goalTemplatesDto.getDescription());
-//            }
-//            if (goalTemplatesDto.getDepartmentId() != null || !goalTemplatesDto.getDepartmentId().isEmpty()) {
-//            	B.setDepartmentId(goalTemplatesDto.getDepartmentId());
-//            }
-//            
-          
-//                Optional<GoalTemplates> existingGoalTemplateOpt = goalTemplatesRepository.findById(id);
-         
-//                    GoalTemplates goalTemplate = existingGoalTemplateOpt.get();
-                    
-                    // Only update fields that are provided in the DTO
+
                     if (goalTemplatesDto.getTitle() != null) {
                         goalTemplate.setTitle(goalTemplatesDto.getTitle());
                     }
@@ -153,8 +125,6 @@ public class GoalTemplateService{
                     if (goalTemplatesDto.getDescription() != null) {
                         goalTemplate.setDescription(goalTemplatesDto.getDescription());
                     }
-                    
-                    // Handle both department name and departmentId
                     if (goalTemplatesDto.getDepartment() != null) {
                         goalTemplate.setDepartment(goalTemplatesDto.getDepartment());
                     }
@@ -163,11 +133,6 @@ public class GoalTemplateService{
                         goalTemplate.setDepartmentId(goalTemplatesDto.getDepartmentId());
                     }
                     
-//                    if (goalTemplatesDto.getQuarterId() != null) {
-//                        goalTemplate.setQuarterId(goalTemplatesDto.getQuarterId());
-//                    }
-                    
-                    // Keep existing approval fields if not provided
                     if (goalTemplatesDto.getApprovedById() != null) {
                         goalTemplate.setApprovedBy(goalTemplatesDto.getApprovedById());
                     }
@@ -186,6 +151,12 @@ public class GoalTemplateService{
     }
     public ServiceResponse getGoalTemplatesByDepartmentId(Long departmentId) {
         ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setApiUrl("/getGoalTemplatesByDepartmentId");
+        apiLogInfo.setFeatureName("getallgoaltemplateByDepartmentId");
+        apiLogInfo.setLogLevel("INFO");//constructor or builder design pattern
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("ALL GOAL TEMPLATES BY DEPARTMENT");
         try {
             // Validate department
             Department department = departmentRepository.findByDeptId(departmentId);
@@ -213,6 +184,12 @@ public class GoalTemplateService{
 	    }
     public ServiceResponse getGoalTemplatesByDepartmentName(String departmentName) {
         ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setApiUrl("/getGoalTemplatesByDepartmentName");
+        apiLogInfo.setFeatureName("getallgoaltemplateByDepartmentName");
+        apiLogInfo.setLogLevel("INFO");//constructor or builder design pattern
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("ALL GOAL TEMPLATES BY DEPARTMENT NAME");
         try {
             // Find department by name
             Department department = departmentRepository.findByName(departmentName);
@@ -243,7 +220,6 @@ public class GoalTemplateService{
     public List<GoalTemplatesDto> getGoalTemplatesByCreatedBy(Long createdById) {
         List<GoalTemplates> goalTemplates = goalTemplatesRepository.findByCreatedBy(createdById);
         
-        System.out.print("GoalTemplatesDto"+goalTemplates);
         return goalTemplates.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
@@ -276,14 +252,10 @@ public class GoalTemplateService{
                     goalTemplate.setDepartmentId(department.getDeptId());
                     goalTemplate.setDepartment(department.getName());
                 }
-                
-                // Update fields
+               
                 if (goalTemplatesDto.getTitle() != null) {
                     goalTemplate.setTitle(goalTemplatesDto.getTitle());
                 }
-//                if (goalTemplatesDto.getQuarterId() != null) {
-//                    goalTemplate.setQuarterId(goalTemplatesDto.getQuarterId());
-//                }
                 if (goalTemplatesDto.getDescription() != null) {
                     goalTemplate.setDescription(goalTemplatesDto.getDescription());
                 }
@@ -340,7 +312,6 @@ public class GoalTemplateService{
         GoalTemplatesDto dto = new GoalTemplatesDto();
         Department departmentDetails = departmentRepository.findByDeptId(goalTemplate.getDepartmentId());
         if(departmentDetails != null) {
-//        dto.setTemplateId(goalTemplate.getTemplateId());
         dto.setTitle(goalTemplate.getTitle());
         dto.setDescription(goalTemplate.getDescription());
         dto.setDepartmentId(departmentDetails.getDeptId());
@@ -353,15 +324,12 @@ public class GoalTemplateService{
         GoalTemplates entity = new GoalTemplates();
         Department departmentDetails = departmentRepository.findByDeptId(dto.getDepartmentId());
         if (departmentDetails != null) {
-//        	entity.setTemplateId(dto.getTemplateId());
+
             entity.setTitle(dto.getTitle());
             entity.setDescription(dto.getDescription());
             entity.setDepartmentId(departmentDetails.getDeptId());
             entity.setDepartment(departmentDetails.getName());
             entity.setCreatedBy(departmentDetails.getHodId());
-//            entity.setQuarterId(dto.getQuarterId());
-//            entity.setApprovedBy(dto.getApprovedById());
-//            entity.setIsApproved(dto.getIsApproved());
         }
         
         return entity;

@@ -5,6 +5,7 @@ import com.apmosys.employeeportal.dto.KpisDTO;
 import com.apmosys.employeeportal.model.Kpi;
 import com.apmosys.employeeportal.model.Kpis;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
+import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.KpiRepository;
 import com.apmosys.employeeportal.repository.QuarterCycleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,9 @@ public class KpiService {
     
     @Autowired
     private QuarterCycleRepository quarterCycleRepository;
+    
+    @Autowired
+    private JobRoleRepository jobRoleRepository;
 
     private KpiDTO toDTO(Kpi kpi) {
         List<KpisDTO> kpisDTOList = null;
@@ -33,6 +37,7 @@ public class KpiService {
                     KpisDTO kpisDTO = new KpisDTO();
                     kpisDTO.setId(kpis.getId());
                     kpisDTO.setDescription(kpis.getDescription());
+                    kpisDTO.setIsFixed(kpis.getIsFixed());
            
                     return kpisDTO;
                 })
@@ -45,11 +50,11 @@ public class KpiService {
                 .description(kpi.getDescription())
                 .quarterId(kpi.getQuarterId())
                 .quarter(kpi.getQuarter())
-//                .createdAt(kpi.getCreatedAt())
-//                .updatedAt(kpi.getUpdatedAt())
                 .department(kpi.getDepartment()) 
                 .approvedBy(kpi.getApprovedBy())
                 .departmentId(kpi.getDepartmentId())
+                .employeeRole(kpi.getEmployeeRole())
+              
                 
                 .kpis(kpisDTOList)
                 .build();
@@ -64,11 +69,14 @@ public class KpiService {
         kpi.setQuarterId(dto.getQuarterId());
         kpi.setQuarter(dto.getQuarter());
         kpi.setDepartmentId(dto.getDepartmentId());
+        kpi.setEmployeeRole(dto.getEmployeeRole());
+        
         
         if (dto.getKpis() != null) {
             dto.getKpis().forEach(kpisDTO -> {
                 Kpis kpisItem = new Kpis();
                 kpisItem.setDescription(kpisDTO.getDescription());
+                kpisItem.setIsFixed(kpisDTO.getIsFixed());
             
                 kpi.addKpis(kpisItem);
             });
@@ -81,48 +89,31 @@ public class KpiService {
         if (quarterId == null) {
             return "Unknown Quarter";
         }
-        
-        List<Object[]> quarterIdList = quarterCycleRepository.findQuarterCycleById(quarterId);
-        
-        if (quarterIdList != null && !quarterIdList.isEmpty()) {
-            Object[] quarterData = quarterIdList.get(0);
-            
-            for (int i = 0; quarterData != null && i < quarterData.length; i++) {
-                if (quarterData[i] != null && quarterData[i].toString().matches("[A-Z]{3}-[A-Z]{3}")) {
-                    return quarterData[i].toString();
-                }
-            }
-            
-            if (quarterData != null && quarterData.length > 0) {
-                for (int i = 0; i < Math.min(3, quarterData.length); i++) {
-                    if (quarterData[i] != null) {
-                        return quarterData[i].toString();
-                    }
-                }
-            }
-        }
-    
-        return "Unknown Quarter";
+        else {     
+        String name = quarterCycleRepository.findquartercyclebyID(quarterId); 
+        return name;
+    }
     }
    
     @Autowired
     private DepartmentRepository departmentRepository;
 
-    public KpiDTO createKpi(KpiDTO kpiDTO, Long quarterId, Long departmentId) {
+    public KpiDTO createKpi(KpiDTO kpiDTO, Long quarterId, Long departmentId, String employeeRole) {
         Kpi kpi = toEntity(kpiDTO);
         
         
         String department = departmentRepository.findNameByDeptId(departmentId);
-    
         kpi.setQuarterId(quarterId);
         kpi.setDepartmentId(departmentId);
         kpi.setDepartment(department);
-
+        kpi.setEmployeeRole(employeeRole);
+        //normalize database
         if (kpi.getQuarterId() != null) {
             kpi.setQuarter(getQuarterNameFromCycle(kpi.getQuarterId()));
         }
+//        we dont need to add more columns to databse we can use inner join
   
-        kpi.setQuarter(getQuarterNameFromCycle(quarterId));
+        
         
         Kpi savedKpi = kpiRepository.save(kpi);
         return toDTO(savedKpi);
@@ -131,6 +122,7 @@ public class KpiService {
 
     public List<KpiDTO> getAllKpis() {
         return kpiRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
+        //server side pagenation / search
     }
 
     public Optional<KpiDTO> getKpiById(Long id) {
@@ -154,13 +146,14 @@ public class KpiService {
                 updatedKpiDTO.getKpis().forEach(kpisDTO -> {
                     Kpis kpisItem = new Kpis();
                     kpisItem.setDescription(kpisDTO.getDescription());
+                    kpisItem.setIsFixed(kpisDTO.getIsFixed());
                  
                     existingKpi.addKpis(kpisItem);
                 });
             }
             
             return toDTO(kpiRepository.save(existingKpi));
-        }).orElseThrow(() -> new EntityNotFoundException("KPI not found with ID: " + id));
+        }).orElseThrow(() -> new EntityNotFoundException("KPI not found: " + id));
     }
 
     public void deleteKpi(Long id) {
@@ -210,12 +203,11 @@ public class KpiService {
                 .collect(Collectors.toList());
     }
     
-    public List<KpiDTO> getKpisByQuarterAndDepartment(Long quarterId, Long departmentId) {
-        return kpiRepository.findByQuarterId(quarterId).stream()
+    public List<KpiDTO> getKpisByQuarterAndDepartment(Long quarterId, Long departmentId,String employeeRole) {
+        return kpiRepository.findByQuarterId(quarterId).stream() 
             .filter(kpi -> departmentId.equals(kpi.getDepartmentId()))
+            .filter(kpi-> employeeRole.equals(kpi.getEmployeeRole()))
             .map(this::toDTO)
             .collect(Collectors.toList());
     }
-
-
 }

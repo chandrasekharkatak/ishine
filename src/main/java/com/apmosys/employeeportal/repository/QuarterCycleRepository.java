@@ -27,6 +27,7 @@ public interface QuarterCycleRepository extends JpaRepository<QuaterCycle, Long>
 	
 	@Query(nativeQuery=true,value="select qc.quarter_cycle from quater_cycle qc inner join employee e on qc.created_by=e.emp_id left join employee er on qc.updated_by=er.emp_id where quarter_id = :quarterId")
 	public String findquartercyclebyID(Long quarterId);
+	//JPQL query
 	
 	
 

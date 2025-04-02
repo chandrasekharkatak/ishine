@@ -10,6 +10,4 @@ public class AppraisalSummaryDto {
 	private String finalRemarks;
 	private Float appraisalScore;
 	private String appraisalPercentage;
-//	private String quarter;
-//    private Long quarterId;
 }

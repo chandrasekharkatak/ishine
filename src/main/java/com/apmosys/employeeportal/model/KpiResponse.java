@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "kpi_response")
+@Table(name = "kpi_response")//change to kra_response
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

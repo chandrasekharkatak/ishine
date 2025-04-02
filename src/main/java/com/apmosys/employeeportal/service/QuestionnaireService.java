@@ -28,23 +28,24 @@ public class QuestionnaireService {
     
     
     public Questionnaire createQuestionnaireTemplate(QuestionnaireDTO dto,Long quarterId,Long departmentId) {
-    	String quarter = quarterCycleRepository.findquartercyclebyID(quarterId);
-    	String department = departmentRepository.findNameByDeptId(departmentId);
+    	String quarter = quarterCycleRepository.findquartercyclebyID(quarterId);//we do not need this
+    	String department = departmentRepository.findNameByDeptId(departmentId);//we do not need this
         Questionnaire questionnaire = new Questionnaire();
         questionnaire.setQuestionTitle(dto.getQuestionTitle());
         questionnaire.setQuestionDescription(dto.getQuestionDescription());
         questionnaire.setCreatedBy(dto.getCreatedBy());
         questionnaire.setQuarterId(dto.getQuarterId());
-        questionnaire.setDepartmentName(dto.getDepartmentName());
+        questionnaire.setDepartmentName(dto.getDepartmentName());//we do not need this
  
         questionnaire.setQuarterId(quarterId);
-        questionnaire.setQuarter(quarter);
-        questionnaire.setDepartment(department);
+        questionnaire.setQuarter(quarter);//we do not need this
+//        questionnaire.setDepartment(department);
         questionnaire.setDepartmentId(departmentId);
-        
+//        use convertto dto and convertto entity
         
         // Handle questions if they exist
         if (dto.getQuestions() != null && !dto.getQuestions().isEmpty()) {
+        	//check the database of deleting 
             for (QuestionDTO questionDTO : dto.getQuestions()) {
                 Question question = new Question();
                 question.setQuestionText(questionDTO.getQuestionText());
@@ -99,9 +100,7 @@ public class QuestionnaireService {
         return questionnaireRepository.save(questionnaire);
     }
     
-//    public List<Questionnaire> getQuestionnairesByDepartmentName(String departmentName) {
-//        return questionnaireRepository.findByDepartmentName(departmentName);
-//    }
+
   
     public void deleteQuestionnaire(Long id) {
         questionnaireRepository.deleteById(id);
@@ -137,10 +136,6 @@ public class QuestionnaireService {
 		return questionnaireRepository.findByQuarterAndDepartment(departmentId , quarterId);
 	}
     
-//    public List<Questionnaire> getQuestionnairesByDepartmentAndQuarter(String departmentName, Long quarterId) {
-//        return questionnaireRepository.findByDepartmentNameAndQuarterId(departmentName, quarterId);
-//    }
-
 	
 	
 }

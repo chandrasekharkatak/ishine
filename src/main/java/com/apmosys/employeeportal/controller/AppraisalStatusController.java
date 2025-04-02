@@ -27,7 +27,13 @@ public class AppraisalStatusController {
 	private QuaterService quarterService;
 
 	@PostMapping("/createQuarter")
-	public ServiceResponse createQuarter(@RequestBody QuarterDto quarterDto) {
-	    return quarterService.saveQuarter(quarterDto);
+	
+	public ResponseEntity<ServiceResponse> createQuarter(@RequestBody QuarterDto quarterDto) {
+		try {
+	    return new ResponseEntity<>(quarterService.saveQuarter(quarterDto),HttpStatus.OK);
+	}catch(Exception e)
+		{
+		return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 }

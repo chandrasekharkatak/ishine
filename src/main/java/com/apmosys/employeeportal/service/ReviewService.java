@@ -106,7 +106,7 @@ public class ReviewService {
         } catch (Exception e) {
             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
             response.setServiceError(e.getMessage());
-            response.setServiceMessage("Error Retrieving Reviews");
+            response.setServiceMessage("Error Retrieving Review");
         }
         return response;
     }

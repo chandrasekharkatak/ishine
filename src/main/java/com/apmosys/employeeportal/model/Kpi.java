@@ -33,9 +33,8 @@ public class Kpi {
     private String createdBy;
 
     private String department;
-
- 
-
+   
+    private String employeeRole;
     public void addKpis(Kpis kpisItem) {
         kpis.add(kpisItem);
         kpisItem.setKpi(this);

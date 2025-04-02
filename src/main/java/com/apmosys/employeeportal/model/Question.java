@@ -22,6 +22,7 @@ package com.apmosys.employeeportal.model;
 	    private Questionnaire questionnaire;
 
 		private Float response;
+		//add details of creation and updation audit column
 		
 	    
 	    // Add other fields as needed

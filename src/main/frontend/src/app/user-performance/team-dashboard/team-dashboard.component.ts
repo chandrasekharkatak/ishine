@@ -17,21 +17,19 @@ import { DatePipe } from '@angular/common';
 @Component({
   selector: 'app-team-dashboard',
   templateUrl: './team-dashboard.component.html',
-  styleUrls: ['./team-dashboard.component.css']
+  styleUrls: ['./team-dashboard.component.css'],
 })
-
 export class TeamDashboardComponent implements OnInit {
-
-@ViewChild('bulkAssignTemplate') bulkAssignTemplate: TemplateRef<any>;
-@ViewChild('singleAssignTemplate') singleAssignTemplate: TemplateRef<any>;
-@ViewChild('multiGoalTemplate') multiGoalTemplate: TemplateRef<any>;
+  @ViewChild('bulkAssignTemplate') bulkAssignTemplate: TemplateRef<any>;
+  @ViewChild('singleAssignTemplate') singleAssignTemplate: TemplateRef<any>;
+  @ViewChild('multiGoalTemplate') multiGoalTemplate: TemplateRef<any>;
 
   currentUser: User;
-  feature="team_dashboard";
-  userMapping:any = {};
-  log:Log;
+  feature = 'team_dashboard';
+  userMapping: any = {};
+  log: Log;
   viewTeamMemberList: any[] = [];
-  teamMemberColumns: any[] = ['blank','blank','employeementId', 'name'];
+  teamMemberColumns: any[] = ['blank', 'blank', 'employeementId', 'name'];
   isSearchEnabled: boolean = false;
   filters: any = {};
   sortDirection = 'asc';
@@ -39,10 +37,10 @@ export class TeamDashboardComponent implements OnInit {
   sortColumnType: any;
   hodId: number;
   selectedQuarter: any;
-  selectedEmployees: any[] = []; 
+  selectedEmployees: any[] = [];
   assignGoalItem: any;
-  goalTemplates: any[] = []; 
-  selectedGoalTemplate: string = ''; 
+  goalTemplates: any[] = [];
+  selectedGoalTemplate: string = '';
   expectedCompletionDate: string = '';
   selectedEmployee: any = null;
   quarterCyclesList: any;
@@ -50,7 +48,7 @@ export class TeamDashboardComponent implements OnInit {
   quarters: any[] = [];
   loading = false;
   modalRef?: BsModalRef;
-  
+
   selectedGoalTemplates: string[] = [];
   errorMessage: string;
   selectedGoalData: {
@@ -69,10 +67,12 @@ export class TeamDashboardComponent implements OnInit {
     private teamDashboardService: TeamDashboardService,
     private employeeService: EmployeeService,
     private performanceService: PerformanceService,
-    private logService:LogService,
+    private logService: LogService,
     private datePipe: DatePipe
   ) {
-    this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    this.authenticationService.currentUser.subscribe(
+      (x) => (this.currentUser = x)
+    );
   }
 
   employees: any[] = [];
@@ -80,7 +80,7 @@ export class TeamDashboardComponent implements OnInit {
 
   ngOnInit() {
     this.logService.updateLogInfo(this.log);
-    const today = new Date(); 
+    const today = new Date();
     console.log('today date: ', today);
 
     console.log('Current user:', this.currentUser);
@@ -95,9 +95,12 @@ export class TeamDashboardComponent implements OnInit {
     }
     this.fetchQuarters();
 
-    let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
-    featureMap.subFeatures?.forEach(sub => {
-      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    let featureMap: Feature = this.currentUser.userMapping.find(
+      (userMap) => userMap.featureName == this.feature
+    );
+    featureMap.subFeatures?.forEach((sub) => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] =
+        sub.isActive;
     });
 
   }
@@ -110,12 +113,13 @@ export class TeamDashboardComponent implements OnInit {
           console.log(this.quarterCyclesList);
          
         } else {
-          this.errorMessage = response.serviceMessage || 'Failed to load quarters.';
+          this.errorMessage =
+            response.serviceMessage || 'Failed to load quarters.';
         }
       },
       error: (error) => {
         this.errorMessage = error.message || 'Error fetching quarters.';
-      }
+      },
     });
   }
   
@@ -156,7 +160,11 @@ export class TeamDashboardComponent implements OnInit {
     this.http.get(`${environment.baseUrl}api/quarters`).subscribe(
       (response: any) => {
         console.log('Quarters response:', response);
-        if (response && response.serviceStatus && response.serviceStatus.toUpperCase() === 'SUCCESS') {
+        if (
+          response &&
+          response.serviceStatus &&
+          response.serviceStatus.toUpperCase() === 'SUCCESS'
+        ) {
           this.quarters = response.serviceResponse || [];
           console.log('Processed quarters:', this.quarters);
         } else {
@@ -171,12 +179,61 @@ export class TeamDashboardComponent implements OnInit {
     );
   }
 
+  // getEmployeesInDepartment() {
+  //   this.loading = true;
+  //   this.teamDashboardService
+  //     .findEmployeesInSameDepartmentAsCurrentUser(this.hodId)
+  //     .subscribe(
+  //       (response: any) => {
+  //         console.log('Raw response:', JSON.stringify(response));
+  //         if (
+  //           response &&
+  //           response.serviceStatus &&
+  //           response.serviceStatus.toUpperCase() === 'SUCCESS'
+  //         ) {
+  //           // Map the response to match the expected structure
+  //           this.viewTeamMemberList = response.serviceResponse.map(
+  //             (employee) => {
+  //               return {
+  //                 id: employee.empId,
+  //                 name: employee.name,
+  //                 department: this.currentUser.departmentName || 'N/A',
+  //                 employeementId: employee.employeementId,
+  //                 totalGoals: employee.noOfGoals || 0,
+  //                 goalsCompleted: employee.goalsCompleted || 0,
+  //               };
+  //             }
+  //           );
+  //           console.log(
+  //             'Employees fetched successfully:',
+  //             this.viewTeamMemberList
+  //           );
+  //         } else {
+  //           console.error('Error in response:', response);
+  //           this.viewTeamMemberList = [];
+  //         }
+  //         this.loading = false;
+  //       },
+  //       (error) => {
+  //         console.error('Error fetching department members:', error);
+  //         this.viewTeamMemberList = [];
+  //         this.loading = false;
+  //       }
+  //     );
+  // }
+
+
+
   loadGoalTemplates() {
     console.log('Loading goal templates...');
     this.http.get(`${environment.baseUrl}api/goal-templates`).subscribe(
       (response: any) => {
         console.log('Goal templates response:', response);
-        if (response && response.serviceStatus && response.serviceStatus.toUpperCase() === 'SUCCESS') {
+        if (
+          response &&
+          response.serviceStatus &&
+          response.serviceStatus.toUpperCase() === 'SUCCESS'
+        ) {
           this.goalTemplates = response.serviceResponse || [];
           console.log('Processed goal templates:', this.goalTemplates);
         } else {
@@ -190,7 +247,7 @@ export class TeamDashboardComponent implements OnInit {
       }
     );
   }
-  
+
   toggleSearch() {
     this.isSearchEnabled = !this.isSearchEnabled;
     if (!this.isSearchEnabled) {
@@ -204,7 +261,7 @@ export class TeamDashboardComponent implements OnInit {
 
   sortData(sort: Sort) {
     if (sort.active) {
-      let sortParams: any[] = sort.active?.split("|");
+      let sortParams: any[] = sort.active?.split('|');
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
       this.sortDirection = sort.direction;
@@ -222,7 +279,7 @@ export class TeamDashboardComponent implements OnInit {
 
   toggleEmployeeSelection(employee: any) {
     console.log('Toggling selection for employee:', employee);
-    const index = this.selectedEmployees.findIndex(e => e.id === employee.id);
+    const index = this.selectedEmployees.findIndex((e) => e.id === employee.id);
     if (index === -1) {
       this.selectedEmployees.push(employee);
     } else {
@@ -230,9 +287,9 @@ export class TeamDashboardComponent implements OnInit {
     }
     console.log('Selected employees:', this.selectedEmployees);
   }
-  
+
   isEmployeeSelected(employee: any): boolean {
-    return this.selectedEmployees.some(e => e.id === employee.id);
+    return this.selectedEmployees.some((e) => e.id === employee.id);
   }
 
   toggleAllSelection(event: any) {
@@ -246,21 +303,19 @@ export class TeamDashboardComponent implements OnInit {
   openBulkAssignModal(template: TemplateRef<any>) {
     console.log('Opening bulk assign modal for:', this.selectedEmployees);
     this.modalRef = this.modalService.show(template, {
-      class: 'modal-lg'
+      class: 'modal-lg',
     });
   }
 
   futureDateFilter = (date: Date | null): boolean => {
-    const today = new Date(); 
-    return date ? date > today : false; 
+    const today = new Date();
+    return date ? date > today : false;
   };
 
- 
-
   disableManualDateInput() {
-    return false; 
+    return false;
   }
-  
+
   closeModal() {
     if (this.modalRef) {
       this.modalRef.hide();
@@ -272,7 +327,7 @@ export class TeamDashboardComponent implements OnInit {
     this.selectedEmployee = employee;
     this.selectedEmployees = [employee]; 
     this.modalRef = this.modalService.show(this.singleAssignTemplate, {
-      class: 'modal-md'
+      class: 'modal-md',
     });
   }
 
@@ -286,7 +341,7 @@ export class TeamDashboardComponent implements OnInit {
     this.addNewGoalSelection(); 
     
     this.modalRef = this.modalService.show(this.multiGoalTemplate, {
-      class: 'modal-lg'
+      class: 'modal-lg',
     });
   }
   
@@ -294,7 +349,7 @@ export class TeamDashboardComponent implements OnInit {
     this.selectedGoalData.push({
       templateId: null,
       expectedCompletionDate: '',
-      quarterId: null
+      quarterId: null,
     });
   }
   
@@ -306,40 +361,50 @@ export class TeamDashboardComponent implements OnInit {
 
   assignGoalsToEmployees(template: TemplateRef<any>) {
     console.log('Attempting to assign goals to multiple employees');
-    
-    if (!this.selectedGoalTemplate || !this.expectedCompletionDate || this.selectedEmployees.length === 0 || !this.selectedQuarter) {
+
+    if (
+      !this.selectedGoalTemplate ||
+      !this.expectedCompletionDate ||
+      this.selectedEmployees.length === 0 ||
+      !this.selectedQuarter
+    ) {
       console.error('Missing required data for bulk goal assignment');
       this.alertMessage = "Please select a goal template, set an expected completion date, select a quarter, and select at least one employee."
       this.openAlertMod(template, this.alertMessage);
       return;
     }
-  
-    const empIds = this.selectedEmployees.map(emp => emp.id);
-    
+
+    const empIds = this.selectedEmployees.map((emp) => emp.id);
+
     const requestBody = {
       empIds: empIds,
       templateId: Number(this.selectedGoalTemplate),
       expectedCompletionDate: this.expectedCompletionDate,
-      quarterId: Number(this.selectedQuarter)
+      quarterId: Number(this.selectedQuarter),
     };
-    
+
     console.log('Sending bulk assignment request:', requestBody);
-    
-    this.http.post(`${environment.baseUrl}api/EmployeeGoals/assign-bulk`, requestBody)
+
+    this.http
+      .post(`${environment.baseUrl}api/EmployeeGoals/assign-bulk`, requestBody)
       .subscribe(
         (response: any) => {
           console.log('Bulk assignment response:', response);
-          if (response && response.serviceStatus && 
-              response.serviceStatus.toUpperCase() === 'SUCCESS') {
-            
-            this.selectedEmployees.forEach(emp => {
-              const empInList = this.viewTeamMemberList.find(e => e.id === emp.id);
-             
+          if (
+            response &&
+            response.serviceStatus &&
+            response.serviceStatus.toUpperCase() === 'SUCCESS'
+          ) {
+            this.selectedEmployees.forEach((emp) => {
+              const empInList = this.viewTeamMemberList.find(
+                (e) => e.id === emp.id
+              );
+
               if (empInList) {
                 empInList.totalGoals = (empInList.totalGoals || 0) + 1;
               }
             });
-            
+
             this.closeModal();
             this.selectedEmployees = [];
             this.selectedGoalTemplate = '';
@@ -388,36 +453,41 @@ export class TeamDashboardComponent implements OnInit {
       
       return this.http.post(`${environment.baseUrl}api/EmployeeGoals/assign`, requestBody)
         .toPromise()
-        .catch(error => {
+        .catch((error) => {
           console.error('Error assigning goal:', error, requestBody);
-          return { 
-            serviceStatus: 'ERROR', 
+          return {
+            serviceStatus: 'ERROR',
             serviceMessage: error.message || 'Failed to assign goal',
             originalError: error,
-            requestData: requestBody
+            requestData: requestBody,
           };
         });
     });
-    
+
     Promise.all(assignmentPromises)
-      .then(responses => {
+      .then((responses) => {
         console.log('All assignment responses:', responses);
         this.loading = false;
-        
-        const successfulAssignments = responses.filter((response: any) => 
-          response && response.serviceStatus && 
-          response.serviceStatus.toUpperCase() === 'SUCCESS'
+
+        const successfulAssignments = responses.filter(
+          (response: any) =>
+            response &&
+            response.serviceStatus &&
+            response.serviceStatus.toUpperCase() === 'SUCCESS'
         );
-        
-        const failedAssignments = responses.length - successfulAssignments.length;
-        
+
+        const failedAssignments =
+          responses.length - successfulAssignments.length;
+
         if (failedAssignments === 0) {
-      
-          const empInList = this.viewTeamMemberList.find(e => e.id === this.selectedEmployee.id);
+          const empInList = this.viewTeamMemberList.find(
+            (e) => e.id === this.selectedEmployee.id
+          );
           if (empInList) {
-            empInList.totalGoals = (empInList.totalGoals || 0) + this.selectedGoalData.length;
+            empInList.totalGoals =
+              (empInList.totalGoals || 0) + this.selectedGoalData.length;
           }
-          
+
           this.closeModal();
           this.selectedEmployee = null;
           this.selectedGoalData = [];
@@ -428,7 +498,7 @@ export class TeamDashboardComponent implements OnInit {
           this.openAlertMod(template, this.alertMessage); 
         } else {
           console.error('Some assignments failed:', responses);
-          
+
           if (successfulAssignments.length > 0) {
             this.alertMessage = `${successfulAssignments.length} goals assigned successfully, but ${failedAssignments} failed. Check the console for details.`
             this.openAlertMod(template, this.alertMessage); 
@@ -439,7 +509,7 @@ export class TeamDashboardComponent implements OnInit {
           }
         }
       })
-      .catch(error => {
+      .catch((error) => {
         this.loading = false;
         console.error('Fatal error assigning multiple goals:', error);
         

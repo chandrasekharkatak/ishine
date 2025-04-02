@@ -167,7 +167,7 @@ public class AppraisalSummaryService {
         } catch (Exception e) {
             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
             response.setServiceError(e.getMessage());
-            response.setServiceMessage("Error Retrieving Appraisal Summaries");
+            response.setServiceMessage("Error Retrieving");
         }
         return response;
     }
@@ -269,7 +269,7 @@ public class AppraisalSummaryService {
             return summaryDto;
         } catch (Exception e) {
             throw new RuntimeException("Error calculating appraisal summary: " + e.getMessage());
-        }
+        }//logger log.error
     }
 
     

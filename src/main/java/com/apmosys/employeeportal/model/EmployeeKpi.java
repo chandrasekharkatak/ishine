@@ -1,6 +1,5 @@
 package com.apmosys.employeeportal.model;
 
-import javax.annotation.Generated;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -13,18 +12,19 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
+public class EmployeeKpi {
 
-public class Qresponse {
-	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long reponseId;
+	private Long kpiId;
 	
-	
-	private Long id;//change name to questionnaire Id
-	private String questionText;
-	private Float response;
+	private Long templateId;
 	private Long empId;
+	private Long assignedBy;
+	private Long assignedOn;
+	private String departmentId;
+	private String employeeRole;
 	private Long quarterId;
-
+	
+	
 }

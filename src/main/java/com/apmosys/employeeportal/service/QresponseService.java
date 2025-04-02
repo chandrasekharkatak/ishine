@@ -23,16 +23,18 @@ public class  QresponseService {
 
     
     public void saveResponses(List<QresponseDTO> responses,Long empId,Long quarterId) {
-    	//String quarter = quarteCycleRepository.findquartercyclebyID(quarterId);
         List<Qresponse> entities=new ArrayList<>();
         for(QresponseDTO obj:responses){
             Long employeeId12 = qresponseRepository.findempId(empId, quarterId);
             
 
             Long employeeId=employeeId12;
+            //check for primary key 
+            //also we can face the problem of empty datas by calling same api twice
+            
         	Qresponse entity = new Qresponse();
 
-            if(obj.getResponse() == null &	employeeId ==  null) {
+            if(obj.getResponse() == null &&	employeeId ==  null) {
         		
         		entity.setId(obj.getId());
                 entity.setQuestionText(obj.getQuestionText());

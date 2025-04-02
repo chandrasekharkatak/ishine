@@ -24,6 +24,7 @@ public class EmployeeGoalController {
     public ServiceResponse assignGoalToEmployee(@RequestBody GoalAssignmentRequest request) {
         ServiceResponse response = new ServiceResponse();
         try {
+        
             LocalDate completionDate = LocalDate.parse(request.getExpectedCompletionDate());
             EmployeeGoalDTO assignedGoal = employeeGoalService.assignGoalToEmployee(
             		   request.getEmpId(),

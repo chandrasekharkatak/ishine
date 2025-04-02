@@ -17,7 +17,11 @@ public class Kpis {
     
     private String description;
     
+    private String review;
+    
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "kpi_id")  
     private Kpi kpi;
+    
+    private Boolean isFixed;
 }

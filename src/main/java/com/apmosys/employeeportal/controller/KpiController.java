@@ -28,11 +28,12 @@ public class KpiController {
     @Autowired
     KpiResponseService kpiResponseService;
     
-    @PostMapping(value = "/createKpiTemplate/quarter/{quarterId}/department/{departmentId}")
-    public ServiceResponse createKpi(@RequestBody KpiDTO kpiDTO, @PathVariable Long quarterId, @PathVariable Long departmentId) {
+    @PostMapping(value = "/createKpiTemplate/quarter/{quarterId}/department/{departmentId}/employeeRole/{employeeRole}")
+    public ServiceResponse createKpi(@RequestBody KpiDTO kpiDTO, @PathVariable Long quarterId, @PathVariable Long departmentId,@PathVariable String employeeRole) {
         ServiceResponse response = new ServiceResponse();
         try {
-            KpiDTO createdKpi = kpiService.createKpi(kpiDTO, quarterId, departmentId);  
+        	//remove path variable use dto 
+            KpiDTO createdKpi = kpiService.createKpi(kpiDTO, quarterId, departmentId,employeeRole);  
             response.setServiceResponse(createdKpi);         
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceMessage("KPI created successfully.");
@@ -43,7 +44,7 @@ public class KpiController {
         }
         return response;
     }
-   
+      
     @GetMapping("/getAllKpis")
     public ServiceResponse getAllKpis() {
         ServiceResponse response = new ServiceResponse();
@@ -165,15 +166,15 @@ public class KpiController {
         return response;
     }
     
-    @GetMapping("/getKpisByQuarter/{quarterId}/Department/{departmentId}")
-    public ServiceResponse getKpisByQuarterAndDepartment(@PathVariable Long quarterId, @PathVariable Long departmentId) {
+    @GetMapping("/getKpisByQuarter/{quarterId}/Department/{departmentId}/EmployeeRole/{employeeRole}")
+    public ServiceResponse getKpisByQuarterAndDepartment(@PathVariable Long quarterId, @PathVariable Long departmentId,@PathVariable String employeeRole) {
         ServiceResponse response = new ServiceResponse();
         try {
            
-            List<KpiDTO> kpis = kpiService.getKpisByQuarterAndDepartment(quarterId, departmentId);
+            List<KpiDTO> kpis = kpiService.getKpisByQuarterAndDepartment(quarterId, departmentId,employeeRole);
             response.setServiceResponse(kpis);
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            response.setServiceMessage("KPIs for quarter ID " + quarterId + " and department '" + departmentId + "' retrieved successfully.");
+            response.setServiceMessage("KPIs for quarter ID " + quarterId + " and department '" + departmentId + "Employee Role" + employeeRole + "' retrieved successfully.");
         } catch (Exception e) {
             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
             response.setServiceMessage(ServiceResponse.SOMETHING_WENT_WRONG);

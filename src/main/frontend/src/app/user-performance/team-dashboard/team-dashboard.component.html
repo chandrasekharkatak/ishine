@@ -8,7 +8,6 @@
   <div class="row">
     <div class="col-md-12">
       <div class="d-flex justify-content-between mb-3">
-        
         <div>
           <button
             class="btn btn-primary"
@@ -20,13 +19,11 @@
         </div>
       </div>
 
-      
-
       <!-- Team Members Table -->
       <div *ngIf="!loading && viewTeamMemberList.length > 0" class="row">
         <div class="col-md-12">
-        <div class="selector-toggle" (click)="toggleSearch()" >
-          <a href="javascript:void(0)">
+          <div class="selector-toggle" (click)="toggleSearch()">
+            <a href="javascript:void(0)">
               <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
               <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
@@ -98,7 +95,7 @@
 <!-- Modals Template -->
  <ng-template #bulkAssignTemplate let-modalRef>
   <div class="modal-header">
-    <h5 class="modal-title">Assign Goals  bulk to Selected Employees</h5>
+    <h5 class="modal-title">Assign Goals bulk to Selected Employees</h5>
     <button
       type="button"
       class="close"
@@ -131,19 +128,19 @@
         <label>Select Quarter</label>
         <select class="form-control" id="quarter" [(ngModel)]="selectedQuarter">
           <option value="">Select a Quarter</option>
-          <option *ngFor="let quarter of quarterCyclesList" [ngValue]="quarter.quarterId">
-            {{quarter.quarterCycle}}
+          <option
+            *ngFor="let quarter of quarterCyclesList"
+            [ngValue]="quarter.quarterId"
+          >
+            {{ quarter.quarterCycle }}
           </option>
         </select>
       </div>
     </div>
 
-    
     <div class="info-wrapper mb-3">
       <div class="form-group">
-        <label class="info-label">
-          Expected Completion Date
-        </label>
+        <label class="info-label"> Expected Completion Date </label>
         <div class="d-flex">
           <input
             class="form-control"
@@ -161,7 +158,7 @@
           <mat-datepicker-toggle
             matSuffix
             [for]="expectedDatePicker"
-            style="margin-left: -40px;"
+            style="margin-left: -40px"
           ></mat-datepicker-toggle>
         </div>
         <mat-datepicker
@@ -197,8 +194,6 @@
   </div>
 </ng-template>
 
-
-
 <ng-template #multiGoalTemplate>
   <div class="modal-header">
     <h4 class="modal-title">
@@ -220,13 +215,16 @@
           <label>Select Quarter</label>
           <select class="form-control" [(ngModel)]="selectedQuarter">
             <option [ngValue]="null">Select Quarter</option>
-            <option *ngFor="let quarter of quarterCyclesList" [ngValue]="quarter.quarterId">
-              {{quarter.quarterCycle}}
+            <option
+              *ngFor="let quarter of quarterCyclesList"
+              [ngValue]="quarter.quarterId"
+            >
+              {{ quarter.quarterCycle }}
             </option>
           </select>
         </div>
       </div>
-      
+
       <div
         class="row mb-2"
         *ngFor="let goalItem of selectedGoalData; let i = index"
@@ -246,9 +244,7 @@
 
         <div class="info-wrapper">
           <div class="form-group">
-            <label class="info-label">
-              Expected Completion Date
-            </label>
+            <label class="info-label"> Expected Completion Date </label>
             <div class="d-flex">
               <input
                 class="form-control"
@@ -266,7 +262,7 @@
               <mat-datepicker-toggle
                 matSuffix
                 [for]="expectedDatePicker"
-                style="margin-left: -40px;"
+                style="margin-left: -40px"
               ></mat-datepicker-toggle>
             </div>
             <mat-datepicker
@@ -275,7 +271,7 @@
             ></mat-datepicker>
           </div>
         </div>
-        
+
         <div class="col-md-2 d-flex align-items-end mb-3">
           <button
             class="btn btn-danger"

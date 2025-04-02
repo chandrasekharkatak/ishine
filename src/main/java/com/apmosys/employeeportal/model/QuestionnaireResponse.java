@@ -10,22 +10,22 @@ import javax.persistence.*;
 public class QuestionnaireResponse {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long responseId;
+	private Long responseId;//primary key
 
 	private Long goalId;
 	
 	private Long empId;
     
-	private Long questionId;
+	private Long questionId;//questtionnaireID
 	
 
 	
-	private String questionTitle;
+	private String questionTitle;//remove this
 
 	private Long quarterId; 
 	
 	
-	private String quarter;
+	private String quarter;//remove quarter
 	
 	private String response;
 	
