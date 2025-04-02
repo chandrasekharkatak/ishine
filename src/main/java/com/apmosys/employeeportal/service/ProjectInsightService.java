@@ -31,6 +31,7 @@ import com.apmosys.employeeportal.model.QuestionMaster;
 import com.apmosys.employeeportal.model.Survey;
 import com.apmosys.employeeportal.model.SurveyQuestion;
 import com.apmosys.employeeportal.repository.ProjectInsightAssigneesRepository;
+import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightMilestoneRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightModuleRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightResponseRepository;
@@ -70,6 +71,9 @@ public class ProjectInsightService {
 	
 	@Autowired
 	ProjectInsightAssigneesRepository projectInsightAssigneesRepository;
+	
+	@Autowired
+	private EmployeeTeamMapRepository employeeTeamMapRepository;
 	
 	public ServiceResponse addUpdateQuestion(List<ProjectQuestionDTO> questionAddList, Long entityId, String entity) {
 		ServiceResponse response = new ServiceResponse();
@@ -740,7 +744,7 @@ public class ProjectInsightService {
 												}
 												
 												//Assign to
-												if(!submodule.getAssignedTo().isEmpty()) {
+												if(submodule.getAssignedTo() != null &&  !submodule.getAssignedTo().isEmpty()) {
 													List<ProjectInsightAssignees> submoduleAssigneeDbResponse = projectInsightAssigneesRepository
 															.getByEntityIdAndEntityType(submoduleObject.getSubmoduleId(), "SubModule");
 													
@@ -943,11 +947,23 @@ public class ProjectInsightService {
 				throw new RuntimeException("Project Not Found!!");
 			}
 
-			List<ProjectInsightMilestone> projectInsightMilestoneList = projectInsightMilestoneRepository.getByProjectId(projectInsightDTO.getProjectId());
+			List<Object[]>  employeePersonaListForTeam = employeeTeamMapRepository.getEmployeePersonaForProject(projectInsightDTO.getEmpId(),projectInsightDTO.getProjectId());
+			boolean isEmployee = checkIfIsEmployee(employeePersonaListForTeam);
+			
+			List<ProjectInsightMilestone> projectInsightMilestoneList = new ArrayList<>();
+//			if (isEmployee) {
+//				projectInsightMilestoneList = projectInsightMilestoneRepository.findByProjectIdAndAssignedMilestone(projectInsightDTO.getProjectId(),projectInsightDTO.getEmpId());
+//			} else {
+//				projectInsightMilestoneList = projectInsightMilestoneRepository.getByProjectId(projectInsightDTO.getProjectId());
+//			}
+			projectInsightMilestoneList = projectInsightMilestoneRepository.getByProjectId(projectInsightDTO.getProjectId());
+			
 			if (projectInsightMilestoneList != null && !projectInsightMilestoneList.isEmpty()) {
-				ProjectInsightDTO projectInsightDTODbObject = createProjectInsightMileStoneObject(projectInsightMilestoneList,projectInsightDTO.getEmpId());
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				ProjectInsightDTO projectInsightDTODbObject = createProjectInsightMileStoneObject(projectInsightMilestoneList,projectInsightDTO.getEmpId(),isEmployee);
+				projectInsightDTODbObject.setProjectId(projectInsightDTO.getProjectId());
+				projectInsightDTODbObject.setProjectManagerId(project.getProjectManagerId());
 				response.setServiceResponse(projectInsightDTODbObject);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				apiLogInfo.setApiResponse("All Project Insight Responses Fetched For Project!!");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			} else {
@@ -970,13 +986,41 @@ public class ProjectInsightService {
 		return response;
 	}
 
-	private ProjectInsightDTO createProjectInsightMileStoneObject(List<ProjectInsightMilestone> projectInsightMilestoneList,Long employeeId) {
+	private boolean checkIfIsEmployee(List<Object[]> employeePersonaListForTeam) {
+		boolean flag = true;
+		try {
+			if (employeePersonaListForTeam != null && !employeePersonaListForTeam.isEmpty()) {
+				for (Object[] objectArray : employeePersonaListForTeam) {
+					if (objectArray[1] != null && !objectArray[1].toString().trim().equals("")
+							&& (objectArray[1].toString().toLowerCase().contains("hod")
+									|| objectArray[1].toString().toLowerCase().contains("teamlead")
+									|| objectArray[1].toString().toLowerCase().contains("manager")
+									|| objectArray[1].toString().toLowerCase().contains("superadmin"))
+							|| objectArray[1].toString().toLowerCase().contains("rmg")) {
+						return false;
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return true;
+		}
+		return flag;
+	}
+
+	private ProjectInsightDTO createProjectInsightMileStoneObject(List<ProjectInsightMilestone> projectInsightMilestoneList,Long employeeId,boolean isEmployee) {
 		ProjectInsightDTO projectInsightDTO = new ProjectInsightDTO();
 		try {
 			if (projectInsightMilestoneList != null && !projectInsightMilestoneList.isEmpty()) {
 				List<ProjectInsightQuestionDTO> projectInsightQuestionDTOList = new ArrayList<>();
 				for (ProjectInsightMilestone projectInsightMilestone : projectInsightMilestoneList) {
-					projectInsightQuestionDTOList.add(mapProjectMilestoneToDTO(projectInsightMilestone,employeeId));
+					ProjectInsightQuestionDTO projectInsightQuestionDTO = mapProjectMilestoneToDTO(projectInsightMilestone, employeeId, isEmployee);
+
+					if ((projectInsightQuestionDTO.getModuleList() != null && !projectInsightQuestionDTO.getModuleList().isEmpty())
+							|| (projectInsightQuestionDTO.getProjectQuestion() != null && !projectInsightQuestionDTO.getProjectQuestion().isEmpty())) {
+						projectInsightQuestionDTOList.add(projectInsightQuestionDTO);
+					}
+
 				}
 				projectInsightDTO.setProjectInsightQuestionList(projectInsightQuestionDTOList);
 			} else {
@@ -989,7 +1033,7 @@ public class ProjectInsightService {
 		return projectInsightDTO;
 	}
 	
-	private ProjectInsightQuestionDTO mapProjectMilestoneToDTO(ProjectInsightMilestone projectInsightMilestone,Long employeeId) {
+	private ProjectInsightQuestionDTO mapProjectMilestoneToDTO(ProjectInsightMilestone projectInsightMilestone,Long employeeId,boolean isEmployee) {
 		try {
 			ProjectInsightQuestionDTO projectInsightQuestionDTO = new ProjectInsightQuestionDTO();
 			projectInsightQuestionDTO.setMilestoneId(projectInsightMilestone.getMilestoneId());
@@ -997,8 +1041,8 @@ public class ProjectInsightService {
 			projectInsightQuestionDTO.setDescription(projectInsightMilestone.getDescription());
 			projectInsightQuestionDTO.setDeptId(projectInsightMilestone.getDeptId());
 //			projectInsightQuestionDTO.setAssignedTo(projectInsightMilestone.getAssignedTo());
-			projectInsightQuestionDTO.setProjectQuestion(getProjectQuestionDTOList(projectInsightMilestone.getMilestoneId(), "Milestone",employeeId));
-			projectInsightQuestionDTO.setModuleList(getProjectInsightModuleDTOList(projectInsightMilestone.getMilestoneId(),employeeId));
+			projectInsightQuestionDTO.setProjectQuestion(getProjectQuestionDTOList(projectInsightMilestone.getMilestoneId(), "Milestone",employeeId,isEmployee));
+			projectInsightQuestionDTO.setModuleList(getProjectInsightModuleDTOList(projectInsightMilestone.getMilestoneId(),employeeId,isEmployee));
 			return projectInsightQuestionDTO;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1006,10 +1050,17 @@ public class ProjectInsightService {
 		}
 	}
 
-	private List<ModuleDTO> getProjectInsightModuleDTOList(Long milestoneId,Long employeeId) {
+	private List<ModuleDTO> getProjectInsightModuleDTOList(Long milestoneId,Long employeeId,boolean isEmployee) {
 		List<ModuleDTO> projectInsightModuleDTOList = new ArrayList<>();
 		try {
-			List<ProjectInsightModule> projectInsightModuleList = projectInsightModuleRepository.findByMilestoneId(milestoneId);
+			List<ProjectInsightModule> projectInsightModuleList =  new ArrayList<>();
+//			if (isEmployee) {
+//				projectInsightModuleList = projectInsightModuleRepository.findByMilestoneIdAndAssignedModule(milestoneId, employeeId);
+//			} else {
+//				projectInsightModuleList =  projectInsightModuleRepository.findByMilestoneId(milestoneId);
+//			}
+			
+			projectInsightModuleList =  projectInsightModuleRepository.findByMilestoneId(milestoneId);
 			if (!projectInsightModuleList.isEmpty()) {
 				for (ProjectInsightModule projectInsightModule : projectInsightModuleList) {
 					ModuleDTO moduleDTO = new ModuleDTO();
@@ -1019,9 +1070,11 @@ public class ProjectInsightService {
 					moduleDTO.setDescription(projectInsightModule.getDescription());
 //					moduleDTO.setAssignedTo(projectInsightModule.getAssignedTo());
 					moduleDTO.setRedmineId(projectInsightModule.getRedmineId());
-					moduleDTO.setProjectQuestion(getProjectQuestionDTOList(projectInsightModule.getModuleId(), "Module",employeeId));
-					moduleDTO.setSubModuleList(getProjectInsightSubModuleDTOList(projectInsightModule.getModuleId(),employeeId));
+					moduleDTO.setProjectQuestion(getProjectQuestionDTOList(projectInsightModule.getModuleId(), "Module",employeeId,isEmployee));
+					moduleDTO.setSubModuleList(getProjectInsightSubModuleDTOList(projectInsightModule.getModuleId(),employeeId,isEmployee));
+					if((moduleDTO.getSubModuleList() != null && !moduleDTO.getSubModuleList().isEmpty()) || (moduleDTO.getProjectQuestion() != null && !moduleDTO.getProjectQuestion().isEmpty())) {
 					projectInsightModuleDTOList.add(moduleDTO);
+					}
 				}
 			}
 		} catch (Exception e) {
@@ -1031,10 +1084,17 @@ public class ProjectInsightService {
 		return projectInsightModuleDTOList;
 	}
 
-	private List<SubModuleDTO> getProjectInsightSubModuleDTOList(Long moduleId,Long employeeId) {
+	private List<SubModuleDTO> getProjectInsightSubModuleDTOList(Long moduleId,Long employeeId,boolean isEmployee) {
 		List<SubModuleDTO> projectInsightSubModuleDTOList = new ArrayList<>();
 		try {
-			List<ProjectInsightSubModule> projectInsightSubModuleList = projectInsightSubModuleRepository.findByModuleId(moduleId);
+			List<ProjectInsightSubModule> projectInsightSubModuleList = new ArrayList<>();
+//			if (isEmployee) {
+//				projectInsightSubModuleList = projectInsightSubModuleRepository.findByModuleIdAndAssignedSubModule(moduleId, employeeId);
+//			} else {
+//				projectInsightSubModuleList = projectInsightSubModuleRepository.findByModuleId(moduleId);
+//			}
+			
+			projectInsightSubModuleList = projectInsightSubModuleRepository.findByModuleId(moduleId);
 			if (!projectInsightSubModuleList.isEmpty()) {
 				for (ProjectInsightSubModule projectInsightSubModule : projectInsightSubModuleList) {
 					SubModuleDTO subModuleDTO = new SubModuleDTO();
@@ -1044,8 +1104,10 @@ public class ProjectInsightService {
 					subModuleDTO.setDescription(projectInsightSubModule.getDescription());
 //					subModuleDTO.setAssignedTo(projectInsightSubModule.getAssignedTo());
 					subModuleDTO.setRedmineId(projectInsightSubModule.getRedmineId());
-					subModuleDTO.setProjectQuestion(getProjectQuestionDTOList(projectInsightSubModule.getSubmoduleId(), "SubModule",employeeId));
-					projectInsightSubModuleDTOList.add(subModuleDTO);
+					subModuleDTO.setProjectQuestion(getProjectQuestionDTOList(projectInsightSubModule.getSubmoduleId(), "SubModule",employeeId,isEmployee));
+					if(subModuleDTO.getProjectQuestion() != null && !subModuleDTO.getProjectQuestion().isEmpty()) {
+						projectInsightSubModuleDTOList.add(subModuleDTO);
+					}
 				}
 			}
 		} catch (Exception e) {
@@ -1055,10 +1117,15 @@ public class ProjectInsightService {
 		return projectInsightSubModuleDTOList;
 	}
 
-	public List<ProjectQuestionDTO> getProjectQuestionDTOList(Long entityId, String entityType,Long employeeId) {
+	public List<ProjectQuestionDTO> getProjectQuestionDTOList(Long entityId, String entityType,Long employeeId,boolean isEmployee) {
 		List<ProjectQuestionDTO> projectInsightQuestionList = new ArrayList<>();
 		try {
-			List<QuestionMaster> projectInsightQuestionMasterList = questionMasterRepository.findByEntityIdAndEntityType(entityId,entityType);
+			List<QuestionMaster> projectInsightQuestionMasterList = new ArrayList<>();
+			if(isEmployee) {
+				projectInsightQuestionMasterList = questionMasterRepository.findByEntityIdAndEntityTypeAndAssignedTo(entityId,entityType,employeeId);
+			} else {
+				projectInsightQuestionMasterList = questionMasterRepository.findByEntityIdAndEntityType(entityId,entityType);
+			}
 			if (!projectInsightQuestionMasterList.isEmpty()) {
 				for (QuestionMaster questionMaster : projectInsightQuestionMasterList) {
 					ProjectQuestionDTO projectQuestionDTO = new ProjectQuestionDTO();
@@ -1105,7 +1172,7 @@ public class ProjectInsightService {
 			if (project == null) {
 				throw new RuntimeException("Project Not Found!!");
 			}
-
+			
 			if (projectInsightDTO.getProjectInsightQuestionList() != null && !projectInsightDTO.getProjectInsightQuestionList().isEmpty()) {
 				saveProjectMileStoneResponse(projectInsightDTO.getProjectInsightQuestionList(),projectInsightDTO.getEmpId());
 				apiLogInfo.setApiResponse("Project Insight Response Saved Successfully");

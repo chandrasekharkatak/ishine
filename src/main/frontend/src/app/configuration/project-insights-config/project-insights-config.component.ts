@@ -49,7 +49,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
   //modal
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
-
+  projectResponseModalRef: BsModalRef = new BsModalRef();
   isQuestionForm:boolean = false;
   isCreation:boolean = false;
   isUpdation:boolean = false;
@@ -58,6 +58,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
   isSurveyResponseList:boolean = false;
   isProjectInsightResponseList:boolean = false;
   // isSurveyResponseList
+  isResponsePreview:boolean = true;
 
   surveyObj:Survey = new Survey();
   allSurveyQuestionList:SurveyQuestion[] = [new SurveyQuestion()];
@@ -173,15 +174,6 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.isProjectInsightResponseList = false;
 
     this.getAllProjectInsightList();
-  }
-
-  showAddProjectInsightResponses(projectObj){
-    this.isProjectInsightResponseList = true;
-    this.isQuestionForm = false;
-    this.isCreation = false;
-    this.isUpdation = false;
-    this.isProjectInsightList = false;
-    this.getAllProjectInsightResponsesByProjectId(projectObj);
   }
 
   showProjectInsightUpdate(projectObj:any, template: TemplateRef<any>){
@@ -477,19 +469,35 @@ export class ProjectInsightsConfigComponent implements OnInit {
     return Array.isArray(array) && array.includes(value);
   }
 
-  getAllProjectInsightResponsesByProjectId(projectObj: any) {
-    this.projectInsightQuestion = new ProjectInsightQuestion();
+  getAllProjectInsightResponsesByProjectId(projectObj: any,alertTemplate:TemplateRef<any>,insightResponseTemplate: TemplateRef<any>,isPreview:any) {
+    this.isResponsePreview = isPreview;
     this.projectInsightResponseList = [];
+    let projObj = new ProjectInsightQuestion();
+    projObj.empId = this.currentUser.empId;
+    projObj.projectId = projectObj.projectId;
+    projObj.projectManagerId = projectObj.projectManagerId;
+    projObj.projectManagerName = projectObj.projectManagerName;
 
-    this.projectInsightService.getAllProjectInsightResponsesByProjectId(projectObj).pipe(first()).subscribe((response: any) => {
+    this.projectInsightService.getAllProjectInsightResponsesByProjectId(projObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectInsightQuestion = response.serviceResponse;
         this.projectInsightResponseList = this.projectInsightQuestion.projectInsightQuestionList;
 
         this.projectInsightResponseList.forEach((milestone: ProjectInsightQuestion, mileIndex) => {
+          milestone.isCollapsed = true;
           if (milestone.projectQuestion != null && milestone.projectQuestion.length != 0) {
             milestone.projectQuestion.forEach((question: ProjectQuestion, index) => {
               question.optionsList = JSON.parse(question.options);
+              if (question.optionType == 'checkbox') {
+                question.responseList = JSON.parse(question.response || '[]');
+                if (question.optionsList?.length) {
+                  question.optionsList.forEach((option, index) => {
+                    if (question?.responseList.includes(option?.optionValue)) {
+                      option.isChecked = true
+                    }
+                  });
+                }
+              }
             });
           }
 
@@ -498,6 +506,16 @@ export class ProjectInsightsConfigComponent implements OnInit {
               if (module.projectQuestion != null && module.projectQuestion.length != 0) {
                 module.projectQuestion.forEach((question: ProjectQuestion, index) => {
                   question.optionsList = JSON.parse(question.options);
+                  if (question.optionType == 'checkbox') {
+                    question.responseList = JSON.parse(question.response || '[]');
+                    if (question.optionsList?.length) {
+                      question.optionsList.forEach((option, index) => {
+                        if (question?.responseList.includes(option?.optionValue)) {
+                          option.isChecked = true
+                        }
+                      });
+                    }
+                  }
                 });
               }
 
@@ -506,6 +524,16 @@ export class ProjectInsightsConfigComponent implements OnInit {
                   if (submodule.projectQuestion != null && submodule.projectQuestion.length != 0) {
                     submodule.projectQuestion.forEach((question: ProjectQuestion, index) => {
                       question.optionsList = JSON.parse(question.options);
+                      if (question.optionType == 'checkbox') {
+                        question.responseList = JSON.parse(question.response || '[]');
+                        if (question.optionsList?.length) {
+                          question.optionsList.forEach((option, index) => {
+                            if (question?.responseList.includes(option?.optionValue)) {
+                              option.isChecked = true
+                            }
+                          });
+                        }
+                      }
                     });
                   }
                 });
@@ -513,15 +541,57 @@ export class ProjectInsightsConfigComponent implements OnInit {
             });
           }
         });
+        this.openProjectInsightResponeMod(insightResponseTemplate);
       } else {
-        console.error(response.serviceResponse);
+        this.openAlertMod(alertTemplate, response.serviceResponse);
       }
     });
   }
 
-  saveProjectInsightResponse(template: TemplateRef<any>) {
-    let inputValidated: boolean = this.validateProjectInsightResponse(template,this.projectInsightResponseList,this.projectInsightQuestion);
-    if (!inputValidated) return;
+  saveProjectInsightResponse(template: TemplateRef<any>,finalSubmit:any) {
+    if(finalSubmit){
+      let inputValidated: boolean = this.validateProjectInsightResponse(template,this.projectInsightResponseList,this.projectInsightQuestion);
+      if (!inputValidated) return;
+    }
+
+    for (let milestoneIndex = 0; milestoneIndex < this.projectInsightResponseList.length; milestoneIndex++) {
+      let milestone = this.projectInsightResponseList[milestoneIndex];
+      if (milestone.projectQuestion?.length) {
+        let questionList = milestone.projectQuestion;
+        for (let index = 0; index < questionList.length; index++) {
+          let question = questionList[index];
+          if (question.optionType == 'checkbox') {
+            question.response = JSON.stringify(question.responseList);
+          }
+        }
+      }
+
+      for (let moduleIndex = 0; moduleIndex < (milestone.moduleList?.length || 0); moduleIndex++) {
+        let module = milestone.moduleList[moduleIndex];
+        if (module.projectQuestion?.length) {
+          let moduleQuestionList = module.projectQuestion;
+          for (let index = 0; index < moduleQuestionList.length; index++) {
+            let question = moduleQuestionList[index];
+            if (question.optionType == 'checkbox') {
+              question.response = JSON.stringify(question.responseList);
+            }
+          }
+        }
+
+        for (let submoduleIndex = 0; submoduleIndex < (module.subModuleList?.length || 0); submoduleIndex++) {
+          let submodule = module.subModuleList[submoduleIndex];
+          if (submodule.projectQuestion?.length) {
+            let submoduleProjectQuestion = submodule.projectQuestion;
+            for (let index = 0; index < submodule.projectQuestion.length; index++) {
+              let question = submoduleProjectQuestion[index];
+              if (question.optionType == 'checkbox') {
+                question.response = JSON.stringify(question.responseList);
+              }
+            }
+          }
+        }
+      }
+    }
 
     let projObj = new ProjectInsightQuestion();
     projObj.projectId = this.projectInsightQuestion.projectId;
@@ -531,6 +601,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
     projObj.empId = this.currentUser.empId;
 
     this.projectInsightService.saveProjectInsightResponse(projObj).pipe(first()).subscribe((response: any) => {
+      this.closeProjectInsightResponseModal();
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showProjectInsight();
@@ -1399,9 +1470,15 @@ private createQuestionsSection(questions: any[], entityType: string): string {
     this.openAlertMod(template, "Link copied to clipboard !!");
   }
 
-
-
   //modals
+  openProjectInsightResponeMod(insightResponseTemplate: TemplateRef<any>) {
+    this.projectResponseModalRef = this.modalService.show(insightResponseTemplate, { class: 'modal-xl' });
+  }
+
+  closeProjectInsightResponseModal(){
+    this.projectResponseModalRef.hide();
+  }
+
   openSurveyPreviewMod(template: TemplateRef<any>, surveyObj:ProjectInsightQuestion) {
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
     let surveyContainer = document.getElementById("survey-container");

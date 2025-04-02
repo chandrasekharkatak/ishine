@@ -27,4 +27,5 @@ export class ProjectInsightQuestion {
     redmineId: any;
     projectQuestion:ProjectQuestion[] = [];
     moduleList:ProjectModule[] = [];
+    isCollapsed:any= false;
 }
