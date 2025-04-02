@@ -926,6 +926,7 @@ export class UserPerformanceComponent implements OnInit {
 
 
   currentStatus:any;
+  rejectStatus:any;
   HrAndHodView(performance:any){
     this.performanceSerive.hrAndHodEmpoyeePerformanceView(performance).pipe(first()).subscribe((response: any) => {
       this.enableDisableSubmit=false;
@@ -945,7 +946,7 @@ export class UserPerformanceComponent implements OnInit {
           this.hodRemarks = value.hodRemarks;
           this.hrReviewStatus=value.hrReviewStatus;
           this.acceptReason = value.hrRemark;
-          
+          this.rejectStatus =value.rejectStatus;
         });
         this.filterRatingCriteria.forEach(value => {
           this.myRateList.push({ reviewLabel: value.reviewLabel, rate: value.ratingValue,performanceRatingId:value.performanceRatingId });
@@ -953,6 +954,7 @@ export class UserPerformanceComponent implements OnInit {
           this.hodRemarks = value.hodRemarks;
           this.hrReviewStatus=value.hrReviewStatus;
            this.acceptReason = value.hrRemark;
+           this.rejectStatus =value.rejectStatus;
           
         });
      

@@ -336,7 +336,7 @@
                 *ngIf="currentStatus == 'Ongoing'  && userMapping.performance_action_by_hod">
                 <button type="button" class="btn btn-primary" *ngIf="enableDisableSubmit"
                   (click)="selectAction('accept')">Accept</button>
-                <button type="button" class="btn btn-danger ml-2" *ngIf="enableDisableSubmit "
+                <button type="button" class="btn btn-danger ml-2" *ngIf="enableDisableSubmit && (rejectStatus !=true )"
                   (click)="selectAction('reject')">Reject</button>
               </div>
 
@@ -346,7 +346,7 @@
                 <textarea id="acceptReason" [(ngModel)]="acceptReason" class="form-control"
                   placeholder="Enter reason"></textarea>
               </div>
-              <div *ngIf="currentStatus == 'Completed'  && hrReviewStatus == 'Accepted'">
+              <div *ngIf="currentStatus == 'Completed'  && hrReviewStatus == 'Accepted' && !userMapping.performance_action_by_hod">
                 <label for="acceptReason">Accept Reasons:</label>
                 <textarea id="acceptReason" [(ngModel)]="acceptReason" class="form-control"
                   placeholder="Enter reason"></textarea>
@@ -359,7 +359,7 @@
                 <textarea id="rejectReason" [(ngModel)]="rejectReason" class="form-control"
                   placeholder="Enter reason"></textarea>
               </div>
-              <div *ngIf="hrReviewStatus == 'Rejected'">
+              <div *ngIf="hrReviewStatus == 'Rejected' && !userMapping.performance_action_by_hod">
                 <label for="rejectReason">Reject Reason:</label>
                 <textarea id="rejectReason" [(ngModel)]="acceptReason" class="form-control"
                   placeholder="Enter reason"></textarea>
