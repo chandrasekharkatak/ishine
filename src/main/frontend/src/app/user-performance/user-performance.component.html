@@ -302,9 +302,8 @@
                       <td *ngIf="item.reviewFieldType === 'Rating'&& item.quarterId === quarter.quarterId">
                         <div class="stars">
                           <span *ngFor="let star of getRatingList(item.condition);  let k = index"
-                            (click)="updateRating(i, k + 1)" [ngClass]="{'selected': k < myRateList[i].rate ,'disabled': !(currentStatus === 'Ongoing' && userMapping.performance_action_by_hod) 
-                            || currentStatus === 'Completed' 
-                            || userMapping.performance_action_by_hr
+                            (click)="updateRating(i, k + 1)" [ngClass]="{'selected': k < myRateList[i].rate ,'disabled': (currentStatus === 'Ongoing' && userMapping.performance_action_by_hod) ? false : 
+                          (currentStatus === 'Ongoing' || currentStatus === 'Completed' || userMapping.performance_action_by_hr)
                          }">
                             ★
                           </span>
