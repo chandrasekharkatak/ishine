@@ -285,7 +285,7 @@
                         <input type="range" min="0" [max]="item.condition" step="0.5" [(ngModel)]="myList[j].silde"
                           (input)="updateSlide(j, myList[j].silde)" [disabled]="
                           (currentStatus === 'Ongoing' && userMapping.performance_action_by_hod) ? false : 
-                          (currentStatus === 'Ongoing' || currentStatus === 'Completed' || currentUser.employeeRole === 'HR')
+                          (currentStatus === 'Ongoing' || currentStatus === 'Completed' || userMapping.performance_action_by_hr)
                       ">
                         <span>{{ item.condition }}</span>
                         <p>{{ myList[j].silde }}</p>
@@ -304,7 +304,7 @@
                           <span *ngFor="let star of getRatingList(item.condition);  let k = index"
                             (click)="updateRating(i, k + 1)" [ngClass]="{'selected': k < myRateList[i].rate ,'disabled': !(currentStatus === 'Ongoing' && userMapping.performance_action_by_hod) 
                             || currentStatus === 'Completed' 
-                            || currentUser.employeeRole === 'HR'
+                            || userMapping.performance_action_by_hr
                          }">
                             ★
                           </span>
@@ -323,10 +323,9 @@
               <input type="text" id="final-rating" [value]="finalRating || '0'" disabled
                 placeholder="Enter Final Rating">
 
-              <label for="justification"><span class="text-danger">*</span>Justify your Rating (Min. 150
-                characters)</label>
+              <label for="justification"><span class="text-danger">*</span>Manager/Reporting Manager Remarks</label>
               <textarea id="justification" [(ngModel)]="hodRemarks"
-                [disabled]="currentStatus === 'Ongoing' || currentStatus === 'Completed'"></textarea>
+                [disabled]="currentStatus === 'Ongoing' || currentStatus === 'Completed' || userMapping.performance_action_by_hr"></textarea>
 
               <button type="button" class="btn btn-primary float-right"
                 (click)="submitReviewEmployee(quarter,alert_message,i)"
@@ -348,8 +347,8 @@
                   placeholder="Enter reason"></textarea>
               </div>
               <div *ngIf="currentStatus == 'Completed'  && hrReviewStatus == 'Accepted' && !userMapping.performance_action_by_hod">
-                <label for="acceptReason">Accept Reasons:</label>
-                <textarea id="acceptReason" [(ngModel)]="acceptReason" class="form-control"
+                <label for="acceptReason">Accept Reason(s):</label>
+                <textarea id="acceptReason" [(ngModel)]="acceptReason" class="form-control"  [disabled]="userMapping.performance_action_by_hr"
                   placeholder="Enter reason"></textarea>
               </div>
 
@@ -361,8 +360,8 @@
                   placeholder="Enter reason"></textarea>
               </div>
               <div *ngIf="hrReviewStatus == 'Rejected' && !userMapping.performance_action_by_hod">
-                <label for="rejectReason">Reject Reason:</label>
-                <textarea id="rejectReason" [(ngModel)]="acceptReason" class="form-control"
+                <label for="rejectReason">Reject Reason(s):</label>
+                <textarea id="rejectReason" [(ngModel)]="acceptReason" class="form-control" [disabled]="userMapping.performance_action_by_hr"
                   placeholder="Enter reason"></textarea>
               </div>
 
