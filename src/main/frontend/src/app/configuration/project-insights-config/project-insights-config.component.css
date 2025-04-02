@@ -151,3 +151,176 @@
   box-shadow: 0px 6px 14px rgba(0, 0, 0, 0.2);
 }
 
+/* Project Insight Response CSS */
+
+.response-milestone-section {
+  transition: all 0.3s ease;
+}
+
+.response-milestone-row {
+  margin-bottom: 30px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  border: 1px solid #e1e8ed;
+}
+
+.response-milestone-header-row {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  padding: 20px;
+  position: relative;
+}
+
+.response-milestone-header-row-milestone-index {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.response-milestone-header-row-milestone-milestonename {
+  background: rgba(255,255,255,0.2);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+}
+
+.response-milestone-header-row-milestone-assignedto{
+  margin-top: 15px;display: flex;align-items: center;gap: 8px;
+}
+
+.response-milestone-section:hover {
+  transform: translateY(-2px);
+}
+
+.response-question-container:hover {
+  border-color: #3498db !important;
+}
+
+.response-custom-input:focus {
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.response-custom-checkbox,
+.custom-radio {
+  cursor: pointer;
+}
+
+.response-custom-checkbox:hover,
+.custom-radio:hover {
+  background-color: #f8f9fa;
+}
+
+.response-file-upload {
+  transition: all 0.3s ease;
+}
+
+.response-file-upload:hover {
+  background-color: #f8f9fa;
+}
+
+
+.response-milestone-container {
+  border: 1px solid black;
+  padding: 10px;
+  margin-bottom: 15px;
+}
+
+.response-milestone-title {
+  font-weight: bold;
+}
+
+.response-milestone-description {
+  color: gray;
+}
+
+.response-question-container {
+  border: 1px solid black;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+.response-question-title {
+  font-weight: bold;
+}
+
+.response-question-description {
+  color: gray;
+  display: block;
+}
+
+.response-upload-input {
+  float: right;
+}
+
+.response-text-input {
+  width: 100%;
+  padding: 5px;
+  margin-top: 5px;
+  border: 1px solid black;
+}
+
+.response-option-container {
+  display: flex;
+  align-items: center;
+}
+
+.response-option-input {
+  margin-right: 5px;
+}
+
+.response-dropdown-container {
+position: relative;
+display: inline-block;
+}
+
+.response-dropdown-container:hover .dropdown-menu {
+display: block;
+margin-top: 5px;
+visibility: visible;
+opacity: 1;
+transform: translateY(0);
+}
+
+.response-enhanced-dropdown {
+display: none;
+position: absolute;
+top: 100%;
+left: 0;
+z-index: 1050;
+min-width: 140px;
+background: white;
+border-radius: 8px;
+box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+padding: 8px 0;
+visibility: hidden;
+opacity: 0;
+transform: translateY(-10px);
+transition: all 0.3s ease-in-out;
+}
+
+.response-enhanced-dropdown button {
+display: flex;
+align-items: center;
+width: 100%;
+text-align: left;
+padding: 10px 15px;
+font-size: 14px;
+font-weight: 500;
+color: #333;
+border: none;
+background: none;
+transition: background 0.2s, color 0.2s;
+}
+
+.response-enhanced-dropdown button:hover {
+background: #f0f5ff;
+color: #0056b3;
+font-weight: 600;
+}
+
+.response-dropdown-container:hover .enhanced-dropdown {
+box-shadow: 0px 6px 14px rgba(0, 0, 0, 0.2);
+}

@@ -7,4 +7,5 @@ export class ProjectSubModule {
     subModule: any;
     description: any;
     projectQuestion:ProjectQuestion[] = [];
+    isCollapsed:any= false;
 }

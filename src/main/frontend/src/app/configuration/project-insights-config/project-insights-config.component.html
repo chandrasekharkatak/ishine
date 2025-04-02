@@ -366,10 +366,11 @@
                         <td  *ngIf="userMapping.employee360_view_survey_config" id="clickablefor360" [navigateToEmployee360]="project.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{project.createdByName}}</td>
                         <td>{{project.createdOn}}</td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary" type="submit" (click)="onProjectInsightPreview(project, preview_template)"><em>Preview</em></button>
+                            <button name="Preview" class="btn btn-sm btn-outline-primary" type="submit" (click)="getAllProjectInsightResponsesByProjectId(project,alert_message,insight_response_template,true)"><em class="fa fa-eye"></em></button>
                             <button class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showProjectInsightUpdate(project, alert_message)"><em class="fa fa-edit"></em></button>
                             <!-- <button class="btn btn-sm btn-outline-danger" type="submit" (click)="openDeleteProjectInsightMod(delete_template, project)"><em class="fa fa-trash"></em></button> -->
-                            <button class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showAddProjectInsightResponses(project)"><em> Add / View Response</em></button>&nbsp;
+                            <!-- <button class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showAddProjectInsightResponses(project)"><em> Add / View Response</em></button>&nbsp; -->
+                            <button class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="getAllProjectInsightResponsesByProjectId(project,alert_message,insight_response_template,false)"><em> Add / View Response</em></button>&nbsp;
                         </td>
                       </tr>
                     </tbody>
@@ -381,411 +382,6 @@
     </div>
 </div>
 <!-- end :: see all Surveys table -->
-
-
-<!-- start :: see all project insight response -->
-<div class="row" *ngIf="isProjectInsightResponseList">
-    <div class="card col-md-12 px-0">
-        <div class="card-header text-center text-uppercase">
-            <strong>Add/Update Project Insight Response</strong>
-        </div>
-        <div class="card-body">
-            <div *ngFor="let milestone of projectInsightResponseList; let mileIndex = index" class="row"
-                [class.question-input]="projectInsightResponseList.length>1">
-                <div class="col-md-12">
-                    <hr>
-                    <div class="row">
-                        <div class="col-md-4 mb-0">
-                            <div class="info-wrapper">
-                                <div class="form-group">
-                                    <label class="info-label"><b>Milestone -
-                                            {{mileIndex+1}}</b></label>
-                                    <input type="text" class="form-control" autocomplete="none"
-                                        [(ngModel)]="milestone.milestone" disabled>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-2 mb-0" *ngIf="milestone.description">
-                            <div class="info-wrapper">
-                                <div class="form-group">
-                                    <label class="info-label">Description</label>
-                                    <input type="text" class="form-control" autocomplete="none"
-                                        [(ngModel)]="milestone.description" disabled>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-2 mb-0">
-                            <div class="info-wrapper">
-                                <div class="form-group">
-                                    <label class="info-label">Redmine Id</label>
-                                    <input type="text" class="form-control" autocomplete="none"
-                                        [(ngModel)]="milestone.redmineId">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div *ngFor="let question of milestone.projectQuestion; let mileQuestionIndex = index" class="row">
-                        <div class="col-md-12">
-                            <div class="row">
-                                <div class="col-md-8 mb-0">
-                                    <div class="info-wrapper">
-                                        <div class="form-group">
-                                            <label class="info-label"><b>Question - {{mileQuestionIndex+1}}</b> <span
-                                                    *ngIf="question.required" class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" autocomplete="none"
-                                                [(ngModel)]="question.question" disabled>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row" *ngIf="question.description">
-                                <div class="col-md-4 mb-0">
-                                    <div class="info-wrapper">
-                                        <div class="form-group">
-                                            <label class="info-label">Description</label>
-                                            <input type="text" class="form-control" autocomplete="none"
-                                                [(ngModel)]="question.description" disabled>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div *ngIf="question.optionType == 'radio'">
-                                <div class="row">
-                                    <div class="col-md-4 mb-0">
-                                        <label class="info-label">Select One</label>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6 mb-0">
-                                        <div
-                                            *ngFor="let option of question.optionsList; let mileQuestionOptionIndex = index">
-                                            <input type="radio"
-                                                [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'radio' + mileQuestionOptionIndex"
-                                                name="'Milestone-'{{milestone.milestoneId}} '-Question'{{question.questionId}}'radio'{{mileQuestionOptionIndex}}"
-                                                [value]="option.optionValue" [(ngModel)]="question.response">&nbsp;
-                                            <label
-                                                [for]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'radio' + mileQuestionOptionIndex">{{
-                                                option.optionValue }}</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div *ngIf="question.optionType == 'checkbox'">
-                                <div class="row">
-                                    <div class="col-md-4 mb-0">
-                                        <label class="info-label">Select</label>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6 mb-0">
-                                        <div
-                                            *ngFor="let option of question.optionsList; let mileQuestionOptionIndex = index">
-                                            <input type="checkbox"
-                                                [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex"
-                                                [(ngModel)]="option.isChecked"
-                                                (change)="onCheckboxChange($event, option.optionValue, question,option)">&nbsp;
-                                            <label
-                                                [for]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex">{{
-                                                option.optionValue }}</label>
-                                        </div>
-                                    </div>
-                                    <br>
-                                </div>
-                            </div>
-                            <div *ngIf="question.optionType == 'text'">
-                                <div class="row">
-                                    <div class="col-md-4 mb-0">
-                                        <label class="info-label">Answer</label>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6 mb-0">
-                                        <div class="form-group">
-                                            <input type="text" class="form-control" autocomplete="none"
-                                                placeholder="Enter Answer here..." [(ngModel)]="question.response">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Module List -->
-                    <div *ngFor="let module of milestone.moduleList; let modIndex = index" class="row"
-                        style="padding-left: 30px;" [class.question-input]="milestone?.moduleList?.length>1">
-                        <div class="col-md-12">
-                            <div class="row">
-                                <div class="col-md-4 mb-0">
-                                    <div class="info-wrapper">
-                                        <div class="form-group">
-                                            <label class="info-label"><b>Module -
-                                                    {{modIndex+1}}</b></label>
-                                            <input type="text" class="form-control" autocomplete="none"
-                                                [(ngModel)]="module.module" disabled>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-2 mb-0" *ngIf="module.description">
-                                    <div class="info-wrapper">
-                                        <div class="form-group">
-                                            <label class="info-label">Description</label>
-                                            <input type="text" class="form-control" autocomplete="none"
-                                                [(ngModel)]="module.description" disabled>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-2 mb-0">
-                                    <div class="info-wrapper">
-                                        <div class="form-group">
-                                            <label class="info-label">Redmine Id</label>
-                                            <input type="text" class="form-control" autocomplete="none"
-                                                [(ngModel)]="module.redmineId">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div *ngFor="let question of module.projectQuestion; let modQuestionIndex = index"
-                                class="row">
-                                <div class="col-md-12">
-                                    <div class="row">
-                                        <div class="col-md-8 mb-0">
-                                            <div class="info-wrapper">
-                                                <div class="form-group">
-                                                    <label class="info-label"><b>Question - {{modQuestionIndex+1}}</b>
-                                                        <span *ngIf="question.required"
-                                                            class="text-danger">*</span></label>
-                                                    <input type="text" class="form-control" autocomplete="none"
-                                                        [(ngModel)]="question.question" disabled>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row" *ngIf="question.description">
-                                        <div class="col-md-4 mb-0">
-                                            <div class="info-wrapper">
-                                                <div class="form-group">
-                                                    <label class="info-label">Description</label>
-                                                    <input type="text" class="form-control" autocomplete="none"
-                                                        [(ngModel)]="question.description" disabled>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div *ngIf="question.optionType == 'radio'">
-
-                                        <div class="row">
-                                            <div class="col-md-4 mb-0">
-                                                <label class="info-label">Select One</label>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-6 mb-0">
-                                                <div
-                                                    *ngFor="let option of question.optionsList; let modQuestionOptionIndex = index">
-                                                    <input type="radio"
-                                                        [id]="'Module-' +module.moduleId + '-Question' + question.questionId + 'radio' + modQuestionOptionIndex"
-                                                        name="'Module-'{{module.moduleId}}'-Question'{{question.questionId}}'radio'{{modQuestionOptionIndex}}"
-                                                        [value]="option.optionValue"
-                                                        [(ngModel)]="question.response">&nbsp;
-                                                    <label
-                                                        [for]="'Module-' +module.moduleId + '-Question' + question.questionId + 'radio' + modQuestionOptionIndex">{{
-                                                        option.optionValue }}</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div *ngIf="question.optionType == 'checkbox'">
-                                        <div class="row">
-                                            <div class="col-md-4 mb-0">
-                                                <label class="info-label">Select</label>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-6 mb-0">
-                                                <div
-                                                    *ngFor="let option of question.optionsList; let modQuestionOptionIndex = index">
-                                                    <input type="checkbox"
-                                                        [id]="'Module-' +module.moduleId + '-Question' + question.questionId + 'checkbox' + modQuestionOptionIndex"
-                                                        [(ngModel)]="option.isChecked"
-                                                        (change)="onCheckboxChange($event, option.optionValue, question,option)">&nbsp;
-                                                    <label
-                                                        [for]="'Module-' +module.moduleId + '-Question' + question.questionId + 'checkbox' + modQuestionOptionIndex">{{
-                                                        option.optionValue }}</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div *ngIf="question.optionType == 'text'">
-                                        <div class="row">
-                                            <div class="col-md-4 mb-0">
-                                                <label class="info-label">Answer</label>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-6 mb-0">
-                                                <div class="info-wrapper">
-                                                    <div class="form-group">
-                                                        <input type="text" class="form-control" autocomplete="none"
-                                                            placeholder="Enter Answer here..."
-                                                            [(ngModel)]="question.response">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        
-
-
-                        <!-- SubModule List -->
-                        <div *ngFor="let submodule of module.subModuleList; let submodIndex = index" class="row"
-                            style="padding-left: 30px;" [class.question-input]="module?.subModuleList?.length>1">
-                            <div class="col-md-12">
-                                <div class="row">
-                                    <div class="col-md-4 mb-0">
-                                        <div class="info-wrapper">
-                                            <div class="form-group">
-                                                <label class="info-label"><b>Sub
-                                                        Module -
-                                                        {{submodIndex+1}}</b></label>
-                                                <input type="text" class="form-control" autocomplete="none"
-                                                    [(ngModel)]="submodule.subModule" disabled>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2 mb-0" *ngIf="submodule.description">
-                                        <div class="info-wrapper">
-                                            <div class="form-group">
-                                                <label class="info-label">Description</label>
-                                                <input type="text" class="form-control" autocomplete="none"
-                                                    [(ngModel)]="submodule.description" disabled>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2 mb-0">
-                                        <div class="info-wrapper">
-                                            <div class="form-group">
-                                                <label class="info-label">Redmine Id</label>
-                                                <input type="text" class="form-control" autocomplete="none"
-                                                    [(ngModel)]="submodule.redmineId">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div *ngFor="let question of submodule.projectQuestion; let submodQuestionIndex = index"
-                                    class="row">
-                                    <div class="col-md-12">
-                                        <div class="row">
-                                            <div class="col-md-8 mb-0">
-                                                <div class="info-wrapper">
-                                                    <div class="form-group">
-                                                        <label class="info-label"><b>Question -
-                                                                {{submodQuestionIndex+1}}</b> <span
-                                                                *ngIf="question.required"
-                                                                class="text-danger">*</span></label>
-                                                        <input type="text" class="form-control" autocomplete="none"
-                                                            [(ngModel)]="question.question" disabled>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row" *ngIf="question.description">
-                                            <div class="col-md-4 mb-0">
-                                                <div class="info-wrapper">
-                                                    <div class="form-group">
-                                                        <label class="info-label">Description</label>
-                                                        <input type="text" class="form-control" autocomplete="none"
-                                                            [(ngModel)]="question.description" disabled>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div *ngIf="question.optionType == 'radio'">
-                                            <div class="row">
-                                                <div class="col-md-4 mb-0">
-                                                    <label class="info-label">Select One</label>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-md-6 mb-0">
-                                                    <div
-                                                        *ngFor="let option of question.optionsList; let submodQuestionOptionIndex = index">
-                                                        <input type="radio"
-                                                            [id]="'SubModule-' +submodule.subModuleId + '-Question' + question.questionId + 'radio' + submodQuestionOptionIndex"
-                                                            name="'SubModule-'{{submodule.subModuleId}}'-Question'{{question.questionId}}'radio'{{submodQuestionOptionIndex}}"
-                                                            [value]="option.optionValue"
-                                                            [(ngModel)]="question.response">&nbsp;
-                                                        <label
-                                                            [for]="'SubModule-' +submodule.subModuleId + '-Question' + question.questionId + 'radio' + submodQuestionOptionIndex">{{
-                                                            option.optionValue }}</label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div *ngIf="question.optionType == 'checkbox'">
-                                            <div class="row">
-                                                <div class="col-md-4 mb-0">
-                                                    <label class="info-label">Select</label>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-md-6 mb-0">
-                                                    <div
-                                                        *ngFor="let option of question.optionsList; let submodQuestionOptionIndex = index">
-                                                        <input type="checkbox"
-                                                            [id]="'SubModule-' + submodule.subModuleId + '-Question' + question.questionId + 'checkbox' + submodQuestionOptionIndex"
-                                                            [(ngModel)]="option.isChecked"
-                                                            (change)="onCheckboxChange($event, option.optionValue, question,option)">&nbsp;
-                                                        <label
-                                                            [for]="'SubModule-' + submodule.subModuleId + '-Question' + question.questionId + 'checkbox' + submodQuestionOptionIndex">{{
-                                                            option.optionValue }}</label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div *ngIf="question.optionType == 'text'">
-                                            <div class="row">
-                                                <div class="col-md-4 mb-0">
-                                                    <label class="info-label">Answer</label>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-md-6 mb-0">
-                                                    <div class="info-wrapper">
-                                                        <div class="form-group">
-                                                            <input type="text" class="form-control" autocomplete="none"
-                                                                placeholder="Enter Answer here..."
-                                                                [(ngModel)]="question.response">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row mt-3">
-                <div class="col-md-12">
-                    <button type="submit" class="btn btn-primary btn-sm mx-1"
-                        (click)="saveProjectInsightResponse(alert_message)">Submit</button>
-                    <button type="submit" class="btn btn-outline-primary btn-sm mx-1"
-                        (click)="showProjectInsight()">Back</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- end :: see all project insight response -->
-
-<!-------------------- End :: Project insight Question section -------------------->
-
 
 
 <ng-template #alert_message>
@@ -831,3 +427,621 @@
         <div class="container-fluid d-flex flex-column align-tems-center" id="survey-container"></div>
     </div>
 </ng-template>
+
+<ng-template #insight_response_template>
+    <div class="modal-header">
+       <b *ngIf="isResponsePreview" class="modal-title">
+          <h3>Preview Project Insight</h3>
+       </b>
+       <b *ngIf="!isResponsePreview" class="modal-title">
+          <h3>Add/Update Project Insight Response</h3>
+       </b>
+       <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+          (click)="closeProjectInsightResponseModal()">
+       <span aria-hidden="true">&times;</span>
+       </button>
+    </div>
+    <div class="modal-body">
+       <div class="container-fluid d-flex flex-column align-tems-center">
+          <div
+             *ngIf="projectInsightResponseList != undefined && projectInsightResponseList != null && projectInsightResponseList.length > 0">
+             <div class="response-milestone-section response-milestone-row"
+                *ngFor="let milestone of projectInsightResponseList; let mileIndex = index">
+                <div class="response-milestone-header response-milestone-header-row" style="cursor: pointer;"
+                   (click)="milestone.isCollapsed = !milestone.isCollapsed">
+                   <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <h3 class="response-milestone-header-row-milestone-index">Milestone {{mileIndex + 1}}:
+                         {{milestone.milestone || ''}}
+                      </h3>
+                      <div>
+                         <span class="response-milestone-header-row-milestone-milestonename">Phase {{mileIndex +
+                         1}}</span>&nbsp;
+                         <i class="fa"
+                            [ngClass]="milestone.isCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'"></i>
+                      </div>
+                   </div>
+                   <div style="margin-top: 10px; opacity: 0.9;">{{milestone.description || ''}}</div>
+                   <div class="response-milestone-header-row-milestone-assignedto">
+                      <svg style="width: 16px; height: 16px;" viewBox="0 0 24 24" fill="currentColor">
+                         <path
+                            d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                      </svg>
+                      <span style="font-size: 0.9rem;">Assigned To: {{milestone.assignedTo || ''}}</span>
+                   </div>
+                </div>
+                <div class="milestone-content" style="padding: 25px;" [ngClass]="{'d-none': milestone.isCollapsed}">
+                   <div *ngFor="let question of milestone.projectQuestion; let qIndex = index"
+                      class="response-question-container" style="
+                      background: white;
+                      padding: 20px;
+                      margin: 15px 0;
+                      border-radius: 8px;
+                      border: 1px solid #e2e8f0;
+                      transition: all 0.3s ease;
+                      ">
+                      <div class="response-question-header" style="margin-bottom: 15px;">
+                         <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="
+                               background: #3498db;
+                               color: white;
+                               width: 24px;
+                               height: 24px;
+                               border-radius: 12px;
+                               display: flex;
+                               align-items: center;
+                               justify-content: center;
+                               font-size: 0.8rem;
+                               font-weight: 500;
+                               ">{{qIndex + 1}}</span>
+                            <h5 style="
+                               color: #2d3748;
+                               margin: 0;
+                               font-weight: 500;
+                               font-size: 1.1rem;
+                               ">{{question.question}}
+                               <span style="color: #e74c3c; margin-left: 5px; font-size: 1.2em;">*</span>
+                            </h5>
+                            <div *ngIf="question.description" style="
+                               color: #718096;
+                               margin-top: 8px;
+                               font-size: 0.9rem;
+                               padding-left: 32px;
+                               ">{{question.description}}</div>
+                         </div>
+                      </div>
+                      <div style="padding-left: 32px;" *ngIf="question.optionType == 'text'">
+                         <div>
+                            <input *ngIf="!isResponsePreview" type="text" class="form-control custom-input"
+                            style="width: 100%;
+                            padding: 10px 12px;
+                            border: 1px solid #e2e8f0;
+                            border-radius: 6px;
+                            font-size: 0.95rem;
+                            transition: all 0.3s ease;
+                            outline: none;
+                            " autocomplete="none" placeholder="Enter Answer here..." [(ngModel)]="question.response">
+                            <input *ngIf="isResponsePreview" type="text" class="form-control custom-input"
+                               style="width: 100%;
+                               padding: 10px 12px;
+                               border: 1px solid #e2e8f0;
+                               border-radius: 6px;
+                               font-size: 0.95rem;
+                               transition: all 0.3s ease;
+                               outline: none;
+                               " autocomplete="none" placeholder="Enter Answer here...">
+                         </div>
+                      </div>
+                      <div style="padding-left: 32px;" *ngIf="question.optionType == 'checkbox'">
+                         <div *ngFor="let option of question.optionsList; let mileQuestionOptionIndex = index">
+                            <div class="custom-{{question.optionType}}" style="
+                               margin: 10px 0;
+                               padding: 10px;
+                               border-radius: 6px;
+                               transition: all 0.2s ease;
+                               ">
+                               <label style="
+                                  display: flex;
+                                  align-items: center;
+                                  gap: 10px;
+                                  margin: 0;
+                                  cursor: pointer;
+                                  ">
+                               <input *ngIf="!isResponsePreview" type="checkbox"
+                               [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex"
+                               [(ngModel)]="option.isChecked"
+                               (change)="onCheckboxChange($event, option.optionValue, question,option)">
+                               <input *ngIf="isResponsePreview" type="checkbox"
+                               [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex">&nbsp;
+                               <label class="mb-0"
+                                  [for]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex">{{
+                               option.optionValue }}</label>
+                               </label>
+                            </div>
+                         </div>
+                      </div>
+                      <div style="padding-left: 32px;" *ngIf="question.optionType == 'radio'">
+                         <div *ngFor="let option of question.optionsList; let optIndex = index">
+                            <div class="custom-{{question.optionType}}" style="
+                               margin: 10px 0;
+                               padding: 10px;
+                               border-radius: 6px;
+                               transition: all 0.2s ease;
+                               ">
+                               <label style="
+                                  display: flex;
+                                  align-items: center;
+                                  gap: 10px;
+                                  margin: 0;
+                                  cursor: pointer;
+                                  ">
+                               <input *ngIf="!isResponsePreview" type="radio"
+                               [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'radio' + optIndex"
+                               name="'Milestone-'{{milestone.milestoneId}} '-Question'{{question.questionId}}'radio'{{optIndex}}"
+                               [value]="option.optionValue" [(ngModel)]="question.response">
+                               <input *ngIf="isResponsePreview" type="radio"
+                               [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'radio' + optIndex"
+                               name="'Milestone-'{{milestone.milestoneId}} '-Question'{{question.questionId}}'radio'{{optIndex}}"
+                               [value]="option.optionValue">&nbsp;
+                               <span style="color: #4a5568; 
+                                  font-size: 0.95rem;
+                                  ">{{option.optionValue}}</span>
+                               </label>
+                            </div>
+                         </div>
+                      </div>
+                      <div *ngIf="question.documentUpload === 'true'" class="file-upload" style="
+                         margin-top: 12px;
+                         padding: 12px;
+                         border: 2px dashed #cbd5e0;
+                         border-radius: 6px;
+                         text-align: center;
+                         ">
+                         <label for="file-Milestone-{{qIndex}}" style="
+                            display: block;
+                            cursor: pointer;
+                            color: #4a5568;
+                            ">
+                            <svg style="width: 24px; height: 24px; margin-bottom: 8px;" viewBox="0 0 24 24"
+                               fill="#4a5568">
+                               <path
+                                  d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
+                            </svg>
+                            <span style="display: block; font-size: 0.9rem;">Click to upload or drag and
+                            drop</span>
+                            <span style="display: block; font-size: 0.8rem; color: #718096;">Supported formats:
+                            Images</span>
+                         </label>
+                         <input id="file-Milestone-{{qIndex}}" type="file" accept="image/*"
+                            style="display: none;" class="form-control-file">
+                      </div>
+                   </div>
+                   <div *ngFor="let module of milestone.moduleList; let modIndex = index"
+                      class="response-module-section" style="
+                      margin: 20px 0;
+                      background: #f8fafc;
+                      border-radius: 8px;
+                      padding: 20px;
+                      border: 1px solid #e2e8f0;
+                      ">
+                      <div class="response-module-header" style="
+                         background: linear-gradient(135deg, #2ecc71, #27ae60);
+                         color: white;
+                         padding: 15px;
+                         border-radius: 8px;
+                         margin-bottom: 20px;
+                         box-shadow: 0 2px 8px rgba(46, 204, 113, 0.2); 
+                         cursor: pointer;
+                         " (click)="module.isCollapsed = !module.isCollapsed">
+                         <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h4 style="margin: 0; font-weight: 500;">Module: {{module.module || ''}}</h4>
+                            <div>
+                               <span style="
+                                  background: rgba(255,255,255,0.2);
+                                  padding: 3px 10px;
+                                  border-radius: 15px;
+                                  font-size: 0.8rem;
+                                  ">Module {{modIndex + 1}}</span>
+                               &nbsp;
+                               <i class="fa"
+                                  [ngClass]="module.isCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'"></i>
+                            </div>
+                         </div>
+                         <div style="
+                            margin-top: 10px;
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                            font-size: 0.9rem;
+                            ">
+                            <svg style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="currentColor">
+                               <path
+                                  d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                            </svg>
+                            Assigned To: {{module.assignedTo || ''}}
+                         </div>
+                      </div>
+                      <div class="response-module-content" style="padding: 25px;"
+                         [ngClass]="{'d-none': module.isCollapsed}">
+                         <div *ngFor="let question of module.projectQuestion; let qIndex = index"
+                            class="response-question-container" style="
+                            background: white;
+                            padding: 20px;
+                            margin: 15px 0;
+                            border-radius: 8px;
+                            border: 1px solid #e2e8f0;
+                            transition: all 0.3s ease;
+                            ">
+                            <div class="response-question-header" style="margin-bottom: 15px;">
+                               <div style="display: flex; align-items: center; gap: 8px;">
+                                  <span style="
+                                     background: #3498db;
+                                     color: white;
+                                     width: 24px;
+                                     height: 24px;
+                                     border-radius: 12px;
+                                     display: flex;
+                                     align-items: center;
+                                     justify-content: center;
+                                     font-size: 0.8rem;
+                                     font-weight: 500;
+                                     ">{{qIndex + 1}}</span>
+                                  <h5 style="
+                                     color: #2d3748;
+                                     margin: 0;
+                                     font-weight: 500;
+                                     font-size: 1.1rem;
+                                     ">{{question.question}}
+                                     <span
+                                        style="color: #e74c3c; margin-left: 5px; font-size: 1.2em;">*</span>
+                                  </h5>
+                                  <div *ngIf="question.description" style="
+                                     color: #718096;
+                                     margin-top: 8px;
+                                     font-size: 0.9rem;
+                                     padding-left: 32px;
+                                     ">{{question.description}}</div>
+                               </div>
+                            </div>
+                            <div style="padding-left: 32px;" *ngIf="question.optionType == 'text'">
+                               <div>
+                                  <input *ngIf="!isResponsePreview" type="text"
+                                  class="form-control custom-input" style="width: 100%;
+                                  padding: 10px 12px;
+                                  border: 1px solid #e2e8f0;
+                                  border-radius: 6px;
+                                  font-size: 0.95rem;
+                                  transition: all 0.3s ease;
+                                  outline: none;
+                                  " autocomplete="none" placeholder="Enter Answer here..."
+                                  [(ngModel)]="question.response">
+                                  <input *ngIf="isResponsePreview" type="text"
+                                     class="form-control custom-input" style="width: 100%;
+                                     padding: 10px 12px;
+                                     border: 1px solid #e2e8f0;
+                                     border-radius: 6px;
+                                     font-size: 0.95rem;
+                                     transition: all 0.3s ease;
+                                     outline: none;
+                                     " autocomplete="none" placeholder="Enter Answer here...">
+                               </div>
+                            </div>
+                            <div style="padding-left: 32px;" *ngIf="question.optionType == 'checkbox'">
+                               <div
+                                  *ngFor="let option of question.optionsList; let mileQuestionOptionIndex = index">
+                                  <div class="custom-{{question.optionType}}" style="
+                                     margin: 10px 0;
+                                     padding: 10px;
+                                     border-radius: 6px;
+                                     transition: all 0.2s ease;
+                                     ">
+                                     <label style="
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 10px;
+                                        margin: 0;
+                                        cursor: pointer;
+                                        ">
+                                     <input *ngIf="!isResponsePreview" type="checkbox"
+                                     [id]="'Module-' + module.moduleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex"
+                                     [(ngModel)]="option.isChecked"
+                                     (change)="onCheckboxChange($event, option.optionValue, question,option)">
+                                     <input *ngIf="isResponsePreview" type="checkbox"
+                                     [id]="'Module-' + module.moduleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex">
+                                     &nbsp;
+                                     <label class="mb-0"
+                                        [for]="'Module-' + module.moduleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex">{{
+                                     option.optionValue }}</label>
+                                     </label>
+                                  </div>
+                               </div>
+                            </div>
+                            <div style="padding-left: 32px;" *ngIf="question.optionType == 'radio'">
+                               <div *ngFor="let option of question.optionsList; let optIndex = index">
+                                  <div class="custom-{{question.optionType}}" style="
+                                     margin: 10px 0;
+                                     padding: 10px;
+                                     border-radius: 6px;
+                                     transition: all 0.2s ease;
+                                     ">
+                                     <label style="
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 10px;
+                                        margin: 0;
+                                        cursor: pointer;
+                                        ">
+                                     <input *ngIf="!isResponsePreview" type="radio"
+                                     [id]="'Module-' + module.moduleId + '-Question' + question.questionId + 'radio' + optIndex"
+                                     name="'Module-'{{module.moduleId}} '-Question'{{question.questionId}}'radio'{{optIndex}}"
+                                     [value]="option.optionValue" [(ngModel)]="question.response">
+                                     <input *ngIf="isResponsePreview" type="radio"
+                                     [id]="'Module-' + module.moduleId + '-Question' + question.questionId + 'radio' + optIndex"
+                                     name="'Module-'{{module.moduleId}} '-Question'{{question.questionId}}'radio'{{optIndex}}"
+                                     [value]="option.optionValue">
+                                     &nbsp;
+                                     <span style="color: #4a5568; 
+                                        font-size: 0.95rem;
+                                        ">{{option.optionValue}}</span>
+                                     </label>
+                                  </div>
+                               </div>
+                            </div>
+                            <div *ngIf="question.documentUpload === 'true'" class="file-upload" style="
+                               margin-top: 12px;
+                               padding: 12px;
+                               border: 2px dashed #cbd5e0;
+                               border-radius: 6px;
+                               text-align: center;
+                               ">
+                               <label for="file-Module-{{qIndex}}" style="
+                                  display: block;
+                                  cursor: pointer;
+                                  color: #4a5568;
+                                  ">
+                                  <svg style="width: 24px; height: 24px; margin-bottom: 8px;"
+                                     viewBox="0 0 24 24" fill="#4a5568">
+                                     <path
+                                        d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
+                                  </svg>
+                                  <span style="display: block; font-size: 0.9rem;">Click to upload or drag and
+                                  drop</span>
+                                  <span style="display: block; font-size: 0.8rem; color: #718096;">Supported
+                                  formats:
+                                  Images</span>
+                               </label>
+                               <input id="file-Module-{{qIndex}}" type="file" accept="image/*"
+                                  style="display: none;" class="form-control-file">
+                            </div>
+                         </div>
+                         <div *ngFor="let subModule of module.subModuleList; let subModIndex = index"
+                            class="response-submodule-section" style="
+                            margin: 15px 0;
+                            background: white;
+                            border-radius: 8px;
+                            padding: 20px;
+                            border: 1px solid #edf2f7;
+                            ">
+                            <div class="response-submodule-header" style="
+                               background: linear-gradient(135deg, #9b59b6, #8e44ad);
+                               color: white;
+                               padding: 12px 16px;
+                               border-radius: 6px;
+                               margin-bottom: 15px;
+                               box-shadow: 0 2px 8px rgba(155, 89, 182, 0.2);
+                               cursor: pointer;
+                               " (click)="subModule.isCollapsed = !subModule.isCollapsed">
+                               <div
+                                  style="display: flex; justify-content: space-between; align-items: center;">
+                                  <h5 style="margin: 0; font-weight: 500;">Sub-Module {{subModIndex + 1}}</h5>
+                                  <div>
+                                     <span style="
+                                        background: rgba(255,255,255,0.2);
+                                        padding: 2px 8px;
+                                        border-radius: 12px;
+                                        font-size: 0.75rem;
+                                        ">Sub-Phase</span>
+                                     &nbsp;
+                                     <i class="fa"
+                                        [ngClass]="subModule.isCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'"></i>
+                                  </div>
+                               </div>
+                               <div style="
+                                  margin-top: 8px;
+                                  display: flex;
+                                  align-items: center;
+                                  gap: 6px;
+                                  font-size: 0.85rem;
+                                  ">
+                                  <svg style="width: 12px; height: 12px;" viewBox="0 0 24 24"
+                                     fill="currentColor">
+                                     <path
+                                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                                  </svg>
+                                  Assigned To: {{subModule.assignedTo || ''}}
+                               </div>
+                            </div>
+                            <div class="response-submodule-content" style="padding: 25px;"
+                               [ngClass]="{'d-none': subModule.isCollapsed}">
+                               <div *ngFor="let question of subModule.projectQuestion; let qIndex = index"
+                                  class="response-question-container" style="
+                                  background: white;
+                                  padding: 20px;
+                                  margin: 15px 0;
+                                  border-radius: 8px;
+                                  border: 1px solid #e2e8f0;
+                                  transition: all 0.3s ease;
+                                  ">
+                                  <div class="response-question-header" style="margin-bottom: 15px;">
+                                     <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="
+                                           background: #3498db;
+                                           color: white;
+                                           width: 24px;
+                                           height: 24px;
+                                           border-radius: 12px;
+                                           display: flex;
+                                           align-items: center;
+                                           justify-content: center;
+                                           font-size: 0.8rem;
+                                           font-weight: 500;
+                                           ">{{qIndex + 1}}</span>
+                                        <h5 style="
+                                           color: #2d3748;
+                                           margin: 0;
+                                           font-weight: 500;
+                                           font-size: 1.1rem;
+                                           ">{{question.question}}
+                                           <span
+                                              style="color: #e74c3c; margin-left: 5px; font-size: 1.2em;">*</span>
+                                        </h5>
+                                        <div *ngIf="question.description" style="
+                                           color: #718096;
+                                           margin-top: 8px;
+                                           font-size: 0.9rem;
+                                           padding-left: 32px;
+                                           ">{{question.description}}</div>
+                                     </div>
+                                  </div>
+                                  <div style="padding-left: 32px;" *ngIf="question.optionType == 'text'">
+                                     <div>
+                                        <input *ngIf="!isResponsePreview" type="text"
+                                        class="form-control custom-input" style="width: 100%;
+                                        padding: 10px 12px;
+                                        border: 1px solid #e2e8f0;
+                                        border-radius: 6px;
+                                        font-size: 0.95rem;
+                                        transition: all 0.3s ease;
+                                        outline: none;
+                                        " autocomplete="none" placeholder="Enter Answer here..."
+                                        [(ngModel)]="question.response">
+                                        <input *ngIf="isResponsePreview" type="text"
+                                           class="form-control custom-input" style="width: 100%;
+                                           padding: 10px 12px;
+                                           border: 1px solid #e2e8f0;
+                                           border-radius: 6px;
+                                           font-size: 0.95rem;
+                                           transition: all 0.3s ease;
+                                           outline: none;
+                                           " autocomplete="none" placeholder="Enter Answer here...">
+                                     </div>
+                                  </div>
+                                  <div style="padding-left: 32px;" *ngIf="question.optionType == 'checkbox'">
+                                     <div
+                                        *ngFor="let option of question.optionsList; let mileQuestionOptionIndex = index">
+                                        <div class="custom-{{question.optionType}}" style="
+                                           margin: 10px 0;
+                                           padding: 10px;
+                                           border-radius: 6px;
+                                           transition: all 0.2s ease;
+                                           ">
+                                           <label style="
+                                              display: flex;
+                                              align-items: center;
+                                              gap: 10px;
+                                              margin: 0;
+                                              cursor: pointer;
+                                              ">
+                                           <input *ngIf="!isResponsePreview" type="checkbox"
+                                           [id]="'SubModule-' + subModule.subModuleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex"
+                                           [(ngModel)]="option.isChecked"
+                                           (change)="onCheckboxChange($event, option.optionValue, question,option)">
+                                           <input *ngIf="isResponsePreview" type="checkbox"
+                                           [id]="'SubModule-' + subModule.subModuleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex">
+                                           &nbsp;
+                                           <label class="mb-0"
+                                              [for]="'SubModule-' + subModule.subModuleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex">{{
+                                           option.optionValue }}</label>
+                                           </label>
+                                        </div>
+                                     </div>
+                                  </div>
+                                  <div style="padding-left: 32px;" *ngIf="question.optionType == 'radio'">
+                                     <div *ngFor="let option of question.optionsList; let optIndex = index">
+                                        <div class="custom-{{question.optionType}}" style="
+                                           margin: 10px 0;
+                                           padding: 10px;
+                                           border-radius: 6px;
+                                           transition: all 0.2s ease;
+                                           ">
+                                           <label style="
+                                              display: flex;
+                                              align-items: center;
+                                              gap: 10px;
+                                              margin: 0;
+                                              cursor: pointer;
+                                              ">
+                                           <input *ngIf="!isResponsePreview" type="radio"
+                                           [id]="'SubModule-' + subModule.subModuleId + '-Question' + question.questionId + 'radio' + optIndex"
+                                           name="'SubModule-'{{subModule.subModuleId}} '-Question'{{question.questionId}}'radio'{{optIndex}}"
+                                           [value]="option.optionValue"
+                                           [(ngModel)]="question.response">
+                                           <input *ngIf="isResponsePreview" type="radio"
+                                           [id]="'SubModule-' + subModule.subModuleId + '-Question' + question.questionId + 'radio' + optIndex"
+                                           name="'SubModule-'{{subModule.subModuleId}} '-Question'{{question.questionId}}'radio'{{optIndex}}"
+                                           [value]="option.optionValue">
+                                           &nbsp;
+                                           <span style="color: #4a5568; 
+                                              font-size: 0.95rem;
+                                              ">{{option.optionValue}}</span>
+                                           </label>
+                                        </div>
+                                     </div>
+                                  </div>
+                                  <div *ngIf="question.documentUpload === 'true'" class="file-upload" style="
+                                     margin-top: 12px;
+                                     padding: 12px;
+                                     border: 2px dashed #cbd5e0;
+                                     border-radius: 6px;
+                                     text-align: center;
+                                     ">
+                                     <label for="file-SubModule-{{qIndex}}" style="
+                                        display: block;
+                                        cursor: pointer;
+                                        color: #4a5568;
+                                        ">
+                                        <svg style="width: 24px; height: 24px; margin-bottom: 8px;"
+                                           viewBox="0 0 24 24" fill="#4a5568">
+                                           <path
+                                              d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
+                                        </svg>
+                                        <span style="display: block; font-size: 0.9rem;">Click to upload or
+                                        drag and
+                                        drop</span>
+                                        <span
+                                           style="display: block; font-size: 0.8rem; color: #718096;">Supported
+                                        formats:
+                                        Images</span>
+                                     </label>
+                                     <input id="file-SubModule-{{qIndex}}" type="file" accept="image/*"
+                                        style="display: none;" class="form-control-file">
+                                  </div>
+                               </div>
+                            </div>
+                         </div>
+                      </div>
+                      <!-- submodule end-->
+                   </div>
+                   <!-- module for end -->
+                </div>
+                <!-- milestone-content-end -->
+             </div>
+          </div>
+          <div class="text-center"
+             *ngIf="projectInsightResponseList == undefined || projectInsightResponseList == null || projectInsightResponseList.length == 0">
+             <strong class="text-center info-label">No Details to display...</strong>
+          </div>
+       </div>
+    </div>
+    <div class="modal-footer">
+       <div class="row mt-3">
+          <div class="col-md-12">
+             <button *ngIf="!isResponsePreview" type="submit" class="btn btn-outline-primary btn-sm mx-1"
+             (click)="saveProjectInsightResponse(alert_message,false)">Save As Draft</button>
+             <button *ngIf="!isResponsePreview" type="submit" class="btn btn-primary btn-sm mx-1"
+             (click)="saveProjectInsightResponse(alert_message,true)">Final Submit</button>
+             <button type="submit" class="btn btn-outline-primary btn-sm mx-1"
+                (click)="closeProjectInsightResponseModal()">Cancel</button>
+          </div>
+       </div>
+    </div>
+ </ng-template>

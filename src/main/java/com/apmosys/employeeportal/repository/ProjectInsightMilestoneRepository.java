@@ -18,4 +18,9 @@ public interface ProjectInsightMilestoneRepository extends JpaRepository<Project
 
 	ProjectInsightMilestone getByMilestoneId(Long milestoneId);
 
+	@Query(value="Select pim from ProjectInsightMilestone pim "
+			+ "inner join ProjectInsightAssignees pia on  pim.milestoneId = pia.entityId and pia.entityType = 'Milestone'"
+			+ "where pia.assigneeId=:employeeId and pim.projectId=:projectId")
+	List<ProjectInsightMilestone> findByProjectIdAndAssignedMilestone(Long projectId, Long employeeId);
+
 }

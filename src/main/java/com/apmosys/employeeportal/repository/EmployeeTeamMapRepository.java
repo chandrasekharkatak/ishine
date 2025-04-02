@@ -96,7 +96,7 @@ List<EmployeeTeamMap> findByProjectIdAndActive(Integer projectId,Long active);
 	 @Query(nativeQuery = true)
 	List<Object[]> findTeammembersByTeamIdAndManagerId(Long teamId, Long managerId);
 
-	 @Query(nativeQuery = true)
+	@Query(nativeQuery = true)
 	List<Object[]> getAllProjectsTeamsInfo(Long empId);
 
 	@Modifying
@@ -104,4 +104,8 @@ List<EmployeeTeamMap> findByProjectIdAndActive(Integer projectId,Long active);
 	@Query(nativeQuery = true)
 	void updateActiveFieldToZero(Long key);
 
+	@Query(nativeQuery = true)
+	List<Object[]> getEmployeePersonaForProject(Long employeeId,Long projectId);
+
+	
 }

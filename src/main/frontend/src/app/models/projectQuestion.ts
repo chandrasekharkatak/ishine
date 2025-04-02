@@ -12,4 +12,5 @@ export class ProjectQuestion{
 	employeementId:any;
     userType:any;
     optionsList:any[]= [];
+    isCollapsed:any;
 }
