@@ -24,6 +24,7 @@ import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO;
+import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.service.EmployeeService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -84,10 +85,10 @@ public class EmployeeController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/getAllEmployeesForPerformance/{empId}/{status}", method = RequestMethod.GET)
-	public ServiceResponse getAllEmployeesForPerformance(@PathVariable("empId") Long empId,@PathVariable("status") boolean status) {
+	@RequestMapping(value = "/getAllEmployeesForPerformance", method = RequestMethod.POST)
+	public ServiceResponse getAllEmployeesForPerformance(@RequestBody HrHodHrViewPerformance hrHodHrViewPerformance) {
 
-		ServiceResponse response = employeeService.getAllEmployeesForPerformance(empId,status);
+		ServiceResponse response = employeeService.getAllEmployeesForPerformance(hrHodHrViewPerformance);
 		return response;
 	}
 	

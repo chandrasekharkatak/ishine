@@ -55,6 +55,7 @@ import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO.PoObject;
+import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
@@ -3062,14 +3063,14 @@ public class EmployeeService {
 		return response;
 	}
 	
-	public ServiceResponse getAllEmployeesForPerformance(Long empId,boolean status) {
+	public ServiceResponse getAllEmployeesForPerformance(HrHodHrViewPerformance hrHodHrViewPerformance) {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			List<Object[]> allEmployeeListForPerformance=new ArrayList<Object[]>();
-			if(status) {
+			if(hrHodHrViewPerformance.getHrvalidate()) {
 				allEmployeeListForPerformance=employeeRepository.getAllEmployeesForPerformanceForHr();
 			}else {
-				allEmployeeListForPerformance = employeeRepository.getAllEmployeesForPerformance(empId);
+				allEmployeeListForPerformance = employeeRepository.getAllEmployeesForPerformance(hrHodHrViewPerformance.getEmpId());
 				
 			}
 			

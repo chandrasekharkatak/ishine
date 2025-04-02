@@ -12,6 +12,7 @@ import { Query } from 'src/app/models/query';
 import { SortPipe } from 'src/app/sort.pipe';
 import { Employee } from '../models/employee';
 import { Feature } from '../models/feature';
+import { HrHodMangerApiForPerformnace } from '../models/hrHodMangerApiForPerformnace';
 import { Log } from '../models/log';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
@@ -237,10 +238,12 @@ export class UserPerformanceComponent implements OnInit {
 
   RatingData: any[] = [];
 
-
+userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiForPerformnace();
 
   getAllEmployee() {
-   this.performanceSerive.getAllEmployeesForPerformance(this.currentUser.empId,this.userMapping.performance_action_by_hr).subscribe
+  this.userDetailsForPerformanceView.empId = this.currentUser.empId;
+  this.userDetailsForPerformanceView.hrvalidate = this.userMapping.performance_action_by_hr;
+   this.performanceSerive.getAllEmployeesForPerformance(this.userDetailsForPerformanceView).subscribe
       ((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allEmployee = response.serviceResponse;
@@ -465,7 +468,9 @@ export class UserPerformanceComponent implements OnInit {
 
   name = 'EmployeeSheet.xlsx';
   exportToExcel(): void {
-    this.performanceService.getAllEmployeesForPerformance(this.currentUser.empId,this.userMapping.performance_action_by_hr).pipe(first()).subscribe((response: any) => {
+    this.userDetailsForPerformanceView.empId = this.currentUser.empId;
+  this.userDetailsForPerformanceView.hrvalidate = this.userMapping.performance_action_by_hr;
+    this.performanceService.getAllEmployeesForPerformance(this.userDetailsForPerformanceView).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         //  this.employeeDataForExcel = response.serviceResponse;
 
@@ -493,51 +498,53 @@ export class UserPerformanceComponent implements OnInit {
           "EmailId": x.email,
           "Employment Status": x.employmentstatus,
           "Date of Joining": (x.dateOfJoining) ? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null,
-          "Date of Relieving": (x.dateOfRelieving) ? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null,
+          // "Date of Relieving": (x.dateOfRelieving) ? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null,
           "Department Name": x.departmentName,
-          "Aadhar": x.aadhar,
-          "About Me": x.aboutMe,
-          "Address": x.address,
-          "Permanent Address": x.permanentAddress,
-          "City": x.city,
-          "Blood Group": x.bloodGroup,
-          "Date Of Birth": (x.dateOfBirth) ? moment(x.dateOfBirth).format(AppComponent.DATE_FORMAT) : null,
-          "Gender": x.gender,
-          "Father Name": x.fatherName,
-          "Mobile No": x.mobileNo,
-          "Pan Number": x.panNumber,
-          "Place Of Birth": x.placeOfBirth,
-          "Work Location": x.workLocation,
-          "Probation Period": x.probationPeriod,
-          "Notice Period": x.noticePeriod,
-          "Country": x.country,
-          "Emergency Contact Mobile": x.emergencyContactMobile,
-          "Emergency Contact Person": x.emergencyContactPerson,
-          "Landline": x.landline,
-          "Marital Status": x.maritalStatus,
-          "Mother Tongue": x.motherTongue,
-          "Alternate Mobile No": x.alternateMobileNo,
-          "Pincode": x.pincode,
-          "Relation": x.relation,
-          "State": x.state,
-          "Views On Organisation": x.viewsOnOrganisation,
-          "Passport Number": x.passportNumber,
-          "Bank Account No": x.bankAccountNo,
-          "Bank IFSC Code": x.bankIFSCCode,
-          "Bank Name": x.bankName,
-          "PF Account Number": x.pfAccountNumber,
-          "Previous PF AccountNumber": x.previousPfAccountNumber,
-          "UAN": x.uan,
-          "ESIC Number": x.esicNumber,
-          "Graduation Type": x.graduationType,
-          "Pursuing": x.pursuing,
-          "Passing Grade": x.passingGrade,
-          "Year Of Passing": x.yearOfPassing,
-          "Created By": x.createdBy,
-          "Created On": (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
-          "Manager Name": x.managerName,
-          "Job Role": x.jobRoleName,
-          "Designation Name": x.designationName
+          "Billable Type": x.billableType,
+          "Experience" :x.totalExperience,
+          // "Aadhar": x.aadhar,
+          // "About Me": x.aboutMe,
+          // "Address": x.address,
+          // "Permanent Address": x.permanentAddress,
+          // "City": x.city,
+          // "Blood Group": x.bloodGroup,
+          // "Date Of Birth": (x.dateOfBirth) ? moment(x.dateOfBirth).format(AppComponent.DATE_FORMAT) : null,
+          // "Gender": x.gender,
+          // "Father Name": x.fatherName,
+          // "Mobile No": x.mobileNo,
+          // "Pan Number": x.panNumber,
+          // "Place Of Birth": x.placeOfBirth,
+          // "Work Location": x.workLocation,
+          // "Probation Period": x.probationPeriod,
+          // "Notice Period": x.noticePeriod,
+          // "Country": x.country,
+          // "Emergency Contact Mobile": x.emergencyContactMobile,
+          // "Emergency Contact Person": x.emergencyContactPerson,
+          // "Landline": x.landline,
+          // "Marital Status": x.maritalStatus,
+          // "Mother Tongue": x.motherTongue,
+          // "Alternate Mobile No": x.alternateMobileNo,
+          // "Pincode": x.pincode,
+          // "Relation": x.relation,
+          // "State": x.state,
+          // "Views On Organisation": x.viewsOnOrganisation,
+          // "Passport Number": x.passportNumber,
+          // "Bank Account No": x.bankAccountNo,
+          // "Bank IFSC Code": x.bankIFSCCode,
+          // "Bank Name": x.bankName,
+          // "PF Account Number": x.pfAccountNumber,
+          // "Previous PF AccountNumber": x.previousPfAccountNumber,
+          // "UAN": x.uan,
+          // "ESIC Number": x.esicNumber,
+          // "Graduation Type": x.graduationType,
+          // "Pursuing": x.pursuing,
+          // "Passing Grade": x.passingGrade,
+          // "Year Of Passing": x.yearOfPassing,
+          // "Created By": x.createdBy,
+          // "Created On": (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
+          // "Manager Name": x.managerName,
+          // "Job Role": x.jobRoleName,
+          // "Designation Name": x.designationName
 
         })
       )
