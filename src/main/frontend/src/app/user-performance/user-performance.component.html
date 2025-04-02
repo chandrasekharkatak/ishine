@@ -249,7 +249,8 @@
             <div *ngIf="((currentStatus === 'Ongoing' || currentStatus === 'Completed' || currentStatus === 'Rejected' || currentStatus === 'Not Started' ) 
             && (userMapping.performance_action_by_approvals_to)) 
             || ((currentStatus === 'Ongoing' || currentStatus === 'Completed' || currentStatus === 'Rejected') 
-            && userMapping.performance_action_by_hod)">
+            && userMapping.performance_action_by_hod)|| ((currentStatus === 'Ongoing' || currentStatus === 'Completed' || currentStatus === 'Rejected') 
+            && userMapping.performance_action_by_hr)">
               <div class="row">
                 <div class="col-lg-12 col-md-8 col-sm-12">
                   <h3 style="float:right; color: black;">
