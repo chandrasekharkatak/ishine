@@ -123,6 +123,7 @@ export class ReportListComponent implements OnInit {
   filters:any = {};
   isSearchEnabled:boolean = false;
 
+  employeeReportColumnForDetailedProjectViewClub:any[]=['blank','employeementId','name','departmentName','jobRoleName','managerName','mobileNo','email','employmentstatus','billable','billableType','teamName','projectName','poNo','poType','poStartDate','poEndDate','effectiveStartDate','effectiveEndDate','clientName','clientLocation','workLocation','experience','primaryProjectName'];
   employeeReportColumnForDetailedProjectView:any[]=['blank','employeementId','name','departmentName','jobRoleName','managerName','mobileNo','email','employmentstatus','billable','billableType','teamName','projectName','poNo','poType','poStartDate','poEndDate','effectiveStartDate','effectiveEndDate','clientName','clientLocation','workLocation','experience'];
   leaveReportColumns:any[] = ['employeementId','employeeType','employeeName','leaveType','fromDate','toDate','fromDateDayType','toDateDayType','noOfDays','reason','status','managerName','departmentName','createdOn','updatedOn','leaveStatusUpdatedByName'];
   timesheetReportColumns:any[] = ['employeementId','employeeType','employeeName','date','dayType','description','status','totalWorkingHours','officeInTime','officeOutTime','totalWorkingOfficeHours','leaveType','createdOn','updatedOn','timesheetStatusUpdatedByName'];
@@ -1672,36 +1673,66 @@ onDepartmentChangeTimesheet(event: any){
         this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
       }else{
         this.excelName = 'EmployeeDetailedReport.xlsx';
-
-        const onlySpecificDataArr = this.filteredEmployees.map(
-          x => ({
-            "Employee Id":x.employeementId,
-            "Full Name":x.name,
-            "Department":x.departmentName,
-            "Job Role":x.jobRole,
-            "Manager":x.managerName,
-            "Mobile Number":x.mobileNo,
-            "Email Id":x.email,
-            "Employment Status":x.employmentstatus,
-            "Billable":x.billable,
-            "Billable Type":x.billableType,
-            "Team Name":x.teamName,
-            "Project Name":x.projectName,
-            "Po No":x.poNo,
-            "Po Type":x.poType,
-            "Po Start Date":x.poStartDate,
-            "Po End Date":x.poEndDate,
-            "Effective Start Date":x.effectiveStartDate,
-            "Effective End Date":x.effectiveEndDate,
-            "Client Name":x.clientName,
-            "Client Location":x.clientLocation,
-            "Work Location":x.workLocation,
-            "Experience":x.totalExperience,
-
-          })
-        )
-        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+        if(this.changeTable){
+          const onlySpecificDataArr = this.filteredEmployees.map(
+            x => ({
+              "Employee Id":x.employeementId,
+              "Full Name":x.name,
+              "Department":x.departmentName,
+              "Job Role":x.jobRole,
+              "Manager":x.managerName,
+              "Mobile Number":x.mobileNo,
+              "Email Id":x.email,
+              "Employment Status":x.employmentstatus,
+              "Billable":x.billable,
+              "Billable Type":x.billableType,
+              "Team Name":x.teamName,
+              "Project Name":x.projectName,
+              "Po No":x.poNo,
+              "Po Type":x.poType,
+              "Po Start Date":x.poStartDate,
+              "Po End Date":x.poEndDate,
+              "Effective Start Date":x.effectiveStartDate,
+              "Effective End Date":x.effectiveEndDate,
+              "Client Name":x.clientName,
+              "Client Location":x.clientLocation,
+              "Work Location":x.workLocation,
+              "Experience":x.totalExperience,
+              "Default Project Assigned":x.primaryProjectName,
+            })
+          )
+          this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+        }else{
+          const onlySpecificDataArr = this.filteredEmployees.map(
+            x => ({
+              "Employee Id":x.employeementId,
+              "Full Name":x.name,
+              "Department":x.departmentName,
+              "Job Role":x.jobRole,
+              "Manager":x.managerName,
+              "Mobile Number":x.mobileNo,
+              "Email Id":x.email,
+              "Employment Status":x.employmentstatus,
+              "Billable":x.billable,
+              "Billable Type":x.billableType,
+              "Team Name":x.teamName,
+              "Project Name":x.projectName,
+              "Po No":x.poNo,
+              "Po Type":x.poType,
+              "Po Start Date":x.poStartDate,
+              "Po End Date":x.poEndDate,
+              "Effective Start Date":x.effectiveStartDate,
+              "Effective End Date":x.effectiveEndDate,
+              "Client Name":x.clientName,
+              "Client Location":x.clientLocation,
+              "Work Location":x.workLocation,
+              "Experience":x.totalExperience,
+  
+            })
+          )
+          this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
       }
+    }    
     }
 
     if (this.isAccessControlListTable == true) {

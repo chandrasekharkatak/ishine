@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.dto;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -18,8 +19,8 @@ public class ProjectPoPortalDTO {
     private String projectType;
     private String projectManager;
     private String projectManagerName;
-    private String startDate;
-    private String endDate;
+    private Timestamp startDate;
+    private Timestamp endDate;
     private String status;
     private List<String> department;
     private String clientName;

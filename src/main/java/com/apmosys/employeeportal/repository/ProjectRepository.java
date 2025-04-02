@@ -74,5 +74,6 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	@Query(nativeQuery = true)
 	List<String> getEmployeeEmailsByProjectId(@Param("projectId") Integer projectId);
 
-
+	@Query(nativeQuery = true)
+	List<Object[]> getExpiredPoProjectsWithoutInterval();
 }

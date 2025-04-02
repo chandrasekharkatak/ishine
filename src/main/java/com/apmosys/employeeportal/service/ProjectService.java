@@ -1515,10 +1515,19 @@ public class ProjectService {
 	        for (ProjectPoPortalDTO dto : list) {
 	            try {
 	                Project project = projectRepository.findByPoProjectId(dto.getId());
-
+	                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+	                
 	                if (project != null) {
-	                    project.setPoStartDate(dto.getStartDate());
-	                    project.setPoEndDate(dto.getEndDate());
+//	                    project.setPoStartDate(dto.getStartDate());
+//	                    project.setPoEndDate(dto.getEndDate());
+	                	Timestamp startDate = dto.getStartDate();
+	                    String formattedStartDate = dateFormat.format(startDate);
+	                    project.setPoStartDate(formattedStartDate);
+
+	                    // Convert dto's end date to yyyy-MM-dd format
+	                    Timestamp endDate = dto.getEndDate();
+	                    String formattedEndDate = dateFormat.format(endDate);
+	                    project.setPoEndDate(formattedEndDate);
 	                    project.setPoNo(dto.getPoNo());
 	                    project.setPoProjectType(dto.getProjectType());
 
