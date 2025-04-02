@@ -733,7 +733,12 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.sortDirection='';
     this.allProjectInsightList = [];
 
-    this.projectInsightService.getAllProjectInsightList().pipe(first()).subscribe((response: any) => {
+    let insightObj = {
+      employeeRole:this.currentUser.employeeRole,
+      empId:this.currentUser.empId
+    };
+
+    this.projectInsightService.getAllProjectInsightList(insightObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
        this.allProjectInsightList = response.serviceResponse;
        this.allProjectInsightList.forEach(project => {

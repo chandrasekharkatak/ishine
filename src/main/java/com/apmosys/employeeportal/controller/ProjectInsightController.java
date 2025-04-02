@@ -25,10 +25,10 @@ public class ProjectInsightController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/getAllProjectInsightList", method = RequestMethod.GET)
-	public ServiceResponse getAllSurveys() {
+	@RequestMapping(value = "/getAllProjectInsightList", method = RequestMethod.POST)
+	public ServiceResponse getAllProjectInsightList(@RequestBody ProjectInsightDTO projectInsightDTO) {
 
-		ServiceResponse response = projectInsightService.getAllProjectInsightList();
+		ServiceResponse response = projectInsightService.getAllProjectInsightList(projectInsightDTO);
 		return response;
 	}
 	

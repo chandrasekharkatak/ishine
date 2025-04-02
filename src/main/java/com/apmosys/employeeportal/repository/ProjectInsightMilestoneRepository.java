@@ -23,4 +23,7 @@ public interface ProjectInsightMilestoneRepository extends JpaRepository<Project
 			+ "where pia.assigneeId=:employeeId and pim.projectId=:projectId")
 	List<ProjectInsightMilestone> findByProjectIdAndAssignedMilestone(Long projectId, Long employeeId);
 
+	@Query(nativeQuery = true)
+	List<Object[]> getAllProjectInsightByUser(Long empId);
+
 }

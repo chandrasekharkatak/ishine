@@ -21,8 +21,8 @@ export class ProjectInsightService {
     return this.http.post(`${this.baseUrl}` + `api/updateProjectInsightQuestion`, projObj);
   }
 
-  getAllProjectInsightList() {
-    return this.http.get(`${this.baseUrl}` + `api/getAllProjectInsightList`);
+  getAllProjectInsightList(insightObj: any) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllProjectInsightList`, insightObj);
   }
 
   getAllQuestionsByProjectId(projectObj: any){

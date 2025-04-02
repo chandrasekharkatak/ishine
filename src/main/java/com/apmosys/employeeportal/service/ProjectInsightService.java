@@ -327,7 +327,7 @@ public class ProjectInsightService {
 		return response;
 	}
 
-	public ServiceResponse getAllProjectInsightList() {
+	public ServiceResponse getAllProjectInsightList(ProjectInsightDTO projectInsightDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		//apiLogInfo.setSubFeatureName("");
@@ -338,7 +338,15 @@ public class ProjectInsightService {
 
 		try {
 
-			List<Object[]> objectList = projectInsightMilestoneRepository.getAllProjectInsight();
+			List<Object[]> objectList = null; 
+			
+			if(projectInsightDTO.getEmployeeRole().equals("Employee") || 
+					projectInsightDTO.getEmployeeRole().equals("TeamLead") ||
+					projectInsightDTO.getEmployeeRole().equals("Manager")) {
+				objectList= projectInsightMilestoneRepository.getAllProjectInsightByUser(projectInsightDTO.getEmpId());
+			}else {
+				objectList= projectInsightMilestoneRepository.getAllProjectInsight();
+			}
 
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
 

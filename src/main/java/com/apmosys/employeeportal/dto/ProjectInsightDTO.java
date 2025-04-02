@@ -24,5 +24,7 @@ public class ProjectInsightDTO {
 
     private List<ProjectInsightQuestionDTO> projectInsightQuestionList;
     private String projectInsightQuestionTemplate;
+    
+    private String employeeRole;
 	
 }
