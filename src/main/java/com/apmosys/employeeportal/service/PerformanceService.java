@@ -11,9 +11,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -41,6 +43,9 @@ public class PerformanceService {
 
 	@Autowired
 	HttpServletRequest httpRequest;
+	
+	@Autowired
+	private MailService mailService;
 	
 	@Autowired
 	private EmployeePerformanceRepository employeePerformanceRepository;
@@ -1000,6 +1005,68 @@ public class PerformanceService {
 		
 		return response;
 	}
+	
+	//mails to hods
+//	@Scheduled(cron = "0 14 14 * * ?")
+	public void sendPerformanceReviewEmails() {
+		List<Object[]> activehods = employeePerformanceRepository.findAllActiveHODs();
+		
+		for(Object[] hod :activehods) {
+			 Long hodId = ((Number) hod[0]).longValue(); 
+	         String hodEmail = (String) hod[1];
+	         String hodName = (String) hod[2]; 
+			List<Object[]> reviewedEmployees = employeePerformanceRepository.findAllOngoingReviewedEmployeesUnderHOD(hodId);
+			if (!reviewedEmployees.isEmpty()) {
+				 try {
+		                String mailBody = generateHtmlEmail(hodName,reviewedEmployees);
+		                String subject = "Performance Review Pending - Action Required";
+		                mailService.sendMail(hodEmail, subject, mailBody);
+		            } catch (MessagingException e) {
+		                System.err.println("Failed to send email to HOD: " + hodEmail);
+		                e.printStackTrace();
+		            }
+		}
+	}
+	}
+	
+	private String generateHtmlEmail(String hodName,List<Object[]> reviewedEmployees) {
+	    StringBuilder html = new StringBuilder();
+
+	    html.append("<html><body>");
+	    html.append("<p>Dear ").append(hodName).append(",</p>");
+	    html.append("<p>The following employees have ongoing performance reviews that require your attention:</p>");
+
+	    // Creating Table for Employee Details
+	    html.append("<table border='1' style='border-collapse: collapse; width: 100%; text-align: left;'>");
+	    html.append("<tr style='background-color: #f2f2f2;'>");
+	    html.append("<th style='padding: 8px;'>Employee ID</th>");
+	    html.append("<th style='padding: 8px;'>Employee Name</th>");
+	    html.append("<th style='padding: 8px;'>Department</th>");
+	    html.append("<th style='padding: 8px;'>Financial Year</th>");
+	    html.append("<th style='padding: 8px;'>Quarter Cycle</th>");
+	    html.append("</tr>");
+
+	    for (Object[] emp : reviewedEmployees) {
+	        html.append("<tr>");
+	        html.append("<td style='padding: 8px;'>A-" + emp[0] + "</td>"); 
+	        html.append("<td style='padding: 8px;'>" + emp[4] + "</td>"); 
+	        html.append("<td style='padding: 8px;'>" + emp[5] + "</td>"); 
+	        html.append("<td style='padding: 8px;'>" + emp[2] + "</td>"); 
+	        html.append("<td style='padding: 8px;'>" + emp[3] + "</td>"); 
+	        html.append("</tr>");
+	    }
+
+	    html.append("</table>");
+	    html.append("<p>Please take further necessary actions.</p>");
+	    html.append("<p>Regards,</p>");
+	    html.append("<p>HR Team</p>");
+	    html.append("</body></html>");
+
+	    return html.toString();
+	}
+	
+	//mail to managers/reporting managers.
+	
 
 
 }

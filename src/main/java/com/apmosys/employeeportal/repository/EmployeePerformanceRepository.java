@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-
+import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeePerformance;
 
 @Repository
@@ -73,5 +73,20 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 	List<Object[]> DepartmentbyEmployeecontquery();
 	
 	
+	@Query(nativeQuery = true,value = "select DISTINCT e.emp_id,e.email,e.name from employee e inner join department d on d.hod_id = e.emp_id and e.employmentstatus != 'InActive'")
+	List<Object[]> findAllActiveHODs();
+	
+	@Query(nativeQuery = true,value = "SELECT ep.emp_id, ep.completion_status, qc.financial_year, qc.quarter_cycle, \n"
+			+ "       e.name AS employee_name, d.name AS department_name \n"
+			+ "FROM employee_performance ep\n"
+			+ "inner JOIN quater_cycle qc ON ep.quarter_id = qc.quarter_id\n"
+			+ "left JOIN employee e ON ep.emp_id = e.emp_id\n"
+			+ "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
+			+ "INNER JOIN department d ON jr.dept_id = d.dept_id\n"
+			+ "where d.hod_id = :hodId\n"
+			+ "AND ep.completion_status = 'Ongoing'\n"
+			+ "AND qc.is_active = 1 \n"
+			+ "AND qc.is_enable = 1")
+	List<Object[]> findAllOngoingReviewedEmployeesUnderHOD(@Param("hodId") Long hodId);
 	
 }
