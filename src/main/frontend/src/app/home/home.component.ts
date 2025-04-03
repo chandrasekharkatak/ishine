@@ -204,6 +204,7 @@ popUpMessege:any;
   currentMonthIndex: number = 0;
   currentRewards: any[] = [];
   scrollInterval: any;
+  selectedTab: string = 'birthday';
 
   constructor(
     private modalService: BsModalService,
@@ -293,6 +294,7 @@ async ngOnInit(): Promise<void> {
    this.getAllNotifications();
    this.getAllLeaveTypesByLeavePolicies(this.currentUser);
    if (this.userMapping.view_birthday_list) this.getAllEmployeesBirthDayToday();
+   if (this.userMapping.view_work_anniversary_list) this.getAllEmployeesWorkAnniversaryToday();
    if (this.userMapping.view_all_team_requests) {
      this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
      this.countPendingCompOffRequestsByManagerId();
@@ -314,9 +316,10 @@ async ngOnInit(): Promise<void> {
     
   }
 
-  
-    
-  
+
+  switchTab(tab: string) {
+    this.selectedTab = tab;
+  }
 
  preventBackButton() {
    history.pushState(null, null, location.href);
