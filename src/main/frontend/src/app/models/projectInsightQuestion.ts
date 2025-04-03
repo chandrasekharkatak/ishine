@@ -16,6 +16,7 @@ export class ProjectInsightQuestion {
     projectManagerId: any;
     projectManagerName: any;
     projectName: any;
+    employeeRole: any;
 
     projectInsightQuestionList:any;
     projectInsightQuestionTemplate:any;

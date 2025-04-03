@@ -10,8 +10,15 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ModuleDTO;
@@ -19,8 +26,6 @@ import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightQuestionDTO;
 import com.apmosys.employeeportal.dto.ProjectQuestionDTO;
 import com.apmosys.employeeportal.dto.SubModuleDTO;
-import com.apmosys.employeeportal.dto.SurveyDTO;
-import com.apmosys.employeeportal.dto.SurveyQuestionDTO;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectInsightAssignees;
 import com.apmosys.employeeportal.model.ProjectInsightMilestone;
@@ -28,10 +33,8 @@ import com.apmosys.employeeportal.model.ProjectInsightModule;
 import com.apmosys.employeeportal.model.ProjectInsightResponse;
 import com.apmosys.employeeportal.model.ProjectInsightSubModule;
 import com.apmosys.employeeportal.model.QuestionMaster;
-import com.apmosys.employeeportal.model.Survey;
-import com.apmosys.employeeportal.model.SurveyQuestion;
-import com.apmosys.employeeportal.repository.ProjectInsightAssigneesRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.ProjectInsightAssigneesRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightMilestoneRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightModuleRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightResponseRepository;
@@ -39,6 +42,15 @@ import com.apmosys.employeeportal.repository.ProjectInsightSubModuleRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.QuestionMasterRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class ProjectInsightService {
@@ -74,6 +86,12 @@ public class ProjectInsightService {
 	
 	@Autowired
 	private EmployeeTeamMapRepository employeeTeamMapRepository;
+	
+	@Value("${dmsPortalUrl}")
+	private String dmsPortalUrl;
+	
+	@Value("${dmsPortalUrlKey}")
+	private String dmsPortalUrlKey;
 	
 	public ServiceResponse addUpdateQuestion(List<ProjectQuestionDTO> questionAddList, Long entityId, String entity) {
 		ServiceResponse response = new ServiceResponse();
@@ -956,7 +974,7 @@ public class ProjectInsightService {
 			}
 
 			List<Object[]>  employeePersonaListForTeam = employeeTeamMapRepository.getEmployeePersonaForProject(projectInsightDTO.getEmpId(),projectInsightDTO.getProjectId());
-			boolean isEmployee = checkIfIsEmployee(employeePersonaListForTeam);
+			boolean isEmployee = checkIfIsEmployee(employeePersonaListForTeam,projectInsightDTO.getEmployeeRole());
 			
 			List<ProjectInsightMilestone> projectInsightMilestoneList = new ArrayList<>();
 //			if (isEmployee) {
@@ -994,9 +1012,18 @@ public class ProjectInsightService {
 		return response;
 	}
 
-	private boolean checkIfIsEmployee(List<Object[]> employeePersonaListForTeam) {
+	private boolean checkIfIsEmployee(List<Object[]> employeePersonaListForTeam,String employeeRole) {
 		boolean flag = true;
 		try {
+			if(employeeRole != null && !employeeRole.trim().equals("")
+				&& (employeeRole.toLowerCase().contains("hod")
+								|| employeeRole.toLowerCase().contains("teamlead")
+								|| employeeRole.toLowerCase().contains("manager")
+								|| employeeRole.toLowerCase().contains("superadmin"))
+						|| employeeRole.toLowerCase().contains("rmg")) {
+					return false;
+			}
+			
 			if (employeePersonaListForTeam != null && !employeePersonaListForTeam.isEmpty()) {
 				for (Object[] objectArray : employeePersonaListForTeam) {
 					if (objectArray[1] != null && !objectArray[1].toString().trim().equals("")
@@ -1145,7 +1172,7 @@ public class ProjectInsightService {
 					projectQuestionDTO.setOptionType(questionMaster.getOptionType());
 					projectQuestionDTO.setOptions(questionMaster.getOptions());
 					projectQuestionDTO.setRequired(questionMaster.getRequired());
-
+					projectQuestionDTO.setDocumentUpload(questionMaster.getDocumentUpload());
 					ProjectInsightResponse projectInsightResponse = projectInsightResponseRepository.findByQuestionMasterIdAndEmpId(questionMaster.getQuestionMasterId(), employeeId);
 					if (projectInsightResponse != null) {
 						projectQuestionDTO.setResponseId(projectInsightResponse.getProjectInsightResponseId());
@@ -1162,7 +1189,7 @@ public class ProjectInsightService {
 		return projectInsightQuestionList;
 	}
 
-	public ServiceResponse saveProjectInsightResponse(ProjectInsightDTO projectInsightDTO) {
+	public ServiceResponse saveProjectInsightResponse(ProjectInsightDTO projectInsightDTO,List<MultipartFile> files) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("saveProjectInsightResponse");
@@ -1182,7 +1209,7 @@ public class ProjectInsightService {
 			}
 			
 			if (projectInsightDTO.getProjectInsightQuestionList() != null && !projectInsightDTO.getProjectInsightQuestionList().isEmpty()) {
-				saveProjectMileStoneResponse(projectInsightDTO.getProjectInsightQuestionList(),projectInsightDTO.getEmpId());
+				saveProjectMileStoneResponse(projectInsightDTO.getProjectInsightQuestionList(),projectInsightDTO.getEmpId(),files);
 				apiLogInfo.setApiResponse("Project Insight Response Saved Successfully");
 				response.setServiceResponse("Project Insight Response Saved Successfully");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1208,13 +1235,13 @@ public class ProjectInsightService {
 	}
 
 	private String saveProjectMileStoneResponse(List<ProjectInsightQuestionDTO> projectInsightQuestionDTOList,
-			Long employeeId) {
+			Long employeeId,List<MultipartFile> files) {
 		String response = null;
 		try {
 			if (projectInsightQuestionDTOList != null && !projectInsightQuestionDTOList.isEmpty()) {
 				for (ProjectInsightQuestionDTO projectInsightQuestionDTO : projectInsightQuestionDTOList) {
-					saveProjectInsightResponse(projectInsightQuestionDTO.getProjectQuestion(), employeeId);
-					saveProjectInsightModuleResponse(projectInsightQuestionDTO.getModuleList(), employeeId);
+					saveProjectInsightResponse(projectInsightQuestionDTO.getProjectQuestion(), employeeId,files);
+					saveProjectInsightModuleResponse(projectInsightQuestionDTO.getModuleList(), employeeId,files);
 				}
 			} else {
 				return null;
@@ -1226,12 +1253,12 @@ public class ProjectInsightService {
 		return response;
 	}
 
-	private void saveProjectInsightModuleResponse(List<ModuleDTO> moduleList, Long employeeId) {
+	private void saveProjectInsightModuleResponse(List<ModuleDTO> moduleList, Long employeeId,List<MultipartFile> files) {
 		try {
 			if (moduleList != null && !moduleList.isEmpty()) {
 				for (ModuleDTO moduleDTO : moduleList) {
-					saveProjectInsightResponse(moduleDTO.getProjectQuestion(), employeeId);
-					saveProjectInsightSubModuleResponse(moduleDTO.getSubModuleList(), employeeId);
+					saveProjectInsightResponse(moduleDTO.getProjectQuestion(), employeeId,files);
+					saveProjectInsightSubModuleResponse(moduleDTO.getSubModuleList(), employeeId,files);
 				}
 			}
 		} catch (Exception e) {
@@ -1240,11 +1267,11 @@ public class ProjectInsightService {
 		}
 	}
 
-	private void saveProjectInsightSubModuleResponse(List<SubModuleDTO> subModuleList, Long employeeId) {
+	private void saveProjectInsightSubModuleResponse(List<SubModuleDTO> subModuleList, Long employeeId,List<MultipartFile> files) {
 		try {
 			if (subModuleList != null && !subModuleList.isEmpty()) {
 				for (SubModuleDTO subModuleDTO : subModuleList) {
-					saveProjectInsightResponse(subModuleDTO.getProjectQuestion(), employeeId);
+					saveProjectInsightResponse(subModuleDTO.getProjectQuestion(), employeeId,files);
 				}
 			}
 		} catch (Exception e) {
@@ -1253,7 +1280,7 @@ public class ProjectInsightService {
 		}
 	}
 
-	private void saveProjectInsightResponse(List<ProjectQuestionDTO> projectQuestionList, Long employeeId) {
+	private void saveProjectInsightResponse(List<ProjectQuestionDTO> projectQuestionList, Long employeeId,List<MultipartFile> files) {
 		try {
 			if (projectQuestionList != null && !projectQuestionList.isEmpty()) {
 				for (ProjectQuestionDTO projectQuestionDTO : projectQuestionList) {
@@ -1261,14 +1288,24 @@ public class ProjectInsightService {
 						ProjectInsightResponse projectInsightResponse = projectInsightResponseRepository.findByQuestionMasterIdAndEmpId(projectQuestionDTO.getQuestionId(), employeeId);
 						if (projectInsightResponse != null) {
 							projectInsightResponse.setResponse(projectQuestionDTO.getResponse());
-							projectInsightResponse.setDocumentPath(projectQuestionDTO.getDocumentPath());
 							projectInsightResponse.setUpdatedBy(employeeId);
+							
 						} else {
 							projectInsightResponse = new ProjectInsightResponse();
 							projectInsightResponse.setResponse(projectQuestionDTO.getResponse());
 							projectInsightResponse.setEmpId(employeeId);
 							projectInsightResponse.setDocumentPath(projectQuestionDTO.getDocumentPath());
 							projectInsightResponse.setQuestionMasterId(projectQuestionDTO.getQuestionId());
+						}
+						if (files != null) {
+							for (MultipartFile document : files) {
+								if (document != null
+										&& document.getName().equals(projectQuestionDTO.getUploadedFileName())
+										|| true) {
+									String uploadResponse = uploadProjectResponseDocument(projectQuestionDTO, document);
+									projectInsightResponse.setDocumentPath(projectQuestionDTO.getDocumentPath());
+								}
+							}
 						}
 						projectInsightResponseRepository.save(projectInsightResponse);
 					}
@@ -1280,4 +1317,68 @@ public class ProjectInsightService {
 		}
 	}
 	
+	public ServiceResponse getProjectResponseDocument(ProjectInsightDTO projectInsightDTO) {
+		try {
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		return null;
+	}
+	
+	
+	public String uploadProjectResponseDocument2(ProjectQuestionDTO projectQuestionDTO,MultipartFile document) {
+		try {
+			if(document != null) {
+				String dmsPortalUploadUrl = dmsPortalUrl +"/upload.php";
+				RestTemplate restTemplate = new RestTemplate();
+				String syncResponse = restTemplate.postForObject(dmsPortalUploadUrl, document, String.class);
+				JSONObject json = new JSONObject(syncResponse);
+				System.out.println(json.toString());
+			}
+		} catch (Exception e) {
+			 e.printStackTrace();
+			 throw e;
+		}
+		return null;
+	}
+	
+	public String uploadProjectResponseDocument(ProjectQuestionDTO projectQuestionDTO, MultipartFile document) {
+	    try {
+	        if (document != null) {
+	            String dmsPortalUploadUrl = dmsPortalUrl + "/upload.php";
+	            RestTemplate restTemplate = new RestTemplate();
+
+	            // Create HttpHeaders for multipart request
+	            HttpHeaders headers = new HttpHeaders();
+	            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+	            headers.set("X-API-KEY", dmsPortalUrlKey);
+	            // Create MultipartBody using LinkedMultiValueMap
+	            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+	            body.add("document", new ByteArrayResource(document.getBytes()) {
+	                @Override
+	                public String getFilename() {
+	                    return document.getOriginalFilename(); // Required to set file name
+	                }
+	            });
+
+	            // Wrap in HttpEntity
+	            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+	            // Send request
+	            String syncResponse = restTemplate.postForObject(dmsPortalUploadUrl, requestEntity, String.class);
+
+	            // Parse response
+	            JSONObject json = new JSONObject(syncResponse);
+	            System.out.println(json.toString());
+
+	            return syncResponse; // Return response if needed
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        throw new RuntimeException("File upload failed", e);
+	    }
+	    return null;
+	}
+
 }

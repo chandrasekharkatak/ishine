@@ -428,6 +428,20 @@
     </div>
 </ng-template>
 
+
+<ng-template #document_preview_template>
+    <div class="modal-header">
+        <b class="modal-title"><h3>Document Preview</h3></b>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="closeDocumentPreviewTemplate()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="d-flex justify-content-center align-items-center text-danger" id="document-preview-container" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;"></div>
+    </div>
+</ng-template>
+
+
 <ng-template #insight_response_template>
     <div class="modal-header">
        <b *ngIf="isResponsePreview" class="modal-title">
@@ -509,7 +523,7 @@
                                ">{{question.description}}</div>
                          </div>
                       </div>
-                      <div style="padding-left: 32px;" *ngIf="question.optionType == 'text'">
+                      <div *ngIf="question.optionType == 'text'">
                          <div>
                             <input *ngIf="!isResponsePreview" type="text" class="form-control custom-input"
                             style="width: 100%;
@@ -531,7 +545,7 @@
                                " autocomplete="none" placeholder="Enter Answer here...">
                          </div>
                       </div>
-                      <div style="padding-left: 32px;" *ngIf="question.optionType == 'checkbox'">
+                      <div *ngIf="question.optionType == 'checkbox'">
                          <div *ngFor="let option of question.optionsList; let mileQuestionOptionIndex = index">
                             <div class="custom-{{question.optionType}}" style="
                                margin: 10px 0;
@@ -559,7 +573,7 @@
                             </div>
                          </div>
                       </div>
-                      <div style="padding-left: 32px;" *ngIf="question.optionType == 'radio'">
+                      <div *ngIf="question.optionType == 'radio'">
                          <div *ngFor="let option of question.optionsList; let optIndex = index">
                             <div class="custom-{{question.optionType}}" style="
                                margin: 10px 0;
@@ -589,31 +603,31 @@
                             </div>
                          </div>
                       </div>
-                      <div *ngIf="question.documentUpload === 'true'" class="file-upload" style="
-                         margin-top: 12px;
-                         padding: 12px;
-                         border: 2px dashed #cbd5e0;
-                         border-radius: 6px;
-                         text-align: center;
-                         ">
-                         <label for="file-Milestone-{{qIndex}}" style="
-                            display: block;
-                            cursor: pointer;
-                            color: #4a5568;
-                            ">
-                            <svg style="width: 24px; height: 24px; margin-bottom: 8px;" viewBox="0 0 24 24"
-                               fill="#4a5568">
-                               <path
-                                  d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
-                            </svg>
-                            <span style="display: block; font-size: 0.9rem;">Click to upload or drag and
-                            drop</span>
-                            <span style="display: block; font-size: 0.8rem; color: #718096;">Supported formats:
-                            Images</span>
-                         </label>
-                         <input id="file-Milestone-{{qIndex}}" type="file" accept="image/*"
-                            style="display: none;" class="form-control-file">
-                      </div>
+                    <div *ngIf="question.documentUpload === 'true'" class="response-file-upload" style="
+                                             margin-top: 12px;
+                                             border: 2px dashed #cbd5e0;
+                                             border-radius: 6px;
+                                             ">
+                        <div class="d-flex align-items-center gap-3">
+                        <label for="file-Milestone-{{qIndex}}"
+                         style="display: block;
+                                cursor: pointer;
+                                color: #4a5568;
+                                padding: 12px 
+                                ">
+                            <span style="display: block; font-size: 0.9rem;cursor: pointer;">Click to upload File</span>
+                            <input id="file-Milestone-{{qIndex}}" type="file" style="display: none;" class="form-control-file"
+                                (change)="onQuestionFileChange($event,question,alert_message,'document-preview-container',document_preview_template)" hidden>
+                        </label>
+                        <label *ngIf="question.uploadedFile != undefined || question.uploadedFile != null">{{question.uploadedFileName}}&nbsp;
+                            <i class="fa-solid fa-xmark" title="Remove File" (click)="removeUploadedFile(question)" style="color: #ff0000;"></i>
+                        </label>
+                        <label style="color: var(--accent);" class="mx-4" title="Preview"
+                            (click)="previewUploadedFile(question,question.uploadedFile,question.uploadedFileName,'document-preview-container',document_preview_template,alert_message)">
+                            <i class="fa-solid fa-eye"></i>
+                        </label>
+                    </div>
+                    </div>
                    </div>
                    <div *ngFor="let module of milestone.moduleList; let modIndex = index"
                       class="response-module-section" style="
@@ -702,7 +716,7 @@
                                      ">{{question.description}}</div>
                                </div>
                             </div>
-                            <div style="padding-left: 32px;" *ngIf="question.optionType == 'text'">
+                            <div *ngIf="question.optionType == 'text'">
                                <div>
                                   <input *ngIf="!isResponsePreview" type="text"
                                   class="form-control custom-input" style="width: 100%;
@@ -725,7 +739,7 @@
                                      " autocomplete="none" placeholder="Enter Answer here...">
                                </div>
                             </div>
-                            <div style="padding-left: 32px;" *ngIf="question.optionType == 'checkbox'">
+                            <div *ngIf="question.optionType == 'checkbox'">
                                <div
                                   *ngFor="let option of question.optionsList; let mileQuestionOptionIndex = index">
                                   <div class="custom-{{question.optionType}}" style="
@@ -755,7 +769,7 @@
                                   </div>
                                </div>
                             </div>
-                            <div style="padding-left: 32px;" *ngIf="question.optionType == 'radio'">
+                            <div *ngIf="question.optionType == 'radio'">
                                <div *ngFor="let option of question.optionsList; let optIndex = index">
                                   <div class="custom-{{question.optionType}}" style="
                                      margin: 10px 0;
@@ -786,7 +800,7 @@
                                   </div>
                                </div>
                             </div>
-                            <div *ngIf="question.documentUpload === 'true'" class="file-upload" style="
+                            <div *ngIf="question.documentUpload === 'true'" class="response-file-upload" style="
                                margin-top: 12px;
                                padding: 12px;
                                border: 2px dashed #cbd5e0;
@@ -902,7 +916,7 @@
                                            ">{{question.description}}</div>
                                      </div>
                                   </div>
-                                  <div style="padding-left: 32px;" *ngIf="question.optionType == 'text'">
+                                  <div *ngIf="question.optionType == 'text'">
                                      <div>
                                         <input *ngIf="!isResponsePreview" type="text"
                                         class="form-control custom-input" style="width: 100%;
@@ -925,7 +939,7 @@
                                            " autocomplete="none" placeholder="Enter Answer here...">
                                      </div>
                                   </div>
-                                  <div style="padding-left: 32px;" *ngIf="question.optionType == 'checkbox'">
+                                  <div *ngIf="question.optionType == 'checkbox'">
                                      <div
                                         *ngFor="let option of question.optionsList; let mileQuestionOptionIndex = index">
                                         <div class="custom-{{question.optionType}}" style="
@@ -955,7 +969,7 @@
                                         </div>
                                      </div>
                                   </div>
-                                  <div style="padding-left: 32px;" *ngIf="question.optionType == 'radio'">
+                                  <div *ngIf="question.optionType == 'radio'">
                                      <div *ngFor="let option of question.optionsList; let optIndex = index">
                                         <div class="custom-{{question.optionType}}" style="
                                            margin: 10px 0;
@@ -987,7 +1001,7 @@
                                         </div>
                                      </div>
                                   </div>
-                                  <div *ngIf="question.documentUpload === 'true'" class="file-upload" style="
+                                  <div *ngIf="question.documentUpload === 'true'" class="response-file-upload" style="
                                      margin-top: 12px;
                                      padding: 12px;
                                      border: 2px dashed #cbd5e0;

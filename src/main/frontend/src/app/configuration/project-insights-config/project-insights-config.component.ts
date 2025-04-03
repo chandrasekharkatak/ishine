@@ -24,6 +24,7 @@ import { ProjectInsightService } from 'src/app/services/project-insight.service'
 import { ProjectModule } from 'src/app/models/projectModule';
 import { ProjectSubModule } from 'src/app/models/projectSubModule';
 import { EmployeeService } from 'src/app/services/employee.service';
+import { Document } from 'src/app/models/document';
 
 @Component({
   selector: 'app-project-insights-config',
@@ -50,6 +51,8 @@ export class ProjectInsightsConfigComponent implements OnInit {
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
   projectResponseModalRef: BsModalRef = new BsModalRef();
+  documentPreviewModalRef: BsModalRef = new BsModalRef();
+  
   isQuestionForm:boolean = false;
   isCreation:boolean = false;
   isUpdation:boolean = false;
@@ -477,6 +480,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
     projObj.projectId = projectObj.projectId;
     projObj.projectManagerId = projectObj.projectManagerId;
     projObj.projectManagerName = projectObj.projectManagerName;
+    projObj.employeeRole = this.currentUser.employeeRole;
 
     this.projectInsightService.getAllProjectInsightResponsesByProjectId(projObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -553,7 +557,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
       let inputValidated: boolean = this.validateProjectInsightResponse(template,this.projectInsightResponseList,this.projectInsightQuestion);
       if (!inputValidated) return;
     }
-
+    let files:File[]=[];
     for (let milestoneIndex = 0; milestoneIndex < this.projectInsightResponseList.length; milestoneIndex++) {
       let milestone = this.projectInsightResponseList[milestoneIndex];
       if (milestone.projectQuestion?.length) {
@@ -562,6 +566,9 @@ export class ProjectInsightsConfigComponent implements OnInit {
           let question = questionList[index];
           if (question.optionType == 'checkbox') {
             question.response = JSON.stringify(question.responseList);
+          }
+          if(question?.uploadedFile != undefined && question?.uploadedFile != null){
+            files.push(question.uploadedFile);
           }
         }
       }
@@ -575,6 +582,9 @@ export class ProjectInsightsConfigComponent implements OnInit {
             if (question.optionType == 'checkbox') {
               question.response = JSON.stringify(question.responseList);
             }
+            if(question?.uploadedFile != undefined && question?.uploadedFile != null){
+              files.push(question.uploadedFile);
+            }
           }
         }
 
@@ -586,6 +596,9 @@ export class ProjectInsightsConfigComponent implements OnInit {
               let question = submoduleProjectQuestion[index];
               if (question.optionType == 'checkbox') {
                 question.response = JSON.stringify(question.responseList);
+              }
+              if(question?.uploadedFile != undefined && question?.uploadedFile != null){
+                files.push(question.uploadedFile);
               }
             }
           }
@@ -599,8 +612,10 @@ export class ProjectInsightsConfigComponent implements OnInit {
     projObj.projectManagerName = this.projectInsightQuestion.projectManagerName;
     projObj.projectInsightQuestionList = this.projectInsightResponseList;
     projObj.empId = this.currentUser.empId;
+    console.log("=====================================================================================>>>>>>>>>>>>>>>>>>>");
+    console.log(projObj);
 
-    this.projectInsightService.saveProjectInsightResponse(projObj).pipe(first()).subscribe((response: any) => {
+    this.projectInsightService.saveProjectInsightResponse(projObj,files).pipe(first()).subscribe((response: any) => {
       this.closeProjectInsightResponseModal();
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -1537,6 +1552,122 @@ private createQuestionsSection(questions: any[], entityType: string): string {
   onSearch(searchData){
     this.filters = searchData;
     //console.log("Updated Filter : ", this.filters);
+  }
+
+  removeUploadedFile(question:any){
+    if(question?.uploadedFile){
+      question.uploadedFile = null;
+    }
+    if(question?.uploadedFileName){
+      question.uploadedFileName = null;
+    }
+  }
+
+  onQuestionFileChange(event: any, question: any,alertTemplate:TemplateRef<any>,previewElementId:any,documentPreviewTemplate:TemplateRef<any>) {
+    const file = event.target.files[0];
+    if (file) {
+      question.uploadedFile = file;
+      question.uploadedFileName = file.name;
+    }
+    
+    const MAX_SIZE = 5 * 1024 * 1024; // 1MB  // 200KB in bytes
+    
+    if (file) {
+      let allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+
+      if (allowedTypes.indexOf(file.type) === -1) {
+      this.alertMessage = "Invalid file format."
+      this.openAlertMod(alertTemplate, this.alertMessage);
+      question.uploadedFile = null;
+      question.uploadedFileName = null;
+        return false;
+      }
+      else if (file.size > MAX_SIZE) {
+        this.alertMessage = "File size must be lesser than or equal to 1MB."
+        this.openAlertMod(alertTemplate, this.alertMessage);
+        question.uploadedFile = null;
+        question.uploadedFileName = null;
+        return false;
+      }
+    }
+    this.previewUploadedFile(question,question.uploadedFile,question.uploadedFileName,previewElementId, documentPreviewTemplate,alertTemplate);
+  }
+
+  previewUploadedFile(question,uploadedFile: any, fileName: any, previewElementId: any, documentPreviewTemplate: TemplateRef<any>,alertTemplate: TemplateRef<any>) {
+    this.documentPreviewModalRef = this.modalService.show(documentPreviewTemplate, { class: 'modal-xl' });
+    const previewContainer = document.getElementById(previewElementId);
+    if ((fileName != undefined && fileName != null)) {
+      const MAX_SIZE = 5 * 1024 * 1024; //5 MB // 200KB in bytes
+      const file = uploadedFile;
+
+      if (uploadedFile != undefined && uploadedFile != null) {
+        if (file && file.type === 'application/pdf') {
+          if (file.size > MAX_SIZE) {
+            previewContainer.innerHTML = "<span class='mt-3 text-sm' style='display:inline-block; font-size:medium;'>File size must be lesser than or equal to 5MB. </span>";
+            fileName = "";
+            return false;
+          }
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const pdfData = e.target.result;
+            previewContainer.innerHTML = `<embed src="${pdfData}" type="application/pdf" width="100%" height="100%">`;
+          };
+          reader.readAsDataURL(file);
+        }
+        else if (file && file.type.startsWith('image/')) {
+          var fileName = file.name;
+          var fileExtension = fileName.split('.').pop().toLowerCase();
+          var allowedExtensions = ['jpg', 'jpeg', 'png', 'jpg2'];
+          if (allowedExtensions.indexOf(fileExtension) === -1) {
+            previewContainer.innerHTML = "<span class='mt-3' style='display:inline-block;'> Please select only image file (jpg, jpeg, png, jpg2) Or PDF </span>";
+            return;
+          }
+          if (file.size > MAX_SIZE) {
+            previewContainer.innerHTML = "<span class='mt-3' style='display:inline-block;'>File size must be lesser than or equal to 1MB. </span>";
+            return false;
+          }
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const pdfData = e.target.result;
+            previewContainer.innerHTML = `<img src="${pdfData}" class="img-fluid"  width="100%" height="100%">`;
+          };
+          reader.readAsDataURL(file);
+        }
+        else {
+          previewContainer.innerHTML = "<span class='mt-3' style='display:inline-block;' > Invalid file format.</span>";
+          return false;
+        }
+      } else {
+        this.getUserUploadedFileForQuestion(question,fileName, previewContainer,alertTemplate);
+      }
+    } else {
+      previewContainer.innerHTML = `<h3 style='padding: 12px; display:inline-block;'>No Data Found.</h3>`;
+    }
+  }
+
+  getUserUploadedFileForQuestion(question:any,fileName:any, previewContainer:any,alertTemplate:TemplateRef<any>){
+    let documentObj = new Document();
+    documentObj.empId = this.currentUser.empId;
+    documentObj.documentName = fileName;
+    documentObj.typeId = question.entityId;
+    documentObj.typeName = question.entityType;
+      this.projectInsightService.getUserUploadedFileForQuestion(documentObj).subscribe((response: any) => {
+        response=JSON.parse(response)
+        if (response.status === 'Fail') {
+          previewContainer.innerHTML = "<span class='mt-3' style='display:inline-block;' > Invalid file format.</span>";
+        } else {
+          const pdfData = response.fileData;
+          if (response.contentType == 'application/pdf') {
+            previewContainer.innerHTML = `<embed src="data:application/pdf;base64,${pdfData}" type="application/pdf" width="100%" height="100%"> `
+          } else {
+            previewContainer.innerHTML = `<img src="data:${response.contentType};base64,${pdfData}" type="${response.contentType}" class="img-fluid" >`;
+          }
+        }
+      });
+  }
+
+  closeDocumentPreviewTemplate(){
+    this.documentPreviewModalRef.hide();
   }
 
 }

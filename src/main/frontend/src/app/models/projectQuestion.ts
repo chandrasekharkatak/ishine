@@ -13,4 +13,8 @@ export class ProjectQuestion{
     userType:any;
     optionsList:any[]= [];
     isCollapsed:any;
+    uploadedFile:any;
+    uploadedFileName:any;
+    entityId:any;
+    entityType:any;
 }

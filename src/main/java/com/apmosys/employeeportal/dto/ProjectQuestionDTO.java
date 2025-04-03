@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.dto;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import lombok.Data;
 
 @Data
@@ -24,6 +26,8 @@ public class ProjectQuestionDTO {
 	private Long employeementId;
 	
 	private Long empId;
-
+	
+//	private MultipartFile uploadedFile;
+	private String uploadedFileName;
 //	private String optionsList;
 }
