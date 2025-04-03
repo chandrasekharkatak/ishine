@@ -96,7 +96,7 @@
                                             type="submit">Sync Po</button>&nbsp;
                                         <button class="btn btn-sm btn-outline-primary mb-1"
                                             *ngIf="project.isMail && project.isDraftProject != 'NA'"
-                                            (click)="sendEmailNotificationToBDTeam(alert_message_sync, project);"
+                                            (click)="sendEmailNotificationToBDTeam(alert_message, project);"
                                             type="submit">Mail</button>&nbsp;
                                         <button class="btn btn-sm btn-outline-primary mb-1"
                                             *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'"
