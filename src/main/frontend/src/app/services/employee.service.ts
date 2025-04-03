@@ -104,6 +104,10 @@ export class EmployeeService {
     return this.http.get(`${this.baseUrl}` + `api/getAllEmployeesBirthDayToday`);
   }
 
+  getAllEmployeesWorkAnniversaryToday() {
+    return this.http.get(`${this.baseUrl}` + `api/getAllEmployeesWorkAnniversaryToday`);
+  }
+
   getHierarchyByEmpId(employeeObj: Employee) {
     return this.http.post(`${this.baseUrl}` + `api/getHierarchyByEmpId`, employeeObj);
   }

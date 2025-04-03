@@ -292,7 +292,119 @@
 
         </div>
     </div>
-    <div *ngIf="userMapping.view_birthday_list" class="birthday-list card mb-2">
+    <!-- BirthdayCard -->
+
+    <div *ngIf="userMapping.view_birthday_list || userMapping.view_work_anniversary_list" class="birthday-list card mb-2">
+        <ul class="nav nav-tabs" id="birthdayWorkTab" role="tablist">
+            <li class="nav-item " 
+            [class.active]="selectedTab === 'birthday'"
+            [ngStyle]="{'font-weight': selectedTab === 'birthday' ? 'bold' : 'normal'} " (click)="switchTab('birthday')">
+                <a class="nav-link active" id="birthday-tab" data-toggle="tab" role="tab"
+                    href="#birthday-tabpanel" aria-controls="birthday" aria-selected="true">
+                    Birthday
+                </a>
+            </li>
+            <li class="nav-item" 
+            [class.active]="selectedTab === 'workAnniversary'"
+            [ngStyle]="{'font-weight': selectedTab === 'workAnniversary' ? 'bold' : 'normal'}" (click)="switchTab('workAnniversary')">
+                <a class="nav-link" id="workAnniversary-tab" data-toggle="tab" role="tab"
+                    href="#workAnniversary-tabpanel" aria-controls="workAnniversary" aria-selected="false">
+                    Work Anniversary
+                </a>
+            </li>
+        </ul>
+    
+        <!-- Tab Content -->
+        <div class="tab-content" id="birthdayWorkTabContent">
+            <!-- Birthday Tab -->
+            <div class="tab-pane active show fade" id="birthday-tabpanel" role="tabpanel" aria-labelledby="birthday-tab">
+                <div class="card-title px-1 pt-2">
+                    <p class="section-heading m-0 pl-2">Today's Birthdays</p>
+                </div>
+                <div class="card-body p-0">
+                    <div *ngIf="birthdayList.length == 0" class="container-fluid placeholder">
+                        <img class="placeholder-img" style="width: 50px;" src="assets/Images/birthday-cake-icon.svg"
+                            alt="Birthday Icon">
+                        <h1 class="placeholder-text">No Birthdays Today</h1>
+                    </div>
+                    <marquee *ngIf="birthdayList.length != 0" direction="up" scrolldelay="250"
+                        onmouseover="this.stop();" onmouseout="this.start();">
+                        <mat-list class="p-0">
+                            <mat-list-item *ngFor="let employee of birthdayList">
+                                <img matListAvatar src="assets/Images/default-user-image.jpeg" alt="User Avatar">
+                                <h1 *ngIf="userMapping.employee360_view_home" matLine id="clickablefor360" 
+                                    [navigateToEmployee360]="employee.emp360" style="cursor: pointer;" 
+                                    title="Click to view Employee 360">
+                                    {{ employee.name }}
+                                </h1>
+                                <h1 *ngIf="!userMapping.employee360_view_home" matLine>{{ employee.name }}</h1>
+                                <p matLine>{{ employee.departmentName }}</p>
+                            </mat-list-item>
+                        </mat-list>
+                    </marquee>
+                </div>
+            </div>
+    
+            <!-- Work Anniversary Tab -->
+            <div class="tab-pane active show fade" id="workAnniversary-tabpanel" role="tabpanel" aria-labelledby="workAnniversary-tab">
+                <div class="card-title px-1 pt-2">
+                    <p class="section-heading m-0 pl-2">Today's Work Anniversary</p>
+                </div>
+                <div class="card-body p-0">
+                    <div *ngIf="workAnniversaryList.length == 0" class="container-fluid placeholder">
+                        <img class="placeholder-img" style="width: 50px;" src="assets/Images/birthday-cake-icon.svg"
+                            alt="Birthday Icon">
+                        <h1 class="placeholder-text">No Work Anniversary Today</h1>
+                    </div>
+                    <marquee *ngIf="workAnniversaryList.length != 0" direction="up" scrolldelay="250"
+                        onmouseover="this.stop();" onmouseout="this.start();">
+                        <mat-list class="p-0">
+                            <mat-list-item *ngFor="let employee of workAnniversaryList">
+                                <img matListAvatar src="assets/Images/default-user-image.jpeg" alt="User Avatar">
+                                <h1 *ngIf="userMapping.employee360_view_home" matLine id="clickablefor360" 
+                                    [navigateToEmployee360]="employee.emp360" style="cursor: pointer;" 
+                                    title="Click to view Employee 360">
+                                    {{ employee.name }}
+                                </h1>
+                                <h1 *ngIf="!userMapping.employee360_view_home" matLine>{{ employee.name }}</h1>
+                                <p matLine>{{ employee.departmentName }}</p>
+                            </mat-list-item>
+                        </mat-list>
+                    </marquee>
+                </div>
+            </div>
+            <!-- <div class="tab-pane fade" id="workAnniversary-tabpanel" role="tabpanel" aria-labelledby="workAnniversary-tab">
+                <div class="card-title px-1 pt-2">
+                    <p class="section-heading m-0 pl-2">Today's Work Anniversaries</p>
+                </div>
+                <div class="card-body p-0">
+                    <div *ngIf="workAnniversaryList.length == 0" class="container-fluid placeholder">
+                        <img class="placeholder-img" style="width: 50px;" src="assets/Images/work-anniversary-icon.svg"
+                            alt="Work Anniversary Icon">
+                        <h1 class="placeholder-text">No Work Anniversaries Today</h1>
+                    </div>
+                    <marquee *ngIf="workAnniversaryList.length != 0" direction="up" scrolldelay="250"
+                        onmouseover="this.stop();" onmouseout="this.start();">
+                        <mat-list class="p-0">
+                            <mat-list-item *ngFor="let employee of workAnniversaryList">
+                                <img matListAvatar src="assets/Images/default-user-image.jpeg" alt="User Avatar">
+                                <h1 *ngIf="userMapping.employee360_view_home" matLine id="clickablefor360"
+                                    [navigateToEmployee360]="employee.emp360" style="cursor: pointer;" 
+                                    title="Click to view Employee 360">
+                                    {{ employee.name }}
+                                </h1>
+                                <h1 *ngIf="!userMapping.employee360_view_home" matLine>{{ employee.name }}</h1>
+                                <p matLine>{{ employee.departmentName }}</p>
+                            </mat-list-item>
+                        </mat-list>
+                    </marquee>
+                </div>
+            </div> -->
+        </div>
+    </div>
+    
+
+    <!-- <div *ngIf="userMapping.view_birthday_list" class="birthday-list card mb-2">
         <div class="card-title px-1 pt-2">
             <p class="section-heading m-0 pl-2">Today's Birthdays</p>
         </div>
@@ -314,7 +426,7 @@
                 </mat-list>
             </marquee>
         </div>
-    </div>
+    </div> -->
     <!-- Quick Links -->
     <div *ngIf="userMapping.view_quick_links" class="quick-links card mb-2">
         <div class="text-center quick-link" (click)="showApplyLeaveForm()">
