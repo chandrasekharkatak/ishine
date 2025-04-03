@@ -280,6 +280,57 @@ public class EmployeeGoalService {
         }
         return response;
     }
+    
+    public ServiceResponse updatestatusofGoal(EmployeeGoalDTO employeeGoalDto, Long id, Long empId)
+    {
+    	ServiceResponse response = new ServiceResponse();
+    	try {
+    		Optional<EmployeeGoals> existing = employeeGoalRepository.findByGoalId(id);
+    		if(existing.isPresent())
+    		{
+    			EmployeeGoals employeeGoal = existing.get();
+    			String managerR = employeeGoalDto.getManagerRemark();
+    			String employeeR = employeeGoalDto.getEmployeeRemark();
+    			Long progress = employeeGoalDto.getGoalProgress();
+    			
+    			
+    			if(managerR != null) {
+    				employeeGoal.setManagerRemark(managerR);}
+    			
+    			if(employeeR != null) {
+    				employeeGoal.setEmployeeRemark(employeeR);
+    			}
+    			employeeGoal.setGoalProgress(progress);
+    			if(progress == 100)
+    			{
+    				employeeGoal.setGoalStatus("Completed");
+    			}
+    	
+    			else
+    			{
+    				employeeGoal.setGoalStatus("Pending");
+    			}
+    			
+    			EmployeeGoals updated  = employeeGoalRepository.save(employeeGoal);
+    			EmployeeGoalDTO updatedDto = convertToDTO(updated);
+    			
+                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(updatedDto);
+                response.setServiceMessage("Employee Goal Updated Successfully");
+    			}
+    		else {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceMessage("Error in updating");
+    		}
+    		
+    	}
+    	catch(Exception e){
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceError(e.getMessage());
+            response.setServiceMessage("Error Updating");
+    	}
+    	return response;
+    }
     private EmployeeGoalDTO convertToDTO(EmployeeGoals entity) {
         EmployeeGoalDTO dto = new EmployeeGoalDTO();
         dto.setGoalId(entity.getGoalId());
@@ -293,7 +344,8 @@ public class EmployeeGoalService {
         dto.setActualCompletionDate(entity.getActualCompletionDate());
         dto.setCreatedDate(entity.getCreatedDate());
         dto.setQuarter(entity.getQuarter());
-        dto.setRemarks(entity.getRemarks());
+        dto.setManagerRemark(entity.getManagerRemark());
+        dto.setEmployeeRemark(entity.getEmployeeRemark());
         dto.setQuarterId(entity.getQuarterId());
         return dto;
     }
@@ -312,7 +364,8 @@ public class EmployeeGoalService {
         entity.setActualCompletionDate(dto.getActualCompletionDate());
         entity.setCreatedDate(dto.getCreatedDate());
         entity.setQuarter(dto.getQuarter());
-        entity.setRemarks(dto.getRemarks());
+        entity.setEmployeeRemark(dto.getEmployeeRemark());
+        entity.setManagerRemark(dto.getManagerRemark());
         entity.setQuarterId(dto.getQuarterId());
         return entity;
     }
@@ -332,8 +385,9 @@ public class EmployeeGoalService {
             if (row[10] != null) dto.setQuarter(row[10].toString());
             if (row[5] != null) dto.setAssignedBy(((Number)row[5]).longValue());
             if(row[4]!= null) dto.setDescription(row[4].toString());
-            if(row[12]!= null) dto.setRemarks(row[12].toString());
+            if(row[12]!= null) dto.setManagerRemark(row[12].toString());
             if(row[13]!= null) dto.setQuarterId(Long.parseLong(row[13].toString()));
+            if(row[14]!= null) dto.setEmployeeRemark(row[14].toString());
             
                     } catch (Exception e) {
                         throw new RuntimeException("Error");

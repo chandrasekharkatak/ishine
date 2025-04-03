@@ -54,6 +54,8 @@ public class KpiService {
                 .approvedBy(kpi.getApprovedBy())
                 .departmentId(kpi.getDepartmentId())
                 .employeeRole(kpi.getEmployeeRole())
+                .managerRating(kpi.getManagerRating())
+                .managerRemark(kpi.getManagerRemark())
               
                 
                 .kpis(kpisDTOList)
@@ -70,6 +72,8 @@ public class KpiService {
         kpi.setQuarter(dto.getQuarter());
         kpi.setDepartmentId(dto.getDepartmentId());
         kpi.setEmployeeRole(dto.getEmployeeRole());
+        kpi.setManagerRating(dto.getManagerRating());
+        kpi.setManagerRemark(dto.getManagerRemark());
         
         
         if (dto.getKpis() != null) {
@@ -206,6 +210,12 @@ public class KpiService {
     public List<KpiDTO> getKpisByQuarterAndDepartment(Long quarterId, Long departmentId,String employeeRole) {
         return kpiRepository.findByQuarterId(quarterId).stream() 
             .filter(kpi -> departmentId.equals(kpi.getDepartmentId()))
+            .filter(kpi-> employeeRole.equals(kpi.getEmployeeRole()))
+            .map(this::toDTO)
+            .collect(Collectors.toList());
+    }
+    public List<KpiDTO> getKpisByDepartmentAndEmployeerole(Long departmentId,String employeeRole) {
+        return kpiRepository.findByDepartmentId(departmentId).stream() 
             .filter(kpi-> employeeRole.equals(kpi.getEmployeeRole()))
             .map(this::toDTO)
             .collect(Collectors.toList());

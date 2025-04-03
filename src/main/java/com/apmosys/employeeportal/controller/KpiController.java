@@ -182,6 +182,22 @@ public class KpiController {
         }
         return response;
     }
+    @GetMapping("/getKpisByDepartment/{departmentId}/EmployeeRole/{employeeRole}")
+    public ServiceResponse getKpisByQuarterAndDepartment(@PathVariable Long departmentId,@PathVariable String employeeRole) {
+        ServiceResponse response = new ServiceResponse();
+        try {
+           
+            List<KpiDTO> kpis = kpiService.getKpisByDepartmentAndEmployeerole(departmentId,employeeRole);
+            response.setServiceResponse(kpis);
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceMessage("KPIs for department '" + departmentId + "Employee Role" + employeeRole + "' retrieved successfully.");
+        } catch (Exception e) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceMessage(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceError(e.getMessage());
+        }
+        return response;
+    }
     
     @PutMapping("/{id}/reject")
     public ServiceResponse rejectKpi(@PathVariable Long id) {

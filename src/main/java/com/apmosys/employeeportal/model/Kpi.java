@@ -33,6 +33,8 @@ public class Kpi {
     private String createdBy;
 
     private String department;
+    private Long managerRating;
+    private String managerRemark;
    
     private String employeeRole;
     public void addKpis(Kpis kpisItem) {

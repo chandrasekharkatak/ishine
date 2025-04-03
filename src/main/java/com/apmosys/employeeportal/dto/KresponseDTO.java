@@ -13,4 +13,6 @@ public class KresponseDTO {
 	private Float response;
 	private String review;
 	private Boolean isFixed;
+    private Long managerRating;
+    private String managerRemark;
 }

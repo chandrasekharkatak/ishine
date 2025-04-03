@@ -24,4 +24,7 @@ public class KpiDTO {
     private String createdBy;
     private String quarter;
     private String employeeRole;
+    private Long managerRating;
+    private String managerRemark;
+    
 }

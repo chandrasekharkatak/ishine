@@ -79,6 +79,10 @@ public class EmployeeGoalController {
         return employeeGoalService.getGoalsByEmployeeId(empId);
     }
 
+    @PutMapping("/save/{id}/employee/{empId}")
+    public ServiceResponse updateStatusOfGoal(@RequestBody EmployeeGoalDTO employeegoalDto,@PathVariable Long id,@PathVariable Long empId) {
+    	return employeeGoalService.updatestatusofGoal(employeegoalDto,id,empId);
+    }
    
 }
 

@@ -27,7 +27,7 @@ public class EmployeeKpiService {
         	if(employeeKpiDto.getTemplateId() == kpiRepository.findbyId(employeeKpiDto.getTemplateId())) {
     		employeeKpi.setTemplateId(employeeKpiDto.getTemplateId());
     		employeeKpi.setEmpId(employeeKpiDto.getEmpId());
-    		employeeKpi.setAssignedBy(null);
+    		employeeKpi.setAssignedBy(employeeKpiDto.getAssignedBy());
     		employeeKpi.setAssignedOn(null);
     		employeeKpi.setDepartmentId(employeeKpiDto.getDepartmentId());
     		employeeKpi.setEmployeeRole(employeeKpiDto.getEmployeeRole());

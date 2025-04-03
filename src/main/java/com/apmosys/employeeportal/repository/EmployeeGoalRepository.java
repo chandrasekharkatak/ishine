@@ -2,6 +2,8 @@ package com.apmosys.employeeportal.repository;
 
 import com.apmosys.employeeportal.model.EmployeeGoals;
 import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,4 +18,7 @@ public interface EmployeeGoalRepository extends JpaRepository<EmployeeGoals, Lon
     
     @Query(nativeQuery = true, value = "SELECT DISTINCT(eg.template_id) FROM employee_goals eg WHERE eg.template_id = :templateId AND eg.emp_id = :empId")
     Long findByTemplateId(@Param("templateId") Long templateId, @Param("empId") Long empId);
+    
+    Optional<EmployeeGoals> findByGoalId(Long goalId);
+    
 }

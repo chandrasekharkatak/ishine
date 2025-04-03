@@ -49,7 +49,9 @@ public class EmployeeGoalDTO {
     private Long quarterId;
     
     
-    private String remarks;
+    private String employeeRemark;
+    
+    private String managerRemark;
     
     
 }

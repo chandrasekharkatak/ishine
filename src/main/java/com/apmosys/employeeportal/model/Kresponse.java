@@ -26,5 +26,7 @@ public class Kresponse {
 	private String review;
 	
 	private Boolean isFixed;
+    private Long managerRating;
+    private String managerRemark;
 	
 }

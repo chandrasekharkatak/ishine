@@ -47,6 +47,8 @@ import java.util.List;
 	            entity.setQuarterId(quarterId);
 	            entity.setReview(obj.getReview());
 	            entity.setIsFixed(obj.getIsFixed());
+	            entity.setManagerRating(obj.getManagerRating());
+	            entity.setManagerRemark(obj.getManagerRemark());
 	        	}
 	        entities.add(entity);  
 	        }
