@@ -6,10 +6,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.apmosys.employeeportal.dto.NotificationDTO;
+import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.PerformanceDTO;
 import com.apmosys.employeeportal.dto.QuarterCycleDTO;
 import com.apmosys.employeeportal.dto.ReviewTypeDTO;
@@ -157,6 +156,10 @@ public class PerformanceController {
 	    return response;
 	}
 	
-	
+	@RequestMapping(value = "/exportExcelForHodAndManger", method = RequestMethod.POST)
+	public ServiceResponse exportExcelForHodAndManger(@RequestBody HrHodHrViewPerformance hrHodHrViewPerformance) {
+	    ServiceResponse response = performanceService.exportExcelForHodAndManger(hrHodHrViewPerformance);
+	    return response;
+	}
 	
 }

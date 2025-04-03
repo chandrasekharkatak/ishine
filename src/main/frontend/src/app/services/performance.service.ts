@@ -106,4 +106,8 @@ getReviewLabelForEveryDepartment() {
   return this.http.get(`${this.baseUrl}` + `api/getReviewLabelForEveryDepartment`);
 }
 
+
+getAllEmployeesForPerformanceExcell(details:any){
+  return this.http.post(`${this.baseUrl}` + `api/exportExcelForHodAndManger`, details);
+}
 }

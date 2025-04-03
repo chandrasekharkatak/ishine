@@ -19,6 +19,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import com.apmosys.employeeportal.dto.ExportExcelPerformance;
+import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PerformanceDTO;
 import com.apmosys.employeeportal.dto.PerformanceRatingDTO;
@@ -1068,6 +1070,79 @@ public class PerformanceService {
 	//mail to managers/reporting managers.
 	
 
+
+
+
+	public ServiceResponse exportExcelForHodAndManger(HrHodHrViewPerformance hrHodHrViewPerformance) {
+		
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo=new LogDTO();
+		apiLogInfo.setSubFeatureName("exportExcelForHodAndManger");
+		apiLogInfo.setApiUrl("/api/exportExcelForHodAndManger");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("exportExcelForHodAndManger : ");
+		
+		try {
+			List<ExportExcelPerformance> performance = new ArrayList<>();
+			List<Object[]> hrAndHODEmployeePerformanceViewDetails =null;
+			if(hrHodHrViewPerformance.getHrvalidate()) {
+				 hrAndHODEmployeePerformanceViewDetails = employeePerformanceRepository.ExcelExportQueryForPerformnaceHr();
+			}else {
+                 hrAndHODEmployeePerformanceViewDetails = employeePerformanceRepository.ExcelExportQueryForPerformnaceHODManager(hrHodHrViewPerformance.getEmpId());
+				
+			}
+			
+			
+			if(hrAndHODEmployeePerformanceViewDetails != null && !hrAndHODEmployeePerformanceViewDetails.isEmpty()) {
+				for(Object[] object:hrAndHODEmployeePerformanceViewDetails) {
+					ExportExcelPerformance performanceDetails= new ExportExcelPerformance();
+					performanceDetails.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					performanceDetails.setEmail(object[2] != null ? object[2].toString() : null);
+					performanceDetails.setEmploymentstatus(object[3] != null ? object[3].toString() : null);
+					performanceDetails.setName(object[4] != null ? object[4].toString() : null);
+					performanceDetails.setDepartmentName(object[5] != null ? object[5].toString() : null);
+					performanceDetails.setManagerName(object[6] != null ? object[6].toString() : null);
+					performanceDetails.setBillable(object[7] != null ? (object[7].toString()) : null);
+					performanceDetails.setTotalExperience(object[8] != null ? Float.parseFloat(object[8].toString()) : null);
+					performanceDetails.setBillableType(object[9] != null ? object[9].toString() : null );
+					performanceDetails.setReportingManagerName(object[10] != null ? object[10].toString() : null);	        
+					performanceDetails.setHodName(object[11] != null ? object[11].toString() : null);				
+					performanceDetails.setCompletionStatus(object[12] != null ? object[12].toString() : "Review Not Given By Manager/ReportingManager");	
+					performanceDetails.setQuarterycle(object[13] != null ? object[13].toString() : null);
+					performanceDetails.setFinancialYear(object[14] != null ? object[14].toString() : null );
+					performanceDetails.setHodRemarks(object[15] != null ? object[15].toString() : null);
+					performanceDetails.setFinalRating(object[16] != null ? object[16].toString() : null);
+					performanceDetails.setHrRemarks(object[17] != null ? object[17].toString() : null);
+					performanceDetails.setHrReviewStatus(object[18] != null ? object[18].toString() : null);
+									
+					performance.add(performanceDetails);
+			 
+			    }
+				    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(performance);
+					apiLogInfo.setApiResponse("Employee Performance fetched successfully.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				
+			}else {
+			    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Unable to fetch Employee Performance.");
+				apiLogInfo.setApiResponse("Unable to fetch Employee Performance.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		 }
+		}catch(Exception e) {
+			
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+		}		
+		return response;
+	}
+
+	
+	
 
 }
 
