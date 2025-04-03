@@ -20,11 +20,12 @@
                     </select>
                 </div>
             </div>
-    
-          
-            <div class="col-sm-3 col-4 mb-2 small-gap" >
+
+
+            <div class="col-sm-3 col-4 mb-2 small-gap">
                 <div class="form-inline input-group">
-                    <select id="rewardsDropdown" class="form-control form-control-sm" (change)="onCategoryChange($event)">
+                    <select id="rewardsDropdown" class="form-control form-control-sm"
+                        (change)="onCategoryChange($event)">
                         <option [value]="''" disabled selected>Select Month</option>
                         <option *ngFor="let category of rewardsCategories" [value]="category.rewardCategoryId">
                             {{ category.categoryName }}
@@ -32,15 +33,15 @@
                     </select>
                 </div>
             </div>
-    
-           
+
+
             <div class="col-sm-5 col-4  d-flex justify-content-end">
                 <button class="btn btn-outline-primary btn-sm" (click)="getTeamRewardsDetails()">
                     View Team Rewards
                 </button>
             </div>
         </div>
-    
+
         <!-- Search Toggle -->
         <div class="selector-toggle">
             <a href="javascript:void(0)" (click)="toggleSearch()">
@@ -48,7 +49,7 @@
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
         </div>
-    
+
         <!-- Table -->
         <div class="row-md-12">
             <table class="table" id="rewards360Info" matSort (matSortChange)="sortData($event)">
@@ -73,7 +74,8 @@
                     </tr>
                     <tr
                         *ngFor="let rewardHistory of rewardList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page },  let i = index">
-                        <td>{{ i + 1 }}</td>
+                        <th class="info-label">{{10 * (page-1)+i+1}}</th>
+                      
                         <td>{{rewardHistory.rewardCategory}}</td>
                         <td>{{ rewardHistory.rewardTypeName }}</td>
                         <td id="clickablefor360" [navigateToEmployee360]="rewardHistory.emp360nameempid"
@@ -97,8 +99,13 @@
                 </tbody>
             </table>
         </div>
+        <pagination-controls class="my-pagination" [hidden]="rewardList.length == 0"
+            (pageChange)="handlePageChange($event)"></pagination-controls>
+        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+            [hidden]="rewardList.length == 0" (click)="exportToExcel()"><em
+                class="fa fa-file-arrow-down fa-2x"></em></button>
     </div>
-    
+
 
     <div *ngIf="isTeamTableVisible">
 
@@ -138,11 +145,13 @@
                     </tr>
                     <tr
                         *ngFor="let teamlist of teamRewardList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }, let i = index">
-                        <th class="info-label"><label>{{ i + 1 }}</label></th>
+                        <th class="info-label">{{10 * (page-1)+i+1}}</th>
+                   
                         <td>{{teamlist.rewardCategoryName}}</td>
                         <td><label>{{ teamlist.rewardTypeName }}</label></td>
-                        <td  id="clickablefor360" [navigateToEmployee360]="teamlist.emp360rewardedToId"
-                        style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()"><label>{{ teamlist.name }}</label>
+                        <td id="clickablefor360" [navigateToEmployee360]="teamlist.emp360rewardedToId"
+                            style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()"><label>{{
+                                teamlist.name }}</label>
                             <!-- <span style="cursor: pointer;" *ngIf="getMatchedEmployee(teamlist)">
                                 <a [navigateToEmployee360]="getMatchedEmployee(teamlist)">
                                     {{ teamlist.name }}
@@ -160,6 +169,11 @@
                 </tbody>
             </table>
         </div>
+        <pagination-controls class="my-pagination" [hidden]="teamRewardList.length == 0"
+            (pageChange)="handlePageChange($event)"></pagination-controls>
+        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+            [hidden]="teamRewardList.length == 0" (click)="exportToExcelTeam()"><em
+                class="fa fa-file-arrow-down fa-2x"></em></button>
     </div>
 
 
