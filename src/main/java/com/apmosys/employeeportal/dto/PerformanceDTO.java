@@ -38,5 +38,6 @@ public class PerformanceDTO {
     private LocalDate hrReviewDate;
     private String hrReviewStatus;
     private Long performanceRatingId;
+    private Boolean rejectStatus;
     
 }

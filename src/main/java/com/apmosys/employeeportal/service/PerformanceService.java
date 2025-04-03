@@ -11,12 +11,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import com.apmosys.employeeportal.dto.ExportExcelPerformance;
+import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PerformanceDTO;
 import com.apmosys.employeeportal.dto.PerformanceRatingDTO;
@@ -41,6 +45,9 @@ public class PerformanceService {
 
 	@Autowired
 	HttpServletRequest httpRequest;
+	
+	@Autowired
+	private MailService mailService;
 	
 	@Autowired
 	private EmployeePerformanceRepository employeePerformanceRepository;
@@ -595,42 +602,65 @@ public class PerformanceService {
 	public ServiceResponse submitEmployeePerformanceHR(PerformanceDTO employeePerformanceDTO) {
 	    ServiceResponse response = new ServiceResponse();
 	    try {
-	        Optional<EmployeePerformance> optionalEmployeePerformance =  employeePerformanceRepository.findById(employeePerformanceDTO.getEmployeePerformanceId());
+	        EmployeePerformance savedEmployeePerformanceHR = null;
+	        EmployeePerformance optionalEmployeePerformance = employeePerformanceRepository.findByPerformanceId(employeePerformanceDTO.getEmployeePerformanceId());
 
-	        if (optionalEmployeePerformance.isPresent()) { 
-	            EmployeePerformance employeePerformance = optionalEmployeePerformance.get();
+	        if (optionalEmployeePerformance != null) { 
+	           
+	            optionalEmployeePerformance.setHr_id(employeePerformanceDTO.getHrId());
+	            optionalEmployeePerformance.setHr_remarks(employeePerformanceDTO.getHrRemark());
+	            optionalEmployeePerformance.setHr_review_status(employeePerformanceDTO.getHrReviewStatus());
+
 	            
-	            employeePerformance.setHr_id(employeePerformanceDTO.getHrId());
-	            employeePerformance.setHr_remarks(employeePerformanceDTO.getHrRemark());
-	            employeePerformance.setHr_review_status(employeePerformanceDTO.getHrReviewStatus());
-	            employeePerformance.setCompletion_status(
-	                employeePerformanceDTO.getHrReviewStatus().equals("Accepted") ? "Completed" : "Rejected"
-	            );
+	            if (employeePerformanceDTO.getHrReviewStatus().equalsIgnoreCase("Accepted")) {
+	                optionalEmployeePerformance.setCompletion_status("Completed");
+	                optionalEmployeePerformance.setFinal_rating(employeePerformanceDTO.getFinalRating());
+	            } else if (employeePerformanceDTO.getHrReviewStatus().equalsIgnoreCase("Rejected")) {
+	                optionalEmployeePerformance.setCompletion_status("Rejected");
+	                optionalEmployeePerformance.setRejectStatus(true);
+	            }
 
-	            EmployeePerformance savedEmployeePerformanceHR = 
-	                    employeePerformanceRepository.save(employeePerformance);
+	            savedEmployeePerformanceHR = employeePerformanceRepository.save(optionalEmployeePerformance);
+	            
+	            
+	            if (savedEmployeePerformanceHR != null && employeePerformanceDTO.getHrReviewStatus().equalsIgnoreCase("Accepted")) {
+	                for (PerformanceRatingDTO ratingDTO : employeePerformanceDTO.getPerformanceRatings()) {
+	                    EmployeeRatingPerformance ratingPerformance = employeeRatingPerformanceRepository.getById(ratingDTO.getPerformanceRatingId());
+	                    if (ratingPerformance != null) {
+	                        ratingPerformance.setQuarterId(employeePerformanceDTO.getQuarterId());
+	                        ratingPerformance.setReviewTypeId(ratingDTO.getReviewTypeId());
+	                        ratingPerformance.setRatingValue(ratingDTO.getRating());
+	                        ratingPerformance.setEmpId(employeePerformanceDTO.getEmpId());
+	                        employeeRatingPerformanceRepository.save(ratingPerformance);
+	                    }
+	                }
+	            }
 
-	            if (savedEmployeePerformanceHR != null) {
+	            
+	            if (employeePerformanceDTO.getHrReviewStatus().equalsIgnoreCase("Accepted")) {
 	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	                response.setServiceResponse("Reviewed HOD Remarks Successfully");
+	                response.setServiceResponse("Performance review accepted successfully.");
+	            } else if (employeePerformanceDTO.getHrReviewStatus().equalsIgnoreCase("Rejected")) {
+	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	                response.setServiceResponse("Performance review rejected successfully.");
 	            } else {
 	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	                response.setServiceResponse("Couldn't submit Remarks");
+	                response.setServiceResponse("could not change review review status.");
 	            }
 	        } else {
+	            
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	            response.setServiceResponse("Employee Performance record not found.");
 	        }
-
-	    } catch(Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			
-		}
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong while processing the request.");
+	        response.setServiceError(e.getMessage());
+	    }
 	    return response;
-	} 
+	}
+ 
 
 
 	public ServiceResponse getReviewDataForQuarter() {
@@ -792,6 +822,7 @@ public class PerformanceService {
 					performanceDetails.setPerformanceRatingId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
 					performanceDetails.setHrRemark(object[13] != null ? object[13].toString() : null);
 					performanceDetails.setHrReviewStatus(object[14] != null ? object[14].toString() : null);
+					performanceDetails.setRejectStatus(object[15] != null ? Boolean.parseBoolean(object[15].toString()) : false);
 									
 					performance.add(performanceDetails);
 			 
@@ -976,7 +1007,142 @@ public class PerformanceService {
 		
 		return response;
 	}
+	
+	//mails to hods
+//	@Scheduled(cron = "0 14 14 * * ?")
+	public void sendPerformanceReviewEmails() {
+		List<Object[]> activehods = employeePerformanceRepository.findAllActiveHODs();
+		
+		for(Object[] hod :activehods) {
+			 Long hodId = ((Number) hod[0]).longValue(); 
+	         String hodEmail = (String) hod[1];
+	         String hodName = (String) hod[2]; 
+			List<Object[]> reviewedEmployees = employeePerformanceRepository.findAllOngoingReviewedEmployeesUnderHOD(hodId);
+			if (!reviewedEmployees.isEmpty()) {
+				 try {
+		                String mailBody = generateHtmlEmail(hodName,reviewedEmployees);
+		                String subject = "Performance Review Pending - Action Required";
+		                mailService.sendMail(hodEmail, subject, mailBody);
+		            } catch (MessagingException e) {
+		                System.err.println("Failed to send email to HOD: " + hodEmail);
+		                e.printStackTrace();
+		            }
+		}
+	}
+	}
+	
+	private String generateHtmlEmail(String hodName,List<Object[]> reviewedEmployees) {
+	    StringBuilder html = new StringBuilder();
 
+	    html.append("<html><body>");
+	    html.append("<p>Dear ").append(hodName).append(",</p>");
+	    html.append("<p>The following employees have ongoing performance reviews that require your attention:</p>");
+
+	    // Creating Table for Employee Details
+	    html.append("<table border='1' style='border-collapse: collapse; width: 100%; text-align: left;'>");
+	    html.append("<tr style='background-color: #f2f2f2;'>");
+	    html.append("<th style='padding: 8px;'>Employee ID</th>");
+	    html.append("<th style='padding: 8px;'>Employee Name</th>");
+	    html.append("<th style='padding: 8px;'>Department</th>");
+	    html.append("<th style='padding: 8px;'>Financial Year</th>");
+	    html.append("<th style='padding: 8px;'>Quarter Cycle</th>");
+	    html.append("</tr>");
+
+	    for (Object[] emp : reviewedEmployees) {
+	        html.append("<tr>");
+	        html.append("<td style='padding: 8px;'>A-" + emp[0] + "</td>"); 
+	        html.append("<td style='padding: 8px;'>" + emp[4] + "</td>"); 
+	        html.append("<td style='padding: 8px;'>" + emp[5] + "</td>"); 
+	        html.append("<td style='padding: 8px;'>" + emp[2] + "</td>"); 
+	        html.append("<td style='padding: 8px;'>" + emp[3] + "</td>"); 
+	        html.append("</tr>");
+	    }
+
+	    html.append("</table>");
+	    html.append("<p>Please take further necessary actions.</p>");
+	    html.append("<p>Regards,</p>");
+	    html.append("<p>HR Team</p>");
+	    html.append("</body></html>");
+
+	    return html.toString();
+	}
+	
+	//mail to managers/reporting managers.
+	
+
+
+
+
+	public ServiceResponse exportExcelForHodAndManger(HrHodHrViewPerformance hrHodHrViewPerformance) {
+		
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo=new LogDTO();
+		apiLogInfo.setSubFeatureName("exportExcelForHodAndManger");
+		apiLogInfo.setApiUrl("/api/exportExcelForHodAndManger");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("exportExcelForHodAndManger : ");
+		
+		try {
+			List<ExportExcelPerformance> performance = new ArrayList<>();
+			List<Object[]> hrAndHODEmployeePerformanceViewDetails =null;
+			if(hrHodHrViewPerformance.getHrvalidate()) {
+				 hrAndHODEmployeePerformanceViewDetails = employeePerformanceRepository.ExcelExportQueryForPerformnaceHr();
+			}else {
+                 hrAndHODEmployeePerformanceViewDetails = employeePerformanceRepository.ExcelExportQueryForPerformnaceHODManager(hrHodHrViewPerformance.getEmpId());
+				
+			}
+			
+			
+			if(hrAndHODEmployeePerformanceViewDetails != null && !hrAndHODEmployeePerformanceViewDetails.isEmpty()) {
+				for(Object[] object:hrAndHODEmployeePerformanceViewDetails) {
+					ExportExcelPerformance performanceDetails= new ExportExcelPerformance();
+					performanceDetails.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					performanceDetails.setEmail(object[2] != null ? object[2].toString() : null);
+					performanceDetails.setEmploymentstatus(object[3] != null ? object[3].toString() : null);
+					performanceDetails.setName(object[4] != null ? object[4].toString() : null);
+					performanceDetails.setDepartmentName(object[5] != null ? object[5].toString() : null);
+					performanceDetails.setManagerName(object[6] != null ? object[6].toString() : null);
+					performanceDetails.setBillable(object[7] != null ? (object[7].toString()) : null);
+					performanceDetails.setTotalExperience(object[8] != null ? Float.parseFloat(object[8].toString()) : null);
+					performanceDetails.setBillableType(object[9] != null ? object[9].toString() : null );
+					performanceDetails.setReportingManagerName(object[10] != null ? object[10].toString() : null);	        
+					performanceDetails.setHodName(object[11] != null ? object[11].toString() : null);				
+					performanceDetails.setCompletionStatus(object[12] != null ? object[12].toString() : "Review Not Given By Manager/ReportingManager");	
+					performanceDetails.setQuarterycle(object[13] != null ? object[13].toString() : null);
+					performanceDetails.setFinancialYear(object[14] != null ? object[14].toString() : null );
+					performanceDetails.setHodRemarks(object[15] != null ? object[15].toString() : null);
+					performanceDetails.setFinalRating(object[16] != null ? object[16].toString() : null);
+					performanceDetails.setHrRemarks(object[17] != null ? object[17].toString() : null);
+					performanceDetails.setHrReviewStatus(object[18] != null ? object[18].toString() : null);
+									
+					performance.add(performanceDetails);
+			 
+			    }
+				    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(performance);
+					apiLogInfo.setApiResponse("Employee Performance fetched successfully.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				
+			}else {
+			    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Unable to fetch Employee Performance.");
+				apiLogInfo.setApiResponse("Unable to fetch Employee Performance.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		 }
+		}catch(Exception e) {
+			
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+		}		
+		return response;
+	}
+
+	
+	
 
 }
 
