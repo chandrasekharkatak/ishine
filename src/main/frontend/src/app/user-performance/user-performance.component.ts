@@ -10,6 +10,7 @@ import { AppComponent } from 'src/app/app.component';
 import { Performance } from 'src/app/models/performance';
 import { Query } from 'src/app/models/query';
 import { SortPipe } from 'src/app/sort.pipe';
+import { AppreciationAndRewardsCount } from '../models/appreciationAndRewardCount';
 import { Employee } from '../models/employee';
 import { Feature } from '../models/feature';
 import { HrHodMangerApiForPerformnace } from '../models/hrHodMangerApiForPerformnace';
@@ -17,6 +18,7 @@ import { Log } from '../models/log';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
 import { EmployeeService } from '../services/employee.service';
+import { Employee360Service } from '../services/employee360.service';
 import { ExportExcelService } from '../services/export-excel.service';
 import { LogService } from '../services/log.service';
 import { PerformanceService } from '../services/performance.service';
@@ -83,7 +85,10 @@ export class UserPerformanceComponent implements OnInit {
   finalRating: number;
   hodRemarks: any;
   quarterId: any;
-
+  rewardsCount:any;
+  appreciationCount:any; 
+  
+  appreciationAndRewardsCount:AppreciationAndRewardsCount=new AppreciationAndRewardsCount();
   feature = "Performance";
   currentUser: User;
   userMapping: any = {};
@@ -114,7 +119,8 @@ export class UserPerformanceComponent implements OnInit {
     private locationStrategy: LocationStrategy,
     private performanceSerive: PerformanceService,
     private exportExcelService: ExportExcelService,
-    private performanceService: PerformanceService
+    private performanceService: PerformanceService,
+    private employee360Service: Employee360Service
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
 
@@ -150,6 +156,7 @@ export class UserPerformanceComponent implements OnInit {
       // console.log("hrrrrrrrr", this.userMapping.performance_action_by_hr);
        this.getAllEmployeeFor360View();
        this.getAllEmployee();
+
      
     } catch (error) {
       console.error("Error in ngOnInit", error);
@@ -602,8 +609,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     console.log("eligiemployee.emp360", eligiemployee.emp360);
     this.myList = [];
     this.myRateList = [];
-
-
+    this.getCountOfRewardsAndAppreciation();
 
   }
 
@@ -1109,6 +1115,20 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     });
 
   }
+  getCountOfRewardsAndAppreciation(){
+    this.appreciationCount='';
+    this.rewardsCount='';
+    console.log("this.projectDetails ", this.rewardsCount);
+     this.appreciationAndRewardsCount.empId=this.selectedEmployee.empId;
+    this.employee360Service.getRewardsAndAppreciationCount(this.appreciationAndRewardsCount).pipe(first()).subscribe((response: any) => {
+          if (response.serviceStatus == "Success") {
+            this.rewardsCount = response.serviceResponse[0].rewardsCount;
+            this.appreciationCount = response.serviceResponse[0].appreciationCount;
 
+            console.log("this.projectDetails ",  this.appreciationCount);
+
+          }
+        });
+  }
 
 }
