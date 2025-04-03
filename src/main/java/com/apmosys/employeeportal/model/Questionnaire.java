@@ -34,6 +34,10 @@ public class Questionnaire {
     
     private Long departmentId;
     
+    private Long managerRating;
+    
+    private String managerRemark;
+    
     
     
 

@@ -26,5 +26,8 @@ public class Qresponse {
 	private Float response;
 	private Long empId;
 	private Long quarterId;
+    private Long managerRating;
+    
+    private String managerRemark;
 
 }

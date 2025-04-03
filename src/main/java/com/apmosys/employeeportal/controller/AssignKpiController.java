@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.apmosys.employeeportal.dto.EmployeeKpiDto;
 import com.apmosys.employeeportal.model.EmployeeKpi;
 import com.apmosys.employeeportal.service.EmployeeKpiService;
+import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @RestController
 @RequestMapping("/api/kpi")
@@ -21,12 +22,12 @@ public class AssignKpiController {
 	private EmployeeKpiService employeeKpiService;
 	
 	   @PostMapping("/assign")
-	    public ResponseEntity<EmployeeKpi> assignKpiToEmployee(@RequestBody EmployeeKpiDto employeeKpiDto)
+	    public ServiceResponse assignKpiToEmployee(@RequestBody EmployeeKpiDto employeeKpiDto)
 	    {
 	        
-	        EmployeeKpi employeeKpi = employeeKpiService.assignKpiToEmployee(employeeKpiDto);
+	        ServiceResponse employeeKpi = employeeKpiService.assignKpiToEmployee(employeeKpiDto);
 	        
-	        return new ResponseEntity<>(employeeKpi, HttpStatus.CREATED);
+	        return employeeKpi;
 	    }
 	
 }
