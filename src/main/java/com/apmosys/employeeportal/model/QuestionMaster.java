@@ -38,6 +38,11 @@ public class QuestionMaster {
 	@Column(columnDefinition = "varchar(10) DEFAULT 'Y'")
 	private String documentUpload;
 	
+	@Column(columnDefinition = "varchar(10) DEFAULT 'Y'")
+	private String isActive;
+	
+	private String documentFileName;
+	
 	
 	
 }
