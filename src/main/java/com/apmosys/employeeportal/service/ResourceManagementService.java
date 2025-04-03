@@ -131,6 +131,9 @@ public class ResourceManagementService {
 
 	@Value("${admin.mail}")
 	private String adminMail;
+	
+	@Value("${bd.mail}")
+	private String bdMail;
 
 	public ServiceResponse createDraftProjectInfo(ResourceManagementDTO resourceManagementDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -2455,4 +2458,50 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+
+	 public ServiceResponse sendEmailNotificationToBDTeam(ResourceManagementDTO resourceManagementDTO) {
+		 	ServiceResponse response = new ServiceResponse();
+	        LogDTO apiLogInfo = new LogDTO();
+	        apiLogInfo.setSubFeatureName("sendEmailNotificationToBDTeam");
+	        apiLogInfo.setApiUrl("/api/sendEmailNotificationToBDTeam");
+	        apiLogInfo.setLogLevel("INFO");
+
+	        try {
+	        	DateTimeFormatter inputFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME; // Parses ISO 8601 format
+	            DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy"); 
+
+	            String subject = "PO Expired: Action Required for " + resourceManagementDTO.getProjectName();
+	            
+	            String text = "<p>Dear BD Team,</p>"
+	                    + "<p>We hope this email finds you well.</p>"
+	                    + "<p>The Purchase Order (PO) for the project <b>" + resourceManagementDTO.getName() + "</b> has expired. Below are the PO details:</p>"
+	                    + "<ul>"
+	                    + "<li><b>PO Number:</b> " + resourceManagementDTO.getPoNo() + "</li>"
+	                    + "<li><b>Start Date:</b> " + ZonedDateTime.parse(resourceManagementDTO.getStartDate(), inputFormatter)
+                        .format(outputFormatter) + "</li>"
+	                    + "<li><b>End Date:</b> " + ZonedDateTime.parse(resourceManagementDTO.getEndDate(), inputFormatter)
+                        .format(outputFormatter) + "</li>"
+	                    + "</ul>"
+	                    + "<p>Currently, resources are still allocated to this project. We kindly request you to either initiate the PO renewal process or confirm if the project has been completed so that we can proceed with the necessary resource reallocation.</p>"
+	                    + "<p>Please let us know how you would like to proceed at your earliest convenience.</p>"
+	                    + "<p><b>Best Regards,</b><br/>RMG Team</p>";
+	            
+	            boolean isSent = mailService.sendMailWithCC(bdMail, rmgMail, subject, text);
+	            
+	            if (isSent) {
+	            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Email sent successfully to BD Team.");
+	            } else {
+	            	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Email sent successfully to BD Team.");
+	            }
+	        } catch (MessagingException e) {
+	            e.printStackTrace();
+	            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	            response.setServiceResponse("Error while sending email: " + e.getMessage());
+	        }
+	        
+	        return response;
+	    }
+	
 }

@@ -367,26 +367,21 @@ export class ResourceManagementComponent implements OnInit {
                       const matchedProjectEndDate = normalizeDate(matchedProject?.endDate);
                       if (allPoProj?.poNo === matchedProject?.poNo && allPoProjEndDate === matchedProjectEndDate ) {
                         internalProj.isSynced = true;
-                        internalProj.isMail = false;
-                        console.log('Match found - Project ID');
                       } else if (allPoProj.poNo != matchedProject.poNo || allPoProjEndDate != matchedProjectEndDate) {
                         internalProj.isSynced = false;
-                        internalProj.isMail = false;
-                        console.log('Match not found - Project ID');
-                      } else if (allPoProj.poNo === null || allPoProjEndDate === null) {
-                        internalProj.isSynced = false;
-                        internalProj.isMail = true;
-                        console.log('Project ID matches, but poNo differs');
                       } else {
                         console.log('Internal Project ', internalProj?.projectId);
                       }
+                      if (new Date(matchedProjectEndDate) < new Date()) {
+                        internalProj.isMail = true;
+                      } 
                     }
                   }
                 });
               }
           });
 
-            // console.error("  allProject_Po_Internal   ", this.allProject_Po_Internal);
+            console.error("  allProject_Po_Internal   ", this.allProject_Po_Internal);
           } else {
             console.error(response.serviceResponse);
           }
@@ -1361,8 +1356,17 @@ console.log("this.copyDepartment ",this.copyDepartment);
   }
 
   syncPoProjectDetailsByProjectId(template: TemplateRef<any>, project: any) {
-    project.projectType = 'TNM'
     this.resourceManagementService.syncPoProjectDetailsByProjectId(project).pipe(first()).subscribe((response: any) => { 
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  sendEmailNotificationToBDTeam(template: TemplateRef<any>, project: any) {
+    this.resourceManagementService.sendEmailNotificationToBDTeam(project).pipe(first()).subscribe((response: any) => { 
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
       } else {
