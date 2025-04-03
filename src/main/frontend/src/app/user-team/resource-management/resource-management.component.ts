@@ -111,6 +111,7 @@ export class ResourceManagementComponent implements OnInit {
   currentBreadcrumbList: any[] = [];
   // employeesFor360: any[] = [];
   allEmployeeList360: any[] = [];
+  poProjectListFromIshine: any[] = [];
 
   constructor(
     private departmentService: DepartmentService,
@@ -236,6 +237,10 @@ export class ResourceManagementComponent implements OnInit {
   ];
 
   getAllProjects() {
+    this.resourceManagementService.getPoProjectDetailsForPoProjects().pipe(first()).subscribe((response: any) => { 
+      this.poProjectListFromIshine = response.serviceResponse;
+    });
+
     fetch(this.currentUser.poPortalAllProjectApi).then(res => res.json()).then(async data => {
       let allPoProject = data;
       //console.log("allPoProject    V  allPoProject   ",allPoProject);
@@ -345,6 +350,36 @@ export class ResourceManagementComponent implements OnInit {
 
             //console.log(_projectList, " all projects");
             // console.log(this.internalProjectList, " this.internalProjectList");
+
+            this.allProject_Po_Internal.forEach((internalProj) => {
+              if(internalProj.id != null){
+                allPoProject.forEach((allPoProj) => {
+                  if (allPoProj?.id != null) {
+                    let matchedProject = this.poProjectListFromIshine.find(
+                      (poProj) => poProj?.id === internalProj?.id
+                    );
+                
+                    if (matchedProject && matchedProject?.id != null && allPoProj.id === matchedProject.id) {
+                      const normalizeDate = (dateString) => {
+                        return new Date(dateString).toISOString().split('T')[0]; 
+                      };
+                      const allPoProjEndDate = normalizeDate(allPoProj?.endDate);
+                      const matchedProjectEndDate = normalizeDate(matchedProject?.endDate);
+                      if (allPoProj?.poNo === matchedProject?.poNo && allPoProjEndDate === matchedProjectEndDate ) {
+                        internalProj.isSynced = true;
+                      } else if (allPoProj.poNo != matchedProject.poNo || allPoProjEndDate != matchedProjectEndDate) {
+                        internalProj.isSynced = false;
+                      } else {
+                        console.log('Internal Project ', internalProj?.projectId);
+                      }
+                      if (new Date(matchedProjectEndDate) < new Date()) {
+                        internalProj.isMail = true;
+                      } 
+                    }
+                  }
+                });
+              }
+          });
 
             console.error("  allProject_Po_Internal   ", this.allProject_Po_Internal);
           } else {
@@ -1320,5 +1355,24 @@ console.log("this.copyDepartment ",this.copyDepartment);
     this.showEditProjectForm(this.projectObj);
   }
 
+  syncPoProjectDetailsByProjectId(template: TemplateRef<any>, project: any) {
+    this.resourceManagementService.syncPoProjectDetailsByProjectId(project).pipe(first()).subscribe((response: any) => { 
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  sendEmailNotificationToBDTeam(template: TemplateRef<any>, project: any) {
+    this.resourceManagementService.sendEmailNotificationToBDTeam(project).pipe(first()).subscribe((response: any) => { 
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
 
 }

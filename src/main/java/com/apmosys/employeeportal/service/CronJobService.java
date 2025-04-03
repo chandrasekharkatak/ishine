@@ -277,6 +277,9 @@ public class CronJobService {
 	@Value("${leavetypeId}")
 	private int leaveTypeId;
 	
+	@Value("${admin.mail}")
+	private String adminMail;
+	
 	 @PersistenceContext
 	 EntityManager entityManager;
 	 
@@ -5698,16 +5701,16 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		}
 		
 		@Async
-		@Scheduled(cron = "0 35 19 ? * *")
+		@Scheduled(cron = "0 36 12 ? * *")
 		@Transactional
 		public void getProjectCloneFromPoPortal() {
 			
 			LogDTO apiLogInfo = new LogDTO();
-	        apiLogInfo.setSubFeatureName("createDraftProjectInfo");
-	        apiLogInfo.setApiUrl("/api/createDraftProjectInfo");
+	        apiLogInfo.setSubFeatureName("getProjectCloneFromPoPortal");
+	        apiLogInfo.setApiUrl("/api/getProjectCloneFromPoPortal");
 	        apiLogInfo.setLogLevel("INFO");
 	        StringBuilder logBuilder = new StringBuilder();
-	        logBuilder.append("Cron to update existing po-project details in Ishine started");
+	        logBuilder.append("Cron to update existing po-project details in Ishine started! ");
 
 		    List<ProjectPoPortalDTO> list = new ArrayList<>();
 		    
@@ -5816,7 +5819,6 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 				        logBuilder.append("Error updating project ID: " + dto.getId() + " - " + ex.getMessage());
 		            }
 		            
-		            Set<String> uniqueEmails = new HashSet<>();
 		            List<Object[]> expiredProjects = projectRepository.getExpiredPoProjects();
 
                     if (expiredProjects.isEmpty()) {
@@ -5830,6 +5832,9 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 
 
                     for (Object[] projects : expiredProjects) {
+                    
+    		            Set<String> uniqueEmails = new HashSet<>();
+    		            
                     	String employeeName = (String) projects[0];
                         String projectName = (String) projects[1];
                         String teamName = (String) projects[2];
@@ -5855,6 +5860,8 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
                         
                         String hodEmail = (String) projects[7];
                         
+                        String empEmail = (String) projects[8];
+                        
                         if (hodEmail != null && !hodEmail.isEmpty()) {
                             uniqueEmails.add(hodEmail);
                         }
@@ -5869,6 +5876,15 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
                              }
                          }
                      }
+                     
+                     if (adminMail != null && !adminMail.trim().isEmpty()) {
+                         String[] adminMails = adminMail.split(",");
+                         for (String email : adminMails) {
+                             if (email != null && !email.trim().isEmpty()) {
+                                 uniqueEmails.add(email.trim()); 
+                             }
+                         }
+                     }
 
                      for (String email : uniqueEmails) {
                          if (ccEmailBuilder.length() > 0) {
@@ -5878,31 +5894,29 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
                      }
 
                      String ccEmails = ccEmailBuilder.toString();
-                        
-                        List<String> emails = projectRepository.getEmployeeEmailsByProjectId(projectId);
 
-                        if (!emails.isEmpty()) {
-                        	for (String email : emails) {
+                        if (!empEmail.isEmpty()) {
+                        	
                                 String emailBody = buildEmailContent(employeeName, projectName, teamName, poStartDate, poEndDate, allocationStartDate);
 
                                 try {
-                                    mailService.sendMailWithoutAttachmentWithMailBody2( 
-                                    		"anyush.panda@apmosys.com",
-                                            "Project PO Expiry Notification", 
-                                            emailBody,
-                                    		"priyadarshini.singh@apmosys.com"
-                                    );
 //                                    mailService.sendMailWithoutAttachmentWithMailBody2( 
-//                                    		email,
+//                                    		"anyush.panda@apmosys.com",
 //                                            "Project PO Expiry Notification", 
-//                                            emailBody,  
-//                                            ccEmails
+//                                            emailBody,
+//                                    		"priyadarshini.singh@apmosys.com"
 //                                    );
-                    		        logBuilder.append("Mail sent to " + email + " for expired PO: " + projectName);
+                                    mailService.sendMailWithoutAttachmentWithMailBody2( 
+                                    		empEmail,
+                                            "Project PO Expiry Notification", 
+                                            emailBody,  
+                                            ccEmails
+                                    );
+                    		        logBuilder.append("Mail sent to " + empEmail + " for expired PO: " + projectName);
                                 } catch (MessagingException e) {
-                    		        logBuilder.append("Error sending mail to " + email + " for PO: " + projectName + " - " + e.getMessage());
+                    		        logBuilder.append("Error sending mail to " + empEmail + " for PO: " + projectName + " - " + e.getMessage());
                                 }
-                            }                        
+                                             
                         	} else {
                 		        logBuilder.append("No employees found for project ID: " + projectId);
                         }
@@ -5915,6 +5929,9 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
                     }
 
                     for (Object[] projects : expiredProjectsWithoutInterval) {
+
+    		            Set<String> uniqueEmails = new HashSet<>();
+    		            
                         String employeeName = (String) projects[0];
                         String projectName = (String) projects[1];
                         String teamName = (String) projects[2];
@@ -5938,6 +5955,8 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
                         Integer projectId = (Integer) projects[6];
 
                         String hodEmail = (String) projects[7];
+                        
+                        String empEmail = (String) projects[8];
 
                         if (hodEmail != null && !hodEmail.isEmpty()) {
                             uniqueEmails.add(hodEmail);
@@ -5952,6 +5971,15 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
                                 }
                             }
                         }
+                        
+                        if (adminMail != null && !adminMail.trim().isEmpty()) {
+                            String[] adminMails = adminMail.split(",");
+                            for (String email : adminMails) {
+                                if (email != null && !email.trim().isEmpty()) {
+                                    uniqueEmails.add(email.trim()); 
+                                }
+                            }
+                        }
 
                         for (String email : uniqueEmails) {
                             if (ccEmailBuilder.length() > 0) {
@@ -5962,31 +5990,27 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 
                         String ccEmails = ccEmailBuilder.toString();
 
-                        List<String> emails = projectRepository.getEmployeeEmailsByProjectId(projectId);
-
-                        if (!emails.isEmpty()) {
-                            for (String email : emails) {
+                        if (!empEmail.isEmpty()) {
+                            
                                 String emailBody = buildEmailContent2(employeeName, projectName, teamName, poStartDate, poEndDate, allocationStartDate);
 
                                 try {
-                                	mailService.sendMailWithoutAttachmentWithMailBody2( 
-                                    		"anyush.panda@apmosys.com",
-                                            "Project PO Expiry Notification", 
-                                            emailBody,
-                                    		"priyadarshini.singh@apmosys.com"
-                                    );
-//                                    mailService.sendMailWithoutAttachmentWithMailBody2(
-//                                            email,
-//                                            "Project Expiry Notification",
+//                                	mailService.sendMailWithoutAttachmentWithMailBody2( 
+//                                    		"anyush.panda@apmosys.com",
+//                                            "Project PO Expiry Notification", 
 //                                            emailBody,
-//                                            ccEmails
+//                                    		"priyadarshini.singh@apmosys.com"
 //                                    );
-                                    logBuilder.append("Mail sent to " + email + " for expired PO: " + projectName);
+                                    mailService.sendMailWithoutAttachmentWithMailBody2(
+                                            empEmail,
+                                            "Project Expiry Notification",
+                                            emailBody,
+                                            ccEmails
+                                    );
+                                    logBuilder.append("Mail sent to " + empEmail + " for expired PO: " + projectName);
                                 } catch (MessagingException e) {
-                                    logBuilder.append("Error sending mail to " + email + " for PO: " + projectName + " - " + e.getMessage());
+                                    logBuilder.append("Error sending mail to " + empEmail + " for PO: " + projectName + " - " + e.getMessage());
                                 }
-                            }
-                        
                         }
                     }
 		        }
@@ -6027,7 +6051,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 					+ "<tr><th>Project Name</th><th>Team Name</th><th>PO Start Date</th>"
 					+ "<th>PO End Date</th><th>Employee Allocation Start Date</th></tr>"
 					+ "<tr><td>" + projectName + "</td><td>" + teamName + "</td><td>" 
-					+ "<td>" + poStartDate + "</td><td>" + poEndDate + "</td><td>" + allocationStartDate + "</td></tr>"
+					+ poStartDate + "</td><td>" + poEndDate + "</td><td>" + allocationStartDate + "</td></tr>"
 					+ "</table><br><br>"
 					+ "<p>Regards,</p>"
 					+ "<p>RMG Team</p>"
