@@ -561,7 +561,5 @@ public class EmployeeController {
 	public ServiceResponse getAllEmployeesWorkAnniversaryToday() {
 	    return employeeService.getAllEmployeesWorkAnniversaryToday();
 	}
-
 	
-
 }
