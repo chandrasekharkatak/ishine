@@ -103,8 +103,27 @@ public class DepartmentService {
 		            logService.logMyInfo(httpRequest, apiLogInfo);
 		            return response;
 		        }
-			Department newDepartment = new Department();
-			newDepartment.setName(departmentDTO.getName());
+		        
+		        System.err.println(departmentDTO.getName()) ; 
+		        List<Department> existingDeptName = departmentRepository.findByDeptName(departmentDTO.getName());
+		        System.err.println(existingDeptName) ;     
+		        if (existingDeptName != null && !existingDeptName.isEmpty()) {
+		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceResponse("Department Name already exists.");
+		            
+		            apiLogInfo.setApiResponse("Department Name already exists.");            
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);  
+		            apiLogInfo.setLogLevel("ERROR");
+		            logService.logMyInfo(httpRequest, apiLogInfo);
+		            return response;
+		        }
+		        		
+		        		
+		        		
+		        		
+		    Department newDepartment = new Department();
+		        
+			newDepartment.setName(departmentDTO.getName()); 
 			newDepartment.setHodId(departmentDTO.getHodId());
 			newDepartment.setCreatedBy(departmentDTO.getCreatedBy());
 			newDepartment.setDeptAbbreviation(departmentDTO.getDeptAbbreviation());
@@ -223,6 +242,7 @@ public class DepartmentService {
 					departmentDTO.setUpdatedOn(object[7] != null ? object[7].toString(): null);
 					departmentDTO.setUpdatedByName(object[8] != null ? object[8].toString() : null);
 					departmentDTO.setDeptAbbreviation(object[9] != null ? object[9].toString() : null);
+					departmentDTO.setUpdatedBy(object[10] != null ? Integer.parseInt(object[10].toString()) : null);
 					dtoList.add(departmentDTO);      
 				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

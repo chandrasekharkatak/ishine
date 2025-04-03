@@ -127,7 +127,11 @@ import { TeamDashboardComponent } from './user-performance/team-dashboard/team-d
 import { TemplatesComponent } from './user-performance/templates/templates.component';
 import { QuarterCycleComponent } from './user-performance/quarter-cycle/quarter-cycle.component';
 import { ViewPerformanceComponent } from './user-performance/view-performance/view-performance.component';
-
+import { NavigateToProjectViewDirective } from './navigate-to-project-view.directive';
+import { ProjectViewComponent } from './project-view/project-view.component';
+import { PerformanceConfigComponent } from './configuration/performance-config/performance-config.component';
+import { ProjectInsightsConfigComponent } from './configuration/project-insights-config/project-insights-config.component';
+import { QuestionComponent } from './configuration/project-insights-config/question/question.component';
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
 
@@ -224,6 +228,11 @@ import { ViewPerformanceComponent } from './user-performance/view-performance/vi
     TemplatesComponent,
     QuarterCycleComponent,
     ViewPerformanceComponent,
+     NavigateToProjectViewDirective,
+     ProjectViewComponent,
+     PerformanceConfigComponent,
+     ProjectInsightsConfigComponent,
+     QuestionComponent,
 
     //TestComponent
   ],

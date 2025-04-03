@@ -173,8 +173,8 @@
         <div class="row">
 
             <div class="col-md-12">
-                <div class="selector-toggle" (click)="toggleSearch()">
-                    <a href="javascript:void(0)">
+                <div class="selector-toggle" >
+                    <a href="javascript:void(0)" (click)="toggleSearch()">
                         <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
@@ -213,22 +213,28 @@
                             <tr
                                 *ngFor="let rewardHistory of rewardHistoryList  | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page },  let i = index">
                                 <th class="info-label">{{items *(page-1)+i+1}}</th>
-                                <td>{{rewardHistory.rewardedToByName}}</td>
+                                <td id="clickablefor360" *ngIf="userMapping.reward_employee_360" [navigateToEmployee360]="rewardHistory.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{rewardHistory.rewardedToByName}}</td>
+                                <td *ngIf="!userMapping.reward_employee_360">{{rewardHistory.rewardedToByName}}</td>
                                 <td>{{rewardHistory.rewardTypeName}}</td>
-                                <td>{{rewardHistory.createdByName}}</td>
+                                <td id="clickablefor360" *ngIf="userMapping.reward_employee_360" [navigateToEmployee360]="rewardHistory.emp360RewardBy" style="cursor: pointer;" title="Click to view Employee 360">{{rewardHistory.createdByName}}</td>
+                                <td *ngIf="!userMapping.reward_employee_360">{{rewardHistory.createdByName}}</td>
                                 <td>{{rewardHistory.createdOn}}</td>
-                                <td>{{rewardHistory.managerName}}</td>
+                                <td id="clickablefor360" *ngIf="userMapping.reward_employee_360" [navigateToEmployee360]="rewardHistory.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{rewardHistory.managerName}}</td>
+                                <td *ngIf="!userMapping.reward_employee_360">{{rewardHistory.managerName}}</td>
                                 <td>{{rewardHistory.ofmonthyear}}
-                                <td>{{rewardHistory.updatedByName || 'N/A'}}</td>
+                                <td id="clickablefor360" *ngIf="userMapping.reward_employee_360" [navigateToEmployee360]="rewardHistory.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{rewardHistory.updatedByName || 'N/A'}}</td>
+                                <td *ngIf="!userMapping.reward_employee_360">{{rewardHistory.updatedByName || 'N/A'}}</td>
                                 <td>{{rewardHistory.updatedOn}}</td>
                                 <td>{{rewardHistory.remark}}</td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-primary" type="submit"
                                         (click)="editReward(rewardHistory.rewardId)"><em
                                             class="fa fa-edit"></em></button>&nbsp;
-                                    <button class="btn btn-sm btn-outline-danger" type="button"
-                                        (click)="deleteEmployeeRewardByRewardId(rewardHistory.rewardId,alert_message)"><em
-                                            class="fa fa-trash"></em></button>&nbsp;
+                                            <button class="btn btn-sm btn-outline-danger" type="button"
+                                            (click)="openConfirmDeleteModal(confirmDelete, rewardHistory.rewardId)">
+                                            <em class="fa fa-trash"></em>
+                                          </button>
+                                          
                                     <button *ngIf="rewardHistory.isActive === 0" class="btn btn-sm btn-outline-success"
                                         type="button" (click)="Approve(rewardHistory.rewardId, alert_message)"><em
                                             class="fa fa-check"></em></button>
@@ -296,3 +302,12 @@
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
     </div>
 </ng-template>
+
+<ng-template #confirmDelete let-modal>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to delete this reward?</p>
+        <button type="button" class="btn btn-success" (click)="confirmDeleteReward(alert_message)">Yes</button>&nbsp;&nbsp;
+        <button type="button" class="btn btn-danger" (click)="modalRef?.hide()">No</button>
+    </div>
+</ng-template>
+  

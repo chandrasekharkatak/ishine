@@ -16,9 +16,25 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 
 	@Transactional
 	void deleteAllByTeamId(Long teamId);
+	//added by rahul SIngh
+		@Query(nativeQuery = true)
+		List<Object[]> findEmployeeByTeamId(Long team_id);
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getTeamMembersByTeamId(Long teamId);
+	
+	@Query(nativeQuery = true, value="select et.emp_id,a.team_id,t.team_name,p.client_id,c.client_name,\n"
+			+ "cl.client_location,a.activity,a.eta ,etam.completion_time, em.name\n"
+			+ "from employee_timesheets et \n"
+			+ "inner join employee_timesheet_activities_mapping etam on etam.timesheet_id = et.timesheet_id\n"
+			+ "inner join activities a on etam.activity_id = a.activity_id\n"
+			+ "inner join teams t on t.team_id = a.team_id\n"
+			+ "inner join projects p on p.project_id = t.project_id\n"
+			+ "inner join clients c on c.client_id = p.client_id\n"
+			+ "Inner join employee as em on et.emp_id=em.emp_id\n"
+			+ "inner join client_locations cl on cl.client_id = p.client_id\n"
+			+ "where t.team_id=?  group by et.emp_id")
+	public List<Object[]> getTeamMembersByTeamIdBioMax(Long teamId);
 
 	List<EmployeeTeamMap> findByEmpId(Long empId);
 	
@@ -80,7 +96,7 @@ List<EmployeeTeamMap> findByProjectIdAndActive(Integer projectId,Long active);
 	 @Query(nativeQuery = true)
 	List<Object[]> findTeammembersByTeamIdAndManagerId(Long teamId, Long managerId);
 
-	 @Query(nativeQuery = true)
+	@Query(nativeQuery = true)
 	List<Object[]> getAllProjectsTeamsInfo(Long empId);
 
 	@Modifying
@@ -88,4 +104,8 @@ List<EmployeeTeamMap> findByProjectIdAndActive(Integer projectId,Long active);
 	@Query(nativeQuery = true)
 	void updateActiveFieldToZero(Long key);
 
+	@Query(nativeQuery = true)
+	List<Object[]> getEmployeePersonaForProject(Long employeeId,Long projectId);
+
+	
 }

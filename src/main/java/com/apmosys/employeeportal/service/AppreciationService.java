@@ -858,6 +858,9 @@ public class AppreciationService {
                            dto.setAppreciationToName(object[5] != null ? object[5].toString() : null);
                            dto.setAppreciateType(object[6] != null ? object[6].toString() : null);
                            dto.setComment(object[7] != null ? object[7].toString() : null);
+                           dto.setAppreciationByByEmpId(object[8] != null ? Long.parseLong(object[8].toString()) : null);
+                           dto.setAppreciationToByEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+                           
                            dtoList.add(dto);
                        });
                        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -900,15 +903,15 @@ public class AppreciationService {
         apiLogInfo.setApiRequest(logBuilder.toString());
 
         try {
-            // Fetch employeement_id for the given emp_id
-            Long currentUserEmployeementId = appreciationRepository.findEmployeementIdByEmpId(appreciationDTO.getEmpId());          
-            // Fetch appreciation details of the user's team members
-            System.out.print(currentUserEmployeementId);
+            
+//            Long currentUserEmployeementId = appreciationRepository.findEmployeementIdByEmpId(appreciationDTO.getEmpId());          
+//           
+//            System.out.print(currentUserEmployeementId);
             List<Object[]> appreciationList = appreciationRepository.getTeamAppreciationDetails(
                 appreciationDTO.getStartDate(),
                 appreciationDTO.getEndDate(),
-                appreciationDTO.getEmpId(),                 // Use employeementId for further filtering
-                currentUserEmployeementId
+                appreciationDTO.getEmpId()             
+                
             );
 
             Optional.ofNullable(appreciationList).ifPresentOrElse((list) -> {
@@ -929,6 +932,8 @@ public class AppreciationService {
                         dto.setAppreciationToName(object[5] != null ? object[5].toString() : null);
                         dto.setAppreciateType(object[6] != null ? object[6].toString() : null);
                         dto.setComment(object[7] != null ? object[7].toString() : null);
+                        dto.setAppreciationByByEmpId(object[8] != null ? Long.parseLong(object[8].toString()) : null);
+                        dto.setAppreciationToByEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
                         dtoList.add(dto);
                     });
                     response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -946,10 +951,10 @@ public class AppreciationService {
             response.setServiceResponse("An error occurred while fetching appreciation details.");
             apiLogInfo.setApiResponse("Error: " + e.getMessage());
             apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-            e.printStackTrace(); // Consider using a logging framework for production
+            e.printStackTrace();
         }
 
-        logService.logMyInfo(httpRequest, apiLogInfo); // Assuming this method logs the information
+        logService.logMyInfo(httpRequest, apiLogInfo); 
         return response;
     }
 

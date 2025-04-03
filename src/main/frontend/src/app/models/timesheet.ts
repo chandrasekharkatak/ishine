@@ -1,4 +1,5 @@
 export class Timesheet{
+  [x: string]: any;
     checkId:any
     timesheetId:any;
     date:any;

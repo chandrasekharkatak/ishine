@@ -87,12 +87,12 @@ public interface AppreciationRepository extends JpaRepository<Appreciation, Long
     @Query(nativeQuery = true)
     public Long countTotalAppreciationByIDandType_You_are_a_Motivator(Long appreciationEventId);
     
-    @Query(value = "SELECT a.appreciation_date, ae.appreciation_event_name, a.appreciation_by, eb.name AS appreciated_byName, a.appreciation_to, et.name AS appreciated_toName, a.appriate_type, a.comment " +
+    @Query(value = "SELECT a.appreciation_date, ae.appreciation_event_name, a.appreciation_by, eb.name AS appreciated_byName, a.appreciation_to, et.name AS appreciated_toName, a.appriate_type, a.comment, eb.emp_id AS appreciated_by_id, et.emp_id AS appreciated_to_id " +
             "FROM appreciation a " +
             "JOIN appreciation_event ae ON a.appreciation_event_id = ae.appreciation_eventid " +
             "JOIN employee eb ON a.appreciation_by = eb.employeement_id " +
             "JOIN employee et ON a.appreciation_to = et.employeement_id " +
-            "WHERE (a.appreciation_by = :employeementId OR a.appreciation_to = :employeementId) " +
+            "WHERE a.appreciation_to = :employeementId " +
             "AND DATE(a.appreciation_date) BETWEEN :startDate AND :endDate", 
     nativeQuery = true)
 List<Object[]> getMyAppreciationDetails(@Param("startDate") String startDate, 
@@ -100,26 +100,36 @@ List<Object[]> getMyAppreciationDetails(@Param("startDate") String startDate,
                                    @Param("employeementId") Long employmentId);
 
 
-@Query(value="SELECT a.appreciation_date, ae.appreciation_event_name, a.appreciation_by, eb.name AS appreciated_byName, " +
-	       "a.appreciation_to, et.name AS appreciated_toName, a.appriate_type, a.comment " +
-	       "FROM appreciation a " +
-	       "JOIN appreciation_event ae ON a.appreciation_event_id = ae.appreciation_eventid " +
-	       "JOIN employee eb ON a.appreciation_by = eb.employeement_id " +
-	       "JOIN employee et ON a.appreciation_to = et.employeement_id " +
-	       "WHERE a.appreciation_to IN ( " +
-	       "   SELECT e.employeement_id FROM employee e WHERE e.emp_id IN ( " +
-	       "       SELECT etm.emp_id FROM employee_team_mapping etm WHERE etm.team_id IN ( " +
-	       "           SELECT etm2.team_id FROM employee_team_mapping etm2 WHERE etm2.emp_id = :currentUserEmpId " +
-	       "       ) " +
-	       "   ) " +
-	       ") " +
-	       "AND a.appreciation_to != :currentUserEmployeementId " + // Exclude the current user from being appreciated
-	       "AND a.appreciation_by != :currentUserEmployeementId " + // Exclude the current user from appreciating others
-	       "AND DATE(a.appreciation_date) BETWEEN :startDate AND :endDate",nativeQuery = true)
+@Query(value="SELECT \r\n"
+		+ "    a.appreciation_date, \r\n"
+		+ "    ae.appreciation_event_name, \r\n"
+		+ "    a.appreciation_by, \r\n"
+		+ "    eb.name AS appreciated_byName, \r\n"
+		+ "    a.appreciation_to, \r\n"
+		+ "    et.name AS appreciated_toName, \r\n"
+		+ "    a.appriate_type, \r\n"
+		+ "    a.comment, eb.emp_id AS appreciated_by_id, et.emp_id AS appreciated_to_id  \r\n"
+		+ "FROM appreciation a \r\n"
+		+ "JOIN appreciation_event ae ON a.appreciation_event_id = ae.appreciation_eventid \r\n"
+		+ "JOIN employee eb ON a.appreciation_by = eb.employeement_id \r\n"
+		+ "JOIN employee et ON a.appreciation_to = et.employeement_id \r\n"
+		+ "WHERE a.appreciation_to IN ( \r\n"
+		+ "    SELECT e.employeement_id \r\n"
+		+ "    FROM employee e \r\n"
+		+ "    WHERE e.emp_id IN ( \r\n"
+		+ "        SELECT etm.emp_id \r\n"
+		+ "        FROM employee_team_mapping etm \r\n"
+		+ "        WHERE etm.team_id IN ( \r\n"
+		+ "            SELECT etm2.team_id \r\n"
+		+ "            FROM employee_team_mapping etm2 \r\n"
+		+ "            WHERE etm2.emp_id = :currentUserEmpId\r\n"
+		+ "        ) \r\n"
+		+ "    ) \r\n"
+		+ ") \r\n"
+		+ "AND DATE(a.appreciation_date) BETWEEN :startDate AND :endDate",nativeQuery = true)
 	List<Object[]> getTeamAppreciationDetails(@Param("startDate") String startDate, 
 	                                          @Param("endDate") String endDate, 
-	                                          @Param("currentUserEmpId") Long currentUserEmpId,
-	                                          @Param("currentUserEmployeementId") Long currentUserEmployeementId);
+	                                          @Param("currentUserEmpId") Long currentUserEmpId);
 	
 	
 	
@@ -137,14 +147,14 @@ List<Object[]> getMyAppreciationDetails(@Param("startDate") String startDate,
 		List<AppreciationDetailsDTO> getAppreciationDetailsByEmpId(@Param("empId") Long empId);
 	
 	@Query(
-			"SELECT new com.apmosys.employeeportal.dto.AppreciationDetailsDTO( " +
+			"SELECT DISTINCT new com.apmosys.employeeportal.dto.AppreciationDetailsDTO( " +
 			"e.empId, a.appreciateType, a.appreciationDate, e.name, ae.fromDate, ae.toDate) " +
 			"FROM com.apmosys.employeeportal.model.Appreciation a " +
 			"JOIN com.apmosys.employeeportal.model.AppreciationEvent ae ON a.appreciationEventId = ae.appreciationEventid " +
 			"JOIN com.apmosys.employeeportal.model.Employee e ON e.employeementId=a.appreciationTo "+
 			"JOIN com.apmosys.employeeportal.model.EmployeeTeamMap etm ON e.empId = etm.empId " + 
-			"WHERE a.appreciationTo in (SELECT empId FROM EmployeeTeamMap WHERE teamId IN " +
-			"(SELECT teamId FROM EmployeeTeamMap WHERE empId = :empId)) " +
+			"WHERE a.appreciationTo in (SELECT employeementId FROM Employee WHERE empId  IN (SELECT empId FROM EmployeeTeamMap WHERE teamId IN " +
+			"(SELECT teamId FROM EmployeeTeamMap WHERE empId  IN( SELECT empId FROM Employee e3 WHERE  e3.employeementId = :empId) ))) " +
 			"AND a.appreciateType IN (SELECT appreciateType FROM Appreciation WHERE appreciationTo = :empId) "
 			)
 		List<AppreciationDetailsDTO> getTeamAppreciationDetailsByEmpId(@Param("empId") Long empId);

@@ -43,6 +43,9 @@ const Accessibility = require('highcharts/modules/accessibility');
 Accessibility(Highcharts);
 import * as Highcharts from 'highcharts';
 import { UtilityService } from 'src/app/services/utility.service';
+import { Feature } from 'src/app/models/feature';
+import { Employee360Service } from 'src/app/services/employee360.service';
+import { SortPipe } from 'src/app/sort.pipe';
 
 HC_exportData(HighCharts);
 
@@ -154,6 +157,9 @@ public label;
 options:any;
 //end.........
 
+  userMapping: any = {};
+  feature = 'Reports';
+  employeesFor360: any[] = [];
 
   constructor(
     private leaveService : LeaveService,
@@ -165,11 +171,17 @@ options:any;
     private departmentService : DepartmentService,
     private domainService : DomainService,
     private authenticationService: AuthenticationService,
+    public utilityService: UtilityService,
   ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit(): void {
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+        featureMap.subFeatures?.forEach(sub => {
+          this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+        });
     this.sectionViewInit();
     this.preventBackButton();
+    this.getAllEmployeeFor360View();
   }
   preventBackButton(){
     history.pushState(null, null, location.href);
@@ -267,9 +279,15 @@ options:any;
           employee.dateOfResign = (employee.dateOfResign)? moment(employee.dateOfResign).format(AppComponent.DATE_FORMAT) : null;
           employee.dateOfRelieving = (employee.dateOfRelieving)? moment(employee.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
 
+          let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === employee.employeementId);
+          employee.emp360 = matchingEmployee ? matchingEmployee : {};
+
+          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === employee.managerId);
+          // console.log("leave match ",matchingEmployee);
+          employee.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
         });
 
-        //console.log("allResignEmployee : ", this.allResignEmployee)
+        // console.log("allResignEmployee : ", this.allResignEmployee)
 
       } else {
         console.error(response.serviceResponse)
@@ -281,7 +299,7 @@ options:any;
 
   getAllBillableEmployeeData(){
     // getDepartmentWiseBillableData
-    console.log("Anurag check second mgetDepartmentWiseBillableData ");
+    // console.log("Anurag check second mgetDepartmentWiseBillableData ");
 
     this.departmentWiseBillableEmployeeList = [];
     this.queryList = [];
@@ -307,8 +325,13 @@ options:any;
           let age = this.getAge(data.dateOfBirth);
           data.age = age;
 
+          let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === data.employeementId);
+          data.emp360 = matchingEmployee ? matchingEmployee : {};
+          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === data.managerId);
+          // console.log("leave match ",matchingEmployee);
+          data.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {}
         })
-        console.log("this.departmentWiseBillableEmployeeList ",this.departmentWiseBillableEmployeeList );
+        // console.log("this.departmentWiseBillableEmployeeList ",this.departmentWiseBillableEmployeeList );
       }
       this.extractDataForBillable()
     })
@@ -337,6 +360,12 @@ options:any;
           if(leave.toDateDayType != null){
             leave.toDateDayType = leave.toDateDayType === 0 ? "Full Day" : "Half Day";
           }
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === leave.empId);
+          // console.log("leave match ",matchingEmployee);
+          leave.emp360 = matchingEmployee ? matchingEmployee : {};
+          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === leave.managerId);
+          // console.log("leave match ",matchingEmployee);
+          leave.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
         });
 
         //console.log("leaveSumarryList : ", this.leaveSumarryList);
@@ -558,7 +587,7 @@ options:any;
     this.timesheetService.getLast9DaysTimesheetReport().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.timsheetSummaryList = response.serviceResponse;
-        //console.log("timsheetSummaryList : ", this.timsheetSummaryList);
+        // console.log("timsheetSummaryList : ", this.timsheetSummaryList);
         this.extractTimesheetReportData();
       } else {
         console.error(response.serviceResponse);
@@ -611,6 +640,14 @@ options:any;
           }else{
             totalListCount++;
           }
+
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === timesheet.empId);
+          // console.log("extractTimesheetReportData ",matchingEmployee);
+          timesheet.emp360 = matchingEmployee ? matchingEmployee : {};
+          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === timesheet.managerId);
+          console.log("extractTimesheetReportData ",matchingEmployee2);
+          timesheet.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
+
         });
 
         this.zeroToFive = ((zeroToFiveCount / totalListCount) * 100).toFixed(2) + "%";
@@ -745,8 +782,14 @@ options:any;
     this.employeeService.getEmployeeWorkLocationForSummary().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.employeeWorkLocationList = response.serviceResponse;
+        // console.log("Initial employeeWorkLocationList: ", this.employeeWorkLocationList);
         this.employeeWorkLocationList.forEach(data =>{
           data.employeementId = "A-".concat(data.employeementId)
+
+          let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === data.employeementId);
+          // console.log("matchingEmployee",matchingEmployee);
+          data.emp360 = matchingEmployee ? matchingEmployee : {};
+
           // if(data.isConsultant == 'true'){
           //   data.employeementId = "A-CS-".concat(data.employeementId)
           // }else {
@@ -760,7 +803,7 @@ options:any;
             data.employeeType = "Regular"
           }
         })
-        console.log("Initial employeeWorkLocationList: ", this.employeeWorkLocationList);
+        // console.log("Initial employeeWorkLocationList: ", this.employeeWorkLocationList);
 
         // this.employeeWorkLocationList = this.employeeWorkLocationList.filter((value, index, self) =>
         //   index === self.findIndex((t) => (
@@ -780,8 +823,8 @@ options:any;
         let employeeWorkLocationChartData = Object.entries(workLocationCount).map(([location, count]) => ([location, count]));
         let employeeWorkLocationCategories = employeeWorkLocationChartData.map(([location]) => location);
 
-        console.log("employeeWorkLocationChartData: ", employeeWorkLocationChartData);
-        console.log("employeeWorkLocationCategories: ", employeeWorkLocationCategories);
+        // console.log("employeeWorkLocationChartData: ", employeeWorkLocationChartData);
+        // console.log("employeeWorkLocationCategories: ", employeeWorkLocationCategories);
 
         this.renderColumnBarSummaryChartForWorkLocation(
           'Employee Work Location Summary',
@@ -814,6 +857,7 @@ options:any;
     this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
+        
         // this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != "InActive");
           for(let x of this.allEmployeeList){
             x.employeementId = "A-".concat(x.employeementId);
@@ -828,8 +872,15 @@ options:any;
             x.dateOfRelieving = moment(x.dateOfResign).add(x.noticePeriod, 'days').format(this.dateFormat);
             x.relievingMonth = moment(x.dateOfRelieving).format('MMMM');
             x.joiningMonth = moment(x.dateOfJoining).format('MMMM');
+
+            let matchingEmployee = this.employeesFor360.find(emp => emp.empId === x.empId);
+            // console.log("matching ",matchingEmployee)
+            x.emp360 = matchingEmployee ? matchingEmployee : {};
+            let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === x.managerId);
+            // console.log("matching ",matchingEmployee)
+            x.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
           }
-            //console.log("allEmployeeList : ", this.allEmployeeList)
+            // console.log("allEmployeeList : ", this.allEmployeeList)
             this.extractData();
       } else {
         alert(response.serviceResponse)
@@ -877,6 +928,12 @@ options:any;
             employee.dateOfRelieving = moment(employee.dateOfResign).add(employee.noticePeriod, 'days').format(this.dateFormat);
             employee.relievingMonth = moment(employee.dateOfRelieving).format('MMMM');
             employee.joiningMonth = moment(employee.dateOfJoining).format('MMMM');
+
+            let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === employee.employeementId);
+            employee.emp360 = matchingEmployee ? matchingEmployee : {};
+            let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === employee.managerId);
+          // console.log("leave match ",matchingEmployee);
+          employee.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
           });
           this.extractData();
           //console.log("allEmployeeList : ", this.allEmployeeList)
@@ -974,7 +1031,7 @@ this.departmentIds = departmentIds;
       
     })
 
-    console.log("Anurag kyc issue",this.departmentWiseBillableEmployeeList)
+    // console.log("Anurag kyc issue",this.departmentWiseBillableEmployeeList)
 
 // billableChartByDepartment pie chart 
 
@@ -1357,19 +1414,26 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
     });
 
     let departmentList = this.groupBy(
-      this.allEmployeeList.filter((x) => x.employmentstatus !== 'InActive' && x.isConsultant != 'true' && x.isApprenticeship !='true'),
+      this.allEmployeeList.filter((x) => x.employmentstatus != 'InActive' && x.isConsultant != 'true' && x.isApprenticeship !='true'),
       'departmentName'
     );
     
     let departmentListForApprentice = this.groupBy(
       this.allEmployeeList.filter(
-        (x) => x.employmentstatus !== 'InActive' && x.isApprenticeship === 'true' && x.isConsultant !='true'
+        (x) => x.employmentstatus != 'InActive' && x.isApprenticeship === 'true' && x.isConsultant !='true'
+      ),
+      'departmentName'
+    );
+
+    let departmentListForConsultant = this.groupBy(
+      this.allEmployeeList.filter(
+        (x) => x.employmentstatus != 'InActive' && x.isApprenticeship != 'true' && x.isConsultant ==='true'
       ),
       'departmentName'
     );
     
-    console.log('departmentList -- ', departmentList);
-    console.log('departmentListForApprentice -- ', departmentListForApprentice);
+    // console.log('departmentList -- ', departmentList);
+    // console.log('departmentListForApprentice -- ', departmentListForApprentice);
     
     let employeeByDepartment = [];
     
@@ -1377,15 +1441,18 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
       let employeeCount = departmentList[department].length;
     
       let apprenticeCount = departmentListForApprentice[department]?.length || 0;
+
+      let consultantCount = departmentListForConsultant[department]?.length || 0;
     
       employeeByDepartment.push({
         departmentName: department,
         employeeCount: employeeCount,
         apprenticeCount: apprenticeCount,
+        consultantCount: consultantCount
       });
     }
     
-    console.log('employeeByDepartment -- ', employeeByDepartment);
+    // console.log('employeeByDepartment -- ', employeeByDepartment);
 
     //Department wise Employee Count
     // let departmentList = this.groupBy(this.allEmployeeList.filter(x => x.employmentstatus != 'InActive'),'departmentName');
@@ -1499,7 +1566,7 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
         }]
 
         let checkEmployeeBillableData = billableTypeData.filter(data => data.y != 0);
-        console.log(" checkEmployeeBillableData ",checkEmployeeBillableData);
+        // console.log(" checkEmployeeBillableData ",checkEmployeeBillableData);
 
         if(checkEmployeeBillableData && checkEmployeeBillableData.length != 0){
           this.renderPieSummaryChart('Billable Employee Summary', 'billableChart', billableTypeData, 'Billable Data', this.openBillableEmployeeTableModal.bind(this));
@@ -1515,7 +1582,8 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
   let departmentData = employeeByDepartment.map(dept => ({
     departmentName: dept.departmentName,
     employeeCount: dept.employeeCount,
-    apprenticeCount : dept.apprenticeCount || 0
+    apprenticeCount: dept.apprenticeCount || 0,
+    consultantCount: dept.consultantCount ||0
   }));
   
   departmentData.sort((a, b) => b.employeeCount - a.employeeCount);
@@ -1526,11 +1594,10 @@ this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summ
   // Prepare data and categories for the chart
   let departmentWiseEmployeeData = departmentData.map(dept => ({
     name: dept.departmentName,
-    data: [dept.employeeCount, dept.apprenticeCount], // Include both employee and apprentice counts
+    data: [dept.employeeCount, dept.apprenticeCount, dept.consultantCount],
   }));
-let departmentWiseEmployeeCategories = departmentData.map(dept => dept.departmentName);
+  let departmentWiseEmployeeCategories = departmentData.map(dept => dept.departmentName);
 
-  // Now use departmentWiseEmployeeData and departmentWiseEmployeeCategories in your chart rendering
   this.renderDepartmentWiseEmployeeChart(
     'Department Wise Employee',
     'departmentWiseEmployee',
@@ -1881,7 +1948,7 @@ let departmentWiseEmployeeCategories = departmentData.map(dept => dept.departmen
           ];
         
 
-        console.log("finalEmpJoinResignData :", finalEmpJoinResignData);
+        // console.log("finalEmpJoinResignData :", finalEmpJoinResignData);
         this.renderMultiBarChart('Employee Join VS Resign','employeeJoinAndResign',finalEmpJoinResignData,'Employee', this.openEmployeeJoinResignModalTable.bind(this));
         // this.renderMultiBarChart('Employee Join VS Resign','employeeJoinAndResign',empJoinResignData,'Employee', this.openEmployeeJoinResignModalTable.bind(this));
 
@@ -1940,7 +2007,7 @@ let departmentWiseEmployeeCategories = departmentData.map(dept => dept.departmen
 
  //  bar for billable type employee
 
- console.log("departmentList: ", departmentList);
+//  console.log("departmentList: ", departmentList);
 
 const BILLABLE_TYPES = ['Shadow', 'Bench', 'Fixed Cost', 'TNM', 'InternalRNDProducts'];
 
@@ -1988,7 +2055,7 @@ if (typeof departmentList === 'object' && departmentList !== null) {
         return sum2 - sum1; // Sort in descending order
       });
 
-      console.log("departmentBillableData: ", departmentBillableData);
+      // console.log("departmentBillableData: ", departmentBillableData);
 
       // Update billableChartData with sorted data
       departmentBillableData.forEach(dept => {
@@ -2000,7 +2067,7 @@ if (typeof departmentList === 'object' && departmentList !== null) {
       // Update departmentCategoriesforbilabale with sorted department names
       departmentCategoriesforbilabale = departmentBillableData.map(dept => [dept.departmentName]);
 
-      console.log("billableChartData: ", billableChartData);
+      // console.log("billableChartData: ", billableChartData);
 
       // Render the chart with sorted data
       this.renderStackBarChart(
@@ -2446,7 +2513,8 @@ Highcharts.chart(chartId, this.options);
 // }
 renderDepartmentWiseEmployeeChart(chartName: any, chartId: any, chartData: any, categories: any, labelName: any, openMod: any) {
   const employeeCounts = chartData.map((dept: any) => dept.data[0]); 
-  const apprenticeCounts = chartData.map((dept: any) => dept.data[1]); 
+  const apprenticeCounts = chartData.map((dept: any) => dept.data[1]);
+  const consultantCounts = chartData.map((dept:any) => dept.data[2]);
 
   (Highcharts as any).chart(chartId, {
     chart: {
@@ -2520,6 +2588,11 @@ renderDepartmentWiseEmployeeChart(chartName: any, chartId: any, chartData: any, 
         name: 'Apprentice Count',
         data: apprenticeCounts,
         color: '#2ecc71',
+      },
+      {
+        name: 'Consultant Count',
+        data: consultantCounts,
+        color: '#2234bd',
       },
     ],
   });
@@ -3675,7 +3748,15 @@ exportGlobalData():void{
       this.modalSummaryList.forEach(x=>{
         x.employeeType=((x.isApprenticeship  === 'true') ? 'Apprentice' : ((x.isConsultant  === 'true') ? 'Consultant' : 'Regular'))
       });
-      //console.log('modalSummaryList --',this.modalSummaryList)
+      this.modalSummaryList.forEach(y=>{
+        let matchingEmployee = this.employeesFor360.find(emp => emp.empId === y.empId);
+        // console.log("openLeaveSummaryTableModel ",matchingEmployee);
+        y.emp360 = matchingEmployee ? matchingEmployee : {};    
+        let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === y.managerId);
+        // console.log("openLeaveSummaryTableModel ",matchingEmployee);
+        y.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};         
+      });
+      console.log('modalSummaryList --',this.modalSummaryList)
       this.modalRef = this.modalService.show(this.leaveSummaryTemplate, { class: 'modal-lg' });
     }
 
@@ -3710,10 +3791,19 @@ exportGlobalData():void{
           });
         }
       });
-      // console.log(this.countByLegend,"Data");
+      // console.log(this.countByLegend,"modalSummaryList");
       this.modalSummaryList = this.countByLegend;
-  
-      console.log(this.modalSummaryList, "this.checked")
+      let employee360 = this.employeesFor360;
+      for(let x of employee360){
+        x.employeementId = Number(x.employeementId.substring(2));
+      }
+      for(let y of this.modalSummaryList){
+        let matchingEmployee = employee360.find(emp => emp.employeementId === y.employeementId);
+        y.emp360 = matchingEmployee ? matchingEmployee : {};
+        let matchingEmployee2 = employee360.find(emp => emp.empId === y.managerId);
+        y.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
+      }
+      // console.log(this.modalSummaryList, "this.checked")
       this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
       if(legendName == 'Pending By User'){
         this.isPendingByUser = true;
@@ -3889,7 +3979,8 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
     x.departmentName === pointName && 
     (
         (seriesName === 'Employee Count' && x.isApprenticeship!='true' && x.isConsultant != 'true' && x.isApprenticeship != 'true') ||  
-        (seriesName === 'Apprentice Count' && x.isApprenticeship==='true' && x.isConsultant != 'true')  
+        (seriesName === 'Apprentice Count' && x.isApprenticeship==='true' && x.isConsultant != 'true')  ||
+        (seriesName === 'Consultant Count' && x.isConsultant === 'true' && x.isApprenticeship != 'true')
     )
   );
 
@@ -4133,7 +4224,7 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
       if (response.serviceStatus == "Success") {
         this.allDepartmentList = response.serviceResponse;
         // this.filteredDeptList = this.allDeptList.filter(x => project.department.includes(x.name));
-        console.log("allDepartmentList : ", this.allDepartmentList)
+        // console.log("allDepartmentList : ", this.allDepartmentList)
       } else {
         console.error(response.serviceResponse);
       }
@@ -4219,6 +4310,33 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
   onSearch(searchData){
     this.filters = searchData;
     //console.log("Updated Filter : ", this.filters);
+  }
+
+  getAllEmployeeFor360View(){
+    this.employeesFor360 = [];
+    this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeesFor360 = response.serviceResponse;
+        // console.log("allEmployeeListFor360 : ", this.employeesFor360)
+        this.employeesFor360.forEach(employeeObj => {
+          employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
+          employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+          employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+          employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+          employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          if (employeeObj.isConsultant == 'true')
+            employeeObj.employeeType = 'Consultant';
+          else if (employeeObj.isApprenticeship == 'true')
+            employeeObj.employeeType = 'Apprentice';
+          else
+            employeeObj.employeeType = 'Regular';
+          });
+          this.employeesFor360 = this.employeesFor360;
+          this.employeesFor360 = new SortPipe().transform(this.employeesFor360, ['name', 'string', 'asc']);
+        } else {
+          alert(response.serviceResponse);
+        }
+    });
   }
 
 }

@@ -14,6 +14,9 @@ import { AppComponent } from 'src/app/app.component';
 import { first } from 'rxjs/operators';
 import { Biomax } from 'src/app/models/biomax';
 import * as Highcharts from 'highcharts';
+import { EmployeeService } from 'src/app/services/employee.service';
+import { SortPipe } from 'src/app/sort.pipe';
+import { Feature } from 'src/app/models/feature';
 
 
 class FilterData {
@@ -66,9 +69,20 @@ export class AttendanceReconciliationComponent implements OnInit {
   fromDate: string = '';
   toDate: string = '';
   currentDate: string;
+  employeesFor360: any[] = [];
 
-  constructor(private modalService: BsModalService, private exportExcelService: ExportExcelService, private attendanceReconciliationService: AttendanceReconciliationService,
-    private authenticationService: AuthenticationService, private datePipe: DatePipe, private leaveService: LeaveService, private utilityService: UtilityService,
+  feature = 'Reports';
+  userMapping: any = {};
+
+  constructor(
+    private modalService: BsModalService, 
+    private exportExcelService: ExportExcelService, 
+    private attendanceReconciliationService: AttendanceReconciliationService,
+    private authenticationService: AuthenticationService, 
+    private datePipe: DatePipe, 
+    private leaveService: LeaveService, 
+    private utilityService: UtilityService,
+    private employeeService: EmployeeService
   ) {
     this.maxTodayDate = new Date().toISOString().split('T')[0];
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x)
@@ -85,6 +99,10 @@ export class AttendanceReconciliationComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+        featureMap.subFeatures?.forEach(sub => {
+          this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+        });
     this.date = moment().format("YYYY-MM-DD");
     this.startDate = moment().format("YYYY-MM-DD");
     this.endDate = moment().format("YYYY-MM-DD");
@@ -93,9 +111,10 @@ export class AttendanceReconciliationComponent implements OnInit {
     this.startformattedDate = this.formatDate(this.startDate);
     this.endformattedDate = this.formatDate(this.endDate);;
     //  this.date=this.formattedDate;
-    console.log("ckeck date =======", this.startDate);
-    console.log("ckeck date =======", this.endDate);
+    // console.log("ckeck date =======", this.startDate);
+    // console.log("ckeck date =======", this.endDate);
     this.getBioMatricData(this.startformattedDate, this.endformattedDate);
+    this.getAllEmployeeFor360View();
   }
 
   onSearch(searchData) {
@@ -123,7 +142,19 @@ export class AttendanceReconciliationComponent implements OnInit {
 
     this.attendanceReconciliationService.getBiomatricData(startdateformat, enddateformat).subscribe((response: any) => {
       this.attendanceReconciliationList = response.serviceResponse;
-      console.log("this.attendanceReconciliationList" , this.attendanceReconciliationList);
+      this.attendanceReconciliationList.forEach(employee => {
+        employee.employeementId=String(employee.employeeCode);
+        if(employee.employeementId.startsWith('A'))
+          employee.employeementId = employee.employeementId.substring(1);
+          employee.employeementId = "A-".concat(employee.employeementId);
+      });
+      this.attendanceReconciliationList.forEach(employee => {
+
+        let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === employee.employeementId);
+        // console.log("getBioMatricData matchingEmployee : ", matchingEmployee)
+        employee.emp360 = matchingEmployee ? matchingEmployee : {};    
+          });
+      // console.log("this.attendanceReconciliationList" , this.attendanceReconciliationList);
       this.attendanceReconciliationOriginaldata = [... this.attendanceReconciliationList];
       this.modalRef.hide();
     });
@@ -146,7 +177,7 @@ export class AttendanceReconciliationComponent implements OnInit {
       }
     }
 
-    console.log("Parsed Punch Data: ", this.punchData);
+    // console.log("Parsed Punch Data: ", this.punchData);
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
   }
 
@@ -222,7 +253,7 @@ export class AttendanceReconciliationComponent implements OnInit {
       const hours = Math.floor(value / 60);
       const mins = value % 60;
       const convertedValue = `${hours} hour${hours !== 1 ? 's' : ''} ${mins} min${mins !== 1 ? 's' : ''}`;
-      console.log(`Converted value for ${value} minutes: ${convertedValue}`);  // Debugging log
+      // console.log(`Converted value for ${value} minutes: ${convertedValue}`);  // Debugging log
       return convertedValue;
     };
 
@@ -556,6 +587,33 @@ private updateChartData(data: any): void {
       // Optionally clear the chart when hidden
       Highcharts.chart('biomaxfiterContainer', {});
     }
+  }
+
+  getAllEmployeeFor360View(){
+    this.employeesFor360 = [];
+    this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeesFor360 = response.serviceResponse;
+        // console.log("allEmployeeListFor360 : ", this.employeesFor360)
+        this.employeesFor360.forEach(employeeObj => {
+          employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
+          employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+          employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+          employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+          employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          if (employeeObj.isConsultant == 'true')
+            employeeObj.employeeType = 'Consultant';
+          else if (employeeObj.isApprenticeship == 'true')
+            employeeObj.employeeType = 'Apprentice';
+          else
+            employeeObj.employeeType = 'Regular';
+          });
+          this.employeesFor360 = this.employeesFor360;
+          this.employeesFor360 = new SortPipe().transform(this.employeesFor360, ['name', 'string', 'asc']);
+        } else {
+          alert(response.serviceResponse);
+        }
+    });
   }
 
 }

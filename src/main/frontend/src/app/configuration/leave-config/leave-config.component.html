@@ -144,12 +144,13 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" (click)="toggleSearch()">
+                <div class="selector-toggle" >
                     <a href="javascript:void(0)">
-                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
                     </a>
                 </div>
+               
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
                     [tableTHeadTrId]="'holidayInfoTHeadTr'">
                     <table class="table table-responsive" id="holidayInfo" matSort (matSortChange)="sortData($event)">	
@@ -181,9 +182,11 @@
                                 <td>{{holiday.holidayType}}</td>
                                 <td>{{holiday.state}}</td>
                                  <td>{{holiday.createdOn}}</td>
-                                <td>{{holiday.createdbyName}}</td>
+                                <td *ngIf="userMapping.employee360_view_leave_config" id="clickablefor360" [navigateToEmployee360]="holiday.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{holiday.createdbyName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_leave_config">{{holiday.createdbyName}}</td>
                                 <td>{{holiday.updatedOn}}</td>
-                                <td>{{holiday.updatedByName}}</td>
+                                <td *ngIf="userMapping.employee360_view_leave_config" id="clickablefor360" [navigateToEmployee360]="holiday.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{holiday.updatedByName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_leave_config">{{holiday.updatedByName}}</td>
                                 <td>
                                     <button *ngIf="userMapping.update_holidays" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateHolidayForm(holiday)"><em class="fa fa-edit"></em></button>&nbsp;
                                     <button *ngIf="userMapping.delete_holiday" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteHoliday(delete_template,holiday)"><em class="fa fa-trash"></em></button>
@@ -299,10 +302,10 @@
         </div> -->
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" (click)="toggleSearch()">
+                <div class="selector-toggle" >
                     <a href="javascript:void(0)">
-                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
                     </a>
                 </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeBucketInfo'" [tableTHeadId]="'employeeBucketInfoTHead'"
@@ -315,6 +318,8 @@
                             <th scope="col" class="info-label" mat-sort-header="gender|string">Employee Gender</th>	
                             <th scope="col" class="info-label" mat-sort-header="noOfDays|number">Default Leaves</th>	
                             <th scope="col" class="info-label" mat-sort-header="rules|string">Rules</th>	
+                            <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>	
+                            <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>	
                             <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated on</th>	
                             <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated by</th>	
                             <th scope="col" class="info-label" mat-sort-header="description|string">Description</th>	
@@ -332,8 +337,12 @@
                                 <td>{{leaveType.gender}}</td>
                                 <td>{{leaveType.noOfDays}} day(s)</td>
                                 <td>{{leaveType.rules}}</td>
+                                <td>{{leaveType.createdOn}}</td>
+                                <td *ngIf="userMapping.employee360_view_leave_config" id="clickablefor360" [navigateToEmployee360]="leaveType.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{leaveType.createdByName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_leave_config">{{leaveType.createdByName}}</td>
                                 <td>{{leaveType.updatedOn}}</td>
-                                <td>{{leaveType.updatedByName}}</td>
+                                <td *ngIf="userMapping.employee360_view_leave_config" id="clickablefor360" [navigateToEmployee360]="leaveType.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{leaveType.updatedByName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_leave_config">{{leaveType.updatedByName}}</td>
                                 <td>{{leaveType.description}}</td>
                                 <td>
                                     <button *ngIf="userMapping.update_leave_type" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeaveTypeForm(leaveType)"><em class="fa fa-edit"></em></button>&nbsp;
@@ -363,7 +372,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Employee ID</label>
-                            <input type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" autocomplete="none" [(ngModel)]="leaveBalanceObj.employeementId" placeholder="eg. A-1101">
+                            <input type="text" (keypress)="fieldRestictCharacterForLeave($event)" class="form-control" autocomplete="none" [(ngModel)]="leaveBalanceObj.employeementId" placeholder="eg. A-1101">
                         </div>
                     </div>
                 </div>
@@ -375,12 +384,14 @@
             <div *ngFor="let employee of employeeData">
                 <div class="card border-primary mb-3" style="max-width: 50rem;">
                     <div class="d-flex">
-                        <h6 class="ml-3 mt-2">Employee Name : <span style=" color: #193d8a;">{{employee.employeeName}}</span></h6>
+                        <h6 class="ml-3 mt-2">Employee Name : <span *ngIf="!userMapping.employee360_view_leave_config"  style=" color: #193d8a;">{{employee.employeeName}}</span></h6>
+                        <h6 class="ml-3 mt-2">Employee Name : <span *ngIf="userMapping.employee360_view_leave_config" id="clickablefor360" [navigateToEmployee360]="employee.emp360" style="cursor: pointer;">{{employee.employeeName}}</span></h6>
                         <h6 class="ml-3 mt-2">Department : <span style=" color: #193d8a;">{{employee.departmentName}}</span></h6>
                     </div>
                     <div class="d-flex">
                         <h6 class="ml-3">JobRole : <span style=" color: #193d8a;">{{employee.jobRoleName}}</span></h6>
-                        <h6 class="ml-3">Manager Name : <span style=" color: #193d8a;">{{employee.managerName}}</span></h6>
+                        <h6 class="ml-3">Manager Name : <span *ngIf="!userMapping.employee360_view_leave_config"  style=" color: #193d8a;">{{employee.managerName}}</span></h6>
+                        <h6 class="ml-3">Manager Name : <span *ngIf="userMapping.employee360_view_leave_config" id="clickablefor360" [navigateToEmployee360]="employee.emp360ManagerId" style="cursor: pointer;">{{employee.managerName}}</span></h6>
                         <h6 class="ml-3">Employee Status : <span style=" color: #193d8a;">{{employee.employmentStatus}}</span></h6>
                     </div>
                 </div>
@@ -733,10 +744,10 @@
         </div> -->
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" (click)="toggleSearch()">
+                <div class="selector-toggle" >
                     <a href="javascript:void(0)">
-                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
                     </a>
                 </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeInfo'" [tableTHeadId]="'employeeInfoTHead'"
@@ -767,10 +778,12 @@
                                     <td>{{leavePolicy.leaveType}}</td>
                                     <td>{{leavePolicy.maternityType}}</td>
                                     <td class="desc-text-wrap">{{leavePolicy.description}}</td>
-                                    <td>{{leavePolicy.createdByName}}</td>
+                                    <td *ngIf="userMapping.employee360_view_leave_config" id="clickablefor360" [navigateToEmployee360]="leavePolicy.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{leavePolicy.createdByName}}</td>
+                                    <td *ngIf="!userMapping.employee360_view_leave_config" >{{leavePolicy.createdByName}}</td>
                                     <td>{{leavePolicy.createdOn}}</td>
                                     <td>{{leavePolicy.updatedOn}}</td>
-                                    <td>{{leavePolicy.updatedByName}}</td>
+                                    <td *ngIf="userMapping.employee360_view_leave_config" id="clickablefor360" [navigateToEmployee360]="leavePolicy.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{leavePolicy.updatedByName}}</td>
+                                    <td *ngIf="!userMapping.employee360_view_leave_config" >{{leavePolicy.updatedByName}}</td>
                                     <td>
                                         <button *ngIf="userMapping.update_leave_policy" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeavePolicyForm(leavePolicy)"><em class="fa fa-edit"></em></button>&nbsp;
                                         <button *ngIf="userMapping.delete_leave_policy" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteLeavePolicy(delete_leave_policy, leavePolicy)"><em class="fa fa-trash"></em></button>

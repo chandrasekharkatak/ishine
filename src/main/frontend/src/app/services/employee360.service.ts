@@ -8,6 +8,7 @@ import { BehaviorSubject } from 'rxjs';
 import { Employee } from '../models/employee';
 import { Leave } from '../models/leave';
 import { Team } from '../models/team';
+import { Project } from '../models/project';
 
 @Injectable({
   providedIn: 'root'
@@ -18,7 +19,9 @@ export class Employee360Service {
 
   private navigationSubject = new Subject<void>();
   private employeeDataSource = new BehaviorSubject<any>(null);
+  private employeesFor360Source = new BehaviorSubject<any[]>([]); 
 
+  employeesFor360$ = this.employeesFor360Source.asObservable(); 
   currentEmployeeData = this.employeeDataSource.asObservable();
 
 
@@ -87,8 +90,8 @@ getAll360LeaveApplicationsByEmpId(leaveObj: Leave) {
     this.employeeDataSource.next(data);
   }
 
-  getEmployeeDetailsForBiomax(startDate:String,endDate:String,employeeId:String){
-    return this.http.get(`${this.baseUrl}` + `api/biomax?startDate=${startDate}&endDate=${endDate}&employeeId=${employeeId}`);
+  getEmployeeDetailsForBiomax(biomaxFilter:any){
+    return this.http.post(`${this.baseUrl}` + `api/biomax`,biomaxFilter);
   }
 
   get360PendingCompOffRequestsByEmpId(compOffObj: Leave) {
@@ -102,9 +105,23 @@ getAll360LeaveApplicationsByEmpId(leaveObj: Leave) {
 
   //added by rahul singh
  getTeamTImeSheet(team:Team){
-  return this.http.post(`${this.baseUrl}`+`api/getTeamMembersByTeamId`,team);
+  return this.http.post(`${this.baseUrl}`+`api/getTeamMembersByTeamIdBiomax`,team);
 
 }
 
- 
+  setEmployeesFor360(employees: any[]) {
+    this.employeesFor360Source.next(employees);
+  }
+//added by rahul for project
+getTeamMemberByTeamId(teamId:any){
+  return this.http.get(`${this.baseUrl}`+`api/getTeamMemberByTeamId`+teamId);
+} 
+
+  getProjectInfo(project:Project){
+    return this.http.post(`${this.baseUrl}`+`api/getProjectInfo`,project);
+  }
+
+  getTeamInfo(project:Project){
+    return this.http.post(`${this.baseUrl}`+`api/getTeamInfo`,project);
+  }
 }

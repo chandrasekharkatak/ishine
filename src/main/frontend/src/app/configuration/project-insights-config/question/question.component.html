@@ -1,0 +1,84 @@
+<div *ngFor="let question of group.projectQuestion; let i = index" class="row" [class.question-input]="group?.projectQuestion?.length>1">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-8 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span><b>Question - {{i+1}}</b></label>
+                        <input type="text" class="form-control" autocomplete="none" [(ngModel)]="question.question">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Options Type</label>
+                        <select class="form-control" aria-hidden="true" [(ngModel)]="question.optionType" (change)="setOption(question)">
+                            <option selected="selected" value="" disabled>Select</option>
+                            <option value="checkbox">checkbox</option>
+                            <option value="radio">radio</option>
+                            <option value="text">text</option>
+                          </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 pt-4 mt-2">
+                <button type="button" class="btn btn-outline-primary mx-1" (click)="addQuestion(i)"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                <button *ngIf="group?.projectQuestion.length>1" type="button" class="btn btn-outline-primary mx-1" (click)="removeQuestion(i)"><i class="fa fa-trash" aria-hidden="true"></i></button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label">Description</label>
+                        <input type="text" class="form-control" autocomplete="none" [(ngModel)]="question.description">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>User Type</label>
+                        <select class="form-control" aria-hidden="true" [(ngModel)]="question.userType">
+                            <option selected="selected" value="" disabled>Select</option>
+                            <option value="checkbox">Employee</option>
+                            <option value="radio">Team Lead</option>
+                            <option value="text">Manager</option>
+                            <option value="text">HoD</option>
+                            <option value="text">HR</option>
+                            <option value="text">Admin</option>
+                          </select>
+                    </div>
+                </div>
+            </div>    
+        </div>
+        <div class="row" *ngIf="(question.optionType == 'checkbox' || question.optionType == 'radio')" >
+            <div class="col-md-12" *ngFor="let option of question.optionsList; let i = index">
+                <div class="row">
+                    <div class="col-md-4 mb-0">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label class="info-label">option - {{i+1}}</label>
+                                <input type="text" class="form-control" autocomplete="none" [(ngModel)]="option.optionValue">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 pt-4 mt-2">
+                        <button type="button" class="btn btn-outline-primary mx-1" (click)="addOption(i, question)"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                        <button *ngIf="question.optionsList.length>1" type="button" class="btn btn-outline-primary mx-1" (click)="removeOption(i, question)"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div *ngIf="question.optionType == 'text'" class="row">
+            <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <input type="text" class="form-control" autocomplete="none" readonly value="Text Answer here...">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

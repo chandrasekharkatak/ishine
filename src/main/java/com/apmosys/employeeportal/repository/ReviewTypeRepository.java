@@ -23,6 +23,10 @@ public interface ReviewTypeRepository extends JpaRepository<ReviewType, Long> {
     		+ "  AND qc.is_enable = 1\n"
     		+ "  AND rt.flag = 1", nativeQuery = true)
 	List<Object[]> getReviewDataForQuarter();
+
+	
+	 @Query(value = "SELECT r.review_label,r.quarter_id,r.dept_id FROM review_type r where r.flag = true", nativeQuery = true)
+	 List<Object[]> getReviewLabelForEveryDepartment();
 	
 
 

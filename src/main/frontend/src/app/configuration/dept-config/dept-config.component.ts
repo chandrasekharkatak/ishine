@@ -18,6 +18,7 @@ import { LocationStrategy } from '@angular/common';
 import { AppComponent } from 'src/app/app.component';
 import * as moment from 'moment';
 import { ColFilterPipe } from 'src/app/col-filter.pipe';
+import { UtilityService } from 'src/app/services/utility.service';
 
 
 @Component({
@@ -62,6 +63,7 @@ export class DeptConfigComponent implements OnInit {
   currentUser: User;
   userMapping: any = {};
 
+  employeesFor360: any[] = [];
 
   filters:any = {};
   isSearchEnabled:boolean = false;
@@ -75,11 +77,20 @@ export class DeptConfigComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private holidayService: HolidayService,
     private exportExcelService: ExportExcelService,
-    private locationStrategy:LocationStrategy) {
+    private locationStrategy:LocationStrategy,
+    private utilityService: UtilityService,
+) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
+
     this.getHODList(); // for HOD List
 
     // Dynamic Subfeature Flags
@@ -92,6 +103,7 @@ export class DeptConfigComponent implements OnInit {
     this.sectionViewInit();
     this.preventBackButton();
   }
+
   preventBackButton(){
     history.pushState(null, null, location.href);
     this.locationStrategy.onPopState(()=>{
@@ -309,7 +321,21 @@ export class DeptConfigComponent implements OnInit {
           dept.createdOn = (dept.createdOn)? moment(dept.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           dept.updatedOn = (dept.updatedOn)? moment(dept.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
-        //console.log("allDeptList : ", this.allDeptList)
+        this.allDeptList.forEach((employee) => {
+          // console.log("employee.hodId ", employee.hodId);
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.hodId);
+          // console.log("hodId ", matchingEmployee);
+          employee.emp360HodId = matchingEmployee ? matchingEmployee : {};
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          // console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          // console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+        });
+        // console.log("allDeptList : ", this.allDeptList)
       } else {
         alert(response.serviceResponse)
       }
@@ -367,8 +393,9 @@ export class DeptConfigComponent implements OnInit {
       console.log('');
     } else {
       this.openAlertMod(template, "Invalid department name");
+      this.deptObj.name = '';
     }
-
+   
     let deptObj = new Department();
     deptObj.name = deptName;
     deptObj.deptId = this.deptObj.deptId;

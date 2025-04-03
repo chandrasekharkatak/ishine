@@ -248,13 +248,15 @@ public class JobRoleService {
 					JobRoleDTO jobRoleDTO = new JobRoleDTO();
 					jobRoleDTO.setName(object[0] != null ? object[0].toString() : null);
 					jobRoleDTO.setEmployeeRole(object[1] != null ? object[1].toString() : null);
-					jobRoleDTO.setCreatedBy(object[2] != null ? object[2].toString() : null);
+					jobRoleDTO.setCreatedByName(object[2] != null ? object[2].toString() : null);
 					jobRoleDTO.setCreatedOn(object[3] != null ? object[3].toString() : null);
 					jobRoleDTO.setDepartmentId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
 					jobRoleDTO.setDepartmentName(object[5] != null ? object[5].toString() : null);
 					jobRoleDTO.setJobRoleId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
 					jobRoleDTO.setUpdatedByName(object[7] != null ? object[7].toString() : null);
 					jobRoleDTO.setUpdatedOn(object[8] != null ? object[8].toString() : null);
+					jobRoleDTO.setCreatedBy(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+					jobRoleDTO.setUpdatedBy(object[10] != null ? Integer.parseInt(object[10].toString()) : 0);
 					dtoList.add(jobRoleDTO);
 				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -749,16 +751,15 @@ public class JobRoleService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("name : " + jobRoleDto.getName()+ "departmentId :" +jobRoleDto.getDepartmentId());
 		try {
-			JobRole checkExistingRole = jobRoleRepository.findByNameAndDeptId(jobRoleDto.getName(), jobRoleDto.getDepartmentId());
-			System.out.println("  jobRoleDto.getDeptId()  : -- " +jobRoleDto.getDepartmentId());
-			System.out.println("  jobRoleDto.getName()  : --"+jobRoleDto.getName());
-			if(checkExistingRole == null) {
+			Integer checkExistingRole = jobRoleRepository.findByNameAndDeptId(jobRoleDto.getName(), jobRoleDto.getDepartmentId());
+			
+			if(Integer.valueOf(checkExistingRole).equals(0)) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("JobRole created !");
 				
 				apiLogInfo.setApiResponse("JobRole created !");			
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			}else if(checkExistingRole !=null) {
+			}else if(checkExistingRole != 0) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("JobRole already exist!");
 					

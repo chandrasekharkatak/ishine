@@ -5,13 +5,15 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.Holiday;
 
 public interface HolidayRepository extends JpaRepository<Holiday, Short> {
-
-	Holiday findByOccasion(String occasion);
+    
+	@Query(value = "SELECT * FROM holiday h WHERE h.occasion = :occasion", nativeQuery = true)
+	List<Holiday> findByOccasion(@Param("occasion") String occasion);
 
 	List<Holiday> findByDateOfHoliday(LocalDate dateToday);
 
@@ -34,7 +36,7 @@ public interface HolidayRepository extends JpaRepository<Holiday, Short> {
 	@Query(nativeQuery = true)
     List<Holiday> findWeekOffCountByFromAndToDate(LocalDate fromDate, String state);
 	
-	@Query(nativeQuery = true)
-	Integer findYearOfOccassion(String occasion);
+	@Query(nativeQuery = true,value="SELECT YEAR(date_of_holiday) from holiday where occasion = :occasion")
+	Integer findYearOfOccassion(@Param("occasion") String occasion);
 
 }

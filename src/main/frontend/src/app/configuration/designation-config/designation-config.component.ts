@@ -12,6 +12,7 @@ import { DestinationService } from 'src/app/services/destination.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { AppComponent } from 'src/app/app.component';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { UtilityService } from 'src/app/services/utility.service';
 
 @Component({
   selector: 'app-designation-config',
@@ -49,6 +50,8 @@ export class DesignationConfigComponent implements OnInit {
   isSearchEnabled:boolean = false;
   designationColumns:any[] = ['blank','designationName','createdByName','createdOn','updatedOn','updatedByName'];
 
+  employeesFor360: any[] = [];
+
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -56,11 +59,18 @@ export class DesignationConfigComponent implements OnInit {
     private departmentService: DepartmentService,
     private destinationService: DestinationService,
     private exportExcelService: ExportExcelService,
+    private utilityService: UtilityService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
     // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -190,6 +200,17 @@ export class DesignationConfigComponent implements OnInit {
           designation.updatedOn = (designation.updatedOn)? moment(designation.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
           designation.createdOn = (designation.createdOn)? moment(designation.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
+        this.allDesignationList.forEach((employee) => {
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          // console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          // console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+        });
+        // console.log("allDesignationList : ", this.allDesignationList);
       } else {
         console.error(response.serviceResponse)
       }

@@ -335,8 +335,8 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" (click)="toggleSearch()">
-                    <a href="javascript:void(0)">
+                <div class="selector-toggle" >
+                    <a href="javascript:void(0)" (click)="toggleSearch()">
                         <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
@@ -363,12 +363,17 @@
                             </tr>
                             <tr *ngFor="let team of allTeamList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                 <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
-                                <td>{{team.projectName}}</td>
-                                <td>{{team.teamName}}</td>
-                                <td>{{team.teamLeadName}}</td>
-                                <td>{{team.projectManagerName}}</td>
-                                <td>{{team.createdByName}}</td>
-                                <td>{{team.createdOn}}</td>
+                                <td *ngIf="!userMapping.team_config_project_view">{{team.projectName}}</td>
+                                <td *ngIf="userMapping.team_config_project_view" id="clickablefor360" [navigateToProjectView]="team.projectId" title="Click to view Project Details">{{team.projectName}}</td>
+                                <td *ngIf="!userMapping.team_config_project_view">{{team.teamName}}</td>
+                                <td *ngIf="userMapping.team_config_project_view" id="clickablefor360" [navigateToProjectView]="team.projectId" style="cursor: pointer;" title="Click to view Project Details">{{team.teamName}}</td>
+                                <td id="clickablefor360" *ngIf="userMapping.my_team_team_config_employee_360" [navigateToEmployee360]="team.emp360Teamlead" style="cursor: pointer;" title="Click to view Employee 360">{{team.teamLeadName}}</td>
+                                <td *ngIf="!userMapping.my_team_team_config_employee_360">{{team.teamLeadName}}</td>
+                                <td id="clickablefor360" *ngIf="userMapping.my_team_team_config_employee_360" [navigateToEmployee360]="team.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{team.projectManagerName}}</td>
+                                <td *ngIf="!userMapping.my_team_team_config_employee_360">{{team.projectManagerName}}</td>
+                                <td id="clickablefor360" *ngIf="userMapping.my_team_team_config_employee_360" [navigateToEmployee360]="team.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{team.createdByName}}</td>
+                                <td *ngIf="!userMapping.my_team_team_config_employee_360">{{team.createdByName}}</td>
+                                <td >{{team.createdOn}}</td>
                                 <td>
                                     <button *ngIf="userMapping.update_team" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateTeamForm(team)" [disabled]="team.isActive == 'N'"><em class="fa fa-edit"></em></button>&nbsp;
                                     <button *ngIf="userMapping.delete_team" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteTeamMod(delete_team_template,team)" [disabled]="team.isActive == 'N'"><em class="fa fa-trash"></em></button>
@@ -573,8 +578,8 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" (click)="toggleSearch()">
-                    <a href="javascript:void(0)">
+                <div class="selector-toggle" >
+                    <a href="javascript:void(0)" (click)="toggleSearch()">
                         <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
@@ -715,8 +720,8 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" (click)="toggleSearch()">
-                    <a href="javascript:void(0)">
+                <div class="selector-toggle" >
+                    <a href="javascript:void(0)" (click)="toggleSearch()">
                         <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>

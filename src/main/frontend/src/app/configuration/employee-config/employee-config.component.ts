@@ -33,6 +33,7 @@ import { SortPipe } from 'src/app/sort.pipe';
 
 import { Subscription } from 'rxjs';
 import { SharedService } from 'src/app/services/shared.service';
+import { Employee360Service } from 'src/app/services/employee360.service';
 class FilterData {
   title: any;
   columns: any;
@@ -226,6 +227,7 @@ export class EmployeeConfigComponent implements OnInit {
   departmentName: any;
   private subscription: Subscription = new Subscription();
   referedTypeStatus: boolean = false;
+  employeesFor360: any[] = [];
 
   constructor(
 
@@ -245,24 +247,22 @@ export class EmployeeConfigComponent implements OnInit {
     private domainService: DomainService,
     private destinationService: DestinationService,
     private leaveService: LeaveService,
-    private sharedService: SharedService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.currDate = this.datePipe.transform(new Date(), 'YYYY-MM-dd');
     this.getAllJobRoleList();
-    // Dynamic Subfeature Flags
+  
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
-
+    // console.log(this.feature, this.userMapping);
+  
     this.sectionViewInit();
-
-    //Deafult values for dropdown
+  
     this.employeeObj.gender = '';
     this.employeeObj.maritalStatus = '';
     this.employeeObj.reportingManagerId = '';
@@ -270,6 +270,13 @@ export class EmployeeConfigComponent implements OnInit {
     this.setYearOfPassingList();
     this.preventBackButton();
     this.getAllEmployeeList();
+  
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
   }
 
   preventBackButton() {
@@ -1789,14 +1796,13 @@ export class EmployeeConfigComponent implements OnInit {
     });
   }
 
-  clearAfterChange(field, fieldname) {
-    let element: any = document.getElementById(field);
-    if (element) element.value = '';
-
-    console.log("value : ", element.value);
-
-    this.employeeObj[fieldname] = '';
-  }
+  // clearAfterChange(field, fieldname) {
+  //   let element: any = document.getElementById(field);
+  //   if (this.employeeObj.experience === 'Fresher') {
+  //     if (element) element.value = '';
+  //     this.employeeObj[fieldname] = '';
+  // }
+  // }
 
   onUpdateEmployee(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
@@ -1982,6 +1988,25 @@ export class EmployeeConfigComponent implements OnInit {
         // Default Sorting
         this.allEmployeeList = new SortPipe().transform(this.allEmployeeList, ['name', 'string', 'asc']);
         // this.createEmployeeList(this.allEmployeeList)
+        this.allEmployeeList.forEach((employee) => {
+          // console.log("employee.empId ", employee.empId);
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
+          // console.log("employee ", matchingEmployee);
+          employee.emp360 = matchingEmployee ? matchingEmployee : {};
+          // console.log("employee.managerId ", employee.managerId);
+          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === employee.managerId);
+          // console.log("manager ", matchingEmployee2);
+          employee.emp360Manger = matchingEmployee2 ? matchingEmployee2 : {};
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          // console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          // console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+        });
+
         sessionStorage.setItem('AllEmployees', JSON.stringify(this.allEmployeeList));
       } else {
         alert(response.serviceResponse);

@@ -1,16 +1,16 @@
-import { Injectable } from '@angular/core';
 import {
-  HttpRequest,
-  HttpHandler,
+  HttpErrorResponse,
   HttpEvent,
+  HttpHandler,
   HttpInterceptor,
-  HttpResponse,
-  HttpErrorResponse
+  HttpRequest,
+  HttpResponse
 } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { LoaderService } from '../services/loader.service';
 import { environment } from 'src/environments/environment';
+import { LoaderService } from '../services/loader.service';
 
 
 
@@ -18,6 +18,7 @@ import { environment } from 'src/environments/environment';
 export class LoaderInterceptor implements HttpInterceptor {
 
   private baseUrl:any = environment.baseUrl;
+  startDate:any;
 
   URL_whiteList = [
 
@@ -216,12 +217,26 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getBioData`,
 
     //added by priyadarshini
-    `${this.baseUrl}`+`api/saveRewardConfiguration`,
+    `${this.baseUrl}` +`api/saveRewardConfiguration`,
     `${this.baseUrl}` + `api/showAllRewards/`,
     `${this.baseUrl}` + `api/fetchEmployeesFromRewardCondition`,
-    `${this.baseUrl}`+`api/submitRewardForEmployee`,
+    `${this.baseUrl}` +`api/submitRewardForEmployee`,
     `${this.baseUrl}` + `api/showAllEmployeeRewards`,
-    `${this.baseUrl}` + `api/getReviewType`
+    `${this.baseUrl}` + `api/getReviewType`,
+    `${this.baseUrl}` + `api/getProjectInfo`,
+    `${this.baseUrl}` + `api/getTeamInfo`,
+    `${this.baseUrl}` + `api/getAllEmployeesForPerformance`,
+    `${this.baseUrl}` + `api/get360TimesheetDetails`,
+    `${this.baseUrl}` + `api/submitEmployeePerformanceHOD`,
+    `${this.baseUrl}` + `api/submitEmployeePerformanceHR`,
+    `${this.baseUrl}` + `api/addReviewType`,
+    `${this.baseUrl}` + `api/updateReviewType`,
+    `${this.baseUrl}` + `getExistingProjectsAndTeamsByEmployee`,
+    `${this.baseUrl}` + `api/getAllEmployeesFor360View`,
+   
+     `${this.baseUrl}` + `api/biomax`
+  
+    
   ]
 
   constructor(private loaderService: LoaderService) { }

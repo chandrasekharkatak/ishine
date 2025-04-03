@@ -18,32 +18,16 @@
     </div>
     <div class="card col-md-12 px-0" *ngIf="isQuaterForm">
         <div class="card-header text-center text-uppercase">
-            <strong *ngIf="isQuaterCreation">Create Quarter Cycle</strong>
-            <strong *ngIf="isQuaterUpdation">Update Quarter Cycle</strong>
+            <strong *ngIf="isQuaterCreation">Create Cycle</strong>
+            <strong *ngIf="isQuaterUpdation">Update Cycle</strong>
         </div>
         <div class="card-body">
             <div class="row">
-                <!-- From Year -->
-                <div class="col-md-6 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label><span class="text-danger">*</span>From Year</label>
-                            <input type="number" class="form-control" min="1900" max="2099" step="1"
-                                [(ngModel)]="quarterCycle.fromYear" placeholder="YYYY" disabled>
-                        </div>
-                    </div>
-                </div>
-                <!-- To Year -->
-                <div class="col-md-6 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label><span class="text-danger">*</span>To Year</label>
-                            <input type="number" class="form-control" min="1900" max="2099" step="1"
-                                [(ngModel)]="quarterCycle.toYear" placeholder="YYYY" disabled>
-                        </div>
-                    </div>
+                <div class="col-md-12 mb-0 text-center">
+                    <h3 class="font-weight-bold"> FINANCIAL YEAR : <span style="color: #00008b;">{{ quarterCycle.fromYear }} - {{ quarterCycle.toYear }}</span></h3>
                 </div>
             </div>
+            
             <div class="row">
                 <!-- From Month -->
                 <div class="col-md-6 mb-0">
@@ -113,8 +97,8 @@
             </div> -->
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" (click)="toggleSearch()">
-                    <a href="javascript:void(0)">
+                <div class="selector-toggle" >
+                    <a href="javascript:void(0)" (click)="toggleSearch()">
                         <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
@@ -153,10 +137,12 @@
                                 <th class="info-label">{{17*(page-1)+i+1}}</th>
                                 <td>{{quarter.financialYear}}</td>
                                 <td>{{quarter.quarterCycle}}</td>
-                                <td>{{quarter.createdByName}}</td>
+                                <td *ngIf="userMapping.employee360_view_performance_config" id="clickablefor360" [navigateToEmployee360]="quarter.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{quarter.createdByName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_performance_config">{{quarter.createdByName}}</td>
                                 <td>{{quarter.createdOn}}</td>
+                                <td *ngIf="userMapping.employee360_view_performance_config" id="clickablefor360" [navigateToEmployee360]="quarter.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{quarter.updatedByName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_performance_config">{{quarter.updatedByName}}</td>
                                 <td>{{quarter.updatedOn}}</td>
-                                <td>{{quarter.updatedByName}}</td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-primary" type="submit"><em
                                             (click)="getByQuarterById(quarter.quarterId)"
@@ -227,8 +213,8 @@
 
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" (click)="toggleSearchReviewType()">
-                    <a href="javascript:void(0)">
+                <div class="selector-toggle" >
+                    <a href="javascript:void(0)" (click)="toggleSearchReviewType()">
                         <i *ngIf="!isSearchEnabledReview" class="fa fa-search"></i>
                         <i *ngIf="isSearchEnabledReview" class="fa-solid fa-xmark"></i>
                     </a>
@@ -268,21 +254,34 @@
                             <tr
                                 *ngFor="let review of reviewTypelist| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                                 <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
-                                <td>{{review.reviewLabel}}</td>
+                                <td>{{review.reviewLabel}} {{userMapping.employee360_view_performance_config}}</td>
                                 <td>{{review.reviewFieldType}}</td>
                                 <td>{{review.condition}}</td>
                                 <td>{{review.quarterCycle}}</td>
                                 <td>{{review.departmentName}}</td>
-                                <td>{{review.employeeName}}</td>
+                                <td *ngIf="userMapping.employee360_view_performance_config"id="clickablefor360" [navigateToEmployee360]="review.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{review.employeeName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_performance_config">{{review.employeeName}}</td>
                                 <td>{{review.createdOn | date: 'yyyy-MM-dd hh:mm:ss'}}</td>
-                                <td>{{ review.updatedByName ?? 'NA' }}</td>
-                                <td>{{review.updatedOn ? (review.updatedOn | date: 'yyyy-MM-dd hh:mm:ss') : 'NA' }}</td>
+                                <td *ngIf="!userMapping.employee360_view_performance_config">{{ review.updatedByName ?? 'NA' }}</td>
+                                <td *ngIf="userMapping.employee360_view_performance_config">
+                                    <span *ngIf="review.updatedByName; else showNADisplay" 
+                                          id="clickablefor360" 
+                                          [navigateToEmployee360]="review.emp360UpdatedBy" 
+                                          style="cursor: pointer;" 
+                                          title="Click to view Employee 360">
+                                      {{ review.updatedByName }}
+                                    </span>
+                                    <ng-template #showNADisplay>
+                                      {{ review.updatedByName ?? 'NA' }}
+                                    </ng-template>
+                                  </td>                                  
+                                <td>{{review.updatedOn ? (review.updatedOn | date: 'yyyy-MM-dd hh:mm:ss') : 'NA' }}</td> 
                                 <td *ngIf="!review.active == false">
                                     <button class="btn btn-sm btn-outline-primary" type="submit"
                                         (click)="showUpdateReviewForm(review)"><em
                                             class="fa fa-edit"></em></button>&nbsp;
                                     <button class="btn btn-sm btn-outline-danger" type="submit"
-                                        (click)="deleteReviewForm(review,alert_message)"><em
+                                        (click)="openConfirmDeleteModal(confirmDelete,review)"><em
                                             class="fa fa-trash"></em></button>
                                 </td>
                             </tr>
@@ -336,7 +335,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 mb-0">
+                <div class="col-md-4 mb-0" *ngIf="isCreateReview">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Quarter Cycle</label>
@@ -352,7 +351,15 @@
                         </div>
                     </div>
                 </div>
-
+                <div class="col-md-4 mb-0" *ngIf="isReviewUpdation">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Quarter Cycle</label>
+                            <input #myInput type="text" class="form-control" autocomplete="none"
+                            [(ngModel)]="reviewObj.quarterCycle" disabled>
+                        </div>
+                    </div>
+                </div>
 
             </div>
             <div *ngFor="let spec of allSpecializationList;let i = index" class="row">
@@ -360,7 +367,8 @@
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Review Label - {{i+1}}</label>
                         <input #myInput type="text" class="form-control" autocomplete="none"
-                            [(ngModel)]="spec.reviewLabel" (keypress)="fieldRestrictNumber($event)">
+                            [(ngModel)]="spec.reviewLabel" (blur)="onReviewLabelChange(spec.reviewLabel,alert_message)" (keypress)="fieldRestrictNumber($event)">
+                            
                         <!-- (blur)="ValidateInput($event.target,spec.specializationName)" -->
                     </div>
                 </div>
@@ -380,7 +388,6 @@
                         <label class="info-label"><span class="text-danger">*</span>Limit - {{i+1}}</label>
                         <input #myInput type="text" class="form-control" autocomplete="none"
                             (keypress)="fieldRestictCharacters($event)" [(ngModel)]="spec.condition">
-
                     </div>
                 </div>
 
@@ -388,7 +395,7 @@
                     <div class="form-group m-0 mt-3 mb-1">
                         <button type="button" class="btn btn-outline-primary mx-1"
                             (click)="addInputSpecializationField(alert_message)" *ngIf="!isReviewUpdation"
-                            [disabled]="(i !== allSpecializationList.length-1 || spec.reviewLabel == ''|| spec.reviewLabel == null )"><i
+                            [disabled]="(i !== allSpecializationList.length-1 || spec.reviewLabel == ''|| spec.reviewLabel == null ||spec.condition == ''|| spec.condition == null|| spec.reviewFieldType == ''|| spec.reviewFieldType == null )"><i
                                 class="fa fa-plus" aria-hidden="true"></i></button>
                         <button type="button" *ngIf="allSpecializationList.length > 1"
                             class="btn btn-outline-primary mx-1" (click)="removeInputSpecializationField(spec)"><i
@@ -399,7 +406,7 @@
 
             <div class="row mt-3">
                 <div class="col-md-12">
-                    <button type="submit" *ngIf="isCreateReview" (click)="createReview(alert_message)"
+                    <button type="submit" *ngIf="isCreateReview" (click)="createReview(reviewObj,alert_message)"
                         class="btn btn-primary btn-sm mx-1">Create
                         Review</button>
                     <!-- (click)="updateDomain(alert_message)" -->
@@ -433,5 +440,13 @@
         <button type="button" class="btn btn-success" (click)="cancelRequest();Delete(alert_message)">Yes,
             proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #confirmDelete let-modal>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to delete this review?</p>
+        <button type="button" class="btn btn-success" (click)="deleteReviewForm(alert_message);modalRef?.hide()">Yes</button>&nbsp;&nbsp;
+        <button type="button" class="btn btn-danger" (click)="modalRef?.hide()">No</button>
     </div>
 </ng-template>

@@ -394,6 +394,7 @@ export class AppreciationComponent implements OnInit {
     }
   
     enableAppreciationOnclick() {
+     this.queryList=[];
       this.appreciationObj.fromDate = ''
       this.appreciationObj.toDate = ''
       this.appreciationObj.appreciationEventName = ''
@@ -443,10 +444,12 @@ export class AppreciationComponent implements OnInit {
       this.isUpdation = false;
       this.isHelpConfiguration = false;
     }
-  
+    isEmployeeSelectionChanged: boolean = false;
     changeEvent(template: TemplateRef<any>, columns: any[], title: any, value: string) {
+      this.isEmployeeSelectionChanged = true;
       if (value == "all") {
         this.isTable = true;
+        this.isDataAVailableInFilter = true;
         this.allEmployeeList = [];
       }
       else if (value == "custom") {
@@ -670,7 +673,7 @@ export class AppreciationComponent implements OnInit {
       }
     }
   
-  
+    isDataAVailableInFilter:boolean = false;
     getCustomEmployeeList(queryObjList: any, template: TemplateRef<any>) {
       this.allEmployeeList = [];
       let queryObj = new Query();
@@ -693,8 +696,10 @@ export class AppreciationComponent implements OnInit {
             )
   
             if (this.allEmployeeList.length != 0) {
+              this.isDataAVailableInFilter = true;
               this.openAlertMod(template, "Employee Record found")
             } else {
+              this.isDataAVailableInFilter = false;
               this.openAlertMod(template, "No Data found")
             }
             this.allEmployeeList.forEach(employee => {
@@ -765,6 +770,11 @@ export class AppreciationComponent implements OnInit {
       const dateFormat = 'YYYY-MM-DD';
       let inputValidated: boolean = this.validateAppreciation(this.appreciationObj, template)
       if (!inputValidated) return;
+
+      if (!this.isDataAVailableInFilter) {
+        this.openAlertMod(template, "No employee data found. Appreciation cannot be enabled.");
+        return;
+    }
       this.enableAppreciationList = [];
   
       this.enableAppreciationList = this.allEmployeeList.map(employee => {
@@ -983,15 +993,18 @@ export class AppreciationComponent implements OnInit {
       const dateFormat = 'YYYY-MM-DD';
       let inputValidated: boolean = this.validateEnableAppreciationObj(this.appreciationObj, template)
       if (!inputValidated) return;
-  
+      
+
+      if (this.isEmployeeSelectionChanged) {
       this.enableAppreciationList = this.allEmployeeList.map(employee => {
         return {
           empId: employee.empId,
           isAppreciationEnable: true
         }
       });
+    }
   
-  
+      
       this.appreciationObj.fromDate = moment(this.appreciationObj.fromDate).format(dateFormat)
       this.appreciationObj.toDate = moment(this.appreciationObj.toDate).format(dateFormat)
       this.appreciationObj.appreciationEventName = this.appreciationObj.appreciationEventName;
@@ -999,12 +1012,14 @@ export class AppreciationComponent implements OnInit {
   
   
       this.appreciationObj.updatedBy = this.currentUser.empId;;
+     
       //console.log("Update dept : ", this.appreciationObj);
       this.allAppreciationEvent = this.allAppreciationEvent.filter(x => x.appreciationEventId != this.appreciationObj.appreciationEventId);
       let checkEventDate = this.allAppreciationEvent.find(x => x.fromDate == this.appreciationObj.fromDate || x.toDate == this.appreciationObj.toDate || ((x.fromDate <= this.appreciationObj.toDate) && (this.appreciationObj.fromDate <= x.toDate)));
       if (checkEventDate != undefined) {
         this.openAlertMod(template, "Event is already exist on this date");
       } else {
+       
         this.portalService.updateAppreciationEvent(this.appreciationObj).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus == "Success") {
             this.openAlertMod(template, response.serviceResponse);

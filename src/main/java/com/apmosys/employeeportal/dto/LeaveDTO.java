@@ -136,6 +136,7 @@ public class LeaveDTO {
 	
 	private Integer managerId;
 	private String managerApprovalStatus;
+	private Long level1ApproverId;
 	
 	private Long level2ApproverId;
 	private String level2ApproverName;
@@ -166,6 +167,7 @@ public class LeaveDTO {
 	
 	private String isConsultant;
 	private String isApprenticeship;
-	private long currentUserEmpId;
-	private long differenceInDays;
+	private Long currentUserEmpId;
+	private Long differenceInDays;
+	private Long approverId;
 }

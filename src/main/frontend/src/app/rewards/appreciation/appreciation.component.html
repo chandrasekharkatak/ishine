@@ -104,8 +104,8 @@
             <!-- <input type="text" class="form-control"  placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	 -->
             <!-- <button type="button"  id="buttonPosition" class="btn btn-sm btn-outline-primary mx-1" (click)="openFilterModal(filter, appreciationColumns, 'Filter Appreciation')"><i class="fa-solid fa-filter"></i></button> -->
         </div>
-        <div class="selector-toggle" (click)="toggleSearch()">
-            <a href="javascript:void(0)">
+        <div class="selector-toggle" >
+            <a href="javascript:void(0)" (click)="toggleSearch()">
                 <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
@@ -149,8 +149,8 @@
 <!-- view Appreciation summary start -->
 
 <div class=row-md-6  style="margin-left: 5px; margin-right: 5px;" *ngIf="viewAppreciationForm">
-    <div class="selector-toggle" (click)="toggleSearch()">
-        <a href="javascript:void(0)">
+    <div class="selector-toggle" >
+        <a href="javascript:void(0)" (click)="toggleSearch()">
             <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
         </a>
@@ -199,8 +199,8 @@
 </div>
 <!--AppreciationInfo table start-->
 <div class=row-md-6 *ngIf="isAppreciationInfo">
-    <div class="selector-toggle" (click)="toggleSearch()">
-        <a href="javascript:void(0)">
+    <div class="selector-toggle" >
+        <a href="javascript:void(0)" (click)="toggleSearch()">
             <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
         </a>
@@ -242,8 +242,8 @@
         </div> -->
         <div class="row-md-12">
             <div class="col-md-12">
-                <div class="selector-toggle" (click)="toggleSearch()">
-                    <a href="javascript:void(0)">
+                <div class="selector-toggle" >
+                    <a href="javascript:void(0)" (click)="toggleSearch()">
                         <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
@@ -301,7 +301,7 @@
 
 <!-- View Appreciation event table -->
 
-<div class="row col-md-12"  style="margin-left: 5px; margin-right: 5px;" *ngIf="viewEventConfig">
+<div class="overflow-auto" style="margin-left: 5px; margin-right: 5px;" *ngIf="viewEventConfig">
     <div class="col-md-12 table-header">
         <h1 class="table-header-title">Appreciation Event History</h1>
     </div>
@@ -318,44 +318,41 @@
     <!-- <div class="form-group d-flex flex-row ml-auto col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
         </div> -->
-    <table class="table department-table" matSort (matSortChange)="sortData($event)">
-        <thead class="thead-light">
-            <tr>
-                <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" class="info-label" mat-sort-header="appreciationEventName|string">Event Name</th>
-                <th scope="col" class="info-label" mat-sort-header="fromDate|date">Start Date</th>
-                <th scope="col" class="info-label" mat-sort-header="toDate|date">End Date</th>
-                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
-                <th scope="col" class="info-label">Action</th>
-
-            </tr>
-        </thead>
-        <tbody>
-            <tr *ngIf="allAppreciationEvent.length == 0">
-                <th colspan="6" class="text-center info-label">No Files to display...</th>
-            </tr>
-            <tr
-                *ngFor="let event of allAppreciationEvent | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }, let i = index ">
-                <th class="info-label">{{10*(page-1)+i+1}}</th>
-                <td>{{event.appreciationEventName}}</td>
-                <td>{{event.fromDate | date:'dd-MM-yyyy'}}</td>
-                <td>{{event.toDate | date:'dd-MM-yyyy'}}</td>
-                <td>{{event.createdOn}}</td>
-                <td>
-                    <button class="btn btn-sm btn-outline-primary" (click)="showUpdateForm(event)" type="submit"><em
-                            class="fa fa-edit"></em></button>&nbsp;
-                    <button class="btn btn-sm btn-outline-danger" type="submit"
-                        (click)="openDeleteAppreciationEvent(delete_template,event)"><em
-                            class="fa fa-trash"></em></button>
-                    <button type="button" class="btn btn-outline-primary btn-sm mx-1"
-                        *ngIf="userMapping.view_employees_appreciation && !isUploadForm"
-                        (click)="getAppreciationEventSummaryInfo(event)">View</button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <pagination-controls class="my-pagination" [hidden]="allAppreciationEvent.length == 0"
-        (pageChange)="handlePageChange($event)"></pagination-controls>
+        <div class="table-container" bassHorizontalScroll [tableId]="'appreciationEventInfo'"
+        [tableTHeadId]="'appreciationEventInfoTHead'" [tableTHeadTrId]="'appreciationEventInfoTHeadTr'">
+            <table class="table department-table" id="department-table-appreciationEventInfo" matSort (matSortChange)="sortData($event)">
+                <thead class="thead-light" id="appreciationEventInfoTHead">
+                    <tr id="appreciationEventInfoTHeadTr">
+                        <th scope="col" class="info-label">Sr No.</th>
+                        <th scope="col" class="info-label" mat-sort-header="appreciationEventName|string">Event Name</th>
+                        <th scope="col" class="info-label" mat-sort-header="fromDate|date">Start Date</th>
+                        <th scope="col" class="info-label" mat-sort-header="toDate|date">End Date</th>
+                        <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
+                        <th scope="col" class="info-label">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngIf="allAppreciationEvent.length == 0">
+                        <th colspan="6" class="text-center info-label">No Files to display...</th>
+                    </tr>
+                    <tr
+                        *ngFor="let event of allAppreciationEvent | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
+                        <th class="info-label">{{ 10*(page-1)+i+1 }}</th>
+                        <td>{{ event.appreciationEventName }}</td>
+                        <td>{{ event.fromDate | date:'dd-MM-yyyy' }}</td>
+                        <td>{{ event.toDate | date:'dd-MM-yyyy' }}</td>
+                        <td>{{ event.createdOn }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" (click)="showUpdateForm(event)" type="submit"><em class="fa fa-edit"></em></button>&nbsp;
+                            <button class="btn btn-sm btn-outline-danger" type="submit" (click)="openDeleteAppreciationEvent(delete_template,event)"><em class="fa fa-trash"></em></button>
+                            <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_employees_appreciation && !isUploadForm" (click)="getAppreciationEventSummaryInfo(event)">View</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <pagination-controls class="my-pagination" [hidden]="allAppreciationEvent.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+        </div>
+        
 </div>
 
 <!-- View Appreciation event table end -->

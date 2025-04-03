@@ -19,6 +19,7 @@ import { DomainService } from 'src/app/services/domain.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { LogService } from 'src/app/services/log.service';
 import { PerformanceService } from 'src/app/services/performance.service';
+import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
@@ -71,7 +72,7 @@ export class PerformanceConfigComponent implements OnInit {
   quarterCycleUpdate = new QuarterCycle();
 
   quarterCycleColumns: any[] = ['blank', 'financialYear', 'quarterCycle', 'createdByName', 'createdOn', 'updatedByName', 'updatedOn'];
-
+  employeesFor360: any[] = [];
   log:Log;
   tabName:any = 'Configurations';
   constructor(
@@ -84,12 +85,21 @@ export class PerformanceConfigComponent implements OnInit {
     private departmentService: DepartmentService,
     private domainService: DomainService,
     private performanceService:PerformanceService,
-    private logService:LogService
+    private logService:LogService,
+    private utilityService: UtilityService,
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
+
     this.showQuaterTable();
     this.getAllDepartmentList();
+    this.getReviewLabelForEveryDepartment();
     this.logService.updateLogInfo(this.log);
     
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -97,7 +107,7 @@ export class PerformanceConfigComponent implements OnInit {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
     console.log(this.feature, this.userMapping);
-
+    console.log("userMapping.employee360_view_performance_config",this.userMapping.employee360_view_performance_config)
     
     
   }
@@ -180,21 +190,20 @@ export class PerformanceConfigComponent implements OnInit {
     this.isCreateReview = false;
     this.reviewObj = new review();
     this.getReviewType();
-    console.log("true" + this.isReviewTable);
+   
   }
 
   createQuarterCycle(template: TemplateRef<any>) {
 
     let inputValidated: boolean = this.validateQuarterCycleObj(this.quarterCycle, template)
-    console.log("Pr ", inputValidated);
+   
     if (!inputValidated) return;
-    console.log("Pr ", inputValidated);
     this.quarterCycle.createdBy = this.currentUser.empId;
     this.quarterCycle.financialYear = `${this.quarterCycle.fromYear}-${this.quarterCycle.toYear}`;
     this.quarterCycle.quarterCycle = `${this.quarterCycle.fromMonth}-${this.quarterCycle.toMonth}`;
     this.quarterCycle.isActive = true;
     this.quarterCycle.isEnable = false;
-    console.log("quartercycle", this.quarterCycle);
+   
     this.performanceService.createQuarterCycle(this.quarterCycle).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -209,14 +218,14 @@ export class PerformanceConfigComponent implements OnInit {
   updateQuarterCycle(template: TemplateRef<any>) {
 
     let inputValidated: boolean = this.validateQuarterCycleObj(this.quarterCycle, template)
-    console.log("Pr ", inputValidated);
+    
     if (!inputValidated) return;
-    console.log("Pr ", inputValidated);
+    
 
     this.quarterCycle.updatedBy = this.currentUser.empId;
     this.quarterCycle.financialYear = `${this.quarterCycle.fromYear}-${this.quarterCycle.toYear}`;
     this.quarterCycle.quarterCycle = `${this.quarterCycle.fromMonth}-${this.quarterCycle.toMonth}`;
-    console.log(this.quarterCycle, "updateeeeeee");
+  
     this.performanceService.updateQuarterCycle(this.quarterCycle).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -232,11 +241,12 @@ export class PerformanceConfigComponent implements OnInit {
   fetchExistingQuarters() {
     const financialYear = `${this.quarterCycle.fromYear}-${this.quarterCycle.toYear}`;
 
-    console.log(financialYear, "--------------------------");
+   
     this.performanceService.getQuartersByYear(financialYear).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.existingQuarters = response.serviceResponse;
-        console.log("lalal", this.existingQuarters);
+        console.log(this.existingQuarters);
+        
       }
     });
   }
@@ -248,6 +258,16 @@ export class PerformanceConfigComponent implements OnInit {
         this.quarterCyclesList.forEach(quarterCycleObj => {
           quarterCycleObj.updatedOn = (quarterCycleObj.updatedOn) ? moment(quarterCycleObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
           quarterCycleObj.createdOn = (quarterCycleObj.createdOn) ? moment(quarterCycleObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
+        this.quarterCyclesList.forEach((employee) => {
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          // console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          // console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
         });
       } else {
         alert(response.serviceResponse);
@@ -313,22 +333,66 @@ export class PerformanceConfigComponent implements OnInit {
     }
   }
 
-  checkMonthExistencee(type: 'fromMonth' | 'toMonth', template: TemplateRef<any>) {
-    const selectedMonth = this.quarterCycle[type];
-    if (!selectedMonth) return;
+  // checkMonthExistencee(type: 'fromMonth' | 'toMonth', template: TemplateRef<any>) {
+  //   const selectedMonth = this.quarterCycle[type];
+  //   if (!selectedMonth) return;
 
-    const selectedMonthIndex = this.getMonthIndex(selectedMonth);
-    let existingQuarter = '';
+  //   const selectedMonthIndex = this.getMonthIndex(selectedMonth);
+  //   let existingQuarter = '';
+
+  //   const isOverlap = this.existingQuarters.some((quarter: any) => {
+  //     const [existingFrom, existingTo] = quarter.quarterCycle.split('-');
+  //     const existingFromIndex = this.getMonthIndex(existingFrom);
+  //     const existingToIndex = this.getMonthIndex(existingTo);
+
+  //     const overlaps = selectedMonthIndex >= existingFromIndex && selectedMonthIndex <= existingToIndex;
+
+  //     if (overlaps) {
+  //       existingQuarter = quarter.quarterCycle;
+  //     }
+
+  //     return overlaps;
+  //   });
+
+  //   if (isOverlap) {
+  //     setTimeout(() => {
+  //       this.quarterCycle[type] = '';
+  //     });
+
+  //     this.openAlertMod(template, `The selected month ${selectedMonth} already exists in the quarter cycle ${existingQuarter}.`);
+  //   }
+  // }
+  
+ 
+  checkMonthExistencee(type: 'fromMonth' | 'toMonth', template: TemplateRef<any>) {
+    const selectedFromMonth = this.quarterCycle.fromMonth;
+    const selectedToMonth = this.quarterCycle.toMonth;
+
+    if (!selectedFromMonth || !selectedToMonth) return;
+
+    const selectedFromIndex = this.getMonthIndex(selectedFromMonth);
+    const selectedToIndex = this.getMonthIndex(selectedToMonth);
+
+    let overlappingCycle = '';
+     
 
     const isOverlap = this.existingQuarters.some((quarter: any) => {
       const [existingFrom, existingTo] = quarter.quarterCycle.split('-');
       const existingFromIndex = this.getMonthIndex(existingFrom);
       const existingToIndex = this.getMonthIndex(existingTo);
+   
+      if (this.isQuaterUpdation && quarter.quarterId === this.quarterCycle.quarterId) {
+        return false;
+    }
 
-      const overlaps = selectedMonthIndex >= existingFromIndex && selectedMonthIndex <= existingToIndex;
+      // Check if new range overlaps with any existing cycle
+      const overlaps =
+        (selectedFromIndex >= existingFromIndex && selectedFromIndex <= existingToIndex) ||
+        (selectedToIndex >= existingFromIndex && selectedToIndex <= existingToIndex) ||
+        (selectedFromIndex <= existingFromIndex && selectedToIndex >= existingToIndex);
 
       if (overlaps) {
-        existingQuarter = quarter.quarterCycle;
+        overlappingCycle = quarter.quarterCycle;
       }
 
       return overlaps;
@@ -339,9 +403,10 @@ export class PerformanceConfigComponent implements OnInit {
         this.quarterCycle[type] = '';
       });
 
-      this.openAlertMod(template, `The selected month ${selectedMonth} already exists in the quarter cycle ${existingQuarter}.`);
+      this.openAlertMod(template, `The selected range ${selectedFromMonth}-${selectedToMonth} overlaps with an existing cycle ${overlappingCycle}.`);
     }
-  }
+}
+
 
 
   toggleSearch() {
@@ -369,7 +434,7 @@ export class PerformanceConfigComponent implements OnInit {
     this.isReviewForm = true;
     this.isCreateReview = true;
     this.getAllQuarterCycles();
-    console.log("quater", this.quarterCyclesList);
+    
     this.allSpecializationList = [];
 
     if (this.reviewObj.allSpecializationList == undefined || this.reviewObj.allSpecializationList.length == 0) {
@@ -403,7 +468,6 @@ export class PerformanceConfigComponent implements OnInit {
     obj.isActive = false;
     obj.quarterId = this.quarterIdToBeDeleted;
 
-    console.log(obj, "delete");
 
     this.performanceService.deleteQuarterCycle(obj).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -415,6 +479,7 @@ export class PerformanceConfigComponent implements OnInit {
 
 
   getByQuarterById(quarterId: any) {
+    this.fetchExistingQuarters();
     this.isQuaterTable = false;
     this.isQuaterForm = true;
 
@@ -434,7 +499,7 @@ export class PerformanceConfigComponent implements OnInit {
 
         this.fetchExistingQuarters();
 
-        console.log(this.quarterCycle, "getquartercyclebyid");
+       
       } else {
         console.error(response.serviceResponse)
       }
@@ -471,11 +536,11 @@ export class PerformanceConfigComponent implements OnInit {
     this.allSpecializationList = [];
 
     this.reviewObj.reviewTypeId = review.reviewTypeId;
-    console.log("hhj", review.reviewTypeId);
+    
     this.reviewObj.deptId = [review.deptId];
     this.performanceService.getReviewTypeById(this.reviewObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.reviewObj = response.serviceResponse;
+        this.reviewObj = response.serviceResponse;      
         this.reviewObj.departmentName = review.departmentName;
         this.reviewObj.quarterCycle = review.quarterCycle;
         this.allSpecializationList.push(this.reviewObj);
@@ -548,22 +613,90 @@ export class PerformanceConfigComponent implements OnInit {
     //console.log("Updated Filter : ", this.filters);
   }
 
+  validateReviewTypes(template: TemplateRef<any>,reviewObj:review,allSpecializationList:any[] ){
 
+    if(!this.validationService.validateNullUndefinedEmptyString(reviewObj.quarterId)){
+      this.alertMessage = "Please select Quarter Cycle !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    
+
+    let flag = true;
+    allSpecializationList.forEach((spec:any, index) => {
+      if(!this.validationService.validateNullUndefinedEmptyString(spec.reviewLabel)){
+         this.alertMessage = `Please enter Review Label ${index+1} !!`;
+         this.openAlertMod(template, this.alertMessage);
+         flag = false;
+         return;
+      }
+      if(!this.validationService.validateNullUndefinedEmptyString(spec.reviewFieldType)){
+        this.alertMessage = `Please select Review Field Type ${index+1} !!`;
+        this.openAlertMod(template, this.alertMessage);
+        flag = false;
+        return;
+      }
+      if(!this.validationService.validateNullUndefinedEmptyString(spec.condition)){
+        this.alertMessage = `Please enter Limit ${index+1} !!`;
+        this.openAlertMod(template, this.alertMessage);
+        flag = false;
+        return;
+     }
+
+    });
+    return flag;
+  }
+
+  reviewObj1:any[] = [];
   //pagination
-  createReview(template: TemplateRef<any>) {
+  createReview(reviewObj:any,template: TemplateRef<any>) {
 
+
+    if(reviewObj.deptId == null || reviewObj.deptId == '' ||reviewObj.quarterId == null || reviewObj.quarterId=='' ){
+      this.openAlertMod(template, 'Please Select Department');
+      return;
+    }
+    let inputValidated: boolean = this.validateReviewTypes(template, reviewObj, this.allSpecializationList);
+    if (!inputValidated) return;
+
+   
+
+    const reviewLabels = this.allSpecializationList.map(spec => spec.reviewLabel);
+    const duplicateLabels = reviewLabels.filter((label, index) => reviewLabels.indexOf(label) !== index);
+   
+    
+
+    if (duplicateLabels.length > 0) {
+      this.openAlertMod(template, 'Review Labels must be unique.');
+      return;
+    }
+    for (let spec of this.allSpecializationList) {
+      if (spec.condition > 10 ) {
+        this.openAlertMod(template, 'Limit value must be less than or equal to 10  .');
+        return;
+      }
+      if( spec.condition <= 0){
+        this.openAlertMod(template, 'Limit value Be Greater Than 0  .');
+        return;
+      }
+      if(spec.condition == null || spec.condition == ''){
+        this.openAlertMod(template, 'Limit Cannot Be null .');
+        return;
+      }
+     
+     
+    }
+    // if()
     this.reviewObj.allSpecializationList = this.allSpecializationList;
     this.reviewObj.createdBy = this.currentUser.empId;
-    this.reviewObj.deptId = this.reviewObj.deptId;
-    this.reviewObj.quarterId = this.reviewObj.quarterId;
-    console.log(this.reviewObj);
+
     this.performanceService.addReviewType(this.reviewObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.reviewObj = new review();
-        this.openAlertMod(template, 'ReviewType Created Successfully');
+        this.openAlertMod(template, response.serviceResponse);
         this.showReviewTable();
       } else {
-        this.openAlertMod(template, 'ReviewType  Not Created ');
+        this.openAlertMod(template, response.serviceResponse);
         console.error("API Response", response.serviceResponse);
       }
     });
@@ -571,6 +704,29 @@ export class PerformanceConfigComponent implements OnInit {
 
 
   updateReview(template: TemplateRef<any>) {
+    let inputValidated: boolean = this.validateReviewTypes(template, this.reviewObj, this.allSpecializationList);
+    if (!inputValidated) return;
+
+
+    if(this.reviewObj.deptId == null || this.reviewObj.deptId == '' || this.reviewObj.quarterId == null || this.reviewObj.quarterId=='' ){
+      this.openAlertMod(template, 'Please Select Department');
+      return;
+    }
+    for (let spec of this.allSpecializationList) {
+      if (spec.condition > 10) {
+        this.openAlertMod(template, 'Limit value must be less than or equal to 10  .');
+        return;
+      }
+      if( spec.condition <= 0){
+        this.openAlertMod(template, 'Limit value Be Greater Than 0  .');
+        return;
+      }
+      if(spec.condition == null || spec.condition == ''){
+        this.openAlertMod(template, 'Limit Cannot Be null  .');
+        return;
+      }
+     
+    }
 
     let obj = {
       reviewTypeId: this.reviewObj.reviewTypeId,
@@ -595,11 +751,11 @@ export class PerformanceConfigComponent implements OnInit {
         console.log("API response received:", response);
 
         if (response.serviceStatus === "Success") {
-          this.openAlertMod(template, 'Review Updated Successfully');
+          this.openAlertMod(template, response.serviceResponse);
           this.reviewObj = new review();
           this.showReviewTable();
         } else {
-          this.openAlertMod(template, 'ReviewType  Not Updated ');
+          this.openAlertMod(template, response.serviceResponse);
           console.error("API response error:", response.serviceResponse);
 
         }
@@ -618,26 +774,40 @@ export class PerformanceConfigComponent implements OnInit {
         this.reviewTypelist = response.serviceResponse.sort((a, b) => {
           return new Date(b.createdOn).getTime() - new Date(a.createdOn).getTime();
         });
+        this.reviewTypelist.forEach((employee) => {
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          // console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          // console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+        });
       } else {
         console.error("API Response", response.serviceResponse);
         // this.openAlertMod(template, 'ReviewType  Not Fetched ');
       }
 
-
-      console.log("vhgscvshdgc" + response.serviceResponse.quaterCycle);
     })
   }
 
-  deleteReviewForm(obj: any, template: TemplateRef<any>) {
 
-    this.performanceService.deleteReviewType(obj.reviewTypeId).pipe(first()).subscribe((response: any) => {
+  rewadardDeleteId:any;
+  openConfirmDeleteModal(template: TemplateRef<any>, rewardID: any) {
+    this.rewadardDeleteId=rewardID.reviewTypeId
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  }
+  deleteReviewForm(template: TemplateRef<any>) {
+
+    this.performanceService.deleteReviewType(this.rewadardDeleteId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         // this.reviewTypelist = response.serviceResponse;
-        this.openAlertMod(template, 'ReviewType Deleted Successfully');
+        this.openAlertMod(template,  response.serviceResponse);
         this.showReviewTable();
       }
       else {
-        this.openAlertMod(template, 'ReviewTypem Not Deleted ');
+        this.openAlertMod(template,  response.serviceResponse);
         console.log("API Response" + response.serviceResponse);
       }
     })
@@ -661,9 +831,38 @@ export class PerformanceConfigComponent implements OnInit {
     if ((k >= 65 && k <= 90) || (k >= 97 && k <= 122) || (k === 32)) {
       return true;
     }
+    
 
     return false;
   }
+
+
+
+  getReviewLabelForEveryDepartment(){
+    this.performanceService.getReviewLabelForEveryDepartment().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        this.reviewObj1 = response.serviceResponse;
+        console.log('Review Label changed:', this.reviewObj1 );
+      }
+    });
+  }
+  onReviewLabelChange(reviewLabel:any,template: TemplateRef<any>) {
+  
+    const re = this.reviewObj1.filter(res =>
+      res.reviewLabel == reviewLabel &&
+      (Array.isArray(this.reviewObj.deptId) ? this.reviewObj.deptId.includes(res.departmentId) : res.departmentId === this.reviewObj.deptId) &&
+      res.quarterId == this.reviewObj.quarterId 
+
+    );
+   
+    if (re.length > 0) {
+      this.openAlertMod(template, 'Review Labels Already Exist');
+      return;  
+    }
+  }
+
+
+
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

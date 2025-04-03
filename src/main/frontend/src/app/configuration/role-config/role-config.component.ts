@@ -1,21 +1,21 @@
+import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
-import { NgModel } from '@angular/forms';
+import { Sort } from '@angular/material/sort';
+import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
 import { Feature } from 'src/app/models/feature';
 import { JobRole } from 'src/app/models/jobRole';
 import { SubFeature } from 'src/app/models/subFeature';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { DepartmentService } from 'src/app/services/department.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { JobRoleService } from 'src/app/services/job-role.service';
 import { SubfeatureService } from 'src/app/services/subfeature.service';
+import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { ExportExcelService } from 'src/app/services/export-excel.service';
-import { Sort } from '@angular/material/sort';
-import { LocationStrategy } from '@angular/common';
-import * as moment from 'moment';
-import { AppComponent } from 'src/app/app.component';
 
 @Component({
   selector: 'app-role-config',
@@ -73,6 +73,7 @@ export class RoleConfigComponent implements OnInit {
   filters:any = {};
   isSearchEnabled:boolean = false;
   roleColumns:any[] = ['blank','name','employeeRole','departmentName','createdBy','createdOn','updatedByName','updatedOn']
+  employeesFor360: any[] = [];
 
   constructor(
     private validationService: ValidationService,
@@ -82,11 +83,20 @@ export class RoleConfigComponent implements OnInit {
     private subfeatureService: SubfeatureService,
     private authenticationService: AuthenticationService,
     private exportExcelService: ExportExcelService,
-    private locationStrategy: LocationStrategy) {
+    private locationStrategy: LocationStrategy,
+    private utilityService: UtilityService,
+) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
+
     this.getAllDepartmentList();
 
     // Dynamic Subfeature Flags
@@ -102,6 +112,7 @@ export class RoleConfigComponent implements OnInit {
     this.sectionViewInit();
     this.preventBackButton();
   }
+
   preventBackButton(){
     history.pushState(null, null, location.href);
     this.locationStrategy.onPopState(()=>{
@@ -358,12 +369,21 @@ export class RoleConfigComponent implements OnInit {
     this.jobRoleService.getAllJobRole().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allJobRoleList = response.serviceResponse;
+        this.allJobRoleList.forEach((employee) => {
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          // console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          // console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+        });
         this.allJobRoleList.forEach(role => {
           role.createdOn = (role.createdOn)? moment(role.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           role.updatedOn = (role.updatedOn)? moment(role.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
         this.filterAllJobRoleList = this.allJobRoleList;
-
       } else {
         console.error(response.serviceResponse)
       }

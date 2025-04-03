@@ -67,12 +67,14 @@ import { DocumentUploadComponent } from './user-update-info/document-upload/docu
 import { EmployeeInfoComponent } from './user-update-info/employee-info/employee-info.component';
 import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
-
 import { PerformanceDashboardComponent } from './user-performance/performance-dashboard/performance-dashboard.component';
 import { TeamDashboardComponent } from './user-performance/team-dashboard/team-dashboard.component';
 import { TemplatesComponent } from './user-performance/templates/templates.component';
 import { QuarterCycleComponent } from './user-performance/quarter-cycle/quarter-cycle.component';
 import { ViewPerformanceComponent } from './user-performance/view-performance/view-performance.component';
+import { ProjectViewComponent } from './project-view/project-view.component';
+import { PerformanceConfigComponent } from './configuration/performance-config/performance-config.component';
+import { ProjectInsightsConfigComponent } from './configuration/project-insights-config/project-insights-config.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -105,6 +107,8 @@ const routes: Routes = [
       { path: 'other', component: OthersComponent, },
       { path: 'rewards-config', component: RewardsConfigComponent, },
       
+      { path: 'performance-config' , component: PerformanceConfigComponent},
+      { path: 'project-insight-config' , component: ProjectInsightsConfigComponent}
     ]
   },
   {path:'user-leaves', component: UserLeavesComponent, canActivate: [AuthGuard],
@@ -167,10 +171,9 @@ const routes: Routes = [
       { path: 'biomax', component: Employee360BiomaxComponent, },
       { path: 'rewards', component: Employee360RewardsComponent, },
       { path: 'appreciation', component: Employee360AppreciationComponent, },
-
     ]
   },
-
+  {path:'project-view', component: ProjectViewComponent},
   {path:'user-policies', component: UserPoliciesComponent, canActivate: [AuthGuard]},
   {path:'user-survey', component: UserSurveyComponent, canActivate: [AuthGuard]},
   {path:'user-survey/:id', component: UserSurveyComponent, canActivate: [AuthGuard]},

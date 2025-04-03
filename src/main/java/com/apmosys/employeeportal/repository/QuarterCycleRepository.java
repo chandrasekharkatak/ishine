@@ -31,6 +31,13 @@ public interface QuarterCycleRepository extends JpaRepository<QuaterCycle, Long>
 	
 	
 
-
+    @Query(nativeQuery=true,value="select count(*) from quater_cycle where is_enable = 1 and is_active =1")
+    int countByIsEnableAndIsActive();
+    
+    @Query(nativeQuery=true,value="select quarter_id from quater_cycle where is_enable = 1 and is_active =1")
+    List<Long> findAllEnabledQuarterIds();
+    
+    @Query(nativeQuery=true,value="select count(*) from employee_performance where emp_id = :empId and completion_status='Completed' and quarter_id IN :quarterIds")
+    int countByEmpIdAndCompletionStatusAndQuarterIdIn(@Param("empId") Long empId, @Param("quarterIds") List<Long> quarterIds);
 	
 }

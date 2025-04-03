@@ -142,6 +142,8 @@ AllWeekOfList:any[]=[];
     this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
     this.sectionViewInit();
     this.preventBackButton();
+
+    
     // this.setStartDateMinMax();
   }
   preventBackButton() {
@@ -536,45 +538,97 @@ customDateFilter: (date: Date) => boolean = (date: Date): boolean => {
 
 
 
+// getFilteredDates(dayType: string): Date[] {
+  
+  
+// console.log("date filter ",this.Allholidays);
+
+//   const DAY_IN_MS = 24 * 60 * 60 * 1000;
+//   const currentDate = new Date();
+//   const backDatedDays = this.currentUser.timesheetBackDatedDays || 30;
+//   const startDate = new Date(currentDate.getTime() - backDatedDays * DAY_IN_MS);
+
+//   // const publicHolidays = ['2024-11-25', '2024-11-01']; // Add public holiday dates here.
+
+//   if (dayType === 'Non-working') {
+//     // Filter for Public Holidays
+
+//     console.log("hodays ",this.Allholidays)
+
+//     return this.Allholidays
+//       .map(date => new Date(date))
+//       .filter(holidayDate => holidayDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date === this.datePipe.transform(holidayDate, 'yyyy-MM-dd')));
+//   }
+
+//   if (dayType === 'Non-Working') {
+//     return this.AllWeekOfList
+//     .map(date => new Date(date))
+//     .filter(
+//       weekOffDate =>
+//         weekOffDate >= startDate &&
+//         weekOffDate <= currentDate &&
+//         !this.availableTimesheets.find(
+//           timesheet => timesheet.date === this.datePipe.transform(weekOffDate, 'yyyy-MM-dd')
+//         )
+//     );
+//   }
+
+//   return [];
+// }
+
 getFilteredDates(dayType: string): Date[] {
   
   
-console.log("date filter ",this.Allholidays);
-
-  const DAY_IN_MS = 24 * 60 * 60 * 1000;
-  const currentDate = new Date();
-  const backDatedDays = this.currentUser.timesheetBackDatedDays || 30;
-  const startDate = new Date(currentDate.getTime() - backDatedDays * DAY_IN_MS);
-
-  // const publicHolidays = ['2024-11-25', '2024-11-01']; // Add public holiday dates here.
-
-  if (dayType === 'Public Holiday') {
-    // Filter for Public Holidays
-
-    console.log("hodays ",this.Allholidays)
-
-    return this.Allholidays
-      .map(date => new Date(date))
-      .filter(holidayDate => holidayDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date === this.datePipe.transform(holidayDate, 'yyyy-MM-dd')));
+  console.log("date filter ",this.Allholidays);
+  
+    const DAY_IN_MS = 24 * 60 * 60 * 1000;
+    const currentDate = new Date();
+    const backDatedDays = this.currentUser.timesheetBackDatedDays || 30;
+    const startDate = new Date(currentDate.getTime() - backDatedDays * DAY_IN_MS);
+  
+    // const publicHolidays = ['2024-11-25', '2024-11-01']; // Add public holiday dates here.
+  
+    // if (dayType === 'Public Holiday') {
+    //   // Filter for Public Holidays
+  
+    //   console.log("hodays ",this.Allholidays)
+  
+    //   return this.Allholidays
+    //     .map(date => new Date(date))
+    //     .filter(holidayDate => holidayDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date === this.datePipe.transform(holidayDate, 'yyyy-MM-dd')));
+    // }
+  
+    if (dayType === 'Non-working') {
+      console.log("holidays and week offs", this.AllWeekOfList, this.Allholidays);
+      
+      // Filter for holidays
+      const holidayDates = this.Allholidays
+        .map(date => new Date(date))
+        .filter(holidayDate => holidayDate >= startDate && 
+          holidayDate <= currentDate &&
+          this.availableTimesheets.find(timesheet => timesheet.date === this.datePipe.transform(holidayDate, 'yyyy-MM-dd'))
+        );
+      
+      // Filter for week-off dates
+      const weekOffDates = this.AllWeekOfList
+        .map(date => new Date(date))
+        .filter(
+          weekOffDate =>
+            weekOffDate >= startDate &&
+            weekOffDate <= currentDate &&
+            this.availableTimesheets.find(
+              timesheet => timesheet.date === this.datePipe.transform(weekOffDate, 'yyyy-MM-dd')
+            )
+        );
+    
+      // Combine the holidays and week off dates
+      return [...holidayDates, ...weekOffDates];
+    }
+    
+  
+    return [];
   }
-
-  if (dayType === 'Week Off') {
-    return this.AllWeekOfList
-    .map(date => new Date(date))
-    .filter(
-      weekOffDate =>
-        weekOffDate >= startDate &&
-        weekOffDate <= currentDate &&
-        !this.availableTimesheets.find(
-          timesheet => timesheet.date === this.datePipe.transform(weekOffDate, 'yyyy-MM-dd')
-        )
-    );
-  }
-
-  return [];
-}
-
-
+  
 
 
 
@@ -607,7 +661,6 @@ console.log("date filter ",this.Allholidays);
 
 
     if(this.currentUser.timesheetBackDatedDays>daysDifference){
-     
       
       OPEN_BACKDATED_DAYS = daysDifference;    
     

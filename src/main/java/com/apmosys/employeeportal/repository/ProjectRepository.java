@@ -50,5 +50,9 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 
 	public Project findByProjectIdAndProjectManagerId(Integer projectId, Long managerId);
 
-
+	@Query(nativeQuery = true)
+	public List<Object[]> getProjectInfo(Integer projectId);
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getTeamInfo(Integer projectId);
 }

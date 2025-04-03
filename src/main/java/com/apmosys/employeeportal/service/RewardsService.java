@@ -597,7 +597,8 @@ public class RewardsService {
 	                    if (commonProperties.getUpdatedBy() == null) {
 	                        rewardDTO.setUpdatedByName(null); // Assuming updatedByName is correct
 	                    } else {
-	                        rewardDTO.setUpdatedByName(getEmployeeNameByEmpId(commonProperties.getUpdatedBy()));   
+	                        rewardDTO.setUpdatedByName(getEmployeeNameByEmpId(commonProperties.getUpdatedBy()));  
+	                        rewardDTO.setUpdatedBy(commonProperties.getUpdatedBy());  
 	                    } 
 
 	                    if (commonProperties.getUpdatedOn() == null) {
@@ -610,6 +611,7 @@ public class RewardsService {
 	                        rewardDTO.setCreatedByName(null); 
 	                    } else {
 	                        rewardDTO.setCreatedByName(getEmployeeNameByEmpId(commonProperties.getCreatedBy()));
+	                        rewardDTO.setCreatedBy(commonProperties.getCreatedBy());
 	                    }
 
 	                	
@@ -709,10 +711,10 @@ public class RewardsService {
 		    if(setemployeeRewards!=null) {
 
 	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        serviceResponse.setServiceMessage("Reward(s) submitted successfully.");
+	        serviceResponse.setServiceMessage("Rewards submitted successfully.");
 		    }else {
 		    	serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-		    	serviceResponse.setServiceResponse("Reward(s) not submitted ");
+		    	serviceResponse.setServiceResponse("Rewards not submitted ");
 		    }
 
 	    } catch (Exception e) {
@@ -1284,6 +1286,7 @@ public class RewardsService {
 			            dto.setRemark(row[4] != null ? row[4].toString() : null);
 			            dto.setCreatedByName(row[5] != null ? getEmployeeNameByEmpId(Long.parseLong(row[5].toString())) : null);
 			            dto.setName(row[0] != null ? row[0].toString() : null);
+			            dto.setCreatedBY(row[5] != null ? Long.parseLong(row[5].toString()) : null);
 			            List<RewardTeamDTO> teamList = getTeamsByEmpId(request.getEmpId());
 			            dto.setTeamlist(teamList);
 			            rewardList.add(dto);

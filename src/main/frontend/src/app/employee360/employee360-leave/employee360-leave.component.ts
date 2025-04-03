@@ -19,8 +19,8 @@ import { UtilityService } from 'src/app/services/utility.service';
 import { Log } from '../../models/log';
 import { LeaveService } from '../../services/leave.service';
 
-import { ValidationService } from 'src/app/services/validation.service';
 import { Sort } from '@angular/material/sort';
+import { ValidationService } from 'src/app/services/validation.service';
 
 declare module 'highcharts' {
   interface Series {
@@ -211,7 +211,7 @@ export class Employee360LeaveComponent implements OnInit {
     this.generateLeaveChart();
     this.getLeaveDataPerMonthByEmpId();
     this.countMyApprovedLeaveApplicationsByLeaveType();
-  }
+      }
 
   setActiveCompOffButton(button: string): void {
     this.activeCompOffButton = button;
@@ -325,7 +325,7 @@ export class Employee360LeaveComponent implements OnInit {
 
   getAllLeaveApplicationsByEmpId(){
     let leaveObj = new Leave();
-    leaveObj.empId = this.empId;
+    leaveObj.empId = this.employeeData.empId;
     leaveObj.fromDate = this.formattedStartDate;
     leaveObj.toDate = this.formattedEndDate;
 
@@ -405,7 +405,7 @@ export class Employee360LeaveComponent implements OnInit {
    getPendingCompOffRequestsByManagerId() {
     this.allCompOffApplications = []
     let compOff = new Leave();
-    compOff.empId = this.empId;
+    compOff.empId = this.employeeData.empId;
     this.employee360Service.get360PendingCompOffRequestsByEmpId(compOff).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allCompOffApplications = response.serviceResponse;
@@ -454,13 +454,15 @@ export class Employee360LeaveComponent implements OnInit {
       });
     }
 
-  // Leave Revoke 
+  // Leave Revoke
     getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(){
         console.log("Fetching pending leave revoke applications...");
         this.reporteeLeaveRevokeApplicationList = [];
+
+        console.log('this.employeeData2 -- ', this.employeeData);
     
         if(this.userMapping.employee_360_leave_view){
-          this.leaveObj.empId = this.employeeData2.empId;
+          this.leaveObj.empId = this.employeeData.empId;
           this.leaveService.getAllMyTeamsPendingLeaveRevokeApplicationsByEmpId(this.leaveObj).pipe(first()).subscribe((response: any) => {
             if (response.serviceStatus == "Success") {
               this.reporteeLeaveRevokeApplicationList = response.serviceResponse;
@@ -474,7 +476,7 @@ export class Employee360LeaveComponent implements OnInit {
             }
           });
         }else{
-          this.leaveObj.empId = this.currentUser.empId;
+          this.leaveObj.empId = this.employeeData.managerId;
           this.leaveService.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(this.leaveObj).pipe(first()).subscribe((response: any) => {
             if (response.serviceStatus == "Success") {
               this.reporteeLeaveRevokeApplicationList = response.serviceResponse;
@@ -806,7 +808,7 @@ export class Employee360LeaveComponent implements OnInit {
   }
 
   getLeaveDataPerMonthByEmpId(): void {
-    this.employee360Service.getLeaveDataPerMonthByEmpId(this.empId).pipe(first()).subscribe((response: any) => {
+    this.employee360Service.getLeaveDataPerMonthByEmpId(this.employeeData.empId).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
             const leaveData = response.serviceResponse;
             const dataByLeaveType: any = {

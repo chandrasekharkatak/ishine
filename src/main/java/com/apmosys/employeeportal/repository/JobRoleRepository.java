@@ -32,7 +32,9 @@ public interface JobRoleRepository extends JpaRepository<JobRole, Long> {
 
 	public JobRole findByName(String name);
 
-	public JobRole findByNameAndDeptId(String name, Long deptId);
+	@Query(nativeQuery = true, value = "SELECT count(*) FROM job_role WHERE name = :name AND dept_id = :deptId")
+	public Integer findByNameAndDeptId(@Param("name") String name, @Param("deptId") Long deptId);
+
 	
 	@Query("SELECT j.jobRoleId FROM JobRole j WHERE j.deptId = :deptId")
 	List<Long> findJobRoleIdsByDeptId(@Param("deptId") Long deptId);

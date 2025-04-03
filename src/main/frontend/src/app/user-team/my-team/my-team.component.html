@@ -39,11 +39,7 @@
       </div>
     </div>
     <div *ngIf="isHierarchyTable" class="hierarchy-table">
-      <!-- <div class="row">
-        <div class="form-group ml-auto col-md-3">
-          <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">
-        </div>
-      </div> -->
+    
   
       <div class="row mb-2">
         <div class="col-md-12">
@@ -63,8 +59,8 @@
   
       <div class="row">
         <div class="col-md-12">
-          <div class="selector-toggle" (click)="toggleSearch()">
-            <a href="javascript:void(0)">
+          <div class="selector-toggle" >
+            <a href="javascript:void(0)" (click)="toggleSearch()">
                 <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
@@ -94,11 +90,17 @@
                   <tr>
                     <td class="info-label">{{10*(page-1)+i+1}}</td>
                     <td class="info-label">{{teamView.employeementId}}</td>
-                    <td class="info-label" [class.myTeam-hierarchy]="teamView.isHierarchy" (click)="teamView.isHierarchy && myTeamHierarchy(teamView)">{{teamView.name}} <i class="fa-solid fa-sitemap" *ngIf="teamView.isHierarchy"></i> &nbsp;<h6 class="badge badge-pill resign-pill" *ngIf="teamView.employmentstatus == 'Resigned'">Resigned</h6></td>
+                    <td *ngIf="userMapping.my_team_employee_360" class="info-label">
+                      <span id="clickablefor360" [navigateToEmployee360]="teamView.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{teamView.name}}&nbsp;</span>
+                      <span [class.myTeam-hierarchy]="teamView.isHierarchy" (click)="teamView.isHierarchy && myTeamHierarchy(teamView)"><i class="fa-solid fa-sitemap" *ngIf="teamView.isHierarchy"></i> &nbsp;<h6 class="badge badge-pill resign-pill" *ngIf="teamView.employmentstatus == 'Resigned'">Resigned</h6></span>
+                  </td>
+                  
+                    <td *ngIf="!userMapping.my_team_employee_360" class="info-label" [class.myTeam-hierarchy]="teamView.isHierarchy" (click)="teamView.isHierarchy && myTeamHierarchy(teamView)">{{teamView.name}} <i class="fa-solid fa-sitemap" *ngIf="teamView.isHierarchy"></i> &nbsp;<h6 class="badge badge-pill resign-pill" *ngIf="teamView.employmentstatus == 'Resigned'">Resigned</h6></td>
                     <td class="info-label">{{teamView.email}}</td>
                     <td class="info-label">{{teamView.jobRoleName}}</td>
                     <td class="info-label">{{teamView.mobileNo}}</td>
-                    <td class="info-label">{{teamView.managerName}}</td>
+                    <td class="info-label" id="clickablefor360" [navigateToEmployee360]="teamView.emp360Mng" style="cursor: pointer;" title="Click to view Employee 360">{{teamView.managerName}}</td>
+                    <td class="info-label" *ngIf="!userMapping.my_team_employee_360">{{teamView.managerName}}</td>
                     <td [ngStyle]="{'color': (teamView.timesheetStatus == 'Defaulter') ? 'red' : (teamView.timesheetStatus == 'Timesheets upto date') ? 'green' :  'orange'}"><em>{{teamView.timesheetStatus}}</em></td>
                     <td>
                       <button
@@ -210,8 +212,8 @@
 
           <div class="row">
             <div class="col-md-12">
-              <div class="selector-toggle" (click)="toggleSearch()">
-                <a href="javascript:void(0)">
+              <div class="selector-toggle" >
+                <a href="javascript:void(0)" (click)="toggleSearch()">
                     <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                     <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                 </a>
@@ -251,7 +253,8 @@
                           </tr>
                           <tr *ngFor="let leaveHistory of teamViewLeaveHistoryList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                             <td class="info-label">{{10*(page-1)+i+1}}</td>
-                            <td class="info-label">{{leaveHistory.createdByName}}</td>
+                            <td class="info-label" id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="leaveHistory.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{leaveHistory.createdByName}}</td>
+                            <td class="info-label" *ngIf="!userMapping.my_team_employee_360">{{leaveHistory.createdByName}}</td>
                             <td class="info-label">{{leaveHistory.fromDate}}</td>
                             <td class="info-label">{{leaveHistory.toDate}}</td>
                             <td class="info-label">{{leaveHistory.createdOn}}</td>
@@ -259,7 +262,8 @@
                             <td class="info-label"> {{teamLeaveHistory.toDate}}</td> -->
                             <td class="info-label">{{leaveHistory.noOfDays}}</td>
                             <td class="info-label">{{leaveHistory.status}}</td>
-                            <td class="info-label">{{leaveHistory.leaveStatusUpdatedByName}}</td>
+                            <td class="info-label" id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="leaveHistory.emp360leaveStatusUpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{leaveHistory.leaveStatusUpdatedByName}}</td>
+                            <td class="info-label" *ngIf="!userMapping.my_team_employee_360">{{leaveHistory.leaveStatusUpdatedByName}}</td>
                             <td class="info-label">{{leaveHistory.reason}}</td>
                             <td class="info-label">{{leaveHistory.leaveType}}</td>
                             <td>{{leaveHistory.currentApprovalLevel}}
@@ -268,11 +272,14 @@
                               <!-- <h6 class="badge badge-pill badge-success" *ngIf="leaveHistory.currentApprovalLevel == leaveHistory.finalApprovalLevel && leaveHistory.status == 'Approved'">Approved</h6>
                               <h6 class="badge badge-pill badge-danger" *ngIf="leaveHistory.currentApprovalLevel == leaveHistory.finalApprovalLevel && leaveHistory.status == 'Rejected'">Rejected</h6> -->
                             </td>
-                            <td>{{leaveHistory.approverName}}</td>
+                            <td id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="leaveHistory.emp360AppLev1" style="cursor: pointer;" title="Click to view Employee 360">{{leaveHistory.approverName}}</td>
+                            <td *ngIf="!userMapping.my_team_employee_360">{{leaveHistory.approverName}}</td>
                             <td [ngStyle]="{'color': (leaveHistory.managerApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.managerApprovalStatus == 'Approved') ? 'green' : (leaveHistory.managerApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.managerApprovalStatus}}</td>
-                            <td>{{leaveHistory.level2ApproverName}}</td>
+                            <td id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="leaveHistory.emp360AppLev2" style="cursor: pointer;" title="Click to view Employee 360">{{leaveHistory.level2ApproverName}}</td>
+                            <td *ngIf="!userMapping.my_team_employee_360">{{leaveHistory.level2ApproverName}}</td>
                             <td [ngStyle]="{'color': (leaveHistory.level2ApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.level2ApprovalStatus == 'Approved') ? 'green' : (leaveHistory.level2ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.level2ApprovalStatus}}</td>
-                            <td>{{leaveHistory.level3ApproverName}}</td>
+                            <td id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="leaveHistory.emp360AppLev3" style="cursor: pointer;" title="Click to view Employee 360">{{leaveHistory.level3ApproverName}}</td>
+                            <td *ngIf="!userMapping.my_team_employee_360">{{leaveHistory.level3ApproverName}}</td>
                             <td [ngStyle]="{'color': (leaveHistory.level3ApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.level3ApprovalStatus == 'Approved') ? 'green' : (leaveHistory.level3ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.level3ApprovalStatus}}</td>
                             <td class="info-label">{{leaveHistory.remark}}</td>
                             <td>
@@ -315,8 +322,8 @@
   
       <div class="row">
         <div class="col-md-12">
-          <div class="selector-toggle" (click)="toggleSearch()">
-            <a href="javascript:void(0)">
+          <div class="selector-toggle" >
+            <a href="javascript:void(0)" (click)="toggleSearch()">
                 <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
@@ -346,7 +353,8 @@
               </tr>
               <tr *ngFor="let compOffHistory of teamViewCompOffHistoryList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
               <td class="info-label">{{10*(page-1)+i+1}}</td>
-              <td class="info-label">{{compOffHistory.createdByName}}</td>
+              <td class="info-label" id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="compOffHistory.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{compOffHistory.createdByName}}</td>
+              <td class="info-label" *ngIf="!userMapping.my_team_employee_360">{{compOffHistory.createdByName}}</td>
               <td class="info-label">{{compOffHistory.fromDate}}</td>
               <td class="info-label">{{compOffHistory.toDate}}</td>
               <td class="info-label">{{compOffHistory.createdOn}}</td>
@@ -354,7 +362,8 @@
               <td class="info-label"> {{teamLeaveHistory.toDate}}</td> -->
               <td class="info-label">{{compOffHistory.noOfDays}}</td>
               <td class="info-label">{{compOffHistory.status}}</td>
-              <td class="info-label">{{compOffHistory.leaveStatusUpdatedByName}}</td>
+              <td class="info-label" id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="compOffHistory.emp360ApprovedBy" style="cursor: pointer;" title="Click to view Employee 360">{{compOffHistory.leaveStatusUpdatedByName}}</td>
+              <td class="info-label" *ngIf="!userMapping.my_team_employee_360">{{compOffHistory.leaveStatusUpdatedByName}}</td>
               <td class="info-label">{{compOffHistory.reason}}</td>
               </tr>
             </tbody>
@@ -472,8 +481,8 @@
 
         <div class="row">
           <div class="col-md-12">
-            <div class="selector-toggle" (click)="toggleSearch()">
-              <a href="javascript:void(0)">
+            <div class="selector-toggle" >
+              <a href="javascript:void(0)" (click)="toggleSearch()">
                   <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                   <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
               </a>
@@ -517,24 +526,29 @@
                         [(ngModel)]="leaveApplication.isSelected" (change)="select(leaveApplication,$event)">
                       </td>
                     <td>{{items*(page-1)+i+1}}</td>
-                    <td  [navigateToEmployee360]="leaveApplication"  style="cursor: pointer;"  title="Click to view Employee 360" >{{leaveApplication.employeeName}}</td>
+                    <td id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="leaveApplication.emp360" style="cursor: pointer;"  title="Click to view Employee 360" >{{leaveApplication.employeeName}}</td>
+                    <td *ngIf="!userMapping.my_team_employee_360">{{leaveApplication.employeeName}}</td>
                     <td>{{leaveApplication.leaveType}}</td>
                     <td>{{leaveApplication.fromDate}}</td>
                     <td>{{leaveApplication.toDate}}</td>
                     <td>{{leaveApplication.noOfDays}} day(s)</td>
                     <td>{{leaveApplication.status}}</td>
-                    <td>{{leaveApplication.createdByName}}</td>
+                    <td id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="leaveApplication.emp360CreateBy" style="cursor: pointer;"  title="Click to view Employee 360">{{leaveApplication.createdByName}}</td>
+                    <td *ngIf="!userMapping.my_team_employee_360">{{leaveApplication.createdByName}}</td>
                     <td>{{leaveApplication.createdOn}}</td>
                     <td>{{leaveApplication.reason}}</td>
                     <td>{{leaveApplication.currentApprovalLevel}}
                       <br>
                       <h6 class="badge badge-pill primary-pill" *ngIf="leaveApplication.currentApprovalLevel == leaveApplication.finalApprovalLevel">Final</h6>
                     </td>
-                    <td>{{leaveApplication.approverName}}</td>
+                    <td id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="leaveApplication.emp360AppLev1" style="cursor: pointer;"  title="Click to view Employee 360">{{leaveApplication.approverName}}</td>
+                    <td *ngIf="!userMapping.my_team_employee_360">{{leaveApplication.approverName}}</td>
                     <td [ngStyle]="{'color': (leaveApplication.managerApprovalStatus == 'Pending') ? 'orange' : (leaveApplication.managerApprovalStatus == 'Approved') ? 'green' : (leaveApplication.managerApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveApplication.managerApprovalStatus}}</td>
-                    <td>{{leaveApplication.level2ApproverName}}</td>
+                    <td id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="leaveApplication.emp360AppLev2" style="cursor: pointer;"  title="Click to view Employee 360">{{leaveApplication.level2ApproverName}}</td>
+                    <td *ngIf="!userMapping.my_team_employee_360">{{leaveApplication.level2ApproverName}}</td>
                     <td [ngStyle]="{'color': (leaveApplication.level2ApprovalStatus == 'Pending') ? 'orange' : (leaveApplication.level2ApprovalStatus == 'Approved') ? 'green' : (leaveApplication.level2ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveApplication.level2ApprovalStatus}}</td>
-                    <td>{{leaveApplication.level3ApproverName}}</td>
+                    <td id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="leaveApplication.emp360AppLev3" style="cursor: pointer;"  title="Click to view Employee 360">{{leaveApplication.level3ApproverName}}</td>
+                    <td *ngIf="!userMapping.my_team_employee_360">{{leaveApplication.level3ApproverName}}</td>
                     <td [ngStyle]="{'color': (leaveApplication.level3ApprovalStatus == 'Pending') ? 'orange' : (leaveApplication.level3ApprovalStatus == 'Approved') ? 'green' : (leaveApplication.level3ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveApplication.level3ApprovalStatus}}</td>
                     <td>
                       <button *ngIf="userMapping.update_pending_req && userMapping.employee_360_leave_individual_action && leaveApplication.isManagerFlag && leaveApplication.isApprover" class="btn btn-sm btn-outline-success" type="submit"
@@ -575,8 +589,8 @@
 
         <div class="row">
           <div class="col-md-12">
-            <div class="selector-toggle" (click)="toggleSearch()">
-              <a href="javascript:void(0)">
+            <div class="selector-toggle" >
+              <a href="javascript:void(0)" (click)="toggleSearch()">
                   <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                   <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
               </a>
@@ -606,7 +620,8 @@
                   <tr
                     *ngFor="let compOffApp of allCompOffApplications| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
                     <td>{{10*(page-1)+i+1}}</td>
-                    <td>{{compOffApp.createdByName}}</td>
+                    <td id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="compOffApp.emp360" style="cursor: pointer;"  title="Click to view Employee 360">{{compOffApp.createdByName}}</td>
+                    <td *ngIf="!userMapping.my_team_employee_360">{{compOffApp.createdByName}}</td>
                     <td>{{compOffApp.compOffReasons}}</td>
                     <td>{{compOffApp.fromDate}}</td>
                     <td>{{compOffApp.toDate}}</td>
@@ -652,8 +667,8 @@
     
         <div class="row">
           <div class="col-md-12">
-            <div class="selector-toggle" (click)="toggleSearch()">
-              <a href="javascript:void(0)">
+            <div class="selector-toggle" >
+              <a href="javascript:void(0)" (click)="toggleSearch()">
                 <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
               </a>
@@ -690,7 +705,8 @@
                     <td>{{leave.toDate}}</td>
                     <td>{{leave.noOfDays}}</td>
                     <td>{{leave.status}}</td>
-                    <td>{{leave.createdByName}}</td>
+                    <td id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="leave.emp360" style="cursor: pointer;"  title="Click to view Employee 360">{{leave.createdByName}}</td>
+                    <td *ngIf="!userMapping.my_team_employee_360">{{leave.createdByName}}</td>
                     <td>{{leave.createdOn}}</td>
                     <td>{{leave.revokeReason}}</td>
                     <td>

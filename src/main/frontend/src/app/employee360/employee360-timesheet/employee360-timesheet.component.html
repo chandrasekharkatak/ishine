@@ -8,7 +8,7 @@
               <button *ngIf="!isProjectTeamClicked" type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': activeButton === 'Calendar'}" (click)="setActiveButton('Calendar')">Calendar</button>
           </div>
     
-          <button *ngIf="isProjectTeamClicked" class="btn btn-link back-button" (click)="goBack()">
+          <button *ngIf="isProjectTeamClicked" class="btn btn-outline-primary btn-sm mx-1" (click)="goBack()">
               <i class="fas fa-arrow-left"></i></button>
     
           <h4 *ngIf="isProjectTeamClicked" class="text-center flex-grow-1 mb-0">{{header}}</h4>
@@ -117,8 +117,8 @@
 
   <div class="row">
     <div class="col-md-12">
-        <div class="selector-toggle" (click)="toggleSearch()">
-            <a href="javascript:void(0)">
+        <div class="selector-toggle" >
+            <a href="javascript:void(0)" (click)="toggleSearch()">
                 <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
@@ -128,6 +128,7 @@
             <table class="table table-responsive" id="timesheet360Info" matSort (matSortChange)="sortData($event)">
                 <thead class="thead-light" id="timesheet360InfoTHead">
                   <tr id="timesheet360InfoTHeadTr">
+                    <!-- <th scope="col" class="info-label"></th> -->
                     <th scope="col" class="info-label">Sr No.</th>
                     <th scope="col" class="info-label wide-col" mat-sort-header="employmentId|string">EmploymentId</th>
                     <th scope="col" class="info-label" mat-sort-header="name|string">Employee Name</th>
@@ -153,22 +154,22 @@
                         <th colspan="6" class="text-center info-label">No Data to display...</th>
                     </tr>
                   <tr *ngFor="let item of result | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-                    <td *ngIf="item.showEmpId && activeButton == 'Pending' && actionButton" [attr.rowspan]="item.empActivitiesCountForDay" >
+                    <!-- <td *ngIf="item.showEmpId && activeButton == 'Pending' && actionButton" [attr.rowspan]="item.empActivitiesCountForDay" >
                       <input type="checkbox" [(ngModel)]="item.selected" (change)="toggleRowSelection(item.empId,item.date,item.selected)" />
-                  </td>
+                  </td> -->
                     <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ i + 1 }}</td>
                     <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.employmentId }}</td>
-                    <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" (click)="navigateToEmployee360()" style="cursor: pointer; color: blue;">{{ item.name }}</td>
+                    <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" id="clickablefor360" [navigateToEmployee360]="item.emp360" style="cursor: pointer;" title="Click to view Employee 360" (click)="clearBreadcrumbs()">{{ item.name }}</td>
                     <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.date | date: 'dd-MM-yyyy' }}</td>
                     <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.dayType }}</td>
-                    <td *ngIf="item.showProject && !isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount" (click)="findByProject(item.projectId,item.projectName)" style="cursor: pointer; color: blue;">
+                    <td *ngIf="item.showProject && !isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount" (click)="findByProject(item.projectId,item.projectName)" style="cursor: pointer; color: #043870;">
                         {{item.projectName ? item.projectName : '-'}}
                     </td>
-                    <td *ngIf="item.showProject&& isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount">
+                    <td *ngIf="item.showProject&& isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount" id="clickablefor360" [navigateToProjectView]="item.projectId" style="cursor: pointer;" title="Click to view Project Details">
                       {{item.projectName ? item.projectName : '-'}} </td>
       
-                    <td *ngIf="item.showProject&& !isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount" (click)="findByTeam(item.teamName)" style="cursor: pointer; color: blue;">{{item.teamName?item.teamName:'-'}}</td>
-                    <td *ngIf="item.showProject&& isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount">{{item.teamName?item.teamName:'-'}}</td>
+                    <td *ngIf="item.showProject&& !isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount" (click)="findByTeam(item.teamName)" style="cursor: pointer; color: #043870;">{{item.teamName?item.teamName:'-'}}</td>
+                    <td *ngIf="item.showProject&& isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount" id="clickablefor360" [navigateToProjectView]="item.projectId" style="cursor: pointer;" title="Click to view Project Details">{{item.teamName?item.teamName:'-'}}</td>
                     <td *ngIf="item.showProject" [attr.rowspan]="item.projectActivityCount">{{item.completionTime}} hrs</td>
                     <td *ngIf="item.showProject" [attr.rowspan]="item.projectActivityCount">{{item.activity}} </td>   
                     <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" >{{ item.officeInTime | date: 'shortTime' }}</td>

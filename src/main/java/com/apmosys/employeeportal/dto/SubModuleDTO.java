@@ -1,0 +1,21 @@
+package com.apmosys.employeeportal.dto;
+
+import java.util.List;
+import lombok.Data;
+
+@Data
+public class SubModuleDTO {
+	
+	private Long submoduleId;
+	private Long moduleId;
+	private String subModule;
+	private String description;
+	private List<Long> assignedTo;
+	private Long redmineId;
+	private String createdOn;
+	private Long createdBy;
+	private String updatedOn;	
+	private Long updatedBy;
+	private List<ProjectQuestionDTO> projectQuestion;
+	
+}
