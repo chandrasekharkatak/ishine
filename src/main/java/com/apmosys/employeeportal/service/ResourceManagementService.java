@@ -2484,7 +2484,7 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 	                    + "</ul>"
 	                    + "<p>Currently, resources are still allocated to this project. We kindly request you to either initiate the PO renewal process or confirm if the project has been completed so that we can proceed with the necessary resource reallocation.</p>"
 	                    + "<p>Please let us know how you would like to proceed at your earliest convenience.</p>"
-	                    + "<p><b>Best Regards,</b><br/>RMG Team</p>";
+	                    + "<p>Best Regards,<br/><b>RMG Team | ApMoSys Technologies Pvt. Ltd.</b></p>";
 	            
 	            boolean isSent = mailService.sendMailWithCC(bdMail, rmgMail, subject, text);
 	            
