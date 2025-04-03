@@ -14,6 +14,7 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -26,12 +27,14 @@ import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeePerformance;
 import com.apmosys.employeeportal.model.EmployeeRatingPerformance;
+import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.QuaterCycle;
 import com.apmosys.employeeportal.model.ReviewType;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeePerformanceRepository;
 import com.apmosys.employeeportal.repository.EmployeeRatingPerformanceRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.QuarterCycleRepository;
 import com.apmosys.employeeportal.repository.ReviewTypeRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -62,6 +65,9 @@ public class PerformanceService {
 	
 	@Autowired
 	private ReviewTypeRepository reviewTypeRepository;
+	
+	@Autowired
+	EmployeeTeamMapRepository employeeTeamMapRepository;
 	
 	public ServiceResponse addReviewType(ReviewTypeDTO reviewTypeDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -973,6 +979,29 @@ public class PerformanceService {
 		
 		
 		return response;
+	}
+
+	public ResponseEntity<PerformanceDTO> checkUserHaveTeam(PerformanceDTO performanceDTO) {
+		PerformanceDTO responseObj = new PerformanceDTO();
+		try {
+			List<EmployeeTeamMap> emplTeamList = employeeTeamMapRepository.findByEmpIdAndActive(performanceDTO.getEmpId(), 1l);
+			
+			if(!emplTeamList.isEmpty()) {
+				emplTeamList.forEach((object) -> {
+					if(object.getEmployeeRole().contains("TeamLead") ||
+							object.getEmployeeRole().contains("HOD") || 
+							object.getEmployeeRole().contains("Manager") || 
+							object.getEmployeeRole().contains("HR") || 
+							object.getEmployeeRole().contains("RMG") || object.getEmployeeRole().contains("SuperAdmin")) {
+						responseObj.setIsUserHaveTeam("true");
+						return;
+					}
+				});
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return ResponseEntity.ok(responseObj);
 	}
 
 

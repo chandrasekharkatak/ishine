@@ -5,6 +5,8 @@ import { User } from '../models/user';
 import { Feature } from '../models/feature';
 import { LogService } from 'src/app/services/log.service';
 import { AuthenticationService } from '../services/authentication.service';
+import { PerformanceService } from '../services/performance.service';
+import { first } from 'rxjs/operators';
 
 @Component({
   selector: 'app-user-performance',
@@ -17,6 +19,7 @@ export class UserPerformanceComponent implements OnInit {
   feature = "Performance"
   currentUser:User;
   userMapping:any = {};
+  mappTeamDashboard:boolean = false;
 
   log:Log;
   activeTab: string = 'performance-dashboard';
@@ -25,6 +28,7 @@ export class UserPerformanceComponent implements OnInit {
     private route: ActivatedRoute,
     private logService:LogService,
     private authenticationService:AuthenticationService,
+    private performanceService:PerformanceService,
   ) {     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -42,7 +46,23 @@ export class UserPerformanceComponent implements OnInit {
     });
     console.log('user mapping--',this.userMapping);
     
+    this.checkUserHaveTeam()
   }
  
+  checkUserHaveTeam(){
+    let userObj = {
+      empId: this.currentUser.empId
+    };
+    this.performanceService.checkUserHaveTeam(userObj).pipe(first()).subscribe({
+      next: (response: any) => {
+        if(response.isUserHaveTeam || this.userMapping.team_dashboard){
+          this.mappTeamDashboard = true;
+        }else{
+          this.mappTeamDashboard = false;
+        }
+      },
+      error: (error: any) => {}
+    });
+  }
   
 }

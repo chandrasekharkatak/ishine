@@ -106,6 +106,8 @@ List<EmployeeTeamMap> findByProjectIdAndActive(Integer projectId,Long active);
 
 	@Query(nativeQuery = true)
 	List<Object[]> getEmployeePersonaForProject(Long employeeId,Long projectId);
+	
+	List<EmployeeTeamMap> findByEmpIdAndActive(Long empId, Long active);
 
 	
 }

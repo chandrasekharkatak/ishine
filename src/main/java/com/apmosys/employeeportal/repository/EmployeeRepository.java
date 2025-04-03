@@ -13,11 +13,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
-import com.apmosys.employeeportal.dto.EmployeeGoalsQuarterDto;
 import com.apmosys.employeeportal.dto.EmployeeTimesheetDto;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
-import com.apmosys.employeeportal.model.EmployeeGoals;
 import com.apmosys.employeeportal.model.Timesheet;
 
 @Repository

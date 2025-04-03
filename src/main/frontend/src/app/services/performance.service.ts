@@ -142,4 +142,10 @@ export class PerformanceService {
     return this.http.get(`${this.baseUrl}` + `api/getReviewLabelForEveryDepartment`);
   }
 
+
+  /* ------------------------------ Review Apis --------------------------- */
+
+  checkUserHaveTeam(userObj: any){
+    return this.http.post(`${this.baseUrl}` + `api/checkUserHaveTeam`, userObj);
+  }
 }
