@@ -18,8 +18,8 @@ export class PerformanceService {
     return this.http.get(`${this.baseUrl}` + `api/getAllEmployees`);
   }
 
-  getAllEmployeesForPerformance(empId:any,hrvalidate:any){
-    return this.http.get(`${this.baseUrl}` + `api/getAllEmployeesForPerformance/`+empId+`/`+hrvalidate);
+  getAllEmployeesForPerformance(details:any){
+    return this.http.post(`${this.baseUrl}` + `api/getAllEmployeesForPerformance`, details);
   }
 
   createQuarterCycle(quarterCycle: QuarterCycle){
@@ -106,4 +106,8 @@ getReviewLabelForEveryDepartment() {
   return this.http.get(`${this.baseUrl}` + `api/getReviewLabelForEveryDepartment`);
 }
 
+
+getAllEmployeesForPerformanceExcell(details:any){
+  return this.http.post(`${this.baseUrl}` + `api/exportExcelForHodAndManger`, details);
+}
 }
