@@ -13,4 +13,7 @@ public class QresponseDTO {
 	private Long empId;
 	private Long quarterId;
 	
+    private Long managerRating;
+    private String managerRemark;
+	
 }

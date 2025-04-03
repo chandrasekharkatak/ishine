@@ -36,6 +36,8 @@ public class QuestionnaireService {
         questionnaire.setCreatedBy(dto.getCreatedBy());
         questionnaire.setQuarterId(dto.getQuarterId());
         questionnaire.setDepartmentName(dto.getDepartmentName());//we do not need this
+        questionnaire.setManagerRating(dto.getManagerRating());
+        questionnaire.setManagerRemark(dto.getManagerRemark());
  
         questionnaire.setQuarterId(quarterId);
         questionnaire.setQuarter(quarter);//we do not need this
@@ -116,6 +118,8 @@ public class QuestionnaireService {
         dto.setQuarter(questionnaire.getQuarter());
         dto.setDepartment(questionnaire.getDepartment());
         dto.setDepartmentId(questionnaire.getDepartmentId());
+        dto.setManagerRating(questionnaire.getManagerRating());
+        dto.setManagerRemark(questionnaire.getManagerRemark());
         
         // Convert questions to DTOs
         if (questionnaire.getQuestions() != null) {

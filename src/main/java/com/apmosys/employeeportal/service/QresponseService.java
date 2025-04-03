@@ -45,6 +45,8 @@ public class  QresponseService {
             entity.setResponse(obj.getResponse());
             entity.setEmpId(empId);
             entity.setQuarterId(quarterId);
+            entity.setManagerRating(obj.getManagerRating());
+            entity.setManagerRemark(obj.getManagerRemark());
         }
         entities.add(entity);  
         }

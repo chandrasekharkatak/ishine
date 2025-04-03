@@ -18,4 +18,8 @@ public class QuestionnaireDTO {
     private String quarter;
     private Long departmentId;
     private String department;
+    
+    private Long managerRating;
+    
+    private String managerRemark;
 }
