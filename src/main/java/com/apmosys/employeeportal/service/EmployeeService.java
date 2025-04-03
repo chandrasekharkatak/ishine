@@ -55,6 +55,7 @@ import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO.PoObject;
+import com.apmosys.employeeportal.dto.GetAllEmployeesWorkAnniversaryTodayDTO;
 import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
@@ -6787,5 +6788,49 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	    return emailBody.toString();
 	}
 	
+	public ServiceResponse getAllEmployeesWorkAnniversaryToday() {
+		ServiceResponse response = new ServiceResponse();
+		EmployeeDTO employee = new EmployeeDTO();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("https://ishine.apmosys.com/api/getAllEmployeesWorkAnniversaryToday");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		List<Object[]> allEmployeeList = employeeRepository.getAllEmployeesWorkAnniversaryToday();
+		logBuilder.append("getAllEmployeesWorkAnniversaryToday : " + (allEmployeeList != null ? allEmployeeList.size() : 0));
+		try {
+			if (allEmployeeList != null) {
+				List<GetAllEmployeesWorkAnniversaryTodayDTO> dtoList = new ArrayList<GetAllEmployeesWorkAnniversaryTodayDTO>();
+				allEmployeeList.forEach((object) -> {
+					GetAllEmployeesWorkAnniversaryTodayDTO empDTO = new GetAllEmployeesWorkAnniversaryTodayDTO();
+					empDTO.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()): null);
+					empDTO.setName(object[1] != null ? object[1].toString() : null);
+					empDTO.setDateOfJoining(object[2] != null ? object[2].toString() : null);
+					empDTO.setTotalYearsWorked(object[3] != null ? object[3].toString() : null);
+					empDTO.setEmail(object[4] != null ? object[4].toString() : null);
+					empDTO.setDepartmentName(object[5] != null ? object[5].toString() : null);
+					dtoList.add(empDTO);
+				});
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee List is null.");
+				apiLogInfo.setApiResponse("Employee List is null.");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
+			response.setServiceError(e.getMessage());
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
 	
 }

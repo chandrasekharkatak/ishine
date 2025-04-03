@@ -557,5 +557,11 @@ public class EmployeeController {
 		return response;
 	}
 	
+	@GetMapping("/getAllEmployeesWorkAnniversaryToday")
+	public ServiceResponse getAllEmployeesWorkAnniversaryToday() {
+	    return employeeService.getAllEmployeesWorkAnniversaryToday();
+	}
+
+	
 
 }

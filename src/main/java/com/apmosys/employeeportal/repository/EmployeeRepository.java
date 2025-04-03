@@ -542,4 +542,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	
     @Query(nativeQuery = true)
     public String findHodMail(Long empId);
+    
+    @Query(nativeQuery = true)
+    public List<Object[]> getAllEmployeesWorkAnniversaryToday();
 }
