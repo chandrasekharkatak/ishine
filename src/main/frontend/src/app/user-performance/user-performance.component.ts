@@ -10,12 +10,15 @@ import { AppComponent } from 'src/app/app.component';
 import { Performance } from 'src/app/models/performance';
 import { Query } from 'src/app/models/query';
 import { SortPipe } from 'src/app/sort.pipe';
+import { AppreciationAndRewardsCount } from '../models/appreciationAndRewardCount';
 import { Employee } from '../models/employee';
 import { Feature } from '../models/feature';
+import { HrHodMangerApiForPerformnace } from '../models/hrHodMangerApiForPerformnace';
 import { Log } from '../models/log';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
 import { EmployeeService } from '../services/employee.service';
+import { Employee360Service } from '../services/employee360.service';
 import { ExportExcelService } from '../services/export-excel.service';
 import { LogService } from '../services/log.service';
 import { PerformanceService } from '../services/performance.service';
@@ -61,9 +64,11 @@ export class UserPerformanceComponent implements OnInit {
   isperformanceDsah: boolean = false;
   isreviewPage: boolean = false;
   allEmployee: any[] = [];
+  allEmployee1: any[] = [];
   allReviewType: any[] = [];
   allQauterCycle: any[] = [];
   eligibleEmployees: any[] = [];
+  eligibleEmployees1: any[] = [];
   hrReviewStatus:any;
   // currentUser: any;
   // userMapping: any = {};
@@ -80,7 +85,10 @@ export class UserPerformanceComponent implements OnInit {
   finalRating: number;
   hodRemarks: any;
   quarterId: any;
-
+  rewardsCount:any;
+  appreciationCount:any; 
+  
+  appreciationAndRewardsCount:AppreciationAndRewardsCount=new AppreciationAndRewardsCount();
   feature = "Performance";
   currentUser: User;
   userMapping: any = {};
@@ -111,7 +119,8 @@ export class UserPerformanceComponent implements OnInit {
     private locationStrategy: LocationStrategy,
     private performanceSerive: PerformanceService,
     private exportExcelService: ExportExcelService,
-    private performanceService: PerformanceService
+    private performanceService: PerformanceService,
+    private employee360Service: Employee360Service
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
 
@@ -142,11 +151,12 @@ export class UserPerformanceComponent implements OnInit {
       });
 
       this.isperformanceDsah = true;
-
+      console.log("usermappinghodhr",this.userMapping);
       // console.log("hodddddd", this.userMapping.performance_action_by_hod);
       // console.log("hrrrrrrrr", this.userMapping.performance_action_by_hr);
        this.getAllEmployeeFor360View();
        this.getAllEmployee();
+
      
     } catch (error) {
       console.error("Error in ngOnInit", error);
@@ -237,10 +247,12 @@ export class UserPerformanceComponent implements OnInit {
 
   RatingData: any[] = [];
 
-
+userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiForPerformnace();
 
   getAllEmployee() {
-   this.performanceSerive.getAllEmployeesForPerformance(this.currentUser.empId,this.userMapping.performance_action_by_hr).subscribe
+  this.userDetailsForPerformanceView.empId = this.currentUser.empId;
+  this.userDetailsForPerformanceView.hrvalidate = this.userMapping.performance_action_by_hr;
+   this.performanceSerive.getAllEmployeesForPerformance(this.userDetailsForPerformanceView).subscribe
       ((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allEmployee = response.serviceResponse;
@@ -465,24 +477,25 @@ export class UserPerformanceComponent implements OnInit {
 
   name = 'EmployeeSheet.xlsx';
   exportToExcel(): void {
-    this.performanceService.getAllEmployeesForPerformance(this.currentUser.empId,this.userMapping.performance_action_by_hr).pipe(first()).subscribe((response: any) => {
+    this.userDetailsForPerformanceView.empId = this.currentUser.empId;
+  this.userDetailsForPerformanceView.hrvalidate = this.userMapping.performance_action_by_hr;
+    this.performanceService.getAllEmployeesForPerformanceExcell(this.userDetailsForPerformanceView).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         //  this.employeeDataForExcel = response.serviceResponse;
 
-        this.allEmployee = response.serviceResponse;
+        this.allEmployee1 = response.serviceResponse;
 
         console.log("allEmp", this.allEmployee);
 
         const currentDate = new Date();
-        const oneYearAgo = new Date();
-        oneYearAgo.setFullYear(currentDate.getFullYear() - 1);  // Get the date one year ago
+        const oneYearAgo = new Date(currentDate.getFullYear() - 1, 11, 31);
 
-        this.eligibleEmployees = this.allEmployee.filter(employee => {
+        this.eligibleEmployees1 = this.allEmployee1.filter(employee => {
 
           const joiningDate = new Date(employee.dateOfJoining);
           return joiningDate <= oneYearAgo && employee.employmentstatus === 'Confirmed';
         });
-        this.employeeDataForExcel = this.eligibleEmployees;
+        this.employeeDataForExcel = this.eligibleEmployees1;
 
       }
       const onlySpecificDataArr = this.employeeDataForExcel.map(
@@ -492,52 +505,21 @@ export class UserPerformanceComponent implements OnInit {
           "Full Name": x.name,
           "EmailId": x.email,
           "Employment Status": x.employmentstatus,
-          "Date of Joining": (x.dateOfJoining) ? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null,
-          "Date of Relieving": (x.dateOfRelieving) ? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null,
+          // "Date of Joining": (x.dateOfJoining) ? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null,
+          // "Date of Relieving": (x.dateOfRelieving) ? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null,
           "Department Name": x.departmentName,
-          "Aadhar": x.aadhar,
-          "About Me": x.aboutMe,
-          "Address": x.address,
-          "Permanent Address": x.permanentAddress,
-          "City": x.city,
-          "Blood Group": x.bloodGroup,
-          "Date Of Birth": (x.dateOfBirth) ? moment(x.dateOfBirth).format(AppComponent.DATE_FORMAT) : null,
-          "Gender": x.gender,
-          "Father Name": x.fatherName,
-          "Mobile No": x.mobileNo,
-          "Pan Number": x.panNumber,
-          "Place Of Birth": x.placeOfBirth,
-          "Work Location": x.workLocation,
-          "Probation Period": x.probationPeriod,
-          "Notice Period": x.noticePeriod,
-          "Country": x.country,
-          "Emergency Contact Mobile": x.emergencyContactMobile,
-          "Emergency Contact Person": x.emergencyContactPerson,
-          "Landline": x.landline,
-          "Marital Status": x.maritalStatus,
-          "Mother Tongue": x.motherTongue,
-          "Alternate Mobile No": x.alternateMobileNo,
-          "Pincode": x.pincode,
-          "Relation": x.relation,
-          "State": x.state,
-          "Views On Organisation": x.viewsOnOrganisation,
-          "Passport Number": x.passportNumber,
-          "Bank Account No": x.bankAccountNo,
-          "Bank IFSC Code": x.bankIFSCCode,
-          "Bank Name": x.bankName,
-          "PF Account Number": x.pfAccountNumber,
-          "Previous PF AccountNumber": x.previousPfAccountNumber,
-          "UAN": x.uan,
-          "ESIC Number": x.esicNumber,
-          "Graduation Type": x.graduationType,
-          "Pursuing": x.pursuing,
-          "Passing Grade": x.passingGrade,
-          "Year Of Passing": x.yearOfPassing,
-          "Created By": x.createdBy,
-          "Created On": (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
-          "Manager Name": x.managerName,
-          "Job Role": x.jobRoleName,
-          "Designation Name": x.designationName
+          "Billable Type": x.billableType,
+          "Experience" :x.totalExperience,
+          "quarter Cycle":x.quarterycle || 'NULL',
+          "financial Year": x.financialYear || 'NULL' ,
+          "Current Status":x.completionStatus,
+          "hod Name":x.hodName,
+          "Final Rating":x.finalRating || 'NULL',
+          "Manger Remark":x.hodRemarks || 'NULL',
+          "Hod Remarks":x.hrRemarks || 'NULL',
+          "Hod Review Status":x.hrReviewStatus || 'NULL'
+
+ 
 
         })
       )
@@ -627,8 +609,7 @@ export class UserPerformanceComponent implements OnInit {
     console.log("eligiemployee.emp360", eligiemployee.emp360);
     this.myList = [];
     this.myRateList = [];
-
-
+    this.getCountOfRewardsAndAppreciation();
 
   }
 
@@ -926,6 +907,7 @@ export class UserPerformanceComponent implements OnInit {
 
 
   currentStatus:any;
+  rejectStatus:any;
   HrAndHodView(performance:any){
     this.performanceSerive.hrAndHodEmpoyeePerformanceView(performance).pipe(first()).subscribe((response: any) => {
       this.enableDisableSubmit=false;
@@ -945,7 +927,7 @@ export class UserPerformanceComponent implements OnInit {
           this.hodRemarks = value.hodRemarks;
           this.hrReviewStatus=value.hrReviewStatus;
           this.acceptReason = value.hrRemark;
-          
+          this.rejectStatus =value.rejectStatus;
         });
         this.filterRatingCriteria.forEach(value => {
           this.myRateList.push({ reviewLabel: value.reviewLabel, rate: value.ratingValue,performanceRatingId:value.performanceRatingId });
@@ -953,6 +935,7 @@ export class UserPerformanceComponent implements OnInit {
           this.hodRemarks = value.hodRemarks;
           this.hrReviewStatus=value.hrReviewStatus;
            this.acceptReason = value.hrRemark;
+           this.rejectStatus =value.rejectStatus;
           
         });
      
@@ -1016,7 +999,7 @@ export class UserPerformanceComponent implements OnInit {
   submitRemarkHr: Performance = new Performance();
   acceptReason: any;
   rejectReason: any;
-  submitRemarksByHR(template: TemplateRef<any>, index: any) {
+  submitRemarksByHR(quarter: any,template: TemplateRef<any>, index: any) {
      
     if (this.isAcceptSelected && !this.validationService.validateNullUndefinedEmptyString(this.acceptReason)) {
       this.alertMessage = "Please enter Comments!";
@@ -1029,7 +1012,35 @@ export class UserPerformanceComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return;
     }
+    this.submitRemarkHr.empId = this.selectedEmployee.empId;
+    this.submitRemarkHr.quarterId = quarter.quarterId;
+    
+    this.submitRemarkHr.performanceRatings = [];
+    this.filterCriteria.forEach((item, index) => {
+      this.submitRemarkHr.employeePerformanceId = item.employeePerformanceId;
+      if (this.myList[index] && this.myList[index].silde !== undefined) {
+        this.submitRemarkHr.performanceRatings.push({
+          reviewTypeId: item.reviewTypeId,
+          rating: this.myList[index].silde,
+          performanceRatingId: this.myList[index].performanceRatingId,
+        });
+      }
+    });
 
+    this.filterRatingCriteria.forEach((item, index) => {
+      this.submitRemarkHr.employeePerformanceId = item.employeePerformanceId;
+      if (this.myRateList[index] && this.myRateList[index].rate !== undefined) {
+        this.submitRemarkHr.employeePerformanceId = item.employeePerformanceId;
+        this.submitRemarkHr.performanceRatings.push({
+          reviewTypeId: item.reviewTypeId,
+          rating: this.myRateList[index].rate,
+          performanceRatingId: this.myRateList[index].performanceRatingId,
+
+        });
+      }
+    });
+
+    this.submitRemarkHr.finalRating = this.finalRating;
     this.submitRemarkHr.employeePerformanceId = this.performnace1[0].employeePerformanceId;
     this.submitRemarkHr.hrReviewStatus = this.isAcceptSelected ? "Accepted" : "Rejected";
     this.submitRemarkHr.hrRemark = this.isAcceptSelected ? this.acceptReason : this.rejectReason;
@@ -1104,6 +1115,21 @@ export class UserPerformanceComponent implements OnInit {
     });
 
   }
+  
+  getCountOfRewardsAndAppreciation(){
+    this.appreciationCount='';
+    this.rewardsCount='';
+    console.log("this.projectDetails ", this.rewardsCount);
+     this.appreciationAndRewardsCount.empId=this.selectedEmployee.empId;
+    this.employee360Service.getRewardsAndAppreciationCount(this.appreciationAndRewardsCount).pipe(first()).subscribe((response: any) => {
+          if (response.serviceStatus == "Success") {
+            this.rewardsCount = response.serviceResponse[0].rewardsCount;
+            this.appreciationCount = response.serviceResponse[0].appreciationCount;
 
+            console.log("this.projectDetails ",  this.appreciationCount);
+
+          }
+        });
+  }
 
 }

@@ -540,4 +540,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ "WHERE e.emp_id = :employeeId")
     List<Object[]> getRewardsAndAppreciationCount(@Param("employeeId") Long employeeId);
 	
+    @Query(nativeQuery = true)
+    public String findHodMail(Long empId);
+    
+    @Query(nativeQuery = true)
+    public Optional<List<Object[]>> getAllEmployeesWorkAnniversaryToday();
 }

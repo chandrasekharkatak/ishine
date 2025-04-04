@@ -54,5 +54,9 @@ export class ResourceManagementService {
   syncPoProjectDetailsByProjectId(project: Project){
     return this.http.post(`${this.baseUrl}` + `api/syncPoProjectDetailsByProjectId`,project);
   }
+
+  sendEmailNotificationToBDTeam(project: Project){
+    return this.http.post(`${this.baseUrl}` + `api/sendEmailNotificationToBDTeam`,project);
+  }
   
 }

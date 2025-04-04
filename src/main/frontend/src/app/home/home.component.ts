@@ -87,6 +87,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   excelName: any = '';
 
   birthdayList: any[] = [];
+  workAnniversaryList: any[] = [];
   rewardsList: any[] = [];
   eventImages: any[] = [];
   isImagesLoaded: boolean = false;
@@ -203,6 +204,7 @@ popUpMessege:any;
   currentMonthIndex: number = 0;
   currentRewards: any[] = [];
   scrollInterval: any;
+  selectedTab: string = 'birthday';
 
   constructor(
     private modalService: BsModalService,
@@ -292,6 +294,7 @@ async ngOnInit(): Promise<void> {
    this.getAllNotifications();
    this.getAllLeaveTypesByLeavePolicies(this.currentUser);
    if (this.userMapping.view_birthday_list) this.getAllEmployeesBirthDayToday();
+   if (this.userMapping.view_work_anniversary_list) this.getAllEmployeesWorkAnniversaryToday();
    if (this.userMapping.view_all_team_requests) {
      this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
      this.countPendingCompOffRequestsByManagerId();
@@ -313,9 +316,10 @@ async ngOnInit(): Promise<void> {
     
   }
 
-  
-    
-  
+
+  switchTab(tab: string) {
+    this.selectedTab = tab;
+  }
 
  preventBackButton() {
    history.pushState(null, null, location.href);
@@ -1026,7 +1030,7 @@ async ngOnInit(): Promise<void> {
         ],
     });
   }
-
+  
   /* Today's Birthday List */
   getAllEmployeesBirthDayToday() {
     this.employeeService.getAllEmployeesBirthDayToday().pipe(first()).subscribe((response: any) => {
@@ -1039,6 +1043,24 @@ async ngOnInit(): Promise<void> {
           employee.emp360 = matchingEmployee ? matchingEmployee : {};
         });
         // console.log("birthdayList : ", this.birthdayList);
+      } else {
+        this.compOffApplicationCount = 0;
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  getAllEmployeesWorkAnniversaryToday() {
+    this.employeeService.getAllEmployeesWorkAnniversaryToday().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.workAnniversaryList = response.serviceResponse;
+        this.workAnniversaryList.forEach((employee) => {
+          
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
+         
+          employee.emp360 = matchingEmployee ? matchingEmployee : {};
+        });
+        
       } else {
         this.compOffApplicationCount = 0;
         console.error(response.serviceResponse);

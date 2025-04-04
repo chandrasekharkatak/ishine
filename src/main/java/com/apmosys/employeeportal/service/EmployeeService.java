@@ -55,6 +55,8 @@ import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO.PoObject;
+import com.apmosys.employeeportal.dto.GetAllEmployeesWorkAnniversaryTodayDTO;
+import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
@@ -3062,14 +3064,14 @@ public class EmployeeService {
 		return response;
 	}
 	
-	public ServiceResponse getAllEmployeesForPerformance(Long empId,boolean status) {
+	public ServiceResponse getAllEmployeesForPerformance(HrHodHrViewPerformance hrHodHrViewPerformance) {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			List<Object[]> allEmployeeListForPerformance=new ArrayList<Object[]>();
-			if(status) {
+			if(hrHodHrViewPerformance.getHrvalidate()) {
 				allEmployeeListForPerformance=employeeRepository.getAllEmployeesForPerformanceForHr();
 			}else {
-				allEmployeeListForPerformance = employeeRepository.getAllEmployeesForPerformance(empId);
+				allEmployeeListForPerformance = employeeRepository.getAllEmployeesForPerformance(hrHodHrViewPerformance.getEmpId());
 				
 			}
 			
@@ -6786,5 +6788,48 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	    return emailBody.toString();
 	}
 	
-	
+	public ServiceResponse getAllEmployeesWorkAnniversaryToday() {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getAllEmployeesWorkAnniversaryToday");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    try {
+	        Optional<List<Object[]>> optionalEmployeeList = employeeRepository.getAllEmployeesWorkAnniversaryToday();
+	        List<Object[]> allEmployeeList = optionalEmployeeList.orElse(Collections.emptyList());
+	        apiLogInfo.setApiRequest("getAllEmployeesWorkAnniversaryToday: " + allEmployeeList.size());
+
+	        if (!allEmployeeList.isEmpty()) {
+	            List<GetAllEmployeesWorkAnniversaryTodayDTO> dtoList = allEmployeeList.stream()
+	                .map(object -> {
+	                    GetAllEmployeesWorkAnniversaryTodayDTO empDTO = new GetAllEmployeesWorkAnniversaryTodayDTO();
+	                    empDTO.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+	                    empDTO.setName(object[1] != null ? object[1].toString() : null);
+	                    empDTO.setDateOfJoining(object[2] != null ? object[2].toString() : null);
+	                    empDTO.setTotalYearsWorked(object[3] != null ? object[3].toString() : null);
+	                    empDTO.setEmail(object[4] != null ? object[4].toString() : null);
+	                    empDTO.setDepartmentName(object[5] != null ? object[5].toString() : null);
+	                    return empDTO;
+	                }).collect(Collectors.toList());
+
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(dtoList);
+	            apiLogInfo.setApiResponse("List fetched of size: " + dtoList.size());
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Employee list is empty.");
+	            apiLogInfo.setApiResponse("Employee list is empty.");
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("An error occurred while processing the request.");
+	        apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        apiLogInfo.setLogLevel("ERROR");
+	        response.setServiceError(e.getMessage());
+	    }
+
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
 }
