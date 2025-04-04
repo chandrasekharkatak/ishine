@@ -40,7 +40,8 @@ export class BodyComponent implements OnInit {
   //modal
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
-
+  resourceManagementFeature: any;
+  reportsFeature: any;
   // stop modal to close
   config = {
     backdrop: true,
@@ -59,8 +60,10 @@ export class BodyComponent implements OnInit {
       this.currentUser = x;
 
       if(this.currentUser){
+        console.log("n jsvsdv",this.currentUser);
         this.currentUserName = this.currentUser.name.split(" ")[0];
       this.currentUserName = this.currentUserName[0].toUpperCase() + this.currentUserName.slice(1).toLowerCase();
+      this.extractFeatures();
       }
     });
     this.router.events.subscribe((e) => {
@@ -75,8 +78,21 @@ export class BodyComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.extractFeatures();
   }
 
+  extractFeatures() {
+    // Loop through userMapping to find the required features
+    this.currentUser.userMapping.forEach(feature => {
+      if (feature.featureName === 'Resource Management') {
+        this.resourceManagementFeature = feature.featureName;
+       
+      } else if (feature.featureName === 'Reports') {
+        this.reportsFeature = feature.featureName;
+       
+      }
+    });
+  }
   getBreadcrumbClass(): string{
     let styleClass = '';
 
@@ -307,22 +323,19 @@ export class BodyComponent implements OnInit {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
   }
-
-
-
+  
   public openMenu: boolean = false;
   isOver = false;
 
+  routingFunction(message: string) {
+       this.router.navigate(['/'+message]);
+      this.clickMenu();
+       
+  }
+  
   clickMenu() {
     this.openMenu = !this.openMenu;
   }
-
-  routingFunction(message: string) {
-    if (message === 'button one') {
-      this.router.navigate(['/user-team/resource-management']);
-    } else if (message === 'button two') {
-      this.router.navigate(['/user-reports/report-list']);
-    }
-    this.openMenu = false; // Close menu after clicking
-  }
+ 
+ 
 }

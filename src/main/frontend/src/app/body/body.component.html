@@ -1,11 +1,14 @@
-<nav class="navbar navbar-expand fixed-top navbar-light bg-light" [ngClass]="getNavClass()" *ngIf="currentUser && !isHome">
+<nav class="navbar navbar-expand fixed-top navbar-light bg-light" [ngClass]="getNavClass()"
+  *ngIf="currentUser && !isHome">
   <ul class="navbar-nav ml-auto">
     <li class="nav-item dropdown">
-      <a class="nav-link dropdown-toggle" id="user-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <i class="fa-solid fa-user"></i>&nbsp;{{currentUserName}}
+      <a class="nav-link dropdown-toggle" id="user-dropdown" data-toggle="dropdown" aria-haspopup="true"
+        aria-expanded="false">
+        <i class="fa-solid fa-user"></i>&nbsp;{{currentUserName}}
       </a>
       <div class="dropdown-menu dropdown-menu-right user-menu" aria-labelledby="user-dropdown">
-        <a class="dropdown-item" (click)="openChangePassword(change_password)"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;Change Password</a>
+        <a class="dropdown-item" (click)="openChangePassword(change_password)"><i
+            class="fa-solid fa-right-from-bracket"></i>&nbsp;Change Password</a>
         <a class="dropdown-item" (click)="userLogout()"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;Logout</a>
       </div>
     </li>
@@ -17,93 +20,84 @@
 
 <ng-template #change_password>
   <div class="modal-body text-center">
-      <h4>Change Password</h4>
-      <div *ngIf="isError">
-        <p class="form-text text-danger">{{errorMsg}}</p>
-      </div>
-
-      <div class="form-group">
-        <label for="newPass" class="sr-only">Old Password</label>
-        <div class="d-flex pt-3">
-            <input class="form-control" (paste)="(false)" [type]="fieldTextTypeOldPass ? 'text' : 'password'" id="oldPass"
-            placeholder="Enter Old Password" (blur)="checkEmployeeOldPassword()" [(ngModel)]="password" autocomplete="off"/>
-            <span class="btn" id="passwordEye" (click)="toggleFieldTextTypeOldPass()">
-                <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextTypeOldPass,'fa-eye': fieldTextTypeOldPass}"></em>
-            </span>
-        </div>
+    <h4>Change Password</h4>
+    <div *ngIf="isError">
+      <p class="form-text text-danger">{{errorMsg}}</p>
     </div>
-      <div class="form-group">
-          <label for="newPass" class="sr-only">New Password</label>
-          <div class="d-flex">
-              <input class="form-control" (paste)="(false)" [disabled]="!oldPasswordValid" [type]="fieldTextType ? 'text' : 'password'" id="newPass"
-              placeholder="Enter New Password" [(ngModel)]="userNewPass" autocomplete="off"/>
-              <span class="btn" id="passwordEye" (click)="toggleFieldTextType()">
-                  <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextType,'fa-eye': fieldTextType}"></em>
-              </span>
-          </div>
-      </div>
-      <div class="form-group">
-          <label for="confirmPass" class="sr-only">Confirm New Password</label>
-          <div class="d-flex">
-              <input class="form-control" (paste)="(false)" [disabled]="!oldPasswordValid" [type]="fieldTextTypePassword ? 'text' : 'password'" id="confirmPass"
-              placeholder="Confirm New Password" [(ngModel)]="newpassword" autocomplete="off"/>
-              <span class="btn" id="passwordEye" (click)="toggleFieldChangePassword()">
-                  <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextTypePassword,'fa-eye': fieldTextTypePassword}"></em>
-              </span>
-          </div>
-      </div>
 
-      <button type="button" *ngIf="this.currentUser.isNew == 'false'" class="btn btn-outline-primary btn-sm" (click)="cancelRequest()">Close</button>&nbsp;
-      <button type="button" class="btn btn-outline-primary btn-sm" [disabled]="!oldPasswordValid" (click)="updateEmployeePassword(alert_message)">Submit</button>&nbsp;
+    <div class="form-group">
+      <label for="newPass" class="sr-only">Old Password</label>
+      <div class="d-flex pt-3">
+        <input class="form-control" (paste)="(false)" [type]="fieldTextTypeOldPass ? 'text' : 'password'" id="oldPass"
+          placeholder="Enter Old Password" (blur)="checkEmployeeOldPassword()" [(ngModel)]="password"
+          autocomplete="off" />
+        <span class="btn" id="passwordEye" (click)="toggleFieldTextTypeOldPass()">
+          <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextTypeOldPass,'fa-eye': fieldTextTypeOldPass}"></em>
+        </span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="newPass" class="sr-only">New Password</label>
+      <div class="d-flex">
+        <input class="form-control" (paste)="(false)" [disabled]="!oldPasswordValid"
+          [type]="fieldTextType ? 'text' : 'password'" id="newPass" placeholder="Enter New Password"
+          [(ngModel)]="userNewPass" autocomplete="off" />
+        <span class="btn" id="passwordEye" (click)="toggleFieldTextType()">
+          <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextType,'fa-eye': fieldTextType}"></em>
+        </span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="confirmPass" class="sr-only">Confirm New Password</label>
+      <div class="d-flex">
+        <input class="form-control" (paste)="(false)" [disabled]="!oldPasswordValid"
+          [type]="fieldTextTypePassword ? 'text' : 'password'" id="confirmPass" placeholder="Confirm New Password"
+          [(ngModel)]="newpassword" autocomplete="off" />
+        <span class="btn" id="passwordEye" (click)="toggleFieldChangePassword()">
+          <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextTypePassword,'fa-eye': fieldTextTypePassword}"></em>
+        </span>
+      </div>
+    </div>
+
+    <button type="button" *ngIf="this.currentUser.isNew == 'false'" class="btn btn-outline-primary btn-sm"
+      (click)="cancelRequest()">Close</button>&nbsp;
+    <button type="button" class="btn btn-outline-primary btn-sm" [disabled]="!oldPasswordValid"
+      (click)="updateEmployeePassword(alert_message)">Submit</button>&nbsp;
   </div>
 </ng-template>
 
 <ng-template #alert_message>
   <div class="modal-body text-center">
-      <p>{{alertMessage}}</p>
-      <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    <p>{{alertMessage}}</p>
+    <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
   </div>
 </ng-template>
 
-<button mat-fab color="accent" (click)="clickMenu()"
-    class="menu-button"
-    [class.mat-elevation-z2]="!isOver"
-    [class.mat-elevation-z8]="isOver"
-    (mouseover)="isOver = true"
-    (mouseleave)="isOver = false">
+
+
+<button mat-fab color="accent" (click)="clickMenu()" class="menu-button" [class.mat-elevation-z2]="!isOver"
+  [class.mat-elevation-z8]="isOver" (mouseover)="isOver = true" (mouseleave)="isOver = false" *ngIf="(( currentUser) && (currentUser.employeeRole === 'HR' || currentUser.employeeRole === 'SuperAdmin' || currentUser.employeeRole === 'HOD' || currentUser.employeeRole === 'RMG'))"
+  >
+
   <i class="material-icons" *ngIf="!openMenu">menu</i>
   <i class="material-icons" *ngIf="openMenu">close</i>
 </button>
 
-<!-- menu button -->
-<button mat-mini-fab 
-  class="action-button one mat-elevation-z8"    
-  *ngIf="openMenu"
-  color="basic" 
-  (click)="routingFunction( 'button one')">
-  <i class="material-icons">face</i>
+<button mat-mini-fab class="action-button one mat-elevation-z8" *ngIf=" currentUser && openMenu && resourceManagementFeature === 'Resource Management'" color="basic"
+  (click)="routingFunction( 'user-team/resource-management')">
+  <i class="material-icons">badge</i>
 </button>
 
-<button mat-raised-button 
-  class="label labelone mat-elevation-z8" 
-  *ngIf="openMenu"
-  color="basic" 
-  (click)="routingFunction('button one')">
+<button mat-raised-button class="label labelone mat-elevation-z8"*ngIf=" currentUser && openMenu && resourceManagementFeature === 'Resource Management'" color="basic"
+  (click)="routingFunction('user-team/resource-management')" >
   RMG
 </button>
 
-<button mat-mini-fab 
-  class="action-button two mat-elevation-z8"    
-  *ngIf="openMenu"
-  color="basic" 
-  (click)="routingFunction('button two')">
-  <i class="material-icons">done_all</i>
+<button mat-mini-fab class="action-button two mat-elevation-z8" *ngIf="currentUser && openMenu && reportsFeature === 'Reports'" color="basic"
+  (click)="routingFunction('user-reports/report-list')">
+  <i class="material-icons">diversity_3</i>
 </button>
-<button mat-raised-button 
-  class="label labeltwo mat-elevation-z8" 
-  *ngIf="openMenu"
-  color="basic" 
-  (click)="routingFunction('button two')">
+<button mat-raised-button class="label labeltwo mat-elevation-z8" *ngIf="currentUser && openMenu && reportsFeature === 'Reports'" color="basic"
+  (click)="routingFunction('user-reports/report-list')">
   Employee Report
 </button>
-
