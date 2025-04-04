@@ -18,6 +18,29 @@
     margin-right: 0px !important;
 }
 
+
+
+
+.overflow-auto {
+    position: relative;
+    overflow-y: auto;
+    max-height: 80vh;
+}
+
+#employeeReport{
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+
+}
+#employeeReportInfoTHead{
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: var(--ghost-white);
+}
+
+
 /* .table-scroll{
     font-size: 0.9rem;
 } */
@@ -44,7 +67,7 @@
 }
 
 .info-label {
-    width: 200px !important;
+    max-width: 200px !important;
 }
 
 /* .form-control{

@@ -29,6 +29,10 @@ class FilterData {
   columns: any;
   queryList: any;
 }
+interface Project {
+  projectId: string; 
+  projectName: string; 
+}
 @Component({
   selector: 'app-report-list',
   templateUrl: './report-list.component.html',
@@ -151,6 +155,7 @@ export class ReportListComponent implements OnInit {
   internalCountList:any[]=[];
   newemployeeObj: any;
   updatedEmpObj :any;
+  show: number = -1;
 
 
  
@@ -188,6 +193,10 @@ export class ReportListComponent implements OnInit {
     
     this.sectionViewInit();
     this.preventBackButton();
+  }
+
+  getSlicedProjects(projectList: Project[], count: number): Project[] {
+    return projectList.slice(0, count);
   }
 
   preventBackButton() {
@@ -509,6 +518,10 @@ onDepartmentChangeTimesheet(event: any){
         this.filteredEmployees = [...this.allEmployee];
       }else{
         this.filteredEmployees = this.allEmployee.filter(emp => emp.departmentId == this.selectedDepartment);
+        this.filteredEmployees = this.filteredEmployees.map(employee => ({
+          ...employee,
+          showFullTeamName: false 
+        }));
       }
     }
     console.log('Filtered dept data with project name   :::::::::::::::::::::::::::::::::::-- ', this.filteredEmployees);
