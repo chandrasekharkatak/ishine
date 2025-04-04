@@ -557,7 +557,7 @@
                                     </div>
                                 </div>
                                 <div *ngIf="question.optionType == 'checkbox'">
-                                    <div *ngFor="let option of question.optionsList; let mileQuestionOptionIndex = index">
+                                    <div *ngFor="let option of response.optionsList; let mileQuestionOptionIndex = index">
                                         <div class="custom-{{question.optionType}}" style="
                                                           margin: 10px 0;
                                                           padding: 10px;
@@ -572,20 +572,20 @@
                                                              cursor: pointer;
                                                              ">
                                                 <input *ngIf="!isResponsePreview" type="checkbox"
-                                                    [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex"
+                                                    [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex + '-response-' + responseIndex"
                                                     [(ngModel)]="option.isChecked"
                                                     (change)="onCheckboxChange($event, option.optionValue, question,option,response)">
                                                 <input *ngIf="isResponsePreview" type="checkbox"
-                                                    [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex">&nbsp;
+                                                    [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex + '-response-' + responseIndex">&nbsp;
                                                 <label class="mb-0"
-                                                    [for]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex">{{
+                                                    [for]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex + '-response-' + responseIndex">{{
                                                     option.optionValue }}</label>
                                             </label>
                                         </div>
                                     </div>
                                 </div>
                                 <div *ngIf="question.optionType == 'radio'">
-                                    <div *ngFor="let option of question.optionsList; let optIndex = index">
+                                    <div *ngFor="let option of response.optionsList; let optIndex = index">
                                         <div class="custom-{{question.optionType}}" style="
                                                           margin: 10px 0;
                                                           padding: 10px;
@@ -600,12 +600,12 @@
                                                              cursor: pointer;
                                                              ">
                                                 <input *ngIf="!isResponsePreview" type="radio"
-                                                    [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'radio' + optIndex"
-                                                    name="'Milestone-'{{milestone.milestoneId}} '-Question'{{question.questionId}}'radio'{{optIndex}}"
+                                                    [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'radio' + optIndex + '-response-' + responseIndex"
+                                                    name="Milestone-{{milestone.milestoneId}}-Question{{question.questionId}}radio{{optIndex}}-response-{{responseIndex}}"
                                                     [value]="option.optionValue" [(ngModel)]="response.response">
                                                 <input *ngIf="isResponsePreview" type="radio"
-                                                    [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'radio' + optIndex"
-                                                    name="'Milestone-'{{milestone.milestoneId}} '-Question'{{question.questionId}}'radio'{{optIndex}}"
+                                                    [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'radio' + optIndex + '-response-' + responseIndex"
+                                                    name="Milestone-{{milestone.milestoneId}}-Question{{question.questionId}}radio{{optIndex}}-response-{{responseIndex}}"
                                                     [value]="option.optionValue">&nbsp;
                                                 <span style="color: #4a5568; 
                                                              font-size: 0.95rem;
@@ -776,7 +776,7 @@
                             </div>
                             <div *ngIf="question.optionType == 'checkbox'">
                                <div
-                                  *ngFor="let option of question.optionsList; let mileQuestionOptionIndex = index">
+                                  *ngFor="let option of response.optionsList; let mileQuestionOptionIndex = index">
                                   <div class="custom-{{question.optionType}}" style="
                                      margin: 10px 0;
                                      padding: 10px;
@@ -791,21 +791,21 @@
                                         cursor: pointer;
                                         ">
                                      <input *ngIf="!isResponsePreview" type="checkbox"
-                                     [id]="'Module-' + module.moduleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex"
+                                     [id]="'Module-' + module.moduleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex+'-response-' + responseIndex"
                                      [(ngModel)]="option.isChecked"
                                      (change)="onCheckboxChange($event, option.optionValue, question,option,response)">
                                      <input *ngIf="isResponsePreview" type="checkbox"
-                                     [id]="'Module-' + module.moduleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex">
+                                     [id]="'Module-' + module.moduleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex+'-response-' + responseIndex">
                                      &nbsp;
                                      <label class="mb-0"
-                                        [for]="'Module-' + module.moduleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex">{{
+                                        [for]="'Module-' + module.moduleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex+'-response-' + responseIndex">{{
                                      option.optionValue }}</label>
                                      </label>
                                   </div>
                                </div>
                             </div>
                             <div *ngIf="question.optionType == 'radio'">
-                               <div *ngFor="let option of question.optionsList; let optIndex = index">
+                               <div *ngFor="let option of response.optionsList; let optIndex = index">
                                   <div class="custom-{{question.optionType}}" style="
                                      margin: 10px 0;
                                      padding: 10px;
@@ -820,12 +820,12 @@
                                         cursor: pointer;
                                         ">
                                      <input *ngIf="!isResponsePreview" type="radio"
-                                     [id]="'Module-' + module.moduleId + '-Question' + question.questionId + 'radio' + optIndex"
-                                     name="'Module-'{{module.moduleId}} '-Question'{{question.questionId}}'radio'{{optIndex}}"
+                                     [id]="'Module-' + module.moduleId + '-Question' + question.questionId + 'radio' + optIndex + '-response-' + responseIndex"
+                                     name="Module-{{module.moduleId}}-Question{{question.questionId}}radio{{optIndex}}-response-{{responseIndex}}"
                                      [value]="option.optionValue" [(ngModel)]="response.response">
                                      <input *ngIf="isResponsePreview" type="radio"
-                                     [id]="'Module-' + module.moduleId + '-Question' + question.questionId + 'radio' + optIndex"
-                                     name="'Module-'{{module.moduleId}} '-Question'{{question.questionId}}'radio'{{optIndex}}"
+                                     [id]="'Module-' + module.moduleId + '-Question' + question.questionId + 'radio' + optIndex+'-response-' + responseIndex"
+                                     name="Module-{{module.moduleId}}-Question{{question.questionId}}radio{{optIndex}}-response-{{responseIndex}}"
                                      [value]="option.optionValue">
                                      &nbsp;
                                      <span style="color: #4a5568; 
@@ -1001,7 +1001,7 @@
                                   </div>
                                   <div *ngIf="question.optionType == 'checkbox'">
                                      <div
-                                        *ngFor="let option of question.optionsList; let mileQuestionOptionIndex = index">
+                                        *ngFor="let option of response.optionsList; let mileQuestionOptionIndex = index">
                                         <div class="custom-{{question.optionType}}" style="
                                            margin: 10px 0;
                                            padding: 10px;
@@ -1016,21 +1016,21 @@
                                               cursor: pointer;
                                               ">
                                            <input *ngIf="!isResponsePreview" type="checkbox"
-                                           [id]="'SubModule-' + subModule.subModuleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex"
+                                           [id]="'SubModule-' + subModule.subModuleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex+'-response-' + responseIndex"
                                            [(ngModel)]="option.isChecked"
                                            (change)="onCheckboxChange($event, option.optionValue, question,option,response)">
                                            <input *ngIf="isResponsePreview" type="checkbox"
-                                           [id]="'SubModule-' + subModule.subModuleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex">
+                                           [id]="'SubModule-' + subModule.subModuleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex+'-response-' + responseIndex">
                                            &nbsp;
                                            <label class="mb-0"
-                                              [for]="'SubModule-' + subModule.subModuleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex">{{
+                                              [for]="'SubModule-' + subModule.subModuleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex+'-response-' + responseIndex">{{
                                            option.optionValue }}</label>
                                            </label>
                                         </div>
                                      </div>
                                   </div>
                                   <div *ngIf="question.optionType == 'radio'">
-                                     <div *ngFor="let option of question.optionsList; let optIndex = index">
+                                     <div *ngFor="let option of response.optionsList; let optIndex = index">
                                         <div class="custom-{{question.optionType}}" style="
                                            margin: 10px 0;
                                            padding: 10px;
@@ -1045,13 +1045,13 @@
                                               cursor: pointer;
                                               ">
                                            <input *ngIf="!isResponsePreview" type="radio"
-                                           [id]="'SubModule-' + subModule.subModuleId + '-Question' + question.questionId + 'radio' + optIndex"
-                                           name="'SubModule-'{{subModule.subModuleId}} '-Question'{{question.questionId}}'radio'{{optIndex}}"
+                                           [id]="'SubModule-' + subModule.subModuleId + '-Question' + question.questionId + 'radio' + optIndex+'-response-' + responseIndex"
+                                           name="SubModule-{{subModule.subModuleId}}-Question{{question.questionId}}radio{{optIndex}}-response-{{responseIndex}}"
                                            [value]="option.optionValue"
                                            [(ngModel)]="response.response">
                                            <input *ngIf="isResponsePreview" type="radio"
-                                           [id]="'SubModule-' + subModule.subModuleId + '-Question' + question.questionId + 'radio' + optIndex"
-                                           name="'SubModule-'{{subModule.subModuleId}} '-Question'{{question.questionId}}'radio'{{optIndex}}"
+                                           [id]="'SubModule-' + subModule.subModuleId + '-Question' + question.questionId + 'radio' + optIndex+'-response-' + responseIndex"
+                                           name="SubModule-{{subModule.subModuleId}}-Question{{question.questionId}}radio{{optIndex}}-response-{{responseIndex}}"
                                            [value]="option.optionValue">
                                            &nbsp;
                                            <span style="color: #4a5568; 

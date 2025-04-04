@@ -1,3 +1,5 @@
+import { ProjectResponseOption } from "./projectResponsOption";
+
 export class ProjectResponse {
     responseByEmpName: any;
     responseByEmpId: any;
@@ -9,4 +11,8 @@ export class ProjectResponse {
     uploadedFile: any;
     uploadedFileName: any;
     documentPath: any;
+    option:ProjectResponseOption = new ProjectResponseOption();
+    optionsList:any[]= [];
+    options:any;
+
 }
