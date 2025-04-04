@@ -271,6 +271,9 @@ public class EmployeeService {
 	@Autowired
 	AppreciationRepository appreciationRepository;
 	
+	@Value("${bd.mail}")
+	private String businessMail;
+	
 	private final Map<String, List<EmployeeDTO>> employeeCache = new ConcurrentHashMap<>();
 
 
@@ -6662,7 +6665,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		String subject = "PROVIDE INFORMATION REGARDING EXPIRED PROJECT/POs";
 		String bodyText = generateEmailBody(employeeDTO.getExpiredData());
 		try {
-		boolean mailSent = mailService.sendMailWithCC(businessMail,vpMails,subject,bodyText);
+		boolean mailSent = mailService.sendMailWithCC(businessMail,"sakti.das@apmosys.com",subject,bodyText);
 		if(!mailSent) {
 			serviceResponse.setServiceStatus(serviceResponse.STATUS_FAIL);
 			serviceResponse.setServiceMessage("Unable to send mail...!!");
@@ -6742,4 +6745,5 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
 	}
+}
 	

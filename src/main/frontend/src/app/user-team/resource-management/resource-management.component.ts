@@ -110,7 +110,6 @@ export class ResourceManagementComponent implements OnInit {
   copyDepartment : any = [];
   currentBreadcrumbList: any[] = [];
   // employeesFor360: any[] = [];
-  allEmployeeList360: any[] = [];
   poProjectListFromIshine: any[] = [];
 
   constructor(
@@ -157,11 +156,7 @@ export class ResourceManagementComponent implements OnInit {
     //   console.log("Employee Data fetched by Shared service ",this.employeesFor360);
     // });
     // console.log('userMapping',this.userMapping);
-    try {
-      this.allEmployeeList360 = await this.utilityService.getEmployeeDetailsFor360View();
-    } catch (error) {
-      console.error("Error fetching employee details for 360 view", error);
-    }
+   
   }
    
 
@@ -342,9 +337,8 @@ export class ResourceManagementComponent implements OnInit {
 
             this.allProject_Po_Internal = [...this.poPortalProjectList, ...this.internalProjectList];
             for(let y of this.allProject_Po_Internal){
-              let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === y.projectManager);
-                  // console.log('matches++',matchingEmployee);
-                  y.emp360 = matchingEmployee ? matchingEmployee : {};
+                   // console.log('matches++',matchingEmployee);
+                  y.emp360 = y.projectManager;
                 }
 
 
@@ -713,9 +707,7 @@ export class ResourceManagementComponent implements OnInit {
               if (member) { // Check if member is not null
                 // Format the startDate if it exists, otherwise set it to null
                 member.startDate = member.startDate ? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null;
-                let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId === member.empId);
-                console.log('matches++',matchingEmployee);
-                member.emp360 = matchingEmployee ? matchingEmployee : {};
+                member.emp360 = member.empId;
               }
             });
           } else {

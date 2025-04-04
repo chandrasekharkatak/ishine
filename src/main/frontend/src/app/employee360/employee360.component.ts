@@ -69,9 +69,11 @@ export class Employee360Component implements OnInit {
   employeeId:any;
   ngOnInit(): void {
    
-    this.route.data.subscribe(data => {
-      sessionStorage.setItem("employee360Data", JSON.stringify(data.employeeData));
-    });
+    setTimeout(() => {
+      this.route.data.subscribe(data => {
+        sessionStorage.setItem("employee360Data", JSON.stringify(data.employeeData));
+      });
+    }, 1000);
     this.navigationSubscription = this.employee360Service.getNavigationEvent().subscribe(() => {
       this.removeActiveTab();
       this.setActiveTab();

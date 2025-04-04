@@ -78,7 +78,6 @@ export class Employee360RewardsComponent implements OnInit {
   currentEmpId: any;
   employeeRewardExcel: any;
   teamRewardListExcel: any;
-  employeesFor360: any[] = [];
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -112,12 +111,7 @@ export class Employee360RewardsComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    try {
-      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
-      // console.log("Priyadarshini ", this.employeesFor360);
-    } catch (error) {
-      console.error("Error fetching employee details for 360 view", error);
-    }
+   
     let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title == "Rewards");
     if (findbreadcrumbObject >= 0) {
       this.currentBreadcrumbList.splice(findbreadcrumbObject + 1);
