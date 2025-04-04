@@ -1,12 +1,12 @@
-import { Component, Input, OnInit, TemplateRef, ViewChild} from '@angular/core';
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { User } from '../models/user';
+import { Component, Input, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { NavigationEnd, Router } from '@angular/router';
+import * as CryptoJS from 'crypto-js';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
 import { EmployeeService } from '../services/employee.service';
 import { ValidationService } from '../services/validation.service';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import * as CryptoJS from 'crypto-js';
 
 @Component({
   selector: 'app-body',
@@ -308,4 +308,17 @@ export class BodyComponent implements OnInit {
     this.alertMessage = message;
   }
 
+
+
+  public openMenu: boolean = false;
+  isOver = false;
+
+  clickMenu() {
+    this.openMenu = !this.openMenu;
+  }
+
+  routingFunction(message: string) {
+    alert('Hello ' + message + '!');
+    this.openMenu = false; // Close menu after clicking
+  }
 }
