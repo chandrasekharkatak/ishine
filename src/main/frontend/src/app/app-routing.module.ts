@@ -195,7 +195,7 @@ const routes: Routes = [
       { path: 'team-dashboard', component: TeamDashboardComponent, },
       { path: 'templates', component: TemplatesComponent,  },
       {path: 'quarter-cycle', component: QuarterCycleComponent},
-      {path:'view-performance',component: ViewPerformanceComponent}
+      {path:'view-performance/:id',component: ViewPerformanceComponent}
     ]
   },
   {path:'hr-policies', component: HrPoliciesComponent, canActivate: [AuthGuard]},

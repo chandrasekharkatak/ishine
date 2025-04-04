@@ -146,6 +146,14 @@ export class PerformanceService {
     return this.http.post(`${this.baseUrl}` + `api/getTeamEmployeeListInTeamDashboard`, empObj);
   }
 
+  loadQuestionnaireQuestions(departmentId:any, quarterId:any){
+    return this.http.get(`${this.baseUrl}` + `api/questionnaires/department/${departmentId}/quarter/${quarterId}`)
+  }
+
+  loadKpiList(quarterId: any, departmentId:any){
+    return this.http.get(`${this.baseUrl}` +  `api/kpi/getKpisByQuarter/${quarterId}/Department/${departmentId}`)
+  }
+
 
   /* ------------------------------ Review Apis --------------------------- */
 

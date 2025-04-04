@@ -1,5 +1,5 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { Sort } from '@angular/material/sort';
@@ -23,6 +23,8 @@ export class TeamDashboardComponent implements OnInit {
   @ViewChild('bulkAssignTemplate') bulkAssignTemplate: TemplateRef<any>;
   @ViewChild('singleAssignTemplate') singleAssignTemplate: TemplateRef<any>;
   @ViewChild('multiGoalTemplate') multiGoalTemplate: TemplateRef<any>;
+
+  viewPerformanceEmpId: any;
 
   currentUser: User;
   feature = 'team_dashboard';
@@ -293,7 +295,7 @@ export class TeamDashboardComponent implements OnInit {
 
   getEmployeePerformance(viewTeamMember) {
     this.employeeService.setEmployee(viewTeamMember);
-    this.router.navigate(['/user-performance/view-performance']);
+    this.router.navigate(['/user-performance/view-performance', viewTeamMember.empId]);
   }
 
   toggleEmployeeSelection(employee: any) {

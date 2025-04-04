@@ -12,7 +12,8 @@ import { Subscription } from 'rxjs';
 import { Feature } from 'src/app/models/feature';
 import { LogService } from 'src/app/services/log.service';
 import { Log } from 'src/app/models/log';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Params, Router } from '@angular/router';
+import { first } from 'rxjs/operators';
 
 
 interface Goal {
@@ -84,13 +85,14 @@ export class ViewPerformanceComponent implements OnInit {
   summary?: AppraisalSummary;
 
   currentEmployeeInfo:Employee = new Employee();
-  selectedEmployee: any ;
   selectedGoal?: Goal;
   subscription!: Subscription;
   modalRef?: BsModalRef;
   errorMessage: string;
   kpiList:kpiList[] = [];
   alertMessage: any;
+
+  viewPerformanceEmpId: any;
 
   constructor(
     private router: Router,
@@ -102,6 +104,7 @@ export class ViewPerformanceComponent implements OnInit {
     private performanceService:PerformanceService,
     private goalService:GoalService,
     private logService:LogService,
+    private route: ActivatedRoute,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -109,9 +112,10 @@ export class ViewPerformanceComponent implements OnInit {
   ngOnInit(): void {
     this.logService.updateLogInfo(this.log);
 
-    this.subscription = this.employeeService.employee$.subscribe(emp => {
-      this.selectedEmployee = emp;
+    this.route.params.subscribe((params:Params) => {
+      this.viewPerformanceEmpId = params['id'];
     });
+
     this.onGetEmployeeInfo();
     this.setActiveTab('kra-kpi');
 
@@ -194,7 +198,7 @@ export class ViewPerformanceComponent implements OnInit {
   }
 
   loadPerformanceStats(): void {
-    const empId = this.selectedEmployee.id;
+    const empId = this.viewPerformanceEmpId;
     const quarter = this.selectedQuarter;
 
 
@@ -213,9 +217,8 @@ export class ViewPerformanceComponent implements OnInit {
  
 
   async onGetEmployeeInfo(){
-    this.currentEmployeeInfo = new Employee();
     let currentEmp = new Employee();
-    currentEmp.empId = this.selectedEmployee.id;
+    currentEmp.empId = this.viewPerformanceEmpId;
 
     const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
     if (response.serviceStatus == "Success") {
@@ -247,8 +250,7 @@ export class ViewPerformanceComponent implements OnInit {
     this.questionnaireQuestions = [];
     this.currentQuestionnaireId = null;    
 
-    this.http.get(`http://localhost:8081/api/questionnaires/department/${departmentId}/quarter/${quarterId}`)
-      .subscribe({
+    this.performanceService.loadQuestionnaireQuestions(departmentId, quarterId).subscribe({
         next: (response: any) => {
           if (response.serviceStatus === 'Success') {
             this.questionnaireQuestions = response.serviceResponse[0].questions;
@@ -306,9 +308,7 @@ export class ViewPerformanceComponent implements OnInit {
 
     
     if (!quarterId || !departmentId) return;
-  
-    this.http.get(`http://localhost:8081/api/kpi/getKpisByQuarter/${quarterId}/Department/${departmentId}`)
-      .subscribe({
+    this.performanceService.loadKpiList(quarterId, departmentId).subscribe({
         next: (response: any) => {
           if (response.serviceStatus === 'Success') {
             this.kpiList = response.serviceResponse[0].kpis;
