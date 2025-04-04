@@ -1115,6 +1115,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     });
 
   }
+  
   getCountOfRewardsAndAppreciation(){
     this.appreciationCount='';
     this.rewardsCount='';
