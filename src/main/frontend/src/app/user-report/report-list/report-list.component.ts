@@ -197,15 +197,25 @@ export class ReportListComponent implements OnInit {
     })
   }
 
-  sectionViewInit() {
-    if (this.userMapping.leave_report) {
-      this.showLeaveReportTable();
+  sectionViewInit(){
+    if(this.userMapping.employee_report){
+      this.showEmployeeReportTable();
     } else if (this.userMapping.timesheet_report) {
       this.showTimesheetReportTable();
-    } else if (this.userMapping.employee_report) {
-      this.showEmployeeReportTable();
+    } else if (this.userMapping.leave_report) {
+      this.showLeaveReportTable();
     }
   }
+
+  // sectionViewInit() {
+  //   if (this.userMapping.leave_report) {
+  //     this.showLeaveReportTable();
+  //   } else if (this.userMapping.timesheet_report) {
+  //     this.showTimesheetReportTable();
+  //   } else if (this.userMapping.employee_report) {
+  //     this.showEmployeeReportTable();
+  //   }
+  // }
 
   toggleViewTimesheet(){
     if(this.showDetailsTimesheet === true){

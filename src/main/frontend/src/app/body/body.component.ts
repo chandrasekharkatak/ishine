@@ -318,7 +318,11 @@ export class BodyComponent implements OnInit {
   }
 
   routingFunction(message: string) {
-    alert('Hello ' + message + '!');
+    if (message === 'button one') {
+      this.router.navigate(['/user-team/resource-management']);
+    } else if (message === 'button two') {
+      this.router.navigate(['/user-reports/report-list']);
+    }
     this.openMenu = false; // Close menu after clicking
   }
 }

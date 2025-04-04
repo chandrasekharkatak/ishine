@@ -1,12 +1,13 @@
 <div class="row mb-3">
   <div class="col-md-12 px-0">
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.employee_report"
+    [ngClass]="{'active' : isEmployeeReportTable}" (click)="showEmployeeReportTable()">View Employee Report</button>
     <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.leave_report"
       [ngClass]="{'active' : isLeaveReportTable}" (click)="showLeaveReportTable()">View Leave Report</button>
     <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.timesheet_report"
       [ngClass]="{'active' : isTimesheetReportTable}" (click)="showTimesheetReportTable()">View Timesheet
       Report</button>
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.employee_report"
-      [ngClass]="{'active' : isEmployeeReportTable}" (click)="showEmployeeReportTable()">View Employee Report</button>
+  
     <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isAccessControlListTable}"
       (click)="showAccessControlListTable()">ACL(Access Control List)</button>
     <button type="button" class="btn btn-outline-primary btn-sm mx-1"
