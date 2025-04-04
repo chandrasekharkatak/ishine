@@ -1,3 +1,4 @@
+import { ProjectResponse } from "./projectResponse";
 export class ProjectQuestion{
     questionId:any;
     question:any;
@@ -17,4 +18,7 @@ export class ProjectQuestion{
     uploadedFileName:any;
     entityId:any;
     entityType:any;
+    assignedToUserNames:any;
+    projectResponseList:ProjectResponse[]=[];
+
 }

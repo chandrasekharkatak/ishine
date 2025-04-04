@@ -452,18 +452,18 @@ export class ProjectInsightsConfigComponent implements OnInit {
     return flag;
   }
 
-  onCheckboxChange(event: any, value: string, question: any,option:any) {
-    if (question.responseList == null || question.responseList == undefined) {
-      question.responseList = []; // Initialize as an array if undefined
+  onCheckboxChange(event: any, value: string, question: any,option:any,response:any) {
+    if (response.responseList == null || response.responseList == undefined) {
+      response.responseList = []; // Initialize as an array if undefined
     }
   
     if (event.target.checked) {
       // Add value if checked
       option.isChecked = true;
-      question.responseList.push(value);
+      response.responseList.push(value);
     } else {
       // Remove value if unchecked
-      question.responseList = question.responseList.filter((item: string) => item != value);
+      response.responseList = response.responseList.filter((item: string) => item != value);
       option.isChecked = false;
     }
   }
@@ -567,8 +567,10 @@ export class ProjectInsightsConfigComponent implements OnInit {
           if (question.optionType == 'checkbox') {
             question.response = JSON.stringify(question.responseList);
           }
-          if(question?.uploadedFile != undefined && question?.uploadedFile != null){
-            files.push(question.uploadedFile);
+          if (question?.uploadedFile != undefined && question?.uploadedFile != null) {
+            const renamedFile = new File([question.uploadedFile], question?.uploadedFileName, { type: question.uploadedFile.type });
+            console.log('Renamed File:', renamedFile);
+            files.push(renamedFile);
           }
         }
       }
@@ -582,8 +584,10 @@ export class ProjectInsightsConfigComponent implements OnInit {
             if (question.optionType == 'checkbox') {
               question.response = JSON.stringify(question.responseList);
             }
-            if(question?.uploadedFile != undefined && question?.uploadedFile != null){
-              files.push(question.uploadedFile);
+            if (question?.uploadedFile != undefined && question?.uploadedFile != null) {
+              const renamedFile = new File([question.uploadedFile],  question?.uploadedFileName, { type: question.uploadedFile.type });
+              console.log('Renamed File:', renamedFile);
+              files.push(renamedFile);
             }
           }
         }
@@ -597,8 +601,10 @@ export class ProjectInsightsConfigComponent implements OnInit {
               if (question.optionType == 'checkbox') {
                 question.response = JSON.stringify(question.responseList);
               }
-              if(question?.uploadedFile != undefined && question?.uploadedFile != null){
-                files.push(question.uploadedFile);
+              if (question?.uploadedFile != undefined && question?.uploadedFile != null) {
+                const renamedFile = new File([question.uploadedFile],  question?.uploadedFileName, { type: question.uploadedFile.type });
+                console.log('Renamed File:', renamedFile);
+                files.push(renamedFile);
               }
             }
           }
@@ -1554,59 +1560,53 @@ private createQuestionsSection(questions: any[], entityType: string): string {
     //console.log("Updated Filter : ", this.filters);
   }
 
-  removeUploadedFile(question:any){
-    if(question?.uploadedFile){
-      question.uploadedFile = null;
+  removeUploadedFile(response:any){
+    if(response?.uploadedFile){
+      response.uploadedFile = null;
     }
-    if(question?.uploadedFileName){
-      question.uploadedFileName = null;
+    if(response?.uploadedFileName){
+      response.uploadedFileName = null;
     }
   }
 
-  onQuestionFileChange(event: any, question: any,alertTemplate:TemplateRef<any>,previewElementId:any,documentPreviewTemplate:TemplateRef<any>) {
+  onQuestionFileChange(event: any, question: any, alertTemplate: TemplateRef<any>, previewElementId: any, documentPreviewTemplate: TemplateRef<any>,response:any) {
     const file = event.target.files[0];
     if (file) {
-      question.uploadedFile = file;
-      question.uploadedFileName = file.name;
+      response.uploadedFile = file;
+      const inputId = event.target.id;
+      var fileExtension = file.name.split('.').pop().toLowerCase();
+      response.uploadedFileName = inputId + '.' + fileExtension;
     }
-    
-    const MAX_SIZE = 5 * 1024 * 1024; // 1MB  // 200KB in bytes
-    
-    if (file) {
-      let allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
 
-      if (allowedTypes.indexOf(file.type) === -1) {
-      this.alertMessage = "Invalid file format."
-      this.openAlertMod(alertTemplate, this.alertMessage);
-      question.uploadedFile = null;
-      question.uploadedFileName = null;
-        return false;
-      }
-      else if (file.size > MAX_SIZE) {
+    const MAX_SIZE = 5 * 1024 * 1024; // 1MB  // 200KB in bytes
+    if (file) {
+      if (file.size > MAX_SIZE) {
         this.alertMessage = "File size must be lesser than or equal to 1MB."
         this.openAlertMod(alertTemplate, this.alertMessage);
-        question.uploadedFile = null;
-        question.uploadedFileName = null;
+        response.uploadedFile = null;
+        response.uploadedFileName = null;
         return false;
       }
     }
-    this.previewUploadedFile(question,question.uploadedFile,question.uploadedFileName,previewElementId, documentPreviewTemplate,alertTemplate);
+    this.previewUploadedFile(question, response.uploadedFile, response.uploadedFileName, previewElementId, documentPreviewTemplate, alertTemplate, false,response);
   }
 
-  previewUploadedFile(question,uploadedFile: any, fileName: any, previewElementId: any, documentPreviewTemplate: TemplateRef<any>,alertTemplate: TemplateRef<any>) {
-    this.documentPreviewModalRef = this.modalService.show(documentPreviewTemplate, { class: 'modal-xl' });
+  previewUploadedFile(question,uploadedFile: any, fileName: any, previewElementId: any, documentPreviewTemplate: TemplateRef<any>,alertTemplate: TemplateRef<any>, downloadFile:any,response:any) {
     const previewContainer = document.getElementById(previewElementId);
     if ((fileName != undefined && fileName != null)) {
       const MAX_SIZE = 5 * 1024 * 1024; //5 MB // 200KB in bytes
       const file = uploadedFile;
 
       if (uploadedFile != undefined && uploadedFile != null) {
+        if (file.size > MAX_SIZE) {
+          previewContainer.innerHTML = "<span class='mt-3' style='display:inline-block;'>File size must be lesser than or equal to 5MB. </span>";
+          response.uploadedFile = null;
+          response.uploadedFileName = null;
+          return false;
+        }
+
         if (file && file.type === 'application/pdf') {
-          if (file.size > MAX_SIZE) {
-            previewContainer.innerHTML = "<span class='mt-3 text-sm' style='display:inline-block; font-size:medium;'>File size must be lesser than or equal to 5MB. </span>";
-            fileName = "";
-            return false;
-          }
+          this.documentPreviewModalRef = this.modalService.show(documentPreviewTemplate, { class: 'modal-xl' });
           const reader = new FileReader();
           reader.onload = function (e) {
             const pdfData = e.target.result;
@@ -1615,16 +1615,15 @@ private createQuestionsSection(questions: any[], entityType: string): string {
           reader.readAsDataURL(file);
         }
         else if (file && file.type.startsWith('image/')) {
-          var fileName = file.name;
-          var fileExtension = fileName.split('.').pop().toLowerCase();
+          this.documentPreviewModalRef = this.modalService.show(documentPreviewTemplate, { class: 'modal-xl' });
+          var fileName2 = file.name;
+          var fileExtension = fileName2.split('.').pop().toLowerCase();
           var allowedExtensions = ['jpg', 'jpeg', 'png', 'jpg2'];
           if (allowedExtensions.indexOf(fileExtension) === -1) {
             previewContainer.innerHTML = "<span class='mt-3' style='display:inline-block;'> Please select only image file (jpg, jpeg, png, jpg2) Or PDF </span>";
+            response.uploadedFile = null;
+            response.uploadedFileName = null;
             return;
-          }
-          if (file.size > MAX_SIZE) {
-            previewContainer.innerHTML = "<span class='mt-3' style='display:inline-block;'>File size must be lesser than or equal to 1MB. </span>";
-            return false;
           }
           const reader = new FileReader();
           reader.onload = function (e) {
@@ -1634,17 +1633,39 @@ private createQuestionsSection(questions: any[], entityType: string): string {
           reader.readAsDataURL(file);
         }
         else {
-          previewContainer.innerHTML = "<span class='mt-3' style='display:inline-block;' > Invalid file format.</span>";
-          return false;
+          if(downloadFile){
+            this.downloadFile(file,fileName);
+            return;
+          }
         }
       } else {
         this.getUserUploadedFileForQuestion(question,fileName, previewContainer,alertTemplate);
       }
     } else {
+      response.uploadedFile = null;
+      response.uploadedFileName = null;
       previewContainer.innerHTML = `<h3 style='padding: 12px; display:inline-block;'>No Data Found.</h3>`;
     }
   }
 
+  downloadFile(file: any, fileName: any) {
+    const reader = new FileReader();
+    reader.readAsArrayBuffer(file);
+    reader.onload = () => {
+      const fileBlob = new Blob([reader.result as ArrayBuffer], { type: file.type });
+      if (fileBlob) {
+        const url = window.URL.createObjectURL(fileBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }
+    }
+  }
+  
   getUserUploadedFileForQuestion(question:any,fileName:any, previewContainer:any,alertTemplate:TemplateRef<any>){
     let documentObj = new Document();
     documentObj.empId = this.currentUser.empId;

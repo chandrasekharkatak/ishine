@@ -9,6 +9,7 @@ import { GoalService } from 'src/app/services/goal.service';
 import { Feature } from 'src/app/models/feature';
 import { LogService } from 'src/app/services/log.service';
 import { Log } from 'src/app/models/log';
+import { Sort } from '@angular/material/sort';
 
 interface Goal {
   goalStatus: string;
@@ -94,6 +95,27 @@ export class PerformanceDashboardComponent implements OnInit {
 
   alertMessage:any;
 
+  // Project Insight
+  isQuestionForm:boolean = false;
+  isCreation:boolean = false;
+  isUpdation:boolean = false;
+  isProjectInsightList:boolean = false;
+  isSurveyResponseList:boolean = false;
+  isProjectInsightResponseList:boolean = false;
+  isResponsePreview:boolean = true;
+  isSearchEnabled:boolean = false;
+ 
+  filters:any = {};
+  page = 1;
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType:any;
+
+  projectInsightColumnColumns:any[] = ['projectName','description','isActive','createdByName','createdOn'];
+
+  allProjectInsightList:any[] = [];
+
+
   constructor(
     private employeeService: EmployeeService,
     private modalService: BsModalService,
@@ -107,7 +129,7 @@ export class PerformanceDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.logService.updateLogInfo(this.log);
-
+    this.isProjectInsightList = true;
     this.onGetEmployeeInfo();
     this.fetchGoals();
     this.loadPerformanceStats();
@@ -370,5 +392,31 @@ saveKpiResponses(template: TemplateRef<any>): void {
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
+  }
+
+  // Project Insight
+
+  toggleSearch() {
+    this.isSearchEnabled = !this.isSearchEnabled;
+    if (!this.isSearchEnabled) {
+      this.filters = {};
+    }
+  }
+
+  sortData(sort: Sort) {
+    if (sort.active) {
+      let sortParams: any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;
+    }
+  }
+
+  onSearch(searchData) {
+    this.filters = searchData;
+  }
+  
+  handlePageChange(event) {
+    this.page = event;
   }
 }

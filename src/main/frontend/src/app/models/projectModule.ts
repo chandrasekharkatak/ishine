@@ -10,4 +10,5 @@ export class ProjectModule {
     subModuleList:ProjectSubModule[] = [];
     projectQuestion:ProjectQuestion[] = [];
     isCollapsed:any= false;
+    assignedToUserNames:any;
 }

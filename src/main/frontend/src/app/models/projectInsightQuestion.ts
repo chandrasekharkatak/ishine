@@ -29,4 +29,5 @@ export class ProjectInsightQuestion {
     projectQuestion:ProjectQuestion[] = [];
     moduleList:ProjectModule[] = [];
     isCollapsed:any= false;
+    assignedToUserNames:any;
 }

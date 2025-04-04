@@ -480,7 +480,7 @@
                          <path
                             d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                       </svg>
-                      <span style="font-size: 0.9rem;">Assigned To: {{milestone.assignedTo || ''}}</span>
+                      <span style="font-size: 0.9rem;">Assigned To: {{milestone.assignedToUserNames || ''}}</span>
                    </div>
                 </div>
                 <div class="milestone-content" style="padding: 25px;" [ngClass]="{'d-none': milestone.isCollapsed}">
@@ -523,110 +523,132 @@
                                ">{{question.description}}</div>
                          </div>
                       </div>
-                      <div *ngIf="question.optionType == 'text'">
-                         <div>
-                            <input *ngIf="!isResponsePreview" type="text" class="form-control custom-input"
-                            style="width: 100%;
-                            padding: 10px 12px;
-                            border: 1px solid #e2e8f0;
-                            border-radius: 6px;
-                            font-size: 0.95rem;
-                            transition: all 0.3s ease;
-                            outline: none;
-                            " autocomplete="none" placeholder="Enter Answer here..." [(ngModel)]="question.response">
-                            <input *ngIf="isResponsePreview" type="text" class="form-control custom-input"
-                               style="width: 100%;
-                               padding: 10px 12px;
-                               border: 1px solid #e2e8f0;
-                               border-radius: 6px;
-                               font-size: 0.95rem;
-                               transition: all 0.3s ease;
-                               outline: none;
-                               " autocomplete="none" placeholder="Enter Answer here...">
-                         </div>
-                      </div>
-                      <div *ngIf="question.optionType == 'checkbox'">
-                         <div *ngFor="let option of question.optionsList; let mileQuestionOptionIndex = index">
-                            <div class="custom-{{question.optionType}}" style="
-                               margin: 10px 0;
-                               padding: 10px;
-                               border-radius: 6px;
-                               transition: all 0.2s ease;
-                               ">
-                               <label style="
-                                  display: flex;
-                                  align-items: center;
-                                  gap: 10px;
-                                  margin: 0;
-                                  cursor: pointer;
-                                  ">
-                               <input *ngIf="!isResponsePreview" type="checkbox"
-                               [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex"
-                               [(ngModel)]="option.isChecked"
-                               (change)="onCheckboxChange($event, option.optionValue, question,option)">
-                               <input *ngIf="isResponsePreview" type="checkbox"
-                               [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex">&nbsp;
-                               <label class="mb-0"
-                                  [for]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex">{{
-                               option.optionValue }}</label>
-                               </label>
+                    <div class="responselist-container">
+                        <div *ngFor="let response of question.projectResponseList;let responseIndex = index">
+                            <div style="
+                                               border: 2px solid #cbd5e0;border-radius: 6px;padding: 12px; margin:6px;
+                                                ">
+                                <div class="response-milestone-header-row-milestone-assignedto" style="margin-top: 0px;">
+                                    <svg style="width: 16px; height: 16px;" viewBox="0 0 24 24" fill="currentColor">
+                                        <path
+                                            d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                                    </svg>
+                                    <span style="font-size: 0.9rem;">Response By: {{response.responseByEmpName || ''}}</span>
+                                </div>
+                                <div *ngIf="question.optionType == 'text'">
+                                    <div>
+                                        <input *ngIf="!isResponsePreview" type="text" class="form-control custom-input" style="width: 100%;
+                                                       padding: 10px 12px;
+                                                       border: 1px solid #e2e8f0;
+                                                       border-radius: 6px;
+                                                       font-size: 0.95rem;
+                                                       transition: all 0.3s ease;
+                                                       outline: none;
+                                                       " autocomplete="none" placeholder="Enter Answer here..."
+                                            [(ngModel)]="response.response">
+                                        <input *ngIf="isResponsePreview" type="text" class="form-control custom-input" style="width: 100%;
+                                                          padding: 10px 12px;
+                                                          border: 1px solid #e2e8f0;
+                                                          border-radius: 6px;
+                                                          font-size: 0.95rem;
+                                                          transition: all 0.3s ease;
+                                                          outline: none;
+                                                          " autocomplete="none" placeholder="Enter Answer here...">
+                                    </div>
+                                </div>
+                                <div *ngIf="question.optionType == 'checkbox'">
+                                    <div *ngFor="let option of question.optionsList; let mileQuestionOptionIndex = index">
+                                        <div class="custom-{{question.optionType}}" style="
+                                                          margin: 10px 0;
+                                                          padding: 10px;
+                                                          border-radius: 6px;
+                                                          transition: all 0.2s ease;
+                                                          ">
+                                            <label style="
+                                                             display: flex;
+                                                             align-items: center;
+                                                             gap: 10px;
+                                                             margin: 0;
+                                                             cursor: pointer;
+                                                             ">
+                                                <input *ngIf="!isResponsePreview" type="checkbox"
+                                                    [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex"
+                                                    [(ngModel)]="option.isChecked"
+                                                    (change)="onCheckboxChange($event, option.optionValue, question,option,response)">
+                                                <input *ngIf="isResponsePreview" type="checkbox"
+                                                    [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex">&nbsp;
+                                                <label class="mb-0"
+                                                    [for]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex">{{
+                                                    option.optionValue }}</label>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div *ngIf="question.optionType == 'radio'">
+                                    <div *ngFor="let option of question.optionsList; let optIndex = index">
+                                        <div class="custom-{{question.optionType}}" style="
+                                                          margin: 10px 0;
+                                                          padding: 10px;
+                                                          border-radius: 6px;
+                                                          transition: all 0.2s ease;
+                                                          ">
+                                            <label style="
+                                                             display: flex;
+                                                             align-items: center;
+                                                             gap: 10px;
+                                                             margin: 0;
+                                                             cursor: pointer;
+                                                             ">
+                                                <input *ngIf="!isResponsePreview" type="radio"
+                                                    [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'radio' + optIndex"
+                                                    name="'Milestone-'{{milestone.milestoneId}} '-Question'{{question.questionId}}'radio'{{optIndex}}"
+                                                    [value]="option.optionValue" [(ngModel)]="response.response">
+                                                <input *ngIf="isResponsePreview" type="radio"
+                                                    [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'radio' + optIndex"
+                                                    name="'Milestone-'{{milestone.milestoneId}} '-Question'{{question.questionId}}'radio'{{optIndex}}"
+                                                    [value]="option.optionValue">&nbsp;
+                                                <span style="color: #4a5568; 
+                                                             font-size: 0.95rem;
+                                                             ">{{option.optionValue}}</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div *ngIf="question.documentUpload === 'true'" class="response-file-upload" style="
+                                                                        margin-top: 12px;
+                                                                        border: 2px dashed #cbd5e0;
+                                                                        border-radius: 6px;
+                                                                        ">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <label for="Milestone-{{milestone.milestoneId}}-Question-{{question.questionId}}-file-{{qIndex}}"
+                                            style="display: block;
+                                                           cursor: pointer;
+                                                           color: #4a5568;
+                                                           padding: 12px;
+                                                           margin: 10px;
+                                                           ">
+                                            <span style="display: block; font-size: 0.9rem;cursor: pointer;">Click to upload File</span>
+                                            <input id="Milestone-{{milestone.milestoneId}}-Question-{{question.questionId}}-file-{{qIndex}}"
+                                                name="Milestone-{{milestone.milestoneId}}-Question-{{question.questionId}}-file-{{qIndex}}"
+                                                type="file" style="display: none;" class="form-control-file"
+                                                (change)="onQuestionFileChange($event,question,alert_message,'document-preview-container',document_preview_template,response)"
+                                                hidden>
+                                        </label>
+                                        <label class="mb-0"
+                                            for="Milestone-{{milestone.milestoneId}}-Question-{{question.questionId}}-file-{{qIndex}}"
+                                            *ngIf="response.uploadedFileName != undefined && response.uploadedFileName != null && response.uploadedFileName !=''">File&nbsp;
+                                            <i class="fa-solid fa-xmark" title="Remove File" (click)="removeUploadedFile(response)"
+                                                style="color: #ff0000; cursor: pointer;"></i>
+                                        </label>
+                                        <label class="mb-0 mx-4" style="color: var(--accent); cursor: pointer;" title="Preview"
+                                            *ngIf="response.uploadedFileName != undefined && response.uploadedFileName != null && response.uploadedFileName !=''"
+                                            (click)="previewUploadedFile(response,response.uploadedFile,response.uploadedFileName,'document-preview-container',document_preview_template,alert_message,true,response)">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
-                         </div>
-                      </div>
-                      <div *ngIf="question.optionType == 'radio'">
-                         <div *ngFor="let option of question.optionsList; let optIndex = index">
-                            <div class="custom-{{question.optionType}}" style="
-                               margin: 10px 0;
-                               padding: 10px;
-                               border-radius: 6px;
-                               transition: all 0.2s ease;
-                               ">
-                               <label style="
-                                  display: flex;
-                                  align-items: center;
-                                  gap: 10px;
-                                  margin: 0;
-                                  cursor: pointer;
-                                  ">
-                               <input *ngIf="!isResponsePreview" type="radio"
-                               [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'radio' + optIndex"
-                               name="'Milestone-'{{milestone.milestoneId}} '-Question'{{question.questionId}}'radio'{{optIndex}}"
-                               [value]="option.optionValue" [(ngModel)]="question.response">
-                               <input *ngIf="isResponsePreview" type="radio"
-                               [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'radio' + optIndex"
-                               name="'Milestone-'{{milestone.milestoneId}} '-Question'{{question.questionId}}'radio'{{optIndex}}"
-                               [value]="option.optionValue">&nbsp;
-                               <span style="color: #4a5568; 
-                                  font-size: 0.95rem;
-                                  ">{{option.optionValue}}</span>
-                               </label>
-                            </div>
-                         </div>
-                      </div>
-                    <div *ngIf="question.documentUpload === 'true'" class="response-file-upload" style="
-                                             margin-top: 12px;
-                                             border: 2px dashed #cbd5e0;
-                                             border-radius: 6px;
-                                             ">
-                        <div class="d-flex align-items-center gap-3">
-                        <label for="file-Milestone-{{qIndex}}"
-                         style="display: block;
-                                cursor: pointer;
-                                color: #4a5568;
-                                padding: 12px 
-                                ">
-                            <span style="display: block; font-size: 0.9rem;cursor: pointer;">Click to upload File</span>
-                            <input id="file-Milestone-{{qIndex}}" type="file" style="display: none;" class="form-control-file"
-                                (change)="onQuestionFileChange($event,question,alert_message,'document-preview-container',document_preview_template)" hidden>
-                        </label>
-                        <label *ngIf="question.uploadedFile != undefined || question.uploadedFile != null">{{question.uploadedFileName}}&nbsp;
-                            <i class="fa-solid fa-xmark" title="Remove File" (click)="removeUploadedFile(question)" style="color: #ff0000;"></i>
-                        </label>
-                        <label style="color: var(--accent);" class="mx-4" title="Preview"
-                            (click)="previewUploadedFile(question,question.uploadedFile,question.uploadedFileName,'document-preview-container',document_preview_template,alert_message)">
-                            <i class="fa-solid fa-eye"></i>
-                        </label>
-                    </div>
+                        </div>
                     </div>
                    </div>
                    <div *ngFor="let module of milestone.moduleList; let modIndex = index"
@@ -671,7 +693,7 @@
                                <path
                                   d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                             </svg>
-                            Assigned To: {{module.assignedTo || ''}}
+                            Assigned To: {{module.assignedToUserNames || ''}}
                          </div>
                       </div>
                       <div class="response-module-content" style="padding: 25px;"
@@ -716,6 +738,19 @@
                                      ">{{question.description}}</div>
                                </div>
                             </div>
+
+                            <div class="responselist-container">
+                                <div *ngFor="let response of question.projectResponseList;let responseIndex = index">
+                                    <div style="
+                                                       border: 2px solid #cbd5e0;border-radius: 6px;padding: 12px; margin:6px;
+                                                        ">
+                                        <div class="response-milestone-header-row-milestone-assignedto" style="margin-top: 0px;">
+                                            <svg style="width: 16px; height: 16px;" viewBox="0 0 24 24" fill="currentColor">
+                                                <path
+                                                    d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                                            </svg>
+                                            <span style="font-size: 0.9rem;">Response By: {{response.responseByEmpName || ''}}</span>
+                                        </div>
                             <div *ngIf="question.optionType == 'text'">
                                <div>
                                   <input *ngIf="!isResponsePreview" type="text"
@@ -727,7 +762,7 @@
                                   transition: all 0.3s ease;
                                   outline: none;
                                   " autocomplete="none" placeholder="Enter Answer here..."
-                                  [(ngModel)]="question.response">
+                                  [(ngModel)]="response.response">
                                   <input *ngIf="isResponsePreview" type="text"
                                      class="form-control custom-input" style="width: 100%;
                                      padding: 10px 12px;
@@ -758,7 +793,7 @@
                                      <input *ngIf="!isResponsePreview" type="checkbox"
                                      [id]="'Module-' + module.moduleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex"
                                      [(ngModel)]="option.isChecked"
-                                     (change)="onCheckboxChange($event, option.optionValue, question,option)">
+                                     (change)="onCheckboxChange($event, option.optionValue, question,option,response)">
                                      <input *ngIf="isResponsePreview" type="checkbox"
                                      [id]="'Module-' + module.moduleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex">
                                      &nbsp;
@@ -787,7 +822,7 @@
                                      <input *ngIf="!isResponsePreview" type="radio"
                                      [id]="'Module-' + module.moduleId + '-Question' + question.questionId + 'radio' + optIndex"
                                      name="'Module-'{{module.moduleId}} '-Question'{{question.questionId}}'radio'{{optIndex}}"
-                                     [value]="option.optionValue" [(ngModel)]="question.response">
+                                     [value]="option.optionValue" [(ngModel)]="response.response">
                                      <input *ngIf="isResponsePreview" type="radio"
                                      [id]="'Module-' + module.moduleId + '-Question' + question.questionId + 'radio' + optIndex"
                                      name="'Module-'{{module.moduleId}} '-Question'{{question.questionId}}'radio'{{optIndex}}"
@@ -801,32 +836,45 @@
                                </div>
                             </div>
                             <div *ngIf="question.documentUpload === 'true'" class="response-file-upload" style="
-                               margin-top: 12px;
-                               padding: 12px;
-                               border: 2px dashed #cbd5e0;
-                               border-radius: 6px;
-                               text-align: center;
-                               ">
-                               <label for="file-Module-{{qIndex}}" style="
-                                  display: block;
-                                  cursor: pointer;
-                                  color: #4a5568;
-                                  ">
-                                  <svg style="width: 24px; height: 24px; margin-bottom: 8px;"
-                                     viewBox="0 0 24 24" fill="#4a5568">
-                                     <path
-                                        d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
-                                  </svg>
-                                  <span style="display: block; font-size: 0.9rem;">Click to upload or drag and
-                                  drop</span>
-                                  <span style="display: block; font-size: 0.8rem; color: #718096;">Supported
-                                  formats:
-                                  Images</span>
-                               </label>
-                               <input id="file-Module-{{qIndex}}" type="file" accept="image/*"
-                                  style="display: none;" class="form-control-file">
+                                                        margin-top: 12px;
+                                                        border: 2px dashed #cbd5e0;
+                                                        border-radius: 6px;
+                                                        ">
+                                <div class="d-flex align-items-center gap-3">
+                                    <label
+                                        for="Milestone-{{milestone.milestoneId}}-Module-{{module.moduleId}}-Question-{{question.questionId}}-file-{{qIndex}}"
+                                        style="display: block;
+                                           cursor: pointer;
+                                           color: #4a5568;
+                                           padding: 12px;
+                                           margin: 10px;
+                                           ">
+                                        <span style="display: block; font-size: 0.9rem;cursor: pointer;">Click to upload File</span>
+                                        <input
+                                            id="Milestone-{{milestone.milestoneId}}-Module-{{module.moduleId}}-Question-{{question.questionId}}-file-{{qIndex}}"
+                                            name="Milestone-{{milestone.milestoneId}}-Module-{{module.moduleId}}-Question-{{question.questionId}}-file-{{qIndex}}"
+                                            type="file" style="display: none;" class="form-control-file"
+                                            (change)="onQuestionFileChange($event,question,alert_message,'document-preview-container',document_preview_template,response)"
+                                            hidden>
+                                    </label>
+                                    <label class="mb-0"
+                                        for="Milestone-{{milestone.milestoneId}}-Module-{{module.moduleId}}-Question-{{question.questionId}}-file-{{qIndex}}"
+                                        *ngIf="response.uploadedFileName != undefined && response.uploadedFileName != null && response.uploadedFileName !=''">File&nbsp;
+                                        <i class="fa-solid fa-xmark" title="Remove File" (click)="removeUploadedFile(response)"
+                                            style="color: #ff0000; cursor: pointer;"></i>
+                                    </label>
+                                    <label class="mb-0 mx-4" style="color: var(--accent); cursor: pointer;" title="Preview"
+                                        *ngIf="response.uploadedFileName != undefined && response.uploadedFileName != null && response.uploadedFileName !=''"
+                                        (click)="previewUploadedFile(question,response.uploadedFile,response.uploadedFileName,'document-preview-container',document_preview_template,alert_message,true,response)">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </label>
+                                </div>
                             </div>
-                         </div>
+</div>
+</div>
+                        </div>
+                            
+                        </div>
                          <div *ngFor="let subModule of module.subModuleList; let subModIndex = index"
                             class="response-submodule-section" style="
                             margin: 15px 0;
@@ -916,6 +964,18 @@
                                            ">{{question.description}}</div>
                                      </div>
                                   </div>
+                                  <div class="responselist-container">
+                                    <div *ngFor="let response of question.projectResponseList;let responseIndex = index">
+                                        <div style="
+                                                           border: 2px solid #cbd5e0;border-radius: 6px;padding: 12px; margin:6px;
+                                                            ">
+                                            <div class="response-milestone-header-row-milestone-assignedto" style="margin-top: 0px;">
+                                                <svg style="width: 16px; height: 16px;" viewBox="0 0 24 24" fill="currentColor">
+                                                    <path
+                                                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                                                </svg>
+                                                <span style="font-size: 0.9rem;">Response By: {{response.responseByEmpName || ''}}</span>
+                                            </div>
                                   <div *ngIf="question.optionType == 'text'">
                                      <div>
                                         <input *ngIf="!isResponsePreview" type="text"
@@ -927,7 +987,7 @@
                                         transition: all 0.3s ease;
                                         outline: none;
                                         " autocomplete="none" placeholder="Enter Answer here..."
-                                        [(ngModel)]="question.response">
+                                        [(ngModel)]="response.response">
                                         <input *ngIf="isResponsePreview" type="text"
                                            class="form-control custom-input" style="width: 100%;
                                            padding: 10px 12px;
@@ -958,7 +1018,7 @@
                                            <input *ngIf="!isResponsePreview" type="checkbox"
                                            [id]="'SubModule-' + subModule.subModuleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex"
                                            [(ngModel)]="option.isChecked"
-                                           (change)="onCheckboxChange($event, option.optionValue, question,option)">
+                                           (change)="onCheckboxChange($event, option.optionValue, question,option,response)">
                                            <input *ngIf="isResponsePreview" type="checkbox"
                                            [id]="'SubModule-' + subModule.subModuleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex">
                                            &nbsp;
@@ -988,7 +1048,7 @@
                                            [id]="'SubModule-' + subModule.subModuleId + '-Question' + question.questionId + 'radio' + optIndex"
                                            name="'SubModule-'{{subModule.subModuleId}} '-Question'{{question.questionId}}'radio'{{optIndex}}"
                                            [value]="option.optionValue"
-                                           [(ngModel)]="question.response">
+                                           [(ngModel)]="response.response">
                                            <input *ngIf="isResponsePreview" type="radio"
                                            [id]="'SubModule-' + subModule.subModuleId + '-Question' + question.questionId + 'radio' + optIndex"
                                            name="'SubModule-'{{subModule.subModuleId}} '-Question'{{question.questionId}}'radio'{{optIndex}}"
@@ -1001,34 +1061,46 @@
                                         </div>
                                      </div>
                                   </div>
-                                  <div *ngIf="question.documentUpload === 'true'" class="response-file-upload" style="
-                                     margin-top: 12px;
-                                     padding: 12px;
-                                     border: 2px dashed #cbd5e0;
-                                     border-radius: 6px;
-                                     text-align: center;
-                                     ">
-                                     <label for="file-SubModule-{{qIndex}}" style="
-                                        display: block;
-                                        cursor: pointer;
-                                        color: #4a5568;
-                                        ">
-                                        <svg style="width: 24px; height: 24px; margin-bottom: 8px;"
-                                           viewBox="0 0 24 24" fill="#4a5568">
-                                           <path
-                                              d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
-                                        </svg>
-                                        <span style="display: block; font-size: 0.9rem;">Click to upload or
-                                        drag and
-                                        drop</span>
-                                        <span
-                                           style="display: block; font-size: 0.8rem; color: #718096;">Supported
-                                        formats:
-                                        Images</span>
-                                     </label>
-                                     <input id="file-SubModule-{{qIndex}}" type="file" accept="image/*"
-                                        style="display: none;" class="form-control-file">
-                                  </div>
+                                <div *ngIf="question.documentUpload === 'true'" class="response-file-upload" style="
+                                                                                        margin-top: 12px;
+                                                                                        border: 2px dashed #cbd5e0;
+                                                                                        border-radius: 6px;
+                                                                                        ">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <label
+                                            for="Milestone-{{milestone.milestoneId}}-Module-{{module.moduleId}}-SubModule-{{subModule.subModuleId}}-Question-{{question.questionId}}-file-{{qIndex}}"
+                                            style="display: block;
+                                                                           cursor: pointer;
+                                                                           color: #4a5568;
+                                                                           padding: 12px;
+                                                                           margin: 10px;
+                                                                           ">
+                                            <span style="display: block; font-size: 0.9rem;cursor: pointer;">Click to upload File</span>
+                                            <input
+                                                id="Milestone-{{milestone.milestoneId}}-Module-{{module.moduleId}}-SubModule-{{subModule.subModuleId}}-Question-{{question.questionId}}-file-{{qIndex}}"
+                                                name="Milestone-{{milestone.milestoneId}}-Module-{{module.moduleId}}-SubModule-{{subModule.subModuleId}}-Question-{{question.questionId}}-file-{{qIndex}}"
+                                                type="file" style="display: none;" class="form-control-file"
+                                                (change)="onQuestionFileChange($event,question,alert_message,'document-preview-container',document_preview_template,response)"
+                                                hidden>
+                                        </label>
+                                        <label class="mb-0"
+                                            for="Milestone-{{milestone.milestoneId}}-Module-{{module.moduleId}}-SubModule-{{subModule.subModuleId}}-Question-{{question.questionId}}-file-{{qIndex}}"
+                                            *ngIf="response.uploadedFileName != undefined && response.uploadedFileName != null && response.uploadedFileName !=''">File&nbsp;
+                                            <i class="fa-solid fa-xmark" title="Remove File" (click)="removeUploadedFile(response)"
+                                                style="color: #ff0000; cursor: pointer;"></i>
+                                        </label>
+                                        <label class="mb-0 mx-4" style="color: var(--accent); cursor: pointer;" title="Preview"
+                                            *ngIf="response.uploadedFileName != undefined && response.uploadedFileName != null && response.uploadedFileName !=''"
+                                            (click)="previewUploadedFile(question,response.uploadedFile,response.uploadedFileName,'document-preview-container',document_preview_template,alert_message,true,response)">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </label>
+                                    </div>
+                                </div>
+                                </div>
+                                </div>
+                                </div>
+
+
                                </div>
                             </div>
                          </div>

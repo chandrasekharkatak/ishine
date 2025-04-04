@@ -8,4 +8,5 @@ export class ProjectSubModule {
     description: any;
     projectQuestion:ProjectQuestion[] = [];
     isCollapsed:any= false;
+    assignedToUserNames:any
 }

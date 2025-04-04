@@ -25,6 +25,7 @@ import com.apmosys.employeeportal.dto.ModuleDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightQuestionDTO;
 import com.apmosys.employeeportal.dto.ProjectQuestionDTO;
+import com.apmosys.employeeportal.dto.ProjectResponseDTO;
 import com.apmosys.employeeportal.dto.SubModuleDTO;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectInsightAssignees;
@@ -494,8 +495,7 @@ public class ProjectInsightService {
 					mileStoneList.forEach((mileStone) -> {
 						ProjectInsightQuestionDTO mileStoneProjObject = new ProjectInsightQuestionDTO();
 						
-						List<ProjectInsightAssignees> assignToDbList = projectInsightAssigneesRepository
-								.getByEntityIdAndEntityType(mileStone.getMilestoneId(), "Milestone");
+						List<ProjectInsightAssignees> assignToDbList = projectInsightAssigneesRepository.getByEntityIdAndEntityType(mileStone.getMilestoneId(), "Milestone");
 
 						if(!assignToDbList.isEmpty()) {
 							mileStoneProjObject.setAssignedTo(assignToDbList.stream()
@@ -1065,7 +1065,7 @@ public class ProjectInsightService {
 			projectInsightQuestionDTO.setMilestone(projectInsightMilestone.getMilestone());
 			projectInsightQuestionDTO.setDescription(projectInsightMilestone.getDescription());
 			projectInsightQuestionDTO.setDeptId(projectInsightMilestone.getDeptId());
-//			projectInsightQuestionDTO.setAssignedTo(projectInsightMilestone.getAssignedTo());
+			projectInsightQuestionDTO.setAssignedToUserNames(getAssignedToUserName(projectInsightMilestone.getMilestoneId(),"Milestone"));
 			projectInsightQuestionDTO.setProjectQuestion(getProjectQuestionDTOList(projectInsightMilestone.getMilestoneId(), "Milestone",employeeId,isEmployee));
 			projectInsightQuestionDTO.setModuleList(getProjectInsightModuleDTOList(projectInsightMilestone.getMilestoneId(),employeeId,isEmployee));
 			return projectInsightQuestionDTO;
@@ -1073,6 +1073,20 @@ public class ProjectInsightService {
 			e.printStackTrace();
 			throw e;
 		}
+	}
+
+	private String getAssignedToUserName(Long entityId, String entityType) {
+		String assignedTo = null;
+		try {
+			List<String> usernameList = projectInsightAssigneesRepository.getUserNameByEntityIdAndEntityType(entityId,entityType);
+			assignedTo = usernameList != null
+					? usernameList.stream().map(String::valueOf).collect(Collectors.joining(", "))
+					: null;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		return assignedTo;
 	}
 
 	private List<ModuleDTO> getProjectInsightModuleDTOList(Long milestoneId,Long employeeId,boolean isEmployee) {
@@ -1093,8 +1107,8 @@ public class ProjectInsightService {
 					moduleDTO.setMilestoneId(projectInsightModule.getMilestoneId());
 					moduleDTO.setModule(projectInsightModule.getModule());
 					moduleDTO.setDescription(projectInsightModule.getDescription());
-//					moduleDTO.setAssignedTo(projectInsightModule.getAssignedTo());
 					moduleDTO.setRedmineId(projectInsightModule.getRedmineId());
+					moduleDTO.setAssignedToUserNames(getAssignedToUserName(projectInsightModule.getModuleId(),"Module"));
 					moduleDTO.setProjectQuestion(getProjectQuestionDTOList(projectInsightModule.getModuleId(), "Module",employeeId,isEmployee));
 					moduleDTO.setSubModuleList(getProjectInsightSubModuleDTOList(projectInsightModule.getModuleId(),employeeId,isEmployee));
 					if((moduleDTO.getSubModuleList() != null && !moduleDTO.getSubModuleList().isEmpty()) || (moduleDTO.getProjectQuestion() != null && !moduleDTO.getProjectQuestion().isEmpty())) {
@@ -1127,8 +1141,8 @@ public class ProjectInsightService {
 					subModuleDTO.setSubModule(projectInsightSubModule.getSubmodule());
 					subModuleDTO.setModuleId(projectInsightSubModule.getModuleId());
 					subModuleDTO.setDescription(projectInsightSubModule.getDescription());
-//					subModuleDTO.setAssignedTo(projectInsightSubModule.getAssignedTo());
 					subModuleDTO.setRedmineId(projectInsightSubModule.getRedmineId());
+					subModuleDTO.setAssignedToUserNames(getAssignedToUserName(projectInsightSubModule.getSubmoduleId(),"SubModule"));
 					subModuleDTO.setProjectQuestion(getProjectQuestionDTOList(projectInsightSubModule.getSubmoduleId(), "SubModule",employeeId,isEmployee));
 					if(subModuleDTO.getProjectQuestion() != null && !subModuleDTO.getProjectQuestion().isEmpty()) {
 						projectInsightSubModuleDTOList.add(subModuleDTO);
@@ -1163,12 +1177,26 @@ public class ProjectInsightService {
 					projectQuestionDTO.setOptions(questionMaster.getOptions());
 					projectQuestionDTO.setRequired(questionMaster.getRequired());
 					projectQuestionDTO.setDocumentUpload(questionMaster.getDocumentUpload());
-					ProjectInsightResponse projectInsightResponse = projectInsightResponseRepository.findByQuestionMasterIdAndEmpId(questionMaster.getQuestionMasterId(), employeeId);
-					if (projectInsightResponse != null) {
-						projectQuestionDTO.setResponseId(projectInsightResponse.getProjectInsightResponseId());
-						projectQuestionDTO.setResponse(projectInsightResponse.getResponse());
-						projectQuestionDTO.setDocumentPath(projectInsightResponse.getDocumentPath());
+					
+					boolean flag = true;
+					List<ProjectInsightResponse> projectInsightResponseList = new ArrayList<>();
+					List<ProjectResponseDTO> projectResponseDTOList = new ArrayList<>();
+					if(flag) { // here will check for if preview is of all the team members
+						projectInsightResponseList = projectInsightResponseRepository.findAllByQuestionMasterId(questionMaster.getQuestionMasterId());
+					} else {
+						projectInsightResponseList = projectInsightResponseRepository.findByQuestionMasterIdAndEmpId(questionMaster.getQuestionMasterId(), employeeId);
 					}
+					if(projectInsightResponseList != null && !projectInsightResponseList.isEmpty()) {
+						for(ProjectInsightResponse projectInsightResponse :projectInsightResponseList) {
+							ProjectResponseDTO projectResponseDTO = new ProjectResponseDTO();
+							projectResponseDTO.setResponseId(projectInsightResponse.getProjectInsightResponseId());
+							projectResponseDTO.setResponse(projectInsightResponse.getResponse());
+							projectResponseDTO.setDocumentPath(projectInsightResponse.getDocumentPath());
+							projectResponseDTO.setUploadedFileName(projectInsightResponse.getDocumentFileName());
+							projectResponseDTOList.add(projectResponseDTO);
+						}
+					}
+					projectQuestionDTO.setProjectResponseList(projectResponseDTOList);
 					projectInsightQuestionList.add(projectQuestionDTO);
 				}
 			}
@@ -1274,30 +1302,36 @@ public class ProjectInsightService {
 		try {
 			if (projectQuestionList != null && !projectQuestionList.isEmpty()) {
 				for (ProjectQuestionDTO projectQuestionDTO : projectQuestionList) {
-					if (projectQuestionDTO.getQuestionId() != null) {
-						ProjectInsightResponse projectInsightResponse = projectInsightResponseRepository.findByQuestionMasterIdAndEmpId(projectQuestionDTO.getQuestionId(), employeeId);
-						if (projectInsightResponse != null) {
-							projectInsightResponse.setResponse(projectQuestionDTO.getResponse());
-							projectInsightResponse.setUpdatedBy(employeeId);
-							
-						} else {
-							projectInsightResponse = new ProjectInsightResponse();
-							projectInsightResponse.setResponse(projectQuestionDTO.getResponse());
-							projectInsightResponse.setEmpId(employeeId);
-							projectInsightResponse.setDocumentPath(projectQuestionDTO.getDocumentPath());
-							projectInsightResponse.setQuestionMasterId(projectQuestionDTO.getQuestionId());
-						}
-						if (files != null) {
-							for (MultipartFile document : files) {
-								if (document != null
-										&& document.getName().equals(projectQuestionDTO.getUploadedFileName())
-										|| true) {
-									String uploadResponse = uploadProjectResponseDocument(projectQuestionDTO, document);
-									projectInsightResponse.setDocumentPath(projectQuestionDTO.getDocumentPath());
+					if (projectQuestionDTO.getQuestionId() != null && projectQuestionDTO.getProjectResponseList() != null && !projectQuestionDTO.getProjectResponseList().isEmpty()) {
+						
+						for(ProjectResponseDTO projectResponseDTO : projectQuestionDTO.getProjectResponseList()) {
+							List<ProjectInsightResponse> projectInsightResponseList = projectInsightResponseRepository.findByQuestionMasterIdAndEmpId(projectQuestionDTO.getQuestionId(), projectResponseDTO.getResponseByEmpId());
+							for(ProjectInsightResponse projectInsightResponse: projectInsightResponseList){
+								if (projectInsightResponse != null) {
+									projectInsightResponse.setResponse(projectResponseDTO.getResponse());
+									projectInsightResponse.setUpdatedBy(projectResponseDTO.getResponseByEmpId());
+									
+								} else {
+									projectInsightResponse = new ProjectInsightResponse();
+									projectInsightResponse.setResponse(projectResponseDTO.getResponse());
+									projectInsightResponse.setEmpId(projectResponseDTO.getResponseByEmpId());
+									projectInsightResponse.setDocumentPath(projectResponseDTO.getDocumentPath());
+									projectInsightResponse.setQuestionMasterId(projectQuestionDTO.getQuestionId());
 								}
+								if (files != null) {
+									for (MultipartFile document : files) {
+										if (document != null &&  document.getOriginalFilename() != null && document.getOriginalFilename().equals(projectResponseDTO.getUploadedFileName())) {
+											String uploadResponse = uploadProjectResponseDocument(projectQuestionDTO, document);
+											if(uploadResponse.equalsIgnoreCase("Document uploaded successfully")) {
+												projectInsightResponse.setDocumentPath(projectResponseDTO.getDocumentPath());
+												projectInsightResponse.setDocumentFileName(projectResponseDTO.getUploadedFileName());
+											}
+										}
+									}
+								}
+								projectInsightResponseRepository.save(projectInsightResponse);
 							}
 						}
-						projectInsightResponseRepository.save(projectInsightResponse);
 					}
 				}
 			}
@@ -1334,6 +1368,7 @@ public class ProjectInsightService {
 	}
 	
 	public String uploadProjectResponseDocument(ProjectQuestionDTO projectQuestionDTO, MultipartFile document) {
+		String response = null;
 	    try {
 	        if (document != null) {
 	            String dmsPortalUploadUrl = dmsPortalUrl + "/upload.php";
@@ -1360,15 +1395,18 @@ public class ProjectInsightService {
 
 	            // Parse response
 	            JSONObject json = new JSONObject(syncResponse);
-	            System.out.println(json.toString());
-
-	            return syncResponse; // Return response if needed
+	            if(json != null) {
+	            	String obj = json.getString("message");
+	            	if(obj != null) {
+	            		response= obj;
+	            	}
+	            }
 	        }
 	    } catch (Exception e) {
 	        e.printStackTrace();
-	        throw new RuntimeException("File upload failed", e);
+	        response="Failed to Upload Document.";
 	    }
-	    return null;
+	    return response;
 	}
 
 }
