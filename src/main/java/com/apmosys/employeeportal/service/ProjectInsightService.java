@@ -1192,6 +1192,7 @@ public class ProjectInsightService {
 							projectResponseDTO.setResponseId(projectInsightResponse.getProjectInsightResponseId());
 							projectResponseDTO.setResponse(projectInsightResponse.getResponse());
 							projectResponseDTO.setDocumentPath(projectInsightResponse.getDocumentPath());
+							projectResponseDTO.setOptions(questionMaster.getOptions());
 							projectResponseDTO.setUploadedFileName(projectInsightResponse.getDocumentFileName());
 							projectResponseDTOList.add(projectResponseDTO);
 						}
@@ -1306,18 +1307,39 @@ public class ProjectInsightService {
 						
 						for(ProjectResponseDTO projectResponseDTO : projectQuestionDTO.getProjectResponseList()) {
 							List<ProjectInsightResponse> projectInsightResponseList = projectInsightResponseRepository.findByQuestionMasterIdAndEmpId(projectQuestionDTO.getQuestionId(), projectResponseDTO.getResponseByEmpId());
-							for(ProjectInsightResponse projectInsightResponse: projectInsightResponseList){
-								if (projectInsightResponse != null) {
-									projectInsightResponse.setResponse(projectResponseDTO.getResponse());
-									projectInsightResponse.setUpdatedBy(projectResponseDTO.getResponseByEmpId());
-									
-								} else {
-									projectInsightResponse = new ProjectInsightResponse();
-									projectInsightResponse.setResponse(projectResponseDTO.getResponse());
-									projectInsightResponse.setEmpId(projectResponseDTO.getResponseByEmpId());
-									projectInsightResponse.setDocumentPath(projectResponseDTO.getDocumentPath());
-									projectInsightResponse.setQuestionMasterId(projectQuestionDTO.getQuestionId());
+							if(projectInsightResponseList != null && !projectInsightResponseList.isEmpty()) {
+								for(ProjectInsightResponse projectInsightResponse: projectInsightResponseList){
+									if (projectInsightResponse != null) {
+										projectInsightResponse.setResponse(projectResponseDTO.getResponse());
+										projectInsightResponse.setUpdatedBy(projectResponseDTO.getResponseByEmpId());
+										
+									} else {
+										projectInsightResponse = new ProjectInsightResponse();
+										projectInsightResponse.setResponse(projectResponseDTO.getResponse());
+										projectInsightResponse.setEmpId(projectResponseDTO.getResponseByEmpId());
+										projectInsightResponse.setDocumentPath(projectResponseDTO.getDocumentPath());
+										projectInsightResponse.setQuestionMasterId(projectQuestionDTO.getQuestionId());
+									}
+									if (files != null) {
+										for (MultipartFile document : files) {
+											if (document != null &&  document.getOriginalFilename() != null && document.getOriginalFilename().equals(projectResponseDTO.getUploadedFileName())) {
+												String uploadResponse = uploadProjectResponseDocument(projectQuestionDTO, document);
+												if(uploadResponse.equalsIgnoreCase("Document uploaded successfully")) {
+													projectInsightResponse.setDocumentPath(projectResponseDTO.getDocumentPath());
+													projectInsightResponse.setDocumentFileName(projectResponseDTO.getUploadedFileName());
+												}
+											}
+										}
+									}
+									projectInsightResponseRepository.save(projectInsightResponse);
 								}
+							} else {
+								ProjectInsightResponse projectInsightResponse = new ProjectInsightResponse();
+								projectInsightResponse.setResponse(projectResponseDTO.getResponse());
+								projectInsightResponse.setEmpId(projectResponseDTO.getResponseByEmpId());
+								projectInsightResponse.setDocumentPath(projectResponseDTO.getDocumentPath());
+								projectInsightResponse.setQuestionMasterId(projectQuestionDTO.getQuestionId());
+								
 								if (files != null) {
 									for (MultipartFile document : files) {
 										if (document != null &&  document.getOriginalFilename() != null && document.getOriginalFilename().equals(projectResponseDTO.getUploadedFileName())) {
@@ -1331,6 +1353,7 @@ public class ProjectInsightService {
 								}
 								projectInsightResponseRepository.save(projectInsightResponse);
 							}
+							
 						}
 					}
 				}

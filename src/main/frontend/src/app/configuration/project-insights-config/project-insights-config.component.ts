@@ -25,6 +25,7 @@ import { ProjectModule } from 'src/app/models/projectModule';
 import { ProjectSubModule } from 'src/app/models/projectSubModule';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { Document } from 'src/app/models/document';
+import { ProjectResponse } from 'src/app/models/projectResponse';
 
 @Component({
   selector: 'app-project-insights-config',
@@ -491,16 +492,27 @@ export class ProjectInsightsConfigComponent implements OnInit {
           milestone.isCollapsed = true;
           if (milestone.projectQuestion != null && milestone.projectQuestion.length != 0) {
             milestone.projectQuestion.forEach((question: ProjectQuestion, index) => {
-              question.optionsList = JSON.parse(question.options);
-              if (question.optionType == 'checkbox') {
-                question.responseList = JSON.parse(question.response || '[]');
-                if (question.optionsList?.length) {
-                  question.optionsList.forEach((option, index) => {
-                    if (question?.responseList.includes(option?.optionValue)) {
-                      option.isChecked = true
+              if (question.projectResponseList != null && question.projectResponseList.length != 0) {
+                question.projectResponseList.forEach((response: ProjectResponse, index) => {
+                  response.optionsList = JSON.parse(response.options);
+                  if (question.optionType == 'checkbox') {
+                    response.responseList = JSON.parse(response.response || '[]');
+                    if (response.optionsList?.length) {
+                      response.optionsList.forEach((option, index) => {
+                        if (response?.responseList.includes(option?.optionValue)) {
+                          option.isChecked = true
+                        }
+                      });
                     }
-                  });
+                  }
+                });
+              } else {
+                let projectResponse= new ProjectResponse();
+                projectResponse.optionsList = JSON.parse(question.options);
+                if (question.optionType == 'checkbox') {
+                  projectResponse.responseList = JSON.parse(projectResponse.response || '[]');
                 }
+                question.projectResponseList.push(projectResponse);
               }
             });
           }
@@ -509,17 +521,40 @@ export class ProjectInsightsConfigComponent implements OnInit {
             milestone.moduleList.forEach((module: any, modIndex) => {
               if (module.projectQuestion != null && module.projectQuestion.length != 0) {
                 module.projectQuestion.forEach((question: ProjectQuestion, index) => {
-                  question.optionsList = JSON.parse(question.options);
-                  if (question.optionType == 'checkbox') {
-                    question.responseList = JSON.parse(question.response || '[]');
-                    if (question.optionsList?.length) {
-                      question.optionsList.forEach((option, index) => {
-                        if (question?.responseList.includes(option?.optionValue)) {
-                          option.isChecked = true
+                  if (question.projectResponseList != null && question.projectResponseList.length != 0) {
+                    question.projectResponseList.forEach((response: ProjectResponse, index) => {
+                      response.optionsList = JSON.parse(response.options);
+                      if (question.optionType == 'checkbox') {
+                        response.responseList = JSON.parse(response.response || '[]');
+                        if (response.optionsList?.length) {
+                          response.optionsList.forEach((option, index) => {
+                            if (response?.responseList.includes(option?.optionValue)) {
+                              option.isChecked = true
+                            }
+                          });
                         }
-                      });
+                      }
+                    });
+                  } else {
+                    let projectResponse= new ProjectResponse();
+                    projectResponse.optionsList = JSON.parse(question.options);
+                    if (question.optionType == 'checkbox') {
+                      projectResponse.responseList = JSON.parse(projectResponse.response || '[]');
                     }
+                    question.projectResponseList.push(projectResponse);
                   }
+
+                  // question.optionsList = JSON.parse(question.options);
+                  // if (question.optionType == 'checkbox') {
+                  //   question.responseList = JSON.parse(question.response || '[]');
+                  //   if (question.optionsList?.length) {
+                  //     question.optionsList.forEach((option, index) => {
+                  //       if (question?.responseList.includes(option?.optionValue)) {
+                  //         option.isChecked = true
+                  //       }
+                  //     });
+                  //   }
+                  // }
                 });
               }
 
@@ -527,17 +562,40 @@ export class ProjectInsightsConfigComponent implements OnInit {
                 module.subModuleList.forEach((submodule: any, submodIndex) => {
                   if (submodule.projectQuestion != null && submodule.projectQuestion.length != 0) {
                     submodule.projectQuestion.forEach((question: ProjectQuestion, index) => {
-                      question.optionsList = JSON.parse(question.options);
-                      if (question.optionType == 'checkbox') {
-                        question.responseList = JSON.parse(question.response || '[]');
-                        if (question.optionsList?.length) {
-                          question.optionsList.forEach((option, index) => {
-                            if (question?.responseList.includes(option?.optionValue)) {
-                              option.isChecked = true
+                      if (question.projectResponseList != null && question.projectResponseList.length != 0) {
+                        question.projectResponseList.forEach((response: ProjectResponse, index) => {
+                          response.optionsList = JSON.parse(response.options);
+                          if (question.optionType == 'checkbox') {
+                            response.responseList = JSON.parse(response.response || '[]');
+                            if (response.optionsList?.length) {
+                              response.optionsList.forEach((option, index) => {
+                                if (response?.responseList.includes(option?.optionValue)) {
+                                  option.isChecked = true
+                                }
+                              });
                             }
-                          });
+                          }
+                        });
+                      } else {
+                        let projectResponse= new ProjectResponse();
+                        projectResponse.optionsList = JSON.parse(question.options);
+                        if (question.optionType == 'checkbox') {
+                          projectResponse.responseList = JSON.parse(projectResponse.response || '[]');
                         }
+                        question.projectResponseList.push(projectResponse);
                       }
+
+                      // question.optionsList = JSON.parse(question.options);
+                      // if (question.optionType == 'checkbox') {
+                      //   question.responseList = JSON.parse(question.response || '[]');
+                      //   if (question.optionsList?.length) {
+                      //     question.optionsList.forEach((option, index) => {
+                      //       if (question?.responseList.includes(option?.optionValue)) {
+                      //         option.isChecked = true
+                      //       }
+                      //     });
+                      //   }
+                      // }
                     });
                   }
                 });
@@ -564,13 +622,16 @@ export class ProjectInsightsConfigComponent implements OnInit {
         let questionList = milestone.projectQuestion;
         for (let index = 0; index < questionList.length; index++) {
           let question = questionList[index];
-          if (question.optionType == 'checkbox') {
-            question.response = JSON.stringify(question.responseList);
-          }
-          if (question?.uploadedFile != undefined && question?.uploadedFile != null) {
-            const renamedFile = new File([question.uploadedFile], question?.uploadedFileName, { type: question.uploadedFile.type });
-            console.log('Renamed File:', renamedFile);
-            files.push(renamedFile);
+          for(let responseIndex = 0;responseIndex < question.projectResponseList.length; responseIndex++){
+            let response = question.projectResponseList[responseIndex];
+            if (question.optionType == 'checkbox') {
+              response.response = JSON.stringify(response.responseList);
+            }
+            if (response?.uploadedFile != undefined && response?.uploadedFile != null) {
+              const renamedFile = new File([response.uploadedFile], response?.uploadedFileName, { type: response.uploadedFile.type });
+              files.push(renamedFile);
+              response.uploadedFile = null;
+            }
           }
         }
       }
@@ -581,13 +642,16 @@ export class ProjectInsightsConfigComponent implements OnInit {
           let moduleQuestionList = module.projectQuestion;
           for (let index = 0; index < moduleQuestionList.length; index++) {
             let question = moduleQuestionList[index];
-            if (question.optionType == 'checkbox') {
-              question.response = JSON.stringify(question.responseList);
-            }
-            if (question?.uploadedFile != undefined && question?.uploadedFile != null) {
-              const renamedFile = new File([question.uploadedFile],  question?.uploadedFileName, { type: question.uploadedFile.type });
-              console.log('Renamed File:', renamedFile);
-              files.push(renamedFile);
+            for(let responseIndex = 0;responseIndex < question.projectResponseList.length; responseIndex++){
+              let response = question.projectResponseList[responseIndex];
+              if (question.optionType == 'checkbox') {
+                response.response = JSON.stringify(response.responseList);
+              }
+              if (response?.uploadedFile != undefined && response?.uploadedFile != null) {
+                const renamedFile = new File([response.uploadedFile], response?.uploadedFileName, { type: response.uploadedFile.type });
+                files.push(renamedFile);
+                response.uploadedFile = null;
+              }
             }
           }
         }
@@ -598,13 +662,16 @@ export class ProjectInsightsConfigComponent implements OnInit {
             let submoduleProjectQuestion = submodule.projectQuestion;
             for (let index = 0; index < submodule.projectQuestion.length; index++) {
               let question = submoduleProjectQuestion[index];
-              if (question.optionType == 'checkbox') {
-                question.response = JSON.stringify(question.responseList);
-              }
-              if (question?.uploadedFile != undefined && question?.uploadedFile != null) {
-                const renamedFile = new File([question.uploadedFile],  question?.uploadedFileName, { type: question.uploadedFile.type });
-                console.log('Renamed File:', renamedFile);
-                files.push(renamedFile);
+              for(let responseIndex = 0;responseIndex < question.projectResponseList.length; responseIndex++){
+                let response = question.projectResponseList[responseIndex];
+                if (question.optionType == 'checkbox') {
+                  response.response = JSON.stringify(response.responseList);
+                }
+                if (response?.uploadedFile != undefined && response?.uploadedFile != null) {
+                  const renamedFile = new File([response.uploadedFile], response?.uploadedFileName, { type: response.uploadedFile.type });
+                  files.push(renamedFile);
+                  response.uploadedFile = null;
+                }
               }
             }
           }
@@ -1592,13 +1659,15 @@ private createQuestionsSection(questions: any[], entityType: string): string {
   }
 
   previewUploadedFile(question,uploadedFile: any, fileName: any, previewElementId: any, documentPreviewTemplate: TemplateRef<any>,alertTemplate: TemplateRef<any>, downloadFile:any,response:any) {
-    const previewContainer = document.getElementById(previewElementId);
+    
     if ((fileName != undefined && fileName != null)) {
       const MAX_SIZE = 5 * 1024 * 1024; //5 MB // 200KB in bytes
       const file = uploadedFile;
 
       if (uploadedFile != undefined && uploadedFile != null) {
         if (file.size > MAX_SIZE) {
+          this.documentPreviewModalRef = this.modalService.show(documentPreviewTemplate, { class: 'modal-xl' });
+          const previewContainer = document.getElementById(previewElementId);
           previewContainer.innerHTML = "<span class='mt-3' style='display:inline-block;'>File size must be lesser than or equal to 5MB. </span>";
           response.uploadedFile = null;
           response.uploadedFileName = null;
@@ -1607,6 +1676,7 @@ private createQuestionsSection(questions: any[], entityType: string): string {
 
         if (file && file.type === 'application/pdf') {
           this.documentPreviewModalRef = this.modalService.show(documentPreviewTemplate, { class: 'modal-xl' });
+          const previewContainer = document.getElementById(previewElementId);
           const reader = new FileReader();
           reader.onload = function (e) {
             const pdfData = e.target.result;
@@ -1616,6 +1686,7 @@ private createQuestionsSection(questions: any[], entityType: string): string {
         }
         else if (file && file.type.startsWith('image/')) {
           this.documentPreviewModalRef = this.modalService.show(documentPreviewTemplate, { class: 'modal-xl' });
+          const previewContainer = document.getElementById(previewElementId);
           var fileName2 = file.name;
           var fileExtension = fileName2.split('.').pop().toLowerCase();
           var allowedExtensions = ['jpg', 'jpeg', 'png', 'jpg2'];
@@ -1639,9 +1710,13 @@ private createQuestionsSection(questions: any[], entityType: string): string {
           }
         }
       } else {
+        this.documentPreviewModalRef = this.modalService.show(documentPreviewTemplate, { class: 'modal-xl' });
+        const previewContainer = document.getElementById(previewElementId);
         this.getUserUploadedFileForQuestion(question,fileName, previewContainer,alertTemplate);
       }
     } else {
+      this.documentPreviewModalRef = this.modalService.show(documentPreviewTemplate, { class: 'modal-xl' });
+      const previewContainer = document.getElementById(previewElementId);
       response.uploadedFile = null;
       response.uploadedFileName = null;
       previewContainer.innerHTML = `<h3 style='padding: 12px; display:inline-block;'>No Data Found.</h3>`;
