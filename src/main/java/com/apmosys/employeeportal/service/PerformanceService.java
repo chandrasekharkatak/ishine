@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
@@ -1008,12 +1009,12 @@ public class PerformanceService {
 		return response;
 	}
 	
-	//mails to hods
+	//mails to hods 
 //	@Scheduled(cron = "0 14 14 * * ?")
-	public void sendPerformanceReviewEmails() {
+	public void sendPerformanceReviewEmailsToHOD() {
 		List<Object[]> activehods = employeePerformanceRepository.findAllActiveHODs();
 		
-		for(Object[] hod :activehods) {
+		for(Object[] hod :activehods) {	
 			 Long hodId = ((Number) hod[0]).longValue(); 
 	         String hodEmail = (String) hod[1];
 	         String hodName = (String) hod[2]; 
@@ -1050,7 +1051,7 @@ public class PerformanceService {
 
 	    for (Object[] emp : reviewedEmployees) {
 	        html.append("<tr>");
-	        html.append("<td style='padding: 8px;'>A-" + emp[0] + "</td>"); 
+	        html.append("<td style='padding: 8px;'>A-" + emp[6] + "</td>"); 
 	        html.append("<td style='padding: 8px;'>" + emp[4] + "</td>"); 
 	        html.append("<td style='padding: 8px;'>" + emp[5] + "</td>"); 
 	        html.append("<td style='padding: 8px;'>" + emp[2] + "</td>"); 
@@ -1067,7 +1068,7 @@ public class PerformanceService {
 	    return html.toString();
 	}
 	
-	//mail to managers/reporting managers.
+	
 	
 
 
@@ -1141,9 +1142,142 @@ public class PerformanceService {
 		return response;
 	}
 
-	
-	
+	//mail to managers/reporting managers pending employees under them
+	 public void sendPerformanceReviewEmailsToManagerReportingManager() {
+		 
+		 List<Object[]> quarterCycles = employeePerformanceRepository.getAllActiveEnabledQuarterCycles();
+		 if (quarterCycles == null || quarterCycles.isEmpty()) {
+		        return;
+		    }
+		 
+		 List<Long> quarterIds = quarterCycles.stream().map(q -> ((Number) q[0]).longValue()).toList();
+		    String quarterCycleNames = quarterCycles.stream()
+		            .map(q -> q[1] + " - " + q[2])
+		            .collect(Collectors.joining(", "));
+		    
+		    LocalDate lastDate = LocalDate.of(LocalDate.now().getYear() - 1, 12, 31);
+		    List<Object[]> reportees = employeePerformanceRepository.getEmployeesWithoutPerformance(lastDate, quarterIds);
+		    
+		    Map<Long, List<Object[]>> managerWiseReportees = new HashMap<>();
+		    for (Object[] row : reportees) {
+		        Long reviewerId = ((Number) row[5]).longValue(); // reviewer_id
+		        managerWiseReportees.computeIfAbsent(reviewerId, k -> new ArrayList<>()).add(row);
+		    }
+		    
+		    for (Map.Entry<Long, List<Object[]>> entry : managerWiseReportees.entrySet()) {
+		        Long reviewerId = entry.getKey();
+		        List<Object[]> employees = entry.getValue();
+		        
+		        Object[] reviewer = employeePerformanceRepository.findEmailAndNameByEmpId(reviewerId); 
+		        if (reviewer == null) continue;
 
+		        String reviewerEmail = (String) reviewer[0];
+		        String reviewerName = (String) reviewer[1];
+
+		        String emailBody = generateEmailHtml(reviewerName, employees, quarterCycleNames);
+		        String subject = "Pending Performance Review - Action Required";
+                  
+		        try {
+		            mailService.sendMail(reviewerEmail, subject, emailBody);
+		        } catch (MessagingException e) {
+		            e.printStackTrace();
+		        }
+		    }
+	 }
+	 
+	 private String generateEmailHtml(String reviewerName, List<Object[]> employees, String quarterCycleNames) {
+		    StringBuilder html = new StringBuilder();
+
+		    html.append("<html><body>");
+		    html.append("<p>Dear ").append(reviewerName).append(",</p>");
+		    html.append("<p>The following employees under your supervision have not been reviewed for the quarter(s): <b>")
+		        .append(quarterCycleNames).append("</b></p>");
+
+		    html.append("<table border='1' style='border-collapse: collapse; width: 100%;'>");
+		    html.append("<tr><th>Employment ID</th><th>Name</th><th>Department</th></tr>");
+		    for (Object[] emp : employees) {
+		        html.append("<tr>");
+		        html.append("<td>").append("A-").append(emp[1]).append("</td>")
+		            .append("<td>").append(emp[2]).append("</td>")
+		            .append("<td>").append(emp[3]).append("</td>")
+		            .append("</tr>");
+		    }
+		    html.append("</table>");
+		    html.append("<p>Please initiate the performance review as soon as possible.</p>");
+		    html.append("<p>Regards,<br/>HR Team</p>");
+		    html.append("</body></html>");
+
+		    return html.toString();
+		}
+
+
+	
+	 //rejected mails to manager/reporting manager
+	 
+	 public void rejectedReviewsToManagerOrReportingManager() {
+		  List<Object[]> rejectedData = employeePerformanceRepository.findAllRejectedReviewsAndTheirManagers();
+
+		    if (rejectedData.isEmpty()) return;
+		    Map<Long, List<Object[]>> groupedByReviewer = new HashMap<>();
+		    
+		    for (Object[] row : rejectedData) {
+		        Long reviewerId = ((Number) row[9]).longValue();
+		        groupedByReviewer.computeIfAbsent(reviewerId, k -> new ArrayList<>()).add(row);
+		    }
+		    for (Map.Entry<Long, List<Object[]>> entry : groupedByReviewer.entrySet()) {
+		        List<Object[]> rows = entry.getValue();
+		        String reviewerEmail = (String) rows.get(0)[11];
+		        String reviewerName = (String) rows.get(0)[10];
+
+		        String html = buildRejectedReviewEmailHtml(reviewerName, rows);
+		        try {
+		            mailService.sendMail(reviewerEmail, "Performance Review Rejected - Re-Reviewing Required", html);
+		        } catch (Exception e) {
+		            System.err.println("Failed to send rejected mail to " + reviewerEmail);
+		            e.printStackTrace();
+		        }
+		    }
+	 }
+	 
+	 private String buildRejectedReviewEmailHtml(String reviewerName, List<Object[]> employees) {
+		    StringBuilder html = new StringBuilder();
+
+		    html.append("<html><body>");
+		    html.append("<p>Dear ").append(reviewerName).append(",</p>");
+		    html.append("<p>The following performance reviews were <strong>rejected by the HOD</strong>. Please re-submit the reviews with necessary corrections:</p>");
+
+		    html.append("<table border='1' style='border-collapse: collapse; width: 100%;'>");
+		    html.append("<tr style='background-color: #f2f2f2;'>")
+		        .append("<th style='padding: 8px;'>Employment ID</th>")
+		        .append("<th style='padding: 8px;'>Name</th>")
+		        .append("<th style='padding: 8px;'>Department</th>")
+		        .append("<th style='padding: 8px;'>Financial Year</th>")
+		        .append("<th style='padding: 8px;'>Quarter</th>")
+		        .append("<th style='padding: 8px;'>Rejection Reason</th>")
+		        .append("</tr>");
+
+		    for (Object[] emp : employees) {
+		        html.append("<tr>")
+		            .append("<td style='padding: 8px;'>").append("A-").append(emp[1]).append("</td>") 
+		            .append("<td style='padding: 8px;'>").append(emp[2]).append("</td>") 
+		            .append("<td style='padding: 8px;'>").append(emp[3]).append("</td>") 
+		            .append("<td style='padding: 8px;'>").append(emp[6]).append("</td>") 
+		            .append("<td style='padding: 8px;'>").append(emp[7]).append("</td>") 
+		            .append("<td style='padding: 8px;'>").append(emp[4]).append("</td>") 
+		            .append("</tr>");
+		    }
+
+		    html.append("</table>");
+		    html.append("<p>Kindly take action as soon as possible.</p>");
+		    html.append("<p>Regards,<br>HR Team</p>");
+		    html.append("</body></html>");
+
+		    return html.toString();
+		}
+
+	 
+	        
+	 
 }
 
 
