@@ -5373,15 +5373,15 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //			   
 //		}
 
-//		@Transactional
+		@Transactional
 		public void leaveDeduct() {
 			String depart = "";
 			String employee = "";
 
-			List<BioMaTO> biomaxDataList = new ArrayList<>();
+//			List<BioMaTO> biomaxDataList = new ArrayList<>();
 //			BioMaTO biomatObj = new BioMaTO();
 //			biomatObj.setEmployeeCode("3");
-//			biomatObj.setAttendanceDate("2025-03-17 00:00:00.0");
+//			biomatObj.setAttendanceDate("2025-03-07 00:00:00.0");
 //			biomatObj.setInTime("00:00");
 //			biomatObj.setOutTime("00:00");
 //			biomatObj.setTotalDuration("200");
@@ -5393,7 +5393,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //
 //			BioMaTO biomatObj1 = new BioMaTO();
 //			biomatObj1.setEmployeeCode("3");
-//			biomatObj1.setAttendanceDate("2025-03-18 00:00:00.0");
+//			biomatObj1.setAttendanceDate("2025-03-12 00:00:00.0");
 //			biomatObj1.setInTime("00:00");
 //			biomatObj1.setOutTime("00:00");
 //			biomatObj1.setTotalDuration("200");
@@ -5402,10 +5402,10 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //			biomatObj1.setEndTime("00:00");
 //			biomatObj1.setDeduct("1");
 //			biomaxDataList.add(biomatObj1);
-
+//
 //			BioMaTO biomatObj2 = new BioMaTO();
 //			biomatObj2.setEmployeeCode("3");
-//			biomatObj2.setAttendanceDate("2025-03-19 00:00:00.0");
+//			biomatObj2.setAttendanceDate("2025-03-15 00:00:00.0");
 //			biomatObj2.setInTime("00:00");
 //			biomatObj2.setOutTime("00:00");
 //			biomatObj2.setTotalDuration("200");
@@ -5417,7 +5417,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //			
 //			BioMaTO biomatObj3 = new BioMaTO();
 //			biomatObj3.setEmployeeCode("3");
-//			biomatObj3.setAttendanceDate("2025-03-21 00:00:00.0");
+//			biomatObj3.setAttendanceDate("2025-03-26 00:00:00.0");
 //			biomatObj3.setInTime("00:00");
 //			biomatObj3.setOutTime("00:00");
 //			biomatObj3.setTotalDuration("200");
@@ -5427,32 +5427,32 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //			biomatObj3.setDeduct("0.5");
 //			biomaxDataList.add(biomatObj3);
 //			
-			BioMaTO biomatObj4 = new BioMaTO();
-			biomatObj4.setEmployeeCode("3");
-			biomatObj4.setAttendanceDate("2025-03-24 00:00:00.0");
-			biomatObj4.setInTime("00:00");
-			biomatObj4.setOutTime("00:00");
-			biomatObj4.setTotalDuration("200");
-			biomatObj4.setShiftName("General");
-			biomatObj4.setBeginTime("00:00");
-			biomatObj4.setEndTime("00:00");
-			biomatObj4.setDeduct("1");
-			biomaxDataList.add(biomatObj4);
-			
-			BioMaTO biomatObj5 = new BioMaTO();
-			biomatObj5.setEmployeeCode("3");
-			biomatObj5.setAttendanceDate("2025-03-25 00:00:00.0");
-			biomatObj5.setInTime("00:00");
-			biomatObj5.setOutTime("00:00");
-			biomatObj5.setTotalDuration("200");
-			biomatObj5.setShiftName("General");
-			biomatObj5.setBeginTime("00:00");
-			biomatObj5.setEndTime("00:00");
-			biomatObj5.setDeduct("0.5");
-			biomaxDataList.add(biomatObj5);
+//			BioMaTO biomatObj4 = new BioMaTO();
+//			biomatObj4.setEmployeeCode("3");
+//			biomatObj4.setAttendanceDate("2025-03-29 00:00:00.0");
+//			biomatObj4.setInTime("00:00");
+//			biomatObj4.setOutTime("00:00");
+//			biomatObj4.setTotalDuration("200");
+//			biomatObj4.setShiftName("General");
+//			biomatObj4.setBeginTime("00:00");
+//			biomatObj4.setEndTime("00:00");
+//			biomatObj4.setDeduct("1");
+//			biomaxDataList.add(biomatObj4);
+//			
+//			BioMaTO biomatObj5 = new BioMaTO();
+//			biomatObj5.setEmployeeCode("3");
+//			biomatObj5.setAttendanceDate("2025-03-31 00:00:00.0");
+//			biomatObj5.setInTime("00:00");
+//			biomatObj5.setOutTime("00:00");
+//			biomatObj5.setTotalDuration("200");
+//			biomatObj5.setShiftName("General");
+//			biomatObj5.setBeginTime("00:00");
+//			biomatObj5.setEndTime("00:00");
+//			biomatObj5.setDeduct("0.5");
+//			biomaxDataList.add(biomatObj5);
 
 			// start the rahul code
-//		    List<BioMaTO> biomaxDataList = bioMaxService.getBiomaxDataForLeaveDeduct();
+		    List<BioMaTO> biomaxDataList = bioMaxService.getBiomaxDataForLeaveDeduct();
 			System.out
 					.println("Total Data Coming from Biomax: " + (biomaxDataList != null ? biomaxDataList.size() : 0));
 
