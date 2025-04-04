@@ -73,6 +73,7 @@ import { LMSComponent } from './employee360/lms/lms.component';
 import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
 
 import { QrCodeGeneratorComponent } from './qr-code-generator/qr-code-generator.component';
+import { Employee360Resolver } from './employee360/Employee360Resolver';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -162,18 +163,35 @@ const routes: Routes = [
   },
   {path:'user-appreciation', component: UserAppreciationComponent, canActivate: [AuthGuard]},
   
-  {path:'employee-360', component: Employee360Component,
-     children: [
-      { path: 'profile', component: Employee360ProfileComponent, },
-      { path:'leave', component: Employee360LeaveComponent, },
-      { path: 'project', component: Employee360ProjectComponent, },
-      { path: 'timesheet', component: Employee360TimesheetComponent, },
-      { path: 'biomax', component: Employee360BiomaxComponent, },
-      { path: 'rewards', component: Employee360RewardsComponent, },
-      { path: 'appreciation', component: Employee360AppreciationComponent, },
-      { path: 'lms', component: LMSComponent, },
-    ]
+  // {path:'employee-360', component: Employee360Component,
+  //    children: [
+  //     { path: 'profile', component: Employee360ProfileComponent, },
+  //     { path:'leave', component: Employee360LeaveComponent, },
+  //     { path: 'project', component: Employee360ProjectComponent, },
+  //     { path: 'timesheet', component: Employee360TimesheetComponent, },
+  //     { path: 'biomax', component: Employee360BiomaxComponent, },
+  //     { path: 'rewards', component: Employee360RewardsComponent, },
+  //     { path: 'appreciation', component: Employee360AppreciationComponent, },
+  //     { path: 'lms', component: LMSComponent, },
+  //   ]
+  // },
+  { 
+    path: 'employee-360/:id', 
+    component: Employee360Component,
+    resolve: { employeeData: Employee360Resolver },
+    children: [
+      { path: 'profile', component: Employee360ProfileComponent },
+      { path: 'leave', component: Employee360LeaveComponent },
+      { path: 'project', component: Employee360ProjectComponent },
+      { path: 'timesheet', component: Employee360TimesheetComponent },
+      { path: 'biomax', component: Employee360BiomaxComponent },
+      { path: 'rewards', component: Employee360RewardsComponent },
+      { path: 'appreciation', component: Employee360AppreciationComponent },
+      { path: 'lms', component: LMSComponent },
+    ],
+   
   },
+  
   {path:'project-view', component: ProjectViewComponent},
   {path:'user-policies', component: UserPoliciesComponent, canActivate: [AuthGuard]},
   {path:'user-survey', component: UserSurveyComponent, canActivate: [AuthGuard]},

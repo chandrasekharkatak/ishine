@@ -262,7 +262,7 @@ obj = { email: this.currentUser.email,token:sessionStorage.getItem('token')};
 
 async ngOnInit(): Promise<void> {
   try {
-    this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+    //this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
     // console.log("Priyadarshini ", this.employeesFor360);
   } catch (error) {
     console.error("Error fetching employee details for 360 view", error);
@@ -286,8 +286,7 @@ async ngOnInit(): Promise<void> {
     this.logService.updateLogInfo(this.log);
     // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
-    console.log("feature Name ", featureMap);
-    featureMap.subFeatures?.forEach(sub => {
+     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
 
@@ -377,16 +376,11 @@ async ngOnInit(): Promise<void> {
             leave.currentApprovalLevel = 1;
             leave.finalApprovalLevel = 1;
           }
-          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === leave.leaveEmpId);
-          leave.emp360 = matchingEmployee ? matchingEmployee : {};
-          let matchingEmployeeAppLev1 = this.employeesFor360.find(emp => emp.empId == leave.level1ApproverId);
-          let matchingEmployeeAppLev2 = this.employeesFor360.find(emp => emp.empId == leave.level2ApproverId);
-          let matchingEmployeeAppLev3 = this.employeesFor360.find(emp => emp.empId == leave.level3ApproverId);
-          let matchingEmployeeAppLev4 = this.employeesFor360.find(emp => emp.empId == leave.empId);
-          leave.emp360AppLev1 = matchingEmployeeAppLev1 ? matchingEmployeeAppLev1 : {};
-          leave.emp360AppLev2 = matchingEmployeeAppLev2 ? matchingEmployeeAppLev2 : {};
-          leave.emp360AppLev3 = matchingEmployeeAppLev3 ? matchingEmployeeAppLev3 : {};
-          leave.createdBy360 = matchingEmployeeAppLev4 ? matchingEmployeeAppLev4 : {};
+          leave.emp360 = leave.empId;
+          leave.emp360AppLev1 = leave.level1ApproverId;
+          leave.emp360AppLev2 =leave.level2ApproverId;
+          leave.emp360AppLev3 = leave.level3ApproverId;
+          leave.createdBy360 = leave.empId
 
         });
         // console.log("leaveApplicationList : ", this.leaveApplicationList);
@@ -493,12 +487,9 @@ async ngOnInit(): Promise<void> {
           compOff.fromDate = (compOff.fromDate) ? moment(compOff.fromDate).format(AppComponent.DATE_FORMAT) : null;
           compOff.toDate = (compOff.toDate) ? moment(compOff.toDate).format(AppComponent.DATE_FORMAT) : null;
           compOff.createdOn = (compOff.createdOn) ? moment(compOff.createdOn).format(AppComponent.DATE_FORMAT) : null;
-          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === compOff.empId);
-          compOff.emp360 = matchingEmployee ? matchingEmployee : {};
-          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === compOff.managerId);
-          compOff.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
-          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === compOff.level2ApproverId);
-          compOff.emp360Level2Approver = matchingEmployee3 ? matchingEmployee3 : {};
+          compOff.emp360 = compOff.empId;
+          compOff.emp360Manager = compOff.managerId;
+         compOff.emp360Level2Approver = compOff.level2ApproverId;
         });
         // console.log("allCompOffApplications : ", this.allCompOffApplications);
       } else {
@@ -578,29 +569,15 @@ async ngOnInit(): Promise<void> {
     this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamTimesheetRequests = response.serviceResponse;
+        console.log(this.allTeamTimesheetRequests);
         this.allTeamTimesheetRequests.forEach((timesheet, index) => {
           timesheet.checkId = "timesheet" + index;
-          // if(timesheet.isConsultant == 'true'){
-          //   timesheet.employeementId = "A-CS-".concat(timesheet.employeementId);
-          // }else{
-          //   timesheet.employeementId = "A-".concat(timesheet.employeementId);
-          // }
-          // timesheet.employeementId = "A-".concat(timesheet.employeementId);
-          timesheet.employeementId = this.utilityService.getFormattedEmployeeId(timesheet);
+           timesheet.employeementId = this.utilityService.getFormattedEmployeeId(timesheet);
           timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
           timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          
-          // const empData = sessionStorage.getItem('AllEmployees');
-          // if (empData) {
-          //     this.employeeList = JSON.parse(empData);
-          // } else {
-          //     this.employeeList = [];
-          // }
-
-          let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === timesheet.employeementId);
-          timesheet.emp360 = matchingEmployee ? matchingEmployee : {};
+          timesheet.emp360 = timesheet.empId;
 
         });
         //console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
@@ -1037,10 +1014,7 @@ async ngOnInit(): Promise<void> {
       if (response.serviceStatus == "Success") {
         this.birthdayList = response.serviceResponse;
         this.birthdayList.forEach((employee) => {
-          // console.log("employee.empId ", employee.empId);
-          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
-          // console.log("empId ", matchingEmployee);
-          employee.emp360 = matchingEmployee ? matchingEmployee : {};
+          employee.emp360 = employee.empId;
         });
         // console.log("birthdayList : ", this.birthdayList);
       } else {
@@ -2253,8 +2227,7 @@ fetchEmployeesForHomepageByCategoryId(categoryId: number) {
       this.rewardsList = response.serviceResponse;
 
       this.rewardsList.forEach((employee) => {
-        let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.rewardedTo);
-        employee.emp360 = matchingEmployee ? matchingEmployee : {};
+        employee.emp360 = employee.rewardedTo;
       });
 
 

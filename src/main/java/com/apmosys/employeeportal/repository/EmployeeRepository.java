@@ -7,6 +7,8 @@ import java.util.Set;
 
 import javax.transaction.Transactional;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -29,10 +31,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	
 	public List<Object[]> getEmployeeByEmpId(Long empId);
 
-	 @Cacheable(value = "Employee")
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllEmployees();
 	
+	@Query(nativeQuery = true)
+	public List<Object[]>  getAllEmployees360(Long empId);
 	
 	@Query(nativeQuery = true, value = "SELECT e.employeement_id, \n"
 			+ " e.date_of_joining, e.email, \n"

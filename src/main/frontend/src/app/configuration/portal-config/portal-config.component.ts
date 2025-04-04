@@ -121,7 +121,7 @@ export class PortalConfigComponent implements OnInit {
   appreciationTableColumns:any[] = ['appreciateType', 'appreciationToName', 'appreciationByName','appreciationDate', 'managerName', 'reason'];
   documentsColumns:any[] = ['blank','fileName','helpDocumentName','createdByName','createdOn'];
 
-  employeesFor360:any[] = [];
+  
 
   constructor(
     private portalService: PortalService,
@@ -142,12 +142,7 @@ export class PortalConfigComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    try {
-      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
-      // console.log("Priyadarshini ", this.employeesFor360);
-    } catch (error) {
-      console.error("Error fetching employee details for 360 view", error);
-    }
+ 
     // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -1214,13 +1209,9 @@ export class PortalConfigComponent implements OnInit {
           doc.createdOn = (doc.createdOn)? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
         this.document.forEach((employee) => {
-          console.log("employee.createdBy ", employee.createdBy);
-          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
-          console.log("createdby ", matchingEmployee3);
-          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+         employee.emp360CreatedBy = employee.createdBy;
         });
-        console.log("DocumentList : ", this.document);
-      } else {
+       } else {
         console.error(response.serviceResponse);
       }
     });

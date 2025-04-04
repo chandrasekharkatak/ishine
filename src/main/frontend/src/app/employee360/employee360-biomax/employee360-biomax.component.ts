@@ -89,7 +89,7 @@ ngOnInit(): void {
 
   this.filter1.officeendTimePicker=this.filter.officeendTimePicker;
   this.filter1.officestartTimePicker=this.filter.officestartTimePicker;
-  const storedData = localStorage.getItem('employee360Data');
+  const storedData = sessionStorage.getItem('employee360Data');
   const parsedData = storedData ? JSON.parse(storedData) : null;
   if(parsedData != null || parsedData != undefined ){
     this.employeeData =  parsedData;

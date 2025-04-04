@@ -45,7 +45,7 @@ export class Employee360AppreciationComponent implements OnInit {
   appreciationColumns: any[] = ['blank','appreciationEventName', 'appreciateType','appreciationByName', 'appreciationDate','comment'];
   appreciationTeamColumns: any[] = ['blank','appreciationEventName','appreciateType','appreciationToName', 'appreciationByName', 'appreciationDate', 'comment'];
   items = 10;
-  employeesFor360: any[] = [];
+
 
   isTeam:boolean = true;
 
@@ -68,12 +68,7 @@ export class Employee360AppreciationComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    try {
-      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
-      // console.log("Priyadarshini ", this.employeesFor360);
-    } catch (error) {
-      console.error("Error fetching employee details for 360 view", error);
-    }
+   
     let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title == "Appreciation");
     if (findbreadcrumbObject >= 0) {
       this.currentBreadcrumbList.splice(findbreadcrumbObject + 1);
@@ -86,7 +81,7 @@ export class Employee360AppreciationComponent implements OnInit {
       this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
 
-    let employeeData = localStorage.getItem('employee360Data');
+    let employeeData = sessionStorage.getItem('employee360Data');
     let employeeObject = JSON.parse(employeeData);
      this.currentEId = employeeObject.empId;
      this.currentEmpId = Number(employeeObject.employeementId.replace(/\D/g, ''));
@@ -205,9 +200,7 @@ export class Employee360AppreciationComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.accortoselectedList = response.serviceResponse;
         this.accortoselectedList.forEach(appObj => {
-          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === appObj.appreciationByByEmpId);
-          console.log("matchingEmployee ", matchingEmployee);
-          appObj.emp360AppreciationBy = matchingEmployee ? matchingEmployee : {};
+          appObj.emp360AppreciationBy =  appObj.appreciationByByEmpId;
           // appObj.appreciationDate = (appObj.appreciationDate)
           //   ? moment(appObj.appreciationDate).format(AppComponent.DATETIME_FORMAT)
           //   : null;
@@ -226,12 +219,8 @@ export class Employee360AppreciationComponent implements OnInit {
         this.teamAppreciationList= response.serviceResponse;
         this.teamAppreciationList.forEach(appObj => {
           console.log("appObj.appreciationByByEmpId ", appObj.appreciationBy);
-          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === appObj.appreciationByByEmpId);
-          console.log("matchingEmployee ", matchingEmployee);
-          appObj.emp360AppreciationBy = matchingEmployee ? matchingEmployee : {};
-          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === appObj.appreciationToByEmpId);
-          console.log("matchingEmployee ", matchingEmployee2);
-          appObj.emp360AppreciationTo = matchingEmployee2 ? matchingEmployee2 : {};
+          appObj.emp360AppreciationBy = appObj.appreciationByByEmpId;
+          appObj.emp360AppreciationTo = appObj.appreciationToByEmpId;
           // appObj.appreciationDate = (appObj.appreciationDate) 
           //     ? moment(appObj.appreciationDate).format(AppComponent.DATETIME_FORMAT) 
           //     : null;

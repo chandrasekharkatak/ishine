@@ -72,7 +72,7 @@ export class PerformanceConfigComponent implements OnInit {
   quarterCycleUpdate = new QuarterCycle();
 
   quarterCycleColumns: any[] = ['blank', 'financialYear', 'quarterCycle', 'createdByName', 'createdOn', 'updatedByName', 'updatedOn'];
-  employeesFor360: any[] = [];
+ 
   log:Log;
   tabName:any = 'Configurations';
   constructor(
@@ -90,12 +90,7 @@ export class PerformanceConfigComponent implements OnInit {
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   async ngOnInit(): Promise<void> {
-    try {
-      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
-      // console.log("Priyadarshini ", this.employeesFor360);
-    } catch (error) {
-      console.error("Error fetching employee details for 360 view", error);
-    }
+   
 
     this.showQuaterTable();
     this.getAllDepartmentList();
@@ -254,17 +249,11 @@ export class PerformanceConfigComponent implements OnInit {
         this.quarterCyclesList.forEach(quarterCycleObj => {
           quarterCycleObj.updatedOn = (quarterCycleObj.updatedOn) ? moment(quarterCycleObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
           quarterCycleObj.createdOn = (quarterCycleObj.createdOn) ? moment(quarterCycleObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          quarterCycleObj.emp360CreatedBy = quarterCycleObj.createdBy;
+          quarterCycleObj.emp360CreatedBy = quarterCycleObj.updatedBy;
+        
         });
-        this.quarterCyclesList.forEach((employee) => {
-          // console.log("employee.createdBy ", employee.createdBy);
-          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
-          // console.log("createdby ", matchingEmployee3);
-          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
-          // console.log("employee.updatedBy ", employee.updatedBy);
-          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
-          // console.log("updatedBy ", matchingEmployee4);
-          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
-        });
+     
       } else {
         alert(response.serviceResponse);
       }
@@ -771,14 +760,8 @@ export class PerformanceConfigComponent implements OnInit {
           return new Date(b.createdOn).getTime() - new Date(a.createdOn).getTime();
         });
         this.reviewTypelist.forEach((employee) => {
-          // console.log("employee.createdBy ", employee.createdBy);
-          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
-          // console.log("createdby ", matchingEmployee3);
-          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
-          // console.log("employee.updatedBy ", employee.updatedBy);
-          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
-          // console.log("updatedBy ", matchingEmployee4);
-          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+          employee.emp360CreatedBy = employee.createdBy;
+         employee.emp360UpdatedBy = employee.updatedBy;
         });
       } else {
         console.error("API Response", response.serviceResponse);

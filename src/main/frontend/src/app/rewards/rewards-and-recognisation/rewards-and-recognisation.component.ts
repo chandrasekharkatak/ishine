@@ -80,7 +80,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
   teamSearchText: any = '';
   ofmonthyear: any;
   editRewardssss: Rewards = new Rewards();
-  allEmployeeList360: any[] = [];
+ 
   feature = "Rewards";
   annuallyreward: Date;
 
@@ -106,7 +106,6 @@ export class RewardsAndRecognisationComponent implements OnInit {
     this.preventBackButton();
     this.getRewardsCategories(this.alertMessageTemplate);
     this.fetchRewardHistory();
-    this.getAllEmployeeFor360View();
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     console.log("feature Name ", featureMap);
     featureMap.subFeatures?.forEach(sub => {
@@ -116,32 +115,6 @@ export class RewardsAndRecognisationComponent implements OnInit {
     console.log('usermapping -- ', this.userMapping);
   }
 
-  getAllEmployeeFor360View() {
-    this.allEmployeeList360 = [];
-    this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allEmployeeList360 = response.serviceResponse;
-        console.log("allEmployeeListFor360 : ", this.allEmployeeList360)
-        this.allEmployeeList360.forEach(employeeObj => {
-          employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
-          employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-          employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-          employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-          employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          if (employeeObj.isConsultant == 'true')
-            employeeObj.employeeType = 'Consultant';
-          else if (employeeObj.isApprenticeship == 'true')
-            employeeObj.employeeType = 'Apprentice';
-          else
-            employeeObj.employeeType = 'Regular';
-        });
-        this.allEmployeeList360 = this.allEmployeeList360;
-        this.allEmployeeList360 = new SortPipe().transform(this.allEmployeeList360, ['name', 'string', 'asc']);
-      } else {
-        alert(response.serviceResponse);
-      }
-    });
-  }
 
 
   preventBackButton() {
@@ -689,15 +662,10 @@ export class RewardsAndRecognisationComponent implements OnInit {
           this.rewardHistoryList.forEach(rewards => {
             rewards.createdOn = (rewards.createdOn) ? moment(rewards.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
             rewards.updatedOn = (rewards.updatedOn) ? moment(rewards.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-            let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId === rewards.empId);
-            let matchingEmployeeRewardBy = this.allEmployeeList360.find(emp => emp.empId === rewards.createdBy);
-            let matchingEmployeeManager = this.allEmployeeList360.find(emp => emp.empId === rewards.managerId);
-            let matchingEmployeeUpdatedBy = this.allEmployeeList360.find(emp => emp.empId === rewards.updatedBy);
-
-            rewards.emp360 = matchingEmployee ? matchingEmployee : {};
-            rewards.emp360RewardBy = matchingEmployeeRewardBy ? matchingEmployeeRewardBy : {};
-            rewards.emp360Manager = matchingEmployeeManager ? matchingEmployeeManager : {};
-            rewards.emp360UpdatedBy = matchingEmployeeUpdatedBy ? matchingEmployeeUpdatedBy : {};
+            rewards.emp360 = rewards.empId;
+            rewards.emp360RewardBy = rewards.createdBy;
+            rewards.emp360Manager = rewards.managerId;
+            rewards.emp360UpdatedBy = rewards.updatedBy;
 
 
           });

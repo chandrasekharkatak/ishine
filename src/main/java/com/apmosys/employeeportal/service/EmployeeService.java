@@ -25,8 +25,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.AddressException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.FilenameUtils;
@@ -50,8 +48,6 @@ import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeCertificateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
-import com.apmosys.employeeportal.dto.EmployeeRewardsDTO;
-import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO.PoObject;
@@ -67,7 +63,6 @@ import com.apmosys.employeeportal.model.Asset;
 import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.DraftEmployee;
-import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeAssetMap;
 import com.apmosys.employeeportal.model.EmployeeCertificate;
@@ -98,7 +93,6 @@ import com.apmosys.employeeportal.repository.AuditCustomRepository;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.DraftEmployeeRepository;
-import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificateRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
@@ -162,9 +156,6 @@ public class EmployeeService {
 
 	@Autowired
 	EmployeeTeamMapRepository employeeTeamMapRepository;
-	
-	@Autowired
-	EmpPrimaryProjectMappingRepository empPrimaryProjectMappingRepository;
 
 	@Value("${default.password}")
 	String defaultPaswword;
@@ -177,12 +168,6 @@ public class EmployeeService {
 	
 	@Value("${rmg.mail}")
 	private String rmgMail;
-	
-	@Value("${business_mails}")
-	private String businessMail;
-	
-	@Value("${vp_mails}")
-	private String vpMails;
 
 	@Autowired
 	EmployeeLeavesMapRepository employeeLeavesMapRepository;
@@ -3035,7 +3020,7 @@ public class EmployeeService {
 //					 empDTO.setPerformanceStatusPercentage(performanceStatus);		 
 					dtoList.add(empDTO);
 				});
-//				 employeeCache.put(cacheKey, dtoList);
+			 employeeCache.put(cacheKey, dtoList);
 
 //	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 //	                response.setServiceResponse(dtoList);
@@ -3137,7 +3122,7 @@ public class EmployeeService {
 	}
 	
 	
-	public ServiceResponse getAllEmployeesFor360View() {
+	public ServiceResponse getAllEmployeesFor360View(Long empId) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("get_all_employee");
@@ -3146,18 +3131,18 @@ public class EmployeeService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("getALLEmployees size : "+employeeRepository.getAllEmployees().size());
 		
-		String cacheKey = "allEmployees360";
-		
-		if (employeeCache.containsKey(cacheKey)) {
-            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            response.setServiceResponse(employeeCache.get(cacheKey));
-            apiLogInfo.setApiResponse("Data fetched from cache. Size: " + employeeCache.get(cacheKey).size());
-            logService.logMyInfo(httpRequest, apiLogInfo);
-            return response;
-        }
+		//String cacheKey = "allEmployees360";
+//		
+//		if (employeeCache.containsKey(cacheKey)) {
+//            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//            response.setServiceResponse(employeeCache.get(cacheKey));
+//            apiLogInfo.setApiResponse("Data fetched from cache. Size: " + employeeCache.get(cacheKey).size());
+//            logService.logMyInfo(httpRequest, apiLogInfo);
+//            return response;
+//        }
 		
 		try {
-			List<Object[]> allEmployeeList = employeeRepository.getAllEmployees();
+			List<Object[]> allEmployeeList = employeeRepository.getAllEmployees360(empId);
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 
 			if (allEmployeeList != null) {
@@ -3299,7 +3284,7 @@ public class EmployeeService {
 					dtoList.add(empDTO);
 				});
 				
-                employeeCache.put(cacheKey, dtoList);
+                //employeeCache.put(cacheKey, dtoList);
 
                 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
                 response.setServiceResponse(dtoList);
@@ -5326,8 +5311,8 @@ public class EmployeeService {
 		
 		Double proileCompleted = 0.00;
 		Double totalFields = 0.00;
-//		System.err.println("check details \n");
-//		System.err.println(" \n"+employeeDto);
+		System.err.println("check details \n");
+		System.err.println(" \n"+employeeDto);
 		try {
 			List<Object[]> employeeProile = employeeRepository.getEmployeeProfileCompletion(employeeDto.getEmpId());
 			
@@ -6633,80 +6618,6 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	
 	return response;
 }
-	public ServiceResponse updateDefaultProject(Long empId, String projectId) {
-		
-		ServiceResponse response = new ServiceResponse();
-		EmpPrimaryProjectMapping empPrimaryProjectMapping = new EmpPrimaryProjectMapping();
-		if(empId != null) {
-		empPrimaryProjectMapping = empPrimaryProjectMappingRepository.findByEmpId(empId);
-		if(empPrimaryProjectMapping == null && projectId != null && !projectId.isEmpty()) {
-			
-			EmpPrimaryProjectMapping empPrimaryProjectMappingNew = new EmpPrimaryProjectMapping();
-
-			// empPrimaryProjectMappingNew.setEmpId(empId);
-			// empPrimaryProjectMappingNew.setPrimaryProjectId(Long.valueOf(projectId));			
-			// empPrimaryProjectMappingNew.setPrimaryProjectName(projectName);
-			// EmpPrimaryProjectMapping empPrimaryProjectMappingSaved = empPrimaryProjectMappingRepository.save(empPrimaryProjectMappingNew);
-			Project project = projectRepository.findByProjectId(Integer.valueOf(projectId));
-			empPrimaryProjectMappingNew.setEmpId(empId);
-			empPrimaryProjectMappingNew.setPrimaryProjectId(Long.valueOf(projectId));			
-			empPrimaryProjectMappingNew.setPrimaryProjectName(project.getProjectName());
-			EmpPrimaryProjectMapping empPrimaryProjectMappingSaved = empPrimaryProjectMappingRepository.save(empPrimaryProjectMappingNew);
-			
-			response.setServiceResponse(empPrimaryProjectMappingSaved);
-			response.setServiceMessage("Saved Succesfully...!!");
-			response.setServiceStatus(response.STATUS_SUCCESS);
-		
-		}
-		else if(empPrimaryProjectMapping != null && projectId != null && !projectId.isEmpty()) {
-			
-			empPrimaryProjectMapping.setPrimaryProjectId(Long.valueOf(projectId));	
-			Project project = projectRepository.findByProjectId(Integer.valueOf(projectId));
-			empPrimaryProjectMapping.setPrimaryProjectName(project.getProjectName());
-			EmpPrimaryProjectMapping empPrimaryProjectMappingSaved = empPrimaryProjectMappingRepository.save(empPrimaryProjectMapping);
-			
-			response.setServiceResponse(empPrimaryProjectMappingSaved);
-			response.setServiceMessage("Updated Succesfully...!!");
-			response.setServiceStatus(response.STATUS_SUCCESS);
-		}
-		
-		else {
-			response.setServiceMessage("Please provide the Project Id..!!");
-			response.setServiceStatus(response.STATUS_FAIL);
-		}
-	}
-		else {
-			response.setServiceMessage("Please provide the Employee Id..!!");
-			response.setServiceStatus(response.STATUS_FAIL);
-		}
-		
-		return response;
-	}
-	
-	
-	public ServiceResponse getExpiredPo() {
-		ServiceResponse serviceResponse = new ServiceResponse();
-	    try {
-	    	List<ProjectDTO> expiredPoList = new ArrayList<>();
-		      
-		        List<Project> result = projectRepository.getExpiredPolist();
-
-		    if (result.isEmpty()) {
-	            serviceResponse.setServiceResponse("No data found");
-	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	        } else {
-	            serviceResponse.setServiceResponse(result);
-	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        }
-    } catch (Exception e) {
-        e.printStackTrace(); 
-        serviceResponse.setServiceResponse("Error occurred while fetching data");
-        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-    }
-    
-    return serviceResponse;
-	}
-
 	
 	
 	public ServiceResponse getRewardsAndAppreciationCount(AppreciationAndRewardsCountDto employeeDto) {
@@ -6747,7 +6658,6 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	
 	public ServiceResponse sendExpiredPoEmail(ExpiredPOMailSendDTO employeeDTO) {
 		ServiceResponse serviceResponse = new ServiceResponse();
-//		businessMail;vpMails;
 		System.out.println(employeeDTO.getExpiredData());
 		String subject = "PROVIDE INFORMATION REGARDING EXPIRED PROJECT/POs";
 		String bodyText = generateEmailBody(employeeDTO.getExpiredData());
@@ -6832,4 +6742,4 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
 	}
-}
+	

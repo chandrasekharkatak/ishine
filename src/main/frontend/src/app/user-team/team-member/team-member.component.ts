@@ -60,9 +60,6 @@ export class TeamMemberComponent implements OnInit {
   isAuditSearchEnabled:boolean = false;
   employeeAuditColumns:any[] = ['blank', 'date', 'field', 'value', 'bucketName', 'updatedByName'];
   isTable: boolean = false;
-  // employeesFor360: any[] = [];
-  allEmployeeList360: any[] = [];
-
 
 
   constructor(
@@ -88,11 +85,7 @@ export class TeamMemberComponent implements OnInit {
     
     this.getAllTeamMemberView();
     this.preventBackButton();
-    try {
-      this.allEmployeeList360 = await this.utilityService.getEmployeeDetailsFor360View();
-    } catch (error) {
-      console.error("Error fetching employee details for 360 view", error);
-    }
+   
   }
   preventBackButton(){
     history.pushState(null, null, location.href);
@@ -110,15 +103,7 @@ export class TeamMemberComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.viewTeamMemberList = response.serviceResponse;
         for(let x of this.viewTeamMemberList){
-          // if(x.isConsultant == 'true'){
-          //   x.employeementId="A-CS-".concat(x.employeementId)
-          // }else{
-          //   x.employeementId="A-".concat(x.employeementId)
-          // }
-          x.employeementId="A-".concat(x.employeementId)
-          let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === x.employeementId);
-          console.log('matches++',matchingEmployee);
-          x.emp360 = matchingEmployee ? matchingEmployee : {};
+         x.emp360 = x.empId;
         }
         //console.log("viewTeamMemberList : ", this.viewTeamMemberList);
       } else {

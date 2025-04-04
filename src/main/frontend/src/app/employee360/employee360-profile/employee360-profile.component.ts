@@ -3,9 +3,9 @@
 
 
 import { DatePipe, LocationStrategy } from '@angular/common';
-import { Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { AppComponent } from 'src/app/app.component';
 
@@ -39,7 +39,7 @@ import { DepartmentService } from 'src/app/services/department.service';
   styleUrls: ['./employee360-profile.component.css']
 })
 export class Employee360ProfileComponent implements OnInit {
-
+  employeeId!: string;
   //flags 
   isUpdateProfile: boolean = false;
 
@@ -111,6 +111,8 @@ export class Employee360ProfileComponent implements OnInit {
     private destinationService: DestinationService,
     private departmentService: DepartmentService,
     private router: Router,
+    private route1: ActivatedRoute,
+    private cdr: ChangeDetectorRef
 
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -124,23 +126,26 @@ export class Employee360ProfileComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.getAllDepartmentList();
-    this.getAllDomain();
-    this.getAllJobRoleList();
-    this.getManagersList1();
-    const storedData = localStorage.getItem('employee360Data');
+   
+    const storedData = sessionStorage.getItem('employee360Data');
+   
     const parsedData = storedData ? JSON.parse(storedData) : null;
     if (parsedData != null || parsedData != undefined) {
       this.employeeData = parsedData;
     } else {
       this.employeeData = history.state.data;
     }
-
-    console.log("ckekkkkk", this.employeeData);
-
-
+    
+    this.getAllDepartmentList();
+   this.getAllDomain();
+   this.getAllJobRoleList();
+   this.getManagersList1();
+   
+    
+  
+    
     let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title == "Employee-360-Profile");
-    console.log("ckecked breadcrums   ", findbreadcrumbObject)
+
     if (findbreadcrumbObject >= 0) {
       this.currentBreadcrumbList.splice(findbreadcrumbObject + 1);
       this.breadcrumbService.setBreadcrumbSubject(this.currentBreadcrumbList);
@@ -152,7 +157,7 @@ export class Employee360ProfileComponent implements OnInit {
     }
 
 
-
+    console.log(this.currentUser);
 
     this.onGetEmployeeInfo();
     this.getMyAssetList();
@@ -165,6 +170,7 @@ export class Employee360ProfileComponent implements OnInit {
     //console.log(this.feature, this.userMapping);
     this.setYearOfPassingList();
     this.preventBackButton();
+   
   }
 
 

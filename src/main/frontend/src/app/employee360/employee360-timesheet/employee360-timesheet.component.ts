@@ -83,7 +83,7 @@ export class Employee360TimesheetComponent implements OnInit {
   actionButton:boolean=false;
 
   timesheetColumns:any[]=['blank','employmentId','name','date','dayType','projectName','teamName','completionTime','activity','officeInTime','officeOutTime','totalTime','nightShift','status','createdOn'];
-  employeesFor360:any[] = [];
+  
   
   constructor(
     private employeeService: EmployeeService,
@@ -122,7 +122,7 @@ export class Employee360TimesheetComponent implements OnInit {
       console.log(this.managerId); 
     }
     // this.empId=sessionStorage.getItem('empId');
-    let employeeData = localStorage.getItem('employee360Data');
+    let employeeData = sessionStorage.getItem('employee360Data');
     this.Employee360=JSON.parse(employeeData);
       let employeeObject = JSON.parse(employeeData);
         let empId = employeeObject.empId;
@@ -694,37 +694,6 @@ updateStatus(status: string) {
 //             }
 //         });
 //     }
-async getAllEmployeeFor360View(): Promise<any> {
-  try {
-    const response: any = await this.employeeService.getAllEmployeesFor360View().toPromise();
-
-    if (response.serviceStatus === "Success") {
-      this.employeesFor360 = response.serviceResponse;
-
-      // Process employees
-      this.employeesFor360 = this.employeesFor360.map(employeeObj => {
-        employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
-        employeeObj.dateOfJoining = employeeObj.dateOfJoining ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-        employeeObj.dateOfRelieving = employeeObj.dateOfRelieving ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-        employeeObj.updatedOn = employeeObj.updatedOn ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-        employeeObj.createdOn = employeeObj.createdOn ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-        if (employeeObj.isConsultant === 'true') employeeObj.employeeType = 'Consultant';
-        else if (employeeObj.isApprenticeship === 'true') employeeObj.employeeType = 'Apprentice';
-        else employeeObj.employeeType = 'Regular';
-        return employeeObj;
-      });
-
-      // Sort employees
-      this.employeesFor360 = new SortPipe().transform(this.employeesFor360, ['name', 'string', 'asc']);
-      
-      return this.employeesFor360;
-    } else {
-      throw new Error(response.serviceResponse);
-    }
-  } catch (error) {
-    throw error;
-  }
-}
 
 async get360TimesheetDetails(
   activeButton: string, 
@@ -739,8 +708,7 @@ async get360TimesheetDetails(
 
   try {
 
-    await this.getAllEmployeeFor360View();
-
+   
     const response: any = await this.employee360Service.get360TimesheetDetails(
       activeButton, 
       empId, 
@@ -758,9 +726,7 @@ async get360TimesheetDetails(
       this.responseCount = this.data.length;
       this.result = this.transformData(this.data);
       this.result.forEach((employee) => {
-        let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
-        console.log("matchingEmployee ", matchingEmployee);
-        employee.emp360 = matchingEmployee ? matchingEmployee : {};
+        employee.emp360 = employee.empId;
       });
       this.result.sort((a, b) => {
           

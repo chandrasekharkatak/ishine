@@ -34,12 +34,38 @@ export class Employee360Service {
     return this.navigationSubject.asObservable();
   }
 
-  navigateToEmployee360(data: any) {
-    this.router.navigate(['/employee-360/profile'], { state: { data } }).then(() => {
-      this.navigationSubject.next();
-    });
-  }
+  // navigateToEmployee360(data: any) {
+  //   this.router.navigate(['/employee-360/profile'], { state: { data } }).then(() => {
+  //     this.navigationSubject.next();
+  //   });
+  // }
 
+  navigateToEmployee360(data: any) {
+    // this.router.navigate(['/employee-360', data]).then(() => {
+    //   this.navigationSubject.next();
+    // });
+    const baseUrl = window.location.origin; // Gets the base URL (e.g., http://localhost:4200)
+  const url = `${baseUrl}/#/employee-360/${data}/profile`;
+     window.open(url, '_blank'); // Open new tab
+      //sessionStorage.removeItem("employee360Data");
+// Wait for the new tab to load, then refresh it
+
+  //   const url = this.router.serializeUrl(this.router.createUrlTree([`#/employee-360`, data]));
+  // window.open(url, '_blank');
+  }
+  // navigateToEmployee360(data: any) {
+  //   // Store the data in sessionStorage (stringify it if it's an object)
+  //   sessionStorage.setItem('employee360Data', JSON.stringify(data));
+    
+  //   // Create the URL for the route
+  //   const url = this.router.createUrlTree(['/employee-360/profile']).toString();
+    
+  //   // Open the URL in a new tab
+  //   window.open(url, '_blank').focus();
+    
+  //   // Notify navigation if needed
+  //   this.navigationSubject.next();
+  // }
   getLeaveDataPerMonthByEmpId(empId: Number) {
     return this.http.get(`${this.baseUrl}` + `api/getLeaveDataPerMonthByEmpId?empId=${empId}`);
   }

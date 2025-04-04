@@ -71,7 +71,7 @@ isProjectTeamMemberVisible:boolean=false;
   sortColumnType:any;
   abbreviationError: string = '';
   @ViewChild(ResourceManagementComponent) resourceManagementComponent: ResourceManagementComponent;
-  employeesFor360:any[] = [];
+ 
 
   constructor(
     private breadcrumbService: BreadcrumbService,
@@ -92,7 +92,7 @@ isProjectTeamMemberVisible:boolean=false;
 
   ngOnInit(): void {
 
-    const storedData = localStorage.getItem('employee360Data');
+    const storedData = sessionStorage.getItem('employee360Data');
       const parsedData = storedData ? JSON.parse(storedData) : null;
       if(parsedData != null || parsedData != undefined ){
         this.employeeData =  parsedData;
@@ -111,7 +111,6 @@ isProjectTeamMemberVisible:boolean=false;
       this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
 
-    this.getAllEmployeeFor360View();
     //get Project by Employee
     this.getExistingProjectsByUser();
   }
@@ -205,10 +204,7 @@ getTeamByProjectId(projectId:any){
     
                     this.filterProjectByProjectId.forEach((team) => {
                         team.employees.forEach((employee) => {
-                            // console.log("employee.empId ", employee.empId);
-                            let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
-                            // console.log("matchingEmployee ", matchingEmployee);
-                            employee.emp360 = matchingEmployee ? matchingEmployee : {};
+                            employee.emp360 = employee.empId;
                         });
                     });
                     // console.log("Formatted Team Data: ", this.teamMemberList);
@@ -252,12 +248,8 @@ async getTeamEmployeeByTeamId(teamId: any) {
       this.filterTeamfromTeamId = response.serviceResponse;
       
       this.filterTeamfromTeamId.forEach((employee) => {
-          let matchingEmployee = this.employeesFor360.find(emp => emp.empId == employee.empId);
-          console.log("matchingEmployee ", matchingEmployee);
-          employee.emp360 = matchingEmployee ? matchingEmployee : {};
-          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId == employee.teamLeadId);
-          console.log("matchingEmployee2 ", matchingEmployee2);
-          employee.emp360teamLeadId = matchingEmployee2 ? matchingEmployee2 : {};
+          employee.emp360 = employee.empId;
+          employee.emp360teamLeadId = employee.teamLeadId;
       });
       // console.log('filterTeamfromTeamId = ',this.filterTeamfromTeamId);
      
@@ -483,39 +475,6 @@ async getTeamEmployeeByTeamId(teamId: any) {
     this.modalRef.hide();
   }
 
-  async getAllEmployeeFor360View(): Promise<void> {
-    this.employeesFor360 = [];
-    
-    try {
-        const response: any = await this.employeeService.getAllEmployeesFor360View().toPromise();
-        
-        if (response.serviceStatus === "Success") {
-            this.employeesFor360 = response.serviceResponse;
 
-            this.employeesFor360.forEach(employeeObj => {
-                employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
-                employeeObj.dateOfJoining = employeeObj.dateOfJoining ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-                employeeObj.dateOfRelieving = employeeObj.dateOfRelieving ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-                employeeObj.updatedOn = employeeObj.updatedOn ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-                employeeObj.createdOn = employeeObj.createdOn ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-
-                if (employeeObj.isConsultant === 'true') {
-                    employeeObj.employeeType = 'Consultant';
-                } else if (employeeObj.isApprenticeship === 'true') {
-                    employeeObj.employeeType = 'Apprentice';
-                } else {
-                    employeeObj.employeeType = 'Regular';
-                }
-            });
-
-            // Sort the employees
-            this.employeesFor360 = new SortPipe().transform(this.employeesFor360, ['name', 'string', 'asc']);
-        } else {
-            alert(response.serviceResponse);
-        }
-    } catch (error) {
-        console.error("Error fetching employees:", error);
-    }
-}
 
 }
