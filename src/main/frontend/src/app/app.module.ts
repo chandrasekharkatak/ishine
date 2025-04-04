@@ -122,6 +122,8 @@ import { EmployeeInfoComponent } from './user-update-info/employee-info/employee
 import { EmployeeUpdateListComponent } from './user-update-info/employee-update-list/employee-update-list.component';
 import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
+import { QrCodeGeneratorComponent } from './qr-code-generator/qr-code-generator.component';
+import { ExpiedPoAndProjectComponent } from './home/expied-po-and-project/expied-po-and-project.component';
 import { NavigateToProjectViewDirective } from './navigate-to-project-view.directive';
 import { ProjectViewComponent } from './project-view/project-view.component';
 import { PerformanceConfigComponent } from './configuration/performance-config/performance-config.component';
@@ -134,7 +136,6 @@ registerLocaleData(localeGb);
 // 
 
 import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
-import { QrCodeGeneratorComponent } from './qr-code-generator/qr-code-generator.component';
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
 
@@ -236,12 +237,13 @@ import { QrCodeGeneratorComponent } from './qr-code-generator/qr-code-generator.
 
     Employee360BiomaxComponent,
      AppreciationComponent,
+     QrCodeGeneratorComponent,
+     ExpiedPoAndProjectComponent,
      NavigateToProjectViewDirective,
      ProjectViewComponent,
      PerformanceConfigComponent,
      LMSComponent,
      BiomaxApprovalComponent,
-     QrCodeGeneratorComponent
 
     //TestComponent
   ],

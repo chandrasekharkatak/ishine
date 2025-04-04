@@ -256,7 +256,7 @@
                                 <td>{{review.departmentName}}</td>
                                 <td *ngIf="userMapping.employee360_view_performance_config && review.employeeName"id="clickablefor360" [navigateToEmployee360]="review.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{review.employeeName}}</td>
                                 <td *ngIf="!userMapping.employee360_view_performance_config || !review.employeeName">{{review.employeeName}}</td>
-                                <td>{{review.createdOn | date: 'yyyy-MM-dd hh:mm:ss'}}</td>
+                                <td>{{review.createdOn | date: 'dd-MM-yyyy hh:mm:ss'}}</td>
                                 <td *ngIf="!userMapping.employee360_view_performance_config || !review.updatedByName">{{ review.updatedByName ?? 'NA' }}</td>
                                 <td *ngIf="userMapping.employee360_view_performance_config && review.updatedByName">
                                     <span *ngIf="review.updatedByName; else showNADisplay" 
@@ -270,7 +270,7 @@
                                       {{ review.updatedByName ?? 'NA' }}
                                     </ng-template>
                                   </td>                                  
-                                <td>{{review.updatedOn ? (review.updatedOn | date: 'yyyy-MM-dd hh:mm:ss') : 'NA' }}</td> 
+                                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td> 
                                 <td *ngIf="!review.active == false">
                                     <button class="btn btn-sm btn-outline-primary" type="submit"
                                         (click)="showUpdateReviewForm(review)"><em
@@ -314,7 +314,7 @@
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Department</label>
                             <mat-select class="form-control" multiple [(ngModel)]="reviewObj.deptId">
-                                <mat-option selected="selected" value="" disabled>Select</mat-option>
+                                <!-- <mat-option selected="selected" value="" disabled>Select</mat-option> -->
                                 <mat-option *ngFor="let dept of allDeptList"
                                     [value]="dept.deptId">{{dept.name}}</mat-option>
                             </mat-select>

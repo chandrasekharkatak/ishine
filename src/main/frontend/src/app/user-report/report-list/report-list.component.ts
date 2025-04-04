@@ -95,6 +95,7 @@ export class ReportListComponent implements OnInit {
   excelName: any;
   jobRoleName: any;
   departmentId: any;
+  selectedProjectId : any;
   employeeRole: any;
   selectedColumnToShow: any;
 
@@ -134,46 +135,48 @@ export class ReportListComponent implements OnInit {
   finalColumns: any[] = [];
 
   allLeaveTimesheets: any[] = [];
-  endDate: any;
-  startDate: any;
+  endDate:any;
+  startDate:any;
 
-  customQuery: any;
-  leaveReportFlag: boolean = false;
-  timesheetReportFlag: boolean = false;
-  showDetails: boolean = false;
-  showDetailsTimesheet: boolean = false;
-  changeTable: boolean = true;
+  customQuery:any;
+  leaveReportFlag:boolean=false;
+  timesheetReportFlag:boolean=false;
+  showDetails:boolean = false;
+  showDetailsTimesheet:boolean = false;
+  changeTable:boolean = true;
 
-  filters: any = {};
-  isSearchEnabled: boolean = false;
+  filters:any = {};
+  isSearchEnabled:boolean = false;
 
-  employeeReportColumnForDetailedProjectView: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience'];
-  leaveReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'noOfDays', 'reason', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'leaveStatusUpdatedByName'];
-  timesheetReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'totalWorkingHours', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'leaveType', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
-  employeeReportColumn: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'projectName', 'poNo', 'poStartDate', 'poEndDate', 'poProjectType', 'clientName', 'billable', 'billableType', 'dateOfJoining', 'aadhar', 'aboutMe', 'address', 'permanentAddress', 'city', 'bloodGroup', 'dateOfBirth', 'gender', 'fatherName', 'panNumber', 'placeOfBirth', 'workLocation', 'probationPeriod', 'noticePeriod', 'country', 'totalExperience', 'emergencyContactMobile', 'emergencyContactPerson', 'landline', 'maritalStatus', 'motherTongue', 'alternateMobileNo', 'pincode', 'relation', 'state', 'viewsOnOrganisation', 'passportNumber', 'bankAccountNo', 'bankIFSCCode', 'bankName', 'pfAccountNumber', 'previousPfAccountNumber', 'uan', 'esicNumber', 'graduationType', 'pursuing', 'passingGrade', 'yearOfPassing', 'updatedOn', 'updatedByName', 'createdByName', 'createdOn'];
-  leaveTimesheetReportColumn: any[] = ['employeementId', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
-  defaultMappingColumns: any[] = ['tabName', 'featureName', 'subFeatureName'];
-  employeesFor360: any[] = [];
-  departments: any[] = [];
-  allEmployee: any[] = [];
-  filteredTimesheets: any[] = [];
-  filteredEmployees: any[] = [];
-  tnmPoExpiredCount = 0;
-  tnmPOValidCount = 0;
-  fixedCostPoExpiredCount = 0;
-  fixedCostPoValidCount = 0;
-  internalCount = 0;
+  employeeReportColumnForDetailedProjectViewClub:any[]=['blank','employeementId','name','departmentName','jobRoleName','managerName','mobileNo','email','employmentstatus','billable','billableType','teamName','projectName','poNo','poType','poStartDate','poEndDate','effectiveStartDate','effectiveEndDate','clientName','clientLocation','workLocation','experience','primaryProjectName'];
+  employeeReportColumnForDetailedProjectView:any[]=['blank','employeementId','name','departmentName','jobRoleName','managerName','mobileNo','email','employmentstatus','billable','billableType','teamName','projectName','poNo','poType','poStartDate','poEndDate','effectiveStartDate','effectiveEndDate','clientName','clientLocation','workLocation','experience'];
+  leaveReportColumns:any[] = ['employeementId','employeeType','employeeName','leaveType','fromDate','toDate','fromDateDayType','toDateDayType','noOfDays','reason','status','managerName','departmentName','createdOn','updatedOn','leaveStatusUpdatedByName'];
+  timesheetReportColumns:any[] = ['employeementId','employeeType','employeeName','date','dayType','description','status','totalWorkingHours','officeInTime','officeOutTime','totalWorkingOfficeHours','leaveType','createdOn','updatedOn','timesheetStatusUpdatedByName'];
+  employeeReportColumn:any[] = ['blank','employeementId','employeeType','name','departmentName','jobRoleName','managerName','mobileNo','email','employmentstatus','projectName','poNo','poStartDate','poEndDate','poProjectType','clientName','billable','billableType','dateOfJoining','aadhar','aboutMe','address','permanentAddress','city','bloodGroup','dateOfBirth','gender','fatherName','panNumber','placeOfBirth','workLocation','probationPeriod','noticePeriod','country','totalExperience','emergencyContactMobile','emergencyContactPerson','landline','maritalStatus','motherTongue','alternateMobileNo','pincode','relation','state','viewsOnOrganisation','passportNumber','bankAccountNo','bankIFSCCode','bankName','pfAccountNumber','previousPfAccountNumber','uan','esicNumber','graduationType','pursuing','passingGrade','yearOfPassing','updatedOn','updatedByName','createdByName','createdOn'];
+  leaveTimesheetReportColumn:any[] = ['employeementId','employeeType','employeeName','date','dayType','description','status','managerName','departmentName','createdOn','updatedOn','timesheetStatusUpdatedByName'];
+  defaultMappingColumns:any[] = ['tabName','featureName','subFeatureName'];
+  employeesFor360:any[] = [];
+  departments:any [] = [];
+  allEmployee : any[] =[];
+  filteredEmployees: any []=[];
+  tnmPoExpiredCount=0;
+  tnmPOValidCount=0;
+  fixedCostPoExpiredCount=0;
+  fixedCostPoValidCount=0;
+  internalCount=0;
   selectedDepartment: string = 'All';
 
   activeBox: string | null = null;
   isHovering: string | null = null;
 
-  tnmPoExpiredCountList: any[] = [];
-  tnmPOValidCountList: any[] = [];
-  fixedCostPoExpiredCountList: any[] = [];
-  fixedCostPoValidCountList: any[] = [];
-  internalCountList: any[] = [];
-
+  tnmPoExpiredCountList:any[]=[];
+  tnmPOValidCountList:any[]=[];
+  fixedCostPoExpiredCountList:any[]=[];
+  fixedCostPoValidCountList:any[]=[];
+  internalCountList:any[]=[];
+  newemployeeObj: any;
+  updatedEmpObj :any;
+  filteredTimesheets: any;
 
 
   constructor(
@@ -317,8 +320,17 @@ export class ReportListComponent implements OnInit {
   onMouseLeave(): void {
     this.isHovering = null;
   }
-  getAllEmployeesReportByProjectTypeInConsolidated() {
-    this.allEmployee = [];
+  getAllEmployeesReportByProjectTypeInConsolidated(){
+    this.allEmployee=[];
+    this.tnmPOValidCountList = [];
+    this.tnmPoExpiredCountList = [];
+    this.fixedCostPoValidCountList = [];
+    this.internalCountList = [];
+    this.tnmPoExpiredCount=0;
+    this.tnmPOValidCount=0;
+    this.fixedCostPoExpiredCount=0;
+    this.fixedCostPoValidCount=0;
+    this.internalCount=0;
     this.employeeService.getAllEmployeesReportByProjectTypeInConsolidated().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         // console.log('response -- ',response.serviceResponse);
@@ -495,8 +507,8 @@ export class ReportListComponent implements OnInit {
     }
     // });
 
-    console.log('Box click data-- ', this.filteredEmployees);
-  }
+  console.log('Box click data-- :::::::::::::::::', this.filteredEmployees);
+}
 
   onDepartmentChangeTimesheet(event: any) {
     this.selectedDepartment = event.target.value;
@@ -541,11 +553,102 @@ export class ReportListComponent implements OnInit {
         this.filteredEmployees = this.allEmployee.filter(emp => emp.departmentId == this.selectedDepartment);
       }
     }
-    console.log('Filtered dept data -- ', this.filteredEmployees);
+    console.log('Filtered dept data with project name   :::::::::::::::::::::::::::::::::::-- ', this.filteredEmployees);
     //Fixed Cost,TNM,Bench,InternalRNDProducts,Shadow
     //poEndDate 
   }
 
+  // updateDefaultProject(employee : any){
+  //   this.updatedEmpObj = new Employee();
+  //   console.log('emp data :::::::::::',employee);
+  // this.getProjectId(employee);
+  
+  // const selectedProjectId = this.getProjectId(employee);
+  // console.log("Selected Project ID:", selectedProjectId);
+  // this.selectedProjectId = selectedProjectId ;
+  // let newemployeeObj: Employee = new Employee();
+  
+
+  // newemployeeObj.selectedProjectId = this.selectedProjectId;
+  // newemployeeObj.projectName = employee.projectName;
+  // newemployeeObj.empId = employee.empId;
+
+
+  // console.log('new Employee OBJ :::::::::::::',newemployeeObj);
+
+  // this.employeeService.updateDefaultProject(newemployeeObj).pipe(first()).subscribe((response: any) => {
+  //   console.log('response ::::::::::::::::::::::',response);
+  //   if (response.serviceStatus == "Success") {
+  //     this.updatedEmpObj= response.serviceResponse ;
+  //     console.log('updated project details ::::::::',this.updatedEmpObj);
+  //     this.openAlertMod(this.alertModal, "Default Project Updated Successfully  !! ")
+      
+  //   }
+  // });
+
+  // }
+
+  updateDefaultProject(employee: any) {
+    this.updatedEmpObj = new Employee();
+    console.log('emp data :::::::::::', employee);
+    this.getProjectId(employee);
+    
+    const selectedProjectId = this.getProjectId(employee);
+    console.log("Selected Project ID:", selectedProjectId);
+    this.selectedProjectId = selectedProjectId;
+  
+    let newemployeeObj: Employee = new Employee();
+    newemployeeObj.selectedProjectId = this.selectedProjectId;
+    newemployeeObj.projectName = employee.projectName;
+    newemployeeObj.empId = employee.empId;
+  
+    console.log('new Employee OBJ :::::::::::::', newemployeeObj);
+  
+    this.employeeService.updateDefaultProject(newemployeeObj).pipe(first()).subscribe((response: any) => {
+      console.log('response ::::::::::::::::::::::', response);
+      if (response.serviceStatus === "Success") {
+        this.updatedEmpObj = response.serviceResponse;
+        //console.log('updated project details ::::::::', this.updatedEmpObj);
+        this.openAlertMod(this.alertModal, "Default Project Updated Successfully  !! ")
+
+        this.getAllEmployeesReportByProjectTypeInConsolidated();
+        //employee.defaultProjectAssigned = this.updatedEmpObj.primaryProjectName;
+      }
+    });
+  }
+
+  // getProjectId(employee: any): string | null {
+    
+  //   const projectNames = employee.projectName.split(',');
+  //   const projectIds = employee.projectIds.split(',');
+
+  //   const selectedIndex = projectNames.findIndex(project => project.trim() === employee.selectedProject.trim());
+  
+  //   if (selectedIndex !== -1 && selectedIndex < projectIds.length) {
+  //     return projectIds[selectedIndex].trim();
+  //   } else {
+  //     return null;
+  //   }
+  // }
+
+  getProjectId(employee: any): string | null {
+    if (employee.projectName && employee.projectIds) {
+      const projectNames = employee.projectName.split(',');
+      const projectIds = employee.projectIds.split(',');
+  
+      // Ensure both arrays have valid data before proceeding
+      if (projectNames.length > 0 && projectIds.length > 0) {
+        const selectedIndex = projectNames.findIndex(project => project.trim() === employee.selectedProject.trim());
+  
+        if (selectedIndex !== -1 && selectedIndex < projectIds.length) {
+          return projectIds[selectedIndex].trim();
+        }
+      }
+    } else {
+      return null;
+    }
+  }
+  
   showLeaveReportTable() {
     this.leaveReportFlag = true;
     this.timesheetReportFlag = false;
@@ -1622,36 +1725,66 @@ export class ReportListComponent implements OnInit {
         this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
       } else {
         this.excelName = 'EmployeeDetailedReport.xlsx';
-
-        const onlySpecificDataArr = this.filteredEmployees.map(
-          x => ({
-            "Employee Id": x.employeementId,
-            "Full Name": x.name,
-            "Department": x.departmentName,
-            "Job Role": x.jobRole,
-            "Manager": x.managerName,
-            "Mobile Number": x.mobileNo,
-            "Email Id": x.email,
-            "Employment Status": x.employmentstatus,
-            "Billable": x.billable,
-            "Billable Type": x.billableType,
-            "Team Name": x.teamName,
-            "Project Name": x.projectName,
-            "Po No": x.poNo,
-            "Po Type": x.poType,
-            "Po Start Date": x.poStartDate,
-            "Po End Date": x.poEndDate,
-            "Effective Start Date": x.effectiveStartDate,
-            "Effective End Date": x.effectiveEndDate,
-            "Client Name": x.clientName,
-            "Client Location": x.clientLocation,
-            "Work Location": x.workLocation,
-            "Experience": x.totalExperience,
-
-          })
-        )
-        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+        if(this.changeTable){
+          const onlySpecificDataArr = this.filteredEmployees.map(
+            x => ({
+              "Employee Id":x.employeementId,
+              "Full Name":x.name,
+              "Department":x.departmentName,
+              "Job Role":x.jobRole,
+              "Manager":x.managerName,
+              "Mobile Number":x.mobileNo,
+              "Email Id":x.email,
+              "Employment Status":x.employmentstatus,
+              "Billable":x.billable,
+              "Billable Type":x.billableType,
+              "Team Name":x.teamName,
+              "Project Name":x.projectName,
+              "Po No":x.poNo,
+              "Po Type":x.poType,
+              "Po Start Date":x.poStartDate,
+              "Po End Date":x.poEndDate,
+              "Effective Start Date":x.effectiveStartDate,
+              "Effective End Date":x.effectiveEndDate,
+              "Client Name":x.clientName,
+              "Client Location":x.clientLocation,
+              "Work Location":x.workLocation,
+              "Experience":x.totalExperience,
+              "Default Project Assigned":x.primaryProjectName,
+            })
+          )
+          this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+        }else{
+          const onlySpecificDataArr = this.filteredEmployees.map(
+            x => ({
+              "Employee Id":x.employeementId,
+              "Full Name":x.name,
+              "Department":x.departmentName,
+              "Job Role":x.jobRole,
+              "Manager":x.managerName,
+              "Mobile Number":x.mobileNo,
+              "Email Id":x.email,
+              "Employment Status":x.employmentstatus,
+              "Billable":x.billable,
+              "Billable Type":x.billableType,
+              "Team Name":x.teamName,
+              "Project Name":x.projectName,
+              "Po No":x.poNo,
+              "Po Type":x.poType,
+              "Po Start Date":x.poStartDate,
+              "Po End Date":x.poEndDate,
+              "Effective Start Date":x.effectiveStartDate,
+              "Effective End Date":x.effectiveEndDate,
+              "Client Name":x.clientName,
+              "Client Location":x.clientLocation,
+              "Work Location":x.workLocation,
+              "Experience":x.totalExperience,
+  
+            })
+          )
+          this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
       }
+    }    
     }
 
     if (this.isAccessControlListTable == true) {

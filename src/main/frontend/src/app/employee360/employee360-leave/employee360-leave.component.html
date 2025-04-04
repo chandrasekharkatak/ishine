@@ -119,7 +119,7 @@
                         </tr>
 
                             <tr *ngFor="let leaveHistory of leaveList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-                            <td class="info-label">{{i+1}}</td>
+                            <td class="info-label">{{20*(page-1)+i+1}}</td>
                             <td class="info-label" id="clickablefor360" [navigateToEmployee360]="leaveHistory.emp360createdBy" style="cursor: pointer;" title="Click to view Employee 360" (click)="refresh()">{{leaveHistory.createdByName}}</td>
                             <td class="info-label">{{leaveHistory.fromDate}}</td>
                             <td class="info-label">{{leaveHistory.toDate}}</td>

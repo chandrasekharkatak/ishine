@@ -1,6 +1,8 @@
 package com.apmosys.employeeportal.service;
 
 import java.io.File;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -24,6 +26,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.OffsetDateTime;
 import java.time.Period;
 import java.time.YearMonth;
 import java.time.ZoneId;
@@ -69,6 +72,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -78,12 +83,14 @@ import com.apmosys.employeeportal.dto.BioMaTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.BiomaxDefaulter;
 import com.apmosys.employeeportal.model.BiomaxRequest;
 import com.apmosys.employeeportal.model.BirthdayMail;
 import com.apmosys.employeeportal.model.Client;
+import com.apmosys.employeeportal.model.ClientLocation;
 import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
@@ -103,6 +110,7 @@ import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.repository.BiomaxDefaulterRepository;
 import com.apmosys.employeeportal.repository.BiomaxRequestRepository;
 import com.apmosys.employeeportal.repository.BirthdayMailRepository;
+import com.apmosys.employeeportal.repository.ClientLocationRepository;
 import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
@@ -141,6 +149,9 @@ public class CronJobService {
 	private BiomaxRequestRepository biomaxRequestRepository;
 	@Autowired
 	ProjectRepository projectRepository;
+	
+	@Autowired
+	ClientLocationRepository clientLocationRepository;
 	
 	@Autowired
 	BioMaxService bioMaxService;
@@ -223,6 +234,9 @@ public class CronJobService {
 	
 	@Autowired
 	BiomaxDefaulterRepository biomaxDefaulterRepository;
+	
+	@Autowired
+	private final RestTemplate restTemplate = new RestTemplate();
 
 	@Value("${po.db.url}")
 	private String url;
@@ -262,6 +276,9 @@ public class CronJobService {
 	
 	@Value("${leavetypeId}")
 	private int leaveTypeId;
+	
+	@Value("${admin.mail}")
+	private String adminMail;
 	
 	 @PersistenceContext
 	 EntityManager entityManager;
@@ -4232,7 +4249,9 @@ public class CronJobService {
 //			return response;
 //		}
 		
-		public ServiceResponse allEmployeeDsrReport(TimesheetDTO timesheetdto) {ServiceResponse response = new ServiceResponse();
+		public ServiceResponse allEmployeeDsrReport(TimesheetDTO timesheetdto)
+		{
+			ServiceResponse response = new ServiceResponse();
 		
 //		List<BioMaTO> finalEmpBioData=bioMaxService.getBioInOut(timesheetdto);
 		
@@ -5679,6 +5698,364 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+		}
+		
+		@Async
+		@Scheduled(cron = "0 36 12 ? * *")
+		@Transactional
+		public void getProjectCloneFromPoPortal() {
+			
+			LogDTO apiLogInfo = new LogDTO();
+	        apiLogInfo.setSubFeatureName("getProjectCloneFromPoPortal");
+	        apiLogInfo.setApiUrl("/api/getProjectCloneFromPoPortal");
+	        apiLogInfo.setLogLevel("INFO");
+	        StringBuilder logBuilder = new StringBuilder();
+	        logBuilder.append("Cron to update existing po-project details in Ishine started! ");
+
+		    List<ProjectPoPortalDTO> list = new ArrayList<>();
+		    
+		    try {
+		        ProjectPoPortalDTO[] projects = restTemplate.getForObject(allPoPortalProjects, ProjectPoPortalDTO[].class);
+		        
+		        list = Arrays.asList(projects != null ? projects : new ProjectPoPortalDTO[0]);
+		        logBuilder.append("Total Projects Fetched = " + list.size());
+
+		    } catch (RestClientException e) {
+		        logBuilder.append("Error fetching projects from PoPortal API: " + e.getMessage());
+		    }
+
+		    if (!list.isEmpty()) {
+		        for (ProjectPoPortalDTO dto : list) {
+		            try {
+		            	 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		                Project project = projectRepository.findByPoProjectId(dto.getId());
+
+		                if (project != null) {
+
+		                    project.setProjectName(dto.getName());
+		                    project.setPoProjectType(dto.getProjectType());
+		                    Date startDate = dto.getStartDate();
+		                    String formattedStartDate = dateFormat.format(startDate);
+		                    project.setPoStartDate(formattedStartDate);
+		                    Date endDate = dto.getEndDate();
+		                    String formattedEndDate = dateFormat.format(endDate);
+		                    project.setPoEndDate(formattedEndDate);
+		                    project.setStatus(dto.getStatus());
+		                    //departmentIds
+		                    List<String> departmentList = dto.getDepartment();
+		                    List<String> deptIds = new ArrayList<String>();
+		                    if(!departmentList.isEmpty()) {
+		                    	departmentList.forEach(dept->{
+		                    		Department deptList =  departmentRepository.findByName(dept);
+		                    		if(deptList == null) {
+		                		        logBuilder.append("No Dept Id fetched");
+		                    		}
+		                    		else {
+		                    			deptIds.add(deptList.getDeptId().toString());
+		                    		}
+		                    	});
+		                    	 if(!deptIds.isEmpty()) {
+				                    	String deptIdStr = String.join(", ", deptIds);
+				                        project.setDeptId(deptIdStr); 
+				                    }
+		                    }
+		                   
+		                    //clientId
+		                    Integer clientId = null;
+		    			    Optional<Client> clientObj = clientsRepository.findByClientName(dto.getClientName());
+		    			    if (!clientObj.isEmpty()) {
+		    			        Client clientPresent = clientObj.get();
+		    			        clientId = clientPresent.getClientId();
+		    			    } else {
+		    			        // Add Client & Client Location
+		    			        Client newClient = new Client();
+		    			        newClient.setClientName(dto.getClientName());
+		    			        Client clientDbResponse = clientsRepository.save(newClient);
+		    			        if (clientDbResponse != null) {
+		    			            clientId = clientDbResponse.getClientId();
+		    			            List<ClientLocation> locations = new ArrayList<>();
+
+		    			            for (String clientLocation : dto.getClientLocation()) {
+		    			                ClientLocation newClientLocation = new ClientLocation();
+		    			                newClientLocation.setClientId(clientDbResponse.getClientId());
+		    			                newClientLocation.setClientLocation(clientLocation);
+		    			                locations.add(newClientLocation);
+		    			            }
+		    			            // Add WFH location
+		    			            boolean contains = dto.getClientLocation().stream().anyMatch("WFH"::equals);
+		    			            if (!contains) {
+		    			                ClientLocation newClientLocation = new ClientLocation();
+		    			                newClientLocation.setClientId(clientDbResponse.getClientId());
+		    			                newClientLocation.setClientLocation("WFH");
+		    			                locations.add(newClientLocation);
+		    			            }
+		    			            List<ClientLocation> clientLocationDbResponse = clientLocationRepository.saveAll(locations);
+		    			            if (!clientLocationDbResponse.isEmpty()) {
+		    					        logBuilder.append("Client stored successfully in database");
+		    			            } else {
+		    					        logBuilder.append("Error occured while storing updated project details from PoPortal API.");
+		    			            }
+		    			        } else {
+		    			            
+		    			        }
+		    			    }
+		    			    project.setClientId(clientId); 
+		    		        
+		                    project.setPoNo(dto.getPoNo());
+		                    project.setApmosysRM(dto.getApmosysRM());	
+		                    project.setIsRenewable(dto.getIsRenewable());
+		                    project.setClientRM(dto.getClientRM());
+		                    
+		                    projectRepository.save(project);
+
+		    		        logBuilder.append("Updated Project: ID=" + dto.getId() + ", PoNo=" + dto.getPoNo());
+		    		        
+		                } else {
+		    		        logBuilder.append("Project table does not contain PoProjectId: " + dto.getId());
+		                }
+
+		            } catch (Exception ex) {
+		            	ex.printStackTrace();
+				        logBuilder.append("Error updating project ID: " + dto.getId() + " - " + ex.getMessage());
+		            }
+		            
+		            List<Object[]> expiredProjects = projectRepository.getExpiredPoProjects();
+
+                    if (expiredProjects.isEmpty()) {
+                    	logBuilder.append("No expired PO projects found.");
+                        return;
+                    }
+
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+                    SimpleDateFormat sourceFormatter = new SimpleDateFormat("yyyy-MM-dd");
+                    SimpleDateFormat targetFormatter = new SimpleDateFormat("dd-MM-yyyy");
+
+
+                    for (Object[] projects : expiredProjects) {
+                    
+    		            Set<String> uniqueEmails = new HashSet<>();
+    		            
+                    	String employeeName = (String) projects[0];
+                        String projectName = (String) projects[1];
+                        String teamName = (String) projects[2];
+
+                        
+                        Timestamp allocationTimestamp = (Timestamp) projects[5];
+                        String allocationStartDate = allocationTimestamp != null ? dateFormat.format(new Date(allocationTimestamp.getTime())) : "N/A";
+                        
+                        String poStartDate = "N/A";
+                        String poEndDate = "N/A";
+                        try {
+                            if (projects[3] != null) {
+                                poStartDate = targetFormatter.format(sourceFormatter.parse((String) projects[3]));
+                            }
+                            if (projects[4] != null) {
+                                poEndDate = targetFormatter.format(sourceFormatter.parse((String) projects[4]));
+                            }
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                        
+                        Integer projectId = (Integer) projects[6];
+                        
+                        String hodEmail = (String) projects[7];
+                        
+                        String empEmail = (String) projects[8];
+                        
+                        if (hodEmail != null && !hodEmail.isEmpty()) {
+                            uniqueEmails.add(hodEmail);
+                        }
+                        
+                        StringBuilder ccEmailBuilder = new StringBuilder();
+
+                     if (rmgMail != null && !rmgMail.trim().isEmpty()) {
+                         String[] rmgEmails = rmgMail.split(",");
+                         for (String email : rmgEmails) {
+                             if (email != null && !email.trim().isEmpty()) {
+                                 uniqueEmails.add(email.trim()); 
+                             }
+                         }
+                     }
+                     
+                     if (adminMail != null && !adminMail.trim().isEmpty()) {
+                         String[] adminMails = adminMail.split(",");
+                         for (String email : adminMails) {
+                             if (email != null && !email.trim().isEmpty()) {
+                                 uniqueEmails.add(email.trim()); 
+                             }
+                         }
+                     }
+
+                     for (String email : uniqueEmails) {
+                         if (ccEmailBuilder.length() > 0) {
+                             ccEmailBuilder.append(","); 
+                         }
+                         ccEmailBuilder.append(email);
+                     }
+
+                     String ccEmails = ccEmailBuilder.toString();
+
+                        if (!empEmail.isEmpty()) {
+                        	
+                                String emailBody = buildEmailContent(employeeName, projectName, teamName, poStartDate, poEndDate, allocationStartDate);
+
+                                try {
+//                                    mailService.sendMailWithoutAttachmentWithMailBody2( 
+//                                    		"anyush.panda@apmosys.com",
+//                                            "Project PO Expiry Notification", 
+//                                            emailBody,
+//                                    		"priyadarshini.singh@apmosys.com"
+//                                    );
+                                    mailService.sendMailWithoutAttachmentWithMailBody2( 
+                                    		empEmail,
+                                            "Project PO Expiry Notification", 
+                                            emailBody,  
+                                            ccEmails
+                                    );
+                    		        logBuilder.append("Mail sent to " + empEmail + " for expired PO: " + projectName);
+                                } catch (MessagingException e) {
+                    		        logBuilder.append("Error sending mail to " + empEmail + " for PO: " + projectName + " - " + e.getMessage());
+                                }
+                                             
+                        	} else {
+                		        logBuilder.append("No employees found for project ID: " + projectId);
+                        }
+                    }
+                    List<Object[]> expiredProjectsWithoutInterval = projectRepository.getExpiredPoProjectsWithoutInterval();
+
+                    if (expiredProjectsWithoutInterval.isEmpty()) {
+                        logBuilder.append("No expired PO projects found previous to 5 days interval from current date.");
+                        return;
+                    }
+
+                    for (Object[] projects : expiredProjectsWithoutInterval) {
+
+    		            Set<String> uniqueEmails = new HashSet<>();
+    		            
+                        String employeeName = (String) projects[0];
+                        String projectName = (String) projects[1];
+                        String teamName = (String) projects[2];
+
+                        Timestamp allocationTimestamp = (Timestamp) projects[5];
+                        String allocationStartDate = allocationTimestamp != null ? dateFormat.format(new Date(allocationTimestamp.getTime())) : "N/A";
+
+                        String poStartDate = "N/A";
+                        String poEndDate = "N/A";
+                        try {
+                            if (projects[3] != null) {
+                                poStartDate = targetFormatter.format(sourceFormatter.parse((String) projects[3]));
+                            }
+                            if (projects[4] != null) {
+                                poEndDate = targetFormatter.format(sourceFormatter.parse((String) projects[4]));
+                            }
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+
+                        Integer projectId = (Integer) projects[6];
+
+                        String hodEmail = (String) projects[7];
+                        
+                        String empEmail = (String) projects[8];
+
+                        if (hodEmail != null && !hodEmail.isEmpty()) {
+                            uniqueEmails.add(hodEmail);
+                        }
+
+                        StringBuilder ccEmailBuilder = new StringBuilder();
+                        if (rmgMail != null && !rmgMail.trim().isEmpty()) {
+                            String[] rmgEmails = rmgMail.split(",");
+                            for (String email : rmgEmails) {
+                                if (email != null && !email.trim().isEmpty()) {
+                                    uniqueEmails.add(email.trim());
+                                }
+                            }
+                        }
+                        
+                        if (adminMail != null && !adminMail.trim().isEmpty()) {
+                            String[] adminMails = adminMail.split(",");
+                            for (String email : adminMails) {
+                                if (email != null && !email.trim().isEmpty()) {
+                                    uniqueEmails.add(email.trim()); 
+                                }
+                            }
+                        }
+
+                        for (String email : uniqueEmails) {
+                            if (ccEmailBuilder.length() > 0) {
+                                ccEmailBuilder.append(",");
+                            }
+                            ccEmailBuilder.append(email);
+                        }
+
+                        String ccEmails = ccEmailBuilder.toString();
+
+                        if (!empEmail.isEmpty()) {
+                            
+                                String emailBody = buildEmailContent2(employeeName, projectName, teamName, poStartDate, poEndDate, allocationStartDate);
+
+                                try {
+//                                	mailService.sendMailWithoutAttachmentWithMailBody2( 
+//                                    		"anyush.panda@apmosys.com",
+//                                            "Project PO Expiry Notification", 
+//                                            emailBody,
+//                                    		"priyadarshini.singh@apmosys.com"
+//                                    );
+                                    mailService.sendMailWithoutAttachmentWithMailBody2(
+                                            empEmail,
+                                            "Project Expiry Notification",
+                                            emailBody,
+                                            ccEmails
+                                    );
+                                    logBuilder.append("Mail sent to " + empEmail + " for expired PO: " + projectName);
+                                } catch (MessagingException e) {
+                                    logBuilder.append("Error sending mail to " + empEmail + " for PO: " + projectName + " - " + e.getMessage());
+                                }
+                        }
+                    }
+		        }
+		    } else {
+		        logBuilder.append("No projects found from PoPortal API.");
+		    }
+		}
+		
+		private String buildEmailContent(String employeeName, String projectName, String teamName, 
+                 String poStartDate, String poEndDate, String allocationStartDate) {
+			return  "<html><body>"
+				    + "<p>Dear " + employeeName + ",</p>"
+				    + "<p>The project that you are currently billed for is expiring soon. "
+				    + "This will result in timesheet restriction in case your project mapping is not removed.</p>"
+				    + "<p>Please contact the concerned authorities to take necessary action immediately, "
+				    + "as this could hamper the billing generated for you.</p>"
+				    + "<p>Below are the project details:</p>"
+				    + "<table border='1' style='border-collapse: collapse; width: 100%;'>"
+				    + "<tr><th>Project Name</th><th>Team Name</th><th>PO Start Date</th>"
+				    + "<th>PO End Date</th><th>Employee Allocation Start Date</th></tr>"
+				    + "<tr><td>" + projectName + "</td><td>" + teamName + "</td><td>" 
+				    + poStartDate + "</td><td>" + poEndDate + "</td><td>" + allocationStartDate + "</td></tr>"
+				    + "</table><br><br>"
+				    + "<p>Regards,</p>"
+				    + "<p>RMG Team</p>"
+				    + "</body></html>";
+		}
+		
+		private String buildEmailContent2(String employeeName, String projectName, String teamName, 
+                String poStartDate, String poEndDate, String allocationStartDate) {
+			return "<html><body>"
+					+ "<p>Dear " + employeeName + ",</p>"
+					+ "<p>The project that you are currently billed for has expired, hence your timesheet filling has been restricted.</p>"
+					+ "<p>Please contact the concerned authorities to take necessary action immediately, "
+					+ "as this could hamper the billing generated for you.</p>"
+					+ "<p>Below are the project details:</p>"
+					+ "<table border='1' style='border-collapse: collapse; width: 100%;'>"
+					+ "<tr><th>Project Name</th><th>Team Name</th><th>PO Start Date</th>"
+					+ "<th>PO End Date</th><th>Employee Allocation Start Date</th></tr>"
+					+ "<tr><td>" + projectName + "</td><td>" + teamName + "</td><td>" 
+					+ poStartDate + "</td><td>" + poEndDate + "</td><td>" + allocationStartDate + "</td></tr>"
+					+ "</table><br><br>"
+					+ "<p>Regards,</p>"
+					+ "<p>RMG Team</p>"
+					+ "</body></html>";
 		}
 
 }	

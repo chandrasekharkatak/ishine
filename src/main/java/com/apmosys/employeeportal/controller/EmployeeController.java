@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,6 +22,9 @@ import com.apmosys.employeeportal.dto.AppreciationRequest;
 import com.apmosys.employeeportal.dto.DateRangeDTO;
 import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
+import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO;
+import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.service.EmployeeService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -81,10 +85,10 @@ public class EmployeeController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/getAllEmployeesForPerformance", method = RequestMethod.GET)
-	public ServiceResponse getAllEmployeesForPerformance() {
+	@RequestMapping(value = "/getAllEmployeesForPerformance", method = RequestMethod.POST)
+	public ServiceResponse getAllEmployeesForPerformance(@RequestBody HrHodHrViewPerformance hrHodHrViewPerformance) {
 
-		ServiceResponse response = employeeService.getAllEmployeesForPerformance();
+		ServiceResponse response = employeeService.getAllEmployeesForPerformance(hrHodHrViewPerformance);
 		return response;
 	}
 	
@@ -522,6 +526,22 @@ public class EmployeeController {
 		return response;
 	}
 	
+	@PostMapping("/updateDefaultProject")
+	public ServiceResponse updateDeafultProject(@RequestBody EmployeeDTO employeeDTO) {
+		
+		ServiceResponse response = employeeService.updateDefaultProject(employeeDTO.getEmpId(),employeeDTO.getSelectedProjectId());
+		
+		return response;
+	}
+	
+	@GetMapping("/getExpiredPo")
+	public ServiceResponse getEmployeeRewardByEmpId() { 
+		
+		ServiceResponse serviceResponse = new ServiceResponse();
+		serviceResponse = employeeService.getExpiredPo();
+		return serviceResponse;
+	}
+	
 	@RequestMapping(value = "/getRewardsAndAppreciationCount", method = RequestMethod.POST)
 	public ServiceResponse getRewardsAndAppreciationCount(@RequestBody AppreciationAndRewardsCountDto employeeDto) {
 		
@@ -529,5 +549,17 @@ public class EmployeeController {
 		return response;
 	}
 	
-
+	@PostMapping("/sendExpiredPoEmail")
+	public ServiceResponse sendExpiredPoEmail(@RequestBody ExpiredPOMailSendDTO employeeDTO) {
+		System.out.println(employeeDTO);
+		ServiceResponse response = employeeService.sendExpiredPoEmail(employeeDTO);
+		
+		return response;
+	}
+	
+	@GetMapping("/getAllEmployeesWorkAnniversaryToday")
+	public ServiceResponse getAllEmployeesWorkAnniversaryToday() {
+	    return employeeService.getAllEmployeesWorkAnniversaryToday();
+	}
+	
 }

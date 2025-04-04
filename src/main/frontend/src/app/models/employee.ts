@@ -202,4 +202,6 @@ export class Employee{
 	employeeConfirmationDate:any;
 	emp360:any;
 
+	selectedProjectId :any;
+
 }

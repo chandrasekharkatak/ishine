@@ -67,63 +67,6 @@
 
 
 
-<!-- First Div: Both conditions are true -->
-<div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null && consentNotificationMessage != null"
-    style="display: flex; justify-content: space-between; width: 100%;">
-
-    <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="left"
-        style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop; width: calc(55vw - 4px);   overflow: hidden; display: inline-block;">
-        <span>
-            "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
-        </span>
-    </marquee>
-
-    <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="right" onmouseover="this.stop()"
-        onmouseout="this.start()"
-        style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop; width: calc(50vw - 255px);  overflow: hidden; display: inline-block;">
-        <span>
-            {{consentNotificationMessage}}
-        </span>
-        <button class="btn btn-sm btn-outline-success" (click)="submitNotificationConsent()"
-            style="margin-left: 8px; height: 30px; width: 120px; font-size: 12px;">
-            I Agree
-        </button>
-
-    </marquee>
-
-</div>
-
-<!-- Second Div: Only lines.billableType === 'Bench' && lines.dayOnbench != null is true -->
-<div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null && consentNotificationMessage == null"
-    style="display: flex; justify-content: space-between; width: 100%; position: relative;">
-
-    <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="left"
-        style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop;  overflow: hidden; display: inline-block;">
-        <span>
-            "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
-        </span>
-    </marquee>
-
-</div>
-
-<!-- Third Div: Only consentNotificationMessage != null is true -->
-<div *ngIf="consentNotificationMessage != null && (lines.billableType !== 'Bench' || lines.dayOnbench == null)"
-    style="display: flex; justify-content: space-between; width: 100%; position: relative;">
-
-    <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="left" onmouseover="this.stop()"
-        onmouseout="this.start()"
-        style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop;   overflow: hidden; display: inline-block;">
-        <span>
-            {{consentNotificationMessage}}
-        </span>
-        <button class="btn btn-sm btn-outline-success" (click)="submitNotificationConsent()"
-            style="margin-left: 8px; height: 30px; width: 120px; font-size: 12px;">
-            I Agree
-        </button>
-    </marquee>
-
-
-</div>
 
 
 <!-- style="font-family: Calibri, sans-serif; color: #FFFFFF;  background-color: #193d8a; scrolldelay: 50; behavior: loop; "> -->
@@ -204,6 +147,13 @@
 
 
         <ul class="navbar-nav">
+            <li  *ngIf="currentUser.employeeRole === 'RMG'"
+            class="nav-item" style="margin-left: 10px; ">
+                <a class="nav-link nav-text notification_icon" (click)="openPoExpiredMod()">
+                    <i class="fas fa-bell" ></i>
+                    EXP PO
+                </a>
+            </li>
             <li class="nav-item pt-1 mr-2">
                 <small class="nav-text">Profile Completed</small>
                 <div class="progress profileCompleted">
@@ -226,7 +176,7 @@
                     </a>
                     <div class="dropdown-menu dropdown-menu-right user-menu" aria-labelledby="user-dropdown">
                         <!-- <a class="dropdown-item" (click)="LmsRedirection()"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;LMS</a> -->
-                        <a class="dropdown-item" (click)="LmsRedirection()"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;LMS</a>
+                        <!-- <a class="dropdown-item" (click)="LmsRedirection()"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;LMS</a> -->
                      
                         <a class="dropdown-item" (click)="openChangePassword(change_password)"><i
                                 class="fa-solid fa-right-from-bracket"></i>&nbsp;Change Password</a>
@@ -342,7 +292,119 @@
 
         </div>
     </div>
-    <div *ngIf="userMapping.view_birthday_list" class="birthday-list card mb-2">
+    <!-- BirthdayCard -->
+
+    <div *ngIf="userMapping.view_birthday_list || userMapping.view_work_anniversary_list" class="birthday-list card mb-2">
+        <ul class="nav nav-tabs" id="birthdayWorkTab" role="tablist">
+            <li class="nav-item " 
+            [class.active]="selectedTab === 'birthday'"
+            [ngStyle]="{'font-weight': selectedTab === 'birthday' ? 'bold' : 'normal'} " (click)="switchTab('birthday')">
+                <a class="nav-link active" id="birthday-tab" data-toggle="tab" role="tab"
+                    href="#birthday-tabpanel" aria-controls="birthday" aria-selected="true">
+                    Birthday
+                </a>
+            </li>
+            <li class="nav-item" 
+            [class.active]="selectedTab === 'workAnniversary'"
+            [ngStyle]="{'font-weight': selectedTab === 'workAnniversary' ? 'bold' : 'normal'}" (click)="switchTab('workAnniversary')">
+                <a class="nav-link" id="workAnniversary-tab" data-toggle="tab" role="tab"
+                    href="#workAnniversary-tabpanel" aria-controls="workAnniversary" aria-selected="false">
+                    Work Anniversary
+                </a>
+            </li>
+        </ul>
+    
+        <!-- Tab Content -->
+        <div class="tab-content" id="birthdayWorkTabContent">
+            <!-- Birthday Tab -->
+            <div class="tab-pane active show fade" id="birthday-tabpanel" role="tabpanel" aria-labelledby="birthday-tab">
+                <div class="card-title px-1 pt-2">
+                    <p class="section-heading m-0 pl-2">Today's Birthdays</p>
+                </div>
+                <div class="card-body p-0">
+                    <div *ngIf="birthdayList.length == 0" class="container-fluid placeholder">
+                        <img class="placeholder-img" style="width: 50px;" src="assets/Images/birthday-cake-icon.svg"
+                            alt="Birthday Icon">
+                        <h1 class="placeholder-text">No Birthdays Today</h1>
+                    </div>
+                    <marquee *ngIf="birthdayList.length != 0" direction="up" scrolldelay="250"
+                        onmouseover="this.stop();" onmouseout="this.start();">
+                        <mat-list class="p-0">
+                            <mat-list-item *ngFor="let employee of birthdayList">
+                                <img matListAvatar src="assets/Images/default-user-image.jpeg" alt="User Avatar">
+                                <h1 *ngIf="userMapping.employee360_view_home" matLine id="clickablefor360" 
+                                    [navigateToEmployee360]="employee.emp360" style="cursor: pointer;" 
+                                    title="Click to view Employee 360">
+                                    {{ employee.name }}
+                                </h1>
+                                <h1 *ngIf="!userMapping.employee360_view_home" matLine>{{ employee.name }}</h1>
+                                <p matLine>{{ employee.departmentName }}</p>
+                            </mat-list-item>
+                        </mat-list>
+                    </marquee>
+                </div>
+            </div>
+    
+            <!-- Work Anniversary Tab -->
+            <div class="tab-pane active show fade" id="workAnniversary-tabpanel" role="tabpanel" aria-labelledby="workAnniversary-tab">
+                <div class="card-title px-1 pt-2">
+                    <p class="section-heading m-0 pl-2">Today's Work Anniversary</p>
+                </div>
+                <div class="card-body p-0">
+                    <div *ngIf="workAnniversaryList.length == 0" class="container-fluid placeholder">
+                        <img class="placeholder-img" style="width: 50px;" src="assets/Images/birthday-cake-icon.svg"
+                            alt="Birthday Icon">
+                        <h1 class="placeholder-text">No Work Anniversary Today</h1>
+                    </div>
+                    <marquee *ngIf="workAnniversaryList.length != 0" direction="up" scrolldelay="250"
+                        onmouseover="this.stop();" onmouseout="this.start();">
+                        <mat-list class="p-0">
+                            <mat-list-item *ngFor="let employee of workAnniversaryList">
+                                <img matListAvatar src="assets/Images/default-user-image.jpeg" alt="User Avatar">
+                                <h1 *ngIf="userMapping.employee360_view_home" matLine id="clickablefor360" 
+                                    [navigateToEmployee360]="employee.emp360" style="cursor: pointer;" 
+                                    title="Click to view Employee 360">
+                                    {{ employee.name }}
+                                </h1>
+                                <h1 *ngIf="!userMapping.employee360_view_home" matLine>{{ employee.name }}</h1>
+                                <p matLine>{{ employee.departmentName }}</p>
+                            </mat-list-item>
+                        </mat-list>
+                    </marquee>
+                </div>
+            </div>
+            <!-- <div class="tab-pane fade" id="workAnniversary-tabpanel" role="tabpanel" aria-labelledby="workAnniversary-tab">
+                <div class="card-title px-1 pt-2">
+                    <p class="section-heading m-0 pl-2">Today's Work Anniversaries</p>
+                </div>
+                <div class="card-body p-0">
+                    <div *ngIf="workAnniversaryList.length == 0" class="container-fluid placeholder">
+                        <img class="placeholder-img" style="width: 50px;" src="assets/Images/work-anniversary-icon.svg"
+                            alt="Work Anniversary Icon">
+                        <h1 class="placeholder-text">No Work Anniversaries Today</h1>
+                    </div>
+                    <marquee *ngIf="workAnniversaryList.length != 0" direction="up" scrolldelay="250"
+                        onmouseover="this.stop();" onmouseout="this.start();">
+                        <mat-list class="p-0">
+                            <mat-list-item *ngFor="let employee of workAnniversaryList">
+                                <img matListAvatar src="assets/Images/default-user-image.jpeg" alt="User Avatar">
+                                <h1 *ngIf="userMapping.employee360_view_home" matLine id="clickablefor360"
+                                    [navigateToEmployee360]="employee.emp360" style="cursor: pointer;" 
+                                    title="Click to view Employee 360">
+                                    {{ employee.name }}
+                                </h1>
+                                <h1 *ngIf="!userMapping.employee360_view_home" matLine>{{ employee.name }}</h1>
+                                <p matLine>{{ employee.departmentName }}</p>
+                            </mat-list-item>
+                        </mat-list>
+                    </marquee>
+                </div>
+            </div> -->
+        </div>
+    </div>
+    
+
+    <!-- <div *ngIf="userMapping.view_birthday_list" class="birthday-list card mb-2">
         <div class="card-title px-1 pt-2">
             <p class="section-heading m-0 pl-2">Today's Birthdays</p>
         </div>
@@ -364,7 +426,7 @@
                 </mat-list>
             </marquee>
         </div>
-    </div>
+    </div> -->
     <!-- Quick Links -->
     <div *ngIf="userMapping.view_quick_links" class="quick-links card mb-2">
         <div class="text-center quick-link" (click)="showApplyLeaveForm()">
@@ -1310,6 +1372,45 @@
         </div>
     </ng-template>
 
+     <!-- poexpire_template Modal fixed after login-->
+     <ng-template #poexpire_template_fixed *ngIf="currentUser.employeeRole === 'RMG' ">
+        <div>
+            <div class="modal-header">
+                <b>Expired Projects/POs</b>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center" style="overflow: scroll;">
+                <app-expied-po-and-project [employee]="expiredList" (emailEvent)="handleEmailRequest($event)"></app-expied-po-and-project>
+            </div>
+        </div>
+    </ng-template>
+
+    <!-- <ng-template #poexpire_template>
+        <div class="modal-header">
+            <b>Expired Projects/POs</b>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body text-center" style="overflow: scroll;">
+            <app-expied-po-and-project></app-expied-po-and-project>
+        </div>
+        
+    </ng-template> -->
+
+    <ng-template #mailSentPopUp>
+        <div class="modal-body text-center">
+            <div>
+                <b>{{alertMessage}}</b>
+            </div>
+            <div class="text-center">
+                <button type="button" class="btn btn-primary" style="margin: 3px" (click)="cancelRequest()">Ok</button>
+                <button type="button" class="btn btn-primary" style="margin: 3px"(click)="openPoExpiredMod()">Go Back To Expared Tab</button>
+            </div>
+        </div>
+    </ng-template>
 
 
     <ng-template #reject_revoke_leave_Comp_off>
@@ -1320,3 +1421,64 @@
             <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
         </div>
       </ng-template>
+
+
+
+
+      <!-- First Div: Both conditions are true -->
+<!-- <div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null && consentNotificationMessage != null"
+style="display: flex; justify-content: space-between; width: 100%;">
+
+<marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="left"
+    style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop; width: calc(55vw - 4px);   overflow: hidden; display: inline-block;">
+    <span>
+        "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
+    </span>
+</marquee>
+
+<marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="right" onmouseover="this.stop()"
+    onmouseout="this.start()"
+    style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop; width: calc(50vw - 255px);  overflow: hidden; display: inline-block;">
+    <span>
+        {{consentNotificationMessage}}
+    </span>
+    <button class="btn btn-sm btn-outline-success" (click)="submitNotificationConsent()"
+        style="margin-left: 8px; height: 30px; width: 120px; font-size: 12px;">
+        I Agree
+    </button>
+
+</marquee>
+
+</div> -->
+
+<!-- Second Div: Only lines.billableType === 'Bench' && lines.dayOnbench != null is true -->
+<!-- <div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null && consentNotificationMessage == null"
+style="display: flex; justify-content: space-between; width: 100%; position: relative;">
+
+<marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="left"
+    style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop;  overflow: hidden; display: inline-block;">
+    <span>
+        "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
+    </span>
+</marquee>
+
+</div> -->
+
+<!-- Third Div: Only consentNotificationMessage != null is true -->
+<!-- <div *ngIf="consentNotificationMessage != null && (lines.billableType !== 'Bench' || lines.dayOnbench == null)"
+style="display: flex; justify-content: space-between; width: 100%; position: relative;">
+
+<marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="left" onmouseover="this.stop()"
+    onmouseout="this.start()"
+    style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop;   overflow: hidden; display: inline-block;">
+    <span>
+        {{consentNotificationMessage}}
+    </span>
+    <button class="btn btn-sm btn-outline-success" (click)="submitNotificationConsent()"
+        style="margin-left: 8px; height: 30px; width: 120px; font-size: 12px;">
+        I Agree
+    </button>
+</marquee>
+
+
+</div> -->

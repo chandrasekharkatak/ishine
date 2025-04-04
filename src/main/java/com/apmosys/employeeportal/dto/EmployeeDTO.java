@@ -269,9 +269,9 @@ public class EmployeeDTO {
     private Long reporteeCountManager;
     private Long reporteeCountReportingManager;
     
-    private String hodDepartmentName;
-
-    private String teamIds;
     private String projectIds;
+    private String selectedProjectId;
+    private String hodDepartmentName;
+    private String teamIds;
 	
 }

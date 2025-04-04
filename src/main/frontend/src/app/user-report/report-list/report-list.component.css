@@ -175,10 +175,10 @@
     background-color: #fff;
   }
   
-  .branch.clicked {
+  /* .branch.clicked {
     border: 2px solid #007bff; 
     transform: scale(1.1); 
-  }
+  } */
   
   h5, p {
     margin: 0;
@@ -189,3 +189,16 @@
     min-height: 200px; 
   }
   
+  .button{
+    float: right; 
+    margin-top: 1px;
+  }
+
+  .clicked {
+    border: 3px solid #162330; 
+    box-shadow: 0 0 15px rgba(24, 32, 41, 0.7); /* Add shadow for emphasis */
+  }
+  
+  .hover {
+    background-color: rgba(0, 123, 255, 0.1); /* Change background on hover */
+  }

@@ -129,10 +129,12 @@
       </div>
     </div>
    
-    <div class="col-md-3 col-sm-6 custom-control custom-switch">
+    <!-- <div class="col-md-3 col-sm-6 custom-control custom-switch">
       <input type="checkbox" class="custom-control-input" id="hierarchy-switch-1" (change)="toggleViewTimesheet()">
       <label class="custom-control-label" for="hierarchy-switch-1">Show Department Wise Timesheet Report</label>
     </div>
+      <label class="custom-control-label" for="hierarchy-switch-1">Show Detailed Timesheet Report</label>
+    </div> -->
     
 
     <div class="row" *ngIf="!showDetailsTimesheet">
@@ -573,7 +575,7 @@
     <!-- toggle on table start -->
     <div class="row" *ngIf="showDetails">
       <div class="col-md-12">
-        <div class="selector-toggle" (click)="toggleSearch()">
+        <div class="selector-toggle" style="width: 10px;" (click)="toggleSearch()">
           <a href="javascript:void(0)">
             <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
@@ -592,8 +594,7 @@
                 <th scope="col" class="info-label " mat-sort-header="managerName|string">Manager</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="mobileNo|number">Mobile Number</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="email|string">Email Id</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="employmentstatus|string">Employment Status
-                </th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="employmentstatus|string">Employment Status</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="billable|string">Billable</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="billableType|string">Billable Type</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="teamName|string">Team Name</th>
@@ -608,9 +609,13 @@
                 <th scope="col" class="info-label wide-col" mat-sort-header="clientLocation|string">Client Location</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="workLocation|string">Work Location</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="totalExperience|string">Experience</th>
+                <th *ngIf="changeTable" scope="col" class="info-label wide-col" mat-sort-header="totalExperience|string">Default Project Assigned</th>
+                <th *ngIf="changeTable" scope="col" class="info-label wide-col" mat-sort-header="defaultProject|string">Select Default Project</th>
               </tr>
-              <tr app-column-filter-bar *ngIf="isEmployeeReportTable && isSearchEnabled"
-                [columnList]="employeeReportColumnForDetailedProjectView" (onSearch)="onSearch($event);page=1"></tr>
+              <tr app-column-filter-bar *ngIf="isEmployeeReportTable && isSearchEnabled && changeTable"
+                [columnList]="employeeReportColumnForDetailedProjectViewClub" (onSearch)="onSearch($event);page=1"></tr>
+              <tr app-column-filter-bar *ngIf="isEmployeeReportTable && isSearchEnabled && !changeTable"
+              [columnList]="employeeReportColumnForDetailedProjectView" (onSearch)="onSearch($event);page=1"></tr>
             </thead>
             <tbody>
               <tr *ngIf="filteredEmployees.length == 0 || (filteredEmployees | colFilter:filters: false).length == 0">
@@ -641,6 +646,17 @@
                 <td>{{ employee.clientLocation }}</td>
                 <td>{{ employee.workLocation }}</td>
                 <td>{{ employee.totalExperience }}</td>
+                <td *ngIf="changeTable">{{ employee.primaryProjectName || 'Not Assigned' }}</td>
+                <td *ngIf="changeTable">
+                  <select class="form-control" [(ngModel)]="employee.selectedProject">
+                    <option *ngFor="let project of (employee.projectName && employee.projectName.trim() ? employee.projectName.split(',') : [])">
+                      {{ project.trim() }}
+                    </option>
+                  </select>
+                  <button type="button" class="btn btn-sm btn-outline-primary ml-2 " style="float: right; margin-top: 1px;" (click)="updateDefaultProject(employee)">
+                    Submit
+                  </button>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -767,7 +783,7 @@
                 <td>{{employee.mobileNo}}</td>
                 <td>{{employee.email}}</td>
                 <td>{{employee.employmentstatus}}</td>
-                
+
                 <!-- added by anurag  -->
                 <td *ngIf="userMapping.reports_employee_360 && employee.projectList" >
                   <span *ngFor="let project of employee.projectList; let last = last" class="info-label"

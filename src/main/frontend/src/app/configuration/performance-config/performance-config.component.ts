@@ -160,20 +160,19 @@ export class PerformanceConfigComponent implements OnInit {
   setFinancialYear() {
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth() + 1; // Months are 0-based in JS
+    const currentMonth = currentDate.getMonth() + 1;
 
     if (currentMonth >= 4) {
-      this.quarterCycle.fromYear = currentYear;
-      this.quarterCycle.toYear = currentYear + 1;
-
-
-    } else {
+      // If it's April 2025 or later, set to previous financial year (2024-2025)
       this.quarterCycle.fromYear = currentYear - 1;
       this.quarterCycle.toYear = currentYear;
-
-
+    } else {
+      // If it's Jan, Feb, or March 2025, financial year is still 2023-2024
+      this.quarterCycle.fromYear = currentYear - 2;
+      this.quarterCycle.toYear = currentYear - 1;
     }
-  }
+}
+
 
   showReviewTable() {
     this.isQuaterTable = false;

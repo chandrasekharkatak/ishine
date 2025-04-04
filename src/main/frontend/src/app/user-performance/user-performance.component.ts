@@ -9,18 +9,21 @@ import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Performance } from 'src/app/models/performance';
 import { Query } from 'src/app/models/query';
+import { SortPipe } from 'src/app/sort.pipe';
+import { AppreciationAndRewardsCount } from '../models/appreciationAndRewardCount';
 import { Employee } from '../models/employee';
 import { Feature } from '../models/feature';
+import { HrHodMangerApiForPerformnace } from '../models/hrHodMangerApiForPerformnace';
 import { Log } from '../models/log';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
 import { EmployeeService } from '../services/employee.service';
+import { Employee360Service } from '../services/employee360.service';
 import { ExportExcelService } from '../services/export-excel.service';
 import { LogService } from '../services/log.service';
 import { PerformanceService } from '../services/performance.service';
 import { UtilityService } from '../services/utility.service';
 import { ValidationService } from '../services/validation.service';
-import { SortPipe } from 'src/app/sort.pipe';
 
 
 class FilterData {
@@ -61,9 +64,12 @@ export class UserPerformanceComponent implements OnInit {
   isperformanceDsah: boolean = false;
   isreviewPage: boolean = false;
   allEmployee: any[] = [];
+  allEmployee1: any[] = [];
   allReviewType: any[] = [];
   allQauterCycle: any[] = [];
   eligibleEmployees: any[] = [];
+  eligibleEmployees1: any[] = [];
+  hrReviewStatus:any;
   // currentUser: any;
   // userMapping: any = {};
   EnabledAndActiveQuarterCycle: any[] = [];
@@ -79,13 +85,16 @@ export class UserPerformanceComponent implements OnInit {
   finalRating: number;
   hodRemarks: any;
   quarterId: any;
-
-  feature="Performance";
-  currentUser:User;
-  userMapping:any = {};
-  log:Log;
-  allEmployeeList360:any[]=[];
-  departmentData :any[] = [
+  rewardsCount:any;
+  appreciationCount:any; 
+  
+  appreciationAndRewardsCount:AppreciationAndRewardsCount=new AppreciationAndRewardsCount();
+  feature = "Performance";
+  currentUser: User;
+  userMapping: any = {};
+  log: Log;
+  allEmployeeList360: any[] = [];
+  departmentData: any[] = [
     // { department: 'HR', TotalNumberofemp: 10, ratinggivenbymanager: 7, pendingratinggivenbymanager: 3, managerName: 'Saxena' },
     // { department: 'Functional Testing', TotalNumberofemp: 15, ratinggivenbymanager: 10, pendingratinggivenbymanager: 5, managerName: 'Dev' },
     // { department: 'INHOUSE', TotalNumberofemp: 13, ratinggivenbymanager: 3, pendingratinggivenbymanager: 10, managerName: 'Mayur' },
@@ -98,19 +107,20 @@ export class UserPerformanceComponent implements OnInit {
     // { department: 'New Dep', TotalNumberofemp: 87, ratinggivenbymanager: 17, pendingratinggivenbymanager: 70, managerName: 'Gopal' },
     // { department: 'New Dep', TotalNumberofemp: 87, ratinggivenbymanager: 17, pendingratinggivenbymanager: 70, managerName: 'Gopal' },
     // { department: 'New Dep', TotalNumberofemp: 87, ratinggivenbymanager: 17, pendingratinggivenbymanager: 70, managerName: 'Gopal' },
-    
+
   ];
 
-  constructor(private logService:LogService,
+  constructor(private logService: LogService,
     private employeeService: EmployeeService,
     private validationService: ValidationService,
     private utilityService: UtilityService,
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
-    private locationStrategy: LocationStrategy, 
+    private locationStrategy: LocationStrategy,
     private performanceSerive: PerformanceService,
     private exportExcelService: ExportExcelService,
-    private performanceService: PerformanceService
+    private performanceService: PerformanceService,
+    private employee360Service: Employee360Service
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
 
@@ -120,37 +130,38 @@ export class UserPerformanceComponent implements OnInit {
     });
   }
   ngAfterViewInit(): void {
-    this.renderPlaceholderChart("Rating", "performanceId",this.departmentData);
+    this.renderPlaceholderChart("Rating", "performanceId", this.departmentData);
   }
 
- async ngOnInit(): Promise<void> {
-  try {
-    // Call getALLdepartmentByEmployee first
-    await this.getALLdepartmentByEmployee();
-   
+  async ngOnInit(): Promise<void> {
+    try {
+      // Call getALLdepartmentByEmployee first
+      await this.getALLdepartmentByEmployee();
 
-    // Then call other methods
-    this.getAllEmployee();
-    this.getAllReviveType();
-    this.getAllQauterCycle();
 
-    // Continue with user mapping logic
-    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
-    featureMap.subFeatures?.forEach(sub => {
-      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
-    });
-
-    this.isperformanceDsah = true;
-
-    // console.log("hodddddd", this.userMapping.performance_action_by_hod);
-    // console.log("hrrrrrrrr", this.userMapping.performance_action_by_hr);
-    console.log('usermapping -- ', this.userMapping);
-    this.getAllEmployeeFor360View();
+      // Then call other methods
     
-  } catch (error) {
-    console.error("Error in ngOnInit", error);
+      this.getAllReviveType();
+      this.getAllQauterCycle();
+
+      // Continue with user mapping logic
+      let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+      featureMap.subFeatures?.forEach(sub => {
+        this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+      });
+
+      this.isperformanceDsah = true;
+      console.log("usermappinghodhr",this.userMapping);
+      // console.log("hodddddd", this.userMapping.performance_action_by_hod);
+      // console.log("hrrrrrrrr", this.userMapping.performance_action_by_hr);
+       this.getAllEmployeeFor360View();
+       this.getAllEmployee();
+
+     
+    } catch (error) {
+      console.error("Error in ngOnInit", error);
+    }
   }
-}
 
   performanceData = [
     { criteria: "Consistency", rating: 0 },
@@ -205,30 +216,30 @@ export class UserPerformanceComponent implements OnInit {
     this.calculateFinalRating();
   }
 
-  getAllEmployeeFor360View(){
-        this.allEmployeeList360 = [];
-        this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
-          if (response.serviceStatus == "Success") {
-            this.allEmployeeList360 = response.serviceResponse;
-            this.allEmployeeList360.forEach(employeeObj => {
-              employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
-              employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-              employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-              employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-              employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-              if (employeeObj.isConsultant == 'true')
-                employeeObj.employeeType = 'Consultant';
-              else if (employeeObj.isApprenticeship == 'true')
-                employeeObj.employeeType = 'Apprentice';
-              else
-                employeeObj.employeeType = 'Regular';
-              });
-              this.allEmployeeList360 = this.allEmployeeList360;
-              this.allEmployeeList360 = new SortPipe().transform(this.allEmployeeList360, ['name', 'string', 'asc']);
-            } else {
-              alert(response.serviceResponse);
-            }
+  getAllEmployeeFor360View() {
+    this.allEmployeeList360 = [];
+    this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allEmployeeList360 = response.serviceResponse;
+        this.allEmployeeList360.forEach(employeeObj => {
+          employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
+          employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+          employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+          employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+          employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          if (employeeObj.isConsultant == 'true')
+            employeeObj.employeeType = 'Consultant';
+          else if (employeeObj.isApprenticeship == 'true')
+            employeeObj.employeeType = 'Apprentice';
+          else
+            employeeObj.employeeType = 'Regular';
         });
+        this.allEmployeeList360 = this.allEmployeeList360;
+        this.allEmployeeList360 = new SortPipe().transform(this.allEmployeeList360, ['name', 'string', 'asc']);
+      } else {
+        alert(response.serviceResponse);
+      }
+    });
   }
 
 
@@ -236,11 +247,12 @@ export class UserPerformanceComponent implements OnInit {
 
   RatingData: any[] = [];
 
-
+userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiForPerformnace();
 
   getAllEmployee() {
-
-    this.performanceSerive.getAllEmployeesForPerformance().subscribe
+  this.userDetailsForPerformanceView.empId = this.currentUser.empId;
+  this.userDetailsForPerformanceView.hrvalidate = this.userMapping.performance_action_by_hr;
+   this.performanceSerive.getAllEmployeesForPerformance(this.userDetailsForPerformanceView).subscribe
       ((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allEmployee = response.serviceResponse;
@@ -249,44 +261,30 @@ export class UserPerformanceComponent implements OnInit {
 
           const currentDate = new Date();
           const oneYearAgo = new Date(currentDate.getFullYear() - 1, 11, 31);
-         
+
           // this.allEmployee = this.allEmployee.filter(employee => employee.empId !== this.currentUser.empId);
           this.eligibleEmployees = this.allEmployee.filter(employee => {
-            console.log("employee hod", employee.hodName);
-            console.log("employee hod", employee.hodId);
-          
             // Append employee ID using utility service
             employee.employeementId = this.utilityService.appendEmployeementid(employee.isConsultant, employee.employeementId);
-            
+
             const joiningDate = new Date(employee.dateOfJoining);
-          
-            // If the current user's role is HR or the HOD ID matches the current user
-            if (employee.hodId === this.currentUser.empId) {
-              // Check if the employee is confirmed and joined more than one year ago
-              return joiningDate <= oneYearAgo && employee.employmentstatus === 'Confirmed';
-            }
-            if( this.userMapping.performance_action_by_hr === true){
-              // Check if the employee is confirmed and joined more than one year ago
-              return joiningDate <= oneYearAgo && employee.employmentstatus === 'Confirmed';
-            }
-        
-        
+   return joiningDate <= oneYearAgo && employee.employmentstatus === 'Confirmed';
+           
             // if (this.currentUser.employeeRole !== 'HR') {
             //   alert('You are not authorized..!!');
             // }
-          
-           
+
+
             return false;
           });
           this.eligibleEmployees.forEach(eligibleEmp => {
             let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === eligibleEmp.employeementId);
-            console.log('matches++',matchingEmployee);
+
             eligibleEmp.emp360 = matchingEmployee ? matchingEmployee : {};
 
           });
 
-          console.log("eligibleEmployees", this.eligibleEmployees);
-
+         
         } else {
           console.error(response.serviceResponse);
         }
@@ -329,19 +327,19 @@ export class UserPerformanceComponent implements OnInit {
   async getALLdepartmentByEmployee() {
     try {
       const response: any = await this.performanceSerive.getALLdepartmentByEmployee().toPromise();
-  
+
       if (response.serviceStatus === "Success") {
 
 
 
-        
+
 
 
         this.departmentData = response.serviceResponse;
 
         console.log("departmentData", this.departmentData);
         setTimeout(() => {
-          this.renderPlaceholderChart("Rating", "performanceId",this.departmentData);
+          this.renderPlaceholderChart("Rating", "performanceId", this.departmentData);
         }, 100);
       } else {
         console.error(response.serviceResponse);
@@ -350,7 +348,7 @@ export class UserPerformanceComponent implements OnInit {
       console.error("Error fetching department data:", error);
     }
   }
-  
+
 
 
 
@@ -479,24 +477,25 @@ export class UserPerformanceComponent implements OnInit {
 
   name = 'EmployeeSheet.xlsx';
   exportToExcel(): void {
-    this.performanceService.getAllEmployeesForPerformance().pipe(first()).subscribe((response: any) => {
+    this.userDetailsForPerformanceView.empId = this.currentUser.empId;
+  this.userDetailsForPerformanceView.hrvalidate = this.userMapping.performance_action_by_hr;
+    this.performanceService.getAllEmployeesForPerformanceExcell(this.userDetailsForPerformanceView).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         //  this.employeeDataForExcel = response.serviceResponse;
 
-        this.allEmployee = response.serviceResponse;
+        this.allEmployee1 = response.serviceResponse;
 
         console.log("allEmp", this.allEmployee);
 
         const currentDate = new Date();
-        const oneYearAgo = new Date();
-        oneYearAgo.setFullYear(currentDate.getFullYear() - 1);  // Get the date one year ago
+        const oneYearAgo = new Date(currentDate.getFullYear() - 1, 11, 31);
 
-        this.eligibleEmployees = this.allEmployee.filter(employee => {
+        this.eligibleEmployees1 = this.allEmployee1.filter(employee => {
 
           const joiningDate = new Date(employee.dateOfJoining);
           return joiningDate <= oneYearAgo && employee.employmentstatus === 'Confirmed';
         });
-        this.employeeDataForExcel = this.eligibleEmployees;
+        this.employeeDataForExcel = this.eligibleEmployees1;
 
       }
       const onlySpecificDataArr = this.employeeDataForExcel.map(
@@ -506,52 +505,21 @@ export class UserPerformanceComponent implements OnInit {
           "Full Name": x.name,
           "EmailId": x.email,
           "Employment Status": x.employmentstatus,
-          "Date of Joining": (x.dateOfJoining) ? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null,
-          "Date of Relieving": (x.dateOfRelieving) ? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null,
+          // "Date of Joining": (x.dateOfJoining) ? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null,
+          // "Date of Relieving": (x.dateOfRelieving) ? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null,
           "Department Name": x.departmentName,
-          "Aadhar": x.aadhar,
-          "About Me": x.aboutMe,
-          "Address": x.address,
-          "Permanent Address": x.permanentAddress,
-          "City": x.city,
-          "Blood Group": x.bloodGroup,
-          "Date Of Birth": (x.dateOfBirth) ? moment(x.dateOfBirth).format(AppComponent.DATE_FORMAT) : null,
-          "Gender": x.gender,
-          "Father Name": x.fatherName,
-          "Mobile No": x.mobileNo,
-          "Pan Number": x.panNumber,
-          "Place Of Birth": x.placeOfBirth,
-          "Work Location": x.workLocation,
-          "Probation Period": x.probationPeriod,
-          "Notice Period": x.noticePeriod,
-          "Country": x.country,
-          "Emergency Contact Mobile": x.emergencyContactMobile,
-          "Emergency Contact Person": x.emergencyContactPerson,
-          "Landline": x.landline,
-          "Marital Status": x.maritalStatus,
-          "Mother Tongue": x.motherTongue,
-          "Alternate Mobile No": x.alternateMobileNo,
-          "Pincode": x.pincode,
-          "Relation": x.relation,
-          "State": x.state,
-          "Views On Organisation": x.viewsOnOrganisation,
-          "Passport Number": x.passportNumber,
-          "Bank Account No": x.bankAccountNo,
-          "Bank IFSC Code": x.bankIFSCCode,
-          "Bank Name": x.bankName,
-          "PF Account Number": x.pfAccountNumber,
-          "Previous PF AccountNumber": x.previousPfAccountNumber,
-          "UAN": x.uan,
-          "ESIC Number": x.esicNumber,
-          "Graduation Type": x.graduationType,
-          "Pursuing": x.pursuing,
-          "Passing Grade": x.passingGrade,
-          "Year Of Passing": x.yearOfPassing,
-          "Created By": x.createdBy,
-          "Created On": (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
-          "Manager Name": x.managerName,
-          "Job Role": x.jobRoleName,
-          "Designation Name": x.designationName
+          "Billable Type": x.billableType,
+          "Experience" :x.totalExperience,
+          "quarter Cycle":x.quarterycle || 'NULL',
+          "financial Year": x.financialYear || 'NULL' ,
+          "Current Status":x.completionStatus,
+          "hod Name":x.hodName,
+          "Final Rating":x.finalRating || 'NULL',
+          "Manger Remark":x.hodRemarks || 'NULL',
+          "Hod Remarks":x.hrRemarks || 'NULL',
+          "Hod Review Status":x.hrReviewStatus || 'NULL'
+
+ 
 
         })
       )
@@ -627,8 +595,8 @@ export class UserPerformanceComponent implements OnInit {
     this.filters = searchData;
   }
 
-  myList: { reviewLabel: any; silde: any ,performanceRatingId:any}[] = [];
-  myRateList: { reviewLabel: any; rate: any,performanceRatingId:any }[] = [];
+  myList: { reviewLabel: any; silde: any, performanceRatingId: any }[] = [];
+  myRateList: { reviewLabel: any; rate: any, performanceRatingId: any }[] = [];
 
   allQauterCycle2: any;
 
@@ -636,14 +604,13 @@ export class UserPerformanceComponent implements OnInit {
     this.isperformanceDsah = false;
     this.isreviewPage = true;
     this.selectedEmployee = eligiemployee;
-    console.log("eligiemployee",eligiemployee);
+    console.log("eligiemployee", eligiemployee);
     this.selectedEmployee.emp360 = eligiemployee.emp360;
-    console.log("eligiemployee.emp360",eligiemployee.emp360);
+    console.log("eligiemployee.emp360", eligiemployee.emp360);
     this.myList = [];
     this.myRateList = [];
+    this.getCountOfRewardsAndAppreciation();
 
-    
-    
   }
 
   back() {
@@ -651,7 +618,7 @@ export class UserPerformanceComponent implements OnInit {
     this.isperformanceDsah = true;
     this.isreviewPage = false;
     setTimeout(() => {
-      this.renderPlaceholderChart("Rating", "performanceId",this.departmentData);
+      this.renderPlaceholderChart("Rating", "performanceId", this.departmentData);
     }, 100);
 
   }
@@ -687,182 +654,182 @@ export class UserPerformanceComponent implements OnInit {
 
 
 
-    
- 
 
-  toggleData(event){
-    
-     
-      if(event.target.checked){
-       
-        this.renderPlaceholderChart("Pending" ,"performanceId", this.departmentData);
-       
-      }else{
-        
-        this.renderPlaceholderChart("Rating" ,"performanceId", this.departmentData);
-      }
+
+
+  toggleData(event) {
+
+
+    if (event.target.checked) {
+
+      this.renderPlaceholderChart("Pending", "performanceId", this.departmentData);
+
+    } else {
+
+      this.renderPlaceholderChart("Rating", "performanceId", this.departmentData);
+    }
+  }
+
+
+
+
+  renderPlaceholderChart(chartName: string, chartId: string, departmentData: any) {
+    // Ensure departmentData is available and has the expected structure
+    if (!departmentData || departmentData.length === 0) {
+      console.error('Department data is empty or undefined.');
+      return;
     }
 
- 
+    // Categories for the chart (department names)
+    const categories = departmentData.map(dep => dep.department);
 
+    // Rating and Pending Rating Percentages arrays
+    let ratingPercentages = [];
+    let pendingratingPercentages = [];
 
-    renderPlaceholderChart(chartName: string, chartId: string, departmentData: any) {
-      // Ensure departmentData is available and has the expected structure
-      if (!departmentData || departmentData.length === 0) {
-        console.error('Department data is empty or undefined.');
-        return;
-      }
-    
-      // Categories for the chart (department names)
-      const categories = departmentData.map(dep => dep.department);
-    
-      // Rating and Pending Rating Percentages arrays
-      let ratingPercentages = [];
-      let pendingratingPercentages = [];
-    
-      // Handle chart rendering based on chartName ('Rating' or 'Pending')
-      if (chartName === 'Rating') {
-        // Calculate Rating Percentages
-        ratingPercentages = departmentData.map(dep => {
-          return (dep.ratinggivenbymanager / dep.TotalNumberofemp) * 100;
-        });
-    
-        Highcharts.chart(chartId, {
-          chart: {
-            type: 'column'
-          },
-          title: {
-            text: 'Department-wise Bell Curve'
-          },
-          credits: { enabled: false },
-          xAxis: {
-            categories: categories,
-            title: { text: '' },
-            labels: { enabled: false }
-          },
-          yAxis: {
-            title: { text: 'Percentage of Employees Given Rating' },
-            max: 100
-          },
-          plotOptions: {
-            column: {
-              borderRadius: 10,
-              colorByPoint: true,
-              dataLabels: {
-                enabled: true,
-                format: '{point.category}', // Show department name
-                verticalAlign: 'bottom', // Align labels at bottom of column
-                y: -10, // Move label just above the column
-                style: {
-                  fontSize: '12px',
-                  fontWeight: 'bold'
-                }
+    // Handle chart rendering based on chartName ('Rating' or 'Pending')
+    if (chartName === 'Rating') {
+      // Calculate Rating Percentages
+      ratingPercentages = departmentData.map(dep => {
+        return (dep.ratinggivenbymanager / dep.TotalNumberofemp) * 100;
+      });
+
+      Highcharts.chart(chartId, {
+        chart: {
+          type: 'column'
+        },
+        title: {
+          text: 'Department-wise Bell Curve'
+        },
+        credits: { enabled: false },
+        xAxis: {
+          categories: categories,
+          title: { text: '' },
+          labels: { enabled: false }
+        },
+        yAxis: {
+          title: { text: 'Percentage of Employees Given Rating' },
+          max: 100
+        },
+        plotOptions: {
+          column: {
+            borderRadius: 10,
+            colorByPoint: true,
+            dataLabels: {
+              enabled: true,
+              format: '{point.category}', // Show department name
+              verticalAlign: 'bottom', // Align labels at bottom of column
+              y: -10, // Move label just above the column
+              style: {
+                fontSize: '12px',
+                fontWeight: 'bold'
               }
             }
+          }
+        },
+        tooltip: {
+          pointFormatter: function () {
+            // Access managerName through the departmentData array
+            const managerName = departmentData[this.index].managerName;
+            const TotalEmpcount = departmentData[this.index].TotalNumberofemp;
+            return `<b>Rating Percentage: ${this.y}%</b><br><b>HOD: ${managerName}</b><br><b>Total Emp Count: ${TotalEmpcount}</b>`;
+          }
+        },
+        series: [
+          {
+            name: 'Rating Percentage',
+            type: 'column',
+            data: ratingPercentages.map((percentage, index) => ({
+              y: parseFloat(percentage.toFixed(2)),  // Ensure to limit decimal points
+              managerName: departmentData[index].managerName // Accessing manager name directly from departmentData
+            }))
           },
-          tooltip: {
-            pointFormatter: function() {
-              // Access managerName through the departmentData array
-              const managerName = departmentData[this.index].managerName;
-              const TotalEmpcount = departmentData[this.index].TotalNumberofemp;
-              return `<b>Rating Percentage: ${this.y}%</b><br><b>HOD: ${managerName}</b><br><b>Total Emp Count: ${TotalEmpcount}</b>`;
-            }
-          },
-          series: [
-            {
-              name: 'Rating Percentage',
-              type: 'column',
-              data: ratingPercentages.map((percentage, index) => ({
-                y: parseFloat(percentage.toFixed(2)),  // Ensure to limit decimal points
-                managerName: departmentData[index].managerName // Accessing manager name directly from departmentData
-              }))
-            },
-            {
-              name: 'Bell Curve Line',
-              type: 'spline',
-              data: ratingPercentages,
-              color: 'black',
-              marker: { enabled: false }
-            }
-          ]
-        });
-    
-      } else {
-        // Calculate Pending Rating Percentages
-        pendingratingPercentages = departmentData.map(dep => {
-          return (dep.pendingratinggivenbymanager / dep.TotalNumberofemp) * 100;
-        });
-    
-        Highcharts.chart(chartId, {
-          chart: {
-            type: 'column'
-          },
-          title: {
-            text: 'Department-wise Bell Curve'
-          },
-          credits: { enabled: false },
-          xAxis: {
-            categories: categories,
-            title: { text: '' },
-            labels: { enabled: false }
-          },
-          yAxis: {
-            title: { text: 'Percentage of Pending' },
-            max: 100
-          },
-          plotOptions: {
-            column: {
-              borderRadius: 10,
-              colorByPoint: true,
-              dataLabels: {
-                enabled: true,
-                format: '{point.category}', // Show department name
-                verticalAlign: 'bottom', // Align labels at bottom of column
-                y: -10, // Move label just above the column
-                style: {
-                  fontSize: '12px',
-                  fontWeight: 'bold'
-                }
+          {
+            name: 'Bell Curve Line',
+            type: 'spline',
+            data: ratingPercentages,
+            color: 'black',
+            marker: { enabled: false }
+          }
+        ]
+      });
+
+    } else {
+      // Calculate Pending Rating Percentages
+      pendingratingPercentages = departmentData.map(dep => {
+        return (dep.pendingratinggivenbymanager / dep.TotalNumberofemp) * 100;
+      });
+
+      Highcharts.chart(chartId, {
+        chart: {
+          type: 'column'
+        },
+        title: {
+          text: 'Department-wise Bell Curve'
+        },
+        credits: { enabled: false },
+        xAxis: {
+          categories: categories,
+          title: { text: '' },
+          labels: { enabled: false }
+        },
+        yAxis: {
+          title: { text: 'Percentage of Pending' },
+          max: 100
+        },
+        plotOptions: {
+          column: {
+            borderRadius: 10,
+            colorByPoint: true,
+            dataLabels: {
+              enabled: true,
+              format: '{point.category}', // Show department name
+              verticalAlign: 'bottom', // Align labels at bottom of column
+              y: -10, // Move label just above the column
+              style: {
+                fontSize: '12px',
+                fontWeight: 'bold'
               }
             }
+          }
+        },
+        tooltip: {
+          pointFormatter: function () {
+            // Access managerName through the departmentData array
+            const managerName = departmentData[this.index].managerName;
+            return `<b>Pending Percentage: ${this.y}%</b><br><b>HOD: ${managerName}</b>`;
+          }
+        },
+        series: [
+          {
+            name: 'Pending Percentage',
+            type: 'column',
+            data: pendingratingPercentages.map((percentage, index) => ({
+              y: parseFloat(percentage.toFixed(2)),
+              managerName: departmentData[index].managerName // Accessing manager name directly from departmentData
+            }))
           },
-          tooltip: {
-            pointFormatter: function() {
-              // Access managerName through the departmentData array
-              const managerName = departmentData[this.index].managerName;
-              return `<b>Pending Percentage: ${this.y}%</b><br><b>HOD: ${managerName}</b>`;
-            }
-          },
-          series: [
-            {
-              name: 'Pending Percentage',
-              type: 'column',
-              data: pendingratingPercentages.map((percentage, index) => ({
-                y: parseFloat(percentage.toFixed(2)),
-                managerName: departmentData[index].managerName // Accessing manager name directly from departmentData
-              }))
-            },
-            {
-              name: 'Bell Curve Line',
-              type: 'spline',
-              data: pendingratingPercentages,
-              color: 'black',
-              marker: { enabled: false }
-            }
-          ]
-        });
-      }
+          {
+            name: 'Bell Curve Line',
+            type: 'spline',
+            data: pendingratingPercentages,
+            color: 'black',
+            marker: { enabled: false }
+          }
+        ]
+      });
     }
-    
+  }
 
 
 
-  
-  
-  
 
 
-  submitReviewEmployee(quarter: any, template: TemplateRef<any>,index:any) {
+
+
+
+
+  submitReviewEmployee(quarter: any, template: TemplateRef<any>, index: any) {
     this.submitPerformance.empId = this.selectedEmployee.empId;
     this.submitPerformance.quarterId = quarter.quarterId;
     this.submitPerformance.hodId = this.currentUser.empId;
@@ -872,7 +839,7 @@ export class UserPerformanceComponent implements OnInit {
         this.submitPerformance.performanceRatings.push({
           reviewTypeId: item.reviewTypeId,
           rating: this.myList[index].silde,
-          performanceRatingId:null
+          performanceRatingId: null
         });
       }
     });
@@ -882,13 +849,18 @@ export class UserPerformanceComponent implements OnInit {
         this.submitPerformance.performanceRatings.push({
           reviewTypeId: item.reviewTypeId,
           rating: this.myRateList[index].rate,
-          performanceRatingId:null
+          performanceRatingId: null
         });
       }
     });
 
     this.submitPerformance.finalRating = this.finalRating;
     this.submitPerformance.hodRemarks = this.hodRemarks;
+    if (!this.validationService.validateNullUndefinedEmptyString(this.submitPerformance.hodRemarks)) {
+      this.alertMessage = "Please justify your rating by providing remarks!";
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
     console.log(this.submitPerformance, "performance");
     this.performanceService.submitEmployeePerformanceHOD(this.submitPerformance).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -897,7 +869,7 @@ export class UserPerformanceComponent implements OnInit {
         if (collapseElement) {
           collapseElement.classList.remove('show'); // Remove 'show' class
         }
-        
+
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -905,7 +877,7 @@ export class UserPerformanceComponent implements OnInit {
 
   }
 
-  
+
 
   getRatingList(limit: number): number[] {
     return Array.from({ length: limit }, (_, i) => i + 1);
@@ -922,18 +894,20 @@ export class UserPerformanceComponent implements OnInit {
     this.submitPerformance.finalRating = '';
     this.hodRemarks = '';
     this.isClicked = !this.isClicked;
-    this.isAcceptSelected=false;
-    this.isRejectSelected=false;
+    this.isAcceptSelected = false;
+    this.isRejectSelected = false;
     this.currentStatus = '';
-   
+
     this.performnace.empId = this.selectedEmployee.empId;
     this.performnace.quarterId = quartId;
-     this.HrAndHodView(this.performnace);
-    
-   
+    this.HrAndHodView(this.performnace);
+
+
   }
- 
+
+
   currentStatus:any;
+  rejectStatus:any;
   HrAndHodView(performance:any){
     this.performanceSerive.hrAndHodEmpoyeePerformanceView(performance).pipe(first()).subscribe((response: any) => {
       this.enableDisableSubmit=false;
@@ -951,12 +925,17 @@ export class UserPerformanceComponent implements OnInit {
           this.myList.push({ reviewLabel: value.reviewLabel, silde: value.ratingValue,performanceRatingId:value.performanceRatingId });
           this.finalRating=value.finalRating;
           this.hodRemarks = value.hodRemarks;
-          
+          this.hrReviewStatus=value.hrReviewStatus;
+          this.acceptReason = value.hrRemark;
+          this.rejectStatus =value.rejectStatus;
         });
         this.filterRatingCriteria.forEach(value => {
           this.myRateList.push({ reviewLabel: value.reviewLabel, rate: value.ratingValue,performanceRatingId:value.performanceRatingId });
           this.finalRating=value.finalRating;
           this.hodRemarks = value.hodRemarks;
+          this.hrReviewStatus=value.hrReviewStatus;
+           this.acceptReason = value.hrRemark;
+           this.rejectStatus =value.rejectStatus;
           
         });
      
@@ -983,6 +962,7 @@ export class UserPerformanceComponent implements OnInit {
     });
   }
 
+
   getStatusColor(status: string): string {
     switch (status) {
       case 'Ongoing':
@@ -992,13 +972,13 @@ export class UserPerformanceComponent implements OnInit {
       case 'Rejected':
         return '#931621';
       default:
-        return '#A8A8A8'; 
+        return '#A8A8A8';
     }
   }
-  
 
-  isAcceptSelected:boolean=false;
-  isRejectSelected:boolean=false;
+
+  isAcceptSelected: boolean = false;
+  isRejectSelected: boolean = false;
 
 
 
@@ -1006,26 +986,67 @@ export class UserPerformanceComponent implements OnInit {
     if (action === 'accept') {
       this.isRejectSelected = false;
       this.isAcceptSelected = true;
-      
-    
+
+
     } else if (action === 'reject') {
       this.isAcceptSelected = false;
       this.isRejectSelected = true;
-      
-     
+
+
     }
   }
-  
+
   submitRemarkHr: Performance = new Performance();
-  acceptReason:any;
-  rejectReason:any;
-  submitRemarksByHR(template: TemplateRef<any>,index:any){
+  acceptReason: any;
+  rejectReason: any;
+  submitRemarksByHR(quarter: any,template: TemplateRef<any>, index: any) {
+     
+    if (this.isAcceptSelected && !this.validationService.validateNullUndefinedEmptyString(this.acceptReason)) {
+      this.alertMessage = "Please enter Comments!";
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
+  
+    if (this.isRejectSelected && !this.validationService.validateNullUndefinedEmptyString(this.rejectReason)) {
+      this.alertMessage = "Please enter Reject Reason!";
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
+    this.submitRemarkHr.empId = this.selectedEmployee.empId;
+    this.submitRemarkHr.quarterId = quarter.quarterId;
+    
+    this.submitRemarkHr.performanceRatings = [];
+    this.filterCriteria.forEach((item, index) => {
+      this.submitRemarkHr.employeePerformanceId = item.employeePerformanceId;
+      if (this.myList[index] && this.myList[index].silde !== undefined) {
+        this.submitRemarkHr.performanceRatings.push({
+          reviewTypeId: item.reviewTypeId,
+          rating: this.myList[index].silde,
+          performanceRatingId: this.myList[index].performanceRatingId,
+        });
+      }
+    });
+
+    this.filterRatingCriteria.forEach((item, index) => {
+      this.submitRemarkHr.employeePerformanceId = item.employeePerformanceId;
+      if (this.myRateList[index] && this.myRateList[index].rate !== undefined) {
+        this.submitRemarkHr.employeePerformanceId = item.employeePerformanceId;
+        this.submitRemarkHr.performanceRatings.push({
+          reviewTypeId: item.reviewTypeId,
+          rating: this.myRateList[index].rate,
+          performanceRatingId: this.myRateList[index].performanceRatingId,
+
+        });
+      }
+    });
+
+    this.submitRemarkHr.finalRating = this.finalRating;
     this.submitRemarkHr.employeePerformanceId = this.performnace1[0].employeePerformanceId;
     this.submitRemarkHr.hrReviewStatus = this.isAcceptSelected ? "Accepted" : "Rejected";
     this.submitRemarkHr.hrRemark = this.isAcceptSelected ? this.acceptReason : this.rejectReason;
     this.submitRemarkHr.hrId = this.currentUser.empId;
 
-    console.log("submithrrrrrr",this.submitRemarkHr);
+    console.log("submithrrrrrr", this.submitRemarkHr);
     this.performanceService.submitEmployeePerformanceHR(this.submitRemarkHr).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -1033,20 +1054,20 @@ export class UserPerformanceComponent implements OnInit {
         if (collapseElement) {
           collapseElement.classList.remove('show'); // Remove 'show' class
         }
-        
+
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
     });
   }
-  
- 
 
 
 
 
 
-  updateReviewEmployee(quarter: any, template: TemplateRef<any>,index:any) {
+
+
+  updateReviewEmployee(quarter: any, template: TemplateRef<any>, index: any) {
     this.submitPerformance.empId = this.selectedEmployee.empId;
     this.submitPerformance.quarterId = quarter.quarterId;
     this.submitPerformance.hodId = this.currentUser.empId;
@@ -1058,7 +1079,7 @@ export class UserPerformanceComponent implements OnInit {
         this.submitPerformance.performanceRatings.push({
           reviewTypeId: item.reviewTypeId,
           rating: this.myList[index].silde,
-          performanceRatingId:this.myList[index].performanceRatingId,
+          performanceRatingId: this.myList[index].performanceRatingId,
         });
       }
     });
@@ -1070,14 +1091,14 @@ export class UserPerformanceComponent implements OnInit {
         this.submitPerformance.performanceRatings.push({
           reviewTypeId: item.reviewTypeId,
           rating: this.myRateList[index].rate,
-          performanceRatingId:this.myRateList[index].performanceRatingId,
-          
+          performanceRatingId: this.myRateList[index].performanceRatingId,
+
         });
       }
     });
-    
 
-    this.submitPerformance.finalRating = this.finalRating;  
+
+    this.submitPerformance.finalRating = this.finalRating;
     this.submitPerformance.hodRemarks = this.hodRemarks;
     console.log(this.submitPerformance, "performance");
     this.performanceService.updateEmployeePerformanceHOD(this.submitPerformance).pipe(first()).subscribe((response: any) => {
@@ -1087,13 +1108,28 @@ export class UserPerformanceComponent implements OnInit {
         if (collapseElement) {
           collapseElement.classList.remove('show'); // Remove 'show' class
         }
-        
+
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
     });
 
   }
+  
+  getCountOfRewardsAndAppreciation(){
+    this.appreciationCount='';
+    this.rewardsCount='';
+    console.log("this.projectDetails ", this.rewardsCount);
+     this.appreciationAndRewardsCount.empId=this.selectedEmployee.empId;
+    this.employee360Service.getRewardsAndAppreciationCount(this.appreciationAndRewardsCount).pipe(first()).subscribe((response: any) => {
+          if (response.serviceStatus == "Success") {
+            this.rewardsCount = response.serviceResponse[0].rewardsCount;
+            this.appreciationCount = response.serviceResponse[0].appreciationCount;
 
+            console.log("this.projectDetails ",  this.appreciationCount);
+
+          }
+        });
+  }
 
 }

@@ -31,6 +31,8 @@ import { RewardsServiceService } from '../services/rewards-service.service';
 import { TimesheetService } from '../services/timesheet.service';
 import { UtilityService } from '../services/utility.service';
 import { ValidationService } from '../services/validation.service';
+import { ExpiredEmailData } from '../models/expiredEmailmodel';
+import { PoObject } from '../models/poObbjectData';
 
 interface objlms{
   email:any
@@ -85,6 +87,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   excelName: any = '';
 
   birthdayList: any[] = [];
+  workAnniversaryList: any[] = [];
   rewardsList: any[] = [];
   eventImages: any[] = [];
   isImagesLoaded: boolean = false;
@@ -129,33 +132,59 @@ export class HomeComponent implements OnInit, AfterViewInit {
   leaveTypes: Leave[] = [];
   leaveBucketDetails: any[] = [];
   lmsauthentication:any;
-  leaveObj = new Leave();
+// Expired Po section
+expiredList:any[] = [];
+popUpMessege:any;
+//  notificationObj: NotificationMessage = new NotificationMessage();
+//  timesheetDetails: any[] = [];
+
+//  items = 10;
+//  bulkApprove: any = [];
+//  bulkReject: any = [];
+//  isSelectAll: boolean = false;
+//  bulkLeaveApprove: any = [];
+//  bulkLeaveReject: any = [];
+//  bulkCompOffApprove: any = [];
+//  bulkCompOffReject: any = [];
+//  overLapsLeaveForManager: any = [];
+
+
+ leaveObj = new Leave();
+
+ @ViewChild("thisMonthCal")
+ private thisMonthCalendar: CalendarComponent;
+ @ViewChild("lastMonthCal")
+ private lastMonthCalendar: CalendarComponent;
+
+ @ViewChild('updateInfo')
+ private updateInfoTempRef: TemplateRef<any>;
+
+ @ViewChild('consent_notification_template')
+ private consentNotificationTemplate: TemplateRef<any>;
+ 
+ @ViewChild('poexpire_template_fixed')
+ poExpireTemplateRef:TemplateRef<any> ;
+  
+ 
+ @ViewChild('mailSentPopUp')
+ mailSentPopUp:TemplateRef<any> ;
+
+ consentModalConfig = {
+    backdrop: true,
+    ignoreBackdropClick: true,
+    keyboard: false,
+    class: 'modal-lg'
+  }
+  // TOP BAR
+ @ViewChild("change_password")
+ changePasswordTemplate: TemplateRef<any>;
+ @ViewChild("LoadingLogin") LoadingLoginTemplate: TemplateRef<any>;
   selectedCategoryId: any;
   selectedCategoryName: any;
   selectedMonth:any;
   scrollingInterval: any;
   showEmptyMessage:any;
 
-  @ViewChild("thisMonthCal")
-  private thisMonthCalendar: CalendarComponent;
-  @ViewChild("lastMonthCal")
-  private lastMonthCalendar: CalendarComponent;
-
-  @ViewChild('updateInfo')
-  private updateInfoTempRef: TemplateRef<any>;
-
-  @ViewChild('consent_notification_template')
-  private consentNotificationTemplate: TemplateRef<any>;
-    consentModalConfig = {
-      backdrop: true,
-      ignoreBackdropClick: true,
-      keyboard: false,
-      class: 'modal-lg'
-    }
-    // TOP BAR
-  @ViewChild("change_password")
-  changePasswordTemplate: TemplateRef<any>;
-  @ViewChild("LoadingLogin") LoadingLoginTemplate: TemplateRef<any>;
   isError: boolean = false;
   profileCompletedPercentage: any = 0;
   filters: any = {};
@@ -175,6 +204,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   currentMonthIndex: number = 0;
   currentRewards: any[] = [];
   scrollInterval: any;
+  selectedTab: string = 'birthday';
 
   constructor(
     private modalService: BsModalService,
@@ -264,6 +294,7 @@ async ngOnInit(): Promise<void> {
    this.getAllNotifications();
    this.getAllLeaveTypesByLeavePolicies(this.currentUser);
    if (this.userMapping.view_birthday_list) this.getAllEmployeesBirthDayToday();
+   if (this.userMapping.view_work_anniversary_list) this.getAllEmployeesWorkAnniversaryToday();
    if (this.userMapping.view_all_team_requests) {
      this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
      this.countPendingCompOffRequestsByManagerId();
@@ -281,6 +312,13 @@ async ngOnInit(): Promise<void> {
    this.preventBackButton();
    this.isEmployeeOnBench();
     //console.log('User Mapping', this.userMapping);
+
+    
+  }
+
+
+  switchTab(tab: string) {
+    this.selectedTab = tab;
   }
 
  preventBackButton() {
@@ -301,6 +339,11 @@ async ngOnInit(): Promise<void> {
       this.openConsentNotificationModal();
       this.setReleaseNote();
     }
+
+    if (this.currentUser.employeeRole == "RMG") {
+      this.openPoExpiredMod();
+    }
+    
   }
 
  reset() {
@@ -987,7 +1030,7 @@ async ngOnInit(): Promise<void> {
         ],
     });
   }
-
+  
   /* Today's Birthday List */
   getAllEmployeesBirthDayToday() {
     this.employeeService.getAllEmployeesBirthDayToday().pipe(first()).subscribe((response: any) => {
@@ -1000,6 +1043,24 @@ async ngOnInit(): Promise<void> {
           employee.emp360 = matchingEmployee ? matchingEmployee : {};
         });
         // console.log("birthdayList : ", this.birthdayList);
+      } else {
+        this.compOffApplicationCount = 0;
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  getAllEmployeesWorkAnniversaryToday() {
+    this.employeeService.getAllEmployeesWorkAnniversaryToday().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.workAnniversaryList = response.serviceResponse;
+        this.workAnniversaryList.forEach((employee) => {
+          
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
+         
+          employee.emp360 = matchingEmployee ? matchingEmployee : {};
+        });
+        
       } else {
         this.compOffApplicationCount = 0;
         console.error(response.serviceResponse);
@@ -1374,6 +1435,18 @@ async ngOnInit(): Promise<void> {
 
   openNotificationMod(template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
+
+  openPoExpiredMod() {
+    this.cancelRequest();
+    this.geExpiredtPoData();
+      console.log(this.expiredList);
+    // alert("hi");
+    this.modalRef = this.modalService.show(this.poExpireTemplateRef, { class: 'modal-xl' ,
+      backdrop: 'static',
+      keyboard: false 
+  });
+  
   }
 
   openReqMod(template: TemplateRef<any>) {
@@ -2067,6 +2140,7 @@ async ngOnInit(): Promise<void> {
    }
  }
 
+
   submitReleaseNoteNotificationConsent() {
     let notificationObj = new NotificationMessage();
 
@@ -2303,7 +2377,48 @@ moveToNextGroup(): void {
 
   this.startRewardCycle();
 }
+emailSentPopUp(msg:any){
+  this.openAlertMod(this.mailSentPopUp,msg);
+}
+geExpiredtPoData(){
+  this.employeeService.getExpiredPo().pipe(first()).subscribe((response: any) => {
+  if(response.serviceStatus == "Success"){
+   this.expiredList =  response.serviceResponse
+    console.log(response,":::::::::::::::::::Response,geExpiredtPoData")
+  }
+  });
+}
 
+handleEmailRequest(eventData: { poEndDate: any, projectName: any, poNo: any, poProjectType: any }) {
+  console.log('Email Request Received:', eventData);
+  this.sendEmail(eventData.poEndDate,eventData.projectName,eventData.poNo,eventData.poProjectType);
+  // Perform email sending logic here
+}
+
+sendEmail(poEndDate:any,projectName:any,poNo:any,poProjectType:any){
+
+  console.log(poEndDate,projectName,poNo,poProjectType)
+  let expiredEmailData: ExpiredEmailData = new ExpiredEmailData();
+  let poObject: PoObject = new PoObject();
+  poObject.poNo = poNo;
+  poObject.projectName = projectName;
+  poObject.endDate = poEndDate;
+  poObject.poType = poProjectType;
+  expiredEmailData.expiredData = poObject;
+  let user = JSON.parse(sessionStorage.getItem('currentUser'));
+  expiredEmailData.userEmail = user.email;
+  console.log(expiredEmailData,"expiredEmailData",)
+  console.log(expiredEmailData.expiredData,"expiredEmailData")
+  console.log(expiredEmailData,"expiredEmailData")
+  this.employeeService.sendExpiredPoEmail(expiredEmailData).pipe(first()).subscribe((response: any) => {
+    if(response.serviceStatus == "Success"){
+      this.popUpMessege =  response.serviceMessage;
+       console.log(response,":::::::::::::::::::Response,geExpiredtPoData");
+       this.cancelRequest();
+      this.emailSentPopUp(this.popUpMessege);
+     }
+  });
+}
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);

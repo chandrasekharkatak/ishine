@@ -25,6 +25,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import javax.mail.MessagingException;
+import javax.mail.internet.AddressException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.FilenameUtils;
@@ -48,7 +50,13 @@ import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeCertificateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeRewardsDTO;
+import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
+import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO;
+import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO.PoObject;
+import com.apmosys.employeeportal.dto.GetAllEmployeesWorkAnniversaryTodayDTO;
+import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
@@ -59,6 +67,7 @@ import com.apmosys.employeeportal.model.Asset;
 import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.DraftEmployee;
+import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeAssetMap;
 import com.apmosys.employeeportal.model.EmployeeCertificate;
@@ -89,6 +98,7 @@ import com.apmosys.employeeportal.repository.AuditCustomRepository;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.DraftEmployeeRepository;
+import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificateRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
@@ -152,6 +162,9 @@ public class EmployeeService {
 
 	@Autowired
 	EmployeeTeamMapRepository employeeTeamMapRepository;
+	
+	@Autowired
+	EmpPrimaryProjectMappingRepository empPrimaryProjectMappingRepository;
 
 	@Value("${default.password}")
 	String defaultPaswword;
@@ -164,6 +177,12 @@ public class EmployeeService {
 	
 	@Value("${rmg.mail}")
 	private String rmgMail;
+	
+	@Value("${business_mails}")
+	private String businessMail;
+	
+	@Value("${vp_mails}")
+	private String vpMails;
 
 	@Autowired
 	EmployeeLeavesMapRepository employeeLeavesMapRepository;
@@ -3045,10 +3064,17 @@ public class EmployeeService {
 		return response;
 	}
 	
-	public ServiceResponse getAllEmployeesForPerformance() {
+	public ServiceResponse getAllEmployeesForPerformance(HrHodHrViewPerformance hrHodHrViewPerformance) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			List<Object[]> allEmployeeListForPerformance = employeeRepository.getAllEmployeesForPerformance();
+			List<Object[]> allEmployeeListForPerformance=new ArrayList<Object[]>();
+			if(hrHodHrViewPerformance.getHrvalidate()) {
+				allEmployeeListForPerformance=employeeRepository.getAllEmployeesForPerformanceForHr();
+			}else {
+				allEmployeeListForPerformance = employeeRepository.getAllEmployeesForPerformance(hrHodHrViewPerformance.getEmpId());
+				
+			}
+			
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 
 			if (allEmployeeListForPerformance != null) {
@@ -3088,6 +3114,8 @@ public class EmployeeService {
 							    : 0.0;
 					 performanceStatus = Double.parseDouble(String.format("%.2f", performanceStatus));
 					 empDTO.setPerformanceStatusPercentage(performanceStatus);
+					  //empDTO.setApprovalsTo(object[24] != null ? object[24].toString() : null);
+						
 					 dtoList.add(empDTO);
 				});
 				 
@@ -5298,8 +5326,8 @@ public class EmployeeService {
 		
 		Double proileCompleted = 0.00;
 		Double totalFields = 0.00;
-		System.err.println("check details \n");
-		System.err.println(" \n"+employeeDto);
+//		System.err.println("check details \n");
+//		System.err.println(" \n"+employeeDto);
 		try {
 			List<Object[]> employeeProile = employeeRepository.getEmployeeProfileCompletion(employeeDto.getEmpId());
 			
@@ -6605,6 +6633,80 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	
 	return response;
 }
+	public ServiceResponse updateDefaultProject(Long empId, String projectId) {
+		
+		ServiceResponse response = new ServiceResponse();
+		EmpPrimaryProjectMapping empPrimaryProjectMapping = new EmpPrimaryProjectMapping();
+		if(empId != null) {
+		empPrimaryProjectMapping = empPrimaryProjectMappingRepository.findByEmpId(empId);
+		if(empPrimaryProjectMapping == null && projectId != null && !projectId.isEmpty()) {
+			
+			EmpPrimaryProjectMapping empPrimaryProjectMappingNew = new EmpPrimaryProjectMapping();
+
+			// empPrimaryProjectMappingNew.setEmpId(empId);
+			// empPrimaryProjectMappingNew.setPrimaryProjectId(Long.valueOf(projectId));			
+			// empPrimaryProjectMappingNew.setPrimaryProjectName(projectName);
+			// EmpPrimaryProjectMapping empPrimaryProjectMappingSaved = empPrimaryProjectMappingRepository.save(empPrimaryProjectMappingNew);
+			Project project = projectRepository.findByProjectId(Integer.valueOf(projectId));
+			empPrimaryProjectMappingNew.setEmpId(empId);
+			empPrimaryProjectMappingNew.setPrimaryProjectId(Long.valueOf(projectId));			
+			empPrimaryProjectMappingNew.setPrimaryProjectName(project.getProjectName());
+			EmpPrimaryProjectMapping empPrimaryProjectMappingSaved = empPrimaryProjectMappingRepository.save(empPrimaryProjectMappingNew);
+			
+			response.setServiceResponse(empPrimaryProjectMappingSaved);
+			response.setServiceMessage("Saved Succesfully...!!");
+			response.setServiceStatus(response.STATUS_SUCCESS);
+		
+		}
+		else if(empPrimaryProjectMapping != null && projectId != null && !projectId.isEmpty()) {
+			
+			empPrimaryProjectMapping.setPrimaryProjectId(Long.valueOf(projectId));	
+			Project project = projectRepository.findByProjectId(Integer.valueOf(projectId));
+			empPrimaryProjectMapping.setPrimaryProjectName(project.getProjectName());
+			EmpPrimaryProjectMapping empPrimaryProjectMappingSaved = empPrimaryProjectMappingRepository.save(empPrimaryProjectMapping);
+			
+			response.setServiceResponse(empPrimaryProjectMappingSaved);
+			response.setServiceMessage("Updated Succesfully...!!");
+			response.setServiceStatus(response.STATUS_SUCCESS);
+		}
+		
+		else {
+			response.setServiceMessage("Please provide the Project Id..!!");
+			response.setServiceStatus(response.STATUS_FAIL);
+		}
+	}
+		else {
+			response.setServiceMessage("Please provide the Employee Id..!!");
+			response.setServiceStatus(response.STATUS_FAIL);
+		}
+		
+		return response;
+	}
+	
+	
+	public ServiceResponse getExpiredPo() {
+		ServiceResponse serviceResponse = new ServiceResponse();
+	    try {
+	    	List<ProjectDTO> expiredPoList = new ArrayList<>();
+		      
+		        List<Project> result = projectRepository.getExpiredPolist();
+
+		    if (result.isEmpty()) {
+	            serviceResponse.setServiceResponse("No data found");
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        } else {
+	            serviceResponse.setServiceResponse(result);
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        }
+    } catch (Exception e) {
+        e.printStackTrace(); 
+        serviceResponse.setServiceResponse("Error occurred while fetching data");
+        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+    }
+    
+    return serviceResponse;
+	}
+
 	
 	
 	public ServiceResponse getRewardsAndAppreciationCount(AppreciationAndRewardsCountDto employeeDto) {
@@ -6643,5 +6745,91 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		return response;
 }
 	
+	public ServiceResponse sendExpiredPoEmail(ExpiredPOMailSendDTO employeeDTO) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+//		businessMail;vpMails;
+		System.out.println(employeeDTO.getExpiredData());
+		String subject = "PROVIDE INFORMATION REGARDING EXPIRED PROJECT/POs";
+		String bodyText = generateEmailBody(employeeDTO.getExpiredData());
+		try {
+		boolean mailSent = mailService.sendMailWithCC(businessMail,vpMails,subject,bodyText);
+		if(!mailSent) {
+			serviceResponse.setServiceStatus(serviceResponse.STATUS_FAIL);
+			serviceResponse.setServiceMessage("Unable to send mail...!!");
+		}
+		else {
+			serviceResponse.setServiceStatus(serviceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceMessage("Mail sent successfully...!!");
+		}
+		}
+		catch(Exception e){
+			serviceResponse.setErrorStackTrace(e.getMessage());
+			serviceResponse.setServiceMessage(serviceResponse.SOMETHING_WENT_WRONG);
+			serviceResponse.setServiceStatus(serviceResponse.STATUS_FAIL);
+		}
+		
+		return serviceResponse;
+	}
 	
+	public String generateEmailBody(PoObject expiredData) {
+		System.out.println(expiredData);
+	    StringBuilder emailBody = new StringBuilder();
+//	    SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+	    emailBody.append("Hello Business Team,<br><br>");
+	    emailBody.append("The following Projects/POs seems to be expired:<br><br>");
+	    
+//	    	String formattedEndDate = dateFormat.format(expiredData.getEndDate());
+	        emailBody.append("<b>PO Number:</b> ").append(expiredData.getPoNo())
+	                 .append(" | <b>Project Name:</b> ").append(expiredData.getProjectName())
+	                 .append(" | <b>PO/Project Type:</b> ").append(expiredData.getPoType())
+	                 .append(" | <b>End Date:</b> ").append(expiredData.getEndDate())
+	                 .append("<br>");
+	    
+	    return emailBody.toString();
+	}
+	
+	public ServiceResponse getAllEmployeesWorkAnniversaryToday() {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getAllEmployeesWorkAnniversaryToday");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    try {
+	        Optional<List<Object[]>> optionalEmployeeList = employeeRepository.getAllEmployeesWorkAnniversaryToday();
+	        List<Object[]> allEmployeeList = optionalEmployeeList.orElse(Collections.emptyList());
+	        apiLogInfo.setApiRequest("getAllEmployeesWorkAnniversaryToday: " + allEmployeeList.size());
+
+	        if (!allEmployeeList.isEmpty()) {
+	            List<GetAllEmployeesWorkAnniversaryTodayDTO> dtoList = allEmployeeList.stream()
+	                .map(object -> {
+	                    GetAllEmployeesWorkAnniversaryTodayDTO empDTO = new GetAllEmployeesWorkAnniversaryTodayDTO();
+	                    empDTO.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+	                    empDTO.setName(object[1] != null ? object[1].toString() : null);
+	                    empDTO.setDateOfJoining(object[2] != null ? object[2].toString() : null);
+	                    empDTO.setTotalYearsWorked(object[3] != null ? object[3].toString() : null);
+	                    empDTO.setEmail(object[4] != null ? object[4].toString() : null);
+	                    empDTO.setDepartmentName(object[5] != null ? object[5].toString() : null);
+	                    return empDTO;
+	                }).collect(Collectors.toList());
+
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(dtoList);
+	            apiLogInfo.setApiResponse("List fetched of size: " + dtoList.size());
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Employee list is empty.");
+	            apiLogInfo.setApiResponse("Employee list is empty.");
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("An error occurred while processing the request.");
+	        apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        apiLogInfo.setLogLevel("ERROR");
+	        response.setServiceError(e.getMessage());
+	    }
+
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
 }

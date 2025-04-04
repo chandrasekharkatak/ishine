@@ -1314,11 +1314,11 @@ public class RewardsService {
 			            dto.setCreatedBY(row[5] != null ? Long.parseLong(row[5].toString()) : null);
 			            dto.setRewardCategoryId(row[6] !=null ? Long.parseLong(row[6].toString()) : null);	
 			            dto.setRewardCategory(row[7] != null ? row[7].toString() : null);
-			            dto.setNameId(row[8] !=null ? Long.parseLong(row[8].toString()) : null);			            
-			            
-			            List<RewardTeamDTO> teamList = getTeamsByEmpId(request.getEmpId());
-			            
-			            dto.setTeamlist(teamList);
+			            dto.setNameId(row[8] !=null ? Long.parseLong(row[8].toString()) : null);
+			            dto.setOfMonthYear(row[9] != null ? row[9].toString() : null);	            
+//			            List<RewardTeamDTO> teamList = getTeamsByEmpId(request.getEmpId());
+//			            
+//			            dto.setTeamlist(teamList);
 			            rewardList.add(dto);
 			        }
 		        }
@@ -1419,8 +1419,8 @@ public class RewardsService {
 	    List<EmployeeRewardsDTO> rewardList = new ArrayList<>();
 
 	    if (request.getEmpId() != null) {
-	        List<Object[]> result = employeeRewardsRepository.getRewardByTeamAndDateRange(request.getOfMonthYear(),request.getTeamId());
-	        for (Object[] row : result) {
+	        List<Object[]> result = employeeRewardsRepository.getRewardByTeamAndDateRange(request.getOfMonthYear(),request.getEmpId());	       
+	        		for (Object[] row : result) {
 	            EmployeeRewardsDTO dto = mapRowToDTO(row);
 	            rewardList.add(dto);
 	        }
@@ -1448,6 +1448,7 @@ public class RewardsService {
 	    dto.setRewardCategoryId(getLongValue(row[6]));
 	    dto.setRewardCategoryName(getStringValue(row[7]));
 	    dto.setId(getLongValue(row[8]));
+	    dto.setOfmonthyear(getStringValue(row[9]));  
 	    return dto;
 	}
 

@@ -289,6 +289,38 @@ public class MailService {
 		}
 	}
 	
+	public boolean sendMailWithoutAttachmentWithMailBody2(String receiver, String subject, String htmlBody, String cc)
+            throws AddressException, MessagingException {
+
+        try {
+            Session session = mailProperties();
+            Message msg = new MimeMessage(session);
+
+            msg.setSubject(subject);
+            msg.setFrom(new InternetAddress(sender));
+            msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(receiver));
+
+            if (cc != null && !cc.isEmpty()) {
+                msg.setRecipients(Message.RecipientType.CC, InternetAddress.parse(cc));
+            }
+
+            MimeBodyPart messageBodyPart = new MimeBodyPart();
+            messageBodyPart.setContent(htmlBody, "text/html");
+
+            Multipart multipart = new MimeMultipart();
+            multipart.addBodyPart(messageBodyPart);
+
+            msg.setContent(multipart);
+
+            javax.mail.Transport.send(msg);
+            return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+	
 	public static void main(String[] args) {
 		MailService mailTest = new MailService();
 		try {

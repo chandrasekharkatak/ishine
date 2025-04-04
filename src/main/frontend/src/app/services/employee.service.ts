@@ -104,6 +104,10 @@ export class EmployeeService {
     return this.http.get(`${this.baseUrl}` + `api/getAllEmployeesBirthDayToday`);
   }
 
+  getAllEmployeesWorkAnniversaryToday() {
+    return this.http.get(`${this.baseUrl}` + `api/getAllEmployeesWorkAnniversaryToday`);
+  }
+
   getHierarchyByEmpId(employeeObj: Employee) {
     return this.http.post(`${this.baseUrl}` + `api/getHierarchyByEmpId`, employeeObj);
   }
@@ -338,5 +342,18 @@ getAllEmployeesReportByProjectTypeInConsolidated(){
 getAllEmployeesReportByProjectType(){
   return this.http.get(`${this.baseUrl}`+`api/getAllEmployeesReportByProjectType`);
 }
+
+//Update Default ProjectName for employee
+updateDefaultProject(newemployeeObj : any){
+  return this.http.post(`${this.baseUrl}` + `api/updateDefaultProject`, newemployeeObj);
+ }
+
+ getExpiredPo(){
+  return this.http.get(`${this.baseUrl}` + `api/getExpiredPo`);
+ }
+
+ sendExpiredPoEmail(employeeDTO:any){
+  return this.http.post(`${this.baseUrl}` + `api/sendExpiredPoEmail`,employeeDTO);
+ }
 
 }

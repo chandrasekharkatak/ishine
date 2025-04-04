@@ -104,13 +104,14 @@ export class ResourceManagementComponent implements OnInit {
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
   filters: any = {};
   isSearchEnabled: boolean = false;
-  projectColumns: any[] = ["blank", "blank", "name", "projectManagerName", "clientName", "clientState", "createdOn", "status", "isDraftProject"];
+  projectColumns: any[] = ["blank", "blank", "name","poNo","projectManagerName", "clientName", "apmosysRM", "clientRM" , "clientState" ,"createdOn", "status", "isDraftProject"];
 
   projectDetails: any = [];
   copyDepartment : any = [];
   currentBreadcrumbList: any[] = [];
   // employeesFor360: any[] = [];
   allEmployeeList360: any[] = [];
+  poProjectListFromIshine: any[] = [];
 
   constructor(
     private departmentService: DepartmentService,
@@ -235,107 +236,18 @@ export class ResourceManagementComponent implements OnInit {
     "Maharashtra",
   ];
 
-  // getAllProjects(){
-  //   fetch(this.currentUser.poPortalAllProjectApi).then(res => res.json()).then(async data => {
-  //     let allPoProject = data;
-  //     this.resourceManagementService.getInternalProject().pipe(first()).subscribe((response: any) => {
-  //       if (response.serviceStatus == "Success") {
-  //         this.internalProjectList = response.serviceResponse;
-
-  //         let _projectList = [...allPoProject,...this.internalProjectList];
-
-  //         if((_projectList != null || _projectList != undefined) && (this.teamCreatedProjectList != null || this.teamCreatedProjectList != undefined)){
-
-  //           //sort according to dateTime
-  //           _projectList = _projectList.sort((a, b) => (new Date(a.createdOn).getTime() < new Date(b.createdOn).getTime()) ? 1 : -1);
-
-  //           _projectList.sort((a) => {
-  //             if (a.isTeamCreated && a.isDraftProject == 'Pending For Approval') {
-  //               return -1;
-  //             } else {
-  //               return 1;
-  //             }
-  //           });
-
-  //           //console.log("AllPo projects   ::  ",allPoProject);
-  //           //console.log(this.teamCreatedProjectList, " : teamCreatedProjectList");
-
-  //           //console.log(" _projectList    ::  ",_projectList);
-  //           _projectList.forEach((proj) => {
-
-  //             if(proj.id != null){
-  //               let selectedProj = this.teamCreatedProjectList.find((projTeam) => proj.id == projTeam.poProjectId);
-
-
-  //               if(selectedProj){
-  //                 proj.isTeamCreated = true;
-  //                 proj.isDraftProject = selectedProj.isDraftProject == 'true' ? 'Pending For Approval' : selectedProj.isDraftProject == 'Rejected' ? 'Rejected' : selectedProj.isDraftProject == 'false' ? 'Approved' : "NA";
-  //                 proj.createdOn = (proj.createdOn)? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-  //                 //console.log("proj.isDraftProject",  proj.isDraftProject);
-  //               }else{
-  //                 proj.isTeamCreated = false;
-  //                 proj.isDraftProject = "NA";
-  //                 proj.createdOn = (proj.createdOn)? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-  //               }
-  //             }else{
-  //               let selectedProj = this.teamCreatedProjectList.find((projTeam) => proj.projectId == projTeam.projectId);
-
-  //               if(selectedProj){
-  //                 proj.isTeamCreated = true;
-  //                 proj.isDraftProject = proj.projectType;
-  //                 proj.createdOn = (proj.createdOn)? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-  //               }else{
-  //                 proj.isTeamCreated = false;
-  //                 proj.isDraftProject = proj.projectType;
-  //                 proj.createdOn = (proj.createdOn)? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-  //               }
-  //             }
-
-  //             if (proj.status != null) {
-  //               if (proj.status == "true") {
-  //                 proj.status = "InProgress";
-  //               } else if (proj.status == "false") {
-  //                 proj.status = "Completed";
-  //               } else {
-  //                 proj.status = proj.status;
-  //               }
-  //             } else {
-  //               return null;
-  //             }
-
-  //           });
-
-  //         }
-
-  //         this.allProjectList = _projectList;
-  //         //console.log(this.allProjectList, " all projects");
-
-  //         // Navigate to Project when used link
-
-  //         if(this.currentProjectId != undefined || this.currentProjectId != null){
-  //           this.allProjectList.forEach((proj) => {
-  //             if(proj.id == this.currentProjectId){
-  //               proj.isEditProject = true;
-  //               this.showEditProjectForm(proj);
-  //             }
-  //           })
-  //         }
-  //         //console.log(this.internalProjectList, " this.internalProjectList");
-  //       } else {
-  //         console.error(response.serviceResponse);
-  //       }
-  //     });
-  //   });
-  // }
-
   getAllProjects() {
+    this.resourceManagementService.getPoProjectDetailsForPoProjects().pipe(first()).subscribe((response: any) => { 
+      this.poProjectListFromIshine = response.serviceResponse;
+    });
+
     fetch(this.currentUser.poPortalAllProjectApi).then(res => res.json()).then(async data => {
       let allPoProject = data;
       //console.log("allPoProject    V  allPoProject   ",allPoProject);
       this.resourceManagementService.getInternalProject().pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.internalProjectList = response.serviceResponse;
-console.log(this.internalProjectList.length);
+
           let _projectList = [...allPoProject, ...this.internalProjectList];
 
           if ((_projectList != null || _projectList != undefined) && (this.teamCreatedProjectList != null || this.teamCreatedProjectList != undefined)) {
@@ -368,6 +280,7 @@ console.log(this.internalProjectList.length);
                 proj.isDraftProject = selectedProj.isActive == 2 ? 'Pending For Approval' : selectedProj.isDraftProject == 'true' ? 'Pending For Approval' : selectedProj.isDraftProject == 'Rejected' ? 'Rejected' : selectedProj.isDraftProject == 'false' ? 'Approved' : "NA";
                 proj.isActive = selectedProj.isActive;
                 proj.createdOn = (proj.createdOn) ? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+                proj.prrojectViewId = selectedProj.projectId;
               } else {
                 proj.isTeamCreated = false;
                 proj.isDraftProject = "NA";
@@ -388,13 +301,14 @@ console.log(this.internalProjectList.length);
             // Process internal projects
             this.internalProjectList.forEach((proj) => {
               let selectedProj = this.teamCreatedProjectList.find((projTeam) => proj.projectId == projTeam.projectId);
-              console.log("Priyadarshini",proj.projectId," ",proj.projectName);
+              // console.log("Priyadarshini",proj.projectId," ",proj.projectName);
 
               if (selectedProj) {
                 proj.isTeamCreated = true;
                 proj.isDraftProject = selectedProj.isDraftProject == 'true' ? 'Pending For Approval' : selectedProj.isDraftProject == 'Rejected' ? 'Rejected' : selectedProj.isDraftProject == 'false' ? 'Approved' : "NA";
                 // proj.isDraftProject = proj.projectType;
                 proj.createdOn = (proj.createdOn) ? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+                proj.prrojectViewId = selectedProj.projectId;
               } else {
                 proj.isTeamCreated = false;
                 proj.isDraftProject = proj.projectType;
@@ -426,16 +340,46 @@ console.log(this.internalProjectList.length);
 
             // added in single list  
 
-            this.allProject_Po_Internal = [ ...this.internalProjectList];
-
+            this.allProject_Po_Internal = [...this.poPortalProjectList, ...this.internalProjectList];
             for(let y of this.allProject_Po_Internal){
               let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === y.projectManager);
-              console.log('matches++',matchingEmployee);
-              y.emp360 = matchingEmployee ? matchingEmployee : {};
-            }
+                  // console.log('matches++',matchingEmployee);
+                  y.emp360 = matchingEmployee ? matchingEmployee : {};
+                }
+
 
             //console.log(_projectList, " all projects");
-            console.log(this.internalProjectList, " this.internalProjectList");
+            // console.log(this.internalProjectList, " this.internalProjectList");
+
+            this.allProject_Po_Internal.forEach((internalProj) => {
+              if(internalProj.id != null){
+                allPoProject.forEach((allPoProj) => {
+                  if (allPoProj?.id != null) {
+                    let matchedProject = this.poProjectListFromIshine.find(
+                      (poProj) => poProj?.id === internalProj?.id
+                    );
+                
+                    if (matchedProject && matchedProject?.id != null && allPoProj.id === matchedProject.id) {
+                      const normalizeDate = (dateString) => {
+                        return new Date(dateString).toISOString().split('T')[0]; 
+                      };
+                      const allPoProjEndDate = normalizeDate(allPoProj?.endDate);
+                      const matchedProjectEndDate = normalizeDate(matchedProject?.endDate);
+                      if (allPoProj?.poNo === matchedProject?.poNo && allPoProjEndDate === matchedProjectEndDate ) {
+                        internalProj.isSynced = true;
+                      } else if (allPoProj.poNo != matchedProject.poNo || allPoProjEndDate != matchedProjectEndDate) {
+                        internalProj.isSynced = false;
+                      } else {
+                        console.log('Internal Project ', internalProj?.projectId);
+                      }
+                      if (new Date(matchedProjectEndDate) < new Date()) {
+                        internalProj.isMail = true;
+                      } 
+                    }
+                  }
+                });
+              }
+          });
 
             console.error("  allProject_Po_Internal   ", this.allProject_Po_Internal);
           } else {
@@ -445,8 +389,7 @@ console.log(this.internalProjectList.length);
       });
     });
   }
-
-
+  
   alreadyCreatedTeam() {
     this.resourceManagementService.alreadyCreatedTeam().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1264,7 +1207,9 @@ console.log(this.internalProjectList.length);
         "Client State": x.clientState,
         "Created On": x.createdOn,
         "Approval Status": x.isDraftProject,
-        "Project Status": x.status
+        "Project Status": x.status,
+        "Apmosys RM": x.apmosysRM,
+        "Client RM": x.clientRM
       })
     )
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
@@ -1410,5 +1355,24 @@ console.log("this.copyDepartment ",this.copyDepartment);
     this.showEditProjectForm(this.projectObj);
   }
 
+  syncPoProjectDetailsByProjectId(template: TemplateRef<any>, project: any) {
+    this.resourceManagementService.syncPoProjectDetailsByProjectId(project).pipe(first()).subscribe((response: any) => { 
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  sendEmailNotificationToBDTeam(template: TemplateRef<any>, project: any) {
+    this.resourceManagementService.sendEmailNotificationToBDTeam(project).pipe(first()).subscribe((response: any) => { 
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
 
 }
