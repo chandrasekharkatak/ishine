@@ -41,5 +41,6 @@ public class PerformanceDTO {
     private String isUserHaveTeam;
     private String employeeRole;
     private Long departmentId;
+    private String tabType;
     
 }

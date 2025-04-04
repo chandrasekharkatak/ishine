@@ -40,4 +40,9 @@ public class ProjectInsightResponse {
 	
 	private String documentFileName;
 	
+	private Long processTo;
+	
+	@Column(columnDefinition = "varchar(10) DEFAULT 'Y'")
+	private String isDraft;
+	
 }

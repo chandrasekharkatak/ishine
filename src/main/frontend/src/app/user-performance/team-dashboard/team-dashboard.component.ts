@@ -24,6 +24,11 @@ export class TeamDashboardComponent implements OnInit {
   @ViewChild('singleAssignTemplate') singleAssignTemplate: TemplateRef<any>;
   @ViewChild('multiGoalTemplate') multiGoalTemplate: TemplateRef<any>;
 
+  //Tabs
+  isMyTeamView:boolean = false;
+  isTeamUnderReview:boolean = false;
+  tabType: any;
+
   viewPerformanceEmpId: any;
 
   currentUser: User;
@@ -83,19 +88,9 @@ export class TeamDashboardComponent implements OnInit {
   ngOnInit() {
     this.logService.updateLogInfo(this.log);
     const today = new Date();
-    console.log('today date: ', today);
-
-    console.log('Current user:', this.currentUser);
-    if (this.currentUser && this.currentUser.hodId) {
-      this.hodId = this.currentUser.hodId;
-      console.log('HOD ID:', this.hodId);
-      // this.getEmployeesInDepartment();
-      this.getTeamEmployeeListInTeamDashboard();
-      this.loadGoalTemplates();
-      this.loadQuarters();
-    } else {
-      console.error('Current user or HOD ID is undefined');
-    }
+    
+    this.loadGoalTemplates();
+    this.loadQuarters();
     this.fetchQuarters();
 
     let featureMap: Feature = this.currentUser.userMapping.find(
@@ -106,6 +101,23 @@ export class TeamDashboardComponent implements OnInit {
         sub.isActive;
     });
 
+    this.showMyTeam();
+  }
+
+  showMyTeam(){
+    this.tabType = "myTeam";
+    this.isMyTeamView = true;
+    this.isTeamUnderReview = false;
+
+    this.getTeamEmployeeListInTeamDashboard();
+  }
+
+  showMyTeamUnderReview(){
+    this.tabType = "reviewTeam";
+    this.isTeamUnderReview = true;
+    this.isMyTeamView = false;
+
+    this.getTeamEmployeeListInTeamDashboard();
   }
 
   fetchQuarters(): void {
@@ -131,7 +143,8 @@ export class TeamDashboardComponent implements OnInit {
     let empObj = {
       empId: this.currentUser.empId,
       employeeRole: this.currentUser.employeeRole,
-      departmentId: this.currentUser.departmentId
+      departmentId: this.currentUser.departmentId,
+      tabType: this.tabType
     };
 
     this.performanceService.getTeamEmployeeListInTeamDashboard(empObj).subscribe(
