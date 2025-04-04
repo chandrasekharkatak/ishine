@@ -87,7 +87,8 @@ export class TeamDashboardComponent implements OnInit {
     if (this.currentUser && this.currentUser.hodId) {
       this.hodId = this.currentUser.hodId;
       console.log('HOD ID:', this.hodId);
-      this.getEmployeesInDepartment();
+      // this.getEmployeesInDepartment();
+      this.getTeamEmployeeListInTeamDashboard();
       this.loadGoalTemplates();
       this.loadQuarters();
     } else {
@@ -123,6 +124,24 @@ export class TeamDashboardComponent implements OnInit {
     });
   }
   
+  getTeamEmployeeListInTeamDashboard(){
+    this.viewTeamMemberList = [];
+    let empObj = {
+      empId: this.currentUser.empId,
+      employeeRole: this.currentUser.employeeRole,
+      departmentId: this.currentUser.departmentId
+    };
+
+    this.performanceService.getTeamEmployeeListInTeamDashboard(empObj).subscribe(
+      (response: any) => {
+        this.viewTeamMemberList = response;
+      },
+      (error) => {
+        console.error('Error fetching team members:', error);
+        this.loading = false;
+      }
+    );
+  }
   
   getEmployeesInDepartment() {
     this.teamDashboardService.findEmployeesInSameDepartmentAsCurrentUser(this.hodId).subscribe(

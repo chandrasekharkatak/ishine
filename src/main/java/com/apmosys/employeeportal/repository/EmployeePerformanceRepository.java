@@ -68,6 +68,35 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 			+ "AND e.date_of_joining <= DATE_FORMAT(NOW(), '%Y-12-31') - INTERVAL 1 YEAR\n"
 			+ "GROUP BY d.name, e7.name")
 	List<Object[]> DepartmentbyEmployeecontquery();
+
+	@Query(nativeQuery = true , value="SELECT e.emp_id,e.name,e.employeement_id FROM employee e")
+	List<Object[]> getAllEmployeeForTeamMember();
+
+	@Query(
+		    nativeQuery = true,
+		    value = "SELECT e.emp_id, e.name, e.employeement_id " +
+		            "FROM employee e " +
+		            "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id " +
+		            "INNER JOIN department d ON d.dept_id = jr.dept_id " +
+		            "WHERE d.dept_id IN (:deptIds)"
+		)
+	List<Object[]> getAllEmployeeForTeamMemberByDepartment(@Param("deptIds") List<Long> deptIds);
+
+	@Query(
+		    nativeQuery = true,
+		    value = "SELECT e.emp_id,e.name,e.employeement_id from employee_team_mapping etm \n"
+		    		+ "INNER JOIN employee e ON e.emp_id=etm.emp_id \n"
+		    		+ "WHERE etm.team_id IN (:teamIds) and etm.active=1 "
+		)	
+	List<Object[]> getAllTeamMembers(@Param("teamIds") List<Long> teamIds);
+
+	@Query(
+		    nativeQuery = true,
+		    value = "SELECT e.emp_id,e.name,e.employeement_id FROM employee e \n"
+		    		+ "WHERE e.reporting_manager_id=:empId OR e.manager_id=:empId "
+		)	
+	List<Object[]> getAllEmployeeReportByEmpId(Long empId);
+
 	
 	
 	

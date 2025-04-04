@@ -1,7 +1,7 @@
 package com.apmosys.employeeportal.service;
 
 import com.apmosys.employeeportal.dto.DomainDTO;
-import com.apmosys.employeeportal.dto.employeeteamDto;
+import com.apmosys.employeeportal.dto.EmployeeteamDto;
 import com.apmosys.employeeportal.model.Employee;
 //import com.apmosys.employeeportal.model.ServiceResponse;
 import com.apmosys.employeeportal.model.UserSession;
@@ -32,11 +32,11 @@ public class employeeDeptService {
        try {
 			
     	   List<Object[]> getNames = employeeRepository.findEmployeesInSameDepartmentAsCurrentUser(hodId);
-			List<employeeteamDto> dtoList = new ArrayList<>();
+			List<EmployeeteamDto> dtoList = new ArrayList<>();
 			System.out.println("........"+getNames);
 			if(!getNames.isEmpty()) {
 					for(Object[] object : getNames) {
-						employeeteamDto employee = new employeeteamDto();
+						EmployeeteamDto employee = new EmployeeteamDto();
 						
 						
 						employee.setEmpId(object[0]!= null ? Long.parseLong(object[0].toString()) : null);

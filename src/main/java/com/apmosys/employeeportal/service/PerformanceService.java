@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -18,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import com.apmosys.employeeportal.dto.EmployeeteamDto;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PerformanceDTO;
 import com.apmosys.employeeportal.dto.PerformanceRatingDTO;
@@ -30,6 +33,7 @@ import com.apmosys.employeeportal.model.EmployeeRatingPerformance;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.QuaterCycle;
 import com.apmosys.employeeportal.model.ReviewType;
+import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeePerformanceRepository;
 import com.apmosys.employeeportal.repository.EmployeeRatingPerformanceRepository;
@@ -37,6 +41,7 @@ import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.QuarterCycleRepository;
 import com.apmosys.employeeportal.repository.ReviewTypeRepository;
+import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @Service
@@ -68,6 +73,9 @@ public class PerformanceService {
 	
 	@Autowired
 	EmployeeTeamMapRepository employeeTeamMapRepository;
+	
+	@Autowired
+	TeamRepository teamRepository;
 	
 	public ServiceResponse addReviewType(ReviewTypeDTO reviewTypeDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -1002,6 +1010,99 @@ public class PerformanceService {
 			e.printStackTrace();
 		}
 		return ResponseEntity.ok(responseObj);
+	}
+
+
+
+
+	public ResponseEntity<List<EmployeeteamDto>> getTeamEmployeeListInTeamDashboard(PerformanceDTO performanceDTO) {
+		List<EmployeeteamDto> response = new ArrayList<EmployeeteamDto>();
+		try {
+			List<Object[]> employeeDbResponse = null;
+			List<Object[]> employeeTeamDbResponse = null;
+			// if employeeRole = SuperAdmin,HR,RMG show all users
+			if(performanceDTO.getEmployeeRole().equalsIgnoreCase("SuperAdmin")
+					|| performanceDTO.getEmployeeRole().equalsIgnoreCase("HR")
+					|| performanceDTO.getEmployeeRole().equalsIgnoreCase("RMG")) {
+				employeeDbResponse = employeePerformanceRepository.getAllEmployeeForTeamMember();
+			}else if(performanceDTO.getEmployeeRole().equalsIgnoreCase("HOD") ) {
+				// if employeeRole = HoD show all users by department
+				List<Long> deptIds = departmentRepository.findByHodId(performanceDTO.getEmpId())
+					    .stream()
+					    .map(Department::getDeptId)
+					    .collect(Collectors.toList());
+				
+				employeeDbResponse = employeePerformanceRepository
+						.getAllEmployeeForTeamMemberByDepartment(deptIds);
+			}else {
+				/* if employeeRole = Manager, TL, Employee show user by reportsTo 
+				   && user persona in a Team i.e if user is Employee but persona in Team is of TL
+				*/
+				List<EmployeeTeamMap> emplTeamList = employeeTeamMapRepository.findByEmpIdAndActive(performanceDTO.getEmpId(), 1l);
+				List<Long> teamIds = new ArrayList<>();
+				AtomicBoolean isTeamAssign = new AtomicBoolean(false);
+				if(!emplTeamList.isEmpty()) {
+					teamIds = emplTeamList.stream().map(EmployeeTeamMap::getTeamId).collect(Collectors.toList());
+					emplTeamList.forEach((object) -> {
+						if(object.getEmployeeRole().contains("TeamLead") ||
+								object.getEmployeeRole().contains("HOD") || 
+								object.getEmployeeRole().contains("Manager") || 
+								object.getEmployeeRole().contains("HR") || 
+								object.getEmployeeRole().contains("RMG") || object.getEmployeeRole().contains("SuperAdmin")) {
+							isTeamAssign.set(true);
+							return;
+						}
+					});
+				}
+				
+				if(isTeamAssign.get()) {
+					// get Team members
+					employeeDbResponse = employeePerformanceRepository.getAllTeamMembers(teamIds);
+					employeeTeamDbResponse = employeePerformanceRepository.getAllEmployeeReportByEmpId(performanceDTO.getEmpId());
+				}else {
+					// get employee who are reporting to me
+					employeeDbResponse = employeePerformanceRepository.getAllEmployeeReportByEmpId(performanceDTO.getEmpId());
+				}
+			}
+			
+			if(!employeeDbResponse.isEmpty()) {
+				employeeDbResponse.forEach((object) -> {
+					EmployeeteamDto employee = new EmployeeteamDto();
+					
+					employee.setEmpId(object[0]!= null ? Long.parseLong(object[0].toString()) : null);
+					employee.setName(object[1] != null ? object[1].toString(): null);
+					employee.setEmployeementId(object[2]!= null ? Long.parseLong(object[2].toString()) : null);
+					employee.setGoalsCompleted(null);
+					employee.setTotalGoals(null);
+				
+					response.add(employee);
+				});
+				
+				if(!employeeTeamDbResponse.isEmpty()) {
+					employeeTeamDbResponse.forEach((object) -> {
+						Long empIdFromDb = Long.parseLong(object[0].toString());
+
+				        boolean exists = response.stream()
+				                .anyMatch(dto -> empIdFromDb == dto.getEmpId());
+				        
+				        if (!exists) {
+				            EmployeeteamDto dto = new EmployeeteamDto();
+
+				            dto.setEmpId(empIdFromDb);
+				            dto.setName(object[1] != null ? object[1].toString(): null);
+				            dto.setEmployeementId(object[2]!= null ? Long.parseLong(object[2].toString()) : null);
+				            dto.setGoalsCompleted(null);
+				            dto.setTotalGoals(null);
+
+				            response.add(dto);
+				        }
+					});
+				}
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return ResponseEntity.ok(response);
 	}
 
 

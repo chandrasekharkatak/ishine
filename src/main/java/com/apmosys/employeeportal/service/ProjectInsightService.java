@@ -439,16 +439,6 @@ public class ProjectInsightService {
 					questionDto.setEntityId(question.getEntityId());
 					questionDto.setEntityType(question.getEntityType());
 					
-					ProjectInsightResponse dbResponse = projectInsightResponseRepository
-							.findByQuestionMasterId(question.getQuestionMasterId());
-					
-					if(dbResponse != null) {
-						questionDto.setResponse(dbResponse.getResponse());
-						questionDto.setResponseId(dbResponse.getProjectInsightResponseId());
-						questionDto.setEmpId(dbResponse.getEmpId());
-						questionDto.setDocumentPath(dbResponse.getDocumentPath());
-					}
-					
 					response.add(questionDto);
 				});
 			}

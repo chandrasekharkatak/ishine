@@ -1,6 +1,8 @@
 package com.apmosys.employeeportal.controller;
 
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.dto.EmployeeteamDto;
 import com.apmosys.employeeportal.dto.NotificationDTO;
 import com.apmosys.employeeportal.dto.PerformanceDTO;
 import com.apmosys.employeeportal.dto.QuarterCycleDTO;
@@ -168,5 +171,15 @@ public class PerformanceController {
 	public ResponseEntity<PerformanceDTO> checkUserHaveTeam(@RequestBody PerformanceDTO performanceDTO){
 		return performanceService.checkUserHaveTeam(performanceDTO);
 	}
+	
+	/*
+	 * ----------------------------- Team dashboard Apis---------------------------------
+	 * */
+	
+	@RequestMapping(value="/getTeamEmployeeListInTeamDashboard", method = RequestMethod.POST)
+	public ResponseEntity<List<EmployeeteamDto>> getTeamEmployeeListInTeamDashboard(@RequestBody PerformanceDTO performanceDTO) {
+		return performanceService.getTeamEmployeeListInTeamDashboard(performanceDTO);
+	}
+	
 	
 }

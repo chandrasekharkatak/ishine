@@ -142,6 +142,10 @@ export class PerformanceService {
     return this.http.get(`${this.baseUrl}` + `api/getReviewLabelForEveryDepartment`);
   }
 
+  getTeamEmployeeListInTeamDashboard(empObj: any){
+    return this.http.post(`${this.baseUrl}` + `api/getTeamEmployeeListInTeamDashboard`, empObj);
+  }
+
 
   /* ------------------------------ Review Apis --------------------------- */
 

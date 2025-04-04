@@ -20,7 +20,7 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 @RestController
 @CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping(path = "/api")
-public class employeeTeamController {
+public class EmployeeTeamController {
 	
 	@Autowired
 	private employeeDeptService employeedeptservice;

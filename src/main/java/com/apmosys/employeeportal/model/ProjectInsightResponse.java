@@ -35,4 +35,9 @@ public class ProjectInsightResponse {
 	private Timestamp createdOn;
 	private Long updatedBy;
 	
+	@Column(columnDefinition = "varchar(10) DEFAULT 'Y'")
+	private String isActive;
+	
+	private String documentFileName;
+	
 }

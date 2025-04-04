@@ -39,5 +39,7 @@ public class PerformanceDTO {
     private String hrReviewStatus;
     private Long performanceRatingId;
     private String isUserHaveTeam;
+    private String employeeRole;
+    private Long departmentId;
     
 }
