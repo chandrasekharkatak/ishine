@@ -302,7 +302,7 @@ teamData(id:any){
             }
   this.defaultview=false;
  this.team.teamId=id;
- alert(this.team.teamId);
+
 this.getTeamFromEmployeeMapping();
 //this.getBiomatrixFilter();
 

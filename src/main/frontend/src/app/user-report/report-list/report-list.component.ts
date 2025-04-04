@@ -130,7 +130,7 @@ export class ReportListComponent implements OnInit {
   employeeReportColumn:any[] = ['blank','employeementId','employeeType','name','departmentName','jobRoleName','managerName','mobileNo','email','employmentstatus','projectName','poNo','poStartDate','poEndDate','poProjectType','clientName','billable','billableType','dateOfJoining','aadhar','aboutMe','address','permanentAddress','city','bloodGroup','dateOfBirth','gender','fatherName','panNumber','placeOfBirth','workLocation','probationPeriod','noticePeriod','country','totalExperience','emergencyContactMobile','emergencyContactPerson','landline','maritalStatus','motherTongue','alternateMobileNo','pincode','relation','state','viewsOnOrganisation','passportNumber','bankAccountNo','bankIFSCCode','bankName','pfAccountNumber','previousPfAccountNumber','uan','esicNumber','graduationType','pursuing','passingGrade','yearOfPassing','updatedOn','updatedByName','createdByName','createdOn'];
   leaveTimesheetReportColumn:any[] = ['employeementId','employeeType','employeeName','date','dayType','description','status','managerName','departmentName','createdOn','updatedOn','timesheetStatusUpdatedByName'];
   defaultMappingColumns:any[] = ['tabName','featureName','subFeatureName'];
-  employeesFor360:any[] = [];
+
   departments:any [] = [];
   allEmployee : any[] =[];
   filteredEmployees: any []=[];
@@ -173,12 +173,7 @@ export class ReportListComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    try {
-      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
-      // console.log("Priyadarshini ", this.employeesFor360);
-    } catch (error) {
-      console.error("Error fetching employee details for 360 view", error);
-    }
+   
     // Dynamic Subfeature Flags 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -798,19 +793,10 @@ onDepartmentChangeTimesheet(event: any){
           // console.log("allLeaveApplicationsList ",this.employeesFor360);
         });
         this.allLeaveApplicationsList.forEach(leave => {
-          // console.log("leave.empId ",leave.empId);
-          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === leave.empId);
-          // console.log("allLeaveApplicationsList matchingEmployee",matchingEmployee);
-          leave.emp360 = matchingEmployee ? matchingEmployee : {};
-          // console.log("allLeaveApplicationsList ",this.employeesFor360);
-          // console.log("leave.managerId ",leave.managerId);
-          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === leave.managerId);
-          // console.log("allLeaveApplicationsList matchingEmployee2",matchingEmployee2);
-          leave.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
-          leave.emp360 = matchingEmployee ? matchingEmployee : {};
-            let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === leave.timesheetStatusUpdatedBy);
-            // console.log("timesheet ",matchingEmployee)
-            leave.emp360UpdatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+         leave.emp360 = leave.empId;
+           leave.emp360Manager = leave.managerId;
+          leave.emp360 = leave.empId;
+             leave.emp360UpdatedBy = leave.timesheetStatusUpdatedBy;
         });
         // console.log("allLeaveApplicationsList : getAllLeaveApplicationsList", this.allLeaveApplicationsList)
       } else {
@@ -855,25 +841,13 @@ onDepartmentChangeTimesheet(event: any){
             if(leave.toDateDayType != null){
               leave.toDateDayType = leave.toDateDayType === 0 ? "Full Day" : "Half Day";
             }
-          });
-          for(let y of this.allLeaveApplicationsList){
-
-              // console.log("y.empId ",y.empId);
-              let matchingEmployee = this.employeesFor360.find(emp => emp.empId === y.empId);
-              // console.log("allLeaveApplicationsList matchingEmployee",matchingEmployee)
-              y.emp360 = matchingEmployee ? matchingEmployee : {};
-
-              // console.log("y.managerId ",y.managerId);
-              let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === y.managerId);
-              // console.log("allLeaveApplicationsList matchingEmployee2",matchingEmployee2);
-              y.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
-
-              // console.log("y.timesheetStatusUpdatedBy ",y.leaveStatusUpdatedBy);
-              let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === y.leaveStatusUpdatedBy);
-              // console.log("timesheet ",matchingEmployee)
-              y.emp360UpdatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+            leave.emp360 =leave.empId;
+            leave.emp360Manager = leave.managerId;
+            leave.emp360UpdatedBy =leave.leaveStatusUpdatedBy;
        
-            }
+            
+          });
+         
           // console.log("allLeaveApplicationsList getCustomLeaveApplicationsList: ", this.allLeaveApplicationsList)
         } else {
           this.openAlertMod(template, response.serviceResponse)
@@ -901,16 +875,11 @@ onDepartmentChangeTimesheet(event: any){
           timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.updatedOn = (timesheet.updatedOn) ? moment(timesheet.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+          timesheet.emp360 =  timesheet.empId;
+          timesheet.emp360UpdatedBy = timesheet.timesheetStatusUpdatedBy;
+     
         });
-        this.allTimesheetApplicationsList.forEach(timesheet => {
-          let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === timesheet.employeementId);
-          // console.log("timesheet ",matchingEmployee)
-          timesheet.emp360 = matchingEmployee ? matchingEmployee : {};
-          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === timesheet.timesheetStatusUpdatedBy);
-          // console.log("timesheet ",matchingEmployee)
-          timesheet.emp360UpdatedBy = matchingEmployee2 ? matchingEmployee2 : {};
-        });
-        //console.log("allTimesheetApplicationsList : ", this.allTimesheetApplicationsList)
+       
       } else {
         alert(response.serviceResponse)
       }
@@ -942,15 +911,11 @@ onDepartmentChangeTimesheet(event: any){
             timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
             timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
             timesheet.updatedOn = (timesheet.updatedOn) ? moment(timesheet.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+            timesheet.emp360 =timesheet.empId;
+            timesheet.emp360UpdatedBy =timesheet.timesheetStatusUpdatedBy;
+       
           });
-          this.allTimesheetApplicationsList.forEach(timesheet => {
-            let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === timesheet.employeementId);
-            // console.log("timesheet ",matchingEmployee)
-            timesheet.emp360 = matchingEmployee ? matchingEmployee : {};
-            let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === timesheet.timesheetStatusUpdatedBy);
-            // console.log("timesheet ",matchingEmployee)
-            timesheet.emp360UpdatedBy = matchingEmployee2 ? matchingEmployee2 : {};
-          });
+         
           //console.log("allTimesheetApplicationsList : ", this.allTimesheetApplicationsList)
         } else {
           this.openAlertMod(template, response.serviceResponse)
@@ -978,23 +943,12 @@ onDepartmentChangeTimesheet(event: any){
           employee.dateOfJoining = (employee.dateOfJoining) ? moment(employee.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
           employee.createdOn = (employee.createdOn) ? moment(employee.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           employee.updatedOn = (employee.updatedOn) ? moment(employee.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+          employee.emp360 = employee.empId;    
+          employee.emp360Manager = employee.managerId;
+          employee.emp360CreatedBy = employee.createdBy;
+          employee.emp360UpdatedBy = employee.updatedBy;
         });
-        this.allEmployeeList.forEach(employee => {
-          let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === employee.employeementId);
-          // console.log("allEmployeeList matchingEmployee : ", matchingEmployee)
-          employee.emp360 = matchingEmployee ? matchingEmployee : {};    
-          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === employee.managerId);
-          // console.log("leave match ",matchingEmployee);
-          employee.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
-          // console.log("employee.createdBy ", employee.createdBy);
-          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
-          // console.log("createdby ", matchingEmployee3);
-          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
-          console.log("employee.updatedBy getAllEmpoyee", employee.updatedBy);
-          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
-          console.log("updatedBy getAllEmpoyee ", matchingEmployee4);
-          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
-      });
+   
         //console.log("allEmployeeList : ", this.allEmployeeList)
       } else {
         alert(response.serviceResponse)
@@ -1033,23 +987,13 @@ onDepartmentChangeTimesheet(event: any){
             employee.dateOfJoining = (employee.dateOfJoining) ? moment(employee.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
             employee.createdOn = (employee.createdOn) ? moment(employee.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
             employee.updatedOn = (employee.updatedOn) ? moment(employee.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+            employee.emp360 = employee.empId;    
+            employee.emp360Manager = employee.managerId;
+            employee.emp360CreatedBy = employee.createdBy;
+            employee.emp360UpdatedBy = employee.updatedBy;
+    
           });
-          this.allEmployeeList.forEach(employee => {
-            let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === employee.employeementId);
-            //console.log("allEmployeeList matchingEmployee : ", matchingEmployee)
-            employee.emp360 = matchingEmployee ? matchingEmployee : {};    
-            let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === employee.managerId);
-            // console.log("leave match ",matchingEmployee);
-            employee.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
-            // console.log("employee.createdBy ", employee.createdBy);
-            let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
-            //console.log("createdby ", matchingEmployee3);
-            employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
-            console.log("employee.updatedBy ", employee.updatedBy);
-            let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
-            console.log("updatedBy ", matchingEmployee4);
-            employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
-        });
+        
           //console.log("allEmployeeList : ", this.allEmployeeList)
         } else {
           this.openAlertMod(template, response.serviceResponse)
@@ -1483,18 +1427,11 @@ onDepartmentChangeTimesheet(event: any){
           x.date = (x.date) ? moment(x.date).format(AppComponent.DATE_FORMAT) : null;
           x.createdOn = (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           x.updatedOn = (x.updatedOn) ? moment(x.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+          x.emp360 =x.empId;
+          x.emp360Manager=x.managerId;
+          x.emp360UpdatedBy=x.timesheetStatusUpdatedBy;
         }
-        for(let y of this.allLeaveTimesheets){
-          let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === y.employeementId);
-          // console.log("matchingEmployee  allLeaveTimesheets: ", matchingEmployee)
-          y.emp360 = matchingEmployee ? matchingEmployee : {};
-          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === y.managerId);
-          // console.log("leave match ",matchingEmployee);
-          y.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
-          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === y.timesheetStatusUpdatedBy);
-          // console.log("leave match ",matchingEmployee);
-          y.emp360UpdatedBy = matchingEmployee3 ? matchingEmployee3 : {};
-        }
+       
         // console.log("allLeaveTimesheets :", this.allLeaveTimesheets);
       } else {
         console.error(response.serviceResponse)

@@ -422,7 +422,7 @@ exportToExcel(id:any): void {
   }
 
   findByProject(projectId: number,projectName:string){
-    alert(projectId);
+    
     this.isProjectTeamClicked=true;
     this.projectClicked=true;
     this.allSelected=false;
@@ -433,7 +433,7 @@ exportToExcel(id:any): void {
   }
 
   findByTeam(teamName: any, teamId : any){
-    alert(teamName);
+   
     this.isProjectTeamClicked=true;
     this.teamClicked=true;
     this.allSelected=false;

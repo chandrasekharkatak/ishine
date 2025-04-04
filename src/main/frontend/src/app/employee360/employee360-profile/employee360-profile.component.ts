@@ -128,7 +128,7 @@ export class Employee360ProfileComponent implements OnInit {
   ngOnInit(): void {
    
     const storedData = sessionStorage.getItem('employee360Data');
-   
+  
     const parsedData = storedData ? JSON.parse(storedData) : null;
     if (parsedData != null || parsedData != undefined) {
       this.employeeData = parsedData;

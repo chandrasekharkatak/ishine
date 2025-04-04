@@ -159,7 +159,7 @@ options:any;
 
   userMapping: any = {};
   feature = 'Reports';
-  employeesFor360: any[] = [];
+ 
 
   constructor(
     private leaveService : LeaveService,
@@ -181,7 +181,7 @@ options:any;
         });
     this.sectionViewInit();
     this.preventBackButton();
-    this.getAllEmployeeFor360View();
+
   }
   preventBackButton(){
     history.pushState(null, null, location.href);
@@ -278,13 +278,10 @@ options:any;
 
           employee.dateOfResign = (employee.dateOfResign)? moment(employee.dateOfResign).format(AppComponent.DATE_FORMAT) : null;
           employee.dateOfRelieving = (employee.dateOfRelieving)? moment(employee.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+       employee.emp360 = employee.empId;
 
-          let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === employee.employeementId);
-          employee.emp360 = matchingEmployee ? matchingEmployee : {};
-
-          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === employee.managerId);
           // console.log("leave match ",matchingEmployee);
-          employee.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
+          employee.emp360Manager = employee.managerId;
         });
 
         // console.log("allResignEmployee : ", this.allResignEmployee)
@@ -324,12 +321,8 @@ options:any;
           }
           let age = this.getAge(data.dateOfBirth);
           data.age = age;
-
-          let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === data.employeementId);
-          data.emp360 = matchingEmployee ? matchingEmployee : {};
-          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === data.managerId);
-          // console.log("leave match ",matchingEmployee);
-          data.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {}
+     data.emp360 = data.empId;
+         data.emp360Manager = data.managerId;
         })
         // console.log("this.departmentWiseBillableEmployeeList ",this.departmentWiseBillableEmployeeList );
       }
@@ -360,12 +353,9 @@ options:any;
           if(leave.toDateDayType != null){
             leave.toDateDayType = leave.toDateDayType === 0 ? "Full Day" : "Half Day";
           }
-          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === leave.empId);
+           // console.log("leave match ",matchingEmployee);
           // console.log("leave match ",matchingEmployee);
-          leave.emp360 = matchingEmployee ? matchingEmployee : {};
-          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === leave.managerId);
-          // console.log("leave match ",matchingEmployee);
-          leave.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
+          leave.emp360Manager =leave.managerId;
         });
 
         //console.log("leaveSumarryList : ", this.leaveSumarryList);
@@ -641,12 +631,8 @@ options:any;
             totalListCount++;
           }
 
-          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === timesheet.empId);
-          // console.log("extractTimesheetReportData ",matchingEmployee);
-          timesheet.emp360 = matchingEmployee ? matchingEmployee : {};
-          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === timesheet.managerId);
-          console.log("extractTimesheetReportData ",matchingEmployee2);
-          timesheet.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
+          timesheet.emp360 =  timesheet.empId;
+          timesheet.emp360Manager = timesheet.managerId;
 
         });
 
@@ -785,10 +771,8 @@ options:any;
         // console.log("Initial employeeWorkLocationList: ", this.employeeWorkLocationList);
         this.employeeWorkLocationList.forEach(data =>{
           data.employeementId = "A-".concat(data.employeementId)
-
-          let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === data.employeementId);
-          // console.log("matchingEmployee",matchingEmployee);
-          data.emp360 = matchingEmployee ? matchingEmployee : {};
+    // console.log("matchingEmployee",matchingEmployee);
+          data.emp360 = data.empId;
 
           // if(data.isConsultant == 'true'){
           //   data.employeementId = "A-CS-".concat(data.employeementId)
@@ -873,12 +857,10 @@ options:any;
             x.relievingMonth = moment(x.dateOfRelieving).format('MMMM');
             x.joiningMonth = moment(x.dateOfJoining).format('MMMM');
 
-            let matchingEmployee = this.employeesFor360.find(emp => emp.empId === x.empId);
+             // console.log("matching ",matchingEmployee)
+            x.emp360 = x.empId;
             // console.log("matching ",matchingEmployee)
-            x.emp360 = matchingEmployee ? matchingEmployee : {};
-            let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === x.managerId);
-            // console.log("matching ",matchingEmployee)
-            x.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
+            x.emp360Manager =x.managerId;
           }
             // console.log("allEmployeeList : ", this.allEmployeeList)
             this.extractData();
@@ -929,11 +911,8 @@ options:any;
             employee.relievingMonth = moment(employee.dateOfRelieving).format('MMMM');
             employee.joiningMonth = moment(employee.dateOfJoining).format('MMMM');
 
-            let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === employee.employeementId);
-            employee.emp360 = matchingEmployee ? matchingEmployee : {};
-            let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === employee.managerId);
-          // console.log("leave match ",matchingEmployee);
-          employee.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
+            employee.emp360 = employee.empId;
+            employee.emp360Manager = employee.managerId;
           });
           this.extractData();
           //console.log("allEmployeeList : ", this.allEmployeeList)
@@ -3749,12 +3728,8 @@ exportGlobalData():void{
         x.employeeType=((x.isApprenticeship  === 'true') ? 'Apprentice' : ((x.isConsultant  === 'true') ? 'Consultant' : 'Regular'))
       });
       this.modalSummaryList.forEach(y=>{
-        let matchingEmployee = this.employeesFor360.find(emp => emp.empId === y.empId);
-        // console.log("openLeaveSummaryTableModel ",matchingEmployee);
-        y.emp360 = matchingEmployee ? matchingEmployee : {};    
-        let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === y.managerId);
-        // console.log("openLeaveSummaryTableModel ",matchingEmployee);
-        y.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};         
+       y.emp360 = y.empId;    
+        y.emp360Manager = y.managerId;         
       });
       console.log('modalSummaryList --',this.modalSummaryList)
       this.modalRef = this.modalService.show(this.leaveSummaryTemplate, { class: 'modal-lg' });
@@ -3793,15 +3768,13 @@ exportGlobalData():void{
       });
       // console.log(this.countByLegend,"modalSummaryList");
       this.modalSummaryList = this.countByLegend;
-      let employee360 = this.employeesFor360;
-      for(let x of employee360){
-        x.employeementId = Number(x.employeementId.substring(2));
-      }
+      // let employee360 = this.employeesFor360;
+      // for(let x of employee360){
+      //   x.employeementId = Number(x.employeementId.substring(2));
+      // }
       for(let y of this.modalSummaryList){
-        let matchingEmployee = employee360.find(emp => emp.employeementId === y.employeementId);
-        y.emp360 = matchingEmployee ? matchingEmployee : {};
-        let matchingEmployee2 = employee360.find(emp => emp.empId === y.managerId);
-        y.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
+        y.emp360 = y.empId;
+       y.emp360Manager =y.managerId;
       }
       // console.log(this.modalSummaryList, "this.checked")
       this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
@@ -4312,32 +4285,6 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
     //console.log("Updated Filter : ", this.filters);
   }
 
-  getAllEmployeeFor360View(){
-    this.employeesFor360 = [];
-    this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.employeesFor360 = response.serviceResponse;
-        // console.log("allEmployeeListFor360 : ", this.employeesFor360)
-        this.employeesFor360.forEach(employeeObj => {
-          employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
-          employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-          employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-          employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-          employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          if (employeeObj.isConsultant == 'true')
-            employeeObj.employeeType = 'Consultant';
-          else if (employeeObj.isApprenticeship == 'true')
-            employeeObj.employeeType = 'Apprentice';
-          else
-            employeeObj.employeeType = 'Regular';
-          });
-          this.employeesFor360 = this.employeesFor360;
-          this.employeesFor360 = new SortPipe().transform(this.employeesFor360, ['name', 'string', 'asc']);
-        } else {
-          alert(response.serviceResponse);
-        }
-    });
-  }
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
