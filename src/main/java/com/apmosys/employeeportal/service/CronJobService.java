@@ -5701,7 +5701,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		}
 		
 		@Async
-		@Scheduled(cron = "0 36 12 ? * *")
+//		@Scheduled(cron = "0 36 12 ? * *")
 		@Transactional
 		public void getProjectCloneFromPoPortal() {
 			

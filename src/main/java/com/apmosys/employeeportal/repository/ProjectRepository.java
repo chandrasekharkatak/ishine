@@ -76,4 +76,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 
 	@Query(nativeQuery = true)
 	List<Object[]> getExpiredPoProjectsWithoutInterval();
+	
+	@Query(nativeQuery = true)
+	List<Object[]> poProjectTimesheetSync(List<Integer> poProjectIdList);
 }
