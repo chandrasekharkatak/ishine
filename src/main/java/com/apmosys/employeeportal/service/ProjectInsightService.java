@@ -772,7 +772,7 @@ public class ProjectInsightService {
 														ProjectInsightAssignees newAssignObj = new ProjectInsightAssignees();
 														
 														newAssignObj.setAssignedTo(assignToId);
-														newAssignObj.setEntityId(moduleId);
+														newAssignObj.setEntityId(submoduleObject.getSubmoduleId());
 														newAssignObj.setEntityType("SubModule");
 														
 														ProjectInsightAssignees assignToDbResponse = projectInsightAssigneesRepository.save(newAssignObj);
