@@ -52,9 +52,9 @@
               <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
-        <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveReportInfo'"
+        <div class="table-container" bassHorizontalScroll [tableId]="'leaveReportInfo'"
           [tableTHeadId]="'leaveReportInfoTHead'" [tableTHeadTrId]="'leaveReportInfoTHeadTr'">
-          <table class="table table-responsive" matSort (matSortChange)="sortData($event)" id="leaveReportInfo">
+          <table class="table " matSort (matSortChange)="sortData($event)" id="leaveReportInfo">
             <thead class="thead-light" id="leaveReportInfoTHead">
               <tr id="leaveReportInfoTHeadTr">
                 <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|empId">Emp Id</th>
@@ -189,8 +189,8 @@
               <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
-        <div class="overflow-auto" bassHorizontalScroll >
-          <table class="table table-responsive" matSort (matSortChange)="sortData($event)">
+        <div class="table-container" bassHorizontalScroll >
+          <table class="table " matSort (matSortChange)="sortData($event)">
             <thead class="thead-light" >
               <tr >
                 <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Emp Id</th>
@@ -265,9 +265,9 @@
               <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
-        <div class="overflow-auto" bassHorizontalScroll [tableId]="'timesheetReportInfo'"
+        <div class="table-container" bassHorizontalScroll [tableId]="'timesheetReportInfo'"
           [tableTHeadId]="'timesheetReportTHead'" [tableTHeadTrId]="'timesheetReportTHeadTr'">
-          <table class="table table-responsive" matSort (matSortChange)="sortData($event)" id="timesheetReportInfo">
+          <table class="table " matSort (matSortChange)="sortData($event)" id="timesheetReportInfo">
             <thead class="thead-light" id="timesheetReportTHead">
               <tr id="timesheetReportTHeadTr">
                 <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Emp Id</th>
@@ -582,9 +582,9 @@
             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
-        <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeReportInfo'"
+        <div class="table-container" bassHorizontalScroll [tableId]="'employeeReportInfo'"
           [tableTHeadId]="'employeeReportInfoTHead'" [tableTHeadTrId]="'employeeReportInfoTHeadTr'">
-          <table class="table table-responsive" matSort (matSortChange)="sortData($event)">
+          <table class="table " matSort (matSortChange)="sortData($event)">
             <thead class="thead-light">
               <tr>
                 <th scope="col" class="info-label">Sr No.</th>
@@ -638,7 +638,7 @@
                 <td>
                   <ng-container *ngIf="employee.teamName">
                     {{ (show === i) ? employee.teamName : (employee.teamName | slice: 0:20) }}
-                    <a *ngIf="employee.teamName.length > 20" (click)="show = (show === i ? -1 : i)" >
+                    <a *ngIf="employee.teamName.length > 20" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
                       ..{{ (show === i) ? '▲' : '▼' }}
                     </a>
                   </ng-container>
@@ -646,7 +646,7 @@
                 <td>
                   <ng-container *ngIf="employee.projectName">
                     {{ (show === i) ? employee.projectName : (employee.projectName | slice: 0:20) }}
-                    <a *ngIf="employee.projectName.length > 20" (click)="show = (show === i ? -1 : i)">
+                    <a *ngIf="employee.projectName.length > 20" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
                       ..{{ (show === i) ? '▲' : '▼' }}
                     </a>
                   </ng-container>
@@ -654,7 +654,7 @@
                 <td>
                   <ng-container *ngIf="employee.poNo">
                     {{ (show === i) ? employee.poNo : (employee.poNo | slice: 0:20) }}
-                    <a *ngIf="employee.poNo.length > 20" (click)="show = (show === i ? -1 : i)">
+                    <a *ngIf="employee.poNo.length > 20" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
                       ..{{ (show === i) ? '▲' : '▼' }}
                     </a>
                   </ng-container>
@@ -668,7 +668,7 @@
                 <td>
                   <ng-container *ngIf="employee.clientName">
                     {{ (show === i) ? employee.clientName : (employee.clientName | slice: 0:20) }}
-                    <a *ngIf="employee.clientName.length > 20" (click)="show = (show === i ? -1 : i)">
+                    <a *ngIf="employee.clientName.length > 20" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
                       ..{{ (show === i) ? '▲' : '▼' }}
                     </a>
                   </ng-container>
@@ -708,9 +708,9 @@
             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
-        <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeReportInfo'"
+        <div class="table-container" bassHorizontalScroll [tableId]="'employeeReportInfo'"
           [tableTHeadId]="'employeeReportInfoTHead'" [tableTHeadTrId]="'employeeReportInfoTHeadTr'">
-          <table class="table table-responsive" id="employeeReport" matSort (matSortChange)="sortData($event)">
+          <table class="table " id="employeeReport" matSort (matSortChange)="sortData($event)">
             <thead class="thead-light" id="employeeReportInfoTHead">
               <tr>
                 <th scope="col" class="info-label">Sr No.</th>
@@ -821,7 +821,7 @@
                         style="cursor: pointer; color: blue;"  id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.projectId" style="cursor: pointer;" title="Click to view Project Details"> 
                         {{ project.projectName }}<span *ngIf="!last">, </span>
                     </span>
-                    <a *ngIf="employee.projectList.length > 2" (click)="show = (show === i ? -1 : i)" style="cursor: zoom-in">
+                    <a *ngIf="employee.projectList.length > 2" (click)="show = (show === i ? -1 : i)" style="cursor: zoom-out">
                       ..{{ (show === i) ? '▲' : '▼' }}
                     </a>
                   </ng-container>
@@ -839,7 +839,7 @@
                 <td>
                   <ng-container *ngIf="employee.poNo">
                     {{ (show === i) ? employee.poNo : (employee.poNo | slice: 0:20) }}
-                    <a *ngIf="employee.poNo.length > 20" (click)="show = (show === i ? -1 : i)">
+                    <a *ngIf="employee.poNo.length > 20" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
                       ..{{ (show === i) ? '▲' : '▼' }}
                     </a>
                   </ng-container>
@@ -850,7 +850,7 @@
                 <td>
                   <ng-container *ngIf="employee.clientName">
                     {{ (show === i) ? employee.clientName : (employee.clientName | slice: 0:20) }}
-                    <a *ngIf="employee.clientName.length > 20" (click)="show = (show === i ? -1 : i)">
+                    <a *ngIf="employee.clientName.length > 20" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
                       ..{{ (show === i) ? '▲' : '▼' }}
                     </a>
                   </ng-container>
@@ -871,7 +871,7 @@
                 <td>
                   <ng-container *ngIf="employee.aboutMe">
                     {{ (show === i) ? employee.aboutMe : (employee.aboutMe | slice: 0:20) }}
-                    <a *ngIf="employee.aboutMe.length > 20" (click)="show = (show === i ? -1 : i)">
+                    <a *ngIf="employee.aboutMe.length > 20" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
                       ..{{ (show === i) ? '▲' : '▼' }}
                     </a>
                   </ng-container>
@@ -1104,7 +1104,7 @@
               <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div> -->
-        <div class="overflow-auto" bassHorizontalScroll [tableId]="'defaultMappInfo'"
+        <div class="table-container" bassHorizontalScroll [tableId]="'defaultMappInfo'"
           [tableTHeadId]="'defaultMappInfoTHead'" [tableTHeadTrId]="'defaultMappInfoTHeadTr'" style="max-height: 65vh;">
           <table class="table table-bordered" matSort (matSortChange)="sortData($event)" id="defaultMappInfo">
             <thead class="thead-light acl-header" id="defaultMappInfoTHead">
@@ -1237,9 +1237,9 @@
               <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
-        <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveTimesheetReportInfo'"
+        <div class="table-container" bassHorizontalScroll [tableId]="'leaveTimesheetReportInfo'"
           [tableTHeadId]="'leaveTimesheetReportTHead'" [tableTHeadTrId]="'leaveTimesheetReportTHeadTr'">
-          <table class="table table-responsive" matSort (matSortChange)="sortData($event)"
+          <table class="table " matSort (matSortChange)="sortData($event)"
             id="leaveTimesheetReportInfo">
             <thead class="thead-light" id="leaveTimesheetReportTHead">
               <tr id="leaveTimesheetReportTHeadTr">

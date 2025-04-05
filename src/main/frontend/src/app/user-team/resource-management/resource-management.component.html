@@ -29,9 +29,9 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInfo'"
+                <div class="table-container" bassHorizontalScroll [tableId]="'projectInfo'"
                     [tableTHeadId]="'projectInfoTHead'" [tableTHeadTrId]="'projectInfoTHeadTr'">
-                    <table class="table table-responsive" id="projectInfo" matSort (matSortChange)="sortData($event)">
+                    <table class="table " id="projectInfo" matSort (matSortChange)="sortData($event)">
                         <thead class="thead-light" id="projectInfoTHead">
                             <tr id="projectInfoTHeadTr">
                                 <th></th>
@@ -670,7 +670,7 @@
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
-        <div class="modal-body ">
+        <div class="modal-body table-container">
 
             <table class="table project_table">
                 <thead class="thead-light">
