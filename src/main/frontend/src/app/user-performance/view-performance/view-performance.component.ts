@@ -536,8 +536,18 @@ export class ViewPerformanceComponent implements OnInit {
                       });
                     }
                   }
-                  if (response.isDraft == 'Y') {
+                  if(response.isDraft == 'Y'){
                     this.isFinalResponseSubmitted = false;
+                  } 
+                  if (response.isDraft == 'Y') {
+                    response.showDocDiv = true;
+                  } else if (response.isDraft == 'N' && response.uploadedFileName != undefined && response.uploadedFileName != null && response.uploadedFileName != '') {
+                    response.showDocDiv = true;
+                  } else {
+                    response.showDocDiv = false;
+                  }
+                  if(this.isResponsePreview){
+                    response.showDocDiv = true;
                   }
                 });
               } else {
@@ -568,8 +578,18 @@ export class ViewPerformanceComponent implements OnInit {
                           });
                         }
                       }
-                      if (response.isDraft == 'Y') {
+                      if(response.isDraft == 'Y'){
                         this.isFinalResponseSubmitted = false;
+                      } 
+                      if (response.isDraft == 'Y') {
+                        response.showDocDiv = true;
+                      } else if (response.isDraft == 'N' && response.uploadedFileName != undefined && response.uploadedFileName != null && response.uploadedFileName != '') {
+                        response.showDocDiv = true;
+                      } else {
+                        response.showDocDiv = false;
+                      }
+                      if(this.isResponsePreview){
+                        response.showDocDiv = true;
                       }
                     });
                   } else {
@@ -600,8 +620,18 @@ export class ViewPerformanceComponent implements OnInit {
                               });
                             }
                           }
-                          if (response.isDraft == 'Y') {
+                          if(response.isDraft == 'Y'){
                             this.isFinalResponseSubmitted = false;
+                          } 
+                          if (response.isDraft == 'Y') {
+                            response.showDocDiv = true;
+                          } else if (response.isDraft == 'N' && response.uploadedFileName != undefined && response.uploadedFileName != null && response.uploadedFileName != '') {
+                            response.showDocDiv = true;
+                          } else {
+                            response.showDocDiv = false;
+                          }
+                          if(this.isResponsePreview){
+                            response.showDocDiv = true;
                           }
                         });
                       } else {

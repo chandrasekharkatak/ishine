@@ -14,10 +14,11 @@ export class ProjectResponse {
     option:ProjectResponseOption = new ProjectResponseOption();
     optionsList:any[]= [];
     options:any;
-    isDraft:any;
+    isDraft:any = 'Y';
     processTo:any;
     marks:any;
     markType:any;
     questionId:any;
     empId:any;
+    showDocDiv:any = true;
 }

@@ -1206,6 +1206,7 @@ public class ProjectInsightService {
 							projectResponseDTO.setResponseByEmpName(employee != null ? employee.getName() : "");
 							projectResponseDTO.setIsDraft(projectInsightResponse.getIsDraft());
 							projectResponseDTO.setProcessTo(projectInsightResponse.getProcessTo());
+							projectResponseDTO.setMarks(projectInsightResponse.getMarks());
 							projectResponseDTOList.add(projectResponseDTO);
 							
 						}

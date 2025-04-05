@@ -18,4 +18,5 @@ public class ProjectResponseDTO {
     private String options;
     private String isDraft;
     private Long processTo;
+    private Double marks;
 }
