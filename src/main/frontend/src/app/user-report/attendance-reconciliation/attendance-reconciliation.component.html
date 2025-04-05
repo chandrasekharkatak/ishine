@@ -62,7 +62,7 @@
         <div class="overflow-auto" bassHorizontalScroll [tableId]="'attendanceIDReport'"
           [tableTHeadId]="'attendanceIDTHead'" [tableTHeadTrId]="'attendanceIDHeadTr'">
 
-          <table class="table table-responsive" matSort (matSortChange)="sortData($event)" id="attendanceIDReport">
+          <table class="table " matSort (matSortChange)="sortData($event)" id="attendanceIDReport">
             <thead class="thead-light" id="attendanceIDTHead">
               <tr id="attendanceIDHeadTr">
                 <th scope="col" class="info-label wide-col" mat-sort-header="employeeCode|string">Emp Id</th>
@@ -184,7 +184,7 @@
         <div class="row">
           <div class="overflow-auto" bassHorizontalScroll [tableId]="'ViewMoreID'" [tableTHeadId]="'viewmoreIDTHead'"
             [tableTHeadTrId]="'viewMoreIDHeadTr'" style="padding-left: 300px;">
-            <table class="table table-responsive" matSort (matSortChange)="sortData($event)" id="ViewMoreID">
+            <table class="table " matSort (matSortChange)="sortData($event)" id="ViewMoreID">
               <thead class="thead-light" id="viewmoreIDTHead">
                 <tr id="viewMoreIDHeadTr">
                   <th scope="col" class="info-label wide-col">Full Name</th>

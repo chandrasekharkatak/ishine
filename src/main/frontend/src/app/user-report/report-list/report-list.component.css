@@ -202,3 +202,15 @@
   .hover {
     background-color: rgba(0, 123, 255, 0.1); /* Change background on hover */
   }
+
+  .overflow-auto {
+    position: relative;
+    max-height: 500px; /* Set a max height for the scrollable area */
+    overflow-y: auto;
+  }
+  .thead-light{
+    position: sticky;
+    top: 0.7;
+    z-index: 100;
+    background: var(--ghost-white);
+  }
