@@ -504,8 +504,8 @@ saveKpiResponses(template: TemplateRef<any>): void {
                       });
                     }
                   }
-                  if(response.isDraft == 'N'){
-                    this.isFinalResponseSubmitted = true;
+                  if(response.isDraft == 'Y'){
+                    this.isFinalResponseSubmitted = false;
                   }
                 });
               } else {
@@ -536,8 +536,8 @@ saveKpiResponses(template: TemplateRef<any>): void {
                           });
                         }
                       }
-                      if(response.isDraft == 'N'){
-                        this.isFinalResponseSubmitted = true;
+                      if(response.isDraft == 'Y'){
+                        this.isFinalResponseSubmitted = false;
                       }
                     });
                   } else {
@@ -568,8 +568,8 @@ saveKpiResponses(template: TemplateRef<any>): void {
                               });
                             }
                           }
-                          if(response.isDraft == 'N'){
-                            this.isFinalResponseSubmitted = true;
+                          if(response.isDraft == 'Y'){
+                            this.isFinalResponseSubmitted = false;
                           }
                         });
                       } else {
