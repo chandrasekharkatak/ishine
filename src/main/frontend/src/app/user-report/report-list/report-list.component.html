@@ -1,13 +1,13 @@
 <div class="row mb-3">
   <div class="col-md-12 px-0">
     <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.employee_report"
-    [ngClass]="{'active' : isEmployeeReportTable}" (click)="showEmployeeReportTable()">View Employee Report</button>
+      [ngClass]="{'active' : isEmployeeReportTable}" (click)="showEmployeeReportTable()">View Employee Report</button>
     <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.leave_report"
       [ngClass]="{'active' : isLeaveReportTable}" (click)="showLeaveReportTable()">View Leave Report</button>
     <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.timesheet_report"
       [ngClass]="{'active' : isTimesheetReportTable}" (click)="showTimesheetReportTable()">View Timesheet
       Report</button>
-  
+
     <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isAccessControlListTable}"
       (click)="showAccessControlListTable()">ACL(Access Control List)</button>
     <button type="button" class="btn btn-outline-primary btn-sm mx-1"
@@ -46,10 +46,10 @@
 
     <div class="row">
       <div class="col-md-12">
-        <div class="selector-toggle" >
+        <div class="selector-toggle">
           <a href="javascript:void(0)" (click)="toggleSearch()">
-              <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
         <div class="table-container" bassHorizontalScroll [tableId]="'leaveReportInfo'"
@@ -88,7 +88,9 @@
                 *ngFor="let leave of allLeaveApplicationsList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{leave.employeementId}}</td>
                 <td>{{leave.employeeType}}</td>
-                <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="leave.emp360" style="cursor: pointer;" title="Click to view Employee 360" >{{leave.employeeName}}</td>
+                <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360"
+                  [navigateToEmployee360]="leave.emp360" style="cursor: pointer;" title="Click to view Employee 360">
+                  {{leave.employeeName}}</td>
                 <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{leave.employeeName}}</td>
                 <td>{{leave.leaveType}}</td>
                 <td>{{leave.fromDate}}</td>
@@ -98,13 +100,18 @@
                 <td>{{leave.noOfDays}}</td>
                 <td class="wide-col">{{leave.reason}}</td>
                 <td>{{leave.status}}</td>
-                <td class="text-capitalize" *ngIf="userMapping.reports_employee_360" id="clickablefor360" [navigateToEmployee360]="leave.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{leave.managerName}}</td>
+                <td class="text-capitalize" *ngIf="userMapping.reports_employee_360" id="clickablefor360"
+                  [navigateToEmployee360]="leave.emp360Manager" style="cursor: pointer;"
+                  title="Click to view Employee 360">{{leave.managerName}}</td>
                 <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{leave.managerName}}</td>
                 <td>{{leave.departmentName}}</td>
                 <td>{{leave.createdOn}}</td>
                 <td>{{leave.updatedOn}}</td>
-                <td class="text-capitalize" *ngIf="leave.leaveStatusUpdatedByName && userMapping.reports_employee_360" id="clickablefor360" [navigateToEmployee360]="leave.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{leave.leaveStatusUpdatedByName}}</td>
-                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360" >{{leave.leaveStatusUpdatedByName}}</td>
+                <td class="text-capitalize" *ngIf="leave.leaveStatusUpdatedByName && userMapping.reports_employee_360"
+                  id="clickablefor360" [navigateToEmployee360]="leave.emp360UpdatedBy" style="cursor: pointer;"
+                  title="Click to view Employee 360">{{leave.leaveStatusUpdatedByName}}</td>
+                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{leave.leaveStatusUpdatedByName}}
+                </td>
               </tr>
             </tbody>
           </table>
@@ -129,14 +136,14 @@
         <h1 class="table-header-title">Timesheet Report</h1>
       </div>
     </div>
-   
+
     <!-- <div class="col-md-3 col-sm-6 custom-control custom-switch">
       <input type="checkbox" class="custom-control-input" id="hierarchy-switch-1" (change)="toggleViewTimesheet()">
       <label class="custom-control-label" for="hierarchy-switch-1">Show Department Wise Timesheet Report</label>
     </div>
       <label class="custom-control-label" for="hierarchy-switch-1">Show Detailed Timesheet Report</label>
     </div> -->
-    
+
 
     <div class="row" *ngIf="!showDetailsTimesheet">
       <div class="form-group ml-auto col-md-6 col-lg-3">
@@ -147,7 +154,7 @@
               <i class="fa-solid fa-filter"></i>
             </button>
           </div>
-        
+
         </div>
       </div>
     </div>
@@ -157,7 +164,8 @@
       <div class="col-md-4">
         <div class="form-group">
           <label class="info-label"><span class="text-danger">*</span> Start Date</label>
-          <input id="startDate" type="date" class="form-control" [(ngModel)]="filteringTimesheet.startDate" (change)="getAllOrDeptWiseEmployeeTimesheetReport()" >
+          <input id="startDate" type="date" class="form-control" [(ngModel)]="filteringTimesheet.startDate"
+            (change)="getAllOrDeptWiseEmployeeTimesheetReport()">
         </div>
       </div>
 
@@ -165,7 +173,8 @@
       <div class="col-md-4">
         <div class="form-group">
           <label class="info-label"><span class="text-danger">*</span> End Date</label>
-          <input id="endDate" type="date" class="form-control" [(ngModel)]="filteringTimesheet.endDate" (change)="getAllOrDeptWiseEmployeeTimesheetReport()" >
+          <input id="endDate" type="date" class="form-control" [(ngModel)]="filteringTimesheet.endDate"
+            (change)="getAllOrDeptWiseEmployeeTimesheetReport()">
         </div>
       </div>
 
@@ -173,7 +182,8 @@
       <div class="col-md-4">
         <div class="form-group">
           <label class="info-label"><span class="text-danger">*</span> Department</label>
-          <select id="department" class="form-control" [(ngModel)]="selectedDepartment" (change)="onDepartmentChangeTimesheet($event)">
+          <select id="department" class="form-control" [(ngModel)]="selectedDepartment"
+            (change)="onDepartmentChangeTimesheet($event)">
             <option value="all" selected>All</option>
             <option *ngFor="let dept of departments" [value]="dept.deptId">{{ dept.name }}</option>
           </select>
@@ -183,10 +193,10 @@
 
     <div class="row" *ngIf="showDetailsTimesheet">
       <div class="col-md-12">
-        <div class="selector-toggle" >
+        <div class="selector-toggle">
           <a href="javascript:void(0)" (click)="toggleSearch()">
-              <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
         <div class="table-container" bassHorizontalScroll >
@@ -206,7 +216,7 @@
                 <th scope="col" class="info-label" mat-sort-header="activity|string">Activity</th>
                 <th scope="col" style="min-width: 250px;" class="info-label" mat-sort-header="description|string">
                   Description</th>
-                <th scope="col" class="info-label" mat-sort-header="managerName|string">Manager Name</th>  
+                <th scope="col" class="info-label" mat-sort-header="managerName|string">Manager Name</th>
                 <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="totalTime|number">Total Working
                   Hours</th>
@@ -216,15 +226,15 @@
                 <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By</th>
                 <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
               </tr>
-              <tr app-column-filter-bar *ngIf="isSearchEnabled"
-              [columnList]="filteredTimesheetReportColumns" (onSearch)="onSearch($event);page=1"></tr>
+              <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="filteredTimesheetReportColumns"
+                (onSearch)="onSearch($event);page=1"></tr>
             </thead>
             <tbody>
-              <tr
-                *ngIf="filteredTimesheets.length == 0 || (filteredTimesheets | colFilter:filters:false).length == 0">
+              <tr *ngIf="filteredTimesheets.length == 0 || (filteredTimesheets | colFilter:filters:false).length == 0">
                 <th colspan="13" class="text-center info-label">No details to display...</th>
               </tr>
-              <tr  *ngFor="let filterTimesheet of filteredTimesheets | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+              <tr
+                *ngFor="let filterTimesheet of filteredTimesheets | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{filterTimesheet.employeementId}}</td>
                 <td>{{filterTimesheet.employeeType}}</td>
                 <td>{{filterTimesheet.employeeName}}</td>
@@ -244,7 +254,7 @@
                 <td>{{filterTimesheet.officeOutTime}}</td>
                 <td>{{filterTimesheet.leaveType}}</td>
                 <td>{{filterTimesheet.createdByName}}</td>
-                <td>{{filterTimesheet.createdOn}}</td>  
+                <td>{{filterTimesheet.createdOn}}</td>
               </tr>
             </tbody>
           </table>
@@ -259,10 +269,10 @@
 <!-- view timesheet report  -->
     <div class="row" *ngIf="!showDetailsTimesheet">
       <div class="col-md-12">
-        <div class="selector-toggle" >
+        <div class="selector-toggle">
           <a href="javascript:void(0)" (click)="toggleSearch()">
-              <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
         <div class="table-container" bassHorizontalScroll [tableId]="'timesheetReportInfo'"
@@ -300,8 +310,10 @@
               <tr
                 *ngFor="let timesheet of allTimesheetApplicationsList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{timesheet.employeementId}}</td>
-                <td>{{timesheet.employeeType}}</td> 
-                <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;" title="Click to view Employee 360" >{{timesheet.employeeName}}</td>
+                <td>{{timesheet.employeeType}}</td>
+                <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360"
+                  [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;"
+                  title="Click to view Employee 360">{{timesheet.employeeName}}</td>
                 <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{timesheet.employeeName}}</td>
                 <td>{{timesheet.date}}</td>
                 <td>{{timesheet.dayType}}</td>
@@ -313,9 +325,13 @@
                 <td>{{timesheet.totalWorkingOfficeHours}}</td>
                 <td>{{timesheet.leaveType}}</td>
                 <td>{{timesheet.createdOn}}</td>
-                <td>{{timesheet.updatedOn}}</td>    
-                <td class="text-capitalize" *ngIf="timesheet.timesheetStatusUpdatedByName && userMapping.reports_employee_360" id="clickablefor360" [navigateToEmployee360]="timesheet.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{timesheet.timesheetStatusUpdatedByName}}</td>
-                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{timesheet.timesheetStatusUpdatedByName}}</td>
+                <td>{{timesheet.updatedOn}}</td>
+                <td class="text-capitalize"
+                  *ngIf="timesheet.timesheetStatusUpdatedByName && userMapping.reports_employee_360"
+                  id="clickablefor360" [navigateToEmployee360]="timesheet.emp360UpdatedBy" style="cursor: pointer;"
+                  title="Click to view Employee 360">{{timesheet.timesheetStatusUpdatedByName}}</td>
+                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">
+                  {{timesheet.timesheetStatusUpdatedByName}}</td>
               </tr>
             </tbody>
           </table>
@@ -378,87 +394,102 @@
         <!-- First Box (TNM) -->
         <div class="col-md-4">
           <div class="box border border-primary p-4 rounded text-center h-100 d-flex flex-column">
-            <h4>TNM</h4>
-            <div class="row mt-3 flex-grow-1">
-              <div
-                title="Click to View TNM-Active"
-                class="col-6 d-flex"
+            <!-- TNM with Project Count -->
+            <h4>TNM ({{tnmProjectCount}})</h4>
+        
+            <!-- Active PO and Expired PO Summary -->
+            <div class="mb-2">
+              <strong>Active PO:</strong>{{tnmPOProjectActiveCount}}&nbsp;&nbsp;&nbsp;
+              <strong>Expired PO:</strong>{{tnmPoProjectExpiredCount}}
+            </div>
+        
+            <!-- Employees mapped to -->
+            <div class="mb-1">
+              <strong>Employees mapped to:</strong>
+            </div>
+        
+            <!-- Active / Expired Employee Count Boxes -->
+            <div class="row mt-2 flex-grow-1">
+              <div title="Click to View TNM-Active" class="col-6 d-flex"
                 [ngClass]="{'clicked': activeBox === 'TNM-Active', 'hover': isHovering === 'TNM-Active'}"
-                (click)="onBoxClickDataChange('TNM-Active')"
-                (mouseover)="onMouseOver('TNM-Active')"
-                (mouseleave)="onMouseLeave()"
-              >
-                <div class="branch bg-success text-white p-3 rounded w-100 h-100 d-flex flex-column align-items-center justify-content-center">
-                  <h5>Active</h5>
-                  <p>{{ tnmPOValidCount }}</p>
+                (click)="onBoxClickDataChange('TNM-Active')" (mouseover)="onMouseOver('TNM-Active')"
+                (mouseleave)="onMouseLeave()">
+                <div
+                  class="branch bg-success text-white p-3 rounded w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                  <h5>Active PO</h5>
+                  <p>{{ tnmPOValidCount }}</p> <!-- Add this variable in TS for active employees -->
                 </div>
               </div>
-              <div
-                title="Click to View TNM-Expired"
-                class="col-6 d-flex"
+        
+              <div title="Click to View TNM-Expired" class="col-6 d-flex"
                 [ngClass]="{ 'clicked': activeBox === 'TNM-Expired', 'hover': isHovering === 'TNM-Expired' }"
-                (click)="onBoxClickDataChange('TNM-Expired')"
-                (mouseover)="onMouseOver('TNM-Expired')"
-                (mouseleave)="onMouseLeave()"
-              >
-                <div class="branch bg-danger text-white p-3 rounded w-100 h-100 d-flex flex-column align-items-center justify-content-center">
-                  <h5>Expired</h5>
-                  <p>{{ tnmPoExpiredCount }}</p>
+                (click)="onBoxClickDataChange('TNM-Expired')" (mouseover)="onMouseOver('TNM-Expired')"
+                (mouseleave)="onMouseLeave()">
+                <div
+                  class="branch bg-danger text-white p-3 rounded w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                  <h5>Expired PO</h5>
+                  <p>{{ tnmPoExpiredCount }}</p> <!-- Add this variable in TS for expired employees -->
                 </div>
               </div>
             </div>
           </div>
         </div>
-    
+        
+
         <!-- Second Box (Fixed Cost) -->
         <div class="col-md-4">
           <div class="box border border-primary p-4 rounded text-center h-100 d-flex flex-column">
-            <h4>Fixed Cost</h4>
-            <div class="row mt-3 flex-grow-1">
-              <div
-                title="Click to View FC-Active"
-                class="col-6 d-flex"
+            <h4>Fixed Cost ({{fixedCostProjectCount}})</h4>
+            <div class="mb-2">
+              <strong>Active PO:</strong>{{fixedCostPoProjectActiveCount}}&nbsp;&nbsp;&nbsp;
+              <strong>Expired PO:</strong>{{fixedCostPoProjectExpiredCount}}
+            </div>
+        
+            <!-- Employees mapped to -->
+            <div class="mb-1">
+              <strong>Employees mapped to:</strong>
+            </div>
+            <div class="row mt-2 flex-grow-1">
+              <div title="Click to View FC-Active" class="col-6 d-flex"
                 [ngClass]="{ 'clicked': activeBox === 'FC-Active', 'hover': isHovering === 'FC-Active' }"
-                (click)="onBoxClickDataChange('FC-Active')"
-                (mouseover)="onMouseOver('FC-Active')"
-                (mouseleave)="onMouseLeave()"
-              >
-                <div class="branch bg-success text-white p-3 rounded w-100 h-100 d-flex flex-column align-items-center justify-content-center">
-                  <h5>Active</h5>
+                (click)="onBoxClickDataChange('FC-Active')" (mouseover)="onMouseOver('FC-Active')"
+                (mouseleave)="onMouseLeave()">
+                <div
+                  class="branch bg-success text-white p-3 rounded w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                  <h5>Active PO</h5>
                   <p>{{ fixedCostPoValidCount }}</p>
                 </div>
               </div>
-              <div
-                title="Click to View FC-Expired"
-                class="col-6 d-flex"
+              <div title="Click to View FC-Expired" class="col-6 d-flex"
                 [ngClass]="{ 'clicked': activeBox === 'FC-Expired', 'hover': isHovering === 'FC-Expired' }"
-                (click)="onBoxClickDataChange('FC-Expired')"
-                (mouseover)="onMouseOver('FC-Expired')"
-                (mouseleave)="onMouseLeave()"
-              >
-                <div class="branch bg-danger text-white p-3 rounded w-100 h-100 d-flex flex-column align-items-center justify-content-center">
-                  <h5>Expired</h5>
+                (click)="onBoxClickDataChange('FC-Expired')" (mouseover)="onMouseOver('FC-Expired')"
+                (mouseleave)="onMouseLeave()">
+                <div
+                  class="branch bg-danger text-white p-3 rounded w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                  <h5>Expired PO</h5>
                   <p>{{ fixedCostPoExpiredCount }}</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
-    
+
         <!-- Third Box (Internal) -->
         <div class="col-md-4">
           <div class="box border border-primary p-4 rounded text-center h-100 d-flex flex-column">
-            <h4>Internal</h4>
+            <h4>Internal ({{internalProjectCount}})</h4>
+        
+            <!-- Employees mapped to -->
+            <div class="mb-1">
+              <strong>Employees mapped to:</strong>
+            </div>
             <div class="row mt-3 flex-grow-1">
               <div class="col-12 d-flex">
-                <div
-                  title="Click to View Internal"
+                <div title="Click to View Internal"
                   class="branch bg-warning text-white p-4 rounded w-100 h-100 d-flex flex-column align-items-center justify-content-center"
                   [ngClass]="{ 'clicked': activeBox === 'Internal', 'hover': isHovering === 'Internal' }"
-                  (click)="onBoxClickDataChange('Internal')"
-                  (mouseover)="onMouseOver('Internal')"
-                  (mouseleave)="onMouseLeave()"
-                >
+                  (click)="onBoxClickDataChange('Internal')" (mouseover)="onMouseOver('Internal')"
+                  (mouseleave)="onMouseLeave()">
                   <h5>Internal</h5>
                   <p>{{ internalCount }}</p>
                 </div>
@@ -466,15 +497,15 @@
             </div>
           </div>
         </div>
-    
+
       </div>
     </div>
-    
+
 
     <!-- <div class="container mt-5" *ngIf="showDetails">
       <div class="row justify-content-center"> -->
-        <!-- First Box -->
-        <!-- <div class="col-md-4">
+    <!-- First Box -->
+    <!-- <div class="col-md-4">
           <div class="box border border-primary p-4 rounded text-center">
             <h4>TNM</h4>
             <div class="row mt-3">
@@ -508,9 +539,9 @@
             </div>
           </div>
         </div> -->
-    
-        <!-- Second Box -->
-        <!-- <div class="col-md-4">
+
+    <!-- Second Box -->
+    <!-- <div class="col-md-4">
           <div class="box border border-primary p-4 rounded text-center">
             <h4>Fixed Cost</h4>
             <div class="row mt-3">
@@ -543,9 +574,9 @@
             </div>
           </div>
         </div> -->
-    
-        <!-- Third Box -->
-        <!-- <div class="col-md-2">
+
+    <!-- Third Box -->
+    <!-- <div class="col-md-2">
           <div class="box border border-primary p-4 rounded text-center">
             <h4>Internal</h4>
             <div
@@ -563,7 +594,7 @@
         </div>
       </div>
     </div> -->
-    
+
 
     <!-- sandy -->
     <div class="col-md-3 col-sm-6 custom-control custom-switch justify-content-end" *ngIf="showDetails">
@@ -604,19 +635,22 @@
                 <th scope="col" class="info-label " mat-sort-header="poType|string">Po Type</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="poStartDate|string">Po Start Date</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="poEndDate|string">Po End Date</th>
-                <th scope="col" class="info-label " mat-sort-header="effectiveStartDate|string">Effective Start Date</th>
+                <th scope="col" class="info-label " mat-sort-header="effectiveStartDate|string">Effective Start Date
+                </th>
                 <th scope="col" class="info-label " mat-sort-header="effectiveEndDate|string">Effective End Date</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="clientName|string">Client Name</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="clientLocation|string">Client Location</th>
                 <th scope="col" class="info-label" mat-sort-header="workLocation|string">Work Location</th>
                 <th scope="col" class="info-label" mat-sort-header="totalExperience|string">Experience</th>
-                <th *ngIf="changeTable" scope="col" class="info-label " mat-sort-header="totalExperience|string">Default Project Assigned</th>
-                <th *ngIf="changeTable" scope="col" class="info-label wide-col" mat-sort-header="defaultProject|string">Select Default Project</th>
+                <th *ngIf="changeTable" scope="col" class="info-label " mat-sort-header="totalExperience|string">Default
+                  Project Assigned</th>
+                <th *ngIf="changeTable" scope="col" class="info-label wide-col" mat-sort-header="defaultProject|string">
+                  Select Default Project</th>
               </tr>
               <tr app-column-filter-bar *ngIf="isEmployeeReportTable && isSearchEnabled && changeTable"
                 [columnList]="employeeReportColumnForDetailedProjectViewClub" (onSearch)="onSearch($event);page=1"></tr>
               <tr app-column-filter-bar *ngIf="isEmployeeReportTable && isSearchEnabled && !changeTable"
-              [columnList]="employeeReportColumnForDetailedProjectView" (onSearch)="onSearch($event);page=1"></tr>
+                [columnList]="employeeReportColumnForDetailedProjectView" (onSearch)="onSearch($event);page=1"></tr>
             </thead>
             <tbody>
               <tr *ngIf="filteredEmployees.length == 0 || (filteredEmployees | colFilter:filters: false).length == 0">
@@ -658,7 +692,7 @@
                       ..{{ (show === i) ? '▲' : '▼' }}
                     </a>
                   </ng-container>
-                </td>                                  
+                </td>
                 <td>{{ employee.poNo }}</td>
                 <td>{{ employee.poType }}</td>
                 <td>{{ employee.poStartDate }}</td>
@@ -679,11 +713,13 @@
                 <td *ngIf="changeTable">{{ employee.primaryProjectName || 'Not Assigned' }}</td>
                 <td *ngIf="changeTable">
                   <select class="form-control" [(ngModel)]="employee.selectedProject">
-                    <option *ngFor="let project of (employee.projectName && employee.projectName.trim() ? employee.projectName.split(',') : [])">
+                    <option
+                      *ngFor="let project of (employee.projectName && employee.projectName.trim() ? employee.projectName.split(',') : [])">
                       {{ project.trim() }}
                     </option>
                   </select>
-                  <button type="button" class="btn btn-sm btn-outline-primary ml-2 " style="float: right; margin-top: 1px;" (click)="updateDefaultProject(employee)">
+                  <button type="button" class="btn btn-sm btn-outline-primary ml-2 "
+                    style="float: right; margin-top: 1px;" (click)="updateDefaultProject(employee)">
                     Submit
                   </button>
                 </td>
@@ -804,22 +840,29 @@
                 <th class="info-label">{{20*(page-1)+i+1}}</th>
                 <td>{{employee.employeementId}}</td>
                 <td>{{employee.employeeType}}</td>
-                <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="employee.emp360" style="cursor: pointer;" title="Click to view Employee 360" (click)="cancelRequest()">{{employee.name}}</td>
+                <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360"
+                  [navigateToEmployee360]="employee.emp360" style="cursor: pointer;" title="Click to view Employee 360"
+                  (click)="cancelRequest()">{{employee.name}}</td>
                 <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{employee.name}}</td>
                 <td>{{employee.departmentName}}</td>
                 <td>{{employee.jobRoleName}}</td>
-                <td class="text-capitalize" *ngIf="userMapping.reports_employee_360 && employee.managerName"  id="clickablefor360" [navigateToEmployee360]="employee.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{employee.managerName}}</td>
-                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360 || !employee.managerName">{{employee.managerName}}</td>
+                <td class="text-capitalize" *ngIf="userMapping.reports_employee_360 && employee.managerName"
+                  id="clickablefor360" [navigateToEmployee360]="employee.emp360Manager" style="cursor: pointer;"
+                  title="Click to view Employee 360">{{employee.managerName}}</td>
+                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360 || !employee.managerName">
+                  {{employee.managerName}}</td>
                 <td>{{employee.mobileNo}}</td>
                 <td>{{employee.email}}</td>
                 <td>{{employee.employmentstatus}}</td>
 
                 <!-- added by anurag  -->
-                <td *ngIf="userMapping.reports_employee_360 && employee.projectList" >
-                  <ng-container *ngIf="show === i" >
+                <td *ngIf="userMapping.reports_employee_360 && employee.projectList">
+                  <ng-container *ngIf="show === i">
                     <span *ngFor="let project of employee.projectList; let last = last" class="info-label"
-                        style="cursor: pointer; color: blue;"  id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.projectId" style="cursor: pointer;" title="Click to view Project Details"> 
-                        {{ project.projectName }}<span *ngIf="!last">, </span>
+                      style="cursor: pointer; color: blue;" id="clickablefor360" (click)="cancelRequest()"
+                      [navigateToProjectView]="project.projectId" style="cursor: pointer;"
+                      title="Click to view Project Details">
+                      {{ project.projectName }}<span *ngIf="!last">, </span>
                     </span>
                     <a *ngIf="employee.projectList.length > 2" (click)="show = (show === i ? -1 : i)" style="cursor: zoom-out">
                       ..{{ (show === i) ? '▲' : '▼' }}
@@ -827,10 +870,13 @@
                   </ng-container>
                   <ng-container *ngIf="show !== i">
                     <span *ngFor="let project of getSlicedProjects(employee.projectList, 2) " class="info-label"
-                        style="cursor: pointer; color: blue;"  id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.projectId" style="cursor: pointer;" title="Click to view Project Details"> 
-                        {{ project.projectName }},
+                      style="cursor: pointer; color: blue;" id="clickablefor360" (click)="cancelRequest()"
+                      [navigateToProjectView]="project.projectId" style="cursor: pointer;"
+                      title="Click to view Project Details">
+                      {{ project.projectName }},
                     </span>
-                    <a *ngIf="employee.projectList.length > 2" (click)="show = (show === i ? -1 : i)" style="cursor: zoom-in">
+                    <a *ngIf="employee.projectList.length > 2" (click)="show = (show === i ? -1 : i)"
+                      style="cursor: zoom-in">
                       ..{{ (show === i) ? '▲' : '▼' }}
                     </a>
                   </ng-container>
@@ -860,7 +906,7 @@
 
                 <!-- added by anurag  -->
                 <!-- <td>{{employee.projectName}}</td> -->
-               
+
                 <!-- <td>{{employee.clientName}}</td>
                 <td>{{employee.billable}}</td>
                 <td>{{employee.billableType}}</td> -->
@@ -917,9 +963,13 @@
                 <td>{{employee.passingGrade}}</td>
                 <td>{{employee.yearOfPassing}}</td>
                 <td>{{employee.updatedOn}}</td>
-                <td *ngIf="employee.updatedByName && userMapping.reports_employee_360"id="clickablefor360" [navigateToEmployee360]="employee.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{employee.updatedByName}}</td>
+                <td *ngIf="employee.updatedByName && userMapping.reports_employee_360" id="clickablefor360"
+                  [navigateToEmployee360]="employee.emp360UpdatedBy" style="cursor: pointer;"
+                  title="Click to view Employee 360">{{employee.updatedByName}}</td>
                 <td *ngIf="!userMapping.reports_employee_360 || !employee.updatedByName">{{employee.updatedByName}}</td>
-                <td *ngIf="employee.createdByName && userMapping.reports_employee_360"id="clickablefor360" [navigateToEmployee360]="employee.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{employee.createdByName}}</td>
+                <td *ngIf="employee.createdByName && userMapping.reports_employee_360" id="clickablefor360"
+                  [navigateToEmployee360]="employee.emp360CreatedBy" style="cursor: pointer;"
+                  title="Click to view Employee 360">{{employee.createdByName}}</td>
                 <td *ngIf="!userMapping.reports_employee_360 || !employee.createdByName">{{employee.createdByName}}</td>
                 <td>{{employee.createdOn}}</td>
                 <td>
@@ -1231,10 +1281,10 @@
 
     <div class="row">
       <div class="col-md-12">
-        <div class="selector-toggle" >
+        <div class="selector-toggle">
           <a href="javascript:void(0)" (click)="toggleSearch()">
-              <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
         <div class="table-container" bassHorizontalScroll [tableId]="'leaveTimesheetReportInfo'"
@@ -1268,19 +1318,27 @@
                 *ngFor="let timesheet of allLeaveTimesheets | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <td>{{timesheet.employeementId}}</td>
                 <td>{{timesheet.employeeType}}</td>
-                <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{timesheet.employeeName}}</td>
+                <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360"
+                  [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;"
+                  title="Click to view Employee 360">{{timesheet.employeeName}}</td>
                 <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{timesheet.employeeName}}</td>
                 <td>{{timesheet.date}}</td>
                 <td>{{timesheet.dayType}}</td>
                 <td style="min-width: 250px;">{{timesheet.description}}</td>
                 <td>{{timesheet.status}}</td>
-                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360 || !timesheet.managerName">{{timesheet.managerName}}</td>
-                <td class="text-capitalize" *ngIf="userMapping.reports_employee_360 && timesheet.managerName" id="clickablefor360" [navigateToEmployee360]="timesheet.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{timesheet.managerName}}</td>
+                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360 || !timesheet.managerName">
+                  {{timesheet.managerName}}</td>
+                <td class="text-capitalize" *ngIf="userMapping.reports_employee_360 && timesheet.managerName"
+                  id="clickablefor360" [navigateToEmployee360]="timesheet.emp360Manager" style="cursor: pointer;"
+                  title="Click to view Employee 360">{{timesheet.managerName}}</td>
                 <td>{{timesheet.departmentName}}</td>
                 <td>{{timesheet.createdOn}}</td>
                 <td>{{timesheet.updatedOn}}</td>
-                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{timesheet.timesheetStatusUpdatedByName}}</td>
-                <td class="text-capitalize" *ngIf="userMapping.reports_employee_360" id="clickablefor360" [navigateToEmployee360]="timesheet.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{timesheet.timesheetStatusUpdatedByName}}</td>
+                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">
+                  {{timesheet.timesheetStatusUpdatedByName}}</td>
+                <td class="text-capitalize" *ngIf="userMapping.reports_employee_360" id="clickablefor360"
+                  [navigateToEmployee360]="timesheet.emp360UpdatedBy" style="cursor: pointer;"
+                  title="Click to view Employee 360">{{timesheet.timesheetStatusUpdatedByName}}</td>
               </tr>
             </tbody>
           </table>
