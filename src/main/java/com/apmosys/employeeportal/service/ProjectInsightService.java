@@ -1527,9 +1527,9 @@ public class ProjectInsightService {
 
 			List<Object[]> objectList = null;
 			if (projectInsightDTO.getPerformanceTabName().equals("Team Dashboard")) {
-				Employee employee = employeeRepository.findByEmpId(projectInsightDTO.getEmpId());
-				if (employee != null && employee.getRole() != null) {
-					projectInsightDTO.setEmployeeRole(employee.getRole());
+				String jobRole = employeeRepository.getJobRoleByEmployeeId(projectInsightDTO.getEmpId());
+				if (jobRole != null) {
+					projectInsightDTO.setEmployeeRole(jobRole);
 				}
 			}
 			
