@@ -34,6 +34,7 @@ export class DeptConfigComponent implements OnInit {
   isForm: boolean = false;
   isTable: boolean = false;
   data:string;
+  DepartmentTableHeader :any=[];
 
   sortDirection = 'asc';
   sortColumn: any;
@@ -81,6 +82,8 @@ export class DeptConfigComponent implements OnInit {
     private utilityService: UtilityService,
 ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    
+
   }
 
   async ngOnInit(): Promise<void> {

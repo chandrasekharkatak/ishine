@@ -1861,7 +1861,7 @@ public class ResourceManagementService {
 					projectDTO.setStatus(object[11] != null ? object[11].toString() : null);
 					projectDTO.setIsActive(object[12] != null ? Long.parseLong(object[12].toString()) :null);
 					//projectDTO.setIsActive(2l);
-					
+					projectDTO.setEmpId(object[13] != null ? Long.parseLong(object[13].toString()) :null);
 					//Find ClientName
 					Integer clientId = object[7] != null ? Integer.parseInt(object[7].toString()) : null;
 					if(clientId != null) {

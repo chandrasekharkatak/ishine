@@ -336,9 +336,10 @@ export class ResourceManagementComponent implements OnInit {
             // added in single list  
 
             this.allProject_Po_Internal = [...this.poPortalProjectList, ...this.internalProjectList];
+            console.log(this.allProject_Po_Internal);
             for(let y of this.allProject_Po_Internal){
                    // console.log('matches++',matchingEmployee);
-                  y.emp360 = y.projectManager;
+                  y.emp360 = y.empId;
                 }
 
 
@@ -412,7 +413,9 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   // Team
-
+  getSubstring(str: string): string {
+    return str.substring(0, 5); // or any logic you want
+  }
   getAllEmployeesByRole(departmentList: any) {
     this.teamLeadsList = [];
     let employeeList = [];
@@ -694,7 +697,6 @@ export class ResourceManagementComponent implements OnInit {
         //console.log(this.projectObj.teamList, " this.projectObj.teamList");
         this.projectObj.teamList.forEach((obj) => {
           obj.departmentList = obj.departmentList?.map(x => +x);
-          console.log(" obj.departmentList     ",obj.departmentList);
           this.copyDepartment = obj.departmentList;
 
           // obj.teamMemberList.forEach((member) => {
@@ -842,6 +844,7 @@ export class ResourceManagementComponent implements OnInit {
     const managerFound = this.managerList.find(x => x.employeementId == projectObj.projectManager);
     if (managerFound) {
       this.selectedProjectManager = managerFound.name;
+      //this.empId=managerFound.empId;
     }
   }
 
