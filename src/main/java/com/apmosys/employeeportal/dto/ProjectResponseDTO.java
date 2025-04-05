@@ -16,5 +16,5 @@ public class ProjectResponseDTO {
 	private String uploadedFileName;
 	private String documentPath;
     private String options;
-
+    private String isDraft;
 }

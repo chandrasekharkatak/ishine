@@ -61,4 +61,10 @@ public class ProjectInsightController {
 		ServiceResponse response = projectInsightService.saveProjectInsightResponse(projectInsightDTO,files);
 		return response;
 	}
+
+	@RequestMapping(value = "/getAllProjectInsightContributionList", method = RequestMethod.POST)
+	public ServiceResponse getAllProjectInsightContributionList(@RequestBody ProjectInsightDTO projectInsightDTO) {
+		ServiceResponse response = projectInsightService.getAllProjectInsightContributionList(projectInsightDTO);
+		return response;
+	}
 }

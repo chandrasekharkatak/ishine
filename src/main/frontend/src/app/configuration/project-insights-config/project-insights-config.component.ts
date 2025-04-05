@@ -98,6 +98,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
   surveyResponseColumns:any[] = ['0','1','2'];
 
   employeesFor360: any[] = [];
+  isFinalResponseSubmitted:boolean = false;
 
   constructor(
     private validationService: ValidationService,
@@ -455,15 +456,13 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
   onCheckboxChange(event: any, value: string, question: any,option:any,response:any) {
     if (response.responseList == null || response.responseList == undefined) {
-      response.responseList = []; // Initialize as an array if undefined
+      response.responseList = []; 
     }
   
     if (event.target.checked) {
-      // Add value if checked
       option.isChecked = true;
       response.responseList.push(value);
     } else {
-      // Remove value if unchecked
       response.responseList = response.responseList.filter((item: string) => item != value);
       option.isChecked = false;
     }
@@ -472,10 +471,11 @@ export class ProjectInsightsConfigComponent implements OnInit {
   isInArray(value: string, array: any[]): boolean {
     return Array.isArray(array) && array.includes(value);
   }
-
+  
   getAllProjectInsightResponsesByProjectId(projectObj: any,alertTemplate:TemplateRef<any>,insightResponseTemplate: TemplateRef<any>,isPreview:any) {
     this.isResponsePreview = isPreview;
     this.projectInsightResponseList = [];
+    this.isFinalResponseSubmitted = false;
     let projObj = new ProjectInsightQuestion();
     projObj.empId = this.currentUser.empId;
     projObj.projectId = projectObj.projectId;
@@ -504,6 +504,9 @@ export class ProjectInsightsConfigComponent implements OnInit {
                         }
                       });
                     }
+                  }
+                  if(response.isDraft == 'N'){
+                    this.isFinalResponseSubmitted = true;
                   }
                 });
               } else {
@@ -534,6 +537,9 @@ export class ProjectInsightsConfigComponent implements OnInit {
                           });
                         }
                       }
+                      if(response.isDraft == 'N'){
+                        this.isFinalResponseSubmitted = true;
+                      }
                     });
                   } else {
                     let projectResponse= new ProjectResponse();
@@ -543,18 +549,6 @@ export class ProjectInsightsConfigComponent implements OnInit {
                     }
                     question.projectResponseList.push(projectResponse);
                   }
-
-                  // question.optionsList = JSON.parse(question.options);
-                  // if (question.optionType == 'checkbox') {
-                  //   question.responseList = JSON.parse(question.response || '[]');
-                  //   if (question.optionsList?.length) {
-                  //     question.optionsList.forEach((option, index) => {
-                  //       if (question?.responseList.includes(option?.optionValue)) {
-                  //         option.isChecked = true
-                  //       }
-                  //     });
-                  //   }
-                  // }
                 });
               }
 
@@ -575,6 +569,9 @@ export class ProjectInsightsConfigComponent implements OnInit {
                               });
                             }
                           }
+                          if(response.isDraft == 'N'){
+                            this.isFinalResponseSubmitted = true;
+                          }
                         });
                       } else {
                         let projectResponse= new ProjectResponse();
@@ -584,18 +581,6 @@ export class ProjectInsightsConfigComponent implements OnInit {
                         }
                         question.projectResponseList.push(projectResponse);
                       }
-
-                      // question.optionsList = JSON.parse(question.options);
-                      // if (question.optionType == 'checkbox') {
-                      //   question.responseList = JSON.parse(question.response || '[]');
-                      //   if (question.optionsList?.length) {
-                      //     question.optionsList.forEach((option, index) => {
-                      //       if (question?.responseList.includes(option?.optionValue)) {
-                      //         option.isChecked = true
-                      //       }
-                      //     });
-                      //   }
-                      // }
                     });
                   }
                 });
@@ -611,10 +596,10 @@ export class ProjectInsightsConfigComponent implements OnInit {
   }
 
   saveProjectInsightResponse(template: TemplateRef<any>,finalSubmit:any) {
-    if(finalSubmit){
-      let inputValidated: boolean = this.validateProjectInsightResponse(template,this.projectInsightResponseList,this.projectInsightQuestion);
-      if (!inputValidated) return;
-    }
+    // if(finalSubmit){
+    //   let inputValidated: boolean = this.validateProjectInsightResponse(template,this.projectInsightResponseList,this.projectInsightQuestion);
+    //   if (!inputValidated) return;
+    // }
     let files:File[]=[];
     for (let milestoneIndex = 0; milestoneIndex < this.projectInsightResponseList.length; milestoneIndex++) {
       let milestone = this.projectInsightResponseList[milestoneIndex];
@@ -624,6 +609,8 @@ export class ProjectInsightsConfigComponent implements OnInit {
           let question = questionList[index];
           for(let responseIndex = 0;responseIndex < question.projectResponseList.length; responseIndex++){
             let response = question.projectResponseList[responseIndex];
+            response.responseByEmpId = this.currentUser.empId;
+            response.isDraft = finalSubmit ? 'N' : 'Y';
             if (question.optionType == 'checkbox') {
               response.response = JSON.stringify(response.responseList);
             }
@@ -644,6 +631,8 @@ export class ProjectInsightsConfigComponent implements OnInit {
             let question = moduleQuestionList[index];
             for(let responseIndex = 0;responseIndex < question.projectResponseList.length; responseIndex++){
               let response = question.projectResponseList[responseIndex];
+              response.responseByEmpId = this.currentUser.empId;
+              response.isDraft = finalSubmit ? 'N' : 'Y';
               if (question.optionType == 'checkbox') {
                 response.response = JSON.stringify(response.responseList);
               }
@@ -664,6 +653,8 @@ export class ProjectInsightsConfigComponent implements OnInit {
               let question = submoduleProjectQuestion[index];
               for(let responseIndex = 0;responseIndex < question.projectResponseList.length; responseIndex++){
                 let response = question.projectResponseList[responseIndex];
+                response.isDraft = finalSubmit ? 'N' : 'Y';
+                response.responseByEmpId = this.currentUser.empId;
                 if (question.optionType == 'checkbox') {
                   response.response = JSON.stringify(response.responseList);
                 }
@@ -685,9 +676,6 @@ export class ProjectInsightsConfigComponent implements OnInit {
     projObj.projectManagerName = this.projectInsightQuestion.projectManagerName;
     projObj.projectInsightQuestionList = this.projectInsightResponseList;
     projObj.empId = this.currentUser.empId;
-    console.log("=====================================================================================>>>>>>>>>>>>>>>>>>>");
-    console.log(projObj);
-
     this.projectInsightService.saveProjectInsightResponse(projObj,files).pipe(first()).subscribe((response: any) => {
       this.closeProjectInsightResponseModal();
       if (response.serviceStatus == "Success") {
@@ -1645,7 +1633,7 @@ private createQuestionsSection(questions: any[], entityType: string): string {
       response.uploadedFileName = inputId + '.' + fileExtension;
     }
 
-    const MAX_SIZE = 5 * 1024 * 1024; // 1MB  // 200KB in bytes
+    const MAX_SIZE = 5 * 1024 * 1024; 
     if (file) {
       if (file.size > MAX_SIZE) {
         this.alertMessage = "File size must be lesser than or equal to 1MB."

@@ -544,7 +544,7 @@
                                                        font-size: 0.95rem;
                                                        transition: all 0.3s ease;
                                                        outline: none;
-                                                       " autocomplete="none" placeholder="Enter Answer here..."
+                                                       " autocomplete="none" placeholder="Enter Answer here..." [disabled]="response.isDraft == 'N'"
                                             [(ngModel)]="response.response">
                                         <input *ngIf="isResponsePreview" type="text" class="form-control custom-input" style="width: 100%;
                                                           padding: 10px 12px;
@@ -571,9 +571,9 @@
                                                              margin: 0;
                                                              cursor: pointer;
                                                              ">
-                                                <input *ngIf="!isResponsePreview" type="checkbox"
-                                                    [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex + '-response-' + responseIndex"
-                                                    [(ngModel)]="option.isChecked"
+                                                <input *ngIf="!isResponsePreview" type="checkbox" [disabled]="response.isDraft == 'N'"
+                                                    [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex + '-response-' + responseIndex" 
+                                                    [(ngModel)]="option.isChecked" [disabled]="response.isDraft == 'N'"
                                                     (change)="onCheckboxChange($event, option.optionValue, question,option,response)">
                                                 <input *ngIf="isResponsePreview" type="checkbox"
                                                     [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex + '-response-' + responseIndex">&nbsp;
@@ -599,7 +599,7 @@
                                                              margin: 0;
                                                              cursor: pointer;
                                                              ">
-                                                <input *ngIf="!isResponsePreview" type="radio"
+                                                <input *ngIf="!isResponsePreview" type="radio" [disabled]="response.isDraft == 'N'"
                                                     [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'radio' + optIndex + '-response-' + responseIndex"
                                                     name="Milestone-{{milestone.milestoneId}}-Question{{question.questionId}}radio{{optIndex}}-response-{{responseIndex}}"
                                                     [value]="option.optionValue" [(ngModel)]="response.response">
@@ -627,7 +627,8 @@
                                                            padding: 12px;
                                                            margin: 10px;
                                                            ">
-                                            <span style="display: block; font-size: 0.9rem;cursor: pointer;">Click to upload File</span>
+                                                            <span *ngIf="response.isDraft == 'Y'" style="display: block; font-size: 0.9rem;cursor: pointer;">Click to upload File</span>
+                                                            <span *ngIf="response.isDraft == 'N' &&(response.uploadedFileName == undefined || response.uploadedFileName == null || response.uploadedFileName =='')" style="display: block; font-size: 0.9rem;">No File Uploaded...</span>
                                             <input id="Milestone-{{milestone.milestoneId}}-Question-{{question.questionId}}-file-{{qIndex}}"
                                                 name="Milestone-{{milestone.milestoneId}}-Question-{{question.questionId}}-file-{{qIndex}}"
                                                 type="file" style="display: none;" class="form-control-file"
@@ -761,7 +762,7 @@
                                   font-size: 0.95rem;
                                   transition: all 0.3s ease;
                                   outline: none;
-                                  " autocomplete="none" placeholder="Enter Answer here..."
+                                  " autocomplete="none" placeholder="Enter Answer here..." [disabled]="response.isDraft == 'N'"
                                   [(ngModel)]="response.response">
                                   <input *ngIf="isResponsePreview" type="text"
                                      class="form-control custom-input" style="width: 100%;
@@ -790,7 +791,7 @@
                                         margin: 0;
                                         cursor: pointer;
                                         ">
-                                     <input *ngIf="!isResponsePreview" type="checkbox"
+                                     <input *ngIf="!isResponsePreview" type="checkbox" [disabled]="response.isDraft == 'N'"
                                      [id]="'Module-' + module.moduleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex+'-response-' + responseIndex"
                                      [(ngModel)]="option.isChecked"
                                      (change)="onCheckboxChange($event, option.optionValue, question,option,response)">
@@ -819,7 +820,7 @@
                                         margin: 0;
                                         cursor: pointer;
                                         ">
-                                     <input *ngIf="!isResponsePreview" type="radio"
+                                     <input *ngIf="!isResponsePreview" type="radio" [disabled]="response.isDraft == 'N'"
                                      [id]="'Module-' + module.moduleId + '-Question' + question.questionId + 'radio' + optIndex + '-response-' + responseIndex"
                                      name="Module-{{module.moduleId}}-Question{{question.questionId}}radio{{optIndex}}-response-{{responseIndex}}"
                                      [value]="option.optionValue" [(ngModel)]="response.response">
@@ -849,7 +850,8 @@
                                            padding: 12px;
                                            margin: 10px;
                                            ">
-                                        <span style="display: block; font-size: 0.9rem;cursor: pointer;">Click to upload File</span>
+                                        <span *ngIf="response.isDraft == 'Y'" style="display: block; font-size: 0.9rem;cursor: pointer;">Click to upload File</span>
+                                        <span *ngIf="response.isDraft == 'N' &&(response.uploadedFileName == undefined || response.uploadedFileName == null || response.uploadedFileName =='')" style="display: block; font-size: 0.9rem;">No File Uploaded...</span>
                                         <input
                                             id="Milestone-{{milestone.milestoneId}}-Module-{{module.moduleId}}-Question-{{question.questionId}}-file-{{qIndex}}"
                                             name="Milestone-{{milestone.milestoneId}}-Module-{{module.moduleId}}-Question-{{question.questionId}}-file-{{qIndex}}"
@@ -986,7 +988,7 @@
                                         font-size: 0.95rem;
                                         transition: all 0.3s ease;
                                         outline: none;
-                                        " autocomplete="none" placeholder="Enter Answer here..."
+                                        " autocomplete="none" placeholder="Enter Answer here..." [disabled]="response.isDraft == 'N'"
                                         [(ngModel)]="response.response">
                                         <input *ngIf="isResponsePreview" type="text"
                                            class="form-control custom-input" style="width: 100%;
@@ -1015,7 +1017,7 @@
                                               margin: 0;
                                               cursor: pointer;
                                               ">
-                                           <input *ngIf="!isResponsePreview" type="checkbox"
+                                           <input *ngIf="!isResponsePreview" type="checkbox" [disabled]="response.isDraft == 'N'"
                                            [id]="'SubModule-' + subModule.subModuleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex+'-response-' + responseIndex"
                                            [(ngModel)]="option.isChecked"
                                            (change)="onCheckboxChange($event, option.optionValue, question,option,response)">
@@ -1044,7 +1046,7 @@
                                               margin: 0;
                                               cursor: pointer;
                                               ">
-                                           <input *ngIf="!isResponsePreview" type="radio"
+                                           <input *ngIf="!isResponsePreview" type="radio" [disabled]="response.isDraft == 'N'"
                                            [id]="'SubModule-' + subModule.subModuleId + '-Question' + question.questionId + 'radio' + optIndex+'-response-' + responseIndex"
                                            name="SubModule-{{subModule.subModuleId}}-Question{{question.questionId}}radio{{optIndex}}-response-{{responseIndex}}"
                                            [value]="option.optionValue"
@@ -1075,7 +1077,8 @@
                                                                            padding: 12px;
                                                                            margin: 10px;
                                                                            ">
-                                            <span style="display: block; font-size: 0.9rem;cursor: pointer;">Click to upload File</span>
+                                            <span *ngIf="response.isDraft == 'Y'" style="display: block; font-size: 0.9rem;cursor: pointer;">Click to upload File</span>
+                                            <span *ngIf="response.isDraft == 'N' &&(response.uploadedFileName == undefined || response.uploadedFileName == null || response.uploadedFileName =='')" style="display: block; font-size: 0.9rem;">No File Uploaded...</span>
                                             <input
                                                 id="Milestone-{{milestone.milestoneId}}-Module-{{module.moduleId}}-SubModule-{{subModule.subModuleId}}-Question-{{question.questionId}}-file-{{qIndex}}"
                                                 name="Milestone-{{milestone.milestoneId}}-Module-{{module.moduleId}}-SubModule-{{subModule.subModuleId}}-Question-{{question.questionId}}-file-{{qIndex}}"
@@ -1121,9 +1124,9 @@
     <div class="modal-footer">
        <div class="row mt-3">
           <div class="col-md-12">
-             <button *ngIf="!isResponsePreview" type="submit" class="btn btn-outline-primary btn-sm mx-1"
+             <button *ngIf="!isFinalResponseSubmitted && !isResponsePreview" type="submit" class="btn btn-outline-primary btn-sm mx-1"
              (click)="saveProjectInsightResponse(alert_message,false)">Save As Draft</button>
-             <button *ngIf="!isResponsePreview" type="submit" class="btn btn-primary btn-sm mx-1"
+             <button *ngIf="!isFinalResponseSubmitted && !isResponsePreview" type="submit" class="btn btn-primary btn-sm mx-1"
              (click)="saveProjectInsightResponse(alert_message,true)">Final Submit</button>
              <button type="submit" class="btn btn-outline-primary btn-sm mx-1"
                 (click)="closeProjectInsightResponseModal()">Cancel</button>

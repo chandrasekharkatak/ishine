@@ -47,4 +47,7 @@ export class ProjectInsightService {
     return this.http.post(`${this.baseUrl}` + `api/getUserUploadedFileForQuestion`, documentObj);
   }
 
+  getAllProjectInsightContributionList(projectObj: any) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllProjectInsightContributionList`, projectObj);
+  }
 }
