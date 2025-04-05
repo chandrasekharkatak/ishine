@@ -859,7 +859,7 @@ public class TimesheetService {
 						dto.setIsNightShift(object[15] != null ? object[15].toString() : null);
 						dto.setIsConsultant(object[17] != null ? object[17].toString() : null);
 						dto.setIsApprenticeship(object[18] != null ? object[18].toString() : null);
-
+						dto.setEmpId(object[19] != null ? Long.parseLong(object[19].toString()) : null);
 						dtoList.add(dto);
 					});
 
@@ -1701,7 +1701,7 @@ public class TimesheetService {
 						timesheetDto.setIsApprenticeship(object[13] != null ? object[13].toString() : null);
 						timesheetDto.setManagerId(object[14] != null ? Long.parseLong(object[14].toString()) : null);
 						timesheetDto.setTimesheetStatusUpdatedBy(object[15] != null ? Long.parseLong(object[15].toString()) : null);
-						
+						timesheetDto.setEmpId(object[16] != null ? Long.parseLong(object[16].toString()) : null);
 						dtoList.add(timesheetDto);
 					});
 

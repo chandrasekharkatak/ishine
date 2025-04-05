@@ -103,6 +103,14 @@
                                             (click)="sendEmailNotificationToBDTeam(alert_message, project);"
                                             type="submit">Mail</button>&nbsp; -->
                                         <button class="btn btn-sm btn-outline-primary mb-1"
+                                            *ngIf="!project.isSynced && project.isDraftProject != 'NA'"
+                                            (click)="syncPoProjectDetailsByProjectId(alert_message_sync, project);"
+                                            type="submit">Sync Po</button>&nbsp;
+                                        <button class="btn btn-sm btn-outline-primary mb-1"
+                                            *ngIf="project.isMail && project.isDraftProject != 'NA'"
+                                            (click)="sendEmailNotificationToBDTeam(alert_message, project);"
+                                            type="submit">Mail</button>&nbsp;
+                                        <button class="btn btn-sm btn-outline-primary mb-1"
                                             *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'"
                                             (click)="openProjectPreviewModal(preview_team, project);isEditProject = false"
                                             type="submit">Preview</button>&nbsp;
@@ -286,7 +294,7 @@
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-md-4 mb-0">
+                                                            <div class="col-md-6 mb-0">
                                                                 <div class="info-wrapper">
                                                                     <div class="form-group">
                                                                         <label class="info-label"><span
@@ -307,7 +315,7 @@
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-md-4 mb-0 mt-4 pt-1 d-flex">
+                                                            <div class="col-md-6 mb-0 mt-4 pt-1 d-flex">
                                                                 <div class="m-0">
                                                                     <button type="button" title="Add team member"
                                                                         class="btn btn-outline-primary mx-1"

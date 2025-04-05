@@ -269,10 +269,10 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.approvalsTo = '';
     this.setYearOfPassingList();
     this.preventBackButton();
-    this.getAllEmployeeList();
+   // this.getAllEmployeeList();
   
     try {
-      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      //this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
       // console.log("Priyadarshini ", this.employeesFor360);
     } catch (error) {
       console.error("Error fetching employee details for 360 view", error);
@@ -1970,9 +1970,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
-        console.log(this.allEmployeeList.dateOfRelieving, "dateofREleiving");
-        console.log("allEmployeeList : ", this.allEmployeeList)
-        this.allEmployeeList.forEach(employeeObj => {
+         this.allEmployeeList.forEach(employeeObj => {
           employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
           employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
           employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
@@ -1988,30 +1986,7 @@ export class EmployeeConfigComponent implements OnInit {
         this._allEmployeeList = this.allEmployeeList;
         this.changeEvent("Active");
         this.onselectYes = false;
-
-        // Default Sorting
-        this.allEmployeeList = new SortPipe().transform(this.allEmployeeList, ['name', 'string', 'asc']);
-        // this.createEmployeeList(this.allEmployeeList)
-        this.allEmployeeList.forEach((employee) => {
-          // console.log("employee.empId ", employee.empId);
-          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
-          // console.log("employee ", matchingEmployee);
-          employee.emp360 = matchingEmployee ? matchingEmployee : {};
-          // console.log("employee.managerId ", employee.managerId);
-          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === employee.managerId);
-          // console.log("manager ", matchingEmployee2);
-          employee.emp360Mng = matchingEmployee2 ? matchingEmployee2 : {};
-          // console.log("employee.createdBy ", employee.createdBy);
-          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
-          // console.log("createdby ", matchingEmployee3);
-          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
-          // console.log("employee.updatedBy ", employee.updatedBy);
-          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
-          // console.log("updatedBy ", matchingEmployee4);
-          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
-        });
-
-        sessionStorage.setItem('AllEmployees', JSON.stringify(this.allEmployeeList));
+  // sessionStorage.setItem('AllEmployees', JSON.stringify(this.allEmployeeList));
       } else {
         alert(response.serviceResponse);
       }
@@ -2343,11 +2318,8 @@ export class EmployeeConfigComponent implements OnInit {
             x.employeeType = 'Regular';
         }
         this.allEmployeeList.forEach(draftemp => {
-          let matchingEmployee = this.employeesFor360.find(emp =>emp.employeementId === draftemp.employeementId);
-          let matchingEmployeeMng = this.employeesFor360.find(emp =>emp.empId === draftemp.managerId);
-          //console.log('matches++',matchingEmployeeMng);
-          draftemp.emp360 = matchingEmployee ? matchingEmployee : {};
-          draftemp.emp360Mng = matchingEmployeeMng ? matchingEmployeeMng : {};
+         draftemp.emp360 = draftemp.employeementId;
+          draftemp.emp360Mng = draftemp.managerId;
 
           
         });
@@ -3002,10 +2974,7 @@ export class EmployeeConfigComponent implements OnInit {
         });
 
         this.filteredEmployeeAuditHistory.forEach(employee => {
-          console.log('employee.updatedBy++',employee.updatedBy);
-          let matchingEmployee = this.employeesFor360.find(emp => emp.empId ===  employee.updatedBy);
-          console.log('matches++',matchingEmployee);
-          employee.emp360updatedBy = matchingEmployee ? matchingEmployee : {};
+           employee.emp360updatedBy =employee.updatedBy;
         });
 
         this.lifeCycleChangeList = this.filteredEmployeeAuditHistory.filter(x => x.bucketName == 'Lifecycle Changes');
@@ -3034,9 +3003,7 @@ export class EmployeeConfigComponent implements OnInit {
         this.allDomainList.forEach((domain) => {
           domain.createdOn = (domain.createdOn) ? moment(domain.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
-
-        console.log(this.allDomainList, " : this.allDomainList");
-      } else {
+  } else {
         // this.openAlertMod(template, response.serviceResponse);
         console.error(response.serviceResponse);
       }
@@ -3050,9 +3017,7 @@ export class EmployeeConfigComponent implements OnInit {
 
     let domainObj = new Domain();
     domainObj.domainIdList = this.employeeObj.domainList;
-
-    console.log(domainObj, " : domainObj selected");
-    this.domainService.getDomainSpecialization(domainObj).pipe(first()).subscribe((response: any) => {
+this.domainService.getDomainSpecialization(domainObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.specializationList = response.serviceResponse;
         this.specializationList = this.specializationList.sort((a, b) => a.specializationName.localeCompare(b.specializationName));

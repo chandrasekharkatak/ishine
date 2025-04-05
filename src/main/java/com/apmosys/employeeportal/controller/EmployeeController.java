@@ -92,10 +92,9 @@ public class EmployeeController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/getAllEmployeesFor360View", method = RequestMethod.GET)
-	public ServiceResponse getAllEmployeesFor360View() {
-
-		ServiceResponse response = employeeService.getAllEmployeesFor360View();
+	@RequestMapping(value = "/getAllEmployeesFor360View/{empId}", method = RequestMethod.GET)
+	public ServiceResponse getAllEmployeesFor360View(@PathVariable("empId") Long empId) {
+		ServiceResponse response = employeeService.getAllEmployeesFor360View(empId);
 		return response;
 	}
 
@@ -551,7 +550,6 @@ public class EmployeeController {
 	
 	@PostMapping("/sendExpiredPoEmail")
 	public ServiceResponse sendExpiredPoEmail(@RequestBody ExpiredPOMailSendDTO employeeDTO) {
-		System.out.println(employeeDTO);
 		ServiceResponse response = employeeService.sendExpiredPoEmail(employeeDTO);
 		
 		return response;

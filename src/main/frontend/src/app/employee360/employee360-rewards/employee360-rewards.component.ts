@@ -73,13 +73,11 @@ export class Employee360RewardsComponent implements OnInit {
   ofMonthYear: any;
   ofmonthyear: any;
   sumbitRewards: Rewards = new Rewards();
-  allEmployeeList360: any[] = [];
   selectemmpName: string;
   employeeSearchText: any = '';
   currentEmpId: any;
   employeeRewardExcel: any;
   teamRewardListExcel: any;
-  employeesFor360: any[] = [];
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -93,7 +91,7 @@ export class Employee360RewardsComponent implements OnInit {
     private router: Router,
   ) {
     const empData = sessionStorage.getItem('AllEmployees');
-    const empData360 = localStorage.getItem("employee360Data");
+    const empData360 = sessionStorage.getItem("employee360Data");
     this.employeeList360 = JSON.parse(empData360);
 
     if (empData) {
@@ -101,6 +99,8 @@ export class Employee360RewardsComponent implements OnInit {
 
     }
 
+   
+    
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
 
@@ -111,12 +111,7 @@ export class Employee360RewardsComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    try {
-      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
-      // console.log("Priyadarshini ", this.employeesFor360);
-    } catch (error) {
-      console.error("Error fetching employee details for 360 view", error);
-    }
+   
     let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title == "Rewards");
     if (findbreadcrumbObject >= 0) {
       this.currentBreadcrumbList.splice(findbreadcrumbObject + 1);
@@ -127,7 +122,7 @@ export class Employee360RewardsComponent implements OnInit {
       breadcrumbObject.url = "/employee-360/rewards";
       this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
-    let employeeData = localStorage.getItem('employee360Data');
+    let employeeData = sessionStorage.getItem('employee360Data');
     let employeeObject = JSON.parse(employeeData);
     this.currentEmpId = employeeObject.empId;
     //  console.log("ebe kahara"+ this.currentEmpId);
@@ -139,17 +134,18 @@ export class Employee360RewardsComponent implements OnInit {
     for (let i = currentYear; i >= currentYear - 10; i--) {
       this.availableYears.push(i);
     }
+   
   }
-  createReward(template: TemplateRef<any>) {
-
-    if (this.isrewardVisible) {
-      this.isrewardVisible = false;
-      this.btnstring = "create new";
-    } else {
-      this.isrewardVisible = true;
-
-
-      this.btnstring = "close";
+  createReward(template: TemplateRef<any>){
+    
+    if(this.isrewardVisible){
+      this.isrewardVisible=false;
+      this.btnstring="create new";
+    }else{
+      this.isrewardVisible=true;
+      
+     
+      this.btnstring="close";
     }
 
 
@@ -172,11 +168,8 @@ export class Employee360RewardsComponent implements OnInit {
         if (response.serviceStatus == 'Success') {
           this.rewardList = response.serviceResponse;
           this.rewardList.forEach(reward => {
-            let matchingnameempId = this.employeesFor360.find(emp => emp.empId === reward.nameId);
-            reward.emp360nameempid = matchingnameempId ? matchingnameempId : {};
-            let matchingEmployee = this.employeesFor360.find(emp => emp.empId === reward.createdBY);
-            console.log('matches++', matchingEmployee);
-            reward.emp360 = matchingEmployee ? matchingEmployee : {};
+            reward.emp360nameempid =reward.nameId; 
+            reward.emp360 = reward.createdBY;
             if (reward.ofMonthYear) {
               let [year, month] = reward.ofMonthYear.split("-");
               let date = new Date(parseInt(year), parseInt(month) - 1);
@@ -207,10 +200,8 @@ export class Employee360RewardsComponent implements OnInit {
       (response: any) => {
         this.teamRewardList = response.rewardsDTO;
         this.teamRewardList.forEach(reward => {
-          let matchingRewardedTo = this.allEmployeeList360.find(emp => emp.empId === reward.id);
-          reward.emp360rewardedToId = matchingRewardedTo ? matchingRewardedTo : {};
-          let matchingEmployeeteam = this.allEmployeeList360.find(emp => emp.empId === reward.createdBy);
-          reward.emp360teamcreatedBy = matchingEmployeeteam ? matchingEmployeeteam : {};
+          reward.emp360rewardedToId = reward.id;
+          reward.emp360teamcreatedBy = reward.createdBy;
           if (reward.ofmonthyear) {
             let [year, month] = reward.ofmonthyear.split("-");
             let date = new Date(parseInt(year), parseInt(month) - 1);
@@ -321,33 +312,8 @@ export class Employee360RewardsComponent implements OnInit {
     console.log('yessss', this.sumbitRewards);
   }
 
-  getAllEmployeeFor360View() {
-    this.allEmployeeList360 = [];
-    this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allEmployeeList360 = response.serviceResponse;
-        console.log("allEmployeeListFor360 : ", this.allEmployeeList360)
-        this.allEmployeeList360.forEach(employeeObj => {
-          employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
-          employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-          employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-          employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-          employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          if (employeeObj.isConsultant == 'true')
-            employeeObj.employeeType = 'Consultant';
-          else if (employeeObj.isApprenticeship == 'true')
-            employeeObj.employeeType = 'Apprentice';
-          else
-            employeeObj.employeeType = 'Regular';
-        });
-        this.allEmployeeList360 = this.allEmployeeList360;
-        this.allEmployeeList360 = new SortPipe().transform(this.allEmployeeList360, ['name', 'string', 'asc']);
-      } else {
-        alert(response.serviceResponse);
-      }
-    });
-  }
-
+  
+  
 
   onYearChange(event: Event): void {
     this.isTeamTableVisible = false;
@@ -605,9 +571,7 @@ export class Employee360RewardsComponent implements OnInit {
         console.log('*****************');
         this.rewardList = response.rewardsDTO;
         this.rewardList.forEach(reward => {
-          let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId === reward.createdBY);
-          console.log('matches++', matchingEmployee);
-          reward.emp360 = matchingEmployee ? matchingEmployee : {};
+          reward.emp360 = reward.createdBY;
         });
         console.log('Rewards Details:', this.rewardList);
       });
@@ -761,10 +725,8 @@ export class Employee360RewardsComponent implements OnInit {
       (response: any) => {
         this.teamRewardList = response.rewardsDTO;
         this.teamRewardList.forEach(reward => {
-          let matchingRewardedTo = this.allEmployeeList360.find(emp => emp.empId === reward.id);
-          reward.emp360rewardedToId = matchingRewardedTo ? matchingRewardedTo : {};
-          let matchingEmployeeteam = this.allEmployeeList360.find(emp => emp.empId === reward.createdBy);
-          reward.emp360teamcreatedBy = matchingEmployeeteam ? matchingEmployeeteam : {};
+          reward.emp360rewardedToId =  reward.id;
+          reward.emp360teamcreatedBy = reward.createdBy;
         });
         this.getMatchingEmployees();
 

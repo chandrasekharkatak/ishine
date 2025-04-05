@@ -159,11 +159,6 @@ export class TeamConfigComponent implements OnInit {
     this.sectionViewInit();
     this.preventBackButton();
 
-    try {
-      this.allEmployeeList360 = await this.utilityService.getEmployeeDetailsFor360View();
-    } catch (error) {
-      console.error("Error fetching employee details for 360 view", error);
-    }
   }
     
   preventBackButton(){
@@ -800,17 +795,9 @@ export class TeamConfigComponent implements OnInit {
         this.allTeamList = response.serviceResponse;
         this.allTeamList.forEach(team => {
           team.createdOn = (team.createdOn)? moment(team.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-
-          let matchingTeamlead = this.allEmployeeList360.find(emp => emp.empId === team.teamLeadId);
-          //console.log('matchingTeamlead -- ',matchingTeamlead);
-          let matchingManager = this.allEmployeeList360.find(emp => emp.empId === team.projectManagerId);
-          //console.log('matchingManager --',matchingManager);
-          let matchingCreatedBy = this.allEmployeeList360.find(emp => emp.empId === team.empId);
-
-          
-          team.emp360Teamlead = matchingTeamlead ? matchingTeamlead : {};
-          team.emp360Manager = matchingManager ? matchingManager : {};
-          team.emp360CreatedBy = matchingCreatedBy ? matchingCreatedBy : {};
+           team.emp360Teamlead =  team.teamLeadId;
+          team.emp360Manager = team.projectManagerId;
+          team.emp360CreatedBy = team.empId;
 
 
         });
@@ -1226,8 +1213,7 @@ export class TeamConfigComponent implements OnInit {
         this.allActivityList = response.serviceResponse;
         this.allActivityList.forEach(activity => {
           activity.createdOn = (activity.createdOn)? moment(activity.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          let matchingCreatedBy = this.allEmployeeList360.find(emp => emp.empId === activity.createdBy);
-          activity.emp360CreatedBy = matchingCreatedBy ? matchingCreatedBy : {};
+          activity.emp360CreatedBy = activity.createdBy;
         });
         //console.log("allActivityList :", this.allActivityList);
       } else {

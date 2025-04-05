@@ -93,7 +93,6 @@ export class UserPerformanceComponent implements OnInit {
   currentUser: User;
   userMapping: any = {};
   log: Log;
-  allEmployeeList360: any[] = [];
   departmentData: any[] = [
     // { department: 'HR', TotalNumberofemp: 10, ratinggivenbymanager: 7, pendingratinggivenbymanager: 3, managerName: 'Saxena' },
     // { department: 'Functional Testing', TotalNumberofemp: 15, ratinggivenbymanager: 10, pendingratinggivenbymanager: 5, managerName: 'Dev' },
@@ -154,9 +153,7 @@ export class UserPerformanceComponent implements OnInit {
       console.log("usermappinghodhr",this.userMapping);
       // console.log("hodddddd", this.userMapping.performance_action_by_hod);
       // console.log("hrrrrrrrr", this.userMapping.performance_action_by_hr);
-       this.getAllEmployeeFor360View();
-       this.getAllEmployee();
-
+        this.getAllEmployee();
      
     } catch (error) {
       console.error("Error in ngOnInit", error);
@@ -216,32 +213,6 @@ export class UserPerformanceComponent implements OnInit {
     this.calculateFinalRating();
   }
 
-  getAllEmployeeFor360View() {
-    this.allEmployeeList360 = [];
-    this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allEmployeeList360 = response.serviceResponse;
-        this.allEmployeeList360.forEach(employeeObj => {
-          employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
-          employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-          employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-          employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-          employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          if (employeeObj.isConsultant == 'true')
-            employeeObj.employeeType = 'Consultant';
-          else if (employeeObj.isApprenticeship == 'true')
-            employeeObj.employeeType = 'Apprentice';
-          else
-            employeeObj.employeeType = 'Regular';
-        });
-        this.allEmployeeList360 = this.allEmployeeList360;
-        this.allEmployeeList360 = new SortPipe().transform(this.allEmployeeList360, ['name', 'string', 'asc']);
-      } else {
-        alert(response.serviceResponse);
-      }
-    });
-  }
-
 
 
 
@@ -278,9 +249,8 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
             return false;
           });
           this.eligibleEmployees.forEach(eligibleEmp => {
-            let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === eligibleEmp.employeementId);
-
-            eligibleEmp.emp360 = matchingEmployee ? matchingEmployee : {};
+           
+            eligibleEmp.emp360 = eligibleEmp.empId;
 
           });
 

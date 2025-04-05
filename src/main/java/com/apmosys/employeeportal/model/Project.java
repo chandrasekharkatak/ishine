@@ -13,18 +13,17 @@ import javax.persistence.Table;
 import org.hibernate.envers.Audited;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 //import lombok.Getter;
 //import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Getter
-@Setter
-@Audited
+//@Getter
+//@Setter
+@Data
 @ToString
 @Table(name="projects")
+@Audited
 public class Project {
 	
 	@Id
