@@ -532,7 +532,14 @@ List<Object[]> findEmployeesInSameDepartmentAsCurrentUser(Long hodId);
 	       nativeQuery = true)
 	List<Object[]> findEmployeeGoalsByEmpIdAndQuarterId(@Param("employeeId") Long employeeId,
 	                                                  @Param("quarterId") Long quarterId);
-		
+	
+	
+	@Query(value="SELECT jb.employee_role \n"
+			+ "FROM employee e \n"
+			+ "INNER JOIN job_role jb ON jb.job_role_id = e.job_role_id \n"
+			+ "WHERE e.emp_id=:employeeId \n"
+			+ "LIMIT 1 \n",nativeQuery = true)
+	String getJobRoleByEmployeeId(Long employeeId);
 
 
 }
