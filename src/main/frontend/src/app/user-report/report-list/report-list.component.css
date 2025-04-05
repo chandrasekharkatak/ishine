@@ -61,9 +61,12 @@
     padding-top: 10px;
 }
 
-.thead-light th {
+.thead-light {
     position: sticky;
     top: -0.7px;
+    top: 0;
+    z-index: 10;
+    background: var(--ghost-white);
 }
 
 .info-label {

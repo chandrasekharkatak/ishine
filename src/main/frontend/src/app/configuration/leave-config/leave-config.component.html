@@ -155,7 +155,7 @@
                
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
                     [tableTHeadTrId]="'holidayInfoTHeadTr'">
-                    <table class="table table-responsive" id="holidayInfo" matSort (matSortChange)="sortData($event)">	
+                    <table class="table" id="holidayInfo" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light" id="holidayInfoTHead">	
                           <tr id="holidayInfoTHeadTr">	
                             <th scope="col" class="info-label" >Sr. No</th>	
@@ -312,7 +312,7 @@
                 </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeBucketInfo'" [tableTHeadId]="'employeeBucketInfoTHead'"
                     [tableTHeadTrId]="'employeeBucketInfoTHeadTr'">
-                    <table class="table table-responsive" id="employeeBucketInfo" matSort (matSortChange)="sortData($event)">	
+                    <table class="table" id="employeeBucketInfo" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light" id="employeeBucketInfoTHead">	
                           <tr id="employeeBucketInfoTHeadTr">	
                             <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>	
@@ -754,7 +754,7 @@
                 </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeInfo'" [tableTHeadId]="'employeeInfoTHead'"
                         [tableTHeadTrId]="'employeeInfoTHeadTr'">
-                        <table class="table table-responsive" matSort (matSortChange)="sortData($event)">	
+                        <table class="table" matSort (matSortChange)="sortData($event)">	
                             <thead class="thead-light">	
                               <tr>	
                                 <th scope="col" class="info-label">Sr No.</th>	
