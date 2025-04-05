@@ -1166,6 +1166,8 @@
            (click)="saveProjectInsightResponse(alert_message,false)">Save As Draft</button>
            <button *ngIf="!isFinalResponseSubmitted" type="submit" class="btn btn-primary btn-sm mx-1"
            (click)="saveProjectInsightResponse(alert_message,true)">Final Submit</button>
+           <button *ngIf="allQuestionMarksList.length > 0" type="submit" class="btn btn-primary btn-sm mx-1"
+           (click)="submitReview(alert_message)">Submit Review</button>
            <button type="submit" class="btn btn-outline-primary btn-sm mx-1"
               (click)="closeProjectInsightResponseModal()">Cancel</button>
         </div>

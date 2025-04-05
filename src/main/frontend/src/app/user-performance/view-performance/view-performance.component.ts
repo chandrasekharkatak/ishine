@@ -296,6 +296,9 @@ export class ViewPerformanceComponent implements OnInit {
     this.allQuestionMarksList.push(response);
   }
 
+  submitReview(template: TemplateRef<any>){
+  }
+
   loadQuestionnaireQuestions(): void {
     const quarterId = this.selectedQuarter1;
     const departmentId = this.currentEmployeeInfo.departmentId;
