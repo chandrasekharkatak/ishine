@@ -71,6 +71,7 @@ export class ReportListComponent implements OnInit {
   isDefaultFeatureMapping: boolean = false;
 
   allEmployeeList: any[] = [];
+  deptWiseConsolidated : any[] = [];
 
   allLeaveApplicationsList: any[] = [];
   leaveApplicationsDataForExcel: any[] = [];
@@ -304,28 +305,48 @@ export class ReportListComponent implements OnInit {
       this.changeTable = true;
       this.selectedDepartment = 'all';
       this.getAllDepartments();
-      this.getAllEmployeesReportByProjectTypeInConsolidated();
-      this.filterEmployees();
-      this.tnmPoExpiredCount = 0;
-      this.tnmPOValidCount = 0;
-      this.fixedCostPoExpiredCount = 0;
-      this.fixedCostPoValidCount = 0;
-      this.internalCount = 0;
+      this.allEmployee=[];
+    this.tnmPOValidCountList = [];
+    this.tnmPoExpiredCountList = [];
+    this.fixedCostPoExpiredCountList = [];
+    this.fixedCostPoValidCountList = [];
+    this.internalCountList = [];
+      this.employeeService.getAllEmployeesReportByProjectTypeInConsolidated().pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.allEmployee = response.serviceResponse;
+          this.filteredEmployees = this.allEmployee;
+          this.deptWiseConsolidated = this.allEmployee;
+          this.deptWiseCount();
+         
+          // this.filterEmployees();
+      
+          // this.tnmPoExpiredCount = 0;
+          // this.tnmPOValidCount = 0;
+          // this.fixedCostPoExpiredCount = 0;
+          // this.fixedCostPoValidCount = 0;
+          // this.internalCount = 0;
+        }
+        error: (err) => {
+          console.error('Error fetching employees', err);
+        }
+      });
+      
     }
   }
-  toggleTableView() {
-    if (this.changeTable === true) {
+  toggleTableView(){
+    this.activeBox = "";
+    if(this.changeTable === true){
       this.changeTable = false;
       this.getAllEmployeesReportByProjectType();
     }
     else {
       this.changeTable = true;
       this.getAllEmployeesReportByProjectTypeInConsolidated();
-      this.tnmPoExpiredCount = 0;
-      this.tnmPOValidCount = 0;
-      this.fixedCostPoExpiredCount = 0;
-      this.fixedCostPoValidCount = 0;
-      this.internalCount = 0;
+    //   this.tnmPoExpiredCount=0;
+    // this.tnmPOValidCount=0;
+    // this.fixedCostPoExpiredCount=0;
+    // this.fixedCostPoValidCount=0;
+    // this.internalCount=0;
     }
   }
 
@@ -344,23 +365,25 @@ export class ReportListComponent implements OnInit {
     this.tnmPOValidCountList = [];
     this.tnmPoExpiredCountList = [];
     this.fixedCostPoValidCountList = [];
+    this.fixedCostPoExpiredCountList = [];
     this.internalCountList = [];
-    this.tnmPoExpiredCount=0;
-    this.tnmPOValidCount=0;
-    this.fixedCostPoExpiredCount=0;
-    this.fixedCostPoValidCount=0;
-    this.internalCount=0;
+    // this.tnmPoExpiredCount=0;
+    // this.tnmPOValidCount=0;
+    // this.fixedCostPoExpiredCount=0;
+    // this.fixedCostPoValidCount=0;
+    // this.internalCount=0;
     this.employeeService.getAllEmployeesReportByProjectTypeInConsolidated().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         // console.log('response -- ',response.serviceResponse);
-        this.allEmployee = response.serviceResponse;
-        console.log('emps -- ', this.allEmployee);
+        this.allEmployee=response.serviceResponse;
+        // this.deptWiseConsolidated = this.allEmployee;
+        console.log('emps -- ',this.allEmployee);
         this.filterEmployees();
 
 
         this.allEmployee.forEach((emp) => {
           if (!emp.poEndDate) {
-            this.internalCount++;
+            // this.internalCount++;
             this.internalCountList.push(emp);
             return;
           }
@@ -374,10 +397,10 @@ export class ReportListComponent implements OnInit {
             projectTypes.forEach((type) => {
               type = type.trim();
               if (type === 'tnm') {
-                this.tnmPoExpiredCount++;
+                // this.tnmPoExpiredCount++;
                 this.tnmPoExpiredCountList.push(emp);
               } else if (type === 'fixed cost') {
-                this.fixedCostPoExpiredCount++;
+                // this.fixedCostPoExpiredCount++;
                 this.fixedCostPoExpiredCountList.push(emp);
               }
             });
@@ -386,10 +409,10 @@ export class ReportListComponent implements OnInit {
             projectTypes.forEach((type) => {
               type = type.trim();
               if (type === 'tnm') {
-                this.tnmPOValidCount++;
+                // this.tnmPOValidCount++;
                 this.tnmPOValidCountList.push(emp);
               } else if (type === 'fixed cost') {
-                this.fixedCostPoValidCount++;
+                // this.fixedCostPoValidCount++;
                 this.fixedCostPoValidCountList.push(emp);
               }
             });
@@ -404,6 +427,110 @@ export class ReportListComponent implements OnInit {
         alert(response.serviceResponse);
       }
     });
+  }
+
+
+  deptWiseCount(){
+    this.tnmPoExpiredCount=0;
+    this.tnmPOValidCount=0;
+    this.fixedCostPoExpiredCount=0;
+    this.fixedCostPoValidCount=0;
+    this.internalCount=0;
+    this.allEmployee=[];
+    this.tnmPOValidCountList = [];
+    this.tnmPoExpiredCountList = [];
+    this.fixedCostPoValidCountList = [];
+    this.internalCountList = [];
+    this.filteredEmployees  = [];
+
+    const departmentFiltered = this.selectedDepartment === 'all'
+    ? this.deptWiseConsolidated
+    : this.deptWiseConsolidated.filter(emp => emp.departmentId == this.selectedDepartment);
+    this.filteredEmployees = departmentFiltered;
+    departmentFiltered.forEach((emp) => {
+      if (!emp.poEndDate) {
+        this.internalCount++;
+        this.internalCountList.push(emp);
+        return;
+      }
+    
+      const currentDate = new Date();
+      const poEndDate = new Date(emp.poEndDate);
+    
+      const projectTypes = emp.poProjectType.toLowerCase().split(',');
+    
+      if (poEndDate < currentDate) {
+        projectTypes.forEach((type) => {
+          type = type.trim(); 
+          if (type === 'tnm') {
+            this.tnmPoExpiredCount++;
+            this.tnmPoExpiredCountList.push(emp);
+          } else if (type === 'fixed cost') {
+            this.fixedCostPoExpiredCount++;
+            this.fixedCostPoExpiredCountList.push(emp);
+          }
+        });
+       
+      } else {
+        projectTypes.forEach((type) => {
+          type = type.trim(); 
+          if (type === 'tnm') {
+            this.tnmPOValidCount++;
+            this.tnmPOValidCountList.push(emp);
+          } else if (type === 'fixed cost') {
+            this.fixedCostPoValidCount++;
+            this.fixedCostPoValidCountList.push(emp);
+          }
+        });
+      }
+      console.log("TNM Expired Count:", this.tnmPoExpiredCount);
+      console.log("Fixed Cost Expired Count:", this.fixedCostPoExpiredCount);
+      console.log("TNM Valid Count:", this.tnmPOValidCount);
+      console.log("Fixed Cost Valid Count:", this.fixedCostPoValidCount);
+    });
+    // this.filteredEmployees.forEach((emp) => {
+    //   if (!emp.poEndDate) {
+    //     this.internalCount++;
+    //     this.internalCountList.push(emp);
+    //     return;
+    //   }
+    
+    //   const currentDate = new Date();
+    //   const poEndDate = new Date(emp.poEndDate);
+    
+    //   const projectTypes = emp.poProjectType.toLowerCase().split(',');
+    
+    //   if (poEndDate < currentDate) {
+    //     projectTypes.forEach((type) => {
+    //       type = type.trim(); 
+    //       if (type === 'tnm') {
+    //         this.tnmPoExpiredCount++;
+    //         this.tnmPoExpiredCountList.push(emp);
+    //       } else if (type === 'fixed cost') {
+    //         this.fixedCostPoExpiredCount++;
+    //         this.fixedCostPoExpiredCountList.push(emp);
+    //       }
+    //     });
+       
+    //   } else {
+    //     projectTypes.forEach((type) => {
+    //       type = type.trim(); 
+    //       if (type === 'tnm') {
+    //         this.tnmPOValidCount++;
+    //         this.tnmPOValidCountList.push(emp);
+    //       } else if (type === 'fixed cost') {
+    //         this.fixedCostPoValidCount++;
+    //         this.fixedCostPoValidCountList.push(emp);
+    //       }
+    //     });
+    //   }
+    //   console.log("TNM Expired Count:", this.tnmPoExpiredCount);
+    //   console.log("Fixed Cost Expired Count:", this.fixedCostPoExpiredCount);
+    //   console.log("TNM Valid Count:", this.tnmPOValidCount);
+    //   console.log("Fixed Cost Valid Count:", this.fixedCostPoValidCount);
+    // });
+
+
   }
   // onBoxClickDataChange(boxName){
   //   this.filteredEmployees=[];
@@ -536,7 +663,8 @@ export class ReportListComponent implements OnInit {
   }
 
   onDepartmentChange(event: any) {
-    this.filteredEmployees = [];
+    this.activeBox = "";
+    this.filteredEmployees=[];
 
     // if(this.selectedDepartment === 'all'){
     //   this.filteredEmployees=this.allEmployee;
@@ -544,8 +672,10 @@ export class ReportListComponent implements OnInit {
     this.selectedDepartment = event.target.value;
     // }
     console.log('Selected Department:', this.selectedDepartment);
-    this.filterEmployees();
-
+   
+    // this.filterEmployees();
+    this.deptWiseCount();
+    
   }
   getAllDepartments() {
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
@@ -565,6 +695,7 @@ export class ReportListComponent implements OnInit {
   }
 
   filterEmployees() {
+    this.filteredEmployees = [];
     if (this.selectedDepartment) {
       if (this.selectedDepartment === 'all') {
         this.filteredEmployees = [...this.allEmployee];
