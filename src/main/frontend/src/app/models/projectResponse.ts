@@ -15,5 +15,8 @@ export class ProjectResponse {
     optionsList:any[]= [];
     options:any;
     isDraft:any;
-
+    processTo:any;
+    marks:any;
+    markType:any;
+    questionId:any;
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { FormBuilder, FormGroup } from '@angular/forms';
@@ -66,6 +66,7 @@ interface kpiList{
   styleUrls: ['./view-performance.component.css']
 })
 export class ViewPerformanceComponent implements OnInit {
+  @ViewChild('alert_message') alertMessageModal:TemplateRef<any>;
 
   currentUser:User;
   feature="view_performance";
@@ -79,6 +80,8 @@ export class ViewPerformanceComponent implements OnInit {
   kraKpiMetrics: any[] = [];
   questionnaireQuestions: any[] = [];
   currentQuestionnaireId: any;
+
+  allQuestionMarksList: any[] = [];
 
   kraKpiReviewForm: FormGroup;
   questionnaireReviewForm: FormGroup;
@@ -282,6 +285,16 @@ export class ViewPerformanceComponent implements OnInit {
   }
 
 
+  processUserMarks(response: ProjectResponse, type: any, question:any){
+    if(!this.validationService.validateNullUndefinedEmptyString(response.marks)){
+      this.alertMessage = `Please provide marks !!`;
+      this.openAlertMod(this.alertMessageModal, this.alertMessage);
+      return false;
+    }
+    response.markType = type;
+    response.questionId = question.questionId;
+    this.allQuestionMarksList.push(response);
+  }
 
   loadQuestionnaireQuestions(): void {
     const quarterId = this.selectedQuarter1;

@@ -600,7 +600,7 @@
                                    outline: none;
                                    " autocomplete="none" placeholder="Enter Answer here..." [disabled]="response.isDraft == 'N'"
                                    [(ngModel)]="response.response">
-                                </div>
+                                </div>                               
                              </div>
                              <div *ngIf="question.optionType == 'checkbox'">
                                 <div *ngFor="let option of response.optionsList; let mileQuestionOptionIndex = index">
@@ -656,6 +656,40 @@
                                    </div>
                                 </div>
                              </div>
+                             <div *ngIf="response.processTo === currentUser.empId" class="col-md-12 mt-2">
+                              <div style="display: flex; align-items: center; gap: 12px;">
+                                
+                                <!-- Label -->
+                                <label for="mark" class="form-label mb-0" style="font-size: 0.9rem; min-width: 110px;">
+                                  Mark (out of 10)
+                                </label>
+                            
+                                <!-- Input -->
+                                <input 
+                                  id="mark"
+                                  class="form-control custom-input"
+                                  type="number" 
+                                  min="0" 
+                                  max="10"
+                                  [(ngModel)]="response.marks"
+                                  placeholder="0 - 10"
+                                  style="
+                                    max-width: 70px;
+                                    font-size: 0.9rem;
+                                    padding: 8px 10px;
+                                    border: 1px solid #e2e8f0;
+                                    border-radius: 6px;
+                                    outline: none;
+                                    transition: all 0.3s ease;"
+                                />
+                            
+                                <!-- Icons -->
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                  <i class="fa-solid fa-check text-success" title="Approve" (click)="processUserMarks(response, 'approve', question)" style="cursor: pointer;"></i>
+                                  <i class="fa-solid fa-xmark text-danger" title="Reject" (click)="processUserMarks(response, 'reject', question)" style="cursor: pointer;"></i>
+                                </div>
+                              </div>
+                            </div> 
                              <div *ngIf="question.documentUpload === 'true'" class="response-file-upload" style="
                                 margin-top: 12px;
                                 border: 2px dashed #cbd5e0;
