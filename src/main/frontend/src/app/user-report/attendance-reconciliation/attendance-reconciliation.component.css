@@ -156,16 +156,29 @@
     border-collapse: separate;
     border-spacing: 0;
 }
-  
 
-.overflow-auto {
-    position: relative;
-    max-height: 500px; /* Set a max height for the scrollable area */
+.table-container {
+    width: 100%;
+    max-height: 80vh;
     overflow-y: auto;
-  }
-  .thead-light{
+    overflow-x: auto;
+    position: relative;
+}
+
+table {
+    min-width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+}
+
+thead {
     position: sticky;
     top: 0.7;
     z-index: 100;
-    background: var(--ghost-white);
-  }
+}
+  

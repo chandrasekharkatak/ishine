@@ -1150,7 +1150,7 @@ public class PerformanceService {
 		        return;
 		    }
 		 
-		 List<Long> quarterIds = quarterCycles.stream().map(q -> ((Number) q[0]).longValue()).toList();
+		 List<Long> quarterIds = quarterCycles.stream().map(q -> ((Number) q[0]).longValue()).collect(Collectors.toList());
 		    String quarterCycleNames = quarterCycles.stream()
 		            .map(q -> q[1] + " - " + q[2])
 		            .collect(Collectors.joining(", "));

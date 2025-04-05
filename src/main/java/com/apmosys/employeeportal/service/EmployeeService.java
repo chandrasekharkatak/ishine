@@ -178,7 +178,7 @@ public class EmployeeService {
 	@Value("${rmg.mail}")
 	private String rmgMail;
 	
-	@Value("${business_mails}")
+	@Value("${bd.mail}")
 	private String businessMail;
 	
 	@Value("${vp_mails}")

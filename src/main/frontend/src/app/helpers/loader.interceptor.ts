@@ -245,6 +245,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}`+`api/getAllEmployeesReportByProjectType`,
      `${this.baseUrl}`+`api/saveAppreciation`,
     `${this.baseUrl}` + `api/deleteCompOff`,
+    `${this.baseUrl}` + `api/getAllOrDeptWiseEmployeeTimesheetReport`,
     `${this.baseUrl}` + `api/getAllEmployeesForPerformance`,
     `${this.baseUrl}` + `api/syncPoProjectDetailsByProjectId`,
     `${this.baseUrl}` + `api/sendEmailNotificationToBDTeam`

@@ -157,8 +157,9 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 			+ "LEFT JOIN clients c ON c.client_id = p.client_id\n"
 			+ "LEFT JOIN client_locations cl ON cl.client_location_id = map.client_location_id\n"
 			+ "LEFT JOIN employee e2 ON e2.emp_id = e.manager_id\n"
+			+ "WHERE et.date BETWEEN :startDate AND :endDate\n "
 			+ "ORDER BY et.created_on DESC" ,nativeQuery = true)
-	List<Object[]> getAllEmployeeTimesheets();
+	List<Object[]> getAllEmployeeTimesheetsBetweenDates(@Param("startDate") String startDate, @Param("endDate") String endDate);
 	
 	
 	@Query(value = "SELECT \n"
@@ -208,8 +209,10 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 			+ "LEFT JOIN clients c ON c.client_id = p.client_id\n"
 			+ "LEFT JOIN client_locations cl ON cl.client_location_id = map.client_location_id\n"
 			+ "LEFT JOIN employee e2 ON e2.emp_id = e.manager_id\n"
-			+ "where d.dept_id = :deptId\n"
+			+ "where d.dept_id = :deptId AND et.date BETWEEN :startDate AND :endDate\n"
 			+ "ORDER BY et.created_on DESC ",nativeQuery = true)
-	 List<Object[]> getTimesheetsByDepartment(@Param("deptId") Long deptId);
+	 List<Object[]> getTimesheetsByDepartmentAndDateRange(@Param("deptId") Long deptId,
+	            @Param("startDate") String startDate,
+	            @Param("endDate") String endDate);
 	
 }

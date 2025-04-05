@@ -13,17 +13,18 @@ import javax.persistence.Table;
 import org.hibernate.envers.Audited;
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 //import lombok.Getter;
 //import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-//@Getter
-//@Setter
-@Data
+@Getter
+@Setter
+@Audited
 @ToString
 @Table(name="projects")
-@Audited
 public class Project {
 	
 	@Id
@@ -33,7 +34,7 @@ public class Project {
 	private String clientName;
 	private String clientLocation;
 	private String state;
-	@Column(unique = true)
+//	@Column(unique = true)
 	private String projectName;
 	private String description;
 	private Long projectManagerId;

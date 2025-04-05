@@ -5,11 +5,13 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.dto.PoProjectIdRequestDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
@@ -101,5 +103,10 @@ public class ProjectController {
 	public ResponseEntity<List<ProjectPoPortalDTO>> poprojectclone() {
 		return ResponseEntity.ok(projectService.getProjectCloneFromPoPortal());
 	}
+	
+//	@PostMapping(value = "/poProjectTimesheetSync")
+//	public ServiceResponse poProjectTimesheetSync(@RequestBody PoProjectIdRequestDTO poProjectIdRequestDTO) {
+//		return projectService.poProjectTimesheetSync(poProjectIdRequestDTO.getPoProjectIdList());
+//	}
 	
 }

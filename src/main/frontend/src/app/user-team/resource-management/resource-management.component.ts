@@ -104,7 +104,7 @@ export class ResourceManagementComponent implements OnInit {
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
   filters: any = {};
   isSearchEnabled: boolean = false;
-  projectColumns: any[] = ["blank", "blank", "name","poNo","projectManagerName", "clientName", "apmosysRM", "clientRM" , "clientState" ,"createdOn", "status", "isDraftProject"];
+  projectColumns: any[] = ["blank", "blank", "name","poNo","projectManagerName", "clientName", "apmosysRM", "clientRM" , "startDate" , "endDate" , "clientState" ,"createdOn", "status", "isDraftProject"];
 
   projectDetails: any = [];
   copyDepartment : any = [];
@@ -1202,14 +1202,19 @@ export class ResourceManagementComponent implements OnInit {
     const onlySpecificDataArr = this.allProjectList.map(
       x => ({
         "Project Name": x.name,
+        "PO Number": x.poNo,
         "Project Manager": x.projectManagerName,
         "Client Name": x.clientName,
         "Client State": x.clientState,
+        "Apmosys RM": x.apmosysRM,
+        "Client RM": x.clientRM,
+        "Start Date": x.startDate ? x.startDate.split(/[\sT]/)[0].split('-').reverse().join('-') : x.startDate,
+"End Date": x.endDate ? x.endDate.split(/[\sT]/)[0].split('-').reverse().join('-') : x.endDate,
+        // "Start Date": x.startDate,
+        // "End Date": x.endDate,
         "Created On": x.createdOn,
         "Approval Status": x.isDraftProject,
         "Project Status": x.status,
-        "Apmosys RM": x.apmosysRM,
-        "Client RM": x.clientRM
       })
     )
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);

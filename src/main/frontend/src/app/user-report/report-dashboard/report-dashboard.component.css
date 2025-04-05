@@ -88,15 +88,28 @@
 .custom-width{
     width: 50px;
 }
-.overflow-auto {
-    position: relative;
-    max-height: 500px; /* Set a max height for the scrollable area */
+
+.table-container {
+    width: 100%;
+    max-height: 80vh;
     overflow-y: auto;
+    overflow-x: auto;
+    position: relative;
 }
 
-.thead-light{
+table {
+    min-width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+}
+
+thead {
     position: sticky;
     top: 0.7;
     z-index: 100;
-    background: var(--ghost-white);
 }

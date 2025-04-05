@@ -59,7 +59,7 @@
             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
-        <div class="overflow-auto" bassHorizontalScroll [tableId]="'attendanceIDReport'"
+        <div class="table-container" bassHorizontalScroll [tableId]="'attendanceIDReport'"
           [tableTHeadId]="'attendanceIDTHead'" [tableTHeadTrId]="'attendanceIDHeadTr'">
 
           <table class="table " matSort (matSortChange)="sortData($event)" id="attendanceIDReport">
@@ -182,7 +182,7 @@
     <div class="row">
       <div class="col-md-12">
         <div class="row">
-          <div class="overflow-auto" bassHorizontalScroll [tableId]="'ViewMoreID'" [tableTHeadId]="'viewmoreIDTHead'"
+          <div class="table-container" bassHorizontalScroll [tableId]="'ViewMoreID'" [tableTHeadId]="'viewmoreIDTHead'"
             [tableTHeadTrId]="'viewMoreIDHeadTr'" style="padding-left: 300px;">
             <table class="table " matSort (matSortChange)="sortData($event)" id="ViewMoreID">
               <thead class="thead-light" id="viewmoreIDTHead">

@@ -34,9 +34,9 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'resignedEmployeeInfo'" [tableTHeadId]="'resignedEmployeeInfoTHead'"
+                <div class="table-container" bassHorizontalScroll [tableId]="'resignedEmployeeInfo'" [tableTHeadId]="'resignedEmployeeInfoTHead'"
                     [tableTHeadTrId]="'resignedEmployeeInfoTHeadTr'">
-                    <table class="table  " matSort (matSortChange)="sortData($event)">
+                    <table class="table " matSort (matSortChange)="sortData($event)">
                         <thead class="thead-light">
                           <tr>
                             <th scope="col" class="info-label" >Sr No.</th>

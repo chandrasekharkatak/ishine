@@ -110,7 +110,6 @@ isProjectTeamMemberVisible:boolean=false;
       breadcrumbObject.url = "/employee-360/project";
       this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
-
     this.getAllEmployeeFor360View();
     //get Project by Employee
     this.getExistingProjectsByUser();
@@ -320,7 +319,6 @@ async getTeamEmployeeByTeamId(teamId: any) {
     const mm = String(today.getMonth() + 1).padStart(2, '0'); 
     const yyyy = today.getFullYear();
     this.lastDate = `${yyyy}-${mm}-${dd}`;
-
     // let projectObj = Object.assign({},this.projectObj); for copy object
     this.modalRef = this.modalService.show(template, { class: 'modal-md' });
     this.projectObj = projObj;
@@ -331,7 +329,6 @@ async getTeamEmployeeByTeamId(teamId: any) {
     const mm = String(today.getMonth() + 1).padStart(2, '0'); 
     const yyyy = today.getFullYear();
     this.lastDate = `${yyyy}-${mm}-${dd}`;
-
     this.modalRef = this.modalService.show(template, { class: 'modal-md' });
     this.projectObj = projObj;
     this.projectObj.empId = member.empId;

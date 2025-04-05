@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
+import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
@@ -1800,7 +1801,7 @@ public class TimesheetService {
 //	    System.err.println("--------cron ended---");
 //	}
 
-	public ServiceResponse getAllOrDeptWiseEmployeeTimesheetReport(String deptId) {
+	public ServiceResponse getAllOrDeptWiseEmployeeTimesheetReport(FilteredTimesheetDTO filteredTimesheetDTO) {
         ServiceResponse response = new ServiceResponse();
         LogDTO apiLogInfo = new LogDTO();
         
@@ -1808,18 +1809,20 @@ public class TimesheetService {
         apiLogInfo.setApiUrl("/api/getAllOrDeptWiseEmployeeTimesheetReport");
         apiLogInfo.setLogLevel("INFO");
         
+        String deptId = filteredTimesheetDTO.getDeptId();
+        String startDate = filteredTimesheetDTO.getStartDate();
+        String endDate = filteredTimesheetDTO.getEndDate();
+        
         StringBuilder logBuilder = new StringBuilder();
         logBuilder.append("Requested Department ID: ").append(deptId);
 
         try {
             List<Object[]> timesheetList;
-            switch (deptId.toLowerCase()) {
-                case "all":
-                    timesheetList = timesheetsRepository.getAllEmployeeTimesheets();
-                    break;
-                default:
-                    timesheetList = timesheetsRepository.getTimesheetsByDepartment(Long.parseLong(deptId));
-                    break;
+            if ("all".equalsIgnoreCase(deptId)) {
+                timesheetList = timesheetsRepository.getAllEmployeeTimesheetsBetweenDates(startDate, endDate);
+            } else {
+                timesheetList = timesheetsRepository.getTimesheetsByDepartmentAndDateRange(
+                    Long.parseLong(deptId), startDate, endDate);
             }
 
             if (timesheetList == null || timesheetList.isEmpty()) {
