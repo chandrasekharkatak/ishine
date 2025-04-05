@@ -524,8 +524,8 @@ export class ViewPerformanceComponent implements OnInit {
                       });
                     }
                   }
-                  if (response.isDraft == 'N') {
-                    this.isFinalResponseSubmitted = true;
+                  if (response.isDraft == 'Y') {
+                    this.isFinalResponseSubmitted = false;
                   }
                 });
               } else {
@@ -556,8 +556,8 @@ export class ViewPerformanceComponent implements OnInit {
                           });
                         }
                       }
-                      if (response.isDraft == 'N') {
-                        this.isFinalResponseSubmitted = true;
+                      if (response.isDraft == 'Y') {
+                        this.isFinalResponseSubmitted = false;
                       }
                     });
                   } else {
@@ -588,8 +588,8 @@ export class ViewPerformanceComponent implements OnInit {
                               });
                             }
                           }
-                          if (response.isDraft == 'N') {
-                            this.isFinalResponseSubmitted = true;
+                          if (response.isDraft == 'Y') {
+                            this.isFinalResponseSubmitted = false;
                           }
                         });
                       } else {
