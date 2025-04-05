@@ -128,7 +128,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   consentNotificationMessage: any;
   user: User = new User();
   leaveApplication: any;
-
+  show: number = -1;
   leaveTypes: Leave[] = [];
   leaveBucketDetails: any[] = [];
   lmsauthentication:any;

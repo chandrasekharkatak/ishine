@@ -854,7 +854,22 @@
                             <td id="clickablefor360"*ngIf="userMapping.home_employee_360" (click)="cancelRequest()" [navigateToEmployee360]="leaveApplication.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{leaveApplication.employeeName}}</td>
                             <td *ngIf="!userMapping.home_employee_360">{{leaveApplication.employeeName}}</td>
                             <td>{{leaveApplication.leaveType}}</td>
-                            <td>{{leaveApplication.clientName}}</td>
+                            <td>
+                                <ng-container *ngIf="leaveApplication.clientName">
+                                  {{ (show === i) ? leaveApplication.clientName : (leaveApplication.clientName | slice: 0:20) }}
+                                  <a *ngIf="leaveApplication.clientName.length > 20" (click)="show = (show === i ? -1 : i)" >
+                                    ..{{ (show === i) ? '▲' : '▼' }}
+                                  </a>
+                                </ng-container>
+                            </td>
+                            <td>
+                                <ng-container *ngIf="leaveApplication.teamName">
+                                  {{ (show === i) ? leaveApplication.teamName : (leaveApplication.teamName | slice: 0:20) }}
+                                  <a *ngIf="leaveApplication.teamName.length > 20" (click)="show = (show === i ? -1 : i)" >
+                                    ..{{ (show === i) ? '▲' : '▼' }}
+                                  </a>
+                                </ng-container>
+                            </td>
                             <td>{{leaveApplication.teamName}}</td>
                             <td>{{leaveApplication.fromDate}} &nbsp;<em class="fa fa-eye eye-img"
                                     (click)="onUpdateLeave(leave_success_method,leaveApplication)"></em></td>
