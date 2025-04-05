@@ -171,4 +171,6 @@ public class LeaveDTO {
 	private Long currentUserEmpId;
 	private Long differenceInDays;
 	private Long approverId;
+	private String clientName;
+	
 }
