@@ -1,6 +1,6 @@
 package com.apmosys.employeeportal.model;
 
-
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -12,6 +12,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import org.hibernate.annotations.Cache;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
@@ -27,6 +28,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @Audited
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Employee {
 
 	@Id

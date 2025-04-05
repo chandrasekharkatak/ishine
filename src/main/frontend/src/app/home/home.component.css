@@ -389,6 +389,21 @@
     color: black;
 }
 
+.tabs .nav-pills .nav-link {
+    background-color: #e7eaed; 
+    color: #06135d;           
+    padding: 8px 20px;        
+    transition: background-color 0.3s ease, color 0.3s ease;
+    cursor: pointer;
+}
 
+.tabs .nav-pills .nav-link:hover {
+    background-color: #011d3a; 
+    color: #ffffff;
+    cursor: pointer;
+}
 
-
+.tabs .nav-pills .nav-link.active {
+    background-color: #02346a; 
+    color: #ffffff;     
+}

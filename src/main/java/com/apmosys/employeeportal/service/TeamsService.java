@@ -1,6 +1,8 @@
 package com.apmosys.employeeportal.service;
 
-import java.lang.reflect.Type;
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -18,7 +20,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -48,7 +49,6 @@ import com.apmosys.employeeportal.model.LeavePolicyMaster;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
-import com.apmosys.employeeportal.model.RoleFeatureMap;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
@@ -614,6 +614,71 @@ public class TeamsService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+	public ServiceResponse getTeamMembersByTeamIdBiomax(TeamDTO teamDTO) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		//apiLogInfo.setSubFeatureName("");
+		apiLogInfo.setApiUrl("/api/getTeamMembersByTeamIdBiomax"); 
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("TeamId : " +  teamDTO.getTeamId());
+
+		try {
+
+			List<Object[]> objectList = employeeTeamMapRepository.getTeamMembersByTeamIdBioMax(teamDTO.getTeamId());
+
+			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
+
+				if (list.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No team members found. Team members list is empty");
+                    apiLogInfo.setApiResponse("No team members found.team members list is empty");			
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				} else {
+					List<EmployeeTeamMapDTO> dtoList = new ArrayList<EmployeeTeamMapDTO>();
+
+					list.forEach((object) -> {
+						Employee empid=employeeRepository.findByEmpId(Long.parseLong(object[0].toString()));
+						EmployeeTeamMapDTO dto = new EmployeeTeamMapDTO();
+						//String[] employeeRole = (object[7] != null ? object[7].toString() : null).split(",");
+						//dto.setEmployeementId(hrMailAddress)
+						//dto.setEmployeeTeamMapId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						dto.setEmployeementId ("A"+empid.getEmployeementId() != null ? "A"+empid.getEmployeementId().toString() : null);
+						dto.setTeamId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+						//dto.setEmployeeRole(employeeRole);
+						dto.setTeamMemberName(object[2] != null ? object[2].toString() : null);
+						//dto.setTeamMemberDeptId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+						
+						dtoList.add(dto);
+					});
+
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+                    apiLogInfo.setApiResponse("TeamMembers List By TeamId fetched:" + dtoList.size());			
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				}
+
+			}, () -> {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No team members found. Team members list is null");
+                apiLogInfo.setApiResponse("No team members found. team members list is null");			
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
+			
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
 
 	public ServiceResponse updateTeam(TeamDTO teamDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -909,7 +974,7 @@ public class TeamsService {
 							dto.setIsActive(object[11] != null ? object[11].toString() : null);
 							dto.setTeamLeadDeptId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
 							dto.setDepartmentList(object[13] != null ? object[13].toString().split(",") : null);
-							
+							dto.setEmpId(object[14] != null ? Long.parseLong(object[14].toString()) : null);
 							dtoList.add(dto);
 						});
 						
@@ -947,7 +1012,7 @@ public class TeamsService {
 				try {
 					
 					String q="SELECT distinctrow t.project_id, p.project_name, t.team_id, t.team_name, t.team_lead_id, t.team_lead_name, p.project_manager_id , pm.name as projectManager,\n"
-							+ "p.department_name,e1.name as teamCreatedByName,t.created_on, t.is_active, jr.dept_id as teamLeadDept, t.dept_ids \n"
+							+ "p.department_name,e1.name as teamCreatedByName,t.created_on, t.is_active, jr.dept_id as teamLeadDept, t.dept_ids,e1.emp_id \n"
 							+ "FROM teams t \n"
 							+ "LEFT JOIN employee e1 ON e1.emp_id = t.created_by \n"
 							+ "LEFT JOIN projects p ON p.project_id = t.project_id \n"
@@ -1136,7 +1201,8 @@ public class TeamsService {
 				
 				// Get Filled EOD Count for Team Members
 				List<Object[]> timesheetList = timesheetsRepository.getMyTeamsFilledEodCountByManagerId(firstOfMonth, end, employeedto.getEmpId());
-
+				System.err.println(timesheetList.size());
+				
 				list.forEach((object) -> {
 					EmployeeDTO dto = new EmployeeDTO();
 					dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()): null);
@@ -1161,7 +1227,7 @@ public class TeamsService {
 						dto.setIsDateOfRelievingToday("false");
 					}
 					
-					
+					 dto.setTimesheetStatus("Defaulter");
 					timesheetList.forEach((timesheet) -> {
 
 						Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
@@ -1175,11 +1241,10 @@ public class TeamsService {
 								dto.setTimesheetStatus("Defaulter");
 							}else if (pendingEodCount > 0 && pendingEodCount < 3) {
 								dto.setTimesheetStatus("Pending Timesheets : "+ pendingEodCount);
-							}else {
-								dto.setTimesheetStatus("Timesheets upto date");
 							}
 						}
 					});
+					
 					
 					dtoList.add(dto);
 				});
@@ -1307,34 +1372,36 @@ public class TeamsService {
 
 				list.forEach((object) -> {
 					LeaveDTO dto = new LeaveDTO();
-					dto.setCreatedByName(object[0] != null ? object[0].toString() : null);
-					dto.setFromDate(object[1] != null ? object[1].toString() : null);
-					dto.setToDate(object[2] != null ? object[2].toString() : null);
-					dto.setCreatedOn(object[3] != null ? object[3].toString() : null);
-					dto.setNoOfDays(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
-					dto.setStatus(object[5] != null ? object[5].toString() : null);
-					dto.setReason(object[6] != null ? object[6].toString() : null);
-					dto.setLeaveType(object[7] != null ? object[7].toString() : null);
-					dto.setLeaveStatusUpdatedByName(object[8] != null ? object[8].toString() : null);
-					dto.setLeaveId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
-					dto.setRemark(object[10] != null ? object[10].toString() : null);
+					dto.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					dto.setCreatedByName(object[1] != null ? object[1].toString() : null);
+					dto.setFromDate(object[2] != null ? object[2].toString() : null);
+					dto.setToDate(object[3] != null ? object[3].toString() : null);
+					dto.setCreatedOn(object[4] != null ? object[4].toString() : null);
+					dto.setNoOfDays(object[5] != null ? Float.parseFloat(object[5].toString()) : null);
+					dto.setStatus(object[6] != null ? object[6].toString() : null);
+					dto.setReason(object[7] != null ? object[7].toString() : null);
+					dto.setLeaveType(object[8] != null ? object[8].toString() : null);
+					dto.setLeaveStatusUpdatedByName(object[9] != null ? object[9].toString() : null);
+					dto.setLeaveStatusUpdatedBy(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+					dto.setLeaveId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
+					dto.setRemark(object[12] != null ? object[12].toString() : null);
 					
-					dto.setApproverName(object[11] != null ? object[11].toString() : null);
-					dto.setApproverEmail(object[12] != null ? object[12].toString() : null);
+					dto.setApproverName(object[13] != null ? object[13].toString() : null);
+					dto.setApproverEmail(object[14] != null ? object[14].toString() : null);
 
-					dto.setManagerApprovalStatus(object[13] != null ? object[13].toString() : null);
-					dto.setLevel2ApproverId(object[14] != null ? Long.parseLong(object[14].toString()) : null);
-					dto.setLevel2ApproverName(object[15] != null ? object[15].toString() : null);
-					dto.setLevel2ApproverEmail(object[16] != null ? object[16].toString() : null);
-					dto.setLevel2ApprovalStatus(object[17] != null ? object[17].toString() : null);
+					dto.setManagerApprovalStatus(object[15] != null ? object[15].toString() : null);
+					dto.setLevel2ApproverId(object[16] != null ? Long.parseLong(object[16].toString()) : null);
+					dto.setLevel2ApproverName(object[17] != null ? object[17].toString() : null);
+					dto.setLevel2ApproverEmail(object[18] != null ? object[18].toString() : null);
+					dto.setLevel2ApprovalStatus(object[19] != null ? object[19].toString() : null);
 					
-					dto.setLevel3ApproverId(object[18] != null ? Long.parseLong(object[18].toString()) : null);
-					dto.setLevel3ApproverName(object[19] != null ? object[19].toString() : null);
-					dto.setLevel3ApprovalStatus(object[20] != null ? object[20].toString() : null);
-					dto.setLevel3ApproverEmail(object[21] != null ? object[21].toString() : null);
+					dto.setLevel3ApproverId(object[20] != null ? Long.parseLong(object[20].toString()) : null);
+					dto.setLevel3ApproverName(object[21] != null ? object[21].toString() : null);
+					dto.setLevel3ApprovalStatus(object[22] != null ? object[22].toString() : null);
+					dto.setLevel3ApproverEmail(object[23] != null ? object[23].toString() : null);
 					
-					dto.setCurrentApprovalLevel(object[22] != null ? Integer.parseInt(object[22].toString()) : null);
-					dto.setFinalApprovalLevel(object[23] != null ? Integer.parseInt(object[23].toString()) : null);
+					dto.setCurrentApprovalLevel(object[24] != null ? Integer.parseInt(object[24].toString()) : null);
+					dto.setFinalApprovalLevel(object[25] != null ? Integer.parseInt(object[25].toString()) : null);
 					dtoList.add(dto);					
 					});
 
@@ -1384,15 +1451,18 @@ public class TeamsService {
 
 				list.forEach((object) -> {
 					LeaveDTO dto = new LeaveDTO();
-					dto.setCreatedByName(object[0] != null ? object[0].toString() : null);
-					dto.setFromDate(object[1] != null ? object[1].toString() : null);
-					dto.setToDate(object[2] != null ? object[2].toString() : null);
-					dto.setCreatedOn(object[3] != null ? object[3].toString() : null);
-					dto.setNoOfDays(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
-					dto.setStatus(object[5] != null ? object[5].toString() : null);
-					dto.setReason(object[6] != null ? object[6].toString() : null);
-					dto.setLeaveType(object[7] != null ? object[7].toString() : null);
-					dto.setLeaveStatusUpdatedByName(object[8] != null ? object[8].toString() : null);
+					dto.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					dto.setCreatedByName(object[1] != null ? object[1].toString() : null);
+					dto.setFromDate(object[2] != null ? object[2].toString() : null);
+					dto.setToDate(object[3] != null ? object[3].toString() : null);
+					dto.setCreatedOn(object[4] != null ? object[4].toString() : null);
+					dto.setNoOfDays(object[5] != null ? Float.parseFloat(object[5].toString()) : null);
+					dto.setStatus(object[6] != null ? object[6].toString() : null);
+					dto.setReason(object[7] != null ? object[7].toString() : null);
+					dto.setLeaveType(object[8] != null ? object[8].toString() : null);
+					dto.setLeaveStatusUpdatedByName(object[9] != null ? object[9].toString() : null);
+					dto.setLeaveStatusUpdatedBy(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+					System.out.println("object[10]"+object[10] != null ? Long.parseLong(object[10].toString()) : null);
 					dtoList.add(dto);					
 					});
 
@@ -2152,40 +2222,41 @@ public class TeamsService {
 
 				objectList.forEach((object) -> {
 					LeaveDTO dto = new LeaveDTO();
-					dto.setCreatedByName(object[0] != null ? object[0].toString() : null);
-					dto.setFromDate(object[1] != null ? object[1].toString() : null);
-					dto.setToDate(object[2] != null ? object[2].toString() : null);
-					dto.setCreatedOn(object[3] != null ? object[3].toString() : null);
-					dto.setNoOfDays(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
-					dto.setStatus(object[5] != null ? object[5].toString() : null);
-					dto.setReason(object[6] != null ? object[6].toString() : null);
-					dto.setLeaveType(object[7] != null ? object[7].toString() : null);
-					dto.setLeaveStatusUpdatedByName(object[8] != null ? object[8].toString() : null);
-					dto.setLeaveId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
-					dto.setRemark(object[10] != null ? object[10].toString() : null);
+					dto.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					dto.setCreatedByName(object[1] != null ? object[1].toString() : null);
+					dto.setFromDate(object[2] != null ? object[2].toString() : null);
+					dto.setToDate(object[3] != null ? object[3].toString() : null);
+					dto.setCreatedOn(object[4] != null ? object[4].toString() : null);
+					dto.setNoOfDays(object[5] != null ? Float.parseFloat(object[5].toString()) : null);
+					dto.setStatus(object[6] != null ? object[6].toString() : null);
+					dto.setReason(object[7] != null ? object[7].toString() : null);
+					dto.setLeaveType(object[8] != null ? object[8].toString() : null);
+					dto.setLeaveStatusUpdatedByName(object[9] != null ? object[9].toString() : null);
 					
-//					added by anurag
+					dto.setLeaveStatusUpdatedBy(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+					dto.setLeaveId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
+					dto.setRemark(object[12] != null ? object[12].toString() : null);
+										
+					dto.setApproverName(object[13] != null ? object[13].toString() : null);
 					
-					dto.setApproverName(object[11] != null ? object[11].toString() : null);
-					dto.setApproverEmail(object[12] != null ? object[12].toString() : null);
+					dto.setApproverId(object[14] != null ? Long.parseLong(object[14].toString()) : null);
 
-					dto.setManagerApprovalStatus(object[13] != null ? object[13].toString() : null);
-					dto.setLevel2ApproverId(object[14] != null ? Long.parseLong(object[14].toString()) : null);
-					dto.setLevel2ApproverName(object[15] != null ? object[15].toString() : null);
-					dto.setLevel2ApproverEmail(object[16] != null ? object[16].toString() : null);
-					dto.setLevel2ApprovalStatus(object[17] != null ? object[17].toString() : null);
-					
-					dto.setLevel3ApproverId(object[18] != null ? Long.parseLong(object[18].toString()) : null);
-					dto.setLevel3ApproverName(object[19] != null ? object[19].toString() : null);
-					dto.setLevel3ApprovalStatus(object[20] != null ? object[20].toString() : null);
-					dto.setLevel3ApproverEmail(object[21] != null ? object[21].toString() : null);
-					
-					dto.setCurrentApprovalLevel(object[22] != null ? Integer.parseInt(object[22].toString()) : null);
-					dto.setFinalApprovalLevel(object[23] != null ? Integer.parseInt(object[23].toString()) : null);
-					
-					
-					
-					
+					dto.setApproverEmail(object[15] != null ? object[15].toString() : null);
+
+					dto.setManagerApprovalStatus(object[16] != null ? object[16].toString() : null);
+					dto.setLevel2ApproverId(object[17] != null ? Long.parseLong(object[17].toString()) : null);
+					dto.setLevel2ApproverName(object[18] != null ? object[18].toString() : null);
+					dto.setLevel2ApproverEmail(object[19] != null ? object[19].toString() : null);
+					dto.setLevel2ApprovalStatus(object[20] != null ? object[20].toString() : null);
+
+					dto.setLevel3ApproverId(object[21] != null ? Long.parseLong(object[21].toString()) : null);
+					dto.setLevel3ApproverName(object[22] != null ? object[22].toString() : null);
+					dto.setLevel3ApprovalStatus(object[23] != null ? object[23].toString() : null);
+					dto.setLevel3ApproverEmail(object[24] != null ? object[24].toString() : null);
+
+					dto.setCurrentApprovalLevel(object[25] != null ? Integer.parseInt(object[25].toString()) : null);
+					dto.setFinalApprovalLevel(object[26] != null ? Integer.parseInt(object[26].toString()) : null);
+
 					dtoList.add(dto);					
 					});
 
@@ -2206,10 +2277,7 @@ public class TeamsService {
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
-	}
-
-//	added by anurag
-	
+	}	
 	
 	public ServiceResponse getDepartmentPendingLeaveHistory(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();

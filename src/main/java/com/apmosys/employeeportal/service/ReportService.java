@@ -1,7 +1,9 @@
 package com.apmosys.employeeportal.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -75,6 +77,9 @@ public class ReportService {
 					leavedto.setEmploymentStatus(object[13] != null ? object[13].toString() : null);
 					leavedto.setFromDateDayType(object[14] != null ? Float.parseFloat(object[14].toString()) : null);
 					leavedto.setToDateDayType(object[15] != null ? Float.parseFloat(object[15].toString()) : null);
+					leavedto.setManagerId(object[16] != null ? Integer.parseInt(object[16].toString()) : null);
+					leavedto.setLeaveStatusUpdatedBy(object[17] != null ? Long.parseLong(object[17].toString()) : null);
+					
 					dtoList.add(leavedto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -132,7 +137,8 @@ public class ReportService {
 					timesheetDto.setOfficeOutTime(object[11] != null ? object[11].toString() : null);
 					timesheetDto.setTotalWorkingOfficeHours(object[12] != null ? object[12].toString() : null);
 					timesheetDto.setEmploymentstatus(object[10] != null ? object[10].toString() : null);	
-
+					timesheetDto.setTimesheetStatusUpdatedBy(object[11] != null ? Long.parseLong(object[11].toString()) : null);
+					
 					dtoList.add(timesheetDto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -509,15 +515,15 @@ public class ReportService {
 			List<Object[]> allEmployeeReport = employeeRepository.getAllEmployeesReportByProjectTypeInConsolidated();
 			List<getAllEmployeesReportByProjectTypeInConsolidatedDTO> dtoList = new ArrayList<getAllEmployeesReportByProjectTypeInConsolidatedDTO>();
 			
-			if(allEmployeeReport == null)  {
+			if(allEmployeeReport == null || allEmployeeReport.isEmpty())  {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Report list is empty.");
                 apiLogInfo.setApiResponse("Report list is empty.");			
                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}else{
-				allEmployeeReport.forEach((object) -> {
+				allEmployeeReport.forEach(object -> {
 					getAllEmployeesReportByProjectTypeInConsolidatedDTO employeeDTO = new getAllEmployeesReportByProjectTypeInConsolidatedDTO();
-					
+					// System.out.println("employeeDTO"+employeeDTO);
 					employeeDTO.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 					employeeDTO.setEmployeementId(object[1] != null ? object[1].toString() : null);
 					employeeDTO.setName(object[2] != null ? object[2].toString() : null);
@@ -544,7 +550,21 @@ public class ReportService {
 					employeeDTO.setPoProjectType(object[23] != null ? object[23].toString() : null);
 					employeeDTO.setJobRole(object[24] != null ? object[24].toString() : null);
 					employeeDTO.setPoProjectId(object[25] != null ? object[25].toString() : null);
+					employeeDTO.setPrimaryProjectName(object[26] != null ? object[26].toString() : null);
+					employeeDTO.setPrimaryProjectId(object[27] != null ? object[27].toString() : null);
+					// System.out.println("employeeDTO"+employeeDTO);
 					
+					Map<String, String> projectMap = new HashMap<>();
+			        if (object[12] != null && object[13] != null) {
+			            String[] projectIds = object[12].toString().split(",");
+			            String[] projectNames = object[13].toString().split(",");
+
+			            for (int i = 0; i < projectIds.length; i++) {
+			                projectMap.put(projectIds[i].trim(), i < projectNames.length ? projectNames[i].trim() : "");
+			            }
+			        }
+			        employeeDTO.setProjects(projectMap);
+			        
 					dtoList.add(employeeDTO);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

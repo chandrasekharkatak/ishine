@@ -185,9 +185,9 @@ public class CompOffLeaveService {
 
 				if (leaveApplied != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Compoff Request applied.");
+					response.setServiceResponse("Comp off Request Applied.");
 					
-					apiLogInfo.setApiResponse("Compoff Request applied.");			
+					apiLogInfo.setApiResponse("Comp off Request Applied.");			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 					
 					CompOffMaster compOffObject = compOffMasterRepository.findByCompOffId(leaveDTO.getReasonId().shortValue());
@@ -212,9 +212,9 @@ public class CompOffLeaveService {
 
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Compoff Request creation failed.");
+					response.setServiceResponse("Comp off Request creation failed.");
 					
-					apiLogInfo.setApiResponse("Compoff Request creation failed.");			
+					apiLogInfo.setApiResponse("Comp off Request creation failed.");			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 				
@@ -741,16 +741,16 @@ public class CompOffLeaveService {
 
 				if (leaveUpdated != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Compoff Request Updated.");
+					response.setServiceResponse("Comp off Request Updated.");
 					
-					apiLogInfo.setApiResponse("Compoff Request Updated.");			
+					apiLogInfo.setApiResponse("Comp off Request Updated.");			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Compoff Request updation failed.");
+					response.setServiceResponse("Comp off Request updation failed.");
 					
-					apiLogInfo.setApiResponse("Compoff Request updation failed.");			
+					apiLogInfo.setApiResponse("Comp off Request updation failed.");			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 			}
@@ -793,9 +793,9 @@ public class CompOffLeaveService {
 				compOffLeaveRepository.deleteById(leave.getCompOffLeaveId());
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("CompOff Request Deleted.");
+				response.setServiceResponse("Comp Off Request Deleted.");
 				
-				apiLogInfo.setApiResponse("CompOff Request Deleted.");
+				apiLogInfo.setApiResponse("Comp Off Request Deleted.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				
 				mailService.sendMailWithCC(leaveDTO.getHodEmail(), leaveDTO.getManagerEmail()+","+leaveDTO.getEmail()+","+hrMailAddress, "Regarding CompOff Request Deletion", 
@@ -816,9 +816,9 @@ public class CompOffLeaveService {
 				
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("CompOff Request Not Found.");
+				response.setServiceResponse("Comp Off Request Not Found.");
 				
-				apiLogInfo.setApiResponse("CompOff Request Not Found.");			
+				apiLogInfo.setApiResponse("Comp Off Request Not Found.");			
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 

@@ -6,14 +6,16 @@ import java.util.Optional;
 import java.util.Set;
 
 import javax.transaction.Transactional;
-
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeTimesheetDto;
+import com.apmosys.employeeportal.dto.TeamMemberDTO;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.Timesheet;
@@ -24,10 +26,62 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	public Employee findByEmail(String email);
 
 	@Query(nativeQuery = true)
+	
 	public List<Object[]> getEmployeeByEmpId(Long empId);
 
+	 @Cacheable(value = "Employee")
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllEmployees();
+	
+	
+	@Query(nativeQuery = true, value = "SELECT e.employeement_id, \n"
+			+ " e.date_of_joining, e.email, \n"
+			+ " e.employmentstatus, \n"
+			+ " e.job_role_id, e.manager_id, e.name, \n"
+			+ " jr.dept_id, jr.name as jobrolename, \n"
+			+ " d.name as departmentname,e.emp_id, e2.name as manager, e.experience, \n"
+			+ "e.billable,e.total_experience,  jr.name as JobRolename,e.billable_type,des.designation_name,e.reporting_manager_id, e5.name AS reportingManger, jr.employee_role, d.hod_id, e7.name AS hodName, d.name AS hodDepartmentName  \n"
+			+ "FROM employee e \n"
+			+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
+			+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
+			+ "LEFT JOIN employee e3 on e.updated_by = e3.emp_id \n"
+			+ "LEFT JOIN employee e4 on e.created_by = e4.emp_id \n"
+			+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id \n"
+			+ "INNER JOIN employee e7 ON d.hod_id = e7.emp_id \n"
+			+ "LEFT JOIN employee e5 ON e.reporting_manager_id = e5.emp_id \n"
+			+ "LEFT JOIN designation des ON des.designation_id = e.designation_id \n"
+			+" where e.employmentstatus!='InActive' AND  d.hod_id=:empId  \n"
+			+ "or (\n"
+			+ "    CASE \n"
+			+ "        WHEN e.approvals_to = 'Manager' THEN e.manager_id = :empId \n"
+			+"  WHEN e.approvals_to = 'Reporting Manager' THEN e.reporting_manager_id = :empId \n"
+			+ "        ELSE (d.hod_id = :empId)\n"
+			+ "    END\n"
+			+ ")"
+			+ "order by e.name")
+	public List<Object[]> getAllEmployeesForPerformance(Long empId);
+
+	
+	
+	@Query(nativeQuery = true, value = "SELECT e.employeement_id, \n"
+			+ " e.date_of_joining, e.email, \n"
+			+ " e.employmentstatus, \n"
+			+ " e.job_role_id, e.manager_id, e.name, \n"
+			+ " jr.dept_id, jr.name as jobrolename, \n"
+			+ " d.name as departmentname,e.emp_id, e2.name as manager, e.experience, \n"
+			+ "e.billable,e.total_experience,  jr.name as JobRolename,e.billable_type,des.designation_name,e.reporting_manager_id, e5.name AS reportingManger, jr.employee_role, d.hod_id, e7.name AS hodName, d.name AS hodDepartmentName  \n"
+			+ "FROM employee e \n"
+			+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
+			+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
+			+ "LEFT JOIN employee e3 on e.updated_by = e3.emp_id \n"
+			+ "LEFT JOIN employee e4 on e.created_by = e4.emp_id \n"
+			+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id \n"
+			+ "INNER JOIN employee e7 ON d.hod_id = e7.emp_id \n"
+			+ "LEFT JOIN employee e5 ON e.reporting_manager_id = e5.emp_id \n"
+			+ "LEFT JOIN designation des ON des.designation_id = e.designation_id \n"
+			+" where e.employmentstatus!='InActive'  \n"
+			+ "order by e.name")
+	public List<Object[]> getAllEmployeesForPerformanceForHr();
 
 //	@Query(nativeQuery = true)	
 //	public List<Object[]> getEmployeesByRole();	
@@ -60,6 +114,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	public Employee findByEmployeementId(Long employeementId);
 
+	
 	public List<Employee> findByMobileNo(Long employeementId);
 
 	public List<Employee> findByAadhar(Long aadhar);
@@ -68,8 +123,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query(value = "FROM Employee e WHERE e.mobileNo = :mobileNo AND e.empId != :empId")
 	public List<Employee> findByMobileNoAndEmpId(Long mobileNo, Long empId);
+	
+	@Query(value = "FROM Employee e WHERE e.employeementId = :employeementId")
+	public Optional<Employee> findByemployeementIdForBioMax(Long employeementId);
 
-	@Query(value = "FROM Employee e WHERE e.aadhar = :aadhar AND e.empId != :empId")
+//	@Query(value = "FROM Employee e WHERE e.aadhar = :aadhar AND e.empId != :empId")
 	public List<Employee> findByAadharAndEmpId(Long aadhar, Long empId);
 
 	@Query(value = "FROM Employee e WHERE e.panNumber = :panNumber AND e.empId != :empId")
@@ -240,24 +298,57 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "where jr.name like '%VP%' and e.employmentstatus != 'InActive'")
 	public List<Object[]> findAllVPsEmail();
 
-	@Query(nativeQuery = true , value = "select e.employeement_id,e.email,e.name , em.name as managerName,d.name as departmentName, hd.name as hodName,e.billable,e.billable_type,"
-			+ "e.mobile_no,e.mothers_name,e.approvals_to,e.marital_status,emp_proj_client.project_name,"
-			+ " emp_proj_client.client_name,e.gender,e.employmentstatus,e.total_experience,e.date_of_birth,e.date_of_joining,e.work_location,e.experience,e.emp_id,emp_proj_client.team_name,e.is_consultant,e.is_apprenticeship from employee e\n"
-			+ "inner join job_role jr ON jr.job_role_id=e.job_role_id\n"
-			+ "inner join department d ON d.dept_id=jr.dept_id\n"
-			+ "Inner join employee em ON em.emp_id=e.manager_id\n"
-			+ "INNER JOIN employee hd ON hd.emp_id=d.hod_id\n"
-			+ "LEFT JOIN (SELECT etm.emp_id, GROUP_CONCAT(DISTINCT pr.project_name) AS project_name, GROUP_CONCAT(DISTINCT cl.client_name) AS client_name,GROUP_CONCAT(DISTINCT t.team_name) AS team_name \n"
-			+ "FROM employee_team_mapping etm \n"
-			+ "LEFT JOIN teams t ON t.team_id = etm.team_id \n"
-			+ "LEFT JOIN projects pr ON pr.project_id = t.project_id \n"
-			+ "LEFT JOIN clients cl ON cl.client_id = pr.client_id \n"
-			+ "WHERE etm.active != 0 "
-			+ "AND t.is_active != 'N' \n"
-			+ "AND pr.active != 'false'\n"
-			+ "GROUP BY etm.emp_id) emp_proj_client ON emp_proj_client.emp_id = e.emp_id \n"
-			+ "where e.employmentstatus != 'InActive'")
+//	@Query(nativeQuery = true , value = "select e.employeement_id,e.email,e.name , em.name as managerName,d.name as departmentName, hd.name as hodName,e.billable,e.billable_type,"
+//			+ "e.mobile_no,e.mothers_name,e.approvals_to,e.marital_status,emp_proj_client.project_name,"
+//			+ " emp_proj_client.client_name,e.gender,e.employmentstatus,e.total_experience,e.date_of_birth,e.date_of_joining,e.work_location,e.experience,e.emp_id,emp_proj_client.team_name,e.is_consultant,e.is_apprenticeship from employee e\n"
+//			+ "inner join job_role jr ON jr.job_role_id=e.job_role_id\n"
+//			+ "inner join department d ON d.dept_id=jr.dept_id\n"
+//			+ "Inner join employee em ON em.emp_id=e.manager_id\n"
+//			+ "INNER JOIN employee hd ON hd.emp_id=d.hod_id\n"
+//			+ "LEFT JOIN (SELECT etm.emp_id, GROUP_CONCAT(DISTINCT pr.project_name) AS project_name, GROUP_CONCAT(DISTINCT cl.client_name) AS client_name,GROUP_CONCAT(DISTINCT t.team_name) AS team_name \n"
+//			+ "FROM employee_team_mapping etm \n"
+//			+ "LEFT JOIN teams t ON t.team_id = etm.team_id \n"
+//			+ "LEFT JOIN projects pr ON pr.project_id = t.project_id \n"
+//			+ "LEFT JOIN clients cl ON cl.client_id = pr.client_id \n"
+//			+ "WHERE etm.active != 0 "
+//			+ "AND t.is_active != 'N' \n"
+//			+ "AND pr.active != 'false'\n"
+//			+ "GROUP BY etm.emp_id) emp_proj_client ON emp_proj_client.emp_id = e.emp_id \n"
+//			+ "where e.employmentstatus != 'InActive'")
+//	public List<Object[]> getBillableEmpWithDepartment();
+	
+	@Query(nativeQuery = true , value = "SELECT e.employeement_id, e.email, e.name, em.name AS managerName, d.name AS departmentName, \n"
+			+ "       hd.name AS hodName, e.billable, e.billable_type, e.mobile_no, e.mothers_name, \n"
+			+ "       e.approvals_to, e.marital_status, emp_proj_client.project_name, emp_proj_client.client_name, \n"
+			+ "       e.gender, e.employmentstatus, e.total_experience, e.date_of_birth, e.date_of_joining, \n"
+			+ "       e.work_location, e.experience, e.emp_id, emp_proj_client.team_name, e.is_consultant, \n"
+			+ "       e.is_apprenticeship,\n"
+			+ "       emp_proj_client.project_id, e.manager_id \n"
+			+ "FROM employee e\n"
+			+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id\n"
+			+ "INNER JOIN department d ON d.dept_id = jr.dept_id\n"
+			+ "INNER JOIN employee em ON em.emp_id = e.manager_id\n"
+			+ "INNER JOIN employee hd ON hd.emp_id = d.hod_id\n"
+			+ "LEFT JOIN (\n"
+			+ "    SELECT etm.emp_id, \n"
+			+ "           GROUP_CONCAT(DISTINCT pr.project_id) AS project_id,\n"
+			+ "           GROUP_CONCAT(DISTINCT pr.project_name) AS project_name, \n"
+			+ "           GROUP_CONCAT(DISTINCT cl.client_name) AS client_name, \n"
+			+ "           GROUP_CONCAT(DISTINCT t.team_name) AS team_name \n"
+			+ "    FROM employee_team_mapping etm \n"
+			+ "    LEFT JOIN teams t ON t.team_id = etm.team_id \n"
+			+ "    LEFT JOIN projects pr ON pr.project_id = t.project_id \n"
+			+ "    LEFT JOIN clients cl ON cl.client_id = pr.client_id \n"
+			+ "    WHERE etm.active != 0 \n"
+			+ "      AND t.is_active != 'N' \n"
+			+ "      AND pr.active != 'false'\n"
+			+ "    GROUP BY etm.emp_id\n"
+			+ ") emp_proj_client ON emp_proj_client.emp_id = e.emp_id \n"
+			+ "WHERE e.employmentstatus != 'InActive'")
 	public List<Object[]> getBillableEmpWithDepartment();
+	
+	
+	
 	
 	
 	//	report data change , requirement given by pratima ma'am
@@ -368,21 +459,29 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 
 				    @Query(nativeQuery = true, value = "SELECT et.timesheet_id,et.emp_id,e.name,et.date,et.day_type,\n"
-				    		+ "et.office_in_time,et.office_out_time,et.total_time,\n"
-				    		+ "et.status,et.remarks,e.employeement_id,e.created_on,et.current_manager_id\n"
-				    		+ "FROM db_emp_portal.employee_timesheets et  \n"
-				    		+ "left join employee e \n"
-				    		+ "ON et.created_by = e.emp_id " +
-				            "WHERE et.status = :status " +
-				            "AND (:empId = 0 OR et.emp_id = :empId) " +
-				            "AND (:managerId = 0 OR et.current_manager_id = :managerId) " +
-				            "AND ((:startDate IS NULL OR :endDate IS NULL) OR (et.date BETWEEN :startDate AND :endDate))")
+				    	+ "et.office_in_time,et.office_out_time,et.total_time,\n"
+				    	+ "et.status,et.remarks,e.employeement_id,et.created_on,et.current_manager_id\n"
+				    	+ "FROM employee_timesheets et  \n"
+				    	+ "inner join employee_timesheet_activities_mapping etam on etam.timesheet_id = et.timesheet_id \n"
+				    	+ "inner join activities a on a.activity_id = etam.activity_id \n"
+				    	+ "inner join teams t on t.team_id = a.team_id \n"
+				    	+ "inner join projects p on p.project_id = t.project_id \n"
+						+ "inner join employee e ON et.emp_id = e.emp_id \n"
+				        +"WHERE et.status = :status "
+				        + " AND (:projectId = 0 OR p.project_id = :projectId) \n "
+				        +" AND (:teamName = 0 OR t.team_id = :teamName) \n "
+				        + "AND (:empId = 0 OR et.emp_id = :empId) " 
+				        + "AND et.date >= CURDATE() - INTERVAL 3 MONTH\n"
+				        + "AND ((:startDate IS NULL OR :endDate IS NULL) OR (et.date BETWEEN :startDate AND :endDate))"
+				        + "ORDER BY et.date DESC\n")
 				    List<Object[]> getTimesheetData(
 				            @Param("status") String status,
 				            @Param("empId") long empId,
-				            @Param("managerId") Long managerId,
+//				            @Param("managerId") Long managerId,
 				            @Param("startDate") LocalDate startDate,
-				            @Param("endDate") LocalDate endDate
+				            @Param("endDate") LocalDate endDate,
+				            @Param("projectId") long projectId,
+				            @Param("teamName") long teamName
 				    );
 				    
 				    @Query(nativeQuery = true, value = "select a.activity_id,etam.description,etam.timesheet_id,etam.completion_time,\n"
@@ -412,6 +511,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getReporteesListByReportingManagerId(Long empId );
 	
+	@Query(nativeQuery = true, value = "select d.designation_name from employee e\n"
+			+ "Inner join designation d on d.designation_id=e.designation_id\n"
+			+ "where e.emp_id=:empId")
+	public Optional<Object[]> getDesignationByEmpId(Long empId);
+	
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllEmployeesReportByProjectType();
 	
@@ -426,4 +530,19 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getTeamProjectMappingsByEmpId(Long empId );
 	
+	@Query(nativeQuery = true)
+	public EmployeeDetailsForTeamMemberDTO getEmployeeDetailsForTeam(Long empId );
+
+    @Query(nativeQuery = true,value = "SELECT \n"
+    		+ "    (SELECT COUNT(*) FROM employee_rewards WHERE rewarded_to = e.emp_id) AS rewardCount,\n"
+    		+ "    (SELECT COUNT(*) FROM appreciation WHERE appreciation_to = e.employeement_id) AS appreciationCount\n"
+    		+ "FROM employee e\n"
+    		+ "WHERE e.emp_id = :employeeId")
+    List<Object[]> getRewardsAndAppreciationCount(@Param("employeeId") Long employeeId);
+	
+    @Query(nativeQuery = true)
+    public String findHodMail(Long empId);
+    
+    @Query(nativeQuery = true)
+    public Optional<List<Object[]>> getAllEmployeesWorkAnniversaryToday();
 }

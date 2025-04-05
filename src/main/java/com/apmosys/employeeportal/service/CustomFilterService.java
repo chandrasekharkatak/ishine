@@ -6,9 +6,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -31,6 +34,7 @@ import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.NewsletterDTO;
+import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.Department;
@@ -255,7 +259,7 @@ public class CustomFilterService {
 			try {
 
 				String q = "select e.employeement_id, e.name as employee, ltm.leave_type, el.from_date, el.to_date,el.no_of_days,el.reason, ls.status, e2.name as manager, el.created_on, "
-						+ "el.updated_on, e3.name as statusUpdateBy,d.name department,t.team_name,p.project_name,el.from_date_day_type, el.to_date_day_type,e.is_consultant,e.is_apprenticeship from employee_leave el "
+						+ "el.updated_on, e3.name as statusUpdateBy,d.name department,t.team_name,p.project_name,el.from_date_day_type, el.to_date_day_type,e.is_consultant,e.is_apprenticeship, el.leave_status_updated_by, el.manager_id, el.emp_id from employee_leave el "
 						+ "INNER JOIN employee e on el.emp_id = e.emp_id "
 						+ "INNER JOIN leave_type_master ltm on el.leave_type_master_id = ltm.leave_type_master_id "
 						+ "INNER JOIN leave_status ls on el.leave_status_id = ls.leave_status_id "
@@ -328,7 +332,11 @@ public class CustomFilterService {
 					leavedto.setToDateDayType(object[16] != null ? Float.parseFloat(object[16].toString()) : null);
 					leavedto.setIsConsultant(object[17] != null ? object[17].toString() : null);
 					leavedto.setIsApprenticeship(object[18] != null ? object[18].toString() : null);
-										dtoList.add(leavedto);
+					leavedto.setLeaveStatusUpdatedBy(object[19] != null ? Long.parseLong(object[19].toString()) : null);
+					leavedto.setManagerId(object[20] != null? Integer.parseInt(object[20].toString()) : null);
+					leavedto.setEmpId(object[21] != null? Long.parseLong(object[21].toString()):null);
+					
+					dtoList.add(leavedto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
@@ -877,6 +885,20 @@ public class CustomFilterService {
 //						+ "LEFT JOIN domain dm ON dm.domain_id = s.domain_id\n"
 //						+ "LEFT JOIN designation de ON de.designation_id = e.designation_id  " + customQuery;
 				
+				// String q = "SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
+				// 		+ "e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,\n"
+				// 		+ "e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing,\n"
+				// 		+ "e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, e.mother_tongue, e.name,\n"
+				// 		+ "e.notice_period, e.alternate_mobile_no,  e.pan_number, e.passport_number,\n"
+				// 		+ "e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade,\n"
+				// 		+ "e.previous_pf_account_number, e.relation, e.state, e.uan,\n"
+				// 		+ "e.views_on_organisation, e.year_of_passing,\n" + "jr.dept_id, jr.name as jobrolename,\n"
+				// 		+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience,\n"
+				// 		+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,emp_proj_client.project_name, emp_proj_client.client_name, emp_proj_client.project_id, e.updated_on,e4.name as createdByName, e3.name as updatedByName,\n"
+				// 		+ "e.designation_id,de.designation_name,e.updated_by,e.billable_type,emp_proj_client.team_name, e.is_consultant, e.is_apprenticeship, \n"
+				// 		+ "(SELECT COUNT(*) * 100.0 / NULLIF(COUNT(*), 0) FROM\n"
+				// 		+ "employee e_profile WHERE\n"
+				// 		+ "e_profile.emp_id = e.emp_id) AS profile_completion_percentage \n" + "FROM employee e\n"
 //				String q = "SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
 //						+ "e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,\n"
 //						+ "e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing,\n"
@@ -921,7 +943,7 @@ public class CustomFilterService {
 						+ "    e.views_on_organisation, e.year_of_passing, jr.dept_id, jr.name AS jobrolename,\n"
 						+ "    d.name AS departmentname, e.work_location, e.probation_period, e.emp_id, e2.name AS manager, \n"
 						+ "    e.experience, e.billable, e.child1, e.child2, e.child3, e.mothers_name, e.spouse, \n"
-						+ "    e.total_experience, emp_proj_client.project_name, emp_proj_client.client_name, e.updated_on, \n"
+						+ "    e.total_experience, emp_proj_client.project_name, emp_proj_client.client_name,emp_proj_client.project_id, e.updated_on, \n"
 						+ "    e4.name AS createdByName, e3.name AS updatedByName, e.designation_id, de.designation_name, \n"
 						+ "    e.updated_by, e.billable_type, emp_proj_client.team_name, e.is_consultant, e.is_apprenticeship, \n"
 						+ "    emp_proj_client.po_no, \n"
@@ -1146,6 +1168,7 @@ public class CustomFilterService {
 //					empDTO.setDomainName(object[66] != null ? (object[66].toString()) : null);
 					empDTO.setDesignationId(object[65] != null ? Long.parseLong(object[65].toString()) : null);
 					empDTO.setDesignationName(object[66] != null ? (object[66].toString()) : null);
+					empDTO.setUpdatedBy(object[67] != null ? Long.parseLong(object[67].toString()) : null);
 					empDTO.setBillableType(object[68] != null ? object[68].toString() : null);
 					
 //					empDTO.setAge(object[70] != null ? Long.parseLong(object[70].toString()) : null);
@@ -1276,22 +1299,64 @@ public class CustomFilterService {
 					empDTO.setTotalExperience(object[59] != null ? Float.parseFloat(object[59].toString()) : null);
 					empDTO.setProjectName(object[60] != null ? object[60].toString() : null);
 					empDTO.setClientName(object[61] != null ? object[61].toString() : null);
-					empDTO.setUpdatedOn(object[62] != null ? (object[62].toString()) : null);
-					empDTO.setCreatedByName(object[63] != null ? (object[63].toString()) : null);
-					empDTO.setUpdatedByName(object[64] != null ? (object[64].toString()) : null);
+//					empDTO.setProjectId(object[62] != null ? Integer.parseInt((object[62].toString())) : null);
+					empDTO.setUpdatedOn(object[63] != null ? (object[63].toString()) : null);
+					empDTO.setCreatedByName(object[64] != null ? (object[64].toString()) : null);
+					empDTO.setUpdatedByName(object[65] != null ? (object[65].toString()) : null);
 					
 //					empDTO.setSpecializationName(object[66] != null ? (object[66].toString()) : null);
 //					empDTO.setDomainName(object[67] != null ? (object[67].toString()) : null);
-					empDTO.setDesignationId(object[65] != null ? Long.parseLong(object[65].toString()) : null);
-					empDTO.setDesignationName(object[66] != null ? (object[66].toString()) : null);
-					empDTO.setBillableType(object[68] != null ? object[68].toString() : null);
-					empDTO.setTeamName(object[69] != null ? object[69].toString() : null);	
-					empDTO.setIsConsultant(object[70] != null ? object[70].toString() : null);
-					empDTO.setIsApprenticeship(object[71] != null ? object[71].toString() : null);
-					empDTO.setPoNo(object[72] != null ? object[72].toString() : null);
-					empDTO.setPoStartDate(object[73] != null ? object[73].toString() : null);
-					empDTO.setPoEndDate(object[74] != null ? object[74].toString() : null)	;
-					empDTO.setPoProjectType(object[75] != null ? object[75].toString() : null);			
+					//added bu rahul sir
+					empDTO.setDesignationId(object[66] != null ? Long.parseLong(object[66].toString()) : null);
+					empDTO.setDesignationName(object[67] != null ? (object[67].toString()) : null);
+					 empDTO.setUpdatedBy(object[68] != null ? Long.parseLong(object[68].toString()) : null);
+					empDTO.setBillableType(object[69] != null ? object[69].toString() : null);
+					empDTO.setTeamName(object[70] != null ? object[70].toString() : null);	
+					empDTO.setIsConsultant(object[71] != null ? object[71].toString() : null);
+					empDTO.setIsApprenticeship(object[72] != null ? object[72].toString() : null);
+					empDTO.setPoNo(object[73] != null ? object[73].toString() : null);
+                    empDTO.setPoStartDate(object[74] != null ? object[74].toString() : null);
+					empDTO.setPoEndDate(object[75] != null ? object[75].toString() : null);
+					empDTO.setPoProjectType(object[76] != null ? object[76].toString() : null);
+
+
+
+					
+					if (object[60] != null && object[62] != null) {
+		                String projectIdStr = object[62].toString().trim();
+		                String projectNameStr = object[60].toString().trim();
+
+		                
+		                if (!projectIdStr.isEmpty() && !projectNameStr.isEmpty()) {
+		                    String[] projectIds = projectIdStr.split(",");
+		                    String[] projectNames = projectNameStr.split(",");
+
+		                    
+		                    List<ProjectDTO> projectList = new ArrayList<>();
+		                    int length = Math.min(projectIds.length, projectNames.length);
+		                    
+		                    for (int i = 0; i < length; i++) {
+		                        try {
+		                            ProjectDTO projectDTO = new ProjectDTO();
+		                            projectDTO.setProjectId(Integer.parseInt(projectIds[i].trim()));
+		                            projectDTO.setProjectName(projectNames[i].trim());
+		                            projectList.add(projectDTO);
+		                        } catch (NumberFormatException e) {
+		                            System.err.println("Invalid projectId: " + projectIds[i]);
+		                        }
+		                    }
+		                    empDTO.setProjectList(projectList);
+		                }
+		            }
+					//added by me 
+					// empDTO.setDesignationId(object[65] != null ? Long.parseLong(object[65].toString()) : null);
+					// empDTO.setDesignationName(object[66] != null ? (object[66].toString()) : null);
+					// //updated by
+					// empDTO.setUpdatedBy(object[67] != null ? Long.parseLong(object[67].toString()) : null);
+					// empDTO.setBillableType(object[68] != null ? object[68].toString() : null);
+					// empDTO.setTeamName(object[69] != null ? object[69].toString() : null);	
+					// empDTO.setIsConsultant(object[70] != null ? object[70].toString() : null);
+					// empDTO.setIsApprenticeship(object[71] != null ? object[71].toString() : null);
 					
 					ServiceResponse completionResponse = employeeService.getEmployeeProfileCompletion(empDTO);
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
@@ -1449,7 +1514,7 @@ public class CustomFilterService {
 			try {
 				String q = "SELECT e1.employeement_id,e1.name employee, et.date, et.day_type, et.description, et.status, \n"
 						+ "et.total_time, et.created_on, et.updated_on, e2.name statusUpdatedBy, t.team_name,p.project_name,p.client_name, \n"
-						+ "et.office_in_time, et.office_out_time, et.total_working_hours, ltm.leave_type, e1.is_consultant, e1.is_apprenticeship \n"
+						+ "et.office_in_time, et.office_out_time, et.total_working_hours, ltm.leave_type, e1.is_consultant, e1.is_apprenticeship, et.timesheet_status_updated_by \n"
 						+ "FROM employee_timesheets et \n" + "INNER JOIN employee e1 on et.emp_id = e1.emp_id \n"
 						+ "LEFT JOIN employee e2 on et.timesheet_status_updated_by = e2.emp_id \n"
 						+ "LEFT JOIN job_role jr on e1.job_role_id=jr.job_role_id \n"
@@ -1507,13 +1572,14 @@ public class CustomFilterService {
 					timesheetDto.setCreatedOn(object[7] != null ? object[7].toString() : null);
 					timesheetDto.setUpdatedOn(object[8] != null ? object[8].toString() : null);
 					timesheetDto.setTimesheetStatusUpdatedByName(object[9] != null ? object[9].toString() : null);
-					timesheetDto.setTimesheetStatusUpdatedByName(object[9] != null ? object[9].toString() : null);
 					timesheetDto.setOfficeInTime(object[13] != null ? object[13].toString() : null);
 					timesheetDto.setOfficeOutTime(object[14] != null ? object[14].toString() : null);
 					timesheetDto.setTotalWorkingOfficeHours(object[15] != null ? object[15].toString() : null);
 					timesheetDto.setLeaveType(object[16] != null ? object[16].toString() : null);
 					timesheetDto.setIsConsultant(object[17] != null? object[17].toString() : null);
 					timesheetDto.setIsApprenticeship(object[18] != null? object[18].toString() : null);
+					timesheetDto.setTimesheetStatusUpdatedBy(object[19] != null ? Long.parseLong(object[19].toString()) : null);
+					
 					dtoList.add(timesheetDto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -2561,54 +2627,117 @@ public class CustomFilterService {
 		return response;
 	}
 
+//	public StringBuilder createQueryForDocument(List<CustomFilterDTO> queryList) {
+//		StringBuilder query = new StringBuilder("");
+//		System.out.println(" after query List   " + queryList);
+//		for (CustomFilterDTO dto : queryList) {
+//			if (dto.getOperator() != null && dto.getOperator().equals("like")) {
+//				dto.setValue("%" + dto.getValue() + "%");
+//			}
+//
+//			switch (dto.getColumn()) {
+//			case "Document Name": {
+//				query = query.append(" d.display_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+//						.append(dto.getConjunction());
+//				break;
+//			}
+//			case "Created On": {
+//				query = query.append(" d.created_on ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+//						.append(dto.getConjunction());
+//				break;
+//			}
+//			case "Created By": {
+//				query = query.append(" d.created_by ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+//						.append(dto.getConjunction());
+//				break;
+//			}
+//			case "Full Name": {
+//				query = query.append(" e.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+//						.append(dto.getConjunction());
+//				break;
+//			}
+//			case "Type": {
+//				query = query.append(" td.type_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+//						.append(dto.getConjunction());
+//				break;
+//			}
+//			case "File Name": {
+//				query = query.append(" d.file_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
+//						.append(dto.getConjunction());
+//				break;
+//			}
+//
+//			default:
+//				break;
+//
+//			}
+//		}
+//
+//		return query;
+//	}
 	public StringBuilder createQueryForDocument(List<CustomFilterDTO> queryList) {
-		StringBuilder query = new StringBuilder("");
-		System.out.println(" after query List   " + queryList);
-		for (CustomFilterDTO dto : queryList) {
-			if (dto.getOperator() != null && dto.getOperator().equals("like")) {
-				dto.setValue("%" + dto.getValue() + "%");
-			}
+	    StringBuilder query = new StringBuilder("");
+	    System.out.println("After query List: " + queryList);
 
-			switch (dto.getColumn()) {
-			case "Document Name": {
-				query = query.append(" d.display_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				break;
-			}
-			case "Created On": {
-				query = query.append(" d.created_on ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				break;
-			}
-			case "Created By": {
-				query = query.append(" d.created_by ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				break;
-			}
-			case "Full Name": {
-				query = query.append(" e.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				break;
-			}
-			case "Type": {
-				query = query.append(" td.type_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				break;
-			}
-			case "File Name": {
-				query = query.append(" d.file_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				break;
-			}
+	    for (CustomFilterDTO dto : queryList) {
+	        if (dto.getOperator() != null && dto.getOperator().equalsIgnoreCase("like")) {
+	            dto.setValue("%" + dto.getValue() + "%");
+	        }
 
-			default:
-				break;
+	        String column = dto.getColumn();
+	        if (column == null) continue;
 
-			}
-		}
-
-		return query;
+	        switch (column.trim()) { 
+	            case "displayName": 
+	                query.append(" d.display_name ").append(dto.getOperator()).append(" '")
+	                        .append(dto.getValue()).append("' ").append(dto.getConjunction());
+	                break;
+//	            case "createdOn":
+//	                query.append(" d.created_on ").append(dto.getOperator()).append(" '")
+//	                        .append(dto.getValue()).append("' ").append(dto.getConjunction());
+//	                break;
+	            case "createdOn": {
+	                String formattedDate = formatDate(dto.getValue());
+	                query.append(" d.created_on ").append(dto.getOperator()).append(" '")
+	                     .append(formattedDate).append("' ").append(dto.getConjunction());
+	                break;
+	            }
+	            case "createdBy":
+	                query.append(" d.created_by ").append(dto.getOperator()).append(" '")
+	                        .append(dto.getValue()).append("' ").append(dto.getConjunction());
+	                break;
+	            case "fullName":
+	                query.append(" e.name ").append(dto.getOperator()).append(" '")
+	                        .append(dto.getValue()).append("' ").append(dto.getConjunction());
+	                break;
+	            case "type":
+	                query.append(" td.type_name ").append(dto.getOperator()).append(" '")
+	                        .append(dto.getValue()).append("' ").append(dto.getConjunction());
+	                break;
+	            case "fileName":
+	                query.append(" d.file_name ").append(dto.getOperator()).append(" '")
+	                        .append(dto.getValue()).append("' ").append(dto.getConjunction());
+	                break;
+	            default:
+	                System.out.println("Unexpected column: " + column);
+	                break;
+	        }
+	    }
+	    return query;
 	}
+	private String formatDate(String inputDate) {
+	    SimpleDateFormat inputFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss"); 
+	    SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	    try {
+	        Date date = inputFormat.parse(inputDate);
+	        return outputFormat.format(date);
+	    } catch (ParseException e) {
+	        e.printStackTrace();
+	        return inputDate;
+	    }
+	}
+
+
 
 	public List<Object[]> getCustomDocuments(String customQuery) {
 		try {

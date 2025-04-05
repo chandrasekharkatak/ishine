@@ -97,6 +97,8 @@ public class LeaveTypeMasterService {
 					leaveDTO.setGender(object[9] != null ? object[9].toString() : null);
 					leaveDTO.setUpdatedOn(object[11] != null ? object[11].toString() : null);
 					leaveDTO.setUpdatedByName(object[10] != null ? object[10].toString() : null);
+					leaveDTO.setCreatedByName(object[12] != null ? object[12].toString() : null);
+					leaveDTO.setUpdatedBy(object[13] != null ? Integer.parseInt(object[13].toString()) : null);
 					
 					dtoList.add(leaveDTO);
 				}
@@ -204,6 +206,7 @@ public class LeaveTypeMasterService {
 				leaveType.setPaidLeave(leaveDTO.getPaidLeave());
 				leaveType.setRules(leaveDTO.getRules());
 				leaveType.setDescription(leaveDTO.getDescription());
+				leaveType.setCreatedBy(Integer.parseInt(leaveDTO.getCreatedBy().toString()));
 
 				LeaveTypeMaster newLeaveType = leaveTypeMasterRepository.save(leaveType);
 

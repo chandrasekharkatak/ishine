@@ -82,7 +82,8 @@ export class LoginComponent implements OnInit{
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
-
+  timeLeft: number = 60;
+  timer: any;
   
     ngOnInit(): void {}
 
@@ -92,6 +93,24 @@ export class LoginComponent implements OnInit{
 
   toggleFieldChangePassword() {
     this.fieldTextTypePassword = !this.fieldTextTypePassword;
+  }
+  startTimer() {
+    this.timer = setInterval(() => {
+      if (this.timeLeft > 0) {
+        this.timeLeft--;
+      } else {
+        clearInterval(this.timer);
+        // alert("Time's up!");
+      }
+    }, 1000);
+  }
+
+  resetTimer() {
+    this.timeLeft = 60;
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
+    this.startTimer();
   }
 
   showOtpForm(){
@@ -103,6 +122,7 @@ export class LoginComponent implements OnInit{
     this.isChangePassForm=false;
 
     this.reset();
+    this.startTimer();
   }
 
   showForgotPassOtpForm(){
@@ -418,7 +438,7 @@ export class LoginComponent implements OnInit{
         this.errorMsg=response.serviceResponse;
       }
     });
-
+    // this.startTimer();
     
   }
 

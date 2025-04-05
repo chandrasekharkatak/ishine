@@ -12,6 +12,9 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { EmployeeService } from 'src/app/services/employee.service';
 import * as moment from 'moment';
 import { AppComponent } from 'src/app/app.component';
+import { Employee360Service } from 'src/app/services/employee360.service';
+import { UtilityService } from 'src/app/services/utility.service';
+import { SortPipe } from 'src/app/sort.pipe';
 
 @Component({
   selector: 'app-team-member',
@@ -57,6 +60,9 @@ export class TeamMemberComponent implements OnInit {
   isAuditSearchEnabled:boolean = false;
   employeeAuditColumns:any[] = ['blank', 'date', 'field', 'value', 'bucketName', 'updatedByName'];
   isTable: boolean = false;
+  // employeesFor360: any[] = [];
+  allEmployeeList360: any[] = [];
+
 
 
   constructor(
@@ -66,11 +72,13 @@ export class TeamMemberComponent implements OnInit {
     private employeeService : EmployeeService,
     private locationStrategy: LocationStrategy,
     private modalService: BsModalService,
+    private employee360Service: Employee360Service,
+    private utilityService: UtilityService,
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
    }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     // Dynamic Subfeature Flags 
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -80,6 +88,11 @@ export class TeamMemberComponent implements OnInit {
     
     this.getAllTeamMemberView();
     this.preventBackButton();
+    try {
+      this.allEmployeeList360 = await this.utilityService.getEmployeeDetailsFor360View();
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
   }
   preventBackButton(){
     history.pushState(null, null, location.href);
@@ -103,6 +116,9 @@ export class TeamMemberComponent implements OnInit {
           //   x.employeementId="A-".concat(x.employeementId)
           // }
           x.employeementId="A-".concat(x.employeementId)
+          let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === x.employeementId);
+          console.log('matches++',matchingEmployee);
+          x.emp360 = matchingEmployee ? matchingEmployee : {};
         }
         //console.log("viewTeamMemberList : ", this.viewTeamMemberList);
       } else {

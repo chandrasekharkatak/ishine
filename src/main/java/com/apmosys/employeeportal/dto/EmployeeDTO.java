@@ -28,6 +28,7 @@ public class EmployeeDTO {
 	private String referedName;
 	//end of the code
 	
+	private Double performanceStatusPercentage;
 	private Long managerId;
 	private String dateOfJoining;
 	private String dateOfBirth;
@@ -177,6 +178,8 @@ public class EmployeeDTO {
 	private Long tabId;
 	private List<FeatureMasterDTO> permissionList;
 	
+	private List<ProjectDTO> projectList;
+	
 	private Integer reporteeCount;
 	private String hierarchyType;
 //	private String eventCreatedOn;
@@ -266,7 +269,9 @@ public class EmployeeDTO {
     private Long reporteeCountManager;
     private Long reporteeCountReportingManager;
     
-    private String teamIds;
     private String projectIds;
+    private String selectedProjectId;
+    private String hodDepartmentName;
+    private String teamIds;
 	
 }

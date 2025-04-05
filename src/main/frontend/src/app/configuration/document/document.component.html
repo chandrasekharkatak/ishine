@@ -1,11 +1,11 @@
 <div class="row" *ngIf="document">
     <div class="col-md-12 table-header">
-            <strong class="table-header-title">Documents</strong>
+            <strong class="table-header-title">Document(s)</strong>
         </div>
 </div>
 <div class="row" *ngIf="type">
     <div class="col-md-12 table-header">
-            <strong class="table-header-title">Types Table</strong>
+            <strong class="table-header-title">Type(s) Table</strong>
         </div>
 </div>
 <div class="row mb-4 text-right">
@@ -20,21 +20,35 @@
 
     <div class="col-md-12" *ngIf="type">
         <div class="col-md-12">
+            
             <div class = "row">
-            <div class="col-md-12 ml-auto d-flex justify-content-end align-items-start mb-1 px-0">
+               <div class="mt-5 ">
+                <div class="selector-toggle" >
+                    <a href="javascript:void(0)">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
+                    </a>
+                </div>
+               </div>
+            <div class="col-md-6 ml-auto d-flex justify-content-end align-items-start mb-1 px-0">
+                
               <button type="button"  class="btn btn-outline-primary btn-md mx-1 mb-1" [ngClass]="{'active' : type }"  (click)="addType()">Add</button>
               </div>
             </div>
             </div>
-        <table class="table type-table">
+        <table class="table type-table" matSort (matSortChange)="sortData($event)"  style="table-layout: fixed;">
             <thead class="thead-light">
                 <tr>
-                    <th scope="col" class="info-label">Sr.No</th>
-                    <th scope="col" class="info-label">Type</th>
-                    <th scope="col" class="info-label">created On</th>
-                    <th scope="col" class="info-label">Created By</th>
-                    <th scope="col" class="info-label">Action</th>
+                    <th scope="col" class="info-label"  >Sr.No</th>
+                    <th scope="col" class="info-label"  mat-sort-header="typeName|string">Type</th>
+                    <th scope="col" class="info-label"  mat-sort-header="createdOn|datetime">Created On</th>
+                    <th scope="col" class="info-label"  mat-sort-header="name|string">Created By</th>
+                    <th scope="col" class="info-label"  mat-sort-header="updatedOn|datetime">Updated On</th>
+                    <th scope="col" class="info-label"  mat-sort-header="updatedByName|string">Updated By</th>
+                    <th scope="col" class="info-label"  >Action</th>
                 </tr>
+                <tr app-column-filter-bar *ngIf="type && isSearchEnabled"
+                                [columnList]="allTypeListColumns" (onSearch)="onSearch($event);page=1"></tr>
             </thead>
             <tbody>
                 <tr *ngIf="allTypeList.length == 0 || (allTypeList | colFilter:filters:false).length == 0">
@@ -44,7 +58,11 @@
                     <th class="info-label">{{10*(page-1)+i+1}}</th>
                     <td>{{type.typeName}}</td>
                     <td>{{type.createdOn}}</td>
-                    <td>{{type.name}}</td>
+                    <td *ngIf="userMapping.employee360_view_document_config" id="clickablefor360" [navigateToEmployee360]="type.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{type.name}}</td>
+                    <td *ngIf="!userMapping.employee360_view_document_config">{{type.name}}</td>
+                    <td>{{type.updatedOn}}</td>
+                    <td *ngIf="userMapping.employee360_view_document_config && type.updatedByName"id="clickablefor360" [navigateToEmployee360]="type.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{type.updatedByName}}</td>
+                    <td *ngIf="!userMapping.employee360_view_document_config || !type.updatedByName">{{type.updatedByName}}</td>
                     <td>
                         <button *ngIf="userMapping.delete_newsletter" class="btn btn-outline-primary" type="button" (click)="showUpdateForm(type)"><em class="fa fa-edit"></em></button>&nbsp;
                             <button class="btn btn-outline-danger" type="button"  (click)="openDeleteModal(delete_type_modal,type)"><em class="fa fa-trash"></em></button>&nbsp;
@@ -52,26 +70,37 @@
                     </td>
                 </tr>
             </tbody>
+            <pagination-controls class="my-pagination" [hidden]="allTypeList.length == 0"
+            (pageChange)="handlePageChange($event)"></pagination-controls>
         </table>
     </div>
 
 
     <div class="col-md-12" *ngIf="document">
-        <!-- <div class="col-md-12 table-header">
-            <strong class="table-header-title">Documents</strong>
-        </div> -->
+        <div class="mt-5 ">
+            <div class="selector-toggle" >
+                <a href="javascript:void(0)">
+                    <i *ngIf="!isSearchEnableddocument" class="fa fa-search" (click)="toggleSearchDocument()"></i>
+                    <i *ngIf="isSearchEnableddocument" class="fa-solid fa-xmark" (click)="toggleSearchDocument()"></i>
+                </a>
+            </div>
+           </div>
         
-        <table class="table ">
+        <table class="table " matSort (matSortChange)="sortData($event)">
             <thead class="thead-light">
                 <tr>
-                    <th scope="col" class="info-label">Sr.No</th>
-                    <th scope="col" class="info-label">Document Name</th>
-                    <th scope="col" class="info-label">File</th>
-                    <th scope="col" class="info-label">Type</th>
-                    <th scope="col" class="info-label">created On</th>
-                    <th scope="col" class="info-label">Created By</th>
-                    <th scope="col" class="info-label">Action</th>
+                    <th scope="col" class="info-label" >Sr.No</th>
+                    <th scope="col" class="info-label" mat-sort-header="displayName|string">Document Name</th>
+                    <th scope="col" class="info-label" mat-sort-header="fileName|string">File</th>
+                    <th scope="col" class="info-label" mat-sort-header="typeName|string">Type</th>
+                    <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">created On</th>
+                    <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By</th>
+                    <!-- <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
+                    <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By</th> -->
+                    <th scope="col" class="info-label" >Action</th>
                 </tr>
+                <tr app-column-filter-bar *ngIf="document && isSearchEnableddocument"
+                                [columnList]="documentsColumns" (onSearch)="onSearch($event);page=1"></tr>
             </thead>
             <tbody>
                 <tr *ngIf="documents.length == 0 || (documents | colFilter:filters:false).length == 0">
@@ -83,7 +112,11 @@
                     <td>{{doc.fileName}}</td>
                     <td>{{doc.typeName}}</td>
                     <td>{{doc.createdOn}}</td>
-                    <td>{{doc.createdByName}}</td>
+                    <td *ngIf="!userMapping.employee360_view_document_config || !doc.createdByName">{{doc.createdByName}}</td>
+                    <td *ngIf="userMapping.employee360_view_document_config && doc.createdByName" id="clickablefor360" [navigateToEmployee360]="doc.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{doc.createdByName}}</td>
+                    <!-- <td>{{doc.updatedOn}}</td>
+                    <td id="clickablefor360" [navigateToEmployee360]="doc.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{doc.updatedByName}}</td>
+                    <td>{{doc.updatedByName}}</td> -->
                     <td>
                             <!-- <button *ngIf="userMapping.delete_newsletter" class="btn btn-outline-primary" type="button"><em class="fa fa-edit"></em></button>&nbsp; -->
                             <button class="btn btn-outline-danger" type="button" (click)="deleteDoc(delete_template,doc)"><em class="fa fa-trash"></em></button>&nbsp;
@@ -175,7 +208,7 @@
                        <div class="info-wrapper">
                            <div class="form-group">
                                <label class="info-label"><span class="text-danger">*</span>Type Name</label>
-                               <input type="text" placeholder="Please Enter Type" (blur)="checkTypeName(documentObj.typeName,alert_message)" [(ngModel)]="documentObj.typeName" class="form-control" autocomplete="off" maxlength="50">
+                               <input type="text" placeholder="Please Enter Type" (keypress)="RestrictFullName($event)" (blur)="checkTypeName(documentObj.typeName,alert_message)" [(ngModel)]="documentObj.typeName" class="form-control" autocomplete="off" maxlength="50">
                            </div>
                        </div>
                    </div>

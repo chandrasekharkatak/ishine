@@ -1531,7 +1531,7 @@ export class LeaveComponent implements OnInit {
     this.leaveService.getAllLeaveTypes().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveTypes = response.serviceResponse;
-        //console.log("leaveTypes : ", this.leaveTypes);
+        console.log("leaveTypes : ", this.leaveTypes);
 
         //console.log("getAllLeaveTypes     ",this.getAllLeaveTypes);
         

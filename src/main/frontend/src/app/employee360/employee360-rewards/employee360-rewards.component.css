@@ -1,9 +1,10 @@
-.overflow-auto {
+/* .overflow-auto {
     width: 100%;
     overflow: hidden;
-}
+} */
 
-.table {
+/* .table {
+    min-width: 800px; 
     width: 100%;
     table-layout: fixed;
     border-collapse: collapse;
@@ -20,4 +21,16 @@ thead th {
 
 .small-gap {
     margin-left: 10px; 
+}
+.table-responsive {
+    overflow-x: auto; 
+    -webkit-overflow-scrolling: touch; 
+  } */
+  .form-control-sm, .small-gap{
+    margin-left: 10px;
+    margin-top: 10px;
+}
+.ml-auto{
+    margin-right: 10px;
+    margin-top: 10px;
 }

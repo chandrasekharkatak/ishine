@@ -14,8 +14,8 @@
 
       <div class="row">
         <div class="col-md-12">
-          <div class="selector-toggle" (click)="toggleSearch()">
-            <a href="javascript:void(0)">
+          <div class="selector-toggle" >
+            <a href="javascript:void(0)" (click)="toggleSearch()">
                 <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
@@ -44,7 +44,8 @@
                   <tr *ngFor="let viewTeamMember of viewTeamMemberList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                     <td>{{10*(page-1)+i+1}}</td>
                     <td>{{viewTeamMember.employeementId}}</td>
-                    <td>{{viewTeamMember.name}}</td>
+                    <td id="clickablefor360" *ngIf="userMapping.my_team_member_employee_360" [navigateToEmployee360]="viewTeamMember.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{viewTeamMember.name}}</td>
+                    <td *ngIf="!userMapping.my_team_member_employee_360">{{viewTeamMember.name}}</td>
                     <td>{{viewTeamMember.email}}</td>
                     <td>{{viewTeamMember.jobRoleName}}</td>
                     <td>{{viewTeamMember.mobileNo}}</td>

@@ -1,12 +1,16 @@
 import { DatePipe } from '@angular/common';
-import { AfterViewInit, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
-import * as moment from 'moment';
-import { Biomax } from 'src/app/models/biomax';
-import { Employee360Service } from 'src/app/services/employee360.service';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Sort } from '@angular/material/sort';
 import * as Highcharts from 'highcharts';
+import * as moment from 'moment';
+import { Biomax, biomaxFilter } from 'src/app/models/biomax';
 import { Breadcrumb } from 'src/app/models/breadcrumd';
 import { Team } from 'src/app/models/team';
+import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
+import { Employee360Service } from 'src/app/services/employee360.service';
+
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 @Component({
   selector: 'app-employee360-biomax',
@@ -17,29 +21,37 @@ import { Team } from 'src/app/models/team';
 export class Employee360BiomaxComponent implements OnInit{
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
+  employeementId:any[]=[]
+  biomaxFilter=new biomaxFilter();
   currentDate1: Date = new Date(); // Current date
   biomaxList:Biomax[]=[];
   biomaxList1:Biomax[]=[];
   currentBreadcrumbList: any[] = [];
   team=new Team();
   employeeIdList:any[]=[];
+  filters: any = {};
    employeeIdString = '';
   teamList:Team[]=[];
+  
   defaultview:boolean=true;
   chartdata={
     workinghours:0,
     lessthenworkinghours:0,
     hovertime:0
   }
-
-
-
+  biomaxListColumns: any[] = ['blank', 'logDate', 'beginTime', 'endTime', 'shiftName'];
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType: any;
+  isSearchEnabled:boolean =false;
   chartOptions: Highcharts.Options = {
     chart: {
       type: 'pie'
     },
     title: {
       text: 'Work Hours Distribution'
+    }, credits: {
+      enabled: false
     },
     series: [
       {
@@ -87,18 +99,9 @@ ngOnInit(): void {
   let empCOde=this.employeeData.employeementId;
 
   let resultString = empCOde.replace("-", "");
-  
-  this.filter1.employeeId=resultString;
-  
+  this.biomaxFilter.empId.push(resultString);
 
- 
-  // const breadcrumbObject = { title: `Biomax`, url: "/employee-360/biomax" };
-  // this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
-
-
-
-
-         let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title == "Biomax");
+let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title == "Biomax");
             if (findbreadcrumbObject >= 0) {
               this.currentBreadcrumbList.splice(findbreadcrumbObject + 1);
               this.breadcrumbService.setBreadcrumbSubject(this.currentBreadcrumbList);
@@ -113,7 +116,33 @@ ngOnInit(): void {
  
 }
 
-viewFilterdata() {
+onSearch(searchData) {
+  this.filters = searchData;
+}
+toggleSearch() {
+  this.sortColumn = [];
+  this.sortColumnType = [];
+  this.sortDirection = '';
+  this.isSearchEnabled = !this.isSearchEnabled;
+  if (!this.isSearchEnabled) {
+    this.filters = {};
+  }
+}
+
+
+ sortData(sort: Sort) {
+
+    if (sort.active) {
+      let sortParams: any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;
+    }
+  }
+
+
+
+   viewFilterdata() {
   // Initialize filter1 object
  
 
@@ -134,8 +163,9 @@ viewFilterdata() {
 
   this.filter1.officestartTimePicker = this.formatDate(""+currentDate);
   this.filter1.officeendTimePicker = this.formatDate(""+new Date());
-  this.filter.officestartTimePicker=this.filter1.officestartTimePicker;
-  this.filter.officeendTimePicker=this.filter1.officeendTimePicker;
+  this.biomaxFilter.startDate=this.filter1.officestartTimePicker;
+  this.biomaxFilter.endDate=this.filter1.officeendTimePicker;
+  console.log(this.biomaxFilter);
   this.getBiomatrixFilter();
 
 }
@@ -152,58 +182,72 @@ formatDate(dateString: string): string {
   // Calculate minDate and maxDate
   let minDate = new Date(d.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));
   let maxDate = new Date(d.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
-
-  // Get the current date for comparison
   const currentDate = new Date();
-
-  // Convert both dates (minDate and maxDate) and d to moment objects for easier comparison
   const formattedDate = moment(d).startOf('day');
   const formattedMinDate = moment(minDate).startOf('day');
   const formattedMaxDate = moment(maxDate).startOf('day');
-
-  // Return whether the date is within the specified range
   return formattedDate.isBetween(formattedMinDate, formattedMaxDate, 'day', '[]');
 }
 searchBioMax(){
-  this.filter1.officeendTimePicker=this.formatDate(this.filter.officeendTimePicker);
-  this.filter1.officestartTimePicker=this.formatDate(this.filter.officestartTimePicker);
+  this.biomaxFilter.startDate=this.formatDate(this.filter.officestartTimePicker);
+  this.biomaxFilter.endDate=this.formatDate(this.filter.officeendTimePicker);
   this.getBiomatrixFilter();
 }
 
-getBiomatrixFilter() {
- 
+exportToExcel(id:any): void {
+ let exportToExcelTeamfile=id+".xlsx";
+  const table = document.getElementById(''+id); // Get table by ID
+  if (!table) {
+    console.error('Table not found');
+    return;
+  }
+
+  const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(table); // Convert table to worksheet
+  const workbook: XLSX.WorkBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Project Data');
+
+  const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+
+  saveAs(data, exportToExcelTeamfile);
+}
+async getBiomatrixFilter() {
   let workinghours2 = 0;
   let lessthenworkinghours = 0;
   let hovertime = 0;
 
-  this.employee360.getEmployeeDetailsForBiomax(this.filter1.officestartTimePicker, this.filter1.officeendTimePicker, this.filter1.employeeId)
-    .subscribe((response: any) => {
-      this.biomaxList = response.serviceResponse;
-     
-      this.biomaxList.forEach((filter5) => {
-        let workinghours: number = parseInt(filter5.totalDuration);
-        if (workinghours !== 0) {
-          workinghours2 += 9; // Baseline working hours
-          if (workinghours > 9) {
-            hovertime += (workinghours - 9); // Overtime calculation
-          }
-          if (workinghours < 9) {
-            lessthenworkinghours += workinghours; // Less than working hours calculation
-          }
-        }
-      });
+  try {
+    // Await the result of the method assuming it returns a Promise
+    const response: any = await this.employee360.getEmployeeDetailsForBiomax(this.biomaxFilter).toPromise(); // Convert Observable to Promise if needed
 
-     
-if(this.biomaxList.length>0){
- // Set the chart data
- this.chartdata.hovertime = hovertime;
- this.chartdata.workinghours = workinghours2;
- this.chartdata.lessthenworkinghours = lessthenworkinghours;
-      // Update the chart with new data
-      this.updateChartData(this.chartdata);
-}
+    this.biomaxList = response.serviceResponse;
+   
+    // Process each item in the biomaxList
+    this.biomaxList.forEach((filter5) => {
+      let workinghours: number = parseInt(filter5.totalDuration);
+      if (workinghours !== 0) {
+        workinghours2 += 9; // Baseline working hours
+        if (workinghours > 9) {
+          hovertime += (workinghours - 9); // Overtime calculation
+        }
+        if (workinghours < 9) {
+          lessthenworkinghours += workinghours; // Less than working hours calculation
+        }
+      }
     });
+
+    // After processing, update chart data if biomaxList has items
+    if (this.biomaxList.length > 0) {
+      this.chartdata.hovertime = hovertime;
+      this.chartdata.workinghours = workinghours2;
+      this.chartdata.lessthenworkinghours = lessthenworkinghours;
+      this.updateChartData(this.chartdata);
+    }
+  } catch (error) {
+    console.error("Error fetching employee details:", error);
+  }
 }
+
 
 private updateChartData(data: any): void {
   this.chartOptions = {
@@ -241,6 +285,7 @@ ngAfterViewInit(): void {
   }
 }
 teamData(id:any){
+  
   let breadcrumbObject = new Breadcrumb();
              
   breadcrumbObject.title = "Team";
@@ -257,28 +302,27 @@ teamData(id:any){
             }
   this.defaultview=false;
  this.team.teamId=id;
- this.getTeamFromEmployeeMapping();
- this.getBiomatrixFilter();
+ alert(this.team.teamId);
+this.getTeamFromEmployeeMapping();
+//this.getBiomatrixFilter();
 
   
 }
 goBack(){
   this.defaultview=true;
-this.getBiomatrixFilter();
+//this.getBiomatrixFilter();
 }
-getTeamFromEmployeeMapping(){
-  
+async getTeamFromEmployeeMapping(){
+  this.biomaxFilter.empId=[];
   this.employee360.getTeamTImeSheet(this.team).subscribe((response: any) => {
-    this.teamList = response.serviceResponse;
-    console.log(this.teamList);
-    this.teamList.forEach((emp, index) => {
-     // If it's not the first element, add a comma before appending the empId
-      if (index > 0) {
-        this.employeeIdString += ',';
-      }
-      this.employeeIdString += emp.empId;
-    });
-   this.filter1.employeeId=this.employeeIdString;
+    //this.teamList = response.serviceResponse;
+    let employeeIdListTeam;
+    response.serviceResponse.forEach((x)=>{
+    
+      this.biomaxFilter.empId.push(x.employeementId);
+    })
+    console.log(this.biomaxFilter);
+    this.getBiomatrixFilter();
   });
  
 }
