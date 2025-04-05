@@ -75,6 +75,7 @@
                   class="btn btn-success btn-sm mx-2"
                   title="Assign Multiple Goals"
                   (click)="openMultiGoalModal(viewTeamMember)"
+                  *ngIf="isMyTeamView"
                 >
                   <i class="fa fa-tasks"></i> Assign Goals
                 </button>

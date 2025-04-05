@@ -86,6 +86,7 @@ export class TeamDashboardComponent implements OnInit {
   goals: any[] = [];
 
   ngOnInit() {
+    this.showMyTeam();
     this.logService.updateLogInfo(this.log);
     const today = new Date();
     
@@ -100,8 +101,6 @@ export class TeamDashboardComponent implements OnInit {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] =
         sub.isActive;
     });
-
-    this.showMyTeam();
   }
 
   showMyTeam(){

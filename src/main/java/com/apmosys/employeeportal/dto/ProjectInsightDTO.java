@@ -23,6 +23,7 @@ public class ProjectInsightDTO {
     private String projectManagerName;
 
     private List<ProjectInsightQuestionDTO> projectInsightQuestionList;
+    private List<ResponseMarksDTO> empMarkList;
     private String projectInsightQuestionTemplate;
     
     private String employeeRole;

@@ -97,6 +97,14 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 		)	
 	List<Object[]> getAllEmployeeReportByEmpId(Long empId);
 
+	@Query(
+		    nativeQuery = true,
+		    value = "SELECT e.emp_id,e.name,e.employeement_id FROM employee e \n"
+		    		+ "INNER JOIN project_insight_response pir ON pir.emp_id=e.emp_id \n"
+		    		+ "WHERE pir.process_to=:empId"
+		)
+	List<Object[]> getEmployeeUnderReviewByEmpId(Long empId);
+
 	
 	
 	

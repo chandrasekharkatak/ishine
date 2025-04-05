@@ -45,4 +45,6 @@ public class ProjectInsightResponse {
 	@Column(columnDefinition = "varchar(10) DEFAULT 'Y'")
 	private String isDraft;
 	
+	private Double marks;
+	
 }

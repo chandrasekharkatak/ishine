@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.apmosys.employeeportal.dto.EmployeeteamDto;
 import com.apmosys.employeeportal.dto.NotificationDTO;
 import com.apmosys.employeeportal.dto.PerformanceDTO;
+import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.dto.QuarterCycleDTO;
 import com.apmosys.employeeportal.dto.ReviewTypeDTO;
 import com.apmosys.employeeportal.service.PerformanceService;
@@ -170,6 +171,11 @@ public class PerformanceController {
 	@RequestMapping(value = "/checkUserHaveTeam", method = RequestMethod.POST)
 	public ResponseEntity<PerformanceDTO> checkUserHaveTeam(@RequestBody PerformanceDTO performanceDTO){
 		return performanceService.checkUserHaveTeam(performanceDTO);
+	}
+	
+	@RequestMapping(value = "/addRemarkAsPerQuestion", method = RequestMethod.POST)
+	public ResponseEntity<ProjectInsightDTO> addRemarkAsPerQuestion(@RequestBody ProjectInsightDTO projectInsightDTO){
+		return performanceService.addRemarkAsPerQuestion(projectInsightDTO);
 	}
 	
 	/*

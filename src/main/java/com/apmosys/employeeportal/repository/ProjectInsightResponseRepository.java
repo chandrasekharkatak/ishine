@@ -13,5 +13,7 @@ public interface ProjectInsightResponseRepository extends JpaRepository<ProjectI
 	List<ProjectInsightResponse> findByQuestionMasterIdAndEmpId(Long questionMasterId, Long employeeId);
 
 	List<ProjectInsightResponse> findAllByQuestionMasterId(Long questionMasterId);
+
+	ProjectInsightResponse findByEmpIdAndQuestionMasterId(Long empId, Long questionId);
 	
 }

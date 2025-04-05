@@ -24,6 +24,7 @@ import com.apmosys.employeeportal.dto.EmployeeteamDto;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PerformanceDTO;
 import com.apmosys.employeeportal.dto.PerformanceRatingDTO;
+import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.dto.QuarterCycleDTO;
 import com.apmosys.employeeportal.dto.ReviewTypeDTO;
 import com.apmosys.employeeportal.model.Department;
@@ -31,6 +32,7 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeePerformance;
 import com.apmosys.employeeportal.model.EmployeeRatingPerformance;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
+import com.apmosys.employeeportal.model.ProjectInsightResponse;
 import com.apmosys.employeeportal.model.QuaterCycle;
 import com.apmosys.employeeportal.model.ReviewType;
 import com.apmosys.employeeportal.model.Team;
@@ -39,6 +41,7 @@ import com.apmosys.employeeportal.repository.EmployeePerformanceRepository;
 import com.apmosys.employeeportal.repository.EmployeeRatingPerformanceRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.ProjectInsightResponseRepository;
 import com.apmosys.employeeportal.repository.QuarterCycleRepository;
 import com.apmosys.employeeportal.repository.ReviewTypeRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
@@ -76,6 +79,9 @@ public class PerformanceService {
 	
 	@Autowired
 	TeamRepository teamRepository;
+	
+	@Autowired
+	ProjectInsightResponseRepository projectInsightResponseRepository;
 	
 	public ServiceResponse addReviewType(ReviewTypeDTO reviewTypeDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -1020,58 +1026,59 @@ public class PerformanceService {
 		try {
 			List<Object[]> employeeDbResponse = null;
 			List<Object[]> employeeTeamDbResponse = null;
-			// if employeeRole = SuperAdmin,HR,RMG show all users
-			if(performanceDTO.getEmployeeRole().equalsIgnoreCase("SuperAdmin")
-					|| performanceDTO.getEmployeeRole().equalsIgnoreCase("HR")
-					|| performanceDTO.getEmployeeRole().equalsIgnoreCase("RMG")) {
-				employeeDbResponse = employeePerformanceRepository.getAllEmployeeForTeamMember();
-			}else if(performanceDTO.getEmployeeRole().equalsIgnoreCase("HOD") ) {
-				// if employeeRole = HoD show all users by department
-				List<Long> deptIds = departmentRepository.findByHodId(performanceDTO.getEmpId())
-					    .stream()
-					    .map(Department::getDeptId)
-					    .collect(Collectors.toList());
-				
-				employeeDbResponse = employeePerformanceRepository
-						.getAllEmployeeForTeamMemberByDepartment(deptIds);
+			
+			if(performanceDTO.getTabType().equals("reviewTeam")) {
+				employeeDbResponse = employeePerformanceRepository.getEmployeeUnderReviewByEmpId(performanceDTO.getEmpId());
+				employeeTeamDbResponse = null;
 			}else {
-				/* if employeeRole = Manager, TL, Employee show user by reportsTo 
-				   && user persona in a Team i.e if user is Employee but persona in Team is of TL
-				*/
-				List<EmployeeTeamMap> emplTeamList = employeeTeamMapRepository.findByEmpIdAndActive(performanceDTO.getEmpId(), 1l);
-				List<Long> teamIds = new ArrayList<>();
-				AtomicBoolean isTeamAssign = new AtomicBoolean(false);
-				if(!emplTeamList.isEmpty()) {
-					teamIds = emplTeamList.stream().map(EmployeeTeamMap::getTeamId).collect(Collectors.toList());
-					emplTeamList.forEach((object) -> {
-						if(object.getEmployeeRole().contains("TeamLead") ||
-								object.getEmployeeRole().contains("HOD") || 
-								object.getEmployeeRole().contains("Manager") || 
-								object.getEmployeeRole().contains("HR") || 
-								object.getEmployeeRole().contains("RMG") || object.getEmployeeRole().contains("SuperAdmin")) {
-							isTeamAssign.set(true);
-							return;
-						}
-					});
-				}
-				
-				if(isTeamAssign.get()) {
-					// get Team members
-					employeeDbResponse = employeePerformanceRepository.getAllTeamMembers(teamIds);
-					employeeTeamDbResponse = employeePerformanceRepository.getAllEmployeeReportByEmpId(performanceDTO.getEmpId());
+				// if employeeRole = SuperAdmin,HR,RMG show all users
+				if(performanceDTO.getEmployeeRole().equalsIgnoreCase("SuperAdmin")
+						|| performanceDTO.getEmployeeRole().equalsIgnoreCase("HR")
+						|| performanceDTO.getEmployeeRole().equalsIgnoreCase("RMG")) {
+					employeeDbResponse = employeePerformanceRepository.getAllEmployeeForTeamMember();
+				}else if(performanceDTO.getEmployeeRole().equalsIgnoreCase("HOD") ) {
+					// if employeeRole = HoD show all users by department
+					List<Long> deptIds = departmentRepository.findByHodId(performanceDTO.getEmpId())
+						    .stream()
+						    .map(Department::getDeptId)
+						    .collect(Collectors.toList());
+					
+					employeeDbResponse = employeePerformanceRepository
+							.getAllEmployeeForTeamMemberByDepartment(deptIds);
 				}else {
-					// get employee who are reporting to me
-					employeeDbResponse = employeePerformanceRepository.getAllEmployeeReportByEmpId(performanceDTO.getEmpId());
+					/* if employeeRole = Manager, TL, Employee show user by reportsTo 
+					   && user persona in a Team i.e if user is Employee but persona in Team is of TL
+					*/
+					List<EmployeeTeamMap> emplTeamList = employeeTeamMapRepository.findByEmpIdAndActive(performanceDTO.getEmpId(), 1l);
+					List<Long> teamIds = new ArrayList<>();
+					AtomicBoolean isTeamAssign = new AtomicBoolean(false);
+					if(!emplTeamList.isEmpty()) {
+						teamIds = emplTeamList.stream().map(EmployeeTeamMap::getTeamId).collect(Collectors.toList());
+						emplTeamList.forEach((object) -> {
+							if(object.getEmployeeRole().contains("TeamLead") ||
+									object.getEmployeeRole().contains("HOD") || 
+									object.getEmployeeRole().contains("Manager") || 
+									object.getEmployeeRole().contains("HR") || 
+									object.getEmployeeRole().contains("RMG") || object.getEmployeeRole().contains("SuperAdmin")) {
+								isTeamAssign.set(true);
+								return;
+							}
+						});
+					}
+					
+					if(isTeamAssign.get()) {
+						// get Team members
+						employeeDbResponse = employeePerformanceRepository.getAllTeamMembers(teamIds);
+						employeeTeamDbResponse = employeePerformanceRepository.getAllEmployeeReportByEmpId(performanceDTO.getEmpId());
+					}else {
+						// get employee who are reporting to me
+						employeeDbResponse = employeePerformanceRepository.getAllEmployeeReportByEmpId(performanceDTO.getEmpId());
+					}
 				}
 			}
 			
 			if(!employeeDbResponse.isEmpty()) {
 				employeeDbResponse.forEach((object) -> {
-					
-					if(performanceDTO.getTabType().equals("reviewTeam")) {
-						
-					}
-					
 					EmployeeteamDto employee = new EmployeeteamDto();
 					
 					employee.setEmpId(object[0]!= null ? Long.parseLong(object[0].toString()) : null);
@@ -1104,6 +1111,31 @@ public class PerformanceService {
 					});
 				}
 			}
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return ResponseEntity.ok(response);
+	}
+
+
+
+
+	public ResponseEntity<ProjectInsightDTO> addRemarkAsPerQuestion(ProjectInsightDTO projectInsightDTO) {
+		ProjectInsightDTO response = new ProjectInsightDTO();
+		try {
+			if(!projectInsightDTO.getEmpMarkList().isEmpty()) {
+				List<ProjectInsightResponse> addResponseList = new ArrayList<>();
+				projectInsightDTO.getEmpMarkList().forEach((object) -> {
+					ProjectInsightResponse projectResponse = projectInsightResponseRepository.
+							findByEmpIdAndQuestionMasterId(object.getEmpId(),object.getQuestionId());
+					
+					projectResponse.setMarks(object.getMarks());
+					addResponseList.add(projectResponse);
+				});
+				
+				List<ProjectInsightResponse> dbResponse = projectInsightResponseRepository.saveAll(addResponseList);
+			}
+			
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
