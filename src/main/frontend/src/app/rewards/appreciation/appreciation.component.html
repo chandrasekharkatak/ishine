@@ -248,7 +248,7 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'appreciationInfo'"
+                <div class="table-container" bassHorizontalScroll [tableId]="'appreciationInfo'"
                     [tableTHeadId]="'appreciationInfoTHead'" [tableTHeadTrId]="'appreciationInfoTHeadTr'">
                     <table class="table view-appreciation-table" id="view-appreciation-table appreciationInfo" matSort
                         (matSortChange)="sortData($event) ">

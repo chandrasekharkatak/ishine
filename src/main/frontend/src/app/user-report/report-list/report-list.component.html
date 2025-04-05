@@ -52,9 +52,9 @@
               <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
-        <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveReportInfo'"
+        <div class="table-container" bassHorizontalScroll [tableId]="'leaveReportInfo'"
           [tableTHeadId]="'leaveReportInfoTHead'" [tableTHeadTrId]="'leaveReportInfoTHeadTr'">
-          <table class="table table-responsive" matSort (matSortChange)="sortData($event)" id="leaveReportInfo">
+          <table class="table " matSort (matSortChange)="sortData($event)" id="leaveReportInfo">
             <thead class="thead-light" id="leaveReportInfoTHead">
               <tr id="leaveReportInfoTHeadTr">
                 <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|empId">Emp Id</th>
@@ -189,8 +189,8 @@
               <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
-        <div class="overflow-auto" bassHorizontalScroll >
-          <table class="table table-responsive" matSort (matSortChange)="sortData($event)">
+        <div class="table-container" bassHorizontalScroll >
+          <table class="table " matSort (matSortChange)="sortData($event)">
             <thead class="thead-light" >
               <tr >
                 <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Emp Id</th>
@@ -256,7 +256,7 @@
             class="fa fa-file-arrow-down fa-2x"></em></button>
       </div>
     </div>
-
+<!-- view timesheet report  -->
     <div class="row" *ngIf="!showDetailsTimesheet">
       <div class="col-md-12">
         <div class="selector-toggle" >
@@ -265,9 +265,9 @@
               <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
-        <div class="overflow-auto" bassHorizontalScroll [tableId]="'timesheetReportInfo'"
+        <div class="table-container" bassHorizontalScroll [tableId]="'timesheetReportInfo'"
           [tableTHeadId]="'timesheetReportTHead'" [tableTHeadTrId]="'timesheetReportTHeadTr'">
-          <table class="table table-responsive" matSort (matSortChange)="sortData($event)" id="timesheetReportInfo">
+          <table class="table " matSort (matSortChange)="sortData($event)" id="timesheetReportInfo">
             <thead class="thead-light" id="timesheetReportTHead">
               <tr id="timesheetReportTHeadTr">
                 <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Emp Id</th>
@@ -582,9 +582,9 @@
             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
-        <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeReportInfo'"
+        <div class="table-container" bassHorizontalScroll [tableId]="'employeeReportInfo'"
           [tableTHeadId]="'employeeReportInfoTHead'" [tableTHeadTrId]="'employeeReportInfoTHeadTr'">
-          <table class="table table-responsive" matSort (matSortChange)="sortData($event)">
+          <table class="table " matSort (matSortChange)="sortData($event)">
             <thead class="thead-light">
               <tr>
                 <th scope="col" class="info-label">Sr No.</th>
@@ -604,8 +604,8 @@
                 <th scope="col" class="info-label " mat-sort-header="poType|string">Po Type</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="poStartDate|string">Po Start Date</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="poEndDate|string">Po End Date</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="effectiveStartDate|string">Effective Start Date</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="effectiveEndDate|string">Effective End Date</th>
+                <th scope="col" class="info-label " mat-sort-header="effectiveStartDate|string">Effective Start Date</th>
+                <th scope="col" class="info-label " mat-sort-header="effectiveEndDate|string">Effective End Date</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="clientName|string">Client Name</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="clientLocation|string">Client Location</th>
                 <th scope="col" class="info-label" mat-sort-header="workLocation|string">Work Location</th>
@@ -756,7 +756,7 @@
             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
-        <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeReportInfo'"
+        <div class="table-container" bassHorizontalScroll [tableId]="'employeeReportInfo'"
           [tableTHeadId]="'employeeReportInfoTHead'" [tableTHeadTrId]="'employeeReportInfoTHeadTr'">
           <table class="table table-responsive" id="employeeReport" matSort (matSortChange)="sortData($event)">
             <thead class="thead-light" id="employeeReportInfoTHead">
@@ -770,7 +770,7 @@
                 <th scope="col" class="info-label " mat-sort-header="managerName|string">Manager</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="mobileNo|number">Mobile Number</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="email|string">Email Id</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="employmentstatus|string">Employment Status
+                <th scope="col" class="info-label " mat-sort-header="employmentstatus|string">Employment Status
                 </th>
 
 
@@ -1193,7 +1193,7 @@
               <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div> -->
-        <div class="overflow-auto" bassHorizontalScroll [tableId]="'defaultMappInfo'"
+        <div class="table-container" bassHorizontalScroll [tableId]="'defaultMappInfo'"
           [tableTHeadId]="'defaultMappInfoTHead'" [tableTHeadTrId]="'defaultMappInfoTHeadTr'" style="max-height: 65vh;">
           <table class="table table-bordered" matSort (matSortChange)="sortData($event)" id="defaultMappInfo">
             <thead class="thead-light acl-header" id="defaultMappInfoTHead">
@@ -1326,9 +1326,9 @@
               <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
-        <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveTimesheetReportInfo'"
+        <div class="table-container" bassHorizontalScroll [tableId]="'leaveTimesheetReportInfo'"
           [tableTHeadId]="'leaveTimesheetReportTHead'" [tableTHeadTrId]="'leaveTimesheetReportTHeadTr'">
-          <table class="table table-responsive" matSort (matSortChange)="sortData($event)"
+          <table class="table " matSort (matSortChange)="sortData($event)"
             id="leaveTimesheetReportInfo">
             <thead class="thead-light" id="leaveTimesheetReportTHead">
               <tr id="leaveTimesheetReportTHeadTr">
