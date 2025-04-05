@@ -160,4 +160,8 @@ export class PerformanceService {
   checkUserHaveTeam(userObj: any){
     return this.http.post(`${this.baseUrl}` + `api/checkUserHaveTeam`, userObj);
   }
+
+  addRemarkAsPerQuestion(marksObject: any){
+    return this.http.post(`${this.baseUrl}` + `api/addRemarkAsPerQuestion`, marksObject);
+  }
 }

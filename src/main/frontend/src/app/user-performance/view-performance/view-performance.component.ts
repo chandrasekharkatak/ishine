@@ -286,17 +286,29 @@ export class ViewPerformanceComponent implements OnInit {
 
 
   processUserMarks(response: ProjectResponse, type: any, question:any){
-    if(!this.validationService.validateNullUndefinedEmptyString(response.marks)){
+    if(type == "approve" && !this.validationService.validateNullUndefinedEmptyString(response.marks)){
       this.alertMessage = `Please provide marks !!`;
       this.openAlertMod(this.alertMessageModal, this.alertMessage);
       return false;
     }
     response.markType = type;
     response.questionId = question.questionId;
+    response.empId = response.responseByEmpId;
     this.allQuestionMarksList.push(response);
   }
 
   submitReview(template: TemplateRef<any>){
+    let projectInsightObj = {
+      empMarkList: this.allQuestionMarksList
+    }
+    this.performanceService.addRemarkAsPerQuestion(projectInsightObj).subscribe({
+      next: (response: any) => {
+        
+      },
+      error: (error) => {
+        console.error('Error fetching questionnaire questions:', error);
+      }
+    });
   }
 
   loadQuestionnaireQuestions(): void {

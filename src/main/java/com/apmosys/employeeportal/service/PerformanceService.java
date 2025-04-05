@@ -1129,7 +1129,15 @@ public class PerformanceService {
 					ProjectInsightResponse projectResponse = projectInsightResponseRepository.
 							findByEmpIdAndQuestionMasterId(object.getEmpId(),object.getQuestionId());
 					
-					projectResponse.setMarks(object.getMarks());
+					if(object.getMarkType().equals("reject")) {
+						projectResponse.setResponse(null);
+						projectResponse.setIsDraft("Y");
+						projectResponse.setMarks(null);
+						projectResponse.setProcessTo(null);
+					}else {
+						projectResponse.setMarks(object.getMarks());
+					}
+					
 					addResponseList.add(projectResponse);
 				});
 				

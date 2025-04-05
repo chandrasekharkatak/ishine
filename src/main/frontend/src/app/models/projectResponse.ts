@@ -19,4 +19,5 @@ export class ProjectResponse {
     marks:any;
     markType:any;
     questionId:any;
+    empId:any;
 }
