@@ -474,7 +474,7 @@ saveKpiResponses(template: TemplateRef<any>): void {
  getAllProjectInsightResponsesByProjectId(projectObj: any,alertTemplate:TemplateRef<any>,insightResponseTemplate: TemplateRef<any>,isPreview:any) {
     this.isResponsePreview = isPreview;
     this.projectInsightResponseList = [];
-    this.isFinalResponseSubmitted = false;
+    this.isFinalResponseSubmitted = true;
     let projObj = new ProjectInsightQuestion();
     projObj.empId = this.currentUser.empId;
     projObj.projectId = projectObj.projectId;
@@ -506,6 +506,16 @@ saveKpiResponses(template: TemplateRef<any>): void {
                   }
                   if(response.isDraft == 'Y'){
                     this.isFinalResponseSubmitted = false;
+                  } 
+                  if (response.isDraft == 'Y') {
+                    response.showDocDiv = true;
+                  } else if (response.isDraft == 'N' && response.uploadedFileName != undefined && response.uploadedFileName != null && response.uploadedFileName != '') {
+                    response.showDocDiv = true;
+                  } else {
+                    response.showDocDiv = false;
+                  }
+                  if(this.isResponsePreview){
+                    response.showDocDiv = true;
                   }
                 });
               } else {
@@ -538,6 +548,16 @@ saveKpiResponses(template: TemplateRef<any>): void {
                       }
                       if(response.isDraft == 'Y'){
                         this.isFinalResponseSubmitted = false;
+                      } 
+                      if (response.isDraft == 'Y') {
+                        response.showDocDiv = true;
+                      } else if (response.isDraft == 'N' && response.uploadedFileName != undefined && response.uploadedFileName != null && response.uploadedFileName != '') {
+                        response.showDocDiv = true;
+                      } else {
+                        response.showDocDiv = false;
+                      }
+                      if(this.isResponsePreview){
+                        response.showDocDiv = true;
                       }
                     });
                   } else {
@@ -570,6 +590,16 @@ saveKpiResponses(template: TemplateRef<any>): void {
                           }
                           if(response.isDraft == 'Y'){
                             this.isFinalResponseSubmitted = false;
+                          } 
+                          if (response.isDraft == 'Y') {
+                            response.showDocDiv = true;
+                          } else if (response.isDraft == 'N' && response.uploadedFileName != undefined && response.uploadedFileName != null && response.uploadedFileName != '') {
+                            response.showDocDiv = true;
+                          } else {
+                            response.showDocDiv = false;
+                          }
+                          if(this.isResponsePreview){
+                            response.showDocDiv = true;
                           }
                         });
                       } else {

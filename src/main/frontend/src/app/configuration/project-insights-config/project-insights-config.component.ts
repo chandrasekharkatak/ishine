@@ -475,7 +475,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
   getAllProjectInsightResponsesByProjectId(projectObj: any,alertTemplate:TemplateRef<any>,insightResponseTemplate: TemplateRef<any>,isPreview:any) {
     this.isResponsePreview = isPreview;
     this.projectInsightResponseList = [];
-    this.isFinalResponseSubmitted = false;
+    this.isFinalResponseSubmitted = true;
     let projObj = new ProjectInsightQuestion();
     projObj.empId = this.currentUser.empId;
     projObj.projectId = projectObj.projectId;
@@ -507,6 +507,16 @@ export class ProjectInsightsConfigComponent implements OnInit {
                   }
                   if(response.isDraft == 'Y'){
                     this.isFinalResponseSubmitted = false;
+                  } 
+                  if (response.isDraft == 'Y') {
+                    response.showDocDiv = true;
+                  } else if (response.isDraft == 'N' && response.uploadedFileName != undefined && response.uploadedFileName != null && response.uploadedFileName != '') {
+                    response.showDocDiv = true;
+                  } else {
+                    response.showDocDiv = false;
+                  }
+                  if(this.isResponsePreview){
+                    response.showDocDiv = true;
                   }
                 });
               } else {
@@ -539,6 +549,16 @@ export class ProjectInsightsConfigComponent implements OnInit {
                       }
                       if(response.isDraft == 'Y'){
                         this.isFinalResponseSubmitted = false;
+                      } 
+                      if (response.isDraft == 'Y') {
+                        response.showDocDiv = true;
+                      } else if (response.isDraft == 'N' && response.uploadedFileName != undefined && response.uploadedFileName != null && response.uploadedFileName != '') {
+                        response.showDocDiv = true;
+                      } else {
+                        response.showDocDiv = false;
+                      }
+                      if(this.isResponsePreview){
+                        response.showDocDiv = true;
                       }
                     });
                   } else {
@@ -571,6 +591,16 @@ export class ProjectInsightsConfigComponent implements OnInit {
                           }
                           if(response.isDraft == 'Y'){
                             this.isFinalResponseSubmitted = false;
+                          } 
+                          if (response.isDraft == 'Y') {
+                            response.showDocDiv = true;
+                          } else if (response.isDraft == 'N' && response.uploadedFileName != undefined && response.uploadedFileName != null && response.uploadedFileName != '') {
+                            response.showDocDiv = true;
+                          } else {
+                            response.showDocDiv = false;
+                          }
+                          if(this.isResponsePreview){
+                            response.showDocDiv = true;
                           }
                         });
                       } else {
