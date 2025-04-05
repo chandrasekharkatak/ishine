@@ -1,18 +1,18 @@
+import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
+import { saveAs } from "file-saver";
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Document } from 'src/app/models/document';
-import { Newsletter } from 'src/app/models/newsletter';
+import { Feature } from 'src/app/models/feature';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { NewsletterService } from 'src/app/services/newsletter.service';
+import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { saveAs } from "file-saver";
-import { Feature } from 'src/app/models/feature';
-import { LocationStrategy } from '@angular/common';
 
 @Component({
   selector: 'app-document',
@@ -28,7 +28,7 @@ export class DocumentComponent implements OnInit {
   isCreation : boolean = false;
   isUpdation : boolean = false;
   isDocCheck : boolean = false;
-
+  isSearchEnableddocument:boolean = false;
   currentUser:User;
   documentObj= new Document();
 
@@ -42,6 +42,8 @@ export class DocumentComponent implements OnInit {
   file:any;
   documentName : any;
   documents :any = [];
+
+  isSearchEnabled:boolean= false;
    // Sorting 
    sortDirection = 'asc';
    sortColumn: any;
@@ -52,16 +54,26 @@ export class DocumentComponent implements OnInit {
     // Filter 
     filters:any = {};
     typeNames:any;
+    allTypeListColumns:any[]=['blank','typeName','createdOn','name'];
+    documentsColumns:any[]=['blank','displayName','fileName','typeName','createdOn','createdByName'];
+  employeesFor360: any[] = [];
 
   constructor(
     private newsletterService : NewsletterService,
     private modalService: BsModalService,
     private authenticationService : AuthenticationService,
     private validationService : ValidationService,
-    private locationStrategy : LocationStrategy
+    private locationStrategy : LocationStrategy,
+    private utilityService: UtilityService,
   ) { }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
     this.getAllTypes();
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -109,6 +121,26 @@ export class DocumentComponent implements OnInit {
 
   }
 
+ 
+    RestrictFullName(event) {
+      var k;
+      k = event.charCode;
+      if ((k == 33) || (k == 34) || (k == 35) || (k == 36) || (k == 37) ||
+        (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42) ||
+        (k == 43) || (k == 44) || (k == 45) || (k == 46) || (k == 47) || (k == 48) ||
+        (k == 49) || (k == 50) || (k == 51) || (k == 52) || (k == 53) || (k == 54) || (k == 55) ||
+        (k == 56) || (k == 57) || (k == 58) ||
+        (k == 59) || (k == 60) || (k == 61) || (k == 62) || (k == 63) ||
+        (k == 64) || (k == 91) || (k == 92) || (k == 93) || (k == 94) ||
+        (k == 95) || (k == 96) || (k == 123) ||
+        (k == 124) || (k == 125) || (k == 126) || (k == 127)) {
+        return (false);
+      }
+      return (true);
+  
+  
+    }
+
   showTable(){
     this.document = true;
     this.upload = false;
@@ -116,6 +148,15 @@ export class DocumentComponent implements OnInit {
     this.type=false;
     this.filters = {};
     this.getAllDocuments();
+  }
+
+  showTypeTable(){
+    this.document = false;
+    this.upload = false;
+    this.isForm= false;
+    this.type=true;
+    this.filters = {};
+    this.getAllTypeName();
   }
 
     // Sorting 
@@ -154,16 +195,33 @@ export class DocumentComponent implements OnInit {
     })
   }
 
+  toggleSearchDocument() {
+    this.isSearchEnableddocument = !this.isSearchEnableddocument;
+    if (!this.isSearchEnableddocument) {
+      this.filters = {};
+    }
+  }
+  toggleSearch() {
+    this.isSearchEnabled = !this.isSearchEnabled;
+    if (!this.isSearchEnabled) {
+      this.filters = {};
+    }
+  }
+  onSearch(searchData) {
+    this.filters = searchData;
+    //console.log("Updated Filter : ", this.filters);
+  }
   updateType(document : any,template:TemplateRef<any>){
    
     let doc = new Document();
     doc.typeId = this.documentObj.typeId;
     doc.typeName = document.typeName;
+    doc.updatedBy = this.currentUser.empId;
     //console.log("Update method call   ",doc);
     this.newsletterService.updateType(doc).pipe(first()).subscribe((response : any)=>{
       if(response.serviceStatus == "Success"){
         this.openAlertMod(template,response.serviceResponse);
-        this.showTable();
+        this.showTypeTable();
       }else{
         this.openAlertMod(template,response.serviceResponse);
       }
@@ -189,7 +247,17 @@ export class DocumentComponent implements OnInit {
         this.allTypeList.forEach(type =>{
           type.createdOn = moment(type.createdOn).format(AppComponent.DATE_FORMAT);
         })
-        //console.log("this.allTypeList   ::   ",this.allTypeList);
+        this.allTypeList.forEach((employee) => {
+          console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+        });
+        console.log("this.allTypeList   ::   ",this.allTypeList);
       }
     })
   }
@@ -291,6 +359,16 @@ export class DocumentComponent implements OnInit {
         this.documents =  response.serviceResponse;
         this.documents.forEach(doc => {
           doc.createdOn = (doc.createdOn)? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
+        this.documents.forEach((employee) => {
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          // console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          // console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
         });
         //console.log("this.documents List : ", this.documents);
       } else {

@@ -23,8 +23,8 @@
 
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" (click)="toggleSearch()">
-                    <a href="javascript:void(0)">
+                <div class="selector-toggle" >
+                    <a href="javascript:void(0)" (click)="toggleSearch()">
                         <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
@@ -37,9 +37,16 @@
                                 <th></th>
                                 <th scope="col" class="info-label">Sr No.</th>
                                 <th scope="col" class="info-label" mat-sort-header="name|string">Project Name</th>
+                                <th scope="col" class="info-label" mat-sort-header="poNo|string">PO Number</th>
                                 <th scope="col" class="info-label" mat-sort-header="projectManagerName|string">Project
                                     Manager</th>
+                                    <!-- <th scope="col" class="info-label" mat-sort-header="projectManagerName|string">Start Date</th>
+                                    <th scope="col" class="info-label" mat-sort-header="projectManagerName|string">End Date</th> -->
                                 <th scope="col" class="info-label" mat-sort-header="clientName|string">Client</th>
+                                <th scope="col" class="info-label" mat-sort-header="apmosysRM|string">Apmosys RM</th>
+                                <th scope="col" class="info-label" mat-sort-header="clientRM|string">Client RM</th>
+                                <th scope="col" class="info-label" mat-sort-header="startDate|string">Start Date</th>
+                                <th scope="col" class="info-label" mat-sort-header="endDate|string">End Date</th>
                                 <th scope="col" class="info-label" mat-sort-header="clientState|string">State</th>
                                 <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
                                 <th scope="col" class="info-label" mat-sort-header="status|string">Project Status</th>
@@ -64,16 +71,37 @@
                                                 class="sync-project-checkbox" id="{{i}}" type="checkbox"
                                                 (change)="onSelectProjectForSync(project,$event)"></span></td>
                                     <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
-                                    <td>{{project.name}}</td>
-                                    <td>{{project.projectManagerName}}</td>
+
+                                    <td *ngIf='project.isDraftProject == "NA"'>{{project.name}}</td>
+                                    <td *ngIf='project.projectId && project.isDraftProject != "NA"'style="cursor: pointer; color: blue;"  id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.prrojectViewId" style="cursor: pointer;" title="Click to view Project Details">{{project.name}}</td>
+                                    <td *ngIf='project.id && project.isDraftProject != "NA"' style="cursor: pointer; color: blue;"  id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.prrojectViewId" style="cursor: pointer;" title="Click to view Project Details">{{project.name}}</td>
+                                    
+                                    <td>{{project.poNo}}</td>
+
+                                    <!-- <td *ngIf="project.projectId"style="cursor: pointer; color: blue;"  id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.projectId" style="cursor: pointer;" title="Click to view Project Details">{{project.name}}</td> -->
+                                    <td id="clickablefor360" *ngIf="userMapping.my_team_resource_management_employee_360 && project.projectManagerName" [navigateToEmployee360]="project.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{project.projectManagerName}}</td>
+                                    <td *ngIf="!userMapping.my_team_resource_management_employee_360 || !project.projectManagerName">{{project.projectManagerName}}</td>
                                     <td>{{project.clientName}}</td>
+                                    <td>{{project.apmosysRM}}</td>
+                                    <td>{{project.clientRM}}</td>
+                                    <td>{{project.startDate | date: 'dd/MM/yyyy'}}</td>
+                                    <td>{{project.endDate  | date: 'dd/MM/yyyy'}}</td>
                                     <td>{{project.clientState}}</td>
-                                    <td>{{project.createdOn}}</td>
+                                    <td>{{project.createdOn | date: 'dd/MM/yyyy'}}</td>
                                     <td>{{project.status}}</td>
-                                    <td
+                                    <!-- <td
                                         [ngStyle]="{'color': (project.isDraftProject == 'Pending For Approval') ? 'orange' : (project.isActive == 2) ? 'orange': (project.isDraftProject == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">
-                                        <em>{{project.isDraftProject}}</em></td>
+                                        <em>{{project.isDraftProject}}</em></td> -->
+                                        <td [ngStyle]="{'color': (project.isDraftProject == 'Pending For Approval') ? 'orange' : (project.isDraftProject == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}"><em>{{project.isDraftProject}}</em></td>
                                     <td>
+                                        <!-- <button class="btn btn-sm btn-outline-primary mb-1"
+                                            *ngIf="!project.isSynced && project.isDraftProject != 'NA'"
+                                            (click)="syncPoProjectDetailsByProjectId(alert_message_sync, project);"
+                                            type="submit">Sync Po</button>&nbsp;
+                                        <button class="btn btn-sm btn-outline-primary mb-1"
+                                            *ngIf="project.isMail && project.isDraftProject != 'NA'"
+                                            (click)="sendEmailNotificationToBDTeam(alert_message, project);"
+                                            type="submit">Mail</button>&nbsp; -->
                                         <button class="btn btn-sm btn-outline-primary mb-1"
                                             *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'"
                                             (click)="openProjectPreviewModal(preview_team, project);isEditProject = false"
@@ -96,7 +124,7 @@
                                     </td>
                                 </tr>
                                 <tr *ngIf="project.isEditProject && isEditProject">
-                                    <td colspan="10">
+                                    <td colspan="15">
                                         <!-- project Edit :: start -->
                                         <div class="row">
                                             <!-- Project Info -->
@@ -244,8 +272,7 @@
                                                     <!-- Team Info :: start -->
                                                     <h5 class="card-name">Teams</h5>
                                                     <div class="row">
-                                                        <div *ngFor="let teamObj of allTeamList;let i = index"
-                                                            class="row">
+                                                        <div *ngFor="let teamObj of allTeamList;let i = index">
                                                             <div class="col-md-4 mb-0">
                                                                 <div class="info-wrapper">
                                                                     <div class="form-group">
@@ -783,10 +810,19 @@
                             </div>
                             <h5 class="card-name">Team Member Info</h5>
                             <ng-container *ngFor="let member of team.teamMemberList;let i = index">
-                                <div class="col-md-12 mb-0" *ngIf="member.name">
+                                <div class="col-md-12 mb-0" *ngIf="userMapping.my_team_resource_management_employee_360 && member.name" [navigateToEmployee360]="member.emp360" style="cursor: pointer;" title="Click to view Employee 360" (click)="cancelRequest()">
                                     <div class="info-wrapper">
-                                        <p class="info-text">{{i + 1}} : {{member.name}} &nbsp;&nbsp;&nbsp;&nbsp; start
-                                            Date : {{member.startDate}}  &nbsp;&nbsp;&nbsp;&nbsp; |  Department Name :  {{member.departmentName}}</p>
+                                        <p class="info-text">
+                                            <span id="clickablefor360">{{ i + 1 }} : {{ member.name }}</span>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp; Employee Role : {{ member.employeeRole }}&nbsp;&nbsp;&nbsp;&nbsp;Start Date : {{ member.startDate }}&nbsp;&nbsp;&nbsp;&nbsp;Department Name : {{ member.departmentName }}
+                                        </p>
+                                    </div>                                
+                                </div>
+                                <div class="col-md-12 mb-0" *ngIf="!userMapping.my_team_resource_management_employee_360 && member.name">
+                                    <div class="info-wrapper">
+                                        <p class="info-text">{{i + 1}} : {{member.name}} &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp; Employee
+                                            Role : {{member.employeeRole}}&nbsp;&nbsp;&nbsp;&nbsp;Start
+                                            Date : {{member.startDate}}&nbsp;&nbsp;&nbsp;&nbsp;Department Name :  {{member.departmentName}}</p>
                                     </div>
                                 </div>
                             </ng-container>
@@ -823,5 +859,12 @@
             <p>Are you sure want to delete Team ?</p>
             <button type="button" class="btn btn-success" (click)="cancelRequest();deleteTeam(alert_team_message)">Yes</button>&nbsp;
             <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+        </div>
+    </ng-template>
+
+    <ng-template #alert_message_sync>
+        <div class="modal-body text-center">
+            <p>{{alertMessage}}</p>
+            <button type="button" class="btn btn-primary" (click)="cancelRequest();getAllProjects()">OK</button>&nbsp;
         </div>
     </ng-template>

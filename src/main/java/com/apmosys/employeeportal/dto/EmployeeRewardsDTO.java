@@ -57,5 +57,8 @@ public class EmployeeRewardsDTO {
 	private Long empId;
 	private String teamName;
 	
+	private Long rewardCategoryId;
+	private String rewardCategoryName;
+	
 	
 }

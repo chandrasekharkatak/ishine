@@ -23,8 +23,8 @@
 
             <div class="row">
               <div class="col-md-12">
-                <div class="selector-toggle" (click)="toggleSearch()">
-                  <a href="javascript:void(0)">
+                <div class="selector-toggle" >
+                  <a href="javascript:void(0)" (click)="toggleSearch()">
                     <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                     <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                   </a>
@@ -34,7 +34,7 @@
 
                 <div class="col-2 col-sm-2 col-md-2 col-lg-2 ml-auto mb-2">
                   <button type="button" id="buttonPosition" class="btn btn-sm btn-outline-primary mt-1"
-                    (click)="openFilterModal(filter, newsletterColumns, 'Filter All Document')">
+                    (click)="openFilterModal(filter, newsletterCol, 'Filter All Document')">
                     <i class="fa-solid fa-filter"></i>
                   </button>
                 </div>
@@ -63,7 +63,8 @@
                         *ngFor="let doc of newsletters | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |  paginate: { itemsPerPage: 10, currentPage: page }, let i = index  ">
                         <th class="info-label">{{10*(page-1)+i+1}}</th>
                         <td>{{doc.displayName}}</td>
-                        <td>{{doc.name}}</td>
+                        <td *ngIf="userMapping.employee360_view_newsletter" id="clickablefor360" [navigateToEmployee360]="doc.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{doc.name}}</td>
+                        <td *ngIf="!userMapping.employee360_view_newsletter">{{doc.name}}</td>
                         <td>{{doc.createdOn}}</td>
                         <td>
                           <button class="btn btn-sm btn-outline-primary" *ngIf="doc.isRead" type="submit"

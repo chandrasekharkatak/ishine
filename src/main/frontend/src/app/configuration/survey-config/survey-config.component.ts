@@ -1,8 +1,10 @@
 import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Sort } from '@angular/material/sort';
+import { Router } from '@angular/router';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { ClipboardService } from 'ngx-clipboard';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Feature } from 'src/app/models/feature';
@@ -13,9 +15,8 @@ import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { SurveyService } from 'src/app/services/survey.service';
+import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { ClipboardService } from 'ngx-clipboard';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-survey-config',
@@ -69,8 +70,9 @@ export class SurveyConfigComponent implements OnInit {
   isSearchEnabled:boolean = false;
   surveyColumns:any[] = ['surveyName','description','isActive','createdByName','createdOn'];
   surveyResponseColumns:any[] = ['0','1','2'];
+  surveyColumns1:any[]=  ['0','1','2'];
 
-
+  employeesFor360: any[] = [];
 
   constructor(
     private validationService: ValidationService,
@@ -80,12 +82,19 @@ export class SurveyConfigComponent implements OnInit {
     private exportExcelService: ExportExcelService,
     private locationStrategy: LocationStrategy,
     private clipboardService: ClipboardService,
-    private router: Router
+    private router: Router,
+    private utilityService: UtilityService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
     // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -335,7 +344,17 @@ export class SurveyConfigComponent implements OnInit {
        this.allSurveyList.forEach(survey => {
          survey.createdOn = (survey.createdOn)? moment(survey.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
        });
-       //console.log("this.allSurveyList : ", this.allSurveyList);
+       this.allSurveyList.forEach((employee) => {
+        // console.log("employee.createdBy ", employee.createdBy);
+        let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+        // console.log("createdby ", matchingEmployee3);
+        employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+        // console.log("employee.updatedBy ", employee.updatedBy);
+        let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+        // console.log("updatedBy ", matchingEmployee4);
+        employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+      });
+      //  console.log("this.allSurveyList : ", this.allSurveyList);
       }else{
         console.error(response.serviceResponse);
       }
@@ -525,7 +544,7 @@ export class SurveyConfigComponent implements OnInit {
     finalQuestionTemplate = questionStartTemplate + questionTemplate;
 
      if (question.optionType == "text") {
-       let textTemplate: any =`<textarea class="form-control" rows="1" name="question-${qIndex+1}"></textarea>`;
+       let textTemplate: any =`<textarea class="form-control" rows="1" name="question-${qIndex+1}" disabled ></textarea>`;
        finalQuestionTemplate = finalQuestionTemplate + textTemplate;
      } else if (question.optionType == "checkbox") {
 
@@ -534,7 +553,7 @@ export class SurveyConfigComponent implements OnInit {
         let checkboxTemplate: any =
         `
           <div class="form-check">
-           <input class="form-check-input" type="checkbox" id="q-${qIndex+1}-check-option-${opIndex+1}" value="${option.optionValue}" name="question-${qIndex+1}">
+           <input class="form-check-input" type="checkbox" id="q-${qIndex+1}-check-option-${opIndex+1}" value="${option.optionValue}" name="question-${qIndex+1}" disabled>
            <label class="form-check-label" for="q-${qIndex+1}-check-option-${opIndex+1}">${option.optionValue}</label>
            </div>
          `;
@@ -550,7 +569,7 @@ export class SurveyConfigComponent implements OnInit {
         let radioboxTemplate: any =
         `
         <div class="form-check">
-         <input class="form-check-input" type="radio" id="q-${qIndex+1}-radio-option-${index+1}" value="${option.optionValue}" name="question-${qIndex+1}">
+         <input class="form-check-input" type="radio" id="q-${qIndex+1}-radio-option-${index+1}" value="${option.optionValue}" name="question-${qIndex+1}" disabled>
          <label class="form-check-label" for="q-${qIndex+1}-radio-option-${index+1}">${option.optionValue}</label>
          </div>
        `;
@@ -681,6 +700,13 @@ export class SurveyConfigComponent implements OnInit {
   toggleSearch(){
     this.isSearchEnabled = !this.isSearchEnabled;
     if(!this.isSearchEnabled){
+      this.filters = {};
+    }
+  }
+  isSearchEnabledResponse:boolean=false;
+  toggleSearchResponse(){
+    this.isSearchEnabledResponse = !this.isSearchEnabledResponse;
+    if(!this.isSearchEnabledResponse){
       this.filters = {};
     }
   }

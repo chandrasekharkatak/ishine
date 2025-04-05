@@ -39,6 +39,11 @@ export class EmployeeService {
     return this.http.get(`${this.baseUrl}` + `api/getAllEmployees`);
   }
 
+  
+  getAllEmployeesFor360View() {
+    return this.http.get(`${this.baseUrl}` + `api/getAllEmployeesFor360View`);
+  }
+
   // getEmployeeByAppreciationName(requestBody: any): Observable<any> {
   //   return this.http.post(`${this.baseUrl}api/getEmployeeByAppreciationName`, requestBody,{
   //     headers: { 'Content-Type': 'application/json' },
@@ -97,6 +102,10 @@ export class EmployeeService {
 
   getAllEmployeesBirthDayToday() {
     return this.http.get(`${this.baseUrl}` + `api/getAllEmployeesBirthDayToday`);
+  }
+
+  getAllEmployeesWorkAnniversaryToday() {
+    return this.http.get(`${this.baseUrl}` + `api/getAllEmployeesWorkAnniversaryToday`);
   }
 
   getHierarchyByEmpId(employeeObj: Employee) {
@@ -326,12 +335,25 @@ setReportingManagerToNewManager(employee : any){
   return this.http.post(`${this.baseUrl}`+`api/setReportingManagerToNewManager`,employee);
 }
 
-getAllEmployeesReportByProjectTypeInConsolidated(){
-  return this.http.get(`${this.baseUrl}`+`api/getAllEmployeesReportByProjectTypeInConsolidated`);
+getAllEmployeesReportByProjectTypeInConsolidated():Observable<any[]>{
+  return this.http.get<any[]>(`${this.baseUrl}`+`api/getAllEmployeesReportByProjectTypeInConsolidated`);
 }
 
 getAllEmployeesReportByProjectType(){
   return this.http.get(`${this.baseUrl}`+`api/getAllEmployeesReportByProjectType`);
 }
+
+//Update Default ProjectName for employee
+updateDefaultProject(newemployeeObj : any){
+  return this.http.post(`${this.baseUrl}` + `api/updateDefaultProject`, newemployeeObj);
+ }
+
+ getExpiredPo(){
+  return this.http.get(`${this.baseUrl}` + `api/getExpiredPo`);
+ }
+
+ sendExpiredPoEmail(employeeDTO:any){
+  return this.http.post(`${this.baseUrl}` + `api/sendExpiredPoEmail`,employeeDTO);
+ }
 
 }

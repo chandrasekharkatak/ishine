@@ -6,6 +6,8 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { User } from 'src/app/models/user';
 import { ValidationService } from 'src/app/services/validation.service';
+import { UtilityService } from 'src/app/services/utility.service';
+import { Feature } from 'src/app/models/feature';
 
 @Component({
   selector: 'app-on-boarding',
@@ -25,17 +27,35 @@ export class OnBoardingComponent implements OnInit {
 
   modalRef: BsModalRef = new BsModalRef();
 
+  employeesFor360: any[] = [];
+
+  userMapping: any = {};
+  feature = "Onboarding Config";
+  
   constructor(
     private onBoardingService : OnBoardingService,
     private authenticationService : AuthenticationService,
     private validationService:ValidationService,
     private modalService: BsModalService,
+    private utilityService: UtilityService,
   ) {
      this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     }
 
-  ngOnInit(): void {
-  }
+    async ngOnInit(): Promise<void> {
+      try {
+        this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+        // console.log("Priyadarshini ", this.employeesFor360);
+      } catch (error) {
+        console.error("Error fetching employee details for 360 view", error);
+      }
+
+      // Dynamic Subfeature Flags
+      let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+      featureMap.subFeatures?.forEach(sub => {
+        this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+      });
+    }
 
   // getAssetDataFromSnipitPortal(template: TemplateRef<any>){
   //   this.cancelRequest();
@@ -116,8 +136,17 @@ export class OnBoardingComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.employeeOnBoardingDetailList = response.serviceResponse;
         this.employeeDetailList = response.serviceResponse1;
-        //console.log(this.employeeOnBoardingDetailList, ' : employeeOnBoardingDetailList');
-
+        this.employeeDetailList.forEach((employee) => {
+          console.log("employee.empId ", employee.empId);
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
+          console.log("empId ", matchingEmployee);
+          employee.emp360 = matchingEmployee ? matchingEmployee : {};
+          console.log("employee.managerId ", employee.managerId);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.managerId);
+          console.log("managerId ", matchingEmployee3);
+          employee.emp360ManagerId = matchingEmployee3 ? matchingEmployee3 : {};
+        });
+        console.log(this.employeeOnBoardingDetailList, ' : employeeOnBoardingDetailList');
         const key = "deptId";
         this.departmentList = [...new Map(this.employeeOnBoardingDetailList.map((employee:Asset) => [employee[key], employee])).values()].map((employee:Asset) => {
           return { departmentName: employee.departmentName, deptId: employee.deptId}

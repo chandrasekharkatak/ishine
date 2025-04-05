@@ -242,6 +242,9 @@ public class NotificationServiceImpl implements NotificationService {
 						dto.setUpdatedOn(object[5] != null ? object[5].toString() : null);
 						dto.setNotificationType(object[6] != null ? object[6].toString() : null);
 						dto.setIsActive(object[7] != null ? object[7].toString() : null);
+						dto.setCreatedBy(object[8] != null ? Long.parseLong(object[8].toString().toString()) : null);
+						dto.setUpdatedBy(object[9] != null ? Long.parseLong(object[9].toString().toString()) : null);
+						
 						dtoList.add(dto);
 					});
 

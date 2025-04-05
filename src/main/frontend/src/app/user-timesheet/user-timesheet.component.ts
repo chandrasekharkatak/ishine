@@ -61,7 +61,8 @@ export class UserTimesheetComponent implements OnInit,OnDestroy,AfterViewInit {
           queryParams: params, 
           queryParamsHandling: 'merge'
         });
-      }else{
+      } 
+      else{
         const tab = document.getElementById('timesheetTab').querySelector('.nav-link');
         tab.classList.add('active');
         let activeRouteLink = tab.getAttribute('routerLink');

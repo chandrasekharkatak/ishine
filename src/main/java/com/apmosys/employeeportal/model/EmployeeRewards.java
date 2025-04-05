@@ -48,6 +48,8 @@ public class EmployeeRewards {
 	private String remark;
 	
 	private String ofmonthyear;
+	
+	private Long rewardCategoryId;
 
 }
 

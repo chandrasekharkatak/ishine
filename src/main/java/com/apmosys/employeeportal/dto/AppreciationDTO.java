@@ -61,6 +61,7 @@ private Long id;
 		    private String endDate;   // New field for filtering
 		    private Long employeementId; // Represents the current user's ID
 		    private Long empId;
-
+	    private Long appreciationToByEmpId;
+	    private Long appreciationByByEmpId;
 	
 }

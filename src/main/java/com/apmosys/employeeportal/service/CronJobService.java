@@ -1,6 +1,8 @@
 package com.apmosys.employeeportal.service;
 
 import java.io.File;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -24,6 +26,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.OffsetDateTime;
 import java.time.Period;
 import java.time.YearMonth;
 import java.time.ZoneId;
@@ -31,11 +34,15 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Random;
@@ -50,6 +57,7 @@ import javax.mail.internet.AddressException;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
 
 import org.dhatim.fastexcel.Workbook;
 import org.dhatim.fastexcel.Worksheet;
@@ -64,6 +72,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -73,16 +83,21 @@ import com.apmosys.employeeportal.dto.BioMaTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.model.BiomaxDefaulter;
+import com.apmosys.employeeportal.model.BiomaxRequest;
 import com.apmosys.employeeportal.model.BirthdayMail;
 import com.apmosys.employeeportal.model.Client;
+import com.apmosys.employeeportal.model.ClientLocation;
 import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.Holiday;
+import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.LeavePolicyMaster;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
@@ -92,7 +107,10 @@ import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.UserSession;
+import com.apmosys.employeeportal.repository.BiomaxDefaulterRepository;
+import com.apmosys.employeeportal.repository.BiomaxRequestRepository;
 import com.apmosys.employeeportal.repository.BirthdayMailRepository;
+import com.apmosys.employeeportal.repository.ClientLocationRepository;
 import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
@@ -100,6 +118,7 @@ import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.HolidayRepository;
+import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
@@ -122,12 +141,27 @@ import okhttp3.Response;
 @Service
 @EnableAsync
 public class CronJobService {
-
+	@Value("${biomaxleavedeductForEmployee}")
+	private String biomaxleavedeductForEmployee;
+	@Value("${biomaxleavedeductForDepartment}")
+	private String biomaxleavedeductForDepartment;
+	@Autowired
+	private BiomaxRequestRepository biomaxRequestRepository;
 	@Autowired
 	ProjectRepository projectRepository;
 	
 	@Autowired
+	ClientLocationRepository clientLocationRepository;
+	
+	@Autowired
 	BioMaxService bioMaxService;
+	
+	@Autowired
+	JobRoleRepository jobRoleRepository;
+	//added by rahul
+
+	
+	//end of rahul 
 	
 	@Autowired
 	LeaveTypeMasterRepository leaveTypeMasterRepository;
@@ -197,6 +231,12 @@ public class CronJobService {
 	
 	@Autowired
 	private UserSessionRepository userSessionRepository;
+	
+	@Autowired
+	BiomaxDefaulterRepository biomaxDefaulterRepository;
+	
+	@Autowired
+	private final RestTemplate restTemplate = new RestTemplate();
 
 	@Value("${po.db.url}")
 	private String url;
@@ -234,8 +274,11 @@ public class CronJobService {
 	@Value("${valid.attempt:5}")
 	private Long validAttempt;
 	
+	@Value("${leavetypeId}")
+	private int leaveTypeId;
 	
-	
+	@Value("${admin.mail}")
+	private String adminMail;
 	
 	 @PersistenceContext
 	 EntityManager entityManager;
@@ -245,7 +288,7 @@ public class CronJobService {
 	    }
 
 		
-	//0 0 12 1 * ?  - Every month on the 1st, at noon
+//0 0 12 1 * ?  - Every month on the 1st, at noon
 //	0 0/2 * ? * *
 	@Scheduled(cron = "0 0 12 1 * ?")
 	public void monthlyLeaveIncrement() {
@@ -274,8 +317,6 @@ public class CronJobService {
 	        				  System.out.println("@@@  "+employeeObj.getName());
 	        				  
 	        				  System.out.println("@@@  "+employeeObj.getIsRetain());	
-	        				  
-	        				 
 	        				  }
 		        		 
 		        		  System.out.println(employeeObj.getEmploymentstatus() +"  "+ ltm.getLeaveTypeMasterId());
@@ -4208,7 +4249,9 @@ public class CronJobService {
 //			return response;
 //		}
 		
-		public ServiceResponse allEmployeeDsrReport(TimesheetDTO timesheetdto) {ServiceResponse response = new ServiceResponse();
+		public ServiceResponse allEmployeeDsrReport(TimesheetDTO timesheetdto)
+		{
+			ServiceResponse response = new ServiceResponse();
 		
 //		List<BioMaTO> finalEmpBioData=bioMaxService.getBioInOut(timesheetdto);
 		
@@ -4665,7 +4708,160 @@ try {
 				e.printStackTrace();
 			}
 		}
-		
+		//@Scheduled(cron = "0 0 0 1/3 * ?")
+		public void ProjectClonefromPoPortal() {
+			try {
+				List<ResourceManagementDTO> dtoList = new ArrayList<ResourceManagementDTO>();
+				
+				OkHttpClient client = new OkHttpClient();
+				Request request = new Request.Builder()
+				  .url(allPoPortalProjects)
+				  .get()
+				  .addHeader("accept", "application/json")
+				  .build();
+				Response httpResponse = client.newCall(request).execute();
+				String jsonData = httpResponse.body().string();
+				JSONArray jsonArr = new JSONArray(jsonData);
+				
+				for (int i = 0; i < jsonArr.length(); i++) {
+			        JSONObject jsonObj = jsonArr.getJSONObject(i);
+			        Long poProjectId = jsonObj.getLong("id");
+			        String projectName = jsonObj.getString("name");
+			        String createdOn = jsonObj.getString("createdOn");
+			        String clientName = jsonObj.getString("clientName");
+			        JSONArray deptartmentName = jsonObj.getJSONArray("department");
+			        
+			        Project projectObj = projectRepository.findByPoProjectId(poProjectId);
+			        
+			        if(projectObj != null) {
+			        	List<Team> isTeamCreated = teamRepository.findByProjectId(projectObj.getProjectId());
+			        	
+			        	if(isTeamCreated.isEmpty()) {
+			        		//Client info
+			        		Client clientObj = clientsRepository.findByClientId(projectObj.getClientId());
+			        		List<ProjectDepartmentMap> projDeptMap = projectDepartmentMapRepository.findByProjectId(projectObj.getProjectId());
+			        		List<String> deptList = new ArrayList<>();
+			        		
+			        		if(!projDeptMap.isEmpty()) {
+			        			projDeptMap.forEach((dept) -> {
+			        				Department deptObject = departmentRepository.findByDeptId(dept.getDeptId());
+			        				if(deptObject != null) {
+			        					deptList.add(deptObject.getName());			        							        					
+			        				}
+			        			});
+			        		}
+			        		
+			        		ResourceManagementDTO rmgDTO = new ResourceManagementDTO();
+			        		
+			        		rmgDTO.setName(projectObj.getProjectName());
+			        		rmgDTO.setCreatedOn(projectObj.getCreatedOn().toString());
+			        		rmgDTO.setClientName(clientObj != null ? clientObj.getClientName() : null);
+			        		rmgDTO.setDeptName(!deptList.isEmpty() ? String.join(",", deptList) : null);
+			        		dtoList.add(rmgDTO);
+			        	}
+			        }else {
+			        	StringJoiner stringJoiner = new StringJoiner(",");
+
+			        	for (Object jsonValue : deptartmentName) {
+			        	    stringJoiner.add(jsonValue.toString());
+			        	}
+			        	
+			        	ResourceManagementDTO rmgDTO = new ResourceManagementDTO();
+		        		
+		        		rmgDTO.setName(projectName);
+		        		rmgDTO.setCreatedOn(createdOn);
+		        		rmgDTO.setClientName(clientName);
+		        		rmgDTO.setDeptName(stringJoiner.toString());
+		        		dtoList.add(rmgDTO);
+			        }
+				}
+				
+				
+				List<Department> allDepartment = departmentRepository.findAll();
+				
+				if(!allDepartment.isEmpty()) {
+					allDepartment.forEach((dept) -> {
+						
+						List<ResourceManagementDTO> filteredList = new ArrayList<>();
+						
+						for (ResourceManagementDTO dto : dtoList) {
+						    if (dto.getDeptName().contains(dept.getName())) {
+						        filteredList.add(dto);
+						    }
+						}
+						
+						
+						if(!filteredList.isEmpty()) {
+							
+							//Create Proj Info table
+			        		StringBuilder html = new StringBuilder();
+							html.append("<html>\n" +
+						            "  <head>\n" +
+						            "    <style>\n" +
+						            "      table, th, td {\n" +
+						            "        border: 1px solid black;\n" +
+						            "      }\n" +
+						            "      table {\n" +
+						            "        border-collapse: collapse;\n" +
+						            "      }\n" +
+						            "    </style>\n" +
+						            "  </head>\n" +
+						            "  <body>\n" +
+						            "    <table>\n" +
+						            "      <tr>\n" +
+						            "        <th>Project Name</th>\n" +
+						            "        <th>Client Name</th>\n" +
+						            "        <th>Created On</th>\n" +
+						            "        <th>Project Department</th>\n" +
+						            "      </tr>\n");
+							// add rows to the table
+							for(ResourceManagementDTO rmgDTO: filteredList) {
+								
+								DateFormat inputFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+								Date inputDate = null;
+								try {
+									inputDate = inputFormatter.parse(rmgDTO.getCreatedOn());
+								} catch (ParseException e) {
+									e.printStackTrace();
+								}
+
+								DateFormat outputFormatter = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
+								String outputDateStr = outputFormatter.format(inputDate);
+								
+								html.append("      <tr>\n");
+								  // add cells to the row
+								  html.append("        <td>" + rmgDTO.getName() + "</td>\n");
+								  html.append("        <td>" + rmgDTO.getClientName() + "</td>\n");
+								  html.append("        <td>" + outputDateStr + "</td>\n");
+								  html.append("        <td>" + dept.getName() + "</td>\n");
+								  html.append("      </tr>\n");
+							}
+							
+							html.append("    </table>\n" +
+							            "  </body>\n" +
+							            "</html>");
+							
+							//Send Mail regarding oldProject where team not created
+							
+							Employee empObj = employeeRepository.findByEmpId(dept.getHodId());						
+							try {
+								mailService.sendMailWithCC(rmgMail,empObj != null ? empObj.getEmail() : rmgMail,
+										"Reminder for Project - Resource OnBoarding",
+										"Dear team, <br><br>" +
+										"Below projects are onboarded in PoPortal/Ishine in which team and resources are not added. Please take necessary action.<br><br>"
+									  +	html.toString());
+							} catch (AddressException e) {
+								e.printStackTrace();
+							} catch (MessagingException e) {
+								e.printStackTrace();
+							}
+						}
+					});
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
 		// 0 0 9 ? * * - At 09:00:00am every day
 		@Async
 		@Scheduled(cron = "0 0 9 ? * *")
@@ -4871,12 +5067,995 @@ try {
 		 * 3) Reporting late to work (after 30 minutes from shift starting time) and not completing 9 hours
 		 *    : Deduct 1 Day Salary
 		 * */
+public List<Holiday> getHolidayListTestData(){
+	List<Holiday> holi=new ArrayList<>();
+	Holiday holid=new Holiday();
+	holid.setDateOfHoliday(LocalDate.now());
+	holid.setDayOfTheWeek("1");
+	holi.add(holid);
+	return holi;
+}
+
+public List<BiomaxRequest> getBiomaxRequestTest(){
+	List<BiomaxRequest> biomax=new ArrayList<>();
+	BiomaxRequest bio=new BiomaxRequest();
+	bio.setBiomaxStatus("Approved");
+	bio.setBiomaxrequestDate(LocalDateTime.now());
+	bio.setEmpId(1993L);
+	biomax.add(bio);
+//	BiomaxRequest bio1=new BiomaxRequest();
+//	bio1.setBiomaxStatus("Approved");
+//	bio1.setBiomaxrequestDate(LocalDateTime.now().plusDays(-2));
+//	bio1.setEmpId(1993L);
+//	biomax.add(bio1);
+//	BiomaxRequest bio12=new BiomaxRequest();
+//	bio12.setBiomaxStatus("Approved");
+//	bio12.setBiomaxrequestDate(LocalDateTime.now().plusDays(4));
+//	bio12.setEmpId(1993L);
+//	biomax.add(bio12);
+	return biomax;
+}
+//		
+//		@Async
+//		@Scheduled(cron = "0 0 9 ? * *") // runs everyday at 9 pm
+		@SuppressWarnings("unused")
+//		public void leaveDeduct() {
+//			 String depart="";
+//				String employee="";
+//				
+////				List<BioMaTO> biomaxDataList = new ArrayList<>();
+////				BioMaTO biomatObj = new BioMaTO();
+////				biomatObj.setEmployeeCode("A2");
+////				biomatObj.setAttendanceDate("2025-03-20 00:00:00.0");
+////				biomatObj.setInTime("00:00");
+////				biomatObj.setOutTime("00:00");
+////				biomatObj.setTotalDuration("200");
+////				biomatObj.setShiftName("General");
+////				biomatObj.setBeginTime("00:00");
+////				biomatObj.setEndTime("00:00");
+////				biomatObj.setDeduct("0.5");
+////				biomaxDataList.add(biomatObj);
+////				
+////				BioMaTO biomatObj1 = new BioMaTO();
+////				biomatObj.setEmployeeCode("A2");
+////				biomatObj1.setAttendanceDate("2025-01-19 00:00:00.0");
+////				biomatObj1.setInTime("00:00");
+////				biomatObj1.setOutTime("00:00");
+////				biomatObj1.setTotalDuration("200");
+////				biomatObj1.setShiftName("General");
+////				biomatObj1.setBeginTime("00:00");
+////				biomatObj1.setEndTime("00:00");
+////				biomatObj1.setDeduct("0.5");
+////				biomaxDataList.add(biomatObj1);
+////				
+////				BioMaTO biomatObj2 = new BioMaTO();
+////				biomatObj.setEmployeeCode("A2");
+////				biomatObj2.setAttendanceDate("2025-01-18 00:00:00.0");
+////				biomatObj2.setInTime("00:00");
+////				biomatObj2.setOutTime("00:00");
+////				biomatObj2.setTotalDuration("200");
+////				biomatObj2.setShiftName("General");
+////				biomatObj2.setBeginTime("00:00");
+////				biomatObj2.setEndTime("00:00");
+////				biomatObj2.setDeduct("0.5");
+////				biomaxDataList.add(biomatObj2);
+//
+//				
+//				
+//				//start the rahul code
+//				
+//			List<BioMaTO> biomaxDataList =bioMaxService.getBiomaxDataForLeaveDeduct();
+//			System.out.println("Total Data Comming from Biomax"+biomaxDataList.size());
+//			
+//			List<Long> dataToBeDeleted = new ArrayList<>();
+//		
+//			List<Long> removeemployeeId=new ArrayList<>();
+//				//leave for findEmployeeIsOnCompOffLeaveToday
+////			if(!biomaxDataList.isEmpty()) {
+//				
+//				 
+////				 List<BiomaxRequest> approvedLeaveList = biomaxRequestRepository.findByEmployeementIdLeaveNotDeduct();
+//					
+////				 if (!approvedLeaveList.isEmpty()) {
+////					 approvedLeaveList.forEach((empId)->{
+////						 Employee emp=employeeRepository.findByEmpId(empId.getEmpId());
+////						// empId.setEmpId(emp.getEmployeementId());
+////						  removeemployeeId.add(emp.getEmployeementId());
+////							
+////					 });
+////					    		
+////				 }
+//				
+//					
+////				 }
+//			// Fetch comp-off leave employees for today and filter biomaxDataList
+//			List<CompOffLeave> compOffLeaveList = compOffLeaveRepository.findEmployeeIsOnCompOffLeaveToday();
+//			if (!compOffLeaveList.isEmpty()) {
+//				compOffLeaveList.forEach((comof)->{
+//					 Employee empcomof=employeeRepository.findByEmpId(comof.getEmpId());
+//					  removeemployeeId.add(empcomof.getEmployeementId());
+//						
+//				});
+//			}
+//
+//			// Fetch department configuration and filter biomaxDataList for non-leave-deducted departments
+//			Optional<PortalConfig> departmentConfig = portalConfigRepository.findByportalConfigById(Short.parseShort(biomaxleavedeductForDepartment));
+//			if (departmentConfig.isPresent()) {
+//			    PortalConfig portalConfig = departmentConfig.get();
+//			    String departmentConfigValue = portalConfig.getConfigValue().replace("[", "").replace("]", "");  // Remove square brackets
+//			    String[] departmentIds = departmentConfigValue.split(",");  // Split the string into an array
+//
+//			    Set<Long> departmentNotLeaveDeduct = Arrays.stream(departmentIds)
+//			            .map(Long::parseLong)
+//			            .collect(Collectors.toSet());  // Store department IDs in a set for faster lookup
+//			    biomaxDataList.removeIf(bio -> departmentNotLeaveDeduct.contains(bio.getDepartmentId()));
+//			}
+//
+//			// Fetch employees on leave today and filter biomaxDataList for them
+//			List<EmployeeLeave> employeeLeaveList = employeeLeaveRepository.findEmployeeIsOnLeaveToday();
+//			if (!employeeLeaveList.isEmpty()) {
+//				employeeLeaveList.forEach((empleave)->{
+//					 Employee empcomof=employeeRepository.findByEmpId(empleave.getEmpId());
+//					 removeemployeeId.add(empcomof.getEmployeementId())	;// Use a set for faster lookup
+//					   	
+//				});
+//			  	}
+//
+//			// Fetch employees with leave deduction exemptions and filter biomaxDataList for them
+//			Optional<PortalConfig> employeeLeaveDeductConfig = portalConfigRepository.findByportalConfigById(Short.parseShort(biomaxleavedeductForEmployee));
+//			if (employeeLeaveDeductConfig.isPresent()) {
+//			    PortalConfig portalConfig = employeeLeaveDeductConfig.get();
+//			    String employeeConfigValue = portalConfig.getConfigValue().replace("[", "").replace("]", "");  // Remove square brackets
+//			    String[] employeeIds = employeeConfigValue.split(",");  // Split the string into an array
+//
+//			    Set<Long> employeeNotLeaveDeduct = Arrays.stream(employeeIds)
+//			            .map(Long::parseLong)
+//			            .collect(Collectors.toSet());  // Use a set for faster lookup
+//			    
+//			   // removeemployeeId.addAll(employeeNotLeaveDeduct);
+//			    if(employeeNotLeaveDeduct.size()>0) {
+//			    biomaxDataList.removeIf(bio -> employeeNotLeaveDeduct.contains(bio.getEmpId()));
+//			    }
+//				
+//			}
+//			 if(removeemployeeId.size()>0) {
+//			biomaxDataList.removeIf(bio -> removeemployeeId.contains(bio.getEmployementId()));
+//			 }
+//				List<BioMaTO> finalEmpBioData = new ArrayList<>();
+//						
+//					
+//				
+//				//end of the code
+////				
+//				String fileName = "LeaveDeduct.xlsx";
+//				var file = new File(fileName);
+//
+//				try (var fos = new FileOutputStream(file)) {
+//
+//					var wb = new Workbook(fos, "Application", "1.0");
+//					Worksheet ws = wb.newWorksheet("Employee in Probation");
+//
+//					ws.value(0, 0, "EmpId");
+//					ws.value(0, 1, "Emp Name");
+//					ws.value(0, 2, "Date");
+//					ws.value(0, 3, "In-Time");
+//					ws.value(0, 4, "Out-Time");
+//					ws.value(0, 5, "Total Working Hours");
+//					ws.value(0, 6, "Salary to be deducted (In days)");
+//
+//					int rowNum = 1;
+//					//biomaxDataList=new ArrayList();
+//					if (!biomaxDataList.isEmpty()) {
+//						
+//						List<BioMaTO> biomaxDataFilterList = biomaxDataList.stream()
+//								.filter(obj -> Double.parseDouble(obj.getDeduct()) > 0).collect(Collectors.toList());
+//
+//						if (!biomaxDataFilterList.isEmpty()) {
+//							
+//							biomaxDataFilterList.forEach((object) -> {
+//
+//								Long employmentId = Long.parseLong(object.getEmployeeCode().replaceAll("\\D", ""));
+//								List<BiomaxDefaulter> defaulterList = biomaxDefaulterRepository
+//										.findByEmployeementIdForDefaulterBiomax(employmentId);
+//								//For employee configuration in biomax
+//								
+//							
+//								
+//								Employee employeeObj = employeeRepository.findByEmployeementId(employmentId);
+//								JobRole departmentjon=jobRoleRepository.findByjobRoleId(employeeObj.getJobRoleId());
+//								
+//								if (!defaulterList.isEmpty()) {
+//									
+//									
+//										/*
+//										 * Deduct leave for confirmed employee Deduct salary for probation employee
+//										 * (send mail to HR in excel format) Remove defaulter from BiomaxDefaulter after
+//										 * Deduction
+//										 */
+//
+//										if (employeeObj != null) {
+//											// Deduct leave
+//
+//											
+//											if (employeeObj.getEmploymentstatus().equals("Confirmed")) {
+//												EmployeeLeavesMap employeeLeaveMapObject = employeeLeavesMapRepository
+//														.findByEmpIdAndLeaveTypeMasterId(employeeObj.getEmpId(), (short) 3);
+//
+//												if (employeeLeaveMapObject != null) {
+//													Float newBalance = employeeLeaveMapObject.getBalance()
+//															- Float.parseFloat(object.getDeduct());
+//
+//													employeeLeaveMapObject.setBalance(newBalance);
+//													EmployeeLeavesMap dbResponse = employeeLeavesMapRepository
+//															.save(employeeLeaveMapObject);
+//
+//													if (dbResponse != null) {
+//														LeaveBalanceLog log = new LeaveBalanceLog();
+//
+//														log.setBalance(newBalance);
+//														log.setEmpId(employeeObj.getEmpId());
+//														log.setLeaveTypeMasterId((short) 3);
+//														log.setMessage(LeaveLogMessage.autoDeductLeaveOnTimesheetDefaulter
+//																.replace("0.0", object.getDeduct()));
+//														log.setUpdateBalanceBy("-" + object.getDeduct());
+//
+//														LeaveBalanceLog leaveLogDbResponse = leaveBalanceLogRepository
+//																.save(log);
+//													}
+//												}
+//											} else if (employeeObj.getEmploymentstatus().equals("Probation")) {
+//												// Deduct salary --> create excel and send to HR
+//
+//												ws.style(rowNum, 2).format("dd-MM-yyyy").set();
+//												ws.style(rowNum, 3).format("dd-MM-yyyy HH:mm:ss").set();
+//												ws.style(rowNum, 4).format("dd-MM-yyyy HH:mm:ss").set();
+//
+//
+//												ws.value(rowNum, 0, "A-" + employmentId);
+//												ws.value(rowNum, 1, employeeObj.getName());
+//												ws.value(rowNum, 2, LocalDate.now());
+//												ws.value(rowNum, 3, object.getInTime());
+//												ws.value(rowNum, 4, object.getOutTime());
+//												ws.value(rowNum, 5, object.getTotalDuration());
+//												ws.value(rowNum, 6, object.getDeduct());
+//
+//											}
+//										// delete employee from defaulter table
+//										dataToBeDeleted.add(employmentId);
+//									} else {
+//													BiomaxDefaulter newDefaulterObj = new BiomaxDefaulter();
+//										newDefaulterObj.setEmpId(employeeObj.getEmpId());
+//										newDefaulterObj.setEmployeementId(employmentId);
+//										newDefaulterObj.setDepartmentId(departmentjon.getDeptId());
+//										BiomaxDefaulter defaulterNewEntry = biomaxDefaulterRepository.save(newDefaulterObj);
+//										
+//										}
+//								} else {
+//									// New defaulter entry
+//									
+//											BiomaxDefaulter newDefaulterObj = new BiomaxDefaulter();
+//											newDefaulterObj.setEmpId(employeeObj.getEmpId());
+//											newDefaulterObj.setEmployeementId(employmentId);
+//											newDefaulterObj.setDepartmentId(departmentjon.getDeptId());
+//											BiomaxDefaulter newDefaulter = biomaxDefaulterRepository.save(newDefaulterObj);
+//										
+//										
+//								}
+//							});
+//						}
+//					}
+//					wb.finish();
+//					
+//					// Send mail
+//
+//					 boolean mailSent = mailService.sendMailWithAttachment(hrMailAddress,
+//							 hrMailAddress,
+//							 "Salary to be deducted of Employees in probation due to defaulter in working time",
+//							 "Dear Team, <br><br>"
+//		                   + "Please find Salary to be deducted of Employees in probation due to defaulter in working time attached below.",
+//		                   file);
+//					
+//					 if(mailSent) {
+//						System.out.println("Salary to be deducted of Employees Mail sent successfully !!");
+//					 }else {
+//						 System.out.println("Unable to sent salary to be deducted of Employees Mail !!");
+//					 }
+//					 
+//					 
+//					 //Delete all the employee in defaulter by employeemnetId
+//				      biomaxDefaulterRepository.deleteAllByEmployeementIds(dataToBeDeleted);
+//					 
+//				} catch (Exception e) {
+//					e.printStackTrace();
+//				}
+//			
+//			
+//			   
+//		}
+
+		@Transactional
+		public void leaveDeduct() {
+			String depart = "";
+			String employee = "";
+
+//			List<BioMaTO> biomaxDataList = new ArrayList<>();
+//			BioMaTO biomatObj = new BioMaTO();
+//			biomatObj.setEmployeeCode("3");
+//			biomatObj.setAttendanceDate("2025-03-07 00:00:00.0");
+//			biomatObj.setInTime("00:00");
+//			biomatObj.setOutTime("00:00");
+//			biomatObj.setTotalDuration("200");
+//			biomatObj.setShiftName("General");
+//			biomatObj.setBeginTime("00:00");
+//			biomatObj.setEndTime("00:00");
+//			biomatObj.setDeduct("1");
+//			biomaxDataList.add(biomatObj);
+//
+//			BioMaTO biomatObj1 = new BioMaTO();
+//			biomatObj1.setEmployeeCode("3");
+//			biomatObj1.setAttendanceDate("2025-03-12 00:00:00.0");
+//			biomatObj1.setInTime("00:00");
+//			biomatObj1.setOutTime("00:00");
+//			biomatObj1.setTotalDuration("200");
+//			biomatObj1.setShiftName("General");
+//			biomatObj1.setBeginTime("00:00");
+//			biomatObj1.setEndTime("00:00");
+//			biomatObj1.setDeduct("1");
+//			biomaxDataList.add(biomatObj1);
+//
+//			BioMaTO biomatObj2 = new BioMaTO();
+//			biomatObj2.setEmployeeCode("3");
+//			biomatObj2.setAttendanceDate("2025-03-15 00:00:00.0");
+//			biomatObj2.setInTime("00:00");
+//			biomatObj2.setOutTime("00:00");
+//			biomatObj2.setTotalDuration("200");
+//			biomatObj2.setShiftName("General");
+//			biomatObj2.setBeginTime("00:00");
+//			biomatObj2.setEndTime("00:00");
+//			biomatObj2.setDeduct("0.5");
+//			biomaxDataList.add(biomatObj2);
+//			
+//			BioMaTO biomatObj3 = new BioMaTO();
+//			biomatObj3.setEmployeeCode("3");
+//			biomatObj3.setAttendanceDate("2025-03-26 00:00:00.0");
+//			biomatObj3.setInTime("00:00");
+//			biomatObj3.setOutTime("00:00");
+//			biomatObj3.setTotalDuration("200");
+//			biomatObj3.setShiftName("General");
+//			biomatObj3.setBeginTime("00:00");
+//			biomatObj3.setEndTime("00:00");
+//			biomatObj3.setDeduct("0.5");
+//			biomaxDataList.add(biomatObj3);
+//			
+//			BioMaTO biomatObj4 = new BioMaTO();
+//			biomatObj4.setEmployeeCode("3");
+//			biomatObj4.setAttendanceDate("2025-03-29 00:00:00.0");
+//			biomatObj4.setInTime("00:00");
+//			biomatObj4.setOutTime("00:00");
+//			biomatObj4.setTotalDuration("200");
+//			biomatObj4.setShiftName("General");
+//			biomatObj4.setBeginTime("00:00");
+//			biomatObj4.setEndTime("00:00");
+//			biomatObj4.setDeduct("1");
+//			biomaxDataList.add(biomatObj4);
+//			
+//			BioMaTO biomatObj5 = new BioMaTO();
+//			biomatObj5.setEmployeeCode("3");
+//			biomatObj5.setAttendanceDate("2025-03-31 00:00:00.0");
+//			biomatObj5.setInTime("00:00");
+//			biomatObj5.setOutTime("00:00");
+//			biomatObj5.setTotalDuration("200");
+//			biomatObj5.setShiftName("General");
+//			biomatObj5.setBeginTime("00:00");
+//			biomatObj5.setEndTime("00:00");
+//			biomatObj5.setDeduct("0.5");
+//			biomaxDataList.add(biomatObj5);
+
+			// start the rahul code
+		    List<BioMaTO> biomaxDataList = bioMaxService.getBiomaxDataForLeaveDeduct();
+			System.out
+					.println("Total Data Coming from Biomax: " + (biomaxDataList != null ? biomaxDataList.size() : 0));
+
+			List<Long> dataToBeDeleted = new ArrayList<>();
+			List<Long> removeemployeeId = new ArrayList<>();
+
+			// Fetch comp-off leave employees for today and filter biomaxDataList
+//			List<CompOffLeave> compOffLeaveList = compOffLeaveRepository.findEmployeeIsOnCompOffLeaveToday();
+//			if (compOffLeaveList != null && !compOffLeaveList.isEmpty()) {
+//				compOffLeaveList.forEach((comoff) -> {
+//					Employee empcomof = employeeRepository.findByEmpId(comoff.getEmpId());
+//					if (empcomof != null) {
+//						removeemployeeId.add(empcomof.getEmployeementId());
+//					}
+//				});
+//			}
+			
+			
+			// Fetch department configuration and filter biomaxDataList for
+			// non-leave-deducted departments
+			Optional<PortalConfig> departmentConfig = portalConfigRepository
+					.findByportalConfigById(Short.parseShort(biomaxleavedeductForDepartment));
+			if (departmentConfig.isPresent()) {
+				PortalConfig portalConfig = departmentConfig.get();
+				if(portalConfig.getConfigValue() != null) {
+				String departmentConfigValue = portalConfig.getConfigValue().replace("[", "").replace("]", ""); // Remove
+				
+				if (!departmentConfigValue.isEmpty()) {
+					String[] departmentIds = departmentConfigValue.split(","); // Split the string into an array
+					Set<Long> departmentNotLeaveDeduct = Arrays.stream(departmentIds).map(Long::parseLong)
+							.collect(Collectors.toSet()); // Store department IDs in a set for faster lookup
+					biomaxDataList.removeIf(bio -> departmentNotLeaveDeduct.contains(bio.getDepartmentId()));
+				}
+				
+				
+				}																							
+																												
+			}
+
+			// Fetch employees on leave today and filter biomaxDataList for them
+			List<EmployeeLeave> employeeLeaveList = employeeLeaveRepository.findEmployeeIsOnLeaveToday();
+			if (employeeLeaveList != null && !employeeLeaveList.isEmpty()) {
+				employeeLeaveList.forEach((empleave) -> {
+					Employee empcomof = employeeRepository.findByEmpId(empleave.getEmpId());
+					if (empcomof != null) {
+						removeemployeeId.add(empcomof.getEmployeementId());
+					}
+				});
+			}
+
+//			 Fetch employees with leave deduction exemptions and filter biomaxDataList for
+//			 them
+			Optional<PortalConfig> employeeLeaveDeductConfig = portalConfigRepository
+					.findByportalConfigById(Short.parseShort(biomaxleavedeductForEmployee));
+			if (employeeLeaveDeductConfig.isPresent()) {
+				PortalConfig portalConfig = employeeLeaveDeductConfig.get();
+				String employeeConfigValue = portalConfig.getConfigValue().replace("[", "").replace("]", ""); // Remove
+																												// square
+																												// brackets
+				if (!employeeConfigValue.isEmpty()) {
+					String[] employeeIds = employeeConfigValue.split(","); // Split the string into an array
+					Set<Long> employeeNotLeaveDeduct = Arrays.stream(employeeIds).map(Long::parseLong)
+							.collect(Collectors.toSet()); // Use a set for faster lookup
+					biomaxDataList.removeIf(bio -> employeeNotLeaveDeduct.contains(bio.getEmpId()));
+				}
+			}
+
+			if (removeemployeeId != null && !removeemployeeId.isEmpty()) {
+				biomaxDataList.removeIf(bio -> removeemployeeId.contains(bio.getEmployementId()));
+			}
+
+			List<BioMaTO> finalEmpBioData = new ArrayList<>();
+			// end of the code
+
+			String fileName = "LeaveDeduct.xlsx";
+			var file = new File(fileName);
+
+			try (var fos = new FileOutputStream(file)) {
+				// Try to create the Workbook and handle any exceptions
+				try {
+					var wb = new Workbook(fos, "Application", "1.0");
+					Worksheet ws = wb.newWorksheet("Employee in Probation");
+
+					ws.value(0, 0, "EmpId");
+					ws.value(0, 1, "Emp Name");
+					ws.value(0, 2, "Date");
+					ws.value(0, 3, "In-Time");
+					ws.value(0, 4, "Out-Time");
+					ws.value(0, 5, "Total Working Hours");
+					ws.value(0, 6, "Salary to be deducted (In days)");
+
+//		            int rowNum = 1;
+					if (biomaxDataList != null && !biomaxDataList.isEmpty()) {
+
+//						 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+//
+//					        // Filter out biomax data where AttendanceDate is a holiday
+//					        List<BioMaTO> filteredList = biomaxDataList.stream()
+//					                .filter(biomaxData -> {
+//					                	 String attendanceDateStr = biomaxData.getAttendanceDate();
+//					                	 String dateOnlyStr = attendanceDateStr.split(" ")[0];
+//					                     LocalDate attendanceDate = LocalDate.parse(dateOnlyStr, formatter);
+//
+//					                     // Check if the formatted date is a holiday
+//					                     List<Holiday> holidays = holidayRepository.findByDateOfHoliday(attendanceDate);
+//					                     return holidays.isEmpty(); // Keep the data if no holiday is found
+//					                })
+//					                .collect(Collectors.toList());
+						
+						List<BioMaTO> biomaxDataFilterList = biomaxDataList.stream()
+								.filter(obj -> (!(obj.getDeduct().isEmpty()) && obj.getDeduct() != null
+										&& Double.parseDouble(obj.getDeduct()) > 0))
+								.collect(Collectors.toList());
+						List<Long> employmentIdList = biomaxDataFilterList.stream()
+							    .filter(obj -> !(obj.getDeduct().isEmpty()) && obj.getDeduct() != null
+					            && Double.parseDouble(obj.getDeduct()) > 0)
+					    .map(obj -> Long.parseLong(obj.getEmployeeCode())) 
+					    .collect(Collectors.toList());
+						dataToBeDeleted.addAll(employmentIdList);
+
+						if (biomaxDataFilterList != null && !biomaxDataFilterList.isEmpty()) {
+							biomaxDataFilterList.forEach((object) -> {
+								int rowNum = 1;
+								Long employmentId = Long.parseLong(object.getEmployeeCode().replaceAll("\\D", ""));
+								List<BiomaxDefaulter> defaulterList = biomaxDefaulterRepository
+										.findByEmployeementIdForDefaulterBiomax(employmentId);
+								Employee employeeObj = employeeRepository.findByEmployeementId(employmentId);
+								JobRole departmentjon = jobRoleRepository.findByjobRoleId(employeeObj.getJobRoleId());
+
+								if (employeeObj != null) {
+									if (!defaulterList.isEmpty() && defaulterList.size() >= 2) {
+										BiomaxDefaulter newDefaulterObj = new BiomaxDefaulter();
+										newDefaulterObj.setEmpId(employeeObj.getEmpId());
+										newDefaulterObj.setEmployeementId(employmentId);
+										newDefaulterObj.setDepartmentId(departmentjon.getDeptId());
+										newDefaulterObj.setLeaveToDeduct(object.getDeduct());
+										newDefaulterObj.setDefaultedDate(object.getAttendanceDate());
+										newDefaulterObj.setIsDeducted(false);
+										newDefaulterObj.setIsApprovedByManager(false);
+										biomaxDefaulterRepository.save(newDefaulterObj);
+										
+										List<BiomaxDefaulter> defaulterListLatest = biomaxDefaulterRepository
+												.findByEmployeementIdForDefaulterBiomax(employmentId);
+
+										String mostFrequentLeaveToDeduct = defaulterListLatest.stream()
+												.collect(Collectors.groupingBy(BiomaxDefaulter::getLeaveToDeduct,
+														Collectors.counting()))
+												.entrySet().stream().max(Comparator.comparingLong(Map.Entry::getValue))
+												.map(Map.Entry::getKey).orElse("No data found");
+
+										if (employeeObj.getEmploymentstatus().equals("Confirmed")
+												&& !mostFrequentLeaveToDeduct.equalsIgnoreCase("No data found")) {
+											// Deduct leave logic
+											EmployeeLeavesMap employeeLeaveMapObject = employeeLeavesMapRepository
+													.findByEmpIdAndLeaveTypeMasterId(employeeObj.getEmpId(), (short) leaveTypeId);
+
+											if (employeeLeaveMapObject != null) {
+												Float newBalance = employeeLeaveMapObject.getBalance()
+														- Float.parseFloat(mostFrequentLeaveToDeduct);
+
+												employeeLeaveMapObject.setBalance(newBalance);
+												EmployeeLeavesMap dbResponse = employeeLeavesMapRepository
+														.save(employeeLeaveMapObject);
+
+												if (dbResponse != null) {
+													LeaveBalanceLog log = new LeaveBalanceLog();
+													log.setBalance(newBalance);
+													log.setEmpId(employeeObj.getEmpId());
+													log.setLeaveTypeMasterId((short) leaveTypeId);
+													log.setMessage(LeaveLogMessage.autoDeductLeaveOnTimesheetDefaulter
+															.replace("0.0", object.getDeduct()));
+													log.setUpdateBalanceBy("-" + mostFrequentLeaveToDeduct);
+
+													LeaveBalanceLog leaveLogDbResponse = leaveBalanceLogRepository
+															.save(log);
+												}
+											}
+										} else if (employeeObj.getEmploymentstatus().equals("Probation")
+												&& !mostFrequentLeaveToDeduct.equalsIgnoreCase("No data found")) {
+											// Deduct salary logic --> create excel and send to HR
+											ws.style(rowNum, 2).format("dd-MM-yyyy").set();
+											ws.style(rowNum, 3).format("dd-MM-yyyy HH:mm:ss").set();
+											ws.style(rowNum, 4).format("dd-MM-yyyy HH:mm:ss").set();
+
+											ws.value(rowNum, 0, "A-" + employmentId);
+											ws.value(rowNum, 1, employeeObj.getName());
+											ws.value(rowNum, 2, LocalDate.now());
+											ws.value(rowNum, 3, object.getInTime());
+											ws.value(rowNum, 4, object.getOutTime());
+											ws.value(rowNum, 5, object.getTotalDuration());
+											ws.value(rowNum, 6, mostFrequentLeaveToDeduct);
+											rowNum++;
+										}
+//		                                dataToBeDeleted.add(employmentId);
+										Long maxGrpId = biomaxDefaulterRepository.findMaxDroupIdFromEmpId(employeeObj.getEmpId());
+										defaulterListLatest.forEach(data -> {
+											data.setIsDeducted(true);
+											data.setGroupId(maxGrpId);
+											biomaxDefaulterRepository.save(data);
+										});
+
+									} else {
+										// New defaulter entry
+										BiomaxDefaulter newDefaulterObj = new BiomaxDefaulter();
+										newDefaulterObj.setEmpId(employeeObj.getEmpId());
+										newDefaulterObj.setEmployeementId(employmentId);
+										newDefaulterObj.setDepartmentId(departmentjon.getDeptId());
+										newDefaulterObj.setLeaveToDeduct(object.getDeduct());
+										newDefaulterObj.setDefaultedDate(object.getAttendanceDate());
+										newDefaulterObj.setIsDeducted(false);
+										newDefaulterObj.setIsApprovedByManager(false);
+										biomaxDefaulterRepository.save(newDefaulterObj);
+									}
+								}
+							});
+						}
+					}
+					wb.finish();
+
+				} catch (Exception e) {
+					System.err.println("Error while creating or finishing the workbook: " + e.getMessage());
+					e.printStackTrace();
+					return;
+				}
+
+				// Send mail
+				boolean mailSent = mailService.sendMailWithAttachment(hrMailAddress, hrMailAddress,
+						"Salary to be deducted of Employees in probation due to defaulter in working time",
+						"Dear Team, <br><br>Please find the salary to be deducted of Employees in probation due to defaulter in working time attached below.",
+						file);
+
+				if (mailSent) {
+					System.out.println("Salary to be deducted of Employees Mail sent successfully!!");
+				} else {
+					System.out.println("Unable to send salary to be deducted of Employees Mail!!");
+				}
+
+				// Delete all the employees in defaulter by employmentId
+				if (!dataToBeDeleted.isEmpty()) {
+					biomaxDefaulterRepository.deleteAllByEmployeementIds(dataToBeDeleted);
+				}
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 		
 		@Async
-		@Scheduled(cron = "0 0 9 ? * *")
-		public void leaveDeduct() {
+//		@Scheduled(cron = "0 36 12 ? * *")
+		@Transactional
+		public void getProjectCloneFromPoPortal() {
 			
-			
-			
+			LogDTO apiLogInfo = new LogDTO();
+	        apiLogInfo.setSubFeatureName("getProjectCloneFromPoPortal");
+	        apiLogInfo.setApiUrl("/api/getProjectCloneFromPoPortal");
+	        apiLogInfo.setLogLevel("INFO");
+	        StringBuilder logBuilder = new StringBuilder();
+	        logBuilder.append("Cron to update existing po-project details in Ishine started! ");
+
+		    List<ProjectPoPortalDTO> list = new ArrayList<>();
+		    
+		    try {
+		        ProjectPoPortalDTO[] projects = restTemplate.getForObject(allPoPortalProjects, ProjectPoPortalDTO[].class);
+		        
+		        list = Arrays.asList(projects != null ? projects : new ProjectPoPortalDTO[0]);
+		        logBuilder.append("Total Projects Fetched = " + list.size());
+
+		    } catch (RestClientException e) {
+		        logBuilder.append("Error fetching projects from PoPortal API: " + e.getMessage());
+		    }
+
+		    if (!list.isEmpty()) {
+		        for (ProjectPoPortalDTO dto : list) {
+		            try {
+		            	 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		                Project project = projectRepository.findByPoProjectId(dto.getId());
+
+		                if (project != null) {
+
+		                    project.setProjectName(dto.getName());
+		                    project.setPoProjectType(dto.getProjectType());
+		                    Date startDate = dto.getStartDate();
+		                    String formattedStartDate = dateFormat.format(startDate);
+		                    project.setPoStartDate(formattedStartDate);
+		                    Date endDate = dto.getEndDate();
+		                    String formattedEndDate = dateFormat.format(endDate);
+		                    project.setPoEndDate(formattedEndDate);
+		                    project.setStatus(dto.getStatus());
+		                    //departmentIds
+		                    List<String> departmentList = dto.getDepartment();
+		                    List<String> deptIds = new ArrayList<String>();
+		                    if(!departmentList.isEmpty()) {
+		                    	departmentList.forEach(dept->{
+		                    		Department deptList =  departmentRepository.findByName(dept);
+		                    		if(deptList == null) {
+		                		        logBuilder.append("No Dept Id fetched");
+		                    		}
+		                    		else {
+		                    			deptIds.add(deptList.getDeptId().toString());
+		                    		}
+		                    	});
+		                    	 if(!deptIds.isEmpty()) {
+				                    	String deptIdStr = String.join(", ", deptIds);
+				                        project.setDeptId(deptIdStr); 
+				                    }
+		                    }
+		                   
+		                    //clientId
+		                    Integer clientId = null;
+		    			    Optional<Client> clientObj = clientsRepository.findByClientName(dto.getClientName());
+		    			    if (!clientObj.isEmpty()) {
+		    			        Client clientPresent = clientObj.get();
+		    			        clientId = clientPresent.getClientId();
+		    			    } else {
+		    			        // Add Client & Client Location
+		    			        Client newClient = new Client();
+		    			        newClient.setClientName(dto.getClientName());
+		    			        Client clientDbResponse = clientsRepository.save(newClient);
+		    			        if (clientDbResponse != null) {
+		    			            clientId = clientDbResponse.getClientId();
+		    			            List<ClientLocation> locations = new ArrayList<>();
+
+		    			            for (String clientLocation : dto.getClientLocation()) {
+		    			                ClientLocation newClientLocation = new ClientLocation();
+		    			                newClientLocation.setClientId(clientDbResponse.getClientId());
+		    			                newClientLocation.setClientLocation(clientLocation);
+		    			                locations.add(newClientLocation);
+		    			            }
+		    			            // Add WFH location
+		    			            boolean contains = dto.getClientLocation().stream().anyMatch("WFH"::equals);
+		    			            if (!contains) {
+		    			                ClientLocation newClientLocation = new ClientLocation();
+		    			                newClientLocation.setClientId(clientDbResponse.getClientId());
+		    			                newClientLocation.setClientLocation("WFH");
+		    			                locations.add(newClientLocation);
+		    			            }
+		    			            List<ClientLocation> clientLocationDbResponse = clientLocationRepository.saveAll(locations);
+		    			            if (!clientLocationDbResponse.isEmpty()) {
+		    					        logBuilder.append("Client stored successfully in database");
+		    			            } else {
+		    					        logBuilder.append("Error occured while storing updated project details from PoPortal API.");
+		    			            }
+		    			        } else {
+		    			            
+		    			        }
+		    			    }
+		    			    project.setClientId(clientId); 
+		    		        
+		                    project.setPoNo(dto.getPoNo());
+		                    project.setApmosysRM(dto.getApmosysRM());	
+		                    project.setIsRenewable(dto.getIsRenewable());
+		                    project.setClientRM(dto.getClientRM());
+		                    
+		                    projectRepository.save(project);
+
+		    		        logBuilder.append("Updated Project: ID=" + dto.getId() + ", PoNo=" + dto.getPoNo());
+		    		        
+		                } else {
+		    		        logBuilder.append("Project table does not contain PoProjectId: " + dto.getId());
+		                }
+
+		            } catch (Exception ex) {
+		            	ex.printStackTrace();
+				        logBuilder.append("Error updating project ID: " + dto.getId() + " - " + ex.getMessage());
+		            }
+		            
+		            List<Object[]> expiredProjects = projectRepository.getExpiredPoProjects();
+
+                    if (expiredProjects.isEmpty()) {
+                    	logBuilder.append("No expired PO projects found.");
+                        return;
+                    }
+
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+                    SimpleDateFormat sourceFormatter = new SimpleDateFormat("yyyy-MM-dd");
+                    SimpleDateFormat targetFormatter = new SimpleDateFormat("dd-MM-yyyy");
+
+
+                    for (Object[] projects : expiredProjects) {
+                    
+    		            Set<String> uniqueEmails = new HashSet<>();
+    		            
+                    	String employeeName = (String) projects[0];
+                        String projectName = (String) projects[1];
+                        String teamName = (String) projects[2];
+
+                        
+                        Timestamp allocationTimestamp = (Timestamp) projects[5];
+                        String allocationStartDate = allocationTimestamp != null ? dateFormat.format(new Date(allocationTimestamp.getTime())) : "N/A";
+                        
+                        String poStartDate = "N/A";
+                        String poEndDate = "N/A";
+                        try {
+                            if (projects[3] != null) {
+                                poStartDate = targetFormatter.format(sourceFormatter.parse((String) projects[3]));
+                            }
+                            if (projects[4] != null) {
+                                poEndDate = targetFormatter.format(sourceFormatter.parse((String) projects[4]));
+                            }
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                        
+                        Integer projectId = (Integer) projects[6];
+                        
+                        String hodEmail = (String) projects[7];
+                        
+                        String empEmail = (String) projects[8];
+                        
+                        if (hodEmail != null && !hodEmail.isEmpty()) {
+                            uniqueEmails.add(hodEmail);
+                        }
+                        
+                        StringBuilder ccEmailBuilder = new StringBuilder();
+
+                     if (rmgMail != null && !rmgMail.trim().isEmpty()) {
+                         String[] rmgEmails = rmgMail.split(",");
+                         for (String email : rmgEmails) {
+                             if (email != null && !email.trim().isEmpty()) {
+                                 uniqueEmails.add(email.trim()); 
+                             }
+                         }
+                     }
+                     
+                     if (adminMail != null && !adminMail.trim().isEmpty()) {
+                         String[] adminMails = adminMail.split(",");
+                         for (String email : adminMails) {
+                             if (email != null && !email.trim().isEmpty()) {
+                                 uniqueEmails.add(email.trim()); 
+                             }
+                         }
+                     }
+
+                     for (String email : uniqueEmails) {
+                         if (ccEmailBuilder.length() > 0) {
+                             ccEmailBuilder.append(","); 
+                         }
+                         ccEmailBuilder.append(email);
+                     }
+
+                     String ccEmails = ccEmailBuilder.toString();
+
+                        if (!empEmail.isEmpty()) {
+                        	
+                                String emailBody = buildEmailContent(employeeName, projectName, teamName, poStartDate, poEndDate, allocationStartDate);
+
+                                try {
+//                                    mailService.sendMailWithoutAttachmentWithMailBody2( 
+//                                    		"anyush.panda@apmosys.com",
+//                                            "Project PO Expiry Notification", 
+//                                            emailBody,
+//                                    		"priyadarshini.singh@apmosys.com"
+//                                    );
+                                    mailService.sendMailWithoutAttachmentWithMailBody2( 
+                                    		empEmail,
+                                            "Project PO Expiry Notification", 
+                                            emailBody,  
+                                            ccEmails
+                                    );
+                    		        logBuilder.append("Mail sent to " + empEmail + " for expired PO: " + projectName);
+                                } catch (MessagingException e) {
+                    		        logBuilder.append("Error sending mail to " + empEmail + " for PO: " + projectName + " - " + e.getMessage());
+                                }
+                                             
+                        	} else {
+                		        logBuilder.append("No employees found for project ID: " + projectId);
+                        }
+                    }
+                    List<Object[]> expiredProjectsWithoutInterval = projectRepository.getExpiredPoProjectsWithoutInterval();
+
+                    if (expiredProjectsWithoutInterval.isEmpty()) {
+                        logBuilder.append("No expired PO projects found previous to 5 days interval from current date.");
+                        return;
+                    }
+
+                    for (Object[] projects : expiredProjectsWithoutInterval) {
+
+    		            Set<String> uniqueEmails = new HashSet<>();
+    		            
+                        String employeeName = (String) projects[0];
+                        String projectName = (String) projects[1];
+                        String teamName = (String) projects[2];
+
+                        Timestamp allocationTimestamp = (Timestamp) projects[5];
+                        String allocationStartDate = allocationTimestamp != null ? dateFormat.format(new Date(allocationTimestamp.getTime())) : "N/A";
+
+                        String poStartDate = "N/A";
+                        String poEndDate = "N/A";
+                        try {
+                            if (projects[3] != null) {
+                                poStartDate = targetFormatter.format(sourceFormatter.parse((String) projects[3]));
+                            }
+                            if (projects[4] != null) {
+                                poEndDate = targetFormatter.format(sourceFormatter.parse((String) projects[4]));
+                            }
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+
+                        Integer projectId = (Integer) projects[6];
+
+                        String hodEmail = (String) projects[7];
+                        
+                        String empEmail = (String) projects[8];
+
+                        if (hodEmail != null && !hodEmail.isEmpty()) {
+                            uniqueEmails.add(hodEmail);
+                        }
+
+                        StringBuilder ccEmailBuilder = new StringBuilder();
+                        if (rmgMail != null && !rmgMail.trim().isEmpty()) {
+                            String[] rmgEmails = rmgMail.split(",");
+                            for (String email : rmgEmails) {
+                                if (email != null && !email.trim().isEmpty()) {
+                                    uniqueEmails.add(email.trim());
+                                }
+                            }
+                        }
+                        
+                        if (adminMail != null && !adminMail.trim().isEmpty()) {
+                            String[] adminMails = adminMail.split(",");
+                            for (String email : adminMails) {
+                                if (email != null && !email.trim().isEmpty()) {
+                                    uniqueEmails.add(email.trim()); 
+                                }
+                            }
+                        }
+
+                        for (String email : uniqueEmails) {
+                            if (ccEmailBuilder.length() > 0) {
+                                ccEmailBuilder.append(",");
+                            }
+                            ccEmailBuilder.append(email);
+                        }
+
+                        String ccEmails = ccEmailBuilder.toString();
+
+                        if (!empEmail.isEmpty()) {
+                            
+                                String emailBody = buildEmailContent2(employeeName, projectName, teamName, poStartDate, poEndDate, allocationStartDate);
+
+                                try {
+//                                	mailService.sendMailWithoutAttachmentWithMailBody2( 
+//                                    		"anyush.panda@apmosys.com",
+//                                            "Project PO Expiry Notification", 
+//                                            emailBody,
+//                                    		"priyadarshini.singh@apmosys.com"
+//                                    );
+                                    mailService.sendMailWithoutAttachmentWithMailBody2(
+                                            empEmail,
+                                            "Project Expiry Notification",
+                                            emailBody,
+                                            ccEmails
+                                    );
+                                    logBuilder.append("Mail sent to " + empEmail + " for expired PO: " + projectName);
+                                } catch (MessagingException e) {
+                                    logBuilder.append("Error sending mail to " + empEmail + " for PO: " + projectName + " - " + e.getMessage());
+                                }
+                        }
+                    }
+		        }
+		    } else {
+		        logBuilder.append("No projects found from PoPortal API.");
+		    }
 		}
+		
+		private String buildEmailContent(String employeeName, String projectName, String teamName, 
+                 String poStartDate, String poEndDate, String allocationStartDate) {
+			return  "<html><body>"
+				    + "<p>Dear " + employeeName + ",</p>"
+				    + "<p>The project that you are currently billed for is expiring soon. "
+				    + "This will result in timesheet restriction in case your project mapping is not removed.</p>"
+				    + "<p>Please contact the concerned authorities to take necessary action immediately, "
+				    + "as this could hamper the billing generated for you.</p>"
+				    + "<p>Below are the project details:</p>"
+				    + "<table border='1' style='border-collapse: collapse; width: 100%;'>"
+				    + "<tr><th>Project Name</th><th>Team Name</th><th>PO Start Date</th>"
+				    + "<th>PO End Date</th><th>Employee Allocation Start Date</th></tr>"
+				    + "<tr><td>" + projectName + "</td><td>" + teamName + "</td><td>" 
+				    + poStartDate + "</td><td>" + poEndDate + "</td><td>" + allocationStartDate + "</td></tr>"
+				    + "</table><br><br>"
+				    + "<p>Regards,</p>"
+				    + "<p>RMG Team</p>"
+				    + "</body></html>";
+		}
+		
+		private String buildEmailContent2(String employeeName, String projectName, String teamName, 
+                String poStartDate, String poEndDate, String allocationStartDate) {
+			return "<html><body>"
+					+ "<p>Dear " + employeeName + ",</p>"
+					+ "<p>The project that you are currently billed for has expired, hence your timesheet filling has been restricted.</p>"
+					+ "<p>Please contact the concerned authorities to take necessary action immediately, "
+					+ "as this could hamper the billing generated for you.</p>"
+					+ "<p>Below are the project details:</p>"
+					+ "<table border='1' style='border-collapse: collapse; width: 100%;'>"
+					+ "<tr><th>Project Name</th><th>Team Name</th><th>PO Start Date</th>"
+					+ "<th>PO End Date</th><th>Employee Allocation Start Date</th></tr>"
+					+ "<tr><td>" + projectName + "</td><td>" + teamName + "</td><td>" 
+					+ poStartDate + "</td><td>" + poEndDate + "</td><td>" + allocationStartDate + "</td></tr>"
+					+ "</table><br><br>"
+					+ "<p>Regards,</p>"
+					+ "<p>RMG Team</p>"
+					+ "</body></html>";
+		}
+
 }	

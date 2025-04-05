@@ -1,19 +1,20 @@
 
 
-import { AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subject, Subscription } from 'rxjs';
+import { first, takeUntil } from 'rxjs/operators';
+import { DeptConfigComponent } from '../configuration/dept-config/dept-config.component';
+import { EmployeeConfigComponent } from '../configuration/employee-config/employee-config.component';
+import { LeaveConfigComponent } from '../configuration/leave-config/leave-config.component';
+import { RoleConfigComponent } from '../configuration/role-config/role-config.component';
+import { AppreciationAndRewardsCount } from '../models/appreciationAndRewardCount';
+import { Employee } from '../models/employee';
 import { Feature } from '../models/feature';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
-import { EmployeeConfigComponent } from '../configuration/employee-config/employee-config.component';
-import { DeptConfigComponent } from '../configuration/dept-config/dept-config.component';
-import { LeaveConfigComponent } from '../configuration/leave-config/leave-config.component';
-import { RoleConfigComponent } from '../configuration/role-config/role-config.component';
-import { Subject, Subscription } from 'rxjs';
-import { Employee360Service } from '../services/employee360.service';
 import { BreadcrumbService } from '../services/breadcrumb.service';
-import { Employee } from '../models/employee';
-import { takeUntil } from 'rxjs/operators';
+import { Employee360Service } from '../services/employee360.service';
 
 
 @Component({
@@ -25,6 +26,7 @@ export class Employee360Component implements OnInit {
 
   private unsubscribe$ = new Subject<void>();
 
+  appreciationAndRewardsCount:AppreciationAndRewardsCount = new AppreciationAndRewardsCount();
   employeeData: any;
   emplId:any;
   employeeConfig: EmployeeConfigComponent;
@@ -36,7 +38,9 @@ export class Employee360Component implements OnInit {
   currentUser:User;
   userMapping:any = {};
   breadcrumbUrl:any[] = [];
-  
+  breadcrumbUrl1:any[] = [];
+  breadcrumbs: any[] = [];
+
   private navigationSubscription: Subscription;
 
   constructor(
@@ -45,6 +49,8 @@ export class Employee360Component implements OnInit {
     private route: ActivatedRoute,
     private employee360Service: Employee360Service,
     private breadcrumbService: BreadcrumbService,
+  
+  
     
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -58,6 +64,7 @@ export class Employee360Component implements OnInit {
   othertab:any;
 
   ngOnInit(): void {
+
     this.navigationSubscription = this.employee360Service.getNavigationEvent().subscribe(() => {
       this.removeActiveTab();
       this.setActiveTab();
@@ -104,11 +111,20 @@ export class Employee360Component implements OnInit {
     this.breadcrumbService.currentMessage.pipe(takeUntil(this.unsubscribe$)).subscribe(message =>  {
       this.setActiveTab();
     });
+
+    this.getCountOfRewardsAndAppreciation();
   }
 
 
-
-
+  backhistory(){
+    this.breadcrumbs = this.backhistory1();
+    alert(this.breadcrumbs[0]);
+  
+  }
+  backhistory1() {
+    const breadcrumbData = sessionStorage.getItem("breadcrumb");
+    return breadcrumbData ? JSON.parse(breadcrumbData) : [];
+  }
 
   ngAfterViewInit(): void {
     this.setActiveTab();
@@ -195,14 +211,14 @@ export class Employee360Component implements OnInit {
     currentEmp.empId = this.employeeData.empId;
     currentEmp.isDraft = false;
 
-    // this.employee360Service.getBioOverTimeandState(currentEmp).subscribe((response:any) =>
+    this.employee360Service.getBioOverTimeandState(currentEmp).subscribe((response:any) =>
       
-    //   {
-    //    this.responseOvertime= response.serviceResponse[0];
-    //    this.responsestate = response.serviceResponse[1];
-    //   }
+      {
+       this.responseOvertime= response.serviceResponse[0];
+       this.responsestate = response.serviceResponse[1];
+      }
     
-    // );
+    );
      
 
   }
@@ -212,6 +228,25 @@ export class Employee360Component implements OnInit {
           console.log(this.currentab);
   }
 
+
+
+  rewardsCount:any;
+  appreciationCount:any;
+  getCountOfRewardsAndAppreciation(){
+    this.appreciationCount='';
+    this.rewardsCount='';
+    console.log("this.projectDetails ", this.rewardsCount);
+    this.appreciationAndRewardsCount.empId=this.employeeData.empId;
+    this.employee360Service.getRewardsAndAppreciationCount(this.appreciationAndRewardsCount).pipe(first()).subscribe((response: any) => {
+          if (response.serviceStatus == "Success") {
+            this.rewardsCount = response.serviceResponse[0].rewardsCount;
+            this.appreciationCount = response.serviceResponse[0].appreciationCount;
+
+            console.log("this.projectDetails ",  this.appreciationCount);
+
+          }
+        });
+  }
 
 
    

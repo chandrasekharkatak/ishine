@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Timesheet } from '../models/timesheet';
 import { Query } from '../models/query';
 import { environment } from 'src/environments/environment';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -109,5 +110,9 @@ export class TimesheetService {
 
   getServerDate(){
     return this.http.get(`${this.baseUrl}` + `api/getServerDate`);
+  }
+
+  getAllOrDeptWiseEmployeeTimesheetReport(FilteredTimesheet: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}` + `api/getAllOrDeptWiseEmployeeTimesheetReport`,FilteredTimesheet);
   }
 }

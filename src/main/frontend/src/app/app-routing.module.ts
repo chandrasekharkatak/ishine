@@ -67,6 +67,11 @@ import { DocumentUploadComponent } from './user-update-info/document-upload/docu
 import { EmployeeInfoComponent } from './user-update-info/employee-info/employee-info.component';
 import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
+import { ProjectViewComponent } from './project-view/project-view.component';
+import { PerformanceConfigComponent } from './configuration/performance-config/performance-config.component';
+import { LMSComponent } from './employee360/lms/lms.component';
+import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
+
 import { QrCodeGeneratorComponent } from './qr-code-generator/qr-code-generator.component';
 
 const routes: Routes = [
@@ -99,6 +104,7 @@ const routes: Routes = [
       { path: 'document', component: DocumentComponent, },
       { path: 'other', component: OthersComponent, },
       { path: 'rewards-config', component: RewardsConfigComponent, },
+      { path: 'performance-config' , component: PerformanceConfigComponent},
     ]
   },
   {path:'user-leaves', component: UserLeavesComponent, canActivate: [AuthGuard],
@@ -112,6 +118,8 @@ const routes: Routes = [
     children: [
       { path: 'my-timesheet', component: MyTimesheetComponent, },
       { path: 'team-timesheet', component: TeamTimesheetComponent, },
+      { path: 'biomax-request', component: BiomaxApprovalComponent, },
+    
     ]
   },
   {path:'user-leaves/:tabName', component: UserLeavesComponent, canActivate: [AuthGuard],
@@ -119,12 +127,14 @@ const routes: Routes = [
       { path: 'leave', component: LeaveComponent, },
       { path: 'holiday', component: HolidaysComponent, },
       { path: 'compOff', component: CompOffComponent, },
+     
     ]
   },
   {path:'user-timesheet/:tabName', component: UserTimesheetComponent, canActivate: [AuthGuard],
     children: [
       { path: 'my-timesheet', component: MyTimesheetComponent, },
       { path: 'team-timesheet', component: TeamTimesheetComponent, },
+      { path: 'biomax-request', component: BiomaxApprovalComponent, },
     ]
   },
   {path:'user-team', component: UserTeamComponent, canActivate: [AuthGuard],
@@ -161,10 +171,10 @@ const routes: Routes = [
       { path: 'biomax', component: Employee360BiomaxComponent, },
       { path: 'rewards', component: Employee360RewardsComponent, },
       { path: 'appreciation', component: Employee360AppreciationComponent, },
-
+      { path: 'lms', component: LMSComponent, },
     ]
   },
-
+  {path:'project-view', component: ProjectViewComponent},
   {path:'user-policies', component: UserPoliciesComponent, canActivate: [AuthGuard]},
   {path:'user-survey', component: UserSurveyComponent, canActivate: [AuthGuard]},
   {path:'user-survey/:id', component: UserSurveyComponent, canActivate: [AuthGuard]},

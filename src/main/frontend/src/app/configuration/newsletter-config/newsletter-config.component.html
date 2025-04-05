@@ -43,7 +43,7 @@
     <div class="col-md-12">
         <div class="row">
             <div class="col-md-12 table-header">
-                <h1 class="table-header-title">Newsletters</h1>
+                <h1 class="table-header-title">Newsletter(s)</h1>
             </div>
         </div>
 
@@ -57,8 +57,8 @@
 
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" (click)="toggleSearch()">
-                    <a href="javascript:void(0)">
+                <div class="selector-toggle" >
+                    <a href="javascript:void(0)" (click)="toggleSearch()">
                         <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>

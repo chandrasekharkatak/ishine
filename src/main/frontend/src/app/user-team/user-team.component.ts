@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router, Params } from '@angular/router';
+import { ActivatedRoute, Router, Params, NavigationEnd } from '@angular/router';
 import { Feature } from '../models/feature';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
@@ -71,6 +71,7 @@ export class UserTeamComponent implements OnInit {
     }else{
       this.setActiveTab();
     }
+    this.listenToRouteChanges();
   }
 
   ngOnDestroy(): void {
@@ -83,6 +84,9 @@ export class UserTeamComponent implements OnInit {
 
   //modified by priyadarshini
   setActiveTab(rmgUrl?:any){
+    const currentChild = this.route.snapshot.firstChild;
+  
+    if (!currentChild) {
     const tabs = document.getElementById('teamTab').querySelectorAll('.nav-link');
     let activeRouteLink:any;
     
@@ -109,16 +113,42 @@ export class UserTeamComponent implements OnInit {
     } else {
       this.router.navigate(['./' + activeRouteLink], { relativeTo: this.route });
     }
+  }else {
+    // A child route is already active → don't override
+    const path = currentChild.routeConfig.path;
+    const matchingTab = document.querySelector(`[routerLink="${path}"]`);
+    matchingTab?.classList.add('active');
+  }
   
   }
 
-  removeActiveTab(){
-    const tab = document.getElementById('teamTab').querySelector('.nav-link.active');
-    //console.log("active tab :", tab);
-    tab?.classList.remove('active');
+  // removeActiveTab(){
+  //   const tab = document.getElementById('teamTab').querySelector('.nav-link.active');
+  //   //console.log("active tab :", tab);
+  //   tab?.classList.remove('active');
+  // }
+
+  removeActiveTab() {
+    const activeTabs = document.querySelectorAll('#reportTab .nav-link.active');
+    activeTabs.forEach(tab => tab.classList.remove('active'));
   }
 
   triggerPendingRequestView(): void {
     this.router.navigate(['/user-team'], { queryParams: { tab: 'my-team', action: 'view-pending-request' } });
+}
+
+listenToRouteChanges() {
+  this.router.events.subscribe(event => {
+    if (event instanceof NavigationEnd) {
+      const currentChild = this.route.snapshot.firstChild;
+      const path = currentChild?.routeConfig?.path;
+
+      const allTabs = document.querySelectorAll('#teamTab .nav-link');
+      allTabs.forEach(tab => tab.classList.remove('active'));
+
+      const matchingTab = document.querySelector(`#teamTab [routerLink="${path}"]`);
+      matchingTab?.classList.add('active');
+    }
+  });
 }
 }

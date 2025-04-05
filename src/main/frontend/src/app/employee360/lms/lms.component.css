@@ -1,0 +1,170 @@
+.card-header-text{
+    font-size: 24px;
+    font-weight: bold;
+    color: black;
+    text-align: center;
+}
+.count-text{
+    font-size: 18px;
+    font-weight: bold;
+    color: black;
+    text-align: center;
+}
+.table-header{
+    width: 100%;
+    height: 50px;
+    background: var(--ghost-white);
+    margin-bottom: 1em;
+}
+
+.table-header-title{
+    font-size: 2rem;
+    padding: .2em;
+    margin-bottom: 0;
+    color: var(--raisin-black);
+}
+
+/* custom checkbox css */
+@keyframes check {
+    0% {
+        height: 0;
+        width: 0;
+    }
+
+    25% {
+        height: 0;
+        width: 10px;
+    }
+
+    50% {
+        height: 20px;
+        width: 10px;
+    }
+}
+
+.holiday-checkbox span {
+    display: block;
+    height: 28px;
+    position: relative;
+    width: 28px;
+    padding: 0
+}
+
+.holiday-checkbox {
+    background-color: #fff;
+    display: inline-block;
+    height: 28px;
+    margin: 0 .25em;
+    width: 28px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    /* float: right; */
+}
+
+.holiday-checkbox span:after {
+    -moz-transform: scaleX(-1) rotate(135deg);
+    -ms-transform: scaleX(-1) rotate(135deg);
+    -webkit-transform: scaleX(-1) rotate(135deg);
+    transform: scaleX(-1) rotate(135deg);
+    -moz-transform-origin: left top;
+    -ms-transform-origin: left top;
+    -webkit-transform-origin: left top;
+    transform-origin: left top;
+    border-right: 4px solid #fff;
+    border-top: 4px solid #fff;
+    content: '';
+    display: block;
+    height: 20px;
+    left: 3px;
+    position: absolute;
+    top: 15px;
+    width: 10px
+}
+
+.holiday-checkbox span:hover:after {
+    border-color: #999
+}
+
+.holiday-checkbox input {
+    display: none
+}
+
+.holiday-checkbox input:checked+span:after {
+    -webkit-animation: check .8s;
+    -moz-animation: check .8s;
+    -o-animation: check .8s;
+    animation: check .8s;
+    border-color: #555
+}
+
+.holiday-checkbox input:checked+.primary:after {
+    border-color: var(--dark-cornflower-blue);
+}
+
+
+/* overritting checkBox */
+.custom-control-lg .custom-control-label::before,
+.custom-control-lg .custom-control-label::after {
+    top: 0.1rem !important;
+    left: -2rem !important;
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+}
+
+.custom-control-lg .custom-control-label {
+    margin-left: 0.5rem !important;
+    font-size: 1rem !important;
+}
+
+.text-highlight{
+    color: var(--dark-cornflower-blue);
+}
+
+.my-pagination::ng-deep .ngx-pagination .current {
+    background: #193d8a  !important;
+}
+
+.my-pagination::ng-deep{
+    padding-top: 10px;
+}
+
+.scrollable-table{
+    width: 92vw;
+    height: 70vh;
+} 
+
+.wide-col{
+    min-width: 300px;
+}
+
+.thead-light th{
+    position: sticky;
+    top: -0.7px;
+}
+
+.info-label{
+    width: 300px;
+}
+.progress-container {
+    width: 100%; /* Full width of the container */
+    background-color: #dbd8d8;
+    border-radius: 25px;
+    margin: 20px 0;
+    height: 30px; /* Height of the progress bar */
+  }
+ 
+  .progress-bar {
+    height: 100%;
+    background-color: #122f97;
+    border-radius: 25px;
+    text-align: center;
+    line-height: 30px; /* Center the text vertically */
+    color: white;
+    font-weight: bold;
+    transition: width 0.3s ease-in-out; /* Smooth transition */
+  }
+  
+  .progress-text {
+    font-size: 14px;
+  }
+  

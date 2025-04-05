@@ -1,36 +1,38 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
+import { LocationStrategy } from '@angular/common';
+import { AfterViewInit, ChangeDetectorRef, Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
+import { Sort } from '@angular/material/sort';
+import { DomSanitizer } from '@angular/platform-browser';
+import { Router } from '@angular/router';
+import * as CryptoJS from 'crypto-js';
+import * as HighCharts from 'highcharts';
+import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { AppComponent } from '../app.component';
+import { BodyComponent } from '../body/body.component';
+import { CalendarComponent } from '../helpers/calendar/calendar.component';
+import { Employee } from '../models/employee';
+import { Feature } from '../models/feature';
 import { Leave } from '../models/leave';
+import { Log } from '../models/log';
+import { NotificationMessage } from '../models/notification';
+import { RewardCategory } from '../models/rewardCategory';
+import { Timesheet } from '../models/timesheet';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
-import { LeaveService } from '../services/leave.service';
-import { ExportExcelService } from 'src/app/services/export-excel.service';
-import * as HighCharts from 'highcharts';
-import { Router } from '@angular/router';
 import { EmployeeService } from '../services/employee.service';
+import { Employee360Service } from '../services/employee360.service';
 import { ImageService } from '../services/image.service';
-import { DomSanitizer } from '@angular/platform-browser';
-import { Timesheet } from '../models/timesheet';
-import { TimesheetService } from '../services/timesheet.service';
-import { NotificationMessage } from '../models/notification';
-import { NotificationService } from '../services/notification.service';
-import * as moment from 'moment';
-import { CalendarComponent } from '../helpers/calendar/calendar.component';
-import { BodyComponent } from '../body/body.component';
-import { Feature } from '../models/feature';
-import { ValidationService } from '../services/validation.service';
+import { LeaveService } from '../services/leave.service';
 import { LogService } from '../services/log.service';
-import { Log } from '../models/log';
-import * as CryptoJS from 'crypto-js';
-import { Employee } from '../models/employee';
-import { LocationStrategy } from '@angular/common';
-import { Sort } from '@angular/material/sort';
-import { AppComponent } from '../app.component';
-import { EventPhoto } from '../models/EventPhoto';
+import { NotificationService } from '../services/notification.service';
 import { RewardsServiceService } from '../services/rewards-service.service';
+import { TimesheetService } from '../services/timesheet.service';
 import { UtilityService } from '../services/utility.service';
-import { environment } from 'src/environments/environment';
+import { ValidationService } from '../services/validation.service';
+import { ExpiredEmailData } from '../models/expiredEmailmodel';
+import { PoObject } from '../models/poObbjectData';
 
 interface objlms{
   email:any
@@ -85,6 +87,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   excelName: any = '';
 
   birthdayList: any[] = [];
+  workAnniversaryList: any[] = [];
   rewardsList: any[] = [];
   eventImages: any[] = [];
   isImagesLoaded: boolean = false;
@@ -116,42 +119,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
      keyboard: false
    };
   oldPasswordValid: boolean = false;
-
-
-//  feature = "Home";
-//  currentUser: User;
-//  currentUserName = "";
-//  userMapping: any = {};
-//  log: Log;
-
-//  sortDirection = 'asc';
-//  sortColumn: any;
-//  sortColumnType: any;
-
-//  isReqPending: boolean = true;
-//  leaveApplicationCount: any = 0;
-//  leaveApplicationList: any[] = [];
-
-//  compOffApplicationCount: any = 0;
-//  allCompOffApplications: any[] = [];
-
-//  timesheetApplicationCount: any = 0;
-//  allTeamTimesheetRequests: any[] = [];
-//  timesheetObj: Timesheet = new Timesheet();
-
- //export excel
-//  excelName: any = '';
-
-//  birthdayList: any[] = [];
-//  rewardsList: any[] = [];
-//  eventImages: any[] = [];
-//  isImagesLoaded: boolean = false;
-
-//  leaveBalanceList: any[] = [];
-//  rejectedLeavesList: any[] = [];
-//  approvedLeavesList: any[] = [];
-//  pendingLeavesList: any[] = [];
-//  allNotification: any[] = [];
+  rewardCategoryObj: RewardCategory = new RewardCategory();
   password: any;
   userNewPass: any;
   newpassword: any;
@@ -160,11 +128,13 @@ export class HomeComponent implements OnInit, AfterViewInit {
   consentNotificationMessage: any;
   user: User = new User();
   leaveApplication: any;
-
+  show: number = -1;
   leaveTypes: Leave[] = [];
   leaveBucketDetails: any[] = [];
   lmsauthentication:any;
-
+// Expired Po section
+expiredList:any[] = [];
+popUpMessege:any;
 //  notificationObj: NotificationMessage = new NotificationMessage();
 //  timesheetDetails: any[] = [];
 
@@ -191,7 +161,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
  @ViewChild('consent_notification_template')
  private consentNotificationTemplate: TemplateRef<any>;
-  consentModalConfig = {
+ 
+ @ViewChild('poexpire_template_fixed')
+ poExpireTemplateRef:TemplateRef<any> ;
+  
+ 
+ @ViewChild('mailSentPopUp')
+ mailSentPopUp:TemplateRef<any> ;
+
+ consentModalConfig = {
     backdrop: true,
     ignoreBackdropClick: true,
     keyboard: false,
@@ -201,24 +179,32 @@ export class HomeComponent implements OnInit, AfterViewInit {
  @ViewChild("change_password")
  changePasswordTemplate: TemplateRef<any>;
  @ViewChild("LoadingLogin") LoadingLoginTemplate: TemplateRef<any>;
+  selectedCategoryId: any;
+  selectedCategoryName: any;
+  selectedMonth:any;
+  scrollingInterval: any;
+  showEmptyMessage:any;
+
   isError: boolean = false;
-
-
   profileCompletedPercentage: any = 0;
-
   filters: any = {};
   isSearchEnabled: boolean = false;
-  leaveApplicationColumns: any[] = ['blank', 'blank', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'noOfDays', 'status', 'createdByName', 'createdOn', 'reason', 'currentApprovalLevel', 'approverName', 'managerApprovalStatus', 'level2ApproverName', 'level2ApprovalStatus', 'level3ApproverName', 'level3ApprovalStatus'];
+  leaveApplicationColumns: any[] = ['blank', 'blank', 'employeeName', 'leaveType','clientName','teamName', 'fromDate', 'toDate', 'noOfDays', 'status', 'createdByName', 'createdOn', 'reason', 'currentApprovalLevel', 'approverName', 'managerApprovalStatus', 'level2ApproverName', 'level2ApprovalStatus', 'level3ApproverName', 'level3ApprovalStatus'];
   compOfApplicationColumns: any[] = ['blank', 'createdByName', 'compOffReasons', 'fromDate', 'toDate', 'noOfDays', 'description', 'status'];
   timesheetApplicationsColumns: any[] = ['blank', 'blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status'];
-
-
   isShowReleaseNote: boolean = false;
   releaseNoteText = "";
-
   currentIndex: any = 0; 
   currentGroup: any = null;
   scrollDelay: number = 18700;
+  employeesFor360: any[] = [];
+  rewardCategoryList: any[] = [];
+  groupedRewards: { [key: string]: any[] } = {};
+  monthKeys: string[] = [];
+  currentMonthIndex: number = 0;
+  currentRewards: any[] = [];
+  scrollInterval: any;
+  selectedTab: string = 'birthday';
 
   constructor(
     private modalService: BsModalService,
@@ -237,8 +223,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
     private locationStrategy: LocationStrategy,
     private rewardsService: RewardsServiceService,
     public utilityService: UtilityService,
-    private cdr: ChangeDetectorRef
-
+    private cdr: ChangeDetectorRef,
+    public employee360Service: Employee360Service,
   ) {
     this.authenticationService.currentUser.subscribe(x => {
       this.currentUser = x;
@@ -252,41 +238,50 @@ export class HomeComponent implements OnInit, AfterViewInit {
     });
   }
 //added by rahul for lms redirection
+//added by rahul for lms redirection
 LmsRedirection(){
-   let obj = new Object();
- obj = { email: this.currentUser.email};
- //obj = { email: "mohamed.owais@apmosys.com"};
+  let obj = new Object();
+obj = { email: this.currentUser.email,token:sessionStorage.getItem('token')};
+
+   
+//obj = { email: "mohamed.owais@apmosys.com"};
 //obj = { email: "mohamed2.owais@apmosys.com"};
-  this.employeeService.IsValidateLMSPORTAL(obj).subscribe((response:any)=>{
-    //this.lmsauthentication = response.serviceResponse;
-    this.lmsauthentication = response.serviceResponse;
-     if(response.serviceStatus=="success"){
-      window.open(response.serviceResponse, '_blank');
+ this.employeeService.IsValidateLMSPORTAL(obj).subscribe((response:any)=>{
+   //this.lmsauthentication = response.serviceResponse;
+   this.lmsauthentication = response.serviceResponse;
+   
+    if(response.serviceStatus=="success"){
+     window.open(response.serviceResponse, '_blank');
+   }
+  else{
+     window.open(`${this.lmsurl}home/sign_up`,'_blank');
+   }
+ })
+
+}
+
+async ngOnInit(): Promise<void> {
+  try {
+    this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+    // console.log("Priyadarshini ", this.employeesFor360);
+  } catch (error) {
+    console.error("Error fetching employee details for 360 view", error);
+  }
+  console.log("current user", this.currentUser.isNew);
+    if (this.currentUser.isNew === "true") {
+      sessionStorage.setItem('isFirstTimeLogin', 'true');
+        window.history.pushState(null, "", window.location.href);
+      window.onpopstate = function() {
+            window.history.pushState(null, "", window.location.href); // Keep pushing new states
+        };
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+
     }
-   else{
-      window.open(`${this.lmsurl}home/sign_up`,'_blank');
+
+    if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
+        this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+        sessionStorage.removeItem('isFirstTimeLogin');
     }
-  })
-
-}
-  ngOnInit(): void {
- console.log("current user", this.currentUser.isNew);
-if (this.currentUser.isNew === "true") {
-  sessionStorage.setItem('isFirstTimeLogin', 'true');
-    window.history.pushState(null, "", window.location.href);
-   window.onpopstate = function() {
-        window.history.pushState(null, "", window.location.href); // Keep pushing new states
-    };
-   this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
-
-}
-
-if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
-    this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
-    sessionStorage.removeItem('isFirstTimeLogin');
-}
-
-  
     this.getEmployeeProfileCompletion();
     this.logService.updateLogInfo(this.log);
     // Dynamic Subfeature Flags
@@ -295,110 +290,11 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    //console.log(this.feature, " : ", this.userMapping);
-
- // TOP BAR
-//  @ViewChild("change_password")
-//  changePasswordTemplate: TemplateRef<any>;
-
- //Loading login after setting new password
-//  @ViewChild("LoadingLogin") LoadingLoginTemplate: TemplateRef<any>;
-//  fieldTextType: boolean = false;
-//  fieldTextTypePassword: boolean = false;
-//  fieldTextTypeOldPass: boolean = false;
-//  isError: boolean = false;
-//  oldPasswordValid: boolean = false;
-
-//  password: any;
-//  userNewPass: any;
-//  newpassword: any;
-//  errorMsg: any;
-//  empId: any;
-//  consentNotificationMessage: any;
-//  user: User = new User();
-//  leaveApplication: any;
-
-//  leaveTypes: Leave[] = [];
-//  leaveBucketDetails: any[] = [];
-//  lmsauthentication:any;
-
- // stop modal to close
-//  config = {
-//    backdrop: true,
-//    ignoreBackdropClick: true,
-//    keyboard: false
-//  };
-// oldPasswordValid: boolean = false;
-
-//  consentModalConfig = {
-//    backdrop: true,
-//    ignoreBackdropClick: true,
-//    keyboard: false,
-//    class: 'modal-lg'
-//  }
-
-//  profileCompletedPercentage: any = 0;
-
-//  filters: any = {};
-//  isSearchEnabled: boolean = false;
-//  leaveApplicationColumns: any[] = ['blank', 'blank', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'noOfDays', 'status', 'createdByName', 'createdOn', 'reason', 'currentApprovalLevel', 'approverName', 'managerApprovalStatus', 'level2ApproverName', 'level2ApprovalStatus', 'level3ApproverName', 'level3ApprovalStatus'];
-//  compOfApplicationColumns: any[] = ['blank', 'createdByName', 'compOffReasons', 'fromDate', 'toDate', 'noOfDays', 'description', 'status'];
-//  timesheetApplicationsColumns: any[] = ['blank', 'blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status'];
-
-
-//  isShowReleaseNote: boolean = false;
-//  releaseNoteText = "";
-
-//  currentIndex: any = 0; 
-//  currentGroup: any = null;
-//  scrollDelay: number = 18700;
-
-//  constructor(
-//    private modalService: BsModalService,
-//    private authenticationService: AuthenticationService,
-//    private leaveService: LeaveService,
-//    private exportExcelService: ExportExcelService,
-//    private router: Router,
-//    private employeeService: EmployeeService,
-//    private timesheetService: TimesheetService,
-//    private imageService: ImageService,
-//    private sanitizer: DomSanitizer,
-//    private notificationService: NotificationService,
-//    private bodyComponent: BodyComponent,
-//    public validationService: ValidationService,
-//    private logService: LogService,
-//    private locationStrategy: LocationStrategy,
-//    private rewardsService: RewardsServiceService,
-//    public utilityService: UtilityService,
-//    private cdr: ChangeDetectorRef
-
-//  ) {
-//    this.authenticationService.currentUser.subscribe(x => {
-//      this.currentUser = x;
-//      this.currentUserName = this.currentUser.name.split(" ")[0];
-//      this.currentUserName = this.currentUserName[0].toUpperCase() + this.currentUserName.slice(1).toLowerCase();
-//    });
-//    this.logService.log.subscribe(x => {
-//      this.log = x;
-//      this.log.tabName = this.feature;
-//      this.log.featureName = this.feature;
-//    });
-//  }
-
-//  ngOnInit(): void {
-//    this.getEmployeeProfileCompletion();
-//    this.logService.updateLogInfo(this.log);
-//    // Dynamic Subfeature Flags
-//    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
-//    console.log("feature Name ", featureMap);
-//    featureMap.subFeatures?.forEach(sub => {
-//      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
-//    });
-   //console.log(this.feature, " : ", this.userMapping);
 
    this.getAllNotifications();
    this.getAllLeaveTypesByLeavePolicies(this.currentUser);
    if (this.userMapping.view_birthday_list) this.getAllEmployeesBirthDayToday();
+   if (this.userMapping.view_work_anniversary_list) this.getAllEmployeesWorkAnniversaryToday();
    if (this.userMapping.view_all_team_requests) {
      this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
      this.countPendingCompOffRequestsByManagerId();
@@ -409,15 +305,20 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
    }
    if (this.userMapping.view_timesheet_display) this.getTimesheetsForHomePageByEmpId('Last 7 Days');
    if (this.userMapping.view_event_photos) this.getAllEventPhotosForHome();
-   if (this.userMapping.view_employee_rewards) this.getAllEmployeesRewards();
+  //  if (this.userMapping.view_employee_rewards) this.fetchEmployeesForHomepageByCategoryId(1);
 
+  if (this.userMapping.view_employee_rewards) this.fetchRewardCategoryForHomePage();
 
-
- 
    this.preventBackButton();
    this.isEmployeeOnBench();
-
     //console.log('User Mapping', this.userMapping);
+
+    
+  }
+
+
+  switchTab(tab: string) {
+    this.selectedTab = tab;
   }
 
  preventBackButton() {
@@ -438,6 +339,11 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
       this.openConsentNotificationModal();
       this.setReleaseNote();
     }
+
+    if (this.currentUser.employeeRole == "RMG") {
+      this.openPoExpiredMod();
+    }
+    
   }
 
  reset() {
@@ -471,8 +377,19 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
             leave.currentApprovalLevel = 1;
             leave.finalApprovalLevel = 1;
           }
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === leave.leaveEmpId);
+          leave.emp360 = matchingEmployee ? matchingEmployee : {};
+          let matchingEmployeeAppLev1 = this.employeesFor360.find(emp => emp.empId == leave.level1ApproverId);
+          let matchingEmployeeAppLev2 = this.employeesFor360.find(emp => emp.empId == leave.level2ApproverId);
+          let matchingEmployeeAppLev3 = this.employeesFor360.find(emp => emp.empId == leave.level3ApproverId);
+          let matchingEmployeeAppLev4 = this.employeesFor360.find(emp => emp.empId == leave.empId);
+          leave.emp360AppLev1 = matchingEmployeeAppLev1 ? matchingEmployeeAppLev1 : {};
+          leave.emp360AppLev2 = matchingEmployeeAppLev2 ? matchingEmployeeAppLev2 : {};
+          leave.emp360AppLev3 = matchingEmployeeAppLev3 ? matchingEmployeeAppLev3 : {};
+          leave.createdBy360 = matchingEmployeeAppLev4 ? matchingEmployeeAppLev4 : {};
+
         });
-        //console.log("leaveApplicationList : ", this.leaveApplicationList);
+        // console.log("leaveApplicationList : ", this.leaveApplicationList);
       } else {
         console.error(response.serviceResponse);
       }
@@ -576,8 +493,14 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
           compOff.fromDate = (compOff.fromDate) ? moment(compOff.fromDate).format(AppComponent.DATE_FORMAT) : null;
           compOff.toDate = (compOff.toDate) ? moment(compOff.toDate).format(AppComponent.DATE_FORMAT) : null;
           compOff.createdOn = (compOff.createdOn) ? moment(compOff.createdOn).format(AppComponent.DATE_FORMAT) : null;
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === compOff.empId);
+          compOff.emp360 = matchingEmployee ? matchingEmployee : {};
+          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === compOff.managerId);
+          compOff.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === compOff.level2ApproverId);
+          compOff.emp360Level2Approver = matchingEmployee3 ? matchingEmployee3 : {};
         });
-        //console.log("allCompOffApplications : ", this.allCompOffApplications);
+        // console.log("allCompOffApplications : ", this.allCompOffApplications);
       } else {
         console.error(response.serviceResponse);
       }
@@ -609,12 +532,8 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
     let compOff: Leave = new Leave();
     compOff = Object.assign({}, compOffObj);
     compOff.leaveStatusId = updatedCompOffStatusId;
+    compOff.rejectCompOffReason = compOffObj.rejectReason;
     compOff.leaveStatusUpdatedBy = this.currentUser.empId
-    // compOff.hodEmail = this.currentUser.email;
-    // compOff.hodName = this.currentUser.name;
-    // compOff.employeeName = compOff.createdByName;
-    // compOff.level2ApproverId= this.currentUser.hodId;
-    //console.log("Update Comp off : ", compOff);
 
     this.leaveService.updateCompOffById(compOff).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -672,6 +591,17 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
           timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          
+          // const empData = sessionStorage.getItem('AllEmployees');
+          // if (empData) {
+          //     this.employeeList = JSON.parse(empData);
+          // } else {
+          //     this.employeeList = [];
+          // }
+
+          let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === timesheet.employeementId);
+          timesheet.emp360 = matchingEmployee ? matchingEmployee : {};
+
         });
         //console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
       } else {
@@ -1100,13 +1030,19 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
         ],
     });
   }
-
+  
   /* Today's Birthday List */
   getAllEmployeesBirthDayToday() {
     this.employeeService.getAllEmployeesBirthDayToday().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.birthdayList = response.serviceResponse;
-        //console.log("birthdayList : ", this.birthdayList);
+        this.birthdayList.forEach((employee) => {
+          // console.log("employee.empId ", employee.empId);
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
+          // console.log("empId ", matchingEmployee);
+          employee.emp360 = matchingEmployee ? matchingEmployee : {};
+        });
+        // console.log("birthdayList : ", this.birthdayList);
       } else {
         this.compOffApplicationCount = 0;
         console.error(response.serviceResponse);
@@ -1114,150 +1050,68 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
     });
   }
 
-  groupedRewards: { [key: string]: any[] } = {};
-  monthKeys: string[] = [];
-  currentMonthIndex: number = 0;
-  currentRewards: any[] = [];
-
-  getAllEmployeesRewards() {
-    this.rewardsService.fetchEmployeesForHomepage().subscribe((response: any) => {
-      if (response.serviceStatus === 'Success') {
-        this.rewardsList = response.serviceResponse;
-        this.groupRewardsByMonth();
-        this.startScrolling();
+  getAllEmployeesWorkAnniversaryToday() {
+    this.employeeService.getAllEmployeesWorkAnniversaryToday().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.workAnniversaryList = response.serviceResponse;
+        this.workAnniversaryList.forEach((employee) => {
+          
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
+         
+          employee.emp360 = matchingEmployee ? matchingEmployee : {};
+        });
+        
       } else {
+        this.compOffApplicationCount = 0;
         console.error(response.serviceResponse);
       }
     });
-  }
-
-  groupRewardsByMonth() {
-    this.groupedRewards = this.rewardsList.reduce((groups: any, reward: any) => {
-      if (!groups[reward.ofMonthYear]) {
-        groups[reward.ofMonthYear] = [];
-      }
-      groups[reward.ofMonthYear].push(reward);
-      return groups;
-    }, {});
-
-    // Sort months in ascending order
-    this.monthKeys = Object.keys(this.groupedRewards).sort();
-    this.currentMonthIndex = 0;
-    this.updateCurrentRewards();
-  }
-
-  // updateCurrentRewards() {
-  //   const currentMonth = this.monthKeys[this.currentMonthIndex];
-  //   this.currentRewards = this.groupedRewards[currentMonth] || [];
-
-  //   setTimeout(() => {
-  //     this.cdr.detectChanges(); 
-  //   });
-  // }
-
-  updateCurrentRewards() {
-    const currentMonth = this.monthKeys[this.currentMonthIndex];
-    
-    // Prevent flicker: Store old data first
-    const newRewards = this.groupedRewards[currentMonth] || [];
-    
-    if (JSON.stringify(this.currentRewards) !== JSON.stringify(newRewards)) {
-      this.currentRewards = newRewards;
-      this.cdr.markForCheck();  
-    }
-  }
-  
-
-  // startScrolling() {
-  //   let scrollTime = this.currentRewards.length * 5 * 1000;
-  //   setInterval(() => {
-  //     this.currentMonthIndex = (this.currentMonthIndex + 1) % this.monthKeys.length;
-  //     this.updateCurrentRewards();
-  //     this.cdr.detectChanges();
-  //   },  Math.max(scrollTime, 60000)); 
-  // }
-
-  startScrolling() {
-    let scrollTime = Math.min(Math.max(this.currentRewards.length * 3 * 1000, 30000), 90000);
-  
-    this.updateCurrentRewards(); // Ensure immediate update on load
-  
-    setInterval(() => {
-      this.currentMonthIndex = (this.currentMonthIndex + 1) % this.monthKeys.length;
-      this.updateCurrentRewards();
-    }, scrollTime);
-  }
-  
-  
-
-
-  getAllEmployeesRewardss() {
-    this.rewardsService.fetchEmployeesForHomepage().subscribe((response: any) => {
-      if (response.serviceStatus === "Success") {
-        const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-
-        const groupedRewards = response.serviceResponse.reduce((acc: any, reward: any) => {
-          const key = reward.ofMonthYear;
-          if (!acc[key]) {
-            acc[key] = [];
-          }
-          acc[key].push(reward);
-          return acc;
-        }, {});
-  
-        this.rewardsList = Object.keys(groupedRewards)
-          .sort((a, b) => b.localeCompare(a))
-          .map((key) => {
-            const [year, month] = key.split("-");
-            const formattedMonthYear = `${monthNames[parseInt(month, 10) - 1]}-${year}`;
-            return {
-              ofMonthYear: formattedMonthYear, 
-              rewards: groupedRewards[key],
-            };
-          });
-  
-        this.startRewardCycle();
-  
-        console.log("Rewards List as Array (Formatted and Descending): ", this.rewardsList);
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
-  }
-
-  startRewardCycle(): void {
-    this.currentGroup = this.rewardsList[this.currentIndex];
-
-    setTimeout(() => {
-      this.moveToNextGroup();
-    }, this.scrollDelay);
-  }
-
-  moveToNextGroup(): void {
-    this.currentIndex = (this.currentIndex + 1) % this.rewardsList.length;
-
-    this.startRewardCycle();
   }
 
   /* Quick Links */
   showApplyLeaveForm() {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }else{
     this.router.navigate(['/user-leaves'],
       { queryParams: { tabName: 'leave-tab' }, queryParamsHandling: '' });
+   }
+    
   }
 
   showApplyCompOffForm() {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }else{
     this.router.navigate(['/user-leaves'],
       { queryParams: { tabName: 'compOff-tab' }, queryParamsHandling: '' });
+    }
   }
 
   showApplyTimesheetForm() {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }else{
     this.router.navigate(['/user-timesheet'],
       { queryParams: { tabName: 'my-timesheet-tab' }, queryParamsHandling: '' });
+    }
   }
 
   showHolidayList() {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }else{
     this.router.navigate(['/user-leaves'],
       { queryParams: { tabName: 'holidays-tab' }, queryParamsHandling: '' });
+    }
   }
 
   /* carousal Images */
@@ -1356,6 +1210,11 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
   }
 
   getTimesheetsForHomePageByEmpId(dateRange: any) {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }
     this.timesheetDetails = [];
     const TOTAL_WORKING_HOURS_IN_DAY = 8;
     const currentDate = new Date();
@@ -1578,12 +1437,37 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
+  openPoExpiredMod() {
+    this.cancelRequest();
+    this.geExpiredtPoData();
+      console.log(this.expiredList);
+    // alert("hi");
+    this.modalRef = this.modalService.show(this.poExpireTemplateRef, { class: 'modal-xl' ,
+      backdrop: 'static',
+      keyboard: false 
+  });
+  
+  }
+
   openReqMod(template: TemplateRef<any>) {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }else{
     this.filters = {};
     this.isSearchEnabled = false;
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+   }
+   
   }
 
+
+  openRevokeLeaveRejectModalCompOff(template: TemplateRef<any>, leave: any){
+      this.cancelRequest();
+      this.leaveObj = leave;
+      this.modalRef = this.modalService.show(template);
+    }
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
@@ -2256,6 +2140,7 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
    }
  }
 
+
   submitReleaseNoteNotificationConsent() {
     let notificationObj = new NotificationMessage();
 
@@ -2323,16 +2208,217 @@ if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
     this.leaveService.getOverLapsLeaveForManager(leaveApp).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.overLapsLeaveForManager = response.serviceResponse;
-
-        //console.log("this.getOverLapsLeaveForManager ",this.overLapsLeaveForManager);
+        // const empData = sessionStorage.getItem('AllEmployees');
+        // if (empData) {
+        //   this.employeeList = JSON.parse(empData);
+        // } else {
+        //   this.employeeList = [];
+        // }
+        // for(let y of this.overLapsLeaveForManager){
+        //   let matchingEmployee = this.employeeList.find(emp => emp.employeementId === y.employeementId);
+        //   y.emp360 = matchingEmployee ? matchingEmployee : {};
+        // }
+        console.log("this.getOverLapsLeaveForManager ",this.overLapsLeaveForManager);
       }
     })
 
 
  }
 
+ fetchRewardCategoryForHomePage(){
+  this.rewardsService.fetchRewardCategoryForHomePage().pipe(first()).subscribe((response:any) => {
+    if(response.serviceStatus == 'Success'){
+      this.rewardCategoryList = response.serviceResponse;
+      if (this.rewardCategoryList.length > 0) {
+        this.onCategoryTabClick(this.rewardCategoryList[0]);
+      }else {
+        console.error(response.serviceResponse);
+      }
+    }
+  })
+ }
+
+ onCategoryTabClick(category: any) {
+  this.selectedCategoryId = category.rewardCategoryId;
+  this.selectedCategoryName = category.categoryName;
+  this.showEmptyMessage = false;
+  this.rewardsList = []; 
+  this.fetchEmployeesForHomepageByCategoryId(this.selectedCategoryId);
+}
+
+fetchEmployeesForHomepageByCategoryId(categoryId: number) {
+  this.rewardCategoryObj.rewardCategoryId = categoryId;
+  this.rewardsService.fetchEmployeesForHomepageByCategoryId(this.rewardCategoryObj).subscribe((response: any) => {
+    if (response.serviceStatus === 'Success') {
+      this.rewardsList = response.serviceResponse;
+
+      this.rewardsList.forEach((employee) => {
+        let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.rewardedTo);
+        employee.emp360 = matchingEmployee ? matchingEmployee : {};
+      });
 
 
+    this.groupRewardsByMonth();
+    setTimeout(() => {
+
+      this.startScrolling();
+
+      if (this.rewardsList.length === 0) {
+        this.showEmptyMessage = true;
+      }
+      }, 500); 
+
+    } else {
+      this.showEmptyMessage = true;
+      console.error(response.serviceResponse);
+    }
+  });
+}
+
+
+groupRewardsByMonth() {
+  this.groupedRewards = this.rewardsList.reduce((groups: any, reward: any) => {
+    if (!groups[reward.ofMonthYear]) {
+      groups[reward.ofMonthYear] = [];
+    }
+    groups[reward.ofMonthYear].push(reward);
+    return groups;
+  }, {});
+
+  this.monthKeys = Object.keys(this.groupedRewards).sort();
+
+  if (this.monthKeys.length > 0) {
+    this.selectedMonth = this.monthKeys[0]; 
+  }
+
+  this.currentMonthIndex = 0;
+  this.updateCurrentRewards();
+
+  this.startScrolling();
+}
+
+updateCurrentRewards() {
+  const currentMonth = this.monthKeys[this.currentMonthIndex];
+  
+  const newRewards = this.groupedRewards[currentMonth] || [];
+
+  if (newRewards.length === 0) {
+    this.showEmptyMessage = true;
+  } else {
+    this.showEmptyMessage = false;
+  }
+
+  if (JSON.stringify(this.currentRewards) !== JSON.stringify(newRewards)) {
+    this.currentRewards = newRewards;
+    this.selectedMonth = currentMonth;  
+    this.cdr.markForCheck();  
+  }
+}
+
+// startScrolling() {
+//   if (this.scrollInterval) {
+//     clearInterval(this.scrollInterval); 
+//   }
+
+//   let scrollTime = Math.min(Math.max(this.currentRewards.length * 3 * 1000, 30000), 90000);
+
+//   this.updateCurrentRewards(); 
+
+//   this.scrollInterval = setInterval(() => {
+//     this.currentMonthIndex = (this.currentMonthIndex + 1) % this.monthKeys.length;
+
+//     // Ensure there are rewards for the next month before updating
+//     const nextMonth = this.monthKeys[this.currentMonthIndex];
+//     if (this.groupedRewards[nextMonth] && this.groupedRewards[nextMonth].length > 0) {
+//       this.updateCurrentRewards();
+//     } else {
+//       console.warn(`No rewards for the month: ${nextMonth}`);
+//     }
+//   }, scrollTime);
+// }
+
+startScrolling() {
+  if (this.scrollInterval) {
+    clearInterval(this.scrollInterval); 
+  }
+
+  let scrollTime = Math.min(Math.max(this.currentRewards.length * 3 * 1000, 30000), 90000);
+
+  this.updateCurrentRewards(); 
+
+  this.scrollInterval = setInterval(() => {
+    
+    this.currentRewards = [];
+    this.cdr.markForCheck();
+
+    setTimeout(() => {
+      this.currentMonthIndex = (this.currentMonthIndex + 1) % this.monthKeys.length;
+
+      const nextMonth = this.monthKeys[this.currentMonthIndex];
+      if (this.groupedRewards[nextMonth] && this.groupedRewards[nextMonth].length > 0) {
+        this.updateCurrentRewards();
+      } else {
+        console.warn(`No rewards for the month: ${nextMonth}`);
+      }
+    }, 3000); 
+  }, scrollTime);
+}
+
+startRewardCycle(): void {
+  this.currentGroup = this.rewardsList[this.currentIndex];
+
+  setTimeout(() => {
+    this.moveToNextGroup();
+  }, this.scrollDelay);
+}
+
+moveToNextGroup(): void {
+  this.currentIndex = (this.currentIndex + 1) % this.rewardsList.length;
+
+  this.startRewardCycle();
+}
+emailSentPopUp(msg:any){
+  this.openAlertMod(this.mailSentPopUp,msg);
+}
+geExpiredtPoData(){
+  this.employeeService.getExpiredPo().pipe(first()).subscribe((response: any) => {
+  if(response.serviceStatus == "Success"){
+   this.expiredList =  response.serviceResponse
+    console.log(response,":::::::::::::::::::Response,geExpiredtPoData")
+  }
+  });
+}
+
+handleEmailRequest(eventData: { poEndDate: any, projectName: any, poNo: any, poProjectType: any }) {
+  console.log('Email Request Received:', eventData);
+  this.sendEmail(eventData.poEndDate,eventData.projectName,eventData.poNo,eventData.poProjectType);
+  // Perform email sending logic here
+}
+
+sendEmail(poEndDate:any,projectName:any,poNo:any,poProjectType:any){
+
+  console.log(poEndDate,projectName,poNo,poProjectType)
+  let expiredEmailData: ExpiredEmailData = new ExpiredEmailData();
+  let poObject: PoObject = new PoObject();
+  poObject.poNo = poNo;
+  poObject.projectName = projectName;
+  poObject.endDate = poEndDate;
+  poObject.poType = poProjectType;
+  expiredEmailData.expiredData = poObject;
+  let user = JSON.parse(sessionStorage.getItem('currentUser'));
+  expiredEmailData.userEmail = user.email;
+  console.log(expiredEmailData,"expiredEmailData",)
+  console.log(expiredEmailData.expiredData,"expiredEmailData")
+  console.log(expiredEmailData,"expiredEmailData")
+  this.employeeService.sendExpiredPoEmail(expiredEmailData).pipe(first()).subscribe((response: any) => {
+    if(response.serviceStatus == "Success"){
+      this.popUpMessege =  response.serviceMessage;
+       console.log(response,":::::::::::::::::::Response,geExpiredtPoData");
+       this.cancelRequest();
+      this.emailSentPopUp(this.popUpMessege);
+     }
+  });
+}
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);

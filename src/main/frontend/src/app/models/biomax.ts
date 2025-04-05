@@ -17,6 +17,14 @@ export class Biomax {
     inTime:any
     outTime:any
     shiftDuration:any
+    teamMemberName:any;
     timesheetId:any;
     timesheetdto:Timesheet[]=[];
+}
+export class biomaxFilter{
+    empId:any[]=[];
+    startDate:any;
+    endDate:any;
+    viewtype:any;
+    
 }

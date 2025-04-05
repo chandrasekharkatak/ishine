@@ -1,31 +1,34 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import { Timesheet } from '../models/timesheet';
-import { Subject } from 'rxjs';
-import { BehaviorSubject } from 'rxjs';
 import { Employee } from '../models/employee';
 import { Leave } from '../models/leave';
+import { Project } from '../models/project';
 import { Team } from '../models/team';
+import { Timesheet } from '../models/timesheet';
 
 @Injectable({
   providedIn: 'root'
 })
 export class Employee360Service {
 
-  private baseUrl:any = environment.baseUrl;
+  private baseUrl: any = environment.baseUrl;
 
+  public lmsbaseurl: any = environment.lmsbaseurl;
   private navigationSubject = new Subject<void>();
   private employeeDataSource = new BehaviorSubject<any>(null);
+  private employeesFor360Source = new BehaviorSubject<any[]>([]);
 
+  employeesFor360$ = this.employeesFor360Source.asObservable();
   currentEmployeeData = this.employeeDataSource.asObservable();
 
 
-   constructor(
+  constructor(
     private router: Router,
     private http: HttpClient
-  ) {}
+  ) { }
 
   getNavigationEvent() {
     return this.navigationSubject.asObservable();
@@ -45,34 +48,34 @@ export class Employee360Service {
     return this.http.get(`${this.baseUrl}` + `api/getEmployeeDetails?empId=${empId}`);
   }
 
-
-  get360TimesheetDetails(status: string, empId: number, projectId:number, teamName:string,managerId:number,startDate:string,endDate:string) {
+  // get360TimesheetDetails(status: string, empId: number, projectId:number, teamName:string,managerId:number,startDate:string,endDate:string) {
+  get360TimesheetDetails(status: string, empId: number, projectId: number, teamName: string, startDate: string, endDate: string) {
     return this.http.get(`${this.baseUrl}api/get360TimesheetDetails`, {
-        params: {
-            status: status,
-            empId: empId.toString(),
-            projectId:projectId.toString(),
-            teamName:teamName,
-            managerId:managerId.toString(),
-            startDate:startDate,
-            endDate:endDate
-        }
-    });
-}
-
-updateStatus(status: string, timesheetIds:number[],updatedBy: number) {
-  return this.http.get(`${this.baseUrl}api/updateStatus`, {
       params: {
-          status: status,
-          timesheetIds: timesheetIds,
-          updatedBy:updatedBy.toString()
+        status: status,
+        empId: empId.toString(),
+        projectId: projectId.toString(),
+        teamName: teamName,
+        // managerId:managerId.toString(),
+        startDate: startDate,
+        endDate: endDate
       }
-  });
-}
+    });
+  }
 
-getAll360LeaveApplicationsByEmpId(leaveObj: Leave) {
-  return this.http.post(`${this.baseUrl}` + `api/getAll360LeaveApplicationsByEmpId`, leaveObj);
-}
+  updateStatus(status: string, timesheetIds: number[], updatedBy: number) {
+    return this.http.get(`${this.baseUrl}api/updateStatus`, {
+      params: {
+        status: status,
+        timesheetIds: timesheetIds,
+        updatedBy: updatedBy.toString()
+      }
+    });
+  }
+
+  getAll360LeaveApplicationsByEmpId(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `api/getAll360LeaveApplicationsByEmpId`, leaveObj);
+  }
   // getAllLeaveTypes() {
   //   return this.http.get(`${this.baseUrl}` + `api/getAllLeaveTypes`);
   // }
@@ -87,8 +90,8 @@ getAll360LeaveApplicationsByEmpId(leaveObj: Leave) {
     this.employeeDataSource.next(data);
   }
 
-  getEmployeeDetailsForBiomax(startDate:String,endDate:String,employeeId:String){
-    return this.http.get(`${this.baseUrl}` + `api/biomax?startDate=${startDate}&endDate=${endDate}&employeeId=${employeeId}`);
+  getEmployeeDetailsForBiomax(biomaxFilter: any) {
+    return this.http.post(`${this.baseUrl}` + `api/biomax`, biomaxFilter);
   }
 
   get360PendingCompOffRequestsByEmpId(compOffObj: Leave) {
@@ -96,15 +99,66 @@ getAll360LeaveApplicationsByEmpId(leaveObj: Leave) {
   }
 
 
-  // getBioOverTimeandState(EmployeDTO: Employee) {
-  //   return this.http.post(`${this.baseUrl}` + `api/employee360state`, EmployeDTO);
-  // }
+  getBioOverTimeandState(EmployeDTO: Employee) {
+    return this.http.post(`${this.baseUrl}` + `api/employee360state`, EmployeDTO);
+  }
 
   //added by rahul singh
- getTeamTImeSheet(team:Team){
-  return this.http.post('http://localhost:8080/api/getTeamMembersByTeamId',team);
- 
-}
+  getTeamTImeSheet(team: Team) {
+    return this.http.post(`${this.baseUrl}` + `api/getTeamMembersByTeamIdBiomax`, team);
 
- 
+  }
+
+  setEmployeesFor360(employees: any[]) {
+    this.employeesFor360Source.next(employees);
+  }
+  //added by rahul for project
+  getTeamMemberByTeamId(teamId: any) {
+    return this.http.get(`${this.baseUrl}` + `api/getTeamMemberByTeamId` + teamId);
+  }
+
+  getProjectInfo(project: Project) {
+    return this.http.post(`${this.baseUrl}` + `api/getProjectInfo`, project);
+  }
+
+  getTeamInfo(project: Project) {
+    return this.http.post(`${this.baseUrl}` + `api/getTeamInfo`, project);
+  }
+
+
+
+  getRewardsAndAppreciationCount(employeeDetails: any) {
+    return this.http.post(`${this.baseUrl}` + `api/getRewardsAndAppreciationCount`, employeeDetails);
+  }
+
+  getLmsData(email: any) {
+    const bearerToken = 'Nguif3kxwSDzmojAtj6M93aJlfJqsAWj9blFug4JWkHsoQ2LYgWiApqDe1GZqmpV';  // Use the actual token without "Bearer"
+    const body = { email: email };
+
+    return this.http.post(
+      `${this.lmsbaseurl}api/get_user_enrolled_details`,
+      body,
+      {
+        headers: {
+          'Authorization': `Bearer ${bearerToken}`,  // Add the "Bearer" prefix here
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+  }
+
+
+  shortTheTable(data: any, parameter: any) {
+
+    data.sort((a, b) => {
+
+      if (a.parameter > b.parameter) {
+        return -1;
+      } else if (a.parameter < b.parameter) {
+        return 1;
+      }
+      return 0;
+    });
+  }
+
 }
