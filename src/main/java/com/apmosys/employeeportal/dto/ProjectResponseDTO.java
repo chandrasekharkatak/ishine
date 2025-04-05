@@ -17,4 +17,5 @@ public class ProjectResponseDTO {
 	private String documentPath;
     private String options;
     private String isDraft;
+    private Long processTo;
 }

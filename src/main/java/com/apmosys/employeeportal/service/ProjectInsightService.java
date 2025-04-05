@@ -1205,6 +1205,7 @@ public class ProjectInsightService {
 							Employee employee = employeeRepository.findByEmpId(projectInsightResponse.getEmpId());
 							projectResponseDTO.setResponseByEmpName(employee != null ? employee.getName() : "");
 							projectResponseDTO.setIsDraft(projectInsightResponse.getIsDraft());
+							projectResponseDTO.setProcessTo(projectInsightResponse.getProcessTo());
 							projectResponseDTOList.add(projectResponseDTO);
 							
 						}
@@ -1525,6 +1526,14 @@ public class ProjectInsightService {
 		try {
 
 			List<Object[]> objectList = null;
+			if (projectInsightDTO.getPerformanceTabName().equals("Team Dashboard")) {
+				Employee employee = employeeRepository.findByEmpId(projectInsightDTO.getEmpId());
+				if (employee != null && employee.getRole() != null) {
+					projectInsightDTO.setEmployeeRole(employee.getRole());
+				}
+			}
+			
+			
 			if (projectInsightDTO.getEmployeeRole().equals("Employee")
 					|| projectInsightDTO.getEmployeeRole().equals("TeamLead")
 					|| projectInsightDTO.getEmployeeRole().equals("Manager")) {

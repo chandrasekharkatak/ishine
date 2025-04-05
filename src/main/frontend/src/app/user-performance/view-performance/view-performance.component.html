@@ -157,12 +157,69 @@
         </div>
       </div>
     </div>
-    
-    <div class="container py-4 m-0 px-0">
+
+    <div class="row mt-4" *ngIf="isProjectInsightList">
+      <div class="col-md-12">
+        <div class="card shadow border-0">
+          <div class="card-header">
+            <h1 class="card-title mb-0 text-center fw-bold">Project Insights Contribution</h1>
+          </div>
+          <div class="card-body">
+              <div class="col-md-12">
+                <div class="selector-toggle">
+                  <a href="javascript:void(0)" (click)="toggleSearch()">
+                    <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                  </a>
+                </div>
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInsightInfo'"
+                  [tableTHeadId]="'projectInsightInfoTHead'" [tableTHeadTrId]="'projectInsightInfoTHeadTr'">
+                  <table class="table" matSort (matSortChange)="sortData($event)">
+                    <thead class="thead-light">
+                      <tr>
+                        <th scope="col" class="info-label" mat-sort-header="surveyName|string">Project Name</th>
+                        <th scope="col" class="info-label" mat-sort-header="description|string">Project Manager</th>
+                        <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
+                        <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
+                        <th scope="col" class="info-label">Actions</th>
+                      </tr>
+                      <tr app-column-filter-bar *ngIf="isProjectInsightList && isSearchEnabled"
+                        [columnList]="projectInsightColumnColumns" (onSearch)="onSearch($event);page=1"></tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        *ngIf="allProjectInsightList.length == 0|| (allProjectInsightList| colFilter:filters:false).length == 0">
+                        <th colspan="6" class="text-center info-label">No Details to display...</th>
+                      </tr>
+                      <tr
+                        *ngFor="let project of allProjectInsightList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                        <td>{{project.projectName}}</td>
+                        <td>{{project.projectManagerName}}</td>
+                        <td>{{project.createdByName}}</td>
+                        <td>{{project.createdOn}}</td>
+                        <td>
+                          <button class="btn btn-sm btn-outline-primary mx-1" type="submit"  (click)="getAllProjectInsightResponsesByProjectId(project,alert_message,insight_response_template,false)">
+                            <em> Add / View Response</em></button>&nbsp;
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <pagination-controls class="my-pagination" [hidden]="allProjectInsightList.length == 0"
+                  (pageChange)="handlePageChange($event)"></pagination-controls>
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mt-4">
+      <div class="col-md-12">
       <div class="card shadow order-0">
+        <div class="card-header">
+          <h1 class="card-title mb-0 text-center fw-bold">Reviews and Ratings</h1>
+        </div>
         <div class="card-body">
-          <h2 class="text-center mb-4 fw-bold">Reviews and Ratings</h2>
-    
           <ul class="nav nav-tabs mb-4 d-flex justify-content-between align-items-center">
             <div class="d-flex">
               <li class="nav-item">
@@ -352,9 +409,8 @@
         </div>
       </div>
     </div>
+    </div>
     
-
-
 <!-- Modals Template -->
 
 <ng-template #viewGoalTemplate>

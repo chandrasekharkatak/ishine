@@ -28,5 +28,5 @@ public class ProjectInsightDTO {
     
     private String employeeRole;
     private Long processTo;
-	
+	private String performanceTabName;
 }

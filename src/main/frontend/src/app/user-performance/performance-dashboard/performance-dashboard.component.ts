@@ -455,7 +455,8 @@ saveKpiResponses(template: TemplateRef<any>): void {
 
     let insightObj = {
       employeeRole: this.currentUser.employeeRole,
-      empId: this.currentUser.empId
+      empId: this.currentUser.empId,
+      performanceTabName : 'Performance Dashboard'      
     };
 
     this.projectInsightService.getAllProjectInsightContributionList(insightObj).pipe(first()).subscribe((response: any) => {
