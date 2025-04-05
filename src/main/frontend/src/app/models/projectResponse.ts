@@ -14,5 +14,6 @@ export class ProjectResponse {
     option:ProjectResponseOption = new ProjectResponseOption();
     optionsList:any[]= [];
     options:any;
+    isDraft:any;
 
 }

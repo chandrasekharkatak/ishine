@@ -27,5 +27,6 @@ public class ProjectInsightDTO {
     private String projectInsightQuestionTemplate;
     
     private String employeeRole;
+    private Long processTo;
 	
 }

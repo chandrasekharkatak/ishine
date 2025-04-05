@@ -109,5 +109,10 @@ List<EmployeeTeamMap> findByProjectIdAndActive(Integer projectId,Long active);
 	
 	List<EmployeeTeamMap> findByEmpIdAndActive(Long empId, Long active);
 
+	@Query(value="SELECT etm \n"
+			+ "FROM EmployeeTeamMap etm \n"
+			+ "INNER JOIN Team tms ON tms.teamId = etm.teamId \n"
+			+ "WHERE tms.projectId=:projectId AND etm.empId=:employeeId AND etm.active=1")
+	List<EmployeeTeamMap> getAllTeamMembersForProject(Long employeeId,Integer projectId);
 	
 }
