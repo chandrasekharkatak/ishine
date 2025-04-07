@@ -1024,12 +1024,12 @@ public class PerformanceService {
 	public ResponseEntity<List<EmployeeteamDto>> getTeamEmployeeListInTeamDashboard(PerformanceDTO performanceDTO) {
 		List<EmployeeteamDto> response = new ArrayList<EmployeeteamDto>();
 		try {
-			List<Object[]> employeeDbResponse = null;
-			List<Object[]> employeeTeamDbResponse = null;
+			List<Object[]> employeeDbResponse = new ArrayList<>();
+			List<Object[]> employeeTeamDbResponse = new ArrayList<>();
 			
 			if(performanceDTO.getTabType().equals("reviewTeam")) {
 				employeeDbResponse = employeePerformanceRepository.getEmployeeUnderReviewByEmpId(performanceDTO.getEmpId());
-				employeeTeamDbResponse = null;
+				employeeTeamDbResponse = new ArrayList<>();
 			}else {
 				// if employeeRole = SuperAdmin,HR,RMG show all users
 				if(performanceDTO.getEmployeeRole().equalsIgnoreCase("SuperAdmin")
