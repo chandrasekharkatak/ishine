@@ -204,10 +204,23 @@ public class ProjectInsightService {
 					newProjectInsight.setDeptId(project.getDeptId());
 					newProjectInsight.setRedmineId(project.getRedmineId());
 					
-
 					ProjectInsightMilestone newMilestoneCreated = projectInsightMilestoneRepository.save(newProjectInsight);
 					
 					if(newMilestoneCreated.getMilestoneId() != null) {
+						
+						//Add Application Question
+						if(!projectInsightDTO.getApplicationQuestion().isEmpty()) {
+							ServiceResponse applicationQuestionResponse = addUpdateQuestion(projectInsightDTO.getApplicationQuestion(),
+									projectInsightDTO.getProjectId(), "Project");
+							
+							if ("Success".equals(applicationQuestionResponse.getServiceStatus())) {
+				                isSuccess.set(true);
+				            } else {
+				                isSuccess.set(false);
+				            }
+								
+						}
+						
 						isSuccess.set(true);
 						Long milestoneId = newMilestoneCreated.getMilestoneId();
 						
@@ -497,6 +510,9 @@ public class ProjectInsightService {
 					responseObject.setProjectManagerName(projectInsightDTO.getProjectManagerName());
 					responseObject.setCreatedBy(projectInsightDTO.getCreatedBy());
 					
+					//ApplciationQuestionList
+					responseObject.setApplicationQuestion(getQuestion(projectInsightDTO.getProjectId(), "Project"));
+					
 					//MileStoneList
 					List<ProjectInsightQuestionDTO> projectInsightQuestion = new ArrayList<>();
 					mileStoneList.forEach((mileStone) -> {
@@ -628,6 +644,12 @@ public class ProjectInsightService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("projectId : "+ projectInsightDTO.getProjectId());
 		try {
+			
+			//add/update milestone question
+			if(!projectInsightDTO.getApplicationQuestion().isEmpty()) {
+				ServiceResponse applicationQuestionResponse = addUpdateQuestion(projectInsightDTO.getApplicationQuestion(),
+						projectInsightDTO.getProjectId(), "Project");		
+			}
 
 			if(!projectInsightDTO.getProjectInsightQuestionList().isEmpty()) {
 				projectInsightDTO.getProjectInsightQuestionList().forEach((milestone) -> {

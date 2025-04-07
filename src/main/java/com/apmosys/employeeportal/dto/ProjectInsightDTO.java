@@ -21,6 +21,8 @@ public class ProjectInsightDTO {
     private Long projectId;
     private Long projectManagerId;
     private String projectManagerName;
+    
+    private List<ProjectQuestionDTO> applicationQuestion;
 
     private List<ProjectInsightQuestionDTO> projectInsightQuestionList;
     private List<ResponseMarksDTO> empMarkList;

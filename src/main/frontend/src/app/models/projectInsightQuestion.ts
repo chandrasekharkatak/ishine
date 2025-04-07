@@ -26,6 +26,7 @@ export class ProjectInsightQuestion {
     milestoneId: any;
     assignedTo: any;
     redmineId: any;
+    applicationQuestion:ProjectQuestion[] = [new ProjectQuestion()];
     projectQuestion:ProjectQuestion[] = [];
     moduleList:ProjectModule[] = [];
     isCollapsed:any= false;

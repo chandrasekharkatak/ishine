@@ -197,6 +197,10 @@ export class ProjectInsightsConfigComponent implements OnInit {
         this.projectInsightQuestion = response.serviceResponse;
         this.projectInsightQuestionList = this.projectInsightQuestion.projectInsightQuestionList;
 
+        this.projectInsightQuestion.applicationQuestion.forEach((question: ProjectQuestion) => {
+          question.optionsList = JSON.parse(question.options);
+        })
+
         this.projectInsightQuestionList.forEach((project: ProjectInsightQuestion) => {
           project.projectQuestion.forEach((question: ProjectQuestion) => {
             question.optionsList = JSON.parse(question.options);
@@ -252,8 +256,8 @@ export class ProjectInsightsConfigComponent implements OnInit {
   // }
   
 
-  removeQuestion(mileIndex,i){
-    this.projectInsightQuestionList[mileIndex].projectQuestion.splice(i,1);
+  removeQuestion(index: any){
+    this.projectInsightQuestion.applicationQuestion.splice(index, 1);
   }
 
   // Add button config
@@ -271,7 +275,9 @@ export class ProjectInsightsConfigComponent implements OnInit {
   }
 
   addQuestion(type: any, mileIndex: any, modIndex?:any, subModIndex?: any){
-    if(type == 'milestone'){
+    if(type == 'project'){
+      this.projectInsightQuestion.applicationQuestion.splice(this.projectInsightQuestion.applicationQuestion.length + 1, 0, new ProjectQuestion());
+    }else if(type == 'milestone'){
       this.projectInsightQuestionList[mileIndex].projectQuestion.splice(this.projectInsightQuestionList[mileIndex].projectQuestion.length + 1, 0, new ProjectQuestion());
     }else if(type == 'module'){
       this.projectInsightQuestionList[mileIndex].moduleList[modIndex].projectQuestion.splice(this.projectInsightQuestionList[mileIndex].moduleList[modIndex].projectQuestion.length + 1, 0, new ProjectQuestion());
@@ -293,19 +299,19 @@ export class ProjectInsightsConfigComponent implements OnInit {
   }
 
   // Manage Options
-  addOption(mileIndex, i, questionObj:ProjectQuestion){
-    let question = this.projectInsightQuestionList[mileIndex].projectQuestion.find(ques => ques == questionObj);
+  addOption(i, questionObj?:ProjectQuestion){
+    let question = this.projectInsightQuestion.applicationQuestion.find(ques => ques == questionObj);
     question.optionsList.splice(i+1,0, new SurveyOption());
   }
 
-  removeOption(mileIndex, i, questionObj:ProjectQuestion){
-    let question = this.projectInsightQuestionList[mileIndex].projectQuestion.find(ques => ques == questionObj);
+  removeOption(i, questionObj?:ProjectQuestion){
+    let question = this.projectInsightQuestion.applicationQuestion.find(ques => ques == questionObj);
     question.optionsList.splice(i,1);
   }
 
-  setOption(questionObj:ProjectQuestion, mileIndex:any, index:any){
+  setOption(questionObj:ProjectQuestion, projIndex:any){
     if(questionObj.optionType == "checkbox" || questionObj.optionType == "radio"){
-      let question = this.projectInsightQuestionList[mileIndex].projectQuestion.find(ques => ques == questionObj);
+      let question = this.projectInsightQuestion.applicationQuestion.find(ques => ques == questionObj);
       question.optionsList = [];
       question.optionsList.splice(1,0,new SurveyOption());
     }
@@ -339,6 +345,49 @@ export class ProjectInsightsConfigComponent implements OnInit {
       this.alertMessage = "Please select Project Manager !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
+    }
+    if(projectInsightQuestion.applicationQuestion.length > 0){
+      projectInsightQuestion.applicationQuestion.forEach((question:ProjectQuestion, index) => {
+        if(!this.validationService.validateNullUndefinedEmptyString(question.question)
+        || !this.validationService.validateNullUndefinedEmptyString(question.optionType)
+        || !this.validationService.validateNullUndefinedEmptyString(question.question)
+        ){
+          
+
+          if(!this.validationService.validateNullUndefinedEmptyString(question.question)){
+            this.alertMessage = `Please enter Question ${index+1} !!`;
+            this.openAlertMod(template, this.alertMessage);
+            flag = false;
+            return false;
+          }
+    
+          if(!this.validationService.validateNullUndefinedEmptyString(question.optionType)){
+            this.alertMessage = `Please select Option Type ${index+1} !!`;
+            this.openAlertMod(template, this.alertMessage);
+            flag = false;
+            return false;
+          }
+    
+          if(question.optionType == "radio" || question.optionType == "checkbox"){
+            if (question.optionsList.length < 2) {
+              this.alertMessage = `Please provide atleast 2 options for Question ${index + 1} !!`;
+              this.openAlertMod(template, this.alertMessage);
+              flag = false;
+              return false;
+            }else{
+              question.optionsList.forEach((option: SurveyOption, opIndex) => {
+                if (!this.validationService.validateNullUndefinedEmptyString(option.optionValue)) {
+                  this.alertMessage = `Please enter option ${opIndex + 1} for Question ${index + 1} !!`;
+                  this.openAlertMod(template, this.alertMessage);
+                  flag = false;
+                  return false;
+                }
+              });
+            }
+          }
+
+        }
+      })
     }
 
     let flag = true;
@@ -421,13 +470,6 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
       if(!this.validationService.validateNullUndefinedEmptyString(question.optionType)){
         this.alertMessage = `Please select ${parentType}-${parentIndex+1} Option Type ${index+1} !!`;
-        this.openAlertMod(template, this.alertMessage);
-        flag = false;
-        return;
-      }
-
-      if(!this.validationService.validateNullUndefinedEmptyString(question.required)){
-        this.alertMessage = `Please select ${parentType}-${parentIndex+1} reqiured ${index+1} !!`;
         this.openAlertMod(template, this.alertMessage);
         flag = false;
         return;
@@ -791,6 +833,13 @@ export class ProjectInsightsConfigComponent implements OnInit {
     projObj.projectInsightQuestionList = this.projectInsightQuestionList;
     projObj.projectInsightQuestionTemplate = questionTemplate;
     projObj.createdBy = this.currentUser.empId;
+    projObj.applicationQuestion = this.projectInsightQuestion.applicationQuestion;
+
+    if(projObj.applicationQuestion != null && projObj.applicationQuestion.length != 0){
+      projObj.applicationQuestion.forEach((questionObj: ProjectQuestion) => {
+        questionObj.options = JSON.stringify(questionObj.optionsList);
+      });
+    }
 
     projObj.projectInsightQuestionList.forEach((proj:ProjectInsightQuestion) => {
 
@@ -955,6 +1004,13 @@ export class ProjectInsightsConfigComponent implements OnInit {
       projObj.projectManagerName = this.projectInsightQuestion.projectManagerName;
       projObj.projectInsightQuestionList = this.projectInsightQuestionList;
       projObj.updatedBy = this.currentUser.empId;
+      projObj.applicationQuestion = this.projectInsightQuestion.applicationQuestion;
+
+      if(projObj.applicationQuestion != null && projObj.applicationQuestion.length != 0){
+        projObj.applicationQuestion.forEach((questionObj: ProjectQuestion) => {
+          questionObj.options = JSON.stringify(questionObj.optionsList);
+        });
+      }
   
       projObj.projectInsightQuestionList.forEach((proj:ProjectInsightQuestion) => {
 
