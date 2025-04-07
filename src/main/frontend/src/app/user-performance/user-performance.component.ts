@@ -82,7 +82,7 @@ export class UserPerformanceComponent implements OnInit {
     'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status',
     'Bank Name', 'Created By', 'State', 'Created On'];
 
-  eligibleEmployeesColumns: any[] = ['employeementId', 'name', 'designationName', 'departmentName', 'billableType', 'totalExperience', 'employmentstatus', 'dateOfJoining'];
+  eligibleEmployeesColumns: any[] = ['employeementId', 'name', 'designationName', 'departmentName','totalExperience', 'employmentstatus', 'dateOfJoining','completionStatus'];
   finalRating: number;
   hodRemarks: any;
   quarterId: any;
@@ -159,7 +159,7 @@ export class UserPerformanceComponent implements OnInit {
        this.getAllEmployeeFor360View();
        this.getAllEmployee();
        this.getAllDepartments();
-     
+       this.getAllEmployeesCurrentStatus();
     } catch (error) {
       console.error("Error in ngOnInit", error);
     }
@@ -258,14 +258,20 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
       ((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allEmployee = response.serviceResponse;
-
-          console.log("allEmp", this.allEmployee);
+          const mergedData = this.allEmployee.map(emp => {
+            const staticData = this.static.find(item => item.empId === emp.empId);
+            return {
+                ...emp,
+                completionStatus: staticData ? staticData.completionStatus : null
+            };
+        });
+          console.log("allEmp", mergedData);
 
           const currentDate = new Date();
           const oneYearAgo = new Date(currentDate.getFullYear() - 1, 11, 31);
 
           // this.allEmployee = this.allEmployee.filter(employee => employee.empId !== this.currentUser.empId);
-          this.eligibleEmployees = this.allEmployee.filter(employee => {
+          this.eligibleEmployees = mergedData.filter(employee => {
             // Append employee ID using utility service
             employee.employeementId = this.utilityService.appendEmployeementid(employee.isConsultant, employee.employeementId);
 
@@ -373,11 +379,23 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     // this.userDetailsForPerformanceView.deptId = 
     // this.selectedDepartment === 'All' ? null : this.selectedDepartment;
   
-     this.getALLdepartmentByEmployee();
-    
-  
-    
+     this.getALLdepartmentByEmployee(); 
   }
+
+  selectedQuarter:String = 'All'
+  onQuarterChange(event: any){
+
+    this.selectedQuarter = event.target.value;
+    // }
+    if(this.selectedQuarter === 'all'){
+      this.selectedQuarter = null;
+    }else{
+      this.selectedQuarter = this.selectedQuarter;
+    }
+    console.log("Check quarter",this.selectedQuarter);
+
+  }
+
   getAllDepartments(){
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -654,6 +672,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
 
   back() {
     this.getAllEmployee();
+    this.getAllEmployeesCurrentStatus();
     this.isperformanceDsah = true;
     this.isreviewPage = false;
     setTimeout(() => {
@@ -1171,4 +1190,20 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
         });
   }
 
+
+
+static:any[] = [];
+  getAllEmployeesCurrentStatus(){
+    this.performanceService.getAllEmployeesCurrentStatus().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+         this.static = response.serviceResponse
+         
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+
+    console.log("testing",this.static);
+    console.log("testing2",this.eligibleEmployees);
+  }
 }

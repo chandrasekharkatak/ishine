@@ -115,13 +115,19 @@
 
           <div class="row">
             <div class="col-md-12">
+             
+              <!-- <div class="container mt-3 d-flex justify-content-end" >   
+                <select id="department" class="form-control w-auto d-inline-block" (change)="onQuarterChange($event)">      
+                  <option value="all" selected>Select Quarter</option>
+                  <option *ngFor="let dept of EnabledAndActiveQuarterCycle" [value]="dept.quarterId">{{ dept.quarterCycle }}</option>
+                </select>
+              </div> -->
               <div class="selector-toggle">
                 <a href="javascript:void(0)" (click)="toggleSearch()">
                   <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                   <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-                </a>
+                </a>             
               </div>
-
               <!-- Table Container with Bootstrap's .table-responsive -->
               <div class="table-responsive" id="performanceIDContainer">
                 <table class="table table-striped table-bordered" matSort (matSortChange)="sortData($event)"
@@ -133,13 +139,14 @@
                       <th scope="col" class="info-label wide-col" mat-sort-header="designationName|string">Position</th>
                       <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department
                       </th>
-                      <th scope="col" class="info-label wide-col" mat-sort-header="billableType|string">Billable Type
-                      </th>
+                      <!-- <th scope="col" class="info-label wide-col" mat-sort-header="billableType|string">Billable Type
+                      </th> -->
                       <th scope="col" class="info-label wide-col" mat-sort-header="totalExperience|string">Experience
                       </th>
                       <th scope="col" class="info-label wide-col" mat-sort-header="employmentstatus|string">Status</th>
                       <th scope="col" class="info-label wide-col" mat-sort-header="dateOfJoining|string">DateOfJoining
                       </th>
+                      <th scope="col" class="info-label wide-col" mat-sort-header="completionStatus|string">Review Status</th>
                       <th scope="col" class="info-label wide-col" mat-sort-header="performanceStatus|string">Performance
                         Status</th>
                       <th scope="col" class="info-label wide-col" mat-sort-header="review|string">Review</th>
@@ -163,10 +170,11 @@
                       <!-- <td *ngIf="!userMapping.performance_employee_360">{{ eligiemployee.name }}</td> -->
                       <td>{{ eligiemployee.designationName }}</td>
                       <td>{{ eligiemployee.departmentName }}</td>
-                      <td>{{ eligiemployee.billableType }}</td>
+                      <!-- <td>{{ eligiemployee.billableType }}</td> -->
                       <td>{{ eligiemployee.totalExperience }}</td>
                       <td class="status">✔ {{ eligiemployee.employmentstatus }}</td>
                       <td>{{ eligiemployee.dateOfJoining }}</td>
+                      <td>{{eligiemployee.completionStatus?eligiemployee.completionStatus:"Not Started"}}</td>
                       <td>
                         <div class="progress-bar">
                           <div class="progress" [style.width.%]="eligiemployee.performanceStatusPercentage">{{
@@ -248,9 +256,7 @@
           </button>
         </h5>
       </div>
-      <!-- <div class="card" *ngFor="let quarter of performnace">
-          {{quarter.empId}}
-       </div> -->
+
       <div [id]="'collapse' + i" class="collapse" [attr.aria-labelledby]="'heading' + i" data-parent="#accordion">
         <!-- <div class="card-body" *ngIf="(currentStatus != 'Ongoing' && currentStatus != 'Completed' && currentStatus != 'Rejected') 
               && (userMapping.performance_action_by_hod || userMapping.performance_action_by_hr)"> Review has not been given By manager/Reporting Manger

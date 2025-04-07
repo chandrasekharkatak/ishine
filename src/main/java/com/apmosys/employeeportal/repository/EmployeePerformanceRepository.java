@@ -282,4 +282,8 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 			+ "  AND q.is_enable = 1;\n"
 			+ "")
 	List<Object[]> findAllRejectedReviewsAndTheirManagers();
+	
+	@Query(value="SELECT completion_status,emp_id FROM db_emp_portal.employee_performance epm inner join  db_emp_portal.quater_cycle qc on epm.quarter_id = qc.quarter_id where qc.is_enable =1 and qc.is_active=1",nativeQuery = true)
+	List<Object[]>currentStatusForPerformanceTableView();
+
 }
