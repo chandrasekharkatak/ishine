@@ -1368,6 +1368,12 @@
                     </button>
                 </div>
             </div>
+            <!-- <div class="export-button mt-3">
+                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                    [hidden]="allEmployeeList.length == 0" *ngIf="!isDraftTable" (click)="exportToExcel()"><em
+                        class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>
+            </div> -->
+
 
             <!-- <div class="col-md-3">
                 <div class="form-group" *ngIf="!isDraftTable">
@@ -1382,7 +1388,14 @@
                         <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
                     </a>
+                 </div>
+<!-- this is the download excel button  -->
+                <div class="export-button mt-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                        [hidden]="allEmployeeList.length == 0" *ngIf="!isDraftTable" (click)="exportToExcel()"><em
+                            class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>
                 </div>
+
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeInfo'"
                     [tableTHeadId]="'employeeInfoTHead'" [tableTHeadTrId]="'employeeInfoTHeadTr'">
                     <table class="table" id="employeeInfo" matSort (matSortChange)="sortData($event)">
@@ -1546,9 +1559,9 @@
                 <pagination-controls class="my-pagination" [hidden]="allEmployeeList.length == 0"
                     (pageChange)="handlePageChange($event)"></pagination-controls>
 
-                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
                     [hidden]="allEmployeeList.length == 0" *ngIf="!isDraftTable" (click)="exportToExcel()"><em
-                        class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>
+                        class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button> -->
             </div>
         </div>
     </div>

@@ -231,6 +231,12 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
                 </div>
+                <div class="export-button mt-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+                        [hidden]="leaveHistoryListForTable.length == 0" (click)="exportToExcelForLeave()"><em
+                            class="fa fa-file-arrow-down fa-2x"></em>
+                    </button>
+                </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveHistoryInfo'" [tableTHeadId]="'leaveHistoryInfoTHead'"
                 [tableTHeadTrId]="'leaveHistoryInfoTHeadTr'">
                     <table class="table table-responsive" id="leaveHistoryInfo" matSort (matSortChange)="sortData($event)">	
@@ -299,8 +305,10 @@
                     </table>
                 </div>
                 <pagination-controls class="my-pagination" [hidden]="leaveHistoryListForTable.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="leaveHistoryListForTable.length == 0" (click)="exportToExcelForLeave()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
-            </div>
+                <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+                    [hidden]="leaveHistoryListForTable.length == 0" (click)="exportToExcelForLeave()"><em
+                        class="fa fa-file-arrow-down fa-2x"></em></button> -->
+                </div>
         </div>
     </div>        
 </div>
@@ -387,7 +395,7 @@
                 </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
                     [tableTHeadTrId]="'holidayInfoTHeadTr'">
-                    <table class="table table-responsive" id="log-table" matSort (matSortChange)="sortData($event)">	
+                    <table class="table" id="log-table" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light">	
                           <tr>	
                             <th scope="col" class="info-label" >Sr. No</th>	
