@@ -339,6 +339,10 @@ getAllEmployeesReportByProjectTypeInConsolidated():Observable<any[]>{
   return this.http.get<any[]>(`${this.baseUrl}`+`api/getAllEmployeesReportByProjectTypeInConsolidated`);
 }
 
+getPoProjectDetailsBOthPOAndInternal(){
+  return this.http.get(`${this.baseUrl}`+`api/getPoProjectDetailsBOthPOAndInternal`);
+}
+
 getAllEmployeesReportByProjectType(){
   return this.http.get(`${this.baseUrl}`+`api/getAllEmployeesReportByProjectType`);
 }

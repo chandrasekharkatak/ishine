@@ -72,7 +72,22 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 			+ "GROUP BY d.name, e7.name")
 	List<Object[]> DepartmentbyEmployeecontquery();
 	
-	
+	@Query(nativeQuery = true , value="SELECT  \n"
+			+ "    d.name AS department_name,\n"
+			+ "    COUNT(DISTINCT e.emp_id) AS eligible_employees, \n"
+			+ "    COUNT(em.emp_id) AS filled_employees, \n"
+			+ "    (COUNT(DISTINCT e.emp_id) - COUNT(em.emp_id)) AS unfilled_employees,\n"
+			+ "    e7.name AS hod_name\n"
+			+ "FROM employee e\n"
+			+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
+			+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
+			+ "INNER JOIN employee e7 ON d.hod_id = e7.emp_id \n"
+			+ "LEFT JOIN employee_performance em ON e.emp_id = em.emp_id\n"
+			+ "WHERE e.employmentstatus = 'Confirmed'\n"
+			+"AND d.dept_id = :deptId\n"
+			+ "AND e.date_of_joining <= DATE_FORMAT(NOW(), '%Y-12-31') - INTERVAL 1 YEAR\n"
+			+ "GROUP BY d.name, e7.name")
+	List<Object[]> DepartmentbyEmployeecontqueryForEachDepartment(Long deptId);
 	@Query(nativeQuery = true,value = "select DISTINCT e.emp_id,e.email,e.name from employee e inner join department d on d.hod_id = e.emp_id and e.employmentstatus != 'InActive'")
 	List<Object[]> findAllActiveHODs();
 	

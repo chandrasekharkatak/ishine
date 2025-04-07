@@ -7,7 +7,9 @@
 <!-- start :: Create & Update Form -->
 <div class="row">
     <div class="px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mb-1" *ngIf="userMapping.view_all_designation && !isTable" [ngClass]="{'active' : isTable}" (click)="showTable()"><em><i class="fa-solid fa-arrow-left-long"></i></em></button>
+        <button type="button" class="btn btn-outline-primary btn-sm mb-1"
+            *ngIf="userMapping.view_all_designation && !isTable" [ngClass]="{'active' : isTable}"
+            (click)="showTable()"><em><i class="fa-solid fa-arrow-left-long"></i></em></button>
     </div>
     <div class="card col-md-12 px-0" *ngIf="isForm">
         <div class="card-header text-center text-uppercase">
@@ -21,7 +23,8 @@
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Designation Name</label>
                             <input type="text" class="form-control" maxlength="255" autocomplete="none"
-                            [(ngModel)]="designationObj.designationName" (blur)="checkDesignationName(designationObj.designationName,alert_message)">
+                                [(ngModel)]="designationObj.designationName"
+                                (blur)="checkDesignationName(designationObj.designationName,alert_message)">
                         </div>
                     </div>
                 </div>
@@ -31,7 +34,8 @@
                             <label class="info-label"><span class="text-danger">*</span>Department</label>
                             <mat-select class="form-control" multiple [(ngModel)]="designationObj.deptIdList">
                                 <mat-option selected="selected" value="" disabled>Select</mat-option>
-                                <mat-option *ngFor="let dept of allDeptList" [value]="dept.deptId">{{dept.name}}</mat-option>
+                                <mat-option *ngFor="let dept of allDeptList"
+                                    [value]="dept.deptId">{{dept.name}}</mat-option>
                             </mat-select>
                         </div>
                     </div>
@@ -40,10 +44,10 @@
             <div class="row mt-3">
                 <div class="col-md-12">
                     <button *ngIf="isCreation" type="submit" class="btn btn-primary btn-sm mx-1"
-                    (click)="onCreateDesignation(alert_message)">Create Designation</button>
+                        (click)="onCreateDesignation(alert_message)">Create Designation</button>
 
                     <button *ngIf="isUpdation" type="submit" class="btn btn-primary btn-sm mx-1"
-                    (click)="onUpdateDesignation(alert_message)">Update Designation</button>
+                        (click)="onUpdateDesignation(alert_message)">Update Designation</button>
                 </div>
             </div>
         </div>
@@ -63,52 +67,75 @@
             <div class="col-md-12">
                 <div class="row">
                     <div class="col-md-3 ml-auto d-flex justify-content-end align-items-start">
-                        <button type="button"  class="btn btn-outline-primary btn-sm m-1"  [ngClass]="{'active' : isForm && isCreation}" *ngIf="userMapping.create_designation" (click)="showCreateForm()"><em class="fa-solid fa-plus"></em> &nbsp; Add New Designation</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm m-1"
+                            [ngClass]="{'active' : isForm && isCreation}" *ngIf="userMapping.create_designation"
+                            (click)="showCreateForm()"><em class="fa-solid fa-plus"></em> &nbsp; Add New
+                            Designation</button>
                     </div>
                 </div>
             </div>
         </div>
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" >
+                <div class="selector-toggle">
                     <a href="javascript:void(0)">
                         <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
                     </a>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'designationInfo'" [tableTHeadId]="'designationInfoTHead'"
-                    [tableTHeadTrId]="'designationInfoTHeadTr'">
-                    <table class="table" id="designationInfo" matSort
-                        (matSortChange)="sortData($event)">
+
+                <div class="export-button mt-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                        [hidden]="allDesignationList.length == 0" (click)="exportToExcel()"><em
+                            class="fa fa-file-arrow-down fa-2x"></em></button>
+                </div>
+
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'designationInfo'"
+                    [tableTHeadId]="'designationInfoTHead'" [tableTHeadTrId]="'designationInfoTHeadTr'">
+                    <table class="table" id="designationInfo" matSort (matSortChange)="sortData($event)">
                         <thead class="thead-light" id="designationInfoTHead">
                             <tr id="designationInfoTHeadTr">
                                 <th scope="col" class="info-label">Sr No.</th>
-                                <th scope="col" class="info-label" mat-sort-header="designationName|string">Designation Name</th>
-                                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
+                                <th scope="col" class="info-label" mat-sort-header="designationName|string">Designation
+                                    Name</th>
+                                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by
+                                </th>
                                 <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
                                 <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated on</th>
-                                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated by</th>
+                                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated by
+                                </th>
                                 <th scope="col" class="info-label">Actions</th>
                             </tr>
-                            <tr app-column-filter-bar *ngIf="isTable && isSearchEnabled" [columnList]="designationColumns" (onSearch)="onSearch($event);page=1" ></tr>
+                            <tr app-column-filter-bar *ngIf="isTable && isSearchEnabled"
+                                [columnList]="designationColumns" (onSearch)="onSearch($event);page=1"></tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="allDesignationList.length == 0 || (allDesignationList | colFilter:filters:false).length == 0">
+                            <tr
+                                *ngIf="allDesignationList.length == 0 || (allDesignationList | colFilter:filters:false).length == 0">
                                 <th colspan="8" class="text-center info-label">No details to display...</th>
                             </tr>
                             <tr
                                 *ngFor="let desig of allDesignationList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                                 <th class="info-label">{{20*(page-1)+i+1}}</th>
                                 <td>{{desig.designationName}}</td>
-                                <td *ngIf="userMapping.employee360_view_designation_config && desig.createdByName"  id="clickablefor360" [navigateToEmployee360]="desig.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{desig.createdByName}}</td>
-                                <td *ngIf="!userMapping.employee360_view_designation_config || !desig.createdByName" >{{desig.createdByName}}</td>
+                                <td *ngIf="userMapping.employee360_view_designation_config && desig.createdByName"
+                                    id="clickablefor360" [navigateToEmployee360]="desig.emp360CreatedBy"
+                                    style="cursor: pointer;" title="Click to view Employee 360">{{desig.createdByName}}
+                                </td>
+                                <td *ngIf="!userMapping.employee360_view_designation_config || !desig.createdByName">
+                                    {{desig.createdByName}}</td>
                                 <td>{{desig.createdOn}}</td>
                                 <td>{{desig.updatedOn}}</td>
-                                <td *ngIf="userMapping.employee360_view_designation_config && desig.updatedByName"  id="clickablefor360" [navigateToEmployee360]="desig.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{desig.updatedByName}}</td>
-                                <td *ngIf="!userMapping.employee360_view_designation_config || !desig.updatedByName" >{{desig.updatedByName}}</td>
+                                <td *ngIf="userMapping.employee360_view_designation_config && desig.updatedByName"
+                                    id="clickablefor360" [navigateToEmployee360]="desig.emp360UpdatedBy"
+                                    style="cursor: pointer;" title="Click to view Employee 360">{{desig.updatedByName}}
+                                </td>
+                                <td *ngIf="!userMapping.employee360_view_designation_config || !desig.updatedByName">
+                                    {{desig.updatedByName}}</td>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-primary" *ngIf="userMapping.update_designation"
-                                        type="submit" (click)="showUpdateForm(desig)"><em class="fa fa-edit"></em></button>&nbsp;
+                                    <button class="btn btn-sm btn-outline-primary"
+                                        *ngIf="userMapping.update_designation" type="submit"
+                                        (click)="showUpdateForm(desig)"><em class="fa fa-edit"></em></button>&nbsp;
                                     <button class="btn btn-sm btn-outline-danger" *ngIf="userMapping.delete_designation"
                                         type="submit" (click)="openDeleteDesignation(delete_template,desig)"><em
                                             class="fa fa-trash"></em></button>
@@ -119,9 +146,9 @@
                 </div>
                 <pagination-controls class="my-pagination" [hidden]="allDesignationList.length == 0"
                     (pageChange)="handlePageChange($event)"></pagination-controls>
-                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
                     [hidden]="allDesignationList.length == 0" (click)="exportToExcel()"><em
-                        class="fa fa-file-arrow-down fa-2x"></em></button>
+                        class="fa fa-file-arrow-down fa-2x"></em></button> -->
             </div>
         </div>
     </div>
@@ -141,26 +168,32 @@
 <ng-template #delete_template>
     <div class="modal-body text-center">
         <p>Are you sure you want to delete the Designation ?</p>
-        <button type="button" class="btn btn-success" (click)="onDeleteDesignation(update_designation_mapping_template, alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-success"
+            (click)="onDeleteDesignation(update_designation_mapping_template, alert_message)">Yes,
+            proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
 
 <ng-template #update_designation_mapping_template>
     <div class="modal-body text-center">
-        <p>Designation cannot be deleted as it is mapped to Employee(s).<br>To delete Designation change Employee Designation mapping.</p>
+        <p>Designation cannot be deleted as it is mapped to Employee(s).<br>To delete Designation change Employee
+            Designation mapping.</p>
         <div class="col-md-12 mb-0">
             <div class="info-wrapper">
                 <div class="form-group d-flex">
                     <label><span class="text-danger">*</span>Select Designation</label>
                     <select class="form-control ml-4" aria-hidden="true" [(ngModel)]="designationObj.newDesignationId">
                         <option selected="selected" value="" disabled>Select</option>
-                        <option *ngFor="let designation of filteredDesignationListByDept" value="{{designation.designationId}}">{{designation.designationName}}</option>
+                        <option *ngFor="let designation of filteredDesignationListByDept"
+                            value="{{designation.designationId}}">{{designation.designationName}}</option>
                     </select>
                 </div>
             </div>
         </div>
-        <button type="button" class="btn btn-success" [disabled]="designationObj.newDesignationId == null" (click)="onChangeEmployeeDesignationMapping(alert_message,designationObj.newDesignationId)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-success" [disabled]="designationObj.newDesignationId == null"
+            (click)="onChangeEmployeeDesignationMapping(alert_message,designationObj.newDesignationId)">Yes,
+            proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>

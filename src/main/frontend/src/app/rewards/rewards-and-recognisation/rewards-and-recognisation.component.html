@@ -185,10 +185,16 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
                 </div>
+                <div class="export-button">
+                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                        [hidden]="rewardHistoryList.length == 0" (click)="exportToExcel()">
+                        <em class="fa fa-file-arrow-down fa-2x"></em>
+                    </button>
+                </div>
 
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'rewardHistoryInfo'"
+                <div class="table-container" bassHorizontalScroll [tableId]="'rewardHistoryInfo'"
                     [tableTHeadId]="'rewardHistoryInfoTHead'" [tableTHeadTrId]="'rewardHistoryInfoTHeadTr'">
-                    <table class="table table-responsive" id="rewardHistoryInfo" matSort
+                    <table class="table" id="rewardHistoryInfo" matSort
                         (matSortChange)="sortData($event)">
                         <thead class="thead-light" id="rewardHistoryInfoTHead">
                             <tr id="rewardHistoryInfoTHeadTr">
@@ -274,10 +280,7 @@
                     </table>
                     <pagination-controls class="my-pagination" [hidden]="rewardHistoryList.length == 0"
                         (pageChange)="handlePageChange($event)"></pagination-controls>
-                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-                        [hidden]="rewardHistoryList.length == 0" (click)="exportToExcel()">
-                        <em class="fa fa-file-arrow-down fa-2x"></em>
-                    </button>
+                    
                 </div>
             </div>
         </div>
