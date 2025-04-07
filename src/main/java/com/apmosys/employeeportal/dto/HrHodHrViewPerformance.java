@@ -11,5 +11,6 @@ public class HrHodHrViewPerformance {
 	
 	private Long empId;
 	private Boolean hrvalidate;
+	private Long deptId;
 
 }

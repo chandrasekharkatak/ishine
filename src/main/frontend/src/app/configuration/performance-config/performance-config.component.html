@@ -312,14 +312,18 @@
                 <div class="col-md-4 mb-0" *ngIf="isCreateReview">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Department</label>
-                            <mat-select class="form-control" multiple [(ngModel)]="reviewObj.deptId">
-                                <!-- <mat-option selected="selected" value="" disabled>Select</mat-option> -->
-                                <mat-option *ngFor="let dept of allDeptList"
-                                    [value]="dept.deptId">{{dept.name}}</mat-option>
-                            </mat-select>
+                          <label class="info-label"><span class="text-danger">*</span>Department</label>
+                          <mat-select class="form-control" multiple [(ngModel)]="reviewObj.deptId">
+                            <mat-option (click)="toggleSelectAll()" [disabled]="allDeptList.length === 0">
+                              {{ isAllSelected ? 'Deselect All' : 'Select All' }}
+                            </mat-option>
+                            <mat-option *ngFor="let dept of allDeptList" [value]="dept.deptId">
+                              {{ dept.name }}
+                            </mat-option>
+                          </mat-select>
                         </div>
-                    </div>
+                      </div>
+                      
                 </div>
                 <div class="col-md-4 mb-0" *ngIf="isReviewUpdation">
                     <div class="info-wrapper">

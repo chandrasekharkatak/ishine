@@ -42,6 +42,16 @@
 
               </div>
               <div id="performanceId" style="height: 300px;"></div>
+              <div class="container mt-3 d-flex justify-content-end" >
+                <!-- <label for="department">Select Department:</label> -->
+                <select id="department" class="form-control w-auto d-inline-block" (change)="onDepartmentChange($event)">
+                  <!-- <option value="" disabled selected>Select a department</option> -->
+                  <option value="all" selected>All</option>
+                  <option *ngFor="let dept of departments" [value]="dept.deptId">{{ dept.name }}</option>
+                </select>
+          
+                <!-- <p *ngIf="selectedDepartment" class="mt-2">You selected: <b>{{ selectedDepartment }}</b></p> -->
+              </div>
               <div class="custom-control custom-switch">
                 <input type="checkbox" class="custom-control-input" id="hierarchy-switch">
                 <!-- (change)="toggleData($event)" -->
