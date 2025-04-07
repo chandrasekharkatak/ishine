@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.repository;
 
 import java.util.List;
+import java.util.Set;
 
 import org.hibernate.query.NativeQuery;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -68,6 +69,10 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	@Query(nativeQuery=true)
 	public List<Object[]> getPoProjectDetailsForPoProjects();
 	
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getPoProjectDetailsBOthPOAndInternal();
+	
 	@Query(nativeQuery = true)
 	List<Object[]> getExpiredPoProjects();
 	
@@ -78,5 +83,5 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	List<Object[]> getExpiredPoProjectsWithoutInterval();
 	
 	@Query(nativeQuery = true)
-	List<Object[]> poProjectTimesheetSync(List<Integer> poProjectIdList);
+	List<Object[]> poProjectTimesheetSync(Set<Long> poProjectIdList);
 }

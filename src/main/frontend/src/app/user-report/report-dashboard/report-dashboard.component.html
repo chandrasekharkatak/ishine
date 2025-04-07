@@ -34,9 +34,13 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'resignedEmployeeInfo'" [tableTHeadId]="'resignedEmployeeInfoTHead'"
+                <div class="export-button mt-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allResignEmployee.length == 0" (click)="exportToExcelResignedEmployee()"><em
+                        class="fa fa-file-arrow-down fa-2x"></em></button>
+                </div>
+                <div class="table-container" bassHorizontalScroll [tableId]="'resignedEmployeeInfo'" [tableTHeadId]="'resignedEmployeeInfoTHead'"
                     [tableTHeadTrId]="'resignedEmployeeInfoTHeadTr'">
-                    <table class="table table-responsive " matSort (matSortChange)="sortData($event)">
+                    <table class="table " matSort (matSortChange)="sortData($event)">
                         <thead class="thead-light">
                           <tr>
                             <th scope="col" class="info-label" >Sr No.</th>
@@ -69,8 +73,8 @@
                       </table>
                 </div>
                 <pagination-controls class="my-pagination" [hidden]="allResignEmployee && allResignEmployee.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
-                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allResignEmployee.length == 0" (click)="exportToExcelResignedEmployee()"><em
-                    class="fa fa-file-arrow-down fa-2x"></em></button>
+                <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allResignEmployee.length == 0" (click)="exportToExcelResignedEmployee()"><em
+                    class="fa fa-file-arrow-down fa-2x"></em></button> -->
             </div>
         </div>
     </div>
@@ -264,7 +268,12 @@
             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
         </a>
     </div>
-        <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)">
+    <div class="export-button mt-3">
+        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+        [hidden]="modalSummaryList.length == 0" (click)="exportToExcelLeaveSummary()"><em
+            class="fa fa-file-arrow-down fa-2x"></em></button>
+    </div>
+        <table class="table  scrollable-table" matSort (matSortChange)="sortData($event)">
             <thead class="thead-light">
                 <tr>
                     <th scope="col" class="info-label wide-col">Sr No.</th>
@@ -302,9 +311,9 @@
         </table>
         <pagination-controls class="my-pagination" [hidden]="modalSummaryList.length == 0"
             (pageChange)="handlePageChange($event)"></pagination-controls>
-        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+        <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
             [hidden]="modalSummaryList.length == 0" (click)="exportToExcelLeaveSummary()"><em
-                class="fa fa-file-arrow-down fa-2x"></em></button>
+                class="fa fa-file-arrow-down fa-2x"></em></button> -->
     </div>
 </div>
 </ng-template>
@@ -324,7 +333,12 @@
                     <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                 </a>
             </div>
-            <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)">
+            <div class="export-button">
+                <button type="button mt-3" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+                [hidden]="modalSummaryList.length == 0" (click)="exportToExcelTimesheetSummary()"><em
+                    class="fa fa-file-arrow-down fa-2x"></em></button>
+            </div>
+            <table class="table  scrollable-table" matSort (matSortChange)="sortData($event)">
                 <thead class="thead-light">
                     <tr>
                         <th scope="col" class="info-label wide-col">Sr No.</th>
@@ -372,9 +386,9 @@
             </table>
             <pagination-controls class="my-pagination" [hidden]="modalSummaryList.length == 0"
                 (pageChange)="handlePageChange($event)"></pagination-controls>
-            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+            <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
                 [hidden]="modalSummaryList.length == 0" (click)="exportToExcelTimesheetSummary()"><em
-                    class="fa fa-file-arrow-down fa-2x"></em></button>
+                    class="fa fa-file-arrow-down fa-2x"></em></button> -->
         </div>
     </div>
 </ng-template>
@@ -394,7 +408,12 @@
                     <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                 </a>
             </div>
-            <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)">
+            <div class="export-button">
+                <button type="button mt-3" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+                [hidden]="modalSummaryList.length == 0" (click)="exportToExcelEODSegregation()"><em
+                    class="fa fa-file-arrow-down fa-2x"></em></button>
+            </div>
+            <table class="table  scrollable-table" matSort (matSortChange)="sortData($event)">
                 <thead class="thead-light">
                     <tr>
                         <th scope="col" class="info-label wide-col wide-col">Sr No.</th>
@@ -435,9 +454,9 @@
             </table>
             <pagination-controls class="my-pagination" [hidden]="modalSummaryList.length == 0"
                 (pageChange)="handlePageChange($event)"></pagination-controls>
-            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+            <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
                 [hidden]="modalSummaryList.length == 0" (click)="exportToExcelEODSegregation()"><em
-                    class="fa fa-file-arrow-down fa-2x"></em></button>
+                    class="fa fa-file-arrow-down fa-2x"></em></button> -->
         </div>
     </div>
 </ng-template>
@@ -460,7 +479,7 @@
             <!-- <div class="form-group ml-auto col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
         </div> -->
-            <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)">
+            <table class="table  scrollable-table" matSort (matSortChange)="sortData($event)">
                 <thead class="thead-light">
                     <tr>
                         <th scope="col" class="info-label wide-col">Sr No.</th>
@@ -541,9 +560,9 @@
             </table>
             <pagination-controls class="my-pagination" [hidden]="modalSummaryList.length == 0"
                 (pageChange)="handlePageChange($event)"></pagination-controls>
-            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+            <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
                 [hidden]="modalSummaryList.length == 0" (click)="exportToExcelEmployeeSummary()"><em
-                    class="fa fa-file-arrow-down fa-2x"></em></button>
+                    class="fa fa-file-arrow-down fa-2x"></em></button> -->
         </div>
     </div>
 </ng-template>
@@ -563,7 +582,12 @@
             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
         </a>
     </div>
-        <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)">
+    <div class="export-button mt-3">
+        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+        [hidden]="modalSummaryList.length == 0" (click)="exportToExcelWorkLocationSummary()"><em
+            class="fa fa-file-arrow-down fa-2x"></em></button>
+    </div>
+        <table class="table  scrollable-table" matSort (matSortChange)="sortData($event)">
             <thead class="thead-light">
                 <tr>
                     <th scope="col" class="info-label wide-col" >Sr No.</th>
@@ -598,9 +622,9 @@
         </table>
         <pagination-controls class="my-pagination" [hidden]="modalSummaryList.length == 0"
             (pageChange)="handlePageChange($event)"></pagination-controls>
-        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+        <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
             [hidden]="modalSummaryList.length == 0" (click)="exportToExcelWorkLocationSummary()"><em
-                class="fa fa-file-arrow-down fa-2x"></em></button>
+                class="fa fa-file-arrow-down fa-2x"></em></button> -->
     </div>
 </div>
 </ng-template>

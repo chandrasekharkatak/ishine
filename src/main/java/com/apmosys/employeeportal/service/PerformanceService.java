@@ -851,7 +851,7 @@ public class PerformanceService {
 	}
 	
 	
-	public ServiceResponse	DepartmentbyEmployeecont () {
+	public ServiceResponse	DepartmentbyEmployeecont (HrHodHrViewPerformance hrHodHrViewPerformance) {
 		
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo=new LogDTO();
@@ -863,11 +863,15 @@ public class PerformanceService {
 		
 		
 		try {
-		
+			List<Object[]> employeeDepertmemtCount = null;
 		List<HashMap<String, Object>> department = new  ArrayList<HashMap<String, Object>>();
 		HashMap<String, Object> map = new HashMap< String, Object> ();
+		if(hrHodHrViewPerformance.getDeptId() == null){
+			 employeeDepertmemtCount = employeePerformanceRepository.DepartmentbyEmployeecontquery();
+		}else {
+			 employeeDepertmemtCount = employeePerformanceRepository.DepartmentbyEmployeecontqueryForEachDepartment(hrHodHrViewPerformance.getDeptId());
+		}
 		
-		List<Object[]> employeeDepertmemtCount = employeePerformanceRepository.DepartmentbyEmployeecontquery();
 		
 		if(employeeDepertmemtCount != null && !employeeDepertmemtCount.isEmpty()) {
 			for(Object[] object:employeeDepertmemtCount) {

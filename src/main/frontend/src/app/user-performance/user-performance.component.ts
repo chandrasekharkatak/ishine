@@ -17,6 +17,7 @@ import { HrHodMangerApiForPerformnace } from '../models/hrHodMangerApiForPerform
 import { Log } from '../models/log';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
+import { DepartmentService } from '../services/department.service';
 import { EmployeeService } from '../services/employee.service';
 import { Employee360Service } from '../services/employee360.service';
 import { ExportExcelService } from '../services/export-excel.service';
@@ -120,7 +121,8 @@ export class UserPerformanceComponent implements OnInit {
     private performanceSerive: PerformanceService,
     private exportExcelService: ExportExcelService,
     private performanceService: PerformanceService,
-    private employee360Service: Employee360Service
+    private employee360Service: Employee360Service,
+    private departmentService:DepartmentService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
 
@@ -156,7 +158,7 @@ export class UserPerformanceComponent implements OnInit {
       // console.log("hrrrrrrrr", this.userMapping.performance_action_by_hr);
        this.getAllEmployeeFor360View();
        this.getAllEmployee();
-
+       this.getAllDepartments();
      
     } catch (error) {
       console.error("Error in ngOnInit", error);
@@ -326,7 +328,9 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
 
   async getALLdepartmentByEmployee() {
     try {
-      const response: any = await this.performanceSerive.getALLdepartmentByEmployee().toPromise();
+     
+     
+      const response: any = await this.performanceSerive.getALLdepartmentByEmployee(this.userDetailsForPerformanceView).toPromise();
 
       if (response.serviceStatus === "Success") {
 
@@ -350,7 +354,42 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
   }
 
 
+  selectedDepartment: string = 'All';
+  departments:any[] =[];
+  onDepartmentChange(event: any) {
+  
 
+    // if(this.selectedDepartment === 'all'){
+    //   this.filteredEmployees=this.allEmployee;
+    // }else{
+      this.selectedDepartment = event.target.value;
+    // }
+    if(this.selectedDepartment === 'all'){
+      this.userDetailsForPerformanceView.deptId = null;
+    }else{
+      this.userDetailsForPerformanceView.deptId = this.selectedDepartment;
+    }
+    console.log("hbhgsvchsgdv",this.userDetailsForPerformanceView.deptId,this.selectedDepartment)
+    // this.userDetailsForPerformanceView.deptId = 
+    // this.selectedDepartment === 'All' ? null : this.selectedDepartment;
+  
+     this.getALLdepartmentByEmployee();
+    
+  
+    
+  }
+  getAllDepartments(){
+    this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        // console.log('response -- ',response.serviceResponse);
+        this.departments = response.serviceResponse;
+        // console.log('dept response -- ',this.departments);
+
+      }else {
+        alert(response.serviceResponse)
+      }
+    });
+  }
 
   getAllQauterCycle() {
     this.performanceSerive.getAllQuarterCycles().subscribe

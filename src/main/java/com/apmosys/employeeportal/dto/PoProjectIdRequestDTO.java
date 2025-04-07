@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.dto;
 
 import java.util.List;
+import java.util.Set;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -11,6 +12,6 @@ import lombok.ToString;
 @ToString
 public class PoProjectIdRequestDTO {
 	
-	private List<Integer> poProjectIdList;
+	private Set<Long> poProjectIdList;
 
 }

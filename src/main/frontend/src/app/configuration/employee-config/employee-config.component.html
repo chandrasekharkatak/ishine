@@ -1368,6 +1368,12 @@
                     </button>
                 </div>
             </div>
+            <!-- <div class="export-button mt-3">
+                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                    [hidden]="allEmployeeList.length == 0" *ngIf="!isDraftTable" (click)="exportToExcel()"><em
+                        class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>
+            </div> -->
+
 
             <!-- <div class="col-md-3">
                 <div class="form-group" *ngIf="!isDraftTable">
@@ -1382,10 +1388,17 @@
                         <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
                     </a>
+                 </div>
+<!-- this is the download excel button  -->
+                <div class="export-button mt-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                        [hidden]="allEmployeeList.length == 0" *ngIf="!isDraftTable" (click)="exportToExcel()"><em
+                            class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>
                 </div>
+
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeInfo'"
                     [tableTHeadId]="'employeeInfoTHead'" [tableTHeadTrId]="'employeeInfoTHeadTr'">
-                    <table class="table table-responsive" id="employeeInfo" matSort (matSortChange)="sortData($event)">
+                    <table class="table" id="employeeInfo" matSort (matSortChange)="sortData($event)">
                         <thead class="thead-light" id="employeeInfoTHead">
                             <tr id="employeeInfoTHeadTr">
                                 <!-- <th *ngIf="!isDraftTable" scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
@@ -1464,8 +1477,7 @@
                                 <td *ngIf="isTable">{{employee.referedName}}</td>
                                 <td *ngIf="isDraftTable">{{employee.updateApplicationStatus}}</td>
                                 <td
-                                    *ngIf="(isTable && userMapping.update_employee) || (isTable && userMapping.delete_employee)">
-                                    <button
+                                    *ngIf="(isTable && userMapping.update_employee) || (isTable && userMapping.delete_employee)">                                    <button
                                         *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')"
                                         class="btn btn-sm btn-outline-primary mb-1" type="submit"
                                         (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
@@ -1547,9 +1559,9 @@
                 <pagination-controls class="my-pagination" [hidden]="allEmployeeList.length == 0"
                     (pageChange)="handlePageChange($event)"></pagination-controls>
 
-                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
                     [hidden]="allEmployeeList.length == 0" *ngIf="!isDraftTable" (click)="exportToExcel()"><em
-                        class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>
+                        class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button> -->
             </div>
         </div>
     </div>

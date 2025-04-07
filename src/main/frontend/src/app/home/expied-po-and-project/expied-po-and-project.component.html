@@ -12,7 +12,7 @@
                                         <th scope="col" class="info-label">Project Name</th>
                                         <th scope="col" class="info-label">PO No.</th>
                                         <th scope="col" class="info-label">Project Type</th>
-                                        <!-- <th scope="col" class="info-label" colspan="7">Send E-Mail</th> -->
+                                        <th scope="col" class="info-label" colspan="7">Send E-Mail</th>
                                         <th scope="col" class="info-label">Modify</th>
                                         <!-- <th scope="col" class="info-label" >
                                             Updated By</th> -->
@@ -39,11 +39,11 @@
                                         <td>{{expData.projectName}}</td>
                                         <td>{{expData.poNo}}</td>
                                         <td>{{expData.poProjectType}}</td>
-                                        <!-- <td colspan="7">
+                                        <td colspan="7">
                                             <button type="button" class="btn btn-primary" (click)="sendEmail(expData.poEndDate,expData.projectName,expData.poNo,expData.poProjectType)">
                                              Send Email
                                             </button>
-                                        </td> -->
+                                        </td>
                                         <td>
                                           <button type="button" class="btn btn-warning" [navigateToProjectView]="expData.projectId" (click)="closeModal()" >
                                             Edit

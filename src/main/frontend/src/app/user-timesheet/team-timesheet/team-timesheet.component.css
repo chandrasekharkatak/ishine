@@ -64,3 +64,33 @@
 .highlight {
     background-color: rgb(171, 193, 253);
 }
+.table-container {
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    overflow-x: auto;
+    position: relative;
+}
+
+table {
+    min-width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+}
+  .thead-light{
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--ghost-white);
+  }
+
+  .export-button{
+    position:absolute;
+    right: 0%;
+    top:-25px;
+  }
