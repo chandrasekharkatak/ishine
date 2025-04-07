@@ -90,6 +90,12 @@
     color: black;
 }
 
+.export-button{
+    position: absolute;
+    right: 0%;
+    top: -25px;
+
+}
 
 /* .selector-toggle a{
     display: block;
@@ -131,6 +137,7 @@
     position: relative;
     max-height: 500px; 
     overflow-y: auto;
+    margin-top: 20px;
 }
 .table{
     width: 100%;

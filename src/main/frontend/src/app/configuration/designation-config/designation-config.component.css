@@ -23,6 +23,7 @@
     position: relative;
     max-height: 500px; 
     overflow-y: auto;
+    margin-top: 20px;
 }
 .table{
     width: 100%;
@@ -34,4 +35,9 @@
     top: 0;
     z-index: 100;
     background: var(--ghost-white);
+}
+.export-button{
+    position: absolute;
+    right: 0%;
+    top: -25px;
 }
