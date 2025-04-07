@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.controller;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -105,8 +106,8 @@ public class ProjectController {
 	}
 	
 	@PostMapping(value = "/poProjectTimesheetSync")
-	public ServiceResponse poProjectTimesheetSync(@RequestBody PoProjectIdRequestDTO poProjectIdRequestDTO) {
-		return projectService.poProjectTimesheetSync(poProjectIdRequestDTO.getPoProjectIdList());
+	public ServiceResponse poProjectTimesheetSync(@RequestBody Set<Long> projectIdList) {
+		return projectService.poProjectTimesheetSync(projectIdList);
 	}
 	
 }
