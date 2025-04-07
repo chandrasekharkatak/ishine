@@ -341,6 +341,7 @@ export class BodyComponent implements OnInit {
        
   }
   
+  
   clickMenu() {
     this.openMenu = !this.openMenu;
   }

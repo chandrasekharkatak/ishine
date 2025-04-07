@@ -88,7 +88,7 @@
   <i class="material-icons">badge</i>
 </button>
 
-<button mat-raised-button class="label labelone mat-elevation-z8"*ngIf=" currentUser && openMenu && resourceManagementFeature === 'Resource Management'" color="basic"
+<button mat-raised-button class="label labelone mat-elevation-z8" style="background-color: aqua;" *ngIf=" currentUser && openMenu && resourceManagementFeature === 'Resource Management'" color="basic"
   (click)="routingFunction('user-team/resource-management')" >
   RMG
 </button>
@@ -97,7 +97,7 @@
   (click)="routingFunction('user-reports/report-list')">
   <i class="material-icons">diversity_3</i>
 </button>
-<button mat-raised-button class="label labeltwo mat-elevation-z8" *ngIf="currentUser && openMenu && reportsFeature === 'Reports'" color="basic"
+<button mat-raised-button class="label labeltwo mat-elevation-z8" style="background-color: aqua;" *ngIf="currentUser && openMenu && reportsFeature === 'Reports'" color="basic"
   (click)="routingFunction('user-reports/report-list')">
   Employee Report
 </button>
