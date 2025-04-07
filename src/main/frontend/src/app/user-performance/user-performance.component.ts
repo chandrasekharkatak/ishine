@@ -364,8 +364,14 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     // }else{
       this.selectedDepartment = event.target.value;
     // }
-    this.userDetailsForPerformanceView.deptId = 
-    this.selectedDepartment === 'All' ? null : this.selectedDepartment;
+    if(this.selectedDepartment === 'all'){
+      this.userDetailsForPerformanceView.deptId = null;
+    }else{
+      this.userDetailsForPerformanceView.deptId = this.selectedDepartment;
+    }
+    console.log("hbhgsvchsgdv",this.userDetailsForPerformanceView.deptId,this.selectedDepartment)
+    // this.userDetailsForPerformanceView.deptId = 
+    // this.selectedDepartment === 'All' ? null : this.selectedDepartment;
   
      this.getALLdepartmentByEmployee();
     

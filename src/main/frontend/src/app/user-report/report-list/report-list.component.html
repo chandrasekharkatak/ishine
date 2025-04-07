@@ -619,11 +619,11 @@
             <thead class="thead-light">
               <tr>
                 <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Emp Id</th>
-                <th scope="col" class="info-label" mat-sort-header="name|string">Full Name</th>
-                <th scope="col" class="info-label" mat-sort-header="departmentName|string">Department</th>
-                <th scope="col" class="info-label" mat-sort-header="jobRole|string">Job Role</th>
-                <th scope="col" class="info-label " mat-sort-header="managerName|string">Manager</th>
+                <th scope="col" style="min-width: 100px;" mat-sort-header="employeementId|empId">Emp Id</th>
+                <th scope="col" class="info-label md-wide-col" mat-sort-header="name|string">Full Name</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department</th>
+                <th scope="col" class="info-label md-wide-col" mat-sort-header="jobRole|string">Job Role</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="managerName|string">Manager</th>
                 <th scope="col" class="info-label " mat-sort-header="mobileNo|number">Mobile Number</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="email|string">Email Id</th>
                 <th scope="col" class="info-label" mat-sort-header="employmentstatus|string">Employment Status</th>
@@ -631,7 +631,7 @@
                 <th scope="col" class="info-label" mat-sort-header="billableType|string">Billable Type</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="teamName|string">Team Name</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="projectName|string">Project Name</th>
-                <th scope="col" class="info-label " mat-sort-header="poNo|string">Po No</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="poNo|string">Po No</th>
                 <th scope="col" class="info-label " mat-sort-header="poType|string">Po Type</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="poStartDate|string">Po Start Date</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="poEndDate|string">Po End Date</th>
@@ -642,9 +642,9 @@
                 <th scope="col" class="info-label wide-col" mat-sort-header="clientLocation|string">Client Location</th>
                 <th scope="col" class="info-label" mat-sort-header="workLocation|string">Work Location</th>
                 <th scope="col" class="info-label" mat-sort-header="totalExperience|string">Experience</th>
-                <th *ngIf="changeTable" scope="col" class="info-label " mat-sort-header="totalExperience|string">Default
+                <th *ngIf="changeTable" scope="col" class="info-label wide-col" mat-sort-header="totalExperience|string">Default
                   Project Assigned</th>
-                <th *ngIf="changeTable" scope="col" class="info-label wide-col" mat-sort-header="defaultProject|string">
+                <th *ngIf="changeTable" scope="col" class="info-label wide-wide-col" mat-sort-header="defaultProject|string">
                   Select Default Project</th>
               </tr>
               <tr app-column-filter-bar *ngIf="isEmployeeReportTable && isSearchEnabled && changeTable"
@@ -693,10 +693,23 @@
                     </a>
                   </ng-container>
                 </td>
-                <td>{{ employee.poNo }}</td>
                 <td>{{ employee.poType }}</td>
-                <td>{{ employee.poStartDate }}</td>
-                <td>{{ employee.poEndDate }}</td>
+                <td>
+                  <ng-container *ngIf="employee.poStartDate">
+                    {{ (show === i) ? employee.poStartDate : (employee.poStartDate | slice: 0:20) }}
+                    <a *ngIf="employee.poStartDate.length > 20" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
+                      ..{{ (show === i) ? '▲' : '▼' }}
+                    </a>
+                  </ng-container>
+                </td>
+                <td>
+                  <ng-container *ngIf="employee.poEndDate">
+                    {{ (show === i) ? employee.poEndDate : (employee.poEndDate | slice: 0:20) }}
+                    <a *ngIf="employee.poEndDate.length > 20" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
+                      ..{{ (show === i) ? '▲' : '▼' }}
+                    </a>
+                  </ng-container>
+                </td>
                 <td>{{ employee.effectiveStartDate }}</td>
                 <td>{{ employee.effectiveEndDate }}</td>
                 <td>
@@ -707,21 +720,34 @@
                     </a>
                   </ng-container>
                 </td>
-                <td>{{ employee.clientLocation }}</td>
+                <td>
+                  <ng-container *ngIf="employee.clientLocation">
+                    {{ (show === i) ? employee.clientLocation : (employee.clientLocation | slice: 0:20) }}
+                    <a *ngIf="employee.clientLocation.length > 20" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
+                      ..{{ (show === i) ? '▲' : '▼' }}
+                    </a>
+                  </ng-container>
+                </td>
                 <td>{{ employee.workLocation }}</td>
                 <td>{{ employee.totalExperience }}</td>
                 <td *ngIf="changeTable">{{ employee.primaryProjectName || 'Not Assigned' }}</td>
                 <td *ngIf="changeTable">
-                  <select class="form-control" [(ngModel)]="employee.selectedProject">
-                    <option
-                      *ngFor="let project of (employee.projectName && employee.projectName.trim() ? employee.projectName.split(',') : [])">
-                      {{ project.trim() }}
-                    </option>
-                  </select>
-                  <button type="button" class="btn btn-sm btn-outline-primary ml-2 "
-                    style="float: right; margin-top: 1px;" (click)="updateDefaultProject(employee)">
-                    Submit
-                  </button>
+                  <div class="col d-flex align-items-center ">
+                    <div>
+                      <select class="form-control" [(ngModel)]="employee.selectedProject">
+                        <option
+                          *ngFor="let project of (employee.projectName && employee.projectName.trim() ? employee.projectName.split(',') : [])">
+                          {{ project.trim() }}
+                        </option>
+                      </select>
+                    </div>
+                    <div>
+                      <button type="button" class="btn btn-sm btn-outline-primary ml-2 "
+                        style="float: right; margin-top: 1px;" (click)="updateDefaultProject(employee)">
+                        Submit
+                      </button>
+                    </div>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -750,12 +776,12 @@
             <thead class="thead-light" id="employeeReportInfoTHead">
               <tr>
                 <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Emp Id</th>
+                <th scope="col" style="min-width: 100px;" mat-sort-header="employeementId|empId">Emp Id</th>
                 <th scope="col" class="info-label" mat-sort-header="employeeType|empId">Employee Type</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="name|string">Full Name</th>
-                <th scope="col" class="info-label " mat-sort-header="departmentName|string">Department</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="jobRoleName|string">Job Role</th>
-                <th scope="col" class="info-label " mat-sort-header="managerName|string">Manager</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="managerName|string">Manager</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="mobileNo|number">Mobile Number</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="email|string">Email Id</th>
                 <th scope="col" class="info-label " mat-sort-header="employmentstatus|string">Employment Status
@@ -763,7 +789,7 @@
 
 
                 <!--added by anurag allEmployees Query has changed as per pratima ma'am discussion in a group on 23 may 24 11:09 PM   -->
-                <th scope="col" class="info-label wide-col" mat-sort-header="projectName|string">Project Name</th>
+                <th scope="col" class="info-label wide-wide-col" mat-sort-header="projectName|string">Project Name</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="poNo|string">Po No</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="poStartDate|string">Po Start Date</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="poEndDate|string">Po End Date</th>
@@ -773,15 +799,15 @@
                 <th scope="col" class="info-label " mat-sort-header="billableType|string">Billable Type</th>
                 <!-- end -->
 
-                <th scope="col" class="info-label" mat-sort-header="dateOfJoining|date">Date of Joining</th>
+                <th scope="col" class="info-label md-wide-col" mat-sort-header="dateOfJoining|date">Date of Joining</th>
                 <th scope="col" class="info-label " mat-sort-header="aadhar|number">Aadhar Card</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="aboutMe|string">About Me</th>
-                <th scope="col" class="info-label" mat-sort-header="address|string">Address</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="address|string">Address</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="permanentAddress|string">Permanent Address
                 </th>
-                <th scope="col" class="info-label " mat-sort-header="city|string">City</th>
+                <th scope="col" class="info-label md-wide-col" mat-sort-header="city|string">City</th>
                 <th scope="col" class="info-label " mat-sort-header="bloodGroup|string">Blood Group</th>
-                <th scope="col" class="info-label " mat-sort-header="dateOfBirth|date">Date of Birth</th>
+                <th scope="col" class="info-label md-wide-col" mat-sort-header="dateOfBirth|date">Date of Birth</th>
                 <th scope="col" class="info-label" mat-sort-header="gender|string">Gender</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="fatherName|string">Father Name</th>
                 <th scope="col" class="info-label " mat-sort-header="panNumber|string">Pan Number</th>
@@ -818,12 +844,12 @@
                   Account Number</th>
                 <th scope="col" class="info-label" mat-sort-header="uan|number">UAN</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="esicNumber|string">ESIC Number</th>
-                <th scope="col" class="info-label " mat-sort-header="graduationType|string">Graduation Type</th>
+                <th scope="col" class="info-label md-wide-col" mat-sort-header="graduationType|string">Graduation Type</th>
                 <th scope="col" class="info-label " mat-sort-header="pursuing|string">Pursuing</th>
                 <th scope="col" class="info-label " mat-sort-header="passingGrade|string">Passing Grade</th>
                 <th scope="col" class="info-label " mat-sort-header="yearOfPassing|number">Year of Passing</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="updatedOn|datetime">Updated on</th>
-                <th scope="col" class="info-label " mat-sort-header="updatedByName|string">Updated By</th>
+                <th scope="col" class="info-label md-wide-col" mat-sort-header="updatedByName|string">Updated By</th>
                 <th scope="col" class="info-label " mat-sort-header="createdByName|string">Created By</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="createdOn|datetime">Created On</th>
                 <th scope="col" class="info-label wide-col">Profile completion Percentage</th>
@@ -838,7 +864,7 @@
               <tr
                 *ngFor="let employee of allEmployeeList | colFilter:filters: false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <th class="info-label">{{20*(page-1)+i+1}}</th>
-                <td>{{employee.employeementId}}</td>
+                <td class="info-label" >{{employee.employeementId}}</td>
                 <td>{{employee.employeeType}}</td>
                 <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360"
                   [navigateToEmployee360]="employee.emp360" style="cursor: pointer;" title="Click to view Employee 360"
@@ -864,19 +890,19 @@
                       title="Click to view Project Details">
                       {{ project.projectName }}<span *ngIf="!last">, </span>
                     </span>
-                    <a *ngIf="employee.projectList.length > 2" (click)="show = (show === i ? -1 : i)" style="cursor: zoom-out">
+                    <a *ngIf="employee.projectList.length > 1" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
                       ..{{ (show === i) ? '▲' : '▼' }}
                     </a>
                   </ng-container>
                   <ng-container *ngIf="show !== i">
-                    <span *ngFor="let project of getSlicedProjects(employee.projectList, 2) " class="info-label"
+                    <span *ngFor="let project of getSlicedProjects(employee.projectList, 1) " class="info-label"
                       style="cursor: pointer; color: blue;" id="clickablefor360" (click)="cancelRequest()"
                       [navigateToProjectView]="project.projectId" style="cursor: pointer;"
                       title="Click to view Project Details">
                       {{ project.projectName }},
                     </span>
-                    <a *ngIf="employee.projectList.length > 2" (click)="show = (show === i ? -1 : i)"
-                      style="cursor: zoom-in">
+                    <a *ngIf="employee.projectList.length > 1" (click)="show = (show === i ? -1 : i)"
+                      style="cursor: pointer">
                       ..{{ (show === i) ? '▲' : '▼' }}
                     </a>
                   </ng-container>
@@ -890,8 +916,22 @@
                     </a>
                   </ng-container>
                 </td>
-                <td>{{employee.poStartDate}}</td>
-                <td>{{employee.poEndDate}}</td>
+                <td>
+                  <ng-container *ngIf="employee.poStartDate">
+                    {{ (show === i) ? employee.poStartDate : (employee.poStartDate | slice: 0:20) }}
+                    <a *ngIf="employee.poStartDate.length > 20" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
+                      ..{{ (show === i) ? '▲' : '▼' }}
+                    </a>
+                  </ng-container>
+                </td>
+                <td>
+                  <ng-container *ngIf="employee.poEndDate">
+                    {{ (show === i) ? employee.poEndDate : (employee.poEndDate | slice: 0:20) }}
+                    <a *ngIf="employee.poEndDate.length > 20" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
+                      ..{{ (show === i) ? '▲' : '▼' }}
+                    </a>
+                  </ng-container>
+                </td>
                 <td>{{employee.poProjectType}}</td>
                 <td>
                   <ng-container *ngIf="employee.clientName">
@@ -922,8 +962,22 @@
                     </a>
                   </ng-container>
                 </td>
-                <td>{{employee.address}}</td>
-                <td>{{employee.permanentAddress}}</td>
+                <td>
+                  <ng-container *ngIf="employee.address">
+                    {{ (show === i) ? employee.address : (employee.address | slice: 0:20) }}
+                    <a *ngIf="employee.address.length > 20" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
+                      ..{{ (show === i) ? '▲' : '▼' }}
+                    </a>
+                  </ng-container>
+                </td>
+                <td>
+                  <ng-container *ngIf="employee.permanentAddress">
+                    {{ (show === i) ? employee.permanentAddress : (employee.permanentAddress | slice: 0:20) }}
+                    <a *ngIf="employee.permanentAddress.length > 20" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
+                      ..{{ (show === i) ? '▲' : '▼' }}
+                    </a>
+                  </ng-container>
+                </td>
                 <td>{{employee.city}}</td>
                 <td>{{employee.bloodGroup}}</td>
                 <td>{{employee.dateOfBirth}}</td>
@@ -948,7 +1002,14 @@
                 <td>{{employee.pincode}}</td>
                 <td>{{employee.relation}}</td>
                 <td>{{employee.state}}</td>
-                <td>{{employee.viewsOnOrganisation}}</td>
+                <td>
+                  <ng-container *ngIf="employee.viewsOnOrganisation">
+                    {{ (show === i) ? employee.viewsOnOrganisation : (employee.viewsOnOrganisation | slice: 0:20) }}
+                    <a *ngIf="employee.viewsOnOrganisation.length > 20" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
+                      ..{{ (show === i) ? '▲' : '▼' }}
+                    </a>
+                  </ng-container>
+                </td>
                 <td>{{employee.passportNumber}}</td>
                 <td>{{employee.bankAccountNo}}</td>
                 <td>{{employee.bankIFSCCode}}</td>

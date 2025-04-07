@@ -49,6 +49,16 @@
     min-width: 250px;
 }
 
+.wide-wide-col {
+    min-width: 400px;
+
+}
+
+.md-wide-col {
+    min-width: 180px;
+}
+
+
 /* .table{
     overflow-x: auto;
 } */
@@ -251,6 +261,6 @@ th {
 
 thead {
     position: sticky;
-    top: 0.7;
-    z-index: 100;
+    top: 1;
+    z-index: 1;
 }
