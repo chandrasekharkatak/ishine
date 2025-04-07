@@ -146,15 +146,15 @@ export class ReportListComponent implements OnInit {
   customQuery: any;
   leaveReportFlag: boolean = false;
   timesheetReportFlag: boolean = false;
-  showDetails: boolean = false;
+  showDetails: boolean = true;
   showDetailsTimesheet: boolean = false;
   changeTable: boolean = true;
 
   filters: any = {};
   isSearchEnabled: boolean = false;
 
-  employeeReportColumnForDetailedProjectViewClub: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience', 'primaryProjectName'];
-  employeeReportColumnForDetailedProjectView: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience'];
+  employeeReportColumnForDetailedProjectViewClub: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience', 'primaryProjectName'];
+  employeeReportColumnForDetailedProjectView: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience'];
   leaveReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'noOfDays', 'reason', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'leaveStatusUpdatedByName'];
   timesheetReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'totalWorkingHours', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'leaveType', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
   employeeReportColumn: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'projectName', 'poNo', 'poStartDate', 'poEndDate', 'poProjectType', 'clientName', 'billable', 'billableType', 'dateOfJoining', 'aadhar', 'aboutMe', 'address', 'permanentAddress', 'city', 'bloodGroup', 'dateOfBirth', 'gender', 'fatherName', 'panNumber', 'placeOfBirth', 'workLocation', 'probationPeriod', 'noticePeriod', 'country', 'totalExperience', 'emergencyContactMobile', 'emergencyContactPerson', 'landline', 'maritalStatus', 'motherTongue', 'alternateMobileNo', 'pincode', 'relation', 'state', 'viewsOnOrganisation', 'passportNumber', 'bankAccountNo', 'bankIFSCCode', 'bankName', 'pfAccountNumber', 'previousPfAccountNumber', 'uan', 'esicNumber', 'graduationType', 'pursuing', 'passingGrade', 'yearOfPassing', 'updatedOn', 'updatedByName', 'createdByName', 'createdOn'];
@@ -307,7 +307,7 @@ export class ReportListComponent implements OnInit {
     this.show = -1;
     if (this.showDetails === true) {
       this.showDetails = false;
-
+      
     }
     else {
       this.showDetails = true;
@@ -718,6 +718,12 @@ export class ReportListComponent implements OnInit {
 
     console.log('Box click data-- :::::::::::::::::', this.filteredEmployees);
   }
+
+  // onDepartmentChangeTimesheet(event: any) {
+  //   this.selectedDepartment = event.target.value;
+  //   this.getAllOrDeptWiseEmployeeTimesheetReport();
+
+  // }
 
   onDepartmentChangeTimesheet(event: any) {
     this.selectedDepartment = event.target.value;
@@ -1952,7 +1958,7 @@ export class ReportListComponent implements OnInit {
               "Team Name": x.teamName,
               "Project Name": x.projectName,
               "Po No": x.poNo,
-              "Po Type": x.poType,
+              "Po Type": x.poProjectType,
               "Po Start Date": x.poStartDate,
               "Po End Date": x.poEndDate,
               "Effective Start Date": x.effectiveStartDate,
@@ -1996,6 +2002,7 @@ export class ReportListComponent implements OnInit {
           this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
         }
       }
+        
     }
 
     if (this.isAccessControlListTable == true) {
