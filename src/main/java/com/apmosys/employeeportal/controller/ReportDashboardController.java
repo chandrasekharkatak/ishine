@@ -47,5 +47,12 @@ public class ReportDashboardController {
 		ServiceResponse response = reportDashboardService.getEmployeeWorkLocationForSummary();
 		return response;
 	}
+	
+	@RequestMapping(value = "/getDepartmentWiseBillableData" ,method = RequestMethod.POST)
+	public ServiceResponse getDepartmentWiseBillableData(@RequestBody LeaveDTO leaveDto) {
+		
+		ServiceResponse response = reportDashboardService.getDepartmentWiseBillableData(leaveDto);
+		return response;
+	}
 
 }

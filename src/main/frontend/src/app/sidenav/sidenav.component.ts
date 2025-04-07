@@ -5,6 +5,7 @@ import { AuthenticationService } from '../services/authentication.service';
 import { navbarData } from './nav-data';
 import { enableAppreciation } from '../models/enableAppreciation';
 import * as moment from 'moment';
+import { BreadcrumbService } from '../services/breadcrumb.service';
 
 interface SideNavToggle{
   screenWidth: number;
@@ -22,6 +23,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
   screenWidth = 0;
   navData=navbarData;
   currentUser:User;
+  firstTimeLogin="false";
   menuItems:any;
   menuItems1:any;
   appreciationEventInfo:enableAppreciation;
@@ -38,7 +40,8 @@ export class SidenavComponent implements OnInit, OnDestroy {
     }
   }
 
-  constructor(private authenticationService: AuthenticationService){
+  constructor(private authenticationService: AuthenticationService,
+    private breadcrumbService: BreadcrumbService,){
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
 
     this.menuItems = this.currentUser.tabList;   
@@ -46,9 +49,10 @@ export class SidenavComponent implements OnInit, OnDestroy {
 
    ngOnInit(): void {
     this.screenWidth = window.innerWidth;
-    console.log("menuItems : ", this.menuItems);
+    //console.log("menuItems : ", this.menuItems);
     this.appreciationEventInfo = this.currentUser.appreciationEventInfo;
-    
+    this.firstTimeLogin=sessionStorage.getItem('FirstTimeLogin');
+   
     const dateFormat = 'YYYY-MM-DD';
 
     var currentDate = moment(new Date()).format(dateFormat);
@@ -56,7 +60,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
     let toDate = this.appreciationEventInfo.toDate;
     var dateCheck=this.dateCheck(currentDate,fromDate,toDate);
 
-    console.log(this.currentUser.isAppreciationEnable, " : isAppreciationEnable");
+    //console.log(this.currentUser.isAppreciationEnable, " : isAppreciationEnable");
     
 
     this.menuItems.forEach((item,index) => {
@@ -96,13 +100,26 @@ export class SidenavComponent implements OnInit, OnDestroy {
     cDate = Date.parse(currentDate);
 
     if((cDate <= tDate && cDate >= fDate)) {
-      console.log("true date");
+      //console.log("true date");
         return true;
     }
     else{
-    console.log("false date");
+    //console.log("false date");
     return false;
     }
   }
+
+  // onTabClick(){
+  //   this.breadcrumbService.setBreadcrumbSubject(null)
+  // }
+  onTabClick(event: Event): void {
+    if (this.firstTimeLogin === 'true') {
+      event.preventDefault();  // Prevent the click from triggering navigation
+      event.stopPropagation();  // Prevent further propagation of the event
+      console.log('Routing is disabled because firstTimeLogin is false');
+    }else{
+      this.breadcrumbService.setBreadcrumbSubject(null)
   
+    }
+  }
 }

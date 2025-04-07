@@ -12,4 +12,5 @@ export class Department{
 
 	isDeptUsedInIshine :any;
 	isDeptUsedInPoPortal :any;
+	deptAbbreviation: any; // Added field
 }

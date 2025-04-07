@@ -1,9 +1,13 @@
 package com.apmosys.employeeportal.controller;
 
+import javax.mail.MessagingException;
+import javax.mail.internet.AddressException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.LeaveDTO;
@@ -51,6 +55,20 @@ public class EmployeeLeaveController {
 	public ServiceResponse getAllMyLeaveApplicationsByEmpId(@RequestBody LeaveDTO leaveDTO) {
 		
 		ServiceResponse response = employeeLeaveService.getAllMyLeaveApplicationsByEmpId(leaveDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getAllLeaveApplicationsByEmpId" ,method = RequestMethod.POST)
+	public ServiceResponse getAllLeaveApplicationsByEmpId(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = employeeLeaveService.getAllLeaveApplicationsByEmpId(leaveDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getAllLeaveApplicationsByTeamId" ,method = RequestMethod.POST)
+	public ServiceResponse getAllLeaveApplicationsByTeamId(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = employeeLeaveService.getAllLeaveApplicationsByTeamId(leaveDTO);
 		return response;
 	}
 	
@@ -219,6 +237,13 @@ public class EmployeeLeaveController {
 		return response;
 	}
 	
+	@RequestMapping(value="/getAllMyTeamsPendingLeaveRevokeApplicationsByEmpId" , method = RequestMethod.POST)
+	public ServiceResponse getAllMyTeamsPendingLeaveRevokeApplicationsByEmpId(@RequestBody LeaveDTO leaveDTO) {		
+		
+		ServiceResponse response =	employeeLeaveService.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(leaveDTO);		
+		return response;
+	}
+	
 	@RequestMapping(value="/updateRevokeLeaveStatus" , method = RequestMethod.POST)
 	public ServiceResponse updateRevokeLeaveStatus(@RequestBody LeaveDTO leaveDTO) {		
 		
@@ -271,4 +296,89 @@ public class EmployeeLeaveController {
 		return response;
 	}
 
+//	getLeaveAppliedListByFromAndToDate
+	
+	@RequestMapping(value = "/getLeaveAppliedListByFromAndToDate" ,method = RequestMethod.POST)
+	public ServiceResponse getLeaveAppliedListByFromAndToDate(@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = employeeLeaveService.getLeaveAppliedListByFromAndToDate(leaveDTO);
+		return response;
+	}
+	
+//	added by anurag
+	@RequestMapping(value = "/getAllLeaveByEmpId" ,method = RequestMethod.POST)
+	public ServiceResponse getAllLeaveByEmpId(@RequestBody LeaveDTO leaveDto) {
+		
+		ServiceResponse response = new ServiceResponse();
+		
+		response = employeeLeaveService.getAllLeaveByEmpId(leaveDto);
+		return response;		
+	}
+	
+//	pipGenerateToUser
+	
+	@RequestMapping(value = "/pipGenerateToUser" ,method = RequestMethod.POST)
+	public ServiceResponse pipGenerateToUser(@RequestBody LeaveDTO leaveDto) {
+		
+		ServiceResponse response = new ServiceResponse();
+		
+		response = employeeLeaveService.pipGenerateToUser(leaveDto);
+		return response;		
+	}
+	
+//	pipReturnFromUser
+	@RequestMapping(value = "/pipReturnFromUser" ,method = RequestMethod.POST)
+	public ServiceResponse pipReturnFromUser(@RequestBody LeaveDTO leaveDto) throws AddressException, MessagingException {
+		
+		ServiceResponse response = new ServiceResponse();
+		
+		response = employeeLeaveService.pipReturnFromUser(leaveDto);
+		return response;		
+	}
+//	getOverLapsLeaveForManager
+	@RequestMapping(value = "/getOverLapsLeaveForManager" ,method = RequestMethod.POST)
+	public ServiceResponse getOverLapsLeaveForManager(@RequestBody LeaveDTO leaveDto) {
+		
+		ServiceResponse response = new ServiceResponse();
+		
+		response = employeeLeaveService.getOverLapsLeaveForManager(leaveDto);
+		return response;		
+	}
+	
+//	getPipReasons
+	@RequestMapping(value = "/getPipReasons" ,method = RequestMethod.POST)
+	public ServiceResponse getPipReasons(@RequestBody LeaveDTO leaveDto) {
+		
+		ServiceResponse response = new ServiceResponse();
+		
+		response = employeeLeaveService.getPipReasons(leaveDto);
+		return response;		
+	}
+	
+//	setExtendPeriodByPipId
+	@RequestMapping(value = "/setExtendPeriodByPipId" ,method = RequestMethod.POST)
+	public ServiceResponse setExtendPeriodByPipId(@RequestBody LeaveDTO leaveDto) throws AddressException, MessagingException {
+		
+		ServiceResponse response = new ServiceResponse();
+		
+		response = employeeLeaveService.setExtendPeriodByPipId(leaveDto);
+		return response;		
+	}
+	
+	@RequestMapping(value = "/getPipDetailsByEmpId" ,method = RequestMethod.POST)
+	public ServiceResponse getPipDetailsByEmpId(@RequestBody LeaveDTO leaveDto) {
+		ServiceResponse response = new ServiceResponse();
+		
+		response = employeeLeaveService.getPipDetailsByEmpId(leaveDto);
+		return response;
+	}
+	
+	@RequestMapping(value = "/isManager", method = RequestMethod.POST)
+	public ServiceResponse isManager(@RequestBody LeaveDTO leaveDto) {
+
+		ServiceResponse response = employeeLeaveService.isManager(leaveDto);
+		return response;
+	}
+	
+	
 }

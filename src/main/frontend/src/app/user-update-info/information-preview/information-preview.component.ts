@@ -30,7 +30,7 @@ export class InformationPreviewComponent implements OnInit {
   ngOnInit(): void {
     this.currentEmployeeInfo = this.updateUserInfoService.getUserInfoObj();
 
-    console.log("Employee info IN PREVIEW ==> ", this.currentEmployeeInfo);
+    //console.log("Employee info IN PREVIEW ==> ", this.currentEmployeeInfo);
   }
 
   validateEmployeeObj(employeeObj:Employee, template: TemplateRef<any>){
@@ -384,7 +384,7 @@ export class InformationPreviewComponent implements OnInit {
     }
 
     if(!certFlag) return false;
-    console.log("cert flag ",certFlag);
+    //console.log("cert flag ",certFlag);
 
     let prevFlag = true;
     if(employeeObj.experience == 'Experienced'){
@@ -566,7 +566,7 @@ export class InformationPreviewComponent implements OnInit {
         this.alertMessage = `Please Upload ${doc.documentType} !!`
         this.openAlertMod(template, this.alertMessage);
         docFlag = false;
-        console.log("doc flag ",docFlag);
+        //console.log("doc flag ",docFlag);
       }
     });
 
@@ -577,15 +577,15 @@ export class InformationPreviewComponent implements OnInit {
 
   async onSubmit(template: TemplateRef<any>) {
 
-    console.log(" this.currentEmployeeInfo : ",this.currentEmployeeInfo)
+    //console.log(" this.currentEmployeeInfo : ",this.currentEmployeeInfo)
     let inputValidated: boolean = this.validateEmployeeObj(this.currentEmployeeInfo, template)
     if (!inputValidated) return;
     const response:any = await this.updateUserInfoService.updateEmployeeInfo();
-    console.log("onUpdate --> Preview : ", response);
+    //console.log("onUpdate --> Preview : ", response);
     
     if (response.serviceStatus == "Success") {
       this.openAlertMod(template, "Profile Updated Pending For Approval");
-      console.log(response.serviceResponse);
+      //console.log(response.serviceResponse);
       this.previewSubmit.emit();
     } else {
       console.error(response.serviceResponse);

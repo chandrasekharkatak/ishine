@@ -18,6 +18,29 @@
     margin-right: 0px !important;
 }
 
+
+
+
+.overflow-auto {
+    position: relative;
+    overflow-y: auto;
+    max-height: 80vh;
+}
+
+#employeeReport{
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+
+}
+#employeeReportInfoTHead{
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: var(--ghost-white);
+}
+
+
 /* .table-scroll{
     font-size: 0.9rem;
 } */
@@ -44,7 +67,7 @@
 }
 
 .info-label {
-    width: 200px !important;
+    max-width: 200px !important;
 }
 
 /* .form-control{
@@ -157,3 +180,48 @@
     border-spacing: 0;
 }
   
+
+
+
+/* Shivtosh */
+
+.branch {
+   
+    cursor: pointer;
+  }
+ 
+  
+  .branch.hover {
+    
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); 
+    background-color: #fff;
+  }
+  
+  /* .branch.clicked {
+    border: 2px solid #007bff; 
+    transform: scale(1.1); 
+  } */
+  
+  h5, p {
+    margin: 0;
+    font-size: 1rem; 
+  }
+  
+  .box {
+    min-height: 200px; 
+  }
+  
+  .button{
+    float: right; 
+    margin-top: 1px;
+  }
+
+  .clicked {
+    border: 3px solid #162330; 
+    box-shadow: 0 0 15px rgba(24, 32, 41, 0.7); /* Add shadow for emphasis */
+  }
+  
+  .hover {
+    background-color: rgba(0, 123, 255, 0.1); /* Change background on hover */
+  }

@@ -76,6 +76,25 @@ public class SurveyServiceImpl implements SurveyService {
 			newSurvey.setSurveyName(surveyDTO.getSurveyName());
 			newSurvey.setDescription(surveyDTO.getDescription());
 			newSurvey.setIsActive(surveyDTO.getIsActive());
+//			newSurvey.setImageUrl(surveyDTO.getImageUrl()); 
+//	        newSurvey.setVideoUrl(surveyDTO.getVideoUrl());
+			
+//			 if (surveyDTO.getImageFile() != null) {
+//		            ServiceResponse imageResponse = fileUploadService.storeFile(surveyDTO.getImageFile());
+//		            if (imageResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
+//		                newSurvey.setImageUrl(imageResponse.getServiceResponse());
+//		            } else {
+//		            }
+//		        }
+//		        
+//		        if (surveyDTO.getVideoFile() != null) {
+//		            ServiceResponse videoResponse = fileUploadService.storeFile(surveyDTO.getVideoFile());
+//		            if (videoResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
+//		                newSurvey.setVideoUrl(videoResponse.getServiceResponse());
+//		            } else {
+//		                
+//		            }
+//		        }
 
 			Survey newSurveyCreated = surveyRepository.save(newSurvey);
 
@@ -166,6 +185,9 @@ public class SurveyServiceImpl implements SurveyService {
 						dto.setUpdatedByName(object[6] != null ? object[6].toString() : null);
 						dto.setUpdatedOn(object[7] != null ? object[7].toString() : null);
 						dto.setType(object[8] != null ? object[8].toString() : null);
+						dto.setCreatedBy(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+						dto.setUpdatedBy(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+						
 						dtoList.add(dto);
 					});
 
@@ -291,18 +313,29 @@ public class SurveyServiceImpl implements SurveyService {
 			List<SurveyEmployeeResponse> dtoList = new ArrayList<SurveyEmployeeResponse>();
 
 			surveyDTO.getSurveyQuestionList().forEach((question) -> {
+				
+				SurveyEmployeeResponse checkResponse = surveyEmployeeResponseRepository.findByEmpIdAndSurveyQuestionId(surveyDTO.getEmpId(),question.getSurveyQuestionId());
+				
+				SurveyEmployeeResponse surveyEmployeeResponse = new SurveyEmployeeResponse();	
+				
+				SurveyEmployeeResponse responseList = new SurveyEmployeeResponse();
 
-				SurveyEmployeeResponse surveyEmployeeResponse = new SurveyEmployeeResponse();
-
-				surveyEmployeeResponse.setEmpId(surveyDTO.getEmpId());
-				surveyEmployeeResponse.setSurveyQuestionId(question.getSurveyQuestionId());
-				surveyEmployeeResponse.setResponse(question.getResponse());
-				dtoList.add(surveyEmployeeResponse);
+				if (checkResponse != null) {
+					checkResponse.setResponse(question.getResponse());
+					dtoList.add(checkResponse);
+//					responseList = surveyEmployeeResponseRepository.save(checkResponse);		
+				}else {
+					
+					surveyEmployeeResponse.setEmpId(surveyDTO.getEmpId());
+					surveyEmployeeResponse.setSurveyQuestionId(question.getSurveyQuestionId());
+					surveyEmployeeResponse.setResponse(question.getResponse());
+					dtoList.add(surveyEmployeeResponse);
+				}
 			});
 
 			List<SurveyEmployeeResponse> responseList = surveyEmployeeResponseRepository.saveAll(dtoList);
 
-			if (responseList.size() > 0) {
+			if (responseList.size() > 0)  {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Responses stored successfully.");
 				apiLogInfo.setApiResponse("Responses stored successfully");			

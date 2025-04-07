@@ -10,6 +10,19 @@ import * as moment from 'moment';
 import { AppComponent } from '../app.component';
 import { saveAs } from "file-saver";
 import { Sort } from '@angular/material/sort';
+import { Document } from '../models/document';
+import { Query } from '../models/query';
+import { UtilityService } from '../services/utility.service';
+import { Feature } from '../models/feature';
+
+
+class FilterData {
+  title: any;
+  columns: any;
+  queryList: any;
+
+
+}
 
 @Component({
   selector: 'app-newsletter',
@@ -28,20 +41,28 @@ export class NewsletterComponent implements OnInit {
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType:any;
- 
+  type : any;
   newsletters:any[] = [];
   allReadNewsletters:any[] = [];
   newsletterObj:Newsletter = new Newsletter();
+  fileType : any =[];
+  storedDataList:any[] = [];
+
+  feature = 'Newsletter';
 
   src:any;
   fileName:any
-
+  isTable : boolean = false;
   modalRef: BsModalRef = new BsModalRef();
   alertMessage: any;
+  typeNames:any;
 
+  queryList: any[] = [];
+  filterData: any = new FilterData();
   filters:any = {};
   isSearchEnabled:boolean = false;
-  newsletterColumns:any[] = ['blank','displayName','createdByName','createdOn'];
+  newsletterColumns:any[] = ['blank','displayName','name','createdOn']; 
+  newsletterCol:any[] = ['displayName','createdOn']; 
 
   newsletterModalConfiguration = {
     backdrop: true,
@@ -50,23 +71,38 @@ export class NewsletterComponent implements OnInit {
     class : 'modal-xl'
   }
 
+  employeesFor360: any[] = [];
+  userMapping: any = {};
+  
   constructor(
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
     private locationStrategy: LocationStrategy,
     private newsletterService : NewsletterService,
+    private utilityService: UtilityService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
    }
 
-   ngOnInit(): void {
-
-    this.getAllNewsletters();
+   async ngOnInit(): Promise<void> {
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
+    // this.getAllNewsletters();
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+          featureMap.subFeatures?.forEach(sub => {
+            this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+        });
+    this.getAllTypeForDoc(this.type);
     this.preventBackButton();
+    this.showTable(this.type, this.alertTemplate);
   }
 
   ngAfterViewInit(): void {
-    this.openPreviewNewsletterModal();
+    this.openPreviewNewsletterModal(this.alertTemplate);
   }
 
   preventBackButton(){
@@ -76,19 +112,58 @@ export class NewsletterComponent implements OnInit {
     })
   }
 
-   getAllNewsletters(){
+  showTable(selectedType,template:TemplateRef<any>){
+    //console.log(selectedType," type")
+    this.isTable = true;
+    this.fileType.forEach(type => {
+      type.isActive = (type === selectedType);
+      this.type = selectedType;
+      this.typeNames = selectedType.typeName;
+    });
+    this.getAllNewsletters(selectedType,template);
+  }
+  //  getAllNewsletters(){
+  //   this.newsletters = [];
+  //   this.sortColumn=[];
+  //   this.sortColumnType=[];
+  //   this.sortDirection='';
+  //   this.newsletterService.getAllNewsletters().pipe(first()).subscribe((response:any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.newsletters =  response.serviceResponse;
+  //       this.newsletters.forEach(doc => {
+  //         doc.createdOn = (doc.createdOn)? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+  //       });
+  //       //console.log("Newsletters List : ", this.newsletters);
+  //       this.getAllReadNewsletter();
+  //     } else {
+  //       console.error(response.serviceResponse);
+  //     }
+  //   });
+  // }
+
+  getAllNewsletters(selectedType, template:TemplateRef<any>){
+    //console.log(" newsletter by typeId  ",selectedType);
+    let doc = new Document();
+    doc.typeId= selectedType.typeId;
+    doc.typeName = selectedType.typeName;
     this.newsletters = [];
-    
-    this.newsletterService.getAllNewsletters().pipe(first()).subscribe((response:any) => {
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
+    //console.log(" Before call backend " ,doc);
+    this.newsletterService.getAllNewslettersByTypeId(doc).pipe(first()).subscribe((response:any) => {
       if (response.serviceStatus == "Success") {
         this.newsletters =  response.serviceResponse;
         this.newsletters.forEach(doc => {
           doc.createdOn = (doc.createdOn)? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === doc.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          doc.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
         });
-        console.log("Newsletters List : ", this.newsletters);
+        //console.log("Newsletters List : ", this.newsletters);
         this.getAllReadNewsletter();
       } else {
-        console.error(response.serviceResponse);
+        this.openAlertMod(template,response.serviceResponse);
       }
     });
   }
@@ -102,7 +177,7 @@ export class NewsletterComponent implements OnInit {
     this.newsletterService.getAllReadNewslettersByEmpId(newsletterObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allReadNewsletters = response.serviceResponse;
-       console.log("allReadNewsletters : ", response.serviceResponse);
+       //console.log("allReadNewsletters : ", response.serviceResponse);
 
        this.allReadNewsletters.forEach((readNewsletter:Newsletter) => {
           let fileObj = this.newsletters.find((newsletter:Newsletter) => readNewsletter.documentId == newsletter.documentId);
@@ -114,7 +189,7 @@ export class NewsletterComponent implements OnInit {
     });
   }
 
-  onReadNewsletter(){
+  onReadNewsletter(template:TemplateRef<any>){
     this.cancelRequest();
 
     let newsletterObj = new Newsletter();
@@ -126,22 +201,26 @@ export class NewsletterComponent implements OnInit {
         let dtoResponse = response.serviceResponse;
         this.currentUser.newsletterReadCheck = dtoResponse.newsletterReadCheck;
 
-        console.log( this.currentUser.newsletterReadCheck , " :  this.currentUser.newsletterReadCheck");
-        this.authenticationService.setcurrentUserSubject(this.currentUser);
-        this.openPreviewNewsletterModal();
-      }
+        //Update newsletterObj with latest data
+        this.newsletterObj = dtoResponse.newsletter;
 
-      this.getAllNewsletters()
+        //console.log( this.currentUser.newsletterReadCheck , " :  this.currentUser.newsletterReadCheck");
+        this.authenticationService.setcurrentUserSubject(this.currentUser);
+        this.openPreviewNewsletterModal(this.alertTemplate);
+      }
+      
+      //this.getAllNewsletters(this.type,template)
     });
   }
 
-  
-  previewPolicyDocument(template: TemplateRef<any>,doc: any) {   
+  loadingDocument = false;
+  previewPolicyDocument(template: TemplateRef<any>,doc: any) { 
+    this.loadingDocument = true;  
     this.src = null;
     this.fileName = doc.displayName;
 
     this.newsletterObj = doc;
-
+//console.log(" doc.documentId   ",doc.documentId);
     this.newsletterService.downloadDocument(doc.documentId).pipe(first()).subscribe((response:any) => {
       const blob = new Blob([response], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
@@ -153,7 +232,16 @@ export class NewsletterComponent implements OnInit {
       if(this.src != null){
         this.openPreviewDocument(template);
       }
-    });
+      this.loadingDocument = false;
+    },
+    (error) => {
+      
+      console.error('Error fetching document:', error);
+      
+     
+      this.loadingDocument = false;
+  }
+    );
   }
 
   downloadFile(doc: any) {
@@ -175,11 +263,11 @@ export class NewsletterComponent implements OnInit {
     this.modalRef.hide();
   }
 
-  openPreviewNewsletterModal(){ 
+  openPreviewNewsletterModal(template:TemplateRef<any>){ 
     if(this.currentUser.newsletterReadCheck != null){
       this.previewPolicyDocument(this.previewDocument,this.currentUser.newsletterReadCheck);
     }else{
-      this.getAllNewsletters();
+      this.getAllNewsletters(this.type,template);
     }
   }
 
@@ -189,7 +277,7 @@ export class NewsletterComponent implements OnInit {
   }
 
   sortData(sort: Sort){	
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -199,6 +287,9 @@ export class NewsletterComponent implements OnInit {
   }
   
   toggleSearch(){
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.isSearchEnabled = !this.isSearchEnabled;
     if(!this.isSearchEnabled){
       this.filters = {};
@@ -207,7 +298,128 @@ export class NewsletterComponent implements OnInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
+// added by anurag  
+
+getAllTypeForDoc(template:TemplateRef<any>){
+  this.newsletterService.getAllTypeName().pipe(first()).subscribe((response:any)=>{
+    if(response.serviceStatus == "Success"){
+      this.fileType = response.serviceResponse;
+      this.type = this.fileType[0]
+      this.fileType.forEach(type =>{
+        if(this.fileType !== undefined){
+          type.isActive = (type == this.type);
+        }
+      })
+      this.getAllNewsletters(this.type, template);
+      //console.log(" fileType   ",this.fileType);
+    }
+  })
+}
+
+// custom filter modal
+
+openFilterModal(template: TemplateRef<any> , colums : any[], title: any){
+  //console.log("Document columns   ",colums);
+  this.queryList = [];
+  this.filterData.title = title;
+  this.filterData.columns = colums;
+  
+
+  this.queryList = [
+    { column: "Document Name" , operator: "" , value: "", conjunction: "" }
+  ];
+  this. storedDataList.forEach((data) => {
+    if(data.filterName == title){
+      data.queryList.forEach((queryObj) => {
+        if (queryObj.column == 'Created On') {
+          queryObj.value = (queryObj.value) ? moment(queryObj.value).format('DD-MM-YYYY HH:mm:ss') : '';
+        }
+      });
+      this.queryList = data.queryList;
+    }
+  });
+
+  this.filterData.queryList = JSON.stringify(this.queryList);
+  //console.log(" filteredData     ",this.filterData);
+  this.modalRef = this.modalService.show(template, {class: 'modal-xl'});
+
+
+}
+
+getCustomDocumentList(queryObjList: any, template: TemplateRef<any>){
+  this.newsletters = [];
+
+  let queryObj = new Query();
+  queryObj.queryList = queryObjList;
+
+  //console.log("QueryList    ::     ",queryObj);
+
+  if(queryObjList.length == 0){
+    this.getAllNewsletters(this.type,template);
+  }else{
+    this.newsletterService.customQueryForDocument(queryObj).pipe(first()).subscribe((response : any)=>{
+      if(response.serviceStatus == "Success"){
+        this.newsletters = response.serviceResponse;
+
+        if(this.newsletters.length == 0){
+          this.openAlertMod(this.alertTemplate," No Data Found")
+        }
+      }else{
+        this.openAlertMod(template,response.serviceResponse);
+      }
+    });
+  }
+
+}
+
+
+onFilterSubmit(emittedArray: any, template: TemplateRef<any>){
+
+  if (emittedArray[0].length != 0) {
+    //console.log("queryList : ", emittedArray[0]);
+    this.queryList = JSON.parse(JSON.stringify(emittedArray[0]));
+    this.cancelRequest();
+
+    emittedArray[1].forEach((object) => {
+      if (Object.keys(object).length !== 0) {
+        if (this.storedDataList.find((x) => x.filterName == object.filterName)) {
+          this.storedDataList = this.storedDataList.map(arr1 => emittedArray[1].find(arr2 => arr2.filterName === arr1.filterName) || arr1);
+        } else {
+          this.storedDataList.push(object);
+        }
+      }
+    });
+    emittedArray[0].forEach((query)=>{
+      if (query.column == 'Created On') {
+        query.value = (query.value) ? moment(query.value, "DD-MM-YYYY").format('YYYY-MM-DD HH:mm:ss') : '';
+      }
+
+      if(query.column == 'Created By'){
+        query.value = query.value.split("-")[1];
+      }
+    });
+
+    if(this.filterData.title == 'Filter All Document'){
+      this.getCustomDocumentList(emittedArray[0], template);
+    }
+
+}else{
+  let clearedFilter = this.storedDataList.find((filter) => filter.filterName == emittedArray[1]);
+      this.storedDataList.splice(clearedFilter);
+}
+
+if (emittedArray[1] == 'Filter All Document') {
+  this.showTable(this.type,template);
+}
+
+
+}
+
+
+
+
+
 
 }

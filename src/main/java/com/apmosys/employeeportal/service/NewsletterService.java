@@ -182,6 +182,11 @@ public class NewsletterService {
 						newsletterDTO.setCreatedBy(object[5] != null ? Integer.parseInt(object[5].toString()) : null);
 						newsletterDTO.setCreatedByName(object[6] != null ? object[6].toString() : null);
 						newsletterDTO.setCreatedOn(object[7] != null ? object[7].toString() : null);
+						newsletterDTO.setTypeId(object[8] != null ? Long.parseLong(object[8].toString()) : null);
+						newsletterDTO.setTypeName(object[9] != null ? object[9].toString() : null);
+						newsletterDTO.setUpdatedOn(object[10] != null ? object[10].toString() : null);
+						newsletterDTO.setUpdatedBy(object[11] != null ? Integer.parseInt(object[11].toString()) : null);
+						newsletterDTO.setUpdatedByName(object[12] != null ? object[12].toString() : null);
 						
 						dtoList.add(newsletterDTO);
 					});
@@ -250,7 +255,7 @@ public class NewsletterService {
 							
 							
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-							response.setServiceResponse("Newsletter deleted successfully.");
+							response.setServiceResponse(document.getDisplayName()+" deleted successfully.");
 							
 							apiLogInfo.setApiResponse("Newsletter deleted successfully.");			
 							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
@@ -437,6 +442,84 @@ public class NewsletterService {
 	}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+
+
+//	public ServiceResponse getAllNewslettersByTypeId(NewsletterDTO newsletterDto) {
+//		ServiceResponse response = new ServiceResponse();
+//		try {
+//
+//			List<Newsletter> listOfDoc = newsletterRepository.findByTypeId(newsletterDto.getTypeId());
+//			if(!listOfDoc.isEmpty()) {
+//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//				response.setServiceResponse(listOfDoc);
+//				
+//			}else {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse(newsletterDto.getTypeName()+" are not present in database");
+//			}
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something went wrong");
+//			}
+//		
+//		return response;
+//	}
+	
+	public ServiceResponse getAllNewslettersByTypeId(NewsletterDTO newsletterDto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+
+			List<Object[]> documents = newsletterRepository.findByTypeId(newsletterDto.getTypeId());
+		List<NewsletterDTO> listOfDoc = new ArrayList<NewsletterDTO>();
+		
+		documents.forEach((doc)->{
+			NewsletterDTO dto = new NewsletterDTO();
+			
+			dto.setTypeId(doc[0] != null ? Long.parseLong(doc[0].toString()): null);
+			dto.setDisplayName(doc[1] != null ? doc[1].toString() : null);
+			dto.setCreatedOn(doc[2] != null ? doc[2].toString() : null);
+			dto.setCreatedBy(doc[3] != null ? Integer.parseInt(doc[3].toString()) : null);
+			dto.setName(doc[4] != null ? doc[4].toString() : null);
+			dto.setDocumentId(doc[5] != null ? Long.parseLong(doc[5].toString()) : null);
+			dto.setFileName(doc[6] != null ? doc[6].toString() : null);
+			dto.setTypeName(doc[7] != null ? doc[7].toString() : null);
+			
+			listOfDoc.add(dto);	
+		});	
+			if(!listOfDoc.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(listOfDoc);
+				
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse(" There is no document present for type - "+newsletterDto.getTypeName());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong");
+			}
+		
+		return response;
+	}
+
+
+	public ServiceResponse checkDocumentName(String documentName) {
+		
+		ServiceResponse response = new ServiceResponse();
+		
+		List<Newsletter> findAllDocuments = newsletterRepository.findAll();
+		findAllDocuments.forEach(document ->{
+			if(document.getDisplayName().equals(documentName)) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse(documentName+" is already present !! ");
+			}
+		});
+		
+		
 		return response;
 	}
 }

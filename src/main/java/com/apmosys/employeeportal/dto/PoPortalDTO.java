@@ -20,5 +20,5 @@ public class PoPortalDTO {
 	private String deptName;
 	private String hodId;
 	private String roleName;
-	
+	private String deptAbbreviation;
 }

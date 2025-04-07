@@ -56,7 +56,7 @@
     <div class="col-md-12">
         <div class="row">
             <div class="col-md-12 table-header">
-                <h1 class="table-header-title">Designation</h1>
+                <h1 class="table-header-title">Designation(s)</h1>
             </div>
         </div>
         <div class="row">
@@ -70,10 +70,10 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" (click)="toggleSearch()">
+                <div class="selector-toggle" >
                     <a href="javascript:void(0)">
-                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
                     </a>
                 </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'designationInfo'" [tableTHeadId]="'designationInfoTHead'"
@@ -100,10 +100,12 @@
                                 *ngFor="let desig of allDesignationList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                                 <th class="info-label">{{20*(page-1)+i+1}}</th>
                                 <td>{{desig.designationName}}</td>
-                                <td>{{desig.createdByName}}</td>
+                                <td *ngIf="userMapping.employee360_view_designation_config && desig.createdByName"  id="clickablefor360" [navigateToEmployee360]="desig.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{desig.createdByName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_designation_config || !desig.createdByName" >{{desig.createdByName}}</td>
                                 <td>{{desig.createdOn}}</td>
                                 <td>{{desig.updatedOn}}</td>
-                                <td>{{desig.updatedByName}}</td>
+                                <td *ngIf="userMapping.employee360_view_designation_config && desig.updatedByName"  id="clickablefor360" [navigateToEmployee360]="desig.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{desig.updatedByName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_designation_config || !desig.updatedByName" >{{desig.updatedByName}}</td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-primary" *ngIf="userMapping.update_designation"
                                         type="submit" (click)="showUpdateForm(desig)"><em class="fa fa-edit"></em></button>&nbsp;
@@ -138,7 +140,7 @@
 
 <ng-template #delete_template>
     <div class="modal-body text-center">
-        <p>Are you sure you want to delete the Department?</p>
+        <p>Are you sure you want to delete the Designation ?</p>
         <button type="button" class="btn btn-success" (click)="onDeleteDesignation(update_designation_mapping_template, alert_message)">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>

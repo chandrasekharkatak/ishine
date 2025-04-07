@@ -1,7 +1,7 @@
 .my-pagination::ng-deep .ngx-pagination .current {
-    background: #193d8a  !important;
+  background: #193d8a  !important;
 }
 
 .my-pagination::ng-deep{
-    padding-top: 10px;
+  padding-top: 10px;
 }

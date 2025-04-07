@@ -102,6 +102,7 @@ export class Employee{
     email:any;
     emailAppreciated:any;
 	updateChild: any;
+  childLists: any;
 ;
     //employementID
 	appreciationBy:any;
@@ -166,4 +167,41 @@ export class Employee{
 	resignationStatus:any;
 
 	unlockTimesheetFor:any;
+	employmentReleaseStatus:any;
+	// added by anurag 
+	updateType: any;
+	pipReason : any;
+	pipFlag : any;
+	pipId: any;
+	revReason: any;
+	extendDays : any;
+	billableType : any;
+	profileKycStatus :any;
+
+	extendReason : any;
+	reportiesFlag : any;
+
+	//for reward section
+	employeeNameForReward: any;
+	employeeIdForReward: any;
+	managerNameForReward: any;
+	managerIdForReward: any;
+	rewardId: any;
+	isConsultant: any;
+	onbenchDate : any;
+	employeeType : any;
+	isApprenticeship : any;
+
+	//added by Priyadarshini
+	isRegular: any;
+	isRetain:any
+	dateOfRetain:any
+	//added by rahul
+	referedType:any;
+	referedName:any;
+	employeeConfirmationDate:any;
+	emp360:any;
+
+	selectedProjectId :any;
+
 }

@@ -36,13 +36,13 @@ export class RecruitmentComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.portalConfigList = response.serviceResponse;
 
-        console.log(this.portalConfigList,  "   :  portalConfigList");
+        //console.log(this.portalConfigList,  "   :  portalConfigList");
 
         for(let portal of this.portalConfigList){
           if(portal.configName == 'OTRS Link'){
             this.recruitmentURL = this.sanitizer.bypassSecurityTrustUrl(portal.configValue);
             this.recruitmentURL = this.recruitmentURL.changingThisBreaksApplicationSecurity;
-            console.log(this.recruitmentURL, " this.recruitmentURL");
+            //console.log(this.recruitmentURL, " this.recruitmentURL");
 
             let otrsIframe = document.getElementById('recruitment-iframe');
             otrsIframe.setAttribute('src', this.recruitmentURL);

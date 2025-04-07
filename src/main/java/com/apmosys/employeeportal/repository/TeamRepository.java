@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.model.Team;
@@ -39,4 +40,19 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllTeams();
+
+	@Query(nativeQuery = true)
+	public List<Team> findTeamByProjectId(Integer projectId);
+
+	public Team findTeamByTeamId(Long teamId);
+	
+	public List<Team> findTeamListByProjectId (Integer projectId);
+
+	
+	public Team findByTeamId(Long teamId);
+	
+	List<Team> findByIsActiveNot(String status);
+	
+	@Query(value = "SELECT etm.emp_id FROM employee_team_mapping etm WHERE etm.team_id = :teamId AND etm.active != 0 ", nativeQuery = true)
+    List<Long> findEmployeeIdsByTeamId(@Param("teamId") Long teamId);
 }

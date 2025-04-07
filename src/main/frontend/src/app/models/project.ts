@@ -27,7 +27,7 @@ export class Project{
 	rejectReason:any;       // RMG project reject reason
 	isDraftProject:any;
 	bulkSyncList: any[] = [];
-
+	id:any;
 
 	//Project from Po
 	name:any;
@@ -39,4 +39,26 @@ export class Project{
 	//Team
 	teamName:any;
 	teamMemberList:any;
+	isActive:any;
+	teamId:any;
+
+	// As per RMG request
+
+	resourceCount : any;
+	experience : any;
+	role : any;
+
+	endDate: any;
+	isAllProj: any;
+
+	isSynced: any;
+	poNo: any;
+	startDate:any;
+	poStartDate:any;
+	poEndDate:any;
+	projectType:any;
+	poProjectType:any;
+	isMail:any;
+	apmosysRM:any;
+	clientRM:any;
 }

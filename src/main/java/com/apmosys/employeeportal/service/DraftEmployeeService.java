@@ -155,14 +155,16 @@ public class DraftEmployeeService {
 			employee.setApprovalsTo(employeedto.getApprovalsTo());
 			employee.setDesignationId(employeedto.getDesignationId());
 			employee.setProbationPeriod(employeedto.getProbationPeriod());
+			employee.setIsConsultant(employeedto.getIsConsultant());
 			if(employee.getEmploymentstatus().equals("Resigned") || employee.getEmploymentstatus().equals("InActive") )  {
 				employee.setDateOfResign(employeedto.getDateOfResign() != null
 						? stringToDateTimeParser.getDate(employeedto.getDateOfResign(), "yyyy-MM-dd")
 						: null);
 				employee.setDateOfRelieving(employeedto.getDateOfRelieving());
 			}
-			
-			
+			//added by rahul for reffered type and reffered Name
+			employee.setReferedType(employeedto.getReferedType());
+			employee.setReferedName(employeedto.getReferedName());
 			DraftEmployee dbResponse = draftEmployeeRepository.save(employee);
 
 			Optional.ofNullable(employeedto.getPreviousEmploymentList()).ifPresent((previousEmployerList) -> {
@@ -572,7 +574,8 @@ public class DraftEmployeeService {
 				employee.setTotalExperience(employeedto.getTotalExperience());
 				employee.setViewsOnOrganisation(employeedto.getViewsOnOrganisation());
 				employee.setAboutMe(employeedto.getAboutMe());
-
+				employee.setReferedType(employeedto.getReferedType());
+				employee.setReferedName(employeedto.getReferedName());
 				// Certification
 				// Case 1 : Updating Existing certification
 				if (employeedto.getCertifications() != null && !employeedto.getCertifications().isEmpty()) {
@@ -784,7 +787,11 @@ public class DraftEmployeeService {
 					empDTO.setEmployeementId(object[5] != null ? Long.parseLong(object[5].toString()) : null);
 					empDTO.setUpdateApplicationStatus(object[6] != null ? object[6].toString() : null);
 					empDTO.setManagerName(object[7] != null ? object[7].toString() : null);
-					empDTO.setDepartmentName(object[8] != null ? object[8].toString() : null);
+					empDTO.setManagerId(object[8] != null ? Long.parseLong(object[8].toString()) : null);
+					empDTO.setDepartmentName(object[9] != null ? object[9].toString() : null);
+					empDTO.setIsConsultant(object[10] != null ? object[10].toString() : null);
+					empDTO.setIsApprenticeship(object[11] != null ? object[11].toString() : null);
+					
 					dtoList.add(empDTO);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -898,6 +905,10 @@ public class DraftEmployeeService {
                     empDTO.setTotalExperience(object[64] !=null ? Float.parseFloat(object[64].toString()): null);
                     empDTO.setDateOfResign(object[65] != null ? format.format(format.parse(object[65].toString())) : null);
                     empDTO.setDateOfRelieving(object[66] != null ? format.format(format.parse(object[66].toString())) : null);
+                    empDTO.setIsConsultant(object[67] != null ? object[67].toString() : null);
+                    empDTO.setIsApprenticeship(object[68] != null ? object[68].toString() : null);
+                    empDTO.setReferedType(object[69] != null ? object[68].toString() : null);
+                    empDTO.setReferedName(object[70] != null ? object[68].toString() : null);
                     
 //					if (object[42] != null) {
 //
@@ -969,7 +980,7 @@ public class DraftEmployeeService {
 						dto.setHrName(pervEmploy.getHrName());
 						dto.setHrContactNumber(pervEmploy.getHrContactNumber());
 						dto.setDesignation(pervEmploy.getDesignation());
-
+						
 						previousEmploymentDTOList.add(dto);
 					}
 					empDTO.setPreviousEmploymentList(previousEmploymentDTOList);
@@ -1126,7 +1137,7 @@ public class DraftEmployeeService {
 			// System.out.println(employeedto);
 			Employee employee = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());
 			if (employee != null) {
-				System.out.println(employee);
+				System.out.println("Employee Object :- " + employee);
 
 				employee.setGender(employeedto.getGender());
 				employee.setBloodGroup(employeedto.getBloodGroup());
@@ -1168,6 +1179,7 @@ public class DraftEmployeeService {
 				employee.setBillable(employeedto.getBillable());
 				employee.setAboutMe(employeedto.getAboutMe());
 				employee.setViewsOnOrganisation(employeedto.getViewsOnOrganisation());
+				employee.setIsConsultant(employeedto.getIsConsultant());
 				// Update employee
 				Employee updatedEmployee = employeeRepository.save(employee);
 
@@ -1215,7 +1227,10 @@ public class DraftEmployeeService {
 								+ "Draft" + File.separator + employeedto.getEmployeementId());
 						String[] contents = directoryPath.list();
 
-						List<String> filesInFolder = Arrays.asList(contents);
+//						by priyadarshini
+//						List<String> filesInFolder = Arrays.asList(contents);
+						List<String> filesInFolder = contents != null ? Arrays.asList(contents) : new ArrayList<>();
+
 						List<String> finalDocFileNames = new ArrayList<String>();
 
 						for (EmployeeDocument document : documentList) {

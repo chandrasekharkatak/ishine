@@ -13,7 +13,10 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <p class="info-label">Emp Id</p>
-                                        <p class="info-text info-highlight">A-{{employeeObj.employeementId}}</p>
+                                        <p class="info-text info-highlight">
+                                            <!-- {{ employeeObj.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{employeeObj.employeementId}} -->
+                                            A-{{employeeObj.employeementId}}
+                                        </p>
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-0">
@@ -80,7 +83,36 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Blood Group</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.bloodGroup" (blur)="validateBloodGroup($event,employeeObj.bloodGroup)">
+                                            <input type="text"  class="form-control" autocomplete="none" [(ngModel)]="employeeObj.bloodGroup" (blur)="validateBloodGroup($event,employeeObj.bloodGroup)">
+                                           
+                                            <small class="errorMsg text-danger"></small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Reffered Type</label>
+                                            <select 
+                                            [disabled]="employeeObj.empId === currentUser.empId" 
+                                            class="form-control" 
+                                            aria-hidden="true" 
+                                            [(ngModel)]="employeeObj.referedType">
+                                            <option selected="selected" value="" disabled>Select</option>
+                                            <option value="In Office">In Office</option>
+                                            <option value="Out Office">Out Office</option>
+                                          </select>
+                                          
+                                            <small class="errorMsg text-danger"></small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            
+                                            <label class="info-label"><span class="text-danger">*</span>Reffered Name</label>
+                                            <input type="text" class="form-control" [disabled]="employeeObj.empId==currentUser.empId" autocomplete="none" [(ngModel)]="employeeObj.referedName">
                                             <small class="errorMsg text-danger"></small>
                                         </div>
                                     </div>
@@ -198,7 +230,7 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label">Child - {{i+1}}</label>
-                                                <input type="text" class="form-control" autocomplete="none" [(ngModel)]="child.childName">
+                                                <input type="text" class="form-control" autocomplete="none" [(ngModel)]="child.childName"  (keypress)="restrictNumbersIn($event)">
                                             </div>
                                         </div>
                                     </div>
@@ -264,7 +296,7 @@
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <label class="info-label"><span class="text-danger">*</span>Pincode</label>
-                                        <input type="number" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.pincode" (blur)="addDemographiscInfo(alert_message,employeeObj.pincode);validatePincode($event,employeeObj.pincode)">
+                                        <input type="number" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.pincode" (blur)="addDemographiscInfo(alert_message,employeeObj.pincode);validatePincode($event,employeeObj.pincode)" onKeyPress="if(this.value.length==6) return false;">
                                         <small class="errorMsg text-danger"></small>
 
                                     </div>
@@ -313,7 +345,7 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Emergency Contact Number</label>
-                                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.emergencyContactMobile" (keydown)="preventDecimalOnNumberInput($event)" (blur)="validateValidEmptyNullUndefinedemergencyContactMobile($event,employeeObj.emergencyContactMobile)">
+                                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.emergencyContactMobile" (keydown)="preventDecimalOnNumberInput($event)" (blur)="validateValidEmptyNullUndefinedemergencyContactMobile($event,employeeObj.emergencyContactMobile)" (keypress)="fieldRestictCharacterForNumber($event)" onKeyPress="if(this.value.length==10) return false;">
                                             <small class="errorMsg text-danger"></small>
                                         </div>
                                     </div>

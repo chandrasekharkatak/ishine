@@ -25,8 +25,8 @@ export class UserTimesheetComponent implements OnInit,OnDestroy,AfterViewInit {
    }
 
   ngOnInit(): void {
-    console.log("this.currentUser : ", this.currentUser);
-    console.log("Mapped Features : ", this.currentUser.userMapping.filter(userMap => userMap.tabName == this.tabName));
+    //console.log("this.currentUser : ", this.currentUser);
+    //console.log("Mapped Features : ", this.currentUser.userMapping.filter(userMap => userMap.tabName == this.tabName));
     
 
     // Dynamic feature Flags 
@@ -37,7 +37,7 @@ export class UserTimesheetComponent implements OnInit,OnDestroy,AfterViewInit {
       });
       this.userMapping[feat.featureName.replaceAll(' ', '_').toLowerCase()] = (inActiveSubfeatures.length === feat.subFeatures.length) ? false : true;
     });
-    console.log(this.tabName, this.userMapping);
+    //console.log(this.tabName, this.userMapping);
   }
 
   ngAfterViewInit(): void {
@@ -61,7 +61,8 @@ export class UserTimesheetComponent implements OnInit,OnDestroy,AfterViewInit {
           queryParams: params, 
           queryParamsHandling: 'merge'
         });
-      }else{
+      } 
+      else{
         const tab = document.getElementById('timesheetTab').querySelector('.nav-link');
         tab.classList.add('active');
         let activeRouteLink = tab.getAttribute('routerLink');
@@ -72,7 +73,7 @@ export class UserTimesheetComponent implements OnInit,OnDestroy,AfterViewInit {
 
   removeActiveTab(){
     const tab = document.getElementById('timesheetTab').querySelector('.nav-link.active');
-    console.log("active tab :", tab);
+    //console.log("active tab :", tab);
     tab?.classList.remove('active');
   }
 

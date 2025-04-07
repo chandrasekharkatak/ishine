@@ -46,5 +46,17 @@ export class ResourceManagementService {
   getInternalProject(){
     return this.http.get(`${this.baseUrl}` + `api/getInternalProject`);
   }
+
+  getPoProjectDetailsForPoProjects(){
+    return this.http.get(`${this.baseUrl}` + `api/getPoProjectDetailsForPoProjects`);
+  }
+
+  syncPoProjectDetailsByProjectId(project: Project){
+    return this.http.post(`${this.baseUrl}` + `api/syncPoProjectDetailsByProjectId`,project);
+  }
+
+  sendEmailNotificationToBDTeam(project: Project){
+    return this.http.post(`${this.baseUrl}` + `api/sendEmailNotificationToBDTeam`,project);
+  }
   
 }

@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.service;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,8 +66,13 @@ public class HolidayService {
 			     newHoliday.setDateOfHoliday(stringToDateTimeParser.getDate(holidayDTO.getDateOfHoliday(),"yyyy-MM-dd"));
 			     newHoliday.setDayOfTheWeek(holidayDTO.getDayOfTheWeek());
 			     newHoliday.setOptionalHoliday(holidayDTO.getOptionalHoliday());
-			     newHoliday.setState(holidayDTO.getState());
+//			     newHoliday.setState(holidayDTO.getState());
 			     newHoliday.setHolidayType(holidayDTO.getHolidayType());
+			     if(holidayDTO.getHolidayType().equals("WeekOff") ) {
+			    	 newHoliday.setState("all");
+			     }else {
+			    	  newHoliday.setState(holidayDTO.getState());
+			     }
 //			     newHoliday.setCreatedOn(Timestamp.valueOf(stringToDateTimeParser.getCurrentDateTime()));
 			     newHoliday.setCreatedBy(holidayDTO.getCreatedBy());
 
@@ -125,7 +131,7 @@ public class HolidayService {
 				holiday.setState(holidayDTO.getState());
 				holiday.setHolidayType(holidayDTO.getHolidayType());
 				holiday.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
-				holiday.setUpdatedBy(Integer.parseInt(holidayDTO.getUpdatedBy()));
+				holiday.setUpdatedBy(holidayDTO.getUpdatedBy());
 				Holiday dbResponse = holidayRepository.save(holiday);
 
 				if (dbResponse != null) {
@@ -209,7 +215,7 @@ public class HolidayService {
 		return response;
 	}
 
-	public ServiceResponse getAllHolidays() {
+	public ServiceResponse getAllHolidays(HolidayDTO holidayDto) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setFeatureName("get_AllHoliday");
@@ -218,8 +224,9 @@ public class HolidayService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("getAllHolidays size : "+holidayRepository.findAll().size());
 		try {
-			List<Object[]> list = holidayRepository.getAllHolidaysList();
-
+			String state = holidayDto.getState();
+			List<Object[]> list = holidayRepository.getAllHolidaysList(state);
+			
 			List<HolidayDTO> dtoList = new ArrayList<HolidayDTO>();
 
 			if (list.isEmpty()) {
@@ -260,6 +267,49 @@ public class HolidayService {
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+	
+	// getAllHoliday
+	public ServiceResponse getAllHoliday() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			List<Object[]> list = holidayRepository.getAllHolidays();
+
+			List<HolidayDTO> dtoList = new ArrayList<HolidayDTO>();
+
+			if (list.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Holiday list is empty.");
+			} else {
+				list.forEach((object) -> {
+
+					HolidayDTO dto = new HolidayDTO();
+					dto.setHolidayId(object[0] != null ? Short.valueOf(object[0].toString()) : null);
+					dto.setOccasion(object[1] != null ? object[1].toString() : null);
+					dto.setDayOfTheWeek(object[2] != null ? object[2].toString() : null);
+					dto.setDateOfHoliday(object[3] != null ? object[3].toString() : null);
+					dto.setHolidayType(object[4] != null ? object[4].toString() : null);
+					dto.setCreatedOn(object[5] != null ? object[5].toString() : null);
+					dto.setCreatedbyName(object[6] != null ? object[6].toString() : null);
+					dto.setUpdatedOn(object[7] != null ? object[7].toString() : null);
+					dto.setUpdatedByName(object[8] != null ? object[8].toString() : null);
+					dto.setCreatedBy(object[9] != null ? Integer.parseInt(object[9].toString()) : null);
+					dto.setState(object[10] != null ? object[10].toString() : null);
+					dto.setUpdatedBy(object[11] != null ? Integer.parseInt(object[11].toString()) : null);
+					
+					dtoList.add(dto);
+				});      
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
 		return response;
 	}
 
@@ -326,14 +376,24 @@ public class HolidayService {
 		logBuilder.append("occasion : " + holidayDTO.getOccasion());
 				
 		  try {
-			  Holiday checkOccasion = holidayRepository.findByOccasion(holidayDTO.getOccasion());
 			  
-			  if(checkOccasion!=null) {
-				  response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				  response.setServiceResponse("Occasion already exist!");
+			  List<Holiday> checkOccasion = holidayRepository.findByOccasion(holidayDTO.getOccasion());
+			  Integer yearOfOccassion = holidayRepository.findYearOfOccassion(holidayDTO.getOccasion());
+			  
+			  if(Integer.valueOf(yearOfOccassion).equals(holidayDTO.getCurrentYear())) {
+				  if(checkOccasion != null && !checkOccasion.isEmpty()) {
+					  response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					  response.setServiceResponse("Occasion already exist!");
+					  
+					  apiLogInfo.setApiResponse("Occasion already exist!");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				  }
+			  }else {
+				  response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				  response.setServiceResponse("Occasion Created Successfully");
 				  
-				  apiLogInfo.setApiResponse("Occasion already exist!");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				  apiLogInfo.setApiResponse("Occasion Created Successfully");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			  }
 			
 		  } catch (Exception e) {
@@ -357,9 +417,9 @@ public class HolidayService {
 		apiLogInfo.setApiUrl("/api/getHolidayWeekOffSize");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("getHolidayWeekOffSize : "+holidayRepository.getHolidayWeekOffSize(holidayDTO.getFromDate(), holidayDTO.getToDate()));
+		logBuilder.append("getHolidayWeekOffSize : "+holidayRepository.getHolidayWeekOffSize(holidayDTO.getFromDate(), holidayDTO.getToDate(),holidayDTO.getState()));
 		try {
-		List<Object[]> list = holidayRepository.getHolidayWeekOffSize(holidayDTO.getFromDate(), holidayDTO.getToDate());
+		List<Object[]> list = holidayRepository.getHolidayWeekOffSize(holidayDTO.getFromDate(), holidayDTO.getToDate(),holidayDTO.getState());
 		List<HolidayDTO> dtoList = new ArrayList<HolidayDTO>();
 
 		System.out.println(list+ "list");
@@ -416,6 +476,7 @@ public class HolidayService {
 			
 			LocalDate holidayDate = LocalDate.parse(holidayDTO.getDateOfHoliday());
 			Holiday holidayObj = holidayRepository.findFirstByDateOfHolidayAndState(holidayDate,"all");
+			System.out.println(" ANurag "+holidayObj+ " holidayDate  : "+holidayDate);
 			
 			List<Employee> allEmployee = employeeRepository.findAll();
 			
@@ -469,6 +530,9 @@ public class HolidayService {
 									apiLogInfo.setApiResponse("Unable to add Timesheet");
 									apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 								}
+							}else {
+								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								response.setServiceResponse("Timesheet Added Earlier for this date ");
 							}
 						}
 					});
@@ -478,6 +542,11 @@ public class HolidayService {
 					apiLogInfo.setApiResponse("Employee List is empty");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
+			} else {
+			    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			    response.setServiceResponse("No holiday found for the specified date and state");
+			    apiLogInfo.setApiResponse("No holiday found for the specified date and state");
+			    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 		}catch(Exception e) {
 			e.printStackTrace();

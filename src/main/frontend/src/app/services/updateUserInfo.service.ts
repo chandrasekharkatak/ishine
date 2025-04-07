@@ -11,19 +11,22 @@ import { AuthenticationService } from "./authentication.service";
 import { EmployeeService } from "./employee.service";
 import { ValidationService } from "./validation.service";
 import { environment } from "src/environments/environment";
+import { Router } from "@angular/router";
+import { UtilityService } from "./utility.service";
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class UpdateUserInfoService {
-    private baseUrl:any = environment.baseUrl;
-  
+    private baseUrl: any = environment.baseUrl;
+
     //modal 
     alertMessage: any;
     modalRef: BsModalRef = new BsModalRef();
+    employeeData: any;
 
     //Obj 
     currentUser: User;
     private userInfoObj: Employee = new Employee();
-    updateduserInfoObj : EventEmitter<Employee> = new EventEmitter<Employee>();
+    updateduserInfoObj: EventEmitter<Employee> = new EventEmitter<Employee>();
 
 
     constructor(
@@ -31,52 +34,79 @@ export class UpdateUserInfoService {
         private authenticationService: AuthenticationService,
         private modalService: BsModalService,
         private employeeService: EmployeeService,
-    ){ 
+        private router: Router,
+        private utilityService:UtilityService
+    ) {
         this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
         this.getEmployeeInfo();
+        console.log("hhyyyy  ", this.router.url);
     }
 
-    getEmployeeInfo(){
+    getEmployeeInfo() {
+
+        console.log("#################YES@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  ", this.router.url);
+
         this.userInfoObj = new Employee();
         let currentEmp = new Employee();
-        currentEmp.empId = this.currentUser.empId;
-        console.log("currentEmp : ", currentEmp);
-        
-        this.employeeService.getEmployeeByEmpId(currentEmp).pipe(first()).subscribe((response: any) => {
-          if (response.serviceStatus == "Success") {
-            this.userInfoObj = response.serviceResponse;
-            if(this.userInfoObj.certifications){
-                this.userInfoObj.certifications.forEach((certification:certification) => certification.employeeCertificateId = null);
-            }
-            if(this.userInfoObj.previousEmploymentList){
-                this.userInfoObj.previousEmploymentList && this.userInfoObj.previousEmploymentList.forEach((previousEmployer:PreviousEmployer) => previousEmployer.previousEmploymentId = null);
-            }
 
-            console.log("userInfoObj : ", this.userInfoObj);
-            this.updateduserInfoObj.emit(this.userInfoObj);
-          } else {
-            console.error(response.serviceResponse);
-          }
+        if (this.router.url.startsWith('/employee-360/profile')) {
+            const storedData = localStorage.getItem('employee360Data');
+            const parsedData = storedData ? JSON.parse(storedData) : null;
+            if(parsedData != null || parsedData != undefined ){
+              this.employeeData =  parsedData;
+            }
+            currentEmp.empId = this.employeeData.empId;
+        } else {
+            console.log("hhyyyy  ", this.router.url);
+            currentEmp.empId = this.currentUser.empId;
+            console.log("currentEmp : ", currentEmp);
+        }
+
+
+
+
+        this.employeeService.getEmployeeByEmpId(currentEmp).pipe(first()).subscribe((response: any) => {
+            if (response.serviceStatus == "Success") {
+                this.userInfoObj = response.serviceResponse;
+                if (this.userInfoObj.certifications) {
+                    this.userInfoObj.certifications.forEach((certification: certification) => certification.employeeCertificateId = null);
+                }
+                if (this.userInfoObj.previousEmploymentList) {
+                    this.userInfoObj.previousEmploymentList && this.userInfoObj.previousEmploymentList.forEach((previousEmployer: PreviousEmployer) => previousEmployer.previousEmploymentId = null);
+                }
+
+                //console.log("userInfoObj : ", this.userInfoObj);
+                this.updateduserInfoObj.emit(this.userInfoObj);
+            } else {
+                console.error(response.serviceResponse);
+            }
         });
     }
 
-    getUserInfoObj(){
-        return Object.assign({}, this.userInfoObj) ;
+    getUserInfoObj() {
+      //  this.getEmployeeInfo();
+        return Object.assign({}, this.userInfoObj);
     }
 
-    setUserInfoObj(userInfoObj: Employee){
+
+    getUserInfoObjwithEmpId(){
+          this.getEmployeeInfo();
+         return Object.assign({}, this.userInfoObj);
+    }
+
+    setUserInfoObj(userInfoObj: Employee) {
         this.userInfoObj = userInfoObj;
         this.updateduserInfoObj.emit(this.userInfoObj);
     }
 
     async saveEmployeeInfo(): Promise<any> {
-        let response:any;
+        let response: any;
 
         this.userInfoObj.isDraft = true;
-        console.log("saveEmployeeInfo : ", this.userInfoObj);
+        //console.log("saveEmployeeInfo : ", this.userInfoObj);
 
         if (this.userInfoObj.updateApplicationStatus == "In-Progress") {
-            
+
             response = await this.employeeService.updateDraftEmployee(this.userInfoObj).toPromise();
         } else {
             this.userInfoObj.updateApplicationStatus = "In-Progress";
@@ -87,24 +117,68 @@ export class UpdateUserInfoService {
     }
 
     async updateEmployeeInfo(): Promise<any> {
+
+
+        if (this.router.url.startsWith('/employee-360/profile')) {
+            const storedData = localStorage.getItem('employee360Data');
+            const parsedData = storedData ? JSON.parse(storedData) : null;
+            if(parsedData != null || parsedData != undefined ){
+              this.employeeData =  parsedData;
+            }
+
+            this.userInfoObj.updatedBy = this.employeeData.empId;
+            this.userInfoObj.isDraft = true;
+            this.userInfoObj.updateApplicationStatus = "Pending For Approval";
+           
+        } else {
         this.userInfoObj.updatedBy = this.currentUser.empId;
         this.userInfoObj.isDraft = true;
         this.userInfoObj.updateApplicationStatus = "Pending For Approval";
-        console.log("updateEmployeeInfo : ", this.userInfoObj);
+        }
+
+
+
+
+       
+        //console.log("updateEmployeeInfo : ", this.userInfoObj);
         return await this.employeeService.updateDraftStatusById(this.userInfoObj).toPromise();
     }
 
-    async getDraftByEmpId():Promise<Employee>{
-        let draftObj:Employee;
+    async getDraftByEmpId(): Promise<Employee> {
+        let draftObj: Employee;
 
         let currentEmp = new Employee();
+
+
+        if (this.router.url.startsWith('/employee-360/profile')) {
+            const storedData = localStorage.getItem('employee360Data');
+            const parsedData = storedData ? JSON.parse(storedData) : null;
+            if(parsedData != null || parsedData != undefined ){
+              this.employeeData =  parsedData;
+            }
+            console.log("Employeement Id", this.employeeData)
+
+            let employementid =  Number(this.utilityService.getEmployeeIdSubstring2(this.employeeData));
+            // let employementid =  Number(this.employeeData.employeementid);
+            currentEmp.employeementId = employementid;
+            console.log("Employeement Id", currentEmp.employeementId)
+            currentEmp.isDraft = true;
+        } else{
+            
+           
         currentEmp.employeementId = this.currentUser.employeementId;
         currentEmp.isDraft = true;
+        }
 
-        const response:any = await this.employeeService.getDraftEmployeeByEmploymentId(currentEmp).toPromise();
+       
+
+
+        
+
+        const response: any = await this.employeeService.getDraftEmployeeByEmploymentId(currentEmp).toPromise();
         if (response.serviceStatus == "Success") {
             draftObj = response.serviceResponse;
-            console.log("draftObj : ", draftObj);
+            //console.log("draftObj : ", draftObj);
         } else {
             console.error(response.serviceResponse)
         }

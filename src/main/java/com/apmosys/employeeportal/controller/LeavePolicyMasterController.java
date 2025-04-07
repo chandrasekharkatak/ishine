@@ -52,4 +52,13 @@ public class LeavePolicyMasterController {
 		ServiceResponse response = leavePolicyMasterService.getLeavePolicyByEmployentStatusAndLeaveTypeMasterId(leaveDTO);
 		return response;
 	}
+	
+	@RequestMapping(value = "/getMaternityLeaveDaysByMaternityType" ,method = RequestMethod.POST)
+	public ServiceResponse getMaternityLeaveDaysByMaternityType(@RequestBody LeaveDTO leaveDto) {
+		
+		ServiceResponse response = leavePolicyMasterService.getMaternityLeaveDaysByMaternityType(leaveDto);	
+		return response;
+	}
+	
+	
 }

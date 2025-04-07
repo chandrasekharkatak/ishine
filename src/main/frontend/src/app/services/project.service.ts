@@ -49,4 +49,19 @@ export class ProjectService {
     return this.http.post(`${this.baseUrl}` + `api/getAllMyProjectByEmpId`, project);
   }
 
+  getExistingProjectsAndTeamsByEmployee(project: Project){
+    return this.http.post(`${this.baseUrl}` + `api/getExistingProjectsAndTeamsByEmployee`, project);
+  }
+
+  updateProjectResourceAsInActive(project: Project){
+    return this.http.post(`${this.baseUrl}` + `api/updateProjectResourceAsInActive`, project);
+  }
+  
+  deleteTeam(project: Project){
+    return this.http.post(`${this.baseUrl}` + `api/deleteTeamByTeamId`, project);
+  }
+  //added by rahul for project
+getTeamMemberByTeamId(teamId:any){
+  return this.http.get(`${this.baseUrl}`+`api/getTeamMemberByTeamId/`+teamId);
+} 
 }

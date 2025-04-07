@@ -29,8 +29,19 @@
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
+                            <label><span class="text-danger">*</span>Department Abbreviation</label>
+                            <input type="text" class="form-control" maxlength="8" autocomplete="none"
+                            [(ngModel)]="deptObj.deptAbbreviation"  pattern="^[a-zA-Z0-9]{3,8}$"
+                            (blur)="validateAbbreviation()">
+                        <div *ngIf="abbreviationError" class="text-danger small-font">{{ abbreviationError }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
                             <label><span class="text-danger">*</span>Head of Department</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="deptObj.hodId">
+                            <select class="form-control" aria-hidden="true"  (change)= "changesDeptId($event)" [(ngModel)]="deptObj.hodId" >
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let employee of hodList" value="{{employee.empId}}">{{employee.name}}</option>
                               </select>
@@ -57,7 +68,7 @@
     <div class="col-md-12">
         <div class="row">
             <div class="col-md-12 table-header">
-                <h1 class="table-header-title">Departments</h1>
+                <h1 class="table-header-title">Department(s)</h1>
             </div>
         </div>
         <div class="col-md-12">
@@ -74,10 +85,10 @@
         </div> -->
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" (click)="toggleSearch()">
+                <div class="selector-toggle" >
                     <a href="javascript:void(0)">
-                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
                     </a>
                 </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'departmentInfo'" [tableTHeadId]="'departmentInfoTHead'"
@@ -106,11 +117,15 @@
                                 *ngFor="let dept of allDeptList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
                                 <th class="info-label">{{17*(page-1)+i+1}}</th>
                                 <td>{{dept.name}}</td>
-                                <td>{{dept.hodName}}</td>
-                                <td>{{dept.createdByName}}</td>
+                                <td *ngIf="userMapping.employee360_view_department_config" id="clickablefor360" [navigateToEmployee360]="dept.emp360HodId" style="cursor: pointer;" title="Click to view Employee 360">{{dept.hodName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_department_config">{{dept.hodName}}</td>
+                                <td *ngIf="userMapping.employee360_view_department_config" id="clickablefor360" [navigateToEmployee360]="dept.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{dept.createdByName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_department_config" >{{dept.createdByName}}</td>
                                 <td>{{dept.createdOn}}</td>
                                 <td>{{dept.updatedOn}}</td>
-                                <td>{{dept.updatedByName}}</td>
+                                <td *ngIf="userMapping.employee360_view_department_config && dept.updatedByName" id="clickablefor360" [navigateToEmployee360]="dept.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{dept.updatedByName}}</td>
+                                <td *ngIf="userMapping.employee360_view_department_config && !dept.updatedByName">{{dept.updatedByName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_department_config">{{dept.updatedByName}}</td>
                                 <td *ngIf="userMapping.update_department || userMapping.delete_department">
                                     <button *ngIf="userMapping.update_department" class="btn btn-sm btn-outline-primary"
                                         type="submit" (click)="showUpdateForm(dept)"><em class="fa fa-edit"></em></button>&nbsp;
@@ -175,3 +190,4 @@
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
     </div>
 </ng-template>
+

@@ -10,7 +10,7 @@ import com.apmosys.employeeportal.model.LeaveTypeMaster;
 public interface LeaveTypeMasterRepository extends JpaRepository<LeaveTypeMaster, Short> {
 
 	@Query(nativeQuery = true)
-	public List<Object[]> getAllLeaveTypesByLeavePolicies(String employmentStatus, String gender);
+	public List<Object[]> getAllLeaveTypesByLeavePolicies(String employmentStatus, String gender, String maritalStatus);
 
 	public LeaveTypeMaster findByLeaveTypeCode(String leaveTypeCode);
 

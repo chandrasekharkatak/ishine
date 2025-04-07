@@ -59,12 +59,12 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Day Type</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.dayType" (change)="onTimesheetDescriptionChange();resetTimeonDayTypeChange()" >
+                            <select class="form-control" id="dayTypeCursor" aria-hidden="true" [(ngModel)]="timesheetObj.dayType" (change)="onTimesheetDescriptionChange();resetTimeonDayTypeChange()" >
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option value="Working">Working</option>
                                 <option value="Public Holiday">Public Holiday</option>
                                 <option value="Week Off">Week Off</option>
-                                <option value="Leave">Leave</option>
+                                <!-- <option value="Leave">Leave</option> -->
                                 <option value="Non-working">Working on non-working day</option>
                             </select>
                         </div>
@@ -107,9 +107,16 @@
                     <div class="info-wrapper">
                         <div class="form-group input-wrapper">
                             <label class="info-label"><span class="text-danger">*</span>In Time</label>
-                            <input id="officeInTime" class="form-control static-input" autocomplete="none" [(ngModel)]="timesheetObj.officeInTime" [owlDateTimeTrigger]="officeInTimePicker" [owlDateTime]="officeInTimePicker" [owlDateTimeFilter]="timesheetDateFilter"
-                            (dateTimeChange)="resetTotalWorkingOfficeHours()" (keydown)="disableMannualDateInput()" placeholder="Select In Time" autocomplete="off">
-                            <owl-date-time class="picker" [hour12Timer]="true" #officeInTimePicker></owl-date-time>
+                            <input id="officeInTime" class="form-control static-input" autocomplete="none" [(ngModel)]="timesheetObj.officeInTime" [owlDateTimeTrigger]="officeInTimePicker" [owlDateTime]="officeInTimePicker" [owlDateTimeFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetDateFilter"
+                            (dateTimeChange)="resetTotalWorkingOfficeHours(alertTemplate)" (keydown)="disableMannualDateInput()" placeholder="Select In Time" autocomplete="off">
+                            <owl-date-time class="picker" [hour12Timer]="true" #officeInTimePicker></owl-date-time> 
+
+                            <!-- <p><span style="color:#193d8a; font-weight: bolder;">In Time:</span> {{ timesheetObj.officeInTime | date:'hh:mm a' }}</p> -->
+                            <p *ngIf="timesheetObj.officeInTime">
+                                <span style="color:#193d8a; font-weight: bolder;">In Time:</span> 
+                                {{ timesheetObj.officeInTime | date:'hh:mm a' }}
+                            </p>
+                            
                         </div>
                     </div>
                 </div>
@@ -118,8 +125,11 @@
                         <div class="form-group input-wrapper">
                             <label class="info-label"><span class="text-danger">*</span>Out Time</label>
                             <input id="officeOutTime" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.officeOutTime" [owlDateTimeTrigger]="officeOutTimePicker" [owlDateTime]="officeOutTimePicker"
-                            (dateTimeChange)="setTotalWorkingOfficeHours()" (keydown)="disableMannualDateInput()" placeholder="Select Out Time" autocomplete="off" [disabled]="!timesheetObj.officeInTime" [owlDateTimeFilter]="outTimeFilter">
+                            (dateTimeChange)="setTotalWorkingOfficeHours()" (keydown)="disableMannualDateInput()" placeholder="Select Out Time" autocomplete="off" [disabled]="!timesheetObj.officeInTime" [owlDateTimeFilter]="outTimeFilter" [max]="this.maxOutTimeDate">
                             <owl-date-time class="picker" [startAt]="timesheetObj.officeInTime" [hour12Timer]="true" #officeOutTimePicker></owl-date-time>
+                            
+                            <p *ngIf="timesheetObj.officeOutTime"><span style="color:#193d8a; font-weight: bolder;">Out Time:</span> {{ timesheetObj.officeOutTime | date:'hh:mm a' }}</p>
+
                         </div>
                     </div>
                 </div>
@@ -218,6 +228,7 @@
                                         <label class="info-label"><span class="text-danger">*</span>Team Name</label>
                                             <mat-select ngxMatSelect 
                                                 class="form-control"
+                                                id="dayTypeCursor"
                                                 #teamName="ngxMatSelect" 
                                                 [displayMember]="'displayTeam'"
                                                 [valueMember]="'teamId'"
@@ -292,12 +303,14 @@
                                 <div class="info-wrapper">
                                     <div class="form-group">
                                         <label class="info-label"><span class="text-danger">*</span>Activity</label>
-                                        <select class="form-control" aria-hidden="true"
+                                        <select class="form-control" aria-hidden="true" id="dayTypeCursor"
+                                        
                                             [(ngModel)]="activityObj.activityId" (blur)="validateActivity($event,activityObj.activityId)" (change)="setActivity(activityObj)">
                                             <option selected="selected" value="" disabled>Select</option>
                                             <option *ngFor="let activity of activityObj.projectActivities"
                                                 value="{{activity.activityId}}">{{activity.activity}}</option>
                                         </select>
+                                        <!-- <pre>{{ activityObj.projectActivities | json }}</pre> -->
                                         <small class="errorMsg text-danger"></small>
 
                                     </div>
@@ -320,7 +333,8 @@
                                         <label class="info-label"><span class="text-danger">*</span>Time
                                             <small>(hrs)</small></label>
                                         <input type="number" step="any" class="form-control" autocomplete="none" 
-                                            [(ngModel)]="activityObj.completionTime"  (blur)="validateTime($event,activityObj.completionTime)" (keypress)="omit_special_char($event)">
+                                            [(ngModel)]="activityObj.completionTime"  (blur)="validateTime($event,activityObj.completionTime)" (keypress)="omit_special_char($event)" (wheel)="preventScroll($event)"  >
+                                            
                                             <small class="errorMsg text-danger"></small>
                                     </div>
                                 </div>
@@ -362,6 +376,7 @@
             <div class="col-md-12 table-header">
                 <h1 class="table-header-title">My Timesheets</h1>
             </div>
+
         </div>
         <div class="row">
             <div class="col-md-12">
@@ -377,7 +392,7 @@
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Start Date</label>
-                        <input id="timesheetStartDate" type="date" OnClick="this.showPicker()" class="form-control" autocomplete="none"
+                        <input [max]="today" id="timesheetStartDate" type="date" OnClick="this.showPicker()" class="form-control" autocomplete="none"
                             [(ngModel)]="startDate" (change)="getAllMyTimesheetsByEmpId(alert_message)"
                             (keydown)="disableMannualDateInput()">
                     </div>
@@ -388,7 +403,7 @@
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>End Date</label>
-                        <input id="timesheetEndDate" type="date" OnClick="this.showPicker()" class="form-control" autocomplete="none"
+                        <input id="timesheetEndDate" [max]="today" type="date" OnClick="this.showPicker()" class="form-control" autocomplete="none"
                             [(ngModel)]="endDate" (change)="getAllMyTimesheetsByEmpId(alert_message)"
                             (keydown)="disableMannualDateInput()">
                     </div>
@@ -399,7 +414,7 @@
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Start Date</label>
-                        <input id="timesheetStartDate" type="date" OnClick="this.showPicker()" class="form-control" autocomplete="none"
+                        <input id="timesheetStartDate" [max]="today" type="date" OnClick="this.showPicker()" class="form-control" autocomplete="none"
                             [(ngModel)]="startDate" (change)="getMyTeamTimesheets(alert_message)"
                             (keydown)="disableMannualDateInput()">
                     </div>
@@ -410,7 +425,7 @@
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>End Date</label>
-                        <input id="timesheetEndDate" type="date" OnClick="this.showPicker()" class="form-control" autocomplete="none"
+                        <input id="timesheetEndDate" [max]="today" type="date" OnClick="this.showPicker()" class="form-control" autocomplete="none"
                             [(ngModel)]="endDate" (change)="getMyTeamTimesheets(alert_message)"
                             (keydown)="disableMannualDateInput()">
                     </div>
@@ -422,8 +437,8 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" (click)="toggleSearch()">
-                    <a href="javascript:void(0)">
+                <div class="selector-toggle" >
+                    <a href="javascript:void(0)" (click)="toggleSearch()">
                         <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
@@ -472,7 +487,7 @@
                                 <td>{{timesheet.status}}</td>
                                 <td *ngIf="isSelfTimesheets">{{timesheet.createdByName}}</td>
                                 <td>{{timesheet.createdOn}}</td>
-                                <td>{{timesheet.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift'}}</td>
+                                <td>{{timesheet.isNightShiftDisplay}}</td>
                                 <td>{{timesheet.leaveType}}</td>
                                 <td>{{timesheet.remarks}}</td>
                                 <td>

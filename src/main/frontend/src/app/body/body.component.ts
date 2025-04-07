@@ -1,12 +1,12 @@
-import { Component, Input, OnInit, TemplateRef, ViewChild} from '@angular/core';
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { User } from '../models/user';
+import { Component, Input, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { NavigationEnd, Router } from '@angular/router';
+import * as CryptoJS from 'crypto-js';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
 import { EmployeeService } from '../services/employee.service';
 import { ValidationService } from '../services/validation.service';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import * as CryptoJS from 'crypto-js';
 
 @Component({
   selector: 'app-body',
@@ -40,7 +40,8 @@ export class BodyComponent implements OnInit {
   //modal
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
-
+  resourceManagementFeature: any;
+  reportsFeature: any;
   // stop modal to close
   config = {
     backdrop: true,
@@ -59,8 +60,10 @@ export class BodyComponent implements OnInit {
       this.currentUser = x;
 
       if(this.currentUser){
+        console.log("n jsvsdv",this.currentUser);
         this.currentUserName = this.currentUser.name.split(" ")[0];
       this.currentUserName = this.currentUserName[0].toUpperCase() + this.currentUserName.slice(1).toLowerCase();
+      this.extractFeatures();
       }
     });
     this.router.events.subscribe((e) => {
@@ -75,6 +78,28 @@ export class BodyComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.extractFeatures();
+  }
+
+  extractFeatures() {
+    // Loop through userMapping to find the required features
+    this.currentUser.userMapping.forEach(feature => {
+      if (feature.featureName === 'Resource Management') {
+        this.resourceManagementFeature = feature.featureName;
+       
+      } else if (feature.featureName === 'Reports') {
+        this.reportsFeature = feature.featureName;
+       
+      }
+    });
+  }
+  getBreadcrumbClass(): string{
+    let styleClass = '';
+
+    if(!this.isHome){
+      styleClass= 'mt-5';
+    }
+    return styleClass;
   }
 
   getBodyClass(): string{
@@ -113,13 +138,14 @@ export class BodyComponent implements OnInit {
     this.authenticationService.logoutUser(user).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.authenticationService.stopUserSessionCheck();
-        console.log(response.serviceResponse);
+        //console.log(response.serviceResponse);
           sessionStorage.removeItem('currentUser');
           sessionStorage.removeItem('token');
           sessionStorage.removeItem('logInfo');
           sessionStorage.removeItem('maxFileSize');
           sessionStorage.removeItem('maxRequestSize');
           sessionStorage.removeItem('sessioncheck');
+          sessionStorage.removeItem('breadcrumb');
         // delete method call for cookies
         this.authenticationService.deleteCookies();
         this.authenticationService.setcurrentUserSubject(null);
@@ -134,6 +160,7 @@ export class BodyComponent implements OnInit {
           sessionStorage.removeItem('maxFileSize');
           sessionStorage.removeItem('maxRequestSize');
           sessionStorage.removeItem('sessioncheck');
+          sessionStorage.removeItem('breadcrumb');
           // delete method call for cookies
           this.authenticationService.deleteCookies();
           this.authenticationService.setcurrentUserSubject(null);
@@ -209,7 +236,7 @@ export class BodyComponent implements OnInit {
     this.oldPasswordValid = false;
     this.newpassword = ''
     this.userNewPass = ''
-    console.log(this.currentUser.isNew)
+    //console.log(this.currentUser.isNew)
     if(this.currentUser.isNew == 'true'){
       this.modalRef = this.modalService.show(changePasswordTemplate,this.config);
     }else{
@@ -296,5 +323,19 @@ export class BodyComponent implements OnInit {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
   }
+  
+  public openMenu: boolean = false;
+  isOver = false;
 
+  routingFunction(message: string) {
+       this.router.navigate(['/'+message]);
+      this.clickMenu();
+       
+  }
+  
+  clickMenu() {
+    this.openMenu = !this.openMenu;
+  }
+ 
+ 
 }

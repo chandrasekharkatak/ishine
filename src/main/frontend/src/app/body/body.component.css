@@ -48,3 +48,319 @@
 /* #navbarNavDropdown{
     padding-right: 40px;
 } */
+
+.user-menu .dropdown-item {
+    cursor: pointer;
+}
+
+
+.fab-btn {
+    position: sticky;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    background-color: #6b26bb;
+    color: white;
+    z-index: 1000;
+    box-shadow: 0px 2px 17px -1px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    top: 40%;
+    left: 97.7%;
+    width: 80px;
+    height: 80px;
+}
+
+#styleSelector.open {
+    right: 0;
+    background: #FFF none repeat scroll 0 0;
+    -webkit-box-shadow: 0 1px 4px 0 rgb(0 0 0 / 20%);
+    box-shadow: 0 1px 4px 0 rgb(0 0 0 / 20%);
+}
+
+#styleSelector {
+    right: -400px;
+    border-left: 2px solid rgba(48, 53, 73, 0.28);
+    min-height: 100px;
+    height: calc(100vh - 56px);
+    border: 1px solid #e9e9e9;
+    background: white;
+    position: fixed;
+    margin: 0;
+    padding: 20px;
+    width: 100px;
+    /* width: 250px; */
+    top: 30px;
+    z-index: 1000;
+    -webkit-transition: 0.5s;
+    transition: 0.5s;
+    -o-transition: 0.5s;
+}
+
+.selector-toggle {
+    position: relative;
+}
+
+.selector-toggle a {
+    left: -69px;
+    border-right: 0;
+    border-radius: 50% 0 0 50%;
+    position: absolute;
+    top: 40px;
+    width: 47px;
+    height: 40px;
+    display: block;
+    cursor: pointer;
+    text-align: center;
+    color: #fff;
+    color: #fff;
+    background-color: var(--primary);
+    -webkit-box-shadow: 0 1px 4px 0 rgb(0 0 0 / 20%);
+    box-shadow: 0 1px 4px 0 rgb(0 0 0 / 20%);
+    padding: 10px 8px;
+}
+
+.button {
+    color: white;
+    background-color: var(--accent);
+    font-size: .925rem;
+
+    border: 1px solid #eee;
+    border-radius: 10px;
+    /* box-shadow: rgba(0, 0, 0, 0.15) 0px 15px 25px, rgba(0, 0, 0, 0.05) 0px 5px 10px; */
+    padding: 0.4em 0.625em;
+}
+
+.button:hover {
+    background-color: white;
+    color: var(--accent);
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 15px 25px, rgba(0, 0, 0, 0.05) 0px 5px 10px;
+}
+
+#globalSearchSelector {
+    right: -400px;
+    border-left: 2px solid rgba(48, 53, 73, 0.28);
+    min-height: 200px;
+    max-height: 200px; 
+    height: calc(100vh - 56px);
+    border: 1px solid #e9e9e9;
+    background: white;
+    position: fixed;
+    margin: 0;
+    padding: 20px;
+    width: 400px;
+    top: 150px; 
+    z-index: 1000;
+    transition: 0.5s;
+    border: 3.5px solid #1f4864;
+    border-radius: 4px;
+}
+
+#globalSearchSelector.open {
+    right: 0;
+    width:300px;
+    
+}
+
+#globalSearchSelector .selector-toggle a {
+    top: 31px;
+    background-color: #231e8d;
+    /* width: 51px; */
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.material-icons{
+    color: white;
+    font-weight: bold;
+}
+/* .action-button : :hover{
+
+} */
+
+.icon-text {
+    display: flex;
+    align-items: center;   
+    gap: 8px;             
+    font-size: 20px;       
+    font-weight: bold;
+  }
+  
+  .icon-text i {
+    font-size: 20px;       
+    color: #007bff;        
+  }
+  
+  .icon-text span {
+    font-size: 20px; 
+    width:200px;     
+    color: #007bff;        
+  }
+  
+  .border-section {
+    padding: 6px;
+    margin: 2px 0;
+    border: 2px solid #007bff;  
+    border-radius: 5px;
+    background-color: #f0f8ff;    
+    width: 250px;                
+    text-align: center;
+    font-weight: bold;
+    color: #007bff;
+    transition: background-color 0.3s, transform 0.2s;
+  }
+  
+  .border-section:hover {
+    background-color: #e6f2ff;
+    transform: translateY(-3px); 
+  }
+  
+  
+  
+.menu-button {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 50px;               
+    height: 50px;
+    border-radius: 50%;        
+    background-color: #231e8d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease, background-color 0.3s ease; 
+  }
+  
+
+  .menu-button:hover {
+    transform: translateY(-5px); 
+    background-color: #231e8d;   
+  }
+  
+
+  @keyframes moveOne {
+    from { bottom: 2rem; opacity: 0; }
+    to { bottom: 6rem; }
+  }
+  @keyframes moveOneLabel {
+    from { bottom: 2rem; opacity: 0; }
+    to { bottom: 6.5rem; }
+  }
+  @keyframes moveTwo {
+    from { bottom: 2rem; opacity: 0; }
+    to { bottom: 9.5rem; }
+  }
+  @keyframes moveTwoLabel {
+    from { bottom: 2rem; opacity: 0; }
+    to { bottom: 10rem; }
+  }
+  
+
+  .label {
+    position: fixed;
+    right: 5rem;
+    left: auto;
+    height: 25px;
+    width: 116px;
+    line-height: 25px;
+    min-height: 25px;
+    vertical-align: top;
+    font-size: 12px;
+    padding: 0 0;
+    margin: 0;
+    background: transparent;
+    border: 0px;
+    font-size: 12px;
+    font-weight: bold;
+  }
+  
+  .one {
+    bottom: 6rem;
+    animation: moveOne 0.2s;
+  }
+  .labelone {
+    bottom: 6.5rem;
+    animation: moveOneLabel 0.2s;
+  }
+  
+  .two {
+    bottom: 9.5rem;
+    animation: moveTwo 0.25s;
+  }
+  .labeltwo {
+    bottom: 10rem;
+    animation: moveTwoLabel 0.25s;
+  }
+  
+  .dialog_scrim {
+    background: #231e8d;
+    opacity: 0.4;
+    position: fixed;
+    top: 0;
+    left: 0;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+  }
+  
+
+.action-button {
+    position: fixed;
+    right: 2rem;
+    transition-property: opacity;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #231e8d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 6px rgb(245 249 249 / 30%);
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    color: #c5480e;
+    font-size: 24px;
+    padding: 10px;
+    border: 1px solid white !important;        
+  }
+  
+ 
+  .action-button:hover {
+    position: fixed;
+    right: 2rem;
+    transition-property: opacity;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #231e8d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 6px rgb(245 249 249 / 30%);
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    color: #c5480e;
+    font-size: 24px;
+    padding: 10px;
+    border: 1px solid white !important;  
+  }
+  
+
+  .action-button i {
+    font-size: 28px;           
+    transition: transform 0.2s ease;
+  }
+  
+
+  .action-button:hover i {
+    transform: scale(1.1);    
+  }
+  
+
+  @media (max-width: 600px) {
+    .border-section {
+      width: 100%; 
+    }
+  }
+  

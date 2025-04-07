@@ -1,11 +1,15 @@
 <div *ngFor="let calendarItem of calendar; let i = index">
     <div class="flex-container flex-center">
       <div
-        class="calendar-days"
+        class="calendar-days hover-section"
         
         [ngClass]="{'bg-white': day.status === 'Not Filled', 'bg-red': day.status === 'Rejected', 'bg-yellow' : day.status === 'Pending', 'bg-green' : day.status === 'Approved'}"
+        
         [ngClass]="day.className"
         *ngFor="let day of calendarItem"
+        
+        (mouseenter)="onHoverStart($event, day.description,day.activity)"
+        (mouseleave)="onHoverEnd()"
       >
         <div *ngIf="i === 0"><b>{{day.dayName}}</b></div>
         {{day.day}} <small *ngIf="i === 0 && day.workingHours >= 0" class="float-right"><b>{{day.workingHours}} Hrs </b></small>
@@ -75,3 +79,36 @@
         </div>
     </div>
 </ng-template>
+
+<!-- <div class="hover-section" (mouseenter)="onHoverStart(1211)" (mouseleave)="onHoverEnd(1234)">
+    <div class="popup" *ngIf="isPopupVisible">
+      <p>Description: {{popupDescription}}</p>
+    </div>
+</div> -->
+
+
+<!-- <div
+  class="hover-section"
+  (mouseenter)="onHoverStart($event, 'Dynamic Description')" 
+  (mouseleave)="onHoverEnd()"
+>
+  Hover over this section
+  <div
+    class="popup"
+    *ngIf="isPopupVisible"
+    [ngStyle]="{ top: pointerY + 'px', left: pointerX + 'px' }"
+  >
+    <p>Description: {{ popupDescription }}</p>
+  </div>
+</div> -->
+
+<div
+  class="popup"
+  *ngIf="isPopupVisible && popupDescription != null && popupDescription.length != 0"
+  [ngStyle]="{ top: pointerY + 'px', left: pointerX + 'px' }"
+>
+<p *ngIf="popupActivity != null && popupActivity.length != 0"> Activity: {{popupActivity}}</p>
+<p *ngIf="popupDescription != null && popupDescription.length != 0">  Description: {{ popupDescription }} </p>
+</div>
+
+  

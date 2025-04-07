@@ -1,21 +1,21 @@
+import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
-import { NgModel } from '@angular/forms';
+import { Sort } from '@angular/material/sort';
+import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
 import { Feature } from 'src/app/models/feature';
 import { JobRole } from 'src/app/models/jobRole';
 import { SubFeature } from 'src/app/models/subFeature';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { DepartmentService } from 'src/app/services/department.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { JobRoleService } from 'src/app/services/job-role.service';
 import { SubfeatureService } from 'src/app/services/subfeature.service';
+import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { ExportExcelService } from 'src/app/services/export-excel.service';
-import { Sort } from '@angular/material/sort';
-import { LocationStrategy } from '@angular/common';
-import * as moment from 'moment';
-import { AppComponent } from 'src/app/app.component';
 
 @Component({
   selector: 'app-role-config',
@@ -73,6 +73,7 @@ export class RoleConfigComponent implements OnInit {
   filters:any = {};
   isSearchEnabled:boolean = false;
   roleColumns:any[] = ['blank','name','employeeRole','departmentName','createdBy','createdOn','updatedByName','updatedOn']
+  employeesFor360: any[] = [];
 
   constructor(
     private validationService: ValidationService,
@@ -82,11 +83,20 @@ export class RoleConfigComponent implements OnInit {
     private subfeatureService: SubfeatureService,
     private authenticationService: AuthenticationService,
     private exportExcelService: ExportExcelService,
-    private locationStrategy: LocationStrategy) {
+    private locationStrategy: LocationStrategy,
+    private utilityService: UtilityService,
+) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
+
     this.getAllDepartmentList();
 
     // Dynamic Subfeature Flags
@@ -94,7 +104,7 @@ export class RoleConfigComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
+    //console.log(this.feature, this.userMapping);
 
     //Deafult values for dropdown
     this.jobRoleObj.departmentId = '';
@@ -102,6 +112,7 @@ export class RoleConfigComponent implements OnInit {
     this.sectionViewInit();
     this.preventBackButton();
   }
+
   preventBackButton(){
     history.pushState(null, null, location.href);
     this.locationStrategy.onPopState(()=>{
@@ -188,7 +199,7 @@ export class RoleConfigComponent implements OnInit {
 
     this.jobRoleObj = Object.assign({}, jobRole)
     this.getSubfeaturesByJobRoleId();
-    console.log("showUpdateForm --> jobRoleObj : ", this.jobRoleObj);
+    //console.log("showUpdateForm --> jobRoleObj : ", this.jobRoleObj);
 
   }
 
@@ -235,7 +246,7 @@ export class RoleConfigComponent implements OnInit {
     this.jobRoleObj.name = this.jobRoleObj.name.trim();
     let inputValidated: boolean = this.validateJobRoleObj(this.jobRoleObj, template)
     if (!inputValidated) return;
-    // console.log("  :::::  ",this.sameRoleFound)
+    // //console.log("  :::::  ",this.sameRoleFound)
     // this.checkJobRole(template);
     //  if(this.sameRoleFound == true) return;
 
@@ -259,10 +270,13 @@ export class RoleConfigComponent implements OnInit {
         this.jobRoleService.checkJobRole(this.jobRoleObj).pipe(first()).subscribe((response: any)=>{
           if(response.serviceStatus =='Fail'){
             this.openAlertMod(template, response.serviceResponse);
-            this.jobRoleObj.name = '';
-            this.jobRoleObj.employeeRole = ''
-            this.jobRoleObj.departmentId = ''
+            if(this.isCreation){
+              this.jobRoleObj.name = '';
+              this.jobRoleObj.employeeRole = ''
+              this.jobRoleObj.departmentId = ''
+
             }
+          }
         })
 
   }
@@ -331,7 +345,7 @@ export class RoleConfigComponent implements OnInit {
     this.jobRoleObj.isJobRoleUsedInIshine = this.onDeleteJobRoleResponse.isJobRoleUsedInIshine;
     this.jobRoleObj.isJobRoleUsedInPoPortal = this.onDeleteJobRoleResponse.isJobRoleUsedInPoPortal;
 
-    console.log(this.jobRoleObj, " : this.jobRoleObj");
+    //console.log(this.jobRoleObj, " : this.jobRoleObj");
 
     this.jobRoleService.changeEmployeeJobRoleMapping(this.jobRoleObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -358,12 +372,21 @@ export class RoleConfigComponent implements OnInit {
     this.jobRoleService.getAllJobRole().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allJobRoleList = response.serviceResponse;
+        this.allJobRoleList.forEach((employee) => {
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          // console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          // console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+        });
         this.allJobRoleList.forEach(role => {
           role.createdOn = (role.createdOn)? moment(role.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           role.updatedOn = (role.updatedOn)? moment(role.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
         this.filterAllJobRoleList = this.allJobRoleList;
-
       } else {
         console.error(response.serviceResponse)
       }
@@ -408,7 +431,7 @@ export class RoleConfigComponent implements OnInit {
     updateFeatureObj.subFeatures = updatedSubFeatureList;
     updateFeatureObj.jobRoleId = this.jobRoleObj.jobRoleId;
 
-    console.log("Update feature-mapping : ", updateFeatureObj);
+    //console.log("Update feature-mapping : ", updateFeatureObj);
     this.subfeatureService.updateRoleFeatureMapping(updateFeatureObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -482,7 +505,7 @@ export class RoleConfigComponent implements OnInit {
     this.jobRoleService.getAllJobRole().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.roleDataForExcel = response.serviceResponse;
-        console.log("response.serviceResponse: ",response.serviceResponse);
+        //console.log("response.serviceResponse: ",response.serviceResponse);
       }
 
       const onlySpecificDataArr = this.roleDataForExcel.map(
@@ -501,8 +524,8 @@ export class RoleConfigComponent implements OnInit {
   }
 
   getJobRolesByDept(departmentId: any) {
-    console.log("departmentId : ", departmentId);
-    console.log("this.allJobRoleList : ", this.allJobRoleList);
+    //console.log("departmentId : ", departmentId);
+    //console.log("this.allJobRoleList : ", this.allJobRoleList);
 
 
     this.filteredJobRoleList = [];
@@ -512,7 +535,7 @@ export class RoleConfigComponent implements OnInit {
     this.filterJobRoleListForMapping = [];
     this.filterJobRoleListForMapping = this.filteredJobRoleList.filter(x => x.jobRoleId !== this.jobRoleObj.jobRoleId);
 
-    console.log("filteredJobRoleList : ", this.filteredJobRoleList);
+    //console.log("filteredJobRoleList : ", this.filteredJobRoleList);
   }
 
 
@@ -520,7 +543,7 @@ export class RoleConfigComponent implements OnInit {
   openDeleteJobRole(template: TemplateRef<any>, jobRole: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.jobRoleObj = jobRole;
-    console.log(this.jobRoleObj);
+    //console.log(this.jobRoleObj);
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
@@ -538,7 +561,7 @@ export class RoleConfigComponent implements OnInit {
   }
 
   sortData(sort: Sort){
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -555,7 +578,7 @@ export class RoleConfigComponent implements OnInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 
 }

@@ -1,0 +1,179 @@
+<div class="row" style="margin-top: 3%;margin-left: 2%;">
+    <!-- First Input Section -->
+   
+    <div class="col-sm-2 mb-0">
+        <div class="info-wrapper">
+            <div class="form-group">
+                <select class="form-control" [(ngModel)]="filter.viewfilter" (change)="viewFilterdata()"  id="viewfilter" aria-hidden="true">
+                    <option value="Weekly" selected="selected">Weekly</option>
+                    <option value="Monthly">Monthly</option>
+                    <option value="Yearly">Yearly</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-sm-3 mb-0">
+        <div class="info-wrapper">
+            <div class="form-group input-wrapper">
+               <div class="d-flex">
+                    <input class="form-control" matInput id="fromDate" #input (focus)="filter.officestartTimePicker" [matDatepicker]="officestartTimePicker" [matDatepickerFilter]="fromDateFilter"
+                     placeholder="Choose a from date" [(ngModel)]="filter.officestartTimePicker"  autocomplete="off">
+                    <mat-datepicker-toggle matSuffix [for]="officestartTimePicker" style="margin-left: -40px;"></mat-datepicker-toggle>
+                </div>
+                <mat-datepicker  #officestartTimePicker (closed)="input.blur()"  disabled="false"></mat-datepicker>
+                            
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-3 mb-0">
+        <div class="info-wrapper">
+            <div class="form-group input-wrapper">
+                <div class="d-flex">
+                    <input class="form-control" matInput id="fromDate" #input (focus)="filter.officeendTimePicker" [matDatepicker]="officeendTimePicker" [matDatepickerFilter]="fromDateFilter"
+                     placeholder="Choose a from date" [(ngModel)]="filter.officeendTimePicker"  autocomplete="off">
+                    <mat-datepicker-toggle matSuffix [for]="officeendTimePicker" style="margin-left: -40px;"></mat-datepicker-toggle>
+                </div>
+                <mat-datepicker  #officeendTimePicker (closed)="input.blur()"  disabled="false"></mat-datepicker>
+                
+             
+            </div>
+        </div>
+           
+    </div>
+   
+    <div class="col-sm-2 mb-0">
+        <div class="info-wrapper">
+            <div class="form-group input-wrapper">
+               <button type="submit" (click)="searchBioMax()" class="btn btn-primary">Search</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row" *ngIf="!defaultview" style="margin-top: 2%; margin-left: 2%; margin-bottom: 2%;">
+   <div class="col-lg-12">
+    <button *ngIf="!defaultview" class="btn btn-link back-button" (click)="goBack()">
+        <i class="fas fa-arrow-left"></i></button>   
+      
+   </div>
+   
+   
+
+   
+        <div class="col-lg-8 table-responsive">
+          
+            <table class="table table-striped table-bordered"  matSort (matSortChange)="sortData($event)" id="biomaxID">
+                <thead class="thead-light" id="biomaxIDHead">
+                    <tr id="biomaxIDHeadTr">
+                        <th scope="col">Sr No.</th>
+                        <th scope="col" mat-sort-header="employeeName|string">Employee Name</th>
+                 
+                     <th scope="col" mat-sort-header="logDate|string">Date</th>
+                       <th scope="col" class="info-label" mat-sort-header="logDate|string">In Time</th>
+                        <th scope="col" class="info-label" mat-sort-header="beginTime|string">Out Time</th>
+                        <th scope="col" class="info-label" mat-sort-header="shiftName|string">Working Hours</th>
+                   </tr>
+                </thead>
+                <tbody>
+                   <tr *ngFor="let biomax of biomaxList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] ,let i = index">
+                          <td scope="col">{{ i + 1 }}</td>
+                          <td scope="col">{{ biomax.employeeName }}</td>
+                          <td scope="col">{{ biomax.logDate }}</td>
+                        <td scope="col">{{biomax.beginTime}}</td>
+                        <td scope="col">{{biomax.endTime}}</td>
+                        <td scope="col">{{biomax.shiftName}} Hours</td>
+                        
+                       
+                    </tr>
+                </tbody>
+            </table>
+
+            <button style="float: right;" type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+            (click)="exportToExcel('biomaxID')"><em
+                class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button> 
+        </div> 
+    <div class="col-lg-4">
+        <div class="col-md-4 mb-0">
+            <div id="biomaxfiterContainer" style="width: 300%; height: 600px;"></div>
+        
+            
+        </div>
+    </div>
+</div>
+<!-- Second Row for Tables -->
+<div class="row" *ngIf="defaultview" style="margin-top: 2%; margin-left: 2%; margin-bottom: 2%;">
+    <!-- Table Section 1 -->
+   
+    <div class="col-sm-7">
+        <div class="selector-toggle" >
+            <a href="javascript:void(0)" (click)="toggleSearch()">
+              <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+            </a>
+          </div>
+        <table class="table history-table" id="biomaxteam" matSort (matSortChange)="sortData($event)">
+            <thead class="thead-light">
+                <tr>
+                    <th scope="col">Sr No.</th>
+                     <th scope="col" mat-sort-header="logDate|string">Date</th>
+                   
+                   <th scope="col" class="info-label" mat-sort-header="logDate|string">In Time</th>
+                    <th scope="col" class="info-label" mat-sort-header="beginTime|string">Out Time</th>
+                    <th scope="col" class="info-label" mat-sort-header="shiftName|string">Working Hours</th>
+                    <th scope="col" class="info-label" mat-sort-header="shiftName|string">TimeSheet</th>
+                </tr>
+                <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="biomaxListColumns"
+                        [class.blue-bg]="isSearchEnabled" (onSearch)="onSearch($event);"></tr>
+            </thead>
+            <tbody>
+               <tr *ngFor="let biomax of biomaxList;let i = index">
+                      <td scope="col">{{ i + 1 }}</td>
+                      
+                      <td scope="col">{{ biomax.logDate }}</td>
+                    <td scope="col">{{biomax.beginTime}}</td>
+                    <td scope="col">{{biomax.endTime}}</td>
+                    <td scope="col">{{biomax.shiftName}} Hours</td>
+                    
+                    <td scope="col" >
+                    <ul>
+                        <li *ngFor="let dtp of biomax.timesheetdto">
+                                <!-- Check if teamId is null or not before displaying -->
+                                <a *ngIf="dtp.clientName !== 'Not Fill'" class="timehseet" (click)="teamData(dtp.teamId)">
+                                  {{dtp.teamName + " ( " + dtp.officeInTime + " ) "}}
+                                </a>
+                                <a *ngIf="dtp.clientName == 'Not Fill'" class="timehseet" >
+                                    Timesheet Not Field
+                                  </a>
+                              
+                              
+                        </li>
+                    </ul>
+                   </td>
+                
+                </tr>
+            </tbody>
+        </table>
+        <button style="float: right;" type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+        (click)="exportToExcel('biomaxteam')"><em
+            class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button> 
+    </div> 
+
+    <!-- Table Section 2 -->
+    <div class="col-sm-5">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div id="biomaxfiterContainer" style="width: 300%; height: 600px;"></div>
+                
+                    
+                </div>
+            </div>
+        </div>
+    </div> 
+</div>
+
+
+<!-- Second Row for Tables -->
+
+ 

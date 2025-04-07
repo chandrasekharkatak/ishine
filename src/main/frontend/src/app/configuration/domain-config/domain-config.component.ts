@@ -11,7 +11,9 @@ import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { DomainService } from 'src/app/services/domain.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import * as XLSX from 'xlsx';
 
 
 @Component({
@@ -42,6 +44,8 @@ export class DomainConfigComponent implements OnInit {
   isDomainCreation: boolean = false;
   isDomainUpdation: boolean = false;
   isDomainForm: boolean = false;
+  isfileUpload : boolean = false;
+  file:any;
 
   allDomainList:any[] = [];
   specializationList:any[] = [];
@@ -63,22 +67,30 @@ export class DomainConfigComponent implements OnInit {
   domainDataForExcel: any[];
   name = 'Domain.xlsx';
 
+  employeesFor360: any[] = [];
+
   constructor(
     private domainService:DomainService,
     public validationService: ValidationService,
     private modalService: BsModalService,
     private authenticationService: AuthenticationService,
     private exportExcelService: ExportExcelService,
+    private utilityService: UtilityService,
   ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x);}
 
-  ngOnInit(): void {
-
+  async ngOnInit(): Promise<void> {
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
      // Dynamic Subfeature Flags
      let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
      featureMap.subFeatures?.forEach(sub => {
        this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
      });
-     console.log(this.feature, this.userMapping);
+     //console.log(this.feature, this.userMapping);
 
     this.showAllDomain()
   }
@@ -90,6 +102,7 @@ export class DomainConfigComponent implements OnInit {
     this.isDomainCreation = false;
     this.isDomainUpdation = false;
     this.isDomainForm = false;
+    this.isfileUpload = false;
 
     this.getAllDomain(this.alertTemplate);
   }
@@ -113,6 +126,151 @@ export class DomainConfigComponent implements OnInit {
     }
   }
 
+  showFileUploadForm(){
+
+    this.isfileUpload = true;
+    this.isDomainTable = false;
+    
+  
+    this.isDomain = false;
+    this.isDomainForm = false;
+  
+  
+  }
+
+
+onBillableFileSelect(event: any, template: TemplateRef<any>){
+  const uploadedFiles = event.target.files;
+  console.log("uploadedFiles ", uploadedFiles);
+  this.file = uploadedFiles[0];
+  const formData = new FormData();
+  formData.append('file', this.file);
+
+  this.domainService.billableFile(formData).pipe(first()).subscribe(
+    (response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+}
+
+// onDesignationUpload(event: any, template: TemplateRef<any>){
+//   const uploadedFiles = event.target.files;
+//   console.log("uploadedFiles ", uploadedFiles);
+//   this.file = uploadedFiles[0];
+//   const formData = new FormData();
+//   formData.append('file', this.file);
+
+//   this.domainService.designationBulkUpload(formData).pipe(first()).subscribe(
+//     (response: any) => {
+//       if (response.serviceStatus == "Success") {
+//         this.openAlertMod(template, response.serviceResponse);
+//       } else {
+//         this.openAlertMod(template, response.serviceResponse);
+//       }
+//     });
+// }
+
+onDesignationUpload(event: any, template: TemplateRef<any>) {
+  const uploadedFiles = event.target.files;
+  this.file = uploadedFiles[0];
+  const formData = new FormData();
+  formData.append('file', this.file);
+
+  this.domainService.designationBulkUpload(formData).pipe(first()).subscribe(
+    (response: any) => {
+      if (response.serviceStatus === "Success") {
+        // Show success message using openAlertMod
+        this.openAlertMod(template, response.serviceResponse);
+      } else if (response.serviceStatus === "Fail") {
+        // Show alert with the inactive employees' IDs or row errors
+        this.openAlertMod(template, `Errors found: ${response.serviceResponse}`);
+        // Optionally clear the file input for correction
+        event.target.value = '';  // Clear file input so user can upload a corrected file
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+}
+
+onConfirmationDateUpload(event: any, template: TemplateRef<any>){
+  const uploadedFiles = event.target.files;
+  console.log("uploadedFiles ", uploadedFiles);
+  this.file = uploadedFiles[0];
+  const formData = new FormData();
+  formData.append('file', this.file);
+
+  this.domainService.designationBulkUpload(formData).pipe(first()).subscribe(
+    (response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+}   
+
+onFileSelect(event: any, template: TemplateRef<any>){
+  const uploadedFiles = event.target.files;
+  console.log("uploadedFiles ", uploadedFiles);
+  this.file = uploadedFiles[0];
+  const formData = new FormData();
+  formData.append('file', this.file);
+
+  this.domainService.saveExcelDataForManagerMapping(formData).pipe(first()).subscribe(
+    (response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+}
+
+headers = [
+  { 'Employee Id': '', 'Billable': '', 'Billable Type': '', 'Gender': '', 'Manager Name': '' }
+];
+downloadFileTemplate(): void {
+  const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.headers, { skipHeader: false });
+  const wb: XLSX.WorkBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Template');
+  XLSX.writeFile(wb, 'Manager_Mapping_Data_Template.xlsx');
+}
+
+headersBilliable = [
+  { 'Employee Id': '' , 'Billable': '', 'Billable Type': '', 'Gender': ''}
+];
+downloadBilliableFileTemplate():void{
+  const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.headersBilliable, { skipHeader: false });
+  const wb: XLSX.WorkBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Template');
+  XLSX.writeFile(wb, 'Billable_Related_Data_Template.xlsx');
+}
+
+headersDesignation = [
+  { 'Employee Id': '', 'Designation Name': '' }
+];
+downloadDeginationUploadFileTemplate(): void {
+  console.log("Designatin Template is downloaded");
+  const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.headersDesignation, { skipHeader: false });
+  const wb: XLSX.WorkBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Template');
+  XLSX.writeFile(wb, 'Bulk_Designation_Upload_Template.xlsx');
+}
+
+headersConfirmationDate = [
+  { 'Employee Id': '', 'Confirmation Date': '' }
+];
+downloadConfirmationDateUpload(): void {
+  console.log("Confirmation Date Template is downloaded");
+  const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.headersConfirmationDate, { skipHeader: false });
+  const wb: XLSX.WorkBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Template');
+  XLSX.writeFile(wb, 'Bulk_Confirmation_Date_Upload.xlsx');
+}
+
   showUpdateDomainForm(domain:any){
     this.isDomainForm = true;
     this.isDomainUpdation = true;
@@ -127,7 +285,7 @@ export class DomainConfigComponent implements OnInit {
 
         this.allSpecializationList = this.domainObj.allSpecializationList;
 
-        console.log(response.serviceResponse, " : response.serviceResponse");
+        //console.log(response.serviceResponse, " : response.serviceResponse");
       } else {
         console.error(response.serviceResponse);
       }
@@ -146,7 +304,7 @@ export class DomainConfigComponent implements OnInit {
   {
      if(this.allSpecializationList.length!=0)
      {
-      console.log("spec: ", currentSpecializationName);
+      //console.log("spec: ", currentSpecializationName);
       if(!this.validationService.validateTeamActivity(currentSpecializationName))
       {
         let selectedSpec = this.allSpecializationList.find(currentSpecialization => currentSpecialization.specializationName == currentSpecializationName);
@@ -161,7 +319,7 @@ export class DomainConfigComponent implements OnInit {
      }
     let domainObj = new Domain();
     this.allSpecializationList.push(domainObj);
-    console.log(this.allSpecializationList, " : this.allSpecializationList");
+    //console.log(this.allSpecializationList, " : this.allSpecializationList");
   }
 
   removeInputSpecializationField(spec:any){
@@ -170,7 +328,7 @@ export class DomainConfigComponent implements OnInit {
         this.allSpecializationList.splice(index, 1);
       }
     });
-    console.log(this.allSpecializationList, " :this.allSpecializationList");
+    //console.log(this.allSpecializationList, " :this.allSpecializationList");
   }
 
   //Doamin & Specialization  :: start
@@ -184,9 +342,20 @@ export class DomainConfigComponent implements OnInit {
           domain.createdOn = (domain.createdOn)? moment(domain.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
 
-        console.log(this.allDomainList, " : this.allDomainList");
+        this.allDomainList.forEach((employee) => {
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          // console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          // console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+        });
+
+        // console.log(this.allDomainList, " : this.allDomainList");
       } else {
-        this.openAlertMod(template, response.serviceResponse);
+        //this.openAlertMod(template, response.serviceResponse);
       }
     });
   }
@@ -197,7 +366,7 @@ export class DomainConfigComponent implements OnInit {
     let domainObj = new Domain();
     domainObj.domainIdList = this.employeeObj.domainList;
 
-    console.log(domainObj, " : domainObj selected");
+    //console.log(domainObj, " : domainObj selected");
     this.domainService.getDomainSpecialization(domainObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.specializationList = response.serviceResponse;
@@ -302,11 +471,12 @@ export class DomainConfigComponent implements OnInit {
   }
 
   checkDomainName(domainName:any, template: TemplateRef<any>){
-
+    
     let domainObj = new Domain();
     domainObj.domainName = domainName;
     domainObj.domainId = this.domainObj.domainId;
-    this.domainService.checkDomainName(this.domainObj).pipe(first()).subscribe((response: any) => {
+    
+    this.domainService.checkDomainName(domainObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.domainObj.domainName = '';
         this.openAlertMod(template, response.serviceResponse);
@@ -360,7 +530,7 @@ export class DomainConfigComponent implements OnInit {
 
   //sort & searching
   sortData(sort: Sort){
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -379,7 +549,7 @@ export class DomainConfigComponent implements OnInit {
   onSearch(searchData){
     if(this.isSearchEnabled == true){
       this.filters = searchData;
-      console.log("Updated Filter : ", this.filters);
+      //console.log("Updated Filter : ", this.filters);
     }
   }
 }

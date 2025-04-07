@@ -30,6 +30,7 @@ public class DepartmentDTO {
 	
 	private String deptName;
 	private String hodEmploymentId;
+	private String deptAbbreviation; // New field
 	
 	
 	

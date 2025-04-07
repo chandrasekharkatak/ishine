@@ -46,6 +46,9 @@ public class Department {
 	
 	private Integer updatedBy;	
 	
+	@Column(length = 8) // Specify length for the abbreviation
+    private String deptAbbreviation; // New field
+	
 
 	public Long getDeptId() {
 		return deptId;
@@ -101,6 +104,15 @@ public class Department {
 	public void setUpdatedBy(int updatedBy) {
 		this.updatedBy = updatedBy;
 	}
+	
+	 public String getDeptAbbreviation() {
+	        return deptAbbreviation;
+	    }
+
+	    public void setDeptAbbreviation(String deptAbbreviation) {
+	        this.deptAbbreviation = deptAbbreviation;
+	    }
+
 
 
 	

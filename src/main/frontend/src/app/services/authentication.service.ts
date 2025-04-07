@@ -12,6 +12,7 @@ export class AuthenticationService {
 
   private baseUrl: any = environment.baseUrl;
   private currentUserSubject: BehaviorSubject<User>;
+  
   public currentUser: Observable<User>;
   sessionItem: string | null;
   timerId: any;
@@ -81,7 +82,7 @@ export class AuthenticationService {
     user.empId = this.currentUserValue.empId;
     user.sessionString = this.sessionString;
 
-    console.log("checking session ..", new Date().toTimeString());
+    //console.log("checking session ..", new Date().toTimeString());
     
       this.checkUserSession(user).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
@@ -96,7 +97,7 @@ export class AuthenticationService {
 
   startUserSessionCheck() {
     sessionStorage.setItem('sessioncheck', 'true');
-    this.sessionSubscription = timer(0,20000).subscribe(() =>  {
+    this.sessionSubscription = timer(0,30000).subscribe(() =>  {
       this.checkSession();
     });
   }
@@ -114,6 +115,7 @@ export class AuthenticationService {
     sessionStorage.removeItem('maxFileSize');
     sessionStorage.removeItem('maxRequestSize');
     sessionStorage.removeItem('sessioncheck');
+    sessionStorage.removeItem('breadcrumb');
     // delete method call for cookies
     this.deleteCookies();
     this.setcurrentUserSubject(null);
@@ -127,7 +129,7 @@ export class AuthenticationService {
 
     getCookie(name:string){
     let ca:Array<string> =document.cookie.split(';');
-    console.log(document.cookie);
+    //console.log(document.cookie);
     let caLen:number= ca.length;
     let cookieName=`${name}=`;
     let c :string;

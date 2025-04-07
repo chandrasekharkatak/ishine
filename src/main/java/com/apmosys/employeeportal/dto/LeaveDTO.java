@@ -112,6 +112,7 @@ public class LeaveDTO {
 	private Float toDateDayType;
 	
 	private Long deptId;
+	private Long approverEmpId;
 	private String approverName;
 	private String approverEmail;
 	private String name;
@@ -136,6 +137,7 @@ public class LeaveDTO {
 	
 	private Integer managerId;
 	private String managerApprovalStatus;
+	private Long level1ApproverId;
 	
 	private Long level2ApproverId;
 	private String level2ApproverName;
@@ -146,4 +148,29 @@ public class LeaveDTO {
 	private String level3ApproverName;
 	private String level3ApproverEmail;
 	private String level3ApprovalStatus;
+	private Long leaveEmpId;
+	private String state;
+	private String rejectCompOffReason;
+	private Long reportingManagerId;
+	private String maritalStatus;
+	private String maternityType;
+	private Long maternityLeaveDays;
+	
+	private String pipReason;
+	private String pipFlag;
+	private Long pipId;
+	private String revReason;
+	private String extendDays;
+	private Long aging;
+	private String extendReason;
+	private Double profileCompletedPercent;
+	private String employeeRole;
+	
+	private String isConsultant;
+	private String isApprenticeship;
+	private Long currentUserEmpId;
+	private Long differenceInDays;
+	private Long approverId;
+	private String clientName;
+	
 }

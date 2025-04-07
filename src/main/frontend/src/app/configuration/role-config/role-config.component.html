@@ -21,7 +21,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Job Role Name</label>
-                            <input type="text" class="form-control" maxlength="255" (keyup)="checkJobRole(alert_message)" autocomplete="none"
+                            <input type="text" class="form-control" maxlength="255" (blur)="checkJobRole(alert_message)" autocomplete="none"
                                [(ngModel)]="jobRoleObj.name">
                         </div>
                     </div>
@@ -36,8 +36,9 @@
                                 <option value="TeamLead">Team Lead</option>
                                 <option value="HOD">HOD</option>
                                 <option value="Manager">Manager</option>
+                                <!-- <option value="HR Manager">HR Manager</option> -->
                                 <option value="HR">HR</option>
-                                <option value="HR">RMG</option>
+                                <option value="RMG">RMG</option>
                                 <option value="SuperAdmin">Super Admin</option>
                                 <option value="SELECT">Blank Role</option>
                             </select>
@@ -137,10 +138,10 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" (click)="toggleSearch()">
+                <div class="selector-toggle" >
                     <a href="javascript:void(0)">
-                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
                     </a>
                 </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'roleInfo'" [tableTHeadId]="'roleInfoTHead'"
@@ -171,9 +172,11 @@
                                 <td>{{jobRole.name}}</td>
                                 <td>{{jobRole.employeeRole}}</td>
                                 <td>{{jobRole.departmentName}}</td>
-                                <td>{{jobRole.createdBy}}</td>
+                                <td *ngIf="userMapping.employee360_view_role_config" id="clickablefor360" [navigateToEmployee360]="jobRole.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{jobRole.createdByName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_role_config" >{{jobRole.createdByName}}</td>
                                 <td>{{jobRole.createdOn}}</td>
-                                <td>{{jobRole.updatedByName}}</td>
+                                <td *ngIf="userMapping.employee360_view_role_config && jobRole.updatedByName" id="clickablefor360" [navigateToEmployee360]="jobRole.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{jobRole.updatedByName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_role_config || !jobRole.updatedByName" >{{jobRole.updatedByName}}</td>
                                 <td>{{jobRole.updatedOn}}</td>
                                 <td
                                     *ngIf="userMapping.update_role || userMapping.update_role_feature_mapping || userMapping.delete_role">

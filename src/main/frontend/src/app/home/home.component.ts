@@ -1,40 +1,61 @@
-import { AfterViewInit, Component, ElementRef, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
+import { LocationStrategy } from '@angular/common';
+import { AfterViewInit, ChangeDetectorRef, Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
+import { Sort } from '@angular/material/sort';
+import { DomSanitizer } from '@angular/platform-browser';
+import { Router } from '@angular/router';
+import * as CryptoJS from 'crypto-js';
+import * as HighCharts from 'highcharts';
+import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { AppComponent } from '../app.component';
+import { BodyComponent } from '../body/body.component';
+import { CalendarComponent } from '../helpers/calendar/calendar.component';
+import { Employee } from '../models/employee';
+import { Feature } from '../models/feature';
 import { Leave } from '../models/leave';
+import { Log } from '../models/log';
+import { NotificationMessage } from '../models/notification';
+import { RewardCategory } from '../models/rewardCategory';
+import { Timesheet } from '../models/timesheet';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
-import { LeaveService } from '../services/leave.service';
-import { ExportExcelService } from 'src/app/services/export-excel.service';
-import * as HighCharts from 'highcharts';
-import { Router } from '@angular/router';
 import { EmployeeService } from '../services/employee.service';
+import { Employee360Service } from '../services/employee360.service';
 import { ImageService } from '../services/image.service';
-import { DomSanitizer } from '@angular/platform-browser';
-import { Timesheet } from '../models/timesheet';
-import { TimesheetService } from '../services/timesheet.service';
-import { NotificationMessage } from '../models/notification';
-import { NotificationService } from '../services/notification.service';
-import * as moment from 'moment';
-import { CalendarComponent } from '../helpers/calendar/calendar.component';
-import { BodyComponent } from '../body/body.component';
-import { Feature } from '../models/feature';
-import { ValidationService } from '../services/validation.service';
+import { LeaveService } from '../services/leave.service';
 import { LogService } from '../services/log.service';
-import { Log } from '../models/log';
-import * as CryptoJS from 'crypto-js';
-import { Employee } from '../models/employee';
-import { LocationStrategy } from '@angular/common';
-import { Sort } from '@angular/material/sort';
-import { AppComponent } from '../app.component';
-import { EventPhoto } from '../models/EventPhoto';
+import { NotificationService } from '../services/notification.service';
+import { RewardsServiceService } from '../services/rewards-service.service';
+import { TimesheetService } from '../services/timesheet.service';
+import { UtilityService } from '../services/utility.service';
+import { ValidationService } from '../services/validation.service';
+import { ExpiredEmailData } from '../models/expiredEmailmodel';
+import { PoObject } from '../models/poObbjectData';
+
+interface objlms{
+  email:any
+}
+interface LmsRediredtion{
+  
+    email:any,
+    message:any,
+    url:any,
+    tokem:any
+  
+}
+
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit, AfterViewInit {
+ private lmsurl:any = '';
+  lines:any=[];
 
+ 
   data: string;
   //modal
   alertMessage: any;
@@ -49,7 +70,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   sortDirection = 'asc';
   sortColumn: any;
-  sortColumnType:any;
+  sortColumnType: any;
 
   isReqPending: boolean = true;
   leaveApplicationCount: any = 0;
@@ -66,6 +87,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
   excelName: any = '';
 
   birthdayList: any[] = [];
+  workAnniversaryList: any[] = [];
+  rewardsList: any[] = [];
   eventImages: any[] = [];
   isImagesLoaded: boolean = false;
 
@@ -84,32 +107,19 @@ export class HomeComponent implements OnInit, AfterViewInit {
   isSelectAll: boolean = false;
   bulkLeaveApprove: any = [];
   bulkLeaveReject: any = [];
-
-  leaveObj = new Leave();
-
-  @ViewChild("thisMonthCal")
-  private thisMonthCalendar: CalendarComponent;
-  @ViewChild("lastMonthCal")
-  private lastMonthCalendar: CalendarComponent;
-
-  @ViewChild('updateInfo')
-  private updateInfoTempRef: TemplateRef<any>;
-
-  @ViewChild('consent_notification_template')
-  private consentNotificationTemplate: TemplateRef<any>;
-
-  // TOP BAR
-  @ViewChild("change_password")
-  changePasswordTemplate: TemplateRef<any>;
-
-  //Loading login after setting new password
-  @ViewChild("LoadingLogin") LoadingLoginTemplate: TemplateRef<any>;
+  bulkCompOffApprove: any = [];
+  bulkCompOffReject: any = [];
+  overLapsLeaveForManager: any = [];
   fieldTextType: boolean = false;
-  fieldTextTypePassword: boolean = false;
-  fieldTextTypeOldPass: boolean = false;
-  isError: boolean = false;
+ fieldTextTypePassword: boolean = false;
+ fieldTextTypeOldPass: boolean = false;
+ config = {
+     backdrop: true,
+     ignoreBackdropClick: true,
+     keyboard: false
+   };
   oldPasswordValid: boolean = false;
-
+  rewardCategoryObj: RewardCategory = new RewardCategory();
   password: any;
   userNewPass: any;
   newpassword: any;
@@ -117,35 +127,84 @@ export class HomeComponent implements OnInit, AfterViewInit {
   empId: any;
   consentNotificationMessage: any;
   user: User = new User();
-
+  leaveApplication: any;
+  show: number = -1;
   leaveTypes: Leave[] = [];
   leaveBucketDetails: any[] = [];
+  lmsauthentication:any;
+// Expired Po section
+expiredList:any[] = [];
+popUpMessege:any;
+//  notificationObj: NotificationMessage = new NotificationMessage();
+//  timesheetDetails: any[] = [];
 
-  // stop modal to close
-  config = {
-    backdrop: true,
-    ignoreBackdropClick: true,
-    keyboard: false
-  };
+//  items = 10;
+//  bulkApprove: any = [];
+//  bulkReject: any = [];
+//  isSelectAll: boolean = false;
+//  bulkLeaveApprove: any = [];
+//  bulkLeaveReject: any = [];
+//  bulkCompOffApprove: any = [];
+//  bulkCompOffReject: any = [];
+//  overLapsLeaveForManager: any = [];
 
-  consentModalConfig = {
+
+ leaveObj = new Leave();
+
+ @ViewChild("thisMonthCal")
+ private thisMonthCalendar: CalendarComponent;
+ @ViewChild("lastMonthCal")
+ private lastMonthCalendar: CalendarComponent;
+
+ @ViewChild('updateInfo')
+ private updateInfoTempRef: TemplateRef<any>;
+
+ @ViewChild('consent_notification_template')
+ private consentNotificationTemplate: TemplateRef<any>;
+ 
+ @ViewChild('poexpire_template_fixed')
+ poExpireTemplateRef:TemplateRef<any> ;
+  
+ 
+ @ViewChild('mailSentPopUp')
+ mailSentPopUp:TemplateRef<any> ;
+
+ consentModalConfig = {
     backdrop: true,
     ignoreBackdropClick: true,
     keyboard: false,
-    class : 'modal-lg'
+    class: 'modal-lg'
   }
+  // TOP BAR
+ @ViewChild("change_password")
+ changePasswordTemplate: TemplateRef<any>;
+ @ViewChild("LoadingLogin") LoadingLoginTemplate: TemplateRef<any>;
+  selectedCategoryId: any;
+  selectedCategoryName: any;
+  selectedMonth:any;
+  scrollingInterval: any;
+  showEmptyMessage:any;
 
+  isError: boolean = false;
   profileCompletedPercentage: any = 0;
-
-  filters:any = {};
-  isSearchEnabled:boolean = false;
-  leaveApplicationColumns:any[] = ['blank','blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','reason','currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','level3ApproverName','level3ApprovalStatus'];
-  compOfApplicationColumns:any[] = ['blank','createdByName','compOffReasons','fromDate','toDate','noOfDays','description','status'];
-  timesheetApplicationsColumns:any[] = ['blank','blank','employeementId','employeeName','date','dayType','description','officeInTime','officeOutTime','totalWorkingOfficeHours','isNightShift','status'];
-
-
-  isShowReleaseNote:boolean = false;
+  filters: any = {};
+  isSearchEnabled: boolean = false;
+  leaveApplicationColumns: any[] = ['blank', 'blank', 'employeeName', 'leaveType','clientName','teamName', 'fromDate', 'toDate', 'noOfDays', 'status', 'createdByName', 'createdOn', 'reason', 'currentApprovalLevel', 'approverName', 'managerApprovalStatus', 'level2ApproverName', 'level2ApprovalStatus', 'level3ApproverName', 'level3ApprovalStatus'];
+  compOfApplicationColumns: any[] = ['blank', 'createdByName', 'compOffReasons', 'fromDate', 'toDate', 'noOfDays', 'description', 'status'];
+  timesheetApplicationsColumns: any[] = ['blank', 'blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status'];
+  isShowReleaseNote: boolean = false;
   releaseNoteText = "";
+  currentIndex: any = 0; 
+  currentGroup: any = null;
+  scrollDelay: number = 18700;
+  employeesFor360: any[] = [];
+  rewardCategoryList: any[] = [];
+  groupedRewards: { [key: string]: any[] } = {};
+  monthKeys: string[] = [];
+  currentMonthIndex: number = 0;
+  currentRewards: any[] = [];
+  scrollInterval: any;
+  selectedTab: string = 'birthday';
 
   constructor(
     private modalService: BsModalService,
@@ -161,7 +220,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
     private bodyComponent: BodyComponent,
     public validationService: ValidationService,
     private logService: LogService,
-    private locationStrategy: LocationStrategy
+    private locationStrategy: LocationStrategy,
+    private rewardsService: RewardsServiceService,
+    public utilityService: UtilityService,
+    private cdr: ChangeDetectorRef,
+    public employee360Service: Employee360Service,
   ) {
     this.authenticationService.currentUser.subscribe(x => {
       this.currentUser = x;
@@ -174,75 +237,130 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.log.featureName = this.feature;
     });
   }
+//added by rahul for lms redirection
+//added by rahul for lms redirection
+LmsRedirection(){
+  let obj = new Object();
+obj = { email: this.currentUser.email,token:sessionStorage.getItem('token')};
 
-  ngOnInit(): void {
+   
+//obj = { email: "mohamed.owais@apmosys.com"};
+//obj = { email: "mohamed2.owais@apmosys.com"};
+ this.employeeService.IsValidateLMSPORTAL(obj).subscribe((response:any)=>{
+   //this.lmsauthentication = response.serviceResponse;
+   this.lmsauthentication = response.serviceResponse;
+   
+    if(response.serviceStatus=="success"){
+     window.open(response.serviceResponse, '_blank');
+   }
+  else{
+     window.open(`${this.lmsurl}home/sign_up`,'_blank');
+   }
+ })
+
+}
+
+async ngOnInit(): Promise<void> {
+  try {
+    this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+    // console.log("Priyadarshini ", this.employeesFor360);
+  } catch (error) {
+    console.error("Error fetching employee details for 360 view", error);
+  }
+  console.log("current user", this.currentUser.isNew);
+    if (this.currentUser.isNew === "true") {
+      sessionStorage.setItem('isFirstTimeLogin', 'true');
+        window.history.pushState(null, "", window.location.href);
+      window.onpopstate = function() {
+            window.history.pushState(null, "", window.location.href); // Keep pushing new states
+        };
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+
+    }
+
+    if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
+        this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+        sessionStorage.removeItem('isFirstTimeLogin');
+    }
     this.getEmployeeProfileCompletion();
     this.logService.updateLogInfo(this.log);
     // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    console.log("feature Name ", featureMap);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, " : ", this.userMapping);
 
-    this.getAllNotifications();
-    this.getAllLeaveTypesByLeavePolicies(this.currentUser);
-    if (this.userMapping.view_birthday_list) this.getAllEmployeesBirthDayToday();
-    if (this.userMapping.view_all_team_requests) {
-      this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
-      this.countPendingCompOffRequestsByManagerId();
-      this.countMyReporteesTimesheetRequests();
-    }
-    if (this.userMapping.view_my_leave_details) {
-      this.getMyLeaveBalancesByEmpId();
-      this.countMyApprovedLeaveApplicationsByLeaveType();
-      this.countMyPendingLeaveApplicationsByLeaveType();
-      this.countMyRejectedLeaveApplicationsByLeaveType();
-    }
-    if (this.userMapping.view_timesheet_display) this.getTimesheetsForHomePageByEmpId('Last 7 Days');
-    if (this.userMapping.view_event_photos) this.getAllEventPhotosForHome();
+   this.getAllNotifications();
+   this.getAllLeaveTypesByLeavePolicies(this.currentUser);
+   if (this.userMapping.view_birthday_list) this.getAllEmployeesBirthDayToday();
+   if (this.userMapping.view_work_anniversary_list) this.getAllEmployeesWorkAnniversaryToday();
+   if (this.userMapping.view_all_team_requests) {
+     this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
+     this.countPendingCompOffRequestsByManagerId();
+     this.countMyReporteesTimesheetRequests();
+   }
+   if (this.userMapping.view_my_leave_details) {
+     this.getMyLeaveBalancesByEmpId();
+   }
+   if (this.userMapping.view_timesheet_display) this.getTimesheetsForHomePageByEmpId('Last 7 Days');
+   if (this.userMapping.view_event_photos) this.getAllEventPhotosForHome();
+  //  if (this.userMapping.view_employee_rewards) this.fetchEmployeesForHomepageByCategoryId(1);
 
+  if (this.userMapping.view_employee_rewards) this.fetchRewardCategoryForHomePage();
 
-    if (this.currentUser.isNew == "true") {
-      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
-    }
-    this.preventBackButton();
+   this.preventBackButton();
+   this.isEmployeeOnBench();
+    //console.log('User Mapping', this.userMapping);
+
+    
   }
 
-  preventBackButton() {
-    history.pushState(null, null, location.href);
-    this.locationStrategy.onPopState(() => {
-      history.pushState(null, null, location.href);
-    })
+
+  switchTab(tab: string) {
+    this.selectedTab = tab;
   }
 
-  ngAfterViewInit(): void {
-    if (this.currentUser.isNew == "false" && this.currentUser.isUserInfoUpdated == false && this.currentUser.updateFormCounter == 0) {
-      this.openUpdateInfo(this.updateInfoTempRef);
-      this.currentUser.updateFormCounter = 1;
-    }
+ preventBackButton() {
+   history.pushState(null, null, location.href);
+   this.locationStrategy.onPopState(() => {
+     history.pushState(null, null, location.href);
+   })
+ }
 
-    if(this.currentUser.isNew == "false"){
-      console.log("this.currentUser : ", this.currentUser);
+ ngAfterViewInit(): void {
+   if (this.currentUser.isNew == "false" && this.currentUser.isUserInfoUpdated == false && this.currentUser.updateFormCounter == 0) {
+     this.openUpdateInfo(this.updateInfoTempRef);
+     this.currentUser.updateFormCounter = 1;
+   }
+
+    if (this.currentUser.isNew == "false") {
+      //console.log("this.currentUser : ", this.currentUser);
       this.openConsentNotificationModal();
       this.setReleaseNote();
     }
+
+    if (this.currentUser.employeeRole == "RMG") {
+      this.openPoExpiredMod();
+    }
+    
   }
 
-  reset() {
-    let leaveObj = new Leave();
-    leaveObj.isSelected = false
-    this.isSelectAll = false;
+ reset() {
+   let leaveObj = new Leave();
+   leaveObj.isSelected = false
+   this.isSelectAll = false;
 
-  }
+ }
 
-  // Leave Applications
-  getAllMyTeamsPendingLeaveApplicationsByManagerId() {
-    this.data = ''
-    this.leaveApplicationList = []
-    this.bulkLeaveApprove = []
-    this.bulkLeaveReject = []
-    this.isSelectAll = false
+ // Leave Applications
+ getAllMyTeamsPendingLeaveApplicationsByManagerId() {
+   this.data = ''
+   this.leaveApplicationList = []
+   this.bulkLeaveApprove = []
+   this.bulkLeaveReject = []
+   this.isSelectAll = false
+   this.items = 10;
 
     let leaveObj = new Leave();
     leaveObj.managerId = this.currentUser.empId;
@@ -250,78 +368,110 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.leaveService.getAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveApplicationList = response.serviceResponse;
-        this.leaveApplicationList.forEach(leave => {
-          leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
-          leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
-          leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          if(!leave.currentApprovalLevel && !leave.finalApprovalLevel){
+        this.leaveApplicationList.forEach((leave, index) => {
+          leave.checkId = "leave" + index;
+          leave.fromDate = (leave.fromDate) ? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.toDate = (leave.toDate) ? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
+          leave.createdOn = (leave.createdOn) ? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          if (!leave.currentApprovalLevel && !leave.finalApprovalLevel) {
             leave.currentApprovalLevel = 1;
-            leave.finalApprovalLevel = 1; 
+            leave.finalApprovalLevel = 1;
           }
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === leave.leaveEmpId);
+          leave.emp360 = matchingEmployee ? matchingEmployee : {};
+          let matchingEmployeeAppLev1 = this.employeesFor360.find(emp => emp.empId == leave.level1ApproverId);
+          let matchingEmployeeAppLev2 = this.employeesFor360.find(emp => emp.empId == leave.level2ApproverId);
+          let matchingEmployeeAppLev3 = this.employeesFor360.find(emp => emp.empId == leave.level3ApproverId);
+          let matchingEmployeeAppLev4 = this.employeesFor360.find(emp => emp.empId == leave.empId);
+          leave.emp360AppLev1 = matchingEmployeeAppLev1 ? matchingEmployeeAppLev1 : {};
+          leave.emp360AppLev2 = matchingEmployeeAppLev2 ? matchingEmployeeAppLev2 : {};
+          leave.emp360AppLev3 = matchingEmployeeAppLev3 ? matchingEmployeeAppLev3 : {};
+          leave.createdBy360 = matchingEmployeeAppLev4 ? matchingEmployeeAppLev4 : {};
+
         });
-        console.log("leaveApplicationList : ", this.leaveApplicationList);
+        // console.log("leaveApplicationList : ", this.leaveApplicationList);
       } else {
         console.error(response.serviceResponse);
       }
     });
   }
 
-  /* Leave Applications Count
-  *  Added by suraj 07/08/2022
-  */
-  countAllMyTeamsPendingLeaveApplicationsByManagerId() {
-    this.leaveApplicationList = []
+ /* Leave Applications Count
+ *  Added by suraj 07/08/2022
+ */
+ countAllMyTeamsPendingLeaveApplicationsByManagerId() {
+   this.leaveApplicationList = []
 
-    let leaveObj = new Leave();
-    leaveObj.managerId = this.currentUser.empId;
-    this.leaveService.countAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.leaveApplicationCount = response.serviceResponse.applicationCount;
-        console.log("leaveApplicationCount : ", this.leaveApplicationCount);
-      } else {
-        this.leaveApplicationCount = 0;
-        console.error(response.serviceResponse);
-      }
-    });
-  }
+   let leaveObj = new Leave();
+   leaveObj.managerId = this.currentUser.empId;
+   this.leaveService.countAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj).pipe(first()).subscribe((response: any) => {
+     if (response.serviceStatus == "Success") {
+       this.leaveApplicationCount = response.serviceResponse.applicationCount;
+       //console.log("leaveApplicationCount : ", this.leaveApplicationCount);
+     } else {
+       this.leaveApplicationCount = 0;
+       console.error(response.serviceResponse);
+     }
+   });
+ }
 
-  onUpdateLeaveStatus(template: TemplateRef<any>, leaveApplication, updatedLeaveStatusId) {
-    this.cancelRequest();
-    // 1 = pending , 2 = Approved , 3= Rejected
-    leaveApplication.leaveStatusId = updatedLeaveStatusId;
-    leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
-    leaveApplication.rejectReason = leaveApplication.rejectReason?.trim();
+ onUpdateLeaveStatus(template: TemplateRef<any>, leaveApplication, updatedLeaveStatusId) {
+   this.cancelRequest();
+   // 1 = pending , 2 = Approved , 3= Rejected
+   leaveApplication.leaveStatusId = updatedLeaveStatusId;
+   leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
+   leaveApplication.rejectReason = leaveApplication.rejectReason?.trim();
 
-    console.log("leaveApplication : ", leaveApplication);
+   //console.log("leaveApplication : ", leaveApplication);
 
-    this.leaveService.updateLeaveStatus(leaveApplication).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
-        this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
-        this.openAlertMod(template, response.serviceResponse);
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
-      }
-    });
-  }
+   this.leaveService.updateLeaveStatus(leaveApplication).pipe(first()).subscribe((response: any) => {
+     if (response.serviceStatus == "Success") {
+       this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
+       this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
+       this.openAlertMod(template, response.serviceResponse);
+     } else {
+       this.openAlertMod(template, response.serviceResponse);
+     }
+   });
+ }
 
-  // single leave reject modal
-  onSingleReject(template: TemplateRef<any>,) {
-    this.leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
-    if (!this.validationService.validateActivityTimesheetDiscription(this.leaveObj.rejectReason)) {
-      this.alertMessage = "Please enter valid reason !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-    this.onUpdateLeaveStatus(template, this.leaveObj, 3);
-  }
+ onUpdateLeaveStatusCheck(template: TemplateRef<any>, updatedLeaveStatusId) {
+   this.cancelRequest();
+   // 1 = pending , 2 = Approved , 3= Rejected
+   this.leaveApplication.leaveStatusId = updatedLeaveStatusId;
+   this.leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
+   this.leaveApplication.rejectReason = this.leaveApplication.rejectReason?.trim();
 
-  // openLeaveRejectModal
-  openLeaveRejectModal(template: TemplateRef<any>, leave: any) {
-    this.cancelRequest();
-    this.leaveObj = leave
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
-  }
+   //console.log("leaveApplication : ", this.leaveApplication);
+
+   this.leaveService.updateLeaveStatus(this.leaveApplication).pipe(first()).subscribe((response: any) => {
+     if (response.serviceStatus == "Success") {
+       this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
+       this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
+       this.openAlertMod(template, response.serviceResponse);
+     } else {
+       this.openAlertMod(template, response.serviceResponse);
+     }
+   });
+ }
+
+ // single leave reject modal
+ onSingleReject(template: TemplateRef<any>,) {
+   this.leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
+   if (!this.validationService.validateActivityTimesheetDiscription(this.leaveObj.rejectReason)) {
+     this.alertMessage = "Please enter valid reason !!"
+     this.openAlertMod(template, this.alertMessage);
+     return false;
+   }
+   this.onUpdateLeaveStatus(template, this.leaveObj, 3);
+ }
+
+ // openLeaveRejectModal
+ openLeaveRejectModal(template: TemplateRef<any>, leave: any) {
+   this.cancelRequest();
+   this.leaveObj = leave
+   this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+ }
 
 
 
@@ -329,18 +479,28 @@ export class HomeComponent implements OnInit, AfterViewInit {
   getPendingCompOffRequestsByManagerId() {
     this.data = ''
     this.allCompOffApplications = []
+    this.isSelectAll = false
+    this.bulkCompOffApprove = []
+    this.bulkCompOffReject = []
 
     let compOff = new Leave();
     compOff.managerId = this.currentUser.empId;
     this.leaveService.getPendingCompOffRequestsByManagerId(compOff).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allCompOffApplications = response.serviceResponse;
-        this.allCompOffApplications.forEach(compOff => {
-          compOff.fromDate = (compOff.fromDate)? moment(compOff.fromDate).format(AppComponent.DATE_FORMAT) : null;
-          compOff.toDate = (compOff.toDate)? moment(compOff.toDate).format(AppComponent.DATE_FORMAT) : null;
-          compOff.createdOn = (compOff.createdOn)? moment(compOff.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        this.allCompOffApplications.forEach((compOff, index) => {
+          compOff.checkId = "compOff" + index;
+          compOff.fromDate = (compOff.fromDate) ? moment(compOff.fromDate).format(AppComponent.DATE_FORMAT) : null;
+          compOff.toDate = (compOff.toDate) ? moment(compOff.toDate).format(AppComponent.DATE_FORMAT) : null;
+          compOff.createdOn = (compOff.createdOn) ? moment(compOff.createdOn).format(AppComponent.DATE_FORMAT) : null;
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === compOff.empId);
+          compOff.emp360 = matchingEmployee ? matchingEmployee : {};
+          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === compOff.managerId);
+          compOff.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === compOff.level2ApproverId);
+          compOff.emp360Level2Approver = matchingEmployee3 ? matchingEmployee3 : {};
         });
-        console.log("allCompOffApplications : ", this.allCompOffApplications);
+        // console.log("allCompOffApplications : ", this.allCompOffApplications);
       } else {
         console.error(response.serviceResponse);
       }
@@ -358,7 +518,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.leaveService.countPendingCompOffRequestsByManagerId(compOff).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.compOffApplicationCount = response.serviceResponse.applicationCount;
-        console.log("CompOffApplicationCount : ", this.compOffApplicationCount);
+        //console.log("CompOffApplicationCount : ", this.compOffApplicationCount);
       } else {
         this.compOffApplicationCount = 0;
         console.error(response.serviceResponse);
@@ -369,14 +529,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
   onUpdateCompOffStatus(template: TemplateRef<any>, compOffObj, updatedCompOffStatusId) {
     this.cancelRequest();
     // 1 = pending , 2 = Approved , 3= Rejected
-    let compOff:Leave = new Leave();
-    compOff = Object.assign({},compOffObj);
+    let compOff: Leave = new Leave();
+    compOff = Object.assign({}, compOffObj);
     compOff.leaveStatusId = updatedCompOffStatusId;
+    compOff.rejectCompOffReason = compOffObj.rejectReason;
     compOff.leaveStatusUpdatedBy = this.currentUser.empId
-    compOff.hodEmail = this.currentUser.email;
-    compOff.hodName = this.currentUser.name;
-    compOff.employeeName = compOff.createdByName;
-    console.log("Update Comp off : ", compOff);
 
     this.leaveService.updateCompOffById(compOff).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -413,6 +570,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.bulkReject = []
     this.allTeamTimesheetRequests = [];
     this.isSelectAll = false
+    this.items = 10;
 
     let timesheetObj = new Timesheet();
     timesheetObj.managerId = this.currentUser.empId;
@@ -420,14 +578,32 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamTimesheetRequests = response.serviceResponse;
-        for (let timesheet of this.allTeamTimesheetRequests) {
-          timesheet.employeementId = "A-".concat(timesheet.employeementId);
+        this.allTeamTimesheetRequests.forEach((timesheet, index) => {
+          timesheet.checkId = "timesheet" + index;
+          // if(timesheet.isConsultant == 'true'){
+          //   timesheet.employeementId = "A-CS-".concat(timesheet.employeementId);
+          // }else{
+          //   timesheet.employeementId = "A-".concat(timesheet.employeementId);
+          // }
+          // timesheet.employeementId = "A-".concat(timesheet.employeementId);
+          timesheet.employeementId = this.utilityService.getFormattedEmployeeId(timesheet);
           timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
-           timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
+          timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-        }
-        console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
+          
+          // const empData = sessionStorage.getItem('AllEmployees');
+          // if (empData) {
+          //     this.employeeList = JSON.parse(empData);
+          // } else {
+          //     this.employeeList = [];
+          // }
+
+          let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === timesheet.employeementId);
+          timesheet.emp360 = matchingEmployee ? matchingEmployee : {};
+
+        });
+        //console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
       } else {
         console.error(response.serviceResponse)
       }
@@ -449,11 +625,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
     timesheetObj.date = timesheet.date;
     timesheetObj.dayType = timesheet.dayType;
     timesheetObj.totalWorkingOfficeHours = timesheet.totalWorkingOfficeHours;
-    console.log("  timesheetObj.totalWorkingHours ", timesheet.totalWorkingHours)
-    console.log("  timesheetObj.totalWorkingOfficeHours ", timesheet.totalWorkingOfficeHours)
+    //console.log("  timesheetObj.totalWorkingHours ", timesheet.totalWorkingHours)
+    //console.log("  timesheetObj.totalWorkingOfficeHours ", timesheet.totalWorkingOfficeHours)
     timesheetObj.status = status;
     timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
-    console.log("      :      ",timesheetObj)
+    //console.log("      :      ",timesheetObj)
 
     this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -484,6 +660,21 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
 
+
+  isEmployeeOnBench() {
+    let obj = new Employee();
+    obj.empId = this.currentUser.empId;
+    obj.billableType = 'Bench';
+    this.employeeService.isEmployeeOnBench(obj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        let dtoResponse = response.serviceResponse;
+        this.lines = dtoResponse[0];
+      }
+    });
+  }
+
+
+
   /* View TImesheet details */
   getAllMyActivitiesByTimesheetId(timesheet: any) {
     this.timesheetObj.allTimesheetActivities = [];
@@ -493,7 +684,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.timesheetService.getAllMyActivitiesByTimesheetId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.timesheetObj.allTimesheetActivities = response.serviceResponse;
-        console.log("timesheetObj.allTimesheetActivities :", this.timesheetObj.allTimesheetActivities);
+        //console.log("timesheetObj.allTimesheetActivities :", this.timesheetObj.allTimesheetActivities);
       } else {
         console.error(response.serviceResponse)
       }
@@ -507,11 +698,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
     let leaveObj = new Leave();
     leaveObj.employmentStatus = userObj.employmentstatus;
     leaveObj.gender = userObj.gender;
+    leaveObj.maritalStatus = this.currentUser.maritalStatus;
 
     this.leaveService.getAllLeaveTypesByLeavePolicies(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveTypes = response.serviceResponse;
-        console.log("leaveTypes : ", this.leaveTypes);
+        //console.log("leaveTypes : ", this.leaveTypes);
         this.leaveBucketDetails = this.leaveTypes.map((leave: Leave) => {
           let leaveObj = new Leave();
           leaveObj.leaveTypeMasterId = leave.leaveTypeMasterId;
@@ -525,33 +717,91 @@ export class HomeComponent implements OnInit, AfterViewInit {
           return leaveObj;
         });
 
-        console.log("leaveBucketDetails : ", this.leaveBucketDetails);
+        //console.log("leaveBucketDetails : ", this.leaveBucketDetails);
       } else {
         console.error(response.serviceResponse);
       }
     });
   }
 
-  getMyLeaveBalancesByEmpId() {
+  async getMyLeaveBalancesByEmpId() {
     this.leaveBalanceList = [];
+    this.rejectedLeavesList = [];
+    this.approvedLeavesList = [];
+    this.pendingLeavesList = [];
+
 
     let leaveObj = new Leave();
     leaveObj.employeementId = this.currentUser.employeementId;
-    this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.leaveBalanceList = response.serviceResponse;
-        console.log("leaveBalanceList : ", this.leaveBalanceList);
-        this.leaveBucketDetails.forEach(data => {
-          let leaveDetail = this.leaveBalanceList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
-          if (leaveDetail) {
-            data.balance = (leaveDetail.balance) ? leaveDetail.balance : 0;
-          }
-        });
-        console.log("leaveBucketDetails : ", this.leaveBucketDetails);
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
+    leaveObj.empId = this.currentUser.empId;
+    leaveObj.employmentStatus = this.currentUser.employmentstatus;
+    console.log("sdnkvsvns" + leaveObj.employmentStatus);
+    let leaveBalanceResponse: any = await this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).toPromise();
+    if (leaveBalanceResponse.serviceStatus == "Success") {
+      this.leaveBalanceList = leaveBalanceResponse.serviceResponse;
+      //console.log("leaveBalanceList : ", this.leaveBalanceList);
+      this.leaveBucketDetails.forEach(data => {
+        let leaveDetail = this.leaveBalanceList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
+        if (leaveDetail) {
+          data.balance = (leaveDetail.balance) ? leaveDetail.balance : 0;
+        }
+      });
+      //console.log("leaveBucketDetails with Balance : ", this.leaveBucketDetails);
+    } else {
+      console.error(leaveBalanceResponse.serviceResponse);
+    }
+
+    let approvedLeaveResponse: any = await this.leaveService.countMyApprovedLeaveApplicationsByLeaveType(leaveObj).pipe(first()).toPromise();
+    if (approvedLeaveResponse.serviceStatus == "Success") {
+      this.approvedLeavesList = approvedLeaveResponse.serviceResponse;
+      //console.log("approvedLeaves : ", this.approvedLeavesList);
+
+      this.leaveBucketDetails.forEach(data => {
+        let leaveDetail = this.approvedLeavesList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
+        if (leaveDetail) {
+          data.approvedApplicationsCount = (leaveDetail.applicationCount) ? leaveDetail.applicationCount : 0;
+        }
+      });
+
+      //console.log("leaveBucketDetails with Approved Leaves : ", this.leaveBucketDetails);
+
+    } else {
+      console.error(approvedLeaveResponse.serviceResponse);
+    }
+
+    let rejectedLeaveResponse: any = await this.leaveService.countMyRejectedLeaveApplicationsByLeaveType(leaveObj).pipe(first()).toPromise();
+    if (rejectedLeaveResponse.serviceStatus == 'Success') {
+      this.rejectedLeavesList = rejectedLeaveResponse.serviceResponse;
+      //console.log("Rejected Leaves : ", this.rejectedLeavesList);
+
+      this.leaveBucketDetails.forEach(data => {
+        let leaveDetail = this.rejectedLeavesList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
+        if (leaveDetail) {
+          data.rejectedApplicationsCount = (leaveDetail.applicationCount) ? leaveDetail.applicationCount : 0;
+        }
+      });
+
+      //console.log("leaveBucketDetails with Rejected Leaves : ", this.leaveBucketDetails);
+    } else {
+      console.error(rejectedLeaveResponse.serviceResponse);
+    }
+
+    let pendingLeaveResponse: any = await this.leaveService.countMyPendingLeaveApplicationsByLeaveType(leaveObj).pipe(first()).toPromise();
+    if (pendingLeaveResponse.serviceStatus == "Success") {
+      this.pendingLeavesList = pendingLeaveResponse.serviceResponse;
+      //console.log("pendingLeavesList : ", this.pendingLeavesList);
+
+      this.leaveBucketDetails.forEach(data => {
+        let leaveDetail = this.pendingLeavesList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
+        if (leaveDetail) {
+          data.pendingApplicationsCount = (leaveDetail.applicationCount) ? leaveDetail.applicationCount : 0;
+        }
+      });
+
+      //console.log("leaveBucketDetails with pending leaves : ", this.leaveBucketDetails);
+    } else {
+      console.error(pendingLeaveResponse.serviceResponse);
+    }
   }
 
   countMyRejectedLeaveApplicationsByLeaveType() {
@@ -563,7 +813,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
       if (response.serviceStatus == 'Success') {
         this.rejectedLeavesList = response.serviceResponse;
-        console.log("Rejected Leaves : ", this.rejectedLeavesList);
+        //console.log("Rejected Leaves : ", this.rejectedLeavesList);
 
         this.leaveBucketDetails.forEach(data => {
           let leaveDetail = this.rejectedLeavesList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
@@ -587,7 +837,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.leaveService.countMyApprovedLeaveApplicationsByLeaveType(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.approvedLeavesList = response.serviceResponse;
-        console.log("approvedLeaves : ", this.approvedLeavesList);
+        //console.log("approvedLeaves : ", this.approvedLeavesList);
 
         this.leaveBucketDetails.forEach(data => {
           let leaveDetail = this.approvedLeavesList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
@@ -610,7 +860,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.leaveService.countMyPendingLeaveApplicationsByLeaveType(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.pendingLeavesList = response.serviceResponse;
-        console.log("pendingLeavesList : ", this.pendingLeavesList);
+        //console.log("pendingLeavesList : ", this.pendingLeavesList);
 
         this.leaveBucketDetails.forEach(data => {
           let leaveDetail = this.pendingLeavesList.find((leave: Leave) => leave.leaveTypeCode == data.leaveTypeCode);
@@ -780,13 +1030,19 @@ export class HomeComponent implements OnInit, AfterViewInit {
         ],
     });
   }
-
+  
   /* Today's Birthday List */
   getAllEmployeesBirthDayToday() {
     this.employeeService.getAllEmployeesBirthDayToday().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.birthdayList = response.serviceResponse;
-        console.log("birthdayList : ", this.birthdayList);
+        this.birthdayList.forEach((employee) => {
+          // console.log("employee.empId ", employee.empId);
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
+          // console.log("empId ", matchingEmployee);
+          employee.emp360 = matchingEmployee ? matchingEmployee : {};
+        });
+        // console.log("birthdayList : ", this.birthdayList);
       } else {
         this.compOffApplicationCount = 0;
         console.error(response.serviceResponse);
@@ -794,26 +1050,68 @@ export class HomeComponent implements OnInit, AfterViewInit {
     });
   }
 
+  getAllEmployeesWorkAnniversaryToday() {
+    this.employeeService.getAllEmployeesWorkAnniversaryToday().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.workAnniversaryList = response.serviceResponse;
+        this.workAnniversaryList.forEach((employee) => {
+          
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
+         
+          employee.emp360 = matchingEmployee ? matchingEmployee : {};
+        });
+        
+      } else {
+        this.compOffApplicationCount = 0;
+        console.error(response.serviceResponse);
+      }
+    });
+  }
 
   /* Quick Links */
   showApplyLeaveForm() {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }else{
     this.router.navigate(['/user-leaves'],
       { queryParams: { tabName: 'leave-tab' }, queryParamsHandling: '' });
+   }
+    
   }
 
   showApplyCompOffForm() {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }else{
     this.router.navigate(['/user-leaves'],
       { queryParams: { tabName: 'compOff-tab' }, queryParamsHandling: '' });
+    }
   }
 
   showApplyTimesheetForm() {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }else{
     this.router.navigate(['/user-timesheet'],
       { queryParams: { tabName: 'my-timesheet-tab' }, queryParamsHandling: '' });
+    }
   }
 
   showHolidayList() {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }else{
     this.router.navigate(['/user-leaves'],
       { queryParams: { tabName: 'holidays-tab' }, queryParamsHandling: '' });
+    }
   }
 
   /* carousal Images */
@@ -825,8 +1123,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.imageService.getFirstEventPhotoForHome().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.eventImages = response.serviceResponse;
-        console.log("First image : ", this.eventImages);
-        setTimeout(() => { 
+        //console.log("First image : ", this.eventImages);
+        setTimeout(() => {
           this.loadImages(this.eventImages);
         }, 1000);
         this.getPhotosForHome();
@@ -836,18 +1134,18 @@ export class HomeComponent implements OnInit, AfterViewInit {
     });
   }
 
-  getPhotosForHome(){
+  getPhotosForHome() {
     this.imageService.getAllEventPhotosForHome().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         let images = response.serviceResponse;
         this.eventImages.push(...images);
         this.eventImages.sort((a, b) => a.photoOrder - b.photoOrder)
-        console.log("eventImages : ", this.eventImages);
+        //console.log("eventImages : ", this.eventImages);
         setTimeout(() => { this.loadImages(this.eventImages); }, 1000);
       } else {
         console.error(response.serviceResponse);
       }
-    }); 
+    });
   }
 
   loadImages(eventImages) {
@@ -912,6 +1210,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   getTimesheetsForHomePageByEmpId(dateRange: any) {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }
     this.timesheetDetails = [];
     const TOTAL_WORKING_HOURS_IN_DAY = 8;
     const currentDate = new Date();
@@ -930,7 +1233,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       fromDate = new Date(currentDate.getTime() - (1 * DAY_IN_MS));
       toDate = new Date(currentDate.getTime() - (7 * DAY_IN_MS));
 
-      console.log(`Last 7 Days : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
+      //console.log(`Last 7 Days : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
       timesheetObj.startDate = moment(toDate).format(dateFormat);
       timesheetObj.endDate = moment(fromDate).format(dateFormat);
     } else if (dateRange == 'This Month') {
@@ -938,7 +1241,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       fromDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
       toDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
 
-      console.log(`This Month : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
+      //console.log(`This Month : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
       timesheetObj.startDate = moment(fromDate).format(dateFormat);
       timesheetObj.endDate = moment(toDate).format(dateFormat);
     } else if (dateRange == 'Last Month') {
@@ -947,7 +1250,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       fromDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
       toDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
 
-      console.log(`Last Month : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
+      //console.log(`Last Month : ${moment(fromDate).format(dateFormat)} -- ${moment(toDate).format(dateFormat)}`);
       timesheetObj.startDate = moment(fromDate).format(dateFormat);
       timesheetObj.endDate = moment(toDate).format(dateFormat);
     }
@@ -955,7 +1258,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.timesheetService.getTimesheetsForHomePageByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         filledTimesheetDetails = response.serviceResponse;
-        console.log("filledTimesheetDetails : ", filledTimesheetDetails);
+        //console.log("filledTimesheetDetails : ", filledTimesheetDetails);
       } else {
         console.error(response.serviceResponse);
       }
@@ -977,8 +1280,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
             newTimesheetObj.totalWorkingHoursPercentage = (newTimesheetObj.totalWorkingHours / TOTAL_WORKING_HOURS_IN_DAY) * 100 + "%";
 
             // For Chart Data
-            if (newTimesheetObj.status == "Pending") pendingCount++;
-            else if (newTimesheetObj.status == "Approved") approvedCount++;
+            if (newTimesheetObj.status == "Pending") { pendingCount++; }
+            else if (newTimesheetObj.status == "Approved") { approvedCount++; }
             else if (newTimesheetObj.status == "Rejected") rejectedCount++;
           } else {
             newTimesheetObj.totalWorkingHoursPercentage = "0%";
@@ -991,7 +1294,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
         this.timesheetDetails.push(newTimesheetObj);
       }
 
-      console.log("timesheetDetails : ", this.timesheetDetails);
+      //console.log("timesheetDetails : ", this.timesheetDetails);
       this.timesheetDetails.sort(this.dateCompare);
 
       let timesheetChartData = [{
@@ -1011,12 +1314,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
         y: rejectedCount
       }];
 
-      this.renderTimesheetChart(`${dateRange} Timesheet`, 'totalEODChart', timesheetChartData, 'Timesheet(s)');
+      // this.renderTimesheetChart(`${dateRange} Timesheet`, 'totalEODChart', timesheetChartData, 'Timesheet(s)');
       if (dateRange == 'This Month')
         this.thisMonthCalendar.addTimesheetDetails();
       else if (dateRange == 'Last Month')
         this.lastMonthCalendar.addTimesheetDetails();
     });
+
+
+
   }
 
 
@@ -1056,7 +1362,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
         "Leave Type": x.leaveType,
         "From Date": x.fromDate,
         "To Date": x.toDate,
-        "Duration": (x.noOfDays+" day(s)"),
+        "Duration": (x.noOfDays + " day(s)"),
         "Status": x.status,
         "Applied By": x.createdByName,
         "Applied On": x.createdOn,
@@ -1131,12 +1437,37 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
+  openPoExpiredMod() {
+    this.cancelRequest();
+    this.geExpiredtPoData();
+      console.log(this.expiredList);
+    // alert("hi");
+    this.modalRef = this.modalService.show(this.poExpireTemplateRef, { class: 'modal-xl' ,
+      backdrop: 'static',
+      keyboard: false 
+  });
+  
+  }
+
   openReqMod(template: TemplateRef<any>) {
+    if (this.currentUser.isNew === "true") {
+  
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+   
+   }else{
     this.filters = {};
     this.isSearchEnabled = false;
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+   }
+   
   }
 
+
+  openRevokeLeaveRejectModalCompOff(template: TemplateRef<any>, leave: any){
+      this.cancelRequest();
+      this.leaveObj = leave;
+      this.modalRef = this.modalService.show(template);
+    }
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
@@ -1152,10 +1483,13 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
     const checkboxes = document.querySelectorAll('.timesheet-req-checkbox');
 
+    //console.log("select Data : ", this.allTeamTimesheetRequests);
+    //console.log("checkboxes    ::   ",checkboxes);
+
     checkboxes.forEach((checkbox: any) => {
-      console.log("checkbox : ", checkbox);
+      //console.log("checkbox : ", checkbox);
       let checkboxIndex = checkbox.getAttribute('id');
-      let checkedTimesheet = this.allTeamTimesheetRequests.find((_timesheet, index) => index == checkboxIndex);
+      let checkedTimesheet = this.allTeamTimesheetRequests.find((_timesheet, index) => _timesheet.checkId == checkboxIndex);
 
       if (event.target.checked) {
         checkbox.checked = true;
@@ -1174,10 +1508,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
       }
     });
     const leaveCheckboxes = document.querySelectorAll('.homeLeave-req-checkbox');
+    //console.log("leaveCheckboxes     ::   ",leaveCheckboxes);
     leaveCheckboxes.forEach((leaveCheck: any) => {
-      console.log("Check in leave home ", leaveCheck);
+      //console.log("Check in leave home ", leaveCheck);
       let leaveCheckboxIndex = leaveCheck.getAttribute('id');
-      let checkedLeaveApplication = this.leaveApplicationList.find((_leave, index) => index == leaveCheckboxIndex);
+      let checkedLeaveApplication = this.leaveApplicationList.find((_leave, index) => _leave.checkId == leaveCheckboxIndex);
 
       if (event.target.checked) {
         leaveCheck.checked = true;
@@ -1195,12 +1530,40 @@ export class HomeComponent implements OnInit, AfterViewInit {
         });
       }
 
-    })
+    });
+
+  }
+  selectAllCompOff(event) {
+    const compOffCheckBox = document.querySelectorAll('.compoff-req-checkbox');
+
+    //console.log("select Data : ", compOffCheckBox);
+
+    compOffCheckBox.forEach((checkbox: any) => {
+      //console.log("checkbox : ", checkbox);
+      let checkboxIndex = checkbox.getAttribute('id');
+      let checkedCompOff = this.allCompOffApplications.find((_compoff, index) => _compoff.checkId == checkboxIndex);
+      //console.log("checkedCompOff   ::   ",checkedCompOff);
+      if (event.target.checked) {
+        checkbox.checked = true;
+        checkbox.classList.add('checked');
+        this.bulkCompOffApprove.push(checkedCompOff);
+        this.bulkCompOffReject.push(checkedCompOff);
+      } else {
+        checkbox.checked = false;
+        checkbox.classList.remove('checked');
+        this.bulkCompOffApprove.forEach((compOff, index) => {
+          if (compOff == checkedCompOff) this.bulkCompOffApprove.splice(index, 1);
+        });
+        this.bulkCompOffReject.forEach((compOff, index) => {
+          if (compOff == checkedCompOff) this.bulkCompOffReject.splice(index, 1);
+        });
+      }
+    });
   }
 
   select(timesheetObj, event) {
 
-    console.log("clicked on : ", timesheetObj);
+    //console.log("clicked on : ", timesheetObj);
 
     if (event.target.checked) {
       event.target.classList.add('checked');
@@ -1210,8 +1573,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
       event.target.classList.remove('checked');
       const checkboxes = document.querySelectorAll('.timesheet-req-checkbox.checked');
       if (checkboxes.length !== this.items) this.isSelectAll = false;
-      console.log("Checkboxes.length ", checkboxes.length)
-      console.log(" items ", this.items)
+      //console.log("Checkboxes.length ", checkboxes.length)
+      //console.log(" items ", this.items)
       this.bulkApprove.forEach((timesheet, index) => {
         if (timesheet == timesheetObj) this.bulkApprove.splice(index, 1);
       });
@@ -1219,15 +1582,36 @@ export class HomeComponent implements OnInit, AfterViewInit {
         if (timesheet == timesheetObj) this.bulkReject.splice(index, 1);
       });
     }
-    console.log("Updated Bulk List : ", this.bulkApprove);
+    //console.log("Updated Bulk List : ", this.bulkApprove);
   }
 
+  selectCompOff(compOffObj, event) {
 
+    // compoff-req-checkbox
+    //console.log("compOff bulk method call clicked on ",compOffObj);
+    if (event.target.checked) {
+      event.target.classList.add('checked');
+      this.bulkCompOffApprove.push(compOffObj);
+      this.bulkCompOffReject.push(compOffObj);
+    } else {
+      event.target.classList.remove('checked');
+      const compOffLeaveCheckBox = document.querySelectorAll('.compoff-req-checkbox.checked');
+      if (compOffLeaveCheckBox.length !== this.items) this.isSelectAll = false;
+      //console.log("checkbox.length of comp off  ",compOffLeaveCheckBox.length);
+      this.bulkCompOffApprove.forEach((compOff, index) => {
+        if (compOff == compOffObj) this.bulkCompOffApprove.splice(index, 1);
+      });
+      this.bulkCompOffReject.forEach((compOff, index) => {
+        if (compOff == compOffObj) this.bulkCompOffReject.splice(index, 1);
+      });
+      //console.log("Updated Bulk List : ", this.bulkCompOffApprove);
+    }
+  }
 
 
   onSelect(leaveObj, event) {
 
-    console.log("clicked on : ", leaveObj);
+    //console.log("clicked on : ", leaveObj);
 
     if (event.target.checked) {
       event.target.classList.add('checked');
@@ -1237,7 +1621,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       event.target.classList.remove('checked');
       const leaveCheckboxes = document.querySelectorAll('.homeLeave-req-checkbox.checked');
       if (leaveCheckboxes.length !== this.items) this.isSelectAll = false;
-      console.log("checkbox.length ", leaveCheckboxes.length)
+      //console.log("checkbox.length ", leaveCheckboxes.length)
       this.bulkLeaveApprove.forEach((timesheet, index) => {
         if (timesheet == leaveObj) this.bulkLeaveApprove.splice(index, 1);
       });
@@ -1245,47 +1629,47 @@ export class HomeComponent implements OnInit, AfterViewInit {
         if (timesheet == leaveObj) this.bulkLeaveReject.splice(index, 1);
       });
     }
-    console.log("Updated Bulk List : ", this.bulkLeaveApprove);
+    //console.log("Updated Bulk List : ", this.bulkLeaveApprove);
   }
 
-  openBulkApprovalModal(nightShiftTemplate:TemplateRef<any>, alertTemplate:TemplateRef<any>){
+  openBulkApprovalModal(nightShiftTemplate: TemplateRef<any>, alertTemplate: TemplateRef<any>) {
     const isNightShiftFound = this.bulkApprove.filter((x) => x.isNightShift == "true");
-    console.log(isNightShiftFound, " : isNightShiftFound");
+    //console.log(isNightShiftFound, " : isNightShiftFound");
 
-    if(isNightShiftFound.length != 0){
+    if (isNightShiftFound.length != 0) {
       this.modalRef = this.modalService.show(nightShiftTemplate, { class: 'modal-lg' });
-    }else{
+    } else {
       this.onBulkApproval(alertTemplate);
     }
   }
 
-  bulkApproveWithoutNightShiftRequest(template:TemplateRef<any>){
+  bulkApproveWithoutNightShiftRequest(template: TemplateRef<any>) {
     this.bulkApprove = this.bulkApprove.filter((x) => x.isNightShift == "false" || x.isNightShift == null);
-    if(this.bulkApprove.length !== 0){
+    if (this.bulkApprove.length !== 0) {
       this.onBulkApproval(template);
-    }else{
+    } else {
       this.cancelRequest();
       this.getMyReporteesTimesheetRequests();
     }
   }
 
-  openBulkRejectModal(nightShiftTemplate:TemplateRef<any>, bulkRejectTimesheet:TemplateRef<any>){
+  openBulkRejectModal(nightShiftTemplate: TemplateRef<any>, bulkRejectTimesheet: TemplateRef<any>) {
     const isNightShiftFound = this.bulkApprove.filter((x) => x.isNightShift == "true");
-    console.log(isNightShiftFound, " : isNightShiftFound");
+    //console.log(isNightShiftFound, " : isNightShiftFound");
 
-    if(isNightShiftFound.length != 0){
+    if (isNightShiftFound.length != 0) {
       this.modalRef = this.modalService.show(nightShiftTemplate, { class: 'modal-lg' });
-    }else{
+    } else {
       this.OnBulkReject(bulkRejectTimesheet);
     }
   }
 
-  bulkRejectWithoutNightShiftRequest(bulkRejectTimesheet:TemplateRef<any>){
+  bulkRejectWithoutNightShiftRequest(bulkRejectTimesheet: TemplateRef<any>) {
     this.timesheetObj.rejectReason = null;
     this.bulkReject = this.bulkApprove.filter((x) => x.isNightShift == "false" || x.isNightShift == null);
-    if(this.bulkReject.length !== 0){
+    if (this.bulkReject.length !== 0) {
       this.OnBulkReject(bulkRejectTimesheet);
-    }else{
+    } else {
       this.cancelRequest();
       this.getMyReporteesTimesheetRequests();
     }
@@ -1293,13 +1677,13 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   onBulkApproval(template: TemplateRef<any>) {
     this.cancelRequest();
-    console.log("Updated Bulk List : ", this.bulkApprove);
+    //console.log("Updated Bulk List : ", this.bulkApprove);
     let timesheetObj = new Timesheet();
     timesheetObj.bulkApprovedList = this.bulkApprove;
     timesheetObj.updatedBy = this.currentUser.empId;
 
     timesheetObj.status = "Approved"
-    console.log("For Bulk Update : ", timesheetObj);
+    //console.log("For Bulk Update : ", timesheetObj);
     timesheetObj.bulkApprovedList.forEach((x) => {
       x.employeementId = x.employeementId.substring(2);
     })
@@ -1325,14 +1709,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    console.log("Updated Bulk List : ", this.bulkReject);
+    //console.log("Updated Bulk List : ", this.bulkReject);
     let timesheetObj = new Timesheet();
     timesheetObj.bulkRejectList = this.bulkReject;
     timesheetObj.updatedBy = this.currentUser.empId;
     timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
-    console.log(" timesheet reason :  ", timesheetObj.rejectReason);
+    //console.log(" timesheet reason :  ", timesheetObj.rejectReason);
     timesheetObj.status = "Rejected"
-    console.log("For Bulk Update : ", timesheetObj);
+    //console.log("For Bulk Update : ", timesheetObj);
     timesheetObj.bulkRejectList.forEach((item) => {
       item.employeementId = item.employeementId.substring(2);
     })
@@ -1358,7 +1742,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
 
   onBulkLeaveApproval(template: TemplateRef<any>) {
-    console.log("Updated Bulk List : ", this.bulkLeaveApprove);
+    //console.log("Updated Bulk List : ", this.bulkLeaveApprove);
     let leaveObj = new Leave();
     leaveObj.bulkLeaveApprovedList = this.bulkLeaveApprove;
     leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
@@ -1393,7 +1777,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
     let leaveObj = new Leave();
     leaveObj.bulkLeaveRejectList = this.bulkLeaveReject;
-    console.log(" ............................ ", leaveObj.bulkLeaveRejectList)
+    //console.log(" ............................ ", leaveObj.bulkLeaveRejectList)
     leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
     leaveObj.leaveStatusId = 3
     leaveObj.approverEmail = this.currentUser.email;
@@ -1417,6 +1801,71 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   }
 
+
+
+
+  onBulkCompOffReject(template: TemplateRef<any>, leave) {
+    this.leaveObj.rejectCompOffReason = ''
+    this.cancelRequest();
+    this.leaveObj = leave
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
+
+  onBulkCompOffApprove(template: TemplateRef<any>) {
+    //console.log(" bulk approve compoff call ::  ");
+    let compOffObj = new Leave();
+    compOffObj.bulkLeaveApprovedList = this.bulkCompOffApprove;
+    compOffObj.leaveStatusUpdatedBy = this.currentUser.empId;
+    compOffObj.approverEmail = this.currentUser.email;
+    compOffObj.leaveStatusId = 2;
+    this.leaveService.bulkCompOffApprove(compOffObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, "All Selected CompOff Leaves Approved Successfully ");
+        this.getPendingCompOffRequestsByManagerId();
+        this.countPendingCompOffRequestsByManagerId();
+        this.bulkCompOffApprove = [];
+        this.bulkCompOffReject = [];
+
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+
+
+  bulkCompOffRejectLeave(template: TemplateRef<any>) {
+    this.leaveObj.rejectCompOffReason = this.leaveObj.rejectCompOffReason?.trim();
+    if (!this.validationService.validateActivityTimesheetDiscription(this.leaveObj.rejectCompOffReason)) {
+      this.alertMessage = "please enter valid reason !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    let compOffObj = new Leave();
+    compOffObj.bulkLeaveRejectList = this.bulkCompOffReject;
+    //console.log("-------------------------n   ",compOffObj.bulkLeaveRejectList);
+    compOffObj.leaveStatusUpdatedBy = this.currentUser.empId;
+    compOffObj.leaveStatusId = 3;
+    compOffObj.approverEmail = this.currentUser.email;
+    compOffObj.rejectCompOffReason = this.leaveObj.rejectCompOffReason?.trim();
+    compOffObj.bulkLeaveRejectList.forEach((compOff) => {
+      compOff.employeementId = compOff.employeementId;
+    });
+    this.leaveService.bulkCompOffReject(compOffObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, "All Selected CompOff Leaves Rejected Successfully ");
+        this.getPendingCompOffRequestsByManagerId();
+        this.countPendingCompOffRequestsByManagerId();
+        this.bulkCompOffApprove = [];
+        this.bulkCompOffReject = [];
+
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+
+  }
 
   OnBulkReject(template: TemplateRef<any>) {
     let timesheet = new Timesheet();
@@ -1477,7 +1926,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.isError = false;
     this.errorMsg = '';
 
-    if(this.password){
+    if (this.password) {
       this.user.empId = this.currentUser.empId;
       this.user.password = this.setEncryption("PkdtRsJidheGitvS", this.password);
 
@@ -1499,7 +1948,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.oldPasswordValid = false;
     this.newpassword = ''
     this.userNewPass = ''
-    console.log(this.currentUser.isNew)
+    //console.log(this.currentUser.isNew)
     if (this.currentUser.isNew == 'true') {
       this.modalRef = this.modalService.show(changePasswordTemplate, this.config);
     } else {
@@ -1517,217 +1966,460 @@ export class HomeComponent implements OnInit, AfterViewInit {
   // }, 5000);
 
 
- // TOP BAR
- userLogout(template?: TemplateRef<any>) {
-  let user = new User();
-  user.empId = this.currentUser.empId;
-  this.authenticationService.logoutUser(user).pipe(first()).subscribe((response: any) => {
-    if (response.serviceStatus == "Success") {
-      this.authenticationService.stopUserSessionCheck();
-      console.log(response.serviceResponse);
-      sessionStorage.removeItem('currentUser');
-      sessionStorage.removeItem('token');
-      sessionStorage.removeItem('logInfo');
-      sessionStorage.removeItem('maxFileSize');
-      sessionStorage.removeItem('maxRequestSize');
-      sessionStorage.removeItem('sessioncheck');
-      // delete method call for cookies
-      this.authenticationService.deleteCookies();
-      this.authenticationService.setcurrentUserSubject(null);
-
-      this.router.navigate(['/login']);
-      setTimeout(() => {location.reload();});
-
-    } else {
-      if (response.serviceResponse == "Session already destroyed") {
+  // TOP BAR
+  userLogout(template?: TemplateRef<any>) {
+    let user = new User();
+    user.empId = this.currentUser.empId;
+    this.authenticationService.logoutUser(user).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
         this.authenticationService.stopUserSessionCheck();
+        //console.log(response.serviceResponse);
         sessionStorage.removeItem('currentUser');
         sessionStorage.removeItem('token');
         sessionStorage.removeItem('logInfo');
         sessionStorage.removeItem('maxFileSize');
         sessionStorage.removeItem('maxRequestSize');
         sessionStorage.removeItem('sessioncheck');
+        sessionStorage.removeItem('breadcrumb');
         // delete method call for cookies
         this.authenticationService.deleteCookies();
         this.authenticationService.setcurrentUserSubject(null);
+
         this.router.navigate(['/login']);
-        setTimeout(() => {location.reload();});
-      }
-      console.error(response.serviceResponse);
-    }
-  });
+        setTimeout(() => { location.reload(); });
 
-}
-
-  updateEmployeePassword(template: TemplateRef<any>) {
-    this.isError = false;
-    this.errorMsg = '';
-
-    if (!this.validationService.validateNullUndefinedEmptyString(this.password)) {
-      this.isError = true;
-      this.errorMsg = 'Please enter old Password!!';
-      return;
-    }
-
-    if (!this.validationService.validateNullUndefinedEmptyString(this.userNewPass)) {
-      this.isError = true;
-      this.errorMsg = 'Please enter new Password!!';
-      return;
-    }
-
-    if (!this.validationService.validateNullUndefinedEmptyString(this.newpassword)) {
-      this.isError = true;
-      this.errorMsg = 'Please enter Confirm password !!';
-      return;
-    }
-
-    if (this.userNewPass != this.newpassword) {
-      this.isError = true;
-      this.errorMsg = 'Password did not match. Please try again... !!';
-      this.userNewPass = '';
-      this.newpassword = '';
-      return;
-    }
-
-    if (!this.validationService.validateAlphaNumericSpecialCharacters(this.userNewPass) &&
-      !this.validationService.validateAlphaNumericSpecialCharacters(this.newpassword)) {
-      this.isError = true;
-      this.errorMsg = 'Password should not be set less than 8 characters and at least 1 lowercase character,  1 uppercase character, 1 digit , 1 special character should be there. Allowed Special characters are !@#$%^&*';
-      return;
-    }
-
-    if (this.userNewPass == this.newpassword) {
-      this.user.email = this.currentUser.email;
-      this.user.password = this.setEncryption("PkdtRsJidheGitvS", this.password);
-      this.user.newPassword = this.setEncryption("PkdtRsJidheGitvS", this.newpassword);
-
-      this.employeeService.updateEmployeePassword(this.user).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.cancelRequest();
-          this.passreset();
-
-          this.modalRef = this.modalService.show(this.LoadingLoginTemplate);
-          setTimeout(() => {
-            this.cancelRequest();
-            this.userLogout();
-          }, 2000);
-
-        }
-        else {
-          this.isError = true;
-          this.errorMsg = response.serviceResponse;
-        }
-      });
-    } else {
-      this.isError = true;
-      this.errorMsg = 'Password and Confirm Password do not match !!';
-      return;
-    }
-  }
-
-  //Notification Consent
-
-  getAllNotifications(){
-    this.notificationObj = new NotificationMessage();
-
-    this.notificationService.getAllNotifications().pipe(first()).subscribe((response:any) => {
-      if (response.serviceStatus == "Success") {
-        this.allNotification =  response.serviceResponse;
-
-        this.allNotification.forEach((notification) => {
-          notification.createdOn = (notification.createdOn)? moment(notification.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          notification.updatedOn = (notification.updatedOn)? moment(notification.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-        });
-
-        this.allNotification = this.allNotification.filter(x => x.isActive == 'true' && x.notificationType != "consentNotification" && x.notificationType != "releaseNotes");
-
-        console.log("notificationList : ", this.allNotification);
       } else {
+        if (response.serviceResponse == "Session already destroyed") {
+          this.authenticationService.stopUserSessionCheck();
+          sessionStorage.removeItem('currentUser');
+          sessionStorage.removeItem('token');
+          sessionStorage.removeItem('logInfo');
+          sessionStorage.removeItem('maxFileSize');
+          sessionStorage.removeItem('maxRequestSize');
+          sessionStorage.removeItem('sessioncheck');
+          sessionStorage.removeItem('breadcrumb');
+          // delete method call for cookies
+          this.authenticationService.deleteCookies();
+          this.authenticationService.setcurrentUserSubject(null);
+          this.router.navigate(['/login']);
+          setTimeout(() => { location.reload(); });
+        }
         console.error(response.serviceResponse);
       }
     });
+
   }
 
-  openConsentNotificationModal(){
-    console.log(this.currentUser.notificationConsent, " : this.currentUser.notificationConsent");
+ updateEmployeePassword(template: TemplateRef<any>) {
+   this.isError = false;
+   this.errorMsg = '';
 
-    if (this.currentUser.notificationConsent != null || this.currentUser.notificationConsent != undefined) {
-      this.consentNotificationMessage = this.currentUser.notificationConsent.notificationMessage;
-      this.modalRef = this.modalService.show(this.consentNotificationTemplate, this.consentModalConfig);
-    }
-  }
+   if (!this.validationService.validateNullUndefinedEmptyString(this.password)) {
+     this.isError = true;
+     this.errorMsg = 'Please enter old Password!!';
+     return;
+   }
 
-  submitNotificationConsent(){
-    this.cancelRequest();
+   if (!this.validationService.validateNullUndefinedEmptyString(this.userNewPass)) {
+     this.isError = true;
+     this.errorMsg = 'Please enter new Password!!';
+     return;
+   }
 
-    let notificationObj = new NotificationMessage();
+   if (!this.validationService.validateNullUndefinedEmptyString(this.newpassword)) {
+     this.isError = true;
+     this.errorMsg = 'Please enter Confirm password !!';
+     return;
+   }
 
-    notificationObj.empId = this.currentUser.empId;
-    notificationObj.notificationId = this.currentUser.notificationConsent.notificationId;
-    notificationObj.notificationType = this.currentUser.notificationConsent.notificationType;
-    this.notificationService.submitNotificationConsent(notificationObj).pipe(first()).subscribe((response: any) => {
+   if (this.userNewPass != this.newpassword) {
+     this.isError = true;
+     this.errorMsg = 'Password did not match. Please try again... !!';
+     this.userNewPass = '';
+     this.newpassword = '';
+     return;
+   }
+
+   if (!this.validationService.validateAlphaNumericSpecialCharacters(this.userNewPass) &&
+     !this.validationService.validateAlphaNumericSpecialCharacters(this.newpassword)) {
+     this.isError = true;
+     this.errorMsg = 'Password should not be set less than 8 characters and at least 1 lowercase character,  1 uppercase character, 1 digit , 1 special character should be there. Allowed Special characters are !@#$%^&*';
+     return;
+   }
+
+   if (this.userNewPass == this.newpassword) {
+     this.user.email = this.currentUser.email;
+     this.user.password = this.setEncryption("PkdtRsJidheGitvS", this.password);
+     this.user.newPassword = this.setEncryption("PkdtRsJidheGitvS", this.newpassword);
+
+     this.employeeService.updateEmployeePassword(this.user).pipe(first()).subscribe((response: any) => {
+       if (response.serviceStatus == "Success") {
+         this.cancelRequest();
+         this.passreset();
+
+         this.modalRef = this.modalService.show(this.LoadingLoginTemplate);
+         setTimeout(() => {
+           this.cancelRequest();
+           this.userLogout();
+         }, 2000);
+
+       }
+       else {
+         this.isError = true;
+         this.errorMsg = response.serviceResponse;
+       }
+     });
+   } else {
+     this.isError = true;
+     this.errorMsg = 'Password and Confirm Password do not match !!';
+     return;
+   }
+ }
+
+ //Notification Consent
+
+  getAllNotifications() {
+    this.notificationObj = new NotificationMessage();
+
+    this.notificationService.getAllNotifications().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        let dtoResponse = response.serviceResponse;
-        this.currentUser.notificationConsent = dtoResponse.notificationConsent;
+        this.allNotification = response.serviceResponse;
 
-        this.authenticationService.setcurrentUserSubject(this.currentUser);
-        this.openConsentNotificationModal();
-      }
-    });
-  }
+        this.allNotification.forEach((notification) => {
+          notification.createdOn = (notification.createdOn) ? moment(notification.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          notification.updatedOn = (notification.updatedOn) ? moment(notification.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
+
+       this.allNotification = this.allNotification.filter(x => x.isActive == 'true' && x.notificationType != "consentNotification" && x.notificationType != "releaseNotes");
+
+       //console.log("notificationList : ", this.allNotification);
+     } else {
+       console.error(response.serviceResponse);
+     }
+   });
+ }
+
+  openConsentNotificationModal() {
+    //console.log(this.currentUser.notificationConsent, " : this.currentUser.notificationConsent");
+
+   if (this.currentUser.notificationConsent != null || this.currentUser.notificationConsent != undefined) {
+     this.consentNotificationMessage = this.currentUser.notificationConsent.notificationMessage;
+     // this.modalRef = this.modalService.show(this.consentNotificationTemplate, this.consentModalConfig);
+   }
+ }
+
+  submitNotificationConsent() {
+    // this.cancelRequest();
+
+   let notificationObj = new NotificationMessage();
+
+   notificationObj.empId = this.currentUser.empId;
+   notificationObj.notificationId = this.currentUser.notificationConsent.notificationId;
+   notificationObj.notificationType = this.currentUser.notificationConsent.notificationType;
+   this.notificationService.submitNotificationConsent(notificationObj).pipe(first()).subscribe((response: any) => {
+     if (response.serviceStatus == "Success") {
+       let dtoResponse = response.serviceResponse;
+       this.currentUser.notificationConsent = dtoResponse.notificationConsent;
+
+       this.authenticationService.setcurrentUserSubject(this.currentUser);
+       this.openConsentNotificationModal();
+     }
+   });
+ }
 
 
   // Release Note Consent 
-  setReleaseNote(){
+  setReleaseNote() {
     this.isShowReleaseNote = false;
 
-    console.log(this.currentUser.releaseNoteNotification, " : releaseNoteNotification");
+   //console.log(this.currentUser.releaseNoteNotification, " : releaseNoteNotification");
 
-    if (this.currentUser.releaseNoteNotification != null || this.currentUser.releaseNoteNotification != undefined) {
-      this.releaseNoteText = this.currentUser.releaseNoteNotification.notificationMessage;
-      this.isShowReleaseNote = true;
-    }
-  }
+   if (this.currentUser.releaseNoteNotification != null || this.currentUser.releaseNoteNotification != undefined) {
+     this.releaseNoteText = this.currentUser.releaseNoteNotification.notificationMessage;
+     this.isShowReleaseNote = true;
+   }
+ }
 
-  submitReleaseNoteNotificationConsent(){
+
+  submitReleaseNoteNotificationConsent() {
     let notificationObj = new NotificationMessage();
 
-    notificationObj.empId = this.currentUser.empId;
-    notificationObj.notificationId = this.currentUser.releaseNoteNotification.notificationId;
-    notificationObj.notificationType = this.currentUser.releaseNoteNotification.notificationType;
-    this.notificationService.submitNotificationConsent(notificationObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        let dtoResponse = response.serviceResponse;
-        this.currentUser.releaseNoteNotification = dtoResponse.releaseNoteNotification;
-        this.authenticationService.setcurrentUserSubject(this.currentUser);
-        this.setReleaseNote()
-      }
-    });
-  }
+   notificationObj.empId = this.currentUser.empId;
+   notificationObj.notificationId = this.currentUser.releaseNoteNotification.notificationId;
+   notificationObj.notificationType = this.currentUser.releaseNoteNotification.notificationType;
+   this.notificationService.submitNotificationConsent(notificationObj).pipe(first()).subscribe((response: any) => {
+     if (response.serviceStatus == "Success") {
+       let dtoResponse = response.serviceResponse;
+       this.currentUser.releaseNoteNotification = dtoResponse.releaseNoteNotification;
+       this.authenticationService.setcurrentUserSubject(this.currentUser);
+       this.setReleaseNote()
+     }
+   });
+ }
 
-  sortData(sort: Sort){
-    console.log(sort);
-    if(sort.active){
-      let sortParams:any[] = sort.active?.split("|");
+  sortData(sort: Sort) {
+    //console.log(sort);
+    if (sort.active) {
+      let sortParams: any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
       this.sortDirection = sort.direction;
     }
   }
 
-  toggleSearch(){
+  toggleSearch() {
     this.isSearchEnabled = !this.isSearchEnabled;
-    if(!this.isSearchEnabled){
-    this.filters = {};
+    if (!this.isSearchEnabled) {
+      this.filters = {};
     }
   }
 
-  onSearch(searchData){
+  onSearch(searchData) {
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 
+  // added by anurag
+  onUpdateLeave(template: TemplateRef<any>, leaveApplication) {
+    //console.log("leaveApplication ",leaveApplication);
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.leaveApplication = leaveApplication;
+    this.findOverLapsLeaveForManager();
+  }
+
+  active: boolean = false;
+  findOverLapsLeaveForManager() {
+    let leaveApp = new Leave();
+
+   const dateFormat = 'YYYY-MM-DD';
+
+   leaveApp.managerId = this.currentUser.empId;
+   leaveApp.empId = this.leaveApplication.empId;
+   // leaveApp.fromDate = moment(this.leaveApplication.fromDate).format(dateFormat);
+   // leaveApp.toDate = moment(this.leaveApplication.toDate).format(dateFormat);
+
+   leaveApp.fromDate = this.leaveApplication.fromDate;
+   leaveApp.toDate = this.leaveApplication.toDate;
+   leaveApp.status = this.leaveApplication.status;
+
+    //console.log(leaveApp);
+    this.overLapsLeaveForManager = [];
+
+    this.leaveService.getOverLapsLeaveForManager(leaveApp).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.overLapsLeaveForManager = response.serviceResponse;
+        // const empData = sessionStorage.getItem('AllEmployees');
+        // if (empData) {
+        //   this.employeeList = JSON.parse(empData);
+        // } else {
+        //   this.employeeList = [];
+        // }
+        // for(let y of this.overLapsLeaveForManager){
+        //   let matchingEmployee = this.employeeList.find(emp => emp.employeementId === y.employeementId);
+        //   y.emp360 = matchingEmployee ? matchingEmployee : {};
+        // }
+        console.log("this.getOverLapsLeaveForManager ",this.overLapsLeaveForManager);
+      }
+    })
+
+
+ }
+
+ fetchRewardCategoryForHomePage(){
+  this.rewardsService.fetchRewardCategoryForHomePage().pipe(first()).subscribe((response:any) => {
+    if(response.serviceStatus == 'Success'){
+      this.rewardCategoryList = response.serviceResponse;
+      if (this.rewardCategoryList.length > 0) {
+        this.onCategoryTabClick(this.rewardCategoryList[0]);
+      }else {
+        console.error(response.serviceResponse);
+      }
+    }
+  })
+ }
+
+ onCategoryTabClick(category: any) {
+  this.selectedCategoryId = category.rewardCategoryId;
+  this.selectedCategoryName = category.categoryName;
+  this.showEmptyMessage = false;
+  this.rewardsList = []; 
+  this.fetchEmployeesForHomepageByCategoryId(this.selectedCategoryId);
+}
+
+fetchEmployeesForHomepageByCategoryId(categoryId: number) {
+  this.rewardCategoryObj.rewardCategoryId = categoryId;
+  this.rewardsService.fetchEmployeesForHomepageByCategoryId(this.rewardCategoryObj).subscribe((response: any) => {
+    if (response.serviceStatus === 'Success') {
+      this.rewardsList = response.serviceResponse;
+
+      this.rewardsList.forEach((employee) => {
+        let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.rewardedTo);
+        employee.emp360 = matchingEmployee ? matchingEmployee : {};
+      });
+
+
+    this.groupRewardsByMonth();
+    setTimeout(() => {
+
+      this.startScrolling();
+
+      if (this.rewardsList.length === 0) {
+        this.showEmptyMessage = true;
+      }
+      }, 500); 
+
+    } else {
+      this.showEmptyMessage = true;
+      console.error(response.serviceResponse);
+    }
+  });
+}
+
+
+groupRewardsByMonth() {
+  this.groupedRewards = this.rewardsList.reduce((groups: any, reward: any) => {
+    if (!groups[reward.ofMonthYear]) {
+      groups[reward.ofMonthYear] = [];
+    }
+    groups[reward.ofMonthYear].push(reward);
+    return groups;
+  }, {});
+
+  this.monthKeys = Object.keys(this.groupedRewards).sort();
+
+  if (this.monthKeys.length > 0) {
+    this.selectedMonth = this.monthKeys[0]; 
+  }
+
+  this.currentMonthIndex = 0;
+  this.updateCurrentRewards();
+
+  this.startScrolling();
+}
+
+updateCurrentRewards() {
+  const currentMonth = this.monthKeys[this.currentMonthIndex];
+  
+  const newRewards = this.groupedRewards[currentMonth] || [];
+
+  if (newRewards.length === 0) {
+    this.showEmptyMessage = true;
+  } else {
+    this.showEmptyMessage = false;
+  }
+
+  if (JSON.stringify(this.currentRewards) !== JSON.stringify(newRewards)) {
+    this.currentRewards = newRewards;
+    this.selectedMonth = currentMonth;  
+    this.cdr.markForCheck();  
+  }
+}
+
+// startScrolling() {
+//   if (this.scrollInterval) {
+//     clearInterval(this.scrollInterval); 
+//   }
+
+//   let scrollTime = Math.min(Math.max(this.currentRewards.length * 3 * 1000, 30000), 90000);
+
+//   this.updateCurrentRewards(); 
+
+//   this.scrollInterval = setInterval(() => {
+//     this.currentMonthIndex = (this.currentMonthIndex + 1) % this.monthKeys.length;
+
+//     // Ensure there are rewards for the next month before updating
+//     const nextMonth = this.monthKeys[this.currentMonthIndex];
+//     if (this.groupedRewards[nextMonth] && this.groupedRewards[nextMonth].length > 0) {
+//       this.updateCurrentRewards();
+//     } else {
+//       console.warn(`No rewards for the month: ${nextMonth}`);
+//     }
+//   }, scrollTime);
+// }
+
+startScrolling() {
+  if (this.scrollInterval) {
+    clearInterval(this.scrollInterval); 
+  }
+
+  let scrollTime = Math.min(Math.max(this.currentRewards.length * 3 * 1000, 30000), 90000);
+
+  this.updateCurrentRewards(); 
+
+  this.scrollInterval = setInterval(() => {
+    
+    this.currentRewards = [];
+    this.cdr.markForCheck();
+
+    setTimeout(() => {
+      this.currentMonthIndex = (this.currentMonthIndex + 1) % this.monthKeys.length;
+
+      const nextMonth = this.monthKeys[this.currentMonthIndex];
+      if (this.groupedRewards[nextMonth] && this.groupedRewards[nextMonth].length > 0) {
+        this.updateCurrentRewards();
+      } else {
+        console.warn(`No rewards for the month: ${nextMonth}`);
+      }
+    }, 3000); 
+  }, scrollTime);
+}
+
+startRewardCycle(): void {
+  this.currentGroup = this.rewardsList[this.currentIndex];
+
+  setTimeout(() => {
+    this.moveToNextGroup();
+  }, this.scrollDelay);
+}
+
+moveToNextGroup(): void {
+  this.currentIndex = (this.currentIndex + 1) % this.rewardsList.length;
+
+  this.startRewardCycle();
+}
+emailSentPopUp(msg:any){
+  this.openAlertMod(this.mailSentPopUp,msg);
+}
+geExpiredtPoData(){
+  this.employeeService.getExpiredPo().pipe(first()).subscribe((response: any) => {
+  if(response.serviceStatus == "Success"){
+   this.expiredList =  response.serviceResponse
+    console.log(response,":::::::::::::::::::Response,geExpiredtPoData")
+  }
+  });
+}
+
+handleEmailRequest(eventData: { poEndDate: any, projectName: any, poNo: any, poProjectType: any }) {
+  console.log('Email Request Received:', eventData);
+  this.sendEmail(eventData.poEndDate,eventData.projectName,eventData.poNo,eventData.poProjectType);
+  // Perform email sending logic here
+}
+
+sendEmail(poEndDate:any,projectName:any,poNo:any,poProjectType:any){
+
+  console.log(poEndDate,projectName,poNo,poProjectType)
+  let expiredEmailData: ExpiredEmailData = new ExpiredEmailData();
+  let poObject: PoObject = new PoObject();
+  poObject.poNo = poNo;
+  poObject.projectName = projectName;
+  poObject.endDate = poEndDate;
+  poObject.poType = poProjectType;
+  expiredEmailData.expiredData = poObject;
+  let user = JSON.parse(sessionStorage.getItem('currentUser'));
+  expiredEmailData.userEmail = user.email;
+  console.log(expiredEmailData,"expiredEmailData",)
+  console.log(expiredEmailData.expiredData,"expiredEmailData")
+  console.log(expiredEmailData,"expiredEmailData")
+  this.employeeService.sendExpiredPoEmail(expiredEmailData).pipe(first()).subscribe((response: any) => {
+    if(response.serviceStatus == "Success"){
+      this.popUpMessege =  response.serviceMessage;
+       console.log(response,":::::::::::::::::::Response,geExpiredtPoData");
+       this.cancelRequest();
+      this.emailSentPopUp(this.popUpMessege);
+     }
+  });
+}
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
-  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
+ return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }

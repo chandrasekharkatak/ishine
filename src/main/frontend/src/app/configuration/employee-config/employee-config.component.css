@@ -63,8 +63,9 @@
 }
 
 .thead-light th{
-    position: sticky;
-    top: -0.7px;
+    position: sticky !important;
+    top: 0;
+    z-index: 1;
 }
 
 .info-label{
@@ -108,3 +109,21 @@
     box-shadow: 0 1px 4px 0 rgb(0 0 0 / 20%);
     padding: 10px 8px;
 } */
+
+.table-options:hover, option:hover {
+    cursor: pointer;
+}
+
+.enable{
+    float: inline-start;
+}
+.view{
+    float: inline-start;
+}
+
+.container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%; /* Ensure the container takes up the full width */
+}

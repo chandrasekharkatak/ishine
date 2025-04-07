@@ -37,6 +37,7 @@ public class TeamDTO {
 	private String state;
 	private Long projectManagerId;
 	private String projectManagerName;
+	private String projectManagerEmail;
 	private String isActive;
 	private String startDate;
 	private String endDate;
@@ -56,6 +57,7 @@ public class TeamDTO {
 	private String bucketName;
 	private String employeeTeamRole;   // comma seperated string of employeeRole
 	private String updatedByName;
+	private String employeeName;
 //	private String createdBy;
 
 }

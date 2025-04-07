@@ -1,4 +1,5 @@
 export class Leave{
+	checkId:any
     empId:any;
 	leaveId:any;
 	leaveTypeMasterId:any;
@@ -121,4 +122,28 @@ export class Leave{
 	level3ApproverName:any;
 	level3ApproverEmail:any;
 	level3ApprovalStatus:any;
+	leaveEmpId:any;
+	seniorManagerId:any;
+	state:any;
+	rejectCompOffReason:any;
+	reportingManagerId:any;
+	maritalStatus : any;
+	maternityType: any;
+	maternityLeaveDays: any;
+
+	// added by anurag 
+	pipReason : any;
+	pipFlag : any;
+	pipId: any;
+	revReason: any;
+	extendDays : any;
+	extendReason : any;
+	employeeRole:any;
+
+	leaveYear:any;
+	leaveMonth:any;
+	totalDays:any;
+	leaveStatus:any;
+
+	currentUserEmpId:any;
 }

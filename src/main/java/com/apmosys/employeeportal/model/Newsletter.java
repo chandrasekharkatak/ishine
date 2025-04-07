@@ -44,4 +44,6 @@ public class Newsletter {
 	
 	private Integer updatedBy;
 	
+	private Long typeId;
+	
 }

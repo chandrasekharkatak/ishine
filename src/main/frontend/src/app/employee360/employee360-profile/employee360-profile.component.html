@@ -1,0 +1,1467 @@
+<div class="container-fluid">
+    <div class="row justify-content-between mb-3" style="    margin-top: 2%;">
+        <a class="nav-link user-info__tab-item__link active" id="details-tab" data-toggle="tab"
+                    
+
+        href="#details" role="tab" aria-controls="home" style="font-size: 27px;
+    color: #231e8d;" aria-selected="true">Employee Details</a>
+
+        <button *ngIf="!isUpdation && userMapping.update_profile " type="submit" class="btn btn-primary btn-sm ml-auto" (click)="showUpdateForm(currentEmployeeInfo)">Update Profile</button>
+        <!-- <button *ngIf="!isUpdation && userMapping.update_profile" type="submit" class="btn btn-primary btn-sm ml-auto" (click)="showUpdateProfile()">Update Profile</button> -->
+        <button *ngIf="isUpdation && userMapping.view_profile" type="submit" class="btn btn-primary btn-sm ml-auto" (click)="showViewProfile()">View Profile</button>
+    </div>
+    <div class="row">
+       
+        <div *ngIf="!isUpdation && userMapping.view_profile" class="card">
+         
+
+            <ul >
+                <!-- <li class="nav-item user-info__tab-item">
+                    -->
+                  
+                <!-- </li> -->
+                <!-- <li class="nav-item user-info__tab-item">
+                    <a class="nav-link user-info__tab-item__link" id="timeline-tab" data-toggle="tab" href="#timeline"
+                        role="tab" aria-controls="profile" aria-selected="false">Timeline</a>
+                </li>
+                <li class="nav-item user-info__tab-item">
+                    <a class="nav-link user-info__tab-item__link" id="payroll-tab" data-toggle="tab" href="#payroll"
+                        role="tab" aria-controls="profile" aria-selected="false">Payroll</a>
+                </li>
+                <li class="nav-item user-info__tab-item">
+                    <a class="nav-link user-info__tab-item__link" id="goalsheet-tab" data-toggle="tab" href="#goalsheet"
+                        role="tab" aria-controls="profile" aria-selected="false">Goalsheet</a>
+                </li>
+                <li class="nav-item user-info__tab-item">
+                    <a class="nav-link user-info__tab-item__link" id="activities-tab" data-toggle="tab"
+                        href="#activities" role="tab" aria-controls="profile" aria-selected="false">Activities</a>
+                </li> -->
+               
+            </ul>
+            
+
+
+
+            <!-- tab Containers -->
+            <div class="tab-content" id="userTabContent">
+                <div class="tab-pane fade show active user-info__tab-container" id="details" role="tabpanel"
+                    aria-labelledby="details-tab">
+                    <app-accordion>
+                        <app-accordion-item class="acc-content" title="Basic Information">
+                            
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Your views on our Organisation</p>
+                                            <p class="info-text">{{currentEmployeeInfo.viewsOnOrganisation}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Gender</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.gender}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Date of birth</p>
+                                            <p class="info-text">{{currentEmployeeInfo.dateOfBirth | date:'dd-MM-yyyy'}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">About me</p>
+                                            <p class="info-text">{{currentEmployeeInfo.aboutMe}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Employee Id</p>
+                                            <!-- <p class="info-text info-highlight">A-{{currentEmployeeInfo.employeementId}}</p> -->
+                                            <!-- <p class="info-text info-highlight">{{ currentEmployeeInfo.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{currentEmployeeInfo.employeementId}}</p>                                               -->
+                                            <p class="info-text info-highlight">{{utilityService.getFormattedEmployeeId(currentEmployeeInfo)}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Blood group</p>
+                                            <p class="info-text">{{currentEmployeeInfo.bloodGroup}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Reffered Type</p>
+                                            <!-- <p class="info-text info-highlight">A-{{currentEmployeeInfo.employeementId}}</p> -->
+                                            <!-- <p class="info-text info-highlight">{{ currentEmployeeInfo.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{currentEmployeeInfo.employeementId}}</p>                                               -->
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.referedType}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Reffered Name</p>
+                                            <!-- <p class="info-text info-highlight">A-{{currentEmployeeInfo.employeementId}}</p> -->
+                                            <!-- <p class="info-text info-highlight">{{ currentEmployeeInfo.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{currentEmployeeInfo.employeementId}}</p>                                               -->
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.referedName}}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </app-accordion-item>
+
+                        <app-accordion-item class="acc-content" title="Personal Information">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Father's Name</p>
+                                            <p class="info-text">{{currentEmployeeInfo.fatherName}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Mother's Name</p>
+                                            <p class="info-text">{{currentEmployeeInfo.mothersName}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Place of Birth</p>
+                                            <p class="info-text">{{currentEmployeeInfo.placeOfBirth}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Mother Tongue</p>
+                                            <p class="info-text">{{currentEmployeeInfo.motherTongue}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Marital Status</p>
+                                            <p class="info-text">{{currentEmployeeInfo.maritalStatus}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Passport Number</p>
+                                            <p class="info-text">{{currentEmployeeInfo.passportNumber}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Aadhar Number</p>
+                                            <p class="info-text">{{currentEmployeeInfo.aadhar}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">PAN Number</p>
+                                            <p class="info-text">{{currentEmployeeInfo.panNumber}}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </app-accordion-item>
+
+                        <app-accordion-item *ngIf="currentEmployeeInfo.maritalStatus == 'married'" class="acc-content" title="Family Information">
+
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Spouse</p>
+                                            <p class="info-text">{{currentEmployeeInfo.spouse}}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4 mb-0" *ngIf="currentEmployeeInfo.child1 != null">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Child1</p>
+                                            <p class="info-text">{{currentEmployeeInfo.child1}}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4 mb-0" *ngIf="currentEmployeeInfo.child2 != null">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Child2</p>
+                                            <p class="info-text">{{currentEmployeeInfo.child2}}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-4 mb-0" *ngIf="currentEmployeeInfo.child3 != null">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Child3</p>
+                                            <p class="info-text">{{currentEmployeeInfo.child3}}</p>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </app-accordion-item>
+                       
+                        <app-accordion-item class="acc-content" title="Contact Information">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Mobile No.</p>
+                                            <p class="info-text">{{currentEmployeeInfo.mobileNo}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Landline No.</p>
+                                            <p class="info-text" *ngIf="currentEmployeeInfo.landline != null">022-{{currentEmployeeInfo.landline}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Current Address</p>
+                                            <p class="info-text">{{currentEmployeeInfo.address}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">State</p>
+                                            <p class="info-text">{{currentEmployeeInfo.state}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">City/Town</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.city}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Country</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.country}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label ">Pincode</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.pincode}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Alternate Mobile No.</p>
+                                            <p class="info-text">{{currentEmployeeInfo.alternateMobileNo}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label ">Permanent Address</p>
+                                            <p class="info-text">{{currentEmployeeInfo.permanentAddress}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label ">Emergency Contact Person</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.emergencyContactPerson}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Relation</p>
+                                            <p class="info-text">{{currentEmployeeInfo.relation}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label ">Emergency Contact Mobile Number</p>
+                                            <p class="info-text">{{currentEmployeeInfo.emergencyContactMobile}}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </app-accordion-item>
+
+                        <app-accordion-item class="acc-content" title="Educational Information">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Graduation</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.graduationType}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Pursuing</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.pursuing}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0" *ngIf="currentEmployeeInfo.pursuing == 'No'">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Year of Passing</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.yearOfPassing}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Passing Grade</p>
+                                            <p class="info-text">{{currentEmployeeInfo.passingGrade}}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr>
+                                <h4 class="info-label" *ngIf="currentEmployeeInfo.certifications && currentEmployeeInfo.certifications.length != null" >Certifications</h4>
+                                <div *ngFor="let certification of currentEmployeeInfo.certifications;let i = index" class="row">
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Certification Name - {{i+1}}</p>
+                                            <p class="info-text info-highlight">{{certification.certificationName}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Duration</p>
+                                            <p class="info-text info-highlight">{{certification.duration}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Mode of Course</p>
+                                            <p class="info-text info-highlight">{{certification.modeOfCourse}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Date of completion</p>
+                                            <p class="info-text info-highlight">{{certification.dateOfCompletion | date:'dd-MM-yyyy'}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Certification Number</p>
+                                            <p class="info-text info-highlight">{{certification.certificationNumber}}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </app-accordion-item>
+
+                        <app-accordion-item class="acc-content" title="Employment Information">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Date Of Joining</p>
+                                            <p class="info-text">{{currentEmployeeInfo.dateOfJoining | date:'dd-MM-yyyy'}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Employment Status</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.employmentstatus}}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0" *ngIf="currentEmployeeInfo.employmentstatus != 'Probation'">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Notice Period</p>
+                                            <p class="info-text">{{currentEmployeeInfo.noticePeriod}} Days</p>
+                                        </div>
+                                    </div>
+                                    <div *ngIf="currentEmployeeInfo.employmentstatus == 'Resigned' || currentEmployeeInfo.employmentstatus == 'InActive'" class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Date Of Resign</p>
+                                            <p class="info-text">{{currentEmployeeInfo.dateOfResign | date:'dd-MM-yyyy'}}</p>
+                                        </div>
+                                    </div>
+                                    <div *ngIf="currentEmployeeInfo.employmentstatus == 'Resigned' || currentEmployeeInfo.employmentstatus == 'InActive'" class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Date Of Relieving</p>
+                                            <p class="info-text">{{currentEmployeeInfo.dateOfRelieving | date:'dd-MM-yyyy'}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Manager</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.managerName}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Reporting Manager</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.reportingManagerName}}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div *ngIf="currentEmployeeInfo.reportingManagerName != null && currentEmployeeInfo.reportingManagerName != ''" class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label">Approvals To</label>
+                                                <p class="info-text info-highlight">{{currentEmployeeInfo.approvalsTo}}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Department Name</p>
+                                            <p class="info-text">{{currentEmployeeInfo.departmentName}}</p>
+                                        </div>
+                                    </div>
+                                    <!-- <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Job Role Name</p>
+                                            <p class="info-text">{{currentEmployeeInfo.jobRoleName}}</p>
+                                        </div>
+                                    </div> -->
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Designation</p>
+                                            <p class="info-text">{{currentEmployeeInfo.designationName}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Experience</p>
+                                            <p class="info-text">{{currentEmployeeInfo.experience}}</p>
+                                        </div>
+                                    </div>
+                                    <div *ngIf="currentEmployeeInfo.experience == 'Experienced'" class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Total Experience</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.totalExperience}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Work Location <small>(State)</small></p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.workLocation}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Billable</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.billable}}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Billable Type</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.billableType}}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </app-accordion-item>
+
+                        <!-- Previous Employer details will be diplayed only if exprience is "Experienced" -->
+                        <app-accordion-item *ngIf="currentEmployeeInfo.experience == 'Experienced' && currentEmployeeInfo.previousEmploymentList && currentEmployeeInfo.previousEmploymentList !==0" class="acc-content" title="Previous Employment Information">
+                            <div class="container-fluid">
+                                <div *ngFor="let previousEmployer of currentEmployeeInfo.previousEmploymentList;let i = index" class="row">
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Employer Name</p>
+                                            <p class="info-text">{{previousEmployer.employerName}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Date Of Joining</p>
+                                            <p class="info-text info-highlight">{{previousEmployer.dateOfJoining | date:'dd-MM-yyyy'}}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Date of Relieving</p>
+                                            <p class="info-text info-highlight">{{previousEmployer.dateOfRelieving | date:'dd-MM-yyyy'}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Years of Experience</p>
+                                            <p class="info-text info-highlight">{{previousEmployer.yearsOfExperience}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Designation</p>
+                                            <p class="info-text">{{previousEmployer.designation}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Manager Name</p>
+                                            <p class="info-text">{{previousEmployer.managerName}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Manager Contact Number</p>
+                                            <p class="info-text">{{previousEmployer.managerContactNumber}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">HR Name</p>
+                                            <p class="info-text">{{previousEmployer.hrName}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">HR Contact Number</p>
+                                            <p class="info-text">{{previousEmployer.hrContactNumber}}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </app-accordion-item>
+
+                        <app-accordion-item class="acc-content" title="Bank/PF Account Information">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Bank Name</p>
+                                            <p class="info-text">{{currentEmployeeInfo.bankName}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Bank Account Number</p>
+                                            <p class="info-text">{{currentEmployeeInfo.bankAccountNo}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">IFSC</p>
+                                            <p class="info-text">{{currentEmployeeInfo.bankIFSCCode}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">PF Account Number</p>
+                                            <p class="info-text">{{currentEmployeeInfo.pfAccountNumber}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Previous PF Account Number</p>
+                                            <p class="info-text">{{currentEmployeeInfo.previousPfAccountNumber}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">UAN</p>
+                                            <p class="info-text">{{currentEmployeeInfo.uan}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">ESIC Account Number</p>
+                                            <p class="info-text">{{currentEmployeeInfo.esicNumber}}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </app-accordion-item>
+                        <app-accordion-item class="acc-content" *ngIf="currentEmployeeInfo.documentList && currentEmployeeInfo.documentList.length !==0" title="Employee Documents">
+                                <div class="container-fluid">
+                                    <div class="row flex-column px-4" *ngFor="let document of currentEmployeeInfo.documentList;let i = index">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">{{document.documentType}}</p>
+                                        </div>
+                                        <img class="d-block" id="docPreview{{i+1}}" alt="Document Preview"/>
+                                    </div>
+                                </div>
+                        </app-accordion-item>
+
+                        <app-accordion-item class="acc-content" title="My Asset(s)">
+                            <div class="container-fluid" *ngIf="allAssetList && allAssetList.length > 0; else noData">
+                                <div class="row flex-column px-4" *ngFor="let asset of allAssetList; let i = index">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">{{ asset.assestName }}</p>
+                                        <p *ngIf="asset.isAssigned == 'true'" class="info-text">Assigned - <span *ngIf="asset.assetDetail">{{ asset.assetDetail }}</span><span *ngIf="!asset.assetDetail">Details not available</span></p>
+                                        <p *ngIf="asset.isAssigned == 'false'" class="info-text">Not Assigned</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <ng-template #noData>
+                                <div class="no-data-message">
+                                    <p>No data available</p>
+                                </div>
+                            </ng-template>
+                        </app-accordion-item>
+                        
+                        
+
+                    </app-accordion>
+
+                </div>
+            </div>
+        </div>
+    </div>    
+    <!-- <button *ngIf="!isUpdation && userMapping.update_profile" type="submit" class="btn btn-primary btn-sm ml-auto" (click)="showUpdateForm(currentEmployeeInfo)">Update Profile</button> -->
+</div>
+
+<!-- Modal templates -->
+<!-- Update Employee info Modal -->
+<ng-template #updateInfo>
+    <div class="modal-header">
+        <h4 class="table-header-title">Update Employee Information</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body ">
+        <app-user-update-info (docSubmit)="onDocSubmit()" (draftDelete)="cancelRequest()"></app-user-update-info>
+    </div>
+</ng-template>
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- Admin update form -->
+
+<div class="row" *ngIf="isUpdation">
+    <!-- <div class="px-0">
+        <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="!isForm || !isDraft" ><em><i
+                    class="fa-solid fa-arrow-left-long"></i></em></button>
+    </div> -->
+    <div class="card">
+        <div class="card-header text-center text-uppercase">
+            <strong *ngIf="isUpdation">Update Employee</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-12">
+                    <app-accordion>
+                        <app-accordion-item class="acc-content" title="Basic Information" [showBody]="true">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <!-- <div class="col-md-4 mb-0"> -->
+                                        <!-- <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span>Is Employee a Consultant</label>
+                                            <select class="form-control" [(ngModel)]="employeeObj.isConsultant" 
+                                                    [disabled]="isUpdation && (employeeObj.isConsultant == null || isUpdation)">
+         
+                                                <option *ngIf="!isUpdation" value="true">Yes</option>
+                                                <option *ngIf="!isUpdation" value="false">No</option>
+                                                <option *ngIf="isUpdation && employeeObj.isConsultant === true" selected value="true">Yes</option>
+                                                <option *ngIf="isUpdation && employeeObj.isConsultant !== true  || (employeeObj.isConsultant == null || isUpdation)" selected value="false">No</option>
+                                            </select>
+                                        </div> -->
+                                    <!-- </div> -->
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label">
+                                                    <span class="text-danger">*</span>Employee Type</label>
+
+                                                <!-- Select for creation mode -->
+                                                <select class="form-control"
+                                                    [(ngModel)]="employeeObj.employeeType"
+                                                    (ngModelChange)="onEmployeeTypeChange($event)">
+                                                    <option value="" disabled>Select</option>
+                                                    <option value="Regular">Regular</option>
+                                                    <option value="Consultant">Consultant</option>
+                                                    <option value="Apprentice">Apprentice</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Emp
+                                                    Id</label>
+
+                                                <input type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8" autocomplete="none"
+                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)" [disabled]="isUpdation">
+                                                <!-- <input *ngIf="!isUpdation && employeeObj.isConsultant == 'true'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
+                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)"> -->
+                                                <!-- <input *ngIf="!isUpdation && employeeObj.isConsultant != 'true'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
+                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)"> -->
+                                                <!-- <input *ngIf="isUpdation && employeeObj.isConsultant == 'true'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
+                                                [(ngModel)]="employeeObj.employeementId" readonly> -->
+                                                <!-- <input *ngIf="isUpdation && employeeObj.isConsultant != 'true'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
+                                                [(ngModel)]="employeeObj.employeementId" readonly>  -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Full
+                                                    Name</label>
+                                                <!-- <input type="text" class="form-control" maxlength="40" autocomplete="none"
+                                                [(ngModel)]="employeeObj.name"> -->
+                                                <input type="text" class="form-control" maxlength="40"
+                                                    autocomplete="none" [(ngModel)]="employeeObj.name"
+                                                    (blur)="ValidateName(alert_message)"
+                                                    (keypress)="RestrictFullName($event)">
+                                                <small class="errorMsg text-danger"></small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Email
+                                                    ID</label>
+                                                <!-- <input type="email" class="form-control" (blur)="checkEmail(alert_message)" autocomplete="none" maxlength="50"
+                                                [(ngModel)]="employeeObj.email"> -->
+                                                <input type="email" class="form-control"
+                                                    (blur)="checkEmail(alert_message)" autocomplete="none"
+                                                    maxlength="50" [(ngModel)]="employeeObj.email"
+                                                    [disabled]="!employeeObj.employeementId">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Secondary
+                                                    Email ID</label>
+                                                <!-- <input type="email" class="form-control" autocomplete="none" maxlength="50"
+                                                [(ngModel)]="employeeObj.secondaryEmail" (blur)="checkSecondaryEmail(alert_message)"> -->
+                                                <input type="email" class="form-control" autocomplete="none"
+                                                    maxlength="50" [(ngModel)]="employeeObj.secondaryEmail"
+                                                    (blur)="checkSecondaryEmail(alert_message)">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label" ><span class="text-danger">*</span>Gender</label>
+                                                <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.gender" disabled>
+                                                    <option selected="selected" value="" disabled>Select</option>
+                                                    <option value="male">Male</option>
+                                                    <option value="female">Female</option>
+                                                    <option value="other">Other</option>
+                                                  </select>
+                                            </div>
+                                        </div>
+                                    </div> -->
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Date of
+                                                    Birth</label>
+                                                <!-- <input id="DOB" type="date" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.dateOfBirth" (keydown)="disableMannualDateInput()"
+                                                (blur)="validateBirthDate(alert_message)"> -->
+                                                <div class="d-flex">
+                                                    <!-- <input class="form-control" matInput id="DOB" #input (click)="DOBPicker.open()" [matDatepicker]="DOBPicker" (keydown)="disableMannualDateInput()"
+                                                    [matDatepickerFilter]="currentDateFilter" placeholder="Choose a birth date" [(ngModel)]="employeeObj.dateOfBirth" (dateChange)="validateBirthDate(alert_message)" autocomplete="off"> -->
+                                                    <input class="form-control" matInput id="DOB" #input
+                                                        (click)="DOBPicker.open()" [matDatepicker]="DOBPicker"
+                                                        (keydown)="disableMannualDateInput()"
+                                                        [matDatepickerFilter]="currentDateFilter"
+                                                        placeholder="Choose a birth date"
+                                                        [(ngModel)]="employeeObj.dateOfBirth"
+                                                        (dateChange)="validateBirthDate(alert_message)"
+                                                        autocomplete="off">
+                                                    <mat-datepicker-toggle matSuffix [for]="DOBPicker"
+                                                        style="margin-left: -40px;"></mat-datepicker-toggle>
+                                                </div>
+                                                <mat-datepicker #DOBPicker (closed)="input.blur()"
+                                                    disabled="false"></mat-datepicker>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Mobile
+                                                    Number</label>
+                                                <!-- <input type="number" maxlength="10" class="form-control" autocomplete="none" (blur)="checkEmployeeMobileNo(alert_message)" [(ngModel)]="employeeObj.mobileNo"> -->
+                                                <input type="number"
+                                                    onKeyPress="if(this.value.length==10) return false;"
+                                                    (keypress)="fieldRestictCharacterForNumber($event)"
+                                                    class="form-control" autocomplete="none"
+                                                    (blur)="checkEmployeeMobileNo(alert_message)"
+                                                    [(ngModel)]="employeeObj.mobileNo"
+                                                    [disabled]="!employeeObj.employeementId">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label">Reffered Type</label>
+
+                                                <select class="form-control" aria-hidden="true"
+                                                    (change)="refferedChange()" [(ngModel)]="employeeObj.referedType">
+                                                    <option selected="selected" value="" disabled>Select</option>
+                                                    <option value="InOffice">In Office</option>
+                                                    <option value="OutOffice">Out Office</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0" *ngIf="referedTypeStatus">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label">Reffered Name</label>
+                                                <input type="text" class="form-control" autocomplete="none" (keypress)="RestrictFullName($event)"
+                                                    [(ngModel)]="employeeObj.referedName">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </app-accordion-item>
+
+
+
+                        <app-accordion-item class="acc-content" title="Employment Information" [showBody]="true">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Date Of
+                                                    Joining</label>
+                                                <!-- <input id="DOJ" type="date" class="form-control" autocomplete="none" [(ngModel)]="employeeObj.dateOfJoining" (keydown)="disableMannualDateInput()"> -->
+                                                <div class="d-flex">
+                                                    <!-- <input class="form-control" matInput id="DOJ" #input1 (click)="DOJPicker.open()" [matDatepicker]="DOJPicker" (keydown)="disableMannualDateInput()"
+                                                      [matDatepickerFilter]="currentDateFilter" placeholder="Choose date of Joining" [(ngModel)]="employeeObj.dateOfJoining" autocomplete="off"> -->
+                                                    <input class="form-control" matInput id="DOJ" #input1
+                                                        (click)="DOJPicker.open()" [matDatepicker]="DOJPicker"
+                                                        (keydown)="disableMannualDateInput()"
+                                                        [matDatepickerFilter]="currentDateFilter"
+                                                        placeholder="Choose date of Joining"
+                                                        [(ngModel)]="employeeObj.dateOfJoining" autocomplete="off">
+                                                    <mat-datepicker-toggle matSuffix [for]="DOJPicker"
+                                                        style="margin-left: -40px;"></mat-datepicker-toggle>
+                                                </div>
+                                                <mat-datepicker #DOJPicker (closed)="input1.blur()"
+                                                    disabled="false"></mat-datepicker>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!--  added by anurag for Inactive manager -->
+
+                                    <!-- added by priyadarshini  -->
+
+                                    <div class="col-md-4 mb-0" *ngIf="isUpdation">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Do you want
+                                                    to change the reporting of your reportees?</label>
+                                                <select class="form-control" [(ngModel)]="employeeObj.reportiesFlag"
+                                                    (change)="onUpadateReportees($event)">
+                                                    <option value="" disabled selected>Select</option>
+                                                    <option value="Yes">Yes</option>
+                                                    <option value="No">No</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4 mb-0" *ngIf="isUpdation && !managerFlag && onselectYes">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Mapping
+                                                    Update Type</label>
+                                                <select class="form-control" aria-hidden="true"
+                                                    [(ngModel)]="employeeObj.updateType"
+                                                    (change)="openModalForManagerChange(change_manager_template, $event, employeeObj.empId)"
+                                                    aria-hidden="true">
+                                                    <option value="automatic">Automatic</option>
+                                                    <option value="manual">Manual</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4 mb-0"
+                                        *ngIf="employeeObj.updateType == 'automatic' && isUpdation && onselectYes">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>New
+                                                    reportees mapped to</label>
+                                                <select class="form-control" aria-hidden="true"
+                                                    [(ngModel)]="employeeObj.newManagerId">
+                                                    <option selected="selected" value="" disabled>Select</option>
+                                                    <option *ngFor="let employee of managerList"
+                                                        value="{{employee.empId}}">{{employee.name}}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4 mb-0">
+
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Employment
+                                                    Status</label>
+                                                <select class="form-control" aria-hidden="true"
+                                                    [(ngModel)]="employeeObj.employmentstatus"
+                                                    (change)="retainStatus()">
+                                                    <option selected="selected" value="" disabled>Select</option>
+                                                    <option value="Probation">Probation</option>
+                                                    <option value="Confirmed">Confirmed</option>
+
+
+                                                    <!-- <option value="Reinstate">Reinstate</option> -->
+                                                    <option *ngIf="isUpdation" value="Resigned">Resigned</option>
+                                                    <option *ngIf="isUpdation" value="Retain">Retain</option>
+                                                    <option *ngIf="isUpdation" value="InActive">In-Active</option>
+
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0"
+                                        *ngIf="isUpdation && employeeObj.employmentstatus === 'Confirmed'">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Confirmation
+                                                    Date</label>
+                                                <div class="d-flex">
+                                                    <input class="form-control" matInput id="DOJ" #input1
+                                                        (click)="DOJPicker.open()" [matDatepicker]="DOJPicker"
+                                                        (keydown)="disableMannualDateInput()"
+                                                        [matDatepickerFilter]="currentDateFilter"
+                                                        placeholder="Choose date of Confirmation"
+                                                        [(ngModel)]="employeeObj.employeeConfirmationDate"
+                                                        autocomplete="off">
+                                                    <mat-datepicker-toggle matSuffix [for]="DOJPicker"
+                                                        style="margin-left: -40px;"></mat-datepicker-toggle>
+                                                </div>
+                                                <mat-datepicker #DOJPicker (closed)="input1.blur()"
+                                                    disabled="false"></mat-datepicker>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    
+
+
+
+                                    <div class="col-md-4 mb-0"
+                                        *ngIf="isUpdation && employeeObj.employmentstatus == 'InActive' ">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Employment
+                                                    Release Status</label>
+                                                <select class="form-control" aria-hidden="true"
+                                                    [(ngModel)]="employeeObj.employmentReleaseStatus"
+                                                    (change)="resetField(employeeObj)">
+                                                    <option selected="selected" value="" disabled>Select</option>
+                                                    <option value="Released">Released</option>
+                                                    <option value="Terminated">Terminated</option>
+                                                    <option value="Absconded">Absconded</option>
+                                                    <option value="askToResign">Ask To Resign</option>
+
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- end -->
+
+                                    <!-- added by anurag -->
+
+                                    <!-- <div class="col-md-4 mb-0" *ngIf="employeeObj.updateType == 'automatic' && isUpdation">
+<div class="info-wrapper">
+<div class="form-group">
+<label class="info-label"><span class="text-danger">*</span>New Manager</label>
+<select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.newManagerId">
+<option selected="selected" value="" disabled>Select</option>
+<option *ngFor="let employee of managerList" value="{{employee.empId}}">{{employee.name}}</option>
+</select>
+</div>
+</div>f
+</div> -->
+
+
+                                    <!-- <div class="col-md-4 mb-0" *ngIf="employeeObj.updateType == 'automatic' && isUpdation && employeeObj.employmentstatus == 'InActive'"> by Priyadarshini -->
+
+
+
+
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Probation
+                                                    Period</label>
+                                                <input type="number" class="form-control" autocomplete="none"
+                                                    [(ngModel)]="employeeObj.probationPeriod">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Notice
+                                                    Period</label>
+                                                <input type="number" class="form-control"
+                                                    (keypress)="omit_character($event)" autocomplete="none"
+                                                    [(ngModel)]="employeeObj.noticePeriod"
+                                                    (change)="estimateDateOfReleiving(employeeObj)">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0"
+                                        *ngIf="(isUpdation && employeeObj.employmentstatus == 'Resigned') || (isUpdation && employeeObj.employmentstatus == 'InActive') ">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Date Of
+                                                    Resign</label>
+                                                <div class="d-flex">
+                                                    <!--  <input matInput [min]="minDate" (click)="setMinDate(); [startAt]="minDate"> -->
+                                                    <input class="form-control static-input" matInput id="DOR"
+                                                        [matDatepicker]="DORePicker" #input2 (click)="DORePicker.open()"
+                                                        (dateChange)="estimateDateOfReleiving(employeeObj)"
+                                                        [matDatepickerFilter]="DateFilterForDOR"
+                                                        placeholder="Choose date of Resign"
+                                                        [(ngModel)]="employeeObj.dateOfResign" autocomplete="off">
+                                                    <mat-datepicker-toggle matSuffix [for]="DORePicker"
+                                                        style="margin-left: -40px;"></mat-datepicker-toggle>
+                                                </div>
+                                                <mat-datepicker #DORePicker (closed)="input2.blur()"
+                                                    disabled="false"></mat-datepicker>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+
+
+                                    <div class="col-md-4 mb-0"
+                                        *ngIf="(isUpdation && employeeObj.employmentstatus == 'Retain') ">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Date Of
+                                                    Retain</label>
+                                                <div class="d-flex">
+                                                    <!--  <input matInput [min]="minDate" (click)="setMinDate(); [startAt]="minDate"> -->
+                                                    <input class="form-control static-input" matInput id="DOR"
+                                                        [matDatepicker]="DORePicker" #input2 (click)="DORePicker.open()"
+                                                        (dateChange)="estimateDateOfRetain(employeeObj)"
+                                                        [matDatepickerFilter]="DateFilterForDofRetain"
+                                                        placeholder="Choose date of Retain"
+                                                        [(ngModel)]="employeeObj.dateOfRetain" autocomplete="off">
+                                                    <mat-datepicker-toggle matSuffix [for]="DORePicker"
+                                                        style="margin-left: -40px;"></mat-datepicker-toggle>
+                                                </div>
+                                                <mat-datepicker #DORePicker (closed)="input2.blur()"
+                                                    disabled="false"></mat-datepicker>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4 mb-0"
+                                        *ngIf="isUpdation && employeeObj.employmentstatus == 'InActive' || employeeObj.employmentstatus == 'Resigned' ">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Date Of
+                                                    Releiving</label>
+                                                <div class="d-flex">
+                                                    <input class="form-control static-input" matInput id="DOR"
+                                                        [matDatepicker]="DORPicker" #input (click)="DORPicker.open()"
+                                                        (dateChange)="updateNoticePeriod(employeeObj)"
+                                                        [matDatepickerFilter]="relievingDateFilter"
+                                                        placeholder="Choose date of Releiving"
+                                                        [(ngModel)]="employeeObj.dateOfRelieving" autocomplete="off">
+                                                    <mat-datepicker-toggle matSuffix [for]="DORPicker"
+                                                        style="margin-left: -40px;"></mat-datepicker-toggle>
+                                                </div>
+                                                <mat-datepicker #DORPicker (closed)="input.blur()"
+                                                    [disabled]="!employeeObj.dateOfResign"></mat-datepicker>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span
+                                                        class="text-danger">*</span>Manager</label>
+                                                <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.managerId">
+                                                    <option selected="selected" value="" disabled>Select</option>
+                                                    <option *ngFor="let employee of managerList" value="{{employee.empId}}">{{employee.name}}</option>
+                                                </select> -->
+                                                <!-- <select class="form-control" (change)="mapLeavesAndCompOffToNewManager(employeeObj)" aria-hidden="true" [(ngModel)]="employeeObj.managerId">
+                                                    <option selected="selected" value="" disabled>Select</option>
+                                                    <option *ngFor="let employee of managerList" value="{{employee.empId}}">{{employee.name}}</option>
+                                                </select> -->
+                                                <select class="form-control" aria-hidden="true"
+                                                    [(ngModel)]="employeeObj.managerId">
+                                                    <option selected="selected" value="" disabled>Select</option>
+                                                    <option *ngFor="let employee of managerList"
+                                                        value="{{employee.empId}}">{{employee.name}}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label">Reporting Manager</label>
+                                                <select class="form-control" aria-hidden="true"
+                                                    [(ngModel)]="employeeObj.reportingManagerId">
+                                                    <option selected="selected" value="">Select</option>
+                                                    <option *ngFor="let employee of managerList"
+                                                        value="{{employee.empId}}">{{employee.name}}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div *ngIf="employeeObj.reportingManagerId != null && employeeObj.reportingManagerId != ''"
+                                        class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Approvals
+                                                    To</label>
+                                                <select class="form-control" aria-hidden="true"
+                                                    [(ngModel)]="employeeObj.approvalsTo">
+                                                    <option selected="selected" value="" disabled>Select</option>
+                                                    <option value="Manager">Manager</option>
+                                                    <option value="Reporting Manager">Reporting Manager</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span
+                                                        class="text-danger">*</span>Department</label>
+                                                <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.departmentId" (change)="getJobRolesByDept(employeeObj.departmentId);getDesignationByDeptId(employeeObj.departmentId);clearAfterChange('empDesg','designationName')"> -->
+                                                <select class="form-control" aria-hidden="true"
+                                                    [(ngModel)]="employeeObj.departmentId"
+                                                    (change)="getJobRolesByDept(employeeObj.departmentId);getDesignationByDeptId(employeeObj.departmentId);updateDesignationDropdown()">
+                                                    <option selected="selected" value="" disabled>Select</option>
+                                                    <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">
+                                                        {{dept.name}}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span
+                                                        class="text-danger">*</span>Designation</label>
+                                                <!-- <select id="empDesg" class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.designationId"> -->
+                                                <select id="empDesg" class="form-control" aria-hidden="true"
+                                                    [(ngModel)]="employeeObj.designationId">
+                                                    <option selected="selected" value=""
+                                                        [disabled]="isDesignationDisabled()">Select</option>
+                                                    <option *ngFor="let designation of allDesignationList"
+                                                        value="{{designation.designationId}}">
+                                                        {{designation.designationName}}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Job
+                                                    Role</label>
+                                                <select class="form-control" aria-hidden="true"
+                                                    [(ngModel)]="employeeObj.jobRoleId">
+                                                    <option selected="selected" value="">Select</option>
+                                                    <option *ngFor="let jobRole of filteredJobRoleList"
+                                                        value="{{jobRole.jobRoleId}}">{{jobRole.name}}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span
+                                                        class="text-danger">*</span>Experience</label>
+                                                <select class="form-control" aria-hidden="true"
+                                                    (change)="clearAfterChange('totalExp','totalExperience')"
+                                                    [(ngModel)]="employeeObj.experience">
+                                                    <option selected="selected" value="" disabled>Select</option>
+                                                    <option value="Fresher">Fresher</option>
+                                                    <option value="Experienced">Experienced</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div *ngIf="employeeObj.experience == 'Experienced'" class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Total
+                                                    Experience</label>
+                                                <input type="number" id="totalExp" class="form-control" maxlength="2"
+                                                    autocomplete="none" [(ngModel)]="employeeObj.totalExperience">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Work
+                                                    Location <small>(State)</small></label>
+                                                <select class="form-control" aria-hidden="true"
+                                                    [(ngModel)]="employeeObj.workLocation">
+                                                    <option selected="selected" value="" disabled>Select</option>
+                                                    <option *ngFor="let state of allStates" value="{{state}}">{{state}}
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span
+                                                        class="text-danger">*</span>Billable</label>
+                                                <select class="form-control" aria-hidden="true"
+                                                    [(ngModel)]="employeeObj.billable">
+                                                    <option selected="selected" value="" disabled>Select</option>
+                                                    <option value="Yes">Yes</option>
+                                                    <option value="No">No</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- as per discussion with pratima ma'am on 17/05/2024 07:10 PM -->
+
+                                    <div class="col-md-3 mb-0" *ngIf="employeeObj.billable == 'No'">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Billable
+                                                    Type</label>
+                                                <select class="form-control" aria-hidden="true"
+                                                    [(ngModel)]="employeeObj.billableType"
+                                                    (change)="onBillablechange()">
+                                                    <option selected="selected" value="" disabled>Select</option>
+                                                    <option value="Bench">Bench</option>
+                                                    <option value="Fixed Cost">Fixed Cost</option>
+                                                    <option value="InternalRNDProducts">InternalRNDProducts</option>
+                                                    <option value="Shadow">Shadow</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3 mb-0" *ngIf="employeeObj.billable == 'Yes'">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Billable
+                                                    Type</label>
+                                                <select class="form-control" aria-hidden="true"
+                                                    [(ngModel)]="employeeObj.billableType">
+                                                    <option selected="selected" value="" disabled>Select</option>
+                                                    <option value="TNM">TNM</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4 mb-0" *ngIf="isUpdation">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <!-- <label class="info-label"><span class="text-danger">*</span>Domain</label> -->
+                                                <label class="info-label">Domain</label>
+                                                <mat-select ngxMatSelect class="form-control"
+                                                    #domainSelect="ngxMatSelect" [displayMember]="'domainName'"
+                                                    [valueMember]="'domainId'" [source]="allDomainList"
+                                                    [useInfiniteScroll]="true" [multiple]="true"
+                                                    [(ngModel)]="employeeObj.domainList"
+                                                    (selectionChange)="getDomainSpecialization()">
+                                                    <mat-option [value]="domain.domainId"
+                                                        *ngFor="let domain of domainSelect.filteredSource">
+                                                        {{domain.domainName}}
+                                                    </mat-option>
+                                                </mat-select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0" *ngIf="isUpdation">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <!-- <label class="info-label"><span class="text-danger">*</span>Specialization</label> -->
+                                                <label class="info-label">Specialization</label>
+                                                <mat-select ngxMatSelect class="form-control"
+                                                    #specializationSelect="ngxMatSelect"
+                                                    [displayMember]="'specializationName'"
+                                                    [valueMember]="'specializationId'" [source]="specializationList"
+                                                    [useInfiniteScroll]="true" [multiple]="true"
+                                                    [(ngModel)]="employeeObj.specializationList">
+                                                    <mat-option [value]="spec.specializationId"
+                                                        [disabled]="!employeeObj.domainList || employeeObj.domainList.length == 0"
+                                                        *ngFor="let spec of specializationSelect.filteredSource">
+                                                        {{spec.specializationName}}
+                                                    </mat-option>
+                                                </mat-select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </app-accordion-item>
+
+ 
+                    </app-accordion>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12 d-flex justify-content-end">
+                  
+                    <button *ngIf="isUpdation && userMapping.update_profile" type="submit" 
+                        class="btn btn-primary btn-sm mx-1" (click)="onUpdateEmployee(alert_message)">Update
+                        Employee</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<ng-template #change_manager_template>
+
+    <div class="modal-body text-center">
+        <p>{{listOfReporties}}</p>
+        <button type="button" class="btn btn-primary"
+            (click)="cancelRequest();openManagerDetailsModal(manager_modal, employeeObj.empId);">OK</button>&nbsp;
+    </div>
+
+</ng-template>
+
+<ng-template #manager_modal>
+
+    <div class="modal-header">
+        <h1 class="table-header-title" style="text-align: center;"><strong>Manager Mapping Changes UI</strong></h1>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+
+    <div class="modal-body">
+        <div class="col-md-12">
+            <h3>Manager</h3>
+            <table class="table" style="table-layout: fixed; width: 100%;">
+                <thead class="thead-light" id="teamMembersInfoTHead">
+                    <tr id="teamMembersInfoTHeadTr">
+                        <th>Employee Name</th>
+                        <th>Department</th>
+                        <th scope="col">Change Manager</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngIf="reporteeList.length == 0 || (reporteeList| colFilter:filters:false).length == 0">
+                        <th colspan="3" class="text-center info-label">No reportees have this user as manager.</th>
+                    </tr>
+                    <tr *ngFor="let reportee of reporteeList">
+                        <td>{{reportee.name}}</td>
+                        <td>{{reportee.departmentName}}</td>
+                        <td>
+                            <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="reportee.managerId" (change)="updateEmployeesManager(reportee,alert_message)">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option *ngFor="let manager of managerAndAbove " value="{{manager.managerId}}">{{manager.managerName}}</option>
+                            </select> -->
+                            <mat-select ngxMatSelect class="form-control"
+                                  #managerSelect="ngxMatSelect"
+                                  [displayMember]="'managerName'"
+                                  [valueMember]="'managerId'"
+                                  [source]="managerAndAbove"
+                                  [useInfiniteScroll]="true"
+                                  [multiple]="false"
+                                  [(ngModel)]="reportee.managerId"
+                                  (selectionChange)="managerUpdate(reportee,update_manager_temp)"
+                                  >
+                                  <mat-option [value]="manager.managerId" *ngFor="let manager of managerSelect.filteredSource" >
+                                    {{manager.managerName}}
+                                  </mat-option>
+                            </mat-select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="col-md-12">
+            <h3>Reporting Manager</h3>
+            <table class="table" style="table-layout: fixed; width: 100%;">
+                <thead class="thead-light" id="teamMembersInfoTHead">
+                    <tr id="teamMembersInfoTHeadTr">
+                        <th>Employee Name</th>
+                        <th>Department</th>
+                        <th scope="col">Change Reporting Manager</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngIf="reporteeList2.length == 0 || (reporteeList2 | colFilter:filters:false).length == 0">
+                        <th colspan="3" class="text-center info-label">No reportees have this user as reporting manager.
+                        </th>
+                    </tr>
+                    <tr *ngFor="let reportee of reporteeList2">
+                        <td>{{reportee.name}}</td>
+                        <td>{{reportee.departmentName}}</td>
+                        <td>
+                            <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="reportee.managerId"
+                                (change)="managerUpdate(reportee,alert_message)">
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option *ngFor="let manager of managerAndAbove " value="{{manager.managerId}}">
+                                    {{manager.managerName}}</option>
+                            </select> -->
+                            <mat-select ngxMatSelect class="form-control"
+                                  #managerSelect="ngxMatSelect"
+                                  [displayMember]="'managerName'"
+                                  [valueMember]="'managerId'"
+                                  [source]="managerAndAbove"
+                                  [useInfiniteScroll]="true"
+                                  [multiple]="false"
+                                  [(ngModel)]="reportee.reportingManagerId"
+                                  (selectionChange)="reportingManagerUpdate(reportee,update_reporting_manager_temp)"
+                                  >
+                                  <mat-option [value]="manager.managerId" *ngFor="let manager of managerSelect.filteredSource" >
+                                    {{manager.managerName}}
+                                  </mat-option>
+                            </mat-select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+</ng-template>
+
+<ng-template #update_reporting_manager_temp>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to Update the reporting manager ?</p>
+        <button type="button" class="btn btn-success" (click)="updateEmployeesReportingManager(alert_message);">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+
+<ng-template #update_manager_temp>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to Update the manager ?</p>
+        <button type="button" class="btn btn-success" (click)="updateEmployeesManager(alert_message);">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>

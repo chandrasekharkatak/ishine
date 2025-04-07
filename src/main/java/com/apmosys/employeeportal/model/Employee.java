@@ -1,6 +1,6 @@
 package com.apmosys.employeeportal.model;
 
-
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -12,6 +12,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import org.hibernate.annotations.Cache;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
@@ -27,6 +28,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @Audited
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Employee {
 
 	@Id
@@ -69,6 +71,14 @@ public class Employee {
 	private LocalDate dateOfJoining;
 	private String employmentstatus;
 	private Short noticePeriod;
+	
+	//added by rahul employee refred
+	@Column(length =50, nullable = true)
+	private String referedType;
+	@Column(length =100, nullable = true)
+	private String referedName;
+	
+	//end 
 
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
 	private Timestamp createdOn;
@@ -123,6 +133,7 @@ public class Employee {
 	
 
 	private String isNew;
+	
 	private String secondaryEmail;
 	
 	@JsonFormat(pattern = "dd/MM/yyyy")
@@ -170,4 +181,26 @@ public class Employee {
 	private LocalDateTime otpUpdatedOn;
 	
 	private Long designationId;
+	
+	private String employmentReleaseStatus;
+	
+	private boolean pipFlag = false;
+	private Long pipId;
+	
+	private String billableType;
+	
+	@Column(name = "employee_confirmation_date")
+    private LocalDate employeeConfirmationDate;
+	
+	private String isConsultant;
+
+	private String onbenchDate;
+	@Column(name = "is_apprenticeship")
+	private String isApprenticeship;
+	
+	
+    private String isRetain;
+	@JsonFormat(pattern = "dd/MM/yyyy")
+	private LocalDate dateOfRetain;
+
 }

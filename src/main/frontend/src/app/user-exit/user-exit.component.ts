@@ -32,8 +32,8 @@ export class UserExitComponent implements OnInit,OnDestroy,AfterViewInit {
 
   ngOnInit(): void {
     this.logService.updateLogInfo(this.log);
-    console.log("this.currentUser : ", this.currentUser);
-    console.log("Mapped Features : ", this.currentUser.userMapping.filter(userMap => userMap.tabName == this.tabName));
+    //console.log("this.currentUser : ", this.currentUser);
+    //console.log("Mapped Features : ", this.currentUser.userMapping.filter(userMap => userMap.tabName == this.tabName));
     
 
     // Dynamic feature Flags 
@@ -44,7 +44,7 @@ export class UserExitComponent implements OnInit,OnDestroy,AfterViewInit {
       });
       this.userMapping[feat.featureName.replaceAll(' ', '_').toLowerCase()] = (inActiveSubfeatures.length === feat.subFeatures.length) ? false : true;
     });
-    console.log(this.tabName, this.userMapping);
+    //console.log(this.tabName, this.userMapping);
   }
 
   ngAfterViewInit(): void {
@@ -80,7 +80,7 @@ export class UserExitComponent implements OnInit,OnDestroy,AfterViewInit {
 
   removeActiveTab(){
     const tab = document.getElementById('exitTab').querySelector('.nav-link.active');
-    console.log("active tab :", tab);
+    //console.log("active tab :", tab);
     tab?.classList.remove('active');
   }
   

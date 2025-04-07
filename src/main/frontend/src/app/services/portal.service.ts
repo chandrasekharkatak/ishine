@@ -57,4 +57,13 @@ export class PortalService {
   generateAllEmployeeDSR(timesheetObj: Timesheet) {
     return this.http.post(`${this.baseUrl}` + `api/generateAllEmployeeDSR`, timesheetObj);
   }
+  getAppreciationEventSummaryInfo(appreciationObj:enableAppreciation){
+    return this.http.post(`${this.baseUrl}` + `api/getAppreciationEventSummaryInfo`, appreciationObj);
+  }
+  getAllEmployeeAppreciationListByCategory(appreciationObj :enableAppreciation){
+    return this.http.post(`${this.baseUrl}` + `api/getAllEmployeeAppreciationListByCategory`, appreciationObj);
+  }
+  viewAppreciationInfo(appreciationObj : enableAppreciation){
+    return this.http.post(`${this.baseUrl}` + `api/viewAppreciationInfo`, appreciationObj);
+  }
 }

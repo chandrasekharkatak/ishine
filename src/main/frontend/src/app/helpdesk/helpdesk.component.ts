@@ -69,6 +69,9 @@ export class HelpdeskComponent implements OnInit, AfterViewInit {
   }
 
   getAllHelpDocument(){
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.data='';
     this.document = [];
     this.helpService.getAllHelpDocument().pipe(first()).subscribe((response:any) => {
@@ -77,7 +80,7 @@ export class HelpdeskComponent implements OnInit, AfterViewInit {
         this.document.forEach(doc => {
           doc.createdOn = (doc.createdOn)? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
-        console.log("DocumentList : ", this.document);
+        //console.log("DocumentList : ", this.document);
       } else {
         console.error(response.serviceResponse);
       }
@@ -112,7 +115,7 @@ export class HelpdeskComponent implements OnInit, AfterViewInit {
   }
 
   sortData(sort: Sort){	
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -122,6 +125,9 @@ export class HelpdeskComponent implements OnInit, AfterViewInit {
   }
   
   toggleSearch(){
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.isSearchEnabled = !this.isSearchEnabled;
     if(!this.isSearchEnabled){
       this.filters = {};
@@ -130,7 +136,7 @@ export class HelpdeskComponent implements OnInit, AfterViewInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 
   // Modal

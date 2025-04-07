@@ -24,6 +24,10 @@ export class TeamViewService {
     return this.http.post(`${this.baseUrl}` + `api/getAllTeamCompOffHistoryView`, leaveObj);
   }
 
+  getAllTeamCompOffHistoryViewByEmpId(leaveObj : Leave){
+    return this.http.post(`${this.baseUrl}` + `api/getAllTeamCompOffHistoryViewByEmpId`, leaveObj);
+  }
+
   getAllTeamMemberView(employeeObj : Employee){
     return this.http.post(`${this.baseUrl}` + `api/getAllTeamMemberView`, employeeObj);
   }
@@ -34,6 +38,10 @@ export class TeamViewService {
 
   revokeReporteeLeave(leaveObj: Leave){
     return this.http.post(`${this.baseUrl}`+ `api/revokeReporteeLeave`, leaveObj);
+  }
+
+  getDepartmentPendingLeaveHistory(leaveObj : Leave){
+    return this.http.post(`${this.baseUrl}` + `api/getDepartmentPendingLeaveHistory`, leaveObj);
   }
 
 }

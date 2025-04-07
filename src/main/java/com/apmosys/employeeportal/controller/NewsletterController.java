@@ -45,6 +45,14 @@ public class NewsletterController {
 		ServiceResponse response = newsletterService.getAllNewsletters();
 		return response;
 	}
+	
+//	added by anurag by typeId
+	
+	@RequestMapping(value="/getDocumentByType", method = RequestMethod.POST)
+	public ServiceResponse getAllNewslettersByTypeId(@RequestBody NewsletterDTO newsletterDto ) {
+		ServiceResponse response = newsletterService.getAllNewslettersByTypeId(newsletterDto);
+		return response;
+	}
 
 	@RequestMapping(value = "/{documentId}", method = RequestMethod.DELETE)
 	public ServiceResponse deleteNewsletter(@PathVariable Long documentId) {
@@ -73,6 +81,16 @@ public class NewsletterController {
 	@RequestMapping(value = "/getAllReadNewslettersByEmpId", method = RequestMethod.POST)
 	public ServiceResponse getAllReadNewslettersByEmpId(@RequestBody NewsletterDTO newsletterDTO) {
 		ServiceResponse response = newsletterService.getAllReadNewslettersByEmpId(newsletterDTO);
+
+		return response;
+		
+	}
+	
+//	checkDocumentName
+	
+	@RequestMapping(value = "/checkDocumentName/{documentName}", method = RequestMethod.GET)
+	public ServiceResponse checkDocumentName(@PathVariable("documentName") String documentName) {
+		ServiceResponse response = newsletterService.checkDocumentName(documentName);
 
 		return response;
 		

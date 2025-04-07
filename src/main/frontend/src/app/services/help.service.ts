@@ -2,6 +2,9 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Help } from '../models/help';
 import { environment } from 'src/environments/environment';
+import { Observable } from 'rxjs';
+import { Appreciation } from '../models/appreciation';
+
 
 @Injectable({
   providedIn: 'root'
@@ -29,6 +32,14 @@ export class HelpService {
     return this.http.get(`${this.baseUrl}` + `api/downloadHelpDocument/${helpDocId}`, {
       responseType: 'blob'
     });
+  }
+
+  getMyAppreciationDetails(appreciationObj: Appreciation): Observable<any> {
+    return this.http.post(`${this.baseUrl}`+`api/getMyAppreciationDetails`, appreciationObj);
+  }
+
+  getTeamAppreciationDetails(aprreciationObj : Appreciation): Observable<any>{
+    return this.http.post(`${this.baseUrl}`+`api/getTeamAppreciationDetails`, aprreciationObj);
   }
 
 }

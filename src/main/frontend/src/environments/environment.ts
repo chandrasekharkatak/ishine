@@ -4,7 +4,14 @@
 
 export const environment = {
   production: false,
-  baseUrl: "http://localhost:8080/employeeportal/"
+  //baseUrl: "https://ishine.apmosys.com/",
+   baseUrl: "http://localhost:8080/",
+  // baseUrl: "http://192.168.21.175:8081/employeeportal/",
+
+  lmsbaseurl :"http://192.168.12.113/academy-lms/index.php/",
+  //lmsbaseurl :"http://localhost/academy-lms/index.php/",
+  qrCodebaseUrl: "http://192.168.12.108:8080/qrcodegenerator/#/",
+
 };
 
 /*
@@ -15,3 +22,4 @@ export const environment = {
  * on performance if an error is thrown.
  */
 // import 'zone.js/plugins/zone-error';  // Included with Angular CLI.
+   

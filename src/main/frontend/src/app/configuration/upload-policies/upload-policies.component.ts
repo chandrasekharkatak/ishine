@@ -1,18 +1,19 @@
-import { Component, OnInit,TemplateRef } from '@angular/core';
-import { UploadPolicy } from 'src/app/models/UploadPolicy';
-import { UploadPoliciesService } from 'src/app/services/upload-policies.service';
-import { ValidationService } from 'src/app/services/validation.service';
+import { LocationStrategy } from '@angular/common';
+import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Sort } from '@angular/material/sort';
+import { saveAs } from "file-saver";
+import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
+import { Feature } from 'src/app/models/feature';
+import { UploadPolicy } from 'src/app/models/UploadPolicy';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { NotificationService } from 'src/app/services/notification.service';
-import { first } from 'rxjs/operators';
-import { Feature } from 'src/app/models/feature';
-import { saveAs } from "file-saver";
-import { Sort } from '@angular/material/sort';
-import { LocationStrategy } from '@angular/common';
-import * as moment from 'moment';
-import { AppComponent } from 'src/app/app.component';
+import { UploadPoliciesService } from 'src/app/services/upload-policies.service';
+import { UtilityService } from 'src/app/services/utility.service';
+import { ValidationService } from 'src/app/services/validation.service';
 
 
 
@@ -63,23 +64,32 @@ export class UploadPoliciesComponent implements OnInit {
   documentsColumns:any[] = ['blank','fileName','policyName','createdByName','createdOn'];
   readResponseColumns:any[] = ['blank','name','empId','policyName','readEnabled'];
 
+  employeesFor360: any[] = [];
+
   constructor(private uploadPoliciesService : UploadPoliciesService,
   private validationService: ValidationService,
   private modalService: BsModalService,
   private authenticationService: AuthenticationService,
   private notificationService: NotificationService,
-  private locationStrategy: LocationStrategy
+  private locationStrategy: LocationStrategy,
+  private utilityService: UtilityService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
 
    }
 
-  ngOnInit(): void {
+   async ngOnInit(): Promise<void> {
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
+    console.log('----------------------------', this.userMapping);
     this.sectionViewInit();
     this.preventBackButton();
   }
@@ -121,27 +131,69 @@ export class UploadPoliciesComponent implements OnInit {
     this.getAllDocuments();
   }
 
-  onFileSelect(event:any){
+  onFileSelect(event:any, template:TemplateRef<any>){
     this.files = [];
     let totalSize: number = 0;
+    let isSizeInRange:boolean = false;
+    const allowedTypes = ['application/pdf', 'application/doc'];
+    const maxSizeInBytes = 20 * 1024 * 1024; // 20MB
     this.fileSize = 0;
     const uploadedFiles = event.target.files;
-     console.log("maxfilesize: "+ this.maxFileSize );
+     //console.log("maxfilesize: "+ this.maxFileSize );
+
+     if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
+      this.openAlertMod(template,'Please select a valid file (.pdf or .doc).');
+      event.target.value = ''; // Clear the input
+      return;
+    }
+
+    if(event.target.files[0].size > maxSizeInBytes){
+      this.openAlertMod(template, "File size is more than 20MB");
+      event.target.value = null;
+      isSizeInRange = false;
+   }else{
+    isSizeInRange = true;
+   }
+
+   if(isSizeInRange){
+    this.files = [];
+
     if (uploadedFiles.length != 0) {
       for (let i = 0; i < uploadedFiles.length; i++) { 
         let document = uploadedFiles[i];
         let fileName = document.name;
         this.fileSize =this.fileSize +  uploadedFiles[i].size / 1024 /1024;
-        console.log(this.fileSize);
+        //console.log(this.fileSize);
         let fileObj1 = {document : document,fileName : fileName}
         this.files.push(fileObj1);
-        console.log("Files : ", this.files);
+        //console.log("Files : ", this.files);
       }
     };
+  }
   }
   reset() {
     this.policyName = null;
     this.files = [];
+  }
+
+
+  RestrictFullName(event) {
+    var k;
+    k = event.charCode;
+    if ((k == 33) || (k == 34) || (k == 35) || (k == 36) || (k == 37) ||
+      (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42) ||
+      (k == 43) || (k == 44) || (k == 45) || (k == 46) || (k == 47) || (k == 48) ||
+      (k == 49) || (k == 50) || (k == 51) || (k == 52) || (k == 53) || (k == 54) || (k == 55) ||
+      (k == 56) || (k == 57) || (k == 58) ||
+      (k == 59) || (k == 60) || (k == 61) || (k == 62) || (k == 63) ||
+      (k == 64) || (k == 91) || (k == 92) || (k == 93) || (k == 94) ||
+      (k == 95) || (k == 96) || (k == 123) ||
+      (k == 124) || (k == 125) || (k == 126) || (k == 127)) {
+      return (false);
+    }
+    return (true);
+
+
   }
   onUploadFiles(template: TemplateRef<any>){
     this.policyName = this.policyName?.trim();
@@ -177,7 +229,7 @@ export class UploadPoliciesComponent implements OnInit {
     formData.append("uploadedBy", this.currentUser.empId);
     formData.append("readEnabled","false")
 
-    console.log("Upload files : ", formData);
+    //console.log("Upload files : ", formData);
     this.uploadPoliciesService.uploadMultipleFiles(formData).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == 'Success') {
         this.openAlertMod(template, response.serviceResponse);
@@ -205,6 +257,12 @@ export class UploadPoliciesComponent implements OnInit {
         this.document =  response.serviceResponse;
         this.document.forEach(doc => {
           doc.createdOn = (doc.createdOn)? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
+        this.document.forEach((employee) => {
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
         });
         console.log("DocumentList : ", this.document);
       } else {
@@ -235,7 +293,7 @@ export class UploadPoliciesComponent implements OnInit {
    openDeleteDocument(template: TemplateRef<any>, fileObj: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.fileObj = fileObj;
-    console.log(this.fileObj);
+    //console.log(this.fileObj);
   }
 
   onDeleteDocument(template: TemplateRef<any>) {
@@ -256,7 +314,7 @@ export class UploadPoliciesComponent implements OnInit {
     fileObj.policyID = this.fileObj.policyID;
     fileObj.updatedBy = this.currentUser.empId;
     fileObj.readEnabled = true;
-    console.log("Activate Survey : ", fileObj);
+    //console.log("Activate Survey : ", fileObj);
     this.uploadPoliciesService.changepolicyEnabledMode(fileObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -274,7 +332,7 @@ export class UploadPoliciesComponent implements OnInit {
     fileObj.policyID = this.fileObj.policyID;
     fileObj.updatedBy = this.currentUser.empId;
     fileObj.readEnabled = false;
-    console.log("Activate Survey : ", fileObj);
+    //console.log("Activate Survey : ", fileObj);
     this.uploadPoliciesService.changepolicyEnabledMode(fileObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -323,7 +381,7 @@ export class UploadPoliciesComponent implements OnInit {
         for(let x of this.responseList){
           x.empId = "A-".concat(x.empId);
         }
-        console.log(this.responseList);      
+        //console.log(this.responseList);      
       }
       else{
           console.error(response.serviceResponse);
@@ -342,7 +400,7 @@ export class UploadPoliciesComponent implements OnInit {
   }
 
   sortData(sort: Sort){	
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -360,7 +418,7 @@ export class UploadPoliciesComponent implements OnInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 }
   function compare(a: number | string, b: number | string, isAsc: boolean) {	

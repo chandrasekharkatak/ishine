@@ -30,13 +30,14 @@ public class TimesheetDTO {
 	private String dayType;
 	private String employeeName;
 	private String createdByName;
+	private Long CreatedByEmpId;
 	private String createdOn;
 	private String startDate;
 	private String endDate;
 	private Long createdBy;
 	private List<ActivityDTO> allTimesheetActivities;
 	private List<ActivityDTO> updatedTimesheetActivities;
-
+    private Long activityTimesheetId;
 	private Long employeementId;
 
 	private Long applicationCount;
@@ -86,7 +87,12 @@ public class TimesheetDTO {
 	private Long actualEODCount;
 	private Long resourceCount;
 	private Long expectedEODCount;
+	private Long currentManagerId;
 	
 	private String leaveType;
 	private List<ActivityDTO> inactiveTimesheetActivities;
+	private String isConsultant;
+	private String isApprenticeship;
+	
+	private List<EmployeeTimesheetDto> timeSheet;
 }

@@ -45,6 +45,13 @@ public class CompOffLeaveController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getPendingCompOffRequestsByEmpId" ,method = RequestMethod.POST)
+	public ServiceResponse getPendingCompOffRequestsByEmpId (@RequestBody LeaveDTO leaveDTO) {
+		
+		ServiceResponse response = compOffLeaveService.getPendingCompOffRequestsByEmpId(leaveDTO);
+		return response;
+	}
+	
 	@RequestMapping(value = "/countPendingCompOffRequestsByManagerId" ,method = RequestMethod.POST)
 	public ServiceResponse countPendingCompOffRequestsByManagerId (@RequestBody LeaveDTO leaveDTO) {
 		
@@ -109,5 +116,18 @@ public class CompOffLeaveController {
 		ServiceResponse response = compOffLeaveService.lapseAndReconcileCompOffBalance();
 		return response;
 	}
+	
+	@RequestMapping(value = "/bulkCompOffReject", method = RequestMethod.POST)
+	public ServiceResponse bulkCompOffRejectRequest(@RequestBody LeaveDTO leaveDTO) {
 
+		ServiceResponse response = compOffLeaveService.bulkCompOffRejectRequest(leaveDTO);
+		return response;
+	}
+//	bulkCompOffApprove
+	@RequestMapping(value = "/bulkCompOffApprove", method = RequestMethod.POST)
+	public ServiceResponse bulkCompOffApproveRequest(@RequestBody LeaveDTO leaveDTO) {
+
+		ServiceResponse response = compOffLeaveService.bulkCompOffApproveRequest(leaveDTO);
+		return response;
+	}
 }

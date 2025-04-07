@@ -42,3 +42,32 @@
     font-weight: 600;
     color: var(--middle-grey);
 }
+
+/* .edit-button {
+    margin-left: 0; 
+    white-space: nowrap; 
+} */
+
+
+.info-wrapper {
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    width: 100%; 
+}
+
+.info-text-wrapper {
+    flex-grow: 1; 
+    margin-right: 10px; 
+}
+
+
+.info-wrapper button {
+    margin-left: auto; 
+}
+
+.edit-button-container {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+}

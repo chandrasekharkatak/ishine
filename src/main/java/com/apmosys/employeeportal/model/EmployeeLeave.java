@@ -58,7 +58,10 @@ public class EmployeeLeave {
 	private String level2ApprovalStatus;
 	
 	private Long level3ApproverId;
-	private String level3ApprovalStatus;;
+	private String level3ApprovalStatus;
+	 
+	private String maternityType;
+	private Long maternityLeaveDays;
 	
 	
 }

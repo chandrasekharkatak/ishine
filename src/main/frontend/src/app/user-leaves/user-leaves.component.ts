@@ -36,8 +36,8 @@ export class UserLeavesComponent implements OnInit,OnDestroy,AfterViewInit{
 
   ngOnInit(): void {
     this.logService.updateLogInfo(this.log);
-    console.log("this.currentUser : ", this.currentUser);
-    console.log("Mapped Features : ", this.currentUser.userMapping.filter(userMap => userMap.tabName == this.tabName));
+    //console.log("this.currentUser : ", this.currentUser);
+    //console.log("Mapped Features : ", this.currentUser.userMapping.filter(userMap => userMap.tabName == this.tabName));
     
 
     // Dynamic feature Flags 
@@ -48,7 +48,7 @@ export class UserLeavesComponent implements OnInit,OnDestroy,AfterViewInit{
       });
       this.userMapping[feat.featureName.replaceAll(' ', '_').toLowerCase()] = (inActiveSubfeatures.length === feat.subFeatures.length) ? false : true;
     });
-    console.log(this.tabName, this.userMapping);
+    //console.log(this.tabName, this.userMapping);
   }
 
   ngAfterViewInit(): void {
@@ -74,9 +74,25 @@ export class UserLeavesComponent implements OnInit,OnDestroy,AfterViewInit{
           queryParamsHandling: 'merge'
         });
       }else{
-        const tab = document.getElementById('leaveTab').querySelector('.nav-link');
-        tab.classList.add('active');
-        let activeRouteLink = tab.getAttribute('routerLink');
+        const urlPath = this.router.routerState.snapshot.url;
+        let activeRouteLink = "leave";
+
+        if(urlPath.includes("holiday")){
+          const tab = document.getElementById('holidays-tab').querySelector('.nav-link');
+          tab.classList.add('active');
+          activeRouteLink = tab.getAttribute('routerLink');
+        }else if(urlPath.includes("compOff")){
+          const tab = document.getElementById('compOff-tab').querySelector('.nav-link');
+          tab.classList.add('active');
+          activeRouteLink = tab.getAttribute('routerLink');
+        }
+       
+        else {
+          const tab = document.getElementById('leaveTab').querySelector('.nav-link');
+          tab.classList.add('active');
+          activeRouteLink = tab.getAttribute('routerLink');
+        }
+
         this.router.navigate(['./'+activeRouteLink], {relativeTo: this.route});
       }
     });
@@ -84,7 +100,7 @@ export class UserLeavesComponent implements OnInit,OnDestroy,AfterViewInit{
 
   removeActiveTab(){
     const tab = document.getElementById('leaveTab').querySelector('.nav-link.active');
-    console.log("active tab :", tab);
+    //console.log("active tab :", tab);
     tab?.classList.remove('active');
   }
 

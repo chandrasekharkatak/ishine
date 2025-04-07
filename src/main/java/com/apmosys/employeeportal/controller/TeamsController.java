@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
@@ -12,6 +13,7 @@ import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.service.EmployeeService;
 import com.apmosys.employeeportal.service.TeamsService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -21,6 +23,9 @@ public class TeamsController {
 
 	@Autowired
 	TeamsService teamsService;
+	
+	@Autowired
+	EmployeeService employeeService;
 
 	@RequestMapping(value = "/getAllProjectListByProjectManagerId", method = RequestMethod.POST)
 	public ServiceResponse getAllProjectListByProjectManagerId(@RequestBody TimesheetDTO timesheetDTO) {
@@ -31,7 +36,8 @@ public class TeamsController {
 
 	@RequestMapping(value = "/createTeam", method = RequestMethod.POST)
 	public ServiceResponse createTeam(@RequestBody TeamDTO teamDTO) {
-
+		
+		employeeService.clearEmployeeCache();
 		ServiceResponse response = teamsService.createTeam(teamDTO);
 		return response;
 	}
@@ -45,7 +51,8 @@ public class TeamsController {
 
 	@RequestMapping(value = "/deleteTeam", method = RequestMethod.POST)
 	public ServiceResponse deleteTeam(@RequestBody TeamDTO teamDTO) {
-
+		
+		employeeService.clearEmployeeCache();
 		ServiceResponse response = teamsService.deleteTeam(teamDTO);
 		return response;
 	}
@@ -56,10 +63,16 @@ public class TeamsController {
 		ServiceResponse response = teamsService.getTeamMembersByTeamId(teamDTO);
 		return response;
 	}
-	
+	@RequestMapping(value = "/getTeamMembersByTeamIdBiomax", method = RequestMethod.POST)
+	public ServiceResponse getTeamMembersByTeamIdBiomax(@RequestBody TeamDTO teamDTO) {
+
+		ServiceResponse response = teamsService.getTeamMembersByTeamIdBiomax(teamDTO);
+		return response;
+	}
 	@RequestMapping(value = "/updateTeam", method = RequestMethod.POST)
 	public ServiceResponse updateTeam(@RequestBody TeamDTO teamDTO) {
-
+		
+		employeeService.clearEmployeeCache();
 		ServiceResponse response = teamsService.updateTeam(teamDTO);
 		return response;
 	}
@@ -115,6 +128,13 @@ public class TeamsController {
 		return response;
 	}
 	
+	@RequestMapping(value="/getAllTeamCompOffHistoryViewByEmpId" , method = RequestMethod.POST)
+	public ServiceResponse getAllTeamCompOffHistoryViewByEmpId(@RequestBody LeaveDTO leaveDTO) {		
+		
+		ServiceResponse response =	teamsService.getAllTeamCompOffHistoryViewByEmpId(leaveDTO);		
+		return response;
+	}
+	
 	@RequestMapping(value="/checkTeamName" , method = RequestMethod.POST)
 	public ServiceResponse checkTeamName(@RequestBody TeamDTO teamdto) {
 		
@@ -128,6 +148,14 @@ public class TeamsController {
 		ServiceResponse response =	teamsService.getDepartmentLeaveHistory(leaveDTO);	
 		return response; 
 	}
+	
+	@RequestMapping(value="/getDepartmentPendingLeaveHistory" , method = RequestMethod.POST)
+	public ServiceResponse getDepartmentPendingLeaveHistory(@RequestBody LeaveDTO leaveDTO) {		
+		
+		ServiceResponse response =	teamsService.getDepartmentPendingLeaveHistory(leaveDTO);	
+		return response; 
+	}
+	
 	
 	@RequestMapping(value="/revokeReporteeLeave" , method = RequestMethod.POST)
 	public ServiceResponse revokeReporteeLeave(@RequestBody LeaveDTO leaveDTO) {		
@@ -206,6 +234,7 @@ public class TeamsController {
 	public ServiceResponse updateProjectByList(@RequestBody ProjectDTO[] projectDTO) {
 
 		ServiceResponse response = null;
+		employeeService.clearEmployeeCache();
 
 		for (ProjectDTO project : projectDTO) {
 			response = teamsService.updateProjectByList(project);
@@ -262,4 +291,5 @@ public class TeamsController {
 		ServiceResponse response = teamsService.addProjectManager();
 		return response;
 	}
+	
 }

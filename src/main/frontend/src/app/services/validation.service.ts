@@ -181,8 +181,8 @@ export class ValidationService {
 
   //^[1-9][0-9]?$
   validateExperiencedNumber(text: string): boolean {
-
-    const regex = /^[0-9]{0,2}(\.([1-9]|1[0-1]){0,2})?$/;
+//console.log(" text in number ",text)
+    const regex = /^[0-9]{0,2}(\.([1-9]|[0-1]){0,2})?$/;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
@@ -200,7 +200,8 @@ export class ValidationService {
 
    validateApmosysEmail(text: string): boolean {
     //const regex = /^(?:[0-9]+[a-z_.]|[a-z_.])[a-z0-9_.]+@apmosys\.com$/i;
-    const regex = /^[a-z]{3}[a-z0-9_.]+@apmosys\.com$/i;
+    // const regex = /^[a-z]{3}[a-z0-9_.]+@apmosys\.com$/i;
+    const regex = /^[a-z]+[a-z0-9_.]*@apmosys\.com$/i;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
@@ -255,6 +256,7 @@ export class ValidationService {
   validateAlphaWithSpace(text: string): boolean {
 
     const regex = /^[a-zA-Z ]+$/;
+    //console.log(" text in validation service  ",text);
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
@@ -304,6 +306,21 @@ export class ValidationService {
       return false;
     }
 
+  }
+
+  validateDepartmentName(text : string): boolean {
+    const regex = /^[a-zA-Z0-9-_ |()]+$/;
+    if (text !== "" || text !== undefined || text !== null) {
+      if (regex.test(text)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
   }
 
   validateActivityName(text: string): boolean {
@@ -438,9 +455,24 @@ export class ValidationService {
 
   }
 
-  validateEmployeementId(text: any): boolean {
-    const regex = /^[1-9]\d{3,6}$/;
-    if (text !== "" || text !== undefined || text !== null) {
+  // validateEmployeementId(text: any): boolean {
+  //   const regex = /^[1-9]\d{3,6}$/;
+  //   if (text !== "" || text !== undefined || text !== null) {
+  //     if (regex.test(text)) {
+  //       return true;
+  //     }
+  //     else {
+  //       return false;
+  //     }
+  //   }
+  //   else {
+  //     return false;
+  //   }
+  // }
+
+ validateEmployeementId(text: any): boolean {
+    const regex = /^\d{1,6}$/;
+    if (text != "" && text != undefined && text != null) {
       if (regex.test(text)) {
         return true;
       }
@@ -452,6 +484,7 @@ export class ValidationService {
       return false;
     }
   }
+
 
   validateYear(text: any): boolean {
     const regex = /^(19[5-9]\d|20[0-4]\d|2050)$/;
@@ -728,18 +761,30 @@ export class ValidationService {
 
   }
 
-  validatePfAccountNumber(text:string): boolean {
+  // validatePfAccountNumber(text:string): boolean {
+  //   // const regex = /^[A-Z]{5}[0-9]{17}$/;  // eg. MHMUM12345670001234567
+  //   const regex = (/^[A-Z]{2}[\s\/]?[A-Z]{3}[\s\/]?[0-9]{7}[\s\/]?[0-9]{3}[\s\/]?[0-9]{7}$/);
+  //   if (text !== "" || text !== undefined || text !== null) {
+  //     if (regex.test(text)) {
+  //       return true;
+  //     }
+  //     else {
+  //       return false;
+  //     }
+  //   }
+  //   else {
+  //     return false;
+  //   }
+  // }
+
+  validatePfAccountNumber(text: string): boolean {
     // const regex = /^[A-Z]{5}[0-9]{17}$/;  // eg. MHMUM12345670001234567
-    const regex = (/^[A-Z]{2}[\s\/]?[A-Z]{3}[\s\/]?[0-9]{7}[\s\/]?[0-9]{3}[\s\/]?[0-9]{7}$/);
-    if (text !== "" || text !== undefined || text !== null) {
-      if (regex.test(text)) {
-        return true;
-      }
-      else {
-        return false;
-      }
-    }
-    else {
+    // const regex = /^[A-Z]{2}[\s\/]?[A-Z]{3}[\s\/]?[0-9]{7}[\s\/]?[0-9]{3}[\s\/]?[0-9]{7}$/;
+    const regex = /^.{0,22}$/; // This regex matches any string with 0 to 22 characters.
+  
+    if (text !== "" && text !== undefined && text !== null) {
+      return regex.test(text);
+    } else {
       return false;
     }
   }

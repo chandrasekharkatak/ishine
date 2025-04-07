@@ -85,3 +85,6 @@
     background: var(--ghost-white);
     margin-bottom: 1em;
 }
+.custom-width{
+    width: 50px;
+}

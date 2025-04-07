@@ -39,8 +39,8 @@
 
       <div class="row">
         <div class="col-md-12">
-          <div class="selector-toggle" (click)="toggleSearch()">
-            <a href="javascript:void(0)">
+          <div class="selector-toggle" >
+            <a href="javascript:void(0)" (click)="toggleSearch()">
                 <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
@@ -75,7 +75,8 @@
                   <tr *ngFor="let timesheet of allTeamTimesheets | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
                     <td>{{20*(page-1)+i+1}}</td>
                     <td>{{timesheet.employeementId}}</td>
-                    <td>{{timesheet.employeeName}}</td>
+                    <td id="clickablefor360" *ngIf="userMapping.team_timesheet_employee_360" [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{timesheet.employeeName}}</td>
+                    <td *ngIf="!userMapping.team_timesheet_employee_360">{{timesheet.employeeName}}</td>
                     <td>{{timesheet.date}}</td>
                     <td>{{timesheet.dayType}}</td>
                     <td style="min-width: 250px;" [innerHTML]="timesheet.description"></td>
@@ -113,10 +114,10 @@
   </div>
   <div class="row">
     <div *ngIf="bulkApprove.length > 1 && bulkReject.length > 1" class="form-group col-md-6">
-      <button class="btn btn-sm btn-outline-success" type="submit" (click)="openBulkApprovalModal(night_shift_template,alert_message)">Bulk
+      <button class="btn btn-sm btn-outline-success" type="submit">Bulk
         Approve</button>&nbsp;
       <button type="submit" class="btn btn-sm btn-outline-danger ml-2"
-        (click)="openBulkRejectModal(night_shift_reject_template,bulkReject_timesheet)">Bulk Reject</button>
+        >Bulk Reject</button>
     </div>
   </div>
   <div class="row">
@@ -128,6 +129,7 @@
         <option class="option-bg" value="20">20</option>
         <option class="option-bg" value="50">50</option>
         <option class="option-bg" value="100">100</option>
+        <option class="option-bg" value="10000">All</option>
       </select>
       <small>entries</small>
     </div>
@@ -137,8 +139,8 @@
   </div>
   <div class="row">
     <div class="col-md-12">
-      <div class="selector-toggle" (click)="toggleSearch()">
-        <a href="javascript:void(0)">
+      <div class="selector-toggle" >
+        <a href="javascript:void(0)" (click)="toggleSearch()">
             <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
         </a>
@@ -174,15 +176,17 @@
             </tr>
             <tr
               *ngFor="let timesheet of allTeamTimesheetRequests| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index" [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
-              <td><input class="timesheet-req-checkbox" id="{{i}}" type="checkbox" [(ngModel)]="timesheet.isSelected"filters
+              <td><input class="timesheet-req-checkbox" id="{{timesheet.checkId}}" type="checkbox" [(ngModel)]="timesheet.isSelected"filters
                   (change)="select(timesheet,$event)"></td>
               <td>{{items*(page-1)+i+1}}</td>
               <td>{{timesheet.employeementId}}</td>
-              <td>{{timesheet.employeeName}}</td>
+              <td id="clickablefor360" *ngIf="userMapping.team_timesheet_employee_360" [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{timesheet.employeeName}}</td>
+              <td *ngIf="!userMapping.team_timesheet_employee_360">{{timesheet.employeeName}}</td>
               <td>{{timesheet.date}}</td>
               <td>{{timesheet.dayType}}</td>
               <td style="min-width: 250px;" [innerHTML]="timesheet.description"></td>
-              <td>{{timesheet.createdByName}}</td>
+              <td id="clickablefor360" *ngIf="userMapping.team_timesheet_employee_360" [navigateToEmployee360]="timesheet.emp360CreatedBy">{{timesheet.createdByName}}</td>
+              <td *ngIf="!userMapping.team_timesheet_employee_360">{{timesheet.createdByName}}</td>
               <td>{{timesheet.totalTime}}</td>
               <td>{{timesheet.officeInTime}}</td>
               <td>{{timesheet.officeOutTime}}</td>

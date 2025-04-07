@@ -1,0 +1,124 @@
+<div class="d-flex justify-content-between mb-3">
+  <div class="d-flex align-items-center">
+
+    <label for="startDate" class="mt-3 ml-2">From Date:</label>
+    <input type="date" id="startDate" [(ngModel)]="appreciation.startDate" class="form-control form-control-sm ml-2"
+      style="width: 150px;" />
+
+
+    <label for="endDate" class="mt-3 ml-3">To Date:</label>
+    <input type="date" id="endDate" [(ngModel)]="appreciation.endDate" (change)="getTeamOrEmployeeDetails()"
+      class="form-control form-control-sm ml-2" style="width: 150px;" />
+  </div>
+
+  <div>
+    <button *ngIf="isTeam" class="btn btn-outline-primary btn-sm mx-1 mt-3" (click)="getTeamAppreciationList()">View
+      Team Appreciation
+    </button>
+    <button *ngIf="!isTeam" class="btn btn-outline-primary btn-sm mx-1 mt-3"
+      (click)="getEmployeeAppreciationList()">View Employee's Appreciation
+    </button>
+  </div>
+</div>
+
+
+
+<div class="selector-toggle">
+  <a href="javascript:void(0)" (click)="toggleSearch()">
+    <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+  </a>
+</div>
+
+<div class="row-md-6">
+  <div *ngIf="isTeam">
+    <table class="table" id="appreciationtable" matSort (matSortChange)="sortData($event)">
+      <thead class="thead-light">
+        <tr>
+          <th scope="col" class="info-label">Sr No.</th>
+          <th scope="col" class="info-label" mat-sort-header="appreciationEventName|string">Event Name</th>
+          <th scope="col" class="info-label" mat-sort-header="appreciateType|string">Appreciation Type</th>
+          <th scope="col" class="info-label" mat-sort-header="appreciationByName|string">Appreciation By</th>
+          <th scope="col" class="info-label" mat-sort-header="appreciationDate|date">Appreciation Date</th>
+          <th scope="col" class="info-label" mat-sort-header="comment|string">Comment</th>
+        </tr>
+        <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="appreciationColumns"
+          (onSearch)="onSearch($event); page=1"></tr>
+
+      </thead>
+      <tbody>
+        <tr *ngIf="!accortoselectedList || accortoselectedList.length === 0">
+          <th colspan="6" class="text-center info-label">No Files to display...</th>
+        </tr>
+        <tr
+          *ngFor="let event of accortoselectedList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }, let i = index">
+          <th class="info-label">{{ 10 * (page - 1) + i + 1 }}</th>
+          <td>{{ event.appreciationEventName }}</td>
+          <td>{{ event.appreciateType }}</td>
+
+          <td id="clickablefor360" [navigateToEmployee360]="event.emp360AppreciationBy" (click)="refresh()">
+            {{ event.appreciationByName }}
+          </td>
+          <td>{{ event.
+            appreciationDate
+            | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
+          <td>{{ event.comment }}</td>
+
+        </tr>
+
+
+      </tbody>
+    </table>
+    <pagination-controls class="my-pagination" [hidden]="accortoselectedList.length==0"
+      (pageChange)="handlePageChange($event)"></pagination-controls>
+      <button style="float: right;" type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+    (click)="exportToExcel('appreciationtable')"><em class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>
+  </div>
+
+  <div *ngIf="!isTeam">
+    <table class="table" id ="teamappreciation" matSort (matSortChange)="sortData($event)">
+      <thead class="thead-light">
+        <tr>
+          <th scope="col" class="info-label">Sr No.</th>
+          <th scope="col" class="info-label" mat-sort-header="appreciationEventName|string">Event Name</th>
+          <th scope="col" class="info-label" mat-sort-header="appreciateType|string">Appreciation Type</th>
+          <th *ngIf="!isTeam" scope="col" class="info-label" mat-sort-header="appreciationToName|string">Appreciation To
+          </th>
+          <th scope="col" class="info-label" mat-sort-header="appreciationByName|string">Appreciation By</th>
+          <th scope="col" class="info-label" mat-sort-header="appreciationDate|date">Appreciation Date</th>
+          <th scope="col" class="info-label" mat-sort-header="comment|string">Comment</th>
+        </tr>
+        <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="appreciationTeamColumns"
+          (onSearch)="onSearch($event); page=1"></tr>
+
+      </thead>
+      <tbody>
+        <tr *ngIf="!teamAppreciationList || teamAppreciationList.length === 0">
+          <th colspan="6" class="text-center info-label">No Files to display...</th>
+        </tr>
+        <tr
+          *ngFor="let event of teamAppreciationList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }, let i = index">
+          <th class="info-label">{{ 10 * (page - 1) + i + 1 }}</th>
+          <td>{{ event.appreciationEventName }}</td>
+          <td>{{ event.appreciateType }}</td>
+          <td id="clickablefor360" [navigateToEmployee360]="event.emp360AppreciationTo" (click)="refresh()">{{
+            event.appreciationToName }}</td>
+          <td id="clickablefor360" [navigateToEmployee360]="event.emp360AppreciationBy" (click)="refresh()">
+            {{ event.appreciationByName }}
+          </td>
+          <td>{{ event.appreciationDate | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
+          <td>{{ event.comment }}</td>
+
+        </tr>
+
+
+      </tbody>
+    </table>
+
+    <pagination-controls class="my-pagination" [hidden]="teamAppreciationList.length == 0"
+      (pageChange)="handlePageChange($event)"></pagination-controls>
+      <button style="float: right;" type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+    (click)="exportToExcel('teamappreciation')"><em class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>
+  </div>
+  
+</div>

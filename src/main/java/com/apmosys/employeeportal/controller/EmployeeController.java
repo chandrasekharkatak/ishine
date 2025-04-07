@@ -1,9 +1,14 @@
 package com.apmosys.employeeportal.controller;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -11,7 +16,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.dto.AppreciationAndRewardsCountDto;
+import com.apmosys.employeeportal.dto.AppreciationDetails;
+import com.apmosys.employeeportal.dto.AppreciationRequest;
+import com.apmosys.employeeportal.dto.DateRangeDTO;
+import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
+import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO;
+import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.service.EmployeeService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -27,6 +40,7 @@ public class EmployeeController {
 	public ServiceResponse createEmployee(@RequestBody EmployeeDTO employeedto) {
 
 		ServiceResponse response = employeeService.createEmployee(employeedto);
+		employeeService.clearEmployeeCache();
 		return response;
 	}
 
@@ -37,8 +51,24 @@ public class EmployeeController {
 
 		for (EmployeeDTO employee : employeedto) {
 			response = employeeService.createEmployeeByList(employee);
+			employeeService.clearEmployeeCache();
 		}
 		return response;
+	}
+	@RequestMapping(value = "/getEmployeeAppreciationByEmpId", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public AppreciationDetails getEmployeeAppreciationByEmpId(@RequestBody EmployeeAppreciationRequest request) {
+	    return employeeService.getEmployeeAppreciationByEmpId(request);
+	}
+	
+	@RequestMapping(value = "/getDateRangesForDropdown", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<DateRangeDTO>> getDateRangesForDropdown(@RequestBody Long empId) {
+		List<DateRangeDTO> dateRanges =  employeeService.getDateRangesForDropdown(empId);
+        return ResponseEntity.ok(dateRanges);
+    }
+	
+	@RequestMapping(value = "/getTeamAppreciationByEmpId", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public AppreciationDetails getTeamAppreciationByEmpId(@RequestBody EmployeeAppreciationRequest request) {
+		return employeeService.getTeamAppreciationByEmpId(request);
 	}
 
 	@RequestMapping(value = "/getEmployeeByEmpId", method = RequestMethod.POST)
@@ -54,11 +84,36 @@ public class EmployeeController {
 		ServiceResponse response = employeeService.getAllEmployees();
 		return response;
 	}
+	
+	@RequestMapping(value = "/getAllEmployeesForPerformance", method = RequestMethod.POST)
+	public ServiceResponse getAllEmployeesForPerformance(@RequestBody HrHodHrViewPerformance hrHodHrViewPerformance) {
 
+		ServiceResponse response = employeeService.getAllEmployeesForPerformance(hrHodHrViewPerformance);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getAllEmployeesFor360View", method = RequestMethod.GET)
+	public ServiceResponse getAllEmployeesFor360View() {
+
+		ServiceResponse response = employeeService.getAllEmployeesFor360View();
+		return response;
+	}
+
+//	@PostMapping("/getEmployeeByAppreciationName")
+//    public ServiceResponse getEmployeeByAppreciationName(@RequestBody AppreciationRequest request) {
+//        String appreciationByName = request.getEmpName();
+//        ServiceResponse response = employeeService.getEmployeeByAppreciationName(appreciationByName);
+//        return response;
+//        
+//	}
+	
 	@RequestMapping(value = "/updateEmployeeByEmpId", method = RequestMethod.POST)
 	public ServiceResponse updateEmployeeByEmpId(@RequestBody EmployeeDTO employeedto) {
+		
+//		System.out.println("updateEmployeeByEmpId =========================================================================");
 
 		ServiceResponse response = employeeService.updateEmployeeByEmpId(employeedto);
+		employeeService.clearEmployeeCache();
 		return response;
 	}
 
@@ -69,6 +124,8 @@ public class EmployeeController {
 
 		for (EmployeeDTO employee : employeedto) {
 			response = employeeService.updateEmployeeByEmpIdByList(employee);
+			employeeService.clearEmployeeCache();
+
 		}
 		return response;
 	}
@@ -77,6 +134,7 @@ public class EmployeeController {
 	public ServiceResponse deleteEmployeeByEmpId(@RequestBody EmployeeDTO employeedto) {
 
 		ServiceResponse response = employeeService.deleteEmployeeByEmpId(employeedto);
+		employeeService.clearEmployeeCache();
 		return response;
 	}
 	
@@ -233,6 +291,7 @@ public class EmployeeController {
 
 	}
 	
+//	 added by anurag
 	@RequestMapping(value ="/findEmployeeWorkingHistory" , method = RequestMethod.POST)
 	public ServiceResponse findEmployeeWorkingHistory(@RequestBody EmployeeDTO employeeDto) {
 		ServiceResponse response=employeeService.findEmployeeWorkingHistory(employeeDto);
@@ -334,5 +393,173 @@ public class EmployeeController {
 		return response;
 	}
 	
+	
+//	@RequestMapping(value = "/getAllReporteesByEmpId", method = RequestMethod.POST)
+//	public ServiceResponse getAllReporteesByEmpId(@RequestBody EmployeeDTO employeedto) {
+//
+//		ServiceResponse response = employeeService.getAllReporteesByEmpId(employeedto);
+//		return response;
+//	}
+//	
+	@RequestMapping(value = "/getDepartmentByHodId/{empId}", method = RequestMethod.POST)
+	public ServiceResponse getDepartmentByHodId(@PathVariable("empId") Long empId) {
+		ServiceResponse response = employeeService.getDepartmentByHodId(empId);
+		return response;
+	}
+	
+	
+//	getTotalNoOfreporties by anurag
+	@RequestMapping(value = "/getTotalNoOfreporties/{empId}", method = RequestMethod.POST)
+	public ServiceResponse getTotalNoOfreporties(@PathVariable("empId") String empId) {
 
+		System.out.println(" controller call "+empId);
+		ServiceResponse response = employeeService.getTotalNoOfreporties(empId);
+		return response;
+	}
+	
+	// getProjectsByDepartmentName by anurag below method is only for entire projects by Department not manager wise
+	
+//	@RequestMapping(value = "/getProjectsByDepartmentName/{departmentName}", method = RequestMethod.POST)
+//	public ServiceResponse getProjectsByDepartmentName(@PathVariable("departmentName") String departmentName) {
+//
+//		System.out.println(" DepartmentName  getProjectsByDepartmentName "+departmentName);
+//		ServiceResponse response = employeeService.getProjectsByDepartmentName(departmentName);
+//		return response;
+//	}
+	
+	@RequestMapping(value = "/getProjectsByDepartmentName", method = RequestMethod.POST)
+	public ServiceResponse getProjectsByDepartmentName(@RequestBody EmployeeDTO employeedto) {
+
+//		System.out.println(" DepartmentName  getProjectsByDepartmentName "+employeedto.getDepartmentName());
+		ServiceResponse response = employeeService.getProjectsByDepartmentName(employeedto);
+		return response;
+	}
+	
+//	getTeamByProjectName by anurag
+	@RequestMapping(value = "/getTeamByProjectName/{projectName}", method = RequestMethod.POST)
+	public ServiceResponse getTeamByProjectName(@PathVariable("projectName") String projectName) {
+
+		System.out.println(" projectName  getTeamByProjectName "+projectName);
+		ServiceResponse response = employeeService.getTeamByProjectName(projectName);
+		return response;
+	}
+	
+//	getTeamMemberByTeamName
+//	@RequestMapping(value = "/getTeamMemberByTeamName/{teamName}", method = RequestMethod.POST)
+//	public ServiceResponse getTeamMemberByTeamName(@PathVariable("teamName") String teamName) {
+//
+//		System.out.println(" projectName  getTeamByProjectName "+teamName);
+//		ServiceResponse response = employeeService.getTeamMemberByTeamName(teamName);
+//		return response;
+//	}
+	
+	@RequestMapping(value = "/getTeamMemberByTeamName", method = RequestMethod.POST)
+	public ServiceResponse getTeamMemberByTeamName(@RequestBody EmployeeDTO employeeDto) {
+
+//		System.out.println(" projectName  getTeamByProjectName "+employeeDto.getTeamName());
+		ServiceResponse response = employeeService.getTeamMemberByTeamName(employeeDto);
+		return response;
+	}
+	
+	
+	// getManagerList by anurag
+	@RequestMapping(value = "/getManagerList", method = RequestMethod.GET)
+	public ServiceResponse getManagerList() {
+
+		System.out.println(" projectName  getManagerList ");
+		ServiceResponse response = employeeService.getManagerList();
+		return response;
+	}
+	
+//	setManagerToNewManager   this API helps to modify manager mapping by anurag
+	@RequestMapping(value = "/setManagerToNewManager", method = RequestMethod.POST)
+	public ServiceResponse setManagerToNewManager(@RequestBody EmployeeDTO employeeDto) {
+
+		System.out.println(" projectName  setManagerToNewManaager ");
+		ServiceResponse response = employeeService.setManagerToNewManager(employeeDto);
+		return response;
+	}
+//	mapLeavesAndCompOffToNewManager
+	
+	@RequestMapping(value = "/mapLeavesAndCompOffToNewManager", method = RequestMethod.POST)
+	public ServiceResponse mapLeavesAndCompOffToNewManager(@RequestBody EmployeeDTO employeeDto) {
+
+		System.out.println(" projectName  mapLeavesAndCompOffToNewManager ");
+		ServiceResponse response = employeeService.mapLeavesAndCompOffToNewManager(employeeDto);
+		return response;
+	}
+	
+	
+	
+	@RequestMapping(value = "/isEmployeeOnBench", method = RequestMethod.POST)
+	public ServiceResponse isEmployeeOnBench(@RequestBody EmployeeDTO employeeDto) {
+		ServiceResponse response = employeeService.isEmployeeOnBench(employeeDto);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getReporteesListByManagerId", method = RequestMethod.POST)
+	public ServiceResponse getReporteesListByManagerId(@RequestBody EmployeeDTO employeeDto) {
+
+		ServiceResponse response = employeeService.getReporteesListByManagerId(employeeDto);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getReporteesListByReportingManagerId", method = RequestMethod.POST)
+	public ServiceResponse getReporteesListByReportingManagerId(@RequestBody EmployeeDTO employeeDto) {
+
+		ServiceResponse response = employeeService.getReporteesListByReportingManagerId(employeeDto);
+		return response;
+	}
+	
+	@RequestMapping(value = "/removeStaleMappingOfInactiveEmployees", method = RequestMethod.POST)
+	public ServiceResponse removeStaleMappingOfInactiveEmployees() {
+
+		ServiceResponse response = employeeService.removeStaleMappingOfInactiveEmployees();
+		return response;
+	}
+	
+	@RequestMapping(value = "/setReportingManagerToNewManager", method = RequestMethod.POST)
+	public ServiceResponse setReportingManagerToNewManager(@RequestBody EmployeeDTO employeeDto) {
+
+		System.out.println(" projectName  setManagerToNewManaager ");
+		ServiceResponse response = employeeService.setReportingManagerToNewManager(employeeDto);
+		return response;
+	}
+	
+	@PostMapping("/updateDefaultProject")
+	public ServiceResponse updateDeafultProject(@RequestBody EmployeeDTO employeeDTO) {
+		
+		ServiceResponse response = employeeService.updateDefaultProject(employeeDTO.getEmpId(),employeeDTO.getSelectedProjectId());
+		
+		return response;
+	}
+	
+	@GetMapping("/getExpiredPo")
+	public ServiceResponse getEmployeeRewardByEmpId() { 
+		
+		ServiceResponse serviceResponse = new ServiceResponse();
+		serviceResponse = employeeService.getExpiredPo();
+		return serviceResponse;
+	}
+	
+	@RequestMapping(value = "/getRewardsAndAppreciationCount", method = RequestMethod.POST)
+	public ServiceResponse getRewardsAndAppreciationCount(@RequestBody AppreciationAndRewardsCountDto employeeDto) {
+		
+		ServiceResponse response = employeeService.getRewardsAndAppreciationCount(employeeDto);
+		return response;
+	}
+	
+	@PostMapping("/sendExpiredPoEmail")
+	public ServiceResponse sendExpiredPoEmail(@RequestBody ExpiredPOMailSendDTO employeeDTO) {
+		System.out.println(employeeDTO);
+		ServiceResponse response = employeeService.sendExpiredPoEmail(employeeDTO);
+		
+		return response;
+	}
+	
+	@GetMapping("/getAllEmployeesWorkAnniversaryToday")
+	public ServiceResponse getAllEmployeesWorkAnniversaryToday() {
+	    return employeeService.getAllEmployeesWorkAnniversaryToday();
+	}
+	
 }

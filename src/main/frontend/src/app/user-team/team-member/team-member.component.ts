@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Employee } from 'src/app/models/employee';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { TeamViewService } from 'src/app/services/team-view.service';
@@ -8,6 +8,13 @@ import { Feature } from 'src/app/models/feature';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { Sort } from '@angular/material/sort';
 import { LocationStrategy } from '@angular/common';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { EmployeeService } from 'src/app/services/employee.service';
+import * as moment from 'moment';
+import { AppComponent } from 'src/app/app.component';
+import { Employee360Service } from 'src/app/services/employee360.service';
+import { UtilityService } from 'src/app/services/utility.service';
+import { SortPipe } from 'src/app/sort.pipe';
 
 @Component({
   selector: 'app-team-member',
@@ -35,25 +42,57 @@ export class TeamMemberComponent implements OnInit {
   isSearchEnabled:boolean = false;
   teamMemberColumns:any[] = ['blank','employeementId','name','email','jobRoleName','mobileNo'];
 
+  filteredEmployeeAuditHistory:any[] = [];
+  employeeAuditHistory:any[] = [];
+  isFullJourneyAccordianBody: boolean = false;
+  isLifeCycleAccordianBody: boolean = false;
+  isKycUpdateAccordianBody: boolean = false;
+  isEmployeeInfoAccordianBody: boolean = false;
+  isTeamProjectAccordianBody: boolean = false;
+  lifeCycleChangeList:any[] = [];
+  teamProjectChangeList:any[] = [];
+  kycUpdateList:any[] = [];
+  employeeInfoChangeList:any[] = [];
+  allApplicationList : any[] =[]
+  modalRef: BsModalRef = new BsModalRef();
+  alertMessage: any;
+  auditFilter:any = {};
+  isAuditSearchEnabled:boolean = false;
+  employeeAuditColumns:any[] = ['blank', 'date', 'field', 'value', 'bucketName', 'updatedByName'];
+  isTable: boolean = false;
+  // employeesFor360: any[] = [];
+  allEmployeeList360: any[] = [];
+
+
+
   constructor(
     private authenticationService : AuthenticationService,
     private teamViewService : TeamViewService,
     private exportExcelService: ExportExcelService,
-    private locationStrategy: LocationStrategy
+    private employeeService : EmployeeService,
+    private locationStrategy: LocationStrategy,
+    private modalService: BsModalService,
+    private employee360Service: Employee360Service,
+    private utilityService: UtilityService,
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
    }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     // Dynamic Subfeature Flags 
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
+    //console.log(this.feature, this.userMapping);
     
     this.getAllTeamMemberView();
     this.preventBackButton();
+    try {
+      this.allEmployeeList360 = await this.utilityService.getEmployeeDetailsFor360View();
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
   }
   preventBackButton(){
     history.pushState(null, null, location.href);
@@ -71,9 +110,17 @@ export class TeamMemberComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.viewTeamMemberList = response.serviceResponse;
         for(let x of this.viewTeamMemberList){
+          // if(x.isConsultant == 'true'){
+          //   x.employeementId="A-CS-".concat(x.employeementId)
+          // }else{
+          //   x.employeementId="A-".concat(x.employeementId)
+          // }
           x.employeementId="A-".concat(x.employeementId)
+          let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === x.employeementId);
+          console.log('matches++',matchingEmployee);
+          x.emp360 = matchingEmployee ? matchingEmployee : {};
         }
-        console.log("viewTeamMemberList : ", this.viewTeamMemberList);
+        //console.log("viewTeamMemberList : ", this.viewTeamMemberList);
       } else {
         console.error(response.serviceResponse);
       }
@@ -107,7 +154,7 @@ export class TeamMemberComponent implements OnInit {
   }
 
   sortData(sort: Sort){	
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -125,8 +172,166 @@ export class TeamMemberComponent implements OnInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
+
+  resetAuditSearchFilter(event, title?:any){
+    this.isAuditSearchEnabled = false;
+    this.auditFilter = {};
+
+    if(title == 'Full Journey'){
+      this.isFullJourneyAccordianBody = true;
+    }else{
+      this.isFullJourneyAccordianBody = false;
+    }
+    if(title == 'Life Cycle Change'){
+      this.isLifeCycleAccordianBody = true;
+    }else{
+      this.isLifeCycleAccordianBody = false;
+    }
+    if(title == 'Kyc Update'){
+      this.isKycUpdateAccordianBody = true;
+    }else{
+      this.isKycUpdateAccordianBody = false;
+    }
+    if(title == 'Employee Info Change'){
+      this.isEmployeeInfoAccordianBody = true;
+    }else{
+      this.isEmployeeInfoAccordianBody = false;
+    }
+    if(title == 'Team/Project Change'){
+      this.isTeamProjectAccordianBody = true;
+    }else{
+      this.isTeamProjectAccordianBody = false;
+    }
+  }
+
+
+  getEmployeeAuditInfo(employee:any, auditTemplate: TemplateRef<any>, template: TemplateRef<any>){
+    this.filteredEmployeeAuditHistory = [];
+    this.employeeAuditHistory = [];
+    this.filters = {};
+    this.isEmployeeInfoAccordianBody = false;
+    this.isTeamProjectAccordianBody = false;
+    this.isKycUpdateAccordianBody  = false;
+    this.isLifeCycleAccordianBody = false;
+    this.isFullJourneyAccordianBody = false;
+
+    let employeeObj = new Employee();
+    employeeObj.empId = employee.empId;
+
+    this.employeeService.getEmployeeAuditInfo(employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeeAuditHistory = response.serviceResponse;
+
+        Object.keys(this.employeeAuditHistory).forEach(key => {
+          let obj = this.employeeAuditHistory[key];
+          Object.keys(obj).forEach(innerKey => {
+            if(obj[innerKey] !== null){
+              let newObj = {
+                "date": key,
+                "field": innerKey,
+                "value": obj[innerKey],
+                "bucketName": obj["bucketName"],
+                "updatedByName": obj["updatedByName"] ? obj["updatedByName"] : null,
+                "createdByName": obj["createdByName"] ? obj["createdByName"] : null,
+                "color": '#FFFFFF'
+              };
+
+              if(newObj.field !== 'bucketName' && newObj.field !== 'designationId' && newObj.field !== 'jobRoleId'
+               && newObj.field !== 'createdBy' && newObj.field !== 'updatedBy' &&  newObj.field !== 'departmentId'
+               &&  newObj.field !== 'updatedByName' &&  newObj.field !== 'createdOn' &&  newObj.field !== 'createdByName'
+               &&  newObj.field !== 'updatedOn' &&  newObj.field !== 'empId' &&  newObj.field !== 'teamId' &&  newObj.field !== 'employeeTeamMapId'
+               &&  newObj.field !== 'teamLeadId' && newObj.field !== 'reportingManagerId' && newObj.field !== 'managerId'){
+
+                if(newObj.field == 'employmentstatus'){
+                  newObj.bucketName = 'Lifecycle Changes';
+                }
+
+                if(newObj.bucketName == 'Employment Info Changes'){
+                  newObj.color = '#9FE2BF';
+                }else if(newObj.bucketName == 'Lifecycle Changes'){
+                  newObj.color = '#40E0D0';
+                }else if(newObj.bucketName == 'KYC Update'){
+                  newObj.color = '#CCCCFF';
+                }else if(newObj.bucketName == 'Team/Project Changes'){
+                  newObj.color = '#F1948A';
+                }
+
+                if(newObj.field == 'active'){
+                  newObj.value = newObj.value == '1' ? 'Yes' : 'No';
+                }
+
+                if(newObj.field == 'startDate'){
+                  newObj.value = (newObj.value)? moment(newObj.value).format(AppComponent.DATETIME_FORMAT) : null;
+                }
+
+                newObj.date = ( newObj.date)? moment( newObj.date).format(AppComponent.DATETIME_FORMAT) : null;
+
+                if(newObj.field == 'dateOfRelieving' || newObj.field == 'dateOfResign'){
+                  newObj.value = (newObj.value)? moment(newObj.value).format(AppComponent.DATE_FORMAT) : null;
+                }
+
+                const fieldConversion = newObj.field.replace(/([A-Z])/g, " $1");
+                const finalField = fieldConversion.charAt(0).toUpperCase() + fieldConversion.slice(1);
+
+                newObj.field = finalField;
+
+                this.filteredEmployeeAuditHistory.push(newObj);
+              }
+            }
+          });
+        });
+
+        this.filteredEmployeeAuditHistory.sort((a, b) => (b.date > a.date) ? 1 : -1);
+
+        this.filteredEmployeeAuditHistory.forEach((object) => {
+          let date;
+          if(object.bucketName == 'Team/Project Changes'){
+            if(object.field == 'Active' && object.value == 'No'){
+              date = object.date;
+            }
+            let updateField = this.filteredEmployeeAuditHistory.find(x => x.date == date && x.field == 'Start Date');
+              if(updateField){
+                updateField.field = 'End Date';
+              }
+          }
+        });
+
+        this.lifeCycleChangeList = this.filteredEmployeeAuditHistory.filter(x => x.bucketName == 'Lifecycle Changes');
+        this.teamProjectChangeList = this.filteredEmployeeAuditHistory.filter(x => x.bucketName == 'Team/Project Changes');
+        this.kycUpdateList = this.filteredEmployeeAuditHistory.filter(x => x.bucketName == 'KYC Update');
+        this.employeeInfoChangeList = this.filteredEmployeeAuditHistory.filter(x => x.bucketName == 'Employment Info Changes');
+
+        this.modalRef =  this.modalService.show(auditTemplate, { class: 'modal-lg' });
+
+        console.log(this.filteredEmployeeAuditHistory , " : this.filteredEmployeeAuditHistory ");
+      } else {
+        console.log(response.serviceResponse, " audit response");
+      }
+    });
+  }
+
+
+  cancelRequest() {
+    this.modalRef.hide();
+  }
+  pageNo =1;
+  handleAuditPageChanges(event) {
+    this.pageNo = event;
+  }
+
+  toggleAuditSearch(){
+    this.isAuditSearchEnabled = !this.isAuditSearchEnabled;
+  }
+
+  onAuditSearch(searchData){
+    this.auditFilter = searchData;
+    console.log("Audit Updated Filter : ", this.filters);
+  }
+
+
+
 
 }
 

@@ -78,7 +78,7 @@ export class UserProfileComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
+    //console.log(this.feature, this.userMapping);
     this.setYearOfPassingList();    
     this.preventBackButton();
   }
@@ -517,13 +517,13 @@ export class UserProfileComponent implements OnInit {
     let currentEmp = new Employee();
     currentEmp.empId = this.currentUser.empId;
     currentEmp.isDraft = false;
-    console.log("currentEmp : ", currentEmp);
+    //console.log("currentEmp : ", currentEmp);
     
     const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
     if (response.serviceStatus == "Success") {
       this.currentEmployeeInfo = response.serviceResponse;
     
-      console.log("currentEmployeeInfo : ", this.currentEmployeeInfo);
+      //console.log("currentEmployeeInfo : ", this.currentEmployeeInfo);
       this.loadProfileImage(this.currentEmployeeInfo.imageBytes)
 
     } else {
@@ -534,9 +534,9 @@ export class UserProfileComponent implements OnInit {
     if (docResponse.serviceStatus == 'Success') {
       this.currentEmployeeInfo.documentList = docResponse.serviceResponse;
       
-      console.log("this.previewObj.documentList : ", this.currentEmployeeInfo.documentList);
+      //console.log("this.previewObj.documentList : ", this.currentEmployeeInfo.documentList);
     } else {
-      console.log(docResponse.serviceResponse);
+      //console.log(docResponse.serviceResponse);
     }
 
     let domainObj = new Domain();
@@ -556,7 +556,7 @@ export class UserProfileComponent implements OnInit {
           object.colorCode = color;
         });
 
-        console.log(this.domainSpecializationList, " : this.domainSpecializationList");
+        //console.log(this.domainSpecializationList, " : this.domainSpecializationList");
       } else {
         console.error(domainResponse.serviceResponse);
       }
@@ -594,18 +594,18 @@ export class UserProfileComponent implements OnInit {
     this.UpdateEmployeeInfo.dateOfJoining = moment(this.UpdateEmployeeInfo.dateOfJoining).format(dateFormat);
 
     this.allCertificationList.forEach(certificaiton => {
-      console.log("All certificaiton : ", this.allCertificationList);
+      //console.log("All certificaiton : ", this.allCertificationList);
       certificaiton.dateOfCompletion = moment(certificaiton.dateOfCompletion).format(dateFormat);
         if((certificaiton != undefined && Object.keys(certificaiton).length !== 0)&& (certificaiton.employeeCertificateId == undefined || certificaiton.employeeCertificateId == null)){
-          console.log("New certificaiton : ", certificaiton);
+          //console.log("New certificaiton : ", certificaiton);
           this.updatedCertificationList.push(certificaiton);
         }
     });
 
     this.allPreviousEmployment.forEach(prevEmployer => {
-      console.log("All Prev Employer : ", this.allPreviousEmployment);
+      //console.log("All Prev Employer : ", this.allPreviousEmployment);
       if((prevEmployer != undefined && Object.keys(prevEmployer).length !== 0)&&(prevEmployer.previousEmploymentId == undefined || prevEmployer.previousEmploymentId == null)){
-        console.log("New Prev Employer : ", prevEmployer);
+        //console.log("New Prev Employer : ", prevEmployer);
         this.updatedPreviousEmployment.push(prevEmployer);
       }
     });
@@ -616,7 +616,7 @@ export class UserProfileComponent implements OnInit {
     this.UpdateEmployeeInfo.updatedPreviousEmploymentList = (this.updatedPreviousEmployment.length === 0) ? null : this.updatedPreviousEmployment;
 
     this.UpdateEmployeeInfo.updatedBy =  this.currentUser.empId;;
-    console.log("Update Profile : ", this.UpdateEmployeeInfo);
+    //console.log("Update Profile : ", this.UpdateEmployeeInfo);
     this.employeeService.updateEmployeeProfile(this.UpdateEmployeeInfo).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -628,17 +628,25 @@ export class UserProfileComponent implements OnInit {
   }
 
 
-  onProfileImageSelect(event:any){
+  onProfileImageSelect(event:any, template:TemplateRef<any>){
     let uploadLabel = document.getElementById("profileImgLabel");
     let label = `Upload Image <i class="fa-solid fa-angles-right"></i>`;
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+    const uploadedFiles = event.target.files;
+    if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
+      this.openAlertMod(template,'Please select a valid image file (png, jpeg, or jpg).');
+      event.target.value = ''; // Clear the input
+      return;
+    }
+
 
     this.profileImage = null;
     this.profileImageName = null;
 
-    if (event.target.files[0] != null) {
-      this.profileImage = event.target.files[0];
+    if (uploadedFiles[0] != null) {
+      this.profileImage = uploadedFiles[0];
       this.profileImageName = this.profileImage.name;
-      console.log(this.profileImage);
+      //console.log(this.profileImage);
 
       // uploadLabel.innerHTML = label;
       this.showPreviewImage(this.profileImage);
@@ -691,7 +699,7 @@ export class UserProfileComponent implements OnInit {
         this.allAssetList = response.serviceResponse;
 
         this.allAssetList = this.allAssetList.filter(x => x.assetType == 'both');
-        console.log("this.allAssetList :", this.allAssetList);
+        //console.log("this.allAssetList :", this.allAssetList);
       } else {
         console.error(response.serviceResponse);
       }

@@ -43,4 +43,31 @@ public class AuditCustomRepository {
 		return new ArrayList<>();
 	}
 	
+	public List<Object[]> readAuditCustomNativeQueryy(String query, Long empId) {
+		Session s=entityManager.unwrap(Session.class);
+		javax.persistence.Query q=s.createNativeQuery(query);
+		q.setParameter("emp_id", empId);
+		try {
+			List<Object[]> o=q.getResultList();
+			return o;
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return new ArrayList<>();
+	}
+	
+	
+	
+	public List<Object[]> isEmployeeOnBenchNativeQuery(String query) {
+		Session s=entityManager.unwrap(Session.class);
+		javax.persistence.Query q=s.createNativeQuery(query);
+		try {
+			List<Object[]> o=q.getResultList();
+			return o;
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return new ArrayList<>();
+	}
+	
 }

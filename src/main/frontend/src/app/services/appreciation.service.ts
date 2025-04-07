@@ -24,4 +24,7 @@ export class AppreciationService {
     return this.http.post(`${this.baseUrl}` + `api/getAppreciateEmployeeByCurrentUser`,employeeObj);
 
   }
+  CountMyAppreciationBYcurrentUser(employeeObj: any){
+    return this.http.post(`${this.baseUrl}` + `api/CountMyAppreciationBYcurrentUser`,employeeObj);
+  }
 }

@@ -1,0 +1,185 @@
+.row {
+    margin-right: 0 !important;
+}
+
+.user-card{
+    width: 100%;
+    padding: 0.9375rem 0;
+    margin: 0 0 3rem 0;
+}
+
+.user-card__profile-avatar{
+    display: flex;
+    justify-content: center;
+    align-items: center ;
+    padding: 2rem;
+}
+
+.vertical-rule {
+    border-left: 2px solid #bbb;
+    height: 80%;
+    position: absolute;
+    top: 10%;
+    left: 30%;
+}
+
+.user-card__profile-info__role{
+    color: var(--middle-grey);
+}
+
+.user-card__profile-info__label{
+    color: var(--middle-grey);
+    margin-bottom: 0.3125rem;
+    font-weight: 500;
+}
+
+.user-card__profile-info__text{
+    margin-top: 0.3125rem;
+    font-weight: 600;
+}
+
+.user-info__tab-container{
+    padding: 2rem;
+}
+
+.user-info__tab-item__link{
+    color: var(--middle-grey);
+}
+
+.user-info__tab-item__link.active{
+    color: var(--raisin-black);
+    font-weight: bold;
+}
+.card {
+    position: relative;
+    display: flex
+;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    background-color: #fff;
+    background-clip: border-box;
+    /* border: 1px solid rgba(0, 0, 0, 0.125); */
+    border-radius: 0.25rem;
+}
+
+
+.info-highlight, .info-wrapper .info-text.info-highlight{
+    color:var(--dark-cornflower-blue);
+    font-weight: bold;
+}
+
+.update-profile__container{
+    padding: 2rem;
+}
+
+.profile__greetings{
+    margin-bottom: 0;
+}
+
+@media (max-width: 768px){
+    .user-card__profile-info{
+        padding-right: 0;
+        margin-left: 1em;
+        overflow: hidden;
+    }
+}
+
+
+/* User-info with timeline styling */
+.info-wrapper{
+    margin-top: 0.625rem;
+    border-left: 2px dashed #cfcfcf;
+    padding: 0 1.875rem 0 1.25rem;
+    position: relative;
+}
+
+.info-wrapper::before{
+    content: '';
+    display: block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #fff;
+    border: 3px solid var(--dark-cornflower-blue);
+    position: absolute;
+    left:  -8px;
+    top: 3.55px;
+}
+
+.info-wrapper .info-label{
+    font-size: 1.05rem;    
+    font-weight: 500;
+    margin-bottom: .25rem;
+}
+
+.info-wrapper .info-text{
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--middle-grey);
+}
+
+
+
+/* profie photo*/
+.user-card__profile-avatar__img{
+    width: 250px;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+/* profile photo upload */
+.profileImgFile{
+    width: 0.1px;
+	height: 0.1px;
+	opacity: 0;
+	overflow: hidden;
+	position: absolute;
+	z-index: -1;
+}
+
+.profileImgFile + label {
+    font-size: 1.25em;
+    font-weight: 700;
+    padding: 6px 12px;
+    border: 1px solid var(--dark-cornflower-blue);
+    border-radius: 25px;
+    color: var(--dark-cornflower-blue);
+    background-color: #fff;
+    display: inline-block;
+
+    cursor: pointer;
+    transition: all 0.5ms ease-in-out;
+}
+
+.profileImgFile:focus + label,
+.profileImgFile + label:hover {
+    background-color: var(--dark-cornflower-blue);
+    color: #fff;
+}
+
+/* .profileImgFile:focus + label {
+	outline: 1px dotted var(--dark-cornflower-blue);
+	outline: -webkit-focus-ring-color auto 5px;
+} */
+
+.inputfile + label * {
+	pointer-events: none;
+}
+
+.profileImgFile__upload__btn{
+    font-size: 1.25em;
+    font-weight: 700;
+    padding: 6px 12px;
+    margin-bottom: 0.5rem;
+    border-radius: 50%;
+}
+
+.profileImgFile__upload__btn{
+    transition: all 0.5ms ease;
+}
+
+.profileImgFile__upload__btn:hover{
+    transform: scale(0.95);
+}

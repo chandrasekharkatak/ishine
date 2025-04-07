@@ -1,4 +1,8 @@
-<div class="row" style="margin-top: 50px;">
+<div class="mt-5">
+  <app-breadcrumb></app-breadcrumb>
+</div>
+
+<div class="row">
     <div class="col-md-12">
         <div class="card">
             <div class="card-body">
@@ -15,17 +19,29 @@
                             </div>
                             <ng-container *ngIf="allReleaseNotes.length != 0">
                                 <div class="row my-3" *ngFor="let releaseNote of allReleaseNotes;">
-                                    <div class="col-md-12 card p-0">
-                                        <div class="alert alert-light fade show release-notification pr-4 m-0" role="alert">
-                                            <div class="releaseNoteText text-dark" [innerHTML]="releaseNote.notificationMessage"></div>
-                                            <div class="row justify-content-between px-3 pt-3">
-                                                <small>created on : {{releaseNote.createdOn | date: 'dd-MM-yyyy HH:mm:ss'}}</small>
-                                                <small *ngIf="releaseNote.updatedOn">updated on : {{releaseNote.updatedOn | date: 'dd-MM-yyyy HH:mm:ss'}}</small>
-                                            </div>
-                                        </div>
+                                  <div class="col-md-12 card p-0">
+                                    <div class="alert alert-light fade show release-notification pr-4 m-0" role="alert">
+                                      <div class="releaseNoteText text-dark" [innerHTML]="releaseNote.notificationMessage"></div>
+                                      <div class="row justify-content col-sm-3" *ngIf="selectedReleaseNoteVideoId == releaseNote.notificationId && notificationIdExists(releaseNote.notificationId)">
+                                        <br>
+                                        {{selectedReleaseNoteVideoPath | json}}
+                                        <video width="280" height="210" *ngIf="videoSrc" controls>
+                                          <!-- <source [src]="selectedReleaseNoteVideoPath" type="video/mp4" /> -->
+                                           <source   [src]="videoSrc">
+                                          Your browser does not support the video tag or the video format.
+                                        </video>
+                                        <br>
+                                      </div>
+                                      <div class="row justify-content-between px-3 pt-3">
+                                        <small>created on : {{releaseNote.createdOn | date: 'dd-MM-yyyy HH:mm:ss'}}</small>
+                                        <small *ngIf="releaseNote.updatedOn">updated on : {{releaseNote.updatedOn | date: 'dd-MM-yyyy HH:mm:ss'}}</small>
+                                        <button class="fa-solid fa-play playIcon fa-xl" *ngIf="notificationIdExists(releaseNote.notificationId)" (click)="playButtonPress(releaseNote.notificationId)"></button>
+                                      </div>
                                     </div>
+                                  </div>
                                 </div>
-                            </ng-container>
+                              </ng-container>
+                              
                         </div>
                     </div>
                 </div>

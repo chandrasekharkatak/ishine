@@ -24,6 +24,7 @@ import { saveAs } from "file-saver";
 import { ClipboardService } from 'ngx-clipboard';
 import { HolidayService } from 'src/app/services/holiday.service';
 import { Holiday } from 'src/app/models/holiday';
+import { UtilityService } from 'src/app/services/utility.service';
 
 
 
@@ -41,6 +42,7 @@ class FilterData {
   styleUrls: ['./portal-config.component.css']
 })
 export class PortalConfigComponent implements OnInit {
+[x: string]: any;
 
   feature = "Portal Config";
   currentUser: User;
@@ -57,14 +59,14 @@ export class PortalConfigComponent implements OnInit {
   sortColumnType:any;
 
   helpObj:Help = new Help();
-  holidayObj:Holiday = new Holiday(); 
+  holidayObj:Holiday = new Holiday();
 
   maxFileSize:any;
 	maxRequestSize:any;
   fileSize: number = 0;
   helpDocumentName:any;
 
-  //flag	
+  //flag
   portalConfig: boolean = false;
   appreciationConfig: boolean = false;
   viewEventConfig: boolean = false;
@@ -78,6 +80,7 @@ export class PortalConfigComponent implements OnInit {
   isHelpConfiguration: boolean = false;
   isHelpTable: boolean = false;
   isUploadForm: boolean = false;
+  isAppreciationInfo : boolean = false;
 
   alertMessage: any;
   @ViewChild('alert_message') alertTemplate: TemplateRef<any>;
@@ -101,6 +104,10 @@ export class PortalConfigComponent implements OnInit {
   employeeList: any[] = [];
   document: any[] = [];
   files:any[] = [];
+  EventSummaryInfo:any;
+  EmployeeAppreciationList:any[]=[];
+  AppreciationInfo : any[]=[];
+
 
   allMonth: any[] = [
     "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
@@ -114,6 +121,8 @@ export class PortalConfigComponent implements OnInit {
   appreciationTableColumns:any[] = ['appreciateType', 'appreciationToName', 'appreciationByName','appreciationDate', 'managerName', 'reason'];
   documentsColumns:any[] = ['blank','fileName','helpDocumentName','createdByName','createdOn'];
 
+  employeesFor360:any[] = [];
+
   constructor(
     private portalService: PortalService,
     private validationService: ValidationService,
@@ -126,19 +135,27 @@ export class PortalConfigComponent implements OnInit {
     private datePipe: DatePipe,
     private clipboardService: ClipboardService,
     private holidayService : HolidayService,
+    private utilityService: UtilityService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    this.getEmployeeList();
   }
 
-  ngOnInit(): void {
-    // Dynamic Subfeature Flags 
+  async ngOnInit(): Promise<void> {
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
+    // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, " : ", this.userMapping);
+    //console.log(this.feature, " : ", this.userMapping);
     this.getYear();
-    this.getAllEvent();
+    // this.getAllEvent();
     this.sectionViewInit();
     this.preventBackButton();
     this.getAllHolidays();
@@ -223,10 +240,10 @@ export class PortalConfigComponent implements OnInit {
           event.createdOn = (event.createdOn) ? moment(event.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
         // this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
-        console.log("allEventList : ", this.allAppreciationEvent)
+        //console.log("allAppreciationEventList : ", this.allAppreciationEvent);
       } else {
         //this.openAlertMod(this.alertTemplate, response.serviceResponse)
-        console.log("allEventList : ", this.allAppreciationEvent);
+        //console.log("allAppreciationEventList: ", this.allAppreciationEvent);
 
       }
     });
@@ -246,7 +263,7 @@ export class PortalConfigComponent implements OnInit {
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
-      console.log("end date is small");
+      //console.log("end date is small");
       // this.appreciationObj.toDate = ''
       this.alertMessage = "From Date should be less Than To Date !!"
       this.openAlertMod(template, this.alertMessage);
@@ -281,7 +298,7 @@ export class PortalConfigComponent implements OnInit {
   }
 
   OnCheckEventName(template: TemplateRef<any>) {
-    console.log("here in checkPoint event name")
+    //console.log("here in checkPoint event name")
 
     this.portalService.OnCheckEventName(this.appreciationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
@@ -307,7 +324,7 @@ export class PortalConfigComponent implements OnInit {
 
     this.getAllPortalConfigData();
     this.getAllDepartmentList();
-    this.getEmployeeList();
+
   }
 
   holidayDateFilter = (d: Date)=>{
@@ -319,13 +336,13 @@ export class PortalConfigComponent implements OnInit {
   getAllHolidays(){
     this.holidayList = [];
     this.holidayDates = [];
-
-    this.holidayService.getAllHolidays().pipe(first()).subscribe((response: any) => {
+    this.holidayObj.state = this.currentUser.workLocation
+    this.holidayService.getAllHolidays(this.holidayObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.holidayList = response.serviceResponse;
         this.holidayDates = this.holidayList.map(holiday => new Date(this.datePipe.transform(holiday.dateOfHoliday, 'MM/dd/yyyy')));
-        console.log("holidayDates : ", this.holidayDates); 
-        console.log("holidayList : ", this.holidayList);
+        //console.log("holidayDates : ", this.holidayDates);
+        //console.log("holidayList : ", this.holidayList);
       } else {
         console.error(response.serviceResponse);
       }
@@ -351,8 +368,8 @@ export class PortalConfigComponent implements OnInit {
         this.portalObj = Object.assign({}, response.serviceResponse);
         this.portalConfigList = response.serviceResponse;
 
-        console.log(this.portalConfigList, "   :  portalConfigList");
-        console.log(this.portalObj, "   :  portalObj");
+        //console.log(this.portalConfigList, "   :  portalConfigList");
+        //console.log(this.portalObj, "   :  portalObj");
 
         for (let portal of this.portalConfigList) {
           if (portal.configName == 'Probation Period') {
@@ -386,6 +403,12 @@ export class PortalConfigComponent implements OnInit {
           if (portal.configName == 'Leave week-off/holiday exclusion') {
             this.portalObj.weekOffExcludedDepartmentList = JSON.parse(portal.configValue);
           }
+          if (portal.configName == 'Leave deduction relaxation in the department') {
+            this.portalObj.departmentIdList = JSON.parse(portal.configValue);
+          }
+          if (portal.configName == 'Leave deduction relaxation in the employee') {
+            this.portalObj.empIdList = JSON.parse(portal.configValue);
+          }
         }
       } else {
         console.error(response.serviceResponse);
@@ -407,7 +430,7 @@ export class PortalConfigComponent implements OnInit {
     this.isAppreciationTable = false;
     this.isCreation = true;
     this.viewEventConfig = false;
-    this.isUpdation = false;
+    this.isUpdation =  false;
     this.isHelpConfiguration = false;
     this.reset();
   }
@@ -420,7 +443,7 @@ export class PortalConfigComponent implements OnInit {
         this.allEmployeeList.forEach((employee) => {
           employee.employeementId = "A-".concat(employee.employeementId)
         });
-        console.log("allEmployeeList : ", this.allEmployeeList);
+        //console.log("allEmployeeList : ", this.allEmployeeList);
       } else {
         this.openAlertMod(template, response.serviceResponse)
       }
@@ -477,7 +500,7 @@ export class PortalConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return;
     }
-    
+
     if (!this.validationService.validateNullUndefinedEmptyString(portalObj.noticePeriod)) {
       this.alertMessage = "Please enter Notice Period !!"
       this.openAlertMod(template, this.alertMessage);
@@ -554,11 +577,11 @@ export class PortalConfigComponent implements OnInit {
     }
 
 
-
+  
     let tempArray = JSON.parse(JSON.stringify(this.portalConfigList));
-
+   
     tempArray.forEach((portalConfig, index) => {
-
+     
       if (index == 0) {
         portalConfig.configPeriod = portalObj.probationPeriod;
         portalConfig.mailTrigger = portalObj.probationMailTrigger;
@@ -583,7 +606,18 @@ export class PortalConfigComponent implements OnInit {
       } else if (index == 8) {
         portalObj.weekOffExcludedDepartmentList = JSON.stringify(portalObj.weekOffExcludedDepartmentList);
         portalConfig.configValue = portalObj.weekOffExcludedDepartmentList;
+      }else if (index == 9) {
+        portalObj.departmentIdList = JSON.stringify(portalObj.departmentIdList);
+        portalConfig.configValue = portalObj.departmentIdList;
+        portalConfig.departmentId = portalObj.departmentIdList;
       }
+      else if (index == 10) {
+        portalObj.empIdList = JSON.stringify(portalObj.empIdList);
+        portalConfig.configValue = portalObj.empIdList;
+        portalObj.empId=portalObj.empIdList;
+      }
+      
+     
 
     })
     portalObj.allPortalConfigData = tempArray;
@@ -642,27 +676,27 @@ export class PortalConfigComponent implements OnInit {
 
   /* Filter */
   openFilterModal(template: TemplateRef<any>, columns: any[], title: any) {
-    console.log("columns : ", columns);
+    //console.log("columns : ", columns);
 
     this.filterData.title = title;
     this.filterData.columns = columns;
     this.filterData.queryList = JSON.stringify(this.queryList);
 
-    console.log("filterData : ", this.filterData);
+    //console.log("filterData : ", this.filterData);
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
   onFilterSubmit(queryList: any, template: TemplateRef<any>) {
-    console.log("queryList : ", queryList);
+    //console.log("queryList : ", queryList);
 
     /* queryList Store query object and Stored data to re-populate same conditions if filter is re-opened.
-      Here we dont require any Stored data from Custom filter, hence assigning query object from queryList at index 0   
+      Here we dont require any Stored data from Custom filter, hence assigning query object from queryList at index 0
     */
 
     let queryObj = queryList[0]
     this.queryList = queryList[0];
-    console.log("queryObj : ", queryObj);
-    
+    //console.log("queryObj : ", queryObj);
+
     this.cancelRequest();
 
     if (this.filterData.title == 'Filter Appreciation') {
@@ -682,10 +716,10 @@ export class PortalConfigComponent implements OnInit {
       this.employeeService.customQueryForEmployeeReport(queryObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allEmployeeList = response.serviceResponse;
-          console.log("response" + response);
+          //console.log("response" + response);
 
           this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
-          console.log(this.allEmployeeList, "   this.allEmployeeList");
+          //console.log(this.allEmployeeList, "   this.allEmployeeList");
           this.allEmployeeList = this.allEmployeeList.filter((value, index, self) =>
             index === self.findIndex((t) => (
               t.employeementId === value.employeementId
@@ -700,7 +734,7 @@ export class PortalConfigComponent implements OnInit {
           this.allEmployeeList.forEach(employee => {
             employee.employeementId = "A-".concat(employee.employeementId);
           });
-          console.log("allEmployeeList : ", this.allEmployeeList)
+          //console.log("allEmployeeList : ", this.allEmployeeList)
         } else {
           this.openAlertMod(template, response.serviceResponse)
         }
@@ -775,13 +809,13 @@ export class PortalConfigComponent implements OnInit {
       }
     });
 
-    console.log("enableAppreciationList : ", this.enableAppreciationList);
+    //console.log("enableAppreciationList : ", this.enableAppreciationList);
     this.appreciationObj.fromDate = moment(this.appreciationObj.fromDate).format(dateFormat)
     this.appreciationObj.toDate = moment(this.appreciationObj.toDate).format(dateFormat)
 
     this.appreciationObj.appreciationEventName = this.appreciationObj.appreciationEventName;
     this.appreciationObj.enableAppreciationList = this.enableAppreciationList;
-    console.log("enableAppreciation : ", this.appreciationObj)
+    //console.log("enableAppreciation : ", this.appreciationObj)
 
     let checkEventDate = this.allAppreciationEvent.find(x => x.fromDate == this.appreciationObj.fromDate || x.toDate == this.appreciationObj.toDate || ((x.fromDate <= this.appreciationObj.toDate) && (this.appreciationObj.fromDate <= x.toDate)));
     if (checkEventDate != undefined) {
@@ -797,7 +831,7 @@ export class PortalConfigComponent implements OnInit {
       this.portalService.enableAppreciation(this.appreciationObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.all = response.serviceResponse;
-          console.log("appreciation : ", this.all)
+          //console.log("appreciation : ", this.all)
           this.openAlertMod(template, response.serviceResponse);
           this.viewAppreciationEventOnClick();
         } else {
@@ -836,11 +870,11 @@ export class PortalConfigComponent implements OnInit {
     this.appreciationObj.appreciationEventId = this.appreciationObj.appreciationEventId;
     this.appreciationObj.appreciateType = this.appreciationObj.appreciateType;
 
-    console.log(appreciationObj, "appreciationObj");
+    //console.log(appreciationObj, "appreciationObj");
 
     let inputValidated: boolean = this.validateViewAppreciation(appreciationObj, template)
     if (!inputValidated) return;
-    console.log(appreciationObj, "appreciationObj");
+    //console.log(appreciationObj, "appreciationObj");
 
     this.portalService.viewAppreciations(this.appreciationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -848,9 +882,9 @@ export class PortalConfigComponent implements OnInit {
         this.appByCategory.forEach(appr => {
           appr.appreciationDate = (appr.appreciationDate) ? moment(appr.appreciationDate).format(AppComponent.DATETIME_FORMAT) : null;
         });
-        console.log("appByCategory : ", this.appByCategory)
+        //console.log("appByCategory : ", this.appByCategory)
         this.isAppreciationTable = true;
-        //this.reset();       
+        //this.reset();
       } else {
         // this.openAlertMod(template, response.serviceResponse)
         console.error(response.serviceResponse);
@@ -859,6 +893,73 @@ export class PortalConfigComponent implements OnInit {
     });
 
   }
+  getAppreciationEventSummaryInfo(appreciationEvent: any){
+    this.portalConfig = false;
+    this.appreciationConfig = false;
+    this.viewAppreciationForm = true;
+    this.isAppreciationTable = false;
+    this.isTable = false;
+    this.viewEventConfig = false;
+    this.isCreation = false;
+    this.isUpdation = false;
+    this.isHelpConfiguration = false;
+    this.appreciationObj = appreciationEvent;
+    //console.log("appreciationObj :",this.appreciationObj);
+    this.portalService.getAppreciationEventSummaryInfo(this.appreciationObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+         this.EventSummaryInfo= response.serviceResponse;
+         //console.log("EventSummaryInfo :",this.EventSummaryInfo);
+        }
+      else {
+        console.error(response.serviceResponse);
+
+      }
+    });
+
+    this.portalService.getAllEmployeeAppreciationListByCategory(this.appreciationObj).pipe(first()).subscribe((response:any) =>{
+      if (response.serviceStatus =="Success"){
+        this.EmployeeAppreciationList = response.serviceResponse;
+        //console.log("EmployeeAppreciationList :",this.EmployeeAppreciationList);
+
+
+      }
+      else {
+        console.error(response.serviceResponse);
+
+      }
+    });
+
+  }
+
+
+  viewAppreciationInfo(EmployeeAppreciationList:any){
+    this.portalConfig = false;
+    this.appreciationConfig = false;
+    this.viewAppreciationForm = false;
+    this.isAppreciationTable = false;
+    this.isTable = false;
+    this.viewEventConfig = false;
+    this.isCreation = false;
+    this.isUpdation = false;
+    this.isHelpConfiguration = false;
+    this.isAppreciationInfo = true;
+    this.EmployeeAppreciationList.forEach(element => {
+      this.appreciationObj[element.employeement_id] = element.employeement_id;
+    });
+    this.portalService.viewAppreciationInfo(this.appreciationObj).pipe(first()).subscribe((response:any) =>{
+      if (response.serviceStatus =="Success"){
+        this.AppreciationInfo = response.serviceResponse;
+        //console.log("appreciationObj:" ,this.appreciationObj);
+        //console.log("AppreciationInfo :",this.AppreciationInfo);
+      }
+      else {
+        console.error(response.serviceResponse);
+
+      }
+    });
+  }
+
+
   validateViewAppreciation(appreciationObj: enableAppreciation, template: TemplateRef<any>) {
 
     if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.appreciationEventId)) {
@@ -885,6 +986,7 @@ export class PortalConfigComponent implements OnInit {
     this.viewEventConfig = true;
     this.isCreation = false;
     this.isUpdation = false;
+    this.isAppreciationInfo = false;
     this.getAllEvent();
 
   }
@@ -927,11 +1029,11 @@ export class PortalConfigComponent implements OnInit {
     this.appreciationObj.fromDate = moment(this.appreciationObj.fromDate).format(dateFormat)
     this.appreciationObj.toDate = moment(this.appreciationObj.toDate).format(dateFormat)
     this.appreciationObj.appreciationEventName = this.appreciationObj.appreciationEventName;
-    this.appreciationObj.enableAppreciationList = this.enableAppreciationList; console.log("updateAppreciation : ", this.appreciationObj)
+    this.appreciationObj.enableAppreciationList = this.enableAppreciationList; //console.log("updateAppreciation : ", this.appreciationObj)
 
 
     this.appreciationObj.updatedBy = this.currentUser.empId;;
-    console.log("Update dept : ", this.appreciationObj);
+    //console.log("Update dept : ", this.appreciationObj);
     this.allAppreciationEvent = this.allAppreciationEvent.filter(x => x.appreciationEventId != this.appreciationObj.appreciationEventId);
     let checkEventDate = this.allAppreciationEvent.find(x => x.fromDate == this.appreciationObj.fromDate || x.toDate == this.appreciationObj.toDate || ((x.fromDate <= this.appreciationObj.toDate) && (this.appreciationObj.fromDate <= x.toDate)));
     if (checkEventDate != undefined) {
@@ -962,12 +1064,12 @@ export class PortalConfigComponent implements OnInit {
     this.appreciationObj.appreciationEventType = this.appreciationObj.appreciationEventType
     // this.appreciationObj.fromDate = new Date(moment(this.appreciationObj.fromDate).format('DD-MM-YYYY'));
     // this.appreciationObj.toDate = new Date(moment(this.appreciationObj.toDate).format('DD-MM-YYYY'));
-    console.log("this.appreciationObj : ", this.appreciationObj)
+    //console.log("this.appreciationObj : ", this.appreciationObj)
   }
   openDeleteAppreciationEvent(template: TemplateRef<any>, appreciationEvent: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.appreciationObj = appreciationEvent;
-    console.log(this.appreciationObj);
+    //console.log(this.appreciationObj);
   }
   onDeleteAppreciationEvent(template: TemplateRef<any>) {
     this.cancelRequest();
@@ -1000,14 +1102,14 @@ export class PortalConfigComponent implements OnInit {
     this.employeeList = [];
     let _employeeList = [];
 
-    console.log("Skip employee : ", employee)
+    //console.log("Skip employee : ", employee)
 
     this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         _employeeList = response.serviceResponse;
 
         this.employeeList = _employeeList.filter(x => x.employmentstatus != 'InActive');
-        console.log("employeeList : ", this.employeeList)
+        //console.log("employeeList : ", this.employeeList)
       } else {
         console.error(response.serviceResponse)
       }
@@ -1016,23 +1118,44 @@ export class PortalConfigComponent implements OnInit {
 
   // Help Config :: start
 
-  onFileSelect(event: any) {
+  onFileSelect(event: any,template:TemplateRef<any>) {
     this.files = [];
+    const allowedTypes = ['application/pdf'];
+    const maxSizeInBytes = 20 * 1024 * 1024; // 20MB
     let totalSize: number = 0;
+    let isSizeInRange:boolean = false;
     this.fileSize = 0;
     const uploadedFiles = event.target.files;
-    console.log("maxfilesize: " + this.maxFileSize);
+//console.log("maxFileSize  ::  ",maxSizeInBytes)
+    if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
+      this.openAlertMod(template,'Please select a valid file (pdf).');
+      event.target.value = ''; // Clear the input
+      return;
+    }
+    if(event.target.files[0].size > maxSizeInBytes){
+      this.openAlertMod(template, "File size is more than 20MB");
+      event.target.value = null;
+      isSizeInRange = false;
+   }else{
+    isSizeInRange = true;
+   }
+
+   if(isSizeInRange){
+    this.files = [];
+   
+    //console.log("maxfilesize: " + this.maxFileSize);
     if (uploadedFiles.length != 0) {
       for (let i = 0; i < uploadedFiles.length; i++) {
         let document = uploadedFiles[i];
         let fileName = document.name;
         this.fileSize = this.fileSize + uploadedFiles[i].size / 1024 / 1024;
-        console.log(this.fileSize);
+        //console.log(this.fileSize);
         let fileObj1 = { document: document, fileName: fileName }
         this.files.push(fileObj1);
-        console.log("Files : ", this.files);
+        //console.log("Files : ", this.files);
       }
     };
+  }
   }
 
   onUploadFiles(template: TemplateRef<any>){
@@ -1043,7 +1166,7 @@ export class PortalConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }else if(!this.validationService.validateAlphaNumericWithSpace(this.helpDocumentName)){
-      this.alertMessage = "Please enter Valid Help Document Name, Alphabets, Numbers & space allowed !!"
+      this.alertMessage = "Please enter Valid Help Document Name, Alphabets, Numericals & space allowed !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -1068,7 +1191,7 @@ export class PortalConfigComponent implements OnInit {
     formData.append("helpDocumentName", this.helpDocumentName);
     formData.append("uploadedBy", this.currentUser.empId);
 
-    console.log("Upload files : ", formData);
+    //console.log("Upload files : ", formData);
     this.helpService.uploadHelpDocument(formData).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == 'Success') {
         this.openAlertMod(template, response.serviceResponse);
@@ -1090,6 +1213,12 @@ export class PortalConfigComponent implements OnInit {
         this.document.forEach(doc => {
           doc.createdOn = (doc.createdOn)? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
+        this.document.forEach((employee) => {
+          console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+        });
         console.log("DocumentList : ", this.document);
       } else {
         console.error(response.serviceResponse);
@@ -1100,8 +1229,8 @@ export class PortalConfigComponent implements OnInit {
   onDeleteDocument(template: TemplateRef<any>) {
     this.cancelRequest();
 
-    console.log(this.helpObj, " : this.helpObj");
-    
+    //console.log(this.helpObj, " : this.helpObj");
+
 
     this.helpService.deleteHelpDocument(this.helpObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1137,8 +1266,8 @@ export class PortalConfigComponent implements OnInit {
 
   copyHelpDocumentLink(doc:any,template: TemplateRef<any>) {
     let url = window.location.href.split("#")[0].concat("#/helpdesk/").concat(doc.helpDocId);
-    console.log(url, " : url");
-    
+    //console.log(url, " : url");
+
     this.clipboardService.copy(url);
     this.openAlertMod(template, "Link copied to clipboard !!");
   }
@@ -1169,14 +1298,14 @@ export class PortalConfigComponent implements OnInit {
   handlePageChange(event) {
     this.page = event;
   }
-  
-  sortData(sort: Sort){	
-    console.log(sort);
+
+  sortData(sort: Sort){
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;
     }
   }
 
@@ -1189,7 +1318,7 @@ export class PortalConfigComponent implements OnInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 }
 

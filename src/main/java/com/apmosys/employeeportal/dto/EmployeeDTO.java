@@ -1,6 +1,9 @@
 package com.apmosys.employeeportal.dto;
 
 import java.util.List;
+import java.util.Set;
+
+import javax.persistence.Column;
 
 import com.apmosys.employeeportal.model.Notification;
 
@@ -10,15 +13,22 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+@ToString
 @Setter
 @Getter
-@ToString
 public class EmployeeDTO {
 
 	private Long empId;
+	
 	private Long employeementId;
 	private Long draftEmpId;
 	private String name;
+	//added by rahul for reffredType
+	private String referedType;
+	private String referedName;
+	//end of the code
+	
+	private Double performanceStatusPercentage;
 	private Long managerId;
 	private String dateOfJoining;
 	private String dateOfBirth;
@@ -71,6 +81,7 @@ public class EmployeeDTO {
 	private String pursuing;
 	private Short yearOfPassing;
 	private String passingGrade;
+	
 	private List<EmployeeCertificateDTO> certifications;
 	private List<PreviousEmploymentDTO> previousEmploymentList;
 	private String experience;
@@ -134,6 +145,10 @@ public class EmployeeDTO {
 	private Long teamLeadId;
 	private Integer projectId;
 	private String projectName;
+	private String poStartDate;
+	private String poEndDate;
+	private String poNo;
+	private String poProjectType;
 	private String startDate;
 	private String updatedOn;
 	private String teamLeadName;
@@ -162,6 +177,8 @@ public class EmployeeDTO {
 	private String isAssigned;
 	private Long tabId;
 	private List<FeatureMasterDTO> permissionList;
+	
+	private List<ProjectDTO> projectList;
 	
 	private Integer reporteeCount;
 	private String hierarchyType;
@@ -215,4 +232,46 @@ public class EmployeeDTO {
 	private Integer previouseCompOffExpiredCount;
 	
 	private Object newsletterReadCheck;
+	private String employmentReleaseStatus;
+	
+	// added by anurag countReporties
+	private Long noOfReporties;
+	
+//	added by anurag
+	private String updateType;
+	
+	private Long pipId;
+	private String pipReason;
+	private String pipFlag;
+	
+	private String billableType;
+	private String employeeName;
+	private Long count_of_employees;
+	private String reportiesFlag;
+    
+	private String employeeConfirmationDate;
+	
+	private String isConsultant;
+	// private String isApprenticeship;
+	private String currentExperienceYear;
+	private String dayOnbench;
+	private String onbenchDate;
+	
+	//by priyadarshini
+	private String isApprenticeship;
+	
+    private String isRetain;
+	private String dateOfRetain;
+	
+	private Set<String> projects;
+    private Set<String> teams;
+    
+    private Long reporteeCountManager;
+    private Long reporteeCountReportingManager;
+    
+    private String projectIds;
+    private String selectedProjectId;
+    private String hodDepartmentName;
+    private String teamIds;
+	
 }

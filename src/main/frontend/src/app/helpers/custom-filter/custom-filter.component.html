@@ -34,6 +34,7 @@
                 <ng-autocomplete
                 [data]="valueOptionList"
                 [searchKeyword]="keyword"
+                [placeholder]="getPlaceholder(query.column)"
                 (selected)='selectEvent($event)'
                 (inputChanged)='onChangeSearch($event)'
                 (inputFocused)="valueFocus(query.column)"
@@ -50,15 +51,18 @@
         <div class="col-md-2">
             <div class="form-group">
                 <label class="info-label">Conjunction</label>
-                <select class="form-control" aria-hidden="true" [(ngModel)]="query.conjunction" name="conjunction">
+                <select class="form-control" aria-hidden="true" [(ngModel)]="query.conjunction" name="conjunction"
+                [disabled]="i == queryList.length-1"
+                >
                     <option selected="selected" value="" ></option>
                     <option *ngFor="let con of conjunctionList" [value]="con.symbol">{{con.name}}</option>
                 </select>
                 <span class="text-danger" *ngIf="invalidForm && !query.conjunction && i<queryList.length-1">Required</span>
+
             </div>
         </div>
         <div class="col-md-3 pt-4 mt-2">
-            <button type="button" class="btn btn-outline-primary mx-1" (click)="addFilter(i); query.conjunction = 'AND'"><i class="fa fa-plus" aria-hidden="true"></i></button>
+            <button type="button" class="btn btn-outline-primary mx-1" (click)="addFilter(i);"><i class="fa fa-plus" aria-hidden="true"></i></button>
             <button *ngIf="queryList.length>1" type="button" class="btn btn-outline-primary mx-1" (click)="removeFilter(i)"><i class="fa fa-trash" aria-hidden="true"></i></button>
         </div>
     </div>

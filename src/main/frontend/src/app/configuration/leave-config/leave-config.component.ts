@@ -1,19 +1,20 @@
 import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Sort } from '@angular/material/sort';
+import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
 import { Feature } from 'src/app/models/feature';
 import { Holiday } from 'src/app/models/holiday';
 import { Leave } from 'src/app/models/leave';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { HolidayService } from 'src/app/services/holiday.service';
 import { LeaveService } from 'src/app/services/leave.service';
+import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { ExportExcelService } from 'src/app/services/export-excel.service';
-import { Sort } from '@angular/material/sort';
-import * as moment from 'moment';
-import { AppComponent } from 'src/app/app.component';
 
 @Component({
   selector: 'app-leave-config',
@@ -26,6 +27,7 @@ export class LeaveConfigComponent implements OnInit {
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType:any;
+  _holidayList:any;
 
   //flags 
   isCreation: boolean = false;
@@ -125,6 +127,7 @@ export class LeaveConfigComponent implements OnInit {
   leaveTypeColumns:any[] = ['leaveType', 'leaveTypeCode', 'gender', 'noOfDays','rules', 'updatedOn', 'updatedByName', 'description'];
   leavePolicyColumns:any[] = ['blank','leavePolicyName','leaveType','description','createdByName','createdOn','updatedOn','updatedByName'];
 
+  employeesFor360: any[] = [];
 
   constructor(
     private validationService: ValidationService,
@@ -134,21 +137,31 @@ export class LeaveConfigComponent implements OnInit {
     private datePipe: DatePipe,
     private leaveService: LeaveService,
     private exportExcelService: ExportExcelService,
-    private locationStrategy: LocationStrategy) {
+    private locationStrategy: LocationStrategy,
+    private utilityService: UtilityService,
+  ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
+
     // Dynamic Subfeature Flags 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
+    //console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
     this.preventBackButton();
     this.dynamicYearForDropdown();
+    this.showHoliaysTable();
   }
   preventBackButton() {
     history.pushState(null, null, location.href);
@@ -207,7 +220,8 @@ export class LeaveConfigComponent implements OnInit {
     setTimeout(this.setCurrentYearLimit, 500);
   }
 
-  showHoliaysTable() {
+  async showHoliaysTable() {
+    
     this.employeeData = []
     this.isHolidayTable = true;
 
@@ -225,6 +239,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isSearchEnabled = false;
 
     this.getAllHolidays();
+    
   }
 
   showLeaveTypesTable() {
@@ -344,6 +359,8 @@ export class LeaveConfigComponent implements OnInit {
     this.isCreation = false;
 
     this.leavePolicyObj = Object.assign({}, leavePolicyObj);
+    //console.log("this.leavePolicyObj ",this.leavePolicyObj);
+    
     this.getAllLeaveTypes();
   }
 
@@ -403,13 +420,13 @@ export class LeaveConfigComponent implements OnInit {
     for (var i = 1; i < 2; i++) {
       this.years.push(currentYear - i);
     }
-    console.log(this.years, "dynamic year");
+    //console.log(this.years, "dynamic year");
 
   }
 
   checkLeaveType(leaveTypeObj:Leave, template: TemplateRef<any>){
     let leaveCheck = Object.assign({}, leaveTypeObj);
-    console.log("Leave Check : ", leaveCheck);
+    //console.log("Leave Check : ", leaveCheck);
     this.leaveService.checkLeaveType(leaveCheck).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         // Valid Leave Type
@@ -443,7 +460,7 @@ export class LeaveConfigComponent implements OnInit {
   openDeleteLeaveType(template: TemplateRef<any>, leaveType: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.leaveTypeObj = leaveType;
-    console.log(this.leaveTypeObj);
+    //console.log(this.leaveTypeObj);
   }
 
   // Holiday
@@ -570,11 +587,13 @@ export class LeaveConfigComponent implements OnInit {
 
     // this.holidayObj.dateOfHoliday = this.datePipe.transform(this.holidayObj.dateOfHoliday, 'dd-MM-yyyy');
     this.holidayObj.createdBy = this.currentUser.empId;
-    console.log("Add Holiday : ", this.holidayObj);
+    //console.log("Add Holiday : ", this.holidayObj);
     this.holidayService.addHoliday(this.holidayObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
+         this.openAlertMod(template, response.serviceResponse);
         this.showHoliaysTable();
+        this.getAllHolidays();
+        console.log("last in" ,this.holidayListFilter)
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -588,7 +607,7 @@ export class LeaveConfigComponent implements OnInit {
 
     // this.holidayObj.dateOfHoliday = this.datePipe.transform(this.holidayObj.dateOfHoliday, 'dd-MM-yyyy');
     this.holidayObj.updatedBy = this.currentUser.empId;
-    console.log("update Holiday : ", this.holidayObj);
+    //console.log("update Holiday : ", this.holidayObj);
 
     this.holidayService.updateHoliday(this.holidayObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -616,7 +635,7 @@ export class LeaveConfigComponent implements OnInit {
 
 
   onSelect() {
-    this.selectedHolidayType = "";
+   // this.selectedHolidayType = "";
     if(this.selectedYear != null){
       if (this.selectedState == 'all state') {
         this.holidayListFilter = this.holidayList.filter((holiday:Holiday)=> moment(holiday.dateOfHoliday, "DD-MM-YYYY").year() == this.selectedYear);
@@ -636,32 +655,61 @@ export class LeaveConfigComponent implements OnInit {
     }
   }
 
-  getAllHolidays() {
+ 
 
+   getAllHolidays() {
+
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.holidayList = [];
     this.holidayListFilter = [];
     this.data = ''
 
-    this.holidayService.getAllHolidays().pipe(first()).subscribe((response: any) => {
+    // this.holidayObj.state=this.currentUser.workLocation;
+    this.holidayService.getAllHoliday().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.holidayListFilter = response.serviceResponse;
         this.holidayList = response.serviceResponse;
+        
+        this.holidayListFilter.forEach((employee) => {
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          // console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          // console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+        });
 
         this.holidayListFilter.forEach(holiday => {
           holiday.dateOfHoliday = (holiday.dateOfHoliday) ? moment(holiday.dateOfHoliday).format(AppComponent.DATE_FORMAT) : null;
           holiday.createdOn = (holiday.createdOn) ? moment(holiday.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           holiday.updatedOn = (holiday.updatedOn) ? moment(holiday.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
-
-        console.log(this.holidayListFilter, " : this.holidayListFilter");
+        this._holidayList=this.holidayList;
+        // this.changeEvent(this.currentUser.workLocation);
+        this.selectedState='all';
         this.filterHolidayListByYear(new Date().getFullYear());
         this.selectedHolidayType = "Festival";
         this.onHolidayTypeSelected();
+        
       } else {
         console.error(response.serviceResponse);
       }
     });
   }
+
+  changeEvent(value:string){
+    this.selectedHolidayType = "";
+    if(value == 'all'){
+      this.holidayList = this._holidayList.filter(x=> x.state == 'all');
+    }else{
+      this.holidayList = this._holidayList.filter((holiday:Holiday)=> (moment(holiday.dateOfHoliday, "DD-MM-YYYY").year() == this.selectedYear) && holiday.state == this.selectedState);
+    }
+  }
+
 
   filterHolidayListByYear(value: any) {
     this.selectedHolidayType = "";
@@ -671,6 +719,8 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   checkOccasion(template: TemplateRef<any>) {
+    this.holidayObj.currentYear = new Date().getFullYear();
+    
     this.holidayService.checkOccasionIfAlreadyExist(this.holidayObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.holidayObj.occasion = null;
@@ -685,7 +735,7 @@ export class LeaveConfigComponent implements OnInit {
     if (this.isHolidayTable == true) {
       this.excelName = 'HolidaySheet.xlsx';
 
-      this.holidayService.getAllHolidays().pipe(first()).subscribe((response: any) => {
+      this.holidayService.getAllHolidays(this.holidayObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.holidayDataForExcel = response.serviceResponse;
         }
@@ -796,6 +846,7 @@ export class LeaveConfigComponent implements OnInit {
     this.leaveTypeObj.leaveTypeCode = this.leaveTypeObj.leaveTypeCode?.trim();
     this.leaveTypeObj.description = this.leaveTypeObj.description?.trim();
     this.leaveTypeObj.rules = this.leaveTypeObj.rules?.trim();
+    this.leaveTypeObj.createdBy = this.currentUser.empId;
 
     let inputValidated: boolean = this.validateLeaveTypeObj(this.leaveTypeObj, template)
     if (!inputValidated) return;
@@ -806,7 +857,7 @@ export class LeaveConfigComponent implements OnInit {
       return;
     }
 
-    console.log("Add Leave Type : ", this.leaveTypeObj);
+    //console.log("Add Leave Type : ", this.leaveTypeObj);
 
     this.leaveService.createLeaveType(this.leaveTypeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -819,7 +870,7 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   onUpdateLeaveType(template: TemplateRef<any>) {
-    console.log("update Leave Type : ", this.leaveTypeObj);
+    //console.log("update Leave Type : ", this.leaveTypeObj);
     this.leaveTypeObj.updatedBy = this.currentUser.empId;
 
     this.leaveService.updateLeaveType(this.leaveTypeObj).pipe(first()).subscribe((response: any) => {
@@ -832,22 +883,40 @@ export class LeaveConfigComponent implements OnInit {
     });
   }
 
-  getAllLeaveTypes() {
+  async getAllLeaveTypes() {
+    
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.leaveTypes = [];
     this.data = ''
     this.leaveService.getAllLeaveTypes().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveTypes = response.serviceResponse;
-        console.log("leaveTypes : ", this.leaveTypes);
+        //console.log("leaveTypes : ", this.leaveTypes);
         this.leaveTypes.forEach((leaveObj)=>{
           leaveObj.updatedOn = (leaveObj.updatedOn) ? moment(leaveObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+          leaveObj.createdOn = (leaveObj.createdOn) ? moment(leaveObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         })
+        this.leaveTypes.forEach((employee) => {
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          // console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          // console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+        });
+        
+        console.log("leaveTypes : ", this.leaveTypes);
       } else {
         console.error(response.serviceResponse);
       }
     });
   }
-
+  
+  
   onDeleteLeaveType(template: TemplateRef<any>, alertTemplate: TemplateRef<any>) {
     this.cancelRequest();
 
@@ -926,6 +995,48 @@ export class LeaveConfigComponent implements OnInit {
     return (true);
   }
 
+
+
+
+  fieldRestictCharacterForLeave(event) {
+    var k;
+    var inputField = event.target; // Get the input field where the event is triggered
+
+    // Restrict length to a maximum of 8 characters
+    if (inputField.value.length >= 8) {
+        // If the length is already 8 or more, prevent further input
+        event.preventDefault();
+        return false;
+    }
+
+    k = event.charCode;
+
+    // Check if the character code matches any of the restricted characters
+    if (
+      (k == 33) || (k == 34) || (k == 35) || (k == 36) || (k == 37) ||
+      (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42) ||
+      (k == 43) || (k == 44) || (k == 46) || (k == 47) || (k == 58) ||
+      (k == 59) || (k == 60) || (k == 61) || (k == 62) || (k == 63) ||
+      (k == 64) || (k == 66) || (k == 67) || (k == 68) || (k == 69) ||
+      (k == 70) || (k == 71) || (k == 72) || (k == 73) || (k == 74) ||
+      (k == 75) || (k == 76) || (k == 77) || (k == 78) || (k == 79) ||
+      (k == 80) || (k == 81) || (k == 82) || (k == 83) || (k == 84) ||
+      (k == 85) || (k == 86) || (k == 87) || (k == 88) || (k == 89) ||
+      (k == 90) || (k == 91) || (k == 92) || (k == 93) || (k == 94) ||
+      (k == 95) || (k == 96) || (k == 97) || (k == 98) || (k == 99) ||
+      (k == 100) || (k == 101) || (k == 102) || (k == 103) || (k == 104) ||
+      (k == 105) || (k == 106) || (k == 107) || (k == 108) || (k == 109) ||
+      (k == 110) || (k == 111) || (k == 112) || (k == 113) || (k == 114) ||
+      (k == 115) || (k == 116) || (k == 117) || (k == 118) || (k == 119) ||
+      (k == 120) || (k == 121) || (k == 122) || (k == 123) || (k == 124) ||
+      (k == 125) || (k == 126)
+    ) {
+        return false; // Disallow the character if it's a restricted character
+    }
+
+    return true; // Allow the character if it's not restricted
+}
+
   // Manage Leave Balance
   onGetEmpLeaveBalance(template: TemplateRef<any>) {
     this.leaveBalanceList = [];
@@ -938,17 +1049,33 @@ export class LeaveConfigComponent implements OnInit {
         return false;
       }
       leaveObj.employeementId = this.leaveBalanceObj.employeementId.substring(2);
-      console.log("Employee :", this.leaveBalanceObj);
+      //console.log("Employee :", this.leaveBalanceObj);
     } else {
       leaveObj.employeementId = this.leaveBalanceObj.employeementId
+    }
+
+    if (!this.validationService.validateEmployeementId(leaveObj.employeementId)) {
+      this.alertMessage = "Please enter valid Employee ID !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
     this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveBalanceList = response.serviceResponse;
         this.leaveBalanceObj.empId = response.serviceResponse1;
         this.employeeData = response.serviceResponse2;
-        console.log("employeeData : ", this.employeeData);
-        console.log("leaveBalanceList : ", this.leaveBalanceList);
+        //console.log("employeeData : ", this.employeeData);
+        //console.log("leaveBalanceList : ", this.leaveBalanceList);
+        this.employeeData.forEach((employee) => {
+          // console.log("employee.empId ", employee.empId);
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
+          // console.log("empId ", matchingEmployee);
+          employee.emp360 = matchingEmployee ? matchingEmployee : {};
+          // console.log("employee.managerId ", employee.managerId);
+          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === employee.managerId);
+          // console.log("managerId ", matchingEmployee);
+          employee.emp360ManagerId = matchingEmployee2 ? matchingEmployee2 : {};
+        });
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -981,7 +1108,7 @@ export class LeaveConfigComponent implements OnInit {
 
     this.leaveBalanceObj.employeeLeaveList = this.leaveBalanceList;
     this.leaveBalanceObj.employeementId = this.leaveBalanceObj.employeementId?.substring(2)
-    console.log("manage Leave Balance :", this.leaveBalanceObj);
+    //console.log("manage Leave Balance :", this.leaveBalanceObj);
     this.leaveService.updateLeavesByEmpId(this.leaveBalanceObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -1014,6 +1141,32 @@ export class LeaveConfigComponent implements OnInit {
       return false;
     }
 
+   if(leavePolicyObj.leaveTypeMasterId == 18){
+    if (!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.maritalStatus)) {
+      this.alertMessage = "Please Select Marital Status !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    if(leavePolicyObj.maritalStatus != null){
+      if (!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.maternityType)) {
+        this.alertMessage = "Please Select Maternity Type !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+    if(leavePolicyObj.maternityType != null){
+      if (!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.maternityLeaveDays)) {
+        this.alertMessage = "Please Enter allowed Maternity Leave days for "+leavePolicyObj.maternityType+" !!";
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+      if(!this.validationService.validateNumber(leavePolicyObj.maternityLeaveDays)){
+        this.alertMessage = "Please Enter valid allowed Maternity Leave days for "+leavePolicyObj.maternityType+" !!";
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+   }
     // Policy Checks
 
     if (!this.validationService.validateNullUndefinedEmptyString(leavePolicyObj.leaveApplication)) {
@@ -1125,7 +1278,7 @@ export class LeaveConfigComponent implements OnInit {
     if (!inputValidated) return;
 
     this.leavePolicyObj.createdBy = this.currentUser.empId;
-    console.log("Add Leave Policy : ", this.leavePolicyObj);
+    //console.log("Add Leave Policy : ", this.leavePolicyObj);
 
     this.leaveService.addLeavePolicy(this.leavePolicyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1142,7 +1295,7 @@ export class LeaveConfigComponent implements OnInit {
     if (!inputValidated) return;
 
     this.leavePolicyObj.updatedBy = this.currentUser.empId;
-    console.log("update Leave Policy : ", this.leavePolicyObj);
+    //console.log("update Leave Policy : ", this.leavePolicyObj);
 
     this.leaveService.updateLeavePolicy(this.leavePolicyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1155,7 +1308,7 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   ondeleteLeavePolicy(template: TemplateRef<any>) {
-    console.log("Delete Leave Policy : ", this.leavePolicyObj);
+    //console.log("Delete Leave Policy : ", this.leavePolicyObj);
 
     this.leaveService.deleteLeavePolicyByLeavePolicyMasterId(this.leavePolicyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1168,7 +1321,9 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   getAllLeavePolicies() {
-
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.data = ''
     this.leavePolicyList = [];
 
@@ -1179,7 +1334,17 @@ export class LeaveConfigComponent implements OnInit {
           leavePolicy.createdOn = (leavePolicy.createdOn) ? moment(leavePolicy.createdOn).format(AppComponent.DATE_FORMAT) : null;
           leavePolicy.updatedOn = (leavePolicy.updatedOn) ? moment(leavePolicy.updatedOn).format(AppComponent.DATE_FORMAT) : null;
         });
-        console.log("leavePolicyList : ", this.leavePolicyList);
+        this.leavePolicyList.forEach((employee) => {
+         // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          // console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          // console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+        });
+        //console.log("leavePolicyList : ", this.leavePolicyList);
       } else {
         console.error(response.serviceResponse);
       }
@@ -1187,10 +1352,10 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   getLeavePolicyByEmploymentStatusAndLeaveType() {
-    console.log("get Leave Policy : ", this.leavePolicyObj);
+    //console.log("get Leave Policy : ", this.leavePolicyObj);
     this.leaveService.getLeavePolicyByEmployentStatusAndLeaveTypeMasterId(this.leavePolicyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        console.log("Leave Policy : ", response.serviceResponse);
+        //console.log("Leave Policy : ", response.serviceResponse);
       } else {
         console.error(response.serviceResponse);
       }
@@ -1205,7 +1370,7 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   sortData(sort: Sort){	
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -1223,8 +1388,20 @@ export class LeaveConfigComponent implements OnInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
+
+  createForResetOtherField(){
+    this.leavePolicyObj.maritalStatus = '';
+    this.leavePolicyObj.maternityLeaveDays = '';
+    this.leavePolicyObj.maternityType = '';
+  }
+
+  fieldResetOnChangeMaternityType(leavePolicy:Leave){
+    leavePolicy.maternityLeaveDays = '';
+
+  }
+
 
 }
 

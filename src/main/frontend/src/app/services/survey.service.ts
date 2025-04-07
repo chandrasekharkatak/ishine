@@ -51,4 +51,30 @@ export class SurveyService {
     getSurveyAllResponsesBySurveyId(surveyObj: Survey) {
         return this.http.post(`${this.baseUrl}` + `api/getSurveyAllResponsesBySurveyId`, surveyObj);
     }
+
+    uploadImage(file: File) {
+        const formData: FormData = new FormData();
+        formData.append('file', file);
+        return this.http.post(`${this.baseUrl}api/upload/uploadImage`, formData);
+    }
+
+    uploadVideo(file: File) {
+        const formData: FormData = new FormData();
+        formData.append('file', file);
+        return this.http.post(`${this.baseUrl}api/upload/uploadVideo`, formData);
+    }
+
+    private _surveyObj: any;
+
+    setSurveyData(surveyObj: any) {
+        this._surveyObj = surveyObj;
+        console.log("this._surveyObj get", this._surveyObj );
+        
+    }
+
+    getSurveyData(): any {
+        console.log("this._surveyObj set", this._surveyObj );
+        return this._surveyObj;
+
+  }
 }

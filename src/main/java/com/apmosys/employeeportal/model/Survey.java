@@ -43,5 +43,7 @@ public class Survey {
 	private Long updatedBy;
 	
 	private String type;
+	private String imageUrl;
+    private String videoUrl;
 
 }

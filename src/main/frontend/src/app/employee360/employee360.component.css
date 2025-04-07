@@ -1,0 +1,395 @@
+/* General Styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+  }
+  .text-name{
+    font-size: 26px;
+    color: #231e8d;
+    font-weight: bold;
+  }
+  .employee-card {
+    border: none;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    /* height: 100%; */
+  }
+  .container-fluid{
+       margin-top: 4%;
+  }
+ 
+  .profile-picture {
+        border-radius: 50%;
+        object-fit: cover;
+      
+  }
+  
+  .profile-picture img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  
+  .profile-name {
+    font-size: 1.5rem;
+    margin: 5px 0;
+  }
+  
+  .profile-email,
+  .profile-phone {
+    font-size: 0.9rem;
+    margin: 5px 0;
+  }
+  
+ 
+  
+  .profile-details p {
+    margin: 0px 0;
+  }
+  .nav-link {
+    text-transform: uppercase;
+}
+.report__tab-item__link {
+  text-transform: uppercase;
+}
+  /* Header */
+  .employee-header {
+    background-color: #17249f;
+    color: white;
+    text-align: center;
+    padding: 1.2rem;
+  }
+  
+  .employee-header h2 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: bold;
+  }
+  
+  .highlight-text {
+    color: #fff38d;
+  }
+  
+  /* Tabs */
+  .report__tabs {
+    border-bottom: 2px solid #ddd;
+  }
+  
+  .report__tab-item__link {
+    color: #888;
+    font-weight: bold;
+    padding: 1rem;
+  }
+  
+  .report__tab-item__link.active {
+    color: #182ca0;
+    background: #eef0fd;
+    border-bottom: 3px solid #163ea2;
+  }
+  .config__tab-container {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+    
+    /* Scrollbar styles */
+    scrollbar-width: thin; /* For Firefox */
+    scrollbar-color: #888 #f1f1f1; /* For Firefox */
+}
+
+/* For Chrome, Edge, and Safari */
+.config__tab-container::-webkit-scrollbar {
+    width: 8px; /* Width of the scrollbar */
+}
+
+.config__tab-container::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Track color */
+    border-radius: 10px;
+}
+
+.config__tab-container::-webkit-scrollbar-thumb {
+    background: #888; /* Scrollbar handle color */
+    border-radius: 10px;
+}
+
+.config__tab-container::-webkit-scrollbar-thumb:hover {
+    background: #555; /* Handle color on hover */
+}
+
+  /* Table */
+  .project-table th {
+    background-color: #101e9c;
+    color: white;
+    text-align: center;
+  }
+  
+  .project-table td {
+    text-align: center;
+  }
+  
+  .see-more {
+    color: #1313b9;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  
+  .see-more:hover {
+    text-decoration: underline;
+  }
+  
+
+
+
+
+  /* Scrollable router-outlet */
+.config__tab-container {
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+ 
+}
+
+/* Sticky tabs */
+.config__tabs {
+  position: sticky;
+  top: 0;
+  z-index: 1000; /* Ensure it stays above other content */
+  background-color: white; /* To prevent transparency */
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Optional for better visibility */
+}
+
+
+
+/* Profile Section */
+.profile-section {
+  color: #0e0e0e;
+  padding: 3px;
+  text-align: center;
+  border-radius: 10px;
+  position: relative;
+  margin-top: 3%;
+  /* overflow-y: auto; */
+  max-height: calc(100vh - 30px);
+  width: 99%;
+}
+
+.profile-card {
+  width: 100%;
+  
+  margin: auto;
+  text-align: center;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 3px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+.profile-picture img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.textValue{
+  text-align: left;
+    font-size: 19px;
+    color: #5e5b5bde;
+    font-weight: 500;
+}
+.profile-email1{
+  display: inline-block;
+  display: inline-block; 
+  margin-left: 36%;
+  font-size: 20px;
+}
+.profile-name {
+  margin: 10px 0;
+    color: #1309e3;
+    font-size: 28px;
+    font-weight: bold;
+}
+.profile-email, .profile-phone {
+  color: #666;
+  margin: 5px 0;
+}
+.profile-details {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 20px;
+  text-align: left;
+}
+.profile-details div {
+  padding: 10px;
+  background: #f9f9f9;
+  border-radius: 5px;
+}
+.profile-details strong {
+  display: block;
+  color: #6c6b6b;
+  font-size: 18px;
+}
+
+/* Responsiveness */
+@media (max-width: 768px) {
+  .profile-section {
+    background-color: #ffffff;
+    color: #0e0e0e;
+    padding: 3px;
+    text-align: center;
+    border-radius: 10px;
+    position: relative;
+    /* overflow-y: auto; */
+    max-height: calc(100vh - 30px);
+    width: 99%;
+    margin-top: 3%;
+  }
+
+  .profile-picture {
+    height: 100px;
+    width: 100px;
+  }
+
+  .profile-picture img {
+    width: 80px;
+    height: 80px;
+  }
+
+  .profile-name {
+    font-size: 1.2rem;
+  }
+
+  .profile-details {/* General Styling */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+    }
+    
+    .employee-card {
+      border: none;
+      box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-left: -1%;
+      /* height: 100%; */
+    }
+    
+   
+    
+    .profile-picture img {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 3px solid #fff;
+    }
+    
+    .profile-name {
+      font-size: 1.5rem;
+      margin: 5px 0;
+    }
+    
+    .profile-email,
+    .profile-phone {
+      font-size: 0.9rem;
+      margin: 5px 0;
+    }
+    
+    .profile-details {
+      margin-top: 15px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    
+    .profile-details p {
+      margin: 5px 0;
+    }
+    
+    /* Header */
+    .employee-header {
+      background-color: #17249f;
+      color: white;
+      text-align: center;
+      padding: 1.2rem;
+    }
+    
+    .employee-header h2 {
+      margin: 0;
+      font-size: 1.8rem;
+      font-weight: bold;
+    }
+    
+    .highlight-text {
+      color: #fff38d;
+    }
+    
+    /* Tabs */
+    .report__tabs {
+      border-bottom: 2px solid #ddd;
+    }
+    
+    .report__tab-item__link {
+      color: #888;
+      font-weight: bold;
+      padding: 1rem;
+    }
+    
+    .report__tab-item__link.active {
+         color: #182ca0;
+    border-bottom: 3px solid #163ea2;
+    background: aliceblue;
+    border-left: 0px;
+    border-right: 0px;
+    border-top: 0px;
+    }
+    
+    /* Table */
+    .project-table th {
+      background-color: #101e9c;
+      color: white;
+      text-align: center;
+    }
+    
+    .project-table td {
+      text-align: center;
+    }
+    
+    .see-more {
+      color: #1313b9;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    
+    .see-more:hover {
+      text-decoration: underline;
+    }
+    
+    /* Scrollable router-outlet */
+    .config__tab-container {
+      max-height: calc(100vh - 200px);
+      overflow-y: auto;
+    }
+    
+    /* Sticky tabs */
+    .config__tabs {
+      position: sticky;
+      top: 0;
+      z-index: 1000; /* Ensure it stays above other content */
+      background-color: white; /* To prevent transparency */
+      box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Optional for better visibility */
+    }
+    
+
+    
+   
+    
+    .row {
+      height: 100vh; /* Ensure the row takes full height of the viewport */
+    }
+    
+    font-size: 0.8rem;
+  }
+}
+
+
+.row {
+  height: 100vh; /* Ensure the row takes full height of the viewport */
+}

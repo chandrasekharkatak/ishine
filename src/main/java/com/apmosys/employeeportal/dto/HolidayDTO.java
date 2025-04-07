@@ -29,6 +29,8 @@ public class HolidayDTO {
 	private String createdOn;
 	private String updatedOn;
 	private String updatedByName;
-	private String updatedBy;
+	private Integer updatedBy;
 	
+	private Integer yearOfOccassion;
+	private Integer currentYear;
 }

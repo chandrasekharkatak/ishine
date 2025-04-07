@@ -155,7 +155,7 @@
 }
 
 .placeholder-img{
-    width: 30%;
+    width: 40%;
     margin: 1em auto;
 }
 
@@ -185,7 +185,11 @@
     flex-direction: column;
 }
 
-.leave-details, .team-requests{
+.team-requests{
+    height: 60%;
+}
+
+.leave-details{
     height: 100%;
 }
 
@@ -193,7 +197,7 @@
     display: flex;
     flex-direction: column;
     align-content: space-around;
-
+    
     text-align: center;
     overflow-x: auto;
     overflow-y: hidden;
@@ -225,11 +229,11 @@
 }
 
 .leaveBucketTable td, .leaveBucketTable th {
-    padding: 0;
+    padding: 1px;
 }
 
 .leave-body--scroll {
-    max-height: 50px;
+    max-height: 104px;
 }
 
 .leave-bucket-headers, 
@@ -269,6 +273,10 @@
   .releaseNoteText::-webkit-scrollbar-thumb {
     box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
   }
+
+.user-menu .dropdown-item {
+    cursor: pointer;
+}
 
 @media (min-width: 1024px){
     .home-container{
@@ -351,5 +359,51 @@
 }
 
 .highlight {
-    background-color: rgb(171, 193, 253);
+    background-color: rgb(193, 207, 246);
+}
+.eye-img{
+    color: #193d8a;
+}
+
+/* .reward{
+    height: 21.5rem;
+} */
+
+.reward-content-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.reward-content {
+    overflow-y: auto;
+    max-height: calc(100% - 4rem); 
+}
+
+.additional-title {
+    margin-top: auto; 
+    padding-top: 10px;
+    color: none!important; 
+}
+.current-month-year{
+    color: black;
+}
+
+.tabs .nav-pills .nav-link {
+    background-color: #e7eaed; 
+    color: #06135d;           
+    padding: 8px 20px;        
+    transition: background-color 0.3s ease, color 0.3s ease;
+    cursor: pointer;
+}
+
+.tabs .nav-pills .nav-link:hover {
+    background-color: #011d3a; 
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.tabs .nav-pills .nav-link.active {
+    background-color: #02346a; 
+    color: #ffffff;     
 }

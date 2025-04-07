@@ -15,6 +15,6 @@ export class enableAppreciation{
 	reason:any;
 	updatedBy:any;
 	appreciationEventType:any;
-
+	employeement_id:any;
 	
 }

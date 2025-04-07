@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, OnInit, Output, SecurityContext, TemplateRef, ViewChild, } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnInit, Output, SecurityContext, TemplateRef, ViewChild, } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -23,7 +23,7 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
   isInfoPreview: boolean = false;
 
   isPreview:boolean = false;
-
+  @Input() showBody: boolean = false;
   @ViewChild("draftTable") 
   private myDraftTable: EmployeeUpdateListComponent;
 
@@ -97,7 +97,7 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
   }
 
   async onShowPreview(){
-    console.log("draftObj : ", this.draftObj);
+    //console.log("draftObj : ", this.draftObj);
     
     let currentEmp = new Employee();
     currentEmp.employeementId = this.draftObj.employeementId;
@@ -109,9 +109,9 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
     const docResponse:any = await this.imageService.getEmployeeDocuments(currentEmp).toPromise();
     if (docResponse.serviceStatus == 'Success') {
       this.previewObj.documentList = docResponse.serviceResponse;
-      console.log("this.previewObj.documentList : ", this.previewObj.documentList);
+      //console.log("this.previewObj.documentList : ", this.previewObj.documentList);
     } else {
-      console.log(docResponse.serviceResponse);
+      //console.log(docResponse.serviceResponse);
     }
   
     this.isPreview = true;
@@ -153,7 +153,7 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
 
     this.draftObj.updateApplicationStatus = 'In-Progress';
     this.draftObj.updatedBy = this.updateUserInfoService.currentUser.empId ;
-    console.log(this.draftObj);
+    //console.log(this.draftObj);
     this.employeeService.revokeDraftEmployeeApplication(this.draftObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -166,7 +166,7 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
   onDelete(template: TemplateRef<any>){
     this.cancelRequest();
 
-    console.log(this.draftObj);
+    //console.log(this.draftObj);
     this.employeeService.deleteDraftEmployee(this.draftObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);

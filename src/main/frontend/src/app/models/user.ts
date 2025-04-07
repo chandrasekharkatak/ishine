@@ -39,6 +39,8 @@ export class User{
 	hodName:any;
     hodEmail:any;
 
+    firstName: any;
+
     isTimesheetLockCheckEnable:any;
     timesheetLockUpdatedOn:any;
 	timesheetBackDatedDays:any;
@@ -61,4 +63,10 @@ export class User{
     probationPeriod: any;
 
     newsletterReadCheck:any;
+    workLocation:any;
+    maritalStatus : any;
+    jobRoleName : any;
+    pipReason : any;
+	pipFlag : any;
+	pipId: any;
 }

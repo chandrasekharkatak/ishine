@@ -41,10 +41,17 @@ public class HolidayController {
 		return response;
 	}
 
-	@RequestMapping(value = "/getAllHolidays", method = RequestMethod.GET)
+	@RequestMapping(value = "/getAllHolidays", method = RequestMethod.POST)
+	public ServiceResponse getAllHolidays(@RequestBody HolidayDTO holidayDTO) {
+
+		ServiceResponse response = holidayService.getAllHolidays(holidayDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getAllHoliday", method = RequestMethod.GET)
 	public ServiceResponse getAllHolidays() {
 
-		ServiceResponse response = holidayService.getAllHolidays();
+		ServiceResponse response = holidayService.getAllHoliday();
 		return response;
 	}
 	

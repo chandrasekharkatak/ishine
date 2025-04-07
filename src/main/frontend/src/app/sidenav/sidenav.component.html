@@ -8,14 +8,19 @@
     </div>
 
     <ul class="sidenav-nav">
-        <li class="sidenav-nav-item" *ngFor="let data of menuItems, let i = index" title="{{data.tabName}}">
-            <a class="sidenav-nav-link" [routerLink]="[data.tabRouteName]" 
-                routerLinkActive="active"
-                [routerLinkActiveOptions]="{exact: false}"
-            >
-                <i class="sidenav-link-icon" [class]="data.tabIcon"></i>
-                <span class="sidenav-link-text" *ngIf="collapsed">{{data.tabName}}</span>
+        
+        <li class="sidenav-nav-item" *ngFor="let data of menuItems; let i = index" title="{{data.tabName}}">
+            <a 
+              class="sidenav-nav-link" 
+              [routerLink]="firstTimeLogin === 'false' ? [data.tabRouteName] : null"  
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{exact: false}"
+              (click)="onTabClick($event)" 
+              [ngClass]="{'disabled-link': firstTimeLogin === 'false'}"       >
+              <i class="sidenav-link-icon" [class]="data.tabIcon"></i>
+              <span class="sidenav-link-text" *ngIf="collapsed">{{data.tabName}}</span>
             </a>
-        </li>
+          </li>
+          
     </ul>
 </div>

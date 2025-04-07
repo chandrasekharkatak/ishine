@@ -1,4 +1,6 @@
 export class Timesheet{
+  [x: string]: any;
+    checkId:any
     timesheetId:any;
     date:any;
     dayType:any;
@@ -11,6 +13,7 @@ export class Timesheet{
     createdByName : any;	
 	updatedOn: any;	
 	updatedBy: any;
+    currentManagerId: any;
 
 
     projectId : any;
@@ -27,6 +30,9 @@ export class Timesheet{
 	weekDayName : any;
 	totalWorkingHours : any;
     totalWorkingHoursPercentage : any;
+
+    isConsultant: any;
+
 
     // how many hour employee worked
     totalTime: any;
@@ -67,4 +73,17 @@ export class Timesheet{
 
     displayTeam:any;
     inactiveTimesheetActivities:any;
+
+
+    // 360 time sheet 
+    name: any;
+    activity: any;
+    project: any;
+    inTime:any;
+    outTime: any;
+    appliedOn: any;
+    selected : any;
+    timeSheet: any;
+    nightShift: any;
+    remarks: any;
 }

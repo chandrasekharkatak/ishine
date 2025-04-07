@@ -97,6 +97,8 @@ public class LeaveTypeMasterService {
 					leaveDTO.setGender(object[9] != null ? object[9].toString() : null);
 					leaveDTO.setUpdatedOn(object[11] != null ? object[11].toString() : null);
 					leaveDTO.setUpdatedByName(object[10] != null ? object[10].toString() : null);
+					leaveDTO.setCreatedByName(object[12] != null ? object[12].toString() : null);
+					leaveDTO.setUpdatedBy(object[13] != null ? Integer.parseInt(object[13].toString()) : null);
 					
 					dtoList.add(leaveDTO);
 				}
@@ -204,6 +206,7 @@ public class LeaveTypeMasterService {
 				leaveType.setPaidLeave(leaveDTO.getPaidLeave());
 				leaveType.setRules(leaveDTO.getRules());
 				leaveType.setDescription(leaveDTO.getDescription());
+				leaveType.setCreatedBy(Integer.parseInt(leaveDTO.getCreatedBy().toString()));
 
 				LeaveTypeMaster newLeaveType = leaveTypeMasterRepository.save(leaveType);
 
@@ -265,10 +268,13 @@ public class LeaveTypeMasterService {
         apiLogInfo.setLogLevel("INFO");
         StringBuilder logBuilder = new StringBuilder();
         logBuilder.append("EmploymentStatus : " + leaveDTO.getEmploymentStatus() + " ,Gender : " + leaveDTO.getGender() + " ,leaveTypeList :" + leaveTypeMasterRepository
-				.getAllLeaveTypesByLeavePolicies(leaveDTO.getEmploymentStatus(), leaveDTO.getGender()).size());
+				.getAllLeaveTypesByLeavePolicies(leaveDTO.getEmploymentStatus(), leaveDTO.getGender(), leaveDTO.getMaritalStatus()).size());
 		try {
+			
+			System.err.println(" leaveDTO    "+leaveDTO);
+			
 			List<Object[]> list = leaveTypeMasterRepository
-					.getAllLeaveTypesByLeavePolicies(leaveDTO.getEmploymentStatus(), leaveDTO.getGender());
+					.getAllLeaveTypesByLeavePolicies(leaveDTO.getEmploymentStatus(), leaveDTO.getGender(), leaveDTO.getMaritalStatus());
 
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
 
@@ -304,6 +310,9 @@ public class LeaveTypeMasterService {
 					dto.setLockingValue(object[19] != null ? Integer.parseInt(object[19].toString()) : null);
 					dto.setProbation(object[20] != null ? object[20].toString() : null);
 					dto.setProbationPeriod(object[21] != null ? Integer.parseInt(object[21].toString()) : null);
+					dto.setMaritalStatus(object[22] != null ? object[22].toString() : null);
+					dto.setMaternityType(object[23] != null ? object[23].toString() : null);
+					dto.setMaternityLeaveDays(object[24] != null ? Long.parseLong(object[24].toString()) :  null);
 					
 					// set locking references 
 					if(dto.getLockingPeriod().equalsIgnoreCase("Yes")) {

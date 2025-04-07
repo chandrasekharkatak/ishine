@@ -52,5 +52,18 @@ public class CompOffLeave {
 	private LocalDate approverDate;
 	private String compOffStatus;
 	private Long leaveId;
+	
+	// added by anurag for reject reason
+	private String rejectCompOffReason;
+	
+	private Integer currentApprovalLevel;
+	private Integer finalApprovalLevel;
+
+	private String managerApprovalStatus;
+	
+	private Long level2ApproverId;
+	private String level2ApprovalStatus;
+	
+	private Long reportingManagerId;
 
 }

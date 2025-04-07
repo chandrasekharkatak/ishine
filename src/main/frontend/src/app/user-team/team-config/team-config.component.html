@@ -12,6 +12,11 @@
 <div class="row">
     <div class="card col-md-12 px-0" *ngIf="isTeamForm">
         <div class="card-header text-center text-uppercase">
+            
+                <button type="button" class="btn btn-outline-primary btn-sm active ng-star-inserted mx-1"  style="float: left;" *ngIf="isUpdation" (click)="showViewTeams1()"><em><i
+                    class="fa-solid fa-arrow-left-long"></i></em>
+                </button>
+           
             <strong *ngIf="isCreation">Create Team</strong>
             <strong *ngIf="isUpdation">Update Team</strong>
         </div>
@@ -208,7 +213,7 @@
                                   [multiple]="false"
                                   [(ngModel)]="newteamMember.empId"
                                   [disabled]="!teamObj.departmentList || teamObj.departmentList.length == 0"
-                                  (selectionChange)="newteamMember.employeeRole = ''"
+                                  (selectionChange)="openProjectTemplateModal(projectTemplate,newteamMember)"
                                   >
                                   <mat-option [value]="employee.empId" *ngFor="let employee of addMemberSelect.filteredSource" [disabled]="employee.isSelected">
                                     {{employee.name}}
@@ -231,7 +236,7 @@
                     </div>
                     <div class="m-0">
                         <button type="button" class="btn btn-outline-primary mx-1" (click)="resetSelectSearch(addMemberSelect);addTeamMember();updateEmployeeListAccordingToTeamMembers()"
-                        [disabled]="!teamObj.departmentList || !newteamMember.employeeRole || newteamMember.employeeRole.length == 0"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                        [disabled]="(newteamMember.empId == null) || (newteamMember.billableType != 'NewMember' && newteamMember.billableType == 'TNM') || !teamObj.departmentList || !newteamMember.employeeRole || newteamMember.employeeRole.length == 0"><i class="fa fa-plus" aria-hidden="true"></i></button>
                     </div>
                     <div class="m-0">
                             <button type="button" title="Preview Activity" class="btn btn-outline-primary mx-1" (click)="getMappedActivityPreview(newteamMember);openActivityPreviewModal(activity_preview,teamObj)"
@@ -308,6 +313,9 @@
                             <option *ngFor="let project of allProjectListByManagerId" value="{{project.projectId}}">{{project.projectName}}</option>
                         </select> -->
                     </div>
+                   
+                    
+                  
                 </div>
             </div>
             <div class=" ml-auto col-md-2 mt-4 pt-2 mb-2">
@@ -327,8 +335,8 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" (click)="toggleSearch()">
-                    <a href="javascript:void(0)">
+                <div class="selector-toggle" >
+                    <a href="javascript:void(0)" (click)="toggleSearch()">
                         <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
@@ -355,12 +363,17 @@
                             </tr>
                             <tr *ngFor="let team of allTeamList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                 <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
-                                <td>{{team.projectName}}</td>
-                                <td>{{team.teamName}}</td>
-                                <td>{{team.teamLeadName}}</td>
-                                <td>{{team.projectManagerName}}</td>
-                                <td>{{team.createdByName}}</td>
-                                <td>{{team.createdOn}}</td>
+                                <td *ngIf="!userMapping.team_config_project_view">{{team.projectName}}</td>
+                                <td *ngIf="userMapping.team_config_project_view" id="clickablefor360" [navigateToProjectView]="team.projectId" title="Click to view Project Details">{{team.projectName}}</td>
+                                <td *ngIf="!userMapping.team_config_project_view">{{team.teamName}}</td>
+                                <td *ngIf="userMapping.team_config_project_view" id="clickablefor360" [navigateToProjectView]="team.projectId" style="cursor: pointer;" title="Click to view Project Details">{{team.teamName}}</td>
+                                <td id="clickablefor360" *ngIf="userMapping.my_team_team_config_employee_360" [navigateToEmployee360]="team.emp360Teamlead" style="cursor: pointer;" title="Click to view Employee 360">{{team.teamLeadName}}</td>
+                                <td *ngIf="!userMapping.my_team_team_config_employee_360">{{team.teamLeadName}}</td>
+                                <td id="clickablefor360" *ngIf="userMapping.my_team_team_config_employee_360" [navigateToEmployee360]="team.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{team.projectManagerName}}</td>
+                                <td *ngIf="!userMapping.my_team_team_config_employee_360">{{team.projectManagerName}}</td>
+                                <td id="clickablefor360" *ngIf="userMapping.my_team_team_config_employee_360" [navigateToEmployee360]="team.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{team.createdByName}}</td>
+                                <td *ngIf="!userMapping.my_team_team_config_employee_360">{{team.createdByName}}</td>
+                                <td >{{team.createdOn}}</td>
                                 <td>
                                     <button *ngIf="userMapping.update_team" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateTeamForm(team)" [disabled]="team.isActive == 'N'"><em class="fa fa-edit"></em></button>&nbsp;
                                     <button *ngIf="userMapping.delete_team" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteTeamMod(delete_team_template,team)" [disabled]="team.isActive == 'N'"><em class="fa fa-trash"></em></button>
@@ -381,6 +394,12 @@
 <!-- start :: Create & Update Activity -->
 <div class="row">
     <div class="card col-md-12 px-0" *ngIf="isActivityForm">
+
+        <div class="px-0">
+            <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="isCreation" (click)="showViewActivities()"><em><i
+               class="fa-solid fa-arrow-left-long"></i></em></button>
+        </div>
+
         <div class="card-header text-center text-uppercase">
             <strong *ngIf="isCreation">Create Activity</strong>
             <strong *ngIf="isUpdation">Update Activity</strong>
@@ -442,7 +461,7 @@
                                   [(ngModel)]="activityObj.departmentList"
                                   [disabled]="!activityObj.teamId"
                                   >
-                                  <mat-option [value]="dept.deptId" *ngFor="let dept of deptSelect.filteredSource" [disabled]="isUpdation">
+                                  <mat-option [value]="dept.deptId" *ngFor="let dept of deptSelect.filteredSource">
                                     {{dept.name}}
                                   </mat-option>
                             </mat-select>
@@ -481,6 +500,7 @@
                                 <option value="Manager">Manager</option>
                                 <option value="HR">HR</option>
                                 <option value="SuperAdmin">Super Admin</option>
+                                <option value="RMG">RMG</option>
                             </select>
                         </div>
                     </div>
@@ -558,8 +578,8 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" (click)="toggleSearch()">
-                    <a href="javascript:void(0)">
+                <div class="selector-toggle" >
+                    <a href="javascript:void(0)" (click)="toggleSearch()">
                         <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
@@ -588,7 +608,8 @@
                         <td>{{activity.activity}}</td>
                         <td>{{activity.eta}} hr(s)</td>
                         <td>{{activity.employeeRole}}</td>
-                        <td>{{activity.createdByName}}</td>
+                        <td id="clickablefor360" *ngIf="userMapping.my_team_team_config_employee_360" [navigateToEmployee360]="activity.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{activity.createdByName}}</td>
+                        <td *ngIf="!userMapping.my_team_team_config_employee_360">{{activity.createdByName}}</td>
                         <td>{{activity.createdOn}}</td>
                         <td>
                             <button *ngIf="userMapping.update_activity" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateActivityForm(activity)"><em class="fa fa-edit"></em></button>&nbsp;
@@ -700,8 +721,8 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" (click)="toggleSearch()">
-                    <a href="javascript:void(0)">
+                <div class="selector-toggle" >
+                    <a href="javascript:void(0)" (click)="toggleSearch()">
                         <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
@@ -814,4 +835,60 @@
         </table>
     </div>
 </div>
+</ng-template>
+
+<ng-template #projectTemplate>
+    <div class="modal-header">
+        <h1 class="table-header-title">Employee's Projects Details</h1>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest5()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body ">
+        <table class="table project_table">
+            <thead class="thead-light">
+                <tr>
+                    <th>Sr.No</th>
+                    <th scope="col" class="info-label">Project Name</th>
+                    <th scope="col" class="info-label">Team Name</th>
+                    <th scope="col" class="info-label">Client Name</th>
+                    <th scope="col" class="info-label">Billable Type</th>
+                    <th scope="col" class="info-label">Start Date</th>
+                    <th scope="col" class="info-label">End Date</th>
+                    <th scope="col" class="info-label">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let userInfo of projectDetails; let i = index">
+                    <th>{{ i + 1 }}</th>
+                    <td>{{ userInfo.projectName }}</td>
+                    <td>{{ userInfo.teamName }}</td>
+                    <td>{{ userInfo.clientName }}</td>
+                    <td>{{ userInfo.billableType }}</td>
+                    <td>{{ userInfo.startDate }}</td>
+                    <td>{{ userInfo.updatedOn }}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" (click)="deleteResourceModal(delete_modal_template,userInfo)"><em class="fa fa-trash"></em></button>
+                    </td>
+                  </tr>
+            </tbody>
+        </table>
+       <div class="row col-md-12">
+        <div class="my-buttons">
+            <pagination-controls id="projectEmployeeDetailsId" class="my-pagination" [hidden]="projectDetails.length == 0" (pageChange)="handlePageChanges($event)"></pagination-controls>&nbsp;&nbsp;
+            <!-- <button class="btn btn-sm btn-outline-primary" (click)="closeProjectModal()">Close</button> -->
+        </div>
+        <div class="modalC ml-auto" >
+            <!-- <button class="btn btn-sm btn-outline-primary" (click)="closeProjectModal()">Close</button> -->
+        </div>
+       </div>
+    </div>
+</ng-template>
+
+<ng-template #delete_modal_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to delete Resource from team and project ?</p>
+        <button type="button" class="btn btn-success" (click)="deleteResourceFromProject(alert_message);cancelRequest()">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
 </ng-template>

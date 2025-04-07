@@ -5,4 +5,8 @@ export class TeamMember{
     name:any;
     employeeRole:any;
     isTeamLead:any;
+
+    // added for project
+    
+    billableType : any;
 }

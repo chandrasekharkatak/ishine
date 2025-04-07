@@ -31,6 +31,14 @@ export class LeaveService {
     return this.http.post(`${this.baseUrl}` + `api/getAllMyTeamsPendingLeaveApplicationsByManagerId`, leaveObj);
   }
 
+  getAllLeaveApplicationsByEmpId(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllLeaveApplicationsByEmpId`, leaveObj);
+  }
+
+  getAllLeaveApplicationsByTeamId(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllLeaveApplicationsByTeamId`, leaveObj);
+  }
+
   countAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj: Leave) {
     return this.http.post(`${this.baseUrl}` + `api/countAllMyTeamsPendingLeaveApplicationsByManagerId`, leaveObj);
   }
@@ -73,6 +81,10 @@ export class LeaveService {
 
   getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(leaveObj : Leave) {
     return this.http.post(`${this.baseUrl}` + `api/getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId`, leaveObj);
+  }
+
+  getAllMyTeamsPendingLeaveRevokeApplicationsByEmpId(leaveObj : Leave) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllMyTeamsPendingLeaveRevokeApplicationsByEmpId`, leaveObj);
   }
 
   updateRevokeLeaveStatus(leaveObj : Leave) {
@@ -135,6 +147,10 @@ export class LeaveService {
 
   getPendingCompOffRequestsByManagerId(compOffObj: Leave) {
     return this.http.post(`${this.baseUrl}` + `api/getPendingCompOffRequestsByManagerId`, compOffObj);
+  }
+
+  getPendingCompOffRequestsByEmpId(compOffObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `api/getPendingCompOffRequestsByEmpId`, compOffObj);
   }
 
   countPendingCompOffRequestsByManagerId(compOffObj: Leave) {
@@ -200,6 +216,10 @@ export class LeaveService {
     return this.http.post(`${this.baseUrl}` + `api/customQueryForLeaveReport`, queryObj);
   }
 
+  getCustomLAttendanceApplicationsList(queryObj: Query) {
+    return this.http.post(`${this.baseUrl}` + `api/getCustomLAttendanceApplicationsList`, queryObj);
+  }
+
   getValueOptionData(queryObj: Query) {
     return this.http.post(`${this.baseUrl}` + `api/getValueOptionData`, queryObj);
   }
@@ -224,6 +244,14 @@ export class LeaveService {
   bulkRejectLeaveRequest(leaveObj: Leave){
     return this.http.post(`${this.baseUrl}`+ `api/bulkRejectLeaveRequest`, leaveObj);
   }
+// bulkCompOffReject
+bulkCompOffReject(compOff: Leave){
+  return this.http.post(`${this.baseUrl}`+ `api/bulkCompOffReject`, compOff);
+}
+// bulkCompOffApprove
+bulkCompOffApprove(compOff: Leave){
+  return this.http.post(`${this.baseUrl}`+ `api/bulkCompOffApprove`, compOff);
+}
 
   getAllLeaveBalanceByEmpId(leaveObj: Leave){
     return this.http.post(`${this.baseUrl}`+ `api/getAllLeaveBalanceByEmpId`, leaveObj);
@@ -232,4 +260,54 @@ export class LeaveService {
   getHolidayWeekOffSize(leaveObj: Leave){
     return this.http.post(`${this.baseUrl}`+ `api/getHolidayWeekOffSize`, leaveObj);
   }
+
+  getMaternityLeaveDaysByMaternityType(leaveObj:Leave){
+    return this.http.post(`${this.baseUrl}`+`api/getMaternityLeaveDaysByMaternityType`, leaveObj);
+  }
+
+  getLeaveAppliedListByFromAndToDate(leaveObj:Leave){
+    return this.http.post(`${this.baseUrl}`+`api/getLeaveAppliedListByFromAndToDate`, leaveObj);
+  }
+
+  //  added by anurag
+
+getAllLeaveByEmpId(teamObj : Leave){
+  return this.http.post(`${this.baseUrl}` + `api/getAllLeaveByEmpId`, teamObj);
+}
+
+// pipGenerateToUser
+pipGenerateToUser(teamObj : Leave){
+  return this.http.post(`${this.baseUrl}` + `api/pipGenerateToUser`, teamObj);
+}
+
+pipReturnFromUser(teamObj : Leave){
+  return this.http.post(`${this.baseUrl}` + `api/pipReturnFromUser`, teamObj);
+}
+
+//getOverLapsLeaveForManager
+getOverLapsLeaveForManager(leaveApp : Leave){
+  return this.http.post(`${this.baseUrl}` + `api/getOverLapsLeaveForManager`, leaveApp);
+}
+
+// getPipReasons
+getPipReasons(leaveApp : Leave){
+  return this.http.post(`${this.baseUrl}` + `api/getPipReasons`, leaveApp);
+}
+
+// setExtendPeriodByPipId
+setExtendPeriodByPipId(leaveApp : Leave){
+  return this.http.post(`${this.baseUrl}` + `api/setExtendPeriodByPipId`, leaveApp);
+}
+
+getDepartmentWiseBillableData(leaveObj: Leave){
+  return this.http.post(`${this.baseUrl}`+ `api/getDepartmentWiseBillableData`, leaveObj);
+}
+
+getPipDetailsByEmpId(leaveObj: Leave) {
+  return this.http.post(`${this.baseUrl}` + `api/getPipDetailsByEmpId`, leaveObj);
+}
+
+isManager(leaveObj: Leave) {
+  return this.http.post(`${this.baseUrl}` + `api/isManager`, leaveObj);
+}
 }

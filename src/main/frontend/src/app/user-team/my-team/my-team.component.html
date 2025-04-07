@@ -1,8 +1,8 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
       <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_my_team || userMapping.enable_login_by_reporting_head" [ngClass]="{'active' : isViewTeam}" (click)="viewTeam()">View Team</button>
-      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_team_leave_history" [ngClass]="{'active' : isTeamLeaveHistory}" (click)="viewTeamLeaveHistory()">View Team Leave History</button>
-      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_team_all_requests || userMapping.update_pending_req" [ngClass]="{'active' : isTeamRequest}" (click)="viewTeamRequest()">View Team Request</button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_team_leave_history || userMapping.employee_360_leave_view" [ngClass]="{'active' : isTeamLeaveHistory}" (click)="viewTeamLeaveHistory()">View Team Leave History</button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_team_all_requests || userMapping.update_pending_req || userMapping.employee_360_leave_view" [ngClass]="{'active' : isTeamRequest}" (click)="viewTeamRequest()">View Team Pending Request</button>
     </div>
 </div>
   
@@ -39,11 +39,7 @@
       </div>
     </div>
     <div *ngIf="isHierarchyTable" class="hierarchy-table">
-      <!-- <div class="row">
-        <div class="form-group ml-auto col-md-3">
-          <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">
-        </div>
-      </div> -->
+    
   
       <div class="row mb-2">
         <div class="col-md-12">
@@ -63,8 +59,8 @@
   
       <div class="row">
         <div class="col-md-12">
-          <div class="selector-toggle" (click)="toggleSearch()">
-            <a href="javascript:void(0)">
+          <div class="selector-toggle" >
+            <a href="javascript:void(0)" (click)="toggleSearch()">
                 <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
@@ -82,7 +78,7 @@
                   <th scope="col" class="info-label" mat-sort-header="mobileNo|number">Mobile No.</th>
                   <th scope="col" class="info-label" mat-sort-header="managerName|string">Reports To</th>
                   <th scope="col" class="info-label" mat-sort-header="timesheetStatus|string">Timesheet Status</th>
-                  <th scope="col" class="info-label">Actions</th>
+                  <th scope="col" class="info-label text-center" style="min-width: 300px;">Actions</th>
                 </tr>
                 <tr app-column-filter-bar *ngIf="isViewTeam && isSearchEnabled" [columnList]="teamViewColumns" (onSearch)="onSearch($event);page=1" ></tr>
               </thead>
@@ -94,27 +90,44 @@
                   <tr>
                     <td class="info-label">{{10*(page-1)+i+1}}</td>
                     <td class="info-label">{{teamView.employeementId}}</td>
-                    <td class="info-label" [class.myTeam-hierarchy]="teamView.isHierarchy" (click)="teamView.isHierarchy && myTeamHierarchy(teamView)">{{teamView.name}} <i class="fa-solid fa-sitemap" *ngIf="teamView.isHierarchy"></i> &nbsp;<h6 class="badge badge-pill resign-pill" *ngIf="teamView.employmentstatus == 'Resigned'">Resigned</h6></td>
+                    <td *ngIf="userMapping.my_team_employee_360" class="info-label">
+                      <span id="clickablefor360" [navigateToEmployee360]="teamView.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{teamView.name}}&nbsp;</span>
+                      <span [class.myTeam-hierarchy]="teamView.isHierarchy" (click)="teamView.isHierarchy && myTeamHierarchy(teamView)"><i class="fa-solid fa-sitemap" *ngIf="teamView.isHierarchy"></i> &nbsp;<h6 class="badge badge-pill resign-pill" *ngIf="teamView.employmentstatus == 'Resigned'">Resigned</h6></span>
+                  </td>
+                  
+                    <td *ngIf="!userMapping.my_team_employee_360" class="info-label" [class.myTeam-hierarchy]="teamView.isHierarchy" (click)="teamView.isHierarchy && myTeamHierarchy(teamView)">{{teamView.name}} <i class="fa-solid fa-sitemap" *ngIf="teamView.isHierarchy"></i> &nbsp;<h6 class="badge badge-pill resign-pill" *ngIf="teamView.employmentstatus == 'Resigned'">Resigned</h6></td>
                     <td class="info-label">{{teamView.email}}</td>
                     <td class="info-label">{{teamView.jobRoleName}}</td>
                     <td class="info-label">{{teamView.mobileNo}}</td>
-                    <td class="info-label">{{teamView.managerName}}</td>
+                    <td class="info-label" id="clickablefor360" [navigateToEmployee360]="teamView.emp360Mng" style="cursor: pointer;" title="Click to view Employee 360">{{teamView.managerName}}</td>
+                    <td class="info-label" *ngIf="!userMapping.my_team_employee_360">{{teamView.managerName}}</td>
                     <td [ngStyle]="{'color': (teamView.timesheetStatus == 'Defaulter') ? 'red' : (teamView.timesheetStatus == 'Timesheets upto date') ? 'green' :  'orange'}"><em>{{teamView.timesheetStatus}}</em></td>
                     <td>
                       <button
                         *ngIf="((teamView.invalidAccessAttempt > teamView.failedAttempt) && userMapping.enable_login_by_reporting_head)"
                         class="btn btn-sm btn-outline-primary mb-1" type="submit"
-                        (click)="forEnableAccount(revoke_template,teamView)"><em>Enable</em></button>
-                      <button *ngIf="teamView.isTimesheetLockCheckEnable == 'false'" class="btn btn-sm btn-primary mb-1" type="submit"
-                        (click)="onUpdateTimesheetLockCheck(alert_message,teamView,'true')"><em><i class="fa-solid fa-lock"></i>&nbsp;Timesheet</em></button>
-                      <button *ngIf="teamView.isTimesheetLockCheckEnable == 'true'" class="btn btn-sm btn-outline-primary mb-1" type="submit"
-                        (click)="onUpdateTimesheetLockCheck(alert_message,teamView,'false')"><em><i class="fa-solid fa-lock-open"></i>&nbsp;Timesheet</em></button>
-                        <button *ngIf="!showReporteeLeaveBalance" class="btn btn-sm btn-outline-primary mb-1" type="submit"
+                        (click)="forEnableAccount(revoke_template,teamView)"><em>Enable</em></button>&nbsp;
+                      <button *ngIf="teamView.isTimesheetLockCheckEnable == 'true'" class="btn btn-sm btn-primary mb-1" type="submit"
+                        (click)="onUpdateTimesheetLockCheck(alert_message,teamView,'false')"><em><i class="fa-solid fa-lock"></i>&nbsp;Timesheet</em></button>
+                      <button *ngIf="teamView.isTimesheetLockCheckEnable == 'false'" class="btn btn-sm btn-outline-primary mb-1" type="submit"
+                        (click)="onUpdateTimesheetLockCheck(alert_message,teamView,'true')"><em><i class="fa-solid fa-lock-open"></i>&nbsp;Timesheet</em></button>
+                        <button  class="btn btn-sm btn-outline-primary mb-1 ml-10" type="submit"
                         (click)="onGetEmpLeaveBalance(alert_message,teamView,i)"><em><i class="fa-solid fa-eye"></i>&nbsp; Balance</em></button>
                         <button *ngIf="showReporteeLeaveBalance && selectedDataIndex == i" class="btn btn-sm btn-outline-danger mb-1" type="submit"
                         (click)="onHideEmpLeaveBalance()"><em><i class="fa-solid fa-eye-slash"></i>&nbsp; Balance</em></button>
                         <button *ngIf="teamView.isDateOfRelievingToday == 'true'" class="btn btn-sm btn-outline-primary mb-1" type="submit" (click)="navigateToAssetConsent(teamView)"><em>Asset Consent</em></button>
-                      <!-- <button  class="btn btn-sm btn-outline-primary"  type="submit" (click)="forEnableAccount(revoke_template,teamView)"><em >Enable</em></button>  -->
+                        <!-- added by anurag -->
+                        <button class="btn btn-sm btn-outline-primary mb-1" (click)="openHistoryTable(leaveHistoryModal,teamView);getAllLeavesByEmpId(teamView)"><em><i class="fa-solid fa-eye"></i>&nbsp;Leaves</em></button>
+                      
+                        <button class="btn btn-sm btn-outline-primary ml-10" *ngIf="teamView.pipFlag=='false'" (click)="PIP_generate(pip_template,teamView)"><em><i class="fa-solid fa-flag"></i>&nbsp; PIP</em></button>
+
+                        <button class="btn btn-sm btn-danger ml-10" *ngIf="teamView.pipFlag=='true'" (click)="PIP_reverse_modal(pip_rev_template,teamView)"><em><i class="fa-solid fa-flag"></i>&nbsp; PIP</em></button>
+                        <button class="btn btn-sm btn-outline-success mt-10" (click)="pipReasonModal(pipReason_template,teamView)" *ngIf="teamView.pipFlag=='false'">
+                          <em><i class="fa-solid fa-backward"></i>&nbsp; PIP History</em>
+                        </button>
+                        <button class="btn btn-sm btn-outline-success mt-10" (click)="pipReasonModal(pipReason_template,teamView)" *ngIf="teamView.pipFlag=='true'">
+                          <em><i class="fa-solid fa-backward"></i>&nbsp; PIP History</em>
+                        </button>
                     </td>
                   </tr>
                   <tr *ngIf="showReporteeLeaveBalance && selectedDataIndex == i" class="bg-light border-bottom" >
@@ -165,7 +178,7 @@
         </div>
         <div class="col-md-3" *ngIf="userMapping.view_department_leave_history && isLeaveHistory">
           <div class="custom-control custom-switch">
-            <input type="checkbox" class="custom-control-input" id="leave-history-switch" (change)="toggleLeaveHistoryView($event)" [(ngModel)]="isLeaveHistoryOfDepartment">
+            <input type="checkbox" style="cursor:pointer" class="custom-control-input" id="leave-history-switch" (change)="toggleLeaveHistoryView($event)" [(ngModel)]="isLeaveHistoryOfDepartment">
             <label class="custom-control-label" for="leave-history-switch">View My Department Leave History</label>
           </div> 
         </div>
@@ -187,7 +200,7 @@
                   <div class="info-wrapper">
                       <div class="form-group">
                           <label class="info-label"><span class="text-danger">*</span>End Date</label>
-                          <input id="historyFromDate" type="date" OnClick="this.showPicker()" class="form-control" [(ngModel)]="toDate" (change)="getAllTeamLeaveHistoryView();getDepartmentLeaveHistory()">
+                          <input id="historyFromDate" type="date" OnClick="this.showPicker()" class="form-control" [(ngModel)]="toDate" (input)="getAllTeamLeaveHistoryView();getDepartmentLeaveHistory()">
                       </div>
                   </div>
               </div>
@@ -199,8 +212,8 @@
 
           <div class="row">
             <div class="col-md-12">
-              <div class="selector-toggle" (click)="toggleSearch()">
-                <a href="javascript:void(0)">
+              <div class="selector-toggle" >
+                <a href="javascript:void(0)" (click)="toggleSearch()">
                     <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                     <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                 </a>
@@ -223,12 +236,12 @@
                           <th scope="col" class="info-label" mat-sort-header="reason|string">Leave Reason</th>	
                           <th scope="col" class="info-label" mat-sort-header="leaveType|string">Type</th>
                           <th scope="col" class="info-label" mat-sort-header="currentApprovalLevel|number">Current Approval Level</th>
-                            <th scope="col" class="info-label" mat-sort-header="approverName|string">Level 1 Approver Name</th>
-                            <th scope="col" class="info-label" mat-sort-header="managerApprovalStatus|string">Level 1 Approver Status</th>
-                            <th scope="col" class="info-label" mat-sort-header="level2ApproverName|string">Level 2 Approver Name</th>
-                            <th scope="col" class="info-label" mat-sort-header="level2ApprovalStatus|string">Level 2 Approver Status</th>
-                            <th scope="col" class="info-label" mat-sort-header="level3ApproverName|string">Level 3 Approver Name</th>
-                            <th scope="col" class="info-label" mat-sort-header="level3ApprovalStatus|string">Level 3 Approver Status</th>
+                          <th scope="col" class="info-label" mat-sort-header="approverName|string">Level 1 Approver Name</th>
+                          <th scope="col" class="info-label" mat-sort-header="managerApprovalStatus|string">Level 1 Approver Status</th>
+                          <th scope="col" class="info-label" mat-sort-header="level2ApproverName|string">Level 2 Approver Name</th>
+                          <th scope="col" class="info-label" mat-sort-header="level2ApprovalStatus|string">Level 2 Approver Status</th>
+                          <th scope="col" class="info-label" mat-sort-header="level3ApproverName|string">Level 3 Approver Name</th>
+                          <th scope="col" class="info-label" mat-sort-header="level3ApprovalStatus|string">Level 3 Approver Status</th>
                           <th scope="col" class="info-label" mat-sort-header="remark|string">Remarks</th>
                           <th scope="col" class="info-label">Actions</th>
                           </tr>
@@ -240,7 +253,8 @@
                           </tr>
                           <tr *ngFor="let leaveHistory of teamViewLeaveHistoryList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                             <td class="info-label">{{10*(page-1)+i+1}}</td>
-                            <td class="info-label">{{leaveHistory.createdByName}}</td>
+                            <td class="info-label" id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="leaveHistory.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{leaveHistory.createdByName}}</td>
+                            <td class="info-label" *ngIf="!userMapping.my_team_employee_360">{{leaveHistory.createdByName}}</td>
                             <td class="info-label">{{leaveHistory.fromDate}}</td>
                             <td class="info-label">{{leaveHistory.toDate}}</td>
                             <td class="info-label">{{leaveHistory.createdOn}}</td>
@@ -248,7 +262,10 @@
                             <td class="info-label"> {{teamLeaveHistory.toDate}}</td> -->
                             <td class="info-label">{{leaveHistory.noOfDays}}</td>
                             <td class="info-label">{{leaveHistory.status}}</td>
-                            <td class="info-label">{{leaveHistory.leaveStatusUpdatedByName}}</td>
+                            <td class="info-label" id="clickablefor360" *ngIf="leaveHistory.leaveStatusUpdatedByName && userMapping.my_team_employee_360" [navigateToEmployee360]="leaveHistory.leaveStatusUpdatedByName ? leaveHistory.emp360leaveStatusUpdatedBy : null"
+                            [ngStyle]="{'cursor': leaveHistory.leaveStatusUpdatedByName ? 'pointer' : 'default'}"
+                            [title]="leaveHistory.leaveStatusUpdatedByName ? 'Click to view Employee 360' : ''">{{leaveHistory.leaveStatusUpdatedByName}}</td>
+                            <td class="info-label" *ngIf="!userMapping.my_team_employee_360 || !leaveHistory.leaveStatusUpdatedByName">{{leaveHistory.leaveStatusUpdatedByName}}</td>
                             <td class="info-label">{{leaveHistory.reason}}</td>
                             <td class="info-label">{{leaveHistory.leaveType}}</td>
                             <td>{{leaveHistory.currentApprovalLevel}}
@@ -257,15 +274,27 @@
                               <!-- <h6 class="badge badge-pill badge-success" *ngIf="leaveHistory.currentApprovalLevel == leaveHistory.finalApprovalLevel && leaveHistory.status == 'Approved'">Approved</h6>
                               <h6 class="badge badge-pill badge-danger" *ngIf="leaveHistory.currentApprovalLevel == leaveHistory.finalApprovalLevel && leaveHistory.status == 'Rejected'">Rejected</h6> -->
                             </td>
-                            <td>{{leaveHistory.approverName}}</td>
+                            <td id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="leaveHistory.approverName ? leaveHistory.emp360AppLev1 : null"
+                            [ngStyle]="{'cursor': leaveHistory.approverName ? 'pointer' : 'default'}"
+                            [title]="leaveHistory.approverName ? 'Click to view Employee 360' : ''">{{leaveHistory.approverName}}</td>
+                            <td *ngIf="!userMapping.my_team_employee_360">{{leaveHistory.approverName}}</td>
                             <td [ngStyle]="{'color': (leaveHistory.managerApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.managerApprovalStatus == 'Approved') ? 'green' : (leaveHistory.managerApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.managerApprovalStatus}}</td>
-                            <td>{{leaveHistory.level2ApproverName}}</td>
+                            <!-- <td id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="leaveHistory.emp360AppLev2" style="cursor: pointer;" title="Click to view Employee 360">{{leaveHistory.level2ApproverName}}</td> -->
+                            <td id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="leaveHistory.level2ApproverName ? leaveHistory.emp360AppLev2 : null"
+                            [ngStyle]="{'cursor': leaveHistory.level2ApproverName ? 'pointer' : 'default'}"
+                            [title]="leaveHistory.level2ApproverName ? 'Click to view Employee 360' : ''">{{leaveHistory.level2ApproverName}}</td>
+                            <td *ngIf="!userMapping.my_team_employee_360">{{leaveHistory.level2ApproverName}}</td>
                             <td [ngStyle]="{'color': (leaveHistory.level2ApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.level2ApprovalStatus == 'Approved') ? 'green' : (leaveHistory.level2ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.level2ApprovalStatus}}</td>
-                            <td>{{leaveHistory.level3ApproverName}}</td>
+                            <!-- <td id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="leaveHistory.emp360AppLev3" style="cursor: pointer;" title="Click to view Employee 360">{{leaveHistory.level3ApproverName}}</td> -->
+                            <td id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="leaveHistory.level3ApproverName ? leaveHistory.emp360AppLev3 : null"
+                            [ngStyle]="{'cursor': leaveHistory.level3ApproverName ? 'pointer' : 'default'}"
+                            [title]="leaveHistory.approverName ? 'Click to view Employee 360' : ''">{{leaveHistory.level3ApproverName}}</td>
+
+                            <td *ngIf="!userMapping.my_team_employee_360">{{leaveHistory.level3ApproverName}}</td>
                             <td [ngStyle]="{'color': (leaveHistory.level3ApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.level3ApprovalStatus == 'Approved') ? 'green' : (leaveHistory.level3ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.level3ApprovalStatus}}</td>
                             <td class="info-label">{{leaveHistory.remark}}</td>
                             <td>
-                              <button *ngIf="userMapping.revoke_reportee_leave && leaveHistory.status == 'Approved' && leaveHistory.isExpire == 'true'" class="btn btn-sm btn-outline-danger mb-1" type="submit" (click)="openRevokeReporteeLeaveModal(revoke_approved_leave,leaveHistory)"><em>Revoke Leave</em></button>
+                              <button *ngIf="userMapping.revoke_reportee_leave && leaveHistory.status == 'Approved'" class="btn btn-sm btn-outline-danger mb-1" type="submit" (click)="openRevokeReporteeLeaveModal(revoke_approved_leave,leaveHistory)"><em>Revoke Leave</em></button>
                             </td>
                           </tr>
                         </tbody>
@@ -304,8 +333,8 @@
   
       <div class="row">
         <div class="col-md-12">
-          <div class="selector-toggle" (click)="toggleSearch()">
-            <a href="javascript:void(0)">
+          <div class="selector-toggle" >
+            <a href="javascript:void(0)" (click)="toggleSearch()">
                 <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
@@ -335,7 +364,8 @@
               </tr>
               <tr *ngFor="let compOffHistory of teamViewCompOffHistoryList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
               <td class="info-label">{{10*(page-1)+i+1}}</td>
-              <td class="info-label">{{compOffHistory.createdByName}}</td>
+              <td class="info-label" id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="compOffHistory.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{compOffHistory.createdByName}}</td>
+              <td class="info-label" *ngIf="!userMapping.my_team_employee_360">{{compOffHistory.createdByName}}</td>
               <td class="info-label">{{compOffHistory.fromDate}}</td>
               <td class="info-label">{{compOffHistory.toDate}}</td>
               <td class="info-label">{{compOffHistory.createdOn}}</td>
@@ -343,7 +373,8 @@
               <td class="info-label"> {{teamLeaveHistory.toDate}}</td> -->
               <td class="info-label">{{compOffHistory.noOfDays}}</td>
               <td class="info-label">{{compOffHistory.status}}</td>
-              <td class="info-label">{{compOffHistory.leaveStatusUpdatedByName}}</td>
+              <td class="info-label" id="clickablefor360" *ngIf="compOffHistory.leaveStatusUpdatedByName && userMapping.my_team_employee_360" [navigateToEmployee360]="compOffHistory.emp360ApprovedBy" style="cursor: pointer;" title="Click to view Employee 360">{{compOffHistory.leaveStatusUpdatedByName}}</td>
+              <td class="info-label" *ngIf="!userMapping.my_team_employee_360 || !compOffHistory.leaveStatusUpdatedByName  ">{{compOffHistory.leaveStatusUpdatedByName}}</td>
               <td class="info-label">{{compOffHistory.reason}}</td>
               </tr>
             </tbody>
@@ -360,14 +391,14 @@
   
 
 <!-- Table of View Team Request  -->
-<div class="row" *ngIf="isTeamRequest">
+<!-- <div class="row" *ngIf="isTeamRequest">
   <div class="col-md-12">
     <div class="row">
       <div class="col-md-12 table-header">
         <h1 class="table-header-title">My Team Requests</h1>
       </div>
     </div>
-    <div class="row mb-2">
+     <div class="row mb-2"> 
       <div class="col-md-12">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveRequest}"
           (click)="viewTeamLeaveRequest()">View Leave Request</button>
@@ -376,7 +407,56 @@
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveRevokeRequest}"
         (click)="viewTeamLeaveRevokeRequest()">View Leave Revoke Request</button>
       </div>
+
+
+      <div class="col-md-4">
+        <div class="col-md-12" *ngIf="userMapping.view_department_leave_history && isLeaveRequest">
+          <div class="custom-control custom-switch">
+            <input type="checkbox" style="cursor:pointer" class="custom-control-input" id="leave-history-switch" (change)="toggleLeaveHistoryViewOfRequestPage($event)" [(ngModel)]="isLeaveHistoryOfDepartment">
+            <label class="custom-control-label" for="leave-history-switch">View My Department Leave History</label>
+          </div> 
+        </div>
+      </div>
+     </div>
+
+      
     </div>
+
+</div>
+
+    </div> -->
+
+    <div class="row" *ngIf="isTeamRequest">
+      <div class="col-md-12">
+        <div class="row">
+          <div class="col-md-12 table-header">
+            <h1 class="table-header-title">My Team Requests</h1>
+          </div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-md-12">
+             <div class="row">
+              <div class="col-md-8">
+                <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveRequest}"
+                (click)="viewTeamLeaveRequest()">View Leave Request</button>
+              <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCompOffRequest}"
+                (click)="viewTeamCompOffRequest()">View CompOff Request</button>
+              <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveRevokeRequest}"
+              (click)="viewTeamLeaveRevokeRequest()">View Leave Revoke Request</button>
+              </div>
+              <div class="col-md-4">
+                <div class="col-md-12" *ngIf="userMapping.view_department_leave_history && isLeaveRequest">
+                  <div class="custom-control custom-switch">
+                    <input type="checkbox" style="cursor:pointer" class="custom-control-input" id="leave-history-switch" (change)="toggleLeaveHistoryViewOfRequestPage($event)" [(ngModel)]="isLeaveHistoryOfDepartment">
+                    <label class="custom-control-label" for="leave-history-switch">View My Department Leave History</label>
+                  </div> 
+                </div>
+              </div>
+             </div>
+      
+              
+            </div>
+        </div>
 
     <!-- Leave Request Table -->
     <div class="row" *ngIf="isLeaveRequest">
@@ -401,6 +481,7 @@
               <option class="option-bg" value="20">20</option>
               <option class="option-bg" value="50">50</option>
               <option class="option-bg" value="100">100</option>
+              <option class="option-bg" value="10000">All</option>
             </select>
             <small>entries</small>
           </div>
@@ -411,8 +492,8 @@
 
         <div class="row">
           <div class="col-md-12">
-            <div class="selector-toggle" (click)="toggleSearch()">
-              <a href="javascript:void(0)">
+            <div class="selector-toggle" >
+              <a href="javascript:void(0)" (click)="toggleSearch()">
                   <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                   <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
               </a>
@@ -448,37 +529,49 @@
                 </thead>
                 <tbody>
                   <tr *ngIf="leaveApplicationList.length == 0 || (leaveApplicationList| colFilter:filters:false).length == 0">
-                    <th colspan="14" class="text-center info-label">No details to display...</th>
+                    <th colspan="14" class="text-center info-l abel">No details to display...</th>
                   </tr>
                   <tr
                     *ngFor="let leaveApplication of leaveApplicationList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
-                    <td><input class="leaveApplication-req-checkbox" id="{{i}}" type="checkbox"
-                        [(ngModel)]="leaveApplication.isSelected" (change)="select(leaveApplication,$event)"></td>
+                    <td><input class="leaveApplication-req-checkbox" id="{{leaveApplication.checkId}}" type="checkbox" [disabled]="!leaveApplication.isManagerFlag || !leaveApplication.isApprover"
+                        [(ngModel)]="leaveApplication.isSelected" (change)="select(leaveApplication,$event)">
+                      </td>
                     <td>{{items*(page-1)+i+1}}</td>
-                    <td>{{leaveApplication.employeeName}}</td>
+                    <td id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="leaveApplication.emp360" style="cursor: pointer;"  title="Click to view Employee 360" >{{leaveApplication.employeeName}}</td>
+                    <td *ngIf="!userMapping.my_team_employee_360">{{leaveApplication.employeeName}}</td>
                     <td>{{leaveApplication.leaveType}}</td>
                     <td>{{leaveApplication.fromDate}}</td>
                     <td>{{leaveApplication.toDate}}</td>
                     <td>{{leaveApplication.noOfDays}} day(s)</td>
                     <td>{{leaveApplication.status}}</td>
-                    <td>{{leaveApplication.createdByName}}</td>
+                    <td id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="leaveApplication.emp360CreateBy" style="cursor: pointer;"  title="Click to view Employee 360">{{leaveApplication.createdByName}}</td>
+                    <td *ngIf="!userMapping.my_team_employee_360">{{leaveApplication.createdByName}}</td>
                     <td>{{leaveApplication.createdOn}}</td>
                     <td>{{leaveApplication.reason}}</td>
                     <td>{{leaveApplication.currentApprovalLevel}}
                       <br>
                       <h6 class="badge badge-pill primary-pill" *ngIf="leaveApplication.currentApprovalLevel == leaveApplication.finalApprovalLevel">Final</h6>
                     </td>
-                    <td>{{leaveApplication.approverName}}</td>
+                    <td id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="leaveApplication.emp360AppLev1" style="cursor: pointer;"  title="Click to view Employee 360">{{leaveApplication.approverName}}</td>
+                    <td *ngIf="!userMapping.my_team_employee_360">{{leaveApplication.approverName}}</td>
                     <td [ngStyle]="{'color': (leaveApplication.managerApprovalStatus == 'Pending') ? 'orange' : (leaveApplication.managerApprovalStatus == 'Approved') ? 'green' : (leaveApplication.managerApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveApplication.managerApprovalStatus}}</td>
-                    <td>{{leaveApplication.level2ApproverName}}</td>
+                    <td id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="leaveApplication.emp360AppLev2" style="cursor: pointer;"  title="Click to view Employee 360">{{leaveApplication.level2ApproverName}}</td>
+                    <td *ngIf="!userMapping.my_team_employee_360">{{leaveApplication.level2ApproverName}}</td>
                     <td [ngStyle]="{'color': (leaveApplication.level2ApprovalStatus == 'Pending') ? 'orange' : (leaveApplication.level2ApprovalStatus == 'Approved') ? 'green' : (leaveApplication.level2ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveApplication.level2ApprovalStatus}}</td>
-                    <td>{{leaveApplication.level3ApproverName}}</td>
+                    <td id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="leaveApplication.emp360AppLev3" style="cursor: pointer;"  title="Click to view Employee 360">{{leaveApplication.level3ApproverName}}</td>
+                    <td *ngIf="!userMapping.my_team_employee_360">{{leaveApplication.level3ApproverName}}</td>
                     <td [ngStyle]="{'color': (leaveApplication.level3ApprovalStatus == 'Pending') ? 'orange' : (leaveApplication.level3ApprovalStatus == 'Approved') ? 'green' : (leaveApplication.level3ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveApplication.level3ApprovalStatus}}</td>
                     <td>
-                      <button *ngIf="userMapping.update_pending_req" class="btn btn-sm btn-outline-success" type="submit"
+                      <button *ngIf="userMapping.update_pending_req && userMapping.employee_360_leave_individual_action && leaveApplication.isManagerFlag && leaveApplication.isApprover" class="btn btn-sm btn-outline-success" type="submit"
                         (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em
                           class="fa-solid fa-check"></em></button>&nbsp;
-                      <button *ngIf="userMapping.update_pending_req" class="btn btn-sm btn-outline-danger" type="submit"
+                      <button *ngIf="userMapping.update_pending_req && userMapping.employee_360_leave_individual_action && leaveApplication.isManagerFlag && leaveApplication.isApprover" class="btn btn-sm btn-outline-danger" type="submit"
+                        (click)="openLeaveRejectModal(reject_leave_modal, leaveApplication)" title="Reject"><em
+                          class="fa-solid fa-xmark"></em></button>
+                      <button *ngIf="userMapping.update_pending_req && !userMapping.employee_360_leave_individual_action && leaveApplication.isManagerFlag && leaveApplication.isApprover" class="btn btn-sm btn-outline-success" type="submit"
+                        (click)="onUpdateLeaveStatus(alert_message, leaveApplication, 2)" title="Approve"><em
+                          class="fa-solid fa-check"></em></button>&nbsp;
+                      <button *ngIf="userMapping.update_pending_req && !userMapping.employee_360_leave_individual_action && leaveApplication.isManagerFlag && leaveApplication.isApprover" class="btn btn-sm btn-outline-danger" type="submit"
                         (click)="openLeaveRejectModal(reject_leave_modal, leaveApplication)" title="Reject"><em
                           class="fa-solid fa-xmark"></em></button>
                     </td>
@@ -507,8 +600,8 @@
 
         <div class="row">
           <div class="col-md-12">
-            <div class="selector-toggle" (click)="toggleSearch()">
-              <a href="javascript:void(0)">
+            <div class="selector-toggle" >
+              <a href="javascript:void(0)" (click)="toggleSearch()">
                   <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                   <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
               </a>
@@ -538,7 +631,8 @@
                   <tr
                     *ngFor="let compOffApp of allCompOffApplications| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page };let i = index">
                     <td>{{10*(page-1)+i+1}}</td>
-                    <td>{{compOffApp.createdByName}}</td>
+                    <td id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="compOffApp.emp360" style="cursor: pointer;"  title="Click to view Employee 360">{{compOffApp.createdByName}}</td>
+                    <td *ngIf="!userMapping.my_team_employee_360">{{compOffApp.createdByName}}</td>
                     <td>{{compOffApp.compOffReasons}}</td>
                     <td>{{compOffApp.fromDate}}</td>
                     <td>{{compOffApp.toDate}}</td>
@@ -550,7 +644,7 @@
                         type="submit" (click)="onUpdateCompOffStatus(alert_message, compOffApp, 2)" title="Approve"><em
                           class="fa-solid fa-check"></em></button>&nbsp;
                       <button *ngIf="userMapping.update_pending_req" class="btn btn-sm btn-outline-danger" type="submit"
-                        (click)="onUpdateCompOffStatus(alert_message, compOffApp, 3)" title="Reject"><em
+                        (click)="openRevokeLeaveRejectModalCompOff(reject_revoke_leave_Comp_off, compOffApp)" title="Reject"><em
                           class="fa-solid fa-xmark"></em></button>
                     </td>
                   </tr>
@@ -584,8 +678,8 @@
     
         <div class="row">
           <div class="col-md-12">
-            <div class="selector-toggle" (click)="toggleSearch()">
-              <a href="javascript:void(0)">
+            <div class="selector-toggle" >
+              <a href="javascript:void(0)" (click)="toggleSearch()">
                 <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
               </a>
@@ -622,7 +716,8 @@
                     <td>{{leave.toDate}}</td>
                     <td>{{leave.noOfDays}}</td>
                     <td>{{leave.status}}</td>
-                    <td>{{leave.createdByName}}</td>
+                    <td id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="leave.emp360" style="cursor: pointer;"  title="Click to view Employee 360">{{leave.createdByName}}</td>
+                    <td *ngIf="!userMapping.my_team_employee_360">{{leave.createdByName}}</td>
                     <td>{{leave.createdOn}}</td>
                     <td>{{leave.revokeReason}}</td>
                     <td>
@@ -682,7 +777,7 @@
 <ng-template #revoke_template>
   <div class="modal-body text-center">
       <p>Are you sure you want to Enable Account?</p>
-      <!-- <button type="button" class="btn btn-success" (click)="onRevokeAccount(alert_message)">Yes, proceed</button>&nbsp; -->
+      <button type="button" class="btn btn-success" (click)="onRevokeAccount(alert_message)">Yes, proceed</button>&nbsp;
       <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
   </div>
 </ng-template>
@@ -714,3 +809,249 @@
       <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
   </div>
 </ng-template>
+
+<ng-template #leaveHistoryModal>
+  <div class="modal-header">
+    <h1 class="table-header-title">{{leaveObj.name}} Leaves History</h1>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="row" *ngIf="isLeavesHistory">
+    <div class="col-md-12">
+      <div class="selector-toggle" (click)="toggleLeaveHistorySearch()">
+        <a href="javascript:void(0)">
+          <i *ngIf="!isSearchLeaveHistoryEnabled" class="fa fa-search"></i>
+          <i *ngIf="isSearchLeaveHistoryEnabled" class="fa-solid fa-xmark"></i>
+        </a>
+      </div>
+      <div class="modal-body" style="overflow: scroll;">
+        <div class="container leave-history-table">
+          <div class="overflow-auto" *ngIf="leaveHistory.length > 0" 
+            bassHorizontalScroll 
+            [tableId]="'leaveHistoryTableId'"
+            [tableTHeadId]="'leaveHistoryTableTHead'"
+            [tableTHeadTrId]="'leaveHistoryTableTHeadTr'">
+       
+            <table class="table leave_history_table" matSort (matSortChange)="sortData($event)">
+              <thead class="thead-light text-center"   id="leavehistorythead">
+                <tr  id="leavehistoryid">
+
+                  <th scope="col" class="info-label">Sr no.</th>
+                  <th scope="col" mat-sort-header="createdByName|string">Name</th>
+                  <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>
+                  <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>
+                  <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>
+                  <th scope="col" class="info-label" mat-sort-header="noOfDays|number">No of days</th>
+                  <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
+                  <th scope="col" class="info-label" mat-sort-header="approverName|string">Approver Name</th>
+                  <th scope="col" class="info-label" mat-sort-header="managerApprovalStatus|string">Manager Approval
+                    Status</th>
+                  <th scope="col" class="info-label" mat-sort-header="reason|string">Reason</th>
+                  <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                </tr>
+                <tr app-column-filter-bar *ngIf="isLeavesHistory && isSearchLeaveHistoryEnabled"
+                  [columnList]="leaveHistoryColumns" (onSearch)="onLeaveSearch($event);pageNo=1"></tr>
+              </thead>
+              <tbody>
+                <tr *ngIf="leaveHistory.length == 0 || (leaveHistory| colFilter:leaveFilters:false).length == 0">
+                  <th colspan="11" class="text-center info-label">No details to display...</th>
+                </tr>
+                <tr class="text-center"
+                  *ngFor="let history of leaveHistory | colFilter:leaveFilters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+
+                  <!-- *ngFor="let review of reviewTypelist| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index"> -->
+
+                  <td scope="col" class="info-label">{{10*(pageNo-1)+i+1}}</td>
+                  <td  (click)="cancelRequest()" id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="history.emp360leavecreatedByEmpId" style="cursor: pointer;"  title="Click to view Employee 360">{{history.createdByName}}</td>
+                    <td *ngIf="!userMapping.my_team_employee_360">{{history.createdByName}}</td>
+                  <td>{{history.leaveType}}</td>
+                  <td>{{history.fromDate}}</td>
+                  <td>{{history.toDate}}</td>
+                  <td>{{history.noOfDays}}</td>
+                  <td>{{history.createdOn}}</td>
+                  <td (click)="cancelRequest()" id="clickablefor360" *ngIf="userMapping.my_team_employee_360" [navigateToEmployee360]="history.emp360approverempId" style="cursor: pointer;"  title="Click to view Employee 360">{{history.approverName}}</td>
+                  <td *ngIf="!userMapping.my_team_employee_360">{{history.approverName}}</td>
+                  <td>{{history.managerApprovalStatus}}</td>
+                  <td>{{history.reason}}</td>
+                  <td>{{history.status}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="my-buttons">
+    <pagination-controls class="my-pagination" [hidden]="leaveHistory.length == 0"
+      (pageChange)="handlePageChanges($event)"></pagination-controls>
+  </div>
+
+
+</ng-template>
+
+<ng-template #pip_template>
+  <div class="modal-body text-center">
+    <div class="row">
+      <div class="col-md-6 text-center">
+        <label class="info-label" style="width: 200px;">Start Date</label>
+      <div class="d-flex">
+           <input class="form-control static-input" matInput id="PIPStart" [matDatepicker]="startPicker" #startInput
+           (dateChange)="estimateEndDate()" (click)="startPicker.open()"
+            placeholder="Choose start Date" [max]="maxDate" [min]="minDate" [(ngModel)]="startDate" autocomplete="off">
+           <mat-datepicker-toggle matSuffix [for]="startPicker" style="margin-left: -40px;"></mat-datepicker-toggle>
+       </div>
+       <mat-datepicker  #startPicker (closed)="startInput.blur()" disabled="false"></mat-datepicker>
+      </div>
+      <div class="col-md-6 text-center mb-1">
+        <label class="info-label" style="width: 200px;" >End Date</label>
+       <div class="d-flex">
+           <input class="form-control static-input" matInput id="PIPEnd" disabled [matDatepicker]="endPicker" #endInput
+           placeholder="End Date" [(ngModel)]="endDate" autocomplete="off" >
+           <mat-datepicker-toggle matSuffix [for]="endPicker" style="margin-left: -40px;"></mat-datepicker-toggle>
+       </div>
+       <mat-datepicker  #endPicker (closed)="endInput.blur()" disabled></mat-datepicker>
+      </div>
+     </div><br>
+    <p>Kindly provide reason(s) for PIP .</p>
+    <textarea rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.pipReason"> </textarea><br>
+    <button type="button" class="btn btn-success" [disabled]="!(validationService.validateNullUndefinedEmptyString(startDate) && validationService.validateNullUndefinedEmptyString(leaveObj.pipReason))" (click)="PipGenerateToUser(alert_message,leaveObj,1);cancelRequest()">Send</button>&nbsp;
+    <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+  </div>
+  
+  
+  </ng-template>
+
+  <ng-template #pip_rev_template>
+    <div class="modal-body text-center">
+      <!-- as discussed with pooja start and end date should visible on pip revert call and also extend feature should be there -->
+        <!-- toggle added -->
+        <div class="row">
+          <div class="col-md-4 col-sm-8 custom-control custom-switch">
+            <input type="checkbox" class="custom-control-input" id="pip-switch" (change)="togglePipView($event)">
+            <label class="custom-control-label" for="pip-switch">Extend PIP</label>
+          </div>
+        </div>
+        
+      <div class="row">
+        <div class="col-md-6 text-center">
+          <label class="info-label" style="width: 200px;">Start Date</label>
+        <div class="d-flex">
+             <input class="form-control static-input" disabled  matInput id="PIPStart"  [matDatepicker]="startPicker" #startInput
+              (click)="startPicker.open()" placeholder="Choose start Date" [(ngModel)]="startDate" autocomplete="off">
+             <mat-datepicker-toggle matSuffix [for]="startPicker" style="margin-left: -40px;"></mat-datepicker-toggle>
+         </div>
+         <mat-datepicker  #startPicker (closed)="startInput.blur()" disabled></mat-datepicker>
+        </div>
+        <div class="col-md-6 text-center mb-1" *ngIf="isToggle">
+          <label class="info-label" style="width: 200px;" >End Date</label>
+         <div class="d-flex">
+             <input class="form-control static-input"  matInput id="PIPEnd" (dateChange)="checkDateChange()"  [matDatepicker]="endPicker" #endInput
+             placeholder="End Date" [(ngModel)]="endDate" [min]="minDateForExtend"  [max]="maxDateForExtend" autocomplete="off"  (click)="endPicker.open()" >
+             <mat-datepicker-toggle matSuffix [for]="endPicker" style="margin-left: -40px;" ></mat-datepicker-toggle>
+         </div>
+         <mat-datepicker  #endPicker (closed)="endInput.blur()" disabled="false"></mat-datepicker>
+        </div>
+  
+        <div class="col-md-6 text-center mb-1" *ngIf="!isToggle">
+          <label class="info-label" style="width: 200px;" >End Date</label>
+         <div class="d-flex">
+             <input class="form-control static-input" [disabled]="!isToggle"  matInput id="PIPEnd"  [matDatepicker]="endPicker" #endInput
+             placeholder="End Date" [(ngModel)]="endDate" [min]="startDate" autocomplete="off"  (click)="endPicker.open()" >
+             <mat-datepicker-toggle matSuffix [for]="endPicker" style="margin-left: -40px;" [disabled]="!isToggle"></mat-datepicker-toggle>
+         </div>
+         <mat-datepicker  #endPicker (closed)="endInput.blur()" disabled="false"></mat-datepicker>
+        </div>
+       </div><br>
+  
+      <!-- close  -->
+      <div *ngIf="!isToggle">
+        <p >Kindly provide reason(s) for Revert PIP .</p>
+        <textarea rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.revReason"></textarea><br>
+    </div>
+      <div *ngIf="isToggle">
+        <p >Kindly provide reason(s) for Extend PIP .</p>
+      <textarea rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.extendReason"></textarea><br>
+      </div>
+      <button type="button" *ngIf="!isToggle" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.revReason)" (click)="PIP_reverse(alert_message,leaveObj,0);cancelRequest()">Send</button>&nbsp;
+      <button class="btn btn-outline-primary ml-10" *ngIf="isToggle" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.extendReason)"  (click)="cancelRequest();setPipExtendsDays(alert_message);"><em><i class="fa-solid fa-eye"></i>&nbsp;Extends PIP</em></button>&nbsp;
+      <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+  </div>
+  </ng-template>
+
+  <ng-template #pipReason_template>
+    <div class="modal-header" >
+      <h3 class="table-header-title">PIP Reasons</h3>
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+          <span aria-hidden="true">&times;</span>
+      </button>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <div class="modal-body">
+        <div class="container overflow-auto">
+          <table class="table table-pipReason">
+  
+            <thead class="thead-light text-center">
+              <tr>
+                <th scope="col">Sr.No</th>
+                <th scope="col">Employee Name</th>
+                <th scope="col">Start Date</th>
+                <th scope="col">End Date</th>
+               
+                <th scope="col" >PIP Reason</th>
+                <th scope="col" >REV Reason</th>
+               
+                <th scope="col" >Extend Reason</th>
+               
+                <th scope="col" >Aging</th>
+                <th scope="col">Created BY</th>
+                <th scope="col">Updated BY</th>
+                <th scope="col" >Created On</th>
+                <th scope="col" >Updated on</th>
+                <th scope="col" >Extend</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="pipReasons.length == 0">
+                <th colspan="11" class="text-center info-label">No details to display...</th>
+            </tr>
+            <tr class="text-center" *ngFor="let reason of pipReasons| paginate: { itemsPerPage: 10, currentPage: pageNo };let i = index">
+              <td>{{10*(pageNo-1)+i+1}}</td>
+              <td>{{reason.employeeName}}</td>
+              <td>{{reason.startDate}}</td>
+              <td>{{reason.endDate}}</td>
+              <td >{{reason.pipReason}}</td>
+              <td >{{reason.revReason}}</td>
+              
+              <td>{{reason.extendReason}}</td>
+             
+              <td >{{reason.aging}}</td>
+              <td >{{reason.createdByName}}</td>
+              <td >{{reason.updatedByName}}</td>
+              <td >{{reason.createdOn}}</td>
+              <td >{{reason.updatedOn}}</td>
+              <td >{{reason.extendDays}}</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="my-buttons">
+          <pagination-controls class="my-pagination" [hidden]="pipReasons.length == 0" (pageChange)="handlePageChanges($event)"></pagination-controls>
+        </div>
+  
+      </div>
+    </div>
+  </div>
+  </ng-template>
+
+  <ng-template #reject_revoke_leave_Comp_off>
+    <div class="modal-body text-center">
+        <p>Kindly provide reason(s) for rejecting application.</p>
+        <textarea rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.rejectReason"> </textarea><br>
+        <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)" (click)="onUpdateCompOffStatus(alert_message,leaveObj,3);cancelRequest()">Reject</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+  </ng-template>

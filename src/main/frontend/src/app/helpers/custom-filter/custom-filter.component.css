@@ -3,3 +3,7 @@
     overflow: auto;
     background: #fff;
   }
+
+  ::ng-deep .autocomplete-container .input-container input {
+    padding-right: 35px !important; 
+  }

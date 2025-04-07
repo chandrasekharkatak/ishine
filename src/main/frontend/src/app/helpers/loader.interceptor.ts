@@ -1,16 +1,16 @@
-import { Injectable } from '@angular/core';
 import {
-  HttpRequest,
-  HttpHandler,
+  HttpErrorResponse,
   HttpEvent,
+  HttpHandler,
   HttpInterceptor,
-  HttpResponse,
-  HttpErrorResponse
+  HttpRequest,
+  HttpResponse
 } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { LoaderService } from '../services/loader.service';
 import { environment } from 'src/environments/environment';
+import { LoaderService } from '../services/loader.service';
 
 
 
@@ -18,12 +18,14 @@ import { environment } from 'src/environments/environment';
 export class LoaderInterceptor implements HttpInterceptor {
 
   private baseUrl:any = environment.baseUrl;
+  startDate:any;
 
   URL_whiteList = [
 
     `${this.baseUrl}` + `api/authenticateUser`,
     `${this.baseUrl}` + `api/authenticateUserWithOTP`,
-
+    `${this.baseUrl}`+`api/upload/designationBulkUpload`,
+    `${this.baseUrl}`+`api/employeeBulkUpload`,
     `${this.baseUrl}` + `api/createDepartment`,
     `${this.baseUrl}` + `api/updateDepartment`,
     `${this.baseUrl}` + `api/deleteDepartment`,
@@ -106,6 +108,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/setSurveyResponseByEmpId`,
     `${this.baseUrl}` + `api/getAnsweredSurveysByEmpId`,
     `${this.baseUrl}` + `api/empdetails`,
+    `${this.baseUrl}` + `api/getSurveyAllResponsesBySurveyId`,
 
     `${this.baseUrl}` + `api/generatePerviousMonthDSR`,
     `${this.baseUrl}` + `api/getAllDocument`,
@@ -182,6 +185,72 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}`+`api/newsletters/getAllReadNewslettersByEmpId`,
     `${this.baseUrl}`+`api/getEmployeeAuditInfo`,
 
+    `${this.baseUrl}`+`api/approveDraftEmployeeApplication`,
+    `${this.baseUrl}`+`api/uploadHelpDocument`,
+    `${this.baseUrl}`+`api/uploadPolicies`,
+    `${this.baseUrl}`+`api/bulkCompOffReject`,
+    `${this.baseUrl}`+`api/bulkCompOffApprove`,
+    `${this.baseUrl}`+`api/getTeamListByProjectName`,
+
+    // added by anurag 
+    `${this.baseUrl}`+`api/deleteType`,
+    `${this.baseUrl}`+`api/updateType`,
+    `${this.baseUrl}`+`api/getAllTypeName`,
+    `${this.baseUrl}`+`api/newsletters/getDocumentByType`,
+    `${this.baseUrl}`+`api/newsletters/customQueryForDocument`,
+    `${this.baseUrl}` + `api/pipGenerateToUser`,
+    // query/createQuery
+    `${this.baseUrl}` + `api/query/createQuery`,
+    `${this.baseUrl}` + `api/query/getNonPublishedQuery`,
+    `${this.baseUrl}` + `api/query/getQueryDataForPreview`,
+    `${this.baseUrl}` + `api/query/getQueryDetailsByQueryId`,
+    `${this.baseUrl}` + `api/query/updateQuery`,
+    `${this.baseUrl}` + `api/query/deleteQuery`,
+    `${this.baseUrl}` + `api/getEmployeeAuditInfo`,
+    `${this.baseUrl}` + `api/customQueryForDepartmentWiseBillableEmployeeReport`,
+    `${this.baseUrl}` + `api/getDepartmentWiseBillableData`,
+    `${this.baseUrl}` + `api/pipReturnFromUser`,
+    `${this.baseUrl}` + `api/setExtendPeriodByPipId`,
+    `${this.baseUrl}` + `api/revokeAccount`,
+    `${this.baseUrl}` + `api/upload/billableFile`,
+    `${this.baseUrl}` + `api/getDepartmentPendingLeaveHistory`,
+    `${this.baseUrl}`+`api/getEmployeeAuditInfo`,
+    `${this.baseUrl}`+`api/deleteTeamByTeamId`,
+    `${this.baseUrl}`+`api/upload/saveExcelDataForManagerMapping`,
+    `${this.baseUrl}` + `api/getBioData`,
+
+    //added by priyadarshini
+    `${this.baseUrl}` +`api/saveRewardConfiguration`,
+    `${this.baseUrl}` + `api/showAllRewards/`,
+    `${this.baseUrl}` + `api/fetchEmployeesFromRewardCondition`,
+    `${this.baseUrl}` +`api/submitRewardForEmployee`,
+    `${this.baseUrl}` + `api/showAllEmployeeRewards`,
+    `${this.baseUrl}` + `api/getReviewType`,
+    `${this.baseUrl}` + `api/getProjectInfo`,
+    `${this.baseUrl}` + `api/getTeamInfo`,
+    `${this.baseUrl}` + `api/getAllEmployeesForPerformance`,
+    `${this.baseUrl}` + `api/get360TimesheetDetails`,
+    `${this.baseUrl}` + `api/submitEmployeePerformanceHOD`,
+    `${this.baseUrl}` + `api/submitEmployeePerformanceHR`,
+    `${this.baseUrl}` + `api/addReviewType`,
+    `${this.baseUrl}` + `api/updateReviewType`,
+    `${this.baseUrl}` + `getExistingProjectsAndTeamsByEmployee`,
+    `${this.baseUrl}` + `api/getAllEmployeesFor360View`,
+    `${this.baseUrl}` + `api/getAll360LeaveApplicationsByEmpId`,
+    `${this.baseUrl}` + `api/biomax`,
+    `${this.baseUrl}` + `api/saveExcelDataForReward`,
+    `${this.baseUrl}` + `api/fetchEmployeesForHomepageByCategoryId`,
+    `${this.baseUrl}` + `api/getAllTeamView`, 
+    `${this.baseUrl}`+`api/submitRewardForEmployee`,
+    `${this.baseUrl}` + `api/showAllEmployeeRewards`,
+    `${this.baseUrl}` + `api/getAllEmployeesReportByProjectTypeInConsolidated`,
+    `${this.baseUrl}`+`api/getAllEmployeesReportByProjectType`,
+     `${this.baseUrl}`+`api/saveAppreciation`,
+    `${this.baseUrl}` + `api/deleteCompOff`,
+    `${this.baseUrl}` + `api/getAllOrDeptWiseEmployeeTimesheetReport`,
+    `${this.baseUrl}` + `api/getAllEmployeesForPerformance`,
+    `${this.baseUrl}` + `api/syncPoProjectDetailsByProjectId`,
+    `${this.baseUrl}` + `api/sendEmailNotificationToBDTeam`
   ]
 
   constructor(private loaderService: LoaderService) { }
@@ -189,7 +258,7 @@ export class LoaderInterceptor implements HttpInterceptor {
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     this.URL_whiteList.forEach((element) => {
 
-      if (request.url.includes(element)) {
+      if (request.url == element) {
 
         request = request.clone({
           setHeaders: {

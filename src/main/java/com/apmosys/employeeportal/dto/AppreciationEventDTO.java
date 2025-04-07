@@ -30,5 +30,22 @@ private Long appreciationEventId;
 	private Long updatedBy;
 	
 	private String appreciationEventType;
+private String name;
+	
+	private String department;
+	
+	private Long employeement_id;
+	
+	private String comment;
+	
+	private String AppreciationDate;
+	
+	   //totalcount
+	private Long TotalYouAreMyStarCount;
+	private Long TotalYouAreGemOfAPersonCount;
+	private Long TotalYouAreAproblemSolverCount;
+	private Long TotalYouAreSupportiveCount;
+	private Long TotalYouAreReliableCount;
+	private Long TotalYouAreAMotivatorCount;
 
 }

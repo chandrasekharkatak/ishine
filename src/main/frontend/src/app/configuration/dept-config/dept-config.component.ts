@@ -18,6 +18,7 @@ import { LocationStrategy } from '@angular/common';
 import { AppComponent } from 'src/app/app.component';
 import * as moment from 'moment';
 import { ColFilterPipe } from 'src/app/col-filter.pipe';
+import { UtilityService } from 'src/app/services/utility.service';
 
 
 @Component({
@@ -37,6 +38,7 @@ export class DeptConfigComponent implements OnInit {
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType:any;
+  abbreviationError: string = '';
 
   //modal
   alertMessage: any;
@@ -61,6 +63,7 @@ export class DeptConfigComponent implements OnInit {
   currentUser: User;
   userMapping: any = {};
 
+  employeesFor360: any[] = [];
 
   filters:any = {};
   isSearchEnabled:boolean = false;
@@ -74,11 +77,20 @@ export class DeptConfigComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private holidayService: HolidayService,
     private exportExcelService: ExportExcelService,
-    private locationStrategy:LocationStrategy) {
+    private locationStrategy:LocationStrategy,
+    private utilityService: UtilityService,
+) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
+
     this.getHODList(); // for HOD List
 
     // Dynamic Subfeature Flags
@@ -86,11 +98,12 @@ export class DeptConfigComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
+    //console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
     this.preventBackButton();
   }
+
   preventBackButton(){
     history.pushState(null, null, location.href);
     this.locationStrategy.onPopState(()=>{
@@ -149,13 +162,26 @@ export class DeptConfigComponent implements OnInit {
     this.deptObj = Object.assign({}, department)
   }
 
+  validateAbbreviation(): boolean {
+    const pattern = /^[a-zA-Z0-9]{2,8}$/;
+    const abbreviation = this.deptObj.deptAbbreviation;
+
+    if (!pattern.test(abbreviation)) {
+        this.abbreviationError = 'Department Abbreviation must be between 2 and 8 characters long and contain only letters and numbers.';
+        return false;  // Return false if the abbreviation is invalid
+    } else {
+        this.abbreviationError = '';
+        return true;  // Return true if the abbreviation is valid
+    }
+}
+
   validateDepartmentObj(deptObj: Department, template: TemplateRef<any>) {
 
     if (!this.validationService.validateNullUndefinedEmptyString(deptObj.name)) {
       this.alertMessage = "Please enter Department Name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    } else if (!this.validationService.validateAlphaWithSpace(deptObj.name)) {
+    } else if (!this.validationService.validateDepartmentName(deptObj.name)) {
       this.alertMessage = "Please enter Valid Department Name!!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -167,17 +193,25 @@ export class DeptConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+    if (!this.validationService.validateNullUndefinedEmptyString(deptObj.deptAbbreviation)) {
+      this.alertMessage = "Please enter Department Abbreviation !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+  }
     return true;
   }
 
   // CRUD
   onCreateDepartment(template: TemplateRef<any>) {
     this.deptObj.name = this.deptObj.name.trim();
+
+     // Validate abbreviation before proceeding
+     if (!this.validateAbbreviation()) return;
     let inputValidated: boolean = this.validateDepartmentObj(this.deptObj, template)
     if (!inputValidated) return;
 
     this.deptObj.createdBy = this.currentUser.empId;
-    console.log("Create Dept : ", this.deptObj);
+    //console.log("Create Dept : ", this.deptObj);
     this.departmentService.createDepartment(this.deptObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -191,11 +225,14 @@ export class DeptConfigComponent implements OnInit {
 
   onUpdateDepartment(template: TemplateRef<any>) {
     this.deptObj.name = this.deptObj.name.trim();
+
+    // Validate abbreviation before proceeding
+    if (!this.validateAbbreviation()) return;
     let inputValidated: boolean = this.validateDepartmentObj(this.deptObj, template)
     if (!inputValidated) return;
 
     this.deptObj.updatedBy = this.currentUser.empId;;
-    console.log("Update dept : ", this.deptObj);
+    //console.log("Update dept : ", this.deptObj);
     this.departmentService.updateDepartment(this.deptObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -252,7 +289,7 @@ export class DeptConfigComponent implements OnInit {
     department.isDeptUsedInIshine = this.onDeleteDepartmentResponse.isDeptUsedInIshine;
     department.isDeptUsedInPoPortal = this.onDeleteDepartmentResponse.isDeptUsedInPoPortal;
 
-    console.log(department, " : department");
+    //console.log(department, " : department");
 
     this.departmentService.changeDepartmentJobRoleMapping(department).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -284,7 +321,21 @@ export class DeptConfigComponent implements OnInit {
           dept.createdOn = (dept.createdOn)? moment(dept.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           dept.updatedOn = (dept.updatedOn)? moment(dept.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
-        console.log("allDeptList : ", this.allDeptList)
+        this.allDeptList.forEach((employee) => {
+          // console.log("employee.hodId ", employee.hodId);
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.hodId);
+          // console.log("hodId ", matchingEmployee);
+          employee.emp360HodId = matchingEmployee ? matchingEmployee : {};
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          // console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          // console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+        });
+        // console.log("allDeptList : ", this.allDeptList)
       } else {
         alert(response.serviceResponse)
       }
@@ -297,7 +348,7 @@ export class DeptConfigComponent implements OnInit {
   //   this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
   //     if (response.serviceStatus == "Success") {
   //       this.hodList = response.serviceResponse;
-  //       console.log("hodList : ", this.hodList)
+  //       //console.log("hodList : ", this.hodList)
   //       this.hodListFilter =  this.hodList.filter(x => x.jobRoleName.includes("-HOD"));
   //     } else {
   //       alert(response.serviceResponse)
@@ -313,20 +364,47 @@ export class DeptConfigComponent implements OnInit {
     this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         employeeList = response.serviceResponse;
-        console.log("employeeList By Role : ", employeeList)
+        //console.log("employeeList By Role : ", employeeList)
         this.hodList = employeeList;
-        console.log("managerList : ", this.hodList)
+        //console.log("managerList : ", this.hodList)
       } else {
         console.error(response.serviceResponse)
       }
     });
   }
 
+
+  changesDeptId(event:any){
+    console.log("daprtment id ",event.target.value);
+    console.log("hodlist id ",this.hodList);
+  }
+
+
+  validateDepartmentName(): void {
+   
+    
+  }
   checkDepartmentName(deptName:any, template: TemplateRef<any>){
 
+    // const regex = /^(?:[a-zA-Z]{2,8}|[a-zA-Z]{1,7}[0-9]{1,7})$/;
+    const regex = /^[a-zA-Z]+(?:\s[a-zA-Z]+)*\d*$/;
+    let check = regex.test(deptName);
+
+    if (check) {
+      console.log('');
+    } else if(this.deptObj.name == null) {
+      this.openAlertMod(template, "Department name is empty!");
+      this.deptObj.name = '';
+    } else{
+      this.openAlertMod(template, "Invalid department name");
+      this.deptObj.name = '';
+    }
+   
     let deptObj = new Department();
     deptObj.name = deptName;
     deptObj.deptId = this.deptObj.deptId;
+
+    console.log("console",deptObj)
 
     this.departmentService.checkDepartmentName(deptObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
@@ -346,7 +424,7 @@ export class DeptConfigComponent implements OnInit {
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.departmentDataForExcel = response.serviceResponse;
-        console.log("response.serviceResponse: ",response.serviceResponse);
+        //console.log("response.serviceResponse: ",response.serviceResponse);
       }
 
       const onlySpecificDataArr = this.departmentDataForExcel.map(
@@ -369,7 +447,7 @@ export class DeptConfigComponent implements OnInit {
   openDeleteDepartment(template: TemplateRef<any>, department: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.deptObj = department;
-    console.log(this.deptObj);
+    //console.log(this.deptObj);
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
@@ -389,7 +467,7 @@ export class DeptConfigComponent implements OnInit {
   }
 
   sortData(sort: Sort){
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -407,7 +485,7 @@ export class DeptConfigComponent implements OnInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

@@ -1,10 +1,17 @@
 package com.apmosys.employeeportal.service;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import com.apmosys.employeeportal.dto.AppreciationEventDTO;	
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,10 +21,19 @@ import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import com.apmosys.employeeportal.EncryptDecrypt;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.LMSDTO;
+import com.apmosys.employeeportal.dto.LMSEmailSend;
+import com.apmosys.employeeportal.dto.LMSRedirect;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.model.DraftEmployee;
 import com.apmosys.employeeportal.model.Employee;
@@ -25,13 +41,14 @@ import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class AuthenticationService {
-
-	@Value("${valid.attempt}")
-	private Integer failedAttempt;
 	
+	@Autowired
+	private RestTemplate restTemplate;
+
 	@Autowired
 	EmployeeRepository employeeRepository;
 
@@ -91,6 +108,9 @@ public class AuthenticationService {
 	
 	@Value("${poPortal.api.allProjects}")
 	private String poPortalAllProjectApi;
+	
+	@Value("${valid.attempt}")
+	private Integer failedAttempt;
 	
 //	private static ConcurrentHashMap<Long, String> userSessionList = new ConcurrentHashMap<Long, String>();
 	public static ConcurrentHashMap<Long, LogDTO> userLogInfoList = new ConcurrentHashMap<Long, LogDTO>();
@@ -223,11 +243,12 @@ public class AuthenticationService {
 			Long otpDiff = ChronoUnit.MINUTES.between(employee.getOtpUpdatedOn(), LocalDateTime.now());
 			
 			if(otpDiff < otpTimeoutPeriod) {
-				if (employeedto.getOtp().toString().equals(employee.getOtp().toString())
-						|| employeedto.getOtp().toString().equals(portalStaticOtp)) {
+				if (employeedto.getOtp().toString().equals(employee.getOtp().toString()) || (employeedto.getOtp().toString()).equals(portalStaticOtp.toString())) {
 					ServiceResponse serviceResponse = tabMasterService.getTabsByRoleId(employee.getJobRoleId());
 					EmployeeDTO currentEmployeeDto = employeeService.getEmployeeInfoOnLogin(employeedto.getEmail());
 					AppreciationEventDTO currentEventDto = appreciationService.getAppreciationEventInfo();	
+					
+					System.err.println("Enable appreciation ::   "+ currentEventDto);
 
 					currentEmployeeDto.setTimesheetBackDatedDays(timesheetBackDatedDays);
 					currentEmployeeDto.setCompOffLockDays(compOffLockDays);
@@ -246,6 +267,10 @@ public class AuthenticationService {
 						userSessionRepository.deleteById(existingUserSession.getUserSessionId());
 					}
 					
+					System.err.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+					System.out.println(" ");
+					System.out.println(" ");
+					System.out.println("currentEmployeeDto  "+currentEmployeeDto);
 //					userSessionList.put(employee.getEmpId(), sessionString);
 					UserSession newSession  = new UserSession();
 					newSession.setEmpId(employee.getEmpId());
@@ -486,7 +511,44 @@ public class AuthenticationService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+//added by rahul for LMS Redirection
 
+	public ServiceResponse LMSRedirection(String email,String url) {
+		ServiceResponse response = new ServiceResponse();
+		HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        LMSEmailSend email2=new LMSEmailSend();
+        email2.setEmail(email);
+        // Create the HttpEntity with the emailRequest body and headers
+        HttpEntity<String> request = new HttpEntity<>(email, headers);
+
+        // Send the POST request and get the response
+        ResponseEntity<LMSDTO> responsefrom = restTemplate.exchange(
+        		url,
+                HttpMethod.POST,
+                request,
+                LMSDTO.class
+        );
+        LMSDTO dto1=responsefrom.getBody();
+        if(dto1.isStatus()) {
+        	
+        response.setServiceStatus("success");
+        response.setServiceMessage("Login");
+        response.setServiceResponse(dto1.getUrl());
+        
+        }else {
+        	Employee employee = employeeRepository.findByEmail(email);
+
+        	 response.setServiceStatus(""+dto1.isStatus());
+             response.setServiceMessage("Login");
+             response.setServiceResponse(responsefrom.getBody());
+             
+        }
+        
+       return response;
+    }
+		
+	
 	public ServiceResponse checkOTPWhenForgotPassword(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();

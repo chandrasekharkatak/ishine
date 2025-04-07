@@ -1,15 +1,16 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Subject } from 'rxjs';
-import { Employee } from '../models/employee';
-import { User } from '../models/user';
-import { Query } from '../models/query';
+import { Observable, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import { Employee } from '../models/employee';
+import { Query } from '../models/query';
+import { User } from '../models/user';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EmployeeService {
+  
   private baseUrl:any = environment.baseUrl;
   
   constructor(private http: HttpClient) { }
@@ -38,10 +39,35 @@ export class EmployeeService {
     return this.http.get(`${this.baseUrl}` + `api/getAllEmployees`);
   }
 
+  
+  getAllEmployeesFor360View() {
+    return this.http.get(`${this.baseUrl}` + `api/getAllEmployeesFor360View`);
+  }
+
+  // getEmployeeByAppreciationName(requestBody: any): Observable<any> {
+  //   return this.http.post(`${this.baseUrl}api/getEmployeeByAppreciationName`, requestBody,{
+  //     headers: { 'Content-Type': 'application/json' },
+  // });
+  // }
+
   getEmployeeByEmpId(employeeObj: Employee) {
     return this.http.post(`${this.baseUrl}` + `api/getEmployeeByEmpId`, employeeObj);
   }
-
+  getEmployeeAppreciationByEmpId(requestPayload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}api/getEmployeeAppreciationByEmpId`, requestPayload, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } 
+  getDateRangesForDropdown(currentEmp:any){
+    return this.http.post(`${this.baseUrl}` + `api/getDateRangesForDropdown`,currentEmp,{
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+  getTeamAppreciationByEmpId(requestPayload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}api/getTeamAppreciationByEmpId`, requestPayload, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
   updateEmployeeProfile(employeeObj: Employee) {
     return this.http.post(`${this.baseUrl}` + `api/updateEmployeeProfileByEmpId`, employeeObj);
   }
@@ -76,6 +102,10 @@ export class EmployeeService {
 
   getAllEmployeesBirthDayToday() {
     return this.http.get(`${this.baseUrl}` + `api/getAllEmployeesBirthDayToday`);
+  }
+
+  getAllEmployeesWorkAnniversaryToday() {
+    return this.http.get(`${this.baseUrl}` + `api/getAllEmployeesWorkAnniversaryToday`);
   }
 
   getHierarchyByEmpId(employeeObj: Employee) {
@@ -193,4 +223,137 @@ export class EmployeeService {
    addDemographicsInfo(employeeObj:Employee){
     return this.http.post(`${this.baseUrl}`+`api/addDemographicsInfo`,employeeObj);
    }
+
+  //  added by anurag getTotalNoOfreporties
+  getTotalNoOfreporties(employeeObj:any){
+    return this.http.post(`${this.baseUrl}`+`api/getTotalNoOfreporties/`+employeeObj,employeeObj);
+   }
+
+   getDepartmentByHodId(empId :any){
+    return this.http.post(`${this.baseUrl}`+`api/getDepartmentByHodId/`+empId,empId);
+   }
+
+   // getProjectsByDepartmentName
+   getProjectsByDepartmentName(department : Employee){
+    return this.http.post(`${this.baseUrl}`+`api/getProjectsByDepartmentName`,department);
+   }
+
+  //  getTeamByProjectName 
+  getTeamByProjectName(project : any){
+    return this.http.post(`${this.baseUrl}`+`api/getTeamByProjectName/`+project,project);
+   }
+
+  //  getTeamMemberByTeamName
+  // getTeamMemberByTeamName(teamName : any){
+  //   return this.http.post(`${this.baseUrl}`+`api/getTeamMemberByTeamName/`+teamName,teamName);
+  //  }
+
+  getTeamMemberByTeamName(teamName : Employee){
+    return this.http.post(`${this.baseUrl}`+`api/getTeamMemberByTeamName`,teamName);
+   }
+  //  getManagerList
+  getManagerList(){
+    return this.http.get(`${this.baseUrl}`+`api/getManagerList/`);
+   }
+
+  //  setManagerToNewManager
+  setManagerToNewManager(employee : any){
+    return this.http.post(`${this.baseUrl}`+`api/setManagerToNewManager`,employee);
+   }
+
+  //  mapLeavesAndCompOffToNewManager
+  mapLeavesAndCompOffToNewManager(employee:any){
+    return this.http.post(`${this.baseUrl}`+`api/mapLeavesAndCompOffToNewManager`,employee);
+  }
+
+  // pipGenerateToUser
+pipGenerateToUser(teamObj : Employee){
+  return this.http.post(`${this.baseUrl}` + `api/pipGenerateToUser`, teamObj);
+}
+
+pipReturnFromUser(teamObj : Employee){
+  return this.http.post(`${this.baseUrl}` + `api/pipReturnFromUser`, teamObj);
+}
+
+//getOverLapsLeaveForManager
+getOverLapsLeaveForManager(leaveApp : Employee){
+  return this.http.post(`${this.baseUrl}` + `api/getOverLapsLeaveForManager`, leaveApp);
+}
+
+// getPipReasons
+getPipReasons(leaveApp : Employee){
+  return this.http.post(`${this.baseUrl}` + `api/getPipReasons`, leaveApp);
+}
+
+// setExtendPeriodByPipId
+setExtendPeriodByPipId(leaveApp : Employee){
+  return this.http.post(`${this.baseUrl}` + `api/setExtendPeriodByPipId`, leaveApp);
+}
+
+customQueryForDepartmentWiseBillableEmployeeReport(selectedIds: any): Observable<any> {
+  // Ensure selectedIds is an array
+  if (!Array.isArray(selectedIds)) {
+    console.error("SelectedIds is not an array");
+    return throwError("SelectedIds must be an array");
+  }
+
+  // Ensure selectedIds contains only numbers (Long values)
+  if (selectedIds.some(id => typeof id !== 'number')) {
+    console.error("SelectedIds contains non-numeric values");
+    return throwError("SelectedIds must contain only numbers");
+  }
+
+  return this.http.post<any>(`${this.baseUrl}api/customQueryForDepartmentWiseBillableEmployeeReport`, selectedIds);
+}
+
+// employee.service.ts
+getManagerByEmpId(empId: string) {
+  return this.http.get(`/api/employee/${empId}/manager`);
+}
+
+getReporteesListByManagerId(empObj: Employee){
+  // console.log("getReporteesListByManagerId ",empObj)
+  return this.http.post(`${this.baseUrl}`+`api/getReporteesListByManagerId`,empObj);
+}
+
+isEmployeeOnBench(onbench: Employee) {
+  // const params = new HttpParams().set('empId', empId.toString());
+  return this.http.post(`${this.baseUrl}api/isEmployeeOnBench`, onbench);
+}
+
+IsValidateLMSPORTAL(obj:any){
+
+  return this.http.post(`${this.baseUrl}api/IsValidateLMSPORTAL`, obj);
+}
+
+getReporteesListByReportingManagerId(empObj: Employee){
+  // console.log("getReporteesListByManagerId ",empObj)
+  return this.http.post(`${this.baseUrl}`+`api/getReporteesListByReportingManagerId`,empObj);
+}
+
+setReportingManagerToNewManager(employee : any){
+  return this.http.post(`${this.baseUrl}`+`api/setReportingManagerToNewManager`,employee);
+}
+
+getAllEmployeesReportByProjectTypeInConsolidated():Observable<any[]>{
+  return this.http.get<any[]>(`${this.baseUrl}`+`api/getAllEmployeesReportByProjectTypeInConsolidated`);
+}
+
+getAllEmployeesReportByProjectType(){
+  return this.http.get(`${this.baseUrl}`+`api/getAllEmployeesReportByProjectType`);
+}
+
+//Update Default ProjectName for employee
+updateDefaultProject(newemployeeObj : any){
+  return this.http.post(`${this.baseUrl}` + `api/updateDefaultProject`, newemployeeObj);
+ }
+
+ getExpiredPo(){
+  return this.http.get(`${this.baseUrl}` + `api/getExpiredPo`);
+ }
+
+ sendExpiredPoEmail(employeeDTO:any){
+  return this.http.post(`${this.baseUrl}` + `api/sendExpiredPoEmail`,employeeDTO);
+ }
+
 }

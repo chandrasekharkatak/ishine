@@ -51,6 +51,7 @@ export class EmployeeInfoComponent implements OnInit{
     private authenticationService: AuthenticationService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+
     this.updateUserInfoService.updateduserInfoObj.subscribe((employee:Employee)=>{
       this.sectionViewInit(employee);
     });
@@ -58,15 +59,16 @@ export class EmployeeInfoComponent implements OnInit{
 
   ngOnInit(): void {
 
-    const employee:Employee = this.updateUserInfoService.getUserInfoObj();
+    const employee:Employee = this.updateUserInfoService.getUserInfoObjwithEmpId();
+
     this.sectionViewInit(employee);
     this.setYearOfPassingList();
-    console.log("employeeObj :: ", this.employeeObj);
+    //console.log("employeeObj :: ", this.employeeObj);
 
-    console.log(this.allChildList, " allChildList");
+    //console.log(this.allChildList, " allChildList");
 
     // this.currentEmployeeInfo = this.updateUserInfoService.getUserInfoObj();
-    // console.log("Employee info IN PREVIEW ==> ", this.currentEmployeeInfo);
+    // //console.log("Employee info IN PREVIEW ==> ", this.currentEmployeeInfo);
   }
 
   sectionViewInit(employee:Employee){
@@ -153,9 +155,24 @@ export class EmployeeInfoComponent implements OnInit{
   }
 
   preventDecimalOnNumberInput(event:any){
+    //console.log(" check entered key",event.key)
     if(event.key==='.'){
       event.preventDefault();
     }
+  }
+
+  // added by anurag
+
+  fieldRestictCharacterForNumber(event){
+    var k;
+    k = event.charCode;
+
+    if(k== 69 || k == 101){
+      return false;
+    }else{
+      return true;
+    }
+
   }
 
   setCalenderMaxDate() {
@@ -192,11 +209,11 @@ export class EmployeeInfoComponent implements OnInit{
     const toDate = moment(new Date(dateOfRelieving));
 
     const diffDuration = moment.duration(toDate.diff(fromDate));
-    console.log(`Get Experience : ${fromDate} - ${toDate} ==>  ${diffDuration.years()} years ${diffDuration.months()} months ===>  ${diffDuration.years()}.${diffDuration.months()} for ID : YOE-${yearsOfExperienceId}`);
+    //console.log(`Get Experience : ${fromDate} - ${toDate} ==>  ${diffDuration.years()} years ${diffDuration.months()} months ===>  ${diffDuration.years()}.${diffDuration.months()} for ID : YOE-${yearsOfExperienceId}`);
 
-    // console.log(diffDuration.years()); // years
-    // console.log(diffDuration.months()); // months
-    // console.log(diffDuration.days()); // days
+    // //console.log(diffDuration.years()); // years
+    // //console.log(diffDuration.months()); // months
+    // //console.log(diffDuration.days()); // days
   }
 
   // Manage employer
@@ -239,7 +256,7 @@ export class EmployeeInfoComponent implements OnInit{
       const toDate = moment(new Date(previousEmployer.dateOfRelieving));
   
       const diffDuration = moment.duration(toDate.diff(fromDate));
-      console.log(`Get Experience : ${fromDate} - ${toDate} ==>  ${diffDuration.years()} years ${diffDuration.months()} months ===>  ${diffDuration.years()}.${diffDuration.months()} for ID :`);
+      //console.log(`Get Experience : ${fromDate} - ${toDate} ==>  ${diffDuration.years()} years ${diffDuration.months()} months ===>  ${diffDuration.years()}.${diffDuration.months()} for ID :`);
       const experience  = `${diffDuration.years()}.${diffDuration.months()}`;
       previousEmployer.yearsOfExperience = experience;
     }
@@ -364,7 +381,6 @@ export class EmployeeInfoComponent implements OnInit{
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-
     if(employeeObj.maritalStatus == 'married'){
       if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.spouse)){
         this.alertMessage = "Please enter spouse name !!"
@@ -376,21 +392,22 @@ export class EmployeeInfoComponent implements OnInit{
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
-      if(!this.validationService.validateAlphaWithSpace(employeeObj.child1)){
-        this.alertMessage = "Please enter valid child1 name !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-      if(!this.validationService.validateAlphaWithSpace(employeeObj.child2)){
-        this.alertMessage = "Please enter valid child2 name !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-      if(!this.validationService.validateAlphaWithSpace(employeeObj.child3)){
-        this.alertMessage = "Please enter valid child3 name !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
+      // //console.log("  employeeObj.child1 ",employeeObj.child1);
+      // if(!this.validationService.validateAlphaWithSpace(employeeObj.child1)){
+      //   this.alertMessage = "Please enter valid child1 anurag name !!"
+      //   this.openAlertMod(template, this.alertMessage);
+      //   return false;
+      // }
+      // if(!this.validationService.validateAlphaWithSpace(employeeObj.child2)){
+      //   this.alertMessage = "Please enter valid child2 name !!"
+      //   this.openAlertMod(template, this.alertMessage);
+      //   return false;
+      // }
+      // if(!this.validationService.validateAlphaWithSpace(employeeObj.child3)){
+      //   this.alertMessage = "Please enter valid child3 name !!"
+      //   this.openAlertMod(template, this.alertMessage);
+      //   return false;
+      // }
 
     }
 
@@ -610,7 +627,7 @@ export class EmployeeInfoComponent implements OnInit{
     }
 
     if(!certFlag) return false;
-    console.log("cert flag ",certFlag);
+    //console.log("cert flag ",certFlag);
 
     let prevFlag = true;
     if(employeeObj.experience == 'Experienced'){
@@ -822,7 +839,13 @@ export class EmployeeInfoComponent implements OnInit{
     this.employeeObj.bankAccountNo = this.employeeObj.bankAccountNo?.trim();
     this.employeeObj.bankIFSCCode = this.employeeObj.bankIFSCCode?.trim();
     this.employeeObj.esicNumber = this.employeeObj.esicNumber?.trim();
-
+    this.employeeObj.isConsultant = this.employeeObj.isConsultant 
+    ? this.employeeObj.isConsultant.trim() 
+    : '';
+  
+  // this.employeeObj.isApprenticeship = this.employeeObj.isApprenticeship 
+  //   ? this.employeeObj.isApprenticeship.trim() 
+  //   : '';
 
     this.employeeObj.previousEmploymentList?.forEach((x)=>{
       x.employerName = x.employerName?.trim();
@@ -836,6 +859,40 @@ export class EmployeeInfoComponent implements OnInit{
       y.certificationNumber = y.certificationNumber?.trim();
     })
 
+
+    const regexaOrganisationMe = /^[a-zA-Z\s,!.]+$/;
+    if (!regexaOrganisationMe.test(this.employeeObj.viewsOnOrganisation )) { 
+        this.alertMessage = "Your views on our Organisation should only contain alphabets and spaces!";
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+    }
+
+
+  const regexaboutMe = /^[a-zA-Z\s,!.]+$/;
+if (!regexaboutMe.test(this.employeeObj.aboutMe )) { 
+    this.alertMessage = "About Me field should only contain alphabets and spaces!";
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+}
+
+    const regexbloodG = /^(A|B|AB|O)[+-]$/; 
+    if (!regexbloodG.test(this.employeeObj.bloodGroup)) { 
+        this.alertMessage = "Please enter a valid Blood Group (e.g., A+, B-, AB+, O+).";
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+    }
+    
+
+
+  //  const regexpassPort =/ ^[A-Za-z0-9]+$/; 
+  //  if (!regexpassPort.test(this.employeeObj.passportNumber)) { 
+  //      this.alertMessage = "Please enter a valid Passport Number";
+  //      this.openAlertMod(template, this.alertMessage);
+  //      return false;
+  //  }
+   
+
+
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
     if (!inputValidated) return;
 
@@ -846,22 +903,22 @@ export class EmployeeInfoComponent implements OnInit{
     // this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat);
 
     this.allCertificationList?.forEach(certificaiton => {
-      console.log("All certificaiton : ", this.allCertificationList);
+      //console.log("All certificaiton : ", this.allCertificationList);
       if(certificaiton.dateOfCompletion == 'Invalid date' || certificaiton.dateOfCompletion == ''){
         certificaiton.dateOfCompletion = null;
       }
-      console.log(certificaiton.dateOfCompletion, " : certificaiton.dateOfCompletion after")
+      //console.log(certificaiton.dateOfCompletion, " : certificaiton.dateOfCompletion after")
       if ((certificaiton != undefined && Object.keys(certificaiton).length !== 0) && (certificaiton.employeeCertificateId == undefined || certificaiton.employeeCertificateId == null)) {
         if(certificaiton.dateOfCompletion != null){
           certificaiton.dateOfCompletion = moment(certificaiton.dateOfCompletion).format(dateFormat);
         }
-        console.log("New certificaiton : ", certificaiton);
+        //console.log("New certificaiton : ", certificaiton);
         this.updatedCertificationList.push(certificaiton);
       }
     });
 
     this.allPreviousEmployment?.forEach(prevEmployer => {
-      console.log("All Prev Employer : ", this.allPreviousEmployment);
+      //console.log("All Prev Employer : ", this.allPreviousEmployment);
       if(prevEmployer.dateOfJoining == 'Invalid date' || prevEmployer.dateOfJoining == ''){
         prevEmployer.dateOfJoining = null;
       }
@@ -873,7 +930,7 @@ export class EmployeeInfoComponent implements OnInit{
           prevEmployer.dateOfJoining = moment(prevEmployer.dateOfJoining).format(dateFormat);
           prevEmployer.dateOfRelieving = moment(prevEmployer.dateOfRelieving).format(dateFormat);
         }
-        console.log("New Prev Employer : ", prevEmployer);
+        //console.log("New Prev Employer : ", prevEmployer);
         this.updatedPreviousEmployment.push(prevEmployer);
       }
     });
@@ -897,7 +954,7 @@ export class EmployeeInfoComponent implements OnInit{
 
     this.employeeObj.createdBy = this.currentUser.empId;
 
-    console.log("onSave --> employeeObj : ", this.employeeObj);
+    //console.log("onSave --> employeeObj : ", this.employeeObj);
 
     this.updateUserInfoService.setUserInfoObj(this.employeeObj);
     const response = await this.updateUserInfoService.saveEmployeeInfo();
@@ -956,8 +1013,8 @@ export class EmployeeInfoComponent implements OnInit{
 
   validateBloodGroup(event, data:any){
     this.employeeObj.bloodGroup = this.employeeObj.bloodGroup?.trim();
-    console.log("Element :", event.target);
-    console.log("Sibling : ", event.target.nextElementSibling);
+    //console.log("Element :", event.target);
+    //console.log("Sibling : ", event.target.nextElementSibling);
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter Blood Group !!"
   }
@@ -1554,6 +1611,23 @@ event.target.nextElementSibling.textContent =  this.errorMsg
 
   cancelRequest() {
     this.modalRef.hide();
+  }
+
+  restrictNumbersIn(event){
+    var k ;
+    k = event.charCode;
+//console.log("  charcode   ",k);
+    if((k == 33) || (k == 34) || (k == 35) || (k == 36 ) || (k == 37) ||
+    (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42 ) ||
+    (k == 43) || (k == 44) || (k == 46 ) || (k == 47) ||
+      (k==48) || (k==49) || (k==50) || (k==51) || (k==52) || 
+      (k==53)|| (k==54)|| (k==55)|| (k==56)|| (k==57) || 
+      (k==58) || (k == 59) || (k == 60) || (k == 61) || (k == 62 ) 
+      || (k == 63) || (k == 64)){
+      return (false);
+    }
+    return (true);
+
   }
 
 }

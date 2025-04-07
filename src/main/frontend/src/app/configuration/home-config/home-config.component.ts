@@ -18,6 +18,7 @@ import { NotificationService } from 'src/app/services/notification.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { AngularEditorComponent, AngularEditorConfig } from '@kolkov/angular-editor';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import { UtilityService } from 'src/app/services/utility.service';
 
 @Component({
   selector: 'app-home-config',
@@ -69,11 +70,13 @@ export class HomeConfigComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  consentNotificationResponseColumns:any[] = ['blank', 'employeementId', 'name','consentDate'];
   notificationsColumns:any[] = ['blank', 'notificationMessage','notificationType','isActive','createdByName','createdOn','updatedByName','updatedOn'];
-  eventTableColumns:any[] = ['eventName','eventCaption','imageName','createdByName','createdOn'];
+  eventTableColumns:any[] = ['eventName','eventCaption','createdByName','createdOn'];
   notificationObj: NotificationMessage = new NotificationMessage();
 
+  consentFilters:any = {};
+  isConsentSearchEnabled:boolean = false;
+  consentNotificationResponseColumns:any[] = ['blank', 'employeementId', 'name','consentOn'];
   //Angular Editor
 
   editorConfig: AngularEditorConfig = {
@@ -96,6 +99,8 @@ export class HomeConfigComponent implements OnInit {
     toolbarPosition: 'top'
 };
 
+  employeesFor360: any[] = [];
+
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -106,17 +111,24 @@ export class HomeConfigComponent implements OnInit {
     private notificationService: NotificationService,
     private locationStrategy: LocationStrategy,
     private exportExcelService: ExportExcelService,
+    private utilityService: UtilityService,
     ) {
       this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
      }
 
-  ngOnInit(): void {
+     async ngOnInit(): Promise<void> {
+      try {
+        this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+        // console.log("Priyadarshini ", this.employeesFor360);
+      } catch (error) {
+        console.error("Error fetching employee details for 360 view", error);
+      }
     // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
+    //console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
     this.preventBackButton();
@@ -185,6 +197,9 @@ export class HomeConfigComponent implements OnInit {
   }
 
   showNotificationTable(){
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.isNotificationTable = true;
     this.isNotificationForm = false;
 
@@ -211,6 +226,9 @@ export class HomeConfigComponent implements OnInit {
   }
 
   showTable() {
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.isTable = true;
 
     this.isPhotoForm = false;
@@ -263,7 +281,7 @@ export class HomeConfigComponent implements OnInit {
       image.photoOrder = index+1;
     });
 
-    console.log("Updated Order : ", this.eventImages);
+    //console.log("Updated Order : ", this.eventImages);
 
     let updatedPhotoList = new EventPhoto();
     updatedPhotoList.eventPhotoList = this.eventImages;
@@ -330,7 +348,7 @@ export class HomeConfigComponent implements OnInit {
     updatedPhotoDetails = Object.assign({}, this.imageObj);
     updatedPhotoDetails.updatedBy = this.currentUser.empId;
 
-    console.log("onUpdateEventDetails : ", updatedPhotoDetails);
+    //console.log("onUpdateEventDetails : ", updatedPhotoDetails);
     
     this.imageService.updatePhotoDetails(updatedPhotoDetails).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == 'Success') {
@@ -347,9 +365,21 @@ export class HomeConfigComponent implements OnInit {
   onImageSelect(event:any,template: TemplateRef<any>){
     const extensionRE = /(?:\.([^.]+))?$/;
     let isSizeInRange:boolean = false;
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+    const maxSizeInBytes = 10 * 1024 * 1024; // 10MB
+
+    const uploadedFiles = event.target.files;
+    //console.log(" file type ::  ",uploadedFiles," file type :: ",uploadedFiles.type)
 
     //Bits in  10mb : 10485760
-    if(event.target.files[0].size > 10485760){
+// Check file type
+if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
+  this.openAlertMod(template,'Please select a valid image file (png, jpeg, or jpg).');
+  event.target.value = ''; // Clear the input
+  return;
+}
+    
+    if(event.target.files[0].size > maxSizeInBytes){
       this.openAlertMod(template, "File size is more than 10MB");
       event.target.value = null;
       isSizeInRange = false;
@@ -360,11 +390,12 @@ export class HomeConfigComponent implements OnInit {
    if(isSizeInRange){
     this.files = [];
 
-    const uploadedFiles = event.target.files;
-    console.log("uploadedFiles : ", uploadedFiles);
+   
+    //console.log("uploadedFiles : ", uploadedFiles);
 
     if (uploadedFiles.length != 0) {
       for (let i = 0; i < uploadedFiles.length; i++) {
+        //console.log(" upload method call ");
         let image = uploadedFiles[i];
         let imageName = "EventPhoto_"+moment(new Date()).format("DD-MM-YYYY-hh-mm-ss")+"."+extensionRE.exec(image.name)[1];
 
@@ -372,7 +403,7 @@ export class HomeConfigComponent implements OnInit {
         this.files.push(imgObj);
       };
     }
-    console.log("Files : ", this.files);
+    //console.log("Files : ", this.files);
    }
   }
 
@@ -438,7 +469,7 @@ export class HomeConfigComponent implements OnInit {
     formData.append("employeementId", this.currentUser.employeementId);
     formData.append("empId", this.currentUser.empId);
 
-    console.log("Upload Images : ", formData);
+    //console.log("Upload Images : ", formData);
     this.imageService.uploadMultipleImages(formData).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == 'Success') {
         this.openAlertMod(template, response.serviceResponse);
@@ -454,7 +485,7 @@ export class HomeConfigComponent implements OnInit {
     let imageObj = new EventPhoto();
     this.cancelRequest();
    this.imageObj.updatedBy = this.currentUser.empId;
-   console.log("Updated by .. ",this.imageObj.updatedBy)
+   //console.log("Updated by .. ",this.imageObj.updatedBy)
     this.imageService.deleteEventPhoto(this.imageObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -473,9 +504,8 @@ export class HomeConfigComponent implements OnInit {
         this.eventImages.forEach(img => {
           img.createdOn = (img.createdOn)? moment(img.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
-
         this.eventImages.sort((a,b) => a.photoOrder - b.photoOrder);
-        console.log("eventImages : ", this.eventImages);
+        // console.log("eventImages : ", this.eventImages);
       } else {
         console.error(response.serviceResponse);
       }
@@ -490,7 +520,14 @@ export class HomeConfigComponent implements OnInit {
         this.eventImages.forEach(img => {
           img.createdOn = (img.createdOn)? moment(img.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
         })
-        console.log("eventImages : ", this.eventImages);
+        this.eventImages.forEach(employee => {
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          // console.log("employee.updatedBy ", employee.updatedBy);
+        });
+        // console.log("eventImages : ", this.eventImages);
       } else {
         console.error(response.serviceResponse);
       }
@@ -507,6 +544,8 @@ export class HomeConfigComponent implements OnInit {
       previeImage.style.display = 'block';
     }
   }
+
+  notificationId: number=0;
 
   onSetNotification(template: TemplateRef<any>) {
     if(!this.validationService.validateNullUndefinedEmptyString(this.notificationObj.notificationMessage)){
@@ -531,9 +570,29 @@ export class HomeConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showNotificationTable();
+        if (this.notificationSelect == true && this.file.fileName != null) {
+          this.notificationId = +response.serviceMessage;
+          this.notificationService.addReleaseNotesVideo(this.file, this.notificationId).subscribe(
+            (response: any) => {
+              if (response.serviceStatus === 'Success') {
+                console.log('File saved successfully:', response.serviceResponse);
+                alert(response.serviceMessage);
+              } else {
+                console.error('Failed to save file:', response.serviceError);
+                alert(response.serviceMessage);
+              }
+            },
+            (error) => {
+              console.error('Error during API call:', error);
+              alert('An error occurred while saving the file.');
+            }
+          );
+
+        }
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
+      this.file={};
     });
   }
 
@@ -599,8 +658,17 @@ export class HomeConfigComponent implements OnInit {
           notification.createdOn = (notification.createdOn)? moment(notification.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           notification.updatedOn = (notification.updatedOn)? moment(notification.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
-
-        console.log("notificationList : ", this.allNotification);
+        this.allNotification.forEach((employee) => {
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          // console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          // console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+        });
+        //console.log("notificationList : ", this.allNotification);
       } else {
         console.error(response.serviceResponse);
       }
@@ -621,7 +689,7 @@ export class HomeConfigComponent implements OnInit {
         });
 
         this.modalRef = this.modalService.show(consentNotificationTemplate, { class: 'modal-lg' });
-        console.log("consentNotificationResponse : ", this.consentNotificationResponse);
+        //console.log("consentNotificationResponse : ", this.consentNotificationResponse);
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -651,24 +719,24 @@ export class HomeConfigComponent implements OnInit {
   openDeleteEventPhoto(template: TemplateRef<any>, imageObj: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.imageObj = imageObj;
-    console.log(this.imageObj);
+    //console.log(this.imageObj);
   }
 
   openDeleteNotificationModal(notificationObj:any, template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.notificationToBeDeleted = notificationObj;
-    console.log(this.notificationObj);
+    //console.log(this.notificationObj);
   }
 
   openInactivateNotificationModal(notificationObj:any, template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.notificationToBeDeleted = notificationObj;
-    console.log(this.notificationObj);
+    //console.log(this.notificationObj);
   }
 
   openPreviewEventPhoto(template: TemplateRef<any>, imageObj: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
-    console.log(imageObj);
+    //console.log(imageObj);
     this.imageObj = imageObj;
     this.isPreviewLoaded = false;
     document.getElementById(`photoPreview`).style.display = 'none';
@@ -677,7 +745,7 @@ export class HomeConfigComponent implements OnInit {
 
   openUpdateEventPhotoDetails(template: TemplateRef<any>, imageObj: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
-    console.log(imageObj);
+    //console.log(imageObj);
     this.imageObj = imageObj;
   }
 
@@ -696,7 +764,7 @@ export class HomeConfigComponent implements OnInit {
   }
 
   sortData(sort: Sort){
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -712,13 +780,73 @@ export class HomeConfigComponent implements OnInit {
     }
   }
 
+  resetSearch(){
+    this.isSearchEnabled = false;
+    this.filters = {};
+  }
+
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
+  }
+
+  toggleConsentResponseSearch(){
+    this.isConsentSearchEnabled = !this.isConsentSearchEnabled;
+    if(!this.isConsentSearchEnabled){
+      this.consentFilters = {};
+    }
+  }
+
+  onConsentSearch(searchData){
+    this.consentFilters = searchData;
+  }
+
+
+// Video Upload st
+notificationSelect: boolean = false;
+onNotificationTypeChange() {
+  if (this.notificationObj.notificationType === 'releaseNotes') {
+    this.notificationSelect = true;
+  } else {
+    this.notificationSelect = false;
   }
 }
 
-  function compare(a: number | string, b: number | string, isAsc: boolean) {
+file: any = {};
+fileSize: number = 0;
+
+onFileSelect(event: any, template: TemplateRef<any>) {
+  this.file = {};
+  const maxSizeInBytes = 100 * 1024 * 1024; // 100MB
+  const uploadedFile = event.target.files[0];
+
+  if (!uploadedFile) {
+    return;
+  }
+
+  if (!['video/mp4', 'video/webm'].includes(uploadedFile.type)) {
+    this.openAlertMod(template, 'Please select a valid file (.mp4 or .webm).');
+    event.target.value = ''; 
+    return;
+  }
+
+  if (uploadedFile.size > maxSizeInBytes) {
+    this.openAlertMod(template, 'File size is more than 100MB');
+    event.target.value = null;
+    return;
+  }
+
+  this.file = { document: uploadedFile, fileName: uploadedFile.name };
+  this.fileSize = uploadedFile.size / 1024 / 1024;
+}
+
+
+// Call any other function or perform actions based on the selected value
+
+// Video Upload end
+
+
+}  function compare(a: number | string, b: number | string, isAsc: boolean) {
     return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
   }
 

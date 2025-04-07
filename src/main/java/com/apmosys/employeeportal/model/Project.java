@@ -10,13 +10,19 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import org.hibernate.envers.Audited;
+
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+//import lombok.Getter;
+//import lombok.Setter;
 import lombok.ToString;
 
 @Entity
 @Getter
 @Setter
+@Audited
 @ToString
 @Table(name="projects")
 public class Project {
@@ -28,7 +34,7 @@ public class Project {
 	private String clientName;
 	private String clientLocation;
 	private String state;
-	@Column(unique = true)
+//	@Column(unique = true)
 	private String projectName;
 	private String description;
 	private Long projectManagerId;
@@ -45,5 +51,16 @@ public class Project {
 	private Long createdBy;
 	private Long updatedBy;
 	private LocalDateTime updatedOn;
-
+	private String role;
+    private Integer count;
+    private String experience;
+    private String poStartDate;
+	private String poEndDate;
+	private String poNo;
+	private String poProjectType;
+	private String apmosysRM;
+	private String clientRM;
+	private Boolean isRenewable;
+	private String deptId;
+	private String status;
 }

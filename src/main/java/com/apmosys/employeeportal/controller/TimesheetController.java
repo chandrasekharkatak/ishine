@@ -3,11 +3,14 @@ package com.apmosys.employeeportal.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.service.TimesheetService;
@@ -36,7 +39,7 @@ public class TimesheetController {
 	
 	@RequestMapping(value = "/addTimesheet", method = RequestMethod.POST)
 	public ServiceResponse addTimesheet(@RequestBody TimesheetDTO timesheetDTO) {
-
+		System.out.println("timesheetDTO list : "+timesheetDTO);
 		ServiceResponse response = timesheetService.addTimesheet(timesheetDTO);
 		return response;
 	}
@@ -154,5 +157,24 @@ public class TimesheetController {
 		    return response;
 	}
 	
+	
+	 @RequestMapping(value = "/getAllOrDeptWiseEmployeeTimesheetReport",method = RequestMethod.POST)
+	    public ServiceResponse getAllOrDeptWiseEmployeeTimesheetReport(@RequestBody FilteredTimesheetDTO filteredTimesheetDTO) {
+	        return timesheetService.getAllOrDeptWiseEmployeeTimesheetReport(filteredTimesheetDTO);
+	    }
+	
+//	@Scheduled(cron = "0 53 17 * * ?")  // Runs at 3:55 pm
+//    public void scheduleUpdateCurrentManagerInTimesheets() {
+//		System.err.println("----cron started-----");
+//        timesheetService.updateCurrentManagerInTimesheets();
+//        System.err.println("--cron ended--");
+//    }
+	
+//	public void backfillManagerIds() {
+//		System.err.println("----cron started-----");
+//            timesheetService.updateTimesheetManagerIds();
+//            System.err.println("--cron ended----");
+//            
+//    }
 	
 }

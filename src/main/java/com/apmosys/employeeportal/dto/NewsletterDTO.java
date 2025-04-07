@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.dto;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -27,4 +29,7 @@ public class NewsletterDTO {
 	private String updatedOn;
 	private Integer updatedBy;
 	private String updatedByName;
+	private String typeName;
+	private Long typeId;
+	List<CustomFilterDTO> queryList;
 }

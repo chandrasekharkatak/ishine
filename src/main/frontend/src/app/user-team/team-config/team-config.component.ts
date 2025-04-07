@@ -1,29 +1,32 @@
-import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { LocationStrategy } from '@angular/common';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Sort } from '@angular/material/sort';
 import { Router } from '@angular/router';
+import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import { first, takeUntil } from 'rxjs/operators';
+import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
 import { Activity } from 'src/app/models/activity';
+import { Department } from 'src/app/models/department';
 import { Employee } from 'src/app/models/employee';
 import { Feature } from 'src/app/models/feature';
 import { Project } from 'src/app/models/project';
 import { Team } from 'src/app/models/team';
 import { TeamMember } from 'src/app/models/teamMember';
+import { Timesheet } from 'src/app/models/timesheet';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { DepartmentService } from 'src/app/services/department.service';
 import { EmployeeService } from 'src/app/services/employee.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ProjectService } from 'src/app/services/project.service';
 import { TeamService } from 'src/app/services/team.service';
-import { ValidationService } from 'src/app/services/validation.service';
-import { ExportExcelService } from 'src/app/services/export-excel.service';
-import * as XLSX from 'xlsx';
-import { Sort } from '@angular/material/sort';
-import { Timesheet } from 'src/app/models/timesheet';
 import { TimesheetService } from 'src/app/services/timesheet.service';
-import { Department } from 'src/app/models/department';
-import { LocationStrategy } from '@angular/common';
-import * as moment from 'moment';
-import { AppComponent } from 'src/app/app.component';
+import { ValidationService } from 'src/app/services/validation.service';
+import { Employee360Service } from 'src/app/services/employee360.service';
+import { UtilityService } from 'src/app/services/utility.service';
+import { SortPipe } from 'src/app/sort.pipe';
+
 
 @Component({
   selector: 'app-team-config',
@@ -43,7 +46,7 @@ export class TeamConfigComponent implements OnInit {
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType:any;
-
+  dataObj: Project = new Project();
   //flags 
   isCreation: boolean = false;
   isUpdation: boolean = false;
@@ -65,7 +68,8 @@ export class TeamConfigComponent implements OnInit {
   //modal 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
-
+  modalRef2: BsModalRef = new BsModalRef();
+  modalRef5:  BsModalRef = new BsModalRef();
   //Obj 
   teamObj: Team = new Team();
   storedTeamObj: Team = new Team();
@@ -118,6 +122,12 @@ export class TeamConfigComponent implements OnInit {
   viewTeamColumns:any[] = ['blank', 'projectName','teamName','teamLeadName','projectManagerName','createdByName','createdOn'];
   viewActivityColumns:any[] = ['blank','activity','eta','employeeRole','createdByName','createdOn'];
   activityTemplateColumns:any[] = ['blank', 'employeeRole','activityDescription','departmentName'];
+  projectObj2: Project = new Project();
+  projectDetails: any = [];
+  getBillableType: any;
+  newMemberInProject: any;
+  // employeesFor360: any[] = [];
+  allEmployeeList360: any[] = [];
 
   constructor(
     private validationService: ValidationService,
@@ -130,23 +140,32 @@ export class TeamConfigComponent implements OnInit {
     private departmentService: DepartmentService,
     private exportExcelService: ExportExcelService,
     private timesheetService: TimesheetService,
-    private locationStrategy: LocationStrategy
+    private locationStrategy: LocationStrategy,
+    private employee360Service: Employee360Service,
+    private utilityService: UtilityService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
 
     // Dynamic Subfeature Flags 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
+    //console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
     this.preventBackButton();
+
+    try {
+      this.allEmployeeList360 = await this.utilityService.getEmployeeDetailsFor360View();
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
   }
+    
   preventBackButton(){
     history.pushState(null, null, location.href);
     this.locationStrategy.onPopState(()=>{
@@ -186,6 +205,9 @@ export class TeamConfigComponent implements OnInit {
   }
 
   showViewTeams() {
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.selectedProject = '';
     this.selectedTeam = '';
     this.isTeamTable = true;
@@ -213,6 +235,39 @@ export class TeamConfigComponent implements OnInit {
     this.getAllTeamsByProjectId(0);
   }
 
+  showViewTeams1() {
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
+    
+    this.selectedTeam = '';
+    this.isTeamTable = true;
+
+    this.isTeamForm = false;
+    this.isActivityForm = false;
+    this.isActivityTable = false;
+    this.isCreation = false;
+    this.isUpdation = false;
+    this.isActivityTemplate = false;
+    this.isActivityCreate = false;
+    this.isActivityUpdate = false;
+    this.isActivityTemplateTable = false;
+    this.page = 1;
+    this.data = '';
+    this.filterStatus= '';
+    this.selectedDept = '';
+    this.isGoToTeamButton = false;
+    this.filters = {};
+    this.isSearchEnabled = false;
+
+    this.allTeamList = [];
+   
+    this.getAllProjectListByProjectManagerId();
+    this.getAllDepartmentList();
+    this.getAllTeamsByProjectId(this.teamObj.projectId);
+    
+  }
+
   showUpdateTeamForm(teamObj: Team) {
     this.isTeamForm = true;
     this.isUpdation = true;
@@ -227,7 +282,7 @@ export class TeamConfigComponent implements OnInit {
     this.isActivityTemplateTable = false;
     this.isGoToTeamButton = false;
     this.selectedDept = '';
-
+    
     // this.teamObj.departmentList = [];
     this.teamObj = Object.assign({}, teamObj);
     this.teamObj.updatedTeamMemberList = [];
@@ -273,6 +328,9 @@ export class TeamConfigComponent implements OnInit {
   }
 
   showViewActivities() {
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
     this.selectedProject = '';
     this.selectedTeam = '';
     this.isActivityTable = true;
@@ -313,12 +371,12 @@ export class TeamConfigComponent implements OnInit {
     
     this.activityObj = Object.assign({}, activityObj);
 
-    console.log(this.activityObj, " : this.activityObj", " activityObj.departmentList" , activityObj.departmentList);
+    //console.log(this.activityObj, " : this.activityObj", " activityObj.departmentList" , activityObj.departmentList);
     
 
     this.activityObj.departmentList = activityObj.departmentList?.map(x=>+x);
 
-    console.log(this.activityObj, " : this.activityObj.departmentList");
+    //console.log(this.activityObj, " : this.activityObj.departmentList");
     
 
     this.getDepartmentByTeam(this.activityObj.teamId);
@@ -403,10 +461,10 @@ export class TeamConfigComponent implements OnInit {
 
         this.allTemplateActivityList = this.activityTemplateObj.templateActivityList;
 
-        console.log( this.activityTemplateObj , " :  this.activityTemplateObj ");
+        //console.log( this.activityTemplateObj , " :  this.activityTemplateObj ");
         
       } else {
-        console.log(response.serviceStatus);
+        //console.log(response.serviceStatus);
       }
     });
   }
@@ -415,7 +473,7 @@ export class TeamConfigComponent implements OnInit {
   addInputTemplateActivityField(){
     let newTeamObj = new Team();
     this.allTemplateActivityList.push(newTeamObj);
-    console.log(this.allTemplateActivityList, " : this.allClientLocation");
+    //console.log(this.allTemplateActivityList, " : this.allClientLocation");
   }
 
   removeInputTemplateActivityField(activityObj) {
@@ -425,7 +483,7 @@ export class TeamConfigComponent implements OnInit {
         this.allTemplateActivityList.splice(index, 1);
       }
     });
-    console.log(this.updatedTemplateActivityList, " :this.updatedTemplateActivityList");
+    //console.log(this.updatedTemplateActivityList, " :this.updatedTemplateActivityList");
   }
 
   reset() {
@@ -461,7 +519,7 @@ export class TeamConfigComponent implements OnInit {
       }
     });
 
-    console.log("Updated Members : ", this.allTeamMembers);
+    //console.log("Updated Members : ", this.allTeamMembers);
     
   }
 
@@ -522,10 +580,10 @@ export class TeamConfigComponent implements OnInit {
     let inputValidated: boolean = this.validateTeamObj(this.teamObj, template)
     if (!inputValidated) return;
 
-    console.log("allTeamMembers :", this.allTeamMembers);
+    //console.log("allTeamMembers :", this.allTeamMembers);
     this.teamObj.allTeamMemberList = (this.allTeamMembers.length !== 0) ? this.allTeamMembers : null;
     this.teamObj.createdBy = this.currentUser.empId;
-    console.log("create teamObj : ", this.teamObj);
+    //console.log("create teamObj : ", this.teamObj);
 
     
 
@@ -599,9 +657,9 @@ export class TeamConfigComponent implements OnInit {
       this.teamService.getMappedActivityPreview(teamObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.activityPreviewList = response.serviceResponse;
-          console.log(this.activityPreviewList, " : activityPreviewList");
+          //console.log(this.activityPreviewList, " : activityPreviewList");
         } else {
-          console.log(response.serviceResponse, " response");
+          //console.log(response.serviceResponse, " response");
         }
       });
     }
@@ -617,9 +675,9 @@ export class TeamConfigComponent implements OnInit {
     this.teamService.getMappedActivityInUpdateTeam(teamObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.activityPreviewList = response.serviceResponse;
-        console.log(this.activityPreviewList, " : activityPreviewList");
+        //console.log(this.activityPreviewList, " : activityPreviewList");
       } else {
-        console.log(response.serviceResponse, " response");
+        //console.log(response.serviceResponse, " response");
       }
     });
   }
@@ -648,19 +706,20 @@ export class TeamConfigComponent implements OnInit {
     }
 
     this.teamObj.updatedBy = this.currentUser.empId;
-    console.log("update teamObj : ", this.teamObj);
+    //console.log("update teamObj : ", this.teamObj);
     this.teamService.updateTeam(this.teamObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showViewTeams();
         this.selectedProject = this.teamObj.projectId;
+        
         this.getAllTeamsByProjectId(this.selectedProject);
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
     });
   }
-
+ view:any;
   onDeleteTeam(template: TemplateRef<any>) {
     this.cancelRequest();
 
@@ -684,7 +743,7 @@ export class TeamConfigComponent implements OnInit {
     this.filterStatus = "";
     this.activityObj.teamId = '';
 
-    console.log("selectedProject : ", this.selectedProject);
+    //console.log("selectedProject : ", this.selectedProject);
     
     if(projectId == 0){
         this.getAllMyTeamsByEmpId();
@@ -703,7 +762,7 @@ export class TeamConfigComponent implements OnInit {
           this._allTeamList = this.allTeamList
 
           this.isDisabled = false;
-          console.log("allTeamList :", this.allTeamList);
+          //console.log("allTeamList :", this.allTeamList);
         } else {
           console.error(response.serviceResponse)
         }
@@ -736,11 +795,24 @@ export class TeamConfigComponent implements OnInit {
 
     this.teamService.getAllMyTeamsByEmpId(employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        console.log("response.serviceResponse :", response.serviceResponse);
+        //console.log("response.serviceResponse :", response.serviceResponse);
         
         this.allTeamList = response.serviceResponse;
         this.allTeamList.forEach(team => {
           team.createdOn = (team.createdOn)? moment(team.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+
+          let matchingTeamlead = this.allEmployeeList360.find(emp => emp.empId === team.teamLeadId);
+          //console.log('matchingTeamlead -- ',matchingTeamlead);
+          let matchingManager = this.allEmployeeList360.find(emp => emp.empId === team.projectManagerId);
+          //console.log('matchingManager --',matchingManager);
+          let matchingCreatedBy = this.allEmployeeList360.find(emp => emp.empId === team.empId);
+
+          
+          team.emp360Teamlead = matchingTeamlead ? matchingTeamlead : {};
+          team.emp360Manager = matchingManager ? matchingManager : {};
+          team.emp360CreatedBy = matchingCreatedBy ? matchingCreatedBy : {};
+
+
         });
         this._allTeamList = this.allTeamList
         this.isDisabled = false;
@@ -774,7 +846,7 @@ export class TeamConfigComponent implements OnInit {
         });
         this._allTeamList = this.allTeamList
         this.isDisabled = false;
-        console.log("getAllTeams :", this.allTeamList);
+        //console.log("getAllTeams :", this.allTeamList);
       } else {
         console.error(response.serviceResponse)
       }
@@ -815,7 +887,7 @@ export class TeamConfigComponent implements OnInit {
           this.getAllEmployeesByDepartmentIds();   
           this.getAllEmployeesByRole();      
         }
-        console.log("teamObj.allTeamMemberList :", this.teamObj.allTeamMemberList);
+        //console.log("teamObj.allTeamMemberList :", this.teamObj.allTeamMemberList);
       } else {
         console.error(response.serviceResponse)
       }
@@ -832,7 +904,7 @@ export class TeamConfigComponent implements OnInit {
     // projectObj.projectManagerId = 184; //! Here we are getting all projects
     this.projectService.getAllProjectListByProjectManagerId(projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        console.log("Current user : Persona : "+ this.currentUser.employeeRole + " || Department : "+ this.currentUser.departmentName);
+        //console.log("Current user : Persona : "+ this.currentUser.employeeRole + " || Department : "+ this.currentUser.departmentName);
         let allProjectList = response.serviceResponse;
 
         if(this.userMapping.allow_all_projects){
@@ -840,7 +912,7 @@ export class TeamConfigComponent implements OnInit {
         }
 
         allProjectList = allProjectList.sort((a, b) => a.projectName.localeCompare(b.projectName));
-        if(this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin' || this.currentUser.employeeRole == 'HR' || isAllProjectAllowed){
+        if(this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin' || this.currentUser.employeeRole == 'HR' || this.currentUser.employeeRole == 'Manager' || isAllProjectAllowed){
           this.allProjectListByManagerId = allProjectList;
 
           //revome repeated project
@@ -850,7 +922,7 @@ export class TeamConfigComponent implements OnInit {
               t.projectId === value.projectId
             ))
           )
-          console.log("allProjectList For HOD / HR / SuperAdmin :", this.allProjectListByManagerId);
+          //console.log("allProjectList For HOD / HR / SuperAdmin / Manager / ANurag :", this.allProjectListByManagerId);
         }else{
           this.allProjectListByManagerId = allProjectList;
           this.allProjectListByManagerId = allProjectList.filter((projectObj:Project) => projectObj.departmentName == this.currentUser.departmentName);
@@ -877,7 +949,7 @@ export class TeamConfigComponent implements OnInit {
               t.projectId === value.projectId
             ))
           )
-          console.log("allProjectList By Department :", this.allProjectListByManagerId);
+          //console.log("allProjectList By Department :", this.allProjectListByManagerId);
         }
 
         this.allProjectListByManagerId = this.allProjectListByManagerId.sort((a, b) => a.projectName.localeCompare(b.projectName));
@@ -911,7 +983,7 @@ export class TeamConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.employeeSpecificProjectList = response.serviceResponse;
 
-        console.log(this.employeeSpecificProjectList, " this.employeeSpecificProjectList==");
+        //console.log(this.employeeSpecificProjectList, " this.employeeSpecificProjectList==");
         
         // filter list if data is duplicate
 
@@ -920,7 +992,7 @@ export class TeamConfigComponent implements OnInit {
             t.projectName === value.projectName
           ))
         )
-        console.log("employeeSpecificProjectList :", this.employeeSpecificProjectList);
+        //console.log("employeeSpecificProjectList :", this.employeeSpecificProjectList);
       } else {
         console.error(response.serviceResponse)
       }
@@ -932,12 +1004,13 @@ export class TeamConfigComponent implements OnInit {
     this.teamLeadsList = [];
     let employeeList = [];
 
-    this.employeeObj.role = "TeamLead";
+    // this.employeeObj.role = "TeamLead";
+    this.employeeObj.role = this.currentUser.employeeRole;
     this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         employeeList = response.serviceResponse;
-        console.log("employeeList By Role : ", employeeList);
-        console.log("Department Selected : ", this.teamObj.departmentList);
+        //console.log("employeeList By Role : ", employeeList);
+        //console.log("Department Selected : ", this.teamObj.departmentList);
 
         // remove teamLead if their department are not selected.
         // let filterDepartmentList = this.employeeListByDept.map(y => y.departmentId);
@@ -947,7 +1020,7 @@ export class TeamConfigComponent implements OnInit {
         let filterDepartmentList = this.employeeListByDept.map(y => y.departmentId);
         this.teamLeadsList = employeeList.filter(x => this.teamObj.departmentList?.includes(x.departmentId));
         this.teamLeadsList = this.teamLeadsList.sort((a, b) => a.name.localeCompare(b.name));
-        console.log("teamLeadsList : ", this.teamLeadsList)
+        //console.log("teamLeadsList : ", this.teamLeadsList)
       } else {
         console.error(response.serviceResponse)
       }
@@ -955,8 +1028,8 @@ export class TeamConfigComponent implements OnInit {
   }
 
   updateEmployeeListAccordingToTeamMembers() {
-    console.log("Existing Team Member : ", this.teamObj.allTeamMemberList);
-    console.log("Selected Team Member : ", this.allTeamMembers);
+    //console.log("Existing Team Member : ", this.teamObj.allTeamMemberList);
+    //console.log("Selected Team Member : ", this.allTeamMembers);
     this.employeeListByDept.forEach((employee, index) => {
       const existingEmployee = this.teamObj.allTeamMemberList?.find(member => member.empId == employee.empId);
       if (existingEmployee) {
@@ -981,13 +1054,13 @@ export class TeamConfigComponent implements OnInit {
   //   //    return dept;
   //   // });
 
-  //   // console.log("empObj.departmentList : ", empObj.departmentList);
+  //   // //console.log("empObj.departmentList : ", empObj.departmentList);
     
   //   this.employeeService.getAllEmployeesByDepartmentId(empObj).pipe(first()).subscribe((response: any) => {
   //     if (response.serviceStatus == "Success") {
   //       this.employeeListByDept = response.serviceResponse;
   //       this.employeeListByDept = this.employeeListByDept.sort((a, b) => a.name.localeCompare(b.name));
-  //       console.log("employeeList By Department : ", this.employeeListByDept);
+  //       //console.log("employeeList By Department : ", this.employeeListByDept);
   //       this.updateEmployeeListAccordingToTeamMembers();
   //     } else {
   //       console.error(response.serviceResponse);
@@ -1005,13 +1078,13 @@ export class TeamConfigComponent implements OnInit {
        return dept;
     });
 
-    console.log("empObj.departmentList : ", empObj.departmentList);
+    //console.log("empObj.departmentList : ", empObj.departmentList);
     
     this.employeeService.getAllEmployeesByDepartmentIds(empObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeListByDept = response.serviceResponse;
         this.employeeListByDept = this.employeeListByDept.sort((a, b) => a.name.localeCompare(b.name));
-        console.log("employeeList By Department : ", this.employeeListByDept);
+        //console.log("employeeList By Department : ", this.employeeListByDept);
         this.updateEmployeeListAccordingToTeamMembers();
       } else {
         console.error(response.serviceResponse);
@@ -1026,7 +1099,7 @@ export class TeamConfigComponent implements OnInit {
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allDeptList = response.serviceResponse;
-        console.log("allDeptList : ", this.allDeptList)
+        //console.log("allDeptList : ", this.allDeptList)
       } else {
         console.error(response.serviceResponse);
       }
@@ -1091,7 +1164,7 @@ export class TeamConfigComponent implements OnInit {
     if (!inputValidated) return;
 
     this.activityObj.createdBy = this.currentUser.empId;
-    console.log("create activity : ", this.activityObj);
+    //console.log("create activity : ", this.activityObj);
     this.teamService.createActivity(this.activityObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -1111,7 +1184,7 @@ export class TeamConfigComponent implements OnInit {
     if (!inputValidated) return;
 
     this.activityObj.updatedBy = this.currentUser.empId;
-    console.log("update Activity : ", this.activityObj);
+    //console.log("update Activity : ", this.activityObj);
 
     this.teamService.updateActivity(this.activityObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1153,8 +1226,10 @@ export class TeamConfigComponent implements OnInit {
         this.allActivityList = response.serviceResponse;
         this.allActivityList.forEach(activity => {
           activity.createdOn = (activity.createdOn)? moment(activity.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          let matchingCreatedBy = this.allEmployeeList360.find(emp => emp.empId === activity.createdBy);
+          activity.emp360CreatedBy = matchingCreatedBy ? matchingCreatedBy : {};
         });
-        console.log("allActivityList :", this.allActivityList);
+        //console.log("allActivityList :", this.allActivityList);
       } else {
         console.error(response.serviceResponse)
       }
@@ -1246,7 +1321,7 @@ export class TeamConfigComponent implements OnInit {
             t.departmentName === value.departmentName && t.employeeRole === value.employeeRole
           ))
         )
-        console.log(this.templateActivityList, " this.templateActivityList");
+        //console.log(this.templateActivityList, " this.templateActivityList");
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -1259,7 +1334,7 @@ export class TeamConfigComponent implements OnInit {
     if (!inputValidated) return;
     this.activityTemplateObj.templateActivityList = (Object.keys(this.allTemplateActivityList[0]).length === 0) ? null : this.allTemplateActivityList;
     
-    console.log(this.activityTemplateObj, " :this.activityTemplateObj");
+    //console.log(this.activityTemplateObj, " :this.activityTemplateObj");
     
     this.teamService.updateActivityTemplate(this.activityTemplateObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1368,9 +1443,19 @@ export class TeamConfigComponent implements OnInit {
     this.modalRef.hide();
   }
 
+  cancelRequest5(){
+    this.modalRef5.hide();
+  }
+
+  
+
+  cancelRequest2() {
+    this.modalRef2.hide();
+  }
+
   openActivityPreviewModal(template: TemplateRef<any>,teamObj:any) {
     this.storedTeamObj = teamObj;
-    console.log(this.storedTeamObj, " this.storedTeamObj");
+    //console.log(this.storedTeamObj, " this.storedTeamObj");
     
     this.modalRef = this.modalService.show(template);
   }
@@ -1383,7 +1468,7 @@ export class TeamConfigComponent implements OnInit {
   }
 
   sortData(sort: Sort){	
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -1401,7 +1486,80 @@ export class TeamConfigComponent implements OnInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
+  }
+
+  deleteResourceModal(template: TemplateRef<any>, teamId) {
+    // let projectObj = Object.assign({},this.projectObj); for copy object
+    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.projectObj2 = teamId;
+
+  }
+
+  deleteResourceFromProject(template: TemplateRef<any>) {
+
+
+    let projectObj = new Project();
+    projectObj.teamId = this.projectObj2.teamId;
+    projectObj.empId = this.projectObj2.empId;
+
+    console.log("team details ", projectObj)
+    this.projectService.updateProjectResourceAsInActive(projectObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.getExistingProjectsByUser(this.projectObj2.empId)
+      }
+    })
+
+  }
+
+  openProjectTemplateModal(template: TemplateRef<any>, employee) {
+    this.modalRef5 = this.modalService.show(template, { class: 'modal-xl' });
+    this.getExistingProjectsByUser(employee.empId);
+    this.dataObj = employee;
+
+    console.log("data employee newmenbfcg  ", employee)
+
+
+  }
+
+  getExistingProjectsByUser(employee) {
+    console.log("employee details in resoiurce mapping ", employee);
+
+    let projectObj = new Project();
+
+    projectObj.empId = employee;
+
+    // getExistingProjectsAndTeamsByEmployee service impl
+    this.projectService.getExistingProjectsAndTeamsByEmployee(projectObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.projectDetails = response.serviceResponse;
+        console.log("this.projectDetails ", this.projectDetails);
+
+        console.log("Existing project detauls fetched for employee",this.projectDetails);
+        if (this.projectDetails.length > 0) {
+          if (this.projectDetails[0].billableType == "TNM") {
+            this.openAlertMod(this.alertTemplate, "This Employee is already mapped to TNM project. Can't add to another project or Team !!");
+            this.getBillableType = this.projectDetails.find(employee => this.newteamMember.billableType = employee.billableType);
+          } else {
+            this.newMemberInProject = "NewMember";
+            this.newteamMember.billableType = this.newMemberInProject;
+          }
+        } else {
+          this.newMemberInProject = "NewMember";
+          this.newteamMember.billableType = this.newMemberInProject;
+        }
+
+        console.log("this.projectDetails ", this.projectDetails);
+        console.log("this.getBillableType ", this.getBillableType);
+        console.log(" newTeamMember   details   ", this.newteamMember)
+      }
+    })
+  }
+
+  pageNo = 1;
+  handlePageChanges(event) {
+    this.pageNo = event;
   }
 
 }

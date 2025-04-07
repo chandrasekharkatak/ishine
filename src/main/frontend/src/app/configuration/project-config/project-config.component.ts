@@ -165,17 +165,17 @@ export class ProjectConfigComponent implements OnInit {
         }else{
           this.projectObj.syncProject = false;
         }
-        console.log(this.projectObj, " this.projectObj");
+        //console.log(this.projectObj, " this.projectObj");
         //client Location
         // if (this.projectObj.allClientLocationList == undefined || this.projectObj.allClientLocationList == 0) {
         //   this.addInputClientLocationField();
         // } else {
         //   this.allClientLocationList = this.projectObj.allClientLocationList;
         // }
-        // console.log(this.projectObj.allClientLocationList, " : this.projectObj.allClientLocationList");
+        // //console.log(this.projectObj.allClientLocationList, " : this.projectObj.allClientLocationList");
         this.projectObj.departmentName = this.projectObj.departmentList;
       }else {
-        console.log(response.serviceResponse);
+        //console.log(response.serviceResponse);
       }
     });
   }
@@ -211,7 +211,7 @@ export class ProjectConfigComponent implements OnInit {
   // addInputClientLocationField() {
   //   let newProjectObj = new Project();
   //   this.allClientLocationList.push(newProjectObj);
-  //   console.log(this.allClientLocationList, " : this.allClientLocation");
+  //   //console.log(this.allClientLocationList, " : this.allClientLocation");
     
   // }
 
@@ -222,7 +222,7 @@ export class ProjectConfigComponent implements OnInit {
   //       this.allClientLocationList.splice(index, 1);
   //     }
   //   });
-  //   console.log(this.updatedClientLocationList, " :this.updatedCLientLocationList");
+  //   //console.log(this.updatedClientLocationList, " :this.updatedCLientLocationList");
   // }
 
   getAllDepartmentList() {
@@ -245,7 +245,7 @@ export class ProjectConfigComponent implements OnInit {
     this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	
         this.managerList = response.serviceResponse;
-        console.log("managerList : ", this.managerList);
+        //console.log("managerList : ", this.managerList);
       } else {	
         console.error(response.serviceResponse)	
       }	
@@ -266,7 +266,7 @@ export class ProjectConfigComponent implements OnInit {
           ))
         )
 
-        console.log(this.filteredClientList, " : this.filteredClientList");
+        //console.log(this.filteredClientList, " : this.filteredClientList");
       } else {
         console.error(response.serviceResponse)
       }
@@ -284,7 +284,7 @@ export class ProjectConfigComponent implements OnInit {
         return { clientLocationId: project.clientLocationId, clientLocation: project.clientLocation }
       }
     });
-    console.log("clientLocationList :", this.clientLocationList);
+    //console.log("clientLocationList :", this.clientLocationList);
   }
 
   getAllProjects(){
@@ -306,7 +306,7 @@ export class ProjectConfigComponent implements OnInit {
           ))
         );
         this.allProjects = this.allProjects.sort((a,b)=>a.createdOn-b.createdOn);
-        console.log(this.allProjects, " : this.allProjects");
+        //console.log(this.allProjects, " : this.allProjects");
       } else {
         console.error(response.serviceResponse);
       }
@@ -360,7 +360,7 @@ export class ProjectConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    console.log("---_________  ",this.projectObj);
+    //console.log("---_________  ",this.projectObj);
     this.projectService.checkProjectName(projectObj).pipe(first()).subscribe((response :any)=>{
       if(response.serviceStatus == "Fail"){
         this.openAlertMod(template, response.serviceResponse);
@@ -380,7 +380,7 @@ export class ProjectConfigComponent implements OnInit {
     this.projectObj.departmentName = null;
     this.projectObj.projectName = this.projectObj.projectName?.trim();
     this.projectObj.createdBy = this.currentUser.empId;
-    console.log("     :   ",this.projectObj);
+    //console.log("     :   ",this.projectObj);
     
     this.projectService.checkProjectName(this.projectObj).pipe(first()).subscribe((response :any)=>{
       if(response.serviceStatus == "Fail"){
@@ -409,7 +409,7 @@ export class ProjectConfigComponent implements OnInit {
     this.projectObj.departmentName = null;
 
     this.projectObj.updatedBy = this.currentUser.empId;
-    console.log(" this project obj   :   ",this.projectObj)
+    //console.log(" this project obj   :   ",this.projectObj)
 
     this.projectService.updateProject(this.projectObj).pipe(first()).subscribe((response: any) => {
       if(response.serviceStatus == "Success") {
@@ -467,7 +467,7 @@ export class ProjectConfigComponent implements OnInit {
   }
 
   sortData(sort: Sort){	
-    console.log(sort);
+    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -485,7 +485,7 @@ export class ProjectConfigComponent implements OnInit {
 
   onSearch(searchData){
     this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+    //console.log("Updated Filter : ", this.filters);
   }
 
 }

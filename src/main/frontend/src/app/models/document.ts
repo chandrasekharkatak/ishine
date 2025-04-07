@@ -11,4 +11,13 @@ export class Document{
     constructor(documentType?:string){
         this.documentType = documentType;
     }
+    // added by anurag
+
+    typeName: any;
+    typeId:any;
+    updatedBy : any;
+    createdBy:any;
+    readEnabled : any;
+    displayName : any;
+    documentId : any;
 }

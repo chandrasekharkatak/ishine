@@ -1,9 +1,13 @@
 package com.apmosys.employeeportal.controller;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -12,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.apmosys.employeeportal.dto.CustomFilterDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.dto.NewsletterDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.service.CustomFilterService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -29,9 +34,26 @@ public class CustomFilterController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getCustomLAttendanceApplicationsList", method = RequestMethod.POST)
+	public ServiceResponse getCustomLAttendanceApplicationsList(@RequestBody LeaveDTO leaveDTO) {
+		ServiceResponse response = customFilterService.getCustomLAttendanceApplicationsList(leaveDTO);
+		return response;
+	}
+	
 	@RequestMapping(value = "/customQueryForEmployeeReport", method = RequestMethod.POST)
 	public ServiceResponse customQueryForEmployeeReport(@RequestBody EmployeeDTO employeeDTO) {
+		System.out.println("employeeDTO  ::  "+employeeDTO);
 		ServiceResponse response = customFilterService.customQueryForEmployeeReport(employeeDTO);
+		return response;
+	}
+	
+//	added by anurag for billable / non-billable dashboard report
+	
+	@RequestMapping(value = "/customQueryForDepartmentWiseBillableEmployeeReport", method = RequestMethod.POST)
+	public ServiceResponse customQueryForDepartmentWiseBillableEmployeeReport(@RequestBody Long[] ids) {
+		System.out.println("In controller "+ids);
+		List<Long> deptIds = new ArrayList<Long>(Arrays.asList(ids));
+		ServiceResponse response = customFilterService.customQueryForDepartmentWiseBillableEmployeeReport(deptIds);
 		return response;
 	}
 	
@@ -68,6 +90,14 @@ public class CustomFilterController {
 	@RequestMapping(value = "/getCustomQueryData", method = RequestMethod.POST)
 	public ServiceResponse getCustomQueryData(@RequestBody CustomFilterDTO customFilterDTO) {
 		ServiceResponse response = customFilterService.getCustomQueryData(customFilterDTO);
+		return response;
+	}
+	
+//	added by anurag for document
+	
+	@RequestMapping(value = "/customQueryForDocument", method = RequestMethod.POST)
+	public ServiceResponse customQueryForDocument(@RequestBody NewsletterDTO newsletterDto) {
+		ServiceResponse response = customFilterService.customQueryForDocument(newsletterDto);
 		return response;
 	}
 }

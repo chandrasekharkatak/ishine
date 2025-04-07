@@ -1,4 +1,8 @@
-<div class="container-fluid" style="margin-top: 50px;">
+<div class="mt-5">
+    <app-breadcrumb></app-breadcrumb>
+</div>
+
+<div class="container-fluid">
     <div class="row justify-content-between mb-3">
         <h3 class="profile__greetings">Welcome, {{currentEmployeeInfo.name}}</h3>
         <button *ngIf="!isUpdateProfile && userMapping.update_profile" type="submit" class="btn btn-primary btn-sm" (click)="showUpdateProfile()">Update Profile</button>
@@ -15,7 +19,7 @@
                             
                             <!-- IMAGE UPLOAD -->
                             <div *ngIf="isUpdateProfile && userMapping.upload_profile_image" class="user-card__profile-avatar-upload mt-3">
-                                <input type="file" name="file" id="profileImg" class="profileImgFile" (change)="onProfileImageSelect($event)" />
+                                <input type="file" name="file" accept="image/jpeg,image/jpg" id="profileImg" class="profileImgFile" (change)="onProfileImageSelect($event,alert_message)" />
                                 <label id="profileImgLabel" for="profileImg">Select Image</label>
                                 <button type="submit" class="btn btn-primary ml-2 profileImgFile__upload__btn" title="Upload Image" (click)="onUploadImage(alert_message)"><i class="fa-solid fa-upload"></i></button>
                             </div>
@@ -31,7 +35,9 @@
                             <div class="row user-card__profile-info__container mt-4 mr-0">
                                 <div class="col-sm-5 col-md-4 col-lg-4 user-card__profile-info__container-blocks">
                                     <p class="user-card__profile-info__label">Employee ID</p>
-                                    <p class="user-card__profile-info__text">A-{{currentEmployeeInfo.employeementId}}</p>
+                                    <p class="user-card__profile-info__text" ngif>A-{{currentEmployeeInfo.employeementId}}</p>
+                                    <!-- <p class="user-card__profile-info__text" *ngIf="currentEmployeeInfo.isConsultant === 'true'">A-CS-{{currentEmployeeInfo.employeementId}}</p> -->
+                                      <!-- <p class="user-card__profile-info__text" *ngIf="currentEmployeeInfo.isConsultant !== 'true'"> A-{{currentEmployeeInfo.employeementId}}</p> -->
                                 </div>
                                 <div class="col-sm-5 col-md-4 col-lg-4 user-card__profile-info__container-blocks">
                                     <p class="user-card__profile-info__label">Email ID</p>
@@ -143,12 +149,25 @@
                                         <div class="info-wrapper">
                                             <p class="info-label">Employee Id</p>
                                             <p class="info-text info-highlight">A-{{currentEmployeeInfo.employeementId}}</p>
+                                            <!-- <p class="info-text info-highlight">{{ currentEmployeeInfo.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{currentEmployeeInfo.employeementId}}</p>                                               -->
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Blood group</p>
                                             <p class="info-text">{{currentEmployeeInfo.bloodGroup}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Reffered Type</p>
+                                            <p class="info-text">{{currentEmployeeInfo.referedType}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Reffered Name</p>
+                                            <p class="info-text">{{currentEmployeeInfo.referedName}}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -481,12 +500,19 @@
                                             <p class="info-text info-highlight">{{currentEmployeeInfo.workLocation}}</p>
                                         </div>
                                     </div>
-                                    <!-- <div class="col-md-4 mb-0">
+                                    <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Billable</p>
                                             <p class="info-text info-highlight">{{currentEmployeeInfo.billable}}</p>
                                         </div>
-                                    </div> -->
+                                    </div>
+
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Billable Type</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.billableType}}</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </app-accordion-item>
