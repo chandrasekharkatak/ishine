@@ -52,6 +52,11 @@
             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
+        <div class="export-button">
+          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+          [hidden]="allLeaveApplicationsList.length == 0" (click)="exportToExcel()"><em
+            class="fa fa-file-arrow-down fa-2x"></em></button>
+        </div>
         <div class="table-container" bassHorizontalScroll [tableId]="'leaveReportInfo'"
           [tableTHeadId]="'leaveReportInfoTHead'" [tableTHeadTrId]="'leaveReportInfoTHeadTr'">
           <table class="table " matSort (matSortChange)="sortData($event)" id="leaveReportInfo">
@@ -118,9 +123,7 @@
         </div>
         <pagination-controls class="my-pagination" [hidden]="allLeaveApplicationsList.length == 0"
           (pageChange)="handlePageChange($event)"></pagination-controls>
-        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-          [hidden]="allLeaveApplicationsList.length == 0" (click)="exportToExcel()"><em
-            class="fa fa-file-arrow-down fa-2x"></em></button>
+        
       </div>
     </div>
   </div>
@@ -199,6 +202,11 @@
             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
+        <div class="export-button">
+          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+          [hidden]="filteredTimesheets.length == 0" (click)="exportToExcel()"><em
+            class="fa fa-file-arrow-down fa-2x"></em></button>
+        </div>
         <div class="table-container" bassHorizontalScroll >
           <table class="table " matSort (matSortChange)="sortData($event)">
             <thead class="thead-light" >
@@ -261,9 +269,6 @@
         </div>
         <pagination-controls class="my-pagination" [hidden]="filteredTimesheets.length == 0"
           (pageChange)="handlePageChange($event)"></pagination-controls>
-        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-          [hidden]="filteredTimesheets.length == 0" (click)="exportToExcel()"><em
-            class="fa fa-file-arrow-down fa-2x"></em></button>
       </div>
     </div>
 <!-- view timesheet report  -->
@@ -274,6 +279,11 @@
             <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
+        </div>
+        <div class="export-button">
+          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+          [hidden]="allTimesheetApplicationsList.length == 0" (click)="exportToExcel()"><em
+            class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
         <div class="table-container" bassHorizontalScroll [tableId]="'timesheetReportInfo'"
           [tableTHeadId]="'timesheetReportTHead'" [tableTHeadTrId]="'timesheetReportTHeadTr'">
@@ -338,9 +348,7 @@
         </div>
         <pagination-controls class="my-pagination" [hidden]="allTimesheetApplicationsList.length == 0"
           (pageChange)="handlePageChange($event)"></pagination-controls>
-        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-          [hidden]="allTimesheetApplicationsList.length == 0" (click)="exportToExcel()"><em
-            class="fa fa-file-arrow-down fa-2x"></em></button>
+        
       </div>
     </div>
   </div>
@@ -613,6 +621,11 @@
             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
+        <div class="export-button">
+          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+          [hidden]="filteredEmployees.length == 0" (click)="exportToExcel()"><em
+            class="fa fa-file-arrow-down fa-2x"></em></button>
+        </div>
         <div class="table-container" bassHorizontalScroll [tableId]="'employeeReportInfo'"
           [tableTHeadId]="'employeeReportInfoTHead'" [tableTHeadTrId]="'employeeReportInfoTHeadTr'">
           <table class="table " matSort (matSortChange)="sortData($event)">
@@ -755,9 +768,7 @@
         </div>
         <pagination-controls class="my-pagination" [hidden]="filteredEmployees.length == 0"
           (pageChange)="handlePageChange($event)"></pagination-controls>
-        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-          [hidden]="filteredEmployees.length == 0" (click)="exportToExcel()"><em
-            class="fa fa-file-arrow-down fa-2x"></em></button>
+        
       </div>
     </div>
 
@@ -769,6 +780,11 @@
             <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
+        </div>
+        <div class="export-button">
+          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+          [hidden]="allEmployeeList.length == 0" (click)="exportToExcel()"><em
+            class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
         <div class="table-container" bassHorizontalScroll [tableId]="'employeeReportInfo'"
           [tableTHeadId]="'employeeReportInfoTHead'" [tableTHeadTrId]="'employeeReportInfoTHeadTr'">
@@ -1046,9 +1062,7 @@
         </div>
         <pagination-controls class="my-pagination" [hidden]="allEmployeeList.length == 0"
           (pageChange)="handlePageChange($event)"></pagination-controls>
-        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-          [hidden]="allEmployeeList.length == 0" (click)="exportToExcel()"><em
-            class="fa fa-file-arrow-down fa-2x"></em></button>
+        
       </div>
     </div>
   </div>
@@ -1067,7 +1081,12 @@
     <input type="checkbox" class="custom-control-input" id="access-control-switch" (change)="toggleAccessList($event)">
     <label class="custom-control-label" for="access-control-switch">View Default Role Access</label>
   </div>
-
+  <div class="export-button">
+    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mb-2 excel-button"
+            (click)="exportToExcel()">
+            <em class="fa fa-file-arrow-down fa-2x"></em>
+          </button>
+  </div>
   <div class="col-md-12" *ngIf="isAccessFeatureMapping">
     <div class="col-md-12 ml-auto d-flex flex-column flex-md-row  align-items-center">
       <div class="col-md-8 mb-2 mb-md-0">
@@ -1196,10 +1215,7 @@
         <div class="col-md-12 d-flex justiy-content-center mt-2">
           <button type="button" class="btn btn-sm btn-outline-primary"
             (click)="updateJobRoleSubFeatureMapping(alert_message)">Update</button>
-          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mb-2 excel-button"
-            (click)="exportToExcel()">
-            <em class="fa fa-file-arrow-down fa-2x"></em>
-          </button>
+          
         </div>
       </div>
     </div>
@@ -1348,6 +1364,11 @@
             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
+        <div class="export-button">
+          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+          [hidden]="allLeaveTimesheets.length == 0" (click)="exportToExcel()"><em
+            class="fa fa-file-arrow-down fa-2x"></em></button>
+        </div>
         <div class="table-container" bassHorizontalScroll [tableId]="'leaveTimesheetReportInfo'"
           [tableTHeadId]="'leaveTimesheetReportTHead'" [tableTHeadTrId]="'leaveTimesheetReportTHeadTr'">
           <table class="table " matSort (matSortChange)="sortData($event)"
@@ -1406,9 +1427,6 @@
         </div>
         <pagination-controls class="my-pagination" [hidden]="allLeaveTimesheets.length == 0"
           (pageChange)="handlePageChange($event)"></pagination-controls>
-        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-          [hidden]="allLeaveTimesheets.length == 0" (click)="exportToExcel()"><em
-            class="fa fa-file-arrow-down fa-2x"></em></button>
       </div>
     </div>
   </div>
