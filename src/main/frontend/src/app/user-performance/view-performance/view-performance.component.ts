@@ -303,7 +303,7 @@ export class ViewPerformanceComponent implements OnInit {
     }
     this.performanceService.addRemarkAsPerQuestion(projectInsightObj).subscribe({
       next: (response: any) => {
-        
+        this.closeProjectInsightResponseModal();
       },
       error: (error) => {
         console.error('Error fetching questionnaire questions:', error);
@@ -506,7 +506,7 @@ export class ViewPerformanceComponent implements OnInit {
   getAllProjectInsightResponsesByProjectId(projectObj: any, alertTemplate: TemplateRef<any>, insightResponseTemplate: TemplateRef<any>, isPreview: any) {
     this.isResponsePreview = isPreview;
     this.projectInsightResponseList = [];
-    this.isFinalResponseSubmitted = false;
+    this.isFinalResponseSubmitted = true;
     let projObj = new ProjectInsightQuestion();
     projObj.empId = this.viewPerformanceEmpId;
     projObj.projectId = projectObj.projectId;
