@@ -144,9 +144,9 @@ public class PerformanceController {
 
 	
 
-	@RequestMapping(value = "/getAllDepartmentbyEmployeecont", method = RequestMethod.GET)
-	public ServiceResponse DepartmentbyEmployeecont() {
-	    ServiceResponse response = performanceService.DepartmentbyEmployeecont();
+	@RequestMapping(value = "/getAllDepartmentbyEmployeecont", method = RequestMethod.POST)
+	public ServiceResponse DepartmentbyEmployeecont(@RequestBody HrHodHrViewPerformance hrHodHrViewPerformance ) {
+	    ServiceResponse response = performanceService.DepartmentbyEmployeecont(hrHodHrViewPerformance);
 	    return response;
 	}
 	

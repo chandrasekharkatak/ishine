@@ -100,9 +100,15 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
                 </div>
+                <div class="export-button mt-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                    [hidden]="quarterCyclesList.length == 0" (click)="exportToExcel()">
+                    <em class="fa fa-file-arrow-down fa-2x"></em>
+                </button>
+                </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'departmentInfo'"
                     [tableTHeadId]="'departmentInfoTHead'" [tableTHeadTrId]="'departmentInfoTHeadTr'">
-                    <table class="table table-responsive" id="departmentInfo" matSort
+                    <table class="table" id="departmentInfo" matSort
                         (matSortChange)="sortData($event)">
                         <thead class="thead-light" id="departmentInfoTHead">
                             <tr id="departmentInfoTHeadTr">
@@ -161,10 +167,10 @@
                 </div>
                 <pagination-controls class="my-pagination" [hidden]="quarterCyclesList.length == 0"
                     (pageChange)="handlePageChange($event)"></pagination-controls>
-                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
                     [hidden]="quarterCyclesList.length == 0" (click)="exportToExcel()">
                     <em class="fa fa-file-arrow-down fa-2x"></em>
-                </button>
+                </button> -->
 
             </div>
         </div>
@@ -312,14 +318,18 @@
                 <div class="col-md-4 mb-0" *ngIf="isCreateReview">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Department</label>
-                            <mat-select class="form-control" multiple [(ngModel)]="reviewObj.deptId">
-                                <!-- <mat-option selected="selected" value="" disabled>Select</mat-option> -->
-                                <mat-option *ngFor="let dept of allDeptList"
-                                    [value]="dept.deptId">{{dept.name}}</mat-option>
-                            </mat-select>
+                          <label class="info-label"><span class="text-danger">*</span>Department</label>
+                          <mat-select class="form-control" multiple [(ngModel)]="reviewObj.deptId">
+                            <mat-option (click)="toggleSelectAll()" [disabled]="allDeptList.length === 0">
+                              {{ isAllSelected ? 'Deselect All' : 'Select All' }}
+                            </mat-option>
+                            <mat-option *ngFor="let dept of allDeptList" [value]="dept.deptId">
+                              {{ dept.name }}
+                            </mat-option>
+                          </mat-select>
                         </div>
-                    </div>
+                      </div>
+                      
                 </div>
                 <div class="col-md-4 mb-0" *ngIf="isReviewUpdation">
                     <div class="info-wrapper">

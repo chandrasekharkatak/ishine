@@ -301,7 +301,26 @@ export class PerformanceConfigComponent implements OnInit {
     };
     return monthIndex[monthShort] || 0;
   }
+  isAllSelected = false;  // Track if all departments are selected
 
+// Toggle Select/Deselect All
+toggleSelectAll() {
+  if (this.isAllSelected) {
+    // Deselect all if already selected
+    this.reviewObj.deptId = [];
+    this.isAllSelected = false;
+  } else {
+    // Select all departments
+    this.reviewObj.deptId = this.allDeptList.map(dept => dept.deptId);
+    this.isAllSelected = true;
+  }
+}
+
+// Handle selection change
+// onDepartmentChange() {
+//   const selectedDepartments = this.reviewObj.deptId;
+//   this.isAllSelected = selectedDepartments.length === this.allDeptList.length;
+// }
   checkMonthExistence(template: TemplateRef<any>) {
     if (!this.quarterCycle.fromMonth) return;
 

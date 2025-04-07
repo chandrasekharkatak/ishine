@@ -68,6 +68,10 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	@Query(nativeQuery=true)
 	public List<Object[]> getPoProjectDetailsForPoProjects();
 	
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getPoProjectDetailsBOthPOAndInternal();
+	
 	@Query(nativeQuery = true)
 	List<Object[]> getExpiredPoProjects();
 	

@@ -98,8 +98,8 @@ updateEmployeePerformanceHOD(performance:any){
 
 
 
-getALLdepartmentByEmployee() {
-  return this.http.get(`${this.baseUrl}`+ `api/getAllDepartmentbyEmployeecont`);
+getALLdepartmentByEmployee(details:any) {
+  return this.http.post(`${this.baseUrl}`+ `api/getAllDepartmentbyEmployeecont`,details);
 }
 
 getReviewLabelForEveryDepartment() {

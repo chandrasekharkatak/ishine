@@ -101,4 +101,11 @@ public class ReportController {
 			ServiceResponse response =	reportService.getAllEmployeesReportByProjectTypeInConsolidated();
 			return response;
 		}
+		
+		@RequestMapping(value = "/getPoProjectDetailsBOthPOAndInternal", method = RequestMethod.GET)
+		public ServiceResponse getPoProjectDetailsForPoProjects() {
+			
+			ServiceResponse response = reportService.getPoProjectDetailsBOthPOAndInternal();
+			return response;
+		}
 }

@@ -15,12 +15,14 @@ import com.apmosys.employeeportal.dto.FeatureMasterDTO;
 import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.ProjectInfoDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.getAllEmployeesReportByProjectTypeInConsolidatedDTO;
 import com.apmosys.employeeportal.model.EmployeeRole;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeRoleMasterRepository;
+import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -40,7 +42,12 @@ public class ReportService {
 	EmployeeRepository employeeRepository;
 	
 	@Autowired
+	ProjectRepository projectRepository;
+	
+	@Autowired
 	private LogService logService;
+	
+	
 	
 	@Autowired
 	private HttpServletRequest httpRequest;
@@ -581,6 +588,54 @@ public class ReportService {
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
 
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+	
+	public ServiceResponse getPoProjectDetailsBOthPOAndInternal() {
+		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setSubFeatureName("getPoProjectDetailsForPoProjects");
+        apiLogInfo.setApiUrl("/api/getPoProjectDetailsForPoProjects");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("getPoProjectDetailsForPoProjects "+projectRepository.getPoProjectDetailsBOthPOAndInternal().size());
+
+		try {
+			List<Object[]> projectInfoList = projectRepository.getPoProjectDetailsBOthPOAndInternal();
+			List<ProjectInfoDTO> projectObjList = new ArrayList<ProjectInfoDTO>();
+			
+		    if (projectInfoList != null || !projectInfoList.isEmpty()) {
+		    	projectInfoList.forEach((projectInfo) -> {
+		    	ProjectInfoDTO projectObj = new ProjectInfoDTO();
+		    	
+		    	projectObj.setProjectId(projectInfo[0]!=null ? Integer.parseInt(projectInfo[0].toString()) : null);
+		    	projectObj.setProjectName(projectInfo[1]!=null ? projectInfo[1].toString() : null);
+		        projectObj.setPoNo(projectInfo[2]!=null ? projectInfo[2].toString() : null);
+		        projectObj.setStartDate(projectInfo[3]!=null ? projectInfo[3].toString() : null);
+		        projectObj.setEndDate(projectInfo[4]!=null ? projectInfo[4].toString() : null);
+		        projectObj.setProjectType(projectInfo[5]!=null ? projectInfo[5].toString() : null);
+		        projectObj.setId(projectInfo[6]!=null ? Long.parseLong(projectInfo[6].toString()) : null);
+		        
+		        projectObjList.add(projectObj);
+		    	});
+	    	}
+	        if(projectObjList != null || !projectObjList.isEmpty()) {
+	        	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(projectObjList);
+	        }else {
+	        	response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+				response.setServiceResponse("Data not present !");
+	        }
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);

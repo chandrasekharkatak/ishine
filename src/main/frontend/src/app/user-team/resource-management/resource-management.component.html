@@ -29,9 +29,15 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInfo'"
+                <div class="export-button">
+                    <button type="button"
+                            class="btn btn-sm btn-outline-primary ml-auto  mr-5 mt-2 mb-2 excel-button"
+                            [hidden]="allProjectList.length == 0" (click)="exportToExcel()"><em
+                                class="fa fa-file-arrow-down fa-2x"></em></button>
+                </div>
+                <div class="table-container" bassHorizontalScroll [tableId]="'projectInfo'"
                     [tableTHeadId]="'projectInfoTHead'" [tableTHeadTrId]="'projectInfoTHeadTr'">
-                    <table class="table table-responsive" id="projectInfo" matSort (matSortChange)="sortData($event)">
+                    <table class="table " id="projectInfo" matSort (matSortChange)="sortData($event)">
                         <thead class="thead-light" id="projectInfoTHead">
                             <tr id="projectInfoTHeadTr">
                                 <th></th>
@@ -272,7 +278,7 @@
                                                     <!-- Team Info :: start -->
                                                     <h5 class="card-name">Teams</h5>
                                                     <div class="row">
-                                                        <div *ngFor="let teamObj of allTeamList; let i = index" class="row">
+                                                        <div *ngFor="let teamObj of allTeamList;let i = index">
                                                             <div class="col-md-4 mb-0">
                                                                 <div class="info-wrapper">
                                                                     <div class="form-group">
@@ -368,10 +374,7 @@
                     <div class="row col-md-12">
                         <pagination-controls class="my-pagination" [hidden]="allProjectList.length == 0"
                             (pageChange)="handlePageChange($event)"></pagination-controls>
-                        <button type="button"
-                            class="btn btn-sm btn-outline-primary ml-auto  mr-5 mt-2 mb-2 excel-button"
-                            [hidden]="allProjectList.length == 0" (click)="exportToExcel()"><em
-                                class="fa fa-file-arrow-down fa-2x"></em></button>
+
                     </div>
                 </div>
             </div>
@@ -663,7 +666,7 @@
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
-        <div class="modal-body ">
+        <div class="modal-body table-container">
 
             <table class="table project_table">
                 <thead class="thead-light">
