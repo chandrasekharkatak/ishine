@@ -1376,7 +1376,7 @@
             </div> -->
         </div>
         <div class="row">
-            <div class="col-md-12">
+             <div class="col-md-12">
                 <div class="selector-toggle" >
                     <a href="javascript:void(0)">
                         <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
@@ -1439,7 +1439,7 @@
                             <th *ngIf="isDraftTable" class="info-label">{{i+1}}</th> -->
                                 <td>{{employee.employeementId}}</td>
                                 <td>{{employee.employeeType}}</td>
-                                <td id="clickablefor360" *ngIf="userMapping.employee_360" [navigateToEmployee360]="employee.emp360" style="cursor: pointer;" title="Click to view Employee 360"> {{employee.name}}</td>
+                                <td id="clickablefor360" *ngIf="userMapping.employee_360" [navigateToEmployee360]="employee.empId" style="cursor: pointer;" title="Click to view Employee 360"> {{employee.name}}</td>
                                 <td *ngIf="!userMapping.employee_360">{{employee.name}}</td>
                                 <td>{{employee.email}}</td>
                                 <td>{{employee.employmentstatus}}</td>
@@ -1450,16 +1450,16 @@
                                     *ngIf="isDraftTable == true && employee.employmentStatus=='InActive' ? '{{employee.employmentReleaseStatus}} ' : ' ' && !isActiveTable">
                                     {{employee.employmentReleaseStatus}}</td>
 
-                                <td id="clickablefor360" *ngIf="userMapping.employee_360" [navigateToEmployee360]="employee.emp360Mng" style="cursor: pointer;" title="Click to view Employee 360">{{employee.managerName}}</td>
+                                <td id="clickablefor360" *ngIf="userMapping.employee_360" [navigateToEmployee360]="employee.managerId" style="cursor: pointer;" title="Click to view Employee 360">{{employee.managerName}}</td>
                                 <td *ngIf="!userMapping.employee_360">{{employee.managerName}}</td>
                                 <td>{{employee.departmentName}}</td>
                                 <td>{{employee.dateOfJoining}}</td>
                                 <td *ngIf="dateOfReleivingshow && isTable">{{employee.dateOfRelieving}}</td>
                                 <td *ngIf="isTable">{{employee.createdOn}}</td>
-                                <td id="clickablefor360" [navigateToEmployee360]="employee.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360" *ngIf="isTable && userMapping.employee_360 && employee.createdByName">{{employee.createdByName}}</td>
+                                <td id="clickablefor360" [navigateToEmployee360]="employee.createdBy" style="cursor: pointer;" title="Click to view Employee 360" *ngIf="isTable && userMapping.employee_360 && employee.createdByName">{{employee.createdByName}}</td>
                                 <td *ngIf="isTable && (!userMapping.employee_360 || !employee.createdByName)">{{employee.createdByName}}</td>
                                 <td *ngIf="isTable">{{employee.updatedOn}}</td>
-                                <td id="clickablefor360" [navigateToEmployee360]="employee.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360" *ngIf="isTable && userMapping.employee_360 && employee.updatedByName">{{employee.updatedByName}}</td>
+                                <td id="clickablefor360" [navigateToEmployee360]="employee.updatedBy" style="cursor: pointer;" title="Click to view Employee 360" *ngIf="isTable && userMapping.employee_360 && employee.updatedByName">{{employee.updatedByName}}</td>
                                 <td *ngIf="isTable && (!userMapping.employee_360 || !employee.updatedByName)">{{employee.updatedByName}}</td>
                                 <td *ngIf="isTable">{{employee.referedName}}</td>
                                 <td *ngIf="isDraftTable">{{employee.updateApplicationStatus}}</td>

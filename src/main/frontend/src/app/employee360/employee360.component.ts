@@ -1,6 +1,7 @@
 
 
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
+
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, Subscription } from 'rxjs';
 import { first, takeUntil } from 'rxjs/operators';
@@ -15,6 +16,8 @@ import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
 import { BreadcrumbService } from '../services/breadcrumb.service';
 import { Employee360Service } from '../services/employee360.service';
+import { UtilityService } from '../services/utility.service';
+import { DomSanitizer } from '@angular/platform-browser';
 
 
 @Component({
@@ -33,7 +36,7 @@ export class Employee360Component implements OnInit {
   departmentConfig: DeptConfigComponent;
   roleConfig: RoleConfigComponent;
   leaveConfig: LeaveConfigComponent;
-  
+  private hasLoadedData = false;
   tabName:any = 'Configurations';
   currentUser:User;
   userMapping:any = {};
@@ -49,7 +52,8 @@ export class Employee360Component implements OnInit {
     private route: ActivatedRoute,
     private employee360Service: Employee360Service,
     private breadcrumbService: BreadcrumbService,
-  
+    private utillity:UtilityService,
+   private sanitizer: DomSanitizer
   
     
   ) { 
@@ -62,23 +66,30 @@ export class Employee360Component implements OnInit {
   currentab:String;
   leave:String;
   othertab:any;
-
+  employeeId:any;
   ngOnInit(): void {
-
+   
+    setTimeout(() => {
+      this.route.data.subscribe(data => {
+        sessionStorage.setItem("employee360Data", JSON.stringify(data.employeeData));
+      });
+    }, 1000);
     this.navigationSubscription = this.employee360Service.getNavigationEvent().subscribe(() => {
       this.removeActiveTab();
       this.setActiveTab();
     });
-
-    const storedData = localStorage.getItem('employee360Data');
-    const parsedData = storedData ? JSON.parse(storedData) : null;
-  
-    if(parsedData != null || parsedData != undefined ){
-      this.employeeData =  parsedData;
-    }else{
-      this.employeeData = history.state.data;
-    }
     
+   
+   
+    const storedData = sessionStorage.getItem('employee360Data');
+    const parsedData = storedData ? JSON.parse(storedData) : null;
+    this.employeeData = parsedData
+    if (parsedData !== null && parsedData !== undefined) {
+      this.employeeData = parsedData;
+    } else {
+      this.employeeData = history.state?.data ?? {};
+    }
+   
     let findBreadcrumbObject = this.breadcrumbUrl.findIndex(x => x.title === "Employee-360-Profile");
     if (findBreadcrumbObject >= 0) {
       this.breadcrumbUrl.splice(findBreadcrumbObject + 1);
@@ -88,7 +99,7 @@ export class Employee360Component implements OnInit {
    this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
 
-    console.log("employeeData   ",this.employeeData);
+   
 
     this.getBioOverTimeandState();
 
@@ -114,11 +125,40 @@ export class Employee360Component implements OnInit {
 
     this.getCountOfRewardsAndAppreciation();
   }
+   
+     loadProfileImage(imageByte: any) {
+       let imageElement = document.getElementById('user-avatar');
+       if (imageByte) {
+         let objectURL = 'data:image/*;base64,' + imageByte;
+         let src: string = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(objectURL));
+         imageElement.setAttribute("src", src);
+       } else {
+         imageElement.setAttribute("src", "assets/Images/default-user-image.jpeg");
+       }
+     }
+  async loadEmployee360Data() {
+    return new Promise((resolve) => {
+      this.utillity.getAllEmployeesFor360Viewnew(this.employeeId).subscribe((response: any) => {
+        const employee360Data = JSON.stringify(response.serviceResponse[0]);
+         localStorage.setItem("employee360Data", employee360Data);
 
+        // Add a 5-second delay before resolving
+        setTimeout(() => {
+          resolve(true); // Proceed after 5 seconds
+          // this.refreshData(); // Uncomment if you want to refresh after delay
+        }, 5000);
+      });
+    });
+  }
+  
 
+  refreshData() {
+    // Your logic to refresh the view/data
+    console.log("Data refreshed!");
+  }
   backhistory(){
-    this.breadcrumbs = this.backhistory1();
-    alert(this.breadcrumbs[0]);
+    window.history.back();
+   
   
   }
   backhistory1() {

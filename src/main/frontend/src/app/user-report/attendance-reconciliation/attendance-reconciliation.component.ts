@@ -69,7 +69,7 @@ export class AttendanceReconciliationComponent implements OnInit {
   fromDate: string = '';
   toDate: string = '';
   currentDate: string;
-  employeesFor360: any[] = [];
+  
 
   feature = 'Reports';
   userMapping: any = {};
@@ -114,7 +114,7 @@ export class AttendanceReconciliationComponent implements OnInit {
     // console.log("ckeck date =======", this.startDate);
     // console.log("ckeck date =======", this.endDate);
     this.getBioMatricData(this.startformattedDate, this.endformattedDate);
-    this.getAllEmployeeFor360View();
+   
   }
 
   onSearch(searchData) {
@@ -143,17 +143,15 @@ export class AttendanceReconciliationComponent implements OnInit {
     this.attendanceReconciliationService.getBiomatricData(startdateformat, enddateformat).subscribe((response: any) => {
       this.attendanceReconciliationList = response.serviceResponse;
       this.attendanceReconciliationList.forEach(employee => {
+       
+        employee.emp360 = employee.empId;    
+      
         employee.employeementId=String(employee.employeeCode);
         if(employee.employeementId.startsWith('A'))
           employee.employeementId = employee.employeementId.substring(1);
           employee.employeementId = "A-".concat(employee.employeementId);
       });
-      this.attendanceReconciliationList.forEach(employee => {
-
-        let matchingEmployee = this.employeesFor360.find(emp => emp.employeementId === employee.employeementId);
-        // console.log("getBioMatricData matchingEmployee : ", matchingEmployee)
-        employee.emp360 = matchingEmployee ? matchingEmployee : {};    
-          });
+     
       // console.log("this.attendanceReconciliationList" , this.attendanceReconciliationList);
       this.attendanceReconciliationOriginaldata = [... this.attendanceReconciliationList];
       this.modalRef.hide();
@@ -589,31 +587,5 @@ private updateChartData(data: any): void {
     }
   }
 
-  getAllEmployeeFor360View(){
-    this.employeesFor360 = [];
-    this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.employeesFor360 = response.serviceResponse;
-        // console.log("allEmployeeListFor360 : ", this.employeesFor360)
-        this.employeesFor360.forEach(employeeObj => {
-          employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
-          employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-          employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-          employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-          employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          if (employeeObj.isConsultant == 'true')
-            employeeObj.employeeType = 'Consultant';
-          else if (employeeObj.isApprenticeship == 'true')
-            employeeObj.employeeType = 'Apprentice';
-          else
-            employeeObj.employeeType = 'Regular';
-          });
-          this.employeesFor360 = this.employeesFor360;
-          this.employeesFor360 = new SortPipe().transform(this.employeesFor360, ['name', 'string', 'asc']);
-        } else {
-          alert(response.serviceResponse);
-        }
-    });
-  }
 
 }
