@@ -112,6 +112,7 @@ export class ResourceManagementComponent implements OnInit {
   // employeesFor360: any[] = [];
   allEmployeeList360: any[] = [];
   poProjectListFromIshine: any[] = [];
+  flagDialogueBox: boolean = false;
 
   constructor(
     private departmentService: DepartmentService,
@@ -1245,9 +1246,11 @@ export class ResourceManagementComponent implements OnInit {
             this.newMemberInProject = "NewMember";
             this.newteamMember.billableType = this.newMemberInProject;
           }
+          this.flagDialogueBox = false;
         } else {
           this.newMemberInProject = "NewMember";
           this.newteamMember.billableType = this.newMemberInProject;
+          this.flagDialogueBox = true;
         }
 
         console.log("this.projectDetails ", this.projectDetails);

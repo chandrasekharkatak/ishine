@@ -606,7 +606,19 @@
                 <div class="row">
                     <div class="col-md-4 mb-0">
                         <div class="info-wrapper">
-                            <div class="form-group">
+                            <div *ngIf="!flagDialogueBox" class="form-group">
+                                <mat-select ngxMatSelect class="form-control" #addMemberSelect="ngxMatSelect"
+                                    [displayMember]="'name'" [valueMember]="'empId'" [source]="employeeListByDept"
+                                    [useInfiniteScroll]="true" [multiple]="false" [(ngModel)]="newteamMember.empId"
+                                    (selectionChange)="openProjectTemplateModal(projectTemplate,newteamMember)">
+                                    <mat-option [value]="employee.empId"
+                                        *ngFor="let employee of addMemberSelect.filteredSource"
+                                        [disabled]="employee.isSelected">
+                                        {{employee.name}}
+                                    </mat-option>
+                                </mat-select>
+                            </div>
+                            <div *ngIf="flagDialogueBox" class="form-group">
                                 <mat-select ngxMatSelect class="form-control" #addMemberSelect="ngxMatSelect"
                                     [displayMember]="'name'" [valueMember]="'empId'" [source]="employeeListByDept"
                                     [useInfiniteScroll]="true" [multiple]="false" [(ngModel)]="newteamMember.empId"
