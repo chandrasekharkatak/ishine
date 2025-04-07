@@ -965,12 +965,12 @@
   <div class="modal-footer">
      <div class="row mt-3">
         <div class="col-md-12">
-           <button *ngIf="!isFinalResponseSubmitted" type="submit" class="btn btn-outline-primary btn-sm mx-1"
+           <!-- <button *ngIf="!isFinalResponseSubmitted" type="submit" class="btn btn-outline-primary btn-sm mx-1"
            [disabled]="isResponsePreview" (click)="saveProjectInsightResponse(alert_message,false)">Save As
            Draft</button>
            <button *ngIf="!isFinalResponseSubmitted" type="submit" class="btn btn-primary btn-sm mx-1"
            [disabled]="isResponsePreview" (click)="saveProjectInsightResponse(alert_message,true)">Final
-           Submit</button>
+           Submit</button> -->
            <button *ngIf="allQuestionMarksList.length > 0" type="submit" class="btn btn-primary btn-sm mx-1"
            (click)="submitReview(alert_message)">Submit Review</button>
            <button type="submit" class="btn btn-outline-primary btn-sm mx-1"
@@ -978,4 +978,4 @@
         </div>
      </div>
   </div>
-</ng-template>
+</ng-template>projectInsightQuestion
