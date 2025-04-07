@@ -513,6 +513,7 @@ export class ViewPerformanceComponent implements OnInit {
     projObj.projectManagerId = projectObj.projectManagerId;
     projObj.projectManagerName = projectObj.projectManagerName;
     projObj.employeeRole = this.currentUser.employeeRole;
+    projObj.performanceTabName = 'Team Dashboard'
 
     this.projectInsightService.getAllProjectInsightResponsesByProjectId(projObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -556,6 +557,8 @@ export class ViewPerformanceComponent implements OnInit {
                 if (question.optionType == 'checkbox') {
                   projectResponse.responseList = JSON.parse(projectResponse.response || '[]');
                 }
+                this.isFinalResponseSubmitted = false;
+                projectResponse.showDocDiv = true;
                 question.projectResponseList.push(projectResponse);
               }
             });
@@ -598,6 +601,8 @@ export class ViewPerformanceComponent implements OnInit {
                     if (question.optionType == 'checkbox') {
                       projectResponse.responseList = JSON.parse(projectResponse.response || '[]');
                     }
+                    this.isFinalResponseSubmitted = false;
+                    projectResponse.showDocDiv = true;
                     question.projectResponseList.push(projectResponse);
                   }
                 });
@@ -640,6 +645,8 @@ export class ViewPerformanceComponent implements OnInit {
                         if (question.optionType == 'checkbox') {
                           projectResponse.responseList = JSON.parse(projectResponse.response || '[]');
                         }
+                        this.isFinalResponseSubmitted = false;
+                        projectResponse.showDocDiv = true;
                         question.projectResponseList.push(projectResponse);
                       }
                     });

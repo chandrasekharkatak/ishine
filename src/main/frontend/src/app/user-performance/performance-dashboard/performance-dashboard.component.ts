@@ -481,6 +481,7 @@ saveKpiResponses(template: TemplateRef<any>): void {
     projObj.projectManagerId = projectObj.projectManagerId;
     projObj.projectManagerName = projectObj.projectManagerName;
     projObj.employeeRole = this.currentUser.employeeRole;
+     projObj.performanceTabName = 'Performance Dashboard'
 
     this.projectInsightService.getAllProjectInsightResponsesByProjectId(projObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -524,6 +525,8 @@ saveKpiResponses(template: TemplateRef<any>): void {
                 if (question.optionType == 'checkbox') {
                   projectResponse.responseList = JSON.parse(projectResponse.response || '[]');
                 }
+                this.isFinalResponseSubmitted = false;
+                projectResponse.showDocDiv = true;
                 question.projectResponseList.push(projectResponse);
               }
             });
@@ -566,6 +569,8 @@ saveKpiResponses(template: TemplateRef<any>): void {
                     if (question.optionType == 'checkbox') {
                       projectResponse.responseList = JSON.parse(projectResponse.response || '[]');
                     }
+                    this.isFinalResponseSubmitted = false;
+                    projectResponse.showDocDiv = true;
                     question.projectResponseList.push(projectResponse);
                   }
                 });
@@ -608,6 +613,8 @@ saveKpiResponses(template: TemplateRef<any>): void {
                         if (question.optionType == 'checkbox') {
                           projectResponse.responseList = JSON.parse(projectResponse.response || '[]');
                         }
+                        this.isFinalResponseSubmitted = false;
+                        projectResponse.showDocDiv = true;
                         question.projectResponseList.push(projectResponse);
                       }
                     });

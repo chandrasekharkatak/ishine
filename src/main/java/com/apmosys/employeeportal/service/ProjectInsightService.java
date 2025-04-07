@@ -950,17 +950,18 @@ public class ProjectInsightService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+	
+//	----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 	public ServiceResponse getAllProjectInsightResponsesByProjectId(ProjectInsightDTO projectInsightDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
 		apiLogInfo.setSubFeatureName("getAllProjectInsightResponsesByProjectId");
 		apiLogInfo.setApiUrl("/api/getAllProjectInsightResponsesByProjectId");
-		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("projectId : " + projectInsightDTO.getProjectId());
 		try {
-
 			if (projectInsightDTO.getProjectId() == null) {
 				throw new IllegalArgumentException("Project Id cannot be null!!");
 			}
@@ -973,16 +974,9 @@ public class ProjectInsightService {
 			List<Object[]>  employeePersonaListForTeam = employeeTeamMapRepository.getEmployeePersonaForProject(projectInsightDTO.getEmpId(),projectInsightDTO.getProjectId());
 			boolean isEmployee = checkIfIsEmployee(employeePersonaListForTeam,projectInsightDTO.getEmployeeRole());
 			
-			List<ProjectInsightMilestone> projectInsightMilestoneList = new ArrayList<>();
-//			if (isEmployee) {
-//				projectInsightMilestoneList = projectInsightMilestoneRepository.findByProjectIdAndAssignedMilestone(projectInsightDTO.getProjectId(),projectInsightDTO.getEmpId());
-//			} else {
-//				projectInsightMilestoneList = projectInsightMilestoneRepository.getByProjectId(projectInsightDTO.getProjectId());
-//			}
-			projectInsightMilestoneList = projectInsightMilestoneRepository.getByProjectId(projectInsightDTO.getProjectId());
-			
+			List<ProjectInsightMilestone> projectInsightMilestoneList =  projectInsightMilestoneRepository.getByProjectId(projectInsightDTO.getProjectId());
 			if (projectInsightMilestoneList != null && !projectInsightMilestoneList.isEmpty()) {
-				ProjectInsightDTO projectInsightDTODbObject = createProjectInsightMileStoneObject(projectInsightMilestoneList,projectInsightDTO.getEmpId(),isEmployee);
+				ProjectInsightDTO projectInsightDTODbObject = createProjectInsightMileStoneObject(projectInsightMilestoneList,projectInsightDTO.getEmpId(),isEmployee,projectInsightDTO.getPerformanceTabName(),projectInsightDTO.getProjectId());
 				projectInsightDTODbObject.setProjectId(projectInsightDTO.getProjectId());
 				projectInsightDTODbObject.setProjectManagerId(project.getProjectManagerId());
 				response.setServiceResponse(projectInsightDTODbObject);
@@ -1002,25 +996,515 @@ public class ProjectInsightService {
 			response.setServiceError(e.getMessage());
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
-
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
-	private boolean checkIfIsEmployee(List<Object[]> employeePersonaListForTeam,String employeeRole) {
-		boolean flag = true;
+	private ProjectInsightDTO createProjectInsightMileStoneObject(List<ProjectInsightMilestone> projectInsightMilestoneList, Long employeeId, boolean isEmployee, String performanceTabName, Long projectId) {
+		ProjectInsightDTO projectInsightDTO = new ProjectInsightDTO();
 		try {
-			if(employeeRole != null && !employeeRole.trim().equals("")
-				&& (employeeRole.toLowerCase().contains("hod")
-								|| employeeRole.toLowerCase().contains("teamlead")
-								|| employeeRole.toLowerCase().contains("manager")
-								|| employeeRole.toLowerCase().contains("superadmin"))
-						|| employeeRole.toLowerCase().contains("rmg")) {
-					return false;
+			if (projectInsightMilestoneList != null && !projectInsightMilestoneList.isEmpty()) {
+				List<ProjectInsightQuestionDTO> projectInsightQuestionDTOList = new ArrayList<>();
+				for (ProjectInsightMilestone projectInsightMilestone : projectInsightMilestoneList) {
+					ProjectInsightQuestionDTO projectInsightQuestionDTO = mapProjectMilestoneToDTO(projectInsightMilestone, employeeId, isEmployee, performanceTabName, projectId);
+					if ((projectInsightQuestionDTO.getModuleList() != null && !projectInsightQuestionDTO.getModuleList().isEmpty()) 
+							|| (projectInsightQuestionDTO.getProjectQuestion() != null && !projectInsightQuestionDTO.getProjectQuestion().isEmpty())) {
+						projectInsightQuestionDTOList.add(projectInsightQuestionDTO);
+					}
+				}
+				projectInsightDTO.setProjectInsightQuestionList(projectInsightQuestionDTOList);
+			} 
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		return projectInsightDTO;
+	}
+	
+	private ProjectInsightQuestionDTO mapProjectMilestoneToDTO(ProjectInsightMilestone projectInsightMilestone, Long employeeId, boolean isEmployee, String performanceTabName, Long projectId) {
+		try {
+			ProjectInsightQuestionDTO projectInsightQuestionDTO = new ProjectInsightQuestionDTO();
+			projectInsightQuestionDTO.setMilestoneId(projectInsightMilestone.getMilestoneId());
+			projectInsightQuestionDTO.setMilestone(projectInsightMilestone.getMilestone());
+			projectInsightQuestionDTO.setDescription(projectInsightMilestone.getDescription());
+			projectInsightQuestionDTO.setDeptId(projectInsightMilestone.getDeptId());
+			projectInsightQuestionDTO.setAssignedToUserNames(getAssignedToUserName(projectInsightMilestone.getMilestoneId(), "Milestone"));
+			projectInsightQuestionDTO.setProjectQuestion(getProjectQuestionDTOList(projectInsightMilestone.getMilestoneId(), "Milestone",employeeId, isEmployee, performanceTabName, projectId));
+			projectInsightQuestionDTO.setModuleList(getProjectInsightModuleDTOList(projectInsightMilestone.getMilestoneId(), employeeId, isEmployee, performanceTabName, projectId));
+			return projectInsightQuestionDTO;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	private List<ModuleDTO> getProjectInsightModuleDTOList(Long milestoneId, Long employeeId, boolean isEmployee, String performanceTabName, Long projectId) {
+		List<ModuleDTO> projectInsightModuleDTOList = new ArrayList<>();
+		try {
+			List<ProjectInsightModule> projectInsightModuleList = projectInsightModuleRepository.findByMilestoneId(milestoneId);
+			if (!projectInsightModuleList.isEmpty()) {
+				for (ProjectInsightModule projectInsightModule : projectInsightModuleList) {
+					ModuleDTO moduleDTO = new ModuleDTO();
+					moduleDTO.setModuleId(projectInsightModule.getModuleId());
+					moduleDTO.setMilestoneId(projectInsightModule.getMilestoneId());
+					moduleDTO.setModule(projectInsightModule.getModule());
+					moduleDTO.setDescription(projectInsightModule.getDescription());
+					moduleDTO.setRedmineId(projectInsightModule.getRedmineId());
+					moduleDTO.setAssignedToUserNames(getAssignedToUserName(projectInsightModule.getModuleId(), "Module"));
+					moduleDTO.setProjectQuestion(getProjectQuestionDTOList(projectInsightModule.getModuleId(), "Module", employeeId, isEmployee, performanceTabName, projectId));
+					moduleDTO.setSubModuleList(getProjectInsightSubModuleDTOList(projectInsightModule.getModuleId(), employeeId, isEmployee, performanceTabName, projectId));
+					if ((moduleDTO.getSubModuleList() != null && !moduleDTO.getSubModuleList().isEmpty()) 
+							|| (moduleDTO.getProjectQuestion() != null && !moduleDTO.getProjectQuestion().isEmpty())) {
+						projectInsightModuleDTOList.add(moduleDTO);
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		return projectInsightModuleDTOList;
+	}
+
+	private List<SubModuleDTO> getProjectInsightSubModuleDTOList(Long moduleId, Long employeeId, boolean isEmployee, String performanceTabName, Long projectId) {
+		List<SubModuleDTO> projectInsightSubModuleDTOList = new ArrayList<>();
+		try {
+			List<ProjectInsightSubModule> projectInsightSubModuleList = projectInsightSubModuleRepository.findByModuleId(moduleId);
+			if (!projectInsightSubModuleList.isEmpty()) {
+				for (ProjectInsightSubModule projectInsightSubModule : projectInsightSubModuleList) {
+					SubModuleDTO subModuleDTO = new SubModuleDTO();
+					subModuleDTO.setSubmoduleId(projectInsightSubModule.getSubmoduleId());
+					subModuleDTO.setSubModule(projectInsightSubModule.getSubmodule());
+					subModuleDTO.setModuleId(projectInsightSubModule.getModuleId());
+					subModuleDTO.setDescription(projectInsightSubModule.getDescription());
+					subModuleDTO.setRedmineId(projectInsightSubModule.getRedmineId());
+					subModuleDTO.setAssignedToUserNames(getAssignedToUserName(projectInsightSubModule.getSubmoduleId(), "SubModule"));
+					subModuleDTO.setProjectQuestion(getProjectQuestionDTOList(projectInsightSubModule.getSubmoduleId(), "SubModule", employeeId, isEmployee, performanceTabName, projectId));
+					if (subModuleDTO.getProjectQuestion() != null && !subModuleDTO.getProjectQuestion().isEmpty()) {
+						projectInsightSubModuleDTOList.add(subModuleDTO);
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		return projectInsightSubModuleDTOList;
+	}
+
+	public List<ProjectQuestionDTO> getProjectQuestionDTOList(Long entityId, String entityType, Long employeeId, boolean isEmployee, String performanceTabName, Long projectId) {
+		List<ProjectQuestionDTO> projectInsightQuestionList = new ArrayList<>();
+		try {
+			List<QuestionMaster> projectInsightQuestionMasterList = new ArrayList<>();
+			if (isEmployee) {
+				projectInsightQuestionMasterList = questionMasterRepository.findByEntityIdAndEntityTypeAndAssignedTo(entityId, entityType, employeeId);
+			} else {
+				projectInsightQuestionMasterList = questionMasterRepository.findByEntityIdAndEntityType(entityId, entityType);
+			}
+			if (!projectInsightQuestionMasterList.isEmpty()) {
+				for (QuestionMaster questionMaster : projectInsightQuestionMasterList) {
+					ProjectQuestionDTO projectQuestionDTO = mapQuestionMasterToProjectQuestionDTO(questionMaster);
+					List<ProjectResponseDTO> projectResponseDTOList = new ArrayList<>();
+					List<ProjectInsightResponse> projectInsightResponseList = getProjectInsightResponseListAsPerEmployeeAndQuestion(employeeId, performanceTabName, projectId,questionMaster.getQuestionMasterId());
+					if (projectInsightResponseList != null && !projectInsightResponseList.isEmpty()) {
+						for (ProjectInsightResponse projectInsightResponse : projectInsightResponseList) {
+							ProjectResponseDTO projectResponseDTO = mapPojectInsightResponseToProjectInsightResponseDTO(projectInsightResponse,questionMaster.getOptions());
+							projectResponseDTOList.add(projectResponseDTO);
+						}
+					}
+					projectQuestionDTO.setProjectResponseList(projectResponseDTOList);
+					projectInsightQuestionList.add(projectQuestionDTO);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		return projectInsightQuestionList;
+	}
+	
+	private ProjectQuestionDTO mapQuestionMasterToProjectQuestionDTO(QuestionMaster questionMaster) {
+		try {
+			ProjectQuestionDTO projectQuestionDTO = new ProjectQuestionDTO();
+			projectQuestionDTO.setQuestionId(questionMaster.getQuestionMasterId());
+			projectQuestionDTO.setEntityId(questionMaster.getEntityId());
+			projectQuestionDTO.setEntityType(questionMaster.getEntityType());
+			projectQuestionDTO.setQuestion(questionMaster.getQuestion());
+			projectQuestionDTO.setDescription(questionMaster.getDescription());
+			projectQuestionDTO.setOptionType(questionMaster.getOptionType());
+			projectQuestionDTO.setOptions(questionMaster.getOptions());
+			projectQuestionDTO.setRequired(questionMaster.getRequired());
+			projectQuestionDTO.setDocumentUpload(questionMaster.getDocumentUpload());
+			return projectQuestionDTO;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+	
+	private List<ProjectInsightResponse> getProjectInsightResponseListAsPerEmployeeAndQuestion(Long employeeId, String performanceTabName, Long projectId, Long questionMasterId) {
+		List<ProjectInsightResponse> projectInsightResponseList = new ArrayList<>();
+		try {
+			if (performanceTabName.equals("Team Dashboard")) {
+				List<EmployeeTeamMap> employeeTeamList = employeeTeamMapRepository.findByProjectIdAndActive(Integer.parseInt(projectId.toString()), 1l);
+				
+				if (employeeTeamList != null && !employeeTeamList.isEmpty()) {
+					Map<Long, String> employeeTeamMapObj = getEmpIdToHighestRoleMap(employeeTeamList);
+					String employeeRole = employeeTeamMapObj.getOrDefault(employeeId, null);
+					
+					if (employeeRole != null && (employeeRole.equals("SUPERADMIN") || employeeRole.equals("RMG") || employeeRole.equals("HR"))) {
+						projectInsightResponseList = projectInsightResponseRepository.findAllByQuestionMasterId(questionMasterId);
+					} else if (employeeRole != null && !employeeRole.equals("SUPERADMIN") && !employeeRole.equals("RMG") && !employeeRole.equals("HR")) {
+						List<Long> seniorEmployeeIdList = getSeniorEmployeeList(employeeTeamMapObj, employeeRole);
+						if(seniorEmployeeIdList == null || seniorEmployeeIdList.isEmpty()) {
+							seniorEmployeeIdList.add(1l);
+						}
+						projectInsightResponseList = projectInsightResponseRepository.findAllByQuestionMasterIdAndEmpIdListNotIn(questionMasterId, seniorEmployeeIdList);
+					} else {
+						projectInsightResponseList = projectInsightResponseRepository.findByQuestionMasterIdAndEmpId(questionMasterId, employeeId);
+					}
+				
+				} else {
+					projectInsightResponseList = projectInsightResponseRepository.findByQuestionMasterIdAndEmpId(questionMasterId, employeeId);
+				}
+			} else {
+				projectInsightResponseList = projectInsightResponseRepository.findByQuestionMasterIdAndEmpId(questionMasterId, employeeId);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		return projectInsightResponseList;
+	}
+	
+	private List<Long> getSeniorEmployeeList(Map<Long, String> employeeTeamMapObj, String employeeRole) {
+		List<Long> seniorEmployeeList = new ArrayList<>();
+		try {
+			if (employeeRole != null && ROLE_HIERARCHY.indexOf(employeeRole) + 1 < ROLE_HIERARCHY.size()) {
+				int roleIndex = ROLE_HIERARCHY.indexOf(employeeRole) + 1;
+				for (int i = roleIndex; i < ROLE_HIERARCHY.size(); i++) {
+					String nextLevelRole = ROLE_HIERARCHY.get(i);
+					for (Map.Entry<Long, String> entry : employeeTeamMapObj.entrySet()) {
+						if (entry.getValue() != null && entry.getValue().equalsIgnoreCase(nextLevelRole)) {
+							seniorEmployeeList.add(entry.getKey());
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		return seniorEmployeeList;
+	}
+
+	private ProjectResponseDTO mapPojectInsightResponseToProjectInsightResponseDTO(ProjectInsightResponse projectInsightResponse, String options) {
+		try {
+			ProjectResponseDTO projectResponseDTO = new ProjectResponseDTO();
+			projectResponseDTO.setResponseId(projectInsightResponse.getProjectInsightResponseId());
+			projectResponseDTO.setResponse(projectInsightResponse.getResponse());
+			projectResponseDTO.setDocumentPath(projectInsightResponse.getDocumentPath());
+			projectResponseDTO.setOptions(options);
+			projectResponseDTO.setUploadedFileName(projectInsightResponse.getDocumentFileName());
+			projectResponseDTO.setResponseByEmpId(projectInsightResponse.getEmpId());
+			Employee employee = employeeRepository.findByEmpId(projectInsightResponse.getEmpId());
+			projectResponseDTO.setResponseByEmpName(employee != null ? employee.getName() : "");
+			projectResponseDTO.setIsDraft(projectInsightResponse.getIsDraft());
+			projectResponseDTO.setProcessTo(projectInsightResponse.getProcessTo());
+			projectResponseDTO.setMarks(projectInsightResponse.getMarks());
+			return projectResponseDTO;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+	
+	public ServiceResponse saveProjectInsightResponse(ProjectInsightDTO projectInsightDTO, List<MultipartFile> files) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
+		apiLogInfo.setSubFeatureName("saveProjectInsightResponse");
+		apiLogInfo.setApiUrl("/api/saveProjectInsightResponse");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("projectId : " + projectInsightDTO.getProjectId());
+		try {
+
+			if (projectInsightDTO.getProjectId() == null) {
+				throw new IllegalArgumentException("Project Id cannot be null!!");
+			}
+
+			Project project = projectRepository.findByProjectId(Integer.parseInt(projectInsightDTO.getProjectId().toString()));
+			if (project == null) {
+				throw new RuntimeException("Project Not Found!!");
+			}
+
+			Long reviewerId = getReviewerIdForQuestion(projectInsightDTO.getProjectId(), projectInsightDTO.getEmpId());
+			if (projectInsightDTO.getProjectInsightQuestionList() != null && !projectInsightDTO.getProjectInsightQuestionList().isEmpty()) {
+				saveProjectMileStoneResponse(projectInsightDTO.getProjectInsightQuestionList(), projectInsightDTO.getEmpId(), files, reviewerId);
+				apiLogInfo.setApiResponse("Project Insight Response Saved Successfully");
+				response.setServiceResponse("Project Insight Response Saved Successfully");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			} else {
+				apiLogInfo.setApiResponse("No Milestone Found for Project.");
+				response.setServiceResponse("No Milestone Found for Project.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+	
+	
+	private String saveProjectMileStoneResponse(List<ProjectInsightQuestionDTO> projectInsightQuestionDTOList, Long employeeId, List<MultipartFile> files, Long reviewerId) {
+		String response = null;
+		try {
+			if (projectInsightQuestionDTOList != null && !projectInsightQuestionDTOList.isEmpty()) {
+				for (ProjectInsightQuestionDTO projectInsightQuestionDTO : projectInsightQuestionDTOList) {
+					saveProjectInsightResponse(projectInsightQuestionDTO.getProjectQuestion(), files, reviewerId);
+					saveProjectInsightModuleResponse(projectInsightQuestionDTO.getModuleList(), employeeId, files, reviewerId);
+				}
+			} else {
+				return null;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		return response;
+	}
+
+	private void saveProjectInsightModuleResponse(List<ModuleDTO> moduleList, Long employeeId,List<MultipartFile> files,Long reviewerId) {
+		try {
+			if (moduleList != null && !moduleList.isEmpty()) {
+				for (ModuleDTO moduleDTO : moduleList) {
+					saveProjectInsightResponse(moduleDTO.getProjectQuestion(),files,reviewerId);
+					saveProjectInsightSubModuleResponse(moduleDTO.getSubModuleList(), employeeId,files,reviewerId);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	private void saveProjectInsightSubModuleResponse(List<SubModuleDTO> subModuleList, Long employeeId,List<MultipartFile> files,Long reviewerId) {
+		try {
+			if (subModuleList != null && !subModuleList.isEmpty()) {
+				for (SubModuleDTO subModuleDTO : subModuleList) {
+					saveProjectInsightResponse(subModuleDTO.getProjectQuestion(),files,reviewerId);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	private void saveProjectInsightResponse(List<ProjectQuestionDTO> projectQuestionList,List<MultipartFile> files, Long reviewerId) {
+		try {
+			if (projectQuestionList != null && !projectQuestionList.isEmpty()) {
+				for (ProjectQuestionDTO projectQuestionDTO : projectQuestionList) {
+					if (projectQuestionDTO.getQuestionId() != null
+							&& projectQuestionDTO.getProjectResponseList() != null
+							&& !projectQuestionDTO.getProjectResponseList().isEmpty()) {
+						for (ProjectResponseDTO projectResponseDTO : projectQuestionDTO.getProjectResponseList()) {
+							saveOrUpdateAllProjectResponseAndUploadDocument(projectQuestionDTO, projectResponseDTO, files,reviewerId);
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+	
+	private void saveOrUpdateAllProjectResponseAndUploadDocument(ProjectQuestionDTO projectQuestionDTO, ProjectResponseDTO projectResponseDTO, List<MultipartFile> files, Long reviewerId) {
+		try {
+			ProjectInsightResponse projectInsightResponse = projectInsightResponseRepository.findByEmpIdAndQuestionMasterId(projectResponseDTO.getResponseByEmpId(), projectQuestionDTO.getQuestionId());
+			if (projectInsightResponse != null) {
+				projectInsightResponse = mapProjectResponseDTOToProjectResponseAndUploadFile(projectInsightResponse,projectResponseDTO ,files,reviewerId,projectQuestionDTO.getQuestionId());
+				if (files != null) {}
+			} else {
+				projectInsightResponse = new ProjectInsightResponse();
+				projectInsightResponse = mapProjectResponseDTOToProjectResponseAndUploadFile(projectInsightResponse,projectResponseDTO ,files,reviewerId,projectQuestionDTO.getQuestionId());
+			}
+			projectInsightResponseRepository.save(projectInsightResponse);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	private ProjectInsightResponse mapProjectResponseDTOToProjectResponseAndUploadFile(ProjectInsightResponse projectInsightResponse, ProjectResponseDTO projectResponseDTO,List<MultipartFile> files, Long reviewerId, Long questionMasterId) {
+		try {
+			projectInsightResponse.setResponse(projectResponseDTO.getResponse());
+			projectInsightResponse.setEmpId(projectResponseDTO.getResponseByEmpId());
+			projectInsightResponse.setDocumentPath(projectResponseDTO.getDocumentPath());
+			projectInsightResponse.setQuestionMasterId(questionMasterId);
+			projectInsightResponse.setIsDraft(projectResponseDTO.getIsDraft());
+			projectInsightResponse.setProcessTo(reviewerId);
+			projectInsightResponse.setMarks(projectResponseDTO.getMarks());
+			projectInsightResponse.setDocumentPath(projectResponseDTO.getDocumentPath());
+			projectInsightResponse.setDocumentFileName(projectResponseDTO.getUploadedFileName());
+			if (files != null) {
+				for (MultipartFile document : files) {
+					if (document != null && document.getOriginalFilename() != null && projectResponseDTO.getUploadedFileName() != null
+							&& document.getOriginalFilename().equals(projectResponseDTO.getUploadedFileName())) {
+						String uploadResponse = uploadProjectResponseDocument(document);
+						if (uploadResponse.equalsIgnoreCase("Document uploaded successfully")) {
+							projectInsightResponse.setDocumentPath(projectResponseDTO.getDocumentPath());
+							projectInsightResponse.setDocumentFileName(projectResponseDTO.getUploadedFileName());
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		return projectInsightResponse;
+	}
+
+	public ServiceResponse getProjectResponseDocument(ProjectInsightDTO projectInsightDTO) {
+		try {
+			System.out.println(projectInsightDTO);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		return null;
+	}
+	
+	public String uploadProjectResponseDocument(MultipartFile document) {
+		String response = null;
+		try {
+			if (document != null) {
+				String dmsPortalUploadUrl = dmsPortalUrl + "/upload.php";
+				RestTemplate restTemplate = new RestTemplate();
+
+				HttpHeaders headers = new HttpHeaders();
+				headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+				headers.set("X-API-KEY", dmsPortalUrlKey);
+				MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+				body.add("document", new ByteArrayResource(document.getBytes()) {
+					@Override
+					public String getFilename() {
+						return document.getOriginalFilename();
+					}
+				});
+				HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+				String syncResponse = restTemplate.postForObject(dmsPortalUploadUrl, requestEntity, String.class);
+				JSONObject json = new JSONObject(syncResponse);
+				if (!json.isNull("message")) {
+					String obj = json.getString("message");
+					if (obj != null) {
+						response = obj;
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response = "Failed to Upload Document.";
+		}
+		return response;
+	}
+
+	public ServiceResponse getAllProjectInsightContributionList(ProjectInsightDTO projectInsightDTO) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
+		apiLogInfo.setApiUrl("/api/getAllProjectInsightContributionList");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("All Project Contribution List By : " + projectInsightDTO.getEmpId());
+		try {
+			List<Object[]> objectList = null;
+			if (projectInsightDTO.getPerformanceTabName().equals("Team Dashboard")) {
+				String jobRole = employeeRepository.getJobRoleByEmployeeId(projectInsightDTO.getEmpId());
+				if (jobRole != null) {
+					projectInsightDTO.setEmployeeRole(jobRole);
+				}
+			}
+
+			if (projectInsightDTO.getPerformanceTabName().equals("Team Dashboard")) {
+				objectList = projectInsightResponseRepository.getAllProjectInsightByUser(projectInsightDTO.getEmpId());
+			} else {
+				if (projectInsightDTO.getEmployeeRole().equals("Employee")
+						|| projectInsightDTO.getEmployeeRole().equals("TeamLead")
+						|| projectInsightDTO.getEmployeeRole().equals("Manager")) {
+					objectList = projectInsightMilestoneRepository.getAllProjectInsightByUser(projectInsightDTO.getEmpId());
+				} else {
+					objectList = projectInsightMilestoneRepository.getAllProjectInsight();
+				}
 			}
 			
+			if (objectList != null && !objectList.isEmpty()) {
+				List<ProjectInsightDTO> dtoList = new ArrayList<>();
+				for (Object[] object : objectList) {
+					ProjectInsightDTO dto = new ProjectInsightDTO();
+					dto.setProjectId(parseLong(object[0]));
+					dto.setProjectName(parseString(object[1]));
+					dto.setProjectManagerId(parseLong(object[2]));
+					dto.setProjectManagerName(parseString(object[3]));
+					dto.setCreatedBy(parseLong(object[4]));
+					dto.setCreatedByName(parseString(object[5]));
+					dto.setCreatedOn(parseString(object[6]));
+					dtoList.add(dto);
+				}
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("All Project Insight List Fetched");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No Project Insight found. List is null.");
+				apiLogInfo.setApiResponse("No Project Insight found. List is null");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+	
+	private Long parseLong(Object obj) {
+		return obj != null ? Long.parseLong(obj.toString()) : null;
+	}
+
+	private String parseString(Object obj) {
+		return obj != null ? obj.toString() : null;
+	}
+	
+	private boolean checkIfIsEmployee(List<Object[]> employeePersonaListForTeam, String employeeRole) {
+		boolean flag = true;
+		try {
+			if (employeeRole != null && !employeeRole.trim().equals("")
+					&& (employeeRole.toLowerCase().contains("hod") || employeeRole.toLowerCase().contains("teamlead")
+							|| employeeRole.toLowerCase().contains("manager")
+							|| employeeRole.toLowerCase().contains("superadmin")
+							|| employeeRole.toLowerCase().contains("rmg"))) {
+				return false;
+			}
+
 			if (employeePersonaListForTeam != null && !employeePersonaListForTeam.isEmpty()) {
 				for (Object[] objectArray : employeePersonaListForTeam) {
 					if (objectArray[1] != null && !objectArray[1].toString().trim().equals("")
@@ -1040,232 +1524,16 @@ public class ProjectInsightService {
 		return flag;
 	}
 
-	private ProjectInsightDTO createProjectInsightMileStoneObject(List<ProjectInsightMilestone> projectInsightMilestoneList,Long employeeId,boolean isEmployee) {
-		ProjectInsightDTO projectInsightDTO = new ProjectInsightDTO();
-		try {
-			if (projectInsightMilestoneList != null && !projectInsightMilestoneList.isEmpty()) {
-				List<ProjectInsightQuestionDTO> projectInsightQuestionDTOList = new ArrayList<>();
-				for (ProjectInsightMilestone projectInsightMilestone : projectInsightMilestoneList) {
-					ProjectInsightQuestionDTO projectInsightQuestionDTO = mapProjectMilestoneToDTO(projectInsightMilestone, employeeId, isEmployee);
-
-					if ((projectInsightQuestionDTO.getModuleList() != null && !projectInsightQuestionDTO.getModuleList().isEmpty())
-							|| (projectInsightQuestionDTO.getProjectQuestion() != null && !projectInsightQuestionDTO.getProjectQuestion().isEmpty())) {
-						projectInsightQuestionDTOList.add(projectInsightQuestionDTO);
-					}
-
-				}
-				projectInsightDTO.setProjectInsightQuestionList(projectInsightQuestionDTOList);
-			} else {
-				return null;
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw e;
-		}
-		return projectInsightDTO;
-	}
-	
-	private ProjectInsightQuestionDTO mapProjectMilestoneToDTO(ProjectInsightMilestone projectInsightMilestone,Long employeeId,boolean isEmployee) {
-		try {
-			ProjectInsightQuestionDTO projectInsightQuestionDTO = new ProjectInsightQuestionDTO();
-			projectInsightQuestionDTO.setMilestoneId(projectInsightMilestone.getMilestoneId());
-			projectInsightQuestionDTO.setMilestone(projectInsightMilestone.getMilestone());
-			projectInsightQuestionDTO.setDescription(projectInsightMilestone.getDescription());
-			projectInsightQuestionDTO.setDeptId(projectInsightMilestone.getDeptId());
-			projectInsightQuestionDTO.setAssignedToUserNames(getAssignedToUserName(projectInsightMilestone.getMilestoneId(),"Milestone"));
-			projectInsightQuestionDTO.setProjectQuestion(getProjectQuestionDTOList(projectInsightMilestone.getMilestoneId(), "Milestone",employeeId,isEmployee));
-			projectInsightQuestionDTO.setModuleList(getProjectInsightModuleDTOList(projectInsightMilestone.getMilestoneId(),employeeId,isEmployee));
-			return projectInsightQuestionDTO;
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw e;
-		}
-	}
-
 	private String getAssignedToUserName(Long entityId, String entityType) {
 		String assignedTo = null;
 		try {
 			List<String> usernameList = projectInsightAssigneesRepository.getUserNameByEntityIdAndEntityType(entityId,entityType);
-			assignedTo = usernameList != null
-					? usernameList.stream().map(String::valueOf).collect(Collectors.joining(", "))
-					: null;
+			assignedTo = usernameList != null  ? usernameList.stream().map(String::valueOf).collect(Collectors.joining(", ")) : "";
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
 		}
 		return assignedTo;
-	}
-
-	private List<ModuleDTO> getProjectInsightModuleDTOList(Long milestoneId,Long employeeId,boolean isEmployee) {
-		List<ModuleDTO> projectInsightModuleDTOList = new ArrayList<>();
-		try {
-			List<ProjectInsightModule> projectInsightModuleList =  new ArrayList<>();
-//			if (isEmployee) {
-//				projectInsightModuleList = projectInsightModuleRepository.findByMilestoneIdAndAssignedModule(milestoneId, employeeId);
-//			} else {
-//				projectInsightModuleList =  projectInsightModuleRepository.findByMilestoneId(milestoneId);
-//			}
-			
-			projectInsightModuleList =  projectInsightModuleRepository.findByMilestoneId(milestoneId);
-			if (!projectInsightModuleList.isEmpty()) {
-				for (ProjectInsightModule projectInsightModule : projectInsightModuleList) {
-					ModuleDTO moduleDTO = new ModuleDTO();
-					moduleDTO.setModuleId(projectInsightModule.getModuleId());
-					moduleDTO.setMilestoneId(projectInsightModule.getMilestoneId());
-					moduleDTO.setModule(projectInsightModule.getModule());
-					moduleDTO.setDescription(projectInsightModule.getDescription());
-					moduleDTO.setRedmineId(projectInsightModule.getRedmineId());
-					moduleDTO.setAssignedToUserNames(getAssignedToUserName(projectInsightModule.getModuleId(),"Module"));
-					moduleDTO.setProjectQuestion(getProjectQuestionDTOList(projectInsightModule.getModuleId(), "Module",employeeId,isEmployee));
-					moduleDTO.setSubModuleList(getProjectInsightSubModuleDTOList(projectInsightModule.getModuleId(),employeeId,isEmployee));
-					if((moduleDTO.getSubModuleList() != null && !moduleDTO.getSubModuleList().isEmpty()) || (moduleDTO.getProjectQuestion() != null && !moduleDTO.getProjectQuestion().isEmpty())) {
-					projectInsightModuleDTOList.add(moduleDTO);
-					}
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw e;
-		}
-		return projectInsightModuleDTOList;
-	}
-
-	private List<SubModuleDTO> getProjectInsightSubModuleDTOList(Long moduleId,Long employeeId,boolean isEmployee) {
-		List<SubModuleDTO> projectInsightSubModuleDTOList = new ArrayList<>();
-		try {
-			List<ProjectInsightSubModule> projectInsightSubModuleList = new ArrayList<>();
-//			if (isEmployee) {
-//				projectInsightSubModuleList = projectInsightSubModuleRepository.findByModuleIdAndAssignedSubModule(moduleId, employeeId);
-//			} else {
-//				projectInsightSubModuleList = projectInsightSubModuleRepository.findByModuleId(moduleId);
-//			}
-			
-			projectInsightSubModuleList = projectInsightSubModuleRepository.findByModuleId(moduleId);
-			if (!projectInsightSubModuleList.isEmpty()) {
-				for (ProjectInsightSubModule projectInsightSubModule : projectInsightSubModuleList) {
-					SubModuleDTO subModuleDTO = new SubModuleDTO();
-					subModuleDTO.setSubmoduleId(projectInsightSubModule.getSubmoduleId());
-					subModuleDTO.setSubModule(projectInsightSubModule.getSubmodule());
-					subModuleDTO.setModuleId(projectInsightSubModule.getModuleId());
-					subModuleDTO.setDescription(projectInsightSubModule.getDescription());
-					subModuleDTO.setRedmineId(projectInsightSubModule.getRedmineId());
-					subModuleDTO.setAssignedToUserNames(getAssignedToUserName(projectInsightSubModule.getSubmoduleId(),"SubModule"));
-					subModuleDTO.setProjectQuestion(getProjectQuestionDTOList(projectInsightSubModule.getSubmoduleId(), "SubModule",employeeId,isEmployee));
-					if(subModuleDTO.getProjectQuestion() != null && !subModuleDTO.getProjectQuestion().isEmpty()) {
-						projectInsightSubModuleDTOList.add(subModuleDTO);
-					}
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw e;
-		}
-		return projectInsightSubModuleDTOList;
-	}
-
-	public List<ProjectQuestionDTO> getProjectQuestionDTOList(Long entityId, String entityType,Long employeeId,boolean isEmployee) {
-		List<ProjectQuestionDTO> projectInsightQuestionList = new ArrayList<>();
-		try {
-			List<QuestionMaster> projectInsightQuestionMasterList = new ArrayList<>();
-			if(isEmployee) {
-				projectInsightQuestionMasterList = questionMasterRepository.findByEntityIdAndEntityTypeAndAssignedTo(entityId,entityType,employeeId);
-			} else {
-				projectInsightQuestionMasterList = questionMasterRepository.findByEntityIdAndEntityType(entityId,entityType);
-			}
-			if (!projectInsightQuestionMasterList.isEmpty()) {
-				for (QuestionMaster questionMaster : projectInsightQuestionMasterList) {
-					ProjectQuestionDTO projectQuestionDTO = new ProjectQuestionDTO();
-					projectQuestionDTO.setQuestionId(questionMaster.getQuestionMasterId());
-					projectQuestionDTO.setEntityId(questionMaster.getEntityId());
-					projectQuestionDTO.setEntityType(questionMaster.getEntityType());
-					projectQuestionDTO.setQuestion(questionMaster.getQuestion());
-					projectQuestionDTO.setDescription(questionMaster.getDescription());
-					projectQuestionDTO.setOptionType(questionMaster.getOptionType());
-					projectQuestionDTO.setOptions(questionMaster.getOptions());
-					projectQuestionDTO.setRequired(questionMaster.getRequired());
-					projectQuestionDTO.setDocumentUpload(questionMaster.getDocumentUpload());
-					
-					boolean flag = true;
-					List<ProjectInsightResponse> projectInsightResponseList = new ArrayList<>();
-					List<ProjectResponseDTO> projectResponseDTOList = new ArrayList<>();
-					if(flag) { // here will check for if preview is of all the team members
-						projectInsightResponseList = projectInsightResponseRepository.findAllByQuestionMasterId(questionMaster.getQuestionMasterId());
-					} else {
-						projectInsightResponseList = projectInsightResponseRepository.findByQuestionMasterIdAndEmpId(questionMaster.getQuestionMasterId(), employeeId);
-					}
-					if(projectInsightResponseList != null && !projectInsightResponseList.isEmpty()) {
-						for(ProjectInsightResponse projectInsightResponse :projectInsightResponseList) {
-							ProjectResponseDTO projectResponseDTO = new ProjectResponseDTO();
-							projectResponseDTO.setResponseId(projectInsightResponse.getProjectInsightResponseId());
-							projectResponseDTO.setResponse(projectInsightResponse.getResponse());
-							projectResponseDTO.setDocumentPath(projectInsightResponse.getDocumentPath());
-							projectResponseDTO.setOptions(questionMaster.getOptions());
-							projectResponseDTO.setUploadedFileName(projectInsightResponse.getDocumentFileName());
-							projectResponseDTO.setResponseByEmpId(projectInsightResponse.getEmpId());
-							Employee employee = employeeRepository.findByEmpId(projectInsightResponse.getEmpId());
-							projectResponseDTO.setResponseByEmpName(employee != null ? employee.getName() : "");
-							projectResponseDTO.setIsDraft(projectInsightResponse.getIsDraft());
-							projectResponseDTO.setProcessTo(projectInsightResponse.getProcessTo());
-							projectResponseDTO.setMarks(projectInsightResponse.getMarks());
-							projectResponseDTOList.add(projectResponseDTO);
-							
-						}
-					}
-					projectQuestionDTO.setProjectResponseList(projectResponseDTOList);
-					projectInsightQuestionList.add(projectQuestionDTO);
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw e;
-		}
-		return projectInsightQuestionList;
-	}
-
-	public ServiceResponse saveProjectInsightResponse(ProjectInsightDTO projectInsightDTO,List<MultipartFile> files) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("saveProjectInsightResponse");
-		apiLogInfo.setApiUrl("/api/saveProjectInsightResponse");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("projectId : " + projectInsightDTO.getProjectId());
-		try {
-
-			if (projectInsightDTO.getProjectId() == null) {
-				throw new IllegalArgumentException("Project Id cannot be null!!");
-			}
-
-			Project project = projectRepository.findByProjectId(Integer.parseInt(projectInsightDTO.getProjectId().toString()));
-			if (project == null) {
-				throw new RuntimeException("Project Not Found!!");
-			}
-			
-			Long reviewerId = getReviewerIdForQuestion(projectInsightDTO.getProjectId(),projectInsightDTO.getEmpId());
-			if (projectInsightDTO.getProjectInsightQuestionList() != null && !projectInsightDTO.getProjectInsightQuestionList().isEmpty()) {
-				saveProjectMileStoneResponse(projectInsightDTO.getProjectInsightQuestionList(),projectInsightDTO.getEmpId(),files,reviewerId);
-				apiLogInfo.setApiResponse("Project Insight Response Saved Successfully");
-				response.setServiceResponse("Project Insight Response Saved Successfully");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			} else {
-				apiLogInfo.setApiResponse("No Milestone Found for Project.");
-				response.setServiceResponse("No Milestone Found for Project.");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-
-		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
 	}
 	
 	private Long getReviewerIdForQuestion(Long projectId, Long employeeId) {
@@ -1273,12 +1541,13 @@ public class ProjectInsightService {
 		try {
 			List<EmployeeTeamMap> employeeTeamList = employeeTeamMapRepository.findByProjectIdAndActive(Integer.parseInt(projectId.toString()), 1l);
 			if (employeeTeamList == null || employeeTeamList.isEmpty()) {
-				return reviewerId;
+				return getEmployeesRMorManagerId(employeeId);
 			}
+
 			Map<Long, String> employeeTeamMapObj = getEmpIdToHighestRoleMap(employeeTeamList);
-			String employeeRole = employeeTeamMapObj.getOrDefault(employeeId, null); // what to do if no senior is found for reviewing
+			String employeeRole = employeeTeamMapObj.getOrDefault(employeeId, null);
 			if (employeeRole == null || employeeRole.equals("SUPERADMIN") || employeeRole.equals("RMG") || employeeRole.equals("HR")) {
-				return reviewerId;
+				return getEmployeesRMorManagerId(employeeId);
 			}
 
 			if (ROLE_HIERARCHY.indexOf(employeeRole) + 1 < ROLE_HIERARCHY.size()) {
@@ -1291,12 +1560,11 @@ public class ProjectInsightService {
 					}
 				}
 			}
-			if(reviewerId == null) {
-				Employee employee = employeeRepository.findByEmpId(employeeId);
-				if(employee != null) {
-					reviewerId = employee.getReportingManagerId() != null ? employee.getReportingManagerId() : employee.getManagerId();
-				}
-			} 
+			
+			if (reviewerId == null) {
+				reviewerId = getEmployeesRMorManagerId(employeeId);
+			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
@@ -1329,16 +1597,12 @@ public class ProjectInsightService {
 		}
 		return result;
 	}
-	
-	private String saveProjectMileStoneResponse(List<ProjectInsightQuestionDTO> projectInsightQuestionDTOList,
-			Long employeeId,List<MultipartFile> files,Long reviewerId) {
-		String response = null;
+
+	private Long getEmployeesRMorManagerId(Long employeeId) {
 		try {
-			if (projectInsightQuestionDTOList != null && !projectInsightQuestionDTOList.isEmpty()) {
-				for (ProjectInsightQuestionDTO projectInsightQuestionDTO : projectInsightQuestionDTOList) {
-					saveProjectInsightResponse(projectInsightQuestionDTO.getProjectQuestion(), employeeId,files,reviewerId);
-					saveProjectInsightModuleResponse(projectInsightQuestionDTO.getModuleList(), employeeId,files,reviewerId);
-				}
+			Employee employee = employeeRepository.findByEmpId(employeeId);
+			if (employee != null) {
+				return employee.getReportingManagerId() != null ? employee.getReportingManagerId() : employee.getManagerId();
 			} else {
 				return null;
 			}
@@ -1346,252 +1610,6 @@ public class ProjectInsightService {
 			e.printStackTrace();
 			throw e;
 		}
-		return response;
-	}
-
-	private void saveProjectInsightModuleResponse(List<ModuleDTO> moduleList, Long employeeId,List<MultipartFile> files,Long reviewerId) {
-		try {
-			if (moduleList != null && !moduleList.isEmpty()) {
-				for (ModuleDTO moduleDTO : moduleList) {
-					saveProjectInsightResponse(moduleDTO.getProjectQuestion(), employeeId,files,reviewerId);
-					saveProjectInsightSubModuleResponse(moduleDTO.getSubModuleList(), employeeId,files,reviewerId);
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw e;
-		}
-	}
-
-	private void saveProjectInsightSubModuleResponse(List<SubModuleDTO> subModuleList, Long employeeId,List<MultipartFile> files,Long reviewerId) {
-		try {
-			if (subModuleList != null && !subModuleList.isEmpty()) {
-				for (SubModuleDTO subModuleDTO : subModuleList) {
-					saveProjectInsightResponse(subModuleDTO.getProjectQuestion(), employeeId,files,reviewerId);
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw e;
-		}
-	}
-
-	private void saveProjectInsightResponse(List<ProjectQuestionDTO> projectQuestionList, Long employeeId,List<MultipartFile> files,Long reviewerId) {
-		try {
-			if (projectQuestionList != null && !projectQuestionList.isEmpty()) {
-				for (ProjectQuestionDTO projectQuestionDTO : projectQuestionList) {
-					if (projectQuestionDTO.getQuestionId() != null && projectQuestionDTO.getProjectResponseList() != null && !projectQuestionDTO.getProjectResponseList().isEmpty()) {
-						for(ProjectResponseDTO projectResponseDTO : projectQuestionDTO.getProjectResponseList()) {
-							List<ProjectInsightResponse> projectInsightResponseList = projectInsightResponseRepository.findByQuestionMasterIdAndEmpId(projectQuestionDTO.getQuestionId(), projectResponseDTO.getResponseByEmpId());
-							if(projectInsightResponseList != null && !projectInsightResponseList.isEmpty()) {
-								for(ProjectInsightResponse projectInsightResponse: projectInsightResponseList){
-									if (projectInsightResponse != null) {
-										projectInsightResponse.setResponse(projectResponseDTO.getResponse());
-										projectInsightResponse.setUpdatedBy(projectResponseDTO.getResponseByEmpId());
-										projectInsightResponse.setIsDraft(projectResponseDTO.getIsDraft());
-										projectInsightResponse.setProcessTo(reviewerId);
-									} else {
-										projectInsightResponse = new ProjectInsightResponse();
-										projectInsightResponse.setResponse(projectResponseDTO.getResponse());
-										projectInsightResponse.setEmpId(projectResponseDTO.getResponseByEmpId());
-										projectInsightResponse.setDocumentPath(projectResponseDTO.getDocumentPath());
-										projectInsightResponse.setQuestionMasterId(projectQuestionDTO.getQuestionId());
-										projectInsightResponse.setIsDraft(projectResponseDTO.getIsDraft());
-										projectInsightResponse.setProcessTo(reviewerId);
-									}
-									if (files != null) {
-										for (MultipartFile document : files) {
-											if (document != null &&  document.getOriginalFilename() != null && document.getOriginalFilename().equals(projectResponseDTO.getUploadedFileName())) {
-												String uploadResponse = uploadProjectResponseDocument(projectQuestionDTO, document);
-												if(uploadResponse.equalsIgnoreCase("Document uploaded successfully")) {
-													projectInsightResponse.setDocumentPath(projectResponseDTO.getDocumentPath());
-													projectInsightResponse.setDocumentFileName(projectResponseDTO.getUploadedFileName());
-												}
-											}
-										}
-									}
-									projectInsightResponseRepository.save(projectInsightResponse);
-//									logic to transfer to knowledge hub
-//									if() {
-//										
-//									}
-								}
-							} else {
-								ProjectInsightResponse projectInsightResponse = new ProjectInsightResponse();
-								projectInsightResponse.setResponse(projectResponseDTO.getResponse());
-								projectInsightResponse.setEmpId(projectResponseDTO.getResponseByEmpId());
-								projectInsightResponse.setDocumentPath(projectResponseDTO.getDocumentPath());
-								projectInsightResponse.setQuestionMasterId(projectQuestionDTO.getQuestionId());
-								projectInsightResponse.setIsDraft(projectResponseDTO.getIsDraft());
-								projectInsightResponse.setProcessTo(reviewerId);
-								if (files != null) {
-									for (MultipartFile document : files) {
-										if (document != null &&  document.getOriginalFilename() != null && document.getOriginalFilename().equals(projectResponseDTO.getUploadedFileName())) {
-											String uploadResponse = uploadProjectResponseDocument(projectQuestionDTO, document);
-											if(uploadResponse.equalsIgnoreCase("Document uploaded successfully")) {
-												projectInsightResponse.setDocumentPath(projectResponseDTO.getDocumentPath());
-												projectInsightResponse.setDocumentFileName(projectResponseDTO.getUploadedFileName());
-											}
-										}
-									}
-								}
-								projectInsightResponseRepository.save(projectInsightResponse);
-							}
-						}
-					}
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw e;
-		}
 	}
 	
-	public ServiceResponse getProjectResponseDocument(ProjectInsightDTO projectInsightDTO) {
-		try {
-			
-		} catch (Exception e) {
-			// TODO: handle exception
-		}
-		return null;
-	}
-	
-	
-	public String uploadProjectResponseDocument2(ProjectQuestionDTO projectQuestionDTO,MultipartFile document) {
-		try {
-			if(document != null) {
-				String dmsPortalUploadUrl = dmsPortalUrl +"/upload.php";
-				RestTemplate restTemplate = new RestTemplate();
-				String syncResponse = restTemplate.postForObject(dmsPortalUploadUrl, document, String.class);
-				JSONObject json = new JSONObject(syncResponse);
-				System.out.println(json.toString());
-			}
-		} catch (Exception e) {
-			 e.printStackTrace();
-			 throw e;
-		}
-		return null;
-	}
-	
-	public String uploadProjectResponseDocument(ProjectQuestionDTO projectQuestionDTO, MultipartFile document) {
-		String response = null;
-	    try {
-	        if (document != null) {
-	            String dmsPortalUploadUrl = dmsPortalUrl + "/upload.php";
-	            RestTemplate restTemplate = new RestTemplate();
-
-	            // Create HttpHeaders for multipart request
-	            HttpHeaders headers = new HttpHeaders();
-	            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-	            headers.set("X-API-KEY", dmsPortalUrlKey);
-	            // Create MultipartBody using LinkedMultiValueMap
-	            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-	            body.add("document", new ByteArrayResource(document.getBytes()) {
-	                @Override
-	                public String getFilename() {
-	                    return document.getOriginalFilename(); // Required to set file name
-	                }
-	            });
-
-	            // Wrap in HttpEntity
-	            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-
-	            // Send request
-	            String syncResponse = restTemplate.postForObject(dmsPortalUploadUrl, requestEntity, String.class);
-
-	            // Parse response
-	            JSONObject json = new JSONObject(syncResponse);
-	            if(json != null) {
-	            	String obj = json.getString("message");
-	            	if(obj != null) {
-	            		response= obj;
-	            	}
-	            }
-	        }
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        response="Failed to Upload Document.";
-	    }
-	    return response;
-	}
-
-	public ServiceResponse getAllProjectInsightContributionList(ProjectInsightDTO projectInsightDTO) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		// apiLogInfo.setSubFeatureName("");
-		apiLogInfo.setApiUrl("/api/getAllProjectInsightContributionList");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("All Project Contribution List By : " + projectInsightDTO.getEmpId());
-
-		try {
-
-			List<Object[]> objectList = null;
-			if (projectInsightDTO.getPerformanceTabName().equals("Team Dashboard")) {
-				String jobRole = employeeRepository.getJobRoleByEmployeeId(projectInsightDTO.getEmpId());
-				if (jobRole != null) {
-					projectInsightDTO.setEmployeeRole(jobRole);
-				}
-			}
-			
-			
-			if (projectInsightDTO.getEmployeeRole().equals("Employee")
-					|| projectInsightDTO.getEmployeeRole().equals("TeamLead")
-					|| projectInsightDTO.getEmployeeRole().equals("Manager")) {
-				objectList = projectInsightMilestoneRepository.getAllProjectInsightByUser(projectInsightDTO.getEmpId());
-			} else {
-				objectList = projectInsightMilestoneRepository.getAllProjectInsight();
-			}
-
-			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
-
-				if (list.isEmpty()) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("No Project Insight found. List is empty.");
-				} else {
-					List<ProjectInsightDTO> dtoList = new ArrayList<ProjectInsightDTO>();
-
-					list.forEach((object) -> {
-						ProjectInsightDTO dto = new ProjectInsightDTO();
-						dto.setProjectId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-						dto.setProjectName(object[1] != null ? object[1].toString() : null);
-						dto.setProjectManagerId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
-						dto.setProjectManagerName(object[3] != null ? object[3].toString() : null);
-						dto.setCreatedBy(object[4] != null ? Long.parseLong(object[4].toString()) : null);
-						dto.setCreatedByName(object[5] != null ? object[5].toString() : null);
-						dto.setCreatedOn(object[6] != null ? object[6].toString() : null);
-						
-//						dto.setProjectId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-//						dto.setProjectName(object[1] != null ? object[1].toString() : null);
-//						dto.setProjectManagerId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
-//						dto.setProjectManagerName(object[3] != null ? object[3].toString() : null);
-//						dto.setCreatedOn(object[4] != null ? object[4].toString() : null);
-//						dto.setProcessTo(object[5] != null ? Long.parseLong(object[5].toString()) : null);
-						dtoList.add(dto);
-					});
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(dtoList);
-					apiLogInfo.setApiResponse("All Project Insight List Fetched");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				}
-			}, () -> {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("No Project Insight found. List is null.");
-				apiLogInfo.setApiResponse("No Project Insight found. List is null");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			});
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
-	}
-
 }

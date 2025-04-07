@@ -30,4 +30,5 @@ export class ProjectInsightQuestion {
     moduleList:ProjectModule[] = [];
     isCollapsed:any= false;
     assignedToUserNames:any;
+    performanceTabName:any;
 }
