@@ -65,6 +65,11 @@
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
           </div>
+          <div class="export-button">
+            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+            [hidden]="teamViewList.length == 0" (click)="exportToExcel()"><em
+              class="fa fa-file-arrow-down fa-2x"></em></button>
+          </div>
           <div class="table-container" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
             [tableTHeadTrId]="'holidayInfoTHeadTr'">
             <table class="table team-table" id="team-table" matSort (matSortChange)="sortData($event)">
@@ -152,9 +157,6 @@
           </div>
           <pagination-controls class="my-pagination" [hidden]="teamViewList.length == 0"
             (pageChange)="handlePageChange($event)"></pagination-controls>
-          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-            [hidden]="teamViewList.length == 0" (click)="exportToExcel()"><em
-              class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
       </div>
     </div>
@@ -217,6 +219,10 @@
                     <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                     <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                 </a>
+              </div>
+
+              <div class="export-button">
+                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="teamViewLeaveHistoryList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
               </div>
               <div class="table-container" bassHorizontalScroll [tableId]="'leaveHistoryInfo'" [tableTHeadId]="'leaveHistoryInfoTHead'"
                     [tableTHeadTrId]="'leaveHistoryInfoTHeadTr'">
@@ -300,7 +306,6 @@
                         </tbody>
                       </table>
                       <pagination-controls class="my-pagination" [hidden]="teamViewLeaveHistoryList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-                      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="teamViewLeaveHistoryList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
               </div>
           </div>
@@ -338,6 +343,9 @@
                 <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
+          </div>
+          <div class="export-button">
+            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="teamViewCompOffHistoryList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
           </div>
           <div class="table-container" bassHorizontalScroll [tableId]="'compOffHistoryInfo'" [tableTHeadId]="'compOffHistoryInfoTHead'"
           [tableTHeadTrId]="'compOffHistoryInfoTHeadTr'">
@@ -381,7 +389,6 @@
           </table>
           </div>
           <pagination-controls class="my-pagination" [hidden]="teamViewCompOffHistoryList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="teamViewCompOffHistoryList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
       </div>
       </div>
@@ -498,6 +505,12 @@
                   <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
               </a>
             </div>
+
+            <div class="export-button">
+              <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+              [hidden]="leaveApplicationList.length == 0" (click)="exportToExcel()"><em
+                class="fa fa-file-arrow-down fa-2x"></em></button>
+            </div>
             <div class="table-container" bassHorizontalScroll [tableId]="'leaveRequestInfo'"
               [tableTHeadId]="'leaveRequestInfoTHead'" [tableTHeadTrId]="'leaveRequestInfoTHeadTr'">
               <table class="table leave-request-table" id="leaveRequestInfo" matSort
@@ -581,9 +594,6 @@
             </div>
             <pagination-controls class="my-pagination" [hidden]="leaveApplicationList.length == 0"
               (pageChange)="handlePageChange($event)"></pagination-controls>
-            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-              [hidden]="leaveApplicationList.length == 0" (click)="exportToExcel()"><em
-                class="fa fa-file-arrow-down fa-2x"></em></button>
           </div>
         </div>
       </div>
@@ -605,6 +615,11 @@
                   <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                   <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
               </a>
+            </div>
+            <div class="export-button">
+              <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                [hidden]="allCompOffApplications.length == 0" (click)="exportToExcel()"><em
+                  class="fa fa-file-arrow-down fa-2x"></em></button>
             </div>
             <div class="table-container" bassHorizontalScroll [tableId]="'compOffRequestInfo'"
               [tableTHeadId]="'compOffRequestInfoTHead'" [tableTHeadTrId]="'compOffRequestInfoTHeadTr'">
@@ -652,9 +667,7 @@
               </table>
               <pagination-controls class="my-pagination" [hidden]="allCompOffApplications.length == 0"
                 (pageChange)="handlePageChange($event)"></pagination-controls>
-              <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-                [hidden]="allCompOffApplications.length == 0" (click)="exportToExcel()"><em
-                  class="fa fa-file-arrow-down fa-2x"></em></button>
+          
             </div>
           </div>
         </div>
@@ -683,6 +696,11 @@
                 <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
               </a>
+            </div>
+            <div class="export-button">
+              <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+              [hidden]="reporteeLeaveRevokeApplicationList.length == 0" (click)="exportToExcel()"><em
+                class="fa fa-file-arrow-down fa-2x"></em></button>
             </div>
             <div class="table-container" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
               [tableTHeadTrId]="'holidayInfoTHeadTr'">
@@ -734,9 +752,6 @@
             </div>
             <pagination-controls class="my-pagination" [hidden]="reporteeLeaveRevokeApplicationList.length == 0"
               (pageChange)="handlePageChange($event)"></pagination-controls>
-            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-              [hidden]="reporteeLeaveRevokeApplicationList.length == 0" (click)="exportToExcel()"><em
-                class="fa fa-file-arrow-down fa-2x"></em></button>
           </div>
         </div>
       </div>

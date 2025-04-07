@@ -86,3 +86,9 @@ input[type=checkbox]:hover, input[type=radio]:hover {
     z-index: 100;
     background: var(--ghost-white);
   }
+
+  .export-button{
+    position:absolute;
+    right: 0%;
+    top:-25px;
+  }
