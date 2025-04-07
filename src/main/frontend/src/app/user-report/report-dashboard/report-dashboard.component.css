@@ -95,6 +95,7 @@
     overflow-y: auto;
     overflow-x: auto;
     position: relative;
+    margin-top: 20px;
 }
 
 table {
@@ -112,4 +113,9 @@ thead {
     position: sticky;
     top: 0.7;
     z-index: 100;
+}
+.export-button {
+    position: absolute;
+   right: 0%;
+   top: -25px;
 }
