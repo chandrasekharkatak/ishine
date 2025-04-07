@@ -285,9 +285,9 @@ public class EmployeeService {
 	
 	@Autowired
 	AppreciationRepository appreciationRepository;
-	
-	@Value("${bd.mail}")
-	private String businessMail;
+//	
+//	@Value("${bd.mail}")
+//	private String businessMail;
 	
 	private final Map<String, List<EmployeeDTO>> employeeCache = new ConcurrentHashMap<>();
 
@@ -6774,84 +6774,84 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		return serviceResponse;
 	}
 	
-	public String generateEmailBody(PoObject expiredData) {
-		System.out.println(expiredData);
-	    StringBuilder emailBody = new StringBuilder();
-//	    SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
-	    emailBody.append("Hello Business Team,<br><br>");
-	    emailBody.append("The following Projects/POs seems to be expired:<br><br>");
-	    
-//	    	String formattedEndDate = dateFormat.format(expiredData.getEndDate());
-	        emailBody.append("<b>PO Number:</b> ").append(expiredData.getPoNo())
-	                 .append(" | <b>Project Name:</b> ").append(expiredData.getProjectName())
-	                 .append(" | <b>PO/Project Type:</b> ").append(expiredData.getPoType())
-	                 .append(" | <b>End Date:</b> ").append(expiredData.getEndDate())
-	                 .append("<br>");
-	    
-	    return emailBody.toString();
-	}
+//	public String generateEmailBody(PoObject expiredData) {
+//		System.out.println(expiredData);
+//	    StringBuilder emailBody = new StringBuilder();
+////	    SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+//	    emailBody.append("Hello Business Team,<br><br>");
+//	    emailBody.append("The following Projects/POs seems to be expired:<br><br>");
+//	    
+////	    	String formattedEndDate = dateFormat.format(expiredData.getEndDate());
+//	        emailBody.append("<b>PO Number:</b> ").append(expiredData.getPoNo())
+//	                 .append(" | <b>Project Name:</b> ").append(expiredData.getProjectName())
+//	                 .append(" | <b>PO/Project Type:</b> ").append(expiredData.getPoType())
+//	                 .append(" | <b>End Date:</b> ").append(expiredData.getEndDate())
+//	                 .append("<br>");
+//	    
+//	    return emailBody.toString();
+//	}
 	
 	
-	public ServiceResponse getRewardsAndAppreciationCount(AppreciationAndRewardsCountDto employeeDto) {
-      ServiceResponse response = new ServiceResponse();
-		
-		try {
-			
-			List<Object[]> EmployeeRewardsAndAppreciationCount = employeeRepository.getRewardsAndAppreciationCount(employeeDto.getEmpId());
-			List<AppreciationAndRewardsCountDto> listOfRewardsAndAppreciation = new ArrayList<AppreciationAndRewardsCountDto>();
-
-	        if (EmployeeRewardsAndAppreciationCount != null) {
-	            for (Object[] object : EmployeeRewardsAndAppreciationCount) {
-
-	            	AppreciationAndRewardsCountDto employeeDetail = new AppreciationAndRewardsCountDto();
-	            	    employeeDetail.setEmpId(employeeDto.getEmpId());	                    
-	            	    employeeDetail.setAppreciationCount(object[1] != null ? object[1].toString() : null);
-	                    employeeDetail.setRewardsCount(object[0] != null ? object[0].toString() : null);	          
-	                    listOfRewardsAndAppreciation.add(employeeDetail);
-	                    
-	            }
-	        }
-	        
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(listOfRewardsAndAppreciation);
-				
-	        
-		
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-			
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse(e.getMessage());
-		}
-		
-		return response;
-}
+//	public ServiceResponse getRewardsAndAppreciationCount(AppreciationAndRewardsCountDto employeeDto) {
+//      ServiceResponse response = new ServiceResponse();
+//		
+//		try {
+//			
+//			List<Object[]> EmployeeRewardsAndAppreciationCount = employeeRepository.getRewardsAndAppreciationCount(employeeDto.getEmpId());
+//			List<AppreciationAndRewardsCountDto> listOfRewardsAndAppreciation = new ArrayList<AppreciationAndRewardsCountDto>();
+//
+//	        if (EmployeeRewardsAndAppreciationCount != null) {
+//	            for (Object[] object : EmployeeRewardsAndAppreciationCount) {
+//
+//	            	AppreciationAndRewardsCountDto employeeDetail = new AppreciationAndRewardsCountDto();
+//	            	    employeeDetail.setEmpId(employeeDto.getEmpId());	                    
+//	            	    employeeDetail.setAppreciationCount(object[1] != null ? object[1].toString() : null);
+//	                    employeeDetail.setRewardsCount(object[0] != null ? object[0].toString() : null);	          
+//	                    listOfRewardsAndAppreciation.add(employeeDetail);
+//	                    
+//	            }
+//	        }
+//	        
+//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//				response.setServiceResponse(listOfRewardsAndAppreciation);
+//				
+//	        
+//		
+//			
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			
+//			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//			response.setServiceResponse(e.getMessage());
+//		}
+//		
+//		return response;
+//}
 	
-	public ServiceResponse sendExpiredPoEmail(ExpiredPOMailSendDTO employeeDTO) {
-		ServiceResponse serviceResponse = new ServiceResponse();
-		System.out.println(employeeDTO.getExpiredData());
-		String subject = "PROVIDE INFORMATION REGARDING EXPIRED PROJECT/POs";
-		String bodyText = generateEmailBody(employeeDTO.getExpiredData());
-		try {
-		boolean mailSent = mailService.sendMailWithCC(businessMail,"sakti.das@apmosys.com",subject,bodyText);
-		if(!mailSent) {
-			serviceResponse.setServiceStatus(serviceResponse.STATUS_FAIL);
-			serviceResponse.setServiceMessage("Unable to send mail...!!");
-		}
-		else {
-			serviceResponse.setServiceStatus(serviceResponse.STATUS_SUCCESS);
-			serviceResponse.setServiceMessage("Mail sent successfully...!!");
-		}
-		}
-		catch(Exception e){
-			serviceResponse.setErrorStackTrace(e.getMessage());
-			serviceResponse.setServiceMessage(serviceResponse.SOMETHING_WENT_WRONG);
-			serviceResponse.setServiceStatus(serviceResponse.STATUS_FAIL);
-		}
-		
-		return serviceResponse;
-	}
+//	public ServiceResponse sendExpiredPoEmail(ExpiredPOMailSendDTO employeeDTO) {
+//		ServiceResponse serviceResponse = new ServiceResponse();
+//		System.out.println(employeeDTO.getExpiredData());
+//		String subject = "PROVIDE INFORMATION REGARDING EXPIRED PROJECT/POs";
+//		String bodyText = generateEmailBody(employeeDTO.getExpiredData());
+//		try {
+//		boolean mailSent = mailService.sendMailWithCC(businessMail,"sakti.das@apmosys.com",subject,bodyText);
+//		if(!mailSent) {
+//			serviceResponse.setServiceStatus(serviceResponse.STATUS_FAIL);
+//			serviceResponse.setServiceMessage("Unable to send mail...!!");
+//		}
+//		else {
+//			serviceResponse.setServiceStatus(serviceResponse.STATUS_SUCCESS);
+//			serviceResponse.setServiceMessage("Mail sent successfully...!!");
+//		}
+//		}
+//		catch(Exception e){
+//			serviceResponse.setErrorStackTrace(e.getMessage());
+//			serviceResponse.setServiceMessage(serviceResponse.SOMETHING_WENT_WRONG);
+//			serviceResponse.setServiceStatus(serviceResponse.STATUS_FAIL);
+//		}
+//		
+//		return serviceResponse;
+//	}
 	
 	public String generateEmailBody(PoObject expiredData) {
 		System.out.println(expiredData);
