@@ -1385,7 +1385,7 @@
                 </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeInfo'"
                     [tableTHeadId]="'employeeInfoTHead'" [tableTHeadTrId]="'employeeInfoTHeadTr'">
-                    <table class="table" id="employeeInfo" matSort (matSortChange)="sortData($event)">
+                    <table class="table table-responsive" id="employeeInfo" matSort (matSortChange)="sortData($event)">
                         <thead class="thead-light" id="employeeInfoTHead">
                             <tr id="employeeInfoTHeadTr">
                                 <!-- <th *ngIf="!isDraftTable" scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
@@ -1464,7 +1464,8 @@
                                 <td *ngIf="isTable">{{employee.referedName}}</td>
                                 <td *ngIf="isDraftTable">{{employee.updateApplicationStatus}}</td>
                                 <td
-                                    *ngIf="(isTable && userMapping.update_employee) || (isTable && userMapping.delete_employee)">                                    <button
+                                    *ngIf="(isTable && userMapping.update_employee) || (isTable && userMapping.delete_employee)">
+                                    <button
                                         *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')"
                                         class="btn btn-sm btn-outline-primary mb-1" type="submit"
                                         (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
