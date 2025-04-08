@@ -33,6 +33,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllEmployees();
 	
+	@Query(nativeQuery = true)
+	public List<Object[]>  getAllEmployees360(Long empId);
 	
 	@Query(nativeQuery = true, value = "SELECT e.employeement_id, \n"
 			+ " e.date_of_joining, e.email, \n"

@@ -47,8 +47,7 @@ export class TeamTimesheetComponent implements OnInit {
   modalRef: BsModalRef = new BsModalRef();
   allTeamTimesheets: any[] = [];
   allTeamTimesheetRequests: Timesheet[] = [];
-  // employeesFor360: any[] = [];
-  allEmployeeList360: any[] = [];
+  
 
   timesheetObj: Timesheet = new Timesheet();
   startDate: any;
@@ -88,12 +87,7 @@ export class TeamTimesheetComponent implements OnInit {
 
     this.sectionViewInit();
     this.preventBackButton();
-    try {
-      this.allEmployeeList360 = await this.utilityService.getEmployeeDetailsFor360View();
-      //console.log("Priyadarshini ", this.allEmployeeList360);
-    } catch (error) {
-      console.error("Error fetching employee details for 360 view", error);
-    }
+    
 
   }
   preventBackButton() {
@@ -172,9 +166,7 @@ export class TeamTimesheetComponent implements OnInit {
           x.officeInTime = (x.officeInTime) ? moment(x.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
           x.officeOutTime = (x.officeOutTime) ? moment(x.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
           x.createdOn = (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === x.employeementId);
-          // console.log('matches++',matchingEmployee);
-          x.emp360 = matchingEmployee ? matchingEmployee : {};
+          x.emp360 = x.empId;
 
         }
 
@@ -207,11 +199,8 @@ export class TeamTimesheetComponent implements OnInit {
         });
 
         this.allTeamTimesheetRequests.forEach(timesheet => {
-          let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === timesheet.employeementId);
-          let matchingEmployeeCreatedBy = this.allEmployeeList360.find(emp => emp.empId === timesheet.createdBy);
-          //console.log('matches++',matchingEmployee);
-          timesheet.emp360 = matchingEmployee ? matchingEmployee : {};
-          timesheet.emp360CreatedBy = matchingEmployeeCreatedBy ? matchingEmployeeCreatedBy : {};
+          timesheet.emp360 = timesheet.empId;
+          timesheet.emp360CreatedBy = timesheet.createdBy;
           });
 
         //console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);

@@ -613,11 +613,12 @@ public class ResourceManagementService {
 //			            apiLogInfo.setApiResponse("Project & Team created successfully, but unable to sync with PoPortal");
 //			            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 //			        }
-//			    } else {
-			    	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			        response.setServiceResponse("Project updated successfully");
-			        apiLogInfo.setApiResponse("Project updated successfully");
-			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//			    //} 
+//		    else {
+//			    	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//			        response.setServiceResponse("Project updated successfully");
+//			        apiLogInfo.setApiResponse("Project updated successfully");
+//			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 //			    }
 			} else {
 				Integer clientId = null;
@@ -770,7 +771,7 @@ public class ResourceManagementService {
 			                     .append("<th style='padding: 8px; text-align: left;'>Job Role</th>")
 			                     .append("<th style='padding: 8px; text-align: left;'>Department</th>")
 			                     .append("<th style='padding: 8px; text-align: left;'>Start Date</th>")
-			                     .append("<th style='padding: 8px; text-align: left;'>Employee Role</th>")
+//			                     .append("<th style='padding: 8px; text-align: left;'>Employee Role</th>")
 			                     .append("</tr>");
 
 			            if (teamDbResponse != null) {
@@ -779,8 +780,9 @@ public class ResourceManagementService {
 			                // Add team member in the team
 			                for (TeamMemberDTO teamMember : teamObj.getTeamMemberList()) {
 			                    EmployeeTeamMap newEmpTeamMap = new EmployeeTeamMap();
+			                    //it is returning multiple resuts................///////////////////
 				                EmployeeDetailsForTeamMemberDTO employeeDetails = employeeRepository.getEmployeeDetailsForTeam(teamMember.getEmpId());
-				               
+				                //it is returning multiple resuts................///////////////////
 				                String hodMail = employeeRepository.findHodMail(teamMember.getEmpId());
 		                    	
 	                    	    ccMail = ccMail + "," + hodMail;
@@ -821,7 +823,7 @@ public class ResourceManagementService {
 			                        .append("<td style='padding: 8px;'>").append(employeeDetails.getJobRoleName()).append("</td>")
 			                        .append("<td style='padding: 8px;'>").append(employeeDetails.getDeptName()).append("</td>")
 			                        .append("<td style='padding: 8px;'>").append(employeeDetails.getStartDate()).append("</td>")
-			                        .append("<td style='padding: 8px;'>").append(employeeRole).append("</td>")
+//			                        .append("<td style='padding: 8px;'>").append(employeeRole).append("</td>")
 			                        .append("</tr>");
 			                    }
 			                }
@@ -2594,7 +2596,7 @@ public class ResourceManagementService {
 					projectDTO.setStatus(object[11] != null ? object[11].toString() : null);
 					projectDTO.setIsActive(object[12] != null ? Long.parseLong(object[12].toString()) :null);
 					//projectDTO.setIsActive(2l);
-					
+					projectDTO.setEmpId(object[13] != null ? Long.parseLong(object[13].toString()) :null);
 					//Find ClientName
 					Integer clientId = object[7] != null ? Integer.parseInt(object[7].toString()) : null;
 					if(clientId != null) {

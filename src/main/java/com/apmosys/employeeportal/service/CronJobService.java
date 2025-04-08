@@ -5470,6 +5470,36 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //				});
 //			}
 			
+//			BioMaTO biomatObj5 = new BioMaTO();
+//			biomatObj5.setEmployeeCode("3");
+//			biomatObj5.setAttendanceDate("2025-03-25 00:00:00.0");
+//			biomatObj5.setInTime("00:00");
+//			biomatObj5.setOutTime("00:00");
+//			biomatObj5.setTotalDuration("200");
+//			biomatObj5.setShiftName("General");
+//			biomatObj5.setBeginTime("00:00");
+//			biomatObj5.setEndTime("00:00");
+//			biomatObj5.setDeduct("0.5");
+//			biomaxDataList.add(biomatObj5);
+//
+//			// start the rahul code
+////		    List<BioMaTO> biomaxDataList = bioMaxService.getBiomaxDataForLeaveDeduct();
+//			System.out
+//					.println("Total Data Coming from Biomax: " + (biomaxDataList != null ? biomaxDataList.size() : 0));
+//
+//			List<Long> dataToBeDeleted = new ArrayList<>();
+//			List<Long> removeemployeeId = new ArrayList<>();
+
+			// Fetch comp-off leave employees for today and filter biomaxDataList
+//			List<CompOffLeave> compOffLeaveList = compOffLeaveRepository.findEmployeeIsOnCompOffLeaveToday();
+//			if (compOffLeaveList != null && !compOffLeaveList.isEmpty()) {
+//				compOffLeaveList.forEach((comoff) -> {
+//					Employee empcomof = employeeRepository.findByEmpId(comoff.getEmpId());
+//					if (empcomof != null) {
+//						removeemployeeId.add(empcomof.getEmployeementId());
+//					}
+//				});
+//			}
 			
 			// Fetch department configuration and filter biomaxDataList for
 			// non-leave-deducted departments

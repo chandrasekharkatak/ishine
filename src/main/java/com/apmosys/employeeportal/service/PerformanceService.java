@@ -1279,6 +1279,41 @@ public class PerformanceService {
 		    return html.toString();
 		}
 
+
+
+
+	public ServiceResponse currentStatusForPerformanceTableView() {
+		
+		ServiceResponse response = new ServiceResponse();
+		try {
+		List<Object[]> currentStatus = employeePerformanceRepository.currentStatusForPerformanceTableView();
+		List<PerformanceDTO> dtoList = new ArrayList<PerformanceDTO>();
+			if (currentStatus != null) {
+				currentStatus.forEach((object) -> {
+					PerformanceDTO performanceDTO = new PerformanceDTO();
+					
+					performanceDTO.setCompletionStatus(object[0] != null ? object[0].toString() : null);
+					performanceDTO.setEmpId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+					
+					dtoList.add(performanceDTO);
+					
+					});
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("currentStatus List is null.");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
 	 
 	        
 	 

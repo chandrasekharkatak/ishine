@@ -24,7 +24,6 @@ export class Employee360Service {
   employeesFor360$ = this.employeesFor360Source.asObservable();
   currentEmployeeData = this.employeeDataSource.asObservable();
 
-
   constructor(
     private router: Router,
     private http: HttpClient
@@ -34,12 +33,39 @@ export class Employee360Service {
     return this.navigationSubject.asObservable();
   }
 
-  navigateToEmployee360(data: any) {
-    this.router.navigate(['/employee-360/profile'], { state: { data } }).then(() => {
-      this.navigationSubject.next();
-    });
-  }
+  // navigateToEmployee360(data: any) {
+  //   this.router.navigate(['/employee-360/profile'], { state: { data } }).then(() => {
+  //     this.navigationSubject.next();
+  //   });
+  // }
 
+  navigateToEmployee360(data: any) {
+    // this.router.navigate(['/employee-360', data]).then(() => {
+    //   this.navigationSubject.next();
+    // });
+   // const baseUrl = window.location.origin; // Gets the base URL (e.g., http://localhost:4200)
+ const url = `${this.baseUrl}#/employee-360/${data}/profile`;
+  // const url = `http://localhost:4200/#/employee-360/${data}/profile`;
+  window.open(url, '_blank'); // Open new tab
+      //sessionStorage.removeItem("employee360Data");
+// Wait for the new tab to load, then refresh it
+
+  //   const url = this.router.serializeUrl(this.router.createUrlTree([`#/employee-360`, data]));
+  // window.open(url, '_blank');
+  }
+  // navigateToEmployee360(data: any) {
+  //   // Store the data in sessionStorage (stringify it if it's an object)
+  //   sessionStorage.setItem('employee360Data', JSON.stringify(data));
+    
+  //   // Create the URL for the route
+  //   const url = this.router.createUrlTree(['/employee-360/profile']).toString();
+    
+  //   // Open the URL in a new tab
+  //   window.open(url, '_blank').focus();
+    
+  //   // Notify navigation if needed
+  //   this.navigationSubject.next();
+  // }
   getLeaveDataPerMonthByEmpId(empId: Number) {
     return this.http.get(`${this.baseUrl}` + `api/getLeaveDataPerMonthByEmpId?empId=${empId}`);
   }
@@ -112,17 +138,17 @@ export class Employee360Service {
   setEmployeesFor360(employees: any[]) {
     this.employeesFor360Source.next(employees);
   }
-  //added by rahul for project
-  getTeamMemberByTeamId(teamId: any) {
-    return this.http.get(`${this.baseUrl}` + `api/getTeamMemberByTeamId` + teamId);
-  }
+//added by rahul for project
+getTeamMemberByTeamId(teamId:any){
+  return this.http.get(`${this.baseUrl}`+`api/getTeamMemberByTeamId`+teamId);
+} 
 
-  getProjectInfo(project: Project) {
-    return this.http.post(`${this.baseUrl}` + `api/getProjectInfo`, project);
+  getProjectInfo(project:Project){
+    return this.http.post(`${this.baseUrl}`+`api/getProjectInfo`,project);
   }
-
-  getTeamInfo(project: Project) {
-    return this.http.post(`${this.baseUrl}` + `api/getTeamInfo`, project);
+  
+  getTeamInfo(project:Project){
+    return this.http.post(`${this.baseUrl}`+`api/getTeamInfo`,project);
   }
 
 
@@ -134,7 +160,6 @@ export class Employee360Service {
   getLmsData(email: any) {
     const bearerToken = 'Nguif3kxwSDzmojAtj6M93aJlfJqsAWj9blFug4JWkHsoQ2LYgWiApqDe1GZqmpV';  // Use the actual token without "Bearer"
     const body = { email: email };
-
     return this.http.post(
       `${this.lmsbaseurl}api/get_user_enrolled_details`,
       body,
