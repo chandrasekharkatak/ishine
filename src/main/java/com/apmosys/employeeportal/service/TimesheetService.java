@@ -1299,7 +1299,7 @@ public class TimesheetService {
 						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
 						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
 						dto.setLeaveType(object[15] != null ? object[15].toString() : null);
-						
+						dto.setEmpId(object[16] != null ? Long.parseLong(object[16].toString()) : null);
 						dtoList.add(dto);
 					});
 

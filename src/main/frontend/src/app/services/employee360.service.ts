@@ -44,8 +44,9 @@ export class Employee360Service {
     //   this.navigationSubject.next();
     // });
    // const baseUrl = window.location.origin; // Gets the base URL (e.g., http://localhost:4200)
-  const url = `${this.baseUrl}#/employee-360/${data}/profile`;
-     window.open(url, '_blank'); // Open new tab
+ const url = `${this.baseUrl}#/employee-360/${data}/profile`;
+  // const url = `http://localhost:4200/#/employee-360/${data}/profile`;
+  window.open(url, '_blank'); // Open new tab
       //sessionStorage.removeItem("employee360Data");
 // Wait for the new tab to load, then refresh it
 

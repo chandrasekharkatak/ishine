@@ -7,7 +7,7 @@ export const environment = {
   //baseUrl: "https://ishine.apmosys.com/",
    baseUrl: "http://localhost:8080/",
   // baseUrl: "http://192.168.21.175:8081/employeeportal/",
-
+  //baseUrl1: "http://localhost:4200/",
   lmsbaseurl :"http://192.168.12.113/academy-lms/index.php/",
   //lmsbaseurl :"http://localhost/academy-lms/index.php/",
   qrCodebaseUrl: "http://192.168.12.108:8080/qrcodegenerator/#/",
