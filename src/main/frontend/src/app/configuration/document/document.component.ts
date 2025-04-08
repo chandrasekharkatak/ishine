@@ -56,7 +56,7 @@ export class DocumentComponent implements OnInit {
     typeNames:any;
     allTypeListColumns:any[]=['blank','typeName','createdOn','name'];
     documentsColumns:any[]=['blank','displayName','fileName','typeName','createdOn','createdByName'];
- 
+  employeesFor360: any[] = [];
 
   constructor(
     private newsletterService : NewsletterService,
@@ -68,7 +68,12 @@ export class DocumentComponent implements OnInit {
   ) { }
 
   async ngOnInit(): Promise<void> {
- 
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
     this.getAllTypes();
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -241,10 +246,18 @@ export class DocumentComponent implements OnInit {
         this.allTypeList = response.serviceResponse;
         this.allTypeList.forEach(type =>{
           type.createdOn = moment(type.createdOn).format(AppComponent.DATE_FORMAT);
-          type.emp360CreatedBy = type.createdBy;
-          type.emp360UpdatedBy = type.updatedBy;
         })
-        
+        this.allTypeList.forEach((employee) => {
+          console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+        });
+        console.log("this.allTypeList   ::   ",this.allTypeList);
       }
     })
   }
@@ -346,12 +359,17 @@ export class DocumentComponent implements OnInit {
         this.documents =  response.serviceResponse;
         this.documents.forEach(doc => {
           doc.createdOn = (doc.createdOn)? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          doc.emp360CreatedBy = doc.createdBy;
-          doc.emp360UpdatedBy = doc.updatedBy;
-         
-         
         });
-        
+        this.documents.forEach((employee) => {
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          // console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          // console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+        });
         //console.log("this.documents List : ", this.documents);
       } else {
         console.error(response.serviceResponse);
