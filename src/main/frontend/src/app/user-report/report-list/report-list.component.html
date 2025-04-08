@@ -639,9 +639,9 @@
                 <th scope="col" class="info-label wide-col" mat-sort-header="managerName|string">Manager</th>
                 <th scope="col" class="info-label " mat-sort-header="mobileNo|number">Mobile Number</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="email|string">Email Id</th>
-                <th scope="col" class="info-label" mat-sort-header="employmentstatus|string">Employment Status</th>
-                <th scope="col" class="info-label" mat-sort-header="billable|string">Billable</th>
-                <th scope="col" class="info-label" mat-sort-header="billableType|string">Billable Type</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="employmentstatus|string">Employment Status</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="billable|string">Billable</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="billableType|string">Billable Type</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="teamName|string">Team Name</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="projectName|string">Project Name</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="poNo|string">Po No</th>
@@ -685,7 +685,7 @@
                 <td>
                   <ng-container *ngIf="employee.teamName">
                     {{ (show === i) ? employee.teamName : (employee.teamName | slice: 0:20) }}
-                    <a *ngIf="employee.teamName.length > 20" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
+                    <a *ngIf="employee.teamName.length > 20" (click)="show = (show === i ? -1 : i)"  style="cursor: pointer">
                       ..{{ (show === i) ? '▲' : '▼' }}
                     </a>
                   </ng-container>
@@ -706,7 +706,14 @@
                     </a>
                   </ng-container>
                 </td>
-                <td>{{ employee.poType }}</td>
+                <td>
+                  <ng-container *ngIf="employee.poType">
+                    {{ (show === i) ? employee.poType : (employee.poType | slice: 0:20) }}
+                    <a *ngIf="employee.poType.length > 20" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
+                      ..{{ (show === i) ? '▲' : '▼' }}
+                    </a>
+                  </ng-container>
+                </td>  
                 <td>
                   <ng-container *ngIf="employee.poStartDate">
                     {{ (show === i) ? employee.poStartDate : (employee.poStartDate | slice: 0:20) }}
@@ -722,9 +729,23 @@
                       ..{{ (show === i) ? '▲' : '▼' }}
                     </a>
                   </ng-container>
-                </td>
-                <td>{{ employee.effectiveStartDate }}</td>
-                <td>{{ employee.effectiveEndDate }}</td>
+                </td>  
+                <td>
+                  <ng-container *ngIf="employee.effectiveStartDate">
+                    {{ (show === i) ? employee.effectiveStartDate : (employee.effectiveStartDate | slice: 0:20) }}
+                    <a *ngIf="employee.effectiveStartDate.length > 20" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
+                      ..{{ (show === i) ? '▲' : '▼' }}
+                    </a>
+                  </ng-container>
+                </td> 
+                <td>
+                  <ng-container *ngIf="employee.effectiveEndDate">
+                    {{ (show === i) ? employee.effectiveEndDate : (employee.effectiveEndDate | slice: 0:20) }}
+                    <a *ngIf="employee.effectiveEndDate.length > 20" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
+                      ..{{ (show === i) ? '▲' : '▼' }}
+                    </a>
+                  </ng-container>
+                </td>                               
                 <td>
                   <ng-container *ngIf="employee.clientName">
                     {{ (show === i) ? employee.clientName : (employee.clientName | slice: 0:20) }}
@@ -741,7 +762,14 @@
                     </a>
                   </ng-container>
                 </td>
-                <td>{{ employee.workLocation }}</td>
+                <td>
+                  <ng-container *ngIf="employee.workLocation">
+                    {{ (show === i) ? employee.workLocation : (employee.workLocation | slice: 0:20) }}
+                    <a *ngIf="employee.workLocation.length > 20" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
+                      ..{{ (show === i) ? '▲' : '▼' }}
+                    </a>
+                  </ng-container>
+                </td>
                 <td>{{ employee.totalExperience }}</td>
                 <td *ngIf="changeTable">{{ employee.primaryProjectName || 'Not Assigned' }}</td>
                 <td *ngIf="changeTable">
@@ -788,7 +816,7 @@
         </div>
         <div class="table-container" bassHorizontalScroll [tableId]="'employeeReportInfo'"
           [tableTHeadId]="'employeeReportInfoTHead'" [tableTHeadTrId]="'employeeReportInfoTHeadTr'">
-          <table class="table " id="employeeReport" matSort (matSortChange)="sortData($event)">
+          <table class="table table-responsive" id="employeeReport" matSort (matSortChange)="sortData($event)">
             <thead class="thead-light" id="employeeReportInfoTHead">
               <tr>
                 <th scope="col" class="info-label">Sr No.</th>
@@ -906,7 +934,7 @@
                       title="Click to view Project Details">
                       {{ project.projectName }}<span *ngIf="!last">, </span>
                     </span>
-                    <a *ngIf="employee.projectList.length > 1" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
+                    <a *ngIf="employee.projectList.length > 2" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
                       ..{{ (show === i) ? '▲' : '▼' }}
                     </a>
                   </ng-container>
@@ -917,8 +945,7 @@
                       title="Click to view Project Details">
                       {{ project.projectName }},
                     </span>
-                    <a *ngIf="employee.projectList.length > 1" (click)="show = (show === i ? -1 : i)"
-                      style="cursor: pointer">
+                    <a *ngIf="employee.projectList.length > 2" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
                       ..{{ (show === i) ? '▲' : '▼' }}
                     </a>
                   </ng-container>
@@ -1002,8 +1029,14 @@
 
                 <td>{{employee.panNumber}}</td>
                 <td>{{employee.placeOfBirth}}</td>
-                <td>{{employee.workLocation}}</td>
-
+                <td>
+                  <ng-container *ngIf="employee.workLocation">
+                    {{ (show === i) ? employee.workLocation : (employee.workLocation | slice: 0:20) }}
+                    <a *ngIf="employee.workLocation.length > 20" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
+                      ..{{ (show === i) ? '▲' : '▼' }}
+                    </a>
+                  </ng-container>
+                </td>
                 <td>{{employee.probationPeriod}}</td>
                 <td>{{employee.noticePeriod}}</td>
                 <td>{{employee.country}}</td>

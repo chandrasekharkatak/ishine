@@ -90,12 +90,7 @@ export class RoleConfigComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    try {
-      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
-      // console.log("Priyadarshini ", this.employeesFor360);
-    } catch (error) {
-      console.error("Error fetching employee details for 360 view", error);
-    }
+ 
 
     this.getAllDepartmentList();
 
@@ -373,14 +368,8 @@ export class RoleConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.allJobRoleList = response.serviceResponse;
         this.allJobRoleList.forEach((employee) => {
-          // console.log("employee.createdBy ", employee.createdBy);
-          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
-          // console.log("createdby ", matchingEmployee3);
-          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
-          // console.log("employee.updatedBy ", employee.updatedBy);
-          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
-          // console.log("updatedBy ", matchingEmployee4);
-          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+          employee.emp360CreatedBy = employee.createdBy;
+          employee.emp360UpdatedBy = employee.updatedBy;
         });
         this.allJobRoleList.forEach(role => {
           role.createdOn = (role.createdOn)? moment(role.createdOn).format(AppComponent.DATETIME_FORMAT) : null;

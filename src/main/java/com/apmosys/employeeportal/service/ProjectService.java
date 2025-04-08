@@ -217,6 +217,7 @@ public class ProjectService {
 					projectDto.setRole(object[13] != null ? object[13].toString() : null);
 					projectDto.setCount(object[14] != null ? Integer.valueOf(object[14].toString()) : null);
 					projectDto.setExperience(object[15] != null ? object[15].toString() : null);
+					projectDto.setEmpId(object[16] != null ? Long.parseLong(object[16].toString()) : null);
 					dtoList.add(projectDto);
 				});
 				
