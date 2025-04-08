@@ -24,7 +24,6 @@ export class Employee360Service {
   employeesFor360$ = this.employeesFor360Source.asObservable();
   currentEmployeeData = this.employeeDataSource.asObservable();
 
-
   constructor(
     private router: Router,
     private http: HttpClient
@@ -44,8 +43,8 @@ export class Employee360Service {
     // this.router.navigate(['/employee-360', data]).then(() => {
     //   this.navigationSubject.next();
     // });
-    const baseUrl = window.location.origin; // Gets the base URL (e.g., http://localhost:4200)
-  const url = `${baseUrl}/#/employee-360/${data}/profile`;
+   // const baseUrl = window.location.origin; // Gets the base URL (e.g., http://localhost:4200)
+  const url = `${this.baseUrl}#/employee-360/${data}/profile`;
      window.open(url, '_blank'); // Open new tab
       //sessionStorage.removeItem("employee360Data");
 // Wait for the new tab to load, then refresh it
