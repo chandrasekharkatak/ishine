@@ -146,7 +146,7 @@ export class ReportListComponent implements OnInit {
   customQuery: any;
   leaveReportFlag: boolean = false;
   timesheetReportFlag: boolean = false;
-  showDetails: boolean = true;
+  showDetails: boolean = false;
   showDetailsTimesheet: boolean = false;
   changeTable: boolean = true;
 
