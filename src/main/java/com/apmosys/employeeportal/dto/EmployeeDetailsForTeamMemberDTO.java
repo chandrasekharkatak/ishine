@@ -15,7 +15,7 @@ public class EmployeeDetailsForTeamMemberDTO {
 	private Long jobRoleId;
 	private String jobRoleName;
 	private String departmentId;
-	private String employeeRole;
+//	private String employeeRole;
 	private String isTeamLead;
 	private String startDate;
 	private String employeeName;
