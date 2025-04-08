@@ -338,52 +338,54 @@
                 [hidden]="modalSummaryList.length == 0" (click)="exportToExcelTimesheetSummary()"><em
                     class="fa fa-file-arrow-down fa-2x"></em></button>
             </div>
-            <table class="table  scrollable-table" matSort (matSortChange)="sortData($event)">
-                <thead class="thead-light">
-                    <tr>
-                        <th scope="col" class="info-label wide-col">Sr No.</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|number">Emp ID</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="employeeType|string">Employee Type</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="employeeName|string">Name</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department Name</th>
-                        <!-- <th scope="col" class="info-label wide-col">Timesheet Date</th>
-                        <th scope="col" class="info-label wide-col" >Day Type</th> -->
-                        <th scope="col" class="info-label wide-col" mat-sort-header="email|string">Email Id</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="managerName|string">Manager Name</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="mobileNo|number">Mobile No</th>
-                        <th *ngIf="isPendingByUser" scope="col" class="info-label wide-col" mat-sort-header="pendingEodCNoount|number">Pending EOD Count</th>
-                        <!-- <th scope="col" class="info-label wide-col">Total Working Hour</th> -->
-                        <th scope="col" class="info-label wide-col" mat-sort-header="legend|string">Type</th>
-                        <th *ngIf="!isPendingByUser" scope="col" class="info-label wide-col" mat-sort-header="count|number">Count</th>
-
-                    </tr>
-                    <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="timesheetSummaryTableColumns" (onSearch)="onSearch($event); page=1"></tr>
-                </thead>
-                <tbody>
-                    <tr *ngIf="modalSummaryList.length == 0 || (modalSummaryList| colFilter:filters:false).length==0">
-                        <th colspan="8" class="text-center info-label">No Surveys to display...</th>
-                    </tr>
-                    <tr *ngFor="let leave of modalSummaryList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-                        <th class="info-label">{{20*(page-1)+i+1}}</th>
-                        <!-- <td>{{ leave.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{ leave.employeementId }}</td> -->
-                        <td>A-{{ leave.employeementId }}</td>
-                        <td>{{leave.employeeType}}</td>
-                        <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="leave.emp360" style="cursor: pointer;" title="Click to view Employee 360" (click)="cancelRequest()">{{leave.employeeName}}</td>
-                        <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{leave.employeeName}}</td>
-                        <td>{{leave.departmentName}}</td>
-                        <!-- <td>{{leave.date}}</td>
-                        <td>{{leave.dayType}}</td> -->
-                        <td>{{leave.email}}</td>
-                        <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{leave.managerName}}</td>
-                        <td class="text-capitalize" *ngIf="userMapping.reports_employee_360" (click)="cancelRequest()" id="clickablefor360" [navigateToEmployee360]="leave.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{leave.managerName}}</td>
-                        <td>{{leave.mobileNo}}</td>
-                        <td *ngIf="isPendingByUser">{{leave.pendingEodCount}}</td>
-                        <!-- <td>{{leave.totalWorkingHours}}</td> -->
-                        <td>{{leave.legend}}</td>
-                        <td *ngIf="!isPendingByUser"> {{leave.count}}</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="table-container">
+                <table class="table  scrollable-table" matSort (matSortChange)="sortData($event)">
+                    <thead class="thead-light">
+                        <tr>
+                            <th scope="col" class="info-label wide-col">Sr No.</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|number">Emp ID</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="employeeType|string">Employee Type</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="employeeName|string">Name</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department Name</th>
+                            <!-- <th scope="col" class="info-label wide-col">Timesheet Date</th>
+                            <th scope="col" class="info-label wide-col" >Day Type</th> -->
+                            <th scope="col" class="info-label wide-col" mat-sort-header="email|string">Email Id</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="managerName|string">Manager Name</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="mobileNo|number">Mobile No</th>
+                            <th *ngIf="isPendingByUser" scope="col" class="info-label wide-col" mat-sort-header="pendingEodCNoount|number">Pending EOD Count</th>
+                            <!-- <th scope="col" class="info-label wide-col">Total Working Hour</th> -->
+                            <th scope="col" class="info-label wide-col" mat-sort-header="legend|string">Type</th>
+                            <th *ngIf="!isPendingByUser" scope="col" class="info-label wide-col" mat-sort-header="count|number">Count</th>
+    
+                        </tr>
+                        <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="timesheetSummaryTableColumns" (onSearch)="onSearch($event); page=1"></tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngIf="modalSummaryList.length == 0 || (modalSummaryList| colFilter:filters:false).length==0">
+                            <th colspan="8" class="text-center info-label">No Surveys to display...</th>
+                        </tr>
+                        <tr *ngFor="let leave of modalSummaryList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                            <th class="info-label">{{20*(page-1)+i+1}}</th>
+                            <!-- <td>{{ leave.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{ leave.employeementId }}</td> -->
+                            <td>A-{{ leave.employeementId }}</td>
+                            <td>{{leave.employeeType}}</td>
+                            <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="leave.emp360" style="cursor: pointer;" title="Click to view Employee 360" (click)="cancelRequest()">{{leave.employeeName}}</td>
+                            <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{leave.employeeName}}</td>
+                            <td>{{leave.departmentName}}</td>
+                            <!-- <td>{{leave.date}}</td>
+                            <td>{{leave.dayType}}</td> -->
+                            <td>{{leave.email}}</td>
+                            <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{leave.managerName}}</td>
+                            <td class="text-capitalize" *ngIf="userMapping.reports_employee_360" (click)="cancelRequest()" id="clickablefor360" [navigateToEmployee360]="leave.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{leave.managerName}}</td>
+                            <td>{{leave.mobileNo}}</td>
+                            <td *ngIf="isPendingByUser">{{leave.pendingEodCount}}</td>
+                            <!-- <td>{{leave.totalWorkingHours}}</td> -->
+                            <td>{{leave.legend}}</td>
+                            <td *ngIf="!isPendingByUser"> {{leave.count}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
             <pagination-controls class="my-pagination" [hidden]="modalSummaryList.length == 0"
                 (pageChange)="handlePageChange($event)"></pagination-controls>
             <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
@@ -479,85 +481,87 @@
             <!-- <div class="form-group ml-auto col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
         </div> -->
-            <table class="table  scrollable-table" matSort (matSortChange)="sortData($event)">
-                <thead class="thead-light">
-                    <tr>
-                        <th scope="col" class="info-label wide-col">Sr No.</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|empId">Emp ID</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="employeeType|string">Employment Type</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="name|string">Name</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="experience|string">Experience</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department Name</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="email|string">Email Id</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="managerName|string">Manager Name</th>
-
-                        <th scope="col" class="info-label wide-col" mat-sort-header="billable|string">Billable</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="billableType|string">Billable Type</th>
-
-                        <th scope="col" class="info-label wide-col" mat-sort-header="projectName|string">Project Name</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="clientName|string">Client Name</th>
-
-
-
-                        <th scope="col" class="info-label wide-col" mat-sort-header="dateOfJoining|date">Date Of Joining</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="mobileNo|number">Mobile No.</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="employmentstatus|string">Status</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="totalExperience|number">Total Experience</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="gender|string">Gender</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="workLocation|string">Work Location</th>
-                        <th scope="col" class="info-label" mat-sort-header="age|number">Age</th>
-                        <th scope="col" class="info-label" mat-sort-header="profileKycStatus|string">KYC status</th>
-                    </tr>
-                    <tr app-column-filter-bar *ngIf="isEmployeeDashboard && isSearchEnabled" [columnList]="employeeSummaryColumns" (onSearch)="onSearch($event);page=1" ></tr>
-                </thead>
-                <tbody>
-                    <tr *ngIf="modalSummaryList.length == 0|| (modalSummaryList| colFilter:filters:false).length == 0">
-                        <th colspan="8" class="text-center info-label">No details to display...</th>
-                    </tr>
-                    <tr
-                        *ngFor="let leave of modalSummaryList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-                        <th class="info-label">{{20*(page-1)+i+1}}</th>
-                        <td>{{leave.employeementId}}</td>
-                        <td>{{leave.employeeType}}</td>
-                        <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360" (click)="cancelRequest()" [navigateToEmployee360]="leave" style="cursor: pointer;" title="Click to view Employee 360" class="text-capitalize">{{leave.name}}</td>
-                        <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{leave.name}}</td>
-                        <td>{{leave.experience}}</td>
-                        <td class="text-capitalize">{{leave.departmentName}}</td>
-                        <td>{{leave.email}}</td>
-                        <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{leave.managerName}}</td>
-                        <td class="text-capitalize" *ngIf="userMapping.reports_employee_360" (click)="cancelRequest()" id="clickablefor360" [navigateToEmployee360]="leave.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{leave.managerName}}</td>
-
-                        <td>{{leave.billable}}</td>
-                        <td>{{leave.billableType}}</td>
-
-                        <td  *ngIf="userMapping.report_project_view && leave.projectList">
-                            <span *ngFor="let project of leave.projectList; let last = last" class="info-label"
-                             id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.projectId" style="cursor: pointer;" title="Click to view Project Details"> 
-                                {{ project.projectName }}<span *ngIf="!last">, </span>
+            <div class="table-container">
+                <table class="table scrollable-table" matSort (matSortChange)="sortData($event)">
+                    <thead class="thead-light">
+                        <tr>
+                            <th scope="col" class="info-label wide-col">Sr No.</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|empId">Emp ID</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="employeeType|string">Employment Type</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="name|string">Name</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="experience|string">Experience</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department Name</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="email|string">Email Id</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="managerName|string">Manager Name</th>
+    
+                            <th scope="col" class="info-label wide-col" mat-sort-header="billable|string">Billable</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="billableType|string">Billable Type</th>
+    
+                            <th scope="col" class="info-label wide-col" mat-sort-header="projectName|string">Project Name</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="clientName|string">Client Name</th>
+    
+    
+    
+                            <th scope="col" class="info-label wide-col" mat-sort-header="dateOfJoining|date">Date Of Joining</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="mobileNo|number">Mobile No.</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="employmentstatus|string">Status</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="totalExperience|number">Total Experience</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="gender|string">Gender</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="workLocation|string">Work Location</th>
+                            <th scope="col" class="info-label" mat-sort-header="age|number">Age</th>
+                            <th scope="col" class="info-label" mat-sort-header="profileKycStatus|string">KYC status</th>
+                        </tr>
+                        <tr app-column-filter-bar *ngIf="isEmployeeDashboard && isSearchEnabled" [columnList]="employeeSummaryColumns" (onSearch)="onSearch($event);page=1" ></tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngIf="modalSummaryList.length == 0|| (modalSummaryList| colFilter:filters:false).length == 0">
+                            <th colspan="8" class="text-center info-label">No details to display...</th>
+                        </tr>
+                        <tr
+                            *ngFor="let leave of modalSummaryList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                            <th class="info-label">{{20*(page-1)+i+1}}</th>
+                            <td>{{leave.employeementId}}</td>
+                            <td>{{leave.employeeType}}</td>
+                            <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360" (click)="cancelRequest()" [navigateToEmployee360]="leave" style="cursor: pointer;" title="Click to view Employee 360" class="text-capitalize">{{leave.name}}</td>
+                            <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{leave.name}}</td>
+                            <td>{{leave.experience}}</td>
+                            <td class="text-capitalize">{{leave.departmentName}}</td>
+                            <td>{{leave.email}}</td>
+                            <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{leave.managerName}}</td>
+                            <td class="text-capitalize" *ngIf="userMapping.reports_employee_360" (click)="cancelRequest()" id="clickablefor360" [navigateToEmployee360]="leave.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{leave.managerName}}</td>
+    
+                            <td>{{leave.billable}}</td>
+                            <td>{{leave.billableType}}</td>
+    
+                            <td  *ngIf="userMapping.report_project_view && leave.projectList">
+                                <span *ngFor="let project of leave.projectList; let last = last" class="info-label"
+                                 id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.projectId" style="cursor: pointer;" title="Click to view Project Details"> 
+                                    {{ project.projectName }}<span *ngIf="!last">, </span>
+                                    <span *ngFor="let project of leave.projectList; let last = last" class="info-label" >
+                                        {{ project.projectName }}<span *ngIf="!last">, </span>
+                                    </span>
+                                </span>
+                            </td>
+                            <td *ngIf="!userMapping.report_project_view || !leave.projectList">
                                 <span *ngFor="let project of leave.projectList; let last = last" class="info-label" >
                                     {{ project.projectName }}<span *ngIf="!last">, </span>
                                 </span>
-                            </span>
-                        </td>
-                        <td *ngIf="!userMapping.report_project_view || !leave.projectList">
-                            <span *ngFor="let project of leave.projectList; let last = last" class="info-label" >
-                                {{ project.projectName }}<span *ngIf="!last">, </span>
-                            </span>
-                        </td>
-
-                        <td>{{leave.clientName}}</td>
-
-                        <td>{{leave.dateOfJoining}}</td>
-                        <td>{{leave.mobileNo}}</td>
-                        <td class="text-capitalize" >{{leave.employmentstatus}}</td>
-                        <td>{{leave.totalExperience}}</td>
-                        <td class="text-capitalize" >{{leave.gender}}</td>
-                        <td>{{leave.workLocation}}</td>
-                        <td>{{leave.age}}</td>
-                        <td>{{leave.profileKycStatus}}</td>
-                    </tr>
-                </tbody>
-            </table>
+                            </td>
+    
+                            <td>{{leave.clientName}}</td>
+    
+                            <td>{{leave.dateOfJoining}}</td>
+                            <td>{{leave.mobileNo}}</td>
+                            <td class="text-capitalize" >{{leave.employmentstatus}}</td>
+                            <td>{{leave.totalExperience}}</td>
+                            <td class="text-capitalize" >{{leave.gender}}</td>
+                            <td>{{leave.workLocation}}</td>
+                            <td>{{leave.age}}</td>
+                            <td>{{leave.profileKycStatus}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
             <pagination-controls class="my-pagination" [hidden]="modalSummaryList.length == 0"
                 (pageChange)="handlePageChange($event)"></pagination-controls>
             <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"

@@ -90,7 +90,6 @@
 }
 
 .table-container {
-    width: 100%;
     max-height: 80vh;
     overflow-y: auto;
     overflow-x: auto;
@@ -99,7 +98,6 @@
 }
 
 table {
-    min-width: 100%;
     border-collapse: collapse;
 }
 
