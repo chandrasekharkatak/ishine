@@ -574,7 +574,6 @@ export class ReportListComponent implements OnInit {
     //         this.fixedCostPoExpiredCountList.push(emp);
     //       }
     //     });
-
     //   } else {
     //     projectTypes.forEach((type) => {
     //       type = type.trim(); 
@@ -779,12 +778,10 @@ export class ReportListComponent implements OnInit {
   //   this.updatedEmpObj = new Employee();
   //   console.log('emp data :::::::::::',employee);
   // this.getProjectId(employee);
-
   // const selectedProjectId = this.getProjectId(employee);
   // console.log("Selected Project ID:", selectedProjectId);
   // this.selectedProjectId = selectedProjectId ;
   // let newemployeeObj: Employee = new Employee();
-
 
   // newemployeeObj.selectedProjectId = this.selectedProjectId;
   // newemployeeObj.projectName = employee.projectName;
@@ -799,7 +796,6 @@ export class ReportListComponent implements OnInit {
   //     this.updatedEmpObj= response.serviceResponse ;
   //     console.log('updated project details ::::::::',this.updatedEmpObj);
   //     this.openAlertMod(this.alertModal, "Default Project Updated Successfully  !! ")
-
   //   }
   // });
 
@@ -835,12 +831,10 @@ export class ReportListComponent implements OnInit {
   }
 
   // getProjectId(employee: any): string | null {
-
   //   const projectNames = employee.projectName.split(',');
   //   const projectIds = employee.projectIds.split(',');
 
   //   const selectedIndex = projectNames.findIndex(project => project.trim() === employee.selectedProject.trim());
-
   //   if (selectedIndex !== -1 && selectedIndex < projectIds.length) {
   //     return projectIds[selectedIndex].trim();
   //   } else {
@@ -865,7 +859,6 @@ export class ReportListComponent implements OnInit {
       return null;
     }
   }
-
   showLeaveReportTable() {
     this.leaveReportFlag = true;
     this.timesheetReportFlag = false;
@@ -2002,7 +1995,8 @@ export class ReportListComponent implements OnInit {
           this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
         }
       }
-    }
+    }    
+    
 
     if (this.isAccessControlListTable == true) {
       this.excelName = `${this.employeeRole}-ACLReport.xlsx`;

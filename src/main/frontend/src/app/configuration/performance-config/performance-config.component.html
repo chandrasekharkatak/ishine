@@ -100,15 +100,9 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
                 </div>
-                <div class="export-button mt-3">
-                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-                    [hidden]="quarterCyclesList.length == 0" (click)="exportToExcel()">
-                    <em class="fa fa-file-arrow-down fa-2x"></em>
-                </button>
-                </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'departmentInfo'"
                     [tableTHeadId]="'departmentInfoTHead'" [tableTHeadTrId]="'departmentInfoTHeadTr'">
-                    <table class="table" id="departmentInfo" matSort
+                    <table class="table table-responsive" id="departmentInfo" matSort
                         (matSortChange)="sortData($event)">
                         <thead class="thead-light" id="departmentInfoTHead">
                             <tr id="departmentInfoTHeadTr">
