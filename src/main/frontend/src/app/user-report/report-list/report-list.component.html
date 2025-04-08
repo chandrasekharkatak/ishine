@@ -367,7 +367,7 @@
 
     <!-- sandy -->
     <div class="col-md-3 col-sm-6 custom-control custom-switch">
-      <input type="checkbox" class="custom-control-input" id="hierarchy-switch-1" (change)="toggleView()">
+      <input type="checkbox" class="custom-control-input" id="hierarchy-switch-1" [checked]="showDetails" (change)="toggleView()">
       <label class="custom-control-label" for="hierarchy-switch-1">Show Detailed Project View</label>
     </div>
 

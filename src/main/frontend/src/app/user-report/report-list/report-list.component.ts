@@ -237,6 +237,8 @@ export class ReportListComponent implements OnInit {
 
   sectionViewInit() {
     if (this.userMapping.employee_report) {
+      this.showDetails = true;
+      this.toggleView();
       this.showEmployeeReportTable();
     } else if (this.userMapping.timesheet_report) {
       this.showTimesheetReportTable();
@@ -299,9 +301,8 @@ export class ReportListComponent implements OnInit {
 
 
   toggleView() {
-    if (this.showDetails === true) {
-      this.showDetails = false;
-
+    if (this.showDetails === false) {
+      this.showDetails = true;
     }
     else {
       this.showDetails = true;
