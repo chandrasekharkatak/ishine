@@ -69,6 +69,8 @@ export class DeptConfigComponent implements OnInit {
   filters:any = {};
   isSearchEnabled:boolean = false;
   departmentColumns:any[] = ['blank','name','hodName','createdByName','createdOn','updatedOn','updatedByName'];
+  excelName: string;
+  tableName: string;
 
   constructor(
     private validationService: ValidationService,
@@ -412,27 +414,36 @@ export class DeptConfigComponent implements OnInit {
   }
 
   // download excel
-  exportToExcel(): void {
+  // exportToExcel(): void {
 
-    this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.departmentDataForExcel = response.serviceResponse;
-        //console.log("response.serviceResponse: ",response.serviceResponse);
-      }
+  //   this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.departmentDataForExcel = response.serviceResponse;
+  //       //console.log("response.serviceResponse: ",response.serviceResponse);
+  //     }
 
-      const onlySpecificDataArr = this.departmentDataForExcel.map(
-        x => ({
-          "Department Name": x.name,
-          "Head of Department": x.hodName,
-          "Created by": x.createdByName,
-          "Created on": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
-          "Updaeted by": x.updatedByName ??' - ',
-          "Updated On": (x.updatedOn)? moment(x.updatedOn).format(AppComponent.DATETIME_FORMAT) : ' - ',
-        })
-      )
-      //console.log("Excel Array: ",onlySpecificDataArr);
-      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
-    });
+  //     const onlySpecificDataArr = this.departmentDataForExcel.map(
+  //       x => ({
+  //         "Department Name": x.name,
+  //         "Head of Department": x.hodName,
+  //         "Created by": x.createdByName,
+  //         "Created on": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
+  //         "Updaeted by": x.updatedByName ??' - ',
+  //         "Updated On": (x.updatedOn)? moment(x.updatedOn).format(AppComponent.DATETIME_FORMAT) : ' - ',
+  //       })
+  //     )
+  //     //console.log("Excel Array: ",onlySpecificDataArr);
+  //     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
+  //   });
+  // }
+
+ // download excel
+  exportToExcel(id:any): void {
+    const tableId = id; // Replace with your actual table ID
+    this.excelName = "DepartementInfoSheet.xlsx";
+    this.tableName= 'Department Info';
+  
+    this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
   }
 
 

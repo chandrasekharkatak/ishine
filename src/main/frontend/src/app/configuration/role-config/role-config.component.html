@@ -146,7 +146,7 @@
                 </div>
                 <div class="button-export mt-3">
                     <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-                    [hidden]="allJobRoleList.length == 0" (click)="exportToExcel()"><em
+                    [hidden]="allJobRoleList.length == 0" (click)="exportToExcel('roleInfo')"><em
                         class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'roleInfo'" [tableTHeadId]="'roleInfoTHead'"

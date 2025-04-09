@@ -111,6 +111,7 @@ export class ResourceManagementComponent implements OnInit {
   currentBreadcrumbList: any[] = [];
   // employeesFor360: any[] = [];
   poProjectListFromIshine: any[] = [];
+  tableName: string;
 
   constructor(
     private departmentService: DepartmentService,
@@ -1191,29 +1192,36 @@ export class ResourceManagementComponent implements OnInit {
 
   // Excel Export
 
-  exportToExcel() {
-    this.excelName = 'Projects.xlsx';
+//   exportToExcel(id:any) {
+//     this.excelName = 'Projects.xlsx';
 
-    const onlySpecificDataArr = this.allProjectList.map(
-      x => ({
-        "Project Name": x.name,
-        "PO Number": x.poNo,
-        "Project Manager": x.projectManagerName,
-        "Client Name": x.clientName,
-        "Client State": x.clientState,
-        "Apmosys RM": x.apmosysRM,
-        "Client RM": x.clientRM,
-        "Start Date": x.startDate ? x.startDate.split(/[\sT]/)[0].split('-').reverse().join('-') : x.startDate,
-"End Date": x.endDate ? x.endDate.split(/[\sT]/)[0].split('-').reverse().join('-') : x.endDate,
-        // "Start Date": x.startDate,
-        // "End Date": x.endDate,
-        "Created On": x.createdOn,
-        "Approval Status": x.isDraftProject,
-        "Project Status": x.status,
-      })
-    )
-    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
-  }
+//     const onlySpecificDataArr = this.allProjectList.map(
+//       x => ({
+//         "Project Name": x.name,
+//         "PO Number": x.poNo,
+//         "Project Manager": x.projectManagerName,
+//         "Client Name": x.clientName,
+//         "Client State": x.clientState,
+//         "Apmosys RM": x.apmosysRM,
+//         "Client RM": x.clientRM,
+//         "Start Date": x.startDate ? x.startDate.split(/[\sT]/)[0].split('-').reverse().join('-') : x.startDate,
+// "End Date": x.endDate ? x.endDate.split(/[\sT]/)[0].split('-').reverse().join('-') : x.endDate,
+//         // "Start Date": x.startDate,
+//         // "End Date": x.endDate,
+//         "Created On": x.createdOn,
+//         "Approval Status": x.isDraftProject,
+//         "Project Status": x.status,
+//       })
+//     )
+//     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+//   }
+exportToExcel(id:any): void {
+  const tableId = id; // Replace with your actual table ID
+  this.excelName = "TeamMemberSheet.xlsx";
+  this.tableName= 'Team Members';
+
+  this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+}
 
 
   // check resource template

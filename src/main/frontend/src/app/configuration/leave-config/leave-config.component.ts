@@ -128,6 +128,7 @@ export class LeaveConfigComponent implements OnInit {
   leavePolicyColumns:any[] = ['blank','leavePolicyName','leaveType','description','createdByName','createdOn','updatedOn','updatedByName'];
 
   employeesFor360: any[] = [];
+  tableName: string;
 
   constructor(
     private validationService: ValidationService,
@@ -719,72 +720,88 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   // download excel
-  exportToExcel(): void {
+  // exportToExcel(): void {
 
+  //   if (this.isHolidayTable == true) {
+  //     this.excelName = 'HolidaySheet.xlsx';
+
+  //     this.holidayService.getAllHolidays(this.holidayObj).pipe(first()).subscribe((response: any) => {
+  //       if (response.serviceStatus == "Success") {
+  //         this.holidayDataForExcel = response.serviceResponse;
+  //       }
+
+  //       const onlySpecificDataArr = this.holidayDataForExcel.map(
+  //         x => ({
+  //           "Occasion": x.occasion,
+  //           "Day": x.dayOfTheWeek,
+  //           "Date": (x.dateOfHoliday) ? moment(x.dateOfHoliday).format(AppComponent.DATETIME_FORMAT) : null,
+  //           "State": x.state
+  //         })
+  //       )
+  //       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+  //     });
+  //   }
+  //   if (this.isLeaveRuleTable == true) {
+  //     this.excelName = 'LeaveSheet.xlsx';
+
+  //     this.leaveService.getAllLeaveTypes().pipe(first()).subscribe((response: any) => {
+  //       if (response.serviceStatus == "Success") {
+  //         this.leaveDataForExcel = response.serviceResponse;
+  //       }
+
+  //       const onlySpecificDataArr = this.leaveDataForExcel.map(
+  //         x => ({
+  //           "Leave Type": x.leaveType,
+  //           "Leave Code": x.leaveTypeCode,
+  //           "Employee Gender": x.gender,
+  //           "Default Leaves": x.noOfDays,
+  //           "Rules": x.rules,
+  //           "Description": x.description
+  //         })
+  //       )
+  //       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+  //     });
+
+  //   }
+  //   if (this.isLeavePolicyTable == true) {
+  //     this.excelName = 'LeavePolicySheet.xlsx';
+
+  //     this.leaveService.getAllLeavePolicy().pipe(first()).subscribe((response: any) => {
+  //       if (response.serviceStatus == "Success") {
+  //         this.leavePolicyDataForExcel = response.serviceResponse;
+  //       }
+
+  //       const onlySpecificDataArr = this.leavePolicyDataForExcel.map(
+  //         x => ({
+  //           "Leave Policy Name": x.leavePolicyName,
+  //           "Leave Type": x.leaveType,
+  //           "Description": x.description,
+  //           "Created By": x.createdByName,
+  //           "Created On": (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null
+  //         })
+  //       )
+  //       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+  //     });
+
+  //   }
+
+  // }
+  exportToExcel(id:any): void {
     if (this.isHolidayTable == true) {
       this.excelName = 'HolidaySheet.xlsx';
-
-      this.holidayService.getAllHolidays(this.holidayObj).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.holidayDataForExcel = response.serviceResponse;
-        }
-
-        const onlySpecificDataArr = this.holidayDataForExcel.map(
-          x => ({
-            "Occasion": x.occasion,
-            "Day": x.dayOfTheWeek,
-            "Date": (x.dateOfHoliday) ? moment(x.dateOfHoliday).format(AppComponent.DATETIME_FORMAT) : null,
-            "State": x.state
-          })
-        )
-        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
-      });
-
+      this.tableName = 'Holiday Table';
+      this.exportExcelService.exportTableFormat(id, this.excelName, this.tableName);
     }
-    if (this.isLeaveRuleTable == true) {
+    else if (this.isLeaveRuleTable == true) {
       this.excelName = 'LeaveSheet.xlsx';
-
-      this.leaveService.getAllLeaveTypes().pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.leaveDataForExcel = response.serviceResponse;
-        }
-
-        const onlySpecificDataArr = this.leaveDataForExcel.map(
-          x => ({
-            "Leave Type": x.leaveType,
-            "Leave Code": x.leaveTypeCode,
-            "Employee Gender": x.gender,
-            "Default Leaves": x.noOfDays,
-            "Rules": x.rules,
-            "Description": x.description
-          })
-        )
-        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
-      });
-
+      this.tableName = 'Leave Rules Table';
+      this.exportExcelService.exportTableFormat(id, this.excelName, this.tableName);
     }
-    if (this.isLeavePolicyTable == true) {
+    else if (this.isLeavePolicyTable == true) {
       this.excelName = 'LeavePolicySheet.xlsx';
-
-      this.leaveService.getAllLeavePolicy().pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.leavePolicyDataForExcel = response.serviceResponse;
-        }
-
-        const onlySpecificDataArr = this.leavePolicyDataForExcel.map(
-          x => ({
-            "Leave Policy Name": x.leavePolicyName,
-            "Leave Type": x.leaveType,
-            "Description": x.description,
-            "Created By": x.createdByName,
-            "Created On": (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null
-          })
-        )
-        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
-      });
-
+      this.tableName = 'Leave Policy Table';
+      this.exportExcelService.exportTableFormat(id, this.excelName, this.tableName);
     }
-
   }
 
 

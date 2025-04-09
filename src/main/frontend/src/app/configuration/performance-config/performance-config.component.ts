@@ -75,6 +75,7 @@ export class PerformanceConfigComponent implements OnInit {
  
   log:Log;
   tabName:any = 'Configurations';
+  excelName: string;
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -260,25 +261,35 @@ export class PerformanceConfigComponent implements OnInit {
     });
   }
 
-  name = 'QuarterCycle.xlsx';
-  exportToExcel(): void {
-    this.performanceService.getAllQuarterCycles().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.quarterCycleDataForExcel = response.serviceResponse;
-      }
-      const onlySpecificDataArr = this.quarterCycleDataForExcel.map(
-        x => ({
-          "Financial Year": x.financialYear,
-          "Cycle": x.quarterCycle,
-          "Created By": x.createdByName,
-          "Created on": (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
-          "Updated By": x.updatedByName,
-          "Updated on": (x.updatedOn) ? moment(x.updatedOn).format(AppComponent.DATETIME_FORMAT) : null
-        })
-      )
-      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
-    });
+  // name = 'QuarterCycle.xlsx';
+  // exportToExcel(): void {
+  //   this.performanceService.getAllQuarterCycles().pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.quarterCycleDataForExcel = response.serviceResponse;
+  //     }
+  //     const onlySpecificDataArr = this.quarterCycleDataForExcel.map(
+  //       x => ({
+  //         "Financial Year": x.financialYear,
+  //         "Cycle": x.quarterCycle,
+  //         "Created By": x.createdByName,
+  //         "Created on": (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
+  //         "Updated By": x.updatedByName,
+  //         "Updated on": (x.updatedOn) ? moment(x.updatedOn).format(AppComponent.DATETIME_FORMAT) : null
+  //       })
+  //     )
+  //     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
+  //   });
+  // }
+
+  exportToExcel(id:any): void {
+    const tableId = id; // Replace with your actual table ID
+    this.excelName = "QuarterCycle.xlsx";
+    this.tabName= 'Quarter Cycle Table';
+  
+    this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tabName);
   }
+
+  
 
 
 

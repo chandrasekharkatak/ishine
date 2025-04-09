@@ -134,6 +134,7 @@ export class LeaveComponent implements OnInit {
 
 
   availableCompOffDetails:any[] = [];
+  tableName: string;
 
   constructor(
     public validationService:ValidationService,
@@ -1856,40 +1857,37 @@ export class LeaveComponent implements OnInit {
 
   }
 
-  exportToExcel(): void {	
+  exportToExcel(id:any): void {
+    if (this.isLeaveHistoryTable == true) {
+      this.excelName = 'MyLeaveHistory.xlsx';
+      this.tableName = 'Leave History Table';
+      this.exportExcelService.exportTableFormat(id, this.excelName, this.tableName);
+    }
     
-    if(this.isLeaveHistoryTable == true){	
-      this.elementName = 'history-table';	
-      this.excelName = 'MyLeaveHistory.xlsx';	
+    // Commented section kept as in your original code
+    // if (this.isLeaveLogTable == true) {
+    //   this.excelName = 'MyLeaveLogs.xlsx';
+    //   this.tableName = 'Leave Logs Table';
+    //   this.exportExcelService.exportTableFormat(id, this.excelName, this.tableName);
+    // }
+    
+    if (this.isSelfLeaveRevokeApplication == true) {
+      this.excelName = 'MyRevokeLeaveHistory.xlsx';
+      this.tableName = 'Self Revoke Leave Table';
+      this.exportExcelService.exportTableFormat(id, this.excelName, this.tableName);
     }
-
-    // if(this.isLeaveLogTable == true){	
-    //   this.elementName = 'log-table';	
-    //   this.excelName = 'MyLeaveLogs.xlsx';	
-    // }	
-
-    if(this.isSelfLeaveRevokeApplication == true){
-      this.elementName = 'revoke-history-table';	
-      this.excelName = 'MyRevokeLeaveHistory.xlsx';	
-    }
-
-    if(this.isTeamLeaveRevokeApplication == true){
-      this.elementName = 'revoke-history-table';	
+    
+    if (this.isTeamLeaveRevokeApplication == true) {
       this.excelName = 'TeamRevokeLeaveHistory.xlsx';
-    }
-
-    if(this.isOverlapsedLeaveTable == true){
-      this.elementName = 'overlapsedInfo';	
-      this.excelName = 'overlapsedLeaveReport.xlsx';
+      this.tableName = 'Team Revoke Leave Table';
+      this.exportExcelService.exportTableFormat(id, this.excelName, this.tableName);
     }
     
-    let element = document.getElementById(this.elementName);	
-    const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(element);	
-  	
-    const book: XLSX.WorkBook = XLSX.utils.book_new();	
-    XLSX.utils.book_append_sheet(book, worksheet, 'Sheet1');	
-  	
-    XLSX.writeFile(book, this.excelName);
+    if (this.isOverlapsedLeaveTable == true) {
+      this.excelName = 'overlapsedLeaveReport.xlsx';
+      this.tableName = 'Overlapped Leave Report';
+      this.exportExcelService.exportTableFormat(id, this.excelName, this.tableName);
+    }
   }
 
   // this.leaveHistoryListForTable

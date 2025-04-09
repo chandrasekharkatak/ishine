@@ -154,7 +154,7 @@
                 </div>
                 <div class="export-button mt-3">
                     <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-                        [hidden]="holidayListFilter.length == 0" (click)="exportToExcel()"><em
+                        [hidden]="holidayListFilter.length == 0" (click)="exportToExcel('holidayInfo')"><em
                             class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
                
@@ -319,7 +319,7 @@
                 </div>
                 <div class="export-button mt-3">
                     <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-                    [hidden]="leaveTypes.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+                    [hidden]="leaveTypes.length == 0" (click)="exportToExcel('employeeBucketInfo')"><em class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeBucketInfo'" [tableTHeadId]="'employeeBucketInfoTHead'"
                     [tableTHeadTrId]="'employeeBucketInfoTHeadTr'">
@@ -766,12 +766,12 @@
                 </div>
                 <div class="export-button mt-3">
                     <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-                    [hidden]="leavePolicyList.length == 0" (click)="exportToExcel()"><em
+                    [hidden]="leavePolicyList.length == 0" (click)="exportToExcel('leaveInfo')"><em
                         class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeInfo'" [tableTHeadId]="'employeeInfoTHead'"
                         [tableTHeadTrId]="'employeeInfoTHeadTr'">
-                        <table class="table" matSort (matSortChange)="sortData($event)">	
+                        <table class="table" id="leaveInfo" matSort (matSortChange)="sortData($event)">	
                             <thead class="thead-light">	
                               <tr>	
                                 <th scope="col" class="info-label">Sr No.</th>	

@@ -15,6 +15,7 @@ import { Timesheet } from '../models/timesheet';
 export class Employee360Service {
 
   private baseUrl: any = environment.baseUrl;
+  private baseUrl360: any = environment.baseUrl360;
 
   public lmsbaseurl: any = environment.lmsbaseurl;
   private navigationSubject = new Subject<void>();
@@ -44,7 +45,7 @@ export class Employee360Service {
     //   this.navigationSubject.next();
     // });
    // const baseUrl = window.location.origin; // Gets the base URL (e.g., http://localhost:4200)
- const url = `${this.baseUrl}#/employee-360/${data}/profile`;
+ const url = `${this.baseUrl360}#/employee-360/${data}/profile`;
   // const url = `http://localhost:4200/#/employee-360/${data}/profile`;
   window.open(url, '_blank'); // Open new tab
       //sessionStorage.removeItem("employee360Data");

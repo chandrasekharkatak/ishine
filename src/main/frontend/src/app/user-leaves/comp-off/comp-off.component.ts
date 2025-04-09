@@ -11,6 +11,7 @@ import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { LeaveService } from 'src/app/services/leave.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 import * as XLSX from 'xlsx';
 
 @Component({
@@ -52,12 +53,14 @@ export class CompOffComponent implements OnInit {
   filters:any = {};
   isSearchEnabled:boolean = false;
   compOffReqColumns:any[] = ['blank','compOffReasons','fromDate','noOfDays','description','status'];
+  tabName: string;
 
   constructor(
     private validationService:ValidationService,
     private modalService: BsModalService,
     private authenticationService : AuthenticationService,
     private leaveService : LeaveService,
+    private exportExcelService: ExportExcelService,
     private datePipe: DatePipe,
     private locationStrategy: LocationStrategy
     ) {
@@ -400,20 +403,27 @@ export class CompOffComponent implements OnInit {
 
     // download excel
 
-  exportToExcel(): void {
+  // exportToExcel(): void {
 
-    if(this.isCompOffRequestsTable == true){
-      this.elementName = 'compOffRequest-table';
-      this.excelName = 'EmployeeCompOffRequest.xlsx'
-    }
+  //   if(this.isCompOffRequestsTable == true){
+  //     this.elementName = 'compOffRequest-table';
+  //     this.excelName = 'EmployeeCompOffRequest.xlsx'
+  //   }
 
-    let element = document.getElementById(this.elementName);
-    const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(element);
+  //   let element = document.getElementById(this.elementName);
+  //   const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(element);
 
-    const book: XLSX.WorkBook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(book, worksheet, 'Sheet1');
+  //   const book: XLSX.WorkBook = XLSX.utils.book_new();
+  //   XLSX.utils.book_append_sheet(book, worksheet, 'Sheet1');
 
-    XLSX.writeFile(book, this.excelName);
+  //   XLSX.writeFile(book, this.excelName);
+  // }
+  exportToExcel(id:any): void {
+    const tableId = id; // Replace with your actual table ID
+    this.excelName = "QuarterCycle.xlsx";
+    this.tabName= 'Quarter Cycle Table';
+  
+    this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tabName);
   }
 
   //pagination 
