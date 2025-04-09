@@ -15,6 +15,8 @@ public class ProjectInsightQuestionDTO {
     private List<ModuleDTO> moduleList;
     private List<Long> assignedTo;
     private String assignedToUserNames;
+    private String taggedToUserNames;
     private Long redmineId;
+    private List<Long> taggedForHelp;
 
 }

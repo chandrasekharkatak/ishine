@@ -127,7 +127,8 @@ export class PerformanceDashboardComponent implements OnInit {
   projectInsightColumnColumns:any[] = ['projectName','description','isActive','createdByName','createdOn'];
   projectInsightQuestionList:ProjectInsightQuestion[] = [new ProjectInsightQuestion()];
   projectInsightResponseList:ProjectInsightQuestion[] = [new ProjectInsightQuestion()];
-  
+  employeeList:any[] = [];
+
   projectResponseModalRef: BsModalRef = new BsModalRef();
   documentPreviewModalRef: BsModalRef = new BsModalRef();
 
@@ -151,7 +152,8 @@ export class PerformanceDashboardComponent implements OnInit {
     this.fetchGoals();
     this.loadPerformanceStats();
     this.getAllProjectInsightContributionList();
-
+    this.getEmployeeList();
+    
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -488,6 +490,48 @@ saveKpiResponses(template: TemplateRef<any>): void {
         this.projectInsightQuestion = response.serviceResponse;
         this.projectInsightResponseList = this.projectInsightQuestion.projectInsightQuestionList;
 
+        if (this.projectInsightQuestion.applicationQuestion != null && this.projectInsightQuestion.applicationQuestion.length != 0) {
+          this.projectInsightQuestion.applicationQuestion.forEach((question: ProjectQuestion, index) => {
+            if (question.projectResponseList != null && question.projectResponseList.length != 0) {
+              question.projectResponseList.forEach((response: ProjectResponse, index) => {
+                response.optionsList = JSON.parse(response.options);
+                if (question.optionType == 'checkbox') {
+                  response.responseList = JSON.parse(response.response || '[]');
+                  if (response.optionsList?.length) {
+                    response.optionsList.forEach((option, index) => {
+                      if (response?.responseList.includes(option?.optionValue)) {
+                        option.isChecked = true
+                      }
+                    });
+                  }
+                }
+                if(response.isDraft == 'Y'){
+                  this.isFinalResponseSubmitted = false;
+                } 
+                if (response.isDraft == 'Y') {
+                  response.showDocDiv = true;
+                } else if (response.isDraft == 'N' && response.uploadedFileName != undefined && response.uploadedFileName != null && response.uploadedFileName != '') {
+                  response.showDocDiv = true;
+                } else {
+                  response.showDocDiv = false;
+                }
+                if(this.isResponsePreview){
+                  response.showDocDiv = true;
+                }
+              });
+            } else {
+              let projectResponse= new ProjectResponse();
+              projectResponse.optionsList = JSON.parse(question.options);
+              if (question.optionType == 'checkbox') {
+                projectResponse.responseList = JSON.parse(projectResponse.response || '[]');
+              }
+              this.isFinalResponseSubmitted = false;
+              projectResponse.showDocDiv = true;
+              question.projectResponseList.push(projectResponse);
+            }
+          });
+        }
+
         this.projectInsightResponseList.forEach((milestone: ProjectInsightQuestion, mileIndex) => {
           milestone.isCollapsed = true;
           if (milestone.projectQuestion != null && milestone.projectQuestion.length != 0) {
@@ -684,13 +728,30 @@ saveKpiResponses(template: TemplateRef<any>): void {
     }
   }
 
+  base64ToBlob(base64: string, contentType: string , sliceSize = 512): Blob {
+    const byteCharacters = atob(base64); // decode base64
+    const byteArrays = [];
+  
+    for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+      const slice = byteCharacters.slice(offset, offset + sliceSize);
+  
+      const byteNumbers = new Array(slice.length);
+      for (let i = 0; i < slice.length; i++) {
+        byteNumbers[i] = slice.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      byteArrays.push(byteArray);
+    }
+    return new Blob(byteArrays, { type: contentType });
+  }
+
   onQuestionFileChange(event: any, question: any, alertTemplate: TemplateRef<any>, previewElementId: any, documentPreviewTemplate: TemplateRef<any>, response: any) {
     const file = event.target.files[0];
     if (file) {
       response.uploadedFile = file;
       const inputId = event.target.id;
       var fileExtension = file.name.split('.').pop().toLowerCase();
-      response.uploadedFileName = inputId + '.' + fileExtension;
+      response.uploadedFileName = this.currentUser.empId+'-'+inputId + '.' + fileExtension;
     }
 
     const MAX_SIZE = 5 * 1024 * 1024;
@@ -758,9 +819,7 @@ saveKpiResponses(template: TemplateRef<any>): void {
           }
         }
       } else {
-        this.documentPreviewModalRef = this.modalService.show(documentPreviewTemplate, { class: 'modal-xl' });
-        const previewContainer = document.getElementById(previewElementId);
-        this.getUserUploadedFileForQuestion(question, fileName, previewContainer, alertTemplate);
+        this.getUserUploadedFileForQuestion(question, fileName, documentPreviewTemplate,previewElementId);
       }
     } else {
       this.documentPreviewModalRef = this.modalService.show(documentPreviewTemplate, { class: 'modal-xl' });
@@ -771,22 +830,33 @@ saveKpiResponses(template: TemplateRef<any>): void {
     }
   }
 
-  getUserUploadedFileForQuestion(question: any, fileName: any, previewContainer: any, alertTemplate: TemplateRef<any>) {
+  getUserUploadedFileForQuestion(question: any, fileName: any, documentPreviewTemplate: TemplateRef<any>, previewElementId: any) {
     let documentObj = new Document();
     documentObj.empId = this.currentUser.empId;
     documentObj.documentName = fileName;
     documentObj.typeId = question.entityId;
     documentObj.typeName = question.entityType;
     this.projectInsightService.getUserUploadedFileForQuestion(documentObj).subscribe((response: any) => {
-      response = JSON.parse(response)
-      if (response.status === 'Fail') {
-        previewContainer.innerHTML = "<span class='mt-3' style='display:inline-block;' > Invalid file format.</span>";
+      this.documentPreviewModalRef = this.modalService.show(documentPreviewTemplate, { class: 'modal-xl' });
+      const previewContainer = document.getElementById(previewElementId);
+
+      if (response.serviceStatus === 'Fail') {
+        previewContainer.innerHTML = "<span class='mt-3' style='display:inline-block;' > File Not Found.</span>";
       } else {
-        const pdfData = response.fileData;
-        if (response.contentType == 'application/pdf') {
-          previewContainer.innerHTML = `<embed src="data:application/pdf;base64,${pdfData}" type="application/pdf" width="100%" height="100%"> `
-        } else {
-          previewContainer.innerHTML = `<img src="data:${response.contentType};base64,${pdfData}" type="${response.contentType}" class="img-fluid" >`;
+        const base64Data = response?.serviceResponse?.body;
+        let contentTypeList = response?.serviceResponse?.headers["Content-Type"];
+        let contentType = contentTypeList[0]
+        if (contentType == 'application/pdf') {
+          previewContainer.innerHTML = `<embed src="data:application/pdf;base64,${base64Data}" type="application/pdf" width="100%" height="800px" />`;
+        }
+        else if (contentType.startsWith('image/')) {
+          previewContainer.innerHTML = `<img src="data:${contentType};base64,${base64Data}" class="img-fluid" style="max-height:800px;" />`;
+        }
+        else {
+          let file = this.base64ToBlob(base64Data, contentType, 512);
+          this.downloadFile(file, fileName);
+          previewContainer.innerHTML = "<span class='mt-3' style='display:inline-block;' > Can't Open File.</span>";
+          this.closeDocumentPreviewTemplate();
         }
       }
     });
@@ -798,6 +868,28 @@ saveKpiResponses(template: TemplateRef<any>): void {
     //   if (!inputValidated) return;
     // }
     let files:File[]=[];
+
+    if (this.projectInsightQuestion.applicationQuestion?.length) {
+      let applicationQuestionList = this.projectInsightQuestion.applicationQuestion;
+      for (let index = 0; index < applicationQuestionList.length; index++) {
+        let question = applicationQuestionList[index];
+        for (let responseIndex = 0; responseIndex < question.projectResponseList.length; responseIndex++) {
+          let response = question.projectResponseList[responseIndex];
+          response.responseByEmpId = this.currentUser.empId;
+          response.isDraft = finalSubmit ? 'N' : 'Y';
+          if (question.optionType == 'checkbox') {
+            response.response = JSON.stringify(response.responseList);
+            response.responseList= null;
+          }
+          if (response?.uploadedFile != undefined && response?.uploadedFile != null) {
+            const renamedFile = new File([response.uploadedFile], response?.uploadedFileName, { type: response.uploadedFile.type });
+            files.push(renamedFile);
+            response.uploadedFile = null;
+          }
+        }
+      }
+    }
+
     for (let milestoneIndex = 0; milestoneIndex < this.projectInsightResponseList.length; milestoneIndex++) {
       let milestone = this.projectInsightResponseList[milestoneIndex];
       if (milestone.projectQuestion?.length) {
@@ -810,6 +902,7 @@ saveKpiResponses(template: TemplateRef<any>): void {
             response.isDraft = finalSubmit ? 'N' : 'Y';
             if (question.optionType == 'checkbox') {
               response.response = JSON.stringify(response.responseList);
+              response.responseList= null;
             }
             if (response?.uploadedFile != undefined && response?.uploadedFile != null) {
               const renamedFile = new File([response.uploadedFile], response?.uploadedFileName, { type: response.uploadedFile.type });
@@ -832,6 +925,7 @@ saveKpiResponses(template: TemplateRef<any>): void {
               response.isDraft = finalSubmit ? 'N' : 'Y';
               if (question.optionType == 'checkbox') {
                 response.response = JSON.stringify(response.responseList);
+                response.responseList= null;
               }
               if (response?.uploadedFile != undefined && response?.uploadedFile != null) {
                 const renamedFile = new File([response.uploadedFile], response?.uploadedFileName, { type: response.uploadedFile.type });
@@ -854,6 +948,7 @@ saveKpiResponses(template: TemplateRef<any>): void {
                 response.responseByEmpId = this.currentUser.empId;
                 if (question.optionType == 'checkbox') {
                   response.response = JSON.stringify(response.responseList);
+                  response.responseList= null;
                 }
                 if (response?.uploadedFile != undefined && response?.uploadedFile != null) {
                   const renamedFile = new File([response.uploadedFile], response?.uploadedFileName, { type: response.uploadedFile.type });
@@ -868,6 +963,8 @@ saveKpiResponses(template: TemplateRef<any>): void {
     }
 
     let projObj = new ProjectInsightQuestion();
+    projObj.taggedForHelp = this.projectInsightQuestion.taggedForHelp;
+    projObj.applicationQuestion = this.projectInsightQuestion.applicationQuestion;
     projObj.projectId = this.projectInsightQuestion.projectId;
     projObj.projectManagerId = this.projectInsightQuestion.projectManagerId;
     projObj.projectManagerName = this.projectInsightQuestion.projectManagerName;
@@ -937,4 +1034,15 @@ saveKpiResponses(template: TemplateRef<any>): void {
     return true;
   }
 
+  getEmployeeList() {
+    this.employeeList = [];
+    this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeeList = response.serviceResponse;
+        this.employeeList = this.employeeList.filter(x => x.employmentstatus != 'InActive');
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
 }

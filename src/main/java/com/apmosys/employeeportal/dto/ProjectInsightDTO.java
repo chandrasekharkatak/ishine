@@ -31,4 +31,6 @@ public class ProjectInsightDTO {
     private String employeeRole;
     private Long processTo;
 	private String performanceTabName;
+	private String taggedToUserNames;
+    private List<Long> taggedForHelp;
 }

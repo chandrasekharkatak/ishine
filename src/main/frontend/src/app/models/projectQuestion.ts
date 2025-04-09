@@ -20,5 +20,6 @@ export class ProjectQuestion{
     entityType:any;
     assignedToUserNames:any;
     projectResponseList:ProjectResponse[]=[];
-
+    taggedForHelp: any[] = [];
+    taggedToUserNames:any;
 }

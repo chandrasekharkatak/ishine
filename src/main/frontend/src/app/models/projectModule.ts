@@ -11,4 +11,6 @@ export class ProjectModule {
     projectQuestion:ProjectQuestion[] = [];
     isCollapsed:any= false;
     assignedToUserNames:any;
+    taggedForHelp:any[]=[];
+    taggedToUserNames:any;
 }

@@ -17,6 +17,8 @@ public class SubModuleDTO {
 	private String updatedOn;	
 	private Long updatedBy;
 	private String assignedToUserNames;
+	private String taggedToUserNames;
 	private List<ProjectQuestionDTO> projectQuestion;
+	 private List<Long> taggedForHelp;
 	
 }

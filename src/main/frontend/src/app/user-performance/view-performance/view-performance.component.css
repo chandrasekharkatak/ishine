@@ -96,7 +96,6 @@ body {
     border-radius: 6px;
   }
   
-  
 /* Project Insight Response CSS */
 
 /* Milestone */
@@ -376,14 +375,15 @@ body {
 }
 
 .response-submodule-header-row-submodule-index {
-  margin: 0; font-weight: 500;
+  margin: 0;
+  font-weight: 500;
 }
 
 .response-submodule-header-row-submodule-submodulename {
-  background: rgba(255,255,255,0.2);
-                                     padding: 2px 8px;
-                                     border-radius: 12px;
-                                     font-size: 0.75rem;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
 }
 
 .response-submodule-header-row-submodule-assignedto {

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.dto.EmployeeDocumentDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.service.ProjectInsightService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -38,14 +39,18 @@ public class ProjectInsightController {
 	
 	@RequestMapping(value = "/getAllQuestionsByProjectId", method = RequestMethod.POST)
 	public ServiceResponse getAllQuestionsBySurveyId(@RequestBody ProjectInsightDTO projectInsightDTO) {
-
 		ServiceResponse response = projectInsightService.getAllQuestionsByProjectId(projectInsightDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getUserUploadedFileForQuestion", method = RequestMethod.POST)
+	public ServiceResponse getUserUploadedFileForQuestion(@RequestBody EmployeeDocumentDTO employeeDocumentDTO) {
+		ServiceResponse response = projectInsightService.getUserUploadedFileForQuestion(employeeDocumentDTO);
 		return response;
 	}
 	
 	@RequestMapping(value = "/updateProjectInsightQuestion", method = RequestMethod.POST)
 	public ServiceResponse updateProjectInsightQuestion(@RequestBody ProjectInsightDTO projectInsightDTO) {
-
 		ServiceResponse response = projectInsightService.updateProjectInsightQuestion(projectInsightDTO);
 		return response;
 	}

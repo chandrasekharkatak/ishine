@@ -24,5 +24,8 @@ public class ProjectQuestionDTO {
 	private Long employeementId;
 	private Long empId;
 	private List<ProjectResponseDTO> projectResponseList;
+	private boolean isTagged;
+	private String taggedToUserNames;
+    private List<Long> taggedForHelp;
 	
 }

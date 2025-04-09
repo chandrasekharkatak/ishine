@@ -11,17 +11,15 @@ export class ProjectInsightQuestion {
     createdBy: any;
     updatedOn: any;
     updatedBy: any;
-
     projectId: any;
     projectManagerId: any;
     projectManagerName: any;
     projectName: any;
     employeeRole: any;
-
     projectInsightQuestionList:any;
     projectInsightQuestionTemplate:any;
-
-
+    taggedForHelp:any[]=[];
+    taggedToUserNames:any;
     milestone: any;
     milestoneId: any;
     assignedTo: any;
