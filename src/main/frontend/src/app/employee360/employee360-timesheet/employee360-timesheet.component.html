@@ -126,9 +126,9 @@
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
         </div>
-        <div class="overflow-auto" bassHorizontalScroll [tableId]="'timesheet360Info'" [tableTHeadId]="'timesheet360InfoTHead'"
+        <div class="table-container" bassHorizontalScroll [tableId]="'timesheet360Info'" [tableTHeadId]="'timesheet360InfoTHead'"
             [tableTHeadTrId]="'timesheet360InfoTHeadTr'">
-            <table class="table table-responsive" id="timesheet360Info" matSort (matSortChange)="sortData($event)">
+            <table class="table fixed-header-table" id="timesheet360Info" matSort (matSortChange)="sortData($event)">
                 <thead class="thead-light" id="timesheet360InfoTHead">
                   <tr id="timesheet360InfoTHeadTr">
                     <!-- <th scope="col" class="info-label"></th> -->

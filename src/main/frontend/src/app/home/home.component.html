@@ -800,9 +800,9 @@
                 </a>
 
             </div>
-            <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveApplication'"
+            <div class="table-container" bassHorizontalScroll [tableId]="'leaveApplication'"
                 [tableTHeadId]="'leaveApplicationTHead'" [tableTHeadTrId]="'leaveApplicationTHeadTr'">
-                <table class="table leaveApplication-table" matSort (matSortChange)="sortData($event)"
+                <table class="table leaveApplication-table scrollable-table" matSort (matSortChange)="sortData($event)"
                     id="leaveApplication">
                     <thead class="thead-light text-center" id="leaveApplicationTHead">
                         <tr id="leaveApplicationTHeadTr">
@@ -952,9 +952,9 @@
                     <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                 </a>
             </div>
-            <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffApplication'"
+            <div class="table-container" bassHorizontalScroll [tableId]="'compOffApplication'"
                 [tableTHeadId]="'compOffApplicationTHead'" [tableTHeadTrId]="'compOffApplicationTHeadTr'">
-                <table class="table compOffApplication-table" matSort (matSortChange)="sortData($event)"
+                <table class="table compOffApplication-table scrollable-table" matSort (matSortChange)="sortData($event)"
                     id="compOffApplication">
                     <thead class="thead-light" id="compOffApplicationTHead">
                         <tr id="compOffApplicationTHeadTr">
@@ -1083,9 +1083,9 @@
                     <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                 </a>
             </div>
-            <div class="overflow-auto" bassHorizontalScroll [tableId]="'timesheetRequest'"
+            <div class="table-container" bassHorizontalScroll [tableId]="'timesheetRequest'"
                 [tableTHeadId]="'timesheetRequestTHead'" [tableTHeadTrId]="'timesheetRequestTHeadTr'">
-                <table class="table teams-request-table" matSort (matSortChange)="sortData($event)"
+                <table class="table teams-request-table scrollable-table" matSort (matSortChange)="sortData($event)"
                     id="timesheetRequest">
                     <thead class="thead-light" id="timesheetRequestTHead">
                         <tr id="timesheetRequestTHeadTr">

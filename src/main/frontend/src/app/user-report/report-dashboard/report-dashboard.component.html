@@ -534,22 +534,39 @@
                             <td>{{leave.billableType}}</td>
     
                             <td  *ngIf="userMapping.report_project_view && leave.projectList">
-                                <span *ngFor="let project of leave.projectList; let last = last" class="info-label"
-                                 id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.projectId" style="cursor: pointer;" title="Click to view Project Details"> 
-                                    {{ project.projectName }}<span *ngIf="!last">, </span>
-                                    <span *ngFor="let project of leave.projectList; let last = last" class="info-label" >
+                                <ng-container *ngIf="show === i">
+                                    <span *ngFor="let project of leave.projectList; let last = last" class="info-label"
+                                     id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.projectId" style="cursor: pointer;" title="Click to view Project Details"> 
                                         {{ project.projectName }}<span *ngIf="!last">, </span>
                                     </span>
-                                </span>
+                                    <a *ngIf="leave.projectList.length > 1" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
+                                        ..{{ (show === i) ? '▲' : '▼' }}
+                                      </a>
+                                </ng-container>
+                                <ng-container *ngIf="show !== i">
+                                    <span *ngFor="let project of getSlicedProjects(leave.projectList, 1); let last = last" class="info-label"
+                                     id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.projectId" style="cursor: pointer;" title="Click to view Project Details"> 
+                                        {{ project.projectName }}<span *ngIf="!last">, </span>
+                                    </span>
+                                    <a *ngIf="leave.projectList.length > 1" (click)="show = (show === i ? -1 : i)"
+                                        style="cursor: pointer">
+                                        ..{{ (show === i) ? '▲' : '▼' }}
+                                      </a>
+                                </ng-container>
                             </td>
                             <td *ngIf="!userMapping.report_project_view || !leave.projectList">
                                 <span *ngFor="let project of leave.projectList; let last = last" class="info-label" >
                                     {{ project.projectName }}<span *ngIf="!last">, </span>
                                 </span>
                             </td>
-    
-                            <td>{{leave.clientName}}</td>
-    
+                            <td>
+                                <ng-container *ngIf="leave.clientName">
+                                  {{ (show === i) ? leave.clientName : (leave.clientName | slice: 0:20) }}
+                                  <a *ngIf="leave.clientName.length > 20" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
+                                    ..{{ (show === i) ? '▲' : '▼' }}
+                                  </a>
+                                </ng-container>
+                              </td>    
                             <td>{{leave.dateOfJoining}}</td>
                             <td>{{leave.mobileNo}}</td>
                             <td class="text-capitalize" >{{leave.employmentstatus}}</td>
