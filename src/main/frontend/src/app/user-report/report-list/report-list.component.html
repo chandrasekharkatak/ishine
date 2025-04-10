@@ -753,9 +753,7 @@
                       ..{{ (show === i) ? '▲' : '▼' }}
                     </a>
                   </ng-container>
-                </td>                       
-                <td>{{ employee.clientRM }}</td>
-                <td>{{ employee.apmosysRM }}</td>        
+                </td>       
                 <td>
                   <ng-container *ngIf="employee.clientName">
                     {{ (show === i) ? employee.clientName : (employee.clientName | slice: 0:20) }}
@@ -771,7 +769,9 @@
                       ..{{ (show === i) ? '▲' : '▼' }}
                     </a>
                   </ng-container>
-                </td>
+                </td>               
+                <td>{{ employee.clientRM }}</td>
+                <td>{{ employee.apmosysRM }}</td>  
                 <td>
                   <ng-container *ngIf="employee.workLocation">
                     {{ (show === i) ? employee.workLocation : (employee.workLocation | slice: 0:20) }}
