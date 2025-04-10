@@ -49,8 +49,6 @@ export class AppreciationComponent implements OnInit {
   appByCategory: any;
   src: any;
   fileName: any;
-  excelName: String;
-  tableName: String;
 
   sortDirection = 'asc';
   sortColumn: any;
@@ -286,26 +284,20 @@ export class AppreciationComponent implements OnInit {
 
   name = 'appreciationEventHistory.xlsx'
   appreciationEventHistoryForExcel: any;
-  exportToAppreciationEventHistoryExcel(id:any) {
+  exportToAppreciationEventHistoryExcel() {
     this.portalService.getAllEvent().subscribe((response: any) => {
       if (response.serviceStatus.trim() === "Success") {
         this.appreciationEventHistoryForExcel = response.serviceResponse;
       }
-      // const onlySpecificDataArr = this.appreciationEventHistoryForExcel.map(
-      //   x => ({
-      //     "Appreciation Event Name": x.appreciationEventName,
-      //     "Start Date": x.fromDate,
-      //     "End Date": x.toDate,
-      //     "Created On": (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null
-      //   })
-      // )
-      // this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
-      const tableId = id; 
-      this.tableName= 'appreciation';
-      
-      
-      
-      this.exportExcelService.exportTableFormat(tableId,this.name,this.tableName);
+      const onlySpecificDataArr = this.appreciationEventHistoryForExcel.map(
+        x => ({
+          "Appreciation Event Name": x.appreciationEventName,
+          "Start Date": x.fromDate,
+          "End Date": x.toDate,
+          "Created On": (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
 
     });
   }

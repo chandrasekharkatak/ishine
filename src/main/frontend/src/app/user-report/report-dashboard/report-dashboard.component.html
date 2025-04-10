@@ -35,12 +35,12 @@
                     </a>
                 </div>
                 <div class="export-button mt-3">
-                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allResignEmployee.length == 0" (click)="exportToExcelResignedEmployee('resignedEmployeeInfo')"><em
+                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="allResignEmployee.length == 0" (click)="exportToExcelResignedEmployee()"><em
                         class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
                 <div class="table-container" bassHorizontalScroll [tableId]="'resignedEmployeeInfo'" [tableTHeadId]="'resignedEmployeeInfoTHead'"
                     [tableTHeadTrId]="'resignedEmployeeInfoTHeadTr'">
-                    <table class="table " matSort (matSortChange)="sortData($event)" id = "resignedEmployeeInfo">
+                    <table class="table " matSort (matSortChange)="sortData($event)">
                         <thead class="thead-light">
                           <tr>
                             <th scope="col" class="info-label" >Sr No.</th>
@@ -268,12 +268,12 @@
             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
         </a>
     </div>
-    <div class="export-button">
+    <div class="export-button mt-3">
         <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
-            [hidden]="modalSummaryList.length == 0" (click)="exportToExcelLeaveSummary('ExcelLeave')"><em
-                class="fa fa-file-arrow-down fa-2x"></em></button>
+        [hidden]="modalSummaryList.length == 0" (click)="exportToExcelLeaveSummary()"><em
+            class="fa fa-file-arrow-down fa-2x"></em></button>
     </div>
-        <table class="table  scrollable-table" matSort (matSortChange)="sortData($event)" id = "ExcelLeave">
+        <table class="table  scrollable-table" matSort (matSortChange)="sortData($event)">
             <thead class="thead-light">
                 <tr>
                     <th scope="col" class="info-label wide-col">Sr No.</th>
@@ -311,6 +311,9 @@
         </table>
         <pagination-controls class="my-pagination" [hidden]="modalSummaryList.length == 0"
             (pageChange)="handlePageChange($event)"></pagination-controls>
+        <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+            [hidden]="modalSummaryList.length == 0" (click)="exportToExcelLeaveSummary()"><em
+                class="fa fa-file-arrow-down fa-2x"></em></button> -->
     </div>
 </div>
 </ng-template>
@@ -331,59 +334,63 @@
                 </a>
             </div>
             <div class="export-button">
-                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
-                [hidden]="modalSummaryList.length == 0" (click)="exportToExcelTimesheetSummary('excel-timesheet')"><em
+                <button type="button mt-3" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+                [hidden]="modalSummaryList.length == 0" (click)="exportToExcelTimesheetSummary()"><em
                     class="fa fa-file-arrow-down fa-2x"></em></button>
             </div>
-            <table class="table  scrollable-table" matSort (matSortChange)="sortData($event)" id="excel-timesheet">
-                <thead class="thead-light">
-                    <tr>
-                        <th scope="col" class="info-label wide-col">Sr No.</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|number">Emp ID</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="employeeType|string">Employee Type</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="employeeName|string">Name</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department Name</th>
-                        <!-- <th scope="col" class="info-label wide-col">Timesheet Date</th>
-                        <th scope="col" class="info-label wide-col" >Day Type</th> -->
-                        <th scope="col" class="info-label wide-col" mat-sort-header="email|string">Email Id</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="managerName|string">Manager Name</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="mobileNo|number">Mobile No</th>
-                        <th *ngIf="isPendingByUser" scope="col" class="info-label wide-col" mat-sort-header="pendingEodCNoount|number">Pending EOD Count</th>
-                        <!-- <th scope="col" class="info-label wide-col">Total Working Hour</th> -->
-                        <th scope="col" class="info-label wide-col" mat-sort-header="legend|string">Type</th>
-                        <th *ngIf="!isPendingByUser" scope="col" class="info-label wide-col" mat-sort-header="count|number">Count</th>
-
-                    </tr>
-                    <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="timesheetSummaryTableColumns" (onSearch)="onSearch($event); page=1"></tr>
-                </thead>
-                <tbody>
-                    <tr *ngIf="modalSummaryList.length == 0 || (modalSummaryList| colFilter:filters:false).length==0">
-                        <th colspan="8" class="text-center info-label">No Surveys to display...</th>
-                    </tr>
-                    <tr *ngFor="let leave of modalSummaryList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-                        <th class="info-label">{{20*(page-1)+i+1}}</th>
-                        <!-- <td>{{ leave.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{ leave.employeementId }}</td> -->
-                        <td>A-{{ leave.employeementId }}</td>
-                        <td>{{leave.employeeType}}</td>
-                        <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="leave.emp360" style="cursor: pointer;" title="Click to view Employee 360" (click)="cancelRequest()">{{leave.employeeName}}</td>
-                        <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{leave.employeeName}}</td>
-                        <td>{{leave.departmentName}}</td>
-                        <!-- <td>{{leave.date}}</td>
-                        <td>{{leave.dayType}}</td> -->
-                        <td>{{leave.email}}</td>
-                        <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{leave.managerName}}</td>
-                        <td class="text-capitalize" *ngIf="userMapping.reports_employee_360" (click)="cancelRequest()" id="clickablefor360" [navigateToEmployee360]="leave.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{leave.managerName}}</td>
-                        <td>{{leave.mobileNo}}</td>
-                        <td *ngIf="isPendingByUser">{{leave.pendingEodCount}}</td>
-                        <!-- <td>{{leave.totalWorkingHours}}</td> -->
-                        <td>{{leave.legend}}</td>
-                        <td *ngIf="!isPendingByUser"> {{leave.count}}</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="table-container">
+                <table class="table  scrollable-table" matSort (matSortChange)="sortData($event)">
+                    <thead class="thead-light">
+                        <tr>
+                            <th scope="col" class="info-label wide-col">Sr No.</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|number">Emp ID</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="employeeType|string">Employee Type</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="employeeName|string">Name</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department Name</th>
+                            <!-- <th scope="col" class="info-label wide-col">Timesheet Date</th>
+                            <th scope="col" class="info-label wide-col" >Day Type</th> -->
+                            <th scope="col" class="info-label wide-col" mat-sort-header="email|string">Email Id</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="managerName|string">Manager Name</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="mobileNo|number">Mobile No</th>
+                            <th *ngIf="isPendingByUser" scope="col" class="info-label wide-col" mat-sort-header="pendingEodCNoount|number">Pending EOD Count</th>
+                            <!-- <th scope="col" class="info-label wide-col">Total Working Hour</th> -->
+                            <th scope="col" class="info-label wide-col" mat-sort-header="legend|string">Type</th>
+                            <th *ngIf="!isPendingByUser" scope="col" class="info-label wide-col" mat-sort-header="count|number">Count</th>
+    
+                        </tr>
+                        <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="timesheetSummaryTableColumns" (onSearch)="onSearch($event); page=1"></tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngIf="modalSummaryList.length == 0 || (modalSummaryList| colFilter:filters:false).length==0">
+                            <th colspan="8" class="text-center info-label">No Surveys to display...</th>
+                        </tr>
+                        <tr *ngFor="let leave of modalSummaryList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                            <th class="info-label">{{20*(page-1)+i+1}}</th>
+                            <!-- <td>{{ leave.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{ leave.employeementId }}</td> -->
+                            <td>A-{{ leave.employeementId }}</td>
+                            <td>{{leave.employeeType}}</td>
+                            <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="leave.emp360" style="cursor: pointer;" title="Click to view Employee 360" (click)="cancelRequest()">{{leave.employeeName}}</td>
+                            <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{leave.employeeName}}</td>
+                            <td>{{leave.departmentName}}</td>
+                            <!-- <td>{{leave.date}}</td>
+                            <td>{{leave.dayType}}</td> -->
+                            <td>{{leave.email}}</td>
+                            <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{leave.managerName}}</td>
+                            <td class="text-capitalize" *ngIf="userMapping.reports_employee_360" (click)="cancelRequest()" id="clickablefor360" [navigateToEmployee360]="leave.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{leave.managerName}}</td>
+                            <td>{{leave.mobileNo}}</td>
+                            <td *ngIf="isPendingByUser">{{leave.pendingEodCount}}</td>
+                            <!-- <td>{{leave.totalWorkingHours}}</td> -->
+                            <td>{{leave.legend}}</td>
+                            <td *ngIf="!isPendingByUser"> {{leave.count}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
             <pagination-controls class="my-pagination" [hidden]="modalSummaryList.length == 0"
                 (pageChange)="handlePageChange($event)"></pagination-controls>
-            
+            <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+                [hidden]="modalSummaryList.length == 0" (click)="exportToExcelTimesheetSummary()"><em
+                    class="fa fa-file-arrow-down fa-2x"></em></button> -->
         </div>
     </div>
 </ng-template>
@@ -404,11 +411,11 @@
                 </a>
             </div>
             <div class="export-button">
-                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
-                [hidden]="modalSummaryList.length == 0" (click)="exportToExcelEODSegregation('excelEOD')"><em
+                <button type="button mt-3" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+                [hidden]="modalSummaryList.length == 0" (click)="exportToExcelEODSegregation()"><em
                     class="fa fa-file-arrow-down fa-2x"></em></button>
             </div>
-            <table class="table  scrollable-table" matSort (matSortChange)="sortData($event)" id="excelEOD">
+            <table class="table  scrollable-table" matSort (matSortChange)="sortData($event)">
                 <thead class="thead-light">
                     <tr>
                         <th scope="col" class="info-label wide-col wide-col">Sr No.</th>
@@ -449,6 +456,9 @@
             </table>
             <pagination-controls class="my-pagination" [hidden]="modalSummaryList.length == 0"
                 (pageChange)="handlePageChange($event)"></pagination-controls>
+            <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+                [hidden]="modalSummaryList.length == 0" (click)="exportToExcelEODSegregation()"><em
+                    class="fa fa-file-arrow-down fa-2x"></em></button> -->
         </div>
     </div>
 </ng-template>
@@ -571,9 +581,9 @@
             </div>
             <pagination-controls class="my-pagination" [hidden]="modalSummaryList.length == 0"
                 (pageChange)="handlePageChange($event)"></pagination-controls>
-            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
-                [hidden]="modalSummaryList.length == 0" (click)="exportToExcelEmployeeSummary('employees-summary')"><em
-                    class="fa fa-file-arrow-down fa-2x"></em></button>
+            <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+                [hidden]="modalSummaryList.length == 0" (click)="exportToExcelEmployeeSummary()"><em
+                    class="fa fa-file-arrow-down fa-2x"></em></button> -->
         </div>
     </div>
 </ng-template>
@@ -592,6 +602,11 @@
             <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
         </a>
+    </div>
+    <div class="export-button mt-3">
+        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+        [hidden]="modalSummaryList.length == 0" (click)="exportToExcelWorkLocationSummary()"><em
+            class="fa fa-file-arrow-down fa-2x"></em></button>
     </div>
         <table class="table  scrollable-table" matSort (matSortChange)="sortData($event)">
             <thead class="thead-light">
@@ -628,9 +643,9 @@
         </table>
         <pagination-controls class="my-pagination" [hidden]="modalSummaryList.length == 0"
             (pageChange)="handlePageChange($event)"></pagination-controls>
-        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
-            [hidden]="modalSummaryList.length == 0" (click)="exportToExcelWorkLocationSummary('work-location-summary')"><em
-                class="fa fa-file-arrow-down fa-2x"></em></button>
+        <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+            [hidden]="modalSummaryList.length == 0" (click)="exportToExcelWorkLocationSummary()"><em
+                class="fa fa-file-arrow-down fa-2x"></em></button> -->
     </div>
 </div>
 </ng-template>

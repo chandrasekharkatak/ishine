@@ -53,7 +53,7 @@
         </div>
         <div class="export-button">
           <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-          [hidden]="allLeaveApplicationsList.length == 0" (click)="exportToExcel('leaveReportInfo')"><em
+          [hidden]="allLeaveApplicationsList.length == 0" (click)="exportToExcel()"><em
             class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
         <div class="table-container" bassHorizontalScroll [tableId]="'leaveReportInfo'"
@@ -203,11 +203,11 @@
         </div>
         <div class="export-button">
           <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-          [hidden]="filteredTimesheets.length == 0" (click)="exportToExcel('show-details')"><em
+          [hidden]="filteredTimesheets.length == 0" (click)="exportToExcel()"><em
             class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
         <div class="table-container" bassHorizontalScroll >
-          <table class="table " matSort (matSortChange)="sortData($event)" id = "show-details">
+          <table class="table " matSort (matSortChange)="sortData($event)">
             <thead class="thead-light" >
               <tr >
                 <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Emp Id</th>
@@ -281,7 +281,7 @@
         </div>
         <div class="export-button">
           <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-          [hidden]="allTimesheetApplicationsList.length == 0" (click)="exportToExcel('timesheetReportInfo')"><em
+          [hidden]="allTimesheetApplicationsList.length == 0" (click)="exportToExcel()"><em
             class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
         <div class="table-container" bassHorizontalScroll [tableId]="'timesheetReportInfo'"
@@ -622,12 +622,12 @@
         </div>
         <div class="export-button">
           <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-          [hidden]="filteredEmployees.length == 0" (click)="exportToExcel('employeeReport')"><em
+          [hidden]="filteredEmployees.length == 0" (click)="exportToExcel()"><em
             class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
         <div class="table-container" bassHorizontalScroll [tableId]="'employeeReportInfo'"
           [tableTHeadId]="'employeeReportInfoTHead'" [tableTHeadTrId]="'employeeReportInfoTHeadTr'">
-          <table class="table " matSort (matSortChange)="sortData($event)" id = "employeeReport">
+          <table class="table " matSort (matSortChange)="sortData($event)">
             <thead class="thead-light">
               <tr>
                 <th scope="col" class="info-label">Sr No.</th>
@@ -652,8 +652,6 @@
                 <th scope="col" class="info-label " mat-sort-header="effectiveEndDate|string">Effective End Date</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="clientName|string">Client Name</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="clientLocation|string">Client Location</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="clientRM|string">Client RM</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="apmosysRM|string">Apmosys RM</th>
                 <th scope="col" class="info-label" mat-sort-header="workLocation|string">Work Location</th>
                 <th scope="col" class="info-label" mat-sort-header="totalExperience|string">Experience</th>
                 <th *ngIf="changeTable" scope="col" class="info-label wide-col" mat-sort-header="totalExperience|string">Default
@@ -753,7 +751,7 @@
                       ..{{ (show === i) ? '▲' : '▼' }}
                     </a>
                   </ng-container>
-                </td>       
+                </td>                               
                 <td>
                   <ng-container *ngIf="employee.clientName">
                     {{ (show === i) ? employee.clientName : (employee.clientName | slice: 0:20) }}
@@ -769,9 +767,7 @@
                       ..{{ (show === i) ? '▲' : '▼' }}
                     </a>
                   </ng-container>
-                </td>               
-                <td>{{ employee.clientRM }}</td>
-                <td>{{ employee.apmosysRM }}</td>  
+                </td>
                 <td>
                   <ng-container *ngIf="employee.workLocation">
                     {{ (show === i) ? employee.workLocation : (employee.workLocation | slice: 0:20) }}
@@ -831,12 +827,12 @@
         </div>
         <div class="export-button">
           <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-          [hidden]="allEmployeeList.length == 0" (click)="exportToExcel('employeeReportInfo')"><em
+          [hidden]="allEmployeeList.length == 0" (click)="exportToExcel()"><em
             class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
         <div class="table-container" bassHorizontalScroll [tableId]="'employeeReportInfo'"
           [tableTHeadId]="'employeeReportInfoTHead'" [tableTHeadTrId]="'employeeReportInfoTHeadTr'">
-          <table class="table " id="employeeReport" matSort (matSortChange)="sortData($event)" id = "employeeReportInfo">
+          <table class="table " id="employeeReport" matSort (matSortChange)="sortData($event)">
             <thead class="thead-light" id="employeeReportInfoTHead">
               <tr>
                 <th scope="col" class="info-label">Sr No.</th>
@@ -1136,7 +1132,7 @@
   </div>
   <div class="export-button">
     <button type="button" class="btn btn-sm btn-outline-primary ml-auto mb-2 excel-button"
-            (click)="exportToExcel('aclReportInfo')">
+            (click)="exportToExcel()">
             <em class="fa fa-file-arrow-down fa-2x"></em>
           </button>
   </div>
@@ -1419,7 +1415,7 @@
         </div>
         <div class="export-button">
           <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-          [hidden]="allLeaveTimesheets.length == 0" (click)="exportToExcel('leaveTimesheetReportInfo')"><em
+          [hidden]="allLeaveTimesheets.length == 0" (click)="exportToExcel()"><em
             class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
         <div class="table-container" bassHorizontalScroll [tableId]="'leaveTimesheetReportInfo'"

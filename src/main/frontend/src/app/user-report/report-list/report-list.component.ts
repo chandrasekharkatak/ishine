@@ -153,8 +153,8 @@ export class ReportListComponent implements OnInit {
   filters: any = {};
   isSearchEnabled: boolean = false;
 
-  employeeReportColumnForDetailedProjectViewClub: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'clientRM', 'apmosysRM', 'workLocation', 'experience', 'primaryProjectName'];
-  employeeReportColumnForDetailedProjectView: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'clientRM', 'apmosysRM', 'workLocation', 'experience'];
+  employeeReportColumnForDetailedProjectViewClub: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience', 'primaryProjectName'];
+  employeeReportColumnForDetailedProjectView: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience'];
   leaveReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'noOfDays', 'reason', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'leaveStatusUpdatedByName'];
   timesheetReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'totalWorkingHours', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'leaveType', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
   employeeReportColumn: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'projectName', 'poNo', 'poStartDate', 'poEndDate', 'poProjectType', 'clientName', 'billable', 'billableType', 'dateOfJoining', 'aadhar', 'aboutMe', 'address', 'permanentAddress', 'city', 'bloodGroup', 'dateOfBirth', 'gender', 'fatherName', 'panNumber', 'placeOfBirth', 'workLocation', 'probationPeriod', 'noticePeriod', 'country', 'totalExperience', 'emergencyContactMobile', 'emergencyContactPerson', 'landline', 'maritalStatus', 'motherTongue', 'alternateMobileNo', 'pincode', 'relation', 'state', 'viewsOnOrganisation', 'passportNumber', 'bankAccountNo', 'bankIFSCCode', 'bankName', 'pfAccountNumber', 'previousPfAccountNumber', 'uan', 'esicNumber', 'graduationType', 'pursuing', 'passingGrade', 'yearOfPassing', 'updatedOn', 'updatedByName', 'createdByName', 'createdOn'];
@@ -191,7 +191,6 @@ export class ReportListComponent implements OnInit {
   updatedEmpObj: any;
   show: number = -1;
   filteredTimesheets: any;
-  tableName: string;
 
 
   constructor(
@@ -1766,26 +1765,54 @@ export class ReportListComponent implements OnInit {
   }
 
   // Excel Export 
-  exportToExcel(id:any): void {
+  exportToExcel(): void {
 
     if (this.isLeaveReportTable == true) {
       this.excelName = 'leaveReport.xlsx';
 
-      const tableId = id; 
-      this.tableName= 'My Team';
-      
-      
-      this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+      const onlySpecificDataArr = this.allLeaveApplicationsList.map(
+        x => ({
+          "Employee Id": x.employeementId,
+          "Employee Type": x.employeeType,
+          "Employee Name": x.employeeName,
+          "Leave Type": x.leaveType,
+          "From Date": x.fromDate,
+          "To Date": x.toDate,
+          "From Date Day Type": x.fromDateDayType,
+          "To Date Day Type": x.toDateDayType,
+          "No Of Days": x.noOfDays,
+          "Reason": x.reason,
+          "Status": x.status,
+          "Manager Name": x.managerName,
+          "Department Name": x.departmentName,
+          "Created On": x.createdOn,
+          "Updated On": x.updatedOn,
+          "Updated By": x.leaveStatusUpdatedByName
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
     }
 
     if (this.isTimesheetReportTable == true) {
       this.excelName = 'timesheetReport.xlsx';
 
-      const tableId = id; 
-      this.tableName= 'My Team';
-      
-      
-       this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+      const onlySpecificDataArr = this.allTimesheetApplicationsList.map(
+        x => ({
+          "Employeement Id": x.employeementId,
+          "Employee Type": x.employeeType,
+          "Employee Name": x.employeeName,
+          "date": x.date,
+          "dayType": x.dayType,
+          "description": x.description?.replaceAll('<br>', ' \n'),
+          "status": x.status,
+          "totalWorkingHours": x.totalWorkingHours,
+          "Leave Type": x.leaveType,
+          "createdOn": x.createdOn,
+          "updatedOn": x.updatedOn,
+          "timesheetStatusUpdatedByName": x.timesheetStatusUpdatedByName
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
     }
 
     if (this.isEmployeeReportTable == true) {
@@ -1794,29 +1821,134 @@ export class ReportListComponent implements OnInit {
       if (!this.showDetails) {
         this.excelName = 'EmployeeReport.xlsx';
 
-        const tableId = id; 
-        this.tableName= 'My Team';
-        
-        
-         this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+        const onlySpecificDataArr = this.allEmployeeList.map(
+          x => ({
+            "Employee Id": x.employeementId,
+            "Employee Type": x.employeeType,
+            "Full Name": x.name,
+            "Email Id": x.email,
+            "Employment Status": x.employmentstatus,
+            "Date Of Joining": x.dateOfJoining,
+            "Department": x.departmentName,
+            "Billable": x.billable,
+            "Billable Type": x.billableType,
+            "Client Name": x.clientName,
+            "Team Name": x.teamName,
+            "Project Name": x.projectName,
+            "Po No": x.poNo,
+            "Po Start Date": x.poStartDate,
+            "Po End Date": x.poEndDate,
+            "Po Project Type": x.poProjectType,
+            "Aadhar": x.aadhar,
+            "About Me": x.aboutMe,
+            "address": x.address,
+            "permanentAddress": x.permanentAddress,
+            "city": x.city,
+            "Manager Name": x.managerName,
+            "Blood Group": x.bloodGroup,
+            "date Of Birth": x.dateOfBirth,
+            "gender": x.gender,
+            "fatherName": x.fatherName,
+            "mobileNo": x.mobileNo,
+            "panNumber": x.panNumber,
+            "placeOfBirth": x.placeOfBirth,
+            "workLocation": x.workLocation,
+            "Probation Period": x.probationPeriod,
+            "noticePeriod": x.noticePeriod,
+            "country": x.country,
+            "emergencyContactMobile": x.emergencyContactMobile,
+            "emergencyContactPerson": x.emergencyContactPerson,
+            "landline": x.landline,
+            "maritalStatus": x.maritalStatus,
+            "motherTongue": x.motherTongue,
+            "alternateMobileNo": x.alternateMobileNo,
+            "pincode": x.pincode,
+            "relation": x.relation,
+            "State": x.state,
+            "viewsOnOrganisation": x.viewsOnOrganisation,
+            "passportNumber": x.passportNumber,
+            "bankAccountNo": x.bankAccountNo,
+            "bankIFSCCode": x.bankIFSCCode,
+            "bankName": x.bankName,
+            "pfAccountNumber": x.pfAccountNumber,
+            "previousPfAccountNumber": x.previousPfAccountNumber,
+            "uan": x.uan,
+            "esicNumber": x.esicNumber,
+            "graduationType": x.graduationType,
+            "pursuing": x.pursuing,
+            "passingGrade": x.passingGrade,
+            "yearOfPassing": x.yearOfPassing,
+            "createdBy": x.createdBy,
+            "createdOn": x.createdOn,
+            "Proile Completion Perecentage": x.profileCompletedPercent,
+          })
+        )
+        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
       } else {
         this.excelName = 'EmployeeDetailedReport.xlsx';
         if (this.changeTable) {
-          const tableId = id; 
-          this.tableName= 'My Team';
-          
-          
-           this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+          const onlySpecificDataArr = this.filteredEmployees.map(
+            x => ({
+              "Employee Id": x.employeementId,
+              "Full Name": x.name,
+              "Department": x.departmentName,
+              "Job Role": x.jobRole,
+              "Manager": x.managerName,
+              "Mobile Number": x.mobileNo,
+              "Email Id": x.email,
+              "Employment Status": x.employmentstatus,
+              "Billable": x.billable,
+              "Billable Type": x.billableType,
+              "Team Name": x.teamName,
+              "Project Name": x.projectName,
+              "Po No": x.poNo,
+              "Po Type": x.poType,
+              "Po Start Date": x.poStartDate,
+              "Po End Date": x.poEndDate,
+              "Effective Start Date": x.effectiveStartDate,
+              "Effective End Date": x.effectiveEndDate,
+              "Client Name": x.clientName,
+              "Client Location": x.clientLocation,
+              "Work Location": x.workLocation,
+              "Experience": x.totalExperience,
+              "Default Project Assigned": x.primaryProjectName,
+            })
+          )
+          this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
         } else {
-          const tableId = id; 
-          this.tableName= 'My Team';
-          
-          
-           this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+          const onlySpecificDataArr = this.filteredEmployees.map(
+            x => ({
+              "Employee Id": x.employeementId,
+              "Full Name": x.name,
+              "Department": x.departmentName,
+              "Job Role": x.jobRole,
+              "Manager": x.managerName,
+              "Mobile Number": x.mobileNo,
+              "Email Id": x.email,
+              "Employment Status": x.employmentstatus,
+              "Billable": x.billable,
+              "Billable Type": x.billableType,
+              "Team Name": x.teamName,
+              "Project Name": x.projectName,
+              "Po No": x.poNo,
+              "Po Type": x.poType,
+              "Po Start Date": x.poStartDate,
+              "Po End Date": x.poEndDate,
+              "Effective Start Date": x.effectiveStartDate,
+              "Effective End Date": x.effectiveEndDate,
+              "Client Name": x.clientName,
+              "Client Location": x.clientLocation,
+              "Work Location": x.workLocation,
+              "Experience": x.totalExperience,
+
+            })
+          )
+          this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
         }
       }
-    }
-// ----------------------------------------------------------------------------------------------
+    }    
+    
+
     if (this.isAccessControlListTable == true) {
       this.excelName = `${this.employeeRole}-ACLReport.xlsx`;
 
@@ -1865,15 +1997,27 @@ export class ReportListComponent implements OnInit {
 
       XLSX.writeFile(book, this.excelName);
     }
-// ---------------------------------------------------------------------------------------------------------------------------
+
     if (this.isLeaveTimesheetReportTable == true) {
       this.excelName = 'LeaveTimesheetReport.xlsx';
 
-      const tableId = id; 
-      this.tableName= 'My Team';
-      
-      
-       this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+      const onlySpecificDataArr = this.allLeaveTimesheets.map(
+        x => ({
+          "Employeement Id": x.employeementId,
+          "Employee Type": x.employeeType,
+          "Employee Name": x.employeeName,
+          "date": x.date,
+          "dayType": x.dayType,
+          "description": x.description?.replaceAll('<br>', ' \n'),
+          "status": x.status,
+          "Manager Name": x.managerName,
+          "Department Name": x.departmentName,
+          "createdOn": x.createdOn,
+          "updatedOn": x.updatedOn,
+          "timesheetStatusUpdatedByName": x.timesheetStatusUpdatedByName
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
     }
 
   }
