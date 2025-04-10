@@ -41,5 +41,6 @@ public class getAllEmployeesReportByProjectTypeInConsolidatedDTO {
     private String primaryProjectId;
     private String primaryProjectName;
     private Map<String, String> projects;
-    
+    private String clientRM;
+    private String apmosysRM;
 }
