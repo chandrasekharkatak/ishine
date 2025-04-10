@@ -61,6 +61,7 @@ import com.apmosys.employeeportal.repository.QuestionMasterRepository;
 import com.apmosys.employeeportal.repository.TagMasterRepository;
 import com.apmosys.employeeportal.utility.NLPUtils;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.apmosys.employeeportal.utility.TagSpecifications;
 
 @Service
 public class ProjectInsightService {
@@ -1865,6 +1866,17 @@ public class ProjectInsightService {
 		ProjectInsightDTO response = new ProjectInsightDTO();
 		try {
 			List<String> tagList = nlpUtils.extractTags(search);
+			
+			if(!tagList.isEmpty()) {
+				List<TagMaster> matchedTags = tagMasterRepository.findAll(TagSpecifications.tagNameLikeAny(tagList));
+
+				Set<Long> projectIds = matchedTags.stream()
+				        .map(TagMaster::getProjectId)
+				        .collect(Collectors.toSet());
+				
+				System.out.println(projectIds);
+			}
+			
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
