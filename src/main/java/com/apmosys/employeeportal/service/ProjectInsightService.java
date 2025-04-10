@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -47,6 +48,7 @@ import com.apmosys.employeeportal.model.ProjectInsightModule;
 import com.apmosys.employeeportal.model.ProjectInsightResponse;
 import com.apmosys.employeeportal.model.ProjectInsightSubModule;
 import com.apmosys.employeeportal.model.QuestionMaster;
+import com.apmosys.employeeportal.model.TagMaster;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightAssigneesRepository;
@@ -56,6 +58,8 @@ import com.apmosys.employeeportal.repository.ProjectInsightResponseRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightSubModuleRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.QuestionMasterRepository;
+import com.apmosys.employeeportal.repository.TagMasterRepository;
+import com.apmosys.employeeportal.utility.NLPUtils;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @Service
@@ -106,6 +110,12 @@ public class ProjectInsightService {
 	
 	@Value("${dmsPortalFetchUrlKey}")
 	private String dmsPortalFetchUrlKey;
+	
+	@Autowired
+	NLPUtils nlpUtils;
+	
+	@Autowired
+	TagMasterRepository tagMasterRepository;
 	
 	public ServiceResponse addUpdateQuestion(List<ProjectQuestionDTO> questionAddList, Long entityId, String entity) {
 		ServiceResponse response = new ServiceResponse();
@@ -176,6 +186,58 @@ public class ProjectInsightService {
 		return response;
 	}
 	
+	public String saveProjectWiseTags(ProjectInsightDTO projectInsightDTO) {
+	    String response = "Failed";
+
+	    try {
+	        Long projectId = projectInsightDTO.getProjectId();
+	        String tagType = projectInsightDTO.getTagType();
+	        String projectText = projectInsightDTO.getProjectText().toString();
+
+	        if (projectId == null || projectText == null || projectText.isEmpty() || tagType == null) {
+	            return "Invalid Project ID or Text or TagType";
+	        }
+
+	        List<String> extractedTags = nlpUtils.extractTags(projectText);
+	        
+	        List<TagMaster> existingTags = tagMasterRepository.findByProjectId(projectId);
+	        Set<String> existingTagNames = existingTags.stream()
+	        											.map(TagMaster::getTag)
+	        											.collect(Collectors.toSet());
+
+	        if ("response".equalsIgnoreCase(tagType)) {
+	            extractedTags.removeIf(existingTagNames::contains);
+	        } else {
+	            tagMasterRepository.deleteAll(existingTags);
+	        }
+
+	        // Save new tags if any remain
+	        if (!extractedTags.isEmpty()) {
+	            List<TagMaster> newTags = extractedTags.stream()
+	                .map(tag -> {
+	                    TagMaster tm = new TagMaster();
+	                    tm.setProjectId(projectId);
+	                    tm.setTag(tag);
+	                    return tm;
+	                })
+	                .collect(Collectors.toList());
+
+	            List<TagMaster> savedTags = tagMasterRepository.saveAll(newTags);
+	            if (!savedTags.isEmpty()) {
+	                response = "Success";
+	            }else {
+	            	response = "Failed";
+	            }
+	        } else {
+	            response = "No New Tags to Save";
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+
+	    return response;
+	}
+	
 	@Transactional
 	public ServiceResponse createProjectInsightQuestion(ProjectInsightDTO projectInsightDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -188,6 +250,7 @@ public class ProjectInsightService {
          + " ,Created By EmpId :" + projectInsightDTO.getCreatedBy());
         
         AtomicBoolean isSuccess = new AtomicBoolean(false);
+        StringBuilder combinedText = new StringBuilder();
 
 		try {
 
@@ -1796,6 +1859,16 @@ public class ProjectInsightService {
 			e.printStackTrace();
 			throw e;
 		}
+	}
+
+	public ResponseEntity<ProjectInsightDTO> onSearchTerm(String search) {
+		ProjectInsightDTO response = new ProjectInsightDTO();
+		try {
+			List<String> tagList = nlpUtils.extractTags(search);
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return ResponseEntity.ok(response);
 	}
 	
 }

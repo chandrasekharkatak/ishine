@@ -2,11 +2,15 @@ package com.apmosys.employeeportal.controller;
 
 import java.util.List;
 
+import javax.persistence.Entity;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -71,5 +75,14 @@ public class ProjectInsightController {
 	public ServiceResponse getAllProjectInsightContributionList(@RequestBody ProjectInsightDTO projectInsightDTO) {
 		ServiceResponse response = projectInsightService.getAllProjectInsightContributionList(projectInsightDTO);
 		return response;
+	}
+	
+    /*
+     * Search Apis
+     * */
+	
+	@RequestMapping(value = "/onSearchTerm", method = RequestMethod.GET)
+	public ResponseEntity<ProjectInsightDTO> onSearchTerm(@RequestParam String search) {
+		return projectInsightService.onSearchTerm(search);
 	}
 }

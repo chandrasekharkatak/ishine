@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { ProjectInsightQuestion } from '../models/projectInsightQuestion';
@@ -50,4 +50,10 @@ export class ProjectInsightService {
   getAllProjectInsightContributionList(projectObj: any) {
     return this.http.post(`${this.baseUrl}` + `api/getAllProjectInsightContributionList`, projectObj);
   }
+
+  onSearchTerm(searchTerm: string) {
+    const params = new HttpParams().set('search', searchTerm);
+    return this.http.get(`${this.baseUrl}` + `api/onSearchTerm`, { params });
+  }
+  
 }

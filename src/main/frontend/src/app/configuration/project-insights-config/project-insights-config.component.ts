@@ -42,6 +42,10 @@ export class ProjectInsightsConfigComponent implements OnInit {
   sortColumn: any;
   sortColumnType:any;
 
+  //search
+  searchTerm: string = '';
+  searchResultProjectList:any[] = [];
+
   // tab clicked
   projectInsightTabClick: boolean = false;
   prospectiveProjectTabClick: boolean = false;
@@ -151,6 +155,14 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.getEmployeeList();
   }
 
+  isSearchTabClick(){
+    this.searchTabClick = true;
+
+    this.projectInsightTabClick = false;
+    this.isProjectInsightList = false;
+    this.isQuestionForm = false;
+  }
+
   isProjectInsightTabClick(){
     this.projectInsightTabClick = true;
 
@@ -180,6 +192,26 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
     this.getAllProjectInsightList();
   }
+
+  // --------------------------------- Search :: start-----------------------------
+
+  onSearchTerm() {
+    this.projectInsightService.onSearchTerm(this.searchTerm).pipe(first()).subscribe(
+      (response: any) => {
+        this.searchResultProjectList = response;
+      },
+      (error) => {
+        console.error(error);
+      }
+    );
+  }
+
+  clearSearch() {
+    this.searchTerm = '';
+  }
+
+// --------------------------------- Search :: end-----------------------------
+
 
   showProjectInsightUpdate(projectObj:any, template: TemplateRef<any>){
     this.isQuestionForm = true;

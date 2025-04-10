@@ -33,4 +33,9 @@ public class ProjectInsightDTO {
 	private String performanceTabName;
 	private String taggedToUserNames;
     private List<Long> taggedForHelp;
+    
+    //For tags
+    private StringBuilder projectText; 
+    private String tagType;
+    
 }

@@ -1,7 +1,7 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1">Dashboard</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1">Search</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="isSearchTabClick()" [ngClass]="{'active' : searchTabClick}">Search</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1">Prospective Project</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="isProjectInsightTabClick()" [ngClass]="{'active' : projectInsightTabClick}">Project Insight</button>
     </div>
@@ -15,7 +15,27 @@
 
 
 <!------------------------------------ start :: Search  -------------------------->
+<div class="row justify-content-center" *ngIf="searchTabClick">
+    <div class="col-md-10 mt-5">
+      <div class="search-container">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Search"
+          [(ngModel)]="searchTerm"
+          (keyup.enter)="onSearchTerm()"
+        />
+        <button *ngIf="searchTerm" class="clear-btn" (click)="clearSearch()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
 
+    <div class="search-content">
+
+    </div>
+  </div>  
 <!------------------------------------ end :: Search  -------------------------->
 
 
