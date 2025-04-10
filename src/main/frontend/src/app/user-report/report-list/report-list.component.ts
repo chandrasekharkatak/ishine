@@ -503,6 +503,7 @@ export class ReportListComponent implements OnInit {
     this.tnmPOValidCountList = [];
     this.tnmPoExpiredCountList = [];
     this.fixedCostPoValidCountList = [];
+    this.fixedCostPoExpiredCountList = [];
     this.internalCountList = [];
     this.filteredEmployees = [];
 

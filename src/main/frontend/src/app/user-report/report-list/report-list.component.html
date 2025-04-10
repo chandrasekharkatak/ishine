@@ -398,22 +398,22 @@
     </div>
     <div class="container mt-5" *ngIf="showDetails">
       <div class="row justify-content-center">
-        <!-- First Box (TNM) -->
+      
         <div class="col-md-4">
           <div class="box border border-primary p-4 rounded text-center h-100 d-flex flex-column">
-            <!-- TNM with Project Count -->
-            <h4>TNM ({{tnmProjectCount}})</h4>
+           
+            <h4>TNM</h4>
         
             <!-- Active PO and Expired PO Summary -->
-            <div class="mb-2">
+            <!-- <div class="mb-2">
               <strong>Active PO:</strong>{{tnmPOProjectActiveCount}}&nbsp;&nbsp;&nbsp;
               <strong>Expired PO:</strong>{{tnmPoProjectExpiredCount}}
-            </div>
+            </div> -->
         
             <!-- Employees mapped to -->
-            <div class="mb-1">
+            <!-- <div class="mb-1">
               <strong>Employees mapped to:</strong>
-            </div>
+            </div> -->
         
             <!-- Active / Expired Employee Count Boxes -->
             <div class="row mt-2 flex-grow-1">
@@ -424,7 +424,7 @@
                 <div
                   class="branch bg-success text-white p-3 rounded w-100 h-100 d-flex flex-column align-items-center justify-content-center">
                   <h5>Active PO</h5>
-                  <p>{{ tnmPOValidCount }}</p> <!-- Add this variable in TS for active employees -->
+                  <p>{{ tnmPOValidCount }}</p> 
                 </div>
               </div>
         
@@ -435,7 +435,7 @@
                 <div
                   class="branch bg-danger text-white p-3 rounded w-100 h-100 d-flex flex-column align-items-center justify-content-center">
                   <h5>Expired PO</h5>
-                  <p>{{ tnmPoExpiredCount }}</p> <!-- Add this variable in TS for expired employees -->
+                  <p>{{ tnmPoExpiredCount }}</p> 
                 </div>
               </div>
             </div>
@@ -446,16 +446,16 @@
         <!-- Second Box (Fixed Cost) -->
         <div class="col-md-4">
           <div class="box border border-primary p-4 rounded text-center h-100 d-flex flex-column">
-            <h4>Fixed Cost ({{fixedCostProjectCount}})</h4>
-            <div class="mb-2">
+            <h4>Fixed Cost</h4>
+            <!-- <div class="mb-2">
               <strong>Active PO:</strong>{{fixedCostPoProjectActiveCount}}&nbsp;&nbsp;&nbsp;
               <strong>Expired PO:</strong>{{fixedCostPoProjectExpiredCount}}
-            </div>
+            </div> -->
         
             <!-- Employees mapped to -->
-            <div class="mb-1">
+            <!-- <div class="mb-1">
               <strong>Employees mapped to:</strong>
-            </div>
+            </div> -->
             <div class="row mt-2 flex-grow-1">
               <div title="Click to View FC-Active" class="col-6 d-flex"
                 [ngClass]="{ 'clicked': activeBox === 'FC-Active', 'hover': isHovering === 'FC-Active' }"
@@ -484,12 +484,12 @@
         <!-- Third Box (Internal) -->
         <div class="col-md-4">
           <div class="box border border-primary p-4 rounded text-center h-100 d-flex flex-column">
-            <h4>Internal ({{internalProjectCount}})</h4>
+            <h4>Internal</h4>
         
             <!-- Employees mapped to -->
-            <div class="mb-1">
+            <!-- <div class="mb-1">
               <strong>Employees mapped to:</strong>
-            </div>
+            </div> -->
             <div class="row mt-3 flex-grow-1">
               <div class="col-12 d-flex">
                 <div title="Click to View Internal"
