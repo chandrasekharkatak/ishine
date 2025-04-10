@@ -165,7 +165,9 @@ options:any;
 
   userMapping: any = {};
   feature = 'Reports';
- 
+  employeesFor360: any[] = [];
+  tableName: string;
+  excelName: string;
 
   constructor(
     private leaveService : LeaveService,
@@ -3494,108 +3496,56 @@ renderColumnBarSummaryChartForWorkLocation(chartName:any, chartId:any, chartData
 
   // export excel
 
-  exportToExcelLeaveSummary(): void {
-    const onlySpecificDataArr = this.modalSummaryList.map(
-      x => ({
-        "Emp ID": "A-".concat(x.employeementId),
-        // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
-        "Employee Type":((x.isApprenticeship === 'true') ? 'Apprentice' :  ((x.isConsultant === 'true')? 'Consultant': 'Regular')),
-        "Name":x.employeeName,
-        "Department Name": x.departmentName,
-        "From Date": (x.fromDate)? moment(x.fromDate).format(AppComponent.DATE_FORMAT) : null,
-        "To Date": (x.toDate)? moment(x.toDate).format(AppComponent.DATE_FORMAT) : null,
-        "From Date Day Type": x.fromDateDayType,
-        "To Date Day Type": x.toDateDayType,
-        "Status": x.status
-      })
-    )
-    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.modalTitle.concat(".xlsx"))
+  exportToExcelLeaveSummary(id:any): void {
+
+    const tableId = id; 
+    this.tableName= 'Report-dashboard';
+    this.excelName = 'LeaveSummary.xlsx'
+
+    
+    
+     this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
   }
 
-  exportToExcelTimesheetSummary(): void {
-    const onlySpecificDataArr = this.modalSummaryList.map(
-      x => ({
-        "Emp ID": "A-".concat(x.employeementId),
-        // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
-        "Employee Type":((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true')? 'Consultant': 'Regular')),
-        "Name":x.employeeName,
-        "Department Name": x.departmentName,
-        "Timesheet Date":(x.date)? moment(x.date).format(AppComponent.DATE_FORMAT) : null,
-        "Day Type":x.dayType,
-        "Email Id": x.email,
-        "Manager Name": x.managerName,
-        "Mobile No.": x.mobileNo,
-        "Pending EOD Count": x.pendingEodCount,
-        "Total Working Hour":x.totalWorkingHours,
-        "Type": x.legend
-      })
-    )
-    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.modalTitle.concat(".xlsx"));
+  exportToExcelTimesheetSummary(id:any): void {
+    const tableId = id; 
+    this.tableName= 'Report-dashboard';
+    this.excelName = 'timesheet-summary.xlsx'
+
+    
+    
+     this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
   }
 
-  exportToExcelEODSegregation(): void {
-    const onlySpecificDataArr = this.modalSummaryList.map(
-      x => ({
-        "Emp ID": "A-".concat(x.employeementId),
-        // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
-        "Employee Type":((x.isApprenticeship === 'true')? 'Apprentice' : ((x.isConsultant === 'true')? 'Consultant': 'Regular')),
-        "Name":x.employeeName,
-        "Department Name": x.departmentName,
-        "Email Id": x.email,
-        "Manager Name": x.managerName,
-        "Mobile No.": x.mobileNo,
-        "Timesheet Date":(x.date)? moment(x.date).format(AppComponent.DATE_FORMAT) : null,
-        "Day Type": x.dayType,
-        "Total Working Hours": x.totalWorkingHours
-      })
-    )
-    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.modalTitle.concat(".xlsx"));
+  exportToExcelEODSegregation(id:any): void {
+    const tableId = id; 
+    this.tableName= 'Report-dashboard';
+    this.excelName = 'EOD-segregation.xlsx'
+
+    
+    
+    this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
   }
 
-  exportToExcelEmployeeSummary():void {
-    const onlySpecificDataArr = this.modalSummaryList.map(
-      x => ({
-        "Emp ID": x.employeementId,
-        // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
-        "Employee Type":((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true') ? 'Consultant': 'Regular')),
-        "Name":x.name,
-        "Department Name": x.departmentName,
-        "Experience" : x.experience,
-        "Email Id": x.email,
-        "Date Of Joining" : (x.dateOfJoining)? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null,
-        "Manager Name": x.managerName,
-        "Billable": x.billable,
-        "Billable Type" : x.billableType,
-        "Project Name":x.projectName,
-        "Client Name":x.clientName,
-        "Team Name":x.teamName,
-        "Mobile No.": x.mobileNo,
-        "Status": x.employmentstatus,
-        "Total Experience": x.totalExperience,
-        "Gender": x.gender,
-        "Work Location": x.workLocation,
-        "Age": x.age,
-        "KYC Status" : x.profileKycStatus
-      })
-    )
-    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.modalTitle.concat(".xlsx"))
+  exportToExcelEmployeeSummary(id:any):void {
+    const tableId = id; 
+    this.tableName= 'Report-dashboard';
+    this.excelName = 'employee-summary.xlsx'
+
+    
+    
+    this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+
   }
 
-  exportToExcelWorkLocationSummary():void {
-    const onlySpecificDataArr = this.modalSummaryList.map(
-      x => ({
-        "Emp ID": x.employeementId,
-        // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
-        "Employee Type":((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true') ? 'Consultant': 'Regular')),
-        "Employee Name":x.employeeName,
-        "Project Name":x.projectName,
-        "Client Name":x.clientName,
-        "Team Name":x.teamName,
-        "Client Location":x.clientLocation,
-        "Working Date":(x.date)? moment(x.date).format(AppComponent.DATE_FORMAT) : null
-      })
-    )
-    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.modalTitle.concat(".xlsx"))
+  exportToExcelWorkLocationSummary(id:any):void {
+    const tableId = id; 
+    this.tableName= 'Report-dashboard';
+    this.excelName = 'work-location-summary.xlsx'
+
+    
+    
+    this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
   }
 
 // export global data
@@ -3639,20 +3589,14 @@ exportGlobalData():void{
 
   // allResignEmployee
 
-  exportToExcelResignedEmployee():void {
-    const onlySpecificDataArr = this.allResignEmployee.map(
-      x => ({
-        "Emp ID": x.employeementId,
-        // "Emp ID": (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId),
-        "Employee Type":((x.isApprenticeship  === 'true') ? 'Apprentice' : ( (x.isConsultant  === 'true') ? 'Consultant': 'Regular')),
-        "Employee Name":x.name,
-        "Department":x.departmentName,
-        "Date Of Resign":(x.dateOfResign)? moment(x.dateOfResign).format(AppComponent.DATE_FORMAT) : null,
-        "Date Of Relieving":(x.dateOfRelieving)? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null,
-        "Reporting To":x.managerName
-      })
-    )
-    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, "Resigned Employee".concat(".xlsx"))
+  exportToExcelResignedEmployee(id:any):void {
+    const tableId = id; 
+    this.tableName= 'Report-dashboard';
+    this.excelName = 'ResignedEmployee.xlsx'
+
+    
+    
+     this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
   }
 
   //Pagination

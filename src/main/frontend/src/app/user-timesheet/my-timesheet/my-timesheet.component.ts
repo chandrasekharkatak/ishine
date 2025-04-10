@@ -102,6 +102,7 @@ AllWeekOfList:any[]=[];
   isSearchEnabled:boolean = false;
   selfTimesheetColumns:any[] = ['blank','date','dayType','officeInTime','officeOutTime','totalWorkingOfficeHours','description','totalTime','status','createdByName','createdOn','isNightShiftDisplay','leaveType','remarks'];
   teamTimesheetColumns:any[] = ['blank','employeeName','date','dayType','officeInTime','officeOutTime','totalWorkingOfficeHours','description','totalTime','status','createdOn','isNightShiftDisplay','leaveType','remarks'];
+  tableName: string;
 
 
   constructor(
@@ -1577,33 +1578,38 @@ getFilteredDates(dayType: string): Date[] {
     });
   }
 
-  exportToExcel(): void {
+  exportToExcel(id:any): void {
 
-    if (this.isTimesheetTable == true) {
-      this.excelName = 'MyTimeSheet.xlsx'
+    // if (this.isTimesheetTable == true) {
+    //   this.excelName = 'MyTimeSheet.xlsx'
 
-      const _allEmployeeList = this.allMyTimesheets.slice()
-      this.allMyTimesheetsDataForExcel = _allEmployeeList.sort((a, b) => (new Date(a.date).getTime() > new Date(b.date).getTime())? 1 : -1);
+    //   const _allEmployeeList = this.allMyTimesheets.slice()
+    //   this.allMyTimesheetsDataForExcel = _allEmployeeList.sort((a, b) => (new Date(a.date).getTime() > new Date(b.date).getTime())? 1 : -1);
 
-      const onlySpecificDataArr = this.allMyTimesheetsDataForExcel.map(
-        x => ({
-          "Date": x.date,
-          "Day Type": x.dayType,
-          "In Time": x.officeInTime,
-          "Out Time": x.officeOutTime,
-          "Total Working Hours": x.totalWorkingOfficeHours,
-          "Timesheet Details": x.description?.replaceAll('<br>', ' \n'),
-          "Total Activity Time": x.totalTime,
-          "Status": x.status,
-          "Applied By": x.createdByName,
-          "Applied On": x.createdOn,
-          "Shift Type": x.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift',
-          "Leave Type": x.leaveType,
-          "Remarks": x.remarks
-        })
-      )
-      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
-    }
+    //   const onlySpecificDataArr = this.allMyTimesheetsDataForExcel.map(
+    //     x => ({
+    //       "Date": x.date,
+    //       "Day Type": x.dayType,
+    //       "In Time": x.officeInTime,
+    //       "Out Time": x.officeOutTime,
+    //       "Total Working Hours": x.totalWorkingOfficeHours,
+    //       "Timesheet Details": x.description?.replaceAll('<br>', ' \n'),
+    //       "Total Activity Time": x.totalTime,
+    //       "Status": x.status,
+    //       "Applied By": x.createdByName,
+    //       "Applied On": x.createdOn,
+    //       "Shift Type": x.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift',
+    //       "Leave Type": x.leaveType,
+    //       "Remarks": x.remarks
+    //     })
+    //   )
+    //   // this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+    // }
+    const tableId = id; // Replace with your actual table ID
+    this.excelName = "MyTimeSheet.xlsx";
+    this.tableName= 'My Timesheet';
+
+    this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
 
   }
 

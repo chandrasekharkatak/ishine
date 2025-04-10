@@ -58,6 +58,9 @@ export class TeamTimesheetComponent implements OnInit {
   bulkApprove: any = [];
   bulkReject: any = [];
 
+  tableName : String;
+
+
   filters:any = {};
   isSearchEnabled:boolean = false;
   allTimesheetColumns:any[] = ['blank','employeementId','employeeName','date','dayType','description','totalTime','officeInTime','officeOutTime','totalWorkingOfficeHours','status','isNightShift','leaveType','remarks'];
@@ -280,53 +283,20 @@ export class TeamTimesheetComponent implements OnInit {
     });
   }
 
-  exportToExcel(): void {
+  exportToExcel(id:any): void {
+    const tableId = id; 
+    this.tableName= 'Team Timesheet';
 
     if (this.isAllTimesheetTable == true) {
       this.excelName = 'AllTeamTimesheet.xlsx';
 
-      this.allTeamTimesheetDataForExcel = this.allTeamTimesheets;
-      const onlySpecificDataArr = this.allTeamTimesheetDataForExcel.map(
-        x => ({
-          "Employee Id": x.employeementId,
-          "Employee Name": x.employeeName,
-          "Date": x.date,
-          "Day Type": x.dayType,
-          "Timesheet Details": x.description?.replaceAll('<br>', ' \n'),
-          "Total Time": x.totalTime,
-          "Office In Time": x.officeInTime,
-          "Office Out Time": x.officeOutTime,
-          "Total Office Working Hours": x.totalWorkingOfficeHours,
-          "Status": x.status,
-          "Shift Type": x.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift',
-          "Leave Type": x.leaveType,
-          "Remarks": x.remarks
-        })
-      )
-      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+      this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
     }
 
     if (this.isAllTimesheetRequestTable == true) {
       this.excelName = 'AllTeamTimeSheetRequest.xlsx'
 
-      this.allTeamTimesheetRequestDataForExcel = this.allTeamTimesheetRequests;
-      const onlySpecificDataArr = this.allTeamTimesheetRequestDataForExcel.map(
-        x => ({
-          "Employee Id": x.employeementId,
-          "Name": x.employeeName,
-          "Date": x.date,
-          "Day Type": x.dayType,
-          "Timesheet Details": x.description?.replaceAll('<br>', ' \n'),
-          "Applied By": x.createdByName,
-          "Working Hours": x.totalTime,
-          "Office In Time": x.officeInTime,
-          "Office Out Time": x.officeOutTime,
-          "Total Office Working Hours": x.totalWorkingOfficeHours,
-          "Shift Type": x.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift',
-          "Status": x.status
-        })
-      )
-      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+      this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
     }
   }
 

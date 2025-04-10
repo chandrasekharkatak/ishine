@@ -129,6 +129,8 @@ export class TeamConfigComponent implements OnInit {
   // employeesFor360: any[] = [];
   allEmployeeList360: any[] = [];
 
+  tableName:String
+
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -1357,40 +1359,20 @@ export class TeamConfigComponent implements OnInit {
 
   // download excel
 
-  exportToExcel(): void {
+  exportToExcel(id:any): void {
+
+    const tableId = id; 
+    this.tableName= 'Team Config';
 
     if (this.isTeamTable == true) {
       this.excelName = 'TeamSheet.xlsx';
 
-      this.teamsActivityDataForExcel = this.allTeamList;
-
-      const onlySpecificDataArr = this.teamsActivityDataForExcel.map(
-        x => ({
-          "Project Name": x.projectName,
-          "Team Name": x.teamName,
-          "Team Lead": x.teamLeadName,
-          "Project Manager": x.projectManagerName,
-          "Created by": x.createdByName,
-          "Created on": (x.createdOn)? moment(x.createdOn, "DD-MM-YYYY").format(AppComponent.DATETIME_FORMAT) : null
-        })
-      )
-      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
-
+      this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
     }
     if (this.isActivityTable == true) {
       this.excelName = 'ActivitiesSheet.xlsx';
 
-      this.teamsByProjectIdDataForExcel = this.allActivityList;
-
-      const onlySpecificDataArr = this.teamsByProjectIdDataForExcel.map(
-        x => ({
-          "Activity": x.activity,
-          "ETA": x.eta,
-          "Created by": x.createdByName,
-          "Created on": (x.createdOn)? moment(x.createdOn, "DD-MM-YYYY").format(AppComponent.DATETIME_FORMAT) : null
-        })
-      )
-      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+      this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
 
     }
   }

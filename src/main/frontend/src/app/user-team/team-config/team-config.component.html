@@ -342,7 +342,7 @@
                     </a>
                 </div>
                 <div class="export-button">
-                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="allTeamList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="allTeamList.length == 0" (click)="exportToExcel('teamInfo')"><em class="fa fa-file-arrow-down fa-2x"></em></button>
 
                 </div>
                 <div class="table-container" bassHorizontalScroll [tableId]="'teamInfo'" [tableTHeadId]="'teamInfoTHead'"
@@ -588,7 +588,7 @@
                     </a>
                 </div>
                 <div class="export-button">
-                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="allActivityList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="allActivityList.length == 0" (click)="exportToExcel('activities-table')"><em class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
                 <div class="table-container" bassHorizontalScroll [tableId]="'activityInfo'" [tableTHeadId]="'activityInfoTHead'"
                 [tableTHeadTrId]="'activityInfoTHeadTr'">

@@ -35,6 +35,7 @@ export class AttendanceReconciliationComponent implements OnInit {
   @ViewChild("alert_message")
   alertModal: TemplateRef<any>;
 
+  tableName:String;
   leaveReportColumns: any;
   filterData: any = new FilterData();
   alertMessage: any;
@@ -241,7 +242,7 @@ export class AttendanceReconciliationComponent implements OnInit {
     this.modalRef.hide();
   }
 
-  exportToExcel(): void {
+  exportToExcel(id:any): void {
     this.excelName = 'attendanceReconciliation.xlsx';
 
     const convertMinutesToHours = (value: number): string => {
@@ -254,26 +255,12 @@ export class AttendanceReconciliationComponent implements OnInit {
       // console.log(`Converted value for ${value} minutes: ${convertedValue}`);  // Debugging log
       return convertedValue;
     };
+    const tableId = id; 
+    this.tableName= 'Attendance-Reconciliation';
+    
+  
+    this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
 
-    const onlySpecificDataArr = this.attendanceReconciliationList.map(
-      x => ({
-        "Employee Id": x.employeeCode,
-        "Employee Name": x.employeeName,
-        "Log IN": x.inTime,
-        "Log Out": x.outTime,
-        "Total Working Hours": convertMinutesToHours(x.totalDuration),
-        "Shift Duration": convertMinutesToHours(x.shiftDuration),
-        "Shift Name": x.shiftName,
-        "Begin Time": x.beginTime,
-        "endTime": x.endTime,
-        "Log Date": x.logDate,
-        "Early By": convertMinutesToHours(x.earlyBy),
-        "Late By": convertMinutesToHours(x.lateBy),
-        "Status": x.status
-      })
-    );
-
-    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
   }
 
   exportToExcelviewMore(): void {
