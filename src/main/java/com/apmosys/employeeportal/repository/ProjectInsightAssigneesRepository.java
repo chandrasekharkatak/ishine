@@ -14,6 +14,9 @@ public interface ProjectInsightAssigneesRepository extends JpaRepository<Project
 	@Query(value="Select distinct e.name from ProjectInsightAssignees pia inner join Employee e on e.empId=pia.assignedTo where pia.entityId=:entityId and pia.entityType=:entityType and pia.assignType != 'Tagged' ")
 	List<String> getUserNameByEntityIdAndEntityType(Long entityId, String entityType);
 	
+	@Query(value="Select distinct e.empId from ProjectInsightAssignees pia inner join Employee e on e.empId=pia.assignedTo where pia.entityId=:entityId and pia.entityType=:entityType and pia.assignType != 'Tagged' ")
+	List<Long> getAssignedToByEntityIdAndEntityType(Long entityId, String entityType);
+		
 	@Query(value="Select distinct e.name from ProjectInsightAssignees pia inner join Employee e on e.empId=pia.assignedTo where pia.entityId=:entityId and pia.entityType=:entityType and pia.assignType = 'Tagged' and pia.taggedBy=:taggedBy ")
 	List<String> getUserNameByEntityIdAndEntityTypeAndTaggedBy(Long entityId, String entityType,Long taggedBy);
 

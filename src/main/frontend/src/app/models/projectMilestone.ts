@@ -1,29 +1,25 @@
-import { ProjectMilestone } from "./projectMilestone";
 import { ProjectModule } from "./projectModule";
 import { ProjectQuestion } from "./projectQuestion";
-import { ProjectSubModule } from "./projectSubModule";
 
-export class ProjectInsight {
+export class ProjectMilestone {
 
-    projectId: any;
-    projectName: any;
-    projectManagerId: any;
-    projectManagerName: any;
     empId: any;
     employeeRole: any;
-    isActive: any;
+    milestone: any;
+    milestoneId: any;
     description: any;
+    redmineId: any;
     assignedToUserId: any[] = [];
     assignedToUserNames: any;
     taggedToUserId: any[] = [];
     taggedToUserNames: any;
     questionList: ProjectQuestion[] = [new ProjectQuestion()];
-    projectInsightMilestoneList: ProjectMilestone[] = [new ProjectMilestone()];
+    moduleList: ProjectModule[] = [new ProjectModule()];
     isCollapsed: any = false;
     performanceTabName: any;
-    projectInsightQuestionTemplate: any;
     createdOn: any;
     createdBy: any;
     updatedOn: any;
     updatedBy: any;
 }
+

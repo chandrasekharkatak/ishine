@@ -71,9 +71,9 @@
                                   [valueMember]="'projectId'"
                                   [source]="allProjectList"
                                   [useInfiniteScroll]="true"
-                                  (selectionChange)="getProjectManangerInfo(projectInsightQuestion.projectId)"
+                                  (selectionChange)="getProjectManangerInfo(projectInsight.projectId)"
                                   [multiple]="false"
-                                  [(ngModel)]="projectInsightQuestion.projectId"
+                                  [(ngModel)]="projectInsight.projectId"
                                   [disabled]="isUpdation"
                                   >
                                   <mat-option [value]="project.projectId" *ngFor="let project of createTeamProjects.filteredSource">
@@ -87,14 +87,13 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label">Project Manager</label>
-                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="projectInsightQuestion.projectManagerName">
+                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="projectInsight.projectManagerName">
                         </div>
                     </div>
                 </div>
 
-
                 <div class="col-md-12">
-                    <div *ngFor="let question of projectInsightQuestion.applicationQuestion; let i = index" class="row" [class.question-input]="projectInsightQuestion?.applicationQuestion?.length>1">
+                    <div *ngFor="let question of projectInsight.questionList; let i = index" class="row" [class.question-input]="projectInsight?.questionList?.length>1">
                         <div class="col-md-12">
                             <div class="row">
                                 <div class="col-md-5 mb-0">
@@ -128,7 +127,7 @@
                                 </div>
                                 <div class="col-md-2 pt-4 mt-2">
                                     <button type="button" class="btn btn-outline-primary mx-1" (click)="addQuestion('project', i)"><i class="fa fa-plus" aria-hidden="true"></i></button>
-                                    <button *ngIf="projectInsightQuestion?.applicationQuestion?.length>1" type="button" class="btn btn-outline-primary mx-1" (click)="removeQuestion(i)"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                                    <button *ngIf="projectInsight?.questionList?.length>1" type="button" class="btn btn-outline-primary mx-1" (click)="removeQuestion(i)"><i class="fa fa-trash" aria-hidden="true"></i></button>
                                 </div>
                             </div>
                             <div class="row" *ngIf="(question.optionType == 'checkbox' || question.optionType == 'radio')" >
@@ -163,12 +162,9 @@
                 </div>
             </div>
             
-            
-            <div *ngFor="let milestone of projectInsightQuestionList; let mileIndex = index" class="row" [class.question-input]="projectInsightQuestionList.length>1">
+            <div *ngFor="let milestone of projectInsightMilestoneList; let mileIndex = index" class="row" [class.question-input]="projectInsightMilestoneList.length>1">
                 <div class="col-md-12">
-                
                     <hr>
-                
                     <div class="row">
                         <div class="col-md-4 mb-0">
                             <div class="info-wrapper">
@@ -198,7 +194,7 @@
                                           [source]="employeeList"
                                           [useInfiniteScroll]="true"
                                           [multiple]="true"
-                                          [(ngModel)]="milestone.assignedTo">
+                                          [(ngModel)]="milestone.assignedToUserId">
                                           <mat-option [value]="employee.empId" *ngFor="let employee of approvalSelect.filteredSource">
                                             {{employee.name}}
                                           </mat-option>
@@ -231,7 +227,7 @@
                                     </button>
                                 </div>
                             </div>
-                            <button *ngIf="projectInsightQuestionList.length > 1" type="button" class="btn btn-outline-primary mx-1"
+                            <button *ngIf="projectInsightMilestoneList.length > 1" type="button" class="btn btn-outline-primary mx-1"
                                 (click)="removeMilestone(mileIndex)">
                                 <i class="fa fa-trash" aria-hidden="true"></i>
                             </button>
@@ -273,7 +269,7 @@
                                                   [source]="employeeList"
                                                   [useInfiniteScroll]="true"
                                                   [multiple]="true"
-                                                  [(ngModel)]="module.assignedTo">
+                                                  [(ngModel)]="module.assignedToUserId">
                                                   <mat-option [value]="employee.empId" *ngFor="let employee of approvalSelect.filteredSource">
                                                     {{employee.name}}
                                                   </mat-option>
@@ -315,83 +311,13 @@
                             <app-question [group]="module" [mileIndex]="modIndex"></app-question>
                         </div>
                 
-                
                         <!-- SubModule List -->
-                        <div *ngFor="let submodule of module.subModuleList; let submodIndex = index" class="row"
-                            style="padding-left: 30px;" [class.question-input]="module?.subModuleList?.length>1">
-                            <div class="col-md-12">
-                                <div class="row">
-                                    <div class="col-md-4 mb-0">
-                                        <div class="info-wrapper">
-                                            <div class="form-group">
-                                                <label class="info-label"><span class="text-danger">*</span><b>Sub Module -
-                                                        {{submodIndex+1}}</b></label>
-                                                <input type="text" class="form-control" autocomplete="none"
-                                                    [(ngModel)]="submodule.subModule">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2 mb-0">
-                                        <div class="info-wrapper">
-                                            <div class="form-group">
-                                                <label class="info-label">Description</label>
-                                                <input type="text" class="form-control" autocomplete="none"
-                                                    [(ngModel)]="submodule.description">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2 mb-0">
-                                        <div class="info-wrapper">
-                                            <div class="form-group">
-                                                <label><span class="text-danger">*</span>Assign To</label>
-                                                <mat-select ngxMatSelect class="form-control"
-                                                      #approvalSelect="ngxMatSelect"
-                                                      [displayMember]="'name'"
-                                                      [valueMember]="'empId'"
-                                                      [source]="employeeList"
-                                                      [useInfiniteScroll]="true"
-                                                      [multiple]="true"
-                                                      [(ngModel)]="submodule.assignedTo">
-                                                      <mat-option [value]="employee.empId" *ngFor="let employee of approvalSelect.filteredSource">
-                                                        {{employee.name}}
-                                                      </mat-option>
-                                                </mat-select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2 mb-0">
-                                        <div class="info-wrapper">
-                                            <div class="form-group">
-                                                <label class="info-label">Redmine Id</label>
-                                                <input type="text" class="form-control" autocomplete="none"
-                                                    [(ngModel)]="submodule.redmineId">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2 pt-4 mt-2">
-                                        <div class="dropdown-container d-inline-block" ngbDropdown>
-                                            <button class="btn btn-outline-primary mx-1" ngbDropdownToggle>
-                                                <i class="fa fa-plus" aria-hidden="true"></i>
-                                            </button>
-                                            <div ngbDropdownMenu class="dropdown-menu enhanced-dropdown">
-                                                <button ngbDropdownItem (click)="addSubModule('submodule', mileIndex, modIndex)">
-                                                    Add Sub Module
-                                                </button>
-                                                <button ngbDropdownItem
-                                                    (click)="addQuestion('submodule', mileIndex, modIndex, submodIndex)">
-                                                    Add Question
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <button type="button"
-                                            class="btn btn-outline-primary mx-1" (click)="removeSubModule(mileIndex, modIndex, submodIndex)">
-                                            <i class="fa fa-trash" aria-hidden="true"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <app-question [group]="submodule" [mileIndex]="submodIndex"></app-question>
-                            </div>
-                        </div>
+                        <ng-container *ngFor="let submodule of module.subModuleList;let submodIndex =index">
+                            <ng-container [ngTemplateOutlet]="subModuleTemplate"
+                                [ngTemplateOutletContext]="{ mod:module, sub : submodule, level : 1, mileIndex : mileIndex,modIndex : modIndex, submodIndex : submodIndex, childSubModIndex : null }"></ng-container>
+                        </ng-container>
+                      
+                       
                     </div>
                 </div>
             </div>
@@ -448,7 +374,7 @@
                     </thead>
                     <tbody>
                         <tr *ngIf="allProjectInsightList.length == 0|| (allProjectInsightList| colFilter:filters:false).length == 0">
-                            <th colspan="6" class="text-center info-label">No Surveys to display...</th>
+                            <th colspan="6" class="text-center info-label">No Details to display...</th>
                         </tr>
                       <tr *ngFor="let project of allProjectInsightList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                         <td>{{project.projectName}}</td>
@@ -458,8 +384,6 @@
                         <td>
                             <button name="Preview" class="btn btn-sm btn-outline-primary" type="submit" (click)="getAllProjectInsightResponsesByProjectId(project,alert_message,insight_response_template,true)"><em class="fa fa-eye"></em></button>
                             <button class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showProjectInsightUpdate(project, alert_message)"><em class="fa fa-edit"></em></button>
-                            <!-- <button class="btn btn-sm btn-outline-danger" type="submit" (click)="openDeleteProjectInsightMod(delete_template, project)"><em class="fa fa-trash"></em></button> -->
-                            <!-- <button class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showAddProjectInsightResponses(project)"><em> Add / View Response</em></button>&nbsp; -->
                             <button class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="getAllProjectInsightResponsesByProjectId(project,alert_message,insight_response_template,false)"><em> Add / View Response</em></button>&nbsp;
                         </td>
                       </tr>
@@ -481,39 +405,13 @@
     </div>
 </ng-template>
 
-<ng-template #delete_template>
-    <div class="modal-body text-center">
-        <p>Are you sure you want to Delete Project Insight Milestone / Questions ?</p>
-        <button type="button" class="btn btn-success" (click)="onDelete(alert_message)">Yes, proceed</button>&nbsp;
-        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
-    </div>
-</ng-template>
-
-<ng-template #activate_template>
-    <div class="modal-body text-center">
-        <p>Are you sure you want to Activate this survey?</p>
-        <button type="button" class="btn btn-success" (click)="onActivate(alert_message)">Yes, proceed</button>&nbsp;
-        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
-    </div>
-</ng-template>
-
-<ng-template #complete_template>
-    <div class="modal-body text-center">
-        <p>Are you sure you want to Complete this survey?</p>
-        <button type="button" class="btn btn-success" (click)="onComplete(alert_message)">Yes, proceed</button>&nbsp;
-        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
-    </div>
-</ng-template>
-
 <ng-template #preview_template>
     <div class="modal-header">
-        <b class="modal-title">{{surveyObj.surveyName}} <small class="d-block text-secondary">{{surveyObj.description}}</small></b>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
     <div class="modal-body">
-        <!-- <div class="container-fluid d-flex flex-column align-tems-center" id="survey-container" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;"></div> -->
         <div class="container-fluid d-flex flex-column align-tems-center" id="survey-container"></div>
     </div>
 </ng-template>
@@ -548,9 +446,9 @@
     <div class="modal-body">
        <div class="container-fluid d-flex flex-column align-tems-center">
           <div
-             *ngIf="projectInsightResponseList != undefined && projectInsightResponseList != null && projectInsightResponseList.length > 0">
+             *ngIf="projectInsightMilestoneList != undefined && projectInsightMilestoneList != null && projectInsightMilestoneList.length > 0">
              <div class="response-milestone-section response-milestone-row"
-                *ngFor="let milestone of projectInsightResponseList; let mileIndex = index">
+                *ngFor="let milestone of projectInsightMilestoneList; let mileIndex = index">
                 <div class="response-milestone-header response-milestone-header-row" style="cursor: pointer;"
                    (click)="milestone.isCollapsed = !milestone.isCollapsed">
                    <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -574,7 +472,7 @@
                    </div>
                 </div>
                 <div class="milestone-content" style="padding: 25px;" [ngClass]="{'d-none': milestone.isCollapsed}">
-                   <div *ngFor="let question of milestone.projectQuestion; let qIndex = index"
+                   <div *ngFor="let question of milestone.questionList; let qIndex = index"
                       class="response-question-container" style="
                       background: white;
                       padding: 20px;
@@ -789,7 +687,7 @@
                       </div>
                       <div class="response-module-content" style="padding: 25px;"
                          [ngClass]="{'d-none': module.isCollapsed}">
-                         <div *ngFor="let question of module.projectQuestion; let qIndex = index"
+                         <div *ngFor="let question of module.questionList; let qIndex = index"
                             class="response-question-container" style="
                             background: white;
                             padding: 20px;
@@ -1011,12 +909,12 @@
                                      <path
                                         d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                                   </svg>
-                                  Assigned To: {{subModule.assignedTo || ''}}
+                                  Assigned To: {{subModule.taggedToUserId || ''}}
                                </div>
                             </div>
                             <div class="response-submodule-content" style="padding: 25px;"
                                [ngClass]="{'d-none': subModule.isCollapsed}">
-                               <div *ngFor="let question of subModule.projectQuestion; let qIndex = index"
+                               <div *ngFor="let question of subModule.questionList; let qIndex = index"
                                   class="response-question-container" style="
                                   background: white;
                                   padding: 20px;
@@ -1206,7 +1104,7 @@
              </div>
           </div>
           <div class="text-center"
-             *ngIf="projectInsightResponseList == undefined || projectInsightResponseList == null || projectInsightResponseList.length == 0">
+             *ngIf="projectInsightMilestoneList == undefined || projectInsightMilestoneList == null || projectInsightMilestoneList.length == 0">
              <strong class="text-center info-label">No Details to display...</strong>
           </div>
        </div>
@@ -1224,3 +1122,90 @@
        </div>
     </div>
  </ng-template>
+
+
+  <ng-template #subModuleTemplate let-mod="mod" let-sub="sub" let-level="level" let-mileIndex="mileIndex" let-modIndex="modIndex" let-submodIndex="submodIndex" let-childSubModIndex="childSubModIndex">
+    <div class="row" [style.padding-left.px]="15 * level" style="margin-bottom: 1rem;" [class.question-input]="true">
+      <div class="col-md-12">
+        <div class="row">
+          <!-- Sub Module -->
+          <div class="col-md-4 mb-0">
+            <div class="form-group">
+              <label class="info-label"><span class="text-danger">*</span> <b>Sub Module {{ submodIndex + 1 }} <b *ngIf="childSubModIndex != undefined && childSubModIndex != null">- (Level {{ childSubModIndex + 1 }})</b></b></label>
+              <input type="text" class="form-control" [(ngModel)]="sub.subModule" autocomplete="off" />
+            </div>
+          </div>
+  
+          <!-- Description -->
+          <div class="col-md-2 mb-0">
+            <div class="form-group">
+              <label>Description</label>
+              <input type="text" class="form-control" [(ngModel)]="sub.description" autocomplete="off" />
+            </div>
+          </div>
+  
+          <!-- Assign To -->
+          <div class="col-md-2 mb-0">
+            <div class="form-group">
+              <label><span class="text-danger">*</span> Assign To</label>
+              <mat-select ngxMatSelect class="form-control" #approvalSelect="ngxMatSelect" [displayMember]="'name'"
+                [valueMember]="'empId'" [source]="employeeList" [useInfiniteScroll]="true" [multiple]="true"
+                [(ngModel)]="sub.assignedToUserId">
+                <mat-option [value]="employee.empId" *ngFor="let employee of approvalSelect.filteredSource">
+                  {{employee.name}}</mat-option>
+              </mat-select>
+            </div>
+          </div>
+  
+          <!-- Redmine ID -->
+          <div class="col-md-2 mb-0">
+            <div class="form-group">
+              <label>Redmine ID</label>
+              <input type="text" class="form-control" [(ngModel)]="sub.redmineId" autocomplete="off" />
+            </div>
+          </div>
+  
+          <!-- Actions -->
+          <div class="col-md-2 pt-4 mt-2">
+            <div class="dropdown-container d-inline-block" ngbDropdown>
+              <button class="btn btn-outline-primary mx-1" ngbDropdownToggle>
+                  <i class="fa fa-plus" aria-hidden="true"></i>
+              </button>
+              <div ngbDropdownMenu class="dropdown-menu enhanced-dropdown">
+                  <button *ngIf="childSubModIndex == undefined || childSubModIndex == null"  ngbDropdownItem (click)="addSubModule('submodule', mileIndex, modIndex)">
+                      Add Sub Module
+                  </button>
+                  <button ngbDropdownItem (click)="addSubSubModule(sub)">
+                      Add Sub Sub-Module
+                  </button>
+                  <button *ngIf="childSubModIndex == undefined || childSubModIndex == null" ngbDropdownItem (click)="addQuestion('submodule', mileIndex, modIndex, submodIndex)" title="Add SubModule Question">
+                      Add Question
+                  </button>
+                  <button *ngIf="childSubModIndex != undefined && childSubModIndex != null" ngbDropdownItem (click)="addSubSubModuleQuestion(sub)" title="Add Sub-SubModule Question">
+                    Add Question
+                </button>
+              </div>
+            </div>
+            <button *ngIf="childSubModIndex == undefined || childSubModIndex == null"  type="button" class="btn btn-outline-primary mx-1" title="Remove SubModule"
+              (click)="removeSubModule(mileIndex, modIndex, submodIndex)">
+              <i class="fa fa-trash" aria-hidden="true"></i>
+            </button>
+            <button *ngIf="childSubModIndex != undefined && childSubModIndex != null" type="button" class="btn btn-outline-primary mx-1" title="Remove Sub-SubModule"
+            (click)="removeSubSubModule(mod, childSubModIndex)">
+            <i class="fa fa-trash" aria-hidden="true"></i>
+          </button>
+          </div>
+        </div>
+        <app-question [group]="sub" [mileIndex]="submodIndex"></app-question>
+
+        <!-- Recursive Rendering of SubModules -->
+        <ng-container *ngIf="sub.subSubModuleList?.length > 0">
+          <ng-container *ngFor="let childSub of sub.subSubModuleList; let childIndex = index">
+            <ng-container [ngTemplateOutlet]="subModuleTemplate"
+              [ngTemplateOutletContext]="{ mod : sub, sub: childSub, level: level + 1, mileIndex: mileIndex, modIndex: modIndex, submodIndex: submodIndex, childSubModIndex: childIndex }">
+            </ng-container>
+          </ng-container>
+        </ng-container>
+      </div>
+    </div>
+  </ng-template>

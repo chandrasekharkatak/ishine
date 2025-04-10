@@ -1,14 +1,19 @@
 import { ProjectQuestion } from "./projectQuestion";
 
 export class ProjectSubModule {
-    assignedTo: any;
-    redmineId: any;
-    subModuleId: any;
+
     subModule: any;
+    subModuleId: any;
     description: any;
-    projectQuestion:ProjectQuestion[] = [];
-    isCollapsed:any= false;
-    assignedToUserNames:any
-    taggedForHelp:any[]=[];
-    taggedToUserNames:any;
+    redmineId: any;
+    assignedToUserId: any[] = [];
+    assignedToUserNames: any;
+    taggedToUserId: any[] = [];
+    taggedToUserNames: any;
+    questionList: ProjectQuestion[] = [];
+    subSubModuleList: ProjectSubModule[] = [];
+    isCollapsed: any = false;
+    toTagEmployeeList: any[] = [];
+    toAssignEmployeeList: any[] = [];
+    indexName: any;
 }
