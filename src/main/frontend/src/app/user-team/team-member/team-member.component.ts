@@ -122,13 +122,28 @@ export class TeamMemberComponent implements OnInit {
 
   //excel
 
-  exportToExcel(id:any): void {
-    const tableId = id; // Replace with your actual table ID
-    this.excelName = "TeamMemberSheet.xlsx";
-    this.tableName= 'Team Members';
+  // exportToExcel(id:any): void {
+  //   const tableId = id; // Replace with your actual table ID
+  //   this.excelName = "TeamMemberSheet.xlsx";
+  //   this.tableName= 'Team Members';
 
-    this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
-  }
+  //   this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+  // }
+  exportToExcel(): void {
+
+    this.excelName = "TeamMemberSheet.xlsx";
+
+      const onlySpecificDataArr = this.viewTeamMemberList.map(
+        x => ({
+          "Employee Id": x.employeementId,
+          "Name": x.name,
+          "Email": x.email,
+          "Job Role": x.jobRoleName,
+          "Mobile No": x.mobileNo
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+    }
 
   //pagination 
 

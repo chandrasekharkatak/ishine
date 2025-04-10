@@ -1041,52 +1041,164 @@ export class MyTeamComponent implements OnInit {
   }
 
 
-  // download excel
-  exportToExcel(id:any): void {
-    const tableId = id; 
-    this.tableName= 'My Team';
-      if (this.isViewTeam == true) {
-      this.excelName = 'MyTeam.xlsx';
-      this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
-    }
+  // // download excel
+  // exportToExcel(id:any): void {
+  //   const tableId = id; 
+  //   this.tableName= 'My Team';
+  //     if (this.isViewTeam == true) {
+  //     this.excelName = 'MyTeam.xlsx';
+  //     this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+  //   }
 
-      if (this.isLeaveHistory == true) {
-      this.excelName = 'MyTeamLeaveHistory.xlsx';
+  //     if (this.isLeaveHistory == true) {
+  //     this.excelName = 'MyTeamLeaveHistory.xlsx';
 
-      this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+  //     this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
 
 
-    }
+  //   }
 
-      if (this.isCompOffHistory == true) {
-      this.excelName = 'MyTeamCompOffHistory.xlsx';
+  //     if (this.isCompOffHistory == true) {
+  //     this.excelName = 'MyTeamCompOffHistory.xlsx';
 
-      this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+  //     this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
 
       
+  //   }
+
+  //   if (this.isLeaveRequest == true) {
+  //       this.excelName = 'MyTeamLeaveRequests.xlsx';
+  
+  //       this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+
+  //     }
+
+  //     if (this.isCompOffRequest == true) {
+  //         this.excelName = 'MyTeamCompOffRequests.xlsx';
+    
+  //         this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+
+  //       }
+
+  //       if(this.isLeaveRevokeRequest == true){
+  //         this.excelName = 'ReporteeLeaveApplication.xlsx';
+    
+  //         this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+
+  //       }
+  // }
+  exportToExcel(): void {
+
+    if (this.isViewTeam == true) {
+    this.excelName = 'MyTeam.xlsx';
+
+    const onlySpecificDataArr = this.teamViewList.map(
+      x => ({
+        "Employee Id": x.employeementId,
+        "Name": x.name,
+        "Email": x.email,
+        "Job Role": x.jobRoleName,
+        "Mobile No": x.mobileNo,
+        "Reports To": x.managerName
+      })
+    )
+    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+  }
+
+    if (this.isLeaveHistory == true) {
+    this.excelName = 'MyTeamLeaveHistory.xlsx';
+
+    const onlySpecificDataArr = this.teamViewLeaveHistoryList.map(
+      x => ({
+        "Employee": x.createdByName,
+        "From": x.fromDate,
+        "To": x.toDate,
+        "Apply Date": x.createdOn,
+        "Duration": x.noOfDays,
+        "Status": x.status,
+        "Approved/Rejected By":x.leaveStatusUpdatedByName,
+        "Leave Reason": x.reason,
+        "Type": x.leaveType,
+        "Remarks":x.remark
+      })
+    )
+    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+
+  }
+
+    if (this.isCompOffHistory == true) {
+    this.excelName = 'MyTeamCompOffHistory.xlsx';
+
+    const onlySpecificDataArr = this.teamViewCompOffHistoryList.map(
+      x => ({
+        "Employee": x.createdByName,
+        "From": x.fromDate,
+        "To": x.toDate,
+        "Apply Date": x.createdOn,
+        "Duration": x.noOfDays,
+        "Status": x.status,
+        "Approved/Rejected By":x.leaveStatusUpdatedByName,
+        "Comp-Off Reason": x.reason
+      })
+    )
+    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+    
+  }
+
+  if (this.isLeaveRequest == true) {
+      this.excelName = 'MyTeamLeaveRequests.xlsx';
+
+        const onlySpecificDataArr = this.leaveApplicationList.map(
+          x => ({
+            "Name":x.employeeName,
+            "Leave Type": x.leaveType,
+            "From Date": x.fromDate,
+            "To Date": x.toDate,
+            "Duration": x.noOfDays,
+            "Status": x.status,
+            "Applied By": x.createdByName,
+            "Applied On": x.createdOn,
+            "Reason": x.reason
+          })
+        )
+        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
     }
 
-    if (this.isLeaveRequest == true) {
-        this.excelName = 'MyTeamLeaveRequests.xlsx';
+    if (this.isCompOffRequest == true) {
+        this.excelName = 'MyTeamCompOffRequests.xlsx';
   
-        this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
-
+        const onlySpecificDataArr = this.allCompOffApplications.map(
+          x => ({
+            "Applied By": x.createdByName,
+            "Applied For": x.compOffReasons,
+            "From Date": x.fromDate,
+            "To Date": x.toDate,
+            "Duration": x.noOfDays,
+            "Description": x.description,
+            "Status": x.status
+          })
+        )
+        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
       }
 
-      if (this.isCompOffRequest == true) {
-          this.excelName = 'MyTeamCompOffRequests.xlsx';
-    
-          this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
-
-        }
-
-        if(this.isLeaveRevokeRequest == true){
-          this.excelName = 'ReporteeLeaveApplication.xlsx';
-    
-          this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
-
-        }
-  }
+      if(this.isLeaveRevokeRequest == true){
+        this.excelName = 'ReporteeLeaveApplication.xlsx';
+  
+        const onlySpecificDataArr: Partial<Leave>[] = this.reporteeLeaveRevokeApplicationList.map(	
+          x => ({	
+            "leave Type": x.leaveType,	
+            "From Date": (x.fromDate)? x.fromDate : null,	
+            "To Date": (x.toDate)? x.toDate : null,	
+            "No Of Days": x.noOfDays,	
+            "status": x.status,	
+            "Created By Name": x.createdByName,	
+            "Created On": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,	
+            "Reason": x.reason	
+          })	
+        )	
+        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
+      }
+}
 
   hierarchyBreadCrumb(index){	
     this.breadCrumbs.splice(index + 1);

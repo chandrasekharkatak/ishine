@@ -1359,23 +1359,61 @@ export class TeamConfigComponent implements OnInit {
 
   // download excel
 
-  exportToExcel(id:any): void {
+  // exportToExcel(id:any): void {
 
-    const tableId = id; 
-    this.tableName= 'Team Config';
+  //   const tableId = id; 
+  //   this.tableName= 'Team Config';
+
+  //   if (this.isTeamTable == true) {
+  //     this.excelName = 'TeamSheet.xlsx';
+
+  //     this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+  //   }
+  //   if (this.isActivityTable == true) {
+  //     this.excelName = 'ActivitiesSheet.xlsx';
+
+  //     this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+
+  //   }
+  // }
+  exportToExcel(): void {
 
     if (this.isTeamTable == true) {
       this.excelName = 'TeamSheet.xlsx';
 
-      this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+      this.teamsActivityDataForExcel = this.allTeamList;
+
+      const onlySpecificDataArr = this.teamsActivityDataForExcel.map(
+        x => ({
+          "Project Name": x.projectName,
+          "Team Name": x.teamName,
+          "Team Lead": x.teamLeadName,
+          "Project Manager": x.projectManagerName,
+          "Created by": x.createdByName,
+          "Created on": (x.createdOn)? moment(x.createdOn, "DD-MM-YYYY").format(AppComponent.DATETIME_FORMAT) : null
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+
     }
     if (this.isActivityTable == true) {
       this.excelName = 'ActivitiesSheet.xlsx';
 
-      this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+      this.teamsByProjectIdDataForExcel = this.allActivityList;
+
+      const onlySpecificDataArr = this.teamsByProjectIdDataForExcel.map(
+        x => ({
+          "Activity": x.activity,
+          "ETA": x.eta,
+          "Created by": x.createdByName,
+          "Created on": (x.createdOn)? moment(x.createdOn, "DD-MM-YYYY").format(AppComponent.DATETIME_FORMAT) : null
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
 
     }
   }
+
 
   checkTeamName(template: TemplateRef<any>) {
     this.teamService.checkTeamName(this.teamObj).pipe(first()).subscribe((response: any) => {
