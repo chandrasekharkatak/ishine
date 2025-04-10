@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
-import { ProjectInsightQuestion } from '../models/projectInsightQuestion';
+import { ProjectInsight } from '../models/projectInsightQuestion';
 import { Document } from '../models/document';
 
 @Injectable({
@@ -14,11 +14,11 @@ export class ProjectInsightService {
   constructor(private http: HttpClient) { }
 
 
-  createProjectInsightQuestion(projObj: ProjectInsightQuestion){
+  createProjectInsightQuestion(projObj: ProjectInsight){
     return this.http.post(`${this.baseUrl}` + `api/createProjectInsightQuestion`, projObj);
   }
 
-  updateProjectInsightQuestion(projObj: ProjectInsightQuestion){
+  updateProjectInsightQuestion(projObj: ProjectInsight){
     return this.http.post(`${this.baseUrl}` + `api/updateProjectInsightQuestion`, projObj);
   }
 

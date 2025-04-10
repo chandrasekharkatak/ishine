@@ -18,7 +18,7 @@ import { ClipboardService } from 'ngx-clipboard';
 import { Router } from '@angular/router';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ProjectService } from 'src/app/services/project.service';
-import { ProjectInsightQuestion } from 'src/app/models/projectInsightQuestion';
+import { ProjectInsight } from 'src/app/models/projectInsightQuestion';
 import { ProjectQuestion } from 'src/app/models/projectQuestion';
 import { ProjectInsightService } from 'src/app/services/project-insight.service';
 import { ProjectModule } from 'src/app/models/projectModule';
@@ -26,12 +26,14 @@ import { ProjectSubModule } from 'src/app/models/projectSubModule';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { Document } from 'src/app/models/document';
 import { ProjectResponse } from 'src/app/models/projectResponse';
+import { ProjectMilestone } from 'src/app/models/projectMilestone';
 
 @Component({
   selector: 'app-project-insights-config',
   templateUrl: './project-insights-config.component.html',
   styleUrls: ['./project-insights-config.component.css']
 })
+
 export class ProjectInsightsConfigComponent implements OnInit {
 
   feature = "Survey Config";
@@ -63,46 +65,22 @@ export class ProjectInsightsConfigComponent implements OnInit {
   isUpdation:boolean = false;
 
   isProjectInsightList:boolean = false;
-  isSurveyResponseList:boolean = false;
   isProjectInsightResponseList:boolean = false;
-  // isSurveyResponseList
   isResponsePreview:boolean = true;
-
-  surveyObj:Survey = new Survey();
-  allSurveyQuestionList:SurveyQuestion[] = [new SurveyQuestion()];
-  projectInsightQuestionList:ProjectInsightQuestion[] = [new ProjectInsightQuestion()];
-  projectInsightResponseList:ProjectInsightQuestion[] = [new ProjectInsightQuestion()];
-  employeeList:any[] = [];
-
-  allProjectList:any[] = [];
-  projectInsightQuestion:ProjectInsightQuestion = new ProjectInsightQuestion();
-
-  allProjectInsightList:any[] = [];
-  allSurveyResponseList:any[] = [];
-  selectedSurveyName:any = "Test Survey";
-  responseListTableHeaders:any[] =
-  [
-    "Employee Name",
-    "Employee ID",
-    "Question 1",
-    "Answer 1",
-    "Question 2",
-    "Answer 2",
-    "Question 3",
-    "Answer 3",
-    "Question 4",
-    "Answer 4",
-    "Question 5",
-    "Answer 5",
-  ];
-
-  filters:any = {};
   isSearchEnabled:boolean = false;
-  surveyColumns:any[] = ['surveyName','description','isActive','createdByName','createdOn'];
-  surveyResponseColumns:any[] = ['0','1','2'];
-
-  employeesFor360: any[] = [];
   isFinalResponseSubmitted:boolean = false;
+
+  projectInsight:ProjectInsight = new ProjectInsight();
+  
+  employeeList:any[] = [];
+  allProjectList:any[] = [];
+  allProjectInsightList: any[] = [];
+  surveyColumns:any[] = ['surveyName','description','isActive','createdByName','createdOn'];
+  projectInsightMilestoneList:ProjectMilestone[] = [new ProjectMilestone()];
+  projectInsightResponseList:ProjectMilestone[] = [new ProjectMilestone()];
+
+  page = 1;
+  filters:any = {};
 
   constructor(
     private validationService: ValidationService,
@@ -122,25 +100,11 @@ export class ProjectInsightsConfigComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    try {
-      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
-      // console.log("Priyadarshini ", this.employeesFor360);
-    } catch (error) {
-      console.error("Error fetching employee details for 360 view", error);
-    }
-    // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    //console.log(this.feature, this.userMapping);
-
-    // let questionObj = ;
-    // questionObj.optionsList.push("");
-    // this.allSurveyQuestionList.push(questionObj);
-    this.sectionViewInit();
-
-    //console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
+    this.getEmployeeList();
     this.preventBackButton();
   }
 
@@ -165,7 +129,6 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
   isProjectInsightTabClick(){
     this.projectInsightTabClick = true;
-
     this.showProjectInsight();
     this.getAllProjects();
   }
@@ -173,23 +136,17 @@ export class ProjectInsightsConfigComponent implements OnInit {
   showProjectInsightForm(){
     this.isQuestionForm = true;
     this.isCreation = true;
-
     this.isUpdation = false;
     this.isProjectInsightList = false;
     this.isProjectInsightResponseList = false;
-
-    this.surveyObj = new Survey();
-    this.allSurveyQuestionList = [new SurveyQuestion()];
   }
 
-  showProjectInsight(){
+  showProjectInsight() {
     this.isProjectInsightList = true;
-
     this.isQuestionForm = false;
     this.isCreation = false;
     this.isUpdation = false;
     this.isProjectInsightResponseList = false;
-
     this.getAllProjectInsightList();
   }
 
@@ -216,197 +173,202 @@ export class ProjectInsightsConfigComponent implements OnInit {
   showProjectInsightUpdate(projectObj:any, template: TemplateRef<any>){
     this.isQuestionForm = true;
     this.isUpdation = true;
-
     this.isCreation = false;
     this.isProjectInsightResponseList = false;
     this.isProjectInsightList = false;
-
-    this.projectInsightQuestion = new ProjectInsightQuestion();
-    this.projectInsightQuestionList = [];
-
+    this.projectInsight = new ProjectInsight();
+    this.projectInsightMilestoneList = [];
     this.projectInsightService.getAllQuestionsByProjectId(projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.projectInsightQuestion = response.serviceResponse;
-        this.projectInsightQuestionList = this.projectInsightQuestion.projectInsightQuestionList;
+        this.projectInsight = response.serviceResponse;
+        this.projectInsightMilestoneList = this.projectInsight.projectInsightMilestoneList;
 
-        this.projectInsightQuestion.applicationQuestion.forEach((question: ProjectQuestion) => {
+        this.projectInsight.questionList.forEach((question: ProjectQuestion) => {
           question.optionsList = JSON.parse(question.options);
         })
+        if (this.projectInsightMilestoneList != null && this.projectInsightMilestoneList.length != 0) {
+          this.projectInsightMilestoneList.forEach((projectMilestone: ProjectMilestone) => {
+            projectMilestone.questionList.forEach((question: ProjectQuestion) => {
+              question.optionsList = JSON.parse(question.options);
+            });
 
-        this.projectInsightQuestionList.forEach((project: ProjectInsightQuestion) => {
-          project.projectQuestion.forEach((question: ProjectQuestion) => {
-            question.optionsList = JSON.parse(question.options);
-            question.required = JSON.parse(question.required);
-            question.documentUpload = JSON.parse(question.documentUpload);
+            if (projectMilestone.moduleList != null && projectMilestone.moduleList.length != 0) {
+              projectMilestone.moduleList.forEach((moduleObj: any) => {
+                if (moduleObj.questionList != null && moduleObj.questionList.length != 0) {
+                  moduleObj.questionList.forEach((question: ProjectQuestion) => {
+                    question.optionsList = JSON.parse(question.options);
+                  });
+                }
+
+                if (moduleObj.subModuleList != null && moduleObj.subModuleList.length != 0) {
+                  this.convertStringToJSONSubModuleNodesOption(moduleObj.subModuleList);
+                }
+              });
+            }
           });
-        });
+        }
       } else {
         console.error(response.serviceResponse);
       }
     });
-
   }
 
-  getAllProjects(){
-    this.allProjectList = [];
+  convertStringToJSONSubModuleNodesOption(subModuleList){
+    subModuleList.forEach((submoduleObj: any) => {
+      if(submoduleObj.questionList != undefined && submoduleObj.questionList != null && submoduleObj.questionList.length != 0){
+        submoduleObj.questionList.forEach((questionObj: ProjectQuestion) => {
+          questionObj.optionsList = JSON.parse(questionObj.options);
+        });
+      }
+      if(submoduleObj.subSubModuleList != undefined && submoduleObj.subSubModuleList != null && submoduleObj.subSubModuleList.length != 0){
+        this.convertStringToJSONSubModuleNodesOption(submoduleObj.subSubModuleList);
+      }
+    });
+  }
 
+  getAllProjects() {
+    this.allProjectList = [];
     this.projectService.getAllProjects().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allProjectList = response.serviceResponse;
-        this.allProjectList.forEach(project =>{
-        project.createdOn = (project.createdOn)? moment(project.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-        project.updatedOn = (project.updatedOn)? moment(project.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+        this.allProjectList.forEach(project => {
+          project.createdOn = (project.createdOn) ? moment(project.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          project.updatedOn = (project.updatedOn) ? moment(project.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         })
-
-        //remove duplicate clients
         this.allProjectList = this.allProjectList.filter((value, index, self) =>
           index === self.findIndex((t) => (
             t.projectId === value.projectId
           ))
         );
-        this.allProjectList = this.allProjectList.sort((a,b)=>a.createdOn-b.createdOn);
-        //console.log(this.allProjects, " : this.allProjects");
+        this.allProjectList = this.allProjectList.sort((a, b) => a.createdOn - b.createdOn);
       } else {
         console.error(response.serviceResponse);
       }
     });
   }
 
-  getProjectManangerInfo(projectId: any){
+  getProjectManangerInfo(projectId: any) {
     this.allProjectList.forEach((object) => {
-      if(object.projectId == projectId){
-        this.projectInsightQuestion.projectManagerName = object.employeeName;
-        this.projectInsightQuestion.projectManagerId = object.empId;
-        this.projectInsightQuestion.projectName = object.projectName;
+      if (object.projectId == projectId) {
+        this.projectInsight.projectManagerName = object.employeeName;
+        this.projectInsight.projectManagerId = object.empId;
+        this.projectInsight.projectName = object.projectName;
       }
     });
-  }
-
-  // Manage Questions
-  // addQuestion(mileIndex: any, i: any) {
-  //   this.projectInsightQuestionList[mileIndex].projectQuestion.splice(i + 1, 0, new ProjectQuestion());
-  // }
-  
-
-  removeQuestion(index: any){
-    this.projectInsightQuestion.applicationQuestion.splice(index, 1);
   }
 
   // Add button config
   //Milestone
   addMilestone(mileIndex){
-    this.projectInsightQuestionList.splice(mileIndex+1,0,new ProjectInsightQuestion());
+    this.projectInsightMilestoneList.splice(mileIndex+1,0,new ProjectMilestone());
   }
 
   addModule(type: any, index:any){
-    this.projectInsightQuestionList[index].moduleList.splice(this.projectInsightQuestionList[index].moduleList.length+1,0,new ProjectModule());
+    this.projectInsightMilestoneList[index].moduleList.splice(this.projectInsightMilestoneList[index].moduleList.length+1,0,new ProjectModule());
   }
 
   addSubModule(type: any, milIndex:any, modIndex:any){
-    this.projectInsightQuestionList[milIndex].moduleList[modIndex].subModuleList.splice(this.projectInsightQuestionList[milIndex].moduleList[modIndex].subModuleList.length+1,0,new ProjectSubModule());
+    this.projectInsightMilestoneList[milIndex].moduleList[modIndex].subModuleList.splice(this.projectInsightMilestoneList[milIndex].moduleList[modIndex].subModuleList.length+1,0,new ProjectSubModule());
   }
-
-  addQuestion(type: any, mileIndex: any, modIndex?:any, subModIndex?: any){
+  
+  addQuestion(type: any, mileIndex: any, modIndex?:any, subModIndex?: any,subSubModIndex?:any){
     if(type == 'project'){
-      this.projectInsightQuestion.applicationQuestion.splice(this.projectInsightQuestion.applicationQuestion.length + 1, 0, new ProjectQuestion());
+      this.projectInsight.questionList.splice(this.projectInsight.questionList.length + 1, 0, new ProjectQuestion());
     }else if(type == 'milestone'){
-      this.projectInsightQuestionList[mileIndex].projectQuestion.splice(this.projectInsightQuestionList[mileIndex].projectQuestion.length + 1, 0, new ProjectQuestion());
+      this.projectInsightMilestoneList[mileIndex].questionList.splice(this.projectInsightMilestoneList[mileIndex].questionList.length + 1, 0, new ProjectQuestion());
     }else if(type == 'module'){
-      this.projectInsightQuestionList[mileIndex].moduleList[modIndex].projectQuestion.splice(this.projectInsightQuestionList[mileIndex].moduleList[modIndex].projectQuestion.length + 1, 0, new ProjectQuestion());
+      this.projectInsightMilestoneList[mileIndex].moduleList[modIndex].questionList.splice(this.projectInsightMilestoneList[mileIndex].moduleList[modIndex].questionList.length + 1, 0, new ProjectQuestion());
     }else if(type == 'submodule'){
-      this.projectInsightQuestionList[mileIndex].moduleList[modIndex].subModuleList[subModIndex].projectQuestion.splice(this.projectInsightQuestionList[mileIndex].moduleList[modIndex].subModuleList[subModIndex].projectQuestion.length + 1, 0, new ProjectQuestion());
+      this.projectInsightMilestoneList[mileIndex].moduleList[modIndex].subModuleList[subModIndex].questionList.splice(this.projectInsightMilestoneList[mileIndex].moduleList[modIndex].subModuleList[subModIndex].questionList.length + 1, 0, new ProjectQuestion());
     }
   }
 
   removeMilestone(mileIndex){ 
-    this.projectInsightQuestionList.splice(mileIndex,1);
+    this.projectInsightMilestoneList.splice(mileIndex,1);
   }
 
   removeModule(mileIndex:any, modIndex:any){
-    this.projectInsightQuestionList[mileIndex].moduleList.splice(modIndex);
+    this.projectInsightMilestoneList[mileIndex].moduleList.splice(modIndex);
   }
 
   removeSubModule(mileIndex:any, modIndex:any, subModIndex:any){
-    this.projectInsightQuestionList[mileIndex].moduleList[modIndex].subModuleList.splice(subModIndex);
+    this.projectInsightMilestoneList[mileIndex].moduleList[modIndex].subModuleList.splice(subModIndex);
+  }
+
+  removeQuestion(index: any){
+    this.projectInsight.questionList.splice(index, 1);
   }
 
   // Manage Options
   addOption(i, questionObj?:ProjectQuestion){
-    let question = this.projectInsightQuestion.applicationQuestion.find(ques => ques == questionObj);
+    let question = this.projectInsight.questionList.find(ques => ques == questionObj);
     question.optionsList.splice(i+1,0, new SurveyOption());
   }
 
   removeOption(i, questionObj?:ProjectQuestion){
-    let question = this.projectInsightQuestion.applicationQuestion.find(ques => ques == questionObj);
+    let question = this.projectInsight.questionList.find(ques => ques == questionObj);
     question.optionsList.splice(i,1);
   }
 
   setOption(questionObj:ProjectQuestion, projIndex:any){
     if(questionObj.optionType == "checkbox" || questionObj.optionType == "radio"){
-      let question = this.projectInsightQuestion.applicationQuestion.find(ques => ques == questionObj);
+      let question = this.projectInsight.questionList.find(ques => ques == questionObj);
       question.optionsList = [];
       question.optionsList.splice(1,0,new SurveyOption());
     }
   }
 
-
   onPreiew(previewTemplate: TemplateRef<any>, template: TemplateRef<any>){
-    let inputValidated: boolean = this.vallidateProjectInsight(template, this.projectInsightQuestion, this.projectInsightQuestionList);
+    let inputValidated: boolean = this.validateProjectInsight(template, this.projectInsight, this.projectInsightMilestoneList);
     if (!inputValidated) return;
 
     const questionTemplate:string = this.createTemplate();
-
-    let previewObj = new ProjectInsightQuestion();
-    previewObj.projectId = this.projectInsightQuestion.projectId;
-    previewObj.projectManagerId = this.projectInsightQuestion.projectManagerId;
-    previewObj.projectManagerName = this.projectInsightQuestion.projectManagerName;
-    previewObj.projectInsightQuestionList = this.projectInsightQuestionList;
+    let previewObj = new ProjectInsight();
+    previewObj.projectId = this.projectInsight.projectId;
+    previewObj.projectManagerId = this.projectInsight.projectManagerId;
+    previewObj.projectManagerName = this.projectInsight.projectManagerName;
+    previewObj.projectInsightMilestoneList = this.projectInsightMilestoneList;
     previewObj.projectInsightQuestionTemplate = questionTemplate;
-
-    //console.log("previewObj : ", previewObj);
     this.openSurveyPreviewMod(previewTemplate,previewObj);
   }
 
-  vallidateProjectInsight(template: TemplateRef<any>, projectInsightQuestion:ProjectInsightQuestion, projectInsightQuestionList:ProjectInsightQuestion[]){
-    if(!this.validationService.validateNullUndefinedEmptyString(projectInsightQuestion.projectId)){
+  validateProjectInsight(template: TemplateRef<any>, projectInsight: ProjectInsight, projectInsightQuestionList: ProjectMilestone[]) {
+    if (!this.validationService.validateNullUndefinedEmptyString(projectInsight.projectId)) {
       this.alertMessage = "Please select Project name !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    if(!this.validationService.validateNullUndefinedEmptyString(projectInsightQuestion.projectManagerName)){
+    if (!this.validationService.validateNullUndefinedEmptyString(projectInsight.projectManagerName)) {
       this.alertMessage = "Please select Project Manager !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    if(projectInsightQuestion.applicationQuestion.length > 0){
-      projectInsightQuestion.applicationQuestion.forEach((question:ProjectQuestion, index) => {
-        if(!this.validationService.validateNullUndefinedEmptyString(question.question)
-        || !this.validationService.validateNullUndefinedEmptyString(question.optionType)
-        || !this.validationService.validateNullUndefinedEmptyString(question.question)
-        ){
-          
+    if (projectInsight.questionList.length > 0) {
+      projectInsight.questionList.forEach((question: ProjectQuestion, index) => {
+        if (!this.validationService.validateNullUndefinedEmptyString(question.question)
+          || !this.validationService.validateNullUndefinedEmptyString(question.optionType)
+          || !this.validationService.validateNullUndefinedEmptyString(question.question)
+        ) {
+          if (!this.validationService.validateNullUndefinedEmptyString(question.question)) {
+            this.alertMessage = `Please enter Question ${index + 1} !!`;
+            this.openAlertMod(template, this.alertMessage);
+            flag = false;
+            return false;
+          }
 
-          if(!this.validationService.validateNullUndefinedEmptyString(question.question)){
-            this.alertMessage = `Please enter Question ${index+1} !!`;
+          if (!this.validationService.validateNullUndefinedEmptyString(question.optionType)) {
+            this.alertMessage = `Please select Option Type ${index + 1} !!`;
             this.openAlertMod(template, this.alertMessage);
             flag = false;
             return false;
           }
-    
-          if(!this.validationService.validateNullUndefinedEmptyString(question.optionType)){
-            this.alertMessage = `Please select Option Type ${index+1} !!`;
-            this.openAlertMod(template, this.alertMessage);
-            flag = false;
-            return false;
-          }
-    
-          if(question.optionType == "radio" || question.optionType == "checkbox"){
+          if (question.optionType == "radio" || question.optionType == "checkbox") {
             if (question.optionsList.length < 2) {
               this.alertMessage = `Please provide atleast 2 options for Question ${index + 1} !!`;
               this.openAlertMod(template, this.alertMessage);
               flag = false;
               return false;
-            }else{
+            } else {
               question.optionsList.forEach((option: SurveyOption, opIndex) => {
                 if (!this.validationService.validateNullUndefinedEmptyString(option.optionValue)) {
                   this.alertMessage = `Please enter option ${opIndex + 1} for Question ${index + 1} !!`;
@@ -417,76 +379,74 @@ export class ProjectInsightsConfigComponent implements OnInit {
               });
             }
           }
-
         }
       })
     }
 
     let flag = true;
-    projectInsightQuestionList.forEach((milestone:ProjectInsightQuestion, mileIndex) => {
-      if(!this.validationService.validateNullUndefinedEmptyString(milestone.milestone)){
-        this.alertMessage = `Please enter milestone ${mileIndex+1} !!`;
+    projectInsightQuestionList.forEach((milestone: ProjectMilestone, mileIndex) => {
+      if (!this.validationService.validateNullUndefinedEmptyString(milestone.milestone)) {
+        this.alertMessage = `Please enter milestone ${mileIndex + 1} !!`;
         this.openAlertMod(template, this.alertMessage);
         flag = false;
         return false;
       }
 
-      if(!this.validationService.validateNullUndefinedEmptyString(milestone.assignedTo)){
-        this.alertMessage = `Please select assign user in milestone ${mileIndex+1} !!`;
+      if (!this.validationService.validateNullUndefinedEmptyString(milestone.assignedToUserId)) {
+        this.alertMessage = `Please select assign user in milestone ${mileIndex + 1} !!`;
         this.openAlertMod(template, this.alertMessage);
         flag = false;
         return false;
       }
 
-      if(milestone.projectQuestion != null && milestone.projectQuestion.length != 0){
-        flag = this.questionValidation(milestone.projectQuestion, mileIndex, template, 'Milestone');
+      if (milestone.questionList != null && milestone.questionList.length != 0) {
+        flag = this.questionValidation(milestone.questionList, mileIndex, template, 'Milestone');
       }
 
-      if(milestone.moduleList != null && milestone.moduleList.length != 0){
+      if (milestone.moduleList != null && milestone.moduleList.length != 0) {
         milestone.moduleList.forEach((module: any, modIndex) => {
-          if(!this.validationService.validateNullUndefinedEmptyString(module.module)){
-            this.alertMessage = `Please enter module ${modIndex+1} !!`;
-            this.openAlertMod(template, this.alertMessage);
-            flag = false;
-            return false;
-          }
-    
-          if(!this.validationService.validateNullUndefinedEmptyString(module.assignedTo)){
-            this.alertMessage = `Please select assign user in module ${modIndex+1} !!`;
+          if (!this.validationService.validateNullUndefinedEmptyString(module.module)) {
+            this.alertMessage = `Please enter module ${modIndex + 1} !!`;
             this.openAlertMod(template, this.alertMessage);
             flag = false;
             return false;
           }
 
-          if(module.projectQuestion != null && module.projectQuestion.length != 0){
-            flag = this.questionValidation(module.projectQuestion, modIndex, template, 'Module');
+          if (!this.validationService.validateNullUndefinedEmptyString(module.assignedToUserId)) {
+            this.alertMessage = `Please select assign user in module ${modIndex + 1} !!`;
+            this.openAlertMod(template, this.alertMessage);
+            flag = false;
+            return false;
           }
 
-          if(module.subModuleList != null && module.subModuleList.length != 0){
-            module.subModuleList.forEach((submodule:any, submodIndex) => {
-              if(!this.validationService.validateNullUndefinedEmptyString(submodule.subModule)){
-                this.alertMessage = `Please enter sub-module ${submodIndex+1} !!`;
+          if (module.questionList != null && module.questionList.length != 0) {
+            flag = this.questionValidation(module.questionList, modIndex, template, 'Module');
+          }
+
+          if (module.subModuleList != null && module.subModuleList.length != 0) {
+            module.subModuleList.forEach((submodule: any, submodIndex) => {
+              if (!this.validationService.validateNullUndefinedEmptyString(submodule.subModule)) {
+                this.alertMessage = `Please enter sub-module ${submodIndex + 1} !!`;
                 this.openAlertMod(template, this.alertMessage);
                 flag = false;
                 return false;
               }
-        
-              if(!this.validationService.validateNullUndefinedEmptyString(submodule.assignedTo)){
-                this.alertMessage = `Please select assign user in sub-module ${submodIndex+1} !!`;
+
+              if (!this.validationService.validateNullUndefinedEmptyString(submodule.assignedToUserId)) {
+                this.alertMessage = `Please select assign user in sub-module ${submodIndex + 1} !!`;
                 this.openAlertMod(template, this.alertMessage);
                 flag = false;
                 return false;
               }
-    
-              if(submodule.projectQuestion != null && submodule.projectQuestion.length != 0){
-                flag = this.questionValidation(submodule.projectQuestion, submodIndex, template, 'sub-module');
+
+              if (submodule.questionList != null && submodule.questionList.length != 0) {
+                flag = this.questionValidation(submodule.questionList, submodIndex, template, 'sub-module');
               }
             });
           }
-        }) 
+        })
       }
     });
-
     return flag;
   }
 
@@ -541,16 +501,12 @@ export class ProjectInsightsConfigComponent implements OnInit {
       option.isChecked = false;
     }
   }
-
-  isInArray(value: string, array: any[]): boolean {
-    return Array.isArray(array) && array.includes(value);
-  }
   
   getAllProjectInsightResponsesByProjectId(projectObj: any,alertTemplate:TemplateRef<any>,insightResponseTemplate: TemplateRef<any>,isPreview:any) {
     this.isResponsePreview = isPreview;
     this.projectInsightResponseList = [];
     this.isFinalResponseSubmitted = true;
-    let projObj = new ProjectInsightQuestion();
+    let projObj = new ProjectInsight();
     projObj.empId = this.currentUser.empId;
     projObj.projectId = projectObj.projectId;
     projObj.projectManagerId = projectObj.projectManagerId;
@@ -560,13 +516,13 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
     this.projectInsightService.getAllProjectInsightResponsesByProjectId(projObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.projectInsightQuestion = response.serviceResponse;
-        this.projectInsightResponseList = this.projectInsightQuestion.projectInsightQuestionList;
+        this.projectInsight = response.serviceResponse;
+        this.projectInsightResponseList = this.projectInsight.projectInsightMilestoneList;
 
-        this.projectInsightResponseList.forEach((milestone: ProjectInsightQuestion, mileIndex) => {
+        this.projectInsightResponseList.forEach((milestone: ProjectMilestone, mileIndex) => {
           milestone.isCollapsed = true;
-          if (milestone.projectQuestion != null && milestone.projectQuestion.length != 0) {
-            milestone.projectQuestion.forEach((question: ProjectQuestion, index) => {
+          if (milestone.questionList != null && milestone.questionList.length != 0) {
+            milestone.questionList.forEach((question: ProjectQuestion, index) => {
               if (question.projectResponseList != null && question.projectResponseList.length != 0) {
                 question.projectResponseList.forEach((response: ProjectResponse, index) => {
                   response.optionsList = JSON.parse(response.options);
@@ -609,8 +565,8 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
           if (milestone.moduleList != null && milestone.moduleList.length != 0) {
             milestone.moduleList.forEach((module: any, modIndex) => {
-              if (module.projectQuestion != null && module.projectQuestion.length != 0) {
-                module.projectQuestion.forEach((question: ProjectQuestion, index) => {
+              if (module.questionList != null && module.questionList.length != 0) {
+                module.questionList.forEach((question: ProjectQuestion, index) => {
                   if (question.projectResponseList != null && question.projectResponseList.length != 0) {
                     question.projectResponseList.forEach((response: ProjectResponse, index) => {
                       response.optionsList = JSON.parse(response.options);
@@ -653,8 +609,8 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
               if (module.subModuleList != null && module.subModuleList.length != 0) {
                 module.subModuleList.forEach((submodule: any, submodIndex) => {
-                  if (submodule.projectQuestion != null && submodule.projectQuestion.length != 0) {
-                    submodule.projectQuestion.forEach((question: ProjectQuestion, index) => {
+                  if (submodule.questionList != null && submodule.questionList.length != 0) {
+                    submodule.questionList.forEach((question: ProjectQuestion, index) => {
                       if (question.projectResponseList != null && question.projectResponseList.length != 0) {
                         question.projectResponseList.forEach((response: ProjectResponse, index) => {
                           response.optionsList = JSON.parse(response.options);
@@ -714,8 +670,8 @@ export class ProjectInsightsConfigComponent implements OnInit {
     let files:File[]=[];
     for (let milestoneIndex = 0; milestoneIndex < this.projectInsightResponseList.length; milestoneIndex++) {
       let milestone = this.projectInsightResponseList[milestoneIndex];
-      if (milestone.projectQuestion?.length) {
-        let questionList = milestone.projectQuestion;
+      if (milestone.questionList?.length) {
+        let questionList = milestone.questionList;
         for (let index = 0; index < questionList.length; index++) {
           let question = questionList[index];
           for(let responseIndex = 0;responseIndex < question.projectResponseList.length; responseIndex++){
@@ -736,8 +692,8 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
       for (let moduleIndex = 0; moduleIndex < (milestone.moduleList?.length || 0); moduleIndex++) {
         let module = milestone.moduleList[moduleIndex];
-        if (module.projectQuestion?.length) {
-          let moduleQuestionList = module.projectQuestion;
+        if (module.questionList?.length) {
+          let moduleQuestionList = module.questionList;
           for (let index = 0; index < moduleQuestionList.length; index++) {
             let question = moduleQuestionList[index];
             for(let responseIndex = 0;responseIndex < question.projectResponseList.length; responseIndex++){
@@ -758,9 +714,9 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
         for (let submoduleIndex = 0; submoduleIndex < (module.subModuleList?.length || 0); submoduleIndex++) {
           let submodule = module.subModuleList[submoduleIndex];
-          if (submodule.projectQuestion?.length) {
-            let submoduleProjectQuestion = submodule.projectQuestion;
-            for (let index = 0; index < submodule.projectQuestion.length; index++) {
+          if (submodule.questionList?.length) {
+            let submoduleProjectQuestion = submodule.questionList;
+            for (let index = 0; index < submodule.questionList.length; index++) {
               let question = submoduleProjectQuestion[index];
               for(let responseIndex = 0;responseIndex < question.projectResponseList.length; responseIndex++){
                 let response = question.projectResponseList[responseIndex];
@@ -781,11 +737,11 @@ export class ProjectInsightsConfigComponent implements OnInit {
       }
     }
 
-    let projObj = new ProjectInsightQuestion();
-    projObj.projectId = this.projectInsightQuestion.projectId;
-    projObj.projectManagerId = this.projectInsightQuestion.projectManagerId;
-    projObj.projectManagerName = this.projectInsightQuestion.projectManagerName;
-    projObj.projectInsightQuestionList = this.projectInsightResponseList;
+    let projObj = new ProjectInsight();
+    projObj.projectId = this.projectInsight.projectId;
+    projObj.projectManagerId = this.projectInsight.projectManagerId;
+    projObj.projectManagerName = this.projectInsight.projectManagerName;
+    projObj.projectInsightMilestoneList = this.projectInsightResponseList;
     projObj.empId = this.currentUser.empId;
     this.projectInsightService.saveProjectInsightResponse(projObj,files).pipe(first()).subscribe((response: any) => {
       this.closeProjectInsightResponseModal();
@@ -798,12 +754,12 @@ export class ProjectInsightsConfigComponent implements OnInit {
     });
   }
 
-  validateProjectInsightResponse(template: TemplateRef<any>,projectInsightResponseList: ProjectInsightQuestion[],projectInsightQuestion:any) {
+  validateProjectInsightResponse(template: TemplateRef<any>,projectInsightResponseList: ProjectMilestone[],projectInsightQuestion:any) {
     for (let milestoneIndex = 0; milestoneIndex < projectInsightResponseList.length; milestoneIndex++) {
       let milestone = projectInsightResponseList[milestoneIndex];
   
-      if (milestone.projectQuestion?.length) {
-        if (!this.validateQuestionAndResponse(milestone.projectQuestion, milestoneIndex, template, 'Milestone')) {
+      if (milestone.questionList?.length) {
+        if (!this.validateQuestionAndResponse(milestone.questionList, milestoneIndex, template, 'Milestone')) {
           return false;
         }
       }
@@ -811,8 +767,8 @@ export class ProjectInsightsConfigComponent implements OnInit {
       for (let moduleIndex = 0; moduleIndex < (milestone.moduleList?.length || 0); moduleIndex++) {
         let module = milestone.moduleList[moduleIndex];
   
-        if (module.projectQuestion?.length) {
-          if (!this.validateQuestionAndResponse(module.projectQuestion, moduleIndex, template, 'Milestone - ' + (milestoneIndex+1) +  ' Module')) {
+        if (module.questionList?.length) {
+          if (!this.validateQuestionAndResponse(module.questionList, moduleIndex, template, 'Milestone - ' + (milestoneIndex+1) +  ' Module')) {
             return false; 
           }
         }
@@ -820,8 +776,8 @@ export class ProjectInsightsConfigComponent implements OnInit {
         for (let submoduleIndex = 0; submoduleIndex < (module.subModuleList?.length || 0); submoduleIndex++) {
           let submodule = module.subModuleList[submoduleIndex];
   
-          if (submodule.projectQuestion?.length) {
-            if (!this.validateQuestionAndResponse(submodule.projectQuestion, submoduleIndex, template, 'Milestone - ' + milestoneIndex+1 +  ' Module - '  + (moduleIndex+1)+ 'Sub-module')) {
+          if (submodule.questionList?.length) {
+            if (!this.validateQuestionAndResponse(submodule.questionList, submoduleIndex, template, 'Milestone - ' + milestoneIndex+1 +  ' Module - '  + (moduleIndex+1)+ 'Sub-module')) {
               return false; 
             }
           }
@@ -852,31 +808,30 @@ export class ProjectInsightsConfigComponent implements OnInit {
   }
 
   onSubmit(template: TemplateRef<any>){
-
-    let inputValidated: boolean = this.vallidateProjectInsight(template, this.projectInsightQuestion, this.projectInsightQuestionList);
+    let inputValidated: boolean = this.validateProjectInsight(template, this.projectInsight, this.projectInsightMilestoneList);
     if (!inputValidated) return;
 
     const questionTemplate:string = this.createTemplate();
 
-    let projObj = new ProjectInsightQuestion();
-    projObj.projectId = this.projectInsightQuestion.projectId;
-    projObj.projectManagerId = this.projectInsightQuestion.projectManagerId;
-    projObj.projectManagerName = this.projectInsightQuestion.projectManagerName;
-    projObj.projectInsightQuestionList = this.projectInsightQuestionList;
+    let projObj = new ProjectInsight();
+    projObj.projectId = this.projectInsight.projectId;
+    projObj.projectManagerId = this.projectInsight.projectManagerId;
+    projObj.projectManagerName = this.projectInsight.projectManagerName;
+    projObj.projectInsightMilestoneList = this.projectInsightMilestoneList;
     projObj.projectInsightQuestionTemplate = questionTemplate;
     projObj.createdBy = this.currentUser.empId;
-    projObj.applicationQuestion = this.projectInsightQuestion.applicationQuestion;
+    projObj.questionList = this.projectInsight.questionList;
 
-    if(projObj.applicationQuestion != null && projObj.applicationQuestion.length != 0){
-      projObj.applicationQuestion.forEach((questionObj: ProjectQuestion) => {
+    if(projObj.questionList != null && projObj.questionList.length != 0){
+      projObj.questionList.forEach((questionObj: ProjectQuestion) => {
         questionObj.options = JSON.stringify(questionObj.optionsList);
       });
     }
 
-    projObj.projectInsightQuestionList.forEach((proj:ProjectInsightQuestion) => {
+    projObj.projectInsightMilestoneList.forEach((proj:ProjectMilestone) => {
 
-      if(proj.projectQuestion != null && proj.projectQuestion.length != 0){
-        proj.projectQuestion.forEach((questionObj: ProjectQuestion) => {
+      if(proj.questionList != null && proj.questionList.length != 0){
+        proj.questionList.forEach((questionObj: ProjectQuestion) => {
           questionObj.options = JSON.stringify(questionObj.optionsList);
         });
       }
@@ -884,21 +839,14 @@ export class ProjectInsightsConfigComponent implements OnInit {
       if(proj.moduleList != null && proj.moduleList.length != 0){
         proj.moduleList.forEach((moduleObj: any) => {
 
-          if(moduleObj.projectQuestion != null && moduleObj.projectQuestion.length != 0){
-            moduleObj.projectQuestion.forEach((questionObj: ProjectQuestion) => {
+          if(moduleObj.questionList != null && moduleObj.questionList.length != 0){
+            moduleObj.questionList.forEach((questionObj: ProjectQuestion) => {
               questionObj.options = JSON.stringify(questionObj.optionsList);
             });
           }
 
           if(moduleObj.subModuleList != null && moduleObj.subModuleList.length != 0){
-            moduleObj.subModuleList.forEach((submoduleObj: any) => {
-    
-              if(submoduleObj.projectQuestion != null && submoduleObj.projectQuestion.length != 0){
-                submoduleObj.projectQuestion.forEach((questionObj: ProjectQuestion) => {
-                  questionObj.options = JSON.stringify(questionObj.optionsList);
-                });
-              }
-            });
+            this.convertJSONToStringSubModuleNodesOption(moduleObj.subModuleList);
           }
         });
       }
@@ -915,10 +863,17 @@ export class ProjectInsightsConfigComponent implements OnInit {
     });
   }
 
-  spaceTrimOnSurveyName(){
-    if(this.surveyObj.surveyName != null || this.surveyObj.surveyName != ''){
-      this.surveyObj.surveyName = this.surveyObj.surveyName?.trim();
-    }
+  convertJSONToStringSubModuleNodesOption(subModuleList:any){
+    subModuleList.forEach((submoduleObj: any) => {
+      if(submoduleObj.questionList != undefined && submoduleObj.questionList != null && submoduleObj.questionList.length != 0){
+        submoduleObj.questionList.forEach((questionObj: ProjectQuestion) => {
+          questionObj.options = JSON.stringify(questionObj.optionsList);
+        });
+      }
+      if(submoduleObj.subSubModuleList != undefined && submoduleObj.subSubModuleList != null && submoduleObj.subSubModuleList.length != 0){
+        this.convertJSONToStringSubModuleNodesOption(submoduleObj.subSubModuleList);
+      }
+    });
   }
 
   getAllProjectInsightList(){
@@ -926,7 +881,6 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.sortColumnType=[];
     this.sortDirection='';
     this.allProjectInsightList = [];
-
     let insightObj = {
       employeeRole:this.currentUser.employeeRole,
       empId:this.currentUser.empId
@@ -945,24 +899,21 @@ export class ProjectInsightsConfigComponent implements OnInit {
   }
 
   onProjectInsightPreview(projectObj:any, template: TemplateRef<any>){
-    this.projectInsightQuestion = new ProjectInsightQuestion();
-    this.projectInsightQuestionList = [];
+    this.projectInsight = new ProjectInsight();
+    this.projectInsightMilestoneList = [];
 
     this.projectInsightService.getAllQuestionsByProjectId(projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.projectInsightQuestion = response.serviceResponse;
-        this.projectInsightQuestionList = this.projectInsightQuestion.projectInsightQuestionList;
+        this.projectInsight = response.serviceResponse;
+        this.projectInsightMilestoneList = this.projectInsight.projectInsightMilestoneList;
 
         const questionTemplate: string = this.createTemplate();
-
-        let previewObj = new ProjectInsightQuestion();
-        previewObj.projectId = this.projectInsightQuestion.projectId;
-        previewObj.projectManagerId = this.projectInsightQuestion.projectManagerId;
-        previewObj.projectManagerName = this.projectInsightQuestion.projectManagerName;
-        previewObj.projectInsightQuestionList = this.projectInsightQuestionList;
+        let previewObj = new ProjectInsight();
+        previewObj.projectId = this.projectInsight.projectId;
+        previewObj.projectManagerId = this.projectInsight.projectManagerId;
+        previewObj.projectManagerName = this.projectInsight.projectManagerName;
+        previewObj.projectInsightMilestoneList = this.projectInsightMilestoneList;
         previewObj.projectInsightQuestionTemplate = questionTemplate;
-
-        //console.log("previewObj : ", previewObj);
         this.openSurveyPreviewMod(template, previewObj);
       } else {
         console.error(response.serviceResponse);
@@ -970,165 +921,47 @@ export class ProjectInsightsConfigComponent implements OnInit {
     });
   }
 
-  async getAllSurveyResponsesBySurveyId(surveyObj:Survey){
-    this.allSurveyResponseList = []
-    this.responseListTableHeaders = ["Employee ID", "Employee Name"];
-    this.surveyObj = surveyObj;
-
-    let questionsList:any[] = [];
-    let responseList:any[] = [];
-
-    const questionResponse: any = await this.surveyService.getAllQuestionsBySurveyId(surveyObj).toPromise();
-    if (questionResponse.serviceStatus == "Success") {
-      questionsList = questionResponse.serviceResponse;
-      //console.log("questionsList : ", questionsList);
-      questionsList.forEach((question:SurveyQuestion, index) => {
-        this.responseListTableHeaders.push(question.question);
-        // this.responseListTableHeaders.push(`Question ${index+1}`, `Answer ${index+1}`);
-      });
-    } else {
-      console.error(questionResponse.serviceResponse);
-    }
-
-    //console.log("Final responseListTableHeaders : ", this.responseListTableHeaders);
-
-
-    const response: any = await this.surveyService.getSurveyAllResponsesBySurveyId(surveyObj).toPromise();
-    if (response.serviceStatus == "Success") {
-      responseList = response.serviceResponse;
-      //console.log("responseList : ", responseList);
-      const key = "employeementId"
-      let employees = [...new Map(responseList.map((response:SurveyQuestion) => [response[key], response])).values()].map((response:SurveyQuestion) => {
-        return ["A-" + response.employeementId, response.name]
-        // return {
-        //   name: response.name,
-        //   employeementId : response.employeementId
-        // }
-      });
-
-      //console.log("employees : ", employees);
-
-      employees.forEach(employee => {
-        let employeeResponse:any[] = responseList.filter((response:SurveyQuestion) => "A-"+ response.employeementId == employee[0]);
-
-        this.responseListTableHeaders.forEach(header => {
-          const surveyResponse = employeeResponse.find((response:SurveyQuestion) => response.question == header);
-          if(surveyResponse) employee.push(surveyResponse.response);
-        });
-      });
-
-      //console.log("employees with responses : ", employees);
-      this.allSurveyResponseList = employees;
-    } else {
-      console.error(response.serviceResponse);
-    }
-
-
-  }
-
   onUpdate(template: TemplateRef<any>){
-    let inputValidated: boolean = this.vallidateProjectInsight(template, this.projectInsightQuestion, this.projectInsightQuestionList);
+    let inputValidated: boolean = this.validateProjectInsight(template, this.projectInsight, this.projectInsightMilestoneList);
     if (!inputValidated) return;
 
-    let projObj = new ProjectInsightQuestion();
-      projObj.projectId = this.projectInsightQuestion.projectId;
-      projObj.projectManagerId = this.projectInsightQuestion.projectManagerId;
-      projObj.projectManagerName = this.projectInsightQuestion.projectManagerName;
-      projObj.projectInsightQuestionList = this.projectInsightQuestionList;
+    let projObj = new ProjectInsight();
+      projObj.projectId = this.projectInsight.projectId;
+      projObj.projectManagerId = this.projectInsight.projectManagerId;
+      projObj.projectManagerName = this.projectInsight.projectManagerName;
+      projObj.projectInsightMilestoneList = this.projectInsightMilestoneList;
       projObj.updatedBy = this.currentUser.empId;
-      projObj.applicationQuestion = this.projectInsightQuestion.applicationQuestion;
+      projObj.questionList = this.projectInsight.questionList;
 
-      if(projObj.applicationQuestion != null && projObj.applicationQuestion.length != 0){
-        projObj.applicationQuestion.forEach((questionObj: ProjectQuestion) => {
+      if(projObj.questionList != null && projObj.questionList.length != 0){
+        projObj.questionList.forEach((questionObj: ProjectQuestion) => {
           questionObj.options = JSON.stringify(questionObj.optionsList);
         });
       }
   
-      projObj.projectInsightQuestionList.forEach((proj:ProjectInsightQuestion) => {
-
-        if(proj.projectQuestion != null && proj.projectQuestion.length != 0){
-          proj.projectQuestion.forEach((questionObj: ProjectQuestion) => {
+      projObj.projectInsightMilestoneList.forEach((proj:ProjectMilestone) => {
+        if(proj.questionList != null && proj.questionList.length != 0){
+          proj.questionList.forEach((questionObj: ProjectQuestion) => {
             questionObj.options = JSON.stringify(questionObj.optionsList);
           });
         }
   
         if(proj.moduleList != null && proj.moduleList.length != 0){
           proj.moduleList.forEach((moduleObj: any) => {
-  
-            if(moduleObj.projectQuestion != null && moduleObj.projectQuestion.length != 0){
-              moduleObj.projectQuestion.forEach((questionObj: ProjectQuestion) => {
+            if(moduleObj.questionList != null && moduleObj.questionList.length != 0){
+              moduleObj.questionList.forEach((questionObj: ProjectQuestion) => {
                 questionObj.options = JSON.stringify(questionObj.optionsList);
               });
             }
   
             if(moduleObj.subModuleList != null && moduleObj.subModuleList.length != 0){
-              moduleObj.subModuleList.forEach((submoduleObj: any) => {
-      
-                if(submoduleObj.projectQuestion != null && submoduleObj.projectQuestion.length != 0){
-                  submoduleObj.projectQuestion.forEach((questionObj: ProjectQuestion) => {
-                    questionObj.options = JSON.stringify(questionObj.optionsList);
-                  });
-                }
-              });
+              this.convertJSONToStringSubModuleNodesOption(moduleObj.subModuleList);
             }
           });
         }
       });
 
-    //console.log("updateSurvey : ", surveyObj);
     this.projectInsightService.updateProjectInsightQuestion(projObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-        this.showProjectInsight();
-      }else{
-        this.openAlertMod(template, response.serviceResponse);
-      }
-    });
-  }
-
-  onDelete(template: TemplateRef<any>){
-    this.cancelRequest();
-
-    //console.log("Delete Survey : ", this.surveyObj);
-    this.surveyService.deleteSurvey(this.surveyObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-        this.showProjectInsight();
-      }else{
-        this.openAlertMod(template, response.serviceResponse);
-      }
-    });
-  }
-
-  onActivate(template: TemplateRef<any>){
-    this.cancelRequest();
-
-    let surveyObj = new Survey();
-    surveyObj.surveyId = this.surveyObj.surveyId;
-    surveyObj.updatedBy = this.currentUser.empId;
-    surveyObj.isActive = true;
-
-    //console.log("Activate Survey : ", surveyObj);
-    this.surveyService.changeSurveyStatus(surveyObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-        this.showProjectInsight();
-      }else{
-        this.openAlertMod(template, response.serviceResponse);
-      }
-    });
-  }
-
-  onComplete(template: TemplateRef<any>){
-    this.cancelRequest();
-
-    let surveyObj = new Survey();
-    surveyObj.surveyId = this.surveyObj.surveyId;
-    surveyObj.updatedBy = this.currentUser.empId;
-    surveyObj.isActive = "Completed";
-
-    //console.log("Complete Survey : ", surveyObj);
-    this.surveyService.changeSurveyStatus(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showProjectInsight();
@@ -1150,134 +983,6 @@ export class ProjectInsightsConfigComponent implements OnInit {
     });
   }
 
-  onImageSelect(event: any){
-  }
-
-// createTemplate(): string {
-//   let projectInsightQueTemplate = '';
-
-//   // Iterate through milestones
-//   this.projectInsightQuestionList.forEach((milestone: ProjectInsightQuestion, mileIndex) => {
-//     // Milestone Section
-//     projectInsightQueTemplate += `
-//       <div class="milestone-section" style="margin-bottom: 30px; background: white; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
-//         <div class="milestone-header" style="background: #3498db; color: white; padding: 15px; border-radius: 8px 8px 0 0;">
-//           <h3 style="margin: 0;">Milestone ${mileIndex + 1}: ${milestone.milestone || ''}</h3>
-//           <div style="font-size: 14px; margin-top: 5px;">${milestone.description || ''}</div>
-//           <div style="font-size: 12px; margin-top: 5px;">Assigned To: ${milestone.assignedTo || ''}</div>
-//         </div>
-//         <div class="milestone-content" style="padding: 20px;">
-//     `;
-
-//     // Milestone Questions
-//     if (milestone.projectQuestion && milestone.projectQuestion.length > 0) {
-//       projectInsightQueTemplate += this.createQuestionsSection(milestone.projectQuestion, 'Milestone');
-//     }
-
-//     // Handle Modules
-//     if (milestone.moduleList && milestone.moduleList.length > 0) {
-//       milestone.moduleList.forEach((module, modIndex) => {
-//         projectInsightQueTemplate += `
-//           <div class="module-section" style="margin: 20px 0; background: #f5f6fa; border-radius: 6px; padding: 15px;">
-//             <div class="module-header" style="background: #2ecc71; color: white; padding: 10px; border-radius: 6px; margin-bottom: 15px;">
-//               <h4 style="margin: 0;">Module: ${module.module || ''}</h4>
-//               <div style="font-size: 12px; margin-top: 5px;">Assigned To: ${module.assignedTo || ''}</div>
-//             </div>
-//         `;
-
-//         // Module Questions
-//         if (module.projectQuestion && module.projectQuestion.length > 0) {
-//           projectInsightQueTemplate += this.createQuestionsSection(module.projectQuestion, 'Module');
-//         }
-
-//         // Handle SubModules
-//         if (module.subModuleList && module.subModuleList.length > 0) {
-//           module.subModuleList.forEach((subModule, subModIndex) => {
-//             projectInsightQueTemplate += `
-//               <div class="submodule-section" style="margin: 15px 0; background: white; border-radius: 6px; padding: 15px;">
-//                 <div class="submodule-header" style="background: #9b59b6; color: white; padding: 8px; border-radius: 6px; margin-bottom: 15px;">
-//                   <h5 style="margin: 0;">Sub-Module</h5>
-//                   <div style="font-size: 12px; margin-top: 5px;">Assigned To: ${subModule.assignedTo || ''}</div>
-//                 </div>
-//             `;
-
-//             // SubModule Questions
-//             if (subModule.projectQuestion && subModule.projectQuestion.length > 0) {
-//               projectInsightQueTemplate += this.createQuestionsSection(subModule.projectQuestion, 'SubModule');
-//             }
-
-//             projectInsightQueTemplate += `</div>`; // Close submodule-section
-//           });
-//         }
-
-//         projectInsightQueTemplate += `</div>`; // Close module-section
-//       });
-//     }
-
-//     projectInsightQueTemplate += `
-//         </div>
-//       </div>
-//     `; // Close milestone-content and milestone-section
-//   });
-
-//   return projectInsightQueTemplate;
-// }
-
-// private createQuestionsSection(questions: any[], entityType: string): string {
-//   let questionsTemplate = '';
-  
-//   questions.forEach((question, qIndex) => {
-//     const isRequired = question.required === 'true' ? `<span style="color: #e74c3c; margin-left: 5px;">*</span>` : '';
-//     const hasDocument = question.documentUpload === 'true' ? 
-//       `<div style="margin-top: 10px;">
-//         <input type="file" accept="image/*" class="form-control-file" style="font-size: 14px;">
-//        </div>` : '';
-    
-//     questionsTemplate += `
-//       <div class="question-container" style="background: white; padding: 15px; margin: 10px 0; border-radius: 6px; border: 1px solid #e0e0e0;">
-//         <div class="question-header" style="margin-bottom: 10px;">
-//           <h5 style="color: #34495e; margin: 0;">Q${qIndex + 1}. ${question.question}${isRequired}</h5>
-//           ${question.description ? `<small style="color: #7f8c8d;">${question.description}</small>` : ''}
-//         </div>
-//     `;
-
-//     // Handle different question types
-//     if (question.optionType === "text") {
-//       questionsTemplate += `
-//         <input type="text" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"
-//                value="${question.response || ''}" placeholder="Enter your answer">
-//       `;
-//     } else if (question.optionType === "checkbox" || question.optionType === "radio") {
-//       const options = JSON.parse(question.options || '[]');
-//       options.forEach((option: any, optIndex: number) => {
-//         const isChecked = question.response?.includes(option.optionValue) ? 'checked' : '';
-//         questionsTemplate += `
-//           <div class="option-container" style="margin: 8px 0;">
-//             <input type="${question.optionType}" 
-//                    id="${entityType}-${qIndex}-${question.optionType}-${optIndex}"
-//                    name="${entityType}-question-${qIndex}"
-//                    value="${option.optionValue}"
-//                    ${isChecked}
-//                    style="margin-right: 8px;">
-//             <label for="${entityType}-${qIndex}-${question.optionType}-${optIndex}"
-//                    style="color: #2c3e50; font-size: 14px;">
-//               ${option.optionValue}
-//             </label>
-//           </div>
-//         `;
-//       });
-//     }
-
-//     questionsTemplate += `
-//         ${hasDocument}
-//       </div>
-//     `;
-//   });
-
-//   return questionsTemplate;
-// }
-
-
 createTemplate(): string {
   let projectInsightQueTemplate = `
     <style>
@@ -1293,7 +998,7 @@ createTemplate(): string {
   `;
 
   // Iterate through milestones
-  this.projectInsightQuestionList.forEach((milestone: ProjectInsightQuestion, mileIndex) => {
+  this.projectInsightMilestoneList.forEach((milestone: ProjectMilestone, mileIndex) => {
     projectInsightQueTemplate += `
       <div class="milestone-section" style="
         margin-bottom: 30px;
@@ -1333,15 +1038,15 @@ createTemplate(): string {
             <svg style="width: 16px; height: 16px;" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
             </svg>
-            <span style="font-size: 0.9rem;">Assigned To: ${milestone.assignedTo || ''}</span>
+            <span style="font-size: 0.9rem;">Assigned To: ${milestone.assignedToUserId || ''}</span>
           </div>
         </div>
         <div class="milestone-content" style="padding: 25px;">
     `;
 
     // Milestone Questions
-    if (milestone.projectQuestion && milestone.projectQuestion.length > 0) {
-      projectInsightQueTemplate += this.createQuestionsSection(milestone.projectQuestion, 'Milestone');
+    if (milestone.questionList && milestone.questionList.length > 0) {
+      projectInsightQueTemplate += this.createQuestionsSection(milestone.questionList, 'Milestone');
     }
 
     // Handle Modules with enhanced styling
@@ -1382,14 +1087,14 @@ createTemplate(): string {
                 <svg style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                 </svg>
-                Assigned To: ${module.assignedTo || ''}
+                Assigned To: ${module.assignedToUserId || ''}
               </div>
             </div>
         `;
 
         // Module Questions
-        if (module.projectQuestion && module.projectQuestion.length > 0) {
-          projectInsightQueTemplate += this.createQuestionsSection(module.projectQuestion, 'Module');
+        if (module.questionList && module.questionList.length > 0) {
+          projectInsightQueTemplate += this.createQuestionsSection(module.questionList, 'Module');
         }
 
         // Handle SubModules with enhanced styling
@@ -1430,14 +1135,14 @@ createTemplate(): string {
                     <svg style="width: 12px; height: 12px;" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                     </svg>
-                    Assigned To: ${subModule.assignedTo || ''}
+                    Assigned To: ${subModule.assignedToUserId || ''}
                   </div>
                 </div>
             `;
 
             // SubModule Questions
-            if (subModule.projectQuestion && subModule.projectQuestion.length > 0) {
-              projectInsightQueTemplate += this.createQuestionsSection(subModule.projectQuestion, 'SubModule');
+            if (subModule.questionList && subModule.questionList.length > 0) {
+              projectInsightQueTemplate += this.createQuestionsSection(subModule.questionList, 'SubModule');
             }
 
             projectInsightQueTemplate += `</div>`;
@@ -1602,79 +1307,6 @@ private createQuestionsSection(questions: any[], entityType: string): string {
 
   return questionsTemplate;
 }
-  
-  name = 'EmployeeSheet.xlsx';
-  async exportToExcel(): Promise<void> {
-
-    let headers:any[] = ["Employee ID", "Employee Name"];
-    let questionsList:any[] = [];
-    let responseList:any[] = [];
-    let dataForExcel:any[] = [];
-
-    const questionResponse: any = await this.surveyService.getAllQuestionsBySurveyId(this.surveyObj).toPromise();
-    if (questionResponse.serviceStatus == "Success") {
-      questionsList = questionResponse.serviceResponse;
-      //console.log("questionsList : ", questionsList);
-      questionsList.forEach((question:SurveyQuestion, index) => {
-        headers.push(question.question);
-        // headers.push(`Question ${index+1}`, `Answer ${index+1}`);
-      });
-    } else {
-      console.error(questionResponse.serviceResponse);
-    }
-
-    //console.log("Final responseListTableHeaders : ", this.responseListTableHeaders);
-
-
-    const response: any = await this.surveyService.getSurveyAllResponsesBySurveyId(this.surveyObj).toPromise();
-    if (response.serviceStatus == "Success") {
-      responseList = response.serviceResponse;
-      //console.log("responseList : ", responseList);
-      const key = "employeementId"
-      let employees = [...new Map(responseList.map((response:SurveyQuestion) => [response[key], response])).values()].map((response:SurveyQuestion) => {
-        return ["A-".concat(response.employeementId), response.name]
-        // return {
-        //   name: response.name,
-        //   employeementId : response.employeementId
-        // }
-      });
-
-      //console.log("employees : ", employees);
-
-      employees.forEach(employee => {
-        let employeeResponse:any[] = responseList.filter((response:SurveyQuestion) => response.employeementId == employee[0].substring(2));
-        this.responseListTableHeaders.forEach(header => {
-          const surveyResponse = employeeResponse.find((response:SurveyQuestion) => response.question == header);
-          if(surveyResponse) employee.push(surveyResponse.response);
-        });
-      })
-
-      dataForExcel = employees;
-      //console.log("dataForExcel : ", employees);
-    } else {
-      console.error(response.serviceResponse);
-    }
-
-      const onlySpecificDataArr = dataForExcel.map(response => {
-        let data = {};
-        headers.forEach((header, index) => {
-          data[header] = response[index]
-        });
-
-        return data;
-      });
-      //console.log("onlySpecificDataArr : ", onlySpecificDataArr);
-
-       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
-  }
-
-  copySurveyLinkToClipBoard(survey:any,template: TemplateRef<any>) {
-    let url = window.location.href.split("#")[0].concat("#/user-survey/").concat(survey.surveyId);
-    //console.log(url, " : url");
-
-    this.clipboardService.copy(url);
-    this.openAlertMod(template, "Link copied to clipboard !!");
-  }
 
   //modals
   openProjectInsightResponeMod(insightResponseTemplate: TemplateRef<any>) {
@@ -1685,25 +1317,10 @@ private createQuestionsSection(questions: any[], entityType: string): string {
     this.projectResponseModalRef.hide();
   }
 
-  openSurveyPreviewMod(template: TemplateRef<any>, surveyObj:ProjectInsightQuestion) {
+  openSurveyPreviewMod(template: TemplateRef<any>, surveyObj:ProjectInsight) {
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
     let surveyContainer = document.getElementById("survey-container");
     surveyContainer.insertAdjacentHTML('beforeend', surveyObj.projectInsightQuestionTemplate);
-  }
-
-  openDeleteProjectInsightMod(template: TemplateRef<any>, surveyObj:Survey) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
-    this.surveyObj = surveyObj;
-  }
-
-  openActivateSurveyMod(template: TemplateRef<any>, surveyObj:Survey) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
-    this.surveyObj = surveyObj;
-  }
-
-  openCompleteSurveyMod(template: TemplateRef<any>, surveyObj:Survey) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
-    this.surveyObj = surveyObj;
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
@@ -1715,10 +1332,14 @@ private createQuestionsSection(questions: any[], entityType: string): string {
     this.modalRef.hide();
   }
 
-  page = 1;
   handlePageChange(event) {
     this.page = event;
   }
+
+  closeDocumentPreviewTemplate(){
+    this.documentPreviewModalRef.hide();
+  }
+
   toggleSearch(){
     this.isSearchEnabled = !this.isSearchEnabled;
     if(!this.isSearchEnabled){
@@ -1727,7 +1348,6 @@ private createQuestionsSection(questions: any[], entityType: string): string {
   }
 
   sortData(sort: Sort){
-    //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -1735,9 +1355,9 @@ private createQuestionsSection(questions: any[], entityType: string): string {
       this.sortDirection = sort.direction;
     }
   }
+
   onSearch(searchData){
     this.filters = searchData;
-    //console.log("Updated Filter : ", this.filters);
   }
 
   removeUploadedFile(response:any){
@@ -1875,13 +1495,164 @@ private createQuestionsSection(questions: any[], entityType: string): string {
       });
   }
 
-  closeDocumentPreviewTemplate(){
-    this.documentPreviewModalRef.hide();
+  addSubSubModule(parentSubModule: ProjectSubModule): void {
+    if (!parentSubModule.subSubModuleList) {
+      parentSubModule.subSubModuleList = []
+    }
+    parentSubModule.subSubModuleList.push(new ProjectSubModule());
   }
 
-}
+  removeSubSubModule(parentSubModule: ProjectSubModule, childIndex: number): void {
+    if (parentSubModule.subSubModuleList) {
+      parentSubModule.subSubModuleList.splice(childIndex, 1)
+    }
+  }
 
-function compare(a: number | string, b: number | string, isAsc: boolean) {
-  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
+  addSubSubModuleQuestion(sub:ProjectSubModule){
+    if (!sub.questionList) {
+      sub.questionList = []
+    }
+    sub.questionList.push(new ProjectQuestion());
+  }
+
+  // removeSubSubModule(parentSubModule: ProjectSubModule, childIndex: number): void {
+  //   if (parentSubModule.subSubModuleList) {
+  //     const childSubModule = parentSubModule.subSubModuleList[childIndex]
+  //     // this.removeAllSubmodulesFromRegistry([childSubModule])
+  //     parentSubModule.subSubModuleList.splice(childIndex, 1)
+  //   }
+  // }
+
+
+  // // Update paths for all submodules after removing one
+  // updatePathsAfterRemoval(submodules: ProjectSubModule[], removedIndex: number, parentPath: number[]): void {
+  //   for (let i = removedIndex; i < submodules.length; i++) {
+  //     // Update the last segment of the path (the index in the current array)
+  //     const newPath = [...parentPath, i]
+  //     submodules[i].path = newPath
+
+  //     // Recursively update paths for all children
+  //     if (submodules[i].subSubModuleList && submodules[i].subSubModuleList.length > 0) {
+  //       this.updatePathsForChildren(submodules[i].subSubModuleList, newPath)
+  //     }
+  //   }
+  // }
+
+  // // Update paths for all children of a submodule
+  // updatePathsForChildren(submodules: ProjectSubModule[], parentPath: number[]): void {
+  //   for (let i = 0; i < submodules.length; i++) {
+  //     const newPath = [...parentPath, i]
+  //     submodules[i].path = newPath
+
+  //     if (submodules[i].subSubModuleList && submodules[i].subSubModuleList.length > 0) {
+  //       this.updatePathsForChildren(submodules[i].subSubModuleList, newPath)
+  //     }
+  //   }
+  // }
+
+  // // Get the parent of a submodule
+  // getParentSubmodule(submodule: ProjectSubModule): ProjectSubModule | null {
+  //   if (!submodule.parentId) {
+  //     return null // This is a top-level submodule
+  //   }
+
+  //   return this.submoduleRegistry.get(submodule.parentId) || null
+  // }
+
+  // // Get all immediate children of a submodule
+  // getImmediateChildren(submodule: ProjectSubModule): ProjectSubModule[] {
+  //   return submodule.subSubModuleList || []
+  // }
+
+  // // Check if a submodule is a direct submodule (level 1) or a sub-submodule (level > 1)
+  // isSubSubmodule(submodule: ProjectSubModule): boolean {
+  //   return submodule.level > 1
+  // }
+
+  // // Get the module that contains this submodule
+  // getContainingModule(submodule: ProjectSubModule): ProjectModule | null {
+  //   // For a direct submodule, we can find the module directly
+  //   if (submodule.level === 1) {
+  //     for (const milestone of this.milestones) {
+  //       for (const module of milestone.moduleList) {
+  //         if (module.subModuleList.some((sub) => sub.id === submodule.id)) {
+  //           return module
+  //         }
+  //       }
+  //     }
+  //   }
+  //   // For a sub-submodule, we need to find its top-level parent first
+  //   else {
+  //     let currentSubmodule = submodule
+  //     while (currentSubmodule.parentId) {
+  //       const parent = this.submoduleRegistry.get(currentSubmodule.parentId)
+  //       if (!parent) break
+  //       currentSubmodule = parent
+
+  //       // If we've reached a level 1 submodule, find its module
+  //       if (currentSubmodule.level === 1) {
+  //         return this.getContainingModule(currentSubmodule)
+  //       }
+  //     }
+  //   }
+
+  //   return null
+  // }
+
+  // // Helper method to find a sub-module at any level of nesting using its path
+  // findSubModuleByPath(mileIndex: number, modIndex: number, path: number[]): SubModule | null {
+  //   if (path.length === 0) {
+  //     return null
+  //   }
+
+  //   const currentModule = this.milestones[mileIndex].moduleList[modIndex]
+  //   let currentSubModule = currentModule.subModuleList[path[0]]
+
+  //   for (let i = 1; i < path.length; i++) {
+  //     if (!currentSubModule.subSubModuleList || !currentSubModule.subSubModuleList[path[i]]) {
+  //       return null
+  //     }
+  //     currentSubModule = currentSubModule.subSubModuleList[path[i]]
+  //   }
+
+  //   return currentSubModule
+  // }
+
+  // // Find a submodule by its ID (using the registry for quick lookup)
+  // findSubModuleById(id: string): SubModule | null {
+  //   return this.submoduleRegistry.get(id) || null
+  // }
+
+  // addQuestion(type: string, mileIndex: number, modIndex: number, submodIndex?: number): void {
+  //   const newQuestion: Question = {
+  //     question: "",
+  //     answer: "",
+  //   }
+
+  //   if (type === "module") {
+  //     // Add question to module
+  //     // Implement if needed
+  //   } else if (type === "submodule" && submodIndex !== undefined) {
+  //     // Add question to submodule
+  //     if (!this.milestones[mileIndex].moduleList[modIndex].subModuleList[submodIndex].questions) {
+  //       this.milestones[mileIndex].moduleList[modIndex].subModuleList[submodIndex].questions = []
+  //     }
+  //     this.milestones[mileIndex].moduleList[modIndex].subModuleList[submodIndex].questions.push(newQuestion)
+  //   }
+  // }
+
+  // // Add a question to a deeply nested sub-module
+  // addQuestionToNestedSubModule(mileIndex: number, modIndex: number, path: number[]): void {
+  //   const subModule = this.findSubModuleByPath(mileIndex, modIndex, path)
+  //   if (subModule) {
+  //     if (!subModule.questions) {
+  //       subModule.questions = []
+  //     }
+  //     subModule.questions.push({
+  //       question: "",
+  //       answer: "",
+  //     })
+  //   }
+  // }
 
 }

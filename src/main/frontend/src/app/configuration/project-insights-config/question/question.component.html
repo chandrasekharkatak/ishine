@@ -1,4 +1,4 @@
-<div *ngFor="let question of group.projectQuestion; let i = index" class="row" [class.question-input]="group?.projectQuestion?.length>1">
+<div *ngFor="let question of group?.questionList; let i = index" class="row" [class.question-input]="group?.questionList?.length>1">
     <div class="col-md-12">
         <div class="row">
             <div class="col-md-8 mb-0">
@@ -24,7 +24,7 @@
             </div>
             <div class="col-md-2 pt-4 mt-2">
                 <button type="button" class="btn btn-outline-primary mx-1" (click)="addQuestion(i)"><i class="fa fa-plus" aria-hidden="true"></i></button>
-                <button *ngIf="group?.projectQuestion.length>1" type="button" class="btn btn-outline-primary mx-1" (click)="removeQuestion(i)"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                <button *ngIf="group?.questionList?.length>1" type="button" class="btn btn-outline-primary mx-1" (click)="removeQuestion(i)"><i class="fa fa-trash" aria-hidden="true"></i></button>
             </div>
         </div>
         <div class="row">
@@ -36,7 +36,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-2 mb-0">
+            <!-- <div class="col-md-2 mb-0">
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>User Type</label>
@@ -51,7 +51,7 @@
                           </select>
                     </div>
                 </div>
-            </div>    
+            </div>     -->
         </div>
         <div class="row" *ngIf="(question.optionType == 'checkbox' || question.optionType == 'radio')" >
             <div class="col-md-12" *ngFor="let option of question.optionsList; let i = index">

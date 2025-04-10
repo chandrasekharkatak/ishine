@@ -22,4 +22,6 @@ export class ProjectQuestion{
     projectResponseList:ProjectResponse[]=[];
     taggedForHelp: any[] = [];
     taggedToUserNames:any;
+    toTagEmployeeList:any[]=[];
+    toAssignEmployeeList:any[]=[];
 }
