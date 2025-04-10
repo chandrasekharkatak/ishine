@@ -132,7 +132,7 @@
                 </div>
                 <div class="export-button mt-3">
                     <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-                    [hidden]="allCompOffRequests.length == 0" (click)="exportToExcel('compOffRequest-table')"><em
+                    [hidden]="allCompOffRequests.length == 0" (click)="exportToExcel()"><em
                         class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffRequestInfo'" [tableTHeadId]="'compOffRequestInfoTHead'"

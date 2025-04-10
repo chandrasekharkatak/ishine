@@ -501,33 +501,33 @@ downloadConfirmationDateUpload(): void {
     this.page = event;
   }
 
- 
-//   exportToExcel(): void {
-//   this.domainService.getAllDomain().pipe(first()).subscribe((response: any) => {
-//     if (response.serviceStatus == "Success") {
-//       this.domainDataForExcel = response.serviceResponse;
-//     }
-//     const onlySpecificDataArr = this.domainDataForExcel.map(
-//       x => ({
-//         "Domain Name": x.domainName,
-//         "Created by": x.createdByName,
-//         "Created on": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
-//       })
-//     )
-//     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
-//   });
-// }
+ name = 'Domain.xlsx';
+  exportToExcel(): void {
+  this.domainService.getAllDomain().pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      this.domainDataForExcel = response.serviceResponse;
+    }
+    const onlySpecificDataArr = this.domainDataForExcel.map(
+      x => ({
+        "Domain Name": x.domainName,
+        "Created by": x.createdByName,
+        "Created on": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
+      })
+    )
+    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
+  });
+}
 
 
 //Export -- download excel
-// name = 'Domain.xlsx';
-exportToExcel(id:any): void {
-  const tableId = id; // Replace with your actual table ID
-  this.excelName = "DomainInfo.xlsx";
-  this.tableName= 'Domain Table';
 
-  this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
-}
+// exportToExcel(id:any): void {
+//   const tableId = id; // Replace with your actual table ID
+//   this.excelName = "DomainInfo.xlsx";
+//   this.tableName= 'Domain Table';
+
+//   this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+// }
 
 
 

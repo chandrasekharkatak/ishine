@@ -491,36 +491,36 @@ export class RoleConfigComponent implements OnInit {
   }
 
   // download excel
-  // name = 'JobRole.xlsx';
-  // exportToExcel(): void {
+  name = 'JobRole.xlsx';
+  exportToExcel(): void {
 
-  //   this.jobRoleService.getAllJobRole().pipe(first()).subscribe((response: any) => {
-  //     if (response.serviceStatus == "Success") {
-  //       this.roleDataForExcel = response.serviceResponse;
-  //       //console.log("response.serviceResponse: ",response.serviceResponse);
-  //     }
+    this.jobRoleService.getAllJobRole().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.roleDataForExcel = response.serviceResponse;
+        //console.log("response.serviceResponse: ",response.serviceResponse);
+      }
 
-  //     const onlySpecificDataArr = this.roleDataForExcel.map(
-  //       x => ({
-  //         "Job Role Name": x.name,
-  //         "Employee Role":x.employeeRole,
-  //         "Department": x.departmentName,
-  //         "Created by": x.createdBy,
-  //         "Created on": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
-  //         "Updated by": x.updatedByName,
-  //         "Updated on": (x.updatedOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null
-  //       })
-  //     )
-  //     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
-  //   });
-  // }
-  exportToExcel(id:any): void {
-    const tableId = id; // Replace with your actual table ID
-    this.excelName = "JobRole.xlsx";
-    this.tableName= 'Job Role Table';
-  
-    this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+      const onlySpecificDataArr = this.roleDataForExcel.map(
+        x => ({
+          "Job Role Name": x.name,
+          "Employee Role":x.employeeRole,
+          "Department": x.departmentName,
+          "Created by": x.createdBy,
+          "Created on": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
+          "Updated by": x.updatedByName,
+          "Updated on": (x.updatedOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
+    });
   }
+  // exportToExcel(id:any): void {
+  //   const tableId = id; // Replace with your actual table ID
+  //   this.excelName = "JobRole.xlsx";
+  //   this.tableName= 'Job Role Table';
+  
+  //   this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+  // }
 
   getJobRolesByDept(departmentId: any) {
     //console.log("departmentId : ", departmentId);
