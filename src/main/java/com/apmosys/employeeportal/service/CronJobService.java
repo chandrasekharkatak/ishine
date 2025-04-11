@@ -5858,7 +5858,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 
 		
 		@Async
-//		@Scheduled(cron = "0 36 12 ? * *")
+		@Scheduled(cron = "0 0 10 ? * *")
 		@Transactional
 		public void sendMailForExpiryProjects() {
 			
