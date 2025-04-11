@@ -370,6 +370,13 @@ export class ReportListComponent implements OnInit {
 
     this.getEmployeeReportData();
   }
+
+  getRowspanForProject(project: any): number {
+    if (!project.teamDetails) return 0;
+    return project.teamDetails.reduce((acc: number, team: any) => {
+      return acc + (team.mappedEmployeeDetails?.length || 0);
+    }, 0);
+  }
   
 
   employeeList: any[] = [];
@@ -1936,10 +1943,24 @@ export class ReportListComponent implements OnInit {
 
   //pagination 	
   page = 1;
+  itemsPerPage = 5;
   handlePageChange(event) {
     this.page = event;
   }
 
+  get paginatedProjectList(): any[] {
+    return this.projectList;
+  }
+
+  getHierarchicalSrNo(pIndex: number, tIndex: number, eIndex: number): string {
+    const globalProjectIndex = this.getGlobalProjectIndex(pIndex) + 1;
+    return `${globalProjectIndex}.${tIndex + 1}.${eIndex + 1}`;
+  }
+  
+  getGlobalProjectIndex(localPIndex: number): number {
+    const itemsPerPage = 5; // Match with HTML
+    return (this.page - 1) * itemsPerPage + localPIndex;
+  }
   // Excel Export 
   exportToExcel(): void {
 
@@ -2194,6 +2215,39 @@ export class ReportListComponent implements OnInit {
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+    }
+
+    if (this.isEmployeeReportTable && this.showDetails && this.employeeReportObj.category === 'Project') {
+      this.excelName = 'ProjectDetailedReport.xlsx';
+  
+      const flatList = [];
+      this.projectList.forEach(project => {
+        project.teamDetails.forEach(team => {
+          team.mappedEmployeeDetails.forEach(emp => {
+            flatList.push({
+              "Project Name": project.projectName,
+              "Project Manager": project.projectManager,
+              "Apmosys RM": project.apmosysRM || '—',
+              "Client RM": project.clientRM || '—',
+              "PO Start Date": project.poStartDate,
+              "PO End Date": project.poEndDate,
+              "PO No": project.poNo,
+              "PO Type": project.poProjectType,
+              "Team Name": team.teamName,
+              "Employee Name": emp.employeeName,
+              "Job Role": emp.jobRole,
+              "Department": emp.deptName,
+              "Mobile No": emp.mobileNo,
+              "Email": emp.email,
+              "Billable": emp.billable,
+              "Billable Type": emp.billableType,
+              "Effective Start Date": emp.effectiveStartDate,
+            });
+          });
+        });
+      });
+  
+      this.exportExcelService.exportTableDataToExcel(flatList, this.excelName);
     }
 
   }

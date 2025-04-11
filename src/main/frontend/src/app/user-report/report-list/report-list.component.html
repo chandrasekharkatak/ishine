@@ -395,7 +395,8 @@
       <div class="col-md-3 ">
         <div class="form-group">
           <label class="info-label"><span class="text-danger">*</span>Department</label>
-          <mat-select class="form-control" multiple [(ngModel)]="employeeReportObj.deptId" (selectionChange)="departmentChange()">
+          <mat-select class="form-control" multiple [(ngModel)]="employeeReportObj.deptId"
+            (selectionChange)="departmentChange()">
             <mat-option (click)="toggleSelectAll()" [disabled]="departments.length === 0">
               {{ isAllSelected ? 'Deselect All' : 'Select All' }}
             </mat-option>
@@ -538,7 +539,8 @@
 
 
     </div>
-    <div class="col-md-3 col-sm-6 custom-control custom-switch justify-content-end" *ngIf="showDetails && employeeReportObj.category === 'Employee'">
+    <div class="col-md-3 col-sm-6 custom-control custom-switch justify-content-end"
+      *ngIf="showDetails && employeeReportObj.category === 'Employee'">
       <input type="checkbox" class="custom-control-input" id="hierarchy-switch-2" (change)="toggleTableView()"
         [checked]="changeTable">
       <label class="custom-control-label" for="hierarchy-switch-2">Club Project Details</label>
@@ -589,7 +591,7 @@
                 <th scope="col" class="info-label" mat-sort-header="workLocation|string">Work Location</th>
                 <th scope="col" class="info-label" mat-sort-header="totalExperience|string">Experience</th>
                 <th *ngIf="changeTable" scope="col" class="info-label wide-col"
-                  mat-sort-header="totalExperience|string">Default
+                  mat-sort-header="primaryProjectName|string">Default
                   Project Assigned</th>
                 <th *ngIf="changeTable" scope="col" class="info-label wide-wide-col"
                   mat-sort-header="defaultProject|string">
@@ -771,36 +773,93 @@
             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
-        <div class="export-button">
+        <div class="export-button mb-3">
           <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-            [hidden]="filteredEmployees.length == 0" (click)="exportToExcel()"><em
+            [hidden]="projectList.length == 0" (click)="exportToExcel()"><em
               class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
-        <div class="table-container" bassHorizontalScroll [tableId]="'employeeReportInfo'"
+        <div class="table-container " bassHorizontalScroll [tableId]="'employeeReportInfo'"
           [tableTHeadId]="'employeeReportInfoTHead'" [tableTHeadTrId]="'employeeReportInfoTHeadTr'">
-          <table class="table " matSort (matSortChange)="sortData($event)">
+          <table class="table" matSort>
             <thead class="thead-light">
               <tr>
-                <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" style="min-width: 85px;" mat-sort-header="employeementId|empId">Project Name</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="managerName|string">Team Name</th>
-              <tr app-column-filter-bar *ngIf="isSearchEnabled "
-                [columnList]="employeeReportColumnForDetailedProjectViewClub" (onSearch)="onSearch($event);page=1"></tr>
+                <th>Sr No.</th>
+                <th>Project Name</th>
+                <th>Project Manager</th>
+                <th>Apmosys RM</th>
+                <th>Client RM</th>
+                <th>PO Start Date</th>
+                <th>PO End Date</th>
+                <th>PO No</th>
+                <th>PO Type</th>
+                <th>Team Name</th>
+                <th>Employee Name</th>
+                <th>Job Role</th>
+                <th>Department</th>
+                <th>Mobile No</th>
+                <th>Email</th>
+                <th>Billable</th>
+                <th>Billable Type</th>
+                <th>Effective Start Date</th>
+              </tr>
             </thead>
             <tbody>
-              <tr *ngIf="filteredEmployees.length == 0 || (filteredEmployees | colFilter:filters: false).length == 0">
-                <th colspan="20" class="text-center info-label">No details to display...</th>
-              </tr>
-              <tr
-                *ngFor="let employee of filteredEmployees | colFilter:filters: false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-                <th class="info-label">{{20*(page-1)+i+1}}</th>
-                <td>Prarthana Project</td>
-                <td>Team Prarthana</td>
-              </tr>
+              <ng-container *ngFor="let project of paginatedProjectList | paginate: { itemsPerPage: 5, currentPage: page }; let pIndex = index">
+                <ng-container *ngFor="let team of project.teamDetails; let tIndex = index">
+                  <ng-container *ngFor="let emp of team.mappedEmployeeDetails; let eIndex = index">
+                    <tr>
+                      <td>{{ getHierarchicalSrNo(pIndex, tIndex, eIndex) }}</td>
+                    
+                      <!-- Project-level info -->
+                      <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
+                        {{ project.projectName }}
+                      </td>
+                      <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
+                        {{ project.projectManager }}
+                      </td>
+                      <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
+                        {{ project.apmosysRM || '—' }}
+                      </td>
+                      <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
+                        {{ project.clientRM || '—' }}
+                      </td>
+                      <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
+                        {{ project.poStartDate | date: 'dd-MM-yyyy' }}
+                      </td>
+                      <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
+                        {{ project.poEndDate | date: 'dd-MM-yyyy' }}
+                      </td>
+                      <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
+                        {{ project.poNo }}
+                      </td>
+                      <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
+                        {{ project.poProjectType }}
+                      </td>
+                    
+                      <!-- Team Name -->
+                      <td *ngIf="eIndex === 0" [attr.rowspan]="team.mappedEmployeeDetails.length">
+                        {{ team.teamName }}
+                      </td>
+                    
+                      <!-- Employee Info -->
+                      <td>{{ emp.employeeName }}</td>
+                      <td>{{ emp.jobRole }}</td>
+                      <td>{{ emp.deptName }}</td>
+                      <td>{{ emp.mobileNo }}</td>
+                      <td>{{ emp.email }}</td>
+                      <td>{{ emp.billable }}</td>
+                      <td>{{ emp.billableType }}</td>
+                      <td>{{ emp.effectiveStartDate | date: 'dd-MM-yyyy' }}</td>
+                    </tr>
+                    
+                  </ng-container>
+                </ng-container>
+              </ng-container>
             </tbody>
           </table>
+
         </div>
-        <pagination-controls class="my-pagination" [hidden]="filteredEmployees.length == 0"
+        <pagination-controls class="my-pagination" [hidden]="projectList.length == 0"
           (pageChange)="handlePageChange($event)"></pagination-controls>
 
       </div>
