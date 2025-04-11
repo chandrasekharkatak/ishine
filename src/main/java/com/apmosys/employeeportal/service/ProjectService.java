@@ -1665,7 +1665,6 @@ public class ProjectService {
 	
 	public String buildDynamicQuery(GetEmployeeProjectReportPayloadDTO dto) {
         String category = dto.getCategory();
-        String toggle = dto.getToggle();
         String poProjectType = dto.getPoProjectType();
         String flag = dto.getFlag();
         List<String> billableType = dto.getBillableType();
@@ -1926,7 +1925,6 @@ public class ProjectService {
 
 	    StringBuilder logBuilder = new StringBuilder();
 	    logBuilder.append("Category: ").append(dto.getCategory()).append(", ");
-	    logBuilder.append("Toggle: ").append(dto.getToggle()).append(", ");
 	    logBuilder.append("Report Type: ").append(dto.getReport());
 
 	    try {

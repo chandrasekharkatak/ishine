@@ -360,4 +360,9 @@ updateDefaultProject(newemployeeObj : any){
   return this.http.post(`${this.baseUrl}` + `api/sendExpiredPoEmail`,employeeDTO);
  }
 
+ getEmployeeProjectReport(employeeReport:any){
+  return this.http.post(`${this.baseUrl}` + `api/getEmployeeProjectReport`,employeeReport);
+
+ }
+
 }
