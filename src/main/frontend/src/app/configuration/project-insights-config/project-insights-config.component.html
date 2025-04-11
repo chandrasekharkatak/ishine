@@ -32,7 +32,7 @@
       </div>
     </div>
 
-    <div class="col-md-10 mt-4" *ngIf="searchResults?.length > 0">
+    <div class="col-md-12 mt-4" *ngIf="searchResults?.length > 0">
         <div class="search-content">
             <div class="search-result" *ngFor="let project of searchResults">
                 <div class="d-flex align-items-start">
@@ -57,7 +57,7 @@
                         </p>
     
                         <div class="tags-line mt-1" *ngIf="project.tagList?.length">
-                            <span class="tag" *ngFor="let tag of project.tagList">
+                            <span class="tag" (click)="searchTagTerm(tag)" *ngFor="let tag of project.tagList">
                                 {{ tag }}
                             </span>
                         </div>

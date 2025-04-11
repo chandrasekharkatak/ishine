@@ -163,6 +163,11 @@ export class ProjectInsightsConfigComponent implements OnInit {
     );
   }
 
+  searchTagTerm(tag:any){
+    this.searchTerm = tag;
+    this.onSearchTerm();
+  }
+
   clearSearch() {
     this.searchTerm = '';
   }
