@@ -373,8 +373,8 @@ export class ReportListComponent implements OnInit {
   
 
   employeeList: any[] = [];
-projectList: any[] = [];
-projectSummary: any = {};
+  projectList: any[] = [];
+  projectSummary: any = {};
   getEmployeeReportData() {
     this.employeeList = [];
     this.projectList = [];
@@ -386,6 +386,8 @@ projectSummary: any = {};
         this.employeeList = res.getEmployeeProjectReportForEmployeeDTO || [];
         this.projectList = res.getProjectToEmployeeReportForProjectDTO || [];
         this.projectSummary = res.projectSummary || {};
+        console.log("employeeList",this.employeeList);
+        console.log("projectList",this.projectList);
       } else {
         console.error("API Error: ", response.serviceError || "Unknown error");
       }

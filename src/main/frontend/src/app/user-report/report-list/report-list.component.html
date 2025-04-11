@@ -555,7 +555,7 @@
         </div>
         <div class="export-button">
           <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-            [hidden]="filteredEmployees.length == 0" (click)="exportToExcel()"><em
+            [hidden]="employeeList.length == 0" (click)="exportToExcel()"><em
               class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
         <div class="table-container" bassHorizontalScroll [tableId]="'employeeReportInfo'"
@@ -601,11 +601,11 @@
                 [columnList]="employeeReportColumnForDetailedProjectView" (onSearch)="onSearch($event);page=1"></tr>
             </thead>
             <tbody>
-              <tr *ngIf="filteredEmployees.length == 0 || (filteredEmployees | colFilter:filters: false).length == 0">
+              <tr *ngIf="employeeList.length == 0 || (employeeList | colFilter:filters: false).length == 0">
                 <th colspan="20" class="text-center info-label">No details to display...</th>
               </tr>
               <tr
-                *ngFor="let employee of filteredEmployees | colFilter:filters: false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                *ngFor="let employee of employeeList | colFilter:filters: false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                 <th class="info-label">{{20*(page-1)+i+1}}</th>
                 <td>A-{{ employee.employeementId }}</td>
                 <td>{{ employee.name }}</td>
@@ -758,7 +758,7 @@
             </tbody>
           </table>
         </div>
-        <pagination-controls class="my-pagination" [hidden]="filteredEmployees.length == 0"
+        <pagination-controls class="my-pagination" [hidden]="employeeList.length == 0"
           (pageChange)="handlePageChange($event)"></pagination-controls>
 
       </div>
