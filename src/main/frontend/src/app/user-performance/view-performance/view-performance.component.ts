@@ -522,7 +522,7 @@ export class ViewPerformanceComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.projectInsight = response.serviceResponse;
         this.projectInsightResponseList = this.projectInsight.projectInsightMilestoneList;
-
+        this.projectInsight.isCollapsed = true;
         if(this.projectInsight.assignedToUserId != undefined && this.projectInsight.assignedToUserId != null && this.projectInsight.assignedToUserId?.length > 0){
           this.projectInsight.toTagEmployeeList = this.employeeList.filter(emp => !this.projectInsight.assignedToUserId.includes(emp.empId));
         } else {
