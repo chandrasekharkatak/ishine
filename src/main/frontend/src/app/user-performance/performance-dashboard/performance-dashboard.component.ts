@@ -153,7 +153,7 @@ export class PerformanceDashboardComponent implements OnInit {
     this.fetchGoals();
     this.loadPerformanceStats();
     this.getAllProjectInsightContributionList();
-    // this.getEmployeeList();
+    this.getEmployeeList();
     
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -491,8 +491,19 @@ saveKpiResponses(template: TemplateRef<any>): void {
         this.projectInsight = response.serviceResponse;
         this.projectInsightResponseList = this.projectInsight.projectInsightMilestoneList;
 
+        if(this.projectInsight.assignedToUserId != undefined && this.projectInsight.assignedToUserId != null && this.projectInsight.assignedToUserId?.length > 0){
+          this.projectInsight.toTagEmployeeList = this.employeeList.filter(emp => !this.projectInsight.assignedToUserId.includes(emp.empId));
+        } else {
+          this.projectInsight.toTagEmployeeList = this.employeeList;
+        }
+
         if (this.projectInsight.questionList != null && this.projectInsight.questionList.length != 0) {
           this.projectInsight.questionList.forEach((question: ProjectQuestion, index) => {
+            if(this.projectInsight.assignedToUserId != undefined && this.projectInsight.assignedToUserId != null && this.projectInsight.assignedToUserId?.length > 0){
+              question.toTagEmployeeList = this.employeeList.filter(emp => !this.projectInsight.assignedToUserId.includes(emp.empId));
+            } else {
+              question.toTagEmployeeList = this.employeeList;
+            }
             if (question.projectResponseList != null && question.projectResponseList.length != 0) {
               question.projectResponseList.forEach((response: ProjectResponse, index) => {
                 response.optionsList = JSON.parse(response.options);
@@ -535,8 +546,18 @@ saveKpiResponses(template: TemplateRef<any>): void {
 
         this.projectInsightResponseList.forEach((milestone: ProjectMilestone, mileIndex) => {
           milestone.isCollapsed = true;
+          if(milestone.assignedToUserId != undefined && milestone.assignedToUserId != null && milestone.assignedToUserId?.length > 0){
+            milestone.toTagEmployeeList = this.employeeList.filter(emp => !milestone.assignedToUserId.includes(emp.empId));
+          } else {
+            milestone.toTagEmployeeList = this.employeeList;
+          }
           if (milestone.questionList != null && milestone.questionList.length != 0) {
             milestone.questionList.forEach((question: ProjectQuestion, index) => {
+              if(milestone.assignedToUserId != undefined && milestone.assignedToUserId != null && milestone.assignedToUserId?.length > 0){
+                question.toTagEmployeeList = this.employeeList.filter(emp => !milestone.assignedToUserId.includes(emp.empId));
+              } else {
+                question.toTagEmployeeList = this.employeeList;
+              }
               if (question.projectResponseList != null && question.projectResponseList.length != 0) {
                 question.projectResponseList.forEach((response: ProjectResponse, index) => {
                   response.optionsList = JSON.parse(response.options);
@@ -579,8 +600,18 @@ saveKpiResponses(template: TemplateRef<any>): void {
 
           if (milestone.moduleList != null && milestone.moduleList.length != 0) {
             milestone.moduleList.forEach((module: any, modIndex) => {
+              if(module.assignedToUserId != undefined && module.assignedToUserId != null && module.assignedToUserId?.length > 0){
+                module.toTagEmployeeList = this.employeeList.filter(emp => !milestone.assignedToUserId.includes(emp.empId));
+              } else {
+                module.toTagEmployeeList = this.employeeList;
+              }
               if (module.questionList != null && module.questionList.length != 0) {
                 module.questionList.forEach((question: ProjectQuestion, index) => {
+                  if(module.assignedToUserId != undefined && module.assignedToUserId != null && module.assignedToUserId?.length > 0){
+                    question.toTagEmployeeList = this.employeeList.filter(emp => !milestone.assignedToUserId.includes(emp.empId));
+                  } else {
+                    question.toTagEmployeeList = this.employeeList;
+                  }
                   if (question.projectResponseList != null && question.projectResponseList.length != 0) {
                     question.projectResponseList.forEach((response: ProjectResponse, index) => {
                       response.optionsList = JSON.parse(response.options);
@@ -637,7 +668,17 @@ saveKpiResponses(template: TemplateRef<any>): void {
   createSubModuleListObject(subModuleList: any) {
     subModuleList.forEach((submodule: any, submodIndex) => {
       if (submodule.questionList != null && submodule.questionList.length != 0) {
+        if(submodule.assignedToUserId != undefined && submodule.assignedToUserId != null && submodule.assignedToUserId?.length > 0){
+          submodule.toTagEmployeeList = this.employeeList.filter(emp => !submodule.assignedToUserId.includes(emp.empId));
+        } else {
+          submodule.toTagEmployeeList = this.employeeList;
+        }
         submodule.questionList.forEach((question: ProjectQuestion, index) => {
+          if(submodule.assignedToUserId != undefined && submodule.assignedToUserId != null && submodule.assignedToUserId?.length > 0){
+            question.toTagEmployeeList = this.employeeList.filter(emp => !submodule.assignedToUserId.includes(emp.empId));
+          } else {
+            question.toTagEmployeeList = this.employeeList;
+          }
           if (question.projectResponseList != null && question.projectResponseList.length != 0) {
             question.projectResponseList.forEach((response: ProjectResponse, index) => {
               response.optionsList = JSON.parse(response.options);
@@ -684,7 +725,7 @@ saveKpiResponses(template: TemplateRef<any>): void {
   }
 
   openProjectInsightResponeMod(insightResponseTemplate: TemplateRef<any>) {
-    this.projectResponseModalRef = this.modalService.show(insightResponseTemplate, { class: 'modal-xl' });
+    this.projectResponseModalRef = this.modalService.show(insightResponseTemplate, { class: 'modal-xl',ignoreBackdropClick: true, keyboard: false });
   }
 
   closeDocumentPreviewTemplate() {

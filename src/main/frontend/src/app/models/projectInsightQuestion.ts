@@ -26,4 +26,6 @@ export class ProjectInsight {
     createdBy: any;
     updatedOn: any;
     updatedBy: any;
+    toTagEmployeeList:any[]=[];
+    toAssignEmployeeList:any[]=[];
 }

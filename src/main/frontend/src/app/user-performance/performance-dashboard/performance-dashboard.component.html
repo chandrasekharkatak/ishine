@@ -551,7 +551,7 @@
                    [useInfiniteScroll]="true" 
                    [multiple]="true" 
                    [(ngModel)]="subModule.taggedToUserId">
-          <mat-option [value]="employee.empId" *ngFor="let employee of approvalSelect.filteredSource">
+          <mat-option [value]="employee.empId" *ngFor="let employee of subModule.toTagEmployeeList">
             {{employee.name}}
           </mat-option>
         </mat-select>
@@ -590,7 +590,7 @@
                        [useInfiniteScroll]="true" 
                        [multiple]="true" 
                        [(ngModel)]="question.taggedToUserId">
-              <mat-option [value]="employee.empId" *ngFor="let employee of approvalSelect.filteredSource">
+              <mat-option [value]="employee.empId" *ngFor="let employee of question.toTagEmployeeList">
                 {{employee.name}}
               </mat-option>
             </mat-select>
@@ -654,7 +654,6 @@
                 <label class="btn btn-sm btn-outline-secondary mr-2 mb-0"
                       for="Milestone-{{milestoneId}}-Module-{{moduleId}}-SubModule-{{subModule.subModuleId}}-Question-{{question.questionId}}-file-{{qIndex}}">
                   <span *ngIf="response.isDraft == 'Y'">Upload File</span>
-                  <span *ngIf="response.isDraft == 'N' && (!response.uploadedFileName)">No File Uploaded</span>
                   <input id="Milestone-{{milestoneId}}-Module-{{moduleId}}-SubModule-{{subModule.subModuleId}}-Question-{{question.questionId}}-file-{{qIndex}}"
                         name="Milestone-{{milestoneId}}-Module-{{moduleId}}-SubModule-{{subModule.subModuleId}}-Question-{{question.questionId}}-file-{{qIndex}}"
                         type="file" 
@@ -748,7 +747,7 @@
                        [displayMember]="'name'" [valueMember]="'empId'" 
                        [source]="employeeList" [useInfiniteScroll]="true" 
                        [multiple]="true" [(ngModel)]="projectInsight.taggedToUserId">
-              <mat-option [value]="employee.empId" *ngFor="let employee of approvalSelect.filteredSource">
+              <mat-option [value]="employee.empId" *ngFor="let employee of projectInsight.toTagEmployeeList">
                 {{employee.name}}
               </mat-option>
             </mat-select>
@@ -782,7 +781,7 @@
                            [displayMember]="'name'" [valueMember]="'empId'" 
                            [source]="employeeList" [useInfiniteScroll]="true" 
                            [multiple]="true" [(ngModel)]="question.taggedToUserId">
-                  <mat-option [value]="employee.empId" *ngFor="let employee of approvalSelect.filteredSource">
+                  <mat-option [value]="employee.empId" *ngFor="let employee of question.toTagEmployeeList">
                     {{employee.name}}
                   </mat-option>
                 </mat-select>
@@ -844,7 +843,6 @@
                     <label class="btn btn-sm btn-outline-secondary mr-2 mb-0"
                           for="Application-{{projectInsight.projectId}}-Question-{{question.questionId}}-file-{{qIndex}}">
                       <span *ngIf="response.isDraft == 'Y'">Upload File</span>
-                      <span *ngIf="response.isDraft == 'N' && (!response.uploadedFileName)">No File Uploaded</span>
                       <input id="Application-{{projectInsight.projectId}}-Question-{{question.questionId}}-file-{{qIndex}}"
                             name="Application-{{projectInsight.projectId}}-Question-{{question.questionId}}-file-{{qIndex}}"
                             type="file" class="d-none"
@@ -908,7 +906,7 @@
                        [displayMember]="'name'" [valueMember]="'empId'" 
                        [source]="employeeList" [useInfiniteScroll]="true" 
                        [multiple]="true" [(ngModel)]="milestone.taggedToUserId">
-              <mat-option [value]="employee.empId" *ngFor="let employee of approvalSelect.filteredSource">
+              <mat-option [value]="employee.empId" *ngFor="let employee of milestone.toTagEmployeeList">
                 {{employee.name}}
               </mat-option>
             </mat-select>
@@ -943,7 +941,7 @@
                            [displayMember]="'name'" [valueMember]="'empId'" 
                            [source]="employeeList" [useInfiniteScroll]="true" 
                            [multiple]="true" [(ngModel)]="question.taggedToUserId">
-                  <mat-option [value]="employee.empId" *ngFor="let employee of approvalSelect.filteredSource">
+                  <mat-option [value]="employee.empId" *ngFor="let employee of question.toTagEmployeeList">
                     {{employee.name}}
                   </mat-option>
                 </mat-select>
@@ -1005,7 +1003,6 @@
                     <label class="btn btn-sm btn-outline-secondary mr-2 mb-0"
                           for="Milestone-{{milestone.milestoneId}}-Question-{{question.questionId}}-file-{{qIndex}}">
                       <span *ngIf="response.isDraft == 'Y'">Upload File</span>
-                      <span *ngIf="response.isDraft == 'N' && (!response.uploadedFileName)">No File Uploaded</span>
                       <input id="Milestone-{{milestone.milestoneId}}-Question-{{question.questionId}}-file-{{qIndex}}"
                             name="Milestone-{{milestone.milestoneId}}-Question-{{question.questionId}}-file-{{qIndex}}"
                             type="file" class="d-none"
@@ -1060,7 +1057,7 @@
                            [displayMember]="'name'" [valueMember]="'empId'" 
                            [source]="employeeList" [useInfiniteScroll]="true" 
                            [multiple]="true" [(ngModel)]="module.taggedToUserId">
-                  <mat-option [value]="employee.empId" *ngFor="let employee of approvalSelect.filteredSource">
+                  <mat-option [value]="employee.empId" *ngFor="let employee of module.toTagEmployeeList">
                     {{employee.name}}
                   </mat-option>
                 </mat-select>
@@ -1095,7 +1092,7 @@
                                [displayMember]="'name'" [valueMember]="'empId'" 
                                [source]="employeeList" [useInfiniteScroll]="true" 
                                [multiple]="true" [(ngModel)]="question.taggedToUserId">
-                      <mat-option [value]="employee.empId" *ngFor="let employee of approvalSelect.filteredSource">
+                      <mat-option [value]="employee.empId" *ngFor="let employee of question.toTagEmployeeList">
                         {{employee.name}}
                       </mat-option>
                     </mat-select>
@@ -1157,7 +1154,6 @@
                         <label class="btn btn-sm btn-outline-secondary mr-2 mb-0"
                               for="Milestone-{{milestone.milestoneId}}-Module-{{module.moduleId}}-Question-{{question.questionId}}-file-{{qIndex}}">
                           <span *ngIf="response.isDraft == 'Y'">Upload File</span>
-                          <span *ngIf="response.isDraft == 'N' && (!response.uploadedFileName)">No File Uploaded</span>
                           <input id="Milestone-{{milestone.milestoneId}}-Module-{{module.moduleId}}-Question-{{question.questionId}}-file-{{qIndex}}"
                                 name="Milestone-{{milestone.milestoneId}}-Module-{{module.moduleId}}-Question-{{question.questionId}}-file-{{qIndex}}"
                                 type="file" class="d-none"
