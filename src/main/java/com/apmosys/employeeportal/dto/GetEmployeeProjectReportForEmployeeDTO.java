@@ -5,11 +5,12 @@ import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
- 
-@Getter
-@Setter
+
 @ToString
-public class getAllEmployeesReportByProjectTypeInConsolidatedDTO {
+@Setter
+@Getter
+public class GetEmployeeProjectReportForEmployeeDTO {
+	
 	private Long empId;
     private String employmentstatus;
     private String name;
@@ -43,4 +44,5 @@ public class getAllEmployeesReportByProjectTypeInConsolidatedDTO {
     private Map<String, String> projects;
     private String clientRM;
     private String apmosysRM;
+
 }
