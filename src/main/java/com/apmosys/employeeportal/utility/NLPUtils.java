@@ -29,6 +29,14 @@ public class NLPUtils {
         "both", "each", "few", "more", "most", "other", "some", "such", "no", "nor", "not", "only", "own",
         "same", "so", "than", "too", "very", "s", "t", "can", "will", "just", "don", "should", "now"
     ));
+    
+    Set<String> allowedTags = Set.of(
+    	    "NN", "NNS", "NNP", "NNPS", // nouns & proper nouns
+    	    "JJ",                       // adjectives
+    	    "VB", "VBD", "VBN", "VBG"   // verb forms
+    	    ,"RB"  // for adverbs
+    	);
+
 
     public NLPUtils() throws Exception {
         // Load POS(Part-of-Speech) Model
@@ -76,9 +84,9 @@ public class NLPUtils {
             String token = tokens[i];
             String tag = posTags[i];
             if (token.length() > 2 && isAlphanumeric(token) && !STOPWORDS.contains(token)) {
-                if (tag.startsWith("NN") || tag.equals("JJ")) {
+            	if (allowedTags.contains(tag)) {
                     tagSet.add(token);
-                    System.out.println(token + " pos");
+                    System.out.println(token + " pos (" + tag + ")");
                 }
             }
         }
