@@ -1097,10 +1097,10 @@ public class ProjectInsightService {
 					subModuleDTO.setModuleId(projectInsightSubModule.getModuleId());
 					subModuleDTO.setDescription(projectInsightSubModule.getDescription());
 					subModuleDTO.setRedmineId(projectInsightSubModule.getRedmineId());
-					subModuleDTO.setAssignedToUserId(getAssignedToUserId(projectInsightSubModule.getSubmoduleId(), "SubModule"));
-					subModuleDTO.setAssignedToUserNames(getAssignedToUserName(projectInsightSubModule.getSubmoduleId(), "SubModule"));
-					subModuleDTO.setTaggedToUserNames(getAllTaggedUserName(projectInsightSubModule.getSubmoduleId(), "SubModule",employeeId));
-					subModuleDTO.setTaggedToUserId(getAllTaggedUserId(projectInsightSubModule.getSubmoduleId(), "SubModule",employeeId));
+					subModuleDTO.setAssignedToUserId(getAssignedToUserId(projectInsightSubModule.getSubmoduleId(),subModuleType));
+					subModuleDTO.setAssignedToUserNames(getAssignedToUserName(projectInsightSubModule.getSubmoduleId(),subModuleType));
+					subModuleDTO.setTaggedToUserNames(getAllTaggedUserName(projectInsightSubModule.getSubmoduleId(),subModuleType,employeeId));
+					subModuleDTO.setTaggedToUserId(getAllTaggedUserId(projectInsightSubModule.getSubmoduleId(), subModuleType,employeeId));
 					subModuleDTO.setQuestionList(getProjectQuestionDTOList(projectInsightSubModule.getSubmoduleId(), "SubModule", employeeId, isEmployee, performanceTabName, projectId,subModuleType));
 					
 					List<ProjectInsightSubModule> projectInsightSubSubModuleList = projectInsightSubModuleRepository.getByModuleIdAndSubModuleType(projectInsightSubModule.getSubmoduleId(),"Sub-SubModule");

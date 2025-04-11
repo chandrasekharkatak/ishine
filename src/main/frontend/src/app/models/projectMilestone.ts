@@ -21,5 +21,7 @@ export class ProjectMilestone {
     createdBy: any;
     updatedOn: any;
     updatedBy: any;
+    toTagEmployeeList:any[]=[];
+    toAssignEmployeeList:any[]=[];
 }
 
