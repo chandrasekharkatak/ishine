@@ -1846,6 +1846,8 @@ public class ProjectService {
 
 	public Map<String, Map<String, Object>> getProjectSummary(GetEmployeeProjectReportPayloadDTO dto) {
 	    
+		List<String> allBillableTypes = Arrays.asList("Bench", "Fixed Cost", "InternalRNDProducts", "Shadow", "TNM");
+		 
 	    String query1 = buildProjectSummaryQuery(null, false); 
 	    List<Object[]> baseResults = entityManager.createNativeQuery(query1).getResultList();
 
@@ -1898,8 +1900,12 @@ public class ProjectService {
 	        finalMap.putIfAbsent(poType, new LinkedHashMap<>());
 	        Map<String, Object> innerMap = finalMap.get(poType);
 
-	        if (billableType != null) {
-	            innerMap.put(billableType, totalEmp);
+	        for (String type : allBillableTypes) {
+	            if (billableType != null && billableType.equals(type)) {
+	                innerMap.put(type, totalEmp);
+	            } else if (!innerMap.containsKey(type)) {
+	                innerMap.put(type, 0L); 
+	            }
 	        }
 
 	        if (!innerMap.containsKey("totalEmpPerProjectType")) {
