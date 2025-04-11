@@ -197,6 +197,9 @@ public class ProjectInsightService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				return response;
 			}
+			
+			combinedText.append(projectInsightDTO.getProjectName()).append(" ");
+			
 			// Add Application Question
 			if (!projectInsightDTO.getQuestionList().isEmpty()) {
 				ServiceResponse applicationQuestionResponse = addUpdateQuestion(projectInsightDTO.getQuestionList(), projectInsightDTO.getProjectId(), "Project", combinedText);

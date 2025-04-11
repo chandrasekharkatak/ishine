@@ -378,6 +378,10 @@ box-shadow: 0px 6px 14px rgba(0, 0, 0, 0.2);
 .search-result {
   padding: 1rem 0;
   border-bottom: 1px solid #eaeaea;
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 1rem;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .search-result:last-child {

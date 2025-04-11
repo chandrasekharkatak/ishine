@@ -131,6 +131,8 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.projectInsightTabClick = true;
     this.showProjectInsight();
     this.getAllProjects();
+
+    this.searchTabClick = false;
   }
 
   showProjectInsightForm(){
@@ -153,6 +155,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
   // --------------------------------- Search :: start-----------------------------
 
   onSearchTerm() {
+    this.searchResults = [];
     this.projectInsightService.onSearchTerm(this.searchTerm).pipe(first()).subscribe(
       (response: any) => {
         this.searchResults = response.projectList;
@@ -170,6 +173,10 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
   clearSearch() {
     this.searchTerm = '';
+  }
+
+  onProjectClick(projectObj:any){
+    
   }
 
 // --------------------------------- Search :: end-----------------------------
@@ -522,6 +529,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
     let projObj = new ProjectInsight();
     projObj.projectId = this.projectInsight.projectId;
+    projObj.projectName = this.projectInsight.projectName;
     projObj.projectManagerId = this.projectInsight.projectManagerId;
     projObj.projectManagerName = this.projectInsight.projectManagerName;
     projObj.projectInsightMilestoneList = this.projectInsightMilestoneList;
