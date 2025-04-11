@@ -38,18 +38,18 @@ export class EmployeePortalInterceptor implements HttpInterceptor {
     }
     
     userLogout(){
-        this.authenticationService.stopUserSessionCheck();
-          sessionStorage.removeItem('currentUser');
-          sessionStorage.removeItem('token');
-          sessionStorage.removeItem('logInfo');
-          sessionStorage.removeItem('maxFileSize');
-          sessionStorage.removeItem('maxRequestSize');
-          sessionStorage.removeItem('sessioncheck');
-          sessionStorage.removeItem('breadcrumb');
-          // delete method call for cookies
-          this.authenticationService.deleteCookies();
-          this.authenticationService.setcurrentUserSubject(null);
-          this.router.navigate(['/login']);
-          setTimeout(() => {location.reload();});   
+        // this.authenticationService.stopUserSessionCheck();
+        //   sessionStorage.removeItem('currentUser');
+        //   sessionStorage.removeItem('token');
+        //   sessionStorage.removeItem('logInfo');
+        //   sessionStorage.removeItem('maxFileSize');
+        //   sessionStorage.removeItem('maxRequestSize');
+        //   sessionStorage.removeItem('sessioncheck');
+        //   sessionStorage.removeItem('breadcrumb');
+        //   // delete method call for cookies
+        //   this.authenticationService.deleteCookies();
+        //   this.authenticationService.setcurrentUserSubject(null);
+        //   this.router.navigate(['/login']);
+        //   setTimeout(() => {location.reload();});   
       }
 }
