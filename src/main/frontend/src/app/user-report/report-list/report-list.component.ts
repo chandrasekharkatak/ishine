@@ -322,7 +322,7 @@ export class ReportListComponent implements OnInit {
     this.selectedFlag[box] = null;
     this.selectedBillable[box] = null;
 
-    this.employeeReportObj.poProjectType = [box];
+    this.employeeReportObj.poProjectType = box;
     this.employeeReportObj.category = tab;
     this.employeeReportObj.flag = null;
     this.employeeReportObj.billiableType = null;
@@ -347,7 +347,7 @@ export class ReportListComponent implements OnInit {
     this.selectedFlag[box] = flag;
     this.selectedBillable[box] = null;
 
-    this.employeeReportObj.poProjectType = [box];
+    this.employeeReportObj.poProjectType = box;
     this.employeeReportObj.category = this.selectedTab[box];
     this.employeeReportObj.flag = flag;
     this.employeeReportObj.billiableType = null;
@@ -363,7 +363,7 @@ export class ReportListComponent implements OnInit {
   }
     this.selectedBillable[box] = type;
 
-    this.employeeReportObj.poProjectType = [box];
+    this.employeeReportObj.poProjectType = box;
     this.employeeReportObj.category = this.selectedTab[box];
     this.employeeReportObj.flag = this.selectedFlag[box];
     this.employeeReportObj.billiableType = type;
@@ -453,7 +453,7 @@ projectSummary: any = {};
 
       this.isAllSelected = true;
       // this.employeeReportObj.deptId = this.departments.map(dept => dept.deptId);
-      ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
+      ['TNM', 'Fixed cost', 'Monitoring', 'Internal'].forEach(box => {
         this.selectedTab[box] = 'Employee';
         this.selectedFlag[box] = null;
         this.selectedBillable[box] = null;
@@ -510,7 +510,12 @@ projectSummary: any = {};
   }
 
   departmentChange(){
-    this.getEmployeeReportData();
+    // this.employeeReportObj.deptId = [];
+    // console.log(this.employeeReportObj.deptId.length,":this.employeeReportObj.deptId.length");
+    if ( this.isAllSelected == false ) {
+      this.getEmployeeReportData();
+    }
+    
   }
 
 
