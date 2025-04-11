@@ -75,6 +75,7 @@ export class PerformanceConfigComponent implements OnInit {
  
   log:Log;
   tabName:any = 'Configurations';
+  excelName: string;
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -279,6 +280,16 @@ export class PerformanceConfigComponent implements OnInit {
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
     });
   }
+
+  // exportToExcel(id:any): void {
+  //   const tableId = id; // Replace with your actual table ID
+  //   this.excelName = "QuarterCycle.xlsx";
+  //   this.tabName= 'Quarter Cycle Table';
+  
+  //   this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tabName);
+  // }
+
+  
 
 
 

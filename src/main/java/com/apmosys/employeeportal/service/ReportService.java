@@ -487,6 +487,8 @@ public class ReportService {
 					employeeDTO.setPoProjectType(object[23] != null ? object[23].toString() : null);
 					employeeDTO.setJobRole(object[24] != null ? object[24].toString() : null);
 					employeeDTO.setPoProjectId(object[25] != null ? object[25].toString() : null);
+					employeeDTO.setClientRM(object[26] != null ? object[26].toString() : null);
+					employeeDTO.setApmosysRM(object[27] != null ? object[27].toString() : null);
 					
 					dtoList.add(employeeDTO);
 				});
@@ -559,6 +561,8 @@ public class ReportService {
 					employeeDTO.setPoProjectId(object[25] != null ? object[25].toString() : null);
 					employeeDTO.setPrimaryProjectName(object[26] != null ? object[26].toString() : null);
 					employeeDTO.setPrimaryProjectId(object[27] != null ? object[27].toString() : null);
+					employeeDTO.setClientRM(object[28] != null ? object[28].toString() : null);
+					employeeDTO.setApmosysRM(object[29] != null ? object[29].toString() : null);
 					// System.out.println("employeeDTO"+employeeDTO);
 					
 					Map<String, String> projectMap = new HashMap<>();

@@ -15,6 +15,9 @@ import { AppComponent } from 'src/app/app.component';
 import { Employee360Service } from 'src/app/services/employee360.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { SortPipe } from 'src/app/sort.pipe';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+
 
 @Component({
   selector: 'app-team-member',
@@ -62,6 +65,7 @@ export class TeamMemberComponent implements OnInit {
   isTable: boolean = false;
   // employeesFor360: any[] = [];
   allEmployeeList360: any[] = [];
+  tableName: String;
 
 
 
@@ -118,6 +122,13 @@ export class TeamMemberComponent implements OnInit {
 
   //excel
 
+  // exportToExcel(id:any): void {
+  //   const tableId = id; // Replace with your actual table ID
+  //   this.excelName = "TeamMemberSheet.xlsx";
+  //   this.tableName= 'Team Members';
+
+  //   this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+  // }
   exportToExcel(): void {
 
     this.excelName = "TeamMemberSheet.xlsx";
@@ -326,3 +337,5 @@ export class TeamMemberComponent implements OnInit {
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }
+
+

@@ -129,6 +129,8 @@ export class TeamConfigComponent implements OnInit {
   // employeesFor360: any[] = [];
   allEmployeeList360: any[] = [];
 
+  tableName:String
+
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -1357,6 +1359,23 @@ export class TeamConfigComponent implements OnInit {
 
   // download excel
 
+  // exportToExcel(id:any): void {
+
+  //   const tableId = id; 
+  //   this.tableName= 'Team Config';
+
+  //   if (this.isTeamTable == true) {
+  //     this.excelName = 'TeamSheet.xlsx';
+
+  //     this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+  //   }
+  //   if (this.isActivityTable == true) {
+  //     this.excelName = 'ActivitiesSheet.xlsx';
+
+  //     this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+
+  //   }
+  // }
   exportToExcel(): void {
 
     if (this.isTeamTable == true) {
@@ -1394,6 +1413,7 @@ export class TeamConfigComponent implements OnInit {
 
     }
   }
+
 
   checkTeamName(template: TemplateRef<any>) {
     this.teamService.checkTeamName(this.teamObj).pipe(first()).subscribe((response: any) => {

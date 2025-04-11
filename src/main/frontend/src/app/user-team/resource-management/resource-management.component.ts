@@ -111,6 +111,7 @@ export class ResourceManagementComponent implements OnInit {
   currentBreadcrumbList: any[] = [];
   // employeesFor360: any[] = [];
   poProjectListFromIshine: any[] = [];
+  tableName: string;
 
   constructor(
     private departmentService: DepartmentService,
@@ -1191,70 +1192,85 @@ export class ResourceManagementComponent implements OnInit {
 
   // Excel Export
 
-  exportToExcel() {
-    this.excelName = 'Projects.xlsx';
+//   exportToExcel(id:any) {
+//     this.excelName = 'Projects.xlsx';
 
-    const onlySpecificDataArr = this.allProjectList.map(
-      x => ({
-        "Project Name": x.name,
-        "PO Number": x.poNo,
-        "Project Manager": x.projectManagerName,
-        "Client Name": x.clientName,
-        "Client State": x.clientState,
-        "Apmosys RM": x.apmosysRM,
-        "Client RM": x.clientRM,
-        "Start Date": x.startDate ? x.startDate.split(/[\sT]/)[0].split('-').reverse().join('-') : x.startDate,
-"End Date": x.endDate ? x.endDate.split(/[\sT]/)[0].split('-').reverse().join('-') : x.endDate,
-        // "Start Date": x.startDate,
-        // "End Date": x.endDate,
-        "Created On": x.createdOn,
-        "Approval Status": x.isDraftProject,
-        "Project Status": x.status,
-      })
-    )
-    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
-  }
+//     const onlySpecificDataArr = this.allProjectList.map(
+//       x => ({
+//         "Project Name": x.name,
+//         "PO Number": x.poNo,
+//         "Project Manager": x.projectManagerName,
+//         "Client Name": x.clientName,
+//         "Client State": x.clientState,
+//         "Apmosys RM": x.apmosysRM,
+//         "Client RM": x.clientRM,
+//         "Start Date": x.startDate ? x.startDate.split(/[\sT]/)[0].split('-').reverse().join('-') : x.startDate,
+// "End Date": x.endDate ? x.endDate.split(/[\sT]/)[0].split('-').reverse().join('-') : x.endDate,
+//         // "Start Date": x.startDate,
+//         // "End Date": x.endDate,
+//         "Created On": x.createdOn,
+//         "Approval Status": x.isDraftProject,
+//         "Project Status": x.status,
+//       })
+//     )
+//     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+//   }
+exportToExcel(id:any): void {
+  const tableId = id; // Replace with your actual table ID
+  this.excelName = "TeamMemberSheet.xlsx";
+  this.tableName= 'Team Members';
+
+  this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+}
 
 
   // check resource template
 
-  getExistingProjectsByUser(employee) {
-    console.log("employee details in resoiurce mapping ", employee);
-
-    let projectObj = new Project();
-
-    projectObj.empId = employee;
-
-    // getExistingProjectsAndTeamsByEmployee service impl
-    this.projectService.getExistingProjectsAndTeamsByEmployee(projectObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.projectDetails = response.serviceResponse;
-        console.log("this.projectDetails ", this.projectDetails);
-
-        console.log("Existing project detauls fetched for employee",this.projectDetails);
-        if (this.projectDetails.length > 0) {
-          if (this.projectDetails[0].billableType == "TNM") {
-            this.openAlertMod(this.alertTemplate, "This Employee is already mapped to TNM project. Can't add to another project or Team !!");
-            this.getBillableType = this.projectDetails.find(employee => this.newteamMember.billableType = employee.billableType);
+  getExistingProjectsByUser(employeeId: string): Promise<any[]> {
+    return new Promise((resolve, reject) => {
+      console.log("Fetching project details for employee ID:", employeeId);
+  
+      let projectObj = new Project();
+      projectObj.empId = employeeId;
+  
+      this.projectService.getExistingProjectsAndTeamsByEmployee(projectObj).pipe(first()).subscribe(
+        (response: any) => {
+          if (response.serviceStatus === "Success") {
+            this.projectDetails = response.serviceResponse;
+            console.log("Project details fetched successfully:", this.projectDetails);
+  
+            if (this.projectDetails.length > 0) {
+              if (this.projectDetails[0].billableType === "TNM") {
+                this.openAlertMod(
+                  this.alertTemplate,
+                  "This Employee is already mapped to TNM project. Can't add to another project or Team !!"
+                );
+                this.getBillableType = this.projectDetails.find(
+                  (employee) => (this.newteamMember.billableType = employee.billableType)
+                );
+              } else {
+                this.newMemberInProject = "NewMember";
+                this.newteamMember.billableType = this.newMemberInProject;
+              }
+            } else {
+              this.newMemberInProject = "NewMember";
+              this.newteamMember.billableType = this.newMemberInProject;
+            }
+  
+            resolve(this.projectDetails); 
           } else {
-            this.newMemberInProject = "NewMember";
-            this.newteamMember.billableType = this.newMemberInProject;
+            console.error("Failed to fetch project details:", response);
+            reject(response); 
           }
-        } else {
-          this.newMemberInProject = "NewMember";
-          this.newteamMember.billableType = this.newMemberInProject;
+        },
+        (error) => {
+          console.error("Error in service call:", error);
+          reject(error); 
         }
-
-        console.log("this.projectDetails ", this.projectDetails);
-        console.log("this.getBillableType ", this.getBillableType);
-        console.log(" newTeamMember   details   ", this.newteamMember)
-
-
-      }
-    })
-
-
+      );
+    });
   }
+  
 
   deleteResourceFromProject(template: TemplateRef<any>) {
 
@@ -1277,13 +1293,22 @@ export class ResourceManagementComponent implements OnInit {
   //   this.getExistingProjectsByUser(this.projectObj);
   // }
 
-  openProjectTemplateModal(template: TemplateRef<any>, employee) {
-    this.modalRef2 = this.modalService.show(template, { class: 'modal-xl' });
-    this.getExistingProjectsByUser(employee.empId);
-    this.dataObj = employee;
-
-    console.log("data employee newmenbfcg  ", employee)
+  openProjectTemplateModal(template: TemplateRef<any>, employee: any) {
+    this.getExistingProjectsByUser(employee.empId).then((projectDetails) => {
+      this.dataObj = employee;
+  
+      if (projectDetails.length > 0) {
+        this.modalRef2 = this.modalService.show(template, { class: 'modal-xl' });
+      } else {
+        console.log("No project details found for the employee.");
+      }
+  
+      console.log("data employee newmenbfcg  ", employee);
+    }).catch((error) => {
+      console.error("Error fetching project details:", error);
+    });
   }
+  
 
 
 changeDepartment(event: any): void {

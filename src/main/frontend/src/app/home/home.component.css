@@ -407,3 +407,37 @@
     background-color: #02346a; 
     color: #ffffff;     
 }
+
+
+.scrollable-table{
+    width: 92vw;
+    height: 70vh;
+}
+
+.thead-light th{
+    position: sticky;
+    top: -0.7px;
+}
+
+.table-container {
+    max-height: 80vh;
+    overflow-y: auto;
+    overflow-x: auto;
+    position: relative;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+th {
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+}
+
+thead {
+    position: sticky;
+    top: -0.7px;
+    z-index: 100;
+}

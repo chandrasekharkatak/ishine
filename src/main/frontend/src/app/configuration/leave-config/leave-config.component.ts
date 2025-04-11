@@ -128,6 +128,7 @@ export class LeaveConfigComponent implements OnInit {
   leavePolicyColumns:any[] = ['blank','leavePolicyName','leaveType','description','createdByName','createdOn','updatedOn','updatedByName'];
 
   employeesFor360: any[] = [];
+  tableName: string;
 
   constructor(
     private validationService: ValidationService,
@@ -739,7 +740,6 @@ export class LeaveConfigComponent implements OnInit {
         )
         this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
       });
-
     }
     if (this.isLeaveRuleTable == true) {
       this.excelName = 'LeaveSheet.xlsx';
@@ -786,6 +786,23 @@ export class LeaveConfigComponent implements OnInit {
     }
 
   }
+  // exportToExcel(id:any): void {
+  //   if (this.isHolidayTable == true) {
+  //     this.excelName = 'HolidaySheet.xlsx';
+  //     this.tableName = 'Holiday Table';
+  //     this.exportExcelService.exportTableFormat(id, this.excelName, this.tableName);
+  //   }
+  //   else if (this.isLeaveRuleTable == true) {
+  //     this.excelName = 'LeaveSheet.xlsx';
+  //     this.tableName = 'Leave Rules Table';
+  //     this.exportExcelService.exportTableFormat(id, this.excelName, this.tableName);
+  //   }
+  //   else if (this.isLeavePolicyTable == true) {
+  //     this.excelName = 'LeavePolicySheet.xlsx';
+  //     this.tableName = 'Leave Policy Table';
+  //     this.exportExcelService.exportTableFormat(id, this.excelName, this.tableName);
+  //   }
+  // }
 
 
   // Leave Type

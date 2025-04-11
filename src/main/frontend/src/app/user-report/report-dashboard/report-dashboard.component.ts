@@ -55,6 +55,11 @@ class FilterData{
   queryList:any;
 }
 
+interface Project {
+  projectId: string;
+  projectName: string;
+}
+
 @Component({
   selector: 'app-report-dashboard',
   templateUrl: './report-dashboard.component.html',
@@ -149,6 +154,7 @@ export class ReportDashboardComponent implements OnInit {
   departmentIds :any[]=[];
   allDepartmentList : any [] =[];
   currentUser: User;
+  show: number = -1;
 
 //property for cylinder charts
 public activity;
@@ -182,6 +188,11 @@ options:any;
     this.sectionViewInit();
     this.preventBackButton();
   }
+
+  getSlicedProjects(projectList: Project[], count: number): Project[] {
+    return projectList.slice(0, count);
+  }
+
   preventBackButton(){
     history.pushState(null, null, location.href);
     this.locationStrategy.onPopState(()=>{

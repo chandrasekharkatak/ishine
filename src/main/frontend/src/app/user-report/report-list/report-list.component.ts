@@ -305,6 +305,7 @@ export class ReportListComponent implements OnInit {
 
   toggleView() {
     this.showDetails = !this.showDetails;
+    this.show= -1;
     if (this.showDetails === false) {
       this.showEmployeeReportTable()
     }
@@ -502,6 +503,7 @@ export class ReportListComponent implements OnInit {
     this.tnmPOValidCountList = [];
     this.tnmPoExpiredCountList = [];
     this.fixedCostPoValidCountList = [];
+    this.fixedCostPoExpiredCountList = [];
     this.internalCountList = [];
     this.filteredEmployees = [];
 

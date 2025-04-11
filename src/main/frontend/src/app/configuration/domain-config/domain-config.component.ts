@@ -65,9 +65,11 @@ export class DomainConfigComponent implements OnInit {
 
   //excel
   domainDataForExcel: any[];
-  name = 'Domain.xlsx';
+ 
 
   employeesFor360: any[] = [];
+  excelName: string;
+  tableName: string;
 
   constructor(
     private domainService:DomainService,
@@ -499,7 +501,7 @@ downloadConfirmationDateUpload(): void {
     this.page = event;
   }
 
-  //Export -- download excel
+ name = 'Domain.xlsx';
   exportToExcel(): void {
   this.domainService.getAllDomain().pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
@@ -515,6 +517,17 @@ downloadConfirmationDateUpload(): void {
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
   });
 }
+
+
+//Export -- download excel
+
+// exportToExcel(id:any): void {
+//   const tableId = id; // Replace with your actual table ID
+//   this.excelName = "DomainInfo.xlsx";
+//   this.tableName= 'Domain Table';
+
+//   this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+// }
 
 
 

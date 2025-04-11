@@ -228,6 +228,8 @@ export class EmployeeConfigComponent implements OnInit {
   private subscription: Subscription = new Subscription();
   referedTypeStatus: boolean = false;
   employeesFor360: any[] = [];
+  excelName: string;
+  tableName: string;
 
   constructor(
 
@@ -2082,6 +2084,13 @@ export class EmployeeConfigComponent implements OnInit {
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
     });
   }
+  // exportToExcel(id:any): void {
+  //   const tableId = id; // Replace with your actual table ID
+  //   this.excelName = "EmployeeSheet.xlsx";
+  //   this.tableName= "Employee Info";
+
+  //   this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+  // }
 
   getManagerList(employee?: Employee) {
     this.managerList = [];

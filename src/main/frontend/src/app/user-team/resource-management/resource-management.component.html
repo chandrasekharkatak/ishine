@@ -32,13 +32,13 @@
                 <div class="export-button">
                     <button type="button"
                             class="btn btn-sm btn-outline-primary ml-auto  mr-5 mt-2 mb-2 excel-button"
-                            [hidden]="allProjectList.length == 0" (click)="exportToExcel()"><em
+                            [hidden]="allProjectList.length == 0" (click)="exportToExcel('project-info')"><em
                                 class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
                 <div class="table-container" bassHorizontalScroll [tableId]="'projectInfo'"
                     [tableTHeadId]="'projectInfoTHead'" [tableTHeadTrId]="'projectInfoTHeadTr'">
-                    <table class="table " id="projectInfo" matSort (matSortChange)="sortData($event)">
-                        <thead class="thead-light" id="projectInfoTHead">
+                    <table class="table" id="project-info"  matSort (matSortChange)="sortData($event)">
+                        <thead class="thead-light" >
                             <tr id="projectInfoTHeadTr">
                                 <th></th>
                                 <th scope="col" class="info-label">Sr No.</th>
@@ -673,10 +673,10 @@
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
-        <div class="modal-body table-container">
+        <div class=" table-container">
 
-            <table class="table project_table">
-                <thead class="thead-light">
+            <table class="table project_table scrollable-table" id="projectTable">
+                <thead class="thead-light" id="projectTableHead">
                     <tr>
                         <th>Sr.No</th>
                         <th scope="col" class="info-label">Project Name</th>

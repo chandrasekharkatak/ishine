@@ -69,6 +69,8 @@ export class DeptConfigComponent implements OnInit {
   filters:any = {};
   isSearchEnabled:boolean = false;
   departmentColumns:any[] = ['blank','name','hodName','createdByName','createdOn','updatedOn','updatedByName'];
+  excelName: string;
+  tableName: string;
 
   constructor(
     private validationService: ValidationService,
@@ -434,6 +436,15 @@ export class DeptConfigComponent implements OnInit {
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
     });
   }
+
+ // download excel
+  // exportToExcel(id:any): void {
+  //   const tableId = id; // Replace with your actual table ID
+  //   this.excelName = "DepartementInfoSheet.xlsx";
+  //   this.tableName= 'Department Info';
+  
+  //   this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+  // }
 
 
   // Modals

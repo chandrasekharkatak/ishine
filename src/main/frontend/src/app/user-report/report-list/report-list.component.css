@@ -270,3 +270,6 @@ thead {
     right: 0%;
     top:-25px;
   }
+td {
+    padding: 8px;
+}

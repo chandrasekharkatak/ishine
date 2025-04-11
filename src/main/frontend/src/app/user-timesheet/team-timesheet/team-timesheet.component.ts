@@ -58,6 +58,9 @@ export class TeamTimesheetComponent implements OnInit {
   bulkApprove: any = [];
   bulkReject: any = [];
 
+  tableName : String;
+
+
   filters:any = {};
   isSearchEnabled:boolean = false;
   allTimesheetColumns:any[] = ['blank','employeementId','employeeName','date','dayType','description','totalTime','officeInTime','officeOutTime','totalWorkingOfficeHours','status','isNightShift','leaveType','remarks'];
@@ -329,6 +332,7 @@ export class TeamTimesheetComponent implements OnInit {
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
     }
   }
+
 
 
   //modals

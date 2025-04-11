@@ -59,7 +59,7 @@ export class RoleConfigComponent implements OnInit {
 
   roleDataForExcel: any[];
 
-  name = 'JobRole.xlsx';
+ 
 
   // for View Role By department
   selectedDept:any = '';
@@ -74,6 +74,8 @@ export class RoleConfigComponent implements OnInit {
   isSearchEnabled:boolean = false;
   roleColumns:any[] = ['blank','name','employeeRole','departmentName','createdBy','createdOn','updatedByName','updatedOn']
   employeesFor360: any[] = [];
+  excelName: string;
+  tableName: string;
 
   constructor(
     private validationService: ValidationService,
@@ -489,6 +491,7 @@ export class RoleConfigComponent implements OnInit {
   }
 
   // download excel
+  name = 'JobRole.xlsx';
   exportToExcel(): void {
 
     this.jobRoleService.getAllJobRole().pipe(first()).subscribe((response: any) => {
@@ -511,6 +514,13 @@ export class RoleConfigComponent implements OnInit {
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
     });
   }
+  // exportToExcel(id:any): void {
+  //   const tableId = id; // Replace with your actual table ID
+  //   this.excelName = "JobRole.xlsx";
+  //   this.tableName= 'Job Role Table';
+  
+  //   this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+  // }
 
   getJobRolesByDept(departmentId: any) {
     //console.log("departmentId : ", departmentId);
