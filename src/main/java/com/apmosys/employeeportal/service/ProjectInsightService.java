@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -22,6 +23,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -34,6 +36,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.apmosys.employeeportal.dto.EmployeeDocumentDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ModuleDTO;
+import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightMilestoneDTO;
 import com.apmosys.employeeportal.dto.ProjectQuestionDTO;
@@ -49,6 +52,7 @@ import com.apmosys.employeeportal.model.ProjectInsightResponse;
 import com.apmosys.employeeportal.model.ProjectInsightSubModule;
 import com.apmosys.employeeportal.model.QuestionMaster;
 import com.apmosys.employeeportal.model.TagMaster;
+import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightAssigneesRepository;
@@ -117,6 +121,9 @@ public class ProjectInsightService {
 	
 	@Autowired
 	TagMasterRepository tagMasterRepository;
+	
+	@Autowired
+	DepartmentRepository departmentRepository;
 	
 	public String saveProjectWiseTags(ProjectInsightDTO projectInsightDTO) {
 	    String response = "Failed";
@@ -1821,18 +1828,55 @@ public class ProjectInsightService {
 			
 			if(!tagList.isEmpty()) {
 				List<TagMaster> matchedTags = tagMasterRepository.findAll(TagSpecifications.tagNameLikeAny(tagList));
-
-				Set<Long> projectIds = matchedTags.stream()
-				        .map(TagMaster::getProjectId)
-				        .collect(Collectors.toSet());
+				Set<Integer> projectIds = matchedTags.stream().map(TagMaster::getProjectId).map(Long::intValue).collect(Collectors.toSet());
+				List<PoProjectSyncDTO> allProjectInfoList = getProjectByProjectIds(projectIds);
 				
-				System.out.println(projectIds);
+				if(!allProjectInfoList.isEmpty()) {
+					response.setProjectList(allProjectInfoList);
+				}else {
+					return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+				}
 			}
-			
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
 		return ResponseEntity.ok(response);
+	}
+	
+	public List<PoProjectSyncDTO> getProjectByProjectIds(Set<Integer> projectIds) {
+	    List<PoProjectSyncDTO> response = new ArrayList<>();
+	    try {
+	        List<Project> projects = projectRepository.findAllById(projectIds);
+
+	        if (!projects.isEmpty()) {
+	            for (Project project : projects) {
+	                PoProjectSyncDTO dto = new PoProjectSyncDTO();
+
+	                List<Object[]> deptData = departmentRepository.getMappedDepartment(project.getProjectId());
+	                List<String> departmentNames = deptData.stream()
+	                        .map(obj -> obj[0] != null ? obj[0].toString() : null)
+	                        .filter(Objects::nonNull)
+	                        .collect(Collectors.toList());
+	                Employee empObject = employeeRepository.findByEmpId(project.getProjectManagerId());
+	                List<TagMaster> tagMasterList = tagMasterRepository.findByProjectId(project.getProjectId().longValue());
+
+	                dto.setProjectId(project.getProjectId());
+	                dto.setProjectName(project.getProjectName());
+	                dto.setDepartmentList(departmentNames.toArray(new String[0]));
+	                dto.setProjectManagerId(project.getProjectManagerId());
+	                dto.setProjectManagerName(empObject != null ? empObject.getName() : null);
+	                dto.setState(project.getState());
+	                dto.setTagList(tagMasterList.stream().map(TagMaster::getTag).limit(8).collect(Collectors.toList()));
+	                
+	                response.add(dto);
+	            }
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace(); 
+	        throw e;
+	    }
+	    return response;
 	}
 	
 }

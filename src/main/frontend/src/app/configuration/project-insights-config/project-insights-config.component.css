@@ -367,3 +367,50 @@ box-shadow: 0px 6px 14px rgba(0, 0, 0, 0.2);
   font-size: 14px;
   color: #ffffff;
 }
+
+
+.search-content {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+}
+
+.search-result {
+  padding: 1rem 0;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.search-result:last-child {
+  border-bottom: none;
+}
+
+.result-title {
+  font-size: 1.2rem;
+  color: #1a0dab;
+  margin: 0;
+}
+
+.result-description {
+  font-size: 0.95rem;
+}
+
+.tags-line {
+  margin-top: 0.5rem;
+}
+
+.tag {
+  background-color: #f1f3f4;
+  color: #3c4043;
+  padding: 4px 10px;
+  margin-right: 6px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.result-title span {
+  font-size: 0.95rem;
+  font-weight: normal;
+}

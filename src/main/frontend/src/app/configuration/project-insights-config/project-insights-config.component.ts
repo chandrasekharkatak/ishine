@@ -46,7 +46,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
   //search
   searchTerm: string = '';
-  searchResultProjectList:any[] = [];
+  searchResults:any[] = [];
 
   // tab clicked
   projectInsightTabClick: boolean = false;
@@ -155,7 +155,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
   onSearchTerm() {
     this.projectInsightService.onSearchTerm(this.searchTerm).pipe(first()).subscribe(
       (response: any) => {
-        this.searchResultProjectList = response;
+        this.searchResults = response.projectList;
       },
       (error) => {
         console.error(error);

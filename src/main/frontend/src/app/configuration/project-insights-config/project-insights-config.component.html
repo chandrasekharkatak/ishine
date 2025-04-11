@@ -32,10 +32,46 @@
       </div>
     </div>
 
-    <div class="search-content">
-
+    <div class="col-md-10 mt-4" *ngIf="searchResults?.length > 0">
+        <div class="search-content">
+            <div class="search-result" *ngFor="let project of searchResults">
+                <div class="d-flex align-items-start">
+                    <i class="fa-solid fa-folder-open text-primary fs-4 me-3 mt-1"></i>
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="result-title mb-1">
+                              {{ project.projectName }} <span class="text-muted">| Manager: {{ project.projectManagerName || 'N/A' }}</span>
+                            </h5>
+                          </div>                          
+    
+                        <p class="result-description text-muted mb-1">
+                            {{ project.description || 'No description available.' }}
+                        </p>
+    
+                        <p class="mb-1">
+                            <strong>State:</strong> {{ project.state }}
+                        </p>
+    
+                        <p class="mb-1" *ngIf="project.departmentList?.length">
+                            <strong>Departments:</strong> {{ project.departmentList.join(', ') }}
+                        </p>
+    
+                        <div class="tags-line mt-1" *ngIf="project.tagList?.length">
+                            <span class="tag" *ngFor="let tag of project.tagList">
+                                {{ tag }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>  
+    
+    <!-- No Results -->
+    <div class="col-md-10 mt-3" *ngIf="searchResults?.length === 0 && searchTerm">
+        <p class="text-center text-muted">No results found for "{{ searchTerm }}"</p>
+    </div>
+</div>  
 <!------------------------------------ end :: Search  -------------------------->
 
 
