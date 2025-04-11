@@ -935,7 +935,7 @@ public class ProjectInsightService {
 			List<ProjectInsightMilestone> projectInsightMilestoneList =  projectInsightMilestoneRepository.getByProjectId(projectInsightDTO.getProjectId());
 			if (projectInsightMilestoneList != null && !projectInsightMilestoneList.isEmpty()) {
 				ProjectInsightDTO projectInsightDTODbObject = createProjectInsightMileStoneObject(projectInsightMilestoneList,projectInsightDTO.getEmpId(),isEmployee,projectInsightDTO.getPerformanceTabName(),projectInsightDTO.getProjectId());
-				projectInsightDTODbObject.setQuestionList(getProjectQuestionDTOList(projectInsightDTO.getProjectId(), "Project",projectInsightDTO.getEmpId(), isEmployee, projectInsightDTO.getPerformanceTabName(), projectInsightDTO.getProjectId()));
+				projectInsightDTODbObject.setQuestionList(getProjectQuestionDTOList(projectInsightDTO.getProjectId(), "Project",projectInsightDTO.getEmpId(), isEmployee, projectInsightDTO.getPerformanceTabName(), projectInsightDTO.getProjectId(),null));
 				projectInsightDTODbObject.setTaggedToUserNames(getAllTaggedUserName(projectInsightDTO.getProjectId(), "Project",projectInsightDTO.getEmpId()));
 				projectInsightDTODbObject.setTaggedToUserId(getAllTaggedUserId(projectInsightDTO.getProjectId(), "Project",projectInsightDTO.getEmpId()));
 				projectInsightDTODbObject.setProjectId(projectInsightDTO.getProjectId());
@@ -996,7 +996,7 @@ public class ProjectInsightService {
 			projectInsightMilestoneDTO.setAssignedToUserNames(getAssignedToUserName(projectInsightMilestone.getMilestoneId(), "Milestone"));
 			projectInsightMilestoneDTO.setTaggedToUserNames(getAllTaggedUserName(projectInsightMilestone.getMilestoneId(), "Milestone",employeeId));
 			projectInsightMilestoneDTO.setTaggedToUserId(getAllTaggedUserId(projectInsightMilestone.getMilestoneId(), "Milestone",employeeId));
-			projectInsightMilestoneDTO.setQuestionList(getProjectQuestionDTOList(projectInsightMilestone.getMilestoneId(), "Milestone",employeeId, isEmployee, performanceTabName, projectId));
+			projectInsightMilestoneDTO.setQuestionList(getProjectQuestionDTOList(projectInsightMilestone.getMilestoneId(), "Milestone",employeeId, isEmployee, performanceTabName, projectId,null));
 			projectInsightMilestoneDTO.setModuleList(getProjectInsightModuleDTOList(projectInsightMilestone.getMilestoneId(), employeeId, isEmployee, performanceTabName, projectId));
 			return projectInsightMilestoneDTO;
 		} catch (Exception e) {
@@ -1021,8 +1021,8 @@ public class ProjectInsightService {
 					moduleDTO.setAssignedToUserNames(getAssignedToUserName(projectInsightModule.getModuleId(), "Module"));
 					moduleDTO.setTaggedToUserNames(getAllTaggedUserName(projectInsightModule.getModuleId(), "Module",employeeId));
 					moduleDTO.setTaggedToUserId(getAllTaggedUserId(projectInsightModule.getModuleId(), "Module",employeeId));
-					moduleDTO.setQuestionList(getProjectQuestionDTOList(projectInsightModule.getModuleId(), "Module", employeeId, isEmployee, performanceTabName, projectId));
-					moduleDTO.setSubModuleList(getProjectInsightSubModuleDTOList(projectInsightModule.getModuleId(), employeeId, isEmployee, performanceTabName, projectId));
+					moduleDTO.setQuestionList(getProjectQuestionDTOList(projectInsightModule.getModuleId(), "Module", employeeId, isEmployee, performanceTabName, projectId,null));
+					moduleDTO.setSubModuleList(getProjectInsightSubModuleDTOList(projectInsightModule.getModuleId(), employeeId, isEmployee, performanceTabName, projectId,"SubModule"));
 					if ((moduleDTO.getSubModuleList() != null && !moduleDTO.getSubModuleList().isEmpty()) 
 							|| (moduleDTO.getQuestionList() != null && !moduleDTO.getQuestionList().isEmpty())) {
 						projectInsightModuleDTOList.add(moduleDTO);
@@ -1036,10 +1036,10 @@ public class ProjectInsightService {
 		return projectInsightModuleDTOList;
 	}
 
-	private List<SubModuleDTO> getProjectInsightSubModuleDTOList(Long moduleId, Long employeeId, boolean isEmployee, String performanceTabName, Long projectId) {
+	private List<SubModuleDTO> getProjectInsightSubModuleDTOList(Long moduleId, Long employeeId, boolean isEmployee, String performanceTabName, Long projectId,String subModuleType) {
 		List<SubModuleDTO> projectInsightSubModuleDTOList = new ArrayList<>();
 		try {
-			List<ProjectInsightSubModule> projectInsightSubModuleList = projectInsightSubModuleRepository.findByModuleId(moduleId);
+			List<ProjectInsightSubModule> projectInsightSubModuleList = projectInsightSubModuleRepository.getByModuleIdAndSubModuleType(moduleId,subModuleType);
 			if (!projectInsightSubModuleList.isEmpty()) {
 				for (ProjectInsightSubModule projectInsightSubModule : projectInsightSubModuleList) {
 					SubModuleDTO subModuleDTO = new SubModuleDTO();
@@ -1052,8 +1052,14 @@ public class ProjectInsightService {
 					subModuleDTO.setAssignedToUserNames(getAssignedToUserName(projectInsightSubModule.getSubmoduleId(), "SubModule"));
 					subModuleDTO.setTaggedToUserNames(getAllTaggedUserName(projectInsightSubModule.getSubmoduleId(), "SubModule",employeeId));
 					subModuleDTO.setTaggedToUserId(getAllTaggedUserId(projectInsightSubModule.getSubmoduleId(), "SubModule",employeeId));
-					subModuleDTO.setQuestionList(getProjectQuestionDTOList(projectInsightSubModule.getSubmoduleId(), "SubModule", employeeId, isEmployee, performanceTabName, projectId));
-					if (subModuleDTO.getQuestionList() != null && !subModuleDTO.getQuestionList().isEmpty()) {
+					subModuleDTO.setQuestionList(getProjectQuestionDTOList(projectInsightSubModule.getSubmoduleId(), "SubModule", employeeId, isEmployee, performanceTabName, projectId,subModuleType));
+					
+					List<ProjectInsightSubModule> projectInsightSubSubModuleList = projectInsightSubModuleRepository.getByModuleIdAndSubModuleType(projectInsightSubModule.getSubmoduleId(),"Sub-SubModule");
+					if(projectInsightSubSubModuleList != null && !projectInsightSubSubModuleList.isEmpty()) {
+						subModuleDTO.setSubSubModuleList(getProjectInsightSubModuleDTOList(projectInsightSubModule.getSubmoduleId(), employeeId, isEmployee, performanceTabName, projectId,"Sub-SubModule"));
+					}
+					
+					if ((subModuleDTO.getQuestionList() != null && !subModuleDTO.getQuestionList().isEmpty()) || (projectInsightSubSubModuleList != null && !projectInsightSubSubModuleList.isEmpty())) {
 						projectInsightSubModuleDTOList.add(subModuleDTO);
 					}
 				}
@@ -1065,13 +1071,14 @@ public class ProjectInsightService {
 		return projectInsightSubModuleDTOList;
 	}
 
-	public List<ProjectQuestionDTO> getProjectQuestionDTOList(Long entityId, String entityType, Long employeeId, boolean isEmployee, String performanceTabName, Long projectId) {
+	public List<ProjectQuestionDTO> getProjectQuestionDTOList(Long entityId, String entityType, Long employeeId, boolean isEmployee, String performanceTabName, Long projectId,String subModuleType) {
 		List<ProjectQuestionDTO> projectInsightQuestionList = new ArrayList<>();
 		try {
 			List<QuestionMaster> projectInsightQuestionMasterList = new ArrayList<>();
 			if (isEmployee) {
 				projectInsightQuestionMasterList = questionMasterRepository.findByEntityIdAndEntityTypeAndAssignedTo(entityId, entityType, employeeId);
 			} else {
+				entityType = subModuleType  != null ? subModuleType :entityType ;
 				projectInsightQuestionMasterList = questionMasterRepository.findByEntityIdAndEntityType(entityId, entityType);
 			}
 			if (!projectInsightQuestionMasterList.isEmpty()) {
@@ -1307,7 +1314,7 @@ public class ProjectInsightService {
 			if (moduleList != null && !moduleList.isEmpty()) {
 				for (ModuleDTO moduleDTO : moduleList) {
 					saveProjectInsightResponse(moduleDTO.getQuestionList(),files,reviewerId,employeeId);
-					saveProjectInsightSubModuleResponse(moduleDTO.getSubModuleList(), employeeId,files,reviewerId);
+					saveProjectInsightSubModuleResponse(moduleDTO.getSubModuleList(), employeeId,files,reviewerId,"SubModule");
 					saveTaggedForHelp(moduleDTO.getTaggedToUserId(),moduleDTO.getModuleId(),"Module",employeeId);
 				}
 			}
@@ -1317,12 +1324,15 @@ public class ProjectInsightService {
 		}
 	}
 
-	private void saveProjectInsightSubModuleResponse(List<SubModuleDTO> subModuleList, Long employeeId,List<MultipartFile> files,Long reviewerId) {
+	private void saveProjectInsightSubModuleResponse(List<SubModuleDTO> subModuleList, Long employeeId,List<MultipartFile> files,Long reviewerId,String subModuleType) {
 		try {
 			if (subModuleList != null && !subModuleList.isEmpty()) {
 				for (SubModuleDTO subModuleDTO : subModuleList) {
 					saveProjectInsightResponse(subModuleDTO.getQuestionList(),files,reviewerId,employeeId);
-					saveTaggedForHelp(subModuleDTO.getTaggedToUserId(),subModuleDTO.getSubmoduleId(),"SubModule",employeeId);
+					saveTaggedForHelp(subModuleDTO.getTaggedToUserId(),subModuleDTO.getSubmoduleId(),subModuleType,employeeId);
+					if(subModuleDTO.getSubSubModuleList() != null && !subModuleDTO.getSubSubModuleList().isEmpty()) {
+						saveProjectInsightSubModuleResponse(subModuleDTO.getSubSubModuleList(), employeeId, files, reviewerId,"Sub-SubModule");
+					}
 				}
 			}
 		} catch (Exception e) {

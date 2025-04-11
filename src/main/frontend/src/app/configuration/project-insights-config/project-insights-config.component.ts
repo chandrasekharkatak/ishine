@@ -318,6 +318,26 @@ export class ProjectInsightsConfigComponent implements OnInit {
     }
   }
 
+  addSubSubModule(parentSubModule: ProjectSubModule): void {
+    if (!parentSubModule.subSubModuleList) {
+      parentSubModule.subSubModuleList = []
+    }
+    parentSubModule.subSubModuleList.push(new ProjectSubModule());
+  }
+
+  removeSubSubModule(parentSubModule: ProjectSubModule, childIndex: number): void {
+    if (parentSubModule.subSubModuleList) {
+      parentSubModule.subSubModuleList.splice(childIndex, 1)
+    }
+  }
+
+  addSubSubModuleQuestion(sub:ProjectSubModule){
+    if (!sub.questionList) {
+      sub.questionList = []
+    }
+    sub.questionList.push(new ProjectQuestion());
+  }
+
   onPreiew(previewTemplate: TemplateRef<any>, template: TemplateRef<any>){
     let inputValidated: boolean = this.validateProjectInsight(template, this.projectInsight, this.projectInsightMilestoneList);
     if (!inputValidated) return;
@@ -1494,165 +1514,5 @@ private createQuestionsSection(questions: any[], entityType: string): string {
         }
       });
   }
-
-  addSubSubModule(parentSubModule: ProjectSubModule): void {
-    if (!parentSubModule.subSubModuleList) {
-      parentSubModule.subSubModuleList = []
-    }
-    parentSubModule.subSubModuleList.push(new ProjectSubModule());
-  }
-
-  removeSubSubModule(parentSubModule: ProjectSubModule, childIndex: number): void {
-    if (parentSubModule.subSubModuleList) {
-      parentSubModule.subSubModuleList.splice(childIndex, 1)
-    }
-  }
-
-  addSubSubModuleQuestion(sub:ProjectSubModule){
-    if (!sub.questionList) {
-      sub.questionList = []
-    }
-    sub.questionList.push(new ProjectQuestion());
-  }
-
-  // removeSubSubModule(parentSubModule: ProjectSubModule, childIndex: number): void {
-  //   if (parentSubModule.subSubModuleList) {
-  //     const childSubModule = parentSubModule.subSubModuleList[childIndex]
-  //     // this.removeAllSubmodulesFromRegistry([childSubModule])
-  //     parentSubModule.subSubModuleList.splice(childIndex, 1)
-  //   }
-  // }
-
-
-  // // Update paths for all submodules after removing one
-  // updatePathsAfterRemoval(submodules: ProjectSubModule[], removedIndex: number, parentPath: number[]): void {
-  //   for (let i = removedIndex; i < submodules.length; i++) {
-  //     // Update the last segment of the path (the index in the current array)
-  //     const newPath = [...parentPath, i]
-  //     submodules[i].path = newPath
-
-  //     // Recursively update paths for all children
-  //     if (submodules[i].subSubModuleList && submodules[i].subSubModuleList.length > 0) {
-  //       this.updatePathsForChildren(submodules[i].subSubModuleList, newPath)
-  //     }
-  //   }
-  // }
-
-  // // Update paths for all children of a submodule
-  // updatePathsForChildren(submodules: ProjectSubModule[], parentPath: number[]): void {
-  //   for (let i = 0; i < submodules.length; i++) {
-  //     const newPath = [...parentPath, i]
-  //     submodules[i].path = newPath
-
-  //     if (submodules[i].subSubModuleList && submodules[i].subSubModuleList.length > 0) {
-  //       this.updatePathsForChildren(submodules[i].subSubModuleList, newPath)
-  //     }
-  //   }
-  // }
-
-  // // Get the parent of a submodule
-  // getParentSubmodule(submodule: ProjectSubModule): ProjectSubModule | null {
-  //   if (!submodule.parentId) {
-  //     return null // This is a top-level submodule
-  //   }
-
-  //   return this.submoduleRegistry.get(submodule.parentId) || null
-  // }
-
-  // // Get all immediate children of a submodule
-  // getImmediateChildren(submodule: ProjectSubModule): ProjectSubModule[] {
-  //   return submodule.subSubModuleList || []
-  // }
-
-  // // Check if a submodule is a direct submodule (level 1) or a sub-submodule (level > 1)
-  // isSubSubmodule(submodule: ProjectSubModule): boolean {
-  //   return submodule.level > 1
-  // }
-
-  // // Get the module that contains this submodule
-  // getContainingModule(submodule: ProjectSubModule): ProjectModule | null {
-  //   // For a direct submodule, we can find the module directly
-  //   if (submodule.level === 1) {
-  //     for (const milestone of this.milestones) {
-  //       for (const module of milestone.moduleList) {
-  //         if (module.subModuleList.some((sub) => sub.id === submodule.id)) {
-  //           return module
-  //         }
-  //       }
-  //     }
-  //   }
-  //   // For a sub-submodule, we need to find its top-level parent first
-  //   else {
-  //     let currentSubmodule = submodule
-  //     while (currentSubmodule.parentId) {
-  //       const parent = this.submoduleRegistry.get(currentSubmodule.parentId)
-  //       if (!parent) break
-  //       currentSubmodule = parent
-
-  //       // If we've reached a level 1 submodule, find its module
-  //       if (currentSubmodule.level === 1) {
-  //         return this.getContainingModule(currentSubmodule)
-  //       }
-  //     }
-  //   }
-
-  //   return null
-  // }
-
-  // // Helper method to find a sub-module at any level of nesting using its path
-  // findSubModuleByPath(mileIndex: number, modIndex: number, path: number[]): SubModule | null {
-  //   if (path.length === 0) {
-  //     return null
-  //   }
-
-  //   const currentModule = this.milestones[mileIndex].moduleList[modIndex]
-  //   let currentSubModule = currentModule.subModuleList[path[0]]
-
-  //   for (let i = 1; i < path.length; i++) {
-  //     if (!currentSubModule.subSubModuleList || !currentSubModule.subSubModuleList[path[i]]) {
-  //       return null
-  //     }
-  //     currentSubModule = currentSubModule.subSubModuleList[path[i]]
-  //   }
-
-  //   return currentSubModule
-  // }
-
-  // // Find a submodule by its ID (using the registry for quick lookup)
-  // findSubModuleById(id: string): SubModule | null {
-  //   return this.submoduleRegistry.get(id) || null
-  // }
-
-  // addQuestion(type: string, mileIndex: number, modIndex: number, submodIndex?: number): void {
-  //   const newQuestion: Question = {
-  //     question: "",
-  //     answer: "",
-  //   }
-
-  //   if (type === "module") {
-  //     // Add question to module
-  //     // Implement if needed
-  //   } else if (type === "submodule" && submodIndex !== undefined) {
-  //     // Add question to submodule
-  //     if (!this.milestones[mileIndex].moduleList[modIndex].subModuleList[submodIndex].questions) {
-  //       this.milestones[mileIndex].moduleList[modIndex].subModuleList[submodIndex].questions = []
-  //     }
-  //     this.milestones[mileIndex].moduleList[modIndex].subModuleList[submodIndex].questions.push(newQuestion)
-  //   }
-  // }
-
-  // // Add a question to a deeply nested sub-module
-  // addQuestionToNestedSubModule(mileIndex: number, modIndex: number, path: number[]): void {
-  //   const subModule = this.findSubModuleByPath(mileIndex, modIndex, path)
-  //   if (subModule) {
-  //     if (!subModule.questions) {
-  //       subModule.questions = []
-  //     }
-  //     subModule.questions.push({
-  //       question: "",
-  //       answer: "",
-  //     })
-  //   }
-  // }
 
 }
