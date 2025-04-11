@@ -8,7 +8,7 @@ export class ProjectModule {
     redmineId: any;
     assignedToUserId: any;
     assignedToUserNames: any;
-    taggedForHelp: any[] = [];
+    taggedToUserId: any[] = [];
     taggedToUserNames: any;
     questionList: ProjectQuestion[] = [];
     subModuleList: ProjectSubModule[] = [];

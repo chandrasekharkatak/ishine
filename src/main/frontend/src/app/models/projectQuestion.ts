@@ -20,7 +20,7 @@ export class ProjectQuestion{
     entityType:any;
     assignedToUserNames:any;
     projectResponseList:ProjectResponse[]=[];
-    taggedForHelp: any[] = [];
+    taggedToUserId: any[] = [];
     taggedToUserNames:any;
     toTagEmployeeList:any[]=[];
     toAssignEmployeeList:any[]=[];
