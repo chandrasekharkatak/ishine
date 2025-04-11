@@ -1767,7 +1767,13 @@ public class ProjectService {
 	    }
 
 	    if (flag != null && !flag.isEmpty()) {
-	        innerWhere.append(" AND flag = '").append(flag).append("' ");
+	        if ("Active".equalsIgnoreCase(flag)) {
+	            innerWhere.append(" AND p.po_end_date >= CURRENT_DATE ");
+	        } else if ("Inactive".equalsIgnoreCase(flag)) {
+	            innerWhere.append(" AND p.po_end_date < CURRENT_DATE ");
+	        } else {
+	            innerWhere.append(" AND flag = '").append(flag).append("' "); // Default case if flag is not Active/Inactive
+	        }
 	    }
 
 	    return innerWhere.toString();
