@@ -5729,9 +5729,10 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 				e.printStackTrace();
 			}
 		}
+
 		
 		@Async
-		@Scheduled(cron = "0 0/10 * ? * *")
+		@Scheduled(cron = "0 0/5 * ? * *")
 		@Transactional
 		public void getProjectCloneFromPoPortal() {
 			
@@ -5859,7 +5860,6 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		
 		@Async
 		@Scheduled(cron = "0 0 10 ? * *")
-		@Transactional
 		public void sendMailForExpiryProjects() {
 			
 			LogDTO apiLogInfo = new LogDTO();
