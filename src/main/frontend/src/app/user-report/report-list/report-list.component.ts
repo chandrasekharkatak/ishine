@@ -166,6 +166,12 @@ export class ReportListComponent implements OnInit {
   employeeReportColumn: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'projectName', 'poNo', 'poStartDate', 'poEndDate', 'poProjectType', 'clientName', 'billable', 'billableType', 'dateOfJoining', 'aadhar', 'aboutMe', 'address', 'permanentAddress', 'city', 'bloodGroup', 'dateOfBirth', 'gender', 'fatherName', 'panNumber', 'placeOfBirth', 'workLocation', 'probationPeriod', 'noticePeriod', 'country', 'totalExperience', 'emergencyContactMobile', 'emergencyContactPerson', 'landline', 'maritalStatus', 'motherTongue', 'alternateMobileNo', 'pincode', 'relation', 'state', 'viewsOnOrganisation', 'passportNumber', 'bankAccountNo', 'bankIFSCCode', 'bankName', 'pfAccountNumber', 'previousPfAccountNumber', 'uan', 'esicNumber', 'graduationType', 'pursuing', 'passingGrade', 'yearOfPassing', 'updatedOn', 'updatedByName', 'createdByName', 'createdOn'];
   leaveTimesheetReportColumn: any[] = ['employeementId', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
   defaultMappingColumns: any[] = ['tabName', 'featureName', 'subFeatureName'];
+  employeeReportColumnForDetailedProjecttttView: any[] = ['blank',
+    'projectName', 'projectManager', 'apmosysRM', 'clientRM',
+    'poStartDate', 'poEndDate', 'poNo', 'poProjectType', 'teamName',
+    'employeeName', 'jobRole', 'deptName', 'mobileNo', 'email',
+    'billable', 'billableType', 'effectiveStartDate'
+  ];
   employeesFor360: any[] = [];
   departments: any[] = [];
   allEmployee: any[] = [];
@@ -184,6 +190,7 @@ export class ReportListComponent implements OnInit {
   fixedCostPoProjectActiveCount = 0;
   internalProjectCount = 0;
   selectedDepartment: string = 'All';
+  flatProjectList: any[] = [];
 
   activeBox: string | null = null;
   isHovering: string | null = null;
@@ -233,6 +240,7 @@ export class ReportListComponent implements OnInit {
     await this.getAllDepartments();
     this.sectionViewInit();
     this.preventBackButton();
+
   }
 
   getSlicedProjects(projectList: Project[], count: number): Project[] {
@@ -260,6 +268,29 @@ export class ReportListComponent implements OnInit {
     }
     // this.getEmployeeReportData();
 
+  }
+
+  flattenProjectList() {
+    this.flatProjectList = [];
+    for (const project of this.projectList) {
+      for (const team of project.teamDetails) {
+        for (const emp of team.mappedEmployeeDetails) {
+          this.flatProjectList.push({
+            ...emp,
+            projectName: project.projectName,
+            projectManager: project.projectManager,
+            apmosysRM: project.apmosysRM,
+            clientRM: project.clientRM,
+            poStartDate: project.poStartDate,
+            poEndDate: project.poEndDate,
+            poNo: project.poNo,
+            poProjectType: project.poProjectType,
+            teamName: team.teamName,
+          });
+        }
+      }
+    }
+    console.log(this.flatProjectList);
   }
 
   sectionViewInit() {
@@ -341,12 +372,13 @@ export class ReportListComponent implements OnInit {
 
 
     this.getEmployeeReportData();
+    // this.flattenProjectList();
   }
 
-  selectFlag(box: string, flag: string,template: TemplateRef<any>) {
+  selectFlag(box: string, flag: string, template: TemplateRef<any>) {
     const category = this.selectedTab[box];
     if (!category) {
-      this.openAlertMod(this.alertModal,"Please select a category (Employee / Project) before selecting Flag.");
+      this.openAlertMod(this.alertModal, "Please select a category (Employee / Project) before selecting Flag.");
       return;
     }
     this.selectedFlag[box] = flag;
@@ -360,10 +392,10 @@ export class ReportListComponent implements OnInit {
     this.getEmployeeReportData();
   }
 
-  selectBillable(box: string, type: string,template: TemplateRef<any>) {
+  selectBillable(box: string, type: string, template: TemplateRef<any>) {
     const category = this.selectedTab[box];
     if (!category) {
-      this.openAlertMod(this.alertModal,"Please select a category (Employee / Project) before selecting billable type.");
+      this.openAlertMod(this.alertModal, "Please select a category (Employee / Project) before selecting billable type.");
       return;
     }
     this.selectedBillable[box] = type;
@@ -383,7 +415,7 @@ export class ReportListComponent implements OnInit {
     }, 0);
   }
 
-  poProjectSync(template: TemplateRef<any>){
+  poProjectSync(template: TemplateRef<any>) {
     this.employeeService.getPoProjectSync().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.openAlertMod(this.alertModalSync,response.serviceResponse);
@@ -412,6 +444,7 @@ export class ReportListComponent implements OnInit {
         this.projectSummary = res.projectSummary || {};
         console.log("employeeList", this.employeeList);
         console.log("projectList", this.projectList);
+        this.flattenProjectList();
       } else {
         console.error("API Error: ", response.serviceError || "Unknown error");
       }
@@ -420,30 +453,81 @@ export class ReportListComponent implements OnInit {
 
   }
 
-  
+
+
+  // getEmployeeReportData() {
+  //   this.employeeList = [];
+  //   this.projectList = [];
+  //   this.projectSummary = {};
+  //   console.log("updated", this.employeeReportObj);
+
+  //   this.employeeService.getEmployeeProjectReport(this.employeeReportObj).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus === "Success") {
+  //       const res = response.serviceResponse;
+
+       
+  //       this.employeeList = (res.getEmployeeProjectReportForEmployeeDTO || []).map(employeeObj => {
+  //         return {
+  //           ...employeeObj,
+  //           effectiveStartDate: employeeObj.effectiveStartDate ? moment(employeeObj.effectiveStartDate).format('DD-MM-YYYY') : null,
+  //           effectiveEndDate: employeeObj.effectiveEndDate ? moment(employeeObj.effectiveEndDate).format('DD-MM-YYYY') : null
+  //         };
+  //       });
+
+  //       // Format projectList effectiveStartDate
+  //       this.projectList = (res.getProjectToEmployeeReportForProjectDTO || []).map(projectObj => {
+  //         return {
+  //           ...projectObj,
+  //           effectiveStartDate: projectObj.effectiveStartDate ? moment(projectObj.effectiveStartDate).format('DD-MM-YYYY') : null,
+  //           teamDetails: (projectObj.teamDetails || []).map(team => {
+  //             return {
+  //               ...team,
+  //               mappedEmployeeDetails: (team.mappedEmployeeDetails || []).map(emp => {
+  //                 return {
+  //                   ...emp,
+  //                   effectiveStartDate: emp.effectiveStartDate ? moment(emp.effectiveStartDate).format('DD-MM-YYYY') : null
+  //                 };
+  //               })
+  //             };
+  //           })
+  //         };
+  //       });
+
+  //       this.projectSummary = res.projectSummary || {};
+  //       console.log("employeeList", this.employeeList);
+  //       console.log("projectList", this.projectList);
+  //       this.flattenProjectList();
+  //     } else {
+  //       console.error("API Error: ", response.serviceError || "Unknown error");
+  //     }
+  //   });
+  // }
+
+
+
   getTotalCount(box: string): number {
     const category = this.selectedTab[box];
-  
-   
+
+
     if (category === 'Project') {
       return this.projectSummary[box]?.Project?.total_projects_per_po_project || 0;
     }
-  
-   
+
+
     return this.projectSummary[box]?.Employee?.totalEmpPerProjectType || 0;
   }
-  
+
   getCount(box: string, billableType: string): number {
     const category = this.selectedTab[box];
-  
+
     if (category === 'Project') {
       return this.projectSummary[box]?.Project?.[billableType] || 0;
     }
-  
-   
+
+
     return this.projectSummary[box]?.Employee?.[billableType] || 0;
   }
-  
+
 
   getAllOrDeptWiseEmployeeTimesheetReport() {
     this.filteringTimesheet.deptId = this.selectedDepartment;
@@ -2321,6 +2405,54 @@ export class ReportListComponent implements OnInit {
     this.filters = searchData;
     //console.log("Updated Filter : ", this.filters);
   }
+
+  onSearchh(updatedFilters: any) {
+    this.filters = updatedFilters;
+    this.page = 1;
+  }
+
+  get filteredProjectList() {
+    if (!this.filters || Object.keys(this.filters).length === 0) {
+      return this.projectList;
+    }
+
+    const filtered = this.projectList.map(project => {
+      const filteredTeams = project.teamDetails.map(team => {
+        const filteredEmployees = team.mappedEmployeeDetails.filter(emp =>
+          Object.keys(this.filters).every(key => {
+            const searchValue = this.filters[key]?.toLowerCase() || '';
+
+
+            const empValue = emp[key]?.toString()?.toLowerCase() || '';
+
+
+            const teamValue = team[key]?.toString()?.toLowerCase() || '';
+
+
+            const projValue = project[key]?.toString()?.toLowerCase() || '';
+
+            return empValue.includes(searchValue) ||
+              teamValue.includes(searchValue) ||
+              projValue.includes(searchValue);
+          })
+        );
+
+        return {
+          ...team,
+          mappedEmployeeDetails: filteredEmployees
+        };
+      }).filter(team => team.mappedEmployeeDetails.length > 0);
+
+      return {
+        ...project,
+        teamDetails: filteredTeams
+      };
+    }).filter(project => project.teamDetails.length > 0);
+
+    return filtered;
+  }
+
+
 
   getAllEmployeesReportByProjectType() {
     this.allEmployee = [];
