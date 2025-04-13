@@ -516,11 +516,11 @@
           <!-- Flag Buttons -->
           <div *ngIf="box !== 'Internal'" class="status-buttons">
             <button class="status-btn" [ngClass]="{ 'active-btn': selectedFlag[box] === 'Active' }"
-              (click)="selectFlag(box, 'Active')">
+              (click)="selectFlag(box, 'Active',alert_message)">
               Active
             </button>
             <button class="status-btn" [ngClass]="{ 'active-btn': selectedFlag[box] === 'Inactive' }"
-              (click)="selectFlag(box, 'Inactive')">
+              (click)="selectFlag(box, 'Inactive',alert_message)">
               Inactive
             </button>
           </div>
@@ -529,7 +529,7 @@
           <div class="count-boxes">
             <div class="count-box" *ngFor="let type of ['Bench', 'Fixed Cost', 'Shadow', 'TNM', 'InternalRNDProducts']"
               [ngClass]="{ 'active-btn': selectedBillable[box] === type,'full-width': type === 'InternalRNDProducts' }"
-              (click)="selectBillable(box, type)">
+              (click)="selectBillable(box, type,alert_message)">
               <span>{{ type }}</span>
               <div class="count">{{ getCount(box, type) }}</div>
             </div>

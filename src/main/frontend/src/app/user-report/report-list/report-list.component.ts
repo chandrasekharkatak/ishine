@@ -193,6 +193,7 @@ export class ReportListComponent implements OnInit {
   updatedEmpObj: any;
   show: number = -1;
   filteredTimesheets: any;
+  toastr: any;
 
 
   constructor(
@@ -330,7 +331,7 @@ export class ReportListComponent implements OnInit {
       this.employeeReportObj.report = 'P';
     } else if (this.employeeReportObj.category === 'Employee' && this.changeTable === true) {
       this.employeeReportObj.report = 'EC';
-    } else{
+    } else {
       this.employeeReportObj.report = 'E';
     }
 
@@ -338,11 +339,11 @@ export class ReportListComponent implements OnInit {
     this.getEmployeeReportData();
   }
 
-  selectFlag(box: string, flag: string) {
+  selectFlag(box: string, flag: string,template: TemplateRef<any>) {
     const category = this.selectedTab[box];
     if (!category) {
-      alert("Please select a category (Employee / Project) before selecting flag.");
-      return; 
+      this.openAlertMod(this.alertModal,"Please select a category (Employee / Project) before selecting Flag.");
+      return;
     }
     this.selectedFlag[box] = flag;
     this.selectedBillable[box] = null;
@@ -355,12 +356,12 @@ export class ReportListComponent implements OnInit {
     this.getEmployeeReportData();
   }
 
-  selectBillable(box: string, type: string) {
+  selectBillable(box: string, type: string,template: TemplateRef<any>) {
     const category = this.selectedTab[box];
-  if (!category) {
-    alert("Please select a category (Employee / Project) before selecting billable type.");
-    return; 
-  }
+    if (!category) {
+      this.openAlertMod(this.alertModal,"Please select a category (Employee / Project) before selecting billable type.");
+      return;
+    }
     this.selectedBillable[box] = type;
 
     this.employeeReportObj.poProjectType = box;
@@ -377,7 +378,7 @@ export class ReportListComponent implements OnInit {
       return acc + (team.mappedEmployeeDetails?.length || 0);
     }, 0);
   }
-  
+
 
   employeeList: any[] = [];
   projectList: any[] = [];
@@ -393,8 +394,8 @@ export class ReportListComponent implements OnInit {
         this.employeeList = res.getEmployeeProjectReportForEmployeeDTO || [];
         this.projectList = res.getProjectToEmployeeReportForProjectDTO || [];
         this.projectSummary = res.projectSummary || {};
-        console.log("employeeList",this.employeeList);
-        console.log("projectList",this.projectList);
+        console.log("employeeList", this.employeeList);
+        console.log("projectList", this.projectList);
       } else {
         console.error("API Error: ", response.serviceError || "Unknown error");
       }
@@ -484,7 +485,7 @@ export class ReportListComponent implements OnInit {
       //     this.deptWiseConsolidated = this.allEmployee;
       //     this.deptWiseCount();
 
-          
+
       //   }
       //   error: (err) => {
       //     console.error('Error fetching employees', err);
@@ -512,19 +513,19 @@ export class ReportListComponent implements OnInit {
       this.employeeReportObj.report = 'P';
     } else if (this.employeeReportObj.category === 'Employee' && this.changeTable === true) {
       this.employeeReportObj.report = 'EC';
-    } else{
+    } else {
       this.employeeReportObj.report = 'E';
     }
     this.getEmployeeReportData();
   }
 
-  departmentChange(){
+  departmentChange() {
     // this.employeeReportObj.deptId = [];
     // console.log(this.employeeReportObj.deptId.length,":this.employeeReportObj.deptId.length");
-    if ( this.isAllSelected == false ) {
+    if (this.isAllSelected == false) {
       this.getEmployeeReportData();
     }
-    
+
   }
 
 
@@ -1956,7 +1957,7 @@ export class ReportListComponent implements OnInit {
     const globalProjectIndex = this.getGlobalProjectIndex(pIndex) + 1;
     return `${globalProjectIndex}.${tIndex + 1}.${eIndex + 1}`;
   }
-  
+
   getGlobalProjectIndex(localPIndex: number): number {
     const itemsPerPage = 5; // Match with HTML
     return (this.page - 1) * itemsPerPage + localPIndex;
@@ -2082,67 +2083,101 @@ export class ReportListComponent implements OnInit {
         )
         this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
       } else {
-        this.excelName = 'EmployeeDetailedReport.xlsx';
-        if (this.changeTable) {
-          const onlySpecificDataArr = this.filteredEmployees.map(
-            x => ({
-              "Employee Id": x.employeementId,
-              "Full Name": x.name,
-              "Department": x.departmentName,
-              "Job Role": x.jobRole,
-              "Manager": x.managerName,
-              "Mobile Number": x.mobileNo,
-              "Email Id": x.email,
-              "Employment Status": x.employmentstatus,
-              "Billable": x.billable,
-              "Billable Type": x.billableType,
-              "Team Name": x.teamName,
-              "Project Name": x.projectName,
-              "Po No": x.poNo,
-              "Po Type": x.poType,
-              "Po Start Date": x.poStartDate,
-              "Po End Date": x.poEndDate,
-              "Effective Start Date": x.effectiveStartDate,
-              "Effective End Date": x.effectiveEndDate,
-              "Client Name": x.clientName,
-              "Client Location": x.clientLocation,
-              "Work Location": x.workLocation,
-              "Experience": x.totalExperience,
-              "Default Project Assigned": x.primaryProjectName,
-            })
-          )
-          this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
-        } else {
-          const onlySpecificDataArr = this.filteredEmployees.map(
-            x => ({
-              "Employee Id": x.employeementId,
-              "Full Name": x.name,
-              "Department": x.departmentName,
-              "Job Role": x.jobRole,
-              "Manager": x.managerName,
-              "Mobile Number": x.mobileNo,
-              "Email Id": x.email,
-              "Employment Status": x.employmentstatus,
-              "Billable": x.billable,
-              "Billable Type": x.billableType,
-              "Team Name": x.teamName,
-              "Project Name": x.projectName,
-              "Po No": x.poNo,
-              "Po Type": x.poType,
-              "Po Start Date": x.poStartDate,
-              "Po End Date": x.poEndDate,
-              "Effective Start Date": x.effectiveStartDate,
-              "Effective End Date": x.effectiveEndDate,
-              "Client Name": x.clientName,
-              "Client Location": x.clientLocation,
-              "Work Location": x.workLocation,
-              "Experience": x.totalExperience,
+        if (this.employeeReportObj.category === 'Employee') {
+          this.excelName = 'EmployeeDetailedReport.xlsx';
+          if (this.changeTable) {
+            const onlySpecificDataArr = this.employeeList.map(
+              x => ({
+                "Employee Id": x.employeementId,
+                "Full Name": x.name,
+                "Department": x.departmentName,
+                "Job Role": x.jobRole,
+                "Manager": x.managerName,
+                "Mobile Number": x.mobileNo,
+                "Email Id": x.email,
+                "Employment Status": x.employmentstatus,
+                "Billable": x.billable,
+                "Billable Type": x.billableType,
+                "Team Name": x.teamName,
+                "Project Name": x.projectName,
+                "Po No": x.poNo,
+                "Po Type": x.poType,
+                "Po Start Date": x.poStartDate,
+                "Po End Date": x.poEndDate,
+                "Effective Start Date": x.effectiveStartDate,
+                "Effective End Date": x.effectiveEndDate,
+                "Client Name": x.clientName,
+                "Client Location": x.clientLocation,
+                "Work Location": x.workLocation,
+                "Experience": x.totalExperience,
+                "Default Project Assigned": x.primaryProjectName,
+              })
+            )
+            this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+          } else {
+            const onlySpecificDataArr = this.employeeList.map(
+              x => ({
+                "Employee Id": x.employeementId,
+                "Full Name": x.name,
+                "Department": x.departmentName,
+                "Job Role": x.jobRole,
+                "Manager": x.managerName,
+                "Mobile Number": x.mobileNo,
+                "Email Id": x.email,
+                "Employment Status": x.employmentstatus,
+                "Billable": x.billable,
+                "Billable Type": x.billableType,
+                "Team Name": x.teamName,
+                "Project Name": x.projectName,
+                "Po No": x.poNo,
+                "Po Type": x.poType,
+                "Po Start Date": x.poStartDate,
+                "Po End Date": x.poEndDate,
+                "Effective Start Date": x.effectiveStartDate,
+                "Effective End Date": x.effectiveEndDate,
+                "Client Name": x.clientName,
+                "Client Location": x.clientLocation,
+                "Work Location": x.workLocation,
+                "Experience": x.totalExperience,
 
-            })
-          )
-          this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+              })
+            )
+            this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+          }
+        } else {
+          this.excelName = 'ProjectDetailedReport.xlsx';
+
+          const flatList = [];
+          this.projectList.forEach(project => {
+            project.teamDetails.forEach(team => {
+              team.mappedEmployeeDetails.forEach(emp => {
+                flatList.push({
+                  "Project Name": project.projectName,
+                  "Project Manager": project.projectManager,
+                  "Apmosys RM": project.apmosysRM || '—',
+                  "Client RM": project.clientRM || '—',
+                  "PO Start Date": project.poStartDate,
+                  "PO End Date": project.poEndDate,
+                  "PO No": project.poNo,
+                  "PO Type": project.poProjectType,
+                  "Team Name": team.teamName,
+                  "Employee Name": emp.employeeName,
+                  "Job Role": emp.jobRole,
+                  "Department": emp.deptName,
+                  "Mobile No": emp.mobileNo,
+                  "Email": emp.email,
+                  "Billable": emp.billable,
+                  "Billable Type": emp.billableType,
+                  "Effective Start Date": emp.effectiveStartDate,
+                });
+              });
+            });
+          });
+
+          this.exportExcelService.exportTableDataToExcel(flatList, this.excelName);
         }
       }
+
     }
 
 
@@ -2217,38 +2252,7 @@ export class ReportListComponent implements OnInit {
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
     }
 
-    if (this.isEmployeeReportTable && this.showDetails && this.employeeReportObj.category === 'Project') {
-      this.excelName = 'ProjectDetailedReport.xlsx';
-  
-      const flatList = [];
-      this.projectList.forEach(project => {
-        project.teamDetails.forEach(team => {
-          team.mappedEmployeeDetails.forEach(emp => {
-            flatList.push({
-              "Project Name": project.projectName,
-              "Project Manager": project.projectManager,
-              "Apmosys RM": project.apmosysRM || '—',
-              "Client RM": project.clientRM || '—',
-              "PO Start Date": project.poStartDate,
-              "PO End Date": project.poEndDate,
-              "PO No": project.poNo,
-              "PO Type": project.poProjectType,
-              "Team Name": team.teamName,
-              "Employee Name": emp.employeeName,
-              "Job Role": emp.jobRole,
-              "Department": emp.deptName,
-              "Mobile No": emp.mobileNo,
-              "Email": emp.email,
-              "Billable": emp.billable,
-              "Billable Type": emp.billableType,
-              "Effective Start Date": emp.effectiveStartDate,
-            });
-          });
-        });
-      });
-  
-      this.exportExcelService.exportTableDataToExcel(flatList, this.excelName);
-    }
+
 
   }
 
