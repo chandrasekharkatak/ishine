@@ -391,6 +391,12 @@
         <option *ngFor="let dept of departments" [value]="dept.deptId">{{ dept.name }}</option>
       </select>
     </div> -->
+
+    <div class="d-flex justify-content-end ">
+      <button class="btn btn-outline-primary btn-sm" (click)="poProjectSync(alert_message)">
+        <i class="fa fa-sync-alt me-1"></i> Sync PO 
+      </button>
+    </div>
     <div class="d-flex justify-content-end" *ngIf="showDetails">
       <div class="col-md-3 ">
         <div class="form-group">
@@ -515,11 +521,11 @@
 
           <!-- Flag Buttons -->
           <div *ngIf="box !== 'Internal'" class="status-buttons">
-            <button class="status-btn" [ngClass]="{ 'active-btn': selectedFlag[box] === 'Active' }"
+            <button class="status-btn" [ngClass]="{ 'active-flag': selectedFlag[box] === 'Active' }" 
               (click)="selectFlag(box, 'Active',alert_message)">
               Active
             </button>
-            <button class="status-btn" [ngClass]="{ 'active-btn': selectedFlag[box] === 'Inactive' }"
+            <button class="status-btn" [ngClass]="{ 'inactive-flag': selectedFlag[box] === 'Inactive' }"
               (click)="selectFlag(box, 'Inactive',alert_message)">
               Inactive
             </button>

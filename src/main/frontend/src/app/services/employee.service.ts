@@ -365,4 +365,8 @@ updateDefaultProject(newemployeeObj : any){
 
  }
 
+ getPoProjectSync(){
+  return this.http.get(`${this.baseUrl}` + `api/poprojectclone`);
+ }
+
 }

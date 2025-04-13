@@ -379,6 +379,20 @@ export class ReportListComponent implements OnInit {
     }, 0);
   }
 
+  poProjectSync(template: TemplateRef<any>){
+    this.employeeService.getPoProjectSync().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        this.openAlertMod(this.alertModal,response.serviceResponse);
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000); 
+      }
+    });
+  }
+
+
+
+
 
   employeeList: any[] = [];
   projectList: any[] = [];
@@ -404,14 +418,30 @@ export class ReportListComponent implements OnInit {
 
   }
 
-  // Dummy count functions
+  
   getTotalCount(box: string): number {
-    return this.projectSummary[box]?.totalEmpPerProjectType || 0;
+    const category = this.selectedTab[box];
+  
+   
+    if (category === 'Project') {
+      return this.projectSummary[box]?.Project?.total_projects_per_po_project || 0;
+    }
+  
+   
+    return this.projectSummary[box]?.Employee?.totalEmpPerProjectType || 0;
   }
-
+  
   getCount(box: string, billableType: string): number {
-    return this.projectSummary[box]?.[billableType] || 0;
+    const category = this.selectedTab[box];
+  
+    if (category === 'Project') {
+      return this.projectSummary[box]?.Project?.[billableType] || 0;
+    }
+  
+   
+    return this.projectSummary[box]?.Employee?.[billableType] || 0;
   }
+  
 
   getAllOrDeptWiseEmployeeTimesheetReport() {
     this.filteringTimesheet.deptId = this.selectedDepartment;
@@ -441,7 +471,7 @@ export class ReportListComponent implements OnInit {
     this.showDetails = !this.showDetails;
     this.show = -1;
     if (this.showDetails === false) {
-      alert("toggle off")
+      // alert("toggle off")
       this.showEmployeeReportTable()
     }
     else {
@@ -449,7 +479,7 @@ export class ReportListComponent implements OnInit {
       this.selectedDepartment = 'all';
 
       this.employeeReportObj.deptId = this.departments.map(dept => dept.deptId);
-      alert("toggle on" + this.departments.length);
+      // alert("toggle on" + this.departments.length);
 
       this.employeeReportObj = {
         deptId: this.employeeReportObj.deptId,
