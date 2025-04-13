@@ -44,5 +44,7 @@ public class GetEmployeeProjectReportForEmployeeDTO {
     private Map<String, String> projects;
     private String clientRM;
     private String apmosysRM;
+    private String effectiveStartDate;
+    private String effectiveEndDate;
 
 }

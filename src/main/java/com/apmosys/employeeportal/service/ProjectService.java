@@ -1698,7 +1698,7 @@ public class ProjectService {
                  .append("emp_proj_client.po_no, emp_proj_client.client_name, emp_proj_client.client_location, e.work_location, ")
                  .append("e.total_experience, d.dept_id, d.name as departmentName, emp_proj_client.po_project_type, j.name as jobrole, ")
                  .append("emp_proj_client.po_project_id, eppm.primary_project_name, eppm.primary_project_id, emp_proj_client.clientrm, ")
-                 .append("emp_proj_client.apmosysrm FROM employee e ")
+                 .append("emp_proj_client.apmosysrm, emp_proj_client.effective_start_date, emp_proj_client.effective_end_date FROM employee e ")
                  .append("INNER JOIN job_role j ON j.job_role_id = e.job_role_id ")
                  .append("INNER JOIN department d ON d.dept_id = j.dept_id ")
                  .append("INNER JOIN employee m ON e.manager_id = m.emp_id ")
@@ -1717,6 +1717,8 @@ public class ProjectService {
                  .append("           GROUP_CONCAT(DISTINCT p.po_project_id ORDER BY p.project_id) AS po_project_id, ")
                  .append("           GROUP_CONCAT(DISTINCT p.clientrm ORDER BY p.project_id) AS clientrm, ")
                  .append("           GROUP_CONCAT(DISTINCT p.apmosysrm ORDER BY p.project_id) AS apmosysrm ")
+                 .append("           GROUP_CONCAT(DISTINCT etm.start_date ORDER BY p.project_id) AS effective_start_date ")
+                 .append("           GROUP_CONCAT(DISTINCT etm.end_date ORDER BY p.project_id) AS effective_end_date ")
                  .append("    FROM employee_team_mapping etm ")
                  .append("    LEFT JOIN teams t ON t.team_id = etm.team_id ")
                  .append("    LEFT JOIN projects p ON p.project_id = t.project_id ")
@@ -1727,7 +1729,7 @@ public class ProjectService {
                  .append("    GROUP BY etm.emp_id ")
                  .append(") emp_proj_client ON emp_proj_client.emp_id = e.emp_id ")
                  .append("WHERE e.employmentstatus != 'InActive' AND emp_proj_client.project_id IS NOT NULL ")
-                 .append(buildOuterWhereClause(billableType, deptIds));  // Filters for outer query
+                 .append(buildOuterWhereClause(billableType, deptIds));  
 
         } else if ("E".equalsIgnoreCase(dto.getReport())) {
             // === Employee Query ===
@@ -1738,7 +1740,7 @@ public class ProjectService {
 	             .append("p.po_no, c.client_name, cl.client_location, e.work_location, ")
 	             .append("e.total_experience, d.dept_id, d.name as departmentName, p.po_project_type, j.name as jobrole, ")
 	             .append("p.po_project_id, eppm.primary_project_name, eppm.primary_project_id, p.clientrm, ")
-	             .append("p.apmosysrm FROM employee e ")
+	             .append("p.apmosysrm, etm.start_date as effective_start_date, etm.end_date as effective_end_date FROM employee e ")
                  .append("INNER JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id ")
                  .append("LEFT JOIN teams t ON t.team_id = etm.team_id ")
                  .append("LEFT JOIN projects p ON p.project_id = t.project_id ")
@@ -2019,6 +2021,8 @@ public class ProjectService {
 	            dtoObj.setPrimaryProjectId(record[27] != null ? record[27].toString() : null);
 	            dtoObj.setClientRM(record[28] != null ? record[28].toString() : null);
 	            dtoObj.setApmosysRM(record[29] != null ? record[29].toString() : null);
+	            dtoObj.setEffectiveStartDate(record[30] != null ? record[30].toString() : null);
+	            dtoObj.setEffectiveEndDate(record[31] != null ? record[31].toString() : null);
 
 	            return dtoObj;
 	        }).collect(Collectors.toList());
